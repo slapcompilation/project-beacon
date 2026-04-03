@@ -1,7 +1,7 @@
 // Layer: Eye — API calls for Eye Layer intelligence RPCs
 
 import { supabase } from '@/lib/supabase/client'
-import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, SimulationScenarioType, SimulationResult, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow } from '@beacon/types'
+import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, SimulationScenarioType, SimulationResult, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow } from '@beacon/types'
 
 // ─── Shift Intelligence ────────────────────────────────────────────────────────
 
@@ -261,6 +261,17 @@ export async function fetchSimulation(
 export async function fetchTeamPerformance(windowDays = 30): Promise<TeamPerformanceRow[]> {
   const result = await supabase.rpc('get_team_performance', { p_window_days: windowDays }) as unknown as {
     data: TeamPerformanceRow[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+// ─── Product Performance Intelligence (Sprint 12) ─────────────────────────────
+
+export async function fetchProductPerformance(windowDays = 30): Promise<ProductPerformanceRow[]> {
+  const result = await supabase.rpc('get_product_performance', { p_window_days: windowDays }) as unknown as {
+    data: ProductPerformanceRow[] | null
     error: { message: string } | null
   }
   if (result.error) throw new Error(result.error.message)

@@ -35,6 +35,7 @@ import FBIntelligencePage from './FBIntelligencePage'
 import TeamIntelligencePage from './TeamIntelligencePage'
 import SmartProposalsPage from './SmartProposalsPage'
 import CPORDashboard from './CPORDashboard'
+import BudgetTrackerPage from './BudgetTrackerPage'
 
 // ─── Shared tab strip ─────────────────────────────────────────────────────────
 
@@ -339,6 +340,40 @@ function OperationsTab() {
   )
 }
 
+// ─── Financial sub-tabs ───────────────────────────────────────────────────────
+
+function FinancialTab() {
+  const [sub, setSub] = useState<'cpor' | 'budget'>('cpor')
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex border-b shrink-0 px-4 bg-background">
+        {[
+          { id: 'cpor'   as const, label: 'CPOR'   },
+          { id: 'budget' as const, label: 'Budget'  },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => { setSub(t.id) }}
+            className={cn(
+              'px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
+              sub === t.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div className="flex-1 overflow-hidden">
+        {sub === 'cpor'   && <CPORDashboard />}
+        {sub === 'budget' && <BudgetTrackerPage />}
+      </div>
+    </div>
+  )
+}
+
 // ─── Intelligence sub-tabs ────────────────────────────────────────────────────
 
 function IntelligenceTab() {
@@ -437,7 +472,7 @@ export default function MindWorkspace() {
         {panel === 'proposals'    && <SmartProposalsPage />}
         {panel === 'procurement'  && <ProcurementPage />}
         {panel === 'intelligence' && <IntelligenceTab />}
-        {panel === 'financial'    && <CPORDashboard />}
+        {panel === 'financial'    && <FinancialTab />}
         {panel === 'team'         && <TeamIntelligencePage />}
         {panel === 'events'       && <EventDemandPage />}
         {panel === 'chain'        && (

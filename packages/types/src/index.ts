@@ -1480,6 +1480,28 @@ export interface TeamPerformanceRow {
   outlier_reason:             string | null   // null when not an outlier
 }
 
+// ─── Product Performance Intelligence (Sprint 12) ────────────────────────────
+
+export interface ProductPerformanceRow {
+  variant_id:          string
+  product_name:        string
+  variant_name:        string
+  sku:                 string
+  category_name:       string | null
+  current_stock:       number
+  par_level:           number
+  consumption_units:   number
+  consumption_value:   number
+  waste_units:         number
+  waste_cost:          number
+  waste_rate_pct:      number | null   // null = no activity
+  stockout_days:       number
+  below_par_days:      number
+  par_compliance_pct:  number
+  performance_score:   number          // 0–100, higher = more attention needed
+  performance_tier:    'critical' | 'waste_heavy' | 'stockout_prone' | 'at_risk' | 'idle' | 'efficient'
+}
+
 // ─── Budget vs Actual Tracker (Sprint 11) ────────────────────────────────────
 
 export interface BudgetVsActualRow {

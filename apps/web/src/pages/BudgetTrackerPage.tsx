@@ -6,7 +6,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { format, getDaysInMonth, getDate } from 'date-fns'
 import {
-  TrendingUp, TrendingDown, Minus, Loader2, AlertTriangle,
+  TrendingUp, Loader2, AlertTriangle,
   CheckCircle2, Target, Pencil, Trash2, Check, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'

@@ -13,17 +13,19 @@ import MonitorPage from './MonitorPage'
 import StockRiskMatrixPage from './StockRiskMatrixPage'
 import SimulationCockpitPage from './SimulationCockpitPage'
 import AdaptivePARPage from './AdaptivePARPage'
+import ProductPerformancePage from './ProductPerformancePage'
 
 const TABS = [
-  { id: 'signals',    label: 'Waste & Signals' },
-  { id: 'restock',    label: 'Restock Queue'   },
-  { id: 'risk',       label: 'Risk Matrix'      },
-  { id: 'par',        label: 'PAR Engine'       },
-  { id: 'simulation', label: 'Simulation'       },
-  { id: 'live',       label: 'Live Feed'        },
-  { id: 'forecasts',  label: 'Forecasts'        },
-  { id: 'analytics',  label: 'Analytics'        },
-  { id: 'alerts',     label: 'Alerts'           },
+  { id: 'signals',     label: 'Waste & Signals' },
+  { id: 'restock',     label: 'Restock Queue'   },
+  { id: 'performance', label: 'Performance'     },
+  { id: 'risk',        label: 'Risk Matrix'     },
+  { id: 'par',         label: 'PAR Engine'      },
+  { id: 'simulation',  label: 'Simulation'      },
+  { id: 'live',        label: 'Live Feed'       },
+  { id: 'forecasts',   label: 'Forecasts'       },
+  { id: 'analytics',   label: 'Analytics'       },
+  { id: 'alerts',      label: 'Alerts'          },
 ] as const
 
 type TabId = typeof TABS[number]['id']
@@ -53,9 +55,10 @@ export default function EyeWorkspace() {
         ))}
       </div>
       <div className="flex-1 overflow-hidden">
-        {panel === 'signals'   && <WasteRadarPage />}
-        {panel === 'restock'   && <PredictiveRestockPage />}
-        {panel === 'risk'       && <StockRiskMatrixPage />}
+        {panel === 'signals'     && <WasteRadarPage />}
+        {panel === 'restock'     && <PredictiveRestockPage />}
+        {panel === 'performance' && <ProductPerformancePage />}
+        {panel === 'risk'        && <StockRiskMatrixPage />}
         {panel === 'par'        && <AdaptivePARPage />}
         {panel === 'simulation' && <SimulationCockpitPage />}
         {panel === 'live'       && <MonitorPage />}

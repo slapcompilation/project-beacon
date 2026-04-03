@@ -12,6 +12,7 @@ import {
   fetchVariantIntelligence, fetchStockPressure,
   fetchAnomalyExplanation, fetchCausalTrace, logCausalTrace, fetchSimulation, fetchOptimalPAR,
   fetchTeamPerformance,
+  fetchProductPerformance,
   fetchStocktakeSessions, fetchStocktakeVariance,
 } from '../api'
 import type { InventoryIntelligenceRow } from '../api'
@@ -436,5 +437,18 @@ export function useStocktakeVariance(sessionId: string | null) {
     queryFn:  () => fetchStocktakeVariance(sessionId!),
     enabled:  !!hotelId && !!sessionId,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+// ─── Product Performance Intelligence (Sprint 12) ─────────────────────────────
+
+export function useProductPerformance(windowDays = 30) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['eye', 'product-performance', hotelId, windowDays],
+    queryFn:  () => fetchProductPerformance(windowDays),
+    enabled:  !!hotelId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
   })
 }

@@ -24,9 +24,18 @@ CREATE TABLE IF NOT EXISTS budget_allocations (
   period_month     date        NOT NULL,    -- always first day of month
   allocated_amount numeric(12,2) NOT NULL CHECK (allocated_amount >= 0),
   created_at       timestamptz NOT NULL DEFAULT now(),
-  updated_at       timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (hotel_id, COALESCE(category_id, '00000000-0000-0000-0000-000000000000'::uuid), period_month)
+  updated_at       timestamptz NOT NULL DEFAULT now()
 );
+
+-- Two partial unique indexes handle NULL category_id correctly
+-- (NULL != NULL in SQL, so a plain UNIQUE on the column wouldn't enforce one-per-null-category)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_budget_unique_category
+  ON budget_allocations (hotel_id, category_id, period_month)
+  WHERE category_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_budget_unique_null_category
+  ON budget_allocations (hotel_id, period_month)
+  WHERE category_id IS NULL;
 
 ALTER TABLE budget_allocations ENABLE ROW LEVEL SECURITY;
 
@@ -54,14 +63,20 @@ DECLARE
   v_month     date := DATE_TRUNC('month', p_period_month)::date;
   v_id        uuid;
 BEGIN
-  INSERT INTO budget_allocations (hotel_id, category_id, period_month, allocated_amount)
-  VALUES (v_hotel_id, p_category_id, v_month, p_allocated_amount)
-  ON CONFLICT (hotel_id,
-               COALESCE(category_id, '00000000-0000-0000-0000-000000000000'::uuid),
-               period_month)
-  DO UPDATE SET allocated_amount = EXCLUDED.allocated_amount,
-                updated_at       = now()
+  -- Try UPDATE first (handles both NULL and non-NULL category_id)
+  UPDATE budget_allocations
+     SET allocated_amount = p_allocated_amount, updated_at = now()
+   WHERE hotel_id    = v_hotel_id
+     AND period_month = v_month
+     AND (category_id = p_category_id OR (category_id IS NULL AND p_category_id IS NULL))
   RETURNING id INTO v_id;
+
+  -- INSERT if no existing row matched
+  IF v_id IS NULL THEN
+    INSERT INTO budget_allocations (hotel_id, category_id, period_month, allocated_amount)
+    VALUES (v_hotel_id, p_category_id, v_month, p_allocated_amount)
+    RETURNING id INTO v_id;
+  END IF;
 
   RETURN v_id;
 END;
