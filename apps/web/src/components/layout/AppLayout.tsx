@@ -7,6 +7,7 @@ import { CommandBar } from '@/components/CommandBar'
 import { QuickActions } from '@/components/QuickActions'
 import { NotificationsPanel } from '@/components/NotificationsPanel'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
+import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { useRealtimeSync } from '@/hooks/useRealtimeSync'
 import { useSyncQueue } from '@/hooks/useSyncQueue'
 import { useKeyboardNav } from '@/hooks/useKeyboardNav'
@@ -88,9 +89,11 @@ export function AppLayout() {
         </div>
 
         <main className="flex-1 overflow-y-auto">
-          <div className="page-fade h-full">
-            <Outlet />
-          </div>
+          <PanelErrorBoundary name="Page" className="h-full">
+            <div className="page-fade h-full">
+              <Outlet />
+            </div>
+          </PanelErrorBoundary>
         </main>
       </div>
       <CommandBar />

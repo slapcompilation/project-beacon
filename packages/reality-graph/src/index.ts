@@ -5,5 +5,62 @@
 export type { Layer, LayerMeta } from './layers'
 export { LAYERS } from './layers'
 export type { NodeType, EdgeType, GraphNode, GraphEdge, LayerDeclaration } from './types'
-export type { EdgeRecord } from './engine'
-export { edgesForNode, outEdges, inEdges, walkRevertChain, hasEdge, groupByEdgeType } from './engine'
+export type { EdgeRecord, TraversalNode, TraverseOptions } from './engine'
+export { edgesForNode, outEdges, inEdges, walkRevertChain, hasEdge, groupByEdgeType, traverseGraph, otherSide } from './engine'
+
+// ── Action Registry — every mutation flows through here ───────────────────────
+export type {
+  BeaconAction,
+  TriggeredBy,
+  ActionResult,
+  ActionSuccess,
+  ActionFailure,
+  ValidationResult,
+  EdgeInsert,
+  EdgeContext,
+  MutationResult,
+  RestockRequestResult,
+  StockLogResult,
+  ReceiveStockResult,
+  RevertActionResult,
+} from './actions/index'
+export { validateAction, edgesForAction } from './actions/index'
+
+// ── Node computed properties — logic on nodes, never in UI ────────────────────
+export {
+  variantNode,
+  stockUrgency,
+  daysUntilZero,
+  consumptionUrgency,
+  restockRecommendedQty,
+  forecastForVariant,
+  restockRequestNode,
+  restockFulfillmentPct,
+  totalReceived,
+  remainingQty,
+  restockUrgency,
+  isStale,
+  restockEstimatedCost,
+  purchaseOrderNode,
+  poFulfillmentPct,
+  fulfilledLineCount,
+  costVariancePct,
+  costVarianceAmount,
+  isOverdue,
+  daysOpenSinceSent,
+  daysUntilDelivery,
+  supplierNode,
+  riskLevel,
+  riskLevelFromRow,
+  leadTimeLabel,
+  daysUntilContractExpiry,
+  hasContractExpiringSoon,
+  onTimePctLabel,
+  costVarianceLabel,
+} from './nodes/index'
+export type {
+  StockUrgency,
+  ConsumptionUrgency,
+  RestockUrgency,
+  SupplierRiskLevel,
+} from './nodes/index'

@@ -44,7 +44,8 @@ import type { SupplierLeverageRow, SupplierPriceHistoryRow } from '@beacon/types
 import { PurchaseOrderContent } from '@/pages/PurchaseOrderPage'
 import SavedOrdersPage from '@/pages/SavedOrdersPage'
 import { POMatchContent } from '@/pages/POMatchPage'
-import { usePODiscrepancies } from '@/features/mind/hooks'
+import PODispatchPage from '@/pages/PODispatchPage'
+import { usePODiscrepancies, usePOSummary } from '@/features/mind/hooks'
 
 // ─── Score helpers ─────────────────────────────────────────────────────────────
 
@@ -1163,6 +1164,8 @@ export default function ProcurementPage() {
   const deleteSupplier = useDeleteSupplier()
   const { data: discrepancies = [] } = usePODiscrepancies()
   const pendingDiscrepancyCount = discrepancies.filter((d) => d.status === 'pending').length
+  const { data: allPOs = [] } = usePOSummary()
+  const draftPOCount = allPOs.filter(p => p.status === 'draft').length
 
   const [search, setSearch]             = useState('')
   const [selectedId, setSelectedId]     = useState<string | null>(null)
@@ -1227,6 +1230,7 @@ export default function ProcurementPage() {
         {[
           { id: 'suppliers', label: 'Suppliers & Scorecards', icon: Handshake },
           { id: 'orders',    label: 'PO Generator',           icon: ShoppingCart },
+          { id: 'dispatch',  label: `Mind · Dispatch${draftPOCount > 0 ? ` · ${draftPOCount}` : ''}`, icon: Truck },
           { id: 'saved',     label: 'Saved Orders',           icon: PackageCheck },
           { id: 'match',     label: `3-Way Match${pendingDiscrepancyCount > 0 ? ` · ${pendingDiscrepancyCount}` : ''}`, icon: AlertTriangle },
         ].map(({ id, label, icon: Icon }) => (
@@ -1258,6 +1262,13 @@ export default function ProcurementPage() {
       {topTab === 'saved' && (
         <div className="flex-1 overflow-hidden">
           <SavedOrdersPage />
+        </div>
+      )}
+
+      {/* PO Dispatch tab */}
+      {topTab === 'dispatch' && (
+        <div className="flex-1 overflow-hidden">
+          <PODispatchPage />
         </div>
       )}
 

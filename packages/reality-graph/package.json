@@ -8,7 +8,9 @@
     "type-check": "tsc --noEmit",
     "lint": "echo 'reality-graph package — no lint needed'"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@beacon/types": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "^5.0.0"
   }

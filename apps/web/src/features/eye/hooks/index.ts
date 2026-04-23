@@ -13,7 +13,9 @@ import {
   fetchAnomalyExplanation, fetchCausalTrace, logCausalTrace, fetchSimulation, fetchOptimalPAR,
   fetchTeamPerformance,
   fetchProductPerformance,
+  fetchActiveIncidents,
   fetchStocktakeSessions, fetchStocktakeVariance,
+  fetchSupplierReliability,
 } from '../api'
 import type { InventoryIntelligenceRow } from '../api'
 import type { ConsumptionForecastRow, ProductWithVariants, ProductVariant, Supplier, SimulationScenarioType } from '@beacon/types'
@@ -447,6 +449,32 @@ export function useProductPerformance(windowDays = 30) {
   return useQuery({
     queryKey: ['eye', 'product-performance', hotelId, windowDays],
     queryFn:  () => fetchProductPerformance(windowDays),
+    enabled:  !!hotelId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+}
+
+// ─── Cross-Domain Incident Correlation (Sprint 13) ────────────────────────────
+
+export function useActiveIncidents(windowDays = 7) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['eye', 'active-incidents', hotelId, windowDays],
+    queryFn:  () => fetchActiveIncidents(windowDays),
+    enabled:  !!hotelId,
+    staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+// ─── Supplier Reliability Scorecard (Sprint 28) ───────────────────────────────
+
+export function useSupplierReliability(days = 90) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['eye', 'supplier-reliability', hotelId, days],
+    queryFn:  () => fetchSupplierReliability(days),
     enabled:  !!hotelId,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,

@@ -1,5 +1,8 @@
-// Layer: Flow — variant timeline API
+// Layer: Flow — variant timeline + shift handover API
 import { supabase } from '@/lib/supabase/client'
+import type { ShiftHandover, HandoverFlaggedItem } from '@beacon/types'
+
+export type { ShiftHandover, HandoverFlaggedItem }
 
 export interface TimelineRow {
   log_id:           string
@@ -20,6 +23,29 @@ export interface TimelineRow {
   was_offline:      boolean
   photo_url:        string | null
   cost_impact:      number
+}
+
+export async function fetchShiftHandovers(limit = 10): Promise<ShiftHandover[]> {
+  const result = await supabase.rpc('get_shift_handovers', { p_limit: limit }) as unknown as { data: ShiftHandover[] | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+export async function createShiftHandover(payload: {
+  window_hours: number
+  started_at:   string
+  notes:        string | null
+  flagged_items: HandoverFlaggedItem[]
+}): Promise<void> {
+  const { error } = await supabase
+    .from('shift_handovers')
+    .insert({
+      window_hours:  payload.window_hours,
+      started_at:    payload.started_at,
+      notes:         payload.notes,
+      flagged_items: payload.flagged_items,
+    })
+  if (error) throw new Error(error.message)
 }
 
 export async function fetchVariantTimeline(

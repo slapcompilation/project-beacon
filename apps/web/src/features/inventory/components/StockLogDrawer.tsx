@@ -4,6 +4,7 @@
 
 import { useState, useMemo } from 'react'
 import { format } from 'date-fns'
+import { Link } from 'react-router-dom'
 import { useDateFormat } from '@/features/user/hooks'
 import { RotateCcw, TrendingUp, TrendingDown, RefreshCw, BarChart2 } from 'lucide-react'
 import {
@@ -287,18 +288,21 @@ export function StockLogDrawer({ open, onClose, product }: Props) {
                               </span>
                             </div>
                             <p className="mt-0.5 truncate text-sm text-foreground">{log.reason}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              {`${fmtDate(new Date(log.timestamp))} · ${format(new Date(log.timestamp), 'HH:mm')}`}
+                            <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                              <span>{`${fmtDate(new Date(log.timestamp))} · ${format(new Date(log.timestamp), 'HH:mm')}`}</span>
                               {log.is_revert && (
-                                <span className="ml-2 rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs">
+                                <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs">
                                   undo
                                 </span>
                               )}
                               {alreadyReverted && !log.is_revert && (
-                                <span className="ml-2 rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs text-muted-foreground">
+                                <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs text-muted-foreground">
                                   undone
                                 </span>
                               )}
+                              <Link to={`/log/${log.id}`} className="ml-auto text-primary hover:underline text-[10px]">
+                                View →
+                              </Link>
                             </p>
                             {log.photo_url && (
                               <a

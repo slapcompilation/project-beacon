@@ -12,7 +12,8 @@
 //   GL Export    — existing GLExportPage
 
 import { useState } from 'react'
-import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useSearchParams, useNavigate, Link } from 'react-router-dom'
+import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import {
   ShieldAlert, AlertTriangle, Check, Loader2, ChevronRight,
@@ -25,15 +26,11 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useSupplierSynthesis, usePODiscrepancies, useReviewPODiscrepancy, usePOSummary } from '@/features/mind/hooks'
 import { useBriefingActions } from '@/features/briefing/hooks'
 import type { SupplierSynthesisRow, PODiscrepancy, BriefingAction, POSummaryRow } from '@beacon/types'
-import ProcurementPage from './ProcurementPage'
-import NegotiationPrepPage from './NegotiationPrepPage'
-import InvoicingPage from './InvoicingPage'
 import GLExportPage from './GLExportPage'
 import ChainPage from './ChainPage'
 import EventDemandPage from './EventDemandPage'
 import FBIntelligencePage from './FBIntelligencePage'
 import TeamIntelligencePage from './TeamIntelligencePage'
-import SmartProposalsPage from './SmartProposalsPage'
 import CPORDashboard from './CPORDashboard'
 import BudgetTrackerPage from './BudgetTrackerPage'
 
@@ -70,7 +67,14 @@ function MindBriefingStrip({ actions }: { actions: BriefingAction[] }) {
         <div key={`${a.action_type}-${a.entity_id ?? a.action_type}`}
           className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors">
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate">{a.entity_label}</p>
+            <p className="text-xs font-medium truncate">
+              {a.entity_id
+                ? (a.action_type === 'supplier_risk' || a.action_type === 'invoice_discrepancy')
+                  ? <Link to={`/supplier/${a.entity_id}`} className="hover:underline">{a.entity_label}</Link>
+                  : <Link to={`/variant/${a.entity_id}`} className="hover:underline">{a.entity_label}</Link>
+                : a.entity_label
+              }
+            </p>
             <p className="text-xs text-muted-foreground truncate">{a.context}</p>
           </div>
           <button
@@ -107,7 +111,9 @@ function SupplierRiskTriage({ rows, currency }: { rows: SupplierSynthesisRow[]; 
             {r.urgency_tier}
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium">{r.supplier_name}</p>
+            <p className="text-xs font-medium">
+              <Link to={`/supplier/${r.supplier_id}`} className="hover:underline">{r.supplier_name}</Link>
+            </p>
             <div className="flex flex-wrap gap-1 mt-0.5">
               {r.reasons.slice(0, 2).map((reason) => (
                 <span key={reason} className="text-[10px] border rounded px-1.5 py-0.5 text-muted-foreground">
@@ -286,7 +292,11 @@ function OpenPOPipeline({ currency }: { currency: string }) {
             </span>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium truncate">
-                {po.po_number} · {po.supplier_name}
+                <Link to={`/po/${po.id}`} className="hover:underline">{po.po_number}</Link>
+                {po.supplier_id
+                  ? <Link to={`/supplier/${po.supplier_id}`} className="text-muted-foreground hover:underline ml-1">· {po.supplier_name}</Link>
+                  : <span className="text-muted-foreground ml-1">· {po.supplier_name}</span>
+                }
               </p>
               <div className="flex items-center gap-2 mt-0.5">
                 <span className={cn('text-[10px]', eta.cls)}>
@@ -340,16 +350,18 @@ function OperationsTab() {
   )
 }
 
-// ─── Financial sub-tabs ───────────────────────────────────────────────────────
+// ─── Finance sub-tabs (CPOR + Budget + GL + F&B Intel) ───────────────────────
 
 function FinancialTab() {
-  const [sub, setSub] = useState<'cpor' | 'budget'>('cpor')
+  const [sub, setSub] = useState<'cpor' | 'budget' | 'gl' | 'fb'>('cpor')
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b shrink-0 px-4 bg-background">
         {[
-          { id: 'cpor'   as const, label: 'CPOR'   },
-          { id: 'budget' as const, label: 'Budget'  },
+          { id: 'cpor'   as const, label: 'CPOR'     },
+          { id: 'budget' as const, label: 'Budget'   },
+          { id: 'gl'     as const, label: 'GL Export' },
+          { id: 'fb'     as const, label: 'F&B Intel' },
         ].map((t) => (
           <button
             key={t.id}
@@ -366,25 +378,29 @@ function FinancialTab() {
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-hidden">
-        {sub === 'cpor'   && <CPORDashboard />}
-        {sub === 'budget' && <BudgetTrackerPage />}
-      </div>
+      <PanelErrorBoundary name={`Mind · Finance · ${sub}`}>
+        <div className="flex-1 overflow-hidden">
+          {sub === 'cpor'   && <CPORDashboard />}
+          {sub === 'budget' && <BudgetTrackerPage />}
+          {sub === 'gl'     && <GLExportPage />}
+          {sub === 'fb'     && <FBIntelligencePage />}
+        </div>
+      </PanelErrorBoundary>
     </div>
   )
 }
 
-// ─── Intelligence sub-tabs ────────────────────────────────────────────────────
+// ─── Strategy sub-tabs (Chain + Team + Events) ───────────────────────────────
 
-function IntelligenceTab() {
-  const [sub, setSub] = useState<'cost' | 'leverage' | 'fb'>('cost')
+function StrategyTab({ role }: { role: string }) {
+  const [sub, setSub] = useState<'chain' | 'team' | 'events'>('chain')
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b shrink-0 px-4 bg-background">
         {[
-          { id: 'cost'     as const, label: 'Cost Analysis' },
-          { id: 'leverage' as const, label: 'Leverage' },
-          { id: 'fb'       as const, label: 'F&B Intel' },
+          { id: 'chain'  as const, label: 'Chain'  },
+          { id: 'team'   as const, label: 'Team'   },
+          { id: 'events' as const, label: 'Events' },
         ].map((t) => (
           <button
             key={t.id}
@@ -401,40 +417,69 @@ function IntelligenceTab() {
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-hidden">
-        {sub === 'cost'     && <NegotiationPrepPage />}
-        {sub === 'leverage' && <InvoicingPage />}
-        {sub === 'fb'       && <FBIntelligencePage />}
-      </div>
+      <PanelErrorBoundary name={`Mind · Strategy · ${sub}`}>
+        <div className="flex-1 overflow-hidden">
+          {sub === 'chain' && (
+            role === 'owner' ? <ChainPage /> : (
+              <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
+                <Brain className="h-10 w-10 text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">Chain benchmarking is available to owner role only.</p>
+              </div>
+            )
+          )}
+          {sub === 'team'   && <TeamIntelligencePage />}
+          {sub === 'events' && <EventDemandPage />}
+        </div>
+      </PanelErrorBoundary>
     </div>
   )
 }
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
+// Four panels — each maps to one ontological domain.
+// Old panel IDs (contracts, procurement, leverage, etc.) redirect to their parent domain
+// so existing deep-links from object pages and briefing actions continue to work.
 
-const TABS = [
-  { id: 'operations',   label: 'Operations'   },
-  { id: 'proposals',    label: 'Proposals'    },
-  { id: 'procurement',  label: 'Procurement'  },
-  { id: 'intelligence', label: 'Intelligence' },
-  { id: 'financial',    label: 'Financial'    },
-  { id: 'team',         label: 'Team'         },
-  { id: 'events',       label: 'Events'       },
-  { id: 'chain',        label: 'Chain'        },
-  { id: 'gl',           label: 'GL Export'    },
-] as const
+import SupplierBrowserPage from './SupplierBrowserPage'
 
-type TabId = typeof TABS[number]['id']
+type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
+
+// Backward-compat redirect map: old panel IDs → new panel
+const PANEL_REDIRECT: Record<string, PanelId> = {
+  'operations':   'triage',
+  'procurement':  'suppliers',
+  'contracts':    'suppliers',
+  'leverage':     'suppliers',
+  'dispatch':     'suppliers',
+  'proposals':    'triage',
+  'par':          'triage',
+  'categories':   'triage',
+  'menu':         'triage',
+  'intelligence': 'finance',
+  'financial':    'finance',
+  'gl':           'finance',
+  'chain':        'strategy',
+  'team':         'strategy',
+  'events':       'strategy',
+}
+
+const PANELS: { id: PanelId; label: string }[] = [
+  { id: 'triage',    label: 'Mind · Triage'    },
+  { id: 'suppliers', label: 'Mind · Suppliers' },
+  { id: 'finance',   label: 'Mind · Finance'   },
+  { id: 'strategy',  label: 'Mind · Strategy'  },
+]
 
 export default function MindWorkspace() {
   const role = useAuthStore((s) => s.role ?? 'limited_access')
   const [params, setParams] = useSearchParams()
-  const raw = params.get('panel') ?? 'operations'
-  const panel: TabId = TABS.some((t) => t.id === raw) ? raw as TabId : 'operations'
+  const raw = params.get('panel') ?? 'triage'
 
-  const setPanel = (id: TabId) => {
-    setParams({ panel: id }, { replace: true })
-  }
+  // Resolve old panel IDs to new ones for backward compat
+  const resolved: PanelId =
+    (PANELS.some((p) => p.id === raw) ? raw as PanelId : null)
+    ?? PANEL_REDIRECT[raw]
+    ?? 'triage'
 
   if (role !== 'admin' && role !== 'owner') {
     return (
@@ -447,46 +492,33 @@ export default function MindWorkspace() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Tab strip */}
+      {/* Top-level panel selector */}
       <div className="flex border-b shrink-0 bg-background">
-        {TABS.map((t) => (
+        {PANELS.map((p) => (
           <button
-            key={t.id}
+            key={p.id}
             type="button"
-            onClick={() => { setPanel(t.id) }}
+            onClick={() => { setParams({ panel: p.id }, { replace: true }) }}
             className={cn(
               'px-5 py-3 text-sm font-medium border-b-2 transition-colors -mb-px',
-              panel === t.id
+              resolved === p.id
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
             )}
           >
-            {t.label}
+            {p.label}
           </button>
         ))}
       </div>
 
-      {/* Panel */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        {panel === 'operations'   && <OperationsTab />}
-        {panel === 'proposals'    && <SmartProposalsPage />}
-        {panel === 'procurement'  && <ProcurementPage />}
-        {panel === 'intelligence' && <IntelligenceTab />}
-        {panel === 'financial'    && <FinancialTab />}
-        {panel === 'team'         && <TeamIntelligencePage />}
-        {panel === 'events'       && <EventDemandPage />}
-        {panel === 'chain'        && (
-          role === 'owner'
-            ? <ChainPage />
-            : (
-              <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-                <Brain className="h-10 w-10 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Chain benchmarking is available to owner role only.</p>
-              </div>
-            )
-        )}
-        {panel === 'gl'           && <GLExportPage />}
-      </div>
+      <PanelErrorBoundary name={`Mind · ${resolved}`}>
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {resolved === 'triage'    && <OperationsTab />}
+          {resolved === 'suppliers' && <SupplierBrowserPage />}
+          {resolved === 'finance'   && <FinancialTab />}
+          {resolved === 'strategy'  && <StrategyTab role={role} />}
+        </div>
+      </PanelErrorBoundary>
     </div>
   )
 }

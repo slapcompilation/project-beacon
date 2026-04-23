@@ -2,17 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchRestockRequests,
-  createRestockRequest,
   updateRestockStatus,
-  approveRestock,
-  rejectRestock,
+  autoPropose,
   fetchApprovalThresholds,
   updateApprovalThresholds,
-  receiveRestock,
   fetchReceives,
-  autoPropose,
   fetchApprovalVelocity,
   fetchSpendTrend,
 } from '../api'
@@ -32,10 +29,12 @@ export function useRestockRequests() {
   })
 }
 
+// ─── CREATE_RESTOCK_REQUEST → dispatches REQUEST_RESTOCK ──────────────────────
+
 export function useCreateRestockRequest() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
-  const userId = useAuthStore((s) => s.userId)
+  const userId  = useAuthStore((s) => s.userId)
 
   return useMutation({
     mutationFn: async ({
@@ -49,8 +48,9 @@ export function useCreateRestockRequest() {
       supplier?: string | null
       notes?: string | null
     }) => {
-      // Guard: if there's already an open (pending/approved) request for this variant,
-      // don't create a duplicate. Return a sentinel instead.
+      // Guard: if there's already an open (pending/approved) request for this
+      // variant, don't create a duplicate. Checked at hook level since it reads
+      // from TanStack Query cache — not a concern of the action registry.
       const cached = queryClient.getQueryData<import('../api').RestockRequestRow[]>(
         restockKeys.all(hotelId ?? ''),
       )
@@ -60,10 +60,20 @@ export function useCreateRestockRequest() {
       )
       if (alreadyOpen) return { alreadyOpen: true as const }
 
-      const created = await createRestockRequest(
-        hotelId ?? '', userId ?? '', variantId, quantityNeeded, supplier, notes,
+      const result = await dispatchAction(
+        {
+          type:           'REQUEST_RESTOCK',
+          hotelId:        hotelId ?? '',
+          requestorId:    userId ?? '',
+          variantId,
+          quantityNeeded,
+          supplier,
+          notes,
+        },
+        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
       )
-      return { alreadyOpen: false as const, created }
+      if (!result.success) throw new Error(result.error)
+      return { alreadyOpen: false as const, result }
     },
     onSuccess: (data) => {
       if (data.alreadyOpen) {
@@ -80,13 +90,17 @@ export function useCreateRestockRequest() {
   })
 }
 
+// ─── RECEIVE_STOCK → dispatches RECEIVE_STOCK ─────────────────────────────────
+
 export function useReceiveRestock() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
 
   return useMutation({
-    mutationFn: ({
+    mutationFn: async ({
       requestId,
+      variantId = '',
       quantityReceived,
       lotNumber,
       notes,
@@ -95,13 +109,33 @@ export function useReceiveRestock() {
       supplierId,
     }: {
       requestId: string
+      variantId?: string
       quantityReceived: number
       lotNumber?: string | null
       notes?: string | null
       unitCost?: number | null
       expiryDate?: string | null
       supplierId?: string | null
-    }) => receiveRestock(requestId, quantityReceived, lotNumber, notes, unitCost, expiryDate, supplierId),
+    }) => {
+      const result = await dispatchAction(
+        {
+          type: 'RECEIVE_STOCK',
+          requestId,
+          variantId,
+          quantityReceived,
+          hotelId: hotelId ?? '',
+          lotNumber,
+          notes,
+          unitCost,
+          expiryDate,
+          supplierId,
+        },
+        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+      // Return shape expected by call sites: { fulfilled, newBalance }
+      return result.data as import('@beacon/reality-graph').ReceiveStockResult
+    },
     onSuccess: (data) => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
       void queryClient.invalidateQueries({ queryKey: ['products', hotelId] })
@@ -160,24 +194,36 @@ export function useUpdateRestockStatus() {
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
       const label =
-        vars.status === 'approved'
-          ? 'Request approved'
-          : vars.status === 'fulfilled'
-            ? 'Marked as fulfilled'
-            : 'Request cancelled'
+        vars.status === 'approved'   ? 'Request approved'   :
+        vars.status === 'fulfilled'  ? 'Marked as fulfilled' :
+        'Request cancelled'
       toast.success(label)
     },
     onError: (err: Error) => toast.error(err.message),
   })
 }
 
+// ─── APPROVE_RESTOCK → dispatches APPROVE_RESTOCK ────────────────────────────
+
 export function useApproveRestock() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
 
   return useMutation({
-    mutationFn: ({ id, notes }: { id: string; notes?: string | null }) =>
-      approveRestock(id, notes),
+    mutationFn: async ({
+      id,
+      notes,
+    }: {
+      id: string
+      notes?: string | null
+    }) => {
+      const result = await dispatchAction(
+        { type: 'APPROVE_RESTOCK', requestId: id, hotelId: hotelId ?? '', notes },
+        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
       toast.success('Request approved')
@@ -186,13 +232,27 @@ export function useApproveRestock() {
   })
 }
 
+// ─── REJECT_RESTOCK → dispatches REJECT_RESTOCK ──────────────────────────────
+
 export function useRejectRestock() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
 
   return useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string | null }) =>
-      rejectRestock(id, reason),
+    mutationFn: async ({
+      id,
+      reason,
+    }: {
+      id: string
+      reason?: string | null
+    }) => {
+      const result = await dispatchAction(
+        { type: 'REJECT_RESTOCK', requestId: id, hotelId: hotelId ?? '', reason },
+        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
       toast.success('Request rejected')
@@ -200,6 +260,8 @@ export function useRejectRestock() {
     onError: (err: Error) => toast.error(err.message),
   })
 }
+
+// ─── Approval thresholds ──────────────────────────────────────────────────────
 
 export function useApprovalThresholds() {
   const hotelId = useActiveHotelId()
@@ -233,7 +295,7 @@ export function useUpdateApprovalThresholds() {
   })
 }
 
-// ─── Approval analytics ────────────────────────────────────────────────────────
+// ─── Approval analytics ───────────────────────────────────────────────────────
 
 export function useApprovalVelocity(days = 30) {
   const hotelId = useActiveHotelId()

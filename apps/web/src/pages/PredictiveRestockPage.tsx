@@ -4,6 +4,7 @@
 // Operators see urgency, deadline, recommended qty, and one-click request.
 
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
 import { AlertTriangle, Clock, CheckCircle2, Loader2, TrendingDown, Zap, Package } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -76,7 +77,12 @@ function RestockRow({ row, probRow }: { row: PredictiveRestockRow; probRow?: Sto
       {/* Identity */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-sm">{displayName}</span>
+          <Link
+            to={`/variant/${row.variantId}`}
+            className="font-medium text-sm hover:text-primary hover:underline transition-colors"
+          >
+            {displayName}
+          </Link>
           <UrgencyBadge urgency={row.urgency} />
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">

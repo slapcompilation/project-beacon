@@ -8,7 +8,7 @@
 // Palantir principle: the system has already done the analysis before you open it.
 
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { subHours, format, formatDistanceToNow, parseISO } from 'date-fns'
 import {
   PackageMinus, Package, Package2, Scale, AlertTriangle, CalendarX,
@@ -257,7 +257,10 @@ function ProposalsPanel({ currency }: { currency: string }) {
             <div key={`${p.entity_id}`} className={cn('flex items-center gap-3 px-4 py-3', isDone && 'opacity-50')}>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold leading-snug truncate">
-                  {p.entity_label}
+                  {p.entity_id
+                    ? <Link to={`/variant/${p.entity_id}`} className="hover:underline" onClick={(e) => { e.stopPropagation() }}>{p.entity_label}</Link>
+                    : p.entity_label
+                  }
                   {isDone && (
                     <span className="ml-2 text-[9px] font-bold uppercase tracking-wide text-green-600 dark:text-green-400">PO Created</span>
                   )}
@@ -540,6 +543,15 @@ function ActionCard({ action, currency }: { action: BriefingAction; currency: st
     return null
   }, [action, currency])
 
+  // Object page link — variants for stock/waste/expiry, suppliers for risk/invoice
+  const objectUrl = action.entity_id
+    ? (action.action_type === 'supplier_risk' || action.action_type === 'invoice_discrepancy')
+      ? `/supplier/${action.entity_id}`
+      : (action.action_type === 'gl_unmapped' || action.action_type === 'gl_period_ending')
+      ? null
+      : `/variant/${action.entity_id}`
+    : null
+
   const handleNavigate = () => {
     // Waste spikes should open the Flow Timeline at that variant, not the approval queue.
     const isWasteSpike =
@@ -592,7 +604,18 @@ function ActionCard({ action, currency }: { action: BriefingAction; currency: st
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-semibold leading-snug">{action.entity_label}</span>
+            {objectUrl
+              ? (
+                <Link
+                  to={objectUrl}
+                  className="text-sm font-semibold leading-snug hover:underline"
+                  onClick={(e) => { e.stopPropagation() }}
+                >
+                  {action.entity_label}
+                </Link>
+              )
+              : <span className="text-sm font-semibold leading-snug">{action.entity_label}</span>
+            }
             {cfg.groupHint && (
               <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 font-normal text-muted-foreground">
                 {cfg.groupHint}
@@ -858,7 +881,7 @@ function PressureRow({ item }: { item: import('@beacon/types').StockPressureItem
   return (
     <div
       className={cn('flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 transition-colors cursor-pointer border-b last:border-b-0', tc.borderCls)}
-      onClick={() => { void navigate(`/inventory?variant=${item.variant_id}`) }}
+      onClick={() => { void navigate(`/variant/${item.variant_id}`) }}
     >
       {/* Runway bar */}
       <div className="shrink-0 w-10">
@@ -887,7 +910,10 @@ function PressureRow({ item }: { item: import('@beacon/types').StockPressureItem
       {item.open_po_number ? (
         <div className="shrink-0 flex items-center gap-1 text-[10px] text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900/40 rounded px-1.5 py-0.5">
           <PackageCheck className="h-2.5 w-2.5" />
-          {item.open_po_number}
+          {item.open_po_id
+            ? <Link to={`/po/${item.open_po_id}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>{item.open_po_number}</Link>
+            : item.open_po_number
+          }
           {item.expected_delivery && (
             <span className="text-muted-foreground ml-0.5">
               · {format(parseISO(item.expected_delivery), 'MMM d')}
@@ -1026,6 +1052,7 @@ function ShiftActivity({
   setWindowHours: (v: 8 | 12 | 24 | 48) => void
   currency: string
 }) {
+  const navigate = useNavigate()
   const [shiftOpen, setShiftOpen] = useState(false)
   const since = useMemo(() => subHours(new Date(), windowHours).toISOString(), [windowHours])
 
@@ -1121,65 +1148,126 @@ function ShiftActivity({
 
             {additions.length > 0 && (
               <Section icon={ArrowUp} title="Stock added" count={additions.length} accent="text-green-500" defaultOpen={false}>
-                {additions.map((l) => (
-                  <Row key={l.id}>
-                    <span className="flex-1 text-xs truncate">{l.variant_id}</span>
-                    <span className="text-xs text-green-600 dark:text-green-400 tabular-nums font-semibold">
-                      +{l.quantity_change}
-                    </span>
-                  </Row>
-                ))}
+                {additions.map((l) => {
+                  const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
+                  const costImpact = costMap.get(l.variant_id)
+                  return (
+                    <Row key={l.id}>
+                      <button
+                        type="button"
+                        onClick={() => { void navigate(`/flow?panel=timeline&variant=${l.variant_id}`) }}
+                        className="flex-1 text-xs truncate text-left hover:text-primary transition-colors"
+                      >
+                        {name}
+                      </button>
+                      {costImpact != null && (
+                        <span className="text-[11px] text-muted-foreground tabular-nums">
+                          {formatCurrency(costImpact * l.quantity_change, currency)}
+                        </span>
+                      )}
+                      <span className="text-xs text-green-600 dark:text-green-400 tabular-nums font-semibold">
+                        +{l.quantity_change}
+                      </span>
+                    </Row>
+                  )
+                })}
               </Section>
             )}
 
             {writeOffs.length > 0 && (
               <Section icon={AlertTriangle} title="Write-offs" count={writeOffs.length} accent="text-orange-500" defaultOpen>
-                {writeOffs.map((l) => (
+                {writeOffs.map((l) => {
+                  const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
+                  const costImpact = costMap.get(l.variant_id)
+                  return (
                   <Row key={l.id}>
-                    <span className="flex-1 text-xs truncate">{l.variant_id}</span>
+                    <button
+                      type="button"
+                      onClick={() => { void navigate(`/flow?panel=timeline&variant=${l.variant_id}`) }}
+                      className="flex-1 text-xs truncate text-left hover:text-primary transition-colors"
+                    >
+                      {name}
+                    </button>
                     <Badge variant="outline" className="text-[10px] h-4">{l.removal_category}</Badge>
+                    {costImpact != null && (
+                      <span className="text-[11px] text-red-600 dark:text-red-400 tabular-nums">
+                        -{formatCurrency(costImpact * Math.abs(l.quantity_change), currency)}
+                      </span>
+                    )}
                     <span className="text-xs text-orange-600 dark:text-orange-400 tabular-nums font-semibold">
                       −{Math.abs(l.quantity_change)}
                     </span>
                   </Row>
-                ))}
+                  )
+                })}
               </Section>
             )}
 
             {corrections.length > 0 && (
               <Section icon={RotateCcw} title="Corrections / reverts" count={corrections.length} accent="text-amber-500" defaultOpen={false}>
-                {corrections.map((l) => (
+                {corrections.map((l) => {
+                  const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
+                  return (
                   <Row key={l.id}>
-                    <span className="flex-1 text-xs truncate">{l.variant_id}</span>
+                    <button
+                      type="button"
+                      onClick={() => { void navigate(`/flow?panel=timeline&variant=${l.variant_id}`) }}
+                      className="flex-1 text-xs truncate text-left hover:text-primary transition-colors"
+                    >
+                      {name}
+                    </button>
                     <span className={cn('text-xs tabular-nums font-semibold', l.quantity_change > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                       {l.quantity_change > 0 ? '+' : ''}{l.quantity_change}
                     </span>
                   </Row>
-                ))}
+                  )
+                })}
               </Section>
             )}
 
             {criticalForecasts.length > 0 && (
               <Section icon={AlertTriangle} title="Running out soon" count={criticalForecasts.length} accent="text-red-500" defaultOpen>
-                {criticalForecasts.map((f) => (
+                {criticalForecasts.map((f) => {
+                  const name = f.variant_name !== 'Standard' ? `${f.product_name} — ${f.variant_name}` : f.product_name
+                  return (
                   <Row key={f.variant_id}>
-                    <span className="flex-1 text-xs truncate">{f.variant_id}</span>
+                    <button
+                      type="button"
+                      onClick={() => { void navigate(`/flow?panel=approvals`) }}
+                      className="flex-1 text-xs truncate text-left hover:text-primary transition-colors"
+                    >
+                      {name}
+                    </button>
+                    <span className="text-[11px] text-muted-foreground tabular-nums">{f.current_stock} on hand</span>
                     <span className="text-xs font-semibold text-red-600 dark:text-red-400 tabular-nums">
                       ~{f.days_until_zero}d
                     </span>
                   </Row>
-                ))}
+                  )
+                })}
               </Section>
             )}
 
             {pendingRestocks.length > 0 && (
               <Section icon={Package} title="Pending restocks" count={pendingRestocks.length} defaultOpen={false}>
-                {pendingRestocks.map((r) => (
+                {pendingRestocks.map((r) => {
+                  const productName = r.product_variants?.products?.name ?? 'Unknown'
+                  const variantName = r.product_variants?.name
+                  const name = variantName && variantName !== 'Standard' ? `${productName} — ${variantName}` : productName
+                  return (
                   <Row key={r.id}>
-                    <span className="flex-1 text-xs truncate">{r.variant_id}</span>
-                    <span className="text-xs text-muted-foreground tabular-nums">{r.quantity_needed} requested</span>
+                    <button
+                      type="button"
+                      onClick={() => { void navigate('/flow?panel=approvals') }}
+                      className="flex-1 text-xs truncate text-left hover:text-primary transition-colors"
+                    >
+                      {name}
+                    </button>
+                    <span className="text-xs text-muted-foreground tabular-nums">{r.quantity_needed} needed</span>
+                    {r.supplier && <span className="text-[11px] text-muted-foreground truncate max-w-[80px]">{r.supplier}</span>}
                   </Row>
-                ))}
+                  )
+                })}
               </Section>
             )}
           </div>

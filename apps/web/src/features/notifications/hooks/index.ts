@@ -8,7 +8,10 @@ import {
   markAllNotificationsRead,
   autoCreateAlerts,
   fetchNotificationFeedback,
+  fetchAlertPreferences,
+  upsertAlertPreferences,
 } from '../api'
+import type { AlertPreferences } from '@beacon/types'
 
 export type TypeFeedback = {
   type: string
@@ -51,6 +54,31 @@ export function useMarkAllNotificationsRead() {
     mutationFn: markAllNotificationsRead,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
+    },
+  })
+}
+
+export function useAlertPreferences() {
+  const hotelId = useAuthStore((s) => s.hotelId)
+  return useQuery({
+    queryKey: ['alert-preferences', hotelId],
+    queryFn:  fetchAlertPreferences,
+    enabled:  !!hotelId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useUpdateAlertPreferences() {
+  const queryClient = useQueryClient()
+  const hotelId = useAuthStore((s) => s.hotelId)
+  return useMutation({
+    mutationFn: (prefs: AlertPreferences) => upsertAlertPreferences(prefs),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['alert-preferences', hotelId] })
+      toast.success('Alert preferences saved')
+    },
+    onError: (err: Error) => {
+      toast.error(`Failed to save preferences: ${err.message}`)
     },
   })
 }
@@ -123,6 +151,7 @@ export function useSilentAutoAlerts() {
     if (!hotelId) return
 
     const run = () => {
+      // No explicit thresholds — RPC resolves from alert_preferences, then global defaults
       void autoCreateAlerts().then(() => {
         void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
       }).catch(() => { /* silent — don't surface background errors */ })

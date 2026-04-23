@@ -3,7 +3,7 @@
 // Panel surfaces unread items + one-click actions. Full audit at /notifications.
 
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Bell, CheckCheck, Loader2, ExternalLink,
   PackageX, CalendarX, Zap, AlertTriangle, ClipboardList, ChevronDown, ShieldAlert, Scale,
@@ -29,7 +29,8 @@ const TYPE_META: Record<NotifType, {
   bg: string
   label: string
   badge: string
-  path: string
+  /** Fallback workspace path when no variant_id is set */
+  fallbackPath: string
 }> = {
   predicted_outage: {
     icon: Zap,
@@ -37,7 +38,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-purple-50/60 dark:bg-purple-950/20',
     label: 'Predicted Outage',
     badge: 'border-purple-300 bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400',
-    path: '/dashboard',
+    fallbackPath: '/eye?panel=forecasts',
   },
   expiry: {
     icon: CalendarX,
@@ -45,7 +46,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-red-50/60 dark:bg-red-950/20',
     label: 'Expiry',
     badge: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
-    path: '/expiry',
+    fallbackPath: '/floor?panel=expiry',
   },
   low_stock: {
     icon: PackageX,
@@ -53,7 +54,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-orange-50/60 dark:bg-orange-950/20',
     label: 'Low Stock',
     badge: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
-    path: '/inventory',
+    fallbackPath: '/floor?panel=stock',
   },
   waste_alert: {
     icon: AlertTriangle,
@@ -61,7 +62,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     label: 'Waste Alert',
     badge: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
-    path: '/reports',
+    fallbackPath: '/eye?panel=signals',
   },
   consumption_spike: {
     icon: Zap,
@@ -69,7 +70,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-yellow-50/60 dark:bg-yellow-950/20',
     label: 'Consumption Spike',
     badge: 'border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300',
-    path: '/reports',
+    fallbackPath: '/eye?panel=forecasts',
   },
   price_drift: {
     icon: AlertTriangle,
@@ -77,7 +78,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-blue-50/60 dark:bg-blue-950/20',
     label: 'Price Drift',
     badge: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
-    path: '/negotiation-prep',
+    fallbackPath: '/mind?panel=procurement',
   },
   pos_variance: {
     icon: ShieldAlert,
@@ -85,7 +86,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-red-50/60 dark:bg-red-950/20',
     label: 'POS Variance',
     badge: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
-    path: '/fb-intelligence',
+    fallbackPath: '/eye?panel=signals',
   },
   po_discrepancy: {
     icon: Scale,
@@ -93,15 +94,15 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-orange-50/60 dark:bg-orange-950/20',
     label: 'Invoice Discrepancy',
     badge: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
-    path: '/procurement?tab=match',
+    fallbackPath: '/mind?panel=intelligence',
   },
   approval: {
     icon: ClipboardList,
     color: 'text-blue-500',
     bg: 'bg-blue-50/60 dark:bg-blue-950/20',
-    label: 'Approval',
+    label: 'Approval Required',
     badge: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
-    path: '/restocks',
+    fallbackPath: '/flow?panel=approvals',
   },
   system: {
     icon: Bell,
@@ -109,8 +110,14 @@ const TYPE_META: Record<NotifType, {
     bg: '',
     label: 'System',
     badge: 'border-border text-muted-foreground',
-    path: '/dashboard',
+    fallbackPath: '/briefing',
   },
+}
+
+/** Ontology-aware navigation: go to the specific node when possible, workspace otherwise */
+function getNavPath(notif: Notification): string {
+  if (notif.variant_id) return `/variant/${notif.variant_id}`
+  return TYPE_META[notif.type].fallbackPath
 }
 
 const TYPE_PRIORITY: Record<NotifType, number> = {
@@ -148,7 +155,7 @@ function PanelRow({ notif }: { notif: Notification }) {
   const handleClick = () => {
     if (!notif.read) void markRead.mutateAsync({ id: notif.id })
     close(false)
-    void navigate(meta.path)
+    void navigate(getNavPath(notif))
   }
 
   const handleDismissWithReason = (reason: string) => {
@@ -182,11 +189,18 @@ function PanelRow({ notif }: { notif: Notification }) {
           <p className={cn('text-xs leading-snug', notif.read ? 'text-muted-foreground' : 'font-medium')}>
             {notif.message}
           </p>
-          <p className="mt-0.5 text-[10px] text-muted-foreground">
-            {formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}
+          <p className="mt-0.5 text-[10px] text-muted-foreground flex items-center gap-2">
+            <span>{formatDistanceToNow(new Date(notif.timestamp), { addSuffix: true })}</span>
             {notif.dismissed_reason && (
-              <span className="ml-1.5 text-muted-foreground/60">· {notif.dismissed_reason.replace(/_/g, ' ')}</span>
+              <span className="text-muted-foreground/60">· {notif.dismissed_reason.replace(/_/g, ' ')}</span>
             )}
+            <Link
+              to={`/alert/${notif.id}`}
+              onClick={(e) => { e.stopPropagation(); close(false) }}
+              className="text-primary hover:underline ml-auto"
+            >
+              View →
+            </Link>
           </p>
         </div>
 
@@ -311,7 +325,7 @@ export function NotificationsPanel() {
               <Bell className="h-8 w-8 text-muted-foreground/30 mb-3" />
               <p className="text-sm font-medium text-muted-foreground">All clear</p>
               <p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px] leading-snug">
-                No unread notifications · alerts fire on low stock, expiry within 7d, and waste spikes
+                No unread notifications · configure alert thresholds in Eye · Alerts
               </p>
             </div>
           ) : (

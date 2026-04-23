@@ -7,11 +7,11 @@
 // inline on every card so approvers can make decisions without navigating away.
 
 import { useState, useMemo, useCallback } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useLocation, Link } from 'react-router-dom'
 import {
   Plus, CheckCircle2, XCircle, PackageCheck, ShoppingCart, Circle,
   Sparkles, Loader2, TrendingDown, AlertTriangle, Archive, Zap,
-  Search, ShieldCheck, ShieldAlert, User, BookOpen, X,
+  Search, ShieldCheck, ShieldAlert, User, BookOpen, X, Brain,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { EntityContextPanel } from '@/features/eye/components/EntityContextPanel'
 import { RestockRequestModal } from '@/features/restock/components/RestockRequestModal'
 import { ReceiveModal } from '@/features/restock/components/ReceiveModal'
+import { ApprovalCopilotPanel } from '@/features/restock/components/ApprovalCopilotPanel'
 import {
   useRestockRequests, useUpdateRestockStatus, useAutoPropose,
   useApproveRestock, useRejectRestock,
@@ -230,6 +231,7 @@ function KanbanCard({
   emailMap,
   currencyCode,
   onReceive,
+  onDraftPO,
   onApprove,
   onReject,
   signals,
@@ -243,6 +245,7 @@ function KanbanCard({
   emailMap: Map<string, string>
   currencyCode: string
   onReceive?: (req: RestockRequestRow) => void
+  onDraftPO?: () => void
   onApprove?: (id: string, notes: string) => void
   onReject?: (id: string, reason: string) => void
   signals?: EyeSignals
@@ -251,6 +254,7 @@ function KanbanCard({
   const update    = useUpdateRestockStatus()
   const fmtDate   = useDateFormat()
   const [dialogMode, setDialogMode] = useState<'approve' | 'reject' | null>(null)
+  const [showCopilot, setShowCopilot] = useState(false)
 
   const fmtCost = (v: number) => {
     try {
@@ -304,7 +308,15 @@ function KanbanCard({
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-sm font-medium leading-snug truncate">{displayName}</p>
+            <p className="text-sm font-medium leading-snug truncate">
+              <Link
+                to={`/variant/${req.variant_id}`}
+                className="hover:underline"
+                onClick={(e) => { e.stopPropagation() }}
+              >
+                {displayName}
+              </Link>
+            </p>
             <p className="text-[10px] font-mono text-muted-foreground mt-0.5">{req.product_variants?.sku ?? ''}</p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -346,6 +358,13 @@ function KanbanCard({
             {requestorEmail && <span> · {requestorEmail}</span>}
           </p>
           {req.notes && <p className="italic truncate">{req.notes}</p>}
+          <Link
+            to={`/restock/${req.id}`}
+            className="inline-flex items-center gap-0.5 text-primary hover:underline"
+            onClick={(e) => { e.stopPropagation() }}
+          >
+            View details →
+          </Link>
           {/* Approval audit trail */}
           {req.approved_at && approverEmail && (
             <p className="flex items-center gap-1 text-green-700 dark:text-green-500">
@@ -369,6 +388,30 @@ function KanbanCard({
 
         {/* Eye signals */}
         {signals && <EyeSignalChips signals={signals} />}
+
+        {/* Approval Copilot — available to authorised approvers on pending requests */}
+        {canActOnThis && isAwaiting && (
+          <>
+            <button
+              type="button"
+              onClick={() => { setShowCopilot(!showCopilot) }}
+              className={cn(
+                'flex items-center gap-1 text-[10px] font-medium transition-colors mt-0.5',
+                showCopilot ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Brain className="h-2.5 w-2.5" />
+              {showCopilot ? 'Hide intelligence' : 'Show intelligence'}
+            </button>
+            {showCopilot && (
+              <ApprovalCopilotPanel
+                variantId={req.variant_id}
+                requestedQty={totalQty}
+                estimatedCost={req.estimated_cost != null ? Number(req.estimated_cost) : null}
+              />
+            )}
+          </>
+        )}
 
         {/* Actions */}
         {(req.status === 'pending' || isAwaiting) && (
@@ -417,6 +460,13 @@ function KanbanCard({
               onClick={() => { onReceive?.(req) }}>
               <PackageCheck className="h-3 w-3" />Receive
             </Button>
+            {onDraftPO && (
+              <Button size="sm" variant="outline"
+                className="h-6 gap-1 text-[11px] px-2 flex-1"
+                onClick={onDraftPO}>
+                <ShoppingCart className="h-3 w-3" />PO
+              </Button>
+            )}
             {canApprove && (
               <Button size="sm" variant="ghost"
                 className="h-6 gap-1 text-[11px] px-2 text-destructive hover:text-destructive"
@@ -574,6 +624,28 @@ export default function RestockPage() {
 
   const isMutating = approve.isPending || reject.isPending || update.isPending
 
+  // Bulk approval for Column 2 — items the current user is authorised to approve
+  const approvableAwaiting = useMemo(() =>
+    awaitingApproval.filter((c) =>
+      c.req.status === 'pending_director' ? canApproveDirector : canApprove,
+    ),
+  [awaitingApproval, canApprove, canApproveDirector])
+
+  const [bulkRejectOpen, setBulkRejectOpen] = useState(false)
+
+  const handleBulkApproveAwaiting = () => {
+    for (const c of approvableAwaiting) {
+      for (const id of c.allIds) approve.mutate({ id })
+    }
+  }
+
+  const handleBulkRejectAwaiting = (reason: string) => {
+    setBulkRejectOpen(false)
+    for (const c of approvableAwaiting) {
+      for (const id of c.allIds) reject.mutate({ id, reason })
+    }
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Briefing context banner (shown when navigating from a Briefing action) */}
@@ -683,6 +755,24 @@ export default function RestockPage() {
                   <ShieldAlert className="h-3 w-3" />{directorCount} director
                 </span>
               ) : undefined}
+              headerActions={approvableAwaiting.length > 0 ? (
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="outline"
+                    className="h-6 text-[10px] px-2 gap-1 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
+                    onClick={handleBulkApproveAwaiting}
+                    disabled={isMutating}
+                  >
+                    <CheckCircle2 className="h-3 w-3" />Approve all ({approvableAwaiting.length})
+                  </Button>
+                  <Button size="sm" variant="ghost"
+                    className="h-6 text-[10px] px-2 gap-1 text-destructive hover:text-destructive"
+                    onClick={() => { setBulkRejectOpen(true) }}
+                    disabled={isMutating}
+                  >
+                    <XCircle className="h-3 w-3" />Reject all
+                  </Button>
+                </div>
+              ) : undefined}
             >
               {awaitingApproval.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 gap-2 text-center">
@@ -755,6 +845,22 @@ export default function RestockPage() {
                     emailMap={emailMap}
                     currencyCode={currency}
                     onReceive={setReceivingReq}
+                    onDraftPO={() => {
+                      navigate('/purchase-orders', {
+                        state: {
+                          fromRestock: [{
+                            variantId:   c.req.variant_id,
+                            productName: c.req.product_variants?.products?.name ?? 'Unknown',
+                            variantName: c.req.product_variants?.name ?? 'Standard',
+                            sku:         c.req.product_variants?.sku ?? '',
+                            qty:         c.totalQty,
+                            unitCost:    c.req.product_variants?.cost ?? 0,
+                            supplier:    c.req.supplier ?? '',
+                            notes:       c.req.notes ?? '',
+                          }],
+                        },
+                      })
+                    }}
                     signals={signalsFor(c.req.variant_id)}
                     isMutating={isMutating}
                   />
@@ -803,6 +909,13 @@ export default function RestockPage() {
       {receivingReq && (
         <ReceiveModal open onClose={() => { setReceivingReq(null) }} request={receivingReq} />
       )}
+      <ApprovalDialog
+        open={bulkRejectOpen}
+        mode="reject"
+        onClose={() => { setBulkRejectOpen(false) }}
+        onConfirm={handleBulkRejectAwaiting}
+        isPending={isMutating}
+      />
     </div>
   )
 }

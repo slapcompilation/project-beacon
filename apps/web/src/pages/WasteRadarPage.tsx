@@ -8,7 +8,7 @@
 // full analytical surface so operators see the complete anomaly picture, not just the top 2.
 
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   Radar, AlertTriangle, TrendingUp, Users, Activity,
   ArrowUpRight, ShieldAlert, Flame, Thermometer, Eye,
@@ -122,7 +122,12 @@ function RadarRow({
         {/* Main content */}
         <div className="flex-1 min-w-0 space-y-1.5">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-semibold leading-tight">{row.variant_label}</p>
+            <Link
+              to={`/variant/${row.variant_id}`}
+              className="text-sm font-semibold leading-tight hover:text-primary hover:underline transition-colors"
+            >
+              {row.variant_label}
+            </Link>
             <div className="flex items-center gap-1.5 shrink-0">
               <OccupancyBand band={row.occupancy_band} pct={row.avg_occupancy_7d} />
             </div>

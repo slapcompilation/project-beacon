@@ -36,6 +36,17 @@ const FlowWorkspace  = lazy(() => import('@/pages/FlowWorkspace'))
 const EyeWorkspace   = lazy(() => import('@/pages/EyeWorkspace'))
 const MindWorkspace  = lazy(() => import('@/pages/MindWorkspace'))
 
+// Object pages — click any entity name to see full object context
+const VariantObjectPage       = lazy(() => import('@/pages/VariantObjectPage'))
+const SupplierObjectPage      = lazy(() => import('@/pages/SupplierObjectPage'))
+const POObjectPage            = lazy(() => import('@/pages/POObjectPage'))
+const RestockObjectPage       = lazy(() => import('@/pages/RestockObjectPage'))
+const ProductObjectPage       = lazy(() => import('@/pages/ProductObjectPage'))
+const StockLogObjectPage      = lazy(() => import('@/pages/StockLogObjectPage'))
+const AlertObjectPage         = lazy(() => import('@/pages/AlertObjectPage'))
+const ShiftHandoverObjectPage = lazy(() => import('@/pages/ShiftHandoverObjectPage'))
+const CausalChainPage         = lazy(() => import('@/pages/CausalChainPage'))
+
 function PageLoader() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">
@@ -74,6 +85,17 @@ function AppRoutes() {
             <Route path="/flow"     element={<FlowWorkspace />} />
             <Route path="/eye"      element={<EyeWorkspace />} />
             <Route path="/mind"     element={<MindWorkspace />} />
+
+            {/* ── Object pages — entity deep-dives ─────────────────────── */}
+            <Route path="/variant/:variantId"      element={<VariantObjectPage />} />
+            <Route path="/supplier/:supplierId"    element={<SupplierObjectPage />} />
+            <Route path="/po/:poId"                element={<POObjectPage />} />
+            <Route path="/restock/:restockId"      element={<RestockObjectPage />} />
+            <Route path="/product/:productId"      element={<ProductObjectPage />} />
+            <Route path="/log/:logId"              element={<StockLogObjectPage />} />
+            <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
+            <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
+            <Route path="/causal-chain"            element={<CausalChainPage />} />
 
             {/* ── Utility routes ────────────────────────────────────────── */}
             <Route path="/settings"      element={<SettingsPage />} />

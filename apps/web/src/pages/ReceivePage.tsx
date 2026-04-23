@@ -4,6 +4,7 @@
 // Palantir principle: actions live next to data; no navigation required mid-task.
 
 import { useState, useRef, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   QrCode, Search, CheckCircle2, Package, ChevronRight,
   ArrowLeft, Loader2, ScanLine, X, TrendingUp, TrendingDown,
@@ -561,11 +562,24 @@ function DoneStep({
 export default function ReceivePage() {
   const { data: requests = [], isLoading } = useRestockRequests()
   const [step, setStep] = useState<Step>({ type: 'search' })
+  const [params, setParams] = useSearchParams()
 
   const pendingRequests = useMemo(
     () => requests.filter((r) => r.status === 'pending' || r.status === 'approved'),
     [requests]
   )
+
+  // Deep-link: ?request=<id> jumps directly to receive step for that request.
+  // Used by DeliveryQueuePage to pre-select a specific PO line.
+  useEffect(() => {
+    const requestId = params.get('request')
+    if (!requestId || isLoading) return
+    const match = pendingRequests.find((r) => r.id === requestId)
+    if (match) {
+      setStep({ type: 'receive', request: match })
+      setParams({}, { replace: true })   // clean the URL
+    }
+  }, [params, pendingRequests, isLoading, setParams])
 
   const reset = () => { setStep({ type: 'search' }) }
 

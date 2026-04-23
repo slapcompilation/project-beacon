@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { queueMutation, notifyQueueChanged } from '@/lib/offline-queue'
 import { supabase } from '@/lib/supabase/client'
+import { dispatchAction } from '@/lib/actions/dispatch'
 import type { OfflineMutation, ProductWithVariants } from '@beacon/types'
 import {
   fetchProducts,
@@ -13,7 +14,6 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-  adjustStock,
   undoStockAdjustment,
   fetchExpiringVariants,
   fetchExpiryBatches,
@@ -133,7 +133,7 @@ export function useAdjustStock() {
       reason,
       photoFile,
       removalCategory,
-    }: AdjustVars): Promise<{ queued: boolean; logId?: string; newBalance?: number }> => {
+    }: AdjustVars): Promise<{ queued: boolean }> => {
       if (!isOnline) {
         const mutation: OfflineMutation = {
           id: crypto.randomUUID(),
@@ -150,8 +150,13 @@ export function useAdjustStock() {
         notifyQueueChanged()
         return { queued: true }
       }
-      const result = await adjustStock(variantId, delta, reason, photoFile, removalCategory)
-      return { queued: false, ...result }
+      const actionResult = await dispatchAction(
+        { type: 'ADJUST_STOCK', variantId, delta, reason, hotelId: hotelId ?? '', userId, removalCategory },
+        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
+        { photoFile },
+      )
+      if (!actionResult.success) throw new Error(actionResult.error)
+      return { queued: false as const }
     },
     // ── Optimistic update — apply delta immediately so UI doesn't lag ──────────
     onMutate: async ({ variantId, delta }: AdjustVars) => {

@@ -2,7 +2,7 @@
 
 import { supabase } from '@/lib/supabase/client'
 import type {
-  ProcurementInsightRow, ChainBenchmarkRow, ChainPropertyRow, WasteCostRow, CostVarianceRow,
+  ProcurementInsightRow, ChainBenchmarkRow, ChainPropertyRow, ChainHealthTrendRow, WasteCostRow, CostVarianceRow,
   PurchaseOrder, POLine, POInvoice, POSummaryRow,
   PriceDriftRow, SpendConcentrationRow, SupplierExpiryRateRow,
   PriceVarianceBySupplierRow, SpendForecastRow,
@@ -12,6 +12,7 @@ import type {
   SmartProposalRow,
   CPORPeriodRow, CostByCategoryRow,
   BudgetVsActualRow, BudgetTrendRow,
+  SupplierContract,
 } from '@beacon/types'
 
 export async function fetchProcurementInsights(days: number): Promise<ProcurementInsightRow[]> {
@@ -28,6 +29,12 @@ export async function fetchChainBenchmarks(days: number): Promise<ChainBenchmark
 
 export async function fetchChainOverview(days: number): Promise<ChainPropertyRow[]> {
   const result = await supabase.rpc('get_chain_overview', { p_days: days }) as unknown as { data: ChainPropertyRow[] | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+export async function fetchChainHealthTrend(monthsBack = 6): Promise<ChainHealthTrendRow[]> {
+  const result = await supabase.rpc('get_chain_health_trend', { p_months_back: monthsBack }) as unknown as { data: ChainHealthTrendRow[] | null; error: { message: string } | null }
   if (result.error) throw new Error(result.error.message)
   return result.data ?? []
 }
@@ -403,6 +410,45 @@ export async function deleteBudgetAllocation(
     p_category_id:  categoryId,
     p_period_month: periodMonth.toISOString().slice(0, 10),
   }) as unknown as { data: null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+}
+
+// ─── Supplier Contracts (Sprint 24) ──────────────────────────────────────────
+
+export async function fetchSupplierContracts(): Promise<SupplierContract[]> {
+  const result = await supabase.rpc('get_supplier_contracts') as unknown as { data: SupplierContract[] | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+export async function upsertSupplierContract(input: {
+  id?:               string
+  supplier_id?:      string | null
+  supplier_name:     string
+  variant_id:        string
+  contracted_price:  number
+  min_order_qty?:    number | null
+  contract_start:    string
+  contract_end?:     string | null
+  notes?:            string | null
+}): Promise<string> {
+  const result = await supabase.rpc('upsert_supplier_contract', {
+    p_id:               input.id               ?? null,
+    p_supplier_id:      input.supplier_id       ?? null,
+    p_supplier_name:    input.supplier_name,
+    p_variant_id:       input.variant_id,
+    p_contracted_price: input.contracted_price,
+    p_min_order_qty:    input.min_order_qty     ?? null,
+    p_contract_start:   input.contract_start,
+    p_contract_end:     input.contract_end      ?? null,
+    p_notes:            input.notes             ?? null,
+  }) as unknown as { data: string | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? ''
+}
+
+export async function deactivateSupplierContract(id: string): Promise<void> {
+  const result = await supabase.rpc('deactivate_supplier_contract', { p_id: id }) as unknown as { data: null; error: { message: string } | null }
   if (result.error) throw new Error(result.error.message)
 }
 

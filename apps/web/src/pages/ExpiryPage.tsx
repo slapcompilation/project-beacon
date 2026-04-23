@@ -3,6 +3,7 @@
 // Show cost-at-risk, not just counts. Decisions live next to data.
 
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   AlertTriangle, Loader2, TrendingDown, CheckCircle2, ChevronDown, ChevronRight, Layers,
 } from 'lucide-react'
@@ -166,7 +167,9 @@ function BatchExpiryTable({
             return (
               <TableRow key={b.batch_id} className={meta.rowBg}>
                 <TableCell>
-                  <p className="text-sm font-medium">{b.product_name}</p>
+                  <p className="text-sm font-medium">
+                    <Link to={`/variant/${b.variant_id}`} className="hover:underline">{b.product_name}</Link>
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
                     {b.variant_name !== 'Standard' ? `${b.variant_name} · ` : ''}
                     {b.lot_number ? `Lot ${b.lot_number}` : 'No lot number'}
@@ -741,7 +744,9 @@ export default function ExpiryPage() {
 
                   return (
                     <TableRow key={v.id} className={meta.rowBg}>
-                      <TableCell className="font-medium text-sm">{displayName}</TableCell>
+                      <TableCell className="font-medium text-sm">
+                        <Link to={`/variant/${v.id}`} className="hover:underline">{displayName}</Link>
+                      </TableCell>
                       <TableCell className="font-mono text-xs text-muted-foreground">{v.sku}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">{v.lot_number ?? '—'}</TableCell>
                       <TableCell className="text-right tabular-nums font-semibold">{v.current_stock}</TableCell>

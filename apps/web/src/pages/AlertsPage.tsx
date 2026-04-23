@@ -4,20 +4,22 @@
 // Palantir principle: cross-domain synthesis + decision support, not data display.
 
 import { useMemo, useState, useCallback, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import {
   AlertTriangle, CalendarX2, PackageX, BellDot,
   RefreshCw, Flame, Clock, Sparkles, Loader2,
   TrendingDown, CheckCircle2, BellOff, Eye, Zap,
-  PackagePlus, Check,
+  PackagePlus, Check, Settings2, ChevronDown, ChevronUp, RotateCcw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { CausalTracePanel } from '@/components/CausalTracePanel'
 import { cn } from '@/lib/utils'
 import { useProducts, useExpiringVariants, useAdjustStock } from '@/features/inventory/hooks'
 import {
   useNotifications, useMarkNotificationRead,
   useMarkAllNotificationsRead, useAutoAlerts,
+  useAlertPreferences, useUpdateAlertPreferences,
 } from '@/features/notifications/hooks'
 import { useConsumptionForecast, useWasteRadar } from '@/features/eye/hooks'
 import { useCreateRestockRequest } from '@/features/restock/hooks'
@@ -195,7 +197,12 @@ function AlertCard({
         <Icon className="h-4 w-4" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium leading-snug">{item.title}</p>
+        <p className="text-sm font-medium leading-snug">
+          {item._variantId
+            ? <Link to={`/variant/${item._variantId}`} className="hover:underline">{item.title}</Link>
+            : item.title
+          }
+        </p>
         <p className="mt-0.5 text-xs text-muted-foreground">{item.subtitle}</p>
         {(item.costExposure ?? 0) > 0 && (
           <p className="mt-1 text-[11px] font-semibold text-red-600 dark:text-red-400">
@@ -309,6 +316,132 @@ function LayerSection({
   )
 }
 
+// ─── Alert config panel ───────────────────────────────────────────────────────
+// Inline collapsible panel for admins/owners to tune alert sensitivity.
+// Saves to alert_preferences table; auto_create_alerts reads these on next scan.
+
+const DAYS_MIN = 1, DAYS_MAX = 60
+const WASTE_MIN = 1, WASTE_MAX = 500
+
+function AlertConfigPanel({ onClose }: { onClose: () => void }) {
+  const { data: prefs } = useAlertPreferences()
+  const update = useUpdateAlertPreferences()
+
+  const [days,  setDays]  = useState<number>(prefs?.days_threshold  ?? 7)
+  const [waste, setWaste] = useState<number>(prefs?.waste_threshold ?? 10)
+
+  // Sync form when prefs load
+  useEffect(() => {
+    if (prefs) { setDays(prefs.days_threshold); setWaste(prefs.waste_threshold) }
+  }, [prefs])
+
+  const isDirty   = days !== (prefs?.days_threshold ?? 7) || waste !== (prefs?.waste_threshold ?? 10)
+  const isDefault = days === 7 && waste === 10
+
+  const handleSave = () => {
+    update.mutate({ days_threshold: days, waste_threshold: waste })
+  }
+
+  const handleReset = () => { setDays(7); setWaste(10) }
+
+  const parseInput = (val: string, min: number, max: number) => {
+    const n = parseInt(val, 10)
+    if (isNaN(n)) return min
+    return Math.min(max, Math.max(min, n))
+  }
+
+  return (
+    <div className="border-b bg-muted/20 px-8 py-4">
+      <div className="max-w-2xl space-y-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Alert Thresholds</p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-6">
+          {/* Days threshold */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">
+              Low stock alert — days until empty
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={DAYS_MIN}
+                max={DAYS_MAX}
+                value={days}
+                onChange={(e) => { setDays(parseInput(e.target.value, DAYS_MIN, DAYS_MAX)) }}
+                className="h-8 w-24 text-sm tabular-nums"
+              />
+              <span className="text-xs text-muted-foreground">days remaining</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Alert fires when stock is predicted to run out within{' '}
+              <span className="font-semibold text-foreground">{days}d</span>.
+              {days < 5 && <span className="text-yellow-600 dark:text-yellow-400"> Low sensitivity — only urgent stockouts.</span>}
+              {days > 21 && <span className="text-blue-600 dark:text-blue-400"> High sensitivity — more proactive alerts.</span>}
+            </p>
+          </div>
+
+          {/* Waste threshold */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-foreground">
+              Waste alert — weekly units threshold
+            </label>
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                min={WASTE_MIN}
+                max={WASTE_MAX}
+                value={waste}
+                onChange={(e) => { setWaste(parseInput(e.target.value, WASTE_MIN, WASTE_MAX)) }}
+                className="h-8 w-24 text-sm tabular-nums"
+              />
+              <span className="text-xs text-muted-foreground">units / week</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              Alert fires when a variant exceeds{' '}
+              <span className="font-semibold text-foreground">{waste} units</span> wasted in 7 days.
+              {waste < 5 && <span className="text-yellow-600 dark:text-yellow-400"> Very sensitive — minor waste events trigger alerts.</span>}
+              {waste > 50 && <span className="text-blue-600 dark:text-blue-400"> Low sensitivity — only significant waste spikes.</span>}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 pt-1">
+          <Button
+            size="sm"
+            onClick={handleSave}
+            disabled={!isDirty || update.isPending}
+            className="gap-1.5 h-8 text-xs"
+          >
+            {update.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Save preferences
+          </Button>
+          {!isDefault && (
+            <button
+              type="button"
+              onClick={handleReset}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <RotateCcw className="h-3 w-3" />Reset to defaults (7d / 10 units)
+            </button>
+          )}
+          <p className="ml-auto text-[11px] text-muted-foreground">
+            Applies on next &ldquo;Scan Alerts&rdquo; run
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AlertsPage() {
@@ -321,6 +454,7 @@ export default function AlertsPage() {
   const [filterBand, setFilterBand] = useState<FilterBand>('all')
   const [requestedIds, setRequestedIds] = useState<ReadonlySet<string>>(new Set())
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null)
+  const [configOpen, setConfigOpen] = useState(false)
 
   // Causal trace panel state
   const [traceTarget, setTraceTarget] = useState<{ id: string; title: string } | null>(null)
@@ -340,6 +474,7 @@ export default function AlertsPage() {
   const markRead     = useMarkNotificationRead()
   const markAllRead  = useMarkAllNotificationsRead()
   const autoAlerts   = useAutoAlerts()
+  const { data: alertPrefs } = useAlertPreferences()
 
   // Track when the alert scan last succeeded
   useEffect(() => {
@@ -645,19 +780,38 @@ export default function AlertsPage() {
             </Button>
           )}
           {canScan && (
-            <Button
-              size="sm"
-              onClick={() => { autoAlerts.mutate({}) }}
-              disabled={autoAlerts.isPending}
-            >
-              {autoAlerts.isPending
-                ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                : <Sparkles className="mr-2 h-3.5 w-3.5" />}
-              Scan Alerts
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setConfigOpen((v) => !v) }}
+                className="gap-1.5"
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                Configure
+                {configOpen
+                  ? <ChevronUp className="h-3 w-3 ml-0.5" />
+                  : <ChevronDown className="h-3 w-3 ml-0.5" />}
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => { autoAlerts.mutate({}) }}
+                disabled={autoAlerts.isPending}
+              >
+                {autoAlerts.isPending
+                  ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  : <Sparkles className="mr-2 h-3.5 w-3.5" />}
+                Scan Alerts
+              </Button>
+            </>
           )}
         </div>
       </div>
+
+      {/* Alert config panel — collapsible threshold settings */}
+      {configOpen && canScan && (
+        <AlertConfigPanel onClose={() => { setConfigOpen(false) }} />
+      )}
 
       {/* Summary strip */}
       {!isLoading && <SummaryStrip alerts={alerts} currency={currency} />}
@@ -713,7 +867,7 @@ export default function AlertsPage() {
                 )}
               </p>
               <p className="text-xs text-muted-foreground/80 tabular-nums">
-                Expiry threshold: 7d · Low stock: par level · Waste threshold: 10 events · {expiring.length} expiry dates checked
+                Low stock: &lt;{alertPrefs?.days_threshold ?? 7}d remaining · Waste: &gt;{alertPrefs?.waste_threshold ?? 10} units/week · {expiring.length} expiry dates checked
               </p>
               <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">All conditions normal</p>
             </div>

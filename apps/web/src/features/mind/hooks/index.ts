@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import {
-  fetchProcurementInsights, fetchChainBenchmarks, fetchChainOverview, fetchWasteCost, fetchCostVarianceReport,
+  fetchProcurementInsights, fetchChainBenchmarks, fetchChainOverview, fetchChainHealthTrend, fetchWasteCost, fetchCostVarianceReport,
   createPurchaseOrder, updatePOStatus, fetchPOSummary, fetchPOLines, fetchPOInvoices,
   submitPOInvoice, updateInvoiceStatus,
   fetchSupplierSynthesis,
@@ -17,11 +17,13 @@ import {
   fetchSmartProposals, approveProposalWithPO, approveProposalNoSupplier, dismissProposal,
   fetchCPORByPeriod, fetchCostByCategory,
   fetchBudgetVsActual, fetchBudgetTrend, upsertBudgetAllocation, deleteBudgetAllocation,
+  fetchSupplierContracts, upsertSupplierContract, deactivateSupplierContract,
 } from '../api'
 import type { CreatePOInput } from '../api'
 import type { PurchaseOrder, POInvoice } from '@beacon/types'
 
 export const mindKeys = {
+  contracts:            (hotelId: string)                             => ['mind', 'contracts', hotelId] as const,
   supplierSynthesis:    (hotelId: string, days: number)               => ['mind', 'supplier-synthesis', hotelId, days] as const,
   procurement:          (hotelId: string, days: number)               => ['mind', 'procurement', hotelId, days] as const,
   invoiceIntelligence:  (hotelId: string, days: number)               => ['mind', 'invoice-intelligence', hotelId, days] as const,
@@ -29,6 +31,7 @@ export const mindKeys = {
   chainOverview:      (hotelId: string, days: number)               => ['mind', 'chain-overview', hotelId, days] as const,
   wasteCost:          (hotelId: string, days: number)               => ['mind', 'waste-cost', hotelId, days] as const,
   costVariance:       (hotelId: string, days: number)               => ['mind', 'cost-variance', hotelId, days] as const,
+  chainHealthTrend:   (hotelId: string, months: number)             => ['mind', 'chain-health-trend', hotelId, months] as const,
   poSummary:          (hotelId: string)                             => ['mind', 'po-summary', hotelId] as const,
   poLines:            (poId: string)                                => ['mind', 'po-lines', poId] as const,
   poInvoices:         (poId: string)                                => ['mind', 'po-invoices', poId] as const,
@@ -88,6 +91,17 @@ export function useChainOverview(days = 30) {
     queryFn: () => fetchChainOverview(days),
     staleTime: 5 * 60 * 1000,
     enabled: !!hotelId,
+  })
+}
+
+/** Monthly waste_cost + activity per property for sparklines (last N months). */
+export function useChainHealthTrend(monthsBack = 6) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: mindKeys.chainHealthTrend(hotelId ?? '', monthsBack),
+    queryFn:  () => fetchChainHealthTrend(monthsBack),
+    staleTime: 15 * 60 * 1000, // 15 min — historical data changes slowly
+    enabled:  !!hotelId,
   })
 }
 
@@ -499,5 +513,43 @@ export function useDeleteBudgetAllocation() {
       void queryClient.invalidateQueries({ queryKey: ['mind', 'budget-trend',     hotelId ?? ''] })
     },
     onError: (err: Error) => { toast.error(err.message) },
+  })
+}
+
+// ─── Supplier Contracts (Sprint 24) ──────────────────────────────────────────
+
+export function useSupplierContracts() {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: mindKeys.contracts(hotelId ?? ''),
+    queryFn:  fetchSupplierContracts,
+    enabled:  !!hotelId,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useUpsertSupplierContract() {
+  const queryClient = useQueryClient()
+  const hotelId     = useActiveHotelId()
+  return useMutation({
+    mutationFn: upsertSupplierContract,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mindKeys.contracts(hotelId ?? '') })
+      toast.success('Contract saved')
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useDeactivateSupplierContract() {
+  const queryClient = useQueryClient()
+  const hotelId     = useActiveHotelId()
+  return useMutation({
+    mutationFn: (id: string) => deactivateSupplierContract(id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: mindKeys.contracts(hotelId ?? '') })
+      toast.success('Contract deactivated')
+    },
+    onError: (err: Error) => toast.error(err.message),
   })
 }

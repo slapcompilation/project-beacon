@@ -112,6 +112,22 @@ export interface Location {
   created_at: string
 }
 
+/** Full per-variant inventory row grouped by location — Floor Layer */
+export interface LocationInventoryRow {
+  variant_id:          string
+  product_name:        string
+  variant_name:        string
+  sku:                 string
+  current_stock:       number
+  low_stock_threshold: number
+  cost:                number
+  total_value:         number
+  location_id:         string | null
+  location_name:       string | null
+  location_path:       string | null
+  par_status:          'ok' | 'low' | 'critical' | 'out'
+}
+
 export interface Product {
   id: string
   hotel_id: string
@@ -625,6 +641,83 @@ export interface WasteCostRow {
   category_name: string
   total_units: number
   total_cost: number
+}
+
+/** Monthly per-property waste and activity row from get_chain_health_trend() — Mind Layer */
+export interface ChainHealthTrendRow {
+  hotel_id:      string
+  hotel_name:    string
+  period_month:  string   // ISO date string ('YYYY-MM-01')
+  waste_cost:    number
+  waste_units:   number
+  log_count:     number
+  restock_count: number
+}
+
+/** A flagged item within a shift handover — variant the outgoing manager wants to highlight */
+export interface HandoverFlaggedItem {
+  variant_id:   string
+  product_name: string
+  note:         string
+  priority:     'urgent' | 'watch' | 'info'
+}
+
+/** Shift handover record returned by get_shift_handovers() — Flow Layer */
+export interface ShiftHandover {
+  id:            string
+  created_by:    string | null
+  author_email:  string | null
+  window_hours:  number
+  started_at:    string   // ISO timestamptz
+  notes:         string | null
+  flagged_items: HandoverFlaggedItem[]
+  created_at:    string   // ISO timestamptz
+}
+
+/** Per-hotel alert threshold preferences from alert_preferences table — Eye Layer */
+export interface AlertPreferences {
+  days_threshold:  number   // alert when stock drops below this many days (1–60)
+  waste_threshold: number   // alert when weekly waste exceeds this many units (1–500)
+}
+
+/** Per-supplier delivery reliability scorecard — Eye Layer */
+export interface SupplierReliabilityRow {
+  supplier_id:           string | null
+  supplier_name:         string
+  total_orders:          number
+  on_time_orders:        number
+  late_orders:           number
+  on_time_pct:           number
+  avg_delay_days:        number
+  max_delay_days:        number
+  total_value:           number
+  avg_cost_variance_pct: number | null
+  active_contracts:      number
+  reliability_score:     number
+  risk_tier:             'low' | 'medium' | 'high' | 'critical'
+  last_delivery_date:    string | null
+}
+
+/** Active supplier contract with live price deviation — Mind Layer */
+export interface SupplierContract {
+  id:                  string
+  supplier_id:         string | null
+  supplier_name:       string
+  variant_id:          string
+  variant_name:        string
+  product_name:        string
+  sku:                 string
+  contracted_price:    number
+  min_order_qty:       number | null
+  contract_start:      string   // ISO date
+  contract_end:        string | null
+  notes:               string | null
+  is_active:           boolean
+  created_at:          string
+  /** Most recent unit_cost from a 'receive' stock_log for this variant */
+  last_received_price: number | null
+  /** (last_received - contracted) / contracted * 100, null if never received */
+  price_deviation_pct: number | null
 }
 
 /** Per-day occupancy record for demand sensing. Eye Layer. */
@@ -1292,6 +1385,7 @@ export interface StockPressureItem {
   avg_daily_use:       number
   days_until_zero:     number
   low_stock_threshold: number
+  open_po_id:          string | null
   open_po_number:      string | null
   expected_delivery:   string | null   // ISO date
   urgency_tier:        'critical' | 'warning' | 'watch'
@@ -1478,6 +1572,45 @@ export interface TeamPerformanceRow {
   // Outlier detection
   is_outlier:                 boolean
   outlier_reason:             string | null   // null when not an outlier
+}
+
+// ─── Cross-Domain Incident Correlation (Sprint 13) ───────────────────────────
+
+export interface ActiveIncidentRow {
+  variant_id:               string
+  variant_label:            string
+  category_name:            string | null
+  current_stock:            number
+  par_level:                number
+  // Primary signal
+  primary_signal_type:      'waste_spike' | 'stockout' | 'below_par_sustained' | 'supply_gap'
+  primary_signal:           string
+  // Waste domain
+  waste_units_7d:           number
+  waste_avg_weekly:         number
+  waste_spike_pct:          number | null
+  waste_rate_pct:           number | null
+  // Stock domain
+  stockout_days:            number
+  below_par_days:           number
+  // Team correlation
+  team_correlated:          boolean
+  top_actor_email:          string | null
+  top_actor_share_pct:      number
+  // Supply correlation
+  supply_correlated:        boolean
+  days_since_last_receive:  number | null
+  supplier_name:            string | null
+  has_open_po:              boolean
+  open_po_overdue:          boolean
+  // Occupancy context
+  occupancy_7d_avg:         number | null
+  occupancy_explains:       boolean
+  occupancy_contradicts:    boolean
+  // Synthesis
+  correlation_count:        number
+  incident_severity:        'critical' | 'elevated' | 'watch'
+  narrative:                string
 }
 
 // ─── Product Performance Intelligence (Sprint 12) ────────────────────────────

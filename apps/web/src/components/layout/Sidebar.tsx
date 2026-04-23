@@ -23,6 +23,7 @@ import { useUnreadNotificationCount } from '@/features/notifications/hooks'
 import { useUserPrefs, useUpdateUserPrefs } from '@/features/user/hooks'
 import { useBriefingActions } from '@/features/briefing/hooks'
 import { DATE_FORMATS } from '@/lib/date'
+import { useRealtimeStatus } from '@/hooks/useRealtimeStatus'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -169,6 +170,29 @@ function PrefsPopover({ email }: { email: string }) {
   )
 }
 
+// ─── Realtime status bar ──────────────────────────────────────────────────────
+
+function RealtimeStatusBar() {
+  const status = useRealtimeStatus()
+  const label  =
+    status === 'connected'    ? 'Live'         :
+    status === 'disconnected' ? 'Disconnected' :
+    'Connecting…'
+  const dotCls =
+    status === 'connected'    ? 'bg-emerald-400'  :
+    status === 'disconnected' ? 'bg-red-400'      :
+    'bg-amber-400 animate-pulse'
+
+  if (status === 'connected') return null  // don't clutter when all is well
+
+  return (
+    <div className="flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11px] text-slate-500">
+      <span className={cn('h-1.5 w-1.5 rounded-full flex-shrink-0', dotCls)} />
+      {label}
+    </div>
+  )
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 export function Sidebar({ onClose }: { onClose?: () => void }) {
@@ -261,14 +285,29 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
         ) : activeHotel ? (
           <span className="ml-auto text-[10px] text-slate-600 truncate max-w-[80px]">{activeHotel.name}</span>
         ) : null}
-        <button
-          type="button"
-          onClick={openCommandBar}
-          title="Command bar (⌘K)"
-          className="ml-auto flex-shrink-0 rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors"
-        >
-          <Command className="h-3.5 w-3.5" />
-        </button>
+        <div className="ml-auto flex items-center gap-0.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => { setNotifPanelOpen(true) }}
+            title="Notifications"
+            className="relative rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors"
+          >
+            <BellDot className="h-3.5 w-3.5" />
+            {(alertCount + unreadNotifCount) > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-red-500 px-0.5 text-[8px] font-bold text-white leading-none">
+                {(alertCount + unreadNotifCount) > 99 ? '99+' : alertCount + unreadNotifCount}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={openCommandBar}
+            title="Command bar (⌘K)"
+            className="rounded p-1 text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-colors"
+          >
+            <Command className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* ── Five-item nav ─────────────────────────────────────────────────── */}
@@ -314,26 +353,13 @@ export function Sidebar({ onClose }: { onClose?: () => void }) {
 
         {/* ── Utility items ─────────────────────────────────────────────── */}
         <div className="pt-3 border-t border-slate-800/60 mt-3 space-y-0.5">
-          <button
-            type="button"
-            onClick={() => { setNotifPanelOpen(true) }}
-            className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800 hover:text-slate-100"
-          >
-            <BellDot className="h-4 w-4 flex-shrink-0" />
-            <span className="flex-1 text-left">Notifications</span>
-            {(alertCount + unreadNotifCount) > 0 && (
-              <span className="flex h-[1.125rem] min-w-[1.125rem] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white leading-none">
-                {(alertCount + unreadNotifCount) > 99 ? '99+' : alertCount + unreadNotifCount}
-              </span>
-            )}
-          </button>
-
           <SidebarLink to="/settings" label="Settings" icon={Settings} />
         </div>
       </nav>
 
       {/* Footer — preferences + sign out */}
       <div className="border-t border-slate-800 px-2 py-2 space-y-0.5">
+        <RealtimeStatusBar />
         <PrefsPopover email={email} />
         <button
           onClick={() => { void handleSignOut() }}

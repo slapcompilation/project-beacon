@@ -65,7 +65,10 @@
       "WebFetch(domain:www.palantir.com)",
       "WebFetch(domain:unit8.com)",
       "WebFetch(domain:logisticsviewpoints.com)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(head -20 grep -n \"approve\\\\.mutate\\\\|reject\\\\.mutate\" apps/web/src/pages/FlowDashboardPage.tsx)",
+      "Bash(head -10 grep -n \"approve\\\\.mutate\\\\|reject\\\\.mutate\" apps/web/src/pages/RestockObjectPage.tsx)",
+      "Bash(head -20 grep -n \"fulfillmentPct\\\\|costVariance\\\\|isOverdue\\\\|quantity_needed\\\\|quantity_received\" apps/web/src/pages/RestockObjectPage.tsx)"
     ]
   }
 }

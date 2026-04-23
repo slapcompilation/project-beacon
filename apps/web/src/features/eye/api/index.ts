@@ -1,7 +1,7 @@
 // Layer: Eye — API calls for Eye Layer intelligence RPCs
 
 import { supabase } from '@/lib/supabase/client'
-import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, SimulationScenarioType, SimulationResult, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow } from '@beacon/types'
+import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, SimulationScenarioType, SimulationResult, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow, ActiveIncidentRow, SupplierReliabilityRow } from '@beacon/types'
 
 // ─── Shift Intelligence ────────────────────────────────────────────────────────
 
@@ -267,6 +267,17 @@ export async function fetchTeamPerformance(windowDays = 30): Promise<TeamPerform
   return result.data ?? []
 }
 
+// ─── Cross-Domain Incident Correlation (Sprint 13) ────────────────────────────
+
+export async function fetchActiveIncidents(windowDays = 7): Promise<ActiveIncidentRow[]> {
+  const result = await supabase.rpc('get_active_incidents', { p_window_days: windowDays }) as unknown as {
+    data: ActiveIncidentRow[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
 // ─── Product Performance Intelligence (Sprint 12) ─────────────────────────────
 
 export async function fetchProductPerformance(windowDays = 30): Promise<ProductPerformanceRow[]> {
@@ -302,6 +313,16 @@ export async function fetchStocktakeVariance(sessionId: string): Promise<Stockta
 export async function fetchStockPressure(): Promise<StockPressureItem[]> {
   const result = await supabase.rpc('get_stock_pressure') as unknown as {
     data: StockPressureItem[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+/** Eye Layer: per-supplier delivery reliability scorecard */
+export async function fetchSupplierReliability(days = 90): Promise<SupplierReliabilityRow[]> {
+  const result = await supabase.rpc('get_supplier_reliability', { p_days: days }) as unknown as {
+    data: SupplierReliabilityRow[] | null
     error: { message: string } | null
   }
   if (result.error) throw new Error(result.error.message)

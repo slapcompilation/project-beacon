@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import type { Location } from '@beacon/types'
+import type { Location, LocationInventoryRow } from '@beacon/types'
 
 export async function fetchLocations(hotelId: string): Promise<Location[]> {
   const { data, error } = await supabase
@@ -60,4 +60,23 @@ export async function fetchLowStockByLocation(): Promise<LowStockByLocation[]> {
   const { data, error } = result
   if (error) throw new Error(error.message)
   return data ?? []
+}
+
+// ─── Full inventory by location (Sprint 25) ───────────────────────────────────
+
+export async function fetchInventoryByLocation(): Promise<LocationInventoryRow[]> {
+  const result = await supabase.rpc('get_inventory_by_location') as unknown as { data: LocationInventoryRow[] | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+export async function reassignVariantLocation(
+  variantId: string,
+  locationId: string | null,
+): Promise<void> {
+  const result = await supabase.rpc('reassign_variant_location', {
+    p_variant_id:  variantId,
+    p_location_id: locationId,
+  }) as unknown as { error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
 }

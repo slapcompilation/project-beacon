@@ -4,6 +4,7 @@
 // Principle: actions live next to data — pick quantity inline, commit from the same view.
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { format } from 'date-fns'
 import { useDateFormat } from '@/features/user/hooks'
@@ -368,7 +369,10 @@ function PickItemRow({
       {/* Item info */}
       <div className="min-w-0 flex-1">
         <p className={cn('text-sm font-medium', isFulfilled && 'line-through text-muted-foreground')}>
-          {variantLabel}
+          {pv?.id
+            ? <Link to={`/variant/${pv.id}`} className="hover:underline" onClick={(e) => { e.stopPropagation() }}>{variantLabel}</Link>
+            : variantLabel
+          }
         </p>
         <p className="text-xs text-muted-foreground">
           SKU {pv?.sku ?? '—'}

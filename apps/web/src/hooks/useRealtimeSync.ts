@@ -109,6 +109,26 @@ export function useRealtimeSync() {
           new Notification('Beacon', { body: msg, icon: '/favicon.ico' })
         }
       }, filter),
+
+      // ── Alerts ───────────────────────────────────────────────────────────────
+      // Keeps the alerts list in Eye · Alerts fresh when auto_create_alerts fires.
+      services.realtime.subscribe('alerts', '*', () => {
+        void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
+        void queryClient.invalidateQueries({ queryKey: eyeKeys.all(hotelId) })
+      }, filter),
+
+      // ── Shift handovers ──────────────────────────────────────────────────────
+      // Pushes new handover entries to the Flow · Handover tab live.
+      services.realtime.subscribe('shift_handovers', 'INSERT', () => {
+        void queryClient.invalidateQueries({ queryKey: ['shift-handovers', hotelId] })
+      }, filter),
+
+      // ── Purchase orders ──────────────────────────────────────────────────────
+      // Keeps the Mind · Operations PO pipeline and Procurement tab fresh.
+      services.realtime.subscribe('purchase_orders', '*', () => {
+        void queryClient.invalidateQueries({ queryKey: ['mind', 'po-summary', hotelId] })
+        void queryClient.invalidateQueries({ queryKey: briefingKeys.actions(hotelId) })
+      }, filter),
     ]
 
     return () => {

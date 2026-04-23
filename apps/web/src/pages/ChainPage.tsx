@@ -16,9 +16,9 @@ import { formatCurrency } from '@/lib/currency'
 import { scoreToGrade, GRADE_STYLES, GRADE_ICONS } from '@/lib/grades'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useActiveHotel } from '@/features/hotel/hooks'
-import { useChainOverview } from '@/features/mind/hooks'
+import { useChainOverview, useChainHealthTrend } from '@/features/mind/hooks'
 import { useSupplierLeverage } from '@/features/suppliers/hooks'
-import type { ChainPropertyRow, SupplierLeverageRow } from '@beacon/types'
+import type { ChainPropertyRow, ChainHealthTrendRow, SupplierLeverageRow } from '@beacon/types'
 
 function ScorePill({ score }: { score: number }) {
   const grade = scoreToGrade(score)
@@ -101,6 +101,76 @@ function KpiTile({
   )
 }
 
+// ─── Sparkline ────────────────────────────────────────────────────────────────
+// Pure SVG sparkline — 6 monthly values, coloured by trend direction.
+
+function Sparkline({ values, color = 'currentColor' }: { values: number[]; color?: string }) {
+  if (values.length < 2) return null
+  const W = 56
+  const H = 18
+  const max = Math.max(...values, 1)
+  const pts = values
+    .map((v, i) => `${(i / (values.length - 1)) * W},${H - (v / max) * H}`)
+    .join(' ')
+  return (
+    <svg width={W} height={H} className="overflow-visible flex-shrink-0">
+      <polyline
+        points={pts}
+        fill="none"
+        stroke={color}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+// ─── Trend cell ───────────────────────────────────────────────────────────────
+// Sparkline + MoM waste_cost delta for a single hotel row.
+
+function TrendCell({ hotelId, trend }: { hotelId: string; trend: ChainHealthTrendRow[] }) {
+  const rows = trend
+    .filter(r => r.hotel_id === hotelId)
+    .sort((a, b) => a.period_month.localeCompare(b.period_month))
+
+  if (rows.length < 2) {
+    return <span className="text-[10px] text-muted-foreground italic">no history</span>
+  }
+
+  const values = rows.map(r => r.waste_cost)
+
+  // MoM: last vs second-to-last
+  const cur  = rows[rows.length - 1]!.waste_cost
+  const prev = rows[rows.length - 2]!.waste_cost
+  const momPct = prev > 0 ? ((cur - prev) / prev) * 100 : null
+
+  const improving   = momPct != null && momPct < -5
+  const deteriorating = momPct != null && momPct > 5
+
+  const sparkColor = improving
+    ? '#34d399'        // emerald
+    : deteriorating
+    ? '#f87171'        // red
+    : '#94a3b8'        // slate
+
+  return (
+    <div className="flex items-center gap-2 justify-end">
+      {momPct != null && (
+        <span className={cn(
+          'text-[10px] font-mono font-semibold',
+          improving     ? 'text-emerald-400' :
+          deteriorating ? 'text-red-400'     :
+          'text-muted-foreground',
+        )}>
+          {momPct > 0 ? '+' : ''}{momPct.toFixed(0)}%
+        </span>
+      )}
+      <Sparkline values={values} color={sparkColor} />
+    </div>
+  )
+}
+
 // ─── Property Row ─────────────────────────────────────────────────────────────
 
 interface RowProps {
@@ -115,9 +185,10 @@ interface RowProps {
   }
   currency: string
   isCurrentHotel: boolean
+  trend: ChainHealthTrendRow[]
 }
 
-function PropertyRow({ row, rank, medians, currency, isCurrentHotel }: RowProps) {
+function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: RowProps) {
   const grade           = scoreToGrade(row.health_score)
   const wastePct        = Math.round((row.waste_rate ?? 0) * 100)
   const oosPct          = row.total_variants > 0
@@ -274,6 +345,11 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel }: RowProps)
           </span>
           <p className="text-[10px] text-muted-foreground">log cadence</p>
         </div>
+      </td>
+
+      {/* Waste trend sparkline */}
+      <td className="py-3 px-4">
+        <TrendCell hotelId={row.hotel_id} trend={trend} />
       </td>
 
       {/* Grade context */}
@@ -579,7 +655,8 @@ export default function ChainPage() {
   const [sortBy, setSortBy]   = useState<SortField>('health_score')
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
-  const { data: rows = [], isLoading } = useChainOverview(days)
+  const { data: rows = [], isLoading }   = useChainOverview(days)
+  const { data: trendData = [] }          = useChainHealthTrend(6)
   const activeHotel = useActiveHotel()
   const currency    = useCurrency()
 
@@ -787,6 +864,7 @@ export default function ChainPage() {
                     <SortableTh label="Restocks"  field="pending_restocks"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                     <SortableTh label="Supplier"  field="avg_supplier_score" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                     <SortableTh label="Activity"  field="stock_log_count"    sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
+                    <th className="py-2.5 px-4 text-right text-xs font-medium text-muted-foreground">Waste trend</th>
                     <th className="py-2.5 px-4 pr-6 text-left text-xs font-medium text-muted-foreground">Status</th>
                   </tr>
                 </thead>
@@ -799,6 +877,7 @@ export default function ChainPage() {
                       medians={medians}
                       currency={currency}
                       isCurrentHotel={row.hotel_id === activeHotel?.id}
+                      trend={trendData}
                     />
                   ))}
                 </tbody>
@@ -816,6 +895,7 @@ export default function ChainPage() {
               </span>
               <span className="flex items-center gap-1"><Activity className="h-3 w-3" />Activity = stock log entries per day</span>
               <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Supplier score only available after logging deliveries</span>
+              <span className="flex items-center gap-1"><TrendingDown className="h-3 w-3 text-emerald-400" />Waste trend = 6-month sparkline · green = improving · red = deteriorating · % = MoM change</span>
               <span className="flex items-center gap-1"><ChevronsUpDown className="h-3 w-3" />Click column headers to sort</span>
             </div>
           </div>
