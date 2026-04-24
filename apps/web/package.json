@@ -11,6 +11,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@11labs/client": "^0.2.0",
     "@beacon/hooks": "workspace:*",
     "@beacon/reality-graph": "workspace:*",
     "@beacon/services": "workspace:*",
