@@ -58,18 +58,65 @@ COMMENT ON CONSTRAINT relationship_edges_edge_type_check ON relationship_edges I
 -- The function in migration 019 moves stock between two *variants* within the
 -- same hotel. Phase R1 introduces a distinct `transfer_stock(from_hotel, to_hotel, ...)`
 -- for inter-property lateral resupply. Rename the legacy function to free the name.
+--
+-- Idempotent: if transfer_stock doesn't exist (e.g. migration 019 was not applied
+-- to this database) we skip silently. If swap_variant_stock already exists
+-- (migration was partially applied) we skip silently. Either way we end up in a
+-- consistent state: transfer_stock is free for Phase R1 migration 112.
 
-ALTER FUNCTION transfer_stock(uuid, uuid, integer, text)
-  RENAME TO swap_variant_stock;
+DO $$
+BEGIN
+  -- If the legacy function exists and the target name is free, rename it.
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'transfer_stock'
+      AND pg_get_function_identity_arguments(p.oid) = 'uuid, uuid, integer, text'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'swap_variant_stock'
+      AND pg_get_function_identity_arguments(p.oid) = 'uuid, uuid, integer, text'
+  ) THEN
+    ALTER FUNCTION public.transfer_stock(uuid, uuid, integer, text)
+      RENAME TO swap_variant_stock;
+    RAISE NOTICE 'Renamed transfer_stock → swap_variant_stock';
+  ELSIF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'swap_variant_stock'
+      AND pg_get_function_identity_arguments(p.oid) = 'uuid, uuid, integer, text'
+  ) THEN
+    RAISE NOTICE 'swap_variant_stock already exists — rename skipped (idempotent).';
+  ELSE
+    RAISE NOTICE 'transfer_stock(uuid, uuid, integer, text) does not exist — nothing to rename. '
+                 'Migration 019 may not have been applied. The name transfer_stock is free for Phase R1.';
+  END IF;
+END $$;
 
-COMMENT ON FUNCTION swap_variant_stock(uuid, uuid, integer, text) IS
-  'Moves N units between two variants within the same hotel. Creates two '
-  'immutable stock_logs plus a causes edge linking debit→credit. '
-  'Renamed from transfer_stock in migration 110 to free that name for the '
-  'multi-echelon inter-property transfer action introduced in Phase R1.';
-
--- Ensure authenticated callers retain execute privilege under the new name.
-GRANT EXECUTE ON FUNCTION swap_variant_stock(uuid, uuid, integer, text) TO authenticated;
+-- If we renamed (or swap_variant_stock was pre-existing), ensure metadata + grant are applied.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'public'
+      AND p.proname = 'swap_variant_stock'
+      AND pg_get_function_identity_arguments(p.oid) = 'uuid, uuid, integer, text'
+  ) THEN
+    EXECUTE $cmt$
+      COMMENT ON FUNCTION public.swap_variant_stock(uuid, uuid, integer, text) IS
+        'Moves N units between two variants within the same hotel. Creates two '
+        'immutable stock_logs plus a causes edge linking debit→credit. '
+        'Renamed from transfer_stock in migration 110 to free that name for the '
+        'multi-echelon inter-property transfer action introduced in Phase R1.'
+    $cmt$;
+    GRANT EXECUTE ON FUNCTION public.swap_variant_stock(uuid, uuid, integer, text) TO authenticated;
+  END IF;
+END $$;
 
 -- ═══════════════════════════════════════════════════════════════════════════════
 -- Summary:
