@@ -92,12 +92,49 @@ export type BeaconAction =
       userId: string
     }
 
+  // ── Mind Layer: Suppliers ────────────────────────────────────────────────
+  | {
+      type: 'CREATE_SUPPLIER'
+      hotelId:      string
+      name:         string
+      contactName?: string | null
+      email?:       string | null
+      phone?:       string | null
+      notes?:       string | null
+      leadTimeDays?: number | null
+    }
+
   // ── Mind Layer: Procurement ───────────────────────────────────────────────
+  | {
+      type: 'CREATE_PO'
+      supplierId:           string | null
+      supplierName:         string
+      poNumber:             string
+      hotelId:              string
+      expectedDeliveryDate?: string | null
+      notes?:               string | null
+      lines: {
+        variantId:  string
+        requestId?: string | null
+        orderedQty: number
+        unitCost:   number
+        notes?:     string | null
+      }[]
+    }
   | {
       type: 'UPDATE_PO_STATUS'
       poId: string
       status: 'draft' | 'sent' | 'confirmed' | 'partially_received' | 'closed' | 'cancelled'
       hotelId: string
+    }
+  | {
+      type: 'SUBMIT_PO_INVOICE'
+      poId:          string
+      hotelId:       string
+      invoiceNumber: string
+      invoiceDate:   string
+      invoiceAmount: number
+      notes?:        string | null
     }
   | {
       type: 'MATCH_INVOICE'

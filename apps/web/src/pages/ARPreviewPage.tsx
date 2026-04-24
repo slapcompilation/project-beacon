@@ -23,7 +23,7 @@ export default function ARPreviewPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => { navigate(-1) }}
+          onClick={() => { void navigate(-1) }}
           className="shrink-0"
           aria-label="Back"
         >

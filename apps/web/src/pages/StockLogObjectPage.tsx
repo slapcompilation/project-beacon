@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { StockLog } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectActions } from '@/components/ObjectActions'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -78,14 +79,14 @@ export default function StockLogObjectPage() {
 
   const { data: log, isLoading, error } = useQuery({
     queryKey:  ['stock-log-object', logId],
-    queryFn:   () => fetchStockLog(logId!),
+    queryFn:   () => fetchStockLog(logId ?? ''),
     enabled:   !!logId,
     staleTime: 60_000,
   })
 
   const { data: revertsOf = [] } = useQuery({
     queryKey:  ['log-reverts-of', logId],
-    queryFn:   () => fetchRevertsOfLog(logId!),
+    queryFn:   () => fetchRevertsOfLog(logId ?? ''),
     enabled:   !!logId,
     staleTime: 60_000,
   })
@@ -103,7 +104,7 @@ export default function StockLogObjectPage() {
       <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
         <AlertTriangle className="h-8 w-8 text-red-500/60" />
         <p className="text-sm">Log entry not found or access denied.</p>
-        <button type="button" onClick={() => { navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
+        <button type="button" onClick={() => { void navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
       </div>
     )
   }
@@ -305,6 +306,18 @@ export default function StockLogObjectPage() {
             </div>
           )}
         </div>
+
+        {/* ── Inline actions ── */}
+        {variantId && (
+          <div className="rounded-lg border border-border bg-card p-4">
+            <ObjectActions
+              nodeType="stock_log"
+              logId={log.id}
+              variantId={variantId}
+              isRevert={isRevert}
+            />
+          </div>
+        )}
 
         {/* ── Graph connections ── */}
         <div className="rounded-lg border border-border bg-card p-4">

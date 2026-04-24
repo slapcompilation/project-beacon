@@ -269,7 +269,7 @@ function CategoryBreakdown({ rows, currency }: { rows: CostByCategoryRow[]; curr
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                   <div
                     className="h-full rounded-full bg-primary/60"
-                    style={{ width: `${barWidth}%` }}
+                    style={{ width: `${String(barWidth)}%` }}
                   />
                 </div>
 

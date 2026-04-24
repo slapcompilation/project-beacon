@@ -47,7 +47,7 @@ interface HistoryEntry {
 function findBySku(products: ProductWithVariants[], sku: string): Match | null {
   const q = sku.trim().toLowerCase()
   for (const p of products) {
-    if (p.sku.toLowerCase() === q) return { product: p, variant: p.product_variants[0]! }
+    if (p.sku.toLowerCase() === q) return { product: p, variant: p.product_variants[0] }
     for (const v of p.product_variants) {
       if (v.sku.toLowerCase() === q) return { product: p, variant: v }
     }
@@ -61,7 +61,7 @@ function findByName(products: ProductWithVariants[], query: string): Match[] {
   const results: Match[] = []
   for (const p of products) {
     if (p.name.toLowerCase().includes(q)) {
-      results.push({ product: p, variant: p.product_variants[0]! })
+      results.push({ product: p, variant: p.product_variants[0] })
     } else {
       for (const v of p.product_variants) {
         if (v.name.toLowerCase().includes(q) || v.sku.toLowerCase().includes(q)) {

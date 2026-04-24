@@ -15,7 +15,7 @@ function fmtCost(v: number) {
 export function WasteRadar() {
   const { data: rows = [], isLoading } = useWasteRadar()
 
-  const totalCost = rows.reduce((s, r) => s + (r.waste_cost_7d ?? 0), 0)
+  const totalCost = rows.reduce((s, r) => s + r.waste_cost_7d, 0)
 
   return (
     <div className="space-y-3">

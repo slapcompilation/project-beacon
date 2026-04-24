@@ -21,10 +21,13 @@ import type {
   BeaconAction,
   ActionResult,
   TriggeredBy,
+  SupplierCreateResult,
   RestockRequestResult,
   StockLogResult,
   ReceiveStockResult,
   RevertActionResult,
+  POCreateResult,
+  InvoiceSubmitResult,
   MutationResult,
 } from '@beacon/reality-graph'
 
@@ -40,6 +43,13 @@ import {
   adjustStock,
   undoStockAdjustment,
 } from '@/features/inventory/api'
+import {
+  createPurchaseOrder,
+  submitPOInvoice,
+} from '@/features/mind/api'
+import {
+  createSupplier,
+} from '@/features/suppliers/api'
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -155,7 +165,34 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
         break
       }
 
+      // ── Suppliers ─────────────────────────────────────────────────────────
+
+      case 'CREATE_SUPPLIER': {
+        const supplier = await createSupplier(action.hotelId, {
+          name:         action.name,
+          contact_name: action.contactName ?? null,
+          email:        action.email ?? null,
+          phone:        action.phone ?? null,
+          notes:        action.notes ?? null,
+        })
+        mutationResult = { supplierId: supplier.id } satisfies SupplierCreateResult
+        break
+      }
+
       // ── Procurement ───────────────────────────────────────────────────────
+
+      case 'CREATE_PO': {
+        const poId = await createPurchaseOrder({
+          supplierId:           action.supplierId,
+          supplierName:         action.supplierName,
+          poNumber:             action.poNumber,
+          expectedDeliveryDate: action.expectedDeliveryDate,
+          notes:                action.notes,
+          lines:                action.lines,
+        })
+        mutationResult = { poId } satisfies POCreateResult
+        break
+      }
 
       case 'UPDATE_PO_STATUS': {
         const { error } = await supabase
@@ -163,6 +200,18 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
           .update({ status: action.status })
           .eq('id', action.poId)
         if (error) throw new Error(error.message)
+        break
+      }
+
+      case 'SUBMIT_PO_INVOICE': {
+        const invoiceId = await submitPOInvoice(
+          action.poId,
+          action.invoiceNumber,
+          action.invoiceDate,
+          action.invoiceAmount,
+          action.notes,
+        )
+        mutationResult = { invoiceId } satisfies InvoiceSubmitResult
         break
       }
 
@@ -199,6 +248,21 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
     } else {
       edgesWritten = edges.length
     }
+  }
+
+  // 5. Fire outbound webhooks — non-fatal, never blocks the action
+  if (ctx.hotelId) {
+    void supabase.functions.invoke('fire-webhooks', {
+      body: {
+        hotelId:     ctx.hotelId,
+        actionType:  action.type,
+        payload:     { action, result: mutationResult },
+        triggeredBy: ctx.triggeredBy ?? 'user',
+        actorId:     ctx.actorId ?? null,
+      },
+    }).catch((err: unknown) => {
+      console.warn('[beacon:action] Webhook invocation failed:', err)
+    })
   }
 
   return {

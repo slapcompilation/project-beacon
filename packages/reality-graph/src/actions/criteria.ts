@@ -73,10 +73,36 @@ export function validateAction(action: BeaconAction): ValidationResult {
       break
     }
 
+    case 'CREATE_SUPPLIER': {
+      if (!action.hotelId)      errors.push('hotelId is required')
+      if (!action.name.trim())  errors.push('supplier name is required')
+      break
+    }
+
+    case 'CREATE_PO': {
+      if (!action.hotelId)            errors.push('hotelId is required')
+      if (!action.supplierName.trim()) errors.push('supplierName is required')
+      if (!action.poNumber.trim())    errors.push('poNumber is required')
+      if (action.lines.length === 0)  errors.push('at least one line item is required')
+      for (const line of action.lines) {
+        if (line.orderedQty <= 0) errors.push(`line for ${line.variantId}: orderedQty must be > 0`)
+      }
+      break
+    }
+
     case 'UPDATE_PO_STATUS': {
       if (!action.poId)    errors.push('poId is required')
       if (!action.hotelId) errors.push('hotelId is required')
       if (!action.status)  errors.push('status is required')
+      break
+    }
+
+    case 'SUBMIT_PO_INVOICE': {
+      if (!action.poId)              errors.push('poId is required')
+      if (!action.hotelId)           errors.push('hotelId is required')
+      if (!action.invoiceNumber.trim()) errors.push('invoiceNumber is required')
+      if (!action.invoiceDate)       errors.push('invoiceDate is required')
+      if (action.invoiceAmount <= 0) errors.push('invoiceAmount must be > 0')
       break
     }
 

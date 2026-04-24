@@ -76,7 +76,7 @@ interface UseARSessionReturn extends ARSessionState {
 
 const supported =
   typeof navigator !== 'undefined' &&
-  typeof navigator.mediaDevices?.getUserMedia === 'function'
+  typeof navigator.mediaDevices.getUserMedia === 'function'
 
 export function useARSession(): UseARSessionReturn {
   const [state, setState] = useState<ARSessionState>({
@@ -120,7 +120,7 @@ export function useARSession(): UseARSessionReturn {
 
   const stop = useCallback(() => {
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((t) => t.stop())
+      streamRef.current.getTracks().forEach((t) => { t.stop(); })
       streamRef.current = null
     }
     setState((s) => ({ ...s, status: 'idle', stream: null, detectedItems: [] }))

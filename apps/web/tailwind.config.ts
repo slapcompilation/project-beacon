@@ -46,6 +46,13 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        /* Palantir surface hierarchy — layered depth for panels */
+        surface: {
+          0: 'hsl(var(--surface-0, var(--background)))',
+          1: 'hsl(var(--surface-1, var(--card)))',
+          2: 'hsl(var(--surface-2, var(--popover)))',
+          3: 'hsl(var(--surface-3, var(--accent)))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

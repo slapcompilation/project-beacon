@@ -27,6 +27,13 @@ import { hasPermission } from '@beacon/types'
 import type { ProductWithVariants, StockLog } from '@beacon/types'
 
 
+// ─── Recharts constants (hoisted to avoid re-renders from new object refs) ───
+
+const CHART_MARGIN = { top: 4, right: 4, left: -20, bottom: 0 }
+const AXIS_TICK    = { fontSize: 10 }
+const TOOLTIP_STYLE = { fontSize: 12, borderRadius: 6 }
+const tooltipFormatter = (v: unknown) => [String(v ?? ''), 'Balance']
+
 // ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -47,7 +54,7 @@ function StockChart({ logs }: { logs: StockLog[] }) {
       date: fmtDate(new Date(l.timestamp)),
       balance: l.balance_after,
     }))
-  }, [logs])
+  }, [logs, fmtDate])
 
   const kpis = useMemo(() => {
     let totalIn = 0
@@ -88,7 +95,7 @@ function StockChart({ logs }: { logs: StockLog[] }) {
       <div>
         <p className="mb-2 text-xs font-medium text-muted-foreground">Stock balance over time</p>
         <ResponsiveContainer width="100%" height={160}>
-          <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+          <AreaChart data={chartData} margin={CHART_MARGIN}>
             <defs>
               <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
@@ -97,20 +104,20 @@ function StockChart({ logs }: { logs: StockLog[] }) {
             </defs>
             <XAxis
               dataKey="date"
-              tick={{ fontSize: 10 }}
+              tick={AXIS_TICK}
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 10 }}
+              tick={AXIS_TICK}
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
             />
             <Tooltip
-              contentStyle={{ fontSize: 12, borderRadius: 6 }}
-              formatter={(v) => [String(v ?? ''), 'Balance']}
+              contentStyle={TOOLTIP_STYLE}
+              formatter={tooltipFormatter}
             />
             <Area
               type="monotone"

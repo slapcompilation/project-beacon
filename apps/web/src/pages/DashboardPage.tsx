@@ -78,7 +78,7 @@ function StatusStrip({
   const allClear = critical === 0 && warning === 0
 
   return (
-    <div className="flex items-center gap-3 flex-wrap border-b px-8 py-3 text-xs font-medium bg-muted/30">
+    <div className="flex items-center gap-3 flex-wrap border-b px-5 py-2.5 text-xs font-medium bg-surface-1">
       {/* Live indicator */}
       <div className="flex items-center gap-1.5">
         <span className="relative flex h-2 w-2">
@@ -326,7 +326,7 @@ export default function DashboardPage() {
     const hasPendingRestock = openRestockVariantIds.has(variantId)
     const parts: string[] = []
     if (waste && waste.qty_7d > 0) {
-      parts.push(`${waste.qty_7d} written off this week (${(waste.qty_7d / 7).toFixed(1)}/day · ${waste.pct_above_baseline}% above baseline)`)
+      parts.push(`${String(waste.qty_7d)} written off this week (${(waste.qty_7d / 7).toFixed(1)}/day · ${String(waste.pct_above_baseline)}% above baseline)`)
     }
     if (hasPendingRestock) parts.push('restock pending')
     return parts.length > 0 ? parts.join(' · ') : undefined
@@ -348,7 +348,7 @@ export default function DashboardPage() {
           severity: 'critical',
           icon: PackageX,
           title: `Out of stock · ${label}`,
-          subtitle: `SKU ${variant.sku} · par level ${variant.low_stock_threshold}`,
+          subtitle: `SKU ${variant.sku} · par level ${String(variant.low_stock_threshold)}`,
           context: ctxFor(variant.id),
           variantId: variant.id,
           variantName: label,
@@ -370,8 +370,8 @@ export default function DashboardPage() {
         id: `fcast-crit-${row.variant_id}`,
         severity: 'critical',
         icon: Clock,
-        title: `${label} — ~${Math.round(row.days_until_zero)}d supply left`,
-        subtitle: `${row.current_stock} units · ${Number(row.avg_daily).toFixed(1)}/day avg · based on 30-day window`,
+        title: `${label} — ~${String(Math.round(row.days_until_zero))}d supply left`,
+        subtitle: `${String(row.current_stock)} units · ${row.avg_daily.toFixed(1)}/day avg · based on 30-day window`,
         context: ctxFor(row.variant_id),
         variantId: row.variant_id,
         variantName: label,
@@ -414,8 +414,8 @@ export default function DashboardPage() {
         id: `fcast-warn-${row.variant_id}`,
         severity: 'warning',
         icon: Clock,
-        title: `${label} — ~${Math.round(row.days_until_zero)}d supply left`,
-        subtitle: `${row.current_stock} units · ${Number(row.avg_daily).toFixed(1)}/day avg · based on 30-day window`,
+        title: `${label} — ~${String(Math.round(row.days_until_zero))}d supply left`,
+        subtitle: `${String(row.current_stock)} units · ${row.avg_daily.toFixed(1)}/day avg · based on 30-day window`,
         context: ctxFor(row.variant_id),
         actions: row.has_open_request ? [] : [
           { label: 'Request Restock', variant: 'outline', onClick: () => { createRestock.mutate({ variantId: row.variant_id, quantityNeeded: row.recommended_order_qty }) } },
@@ -465,7 +465,7 @@ export default function DashboardPage() {
           severity: 'warning',
           icon: AlertTriangle,
           title: `${label} — low stock`,
-          subtitle: `${variant.current_stock} units · par level ${variant.low_stock_threshold}`,
+          subtitle: `${String(variant.current_stock)} units · par level ${String(variant.low_stock_threshold)}`,
           context: ctxFor(variant.id),
           actions: openRestockVariantIds.has(variant.id) ? [] : [
             { label: 'Request Restock', variant: 'outline', onClick: () => { createRestock.mutate({ variantId: variant.id, quantityNeeded: variant.low_stock_threshold * 2 - variant.current_stock }) } },
@@ -521,7 +521,7 @@ export default function DashboardPage() {
           severity: 'info',
           icon: CheckCircle2,
           title: `Restock approval needed · ${label}`,
-          subtitle: `${r.quantity_needed} units requested${r.supplier ? ` · ${r.supplier}` : ''}`,
+          subtitle: `${String(r.quantity_needed)} units requested${r.supplier ? ` · ${r.supplier}` : ''}`,
           actions: [
             { label: 'Approve', onClick: () => { updateRestockStatus.mutate({ id: r.id, status: 'approved' }) } },
             { label: 'Decline', variant: 'outline', onClick: () => { updateRestockStatus.mutate({ id: r.id, status: 'cancelled' }) } },
@@ -566,8 +566,8 @@ export default function DashboardPage() {
     return items
   }, [
     products, forecast, expiring, notifications, restockRequests, predictiveRestocks,
-    ctxFor, openRestockVariantIds, canApprove, currency, fmtDate,
-    adjustStock.mutate, createRestock.mutate, updateRestockStatus.mutate, markRead.mutate,
+    ctxFor, openRestockVariantIds, canApprove, currency, fmtDate, wasteRadarRows,
+    adjustStock, createRestock, updateRestockStatus, markRead,
   ])
 
   // ── Role detection ────────────────────────────────────────────────────────
@@ -593,7 +593,7 @@ export default function DashboardPage() {
     ? { title: 'Floor · Your Shift', sub: 'Stock status for your current shift — ranked by urgency' }
     : isOwner
       ? { title: 'Mind · Operations', sub: 'Cross-property health and financial exposure' }
-      : { title: 'Eye · Action Queue', sub: displayedItems.length === 0 ? 'All clear — no actions required' : `${displayedItems.length} item${displayedItems.length !== 1 ? 's' : ''} ranked by urgency and business impact` }
+      : { title: 'Eye · Action Queue', sub: displayedItems.length === 0 ? 'All clear — no actions required' : `${String(displayedItems.length)} item${displayedItems.length !== 1 ? 's' : ''} ranked by urgency and business impact` }
 
   return (
     <div className="flex flex-col h-full">
@@ -612,7 +612,7 @@ export default function DashboardPage() {
       <div className="flex flex-1 overflow-hidden">
 
         {/* ── Left: Mission Action Queue ───────────────────────────── */}
-        <div className={cn('overflow-y-auto px-6 py-5 space-y-5', isStaff ? 'flex-1' : 'flex-1 border-r')}>
+        <div className={cn('overflow-y-auto px-5 py-4 space-y-4', isStaff ? 'flex-1' : 'flex-1 border-r')}>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-base font-semibold tracking-tight">{mission.title}</h1>
@@ -667,7 +667,7 @@ export default function DashboardPage() {
 
         {/* ── Right: Intelligence panel — hidden for floor staff ───── */}
         {!isStaff && (
-          <div className="w-72 xl:w-80 flex-shrink-0 overflow-y-auto px-5 py-5 space-y-6">
+          <div className="w-72 xl:w-80 flex-shrink-0 overflow-y-auto px-5 py-4 space-y-5">
 
             {/* Manager: Eye intelligence — depletion forecasts + waste signals */}
             {!isOwner && (
@@ -729,7 +729,7 @@ export default function DashboardPage() {
                     <MicroKpi
                       label="Inventory Value"
                       value={formatCurrency(inventoryValue, currency)}
-                      sub={`${totalStock} total units · ${products.length} products`}
+                      sub={`${String(totalStock)} total units · ${String(products.length)} products`}
                       trend={critical.length > 0 ? 'down-bad' : warning.length > 0 ? 'neutral' : 'up-good'}
                     />
                     <MicroKpi

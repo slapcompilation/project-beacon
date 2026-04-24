@@ -130,8 +130,8 @@ export function ForecastReport() {
               const isPending = requesting.has(row.variant_id)
               const waste = wasteMap.get(row.variant_id)
               // Waste rate: wasted / (wasted + consumed) as a fraction of avg_daily
-              const wasteRate = waste && Number(row.avg_daily) > 0
-                ? Math.round(((waste.qty_7d / 7) / Number(row.avg_daily)) * 100)
+              const wasteRate = waste && row.avg_daily > 0
+                ? Math.round(((waste.qty_7d / 7) / row.avg_daily) * 100)
                 : null
 
               return (
@@ -146,7 +146,7 @@ export function ForecastReport() {
                   <TableCell className="font-mono text-xs text-muted-foreground">{row.sku}</TableCell>
                   <TableCell className="text-right tabular-nums">{row.current_stock}</TableCell>
                   <TableCell className="text-right tabular-nums text-muted-foreground">
-                    {Number(row.avg_daily).toFixed(1)}/day
+                    {row.avg_daily.toFixed(1)}/day
                   </TableCell>
                   <TableCell className="text-right">
                     {wasteRate !== null && wasteRate > 0 ? (

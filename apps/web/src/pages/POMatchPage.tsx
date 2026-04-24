@@ -20,7 +20,7 @@ import {
   usePOMatchSummary, usePOMatch, usePODiscrepancies, useReviewPODiscrepancy,
   useInvoiceIntelligence,
 } from '@/features/mind/hooks'
-import type { POMatchRow, PODiscrepancy, InvoiceIntelligenceRow } from '@beacon/types'
+import type { POMatchRow, PODiscrepancy } from '@beacon/types'
 
 // ─── Match status helpers ──────────────────────────────────────────────────────
 
@@ -234,7 +234,7 @@ function DiscrepancyQueue({
 
   // Streak lookup: supplier_name → consecutive_above_count
   const streakBySupplier = Object.fromEntries(
-    (invoiceIntel as InvoiceIntelligenceRow[]).map((r) => [r.supplier_name, r.consecutive_above_count])
+    (invoiceIntel).map((r) => [r.supplier_name, r.consecutive_above_count])
   )
 
   const pending  = discrepancies.filter((d) => d.status === 'pending')

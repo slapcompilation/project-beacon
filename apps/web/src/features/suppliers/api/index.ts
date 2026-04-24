@@ -59,7 +59,7 @@ export async function fetchSupplierScorecard(hotelId: string): Promise<SupplierS
     .eq('hotel_id', hotelId)
 
   if (error) throw new Error(error.message)
-  return (data ?? []) as SupplierScorecard[]
+  return data as SupplierScorecard[]
 }
 
 export async function fetchSupplierLeverage(days: number): Promise<SupplierLeverageRow[]> {

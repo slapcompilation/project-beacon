@@ -14,9 +14,8 @@ export function useBriefingActions() {
     queryKey:             briefingKeys.actions(hotelId ?? ''),
     queryFn:              fetchBriefingActions,
     enabled:              !!hotelId,
-    staleTime:            90 * 1000,        // 90s — realtime invalidates faster; this is the fallback
-    refetchInterval:      90 * 1000,        // auto-refresh every 90s in the background
-    refetchOnWindowFocus: true,
+    staleTime:            2 * 60 * 1000,    // 2 min — realtime invalidation handles live updates
+    refetchOnWindowFocus: true,             // safety net: refetch on tab focus
   })
 }
 
@@ -26,8 +25,7 @@ export function useSituationScore() {
     queryKey:        ['situation-score', hotelId ?? ''],
     queryFn:         fetchSituationScore,
     enabled:         !!hotelId,
-    staleTime:       5 * 60 * 1000,   // 5 min — fused score doesn't need second-by-second freshness
-    refetchInterval: 5 * 60 * 1000,
+    staleTime:       5 * 60 * 1000,   // 5 min — fused score; realtime handles live changes
   })
 }
 

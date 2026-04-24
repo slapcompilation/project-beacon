@@ -1,54 +1,79 @@
 // Layer: Eye — Consolidated intelligence workspace
-// Two surfaces only:
-//   Copilot — AI synthesis, tool-calling, reasoning trace
-//   Signals — Unified ranked feed of objects with active signals
-//             (waste, stockout, incident, expiry, supplier risk — all as one)
-// All analytical feature pages remain as utility routes accessible from
-// within object pages; they are no longer primary navigation destinations.
+// Two groups:
+//   Intelligence — Signals | Incidents
+//   Analytics    — Waste Radar | Predictive Restock | Product Performance | Occupancy Forecast
+//
+// Copilot has been promoted to the omnipresent ContextPanel (Ctrl+J).
+// Palantir principle #4: decision support, not data display.
+// Every panel answers "what should the operator do right now?"
 
+import { lazy, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { cn } from '@/lib/utils'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import EyeCopilotPage from './EyeCopilotPage'
-import UnifiedSignalsPage from './UnifiedSignalsPage'
+import { WorkspaceTabs, PanelLoader } from '@/components/WorkspaceTabs'
+import { useAppStore } from '@/stores/app.store'
 
-const PANELS = [
-  { id: 'copilot', label: 'Eye · Copilot' },
-  { id: 'signals', label: 'Eye · Signals' },
+const UnifiedSignalsPage      = lazy(() => import('./UnifiedSignalsPage'))
+const IncidentCorrelationPage = lazy(() => import('./IncidentCorrelationPage'))
+const WasteRadarPage          = lazy(() => import('./WasteRadarPage'))
+const PredictiveRestockPage   = lazy(() => import('./PredictiveRestockPage'))
+const ProductPerformancePage  = lazy(() => import('./ProductPerformancePage'))
+const OccupancyForecastPage   = lazy(() => import('./OccupancyForecastPage'))
+const StockRiskMatrixPage     = lazy(() => import('./StockRiskMatrixPage'))
+
+const TABS = [
+  { id: 'signals',     label: 'Signals'     },
+  { id: 'incidents',   label: 'Incidents'   },
+  { id: 'waste',       label: 'Waste Radar' },
+  { id: 'restock',     label: 'Restock'     },
+  { id: 'risk',        label: 'Risk Matrix' },
+  { id: 'performance', label: 'Performance' },
+  { id: 'occupancy',   label: 'Occupancy'   },
 ] as const
 
-type PanelId = typeof PANELS[number]['id']
+type TabId = typeof TABS[number]['id']
+
+const GROUPS = [
+  { id: 'intelligence', label: 'Intelligence', tabs: ['signals', 'incidents']                                   as TabId[] },
+  { id: 'analytics',    label: 'Analytics',    tabs: ['waste', 'restock', 'risk', 'performance', 'occupancy']  as TabId[] },
+]
 
 export default function EyeWorkspace() {
   const [params, setParams] = useSearchParams()
-  const raw = params.get('panel') ?? 'copilot'
-  const panel: PanelId = PANELS.some((p) => p.id === raw) ? raw as PanelId : 'copilot'
+  const toggleCopilot = useAppStore((s) => s.toggleCopilot)
+  const raw   = params.get('panel') ?? 'signals'
+
+  // Redirect legacy ?panel=copilot URLs to open the ContextPanel copilot instead
+  useEffect(() => {
+    if (raw === 'copilot') {
+      toggleCopilot()
+      setParams({ panel: 'signals' }, { replace: true })
+    }
+  }, [raw, toggleCopilot, setParams])
+
+  const panel = (TABS.some((t) => t.id === raw) ? raw : 'signals') as TabId
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex border-b shrink-0 bg-background">
-        {PANELS.map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            onClick={() => { setParams({ panel: p.id }, { replace: true }) }}
-            className={cn(
-              'px-5 py-3 text-sm font-medium border-b-2 transition-colors -mb-px',
-              panel === p.id
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
+      <WorkspaceTabs
+        tabs={TABS}
+        groups={GROUPS}
+        activePanel={panel}
+        onPanelChange={(p) => { setParams({ panel: p }, { replace: true }) }}
+      />
 
       <PanelErrorBoundary name={`Eye · ${panel}`}>
-        <div className="flex-1 overflow-hidden">
-          {panel === 'copilot' && <EyeCopilotPage />}
-          {panel === 'signals' && <UnifiedSignalsPage />}
-        </div>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden">
+            {panel === 'signals'     && <UnifiedSignalsPage />}
+            {panel === 'incidents'   && <IncidentCorrelationPage />}
+            {panel === 'waste'       && <WasteRadarPage />}
+            {panel === 'restock'     && <PredictiveRestockPage />}
+            {panel === 'risk'        && <StockRiskMatrixPage />}
+            {panel === 'performance' && <ProductPerformancePage />}
+            {panel === 'occupancy'   && <OccupancyForecastPage />}
+          </div>
+        </Suspense>
       </PanelErrorBoundary>
     </div>
   )

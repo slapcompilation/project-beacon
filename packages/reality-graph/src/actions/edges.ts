@@ -31,12 +31,18 @@ export interface RestockRequestResult   { restockId: string }
 export interface StockLogResult         { logId: string }
 export interface ReceiveStockResult     { logId: string; receiveId?: string; fulfilled: boolean; newBalance: number }
 export interface RevertActionResult     { newLogId: string }
+export interface SupplierCreateResult   { supplierId: string }
+export interface POCreateResult         { poId: string }
+export interface InvoiceSubmitResult    { invoiceId: string }
 
 export type MutationResult =
+  | SupplierCreateResult
   | RestockRequestResult
   | StockLogResult
   | ReceiveStockResult
   | RevertActionResult
+  | POCreateResult
+  | InvoiceSubmitResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────
@@ -67,6 +73,14 @@ export function edgesForAction(
   const push = (e: EdgeInsert) => edges.push(e)
 
   switch (action.type) {
+    case 'CREATE_SUPPLIER': {
+      const { supplierId } = result as SupplierCreateResult
+      if (!supplierId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'supplier', source_id: supplierId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'supplier', source_id: supplierId, target_type: 'user', target_id: actorId })
+      break
+    }
+
     case 'REQUEST_RESTOCK': {
       const { restockId } = result as RestockRequestResult
       if (!restockId) break
@@ -141,9 +155,35 @@ export function edgesForAction(
       break
     }
 
+    case 'CREATE_PO': {
+      const { poId } = result as POCreateResult
+      if (!poId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'purchase_order', source_id: poId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'purchase_order', source_id: poId, target_type: 'user', target_id: actorId })
+      if (action.supplierId) {
+        push({ ...base, edge_type: 'sourced_from', source_type: 'purchase_order', source_id: poId, target_type: 'supplier', target_id: action.supplierId })
+      }
+      for (const line of action.lines) {
+        // variant --linked_to_po--> purchase_order
+        push({ ...base, edge_type: 'linked_to_po', source_type: 'variant', source_id: line.variantId, target_type: 'purchase_order', target_id: poId })
+        // restock_request --linked_to_po--> purchase_order
+        if (line.requestId) {
+          push({ ...base, edge_type: 'linked_to_po', source_type: 'restock_request', source_id: line.requestId, target_type: 'purchase_order', target_id: poId })
+        }
+      }
+      break
+    }
+
     case 'UPDATE_PO_STATUS':
       // State change only — purchase_order edges were written when PO was created
       break
+
+    case 'SUBMIT_PO_INVOICE': {
+      const { invoiceId } = result as InvoiceSubmitResult
+      if (!invoiceId) break
+      push({ ...base, edge_type: 'invoiced_by', source_type: 'purchase_order', source_id: action.poId, target_type: 'po_invoice', target_id: invoiceId })
+      break
+    }
 
     case 'MATCH_INVOICE': {
       // purchase_order --invoiced_by--> po_invoice

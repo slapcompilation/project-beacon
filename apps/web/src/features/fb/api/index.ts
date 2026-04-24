@@ -29,7 +29,7 @@ export async function fetchMenuItems(): Promise<MenuItemWithIngredients[]> {
     .order('name',     { ascending: true })
 
   if (error) throw new Error(error.message)
-  return (data ?? []) as unknown as MenuItemWithIngredients[]
+  return data as unknown as MenuItemWithIngredients[]
 }
 
 export async function createMenuItem(payload: {

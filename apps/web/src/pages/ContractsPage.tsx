@@ -141,7 +141,7 @@ function ContractForm({
     : []
 
   const set = (key: keyof FormState, value: string) =>
-    setForm((f) => ({ ...f, [key]: value }))
+    { setForm((f) => ({ ...f, [key]: value })); }
 
   const handleSubmit = () => {
     const price = parseFloat(form.contracted_price)
@@ -521,9 +521,9 @@ export default function ContractsPage() {
         <div className="flex items-center gap-1">
           {(
             [
-              { id: 'all'       as FilterId, label: `All (${contracts.length})` },
-              { id: 'deviating' as FilterId, label: `Overpaying (${deviatingCount})`, alert: deviatingCount > 0 },
-              { id: 'expiring'  as FilterId, label: `Expiring soon (${expiringCount})`, warn: expiringCount > 0 },
+              { id: 'all'       as FilterId, label: `All (${String(contracts.length)})` },
+              { id: 'deviating' as FilterId, label: `Overpaying (${String(deviatingCount)})`, alert: deviatingCount > 0 },
+              { id: 'expiring'  as FilterId, label: `Expiring soon (${String(expiringCount)})`, warn: expiringCount > 0 },
             ] as { id: FilterId; label: string; alert?: boolean; warn?: boolean }[]
           ).map((f) => (
             <button

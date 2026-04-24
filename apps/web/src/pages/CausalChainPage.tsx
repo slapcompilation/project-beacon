@@ -105,7 +105,7 @@ function AnomalyExplanationPanel({ explanation }: { explanation: AnomalyExplanat
           <div className="h-1.5 w-16 bg-muted/40 rounded-full overflow-hidden mt-1 ml-auto">
             <div
               className={cn('h-full rounded-full', confidencePct >= 70 ? 'bg-emerald-500' : confidencePct >= 40 ? 'bg-amber-500' : 'bg-rose-500')}
-              style={{ width: `${confidencePct}%` }}
+              style={{ width: `${String(confidencePct)}%` }}
             />
           </div>
         </div>
@@ -137,11 +137,9 @@ function AnomalyExplanationPanel({ explanation }: { explanation: AnomalyExplanat
         <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
           7d avg: <strong className="text-foreground">{ctx.mean_daily_7d.toFixed(1)}/day</strong>
         </span>
-        {ctx.occupancy_7d != null && (
-          <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
-            Occupancy: <strong className="text-foreground">{ctx.occupancy_7d.toFixed(0)}%</strong>
-          </span>
-        )}
+        <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
+          Occupancy: <strong className="text-foreground">{ctx.occupancy_7d.toFixed(0)}%</strong>
+        </span>
         {ctx.last_supply_days != null && (
           <span className={cn('px-2 py-1 rounded text-xs', ctx.last_supply_days > 14 ? 'bg-orange-500/15 text-orange-400' : 'bg-muted/30 text-muted-foreground')}>
             Last supply: <strong>{ctx.last_supply_days}d ago</strong>
@@ -272,7 +270,7 @@ function CausalChainTimeline({ steps }: { steps: CausalTraceStep[] }) {
     <div className="space-y-0">
       {steps.map((step, idx) => (
         <CausalStep
-          key={`${step.node_id}-${idx}`}
+          key={`${step.node_id}-${String(idx)}`}
           step={step}
           isRoot={step.step === 0}
           isLast={idx === steps.length - 1}
@@ -296,7 +294,7 @@ function VariantSearch({
   const matches = query.trim().length < 2 ? [] : products.flatMap(p =>
     p.product_variants
       .filter(v =>
-        (`${p.name} ${v.name} ${v.sku ?? ''}`.toLowerCase().includes(query.toLowerCase()))
+        (`${p.name} ${v.name} ${v.sku}`.toLowerCase().includes(query.toLowerCase()))
       )
       .slice(0, 4)
       .map(v => ({ variantId: v.id, label: `${p.name} · ${v.name}` }))
@@ -309,7 +307,7 @@ function VariantSearch({
         <Input
           placeholder="Search variant to trace…"
           value={query}
-          onChange={e => setQuery(e.target.value)}
+          onChange={e => { setQuery(e.target.value); }}
           className="pl-9 text-sm"
         />
       </div>
@@ -408,7 +406,7 @@ export default function CausalChainPage() {
             <button
               key={id}
               type="button"
-              onClick={() => selectRootType(id)}
+              onClick={() => { selectRootType(id); }}
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border font-medium transition-colors',
                 rootType === id
@@ -466,7 +464,7 @@ export default function CausalChainPage() {
             <div className="text-sm font-medium text-foreground mb-1">Select a root to trace</div>
             <div className="text-xs text-muted-foreground max-w-sm">
               Search for a variant above, or navigate here from an incident card in{' '}
-              <Link to="/eye?panel=insights" className="text-primary underline underline-offset-2">
+              <Link to="/eye?panel=incidents" className="text-primary underline underline-offset-2">
                 Eye · Insights
               </Link>
               {' '}using the "Explain" button.

@@ -27,7 +27,7 @@ function LeverageBar({ score }: { score: number }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
-        <div className={cn('h-full rounded-full transition-all', color)} style={{ width: `${score}%` }} />
+        <div className={cn('h-full rounded-full transition-all', color)} style={{ width: `${String(score)}%` }} />
       </div>
       <span className={cn(
         'text-xs font-semibold tabular-nums',
@@ -213,7 +213,7 @@ function SupplierRow({
               )}>
                 {row.consecutive_above_count === 0
                   ? 'None'
-                  : `${row.consecutive_above_count} above`}
+                  : `${String(row.consecutive_above_count)} above`}
               </p>
               <p className="text-[10px] text-muted-foreground">consecutive deliveries</p>
             </div>

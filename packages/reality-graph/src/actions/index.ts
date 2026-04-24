@@ -13,9 +13,12 @@ export type {
   EdgeInsert,
   EdgeContext,
   MutationResult,
+  SupplierCreateResult,
   RestockRequestResult,
   StockLogResult,
   ReceiveStockResult,
   RevertActionResult,
+  POCreateResult,
+  InvoiceSubmitResult,
 } from './edges'
 export { edgesForAction } from './edges'

@@ -85,7 +85,7 @@ function computeRecommendation(
     return {
       decision: 'flag',
       label: 'FLAG · Waste + Urgent',
-      basis: `Stock runs out in ~${dtz === Infinity ? '?' : Math.round(dtz)}d (lead time ${lt}d). But waste is ${Math.round(wasteSpikeP ?? 0)}% above baseline — verify demand is genuine before approving.`,
+      basis: `Stock runs out in ~${dtz === Infinity ? '?' : String(Math.round(dtz))}d (lead time ${String(lt)}d). But waste is ${String(Math.round(wasteSpikeP ?? 0))}% above baseline — verify demand is genuine before approving.`,
       recommended_order: recommendedOrder,
       confidence: confidence * 0.7,
     }
@@ -95,7 +95,7 @@ function computeRecommendation(
     return {
       decision: 'approve',
       label: 'APPROVE · Urgent',
-      basis: `Stock runs out in ~${dtz === Infinity ? '?' : Math.round(dtz)}d at current burn rate. Lead time is ${lt}d — order must be placed now to avoid stockout.`,
+      basis: `Stock runs out in ~${dtz === Infinity ? '?' : String(Math.round(dtz))}d at current burn rate. Lead time is ${String(lt)}d — order must be placed now to avoid stockout.`,
       recommended_order: recommendedOrder,
       confidence,
     }
@@ -105,7 +105,7 @@ function computeRecommendation(
     return {
       decision: 'flag',
       label: 'FLAG · Waste Spike',
-      basis: `Waste is ${Math.round(wasteSpikeP ?? 0)}% above weekly baseline. Investigate before committing stock. Approve only after confirming the write-offs are not systemic.`,
+      basis: `Waste is ${String(Math.round(wasteSpikeP ?? 0))}% above weekly baseline. Investigate before committing stock. Approve only after confirming the write-offs are not systemic.`,
       recommended_order: recommendedOrder,
       confidence: confidence * 0.6,
     }
@@ -116,7 +116,7 @@ function computeRecommendation(
     return {
       decision: 'modify',
       label: 'MODIFY · Overorder',
-      basis: `Requested ${requestedQty}u is ${Math.round((qtyRatio - 1) * 100)}% above the ${recommendedOrder}u recommended (PAR gap + ${lt}d lead-time cover). Consider reducing.`,
+      basis: `Requested ${String(requestedQty)}u is ${String(Math.round((qtyRatio - 1) * 100))}% above the ${String(recommendedOrder)}u recommended (PAR gap + ${String(lt)}d lead-time cover). Consider reducing.`,
       recommended_order: recommendedOrder,
       confidence,
     }
@@ -126,7 +126,7 @@ function computeRecommendation(
     return {
       decision: 'modify',
       label: 'MODIFY · Under-order',
-      basis: `Requested ${requestedQty}u covers only ${Math.round(qtyRatio * 100)}% of the ${recommendedOrder}u recommended (PAR gap + ${lt}d lead-time cover). Consider increasing.`,
+      basis: `Requested ${String(requestedQty)}u covers only ${String(Math.round(qtyRatio * 100))}% of the ${String(recommendedOrder)}u recommended (PAR gap + ${String(lt)}d lead-time cover). Consider increasing.`,
       recommended_order: recommendedOrder,
       confidence,
     }
@@ -137,7 +137,7 @@ function computeRecommendation(
     return {
       decision: 'hold',
       label: 'HOLD · Not urgent',
-      basis: `~${Math.round(dtz)}d of supply remain at current burn rate. Lead time is ${lt}d. Can defer order for ~${Math.round(dtz - lt - 7)}d without risk.`,
+      basis: `~${String(Math.round(dtz))}d of supply remain at current burn rate. Lead time is ${String(lt)}d. Can defer order for ~${String(Math.round(dtz - lt - 7))}d without risk.`,
       recommended_order: recommendedOrder,
       confidence,
     }
@@ -146,7 +146,7 @@ function computeRecommendation(
   return {
     decision: 'approve',
     label: 'APPROVE',
-    basis: `Quantity and timing look appropriate. Requested ${requestedQty}u vs ${recommendedOrder}u recommended. Stock runway (~${dtz === Infinity ? '?' : Math.round(dtz)}d) is within acceptable range of the ${lt}d lead time.`,
+    basis: `Quantity and timing look appropriate. Requested ${String(requestedQty)}u vs ${String(recommendedOrder)}u recommended. Stock runway (~${dtz === Infinity ? '?' : String(Math.round(dtz))}d) is within acceptable range of the ${String(lt)}d lead time.`,
     recommended_order: recommendedOrder,
     confidence,
   }
@@ -258,20 +258,20 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
       <div className="grid grid-cols-4 gap-1.5">
         <MetricBlock
           label="On Hand"
-          value={`${vi.current_stock}`}
-          sub={`PAR ${vi.low_stock_threshold}`}
+          value={String(vi.current_stock)}
+          sub={`PAR ${String(vi.low_stock_threshold)}`}
           highlight={vi.current_stock <= vi.low_stock_threshold ? 'warn' : undefined}
         />
         <MetricBlock
           label="Days Left"
-          value={dtz != null ? `${Math.round(dtz)}d` : '—'}
-          sub={dtz != null && lt > 0 ? `LT ${lt}d` : 'no data'}
+          value={dtz != null ? `${String(Math.round(dtz))}d` : '—'}
+          sub={dtz != null && lt > 0 ? `LT ${String(lt)}d` : 'no data'}
           highlight={dtz != null && dtz <= lt ? 'critical' : dtz != null && dtz <= lt + 7 ? 'warn' : undefined}
         />
         <MetricBlock
           label="Rec. Order"
-          value={rec.recommended_order != null ? `${rec.recommended_order}u` : '—'}
-          sub={requestedQty !== rec.recommended_order ? `Req: ${requestedQty}u` : 'matches request'}
+          value={rec.recommended_order != null ? `${String(rec.recommended_order)}u` : '—'}
+          sub={requestedQty !== rec.recommended_order ? `Req: ${String(requestedQty)}u` : 'matches request'}
           highlight={
             rec.recommended_order != null && requestedQty / rec.recommended_order > 1.5 ? 'warn' :
             rec.recommended_order != null && requestedQty / rec.recommended_order < 0.6 ? 'warn' :
@@ -281,7 +281,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
         <MetricBlock
           label="Waste 7d"
           value={`${vi.waste_7d.toFixed(1)}u`}
-          sub={vi.waste_spike_pct != null ? `${vi.waste_spike_pct > 0 ? '+' : ''}${Math.round(vi.waste_spike_pct)}% vs avg` : 'no baseline'}
+          sub={vi.waste_spike_pct != null ? `${vi.waste_spike_pct > 0 ? '+' : ''}${String(Math.round(vi.waste_spike_pct))}% vs avg` : 'no baseline'}
           highlight={(vi.waste_spike_pct ?? 0) > 100 ? 'critical' : (vi.waste_spike_pct ?? 0) > 50 ? 'warn' : undefined}
         />
       </div>

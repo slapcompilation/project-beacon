@@ -153,12 +153,16 @@ export async function fetchPOLines(poId: string): Promise<(POLine & { variant_na
     .eq('po_id', poId)
     .order('id')
   if (error) throw new Error(error.message)
-  return (data ?? []).map((r) => ({
-    ...r,
-    variant_name: (r.product_variants as { name: string } | null)?.name ?? '',
-    sku:          (r.product_variants as { sku: string } | null)?.sku ?? '',
-    product_name: ((r.product_variants as { products?: { name: string } | null } | null)?.products?.name) ?? '',
-  }))
+  type RawRow = { product_variants: { name: string; sku: string; products?: { name: string } | null } | null } & Record<string, unknown>
+  return (data as unknown as RawRow[]).map((r) => {
+    const v = r.product_variants
+    return {
+      ...r,
+      variant_name: v?.name ?? '',
+      sku:          v?.sku ?? '',
+      product_name: v?.products?.name ?? '',
+    }
+  }) as unknown as (POLine & { variant_name: string; sku: string; product_name: string })[]
 }
 
 export async function fetchPOInvoices(poId: string): Promise<POInvoice[]> {
@@ -207,7 +211,7 @@ export async function fetchGLAccountMappings(): Promise<GLAccountMapping[]> {
     .order('mapping_type')
     .order('mapping_key')
   if (error) throw new Error(error.message)
-  return (data ?? []) as GLAccountMapping[]
+  return data as GLAccountMapping[]
 }
 
 export async function upsertGLMapping(
@@ -275,8 +279,9 @@ export async function fetchPODiscrepancies(): Promise<PODiscrepancy[]> {
     .from('po_discrepancies')
     .select('*')
     .order('detected_at', { ascending: false })
+    .limit(100)
   if (error) throw new Error(error.message)
-  return (data ?? []) as PODiscrepancy[]
+  return data as PODiscrepancy[]
 }
 
 export async function reviewPODiscrepancy(

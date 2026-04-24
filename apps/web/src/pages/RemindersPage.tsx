@@ -363,7 +363,7 @@ export default function RemindersPage() {
                         {valueAtStake > 0 ? formatCurrency(valueAtStake, currency) : <span className="text-muted-foreground font-normal">—</span>}
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground tabular-nums">
-                        {fmtDate(v.reminder_date!)}
+                        {fmtDate(v.reminder_date)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge

@@ -40,6 +40,7 @@ export type EdgeType =
   | 'linked_to_po'
   | 'invoiced_by'
   | 'influenced_by'
+  | 'similar_to'
 
 export interface GraphNode {
   id: string

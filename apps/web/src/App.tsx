@@ -120,20 +120,20 @@ function AppRoutes() {
             <Route path="/alerts"           element={<Navigate to="/floor?panel=alerts"        replace />} />
             <Route path="/expiry"           element={<Navigate to="/floor?panel=expiry"        replace />} />
             <Route path="/timeline"         element={<Navigate to="/flow?panel=timeline"       replace />} />
-            <Route path="/flow-dashboard"   element={<Navigate to="/flow?panel=timeline"       replace />} />
+            <Route path="/flow-dashboard"   element={<Navigate to="/flow?panel=dashboard"      replace />} />
             <Route path="/receive"          element={<Navigate to="/flow?panel=receive"        replace />} />
             <Route path="/restocks"         element={<Navigate to="/flow?panel=approvals"      replace />} />
-            <Route path="/waste-radar"      element={<Navigate to="/eye?panel=signals"         replace />} />
-            <Route path="/occupancy"        element={<Navigate to="/eye?panel=forecasts"       replace />} />
-            <Route path="/reports"          element={<Navigate to="/eye?panel=analytics"       replace />} />
-            <Route path="/finance"          element={<Navigate to="/eye?panel=analytics"       replace />} />
+            <Route path="/waste-radar"      element={<Navigate to="/eye?panel=waste"           replace />} />
+            <Route path="/occupancy"        element={<Navigate to="/eye?panel=occupancy"       replace />} />
+            <Route path="/reports"          element={<Navigate to="/eye?panel=performance"     replace />} />
+            <Route path="/finance"          element={<Navigate to="/eye?panel=performance"     replace />} />
             <Route path="/procurement"      element={<Navigate to="/mind?panel=procurement"    replace />} />
             <Route path="/invoicing"        element={<Navigate to="/mind?panel=intelligence"   replace />} />
             <Route path="/negotiation-prep" element={<Navigate to="/mind?panel=intelligence"   replace />} />
             <Route path="/gl-export"        element={<Navigate to="/mind?panel=gl"             replace />} />
             <Route path="/purchase-orders"  element={<Navigate to="/mind?panel=procurement"    replace />} />
-            <Route path="/optimize-pars"    element={<Navigate to="/floor?panel=stock"         replace />} />
-            <Route path="/leverage"         element={<Navigate to="/mind?panel=intelligence"   replace />} />
+            <Route path="/optimize-pars"    element={<Navigate to="/floor?panel=par"           replace />} />
+            <Route path="/leverage"         element={<Navigate to="/mind?panel=leverage"       replace />} />
             <Route path="/suppliers"        element={<Navigate to="/mind?panel=procurement"    replace />} />
             <Route path="/team"             element={<Navigate to="/settings?section=team"     replace />} />
 

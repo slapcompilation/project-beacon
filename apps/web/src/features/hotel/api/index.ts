@@ -27,6 +27,24 @@ export async function updateHotelProfile(id: string, input: HotelProfileInput): 
   if (error) throw new Error(error.message)
 }
 
+export interface AutonomousSettingsInput {
+  auto_approve_threshold: number
+  auto_po_enabled: boolean
+  auto_invoice_tolerance_pct: number
+}
+
+export async function updateAutonomousSettings(id: string, input: AutonomousSettingsInput): Promise<void> {
+  const { error } = await supabase
+    .from('hotels')
+    .update({
+      auto_approve_threshold:     input.auto_approve_threshold,
+      auto_po_enabled:            input.auto_po_enabled,
+      auto_invoice_tolerance_pct: input.auto_invoice_tolerance_pct,
+    })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function updateHotelConfig(key: string, value: unknown): Promise<void> {
   const { error } = await supabase.rpc('update_hotel_config', {
     p_key: key,

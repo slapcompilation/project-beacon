@@ -11,9 +11,10 @@
 //   Intelligence — cost analysis (NegotiationPrep) + leverage (Invoicing) sub-tabs
 //   GL Export    — existing GLExportPage
 
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
+import { PanelLoader } from '@/components/WorkspaceTabs'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import {
   ShieldAlert, AlertTriangle, Check, Loader2, ChevronRight,
@@ -26,13 +27,13 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useSupplierSynthesis, usePODiscrepancies, useReviewPODiscrepancy, usePOSummary } from '@/features/mind/hooks'
 import { useBriefingActions } from '@/features/briefing/hooks'
 import type { SupplierSynthesisRow, PODiscrepancy, BriefingAction, POSummaryRow } from '@beacon/types'
-import GLExportPage from './GLExportPage'
-import ChainPage from './ChainPage'
-import EventDemandPage from './EventDemandPage'
-import FBIntelligencePage from './FBIntelligencePage'
-import TeamIntelligencePage from './TeamIntelligencePage'
-import CPORDashboard from './CPORDashboard'
-import BudgetTrackerPage from './BudgetTrackerPage'
+const GLExportPage          = lazy(() => import('./GLExportPage'))
+const ChainPage             = lazy(() => import('./ChainPage'))
+const EventDemandPage       = lazy(() => import('./EventDemandPage'))
+const FBIntelligencePage    = lazy(() => import('./FBIntelligencePage'))
+const TeamIntelligencePage  = lazy(() => import('./TeamIntelligencePage'))
+const CPORDashboard         = lazy(() => import('./CPORDashboard'))
+const BudgetTrackerPage     = lazy(() => import('./BudgetTrackerPage'))
 
 // ─── Shared tab strip ─────────────────────────────────────────────────────────
 
@@ -379,12 +380,14 @@ function FinancialTab() {
         ))}
       </div>
       <PanelErrorBoundary name={`Mind · Finance · ${sub}`}>
-        <div className="flex-1 overflow-hidden">
-          {sub === 'cpor'   && <CPORDashboard />}
-          {sub === 'budget' && <BudgetTrackerPage />}
-          {sub === 'gl'     && <GLExportPage />}
-          {sub === 'fb'     && <FBIntelligencePage />}
-        </div>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden">
+            {sub === 'cpor'   && <CPORDashboard />}
+            {sub === 'budget' && <BudgetTrackerPage />}
+            {sub === 'gl'     && <GLExportPage />}
+            {sub === 'fb'     && <FBIntelligencePage />}
+          </div>
+        </Suspense>
       </PanelErrorBoundary>
     </div>
   )
@@ -393,21 +396,22 @@ function FinancialTab() {
 // ─── Strategy sub-tabs (Chain + Team + Events) ───────────────────────────────
 
 function StrategyTab({ role }: { role: string }) {
-  const [sub, setSub] = useState<'chain' | 'team' | 'events'>('chain')
+  const [sub, setSub] = useState<'chain' | 'team' | 'events' | 'simulation'>('chain')
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex border-b shrink-0 px-4 bg-background">
+      <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
         {[
-          { id: 'chain'  as const, label: 'Chain'  },
-          { id: 'team'   as const, label: 'Team'   },
-          { id: 'events' as const, label: 'Events' },
+          { id: 'chain'      as const, label: 'Chain'      },
+          { id: 'team'       as const, label: 'Team'       },
+          { id: 'events'     as const, label: 'Events'     },
+          { id: 'simulation' as const, label: 'Simulation' },
         ].map((t) => (
           <button
             key={t.id}
             type="button"
             onClick={() => { setSub(t.id) }}
             className={cn(
-              'px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
+              'shrink-0 px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
               sub === t.id
                 ? 'border-primary text-foreground'
                 : 'border-transparent text-muted-foreground hover:text-foreground',
@@ -418,18 +422,21 @@ function StrategyTab({ role }: { role: string }) {
         ))}
       </div>
       <PanelErrorBoundary name={`Mind · Strategy · ${sub}`}>
-        <div className="flex-1 overflow-hidden">
-          {sub === 'chain' && (
-            role === 'owner' ? <ChainPage /> : (
-              <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-                <Brain className="h-10 w-10 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">Chain benchmarking is available to owner role only.</p>
-              </div>
-            )
-          )}
-          {sub === 'team'   && <TeamIntelligencePage />}
-          {sub === 'events' && <EventDemandPage />}
-        </div>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden">
+            {sub === 'chain' && (
+              role === 'owner' ? <ChainPage /> : (
+                <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
+                  <Brain className="h-10 w-10 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">Chain benchmarking is available to owner role only.</p>
+                </div>
+              )
+            )}
+            {sub === 'team'       && <TeamIntelligencePage />}
+            {sub === 'events'     && <EventDemandPage />}
+            {sub === 'simulation' && <SimulationCockpitPage />}
+          </div>
+        </Suspense>
       </PanelErrorBoundary>
     </div>
   )
@@ -440,14 +447,23 @@ function StrategyTab({ role }: { role: string }) {
 // Old panel IDs (contracts, procurement, leverage, etc.) redirect to their parent domain
 // so existing deep-links from object pages and briefing actions continue to work.
 
-import SupplierBrowserPage from './SupplierBrowserPage'
+const SupplierBrowserPage      = lazy(() => import('./SupplierBrowserPage'))
+const SupplierReliabilityPage  = lazy(() => import('./SupplierReliabilityPage'))
+const ContractsPage            = lazy(() => import('./ContractsPage'))
+const PurchaseOrderPage        = lazy(() => import('./PurchaseOrderPage'))
+const PODispatchPage           = lazy(() => import('./PODispatchPage'))
+const CategoryIntelligencePage = lazy(() => import('./CategoryIntelligencePage'))
+const SupplierQuoteParserPage  = lazy(() => import('./SupplierQuoteParserPage'))
+const ProcurementLeveragePage  = lazy(() => import('./ProcurementLeveragePage'))
+const SmartProposalsPage       = lazy(() => import('./SmartProposalsPage'))
+const SimulationCockpitPage    = lazy(() => import('./SimulationCockpitPage'))
 
 type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
 
 // Backward-compat redirect map: old panel IDs → new panel
 const PANEL_REDIRECT: Record<string, PanelId> = {
   'operations':   'triage',
-  'procurement':  'suppliers',
+  'procurement':  'suppliers',   // + SUPPLIERS_SUB_SEED maps it → po-builder
   'contracts':    'suppliers',
   'leverage':     'suppliers',
   'dispatch':     'suppliers',
@@ -461,6 +477,112 @@ const PANEL_REDIRECT: Record<string, PanelId> = {
   'chain':        'strategy',
   'team':         'strategy',
   'events':       'strategy',
+  'simulation':   'strategy',
+}
+
+// Deep-link sub-tab seeds: if the raw panel was one of these, open that sub-tab directly
+const TRIAGE_SUB_SEED: Record<string, 'operations' | 'categories' | 'proposals'> = {
+  'categories': 'categories',
+  'menu':       'categories',
+  'par':        'categories',
+  'proposals':  'proposals',
+}
+
+const SUPPLIERS_SUB_SEED: Record<string, 'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser'> = {
+  'leverage':    'leverage',
+  'contracts':   'contracts',
+  'dispatch':    'dispatch',
+  'procurement': 'po-builder',
+}
+
+// ─── Suppliers tab ─────────────────────────────────────────────────────────────
+// Sub-tabs ordered by the PO lifecycle:
+//   Suppliers → Reliability → Contracts → PO Builder → PO Dispatch → Leverage → Quote Parser
+
+function SuppliersTab({ initialSub }: { initialSub: 'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser' }) {
+  const [sub, setSub] = useState<'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser'>(initialSub)
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
+        {[
+          { id: 'browser'      as const, label: 'Suppliers'    },
+          { id: 'reliability'  as const, label: 'Reliability'  },
+          { id: 'contracts'    as const, label: 'Contracts'    },
+          { id: 'po-builder'   as const, label: 'PO Builder'   },
+          { id: 'dispatch'     as const, label: 'PO Dispatch'  },
+          { id: 'leverage'     as const, label: 'Leverage'     },
+          { id: 'quote-parser' as const, label: 'Quote Parser' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => { setSub(t.id) }}
+            className={cn(
+              'shrink-0 px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
+              sub === t.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <PanelErrorBoundary name={`Mind · Suppliers · ${sub}`}>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {sub === 'browser'      && <SupplierBrowserPage />}
+            {sub === 'reliability'  && <SupplierReliabilityPage />}
+            {sub === 'contracts'    && <ContractsPage />}
+            {sub === 'po-builder'   && <PurchaseOrderPage />}
+            {sub === 'dispatch'     && <PODispatchPage />}
+            {sub === 'leverage'     && <ProcurementLeveragePage />}
+            {sub === 'quote-parser' && <SupplierQuoteParserPage />}
+          </div>
+        </Suspense>
+      </PanelErrorBoundary>
+    </div>
+  )
+}
+
+// ─── Triage tab — operations + category intelligence ──────────────────────────
+
+function TriageTab({ initialSub }: { initialSub: 'operations' | 'categories' | 'proposals' }) {
+  const [sub, setSub] = useState<'operations' | 'categories' | 'proposals'>(initialSub)
+  return (
+    <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
+        {[
+          { id: 'operations' as const, label: 'Operations'      },
+          { id: 'categories' as const, label: 'Categories'      },
+          { id: 'proposals'  as const, label: 'Smart Proposals' },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => { setSub(t.id) }}
+            className={cn(
+              'shrink-0 px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
+              sub === t.id
+                ? 'border-primary text-foreground'
+                : 'border-transparent text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <PanelErrorBoundary name={`Mind · Triage · ${sub}`}>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {sub === 'operations' && <OperationsTab />}
+            {sub === 'categories' && <CategoryIntelligencePage />}
+            {sub === 'proposals'  && <SmartProposalsPage />}
+          </div>
+        </Suspense>
+      </PanelErrorBoundary>
+    </div>
+  )
 }
 
 const PANELS: { id: PanelId; label: string }[] = [
@@ -479,7 +601,6 @@ export default function MindWorkspace() {
   const resolved: PanelId =
     (PANELS.some((p) => p.id === raw) ? raw as PanelId : null)
     ?? PANEL_REDIRECT[raw]
-    ?? 'triage'
 
   if (role !== 'admin' && role !== 'owner') {
     return (
@@ -512,12 +633,14 @@ export default function MindWorkspace() {
       </div>
 
       <PanelErrorBoundary name={`Mind · ${resolved}`}>
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {resolved === 'triage'    && <OperationsTab />}
-          {resolved === 'suppliers' && <SupplierBrowserPage />}
-          {resolved === 'finance'   && <FinancialTab />}
-          {resolved === 'strategy'  && <StrategyTab role={role} />}
-        </div>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {resolved === 'triage'    && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}
+            {resolved === 'suppliers' && <SuppliersTab initialSub={SUPPLIERS_SUB_SEED[raw] ?? 'browser'} />}
+            {resolved === 'finance'   && <FinancialTab />}
+            {resolved === 'strategy'  && <StrategyTab role={role} />}
+          </div>
+        </Suspense>
       </PanelErrorBoundary>
     </div>
   )

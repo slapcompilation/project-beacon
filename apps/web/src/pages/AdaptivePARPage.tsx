@@ -94,7 +94,7 @@ function ConfidenceDot({ score }: { score: number }) {
       'inline-block h-2 w-2 rounded-full shrink-0',
       score >= 0.75 ? 'bg-green-500' :
       score >= 0.50 ? 'bg-amber-400' : 'bg-red-400',
-    )} title={`Confidence: ${Math.round(score * 100)}%`} />
+    )} title={`Confidence: ${String(Math.round(score * 100))}%`} />
   )
 }
 
@@ -254,7 +254,7 @@ function PARRow({
                     row.service_level_at_current_par >= 0.95 ? 'bg-green-500' :
                     row.service_level_at_current_par >= 0.85 ? 'bg-amber-500' : 'bg-red-500',
                   )}
-                  style={{ width: `${Math.round(row.service_level_at_current_par * 100)}%` }}
+                  style={{ width: `${String(Math.round(row.service_level_at_current_par * 100))}%` }}
                 />
               </div>
             </>
@@ -285,7 +285,7 @@ function PARRow({
           {row.supplier_name && (
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
               <Truck className="h-3 w-3" />
-              {row.lead_time_days !== null ? `${Math.round(row.lead_time_days)}d` : '?'}
+              {row.lead_time_days !== null ? `${String(Math.round(row.lead_time_days))}d` : '?'}
             </span>
           )}
           {ltSourceBadge(row.lead_time_source)}
@@ -481,7 +481,7 @@ export default function AdaptivePARPage() {
       }
     }
     if (success > 0) {
-      toast.success(`Updated PAR for ${success} variant${success > 1 ? 's' : ''}`)
+      toast.success(`Updated PAR for ${String(success)} variant${success > 1 ? 's' : ''}`)
     }
     setSelected(new Set())
     setApplying(false)
@@ -624,7 +624,7 @@ export default function AdaptivePARPage() {
             <SummaryStrip
               rows={rows}
               selected={selected}
-              onApplyAll={handleApplySelected}
+              onApplyAll={() => { void handleApplySelected() }}
               applying={applying}
             />
 

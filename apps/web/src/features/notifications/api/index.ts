@@ -37,8 +37,9 @@ export async function fetchNotificationFeedback(): Promise<Array<{ type: string;
     .select('type, dismissed_reason')
     .eq('read', true)
     .gte('timestamp', since)
+    .limit(500)
   if (error) throw new Error(error.message)
-  return (data ?? []) as Array<{ type: string; dismissed_reason: string | null }>
+  return data as Array<{ type: string; dismissed_reason: string | null }>
 }
 
 // Calling with no args → SQL resolves thresholds from alert_preferences table,

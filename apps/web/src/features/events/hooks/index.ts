@@ -16,6 +16,7 @@ export function useEvents() {
     queryKey: eventsKeys.all(hotelId ?? ''),
     queryFn: () => fetchEvents(hotelId ?? ''),
     enabled: !!hotelId,
+    staleTime: 5 * 60 * 1000,  // events change infrequently
   })
 }
 
@@ -26,6 +27,8 @@ export function useCreateEvent() {
     mutationFn: (input: EventInput) => createEvent(hotelId ?? '', input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventsKeys.all(hotelId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'occupancy-forecast'] })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'booking-forecasts'] })
       toast.success('Event created')
     },
     onError: (err: Error) => toast.error(err.message),
@@ -40,6 +43,8 @@ export function useUpdateEvent() {
       updateEvent(id, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventsKeys.all(hotelId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'occupancy-forecast'] })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'booking-forecasts'] })
       toast.success('Event updated')
     },
     onError: (err: Error) => toast.error(err.message),
@@ -53,6 +58,8 @@ export function useDeleteEvent() {
     mutationFn: (id: string) => deleteEvent(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: eventsKeys.all(hotelId ?? '') })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'occupancy-forecast'] })
+      void queryClient.invalidateQueries({ queryKey: ['eye', 'booking-forecasts'] })
       toast.success('Event deleted')
     },
     onError: (err: Error) => toast.error(err.message),

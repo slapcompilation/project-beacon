@@ -2,11 +2,12 @@
 // Synthesises waste, team, supply, occupancy, and stock signals into fused incident cards.
 // Palantir Principle 6: cross-domain synthesis — one incident, not three widgets.
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Users, Truck, TrendingUp, Package, ChevronDown, ChevronRight, Shield, Activity, GitBranch } from 'lucide-react'
+import { AlertTriangle, Users, Truck, TrendingUp, Package, ChevronDown, ChevronRight, Shield, Activity, GitBranch, Shuffle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useActiveIncidents } from '@/features/eye/hooks'
+import { useHotelEdges } from '@/hooks/useHotelEdges'
 import type { ActiveIncidentRow } from '@beacon/types'
 
 // ─── Severity config ──────────────────────────────────────────────────────────
@@ -61,7 +62,7 @@ function MetricBlock({ label, value, sub, highlight }: { label: string; value: s
   )
 }
 
-function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
+function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentRow; substituteCount: number }) {
   const [expanded, setExpanded] = useState(false)
   const sev = SEVERITY[incident.incident_severity]
 
@@ -71,7 +72,7 @@ function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
       <button
         type="button"
         className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-muted/20 transition-colors"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => { setExpanded(!expanded); }}
       >
         {/* Expand icon */}
         <span className="mt-1 text-muted-foreground shrink-0">
@@ -115,7 +116,7 @@ function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
             <CorrelationPill active={!!incident.waste_spike_pct && incident.waste_spike_pct > 0} icon={TrendingUp} label="Waste" />
             <CorrelationPill active={incident.team_correlated}   icon={Users}       label="Team"   />
             <CorrelationPill active={incident.supply_correlated} icon={Truck}       label="Supply" />
-            <CorrelationPill active={!!incident.occupancy_explains} icon={Activity} label="Occupancy" />
+            <CorrelationPill active={incident.occupancy_explains} icon={Activity} label="Occupancy" />
             <CorrelationPill active={incident.stockout_days > 0} icon={Package}     label="Stock"  />
           </div>
         </div>
@@ -162,8 +163,8 @@ function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
             />
             <MetricBlock
               label="Stockout Days"
-              value={`${incident.stockout_days}d`}
-              sub={`${incident.below_par_days}d below PAR`}
+              value={`${String(incident.stockout_days)}d`}
+              sub={`${String(incident.below_par_days)}d below PAR`}
               highlight={incident.stockout_days > 0}
             />
             <MetricBlock
@@ -199,9 +200,21 @@ function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
 
             {/* Supply signal */}
             <div className={cn('p-3 rounded-lg border text-sm', incident.supply_correlated ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-card opacity-60')}>
-              <div className="flex items-center gap-1.5 mb-1 text-xs font-medium text-muted-foreground">
-                <Truck className="w-3.5 h-3.5" />
-                Supply Signal
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                  <Truck className="w-3.5 h-3.5" />
+                  Supply Signal
+                </div>
+                {substituteCount > 0 && (
+                  <Link
+                    to={`/variant/${incident.variant_id}`}
+                    onClick={(e) => { e.stopPropagation() }}
+                    className="inline-flex items-center gap-1 rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400 hover:bg-violet-500/20 transition-colors"
+                  >
+                    <Shuffle className="w-2.5 h-2.5" />
+                    {substituteCount} substitute{substituteCount !== 1 ? 's' : ''}
+                  </Link>
+                )}
               </div>
               {incident.days_since_last_receive != null ? (
                 <div>
@@ -258,7 +271,19 @@ export default function IncidentCorrelationPage() {
   const [sevFilter,  setSevFilter]  = useState<SeverityFilter>('all')
   const [domFilter,  setDomFilter]  = useState<DomainFilter>('all')
 
-  const { data: incidents = [], isLoading, error } = useActiveIncidents(windowDays)
+  const { data: incidents  = [], isLoading, error } = useActiveIncidents(windowDays)
+  const { data: hotelEdges = [] } = useHotelEdges()
+
+  // Bidirectional similar_to count per variant
+  const similarCount = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const e of hotelEdges) {
+      if (e.edge_type !== 'similar_to') continue
+      map.set(e.source_id, (map.get(e.source_id) ?? 0) + 1)
+      map.set(e.target_id, (map.get(e.target_id) ?? 0) + 1)
+    }
+    return map
+  }, [hotelEdges])
 
   const filtered = incidents.filter(i => {
     if (sevFilter !== 'all' && i.incident_severity !== sevFilter) return false
@@ -288,7 +313,7 @@ export default function IncidentCorrelationPage() {
               <button
                 key={d}
                 type="button"
-                onClick={() => setWindowDays(d)}
+                onClick={() => { setWindowDays(d); }}
                 className={cn('px-3 py-1.5 text-xs rounded border font-medium transition-colors',
                   windowDays === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
                 )}
@@ -309,12 +334,12 @@ export default function IncidentCorrelationPage() {
             <button
               key={s}
               type="button"
-              onClick={() => setSevFilter(s)}
+              onClick={() => { setSevFilter(s); }}
               className={cn('px-3 py-1 text-xs rounded border capitalize transition-colors',
                 sevFilter === s ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
               )}
             >
-              {s === 'all' ? 'All' : SEVERITY[s as 'critical' | 'elevated' | 'watch'].label}
+              {s === 'all' ? 'All' : SEVERITY[s].label}
             </button>
           ))}
         </div>
@@ -333,7 +358,7 @@ export default function IncidentCorrelationPage() {
             <button
               key={id}
               type="button"
-              onClick={() => setDomFilter(id)}
+              onClick={() => { setDomFilter(id); }}
               className={cn('px-3 py-1 text-xs rounded border flex items-center gap-1 transition-colors',
                 domFilter === id ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
               )}
@@ -379,7 +404,11 @@ export default function IncidentCorrelationPage() {
             ) : (
               <div className="space-y-3">
                 {filtered.map(incident => (
-                  <IncidentCard key={incident.variant_id} incident={incident} />
+                  <IncidentCard
+                    key={incident.variant_id}
+                    incident={incident}
+                    substituteCount={similarCount.get(incident.variant_id) ?? 0}
+                  />
                 ))}
               </div>
             )}

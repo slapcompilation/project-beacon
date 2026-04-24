@@ -2,14 +2,14 @@
 // Palantir-style Settings: two-column layout, progressive disclosure by role,
 // inline auto-save for preferences, explicit Save only for structured entity forms.
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import {
   Bell, FolderOpen, MapPin, SlidersHorizontal,
   Building2, ShieldAlert, Plus, Pencil,
   Trash2, Loader2, GripVertical, ClipboardList, Gauge,
-  Users, Crown, User, UserCheck, Check, X, Info,
+  Users, Crown, User, UserCheck, Check, X, Info, Bot,
 } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -38,7 +38,7 @@ import { getCurrencySymbol } from '@/lib/currency'
 import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
 } from '@/features/categories/hooks'
-import { useActiveHotel, useUpdateHotel, useUpdateHotelConfig } from '@/features/hotel/hooks'
+import { useActiveHotel, useUpdateHotel, useUpdateHotelConfig, useUpdateAutonomousSettings } from '@/features/hotel/hooks'
 import { useUserPrefs, useUpdateUserPrefs, useDateFormat } from '@/features/user/hooks'
 import {
   useTeamMembers, useInviteTeamMember, useUpdateMemberRole, useRemoveTeamMember,
@@ -60,8 +60,20 @@ import {
   useUpdateCustomRemovalReason,
   useDeleteCustomRemovalReason,
 } from '@/features/removal-reasons/hooks'
-import { useNotificationFeedback } from '@/features/notifications/hooks'
+import {
+  useNotificationFeedback,
+  useAlertPreferences,
+  useUpdateAlertPreferences,
+} from '@/features/notifications/hooks'
 import type { TypeFeedback } from '@/features/notifications/hooks'
+import {
+  useWebhookEndpoints,
+  useCreateWebhookEndpoint,
+  useUpdateWebhookEndpoint,
+  useDeleteWebhookEndpoint,
+  useWebhookDeliveries,
+} from '@/features/webhooks/hooks'
+import type { WebhookEndpoint } from '@/features/webhooks/api'
 import { useApprovalThresholds, useUpdateApprovalThresholds } from '@/features/restock/hooks'
 
 // ─── Section nav config ────────────────────────────────────────────────────────
@@ -70,12 +82,14 @@ type SectionId =
   | 'notifications'
   | 'alert-thresholds'
   | 'approval-thresholds'
+  | 'autonomous'
   | 'categories'
   | 'locations'
   | 'custom-fields'
   | 'move-reasons'
   | 'hotel'
   | 'team'
+  | 'webhooks'
   | 'danger'
 
 interface NavItem {
@@ -93,6 +107,7 @@ const NAV: NavItem[] = [
   { id: 'alert-thresholds',    label: 'Alert Thresholds',   icon: Gauge,            layerDot: 'bg-orange-500' },
   // Flow
   { id: 'approval-thresholds', label: 'Approval Thresholds',icon: ShieldAlert,      layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
+  { id: 'autonomous',          label: 'Autonomous Ops',     icon: Bot,              layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   // Inventory
   { id: 'categories',        label: 'Categories',       icon: FolderOpen,       layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
   { id: 'locations',         label: 'Locations',        icon: MapPin,           layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
@@ -101,6 +116,7 @@ const NAV: NavItem[] = [
   // Hotel
   { id: 'hotel',             label: 'Hotel Profile',    icon: Building2,        layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   { id: 'team',              label: 'Team',             icon: Users,            layerDot: 'bg-purple-500', requirePermission: 'can_manage_users' },
+  { id: 'webhooks',          label: 'Webhooks',         icon: Bell,             layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   // Danger zone
   { id: 'danger',            label: 'GDPR',             icon: ShieldAlert,      layerDot: 'bg-red-500',    requirePermission: 'can_manage_users' },
 ]
@@ -347,17 +363,17 @@ function NotificationsSection() {
 // ─── Eye: Alert Thresholds ─────────────────────────────────────────────────────
 
 function AlertThresholdsSection() {
-  const { data: prefs } = useUserPrefs()
-  const update = useUpdateUserPrefs()
+  const { data: prefs } = useAlertPreferences()
+  const update = useUpdateAlertPreferences()
 
-  const lowStockDays = prefs?.low_stock_days_threshold ?? 7
-  const wasteThreshold = prefs?.waste_alert_threshold ?? 10
+  const daysThreshold  = prefs?.days_threshold  ?? 7
+  const wasteThreshold = prefs?.waste_threshold ?? 10
 
   return (
     <div>
       <SectionHeader
         title="Alert Thresholds"
-        description="Configure when Eye Layer intelligence raises alerts for your role. Changes apply to the next alert scan."
+        description="Hotel-wide thresholds used by the Eye Layer alert engine. Changes apply to the next alert scan."
       />
       <div>
         <div className="py-4">
@@ -367,22 +383,22 @@ function AlertThresholdsSection() {
               <p className="text-xs text-muted-foreground">Alert when days-until-zero falls below this threshold</p>
             </div>
             <span className="tabular-nums text-sm font-semibold text-foreground w-16 text-right">
-              {lowStockDays}d
+              {daysThreshold}d
             </span>
           </div>
           <Slider
             min={1}
-            max={30}
+            max={60}
             step={1}
-            value={[lowStockDays]}
+            value={[daysThreshold]}
             onValueChange={([v]) => {
-              update.mutate({ low_stock_days_threshold: v })
+              update.mutate({ days_threshold: v, waste_threshold: wasteThreshold })
             }}
             className="w-full"
           />
           <div className="flex justify-between mt-1">
             <span className="text-[10px] text-muted-foreground">1d (urgent)</span>
-            <span className="text-[10px] text-muted-foreground">30d (conservative)</span>
+            <span className="text-[10px] text-muted-foreground">60d (conservative)</span>
           </div>
         </div>
 
@@ -398,17 +414,17 @@ function AlertThresholdsSection() {
           </div>
           <Slider
             min={1}
-            max={100}
+            max={500}
             step={1}
             value={[wasteThreshold]}
             onValueChange={([v]) => {
-              update.mutate({ waste_alert_threshold: v })
+              update.mutate({ days_threshold: daysThreshold, waste_threshold: v })
             }}
             className="w-full"
           />
           <div className="flex justify-between mt-1">
             <span className="text-[10px] text-muted-foreground">1 (sensitive)</span>
-            <span className="text-[10px] text-muted-foreground">100 (tolerant)</span>
+            <span className="text-[10px] text-muted-foreground">500 (tolerant)</span>
           </div>
         </div>
       </div>
@@ -1684,6 +1700,477 @@ function ApprovalThresholdsSection() {
   )
 }
 
+// ─── Flow: Autonomous Operations ──────────────────────────────────────────────
+
+function AutonomousSection() {
+  const hotel = useActiveHotel()
+  const update = useUpdateAutonomousSettings()
+  const sym = getCurrencySymbol(hotel?.currency ?? 'USD')
+
+  const [threshold, setThreshold] = useState('')
+  const [poEnabled, setPoEnabled] = useState<boolean | null>(null)
+  const [tolerance, setTolerance] = useState('')
+
+  const currentThreshold = hotel?.auto_approve_threshold ?? 0
+  const currentPoEnabled = hotel?.auto_po_enabled ?? false
+  const currentTolerance = hotel?.auto_invoice_tolerance_pct ?? 2
+
+  // Track whether toggle has been changed from loaded value
+  const effectivePoEnabled = poEnabled ?? currentPoEnabled
+
+  const handleSave = () => {
+    const t = parseFloat(threshold || String(currentThreshold))
+    const tol = parseFloat(tolerance || String(currentTolerance))
+    if (isNaN(t) || isNaN(tol)) return
+    update.mutate({
+      auto_approve_threshold: t,
+      auto_po_enabled: effectivePoEnabled,
+      auto_invoice_tolerance_pct: tol,
+    })
+  }
+
+  const isDirty = threshold !== '' || tolerance !== '' || poEnabled !== null
+
+  if (!hotel) {
+    return (
+      <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" />Loading hotel…
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <SectionHeader
+        title="Autonomous Operations"
+        description="Configure what the system is allowed to do without human approval. All autonomous actions are fully auditable in the Flow Timeline."
+      />
+      <div className="space-y-6 max-w-sm">
+        {/* Auto-approve threshold */}
+        <div>
+          <Label className="text-sm font-medium">Auto-approve restock threshold</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Pending restock requests with estimated cost at or below this amount are auto-approved. Set to 0 to disable.
+          </p>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{sym}</span>
+            <Input
+              type="number"
+              min={0}
+              step={5}
+              className="pl-7 h-9 text-sm"
+              placeholder={String(currentThreshold)}
+              value={threshold}
+              onChange={(e) => { setThreshold(e.target.value) }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Current: {sym}{currentThreshold.toFixed(2)}
+            {currentThreshold === 0 ? ' (disabled)' : ''}
+          </p>
+        </div>
+
+        {/* Auto PO generation */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Auto-generate Purchase Orders</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                When 3+ approved restocks exist for the same supplier, automatically create a draft PO
+              </p>
+            </div>
+            <Switch
+              checked={effectivePoEnabled}
+              onCheckedChange={(v) => { setPoEnabled(v) }}
+            />
+          </div>
+        </div>
+
+        {/* Invoice tolerance */}
+        <div>
+          <Label className="text-sm font-medium">Invoice auto-approve tolerance</Label>
+          <p className="text-xs text-muted-foreground mb-2">
+            Invoices with discrepancy at or below this percentage are auto-approved after 3-way match
+          </p>
+          <div className="relative">
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step={0.5}
+              className="pr-8 h-9 text-sm"
+              placeholder={String(currentTolerance)}
+              value={tolerance}
+              onChange={(e) => { setTolerance(e.target.value) }}
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1">
+            Current: {String(currentTolerance)}%
+          </p>
+        </div>
+
+        <Button
+          size="sm"
+          onClick={handleSave}
+          disabled={update.isPending || !isDirty}
+          className="gap-1.5"
+        >
+          {update.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+          Save autonomous settings
+        </Button>
+
+        <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
+          <p className="font-medium text-foreground">Active agents</p>
+          <p>Intelligence cycle runs every 15 min: anomaly alerts, restock proposals, stale escalation, discrepancy detection, and the auto-approvals configured above.</p>
+          <p>Critical stockout alerts and PO auto-close fire instantly via database triggers.</p>
+          <p>Price drift scans weekly (Mon 6am UTC). POS variance scans daily (5am UTC).</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Mind: Webhooks ────────────────────────────────────────────────────────────
+
+// All action types that can trigger a webhook
+const ALL_ACTION_TYPES = [
+  'ADJUST_STOCK', 'WRITE_OFF', 'REQUEST_RESTOCK', 'APPROVE_RESTOCK',
+  'REJECT_RESTOCK', 'CANCEL_RESTOCK', 'RECEIVE_STOCK', 'REVERT_ACTION',
+  'CREATE_SUPPLIER', 'CREATE_PO', 'UPDATE_PO_STATUS', 'SUBMIT_PO_INVOICE', 'MATCH_INVOICE',
+] as const
+
+const webhookSchema = z.object({
+  name:   z.string().min(1, 'Name is required').max(80),
+  url:    z.string().url('Must be a valid URL').refine((u) => u.startsWith('https://'), 'Must use HTTPS'),
+  secret: z.string().min(16, 'Secret must be at least 16 characters'),
+})
+type WebhookFields = z.infer<typeof webhookSchema>
+
+function generateSecret(): string {
+  const arr = new Uint8Array(24)
+  crypto.getRandomValues(arr)
+  return Array.from(arr).map((b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+function DeliveryBadge({ success }: { success: boolean }) {
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
+      success
+        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+        : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
+    )}>
+      {success ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+      {success ? 'Delivered' : 'Failed'}
+    </span>
+  )
+}
+
+function EndpointDeliveries({ endpointId }: { endpointId: string }) {
+  const { data: deliveries = [], isLoading } = useWebhookDeliveries(endpointId)
+
+  if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+  if (deliveries.length === 0) return (
+    <p className="text-xs text-muted-foreground py-3 text-center">No deliveries yet — webhooks fire after any BeaconAction</p>
+  )
+
+  return (
+    <div className="space-y-1 max-h-48 overflow-y-auto">
+      {deliveries.map((d) => (
+        <div key={d.id} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/30 transition-colors">
+          <DeliveryBadge success={d.success} />
+          <span className="text-[10px] font-mono text-muted-foreground">{d.action_type}</span>
+          {d.status_code != null && (
+            <span className="text-[10px] text-muted-foreground">HTTP {d.status_code}</span>
+          )}
+          {d.duration_ms != null && (
+            <span className="text-[10px] text-muted-foreground">{d.duration_ms}ms</span>
+          )}
+          {d.error && (
+            <span className="text-[10px] text-red-500 truncate flex-1">{d.error}</span>
+          )}
+          <span className="text-[10px] text-muted-foreground ml-auto shrink-0">
+            {new Date(d.delivered_at).toLocaleTimeString()}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function WebhookEndpointModal({
+  open,
+  onClose,
+  editing,
+}: {
+  open:     boolean
+  onClose:  () => void
+  editing?: WebhookEndpoint | null
+}) {
+  const create = useCreateWebhookEndpoint()
+  const update = useUpdateWebhookEndpoint()
+  const [selectedEvents, setSelectedEvents] = useState<string[]>(editing?.event_types ?? [])
+
+  const { register, handleSubmit, reset, setValue, formState: { errors, isSubmitting } } = useForm<WebhookFields>({
+    resolver: zodResolver(webhookSchema),
+    defaultValues: {
+      name:   editing?.name   ?? '',
+      url:    editing?.url    ?? '',
+      secret: editing?.secret ?? '',
+    },
+  })
+
+  // Reset form when editing target changes
+  useEffect(() => {
+    reset({
+      name:   editing?.name   ?? '',
+      url:    editing?.url    ?? '',
+      secret: editing?.secret ?? '',
+    })
+    setSelectedEvents(editing?.event_types ?? [])
+  }, [editing, reset])
+
+  const onSubmit = async (fields: WebhookFields) => {
+    const input = {
+      name:        fields.name,
+      url:         fields.url,
+      secret:      fields.secret,
+      event_types: selectedEvents,
+      enabled:     editing?.enabled ?? true,
+    }
+    if (editing) {
+      await update.mutateAsync({ id: editing.id, patch: input })
+    } else {
+      await create.mutateAsync(input)
+    }
+    onClose()
+  }
+
+  const toggleEvent = (type: string) => {
+    setSelectedEvents((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{editing ? 'Edit webhook' : 'Add webhook endpoint'}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4">
+          <div className="space-y-1">
+            <Label>Name</Label>
+            <Input {...register('name')} placeholder="e.g. PMS sync, Supplier notify" />
+            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+          </div>
+          <div className="space-y-1">
+            <Label>URL</Label>
+            <Input {...register('url')} placeholder="https://your-endpoint.com/webhook" />
+            {errors.url && <p className="text-xs text-destructive">{errors.url.message}</p>}
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <Label>Signing secret</Label>
+              <button
+                type="button"
+                onClick={() => { setValue('secret', generateSecret()) }}
+                className="text-[10px] text-primary hover:underline"
+              >
+                Generate
+              </button>
+            </div>
+            <Input {...register('secret')} className="font-mono text-xs" placeholder="min 16 characters" />
+            {errors.secret && <p className="text-xs text-destructive">{errors.secret.message}</p>}
+            <p className="text-[10px] text-muted-foreground">
+              Beacon signs every payload with <code className="font-mono">X-Beacon-Signature: sha256=…</code>
+            </p>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>Event filter</Label>
+              <button
+                type="button"
+                onClick={() => { setSelectedEvents([]) }}
+                className="text-[10px] text-muted-foreground hover:text-foreground"
+              >
+                All events (clear)
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto rounded border p-2">
+              {ALL_ACTION_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => { toggleEvent(type) }}
+                  className={cn(
+                    'rounded px-2 py-0.5 text-[10px] font-mono font-medium transition-colors',
+                    selectedEvents.includes(type)
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/70',
+                  )}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {selectedEvents.length === 0
+                ? 'Firing on all action types'
+                : `Firing on ${selectedEvents.length} selected type${selectedEvents.length !== 1 ? 's' : ''}`}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editing ? 'Save' : 'Create')}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function WebhookEndpointRow({
+  ep,
+  onEdit,
+  onDelete,
+}: {
+  ep:       WebhookEndpoint
+  onEdit:   () => void
+  onDelete: () => void
+}) {
+  const [expanded, setExpanded]  = useState(false)
+  const update                   = useUpdateWebhookEndpoint()
+
+  return (
+    <div className="rounded-lg border divide-y">
+      {/* Header row */}
+      <div className="flex items-center gap-3 px-4 py-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium truncate">{ep.name}</p>
+            {!ep.enabled && (
+              <span className="text-[10px] bg-muted text-muted-foreground rounded px-1.5 py-0.5">Disabled</span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground font-mono truncate">{ep.url}</p>
+          <p className="text-[10px] text-muted-foreground mt-0.5">
+            {ep.event_types.length === 0
+              ? 'All events'
+              : ep.event_types.slice(0, 3).join(', ') + (ep.event_types.length > 3 ? ` +${ep.event_types.length - 3}` : '')}
+          </p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <Switch
+            checked={ep.enabled}
+            onCheckedChange={(v) => { void update.mutateAsync({ id: ep.id, patch: { enabled: v } }) }}
+          />
+          <button
+            type="button"
+            onClick={() => { setExpanded((x) => !x) }}
+            className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground text-[10px]"
+          >
+            {expanded ? 'Hide' : 'Log'}
+          </button>
+          <button type="button" onClick={onEdit} className="p-1.5 rounded hover:bg-muted transition-colors">
+            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+          <button type="button" onClick={onDelete} className="p-1.5 rounded hover:bg-muted transition-colors">
+            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        </div>
+      </div>
+      {/* Delivery log */}
+      {expanded && (
+        <div className="px-4 py-3 bg-muted/20">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">Recent deliveries</p>
+          <EndpointDeliveries endpointId={ep.id} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+function WebhooksSection() {
+  const { data: endpoints = [], isLoading } = useWebhookEndpoints()
+  const deleteEndpoint                      = useDeleteWebhookEndpoint()
+  const [modalOpen, setModalOpen]           = useState(false)
+  const [editing, setEditing]               = useState<WebhookEndpoint | null>(null)
+  const [deleting, setDeleting]             = useState<WebhookEndpoint | null>(null)
+
+  return (
+    <div>
+      <SectionHeader
+        title="Outbound Webhooks"
+        description="Notify external systems (PMS, supplier portals, Slack) whenever a BeaconAction completes. Payloads are HMAC-SHA256 signed."
+      />
+
+      {isLoading ? (
+        <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+      ) : (
+        <div className="space-y-3">
+          {endpoints.length === 0 ? (
+            <div className="rounded-lg border px-4 py-8 text-center space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">No webhook endpoints configured</p>
+              <p className="text-xs text-muted-foreground">
+                Add an endpoint to push BeaconAction events to your PMS, supplier systems, or automation tools.
+              </p>
+            </div>
+          ) : (
+            endpoints.map((ep) => (
+              <WebhookEndpointRow
+                key={ep.id}
+                ep={ep}
+                onEdit={() => { setEditing(ep); setModalOpen(true) }}
+                onDelete={() => { setDeleting(ep) }}
+              />
+            ))
+          )}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => { setEditing(null); setModalOpen(true) }}
+            className="gap-1.5"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add endpoint
+          </Button>
+        </div>
+      )}
+
+      <div className="mt-6 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
+        <p className="font-medium text-foreground">Verification</p>
+        <p>
+          Validate each request server-side: <code className="font-mono">HMAC_SHA256(body, secret)</code> must match
+          the <code className="font-mono">X-Beacon-Signature</code> header (after stripping the <code className="font-mono">sha256=</code> prefix).
+        </p>
+        <p>Beacon retries are not automatic — re-delivery is available via the delivery log.</p>
+      </div>
+
+      <WebhookEndpointModal
+        open={modalOpen}
+        onClose={() => { setModalOpen(false); setEditing(null) }}
+        editing={editing}
+      />
+
+      <ConfirmDialog
+        open={!!deleting}
+        title="Delete webhook endpoint"
+        description={`Remove "${deleting?.name}"? Delivery history will also be deleted.`}
+        confirmLabel="Delete"
+        onConfirm={() => {
+          if (deleting) { void deleteEndpoint.mutateAsync(deleting.id) }
+          setDeleting(null)
+        }}
+        onCancel={() => { setDeleting(null) }}
+      />
+    </div>
+  )
+}
+
 // ─── GDPR ──────────────────────────────────────────────────────────────────────
 
 const gdprSchema = z.object({ email: z.email('Enter a valid email') })
@@ -1748,12 +2235,14 @@ function renderSection(id: SectionId) {
     case 'notifications':       return <NotificationsSection />
     case 'alert-thresholds':    return <AlertThresholdsSection />
     case 'approval-thresholds': return <ApprovalThresholdsSection />
+    case 'autonomous':          return <AutonomousSection />
     case 'categories':       return <CategoriesSection />
     case 'locations':        return <LocationsSection />
     case 'custom-fields':    return <CustomFieldsSection />
     case 'move-reasons':     return <MoveReasonsSection />
     case 'hotel':            return <HotelProfileSection />
     case 'team':             return <TeamSection />
+    case 'webhooks':         return <WebhooksSection />
     case 'danger':           return <DangerZoneSection />
   }
 }
@@ -1762,9 +2251,9 @@ function renderSection(id: SectionId) {
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
   { dot: 'bg-slate-400',   label: 'Eye',         ids: ['notifications', 'alert-thresholds'] },
-  { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds'] },
+  { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous'] },
   { dot: 'bg-blue-500',    label: 'Inventory',   ids: ['categories', 'locations', 'custom-fields', 'move-reasons'] },
-  { dot: 'bg-purple-500',  label: 'Hotel',       ids: ['hotel', 'team'] },
+  { dot: 'bg-purple-500',  label: 'Hotel',       ids: ['hotel', 'team', 'webhooks'] },
   { dot: 'bg-red-500',     label: 'Danger',      ids: ['danger'] },
 ]
 

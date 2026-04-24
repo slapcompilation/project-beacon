@@ -141,7 +141,7 @@ function VariantForm({
           low_stock_threshold: editing.low_stock_threshold,
           location_id: editing.location_id ?? null,
           default_supplier_id: editing.default_supplier_id ?? null,
-          status: editing.status ?? 'available',
+          status: editing.status,
           reminder_date: editing.reminder_date ?? null,
           reminder_label: editing.reminder_label ?? null,
         }
@@ -383,7 +383,7 @@ function VariantRow({
   isDeleting: boolean
 }) {
   const fmtDate = useDateFormat()
-  const isInactive = variant.active === false
+  const isInactive = !variant.active
   const isLow =
     variant.low_stock_threshold > 0 &&
     variant.current_stock <= variant.low_stock_threshold &&
@@ -414,7 +414,7 @@ function VariantRow({
                 Low
               </Badge>
             )}
-            {variant.status && variant.status !== 'available' && (
+            {variant.status !== 'available' && (
               <Badge variant="outline" className={cn('text-[10px] px-1 py-0',
                 variant.status === 'in_use'      && 'border-blue-200 bg-blue-50 text-blue-700',
                 variant.status === 'maintenance' && 'border-orange-200 bg-orange-50 text-orange-700',

@@ -55,7 +55,7 @@ function PendingRow({
   const reject  = useRejectRestock()
 
   const pv  = req.product_variants
-  const tier = (req.required_approval_tier ?? 'none') as 'none' | 'manager' | 'director'
+  const tier = req.required_approval_tier
   const cfg  = TIER_CFG[tier]
   const Icon = cfg.icon
 
@@ -63,7 +63,7 @@ function PendingRow({
   const ageLabel   = formatDistanceToNow(createdAt, { addSuffix: true })
   const ageHours   = (Date.now() - createdAt.getTime()) / 3_600_000
   const isStale    = ageHours > 12
-  const escalated  = (req.escalation_count ?? 0) > 0
+  const escalated  = req.escalation_count > 0
 
   const productName = pv?.products?.name ?? '—'
   const variantName = pv?.name && pv.name !== 'Standard'
@@ -125,6 +125,12 @@ function PendingRow({
   )
 }
 
+// Recharts constants (stable references prevent unnecessary chart re-renders)
+const BAR_MARGIN = { top: 4, right: 4, bottom: 0, left: 0 }
+const SMALL_TICK = { fontSize: 10 }
+const TOOLTIP_STYLE = { fontSize: 11, border: '1px solid hsl(var(--border))' }
+const LEGEND_STYLE = { fontSize: 10 }
+
 // ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function FlowDashboardPage() {
@@ -141,7 +147,7 @@ export default function FlowDashboardPage() {
   // Pending queue: manager + director tier only, oldest first
   const pending = useMemo(
     () =>
-      (requests as RestockRequestRow[])
+      (requests)
         .filter((r) => r.status === 'pending_manager' || r.status === 'pending_director')
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
     [requests],
@@ -149,7 +155,7 @@ export default function FlowDashboardPage() {
 
   const pendingManager  = pending.filter((r) => r.status === 'pending_manager')
   const pendingDirector = pending.filter((r) => r.status === 'pending_director')
-  const escalated       = pending.filter((r) => (r.escalation_count ?? 0) > 0)
+  const escalated       = pending.filter((r) => r.escalation_count > 0)
 
   const totalPendingValue = pending.reduce((s, r) => s + (r.estimated_cost ?? 0), 0)
 
@@ -274,7 +280,7 @@ export default function FlowDashboardPage() {
               </TableHeader>
               <TableBody>
                 {pending.map((req) => {
-                  const tier = (req.required_approval_tier ?? 'none') as 'none' | 'manager' | 'director'
+                  const tier = req.required_approval_tier
                   const canApprove =
                     tier === 'director' ? canApproveDirector : canApproveManager
                   return (
@@ -311,16 +317,16 @@ export default function FlowDashboardPage() {
               </div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={chartData} barGap={2} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
+                <BarChart data={chartData} barGap={2} margin={BAR_MARGIN}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => formatCurrency(v, currency)} width={56} />
+                  <XAxis dataKey="month" tick={SMALL_TICK} />
+                  <YAxis tick={SMALL_TICK} tickFormatter={(v: number) => formatCurrency(v, currency)} width={56} />
                   <RechartsTooltip
                     formatter={(value) => [formatCurrency(Number(value), currency)]}
                     labelFormatter={(label) => String(label)}
-                    contentStyle={{ fontSize: 11, border: '1px solid hsl(var(--border))' }}
+                    contentStyle={TOOLTIP_STYLE}
                   />
-                  <Legend wrapperStyle={{ fontSize: 10 }} />
+                  <Legend wrapperStyle={LEGEND_STYLE} />
                   <Bar dataKey="Estimated" fill="hsl(217, 91%, 60%)" radius={[2, 2, 0, 0]} />
                   <Bar dataKey="Actual received" fill="hsl(142, 71%, 45%)" radius={[2, 2, 0, 0]} />
                 </BarChart>
@@ -354,8 +360,8 @@ export default function FlowDashboardPage() {
                 </TableHeader>
                 <TableBody>
                   {velocity.map((row) => {
-                    const tier = row.required_approval_tier as 'none' | 'manager' | 'director'
-                    const cfg  = TIER_CFG[tier] ?? TIER_CFG.none
+                    const tier = row.required_approval_tier
+                    const cfg  = TIER_CFG[tier]
                     const approvalRate = row.total_requests > 0
                       ? Math.round((row.approved_count / row.total_requests) * 100)
                       : 0

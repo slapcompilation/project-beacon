@@ -132,7 +132,7 @@ function healthBarColor(score: number): string {
 function SummaryStrip({ aggs, currency }: { aggs: CategoryAgg[]; currency: string }) {
   const overBudget = aggs.filter(a => a.budget_status === 'over').length
   const highWaste  = aggs.filter(a => (a.waste_rate_pct ?? 0) > 15)
-  const worstWaste = highWaste.sort((a, b) => (b.waste_rate_pct ?? 0) - (a.waste_rate_pct ?? 0))[0]
+  const worstWaste = highWaste.sort((a, b) => (b.waste_rate_pct ?? 0) - (a.waste_rate_pct ?? 0)).at(0)
   const totalWasteCost = aggs.reduce((s, a) => s + a.total_waste_cost, 0)
 
   return (
@@ -141,19 +141,19 @@ function SummaryStrip({ aggs, currency }: { aggs: CategoryAgg[]; currency: strin
         {
           label: 'Categories Tracked',
           value: aggs.length.toString(),
-          sub: `${aggs.filter(a => a.efficient_count === a.variant_count).length} all-efficient`,
+          sub: `${String(aggs.filter(a => a.efficient_count === a.variant_count).length)} all-efficient`,
           highlight: false,
         },
         {
           label: 'Over Budget',
           value: overBudget.toString(),
-          sub: `${aggs.filter(a => a.budget_status === 'on_track').length} on track`,
+          sub: `${String(aggs.filter(a => a.budget_status === 'on_track').length)} on track`,
           highlight: overBudget > 0,
         },
         {
           label: 'Total Waste Cost',
           value: formatCurrency(totalWasteCost, currency),
-          sub: `${aggs.filter(a => (a.waste_rate_pct ?? 0) > 15).length} high-waste categories`,
+          sub: `${String(aggs.filter(a => (a.waste_rate_pct ?? 0) > 15).length)} high-waste categories`,
           highlight: totalWasteCost > 0,
         },
         {
@@ -213,7 +213,7 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
       <button
         type="button"
         className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-muted/10 transition-colors"
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => { setExpanded(!expanded); }}
       >
         <span className="text-muted-foreground shrink-0">
           {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -257,7 +257,7 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
           <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden mt-1">
             <div
               className={cn('h-full rounded-full', healthBarColor(agg.avg_score))}
-              style={{ width: `${agg.avg_score}%` }}
+              style={{ width: `${String(agg.avg_score)}%` }}
             />
           </div>
         </div>
@@ -282,7 +282,7 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
               <div className="h-1 w-full bg-muted/40 rounded-full overflow-hidden mt-1">
                 <div
                   className={cn('h-full rounded-full', agg.budget_status === 'over' ? 'bg-red-500' : agg.budget_status === 'warning' ? 'bg-amber-500' : 'bg-emerald-500')}
-                  style={{ width: `${Math.min(agg.spend_pct, 100)}%` }}
+                  style={{ width: `${String(Math.min(agg.spend_pct, 100))}%` }}
                 />
               </div>
             </>
@@ -349,7 +349,7 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
               Full performance view →
             </Link>
             <Link
-              to="/eye?panel=insights"
+              to="/eye?panel=incidents"
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
               <Activity className="w-3 h-3" />
@@ -385,8 +385,7 @@ export default function CategoryIntelligencePage() {
       if (sortKey === 'health')   return b.avg_score - a.avg_score
       if (sortKey === 'waste')    return (b.waste_rate_pct ?? 0) - (a.waste_rate_pct ?? 0)
       if (sortKey === 'budget')   return (b.spend_pct ?? 0) - (a.spend_pct ?? 0)
-      if (sortKey === 'stockout') return b.total_stockout_days - a.total_stockout_days
-      return 0
+      return b.total_stockout_days - a.total_stockout_days
     })
   }, [perfRows, budgetRows, sortKey])
 
@@ -412,7 +411,7 @@ export default function CategoryIntelligencePage() {
               <button
                 key={d}
                 type="button"
-                onClick={() => setWindowDays(d)}
+                onClick={() => { setWindowDays(d); }}
                 className={cn('px-3 py-1.5 text-xs rounded border font-medium transition-colors',
                   windowDays === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
                 )}
@@ -436,7 +435,7 @@ export default function CategoryIntelligencePage() {
           <button
             key={key}
             type="button"
-            onClick={() => setSortKey(key)}
+            onClick={() => { setSortKey(key); }}
             className={cn(
               'flex items-center gap-1.5 px-3 py-1 text-xs rounded border transition-colors',
               sortKey === key ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'

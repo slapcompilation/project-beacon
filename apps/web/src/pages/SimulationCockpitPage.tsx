@@ -227,7 +227,7 @@ function ParameterLever({
         max={def.paramMax}
         step={def.paramStep}
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => { onChange(Number(e.target.value)); }}
         className="w-full accent-primary"
       />
 

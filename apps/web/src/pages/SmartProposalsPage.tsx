@@ -152,6 +152,12 @@ function ProposalDetail({
         {row.unit_cost > 0 && (
           <> · est. <span className="text-foreground font-bold">{formatCurrency(row.estimated_cost, currency)}</span></>
         )}
+        {row.contracted_price != null && (
+          <> · contract: <span className={cn(
+            'font-bold',
+            row.contracted_price <= row.unit_cost ? 'text-emerald-600' : 'text-amber-600',
+          )}>{formatCurrency(row.contracted_price, currency)}</span>/u</>
+        )}
       </div>
 
       {/* Reasoning */}
@@ -271,6 +277,16 @@ function ProposalRow({
               <p className="text-[10px] text-muted-foreground tabular-nums">
                 ~{formatCurrency(row.estimated_cost, currency)}
               </p>
+            )}
+            {row.contracted_price != null && row.unit_cost > 0 && row.contracted_price !== row.unit_cost && (
+              <span className={cn(
+                'text-[9px] font-medium px-1 py-0.5 rounded inline-block mt-0.5',
+                row.contracted_price < row.unit_cost
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
+                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
+              )}>
+                Contract: {formatCurrency(row.contracted_price, currency)}
+              </span>
             )}
           </div>
 
@@ -446,7 +462,7 @@ export default function SmartProposalsPage() {
           qty:          row.proposed_qty,
           supplierId:   row.preferred_supplier_id,
           supplierName: row.preferred_supplier_name ?? '',
-          unitCost:     row.unit_cost,
+          unitCost:     row.contracted_price ?? row.unit_cost,
           leadDays:     row.lead_time_days ?? 7,
         })
       } else {
@@ -467,7 +483,7 @@ export default function SmartProposalsPage() {
           qty:          row.proposed_qty,
           supplierId:   row.preferred_supplier_id!,
           supplierName: row.preferred_supplier_name ?? '',
-          unitCost:     row.unit_cost,
+          unitCost:     row.contracted_price ?? row.unit_cost,
           leadDays:     row.lead_time_days ?? 7,
         })
       } catch {

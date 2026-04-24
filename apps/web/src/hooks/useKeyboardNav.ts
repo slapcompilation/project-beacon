@@ -5,6 +5,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAppStore } from '@/stores/app.store'
 
 const G_SHORTCUTS: Record<string, string> = {
   d: '/',
@@ -19,6 +20,9 @@ const CHORD_TIMEOUT_MS = 1000
 
 export function useKeyboardNav() {
   const navigate = useNavigate()
+  const toggleCopilot = useAppStore((s) => s.toggleCopilot)
+  const toggleCommandBar = useAppStore((s) => s.toggleCommandBar)
+  const setContextPanelOpen = useAppStore((s) => s.setContextPanelOpen)
   const waitingForChord = useRef(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -32,6 +36,26 @@ export function useKeyboardNav() {
     }
 
     const handler = (e: KeyboardEvent) => {
+      // Ctrl+K / Cmd+K → toggle command bar
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        toggleCommandBar()
+        return
+      }
+
+      // Ctrl+J / Cmd+J → toggle copilot panel
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault()
+        toggleCopilot()
+        return
+      }
+
+      // Escape → close context panel
+      if (e.key === 'Escape') {
+        setContextPanelOpen(false)
+        return
+      }
+
       // Ignore when typing in inputs, textareas, contenteditable
       const target = e.target as HTMLElement
       if (
@@ -67,5 +91,5 @@ export function useKeyboardNav() {
       document.removeEventListener('keydown', handler)
       clearChord()
     }
-  }, [navigate])
+  }, [navigate, toggleCopilot, toggleCommandBar, setContextPanelOpen])
 }

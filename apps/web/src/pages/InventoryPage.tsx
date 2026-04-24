@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   Plus, Search, MoreHorizontal, SlidersHorizontal, History,
   Trash2, Pencil, Upload, Layers, QrCode,
@@ -43,7 +44,7 @@ import { StockAdjustModal } from '@/features/inventory/components/StockAdjustMod
 import { StockLogDrawer } from '@/features/inventory/components/StockLogDrawer'
 import { TransferModal } from '@/features/inventory/components/TransferModal'
 import { VoiceAdjustButton } from '@/components/VoiceAdjustButton'
-import { CsvImportModal } from '@/features/inventory/components/CsvImportModal'
+import { ImportModal } from '@/features/inventory/components/CsvImportModal'
 import { VariantManagerDrawer } from '@/features/inventory/components/VariantManagerDrawer'
 import {
   useProducts,
@@ -63,6 +64,7 @@ import { useWasteRadar, useInventoryIntelligence } from '@/features/eye/hooks'
 import type { InventoryIntelligenceRow } from '@/features/eye/api'
 import { useCurrency } from '@/hooks/useCurrency'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { EntityLink } from '@/components/EntityLink'
 import { printVariantLabels } from '@/lib/labels'
 import { exportToCsv } from '@/lib/csv'
 import { formatCurrency } from '@/lib/currency'
@@ -168,7 +170,7 @@ function RowIntelStrip({
     const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
     const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
     return dv < dw ? v : worst
-  }, variants[0]!)
+  }, variants[0])
 
   const par       = primaryVariant.low_stock_threshold
   const avgDaily  = forecastMap.get(primaryVariant.id)
@@ -182,7 +184,7 @@ function RowIntelStrip({
 
   // Supplier lead-time synthesis (Move 2)
   const supplierEntry = (primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id
-    ? suppliersMap.get((primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id!)
+    ? suppliersMap.get((primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id)
     : undefined
   const leadTimeDays = (supplierEntry as (Supplier & { lead_time_days?: number | null }) | undefined)?.lead_time_days ?? null
   const supplyGap = days !== null && leadTimeDays !== null ? days - leadTimeDays : null
@@ -319,7 +321,7 @@ function InlineStockCell({
 
   const variants = product.product_variants
   const isSingle = variants.length === 1
-  const variant = isSingle ? variants[0]! : null
+  const variant = isSingle ? variants[0] : null
   const totalStock = getTotalStock(variants)
   const threshold = variant?.low_stock_threshold ?? 0
 
@@ -334,7 +336,7 @@ function InlineStockCell({
         const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
         const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
         return dv < dw ? v : worst
-      }, variants[0]!)
+      }, variants[0])
     : null
   const avgDailyCell = primaryV ? (forecastMap.get(primaryV.id) ?? null) : null
   const daysCell = avgDailyCell && avgDailyCell > 0 ? Math.round(totalStock / avgDailyCell) : null
@@ -435,7 +437,7 @@ function InlineStockCell({
               parRatio <= 1 ? 'bg-yellow-500' :
               parRatio <= 1.5 ? 'bg-green-500' : 'bg-blue-400'
             )}
-            style={{ width: `${Math.min(parRatio / 2, 1) * 100}%` }}
+            style={{ width: `${String(Math.min(parRatio / 2, 1) * 100)}%` }}
           />
         </div>
       )}
@@ -452,18 +454,23 @@ function InventorySummaryStrip({
   products: ProductWithVariants[]
   currency: string
 }) {
-  const totalValue = products.reduce(
-    (s, p) => s + p.product_variants.reduce((vs, v) => vs + v.current_stock * v.cost, 0),
-    0
-  )
-  const outOfStock = products.filter((p) =>
-    p.product_variants.every((v) => v.current_stock === 0)
-  ).length
-  const lowStock = products.filter((p) =>
-    p.product_variants.some(
-      (v) => v.low_stock_threshold > 0 && v.current_stock > 0 && v.current_stock <= v.low_stock_threshold
-    )
-  ).length
+  const { totalValue, outOfStock, lowStock } = useMemo(() => {
+    let total = 0
+    let oos = 0
+    let low = 0
+    for (const p of products) {
+      let allZero = true
+      let anyLow = false
+      for (const v of p.product_variants) {
+        total += v.current_stock * v.cost
+        if (v.current_stock > 0) allZero = false
+        if (v.low_stock_threshold > 0 && v.current_stock > 0 && v.current_stock <= v.low_stock_threshold) anyLow = true
+      }
+      if (allZero && p.product_variants.length > 0) oos++
+      if (anyLow) low++
+    }
+    return { totalValue: total, outOfStock: oos, lowStock: low }
+  }, [products])
 
   return (
     <div className="flex flex-wrap items-center gap-6 border-b px-8 py-2.5 bg-muted/30 text-sm">
@@ -549,7 +556,7 @@ export default function InventoryPage() {
   const createRestock = useCreateRestockRequest()
 
   const toggleSelect = (id: string) =>
-    setSelected((prev) => { const next = new Set(prev); next.has(id) ? next.delete(id) : next.add(id); return next })
+    { setSelected((prev) => { const next = new Set(prev); if (next.has(id)) { next.delete(id) } else { next.add(id) }; return next }); }
 
   useEffect(() => {
     if (searchParams.get('import') === '1') setImportOpen(true)
@@ -597,7 +604,7 @@ export default function InventoryPage() {
       const matchesLocation =
         locationFilter === '__all__' ||
         p.product_variants.some((v) => v.location_id === locationFilter)
-      const matchesTag = !tagFilter || (p.tags ?? []).includes(tagFilter)
+      const matchesTag = !tagFilter || p.tags.includes(tagFilter)
       return matchesSearch && matchesCategory && matchesLocation && matchesTag
     })
     // Sort by urgency: out-of-stock first → low-stock → waste signal → in-stock
@@ -610,15 +617,24 @@ export default function InventoryPage() {
     return [...result].sort((a, b) => urgency(a) - urgency(b))
   }, [products, search, categoryFilter, locationFilter, tagFilter, wasteRadarIds])
 
+  // ── Virtualized table ─────────────────────────────────────────────────────
+  const tableScrollRef = useRef<HTMLDivElement>(null)
+  const rowVirtualizer = useVirtualizer({
+    count: filtered.length,
+    getScrollElement: () => tableScrollRef.current,
+    estimateSize: () => 64,
+    overscan: 8,
+  })
+
   const isAllSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id))
   const toggleAll = () =>
-    setSelected(isAllSelected ? new Set() : new Set(filtered.map((p) => p.id)))
+    { setSelected(isAllSelected ? new Set() : new Set(filtered.map((p) => p.id))); }
 
   // All unique tags across all products for the filter chips
   const allTags = useMemo(() => {
     const set = new Set<string>()
     for (const p of products) {
-      for (const t of p.tags ?? []) set.add(t)
+      for (const t of p.tags) set.add(t)
     }
     return [...set].sort()
   }, [products])
@@ -861,7 +877,7 @@ export default function InventoryPage() {
           )}
 
           {/* Table */}
-          <div className="flex-1 overflow-auto px-8 py-4">
+          <div ref={tableScrollRef} className="flex-1 overflow-auto px-8 py-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-24 text-muted-foreground text-sm">Loading…</div>
             ) : filtered.length === 0 ? (
@@ -901,8 +917,19 @@ export default function InventoryPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map((product) => (
-                    <TableRow key={product.id} className={selected.has(product.id) ? 'bg-primary/5' : undefined}>
+                  {/* Spacer row to position virtualized rows */}
+                  {rowVirtualizer.getVirtualItems().length > 0 && (
+                    <tr style={{ height: rowVirtualizer.getVirtualItems()[0].start }} />
+                  )}
+                  {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                    const product = filtered[virtualRow.index]
+                    return (
+                    <TableRow
+                      key={product.id}
+                      data-index={virtualRow.index}
+                      ref={rowVirtualizer.measureElement}
+                      className={selected.has(product.id) ? 'bg-primary/5' : undefined}
+                    >
                       <TableCell className="px-3">
                         <input
                           type="checkbox"
@@ -920,13 +947,13 @@ export default function InventoryPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{product.name}</p>
+                          <EntityLink type="product" id={product.id} className="font-medium text-sm">{product.name}</EntityLink>
                           {product.description && (
                             <p className="text-xs text-muted-foreground truncate max-w-xs">{product.description}</p>
                           )}
-                          {(product.tags ?? []).length > 0 && (
+                          {product.tags.length > 0 && (
                             <div className="mt-1 flex flex-wrap gap-1">
-                              {(product.tags ?? []).map((tag) => (
+                              {product.tags.map((tag) => (
                                 <button
                                   key={tag}
                                   onClick={() => { setTagFilter(tagFilter === tag ? null : tag) }}
@@ -1086,7 +1113,12 @@ export default function InventoryPage() {
                         </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    )
+                  })}
+                  {/* Bottom spacer for correct scroll height */}
+                  {rowVirtualizer.getVirtualItems().length > 0 && (
+                    <tr style={{ height: rowVirtualizer.getTotalSize() - (rowVirtualizer.getVirtualItems().at(-1)?.end ?? 0) }} />
+                  )}
                 </TableBody>
               </Table>
             )}
@@ -1105,7 +1137,7 @@ export default function InventoryPage() {
       {modal?.type === 'history' && (
         <StockLogDrawer open onClose={() => { setModal(null); }} product={modal.product} />
       )}
-      <CsvImportModal open={importOpen} onClose={() => { setImportOpen(false); }} />
+      <ImportModal open={importOpen} onClose={() => { setImportOpen(false); }} />
       <ConfirmDialog
         open={bulkDeleteConfirm}
         title={`Delete ${String(selected.size)} product${selected.size !== 1 ? 's' : ''}?`}

@@ -3,13 +3,14 @@
 // for hotel operations. Palantir principle: the world is being actively analysed
 // for you; you are not hunting for information.
 
-import { useMemo } from 'react'
+import { memo, useMemo, useRef } from 'react'
 import { formatDistanceToNow, startOfDay } from 'date-fns'
 import {
   ArrowUpCircle, MinusCircle, AlertCircle, RotateCcw,
   Activity, Package,
   Loader2, RefreshCw,
 } from 'lucide-react'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@/lib/utils'
 import { useActivityFeed } from '@/features/monitor/hooks'
 import { useRestockRequests } from '@/features/restock/hooks'
@@ -39,7 +40,7 @@ const KIND = {
 
 // ─── Single event row ──────────────────────────────────────────────────────────
 
-function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
+const EventRow = memo(function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
   const kind   = classifyEvent(event)
   const cfg    = KIND[kind]
   const { Icon } = cfg
@@ -103,6 +104,40 @@ function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
       </div>
     </div>
   )
+})
+
+// ─── Virtualized feed ─────────────────────────────────────────────────────────
+
+function VirtualizedFeed({ events, newIds }: { events: ActivityEvent[]; newIds: ReadonlySet<string> }) {
+  const parentRef = useRef<HTMLDivElement>(null)
+  const virtualizer = useVirtualizer({
+    count: events.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 72,
+    overscan: 10,
+  })
+
+  return (
+    <div ref={parentRef} className="h-full overflow-y-auto">
+      <div
+        className="relative w-full"
+        style={{ height: `${String(virtualizer.getTotalSize())}px` }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const event = events[virtualRow.index]
+          return (
+            <div
+              key={event.log_id}
+              className="absolute left-0 top-0 w-full border-b border-border/50"
+              style={{ height: `${String(virtualRow.size)}px`, transform: `translateY(${String(virtualRow.start)}px)` }}
+            >
+              <EventRow event={event} isNew={newIds.has(event.log_id)} />
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
 }
 
 // ─── Right-rail KPIs ──────────────────────────────────────────────────────────
@@ -132,7 +167,8 @@ function RightRail({
   )
 
   // Today stats derived from already-loaded feed (no extra query)
-  const todayStart  = startOfDay(new Date()).toISOString()
+  // Stable across renders — only recomputes once per day, not on every render
+  const todayStart  = useMemo(() => startOfDay(new Date()).toISOString(), [])
   const todayEvents = useMemo(() => events.filter((e) => e.happened_at >= todayStart), [events, todayStart])
 
   const todayMovements = todayEvents.length
@@ -311,7 +347,7 @@ export default function MonitorPage() {
       <div className="flex-1 overflow-hidden flex gap-4 p-4 md:p-6">
 
         {/* Feed */}
-        <div className="flex-1 min-w-0 overflow-y-auto rounded-lg border bg-card">
+        <div className="flex-1 min-w-0 overflow-hidden rounded-lg border bg-card">
           {isLoading ? (
             <div className="flex h-40 items-center justify-center">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -329,15 +365,7 @@ export default function MonitorPage() {
               </div>
             </div>
           ) : (
-            <div className="divide-y divide-border/50">
-              {events.map((event) => (
-                <EventRow
-                  key={event.log_id}
-                  event={event}
-                  isNew={newIds.has(event.log_id)}
-                />
-              ))}
-            </div>
+            <VirtualizedFeed events={events} newIds={newIds} />
           )}
         </div>
 

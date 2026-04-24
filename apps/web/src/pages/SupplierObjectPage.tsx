@@ -20,12 +20,19 @@ import { GraphConnections } from '@/components/GraphConnections'
 import {
   riskLevelFromRow,
   leadTimeLabel,
+  leadTimeSourceLabel,
   daysUntilContractExpiry,
   hasContractExpiringSoon,
   onTimePctLabel,
   costVarianceLabel,
   stockUrgency,
 } from '@beacon/reality-graph'
+
+const LT_SOURCE_BADGE: Record<Supplier['lead_time_source'], string> = {
+  po_history:       'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+  delivery_history: 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400',
+  manual:           'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+}
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -346,6 +353,12 @@ export default function SupplierObjectPage() {
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {ltLabel} lead time
+                      <span className={cn(
+                        'text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded',
+                        LT_SOURCE_BADGE[supplier.lead_time_source],
+                      )}>
+                        {leadTimeSourceLabel(supplier.lead_time_source)}
+                      </span>
                     </span>
                   )}
                 </div>
@@ -497,7 +510,7 @@ export default function SupplierObjectPage() {
               Procurement
             </Link>
             <Link
-              to="/eye?panel=suppliers"
+              to="/mind?panel=suppliers"
               className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
             >
               <Star className="h-4 w-4" />

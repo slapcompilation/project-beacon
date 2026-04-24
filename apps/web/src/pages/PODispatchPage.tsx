@@ -59,7 +59,7 @@ function PODocumentModal({ po, hotelName, supplierEmail, onClose }: PODocumentMo
   async function handleCopy() {
     await navigator.clipboard.writeText(emailText)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(() => { setCopied(false); }, 2000)
   }
 
   async function handleConfirmDispatch() {
@@ -166,7 +166,7 @@ function PODocumentModal({ po, hotelName, supplierEmail, onClose }: PODocumentMo
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
               {copied ? 'Copied' : 'Copy email text'}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5 text-xs">
+            <Button variant="outline" size="sm" onClick={() => { window.print(); }} className="gap-1.5 text-xs">
               <Printer className="w-3.5 h-3.5" />
               Print
             </Button>
@@ -214,7 +214,7 @@ function ETAConfirmRow({ po }: { po: POSummaryRow }) {
 
   if (!open) {
     return (
-      <Button size="sm" variant="outline" onClick={() => setOpen(true)} className="gap-1.5 text-xs h-7">
+      <Button size="sm" variant="outline" onClick={() => { setOpen(true); }} className="gap-1.5 text-xs h-7">
         <CalendarDays className="w-3 h-3" />
         Mark Confirmed
       </Button>
@@ -226,14 +226,14 @@ function ETAConfirmRow({ po }: { po: POSummaryRow }) {
       <Input
         type="date"
         value={eta}
-        onChange={e => setEta(e.target.value)}
+        onChange={e => { setEta(e.target.value); }}
         className="h-7 text-xs w-36"
       />
       <Button size="sm" onClick={handleSave} disabled={saving} className="h-7 text-xs gap-1">
         {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
         Save ETA
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => setOpen(false)} className="h-7 px-2">
+      <Button size="sm" variant="ghost" onClick={() => { setOpen(false); }} className="h-7 px-2">
         <X className="w-3 h-3" />
       </Button>
     </div>
@@ -272,14 +272,14 @@ function DraftCard({ po, currency, onOpen, onCancel }: POCardProps) {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onCancel(po)}
+            onClick={() => { onCancel(po); }}
             className="h-7 px-2 text-[10px] text-muted-foreground hover:text-destructive"
           >
             <Ban className="w-3 h-3" />
           </Button>
           <Button
             size="sm"
-            onClick={() => onOpen(po)}
+            onClick={() => { onOpen(po); }}
             className="h-7 text-xs gap-1.5 bg-primary/90 hover:bg-primary"
           >
             <Send className="w-3 h-3" />
@@ -327,7 +327,7 @@ function SentCard({ po, currency, onOpen, onCancel }: POCardProps) {
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onCancel(po)}
+            onClick={() => { onCancel(po); }}
             className="h-7 px-2 text-[10px] text-muted-foreground hover:text-destructive"
           >
             <Ban className="w-3 h-3" />
@@ -335,7 +335,7 @@ function SentCard({ po, currency, onOpen, onCancel }: POCardProps) {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onOpen(po)}
+            onClick={() => { onOpen(po); }}
             className="h-7 text-xs gap-1"
           >
             View PO
@@ -368,7 +368,7 @@ function ConfirmedCard({ po, currency }: { po: POSummaryRow; currency: string })
           {isOverdue && (
             <div className="text-[10px] text-red-400 flex items-center justify-end gap-1">
               <AlertTriangle className="w-2.5 h-2.5" />
-              {Math.abs(daysToETA!)}d overdue
+              {Math.abs(daysToETA)}d overdue
             </div>
           )}
           {isDueSoon && (
@@ -617,12 +617,12 @@ export default function PODispatchPage() {
         po={docPO}
         hotelName={hotelName}
         supplierEmail={docPO ? getSupplierEmail(docPO) : null}
-        onClose={() => setDocPO(null)}
+        onClose={() => { setDocPO(null); }}
       />
 
       {/* Cancel confirmation */}
       {cancelPO && (
-        <Dialog open={!!cancelPO} onOpenChange={() => setCancelPO(null)}>
+        <Dialog open={!!cancelPO} onOpenChange={() => { setCancelPO(null); }}>
           <DialogContent className="max-w-sm">
             <div className="space-y-4">
               <div>
@@ -632,7 +632,7 @@ export default function PODispatchPage() {
                 </div>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => setCancelPO(null)} className="text-xs">
+                <Button variant="outline" size="sm" onClick={() => { setCancelPO(null); }} className="text-xs">
                   Keep
                 </Button>
                 <Button

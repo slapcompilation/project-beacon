@@ -6,7 +6,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "type-check": "tsc --noEmit",
-    "lint": "echo 'reality-graph package — no lint needed'"
+    "lint": "echo 'reality-graph package — no lint needed'",
+    "eval:copilot": "tsx src/evals/copilot.eval.ts"
   },
   "dependencies": {
     "@beacon/types": "workspace:*"

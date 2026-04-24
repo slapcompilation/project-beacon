@@ -2,7 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
-import { fetchAccessibleHotels, updateHotelProfile, updateHotelConfig, type HotelProfileInput } from '../api'
+import {
+  fetchAccessibleHotels, updateHotelProfile, updateHotelConfig, updateAutonomousSettings,
+  type HotelProfileInput, type AutonomousSettingsInput,
+} from '../api'
 
 export function useHotels() {
   const hotelId = useAuthStore((s) => s.hotelId)
@@ -32,6 +35,20 @@ export function useUpdateHotel() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['hotels', hotelId] })
       toast.success('Hotel profile saved')
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useUpdateAutonomousSettings() {
+  const queryClient = useQueryClient()
+  const hotelId = useAuthStore((s) => s.hotelId)
+
+  return useMutation({
+    mutationFn: (input: AutonomousSettingsInput) => updateAutonomousSettings(hotelId ?? '', input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['hotels', hotelId] })
+      toast.success('Autonomous settings saved')
     },
     onError: (err: Error) => toast.error(err.message),
   })

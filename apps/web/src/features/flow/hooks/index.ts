@@ -10,7 +10,7 @@ export function useVariantTimeline(variantId: string | null, days = 90) {
 
   return useQuery({
     queryKey: ['variant-timeline', hotelId, variantId, days],
-    queryFn: () => fetchVariantTimeline(variantId!, days),
+    queryFn: () => fetchVariantTimeline(variantId ?? '', days),
     enabled: !!hotelId && !!variantId,
     staleTime: 30_000,
   })

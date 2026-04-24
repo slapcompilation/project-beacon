@@ -84,7 +84,7 @@ function ForecastCards({ rows, currency }: { rows: SpendForecastRow[]; currency:
           </p>
           <p className="text-[10px] text-muted-foreground mt-1">
             {row.basis_months > 0
-              ? `based on ${row.basis_months}-month avg · ${formatCurrency(row.basis_avg_monthly, currency)}/mo`
+              ? `based on ${String(row.basis_months)}-month avg · ${formatCurrency(row.basis_avg_monthly, currency)}/mo`
               : 'insufficient history'}
           </p>
         </div>
@@ -188,7 +188,7 @@ function SpendConcentrationTable({ rows, currency }: { rows: SpendConcentrationR
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                 <div
                   className="h-full rounded-full bg-primary/60"
-                  style={{ width: `${(row.total_spend / maxSpend) * 100}%` }}
+                  style={{ width: `${String((row.total_spend / maxSpend) * 100)}%` }}
                 />
               </div>
             </td>
@@ -319,7 +319,7 @@ function SupplierUrgencyRow({ row, currency }: { row: SupplierSynthesisRow; curr
         </div>
         {/* 100-pt score bar */}
         <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden mb-2">
-          <div className={cn('h-full rounded-full transition-all', tier.bar)} style={{ width: `${row.urgency_score}%` }} />
+          <div className={cn('h-full rounded-full transition-all', tier.bar)} style={{ width: `${String(row.urgency_score)}%` }} />
         </div>
         {/* Reason chips */}
         <div className="flex flex-wrap gap-1">
@@ -373,7 +373,7 @@ function SupplierUrgencyStrip({ rows, isLoading, currency }: { rows: SupplierSyn
             <ShieldAlert className="h-4 w-4" />
             <span>
               All active suppliers within acceptable thresholds based on 90-day data.
-              {rows.length > 0 && ` (${rows.length} supplier${rows.length > 1 ? 's' : ''} monitored)`}
+              {rows.length > 0 && ` (${String(rows.length)} supplier${rows.length > 1 ? 's' : ''} monitored)`}
             </span>
           </div>
         ) : (
@@ -401,8 +401,8 @@ function NegotiationBrief({
   varianceRows: PriceVarianceBySupplierRow[]
   currency: string
 }) {
-  const biggestDrift   = driftRows[0]
-  const topSupplier    = concentrationRows[0]
+  const biggestDrift   = driftRows.at(0)
+  const topSupplier    = concentrationRows.at(0)
   const topOvercharger = varianceRows.find((r) => (r.avg_variance_pct ?? 0) > 0)
 
   if (!biggestDrift && !topSupplier && !topOvercharger) return null

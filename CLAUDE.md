@@ -106,6 +106,9 @@ export type EdgeType =
   | 'reverts'         // StockLog → StockLog (compensating transaction)
   | 'similar_to'      // Variant → Variant (semantic similarity, pgvector)
   | 'benchmarks'      // Hotel → Hotel (Mind Layer)
+  // Network (multi-echelon)
+  | 'belongs_to_org'  // Hotel → Organization
+  | 'transfers'       // StockLog → StockLog (inter-property lateral movement)
 ```
 
 ## The Four Permanent Layers (The Intentional Architecture)
@@ -120,6 +123,29 @@ Every new feature must be placed in exactly one of these layers:
 | **Mind Layer** | Strategy & memory (chain benchmarking, procurement leverage, invoicing intelligence) |
 
 **Rule:** Before writing any code, first decide which layer the feature belongs to and document it in a comment at the top of the file or function.
+
+## Network, Not Site — Multi-Echelon Architecture (Non-Negotiable)
+
+Hospitality clients are rarely single-property. Chains, management companies, and ownership groups operate portfolios — and the software must treat the network as the primitive, not an add-on.
+
+**Ontology tiers:**
+
+| Tier | Examples | Scope |
+|---|---|---|
+| **Organization** | Marriott, Accor, a 12-property boutique group | Portfolio-level contracts, benchmarks, chain-wide agents |
+| **Hotel** | One physical property | Day-to-day operations, local stock, property GM |
+| **Zone** | Housekeeping cart, F&B outlet, AR room | Location-resolved counts, team attribution |
+
+**Rules:**
+
+- Every node has an `organization_id` in addition to `hotel_id`. RLS is scope-aware: `auth_org_id()` alongside `auth_hotel_id()`.
+- Every query, RPC, and agent declares its scope (`'hotel' | 'organization'`). Scope is checked at the boundary — never assumed.
+- **Inter-property Transfer is a first-class action**, not a workaround. Before a restock request goes external, the system checks sister properties for available stock. `TRANSFER_STOCK` is a `BeaconAction` with the same immutable audit trail as any other mutation.
+- Contracts, suppliers, and agents can be org-scoped (one master contract covering all properties) or hotel-scoped (local arrangement). Resolution order: hotel-scoped overrides org-scoped.
+- Role hierarchy mirrors the echelon: `org_director > regional_manager > hotel_admin > hotel_manager > team_member`. Higher roles can read down; writes are always scope-gated.
+- **Benchmarking is a property of the network, not a feature.** When an RPC can compare Hotel X against its sister properties, it does — expressed as a default context column, not a separate report.
+
+This is borrowed directly from Gallatin's multi-echelon military logistics model — "consumption projections across multiple echelons" and "lateral resupply" translate one-to-one to hospitality portfolios.
 
 ## The Action System (Non-Negotiable)
 
@@ -137,47 +163,100 @@ export type BeaconAction =
   | { type: 'WRITE_OFF'; variantId: string; quantity: number; wasteReason: string }
   | { type: 'APPROVE_RESTOCK'; requestId: string }
   | { type: 'REJECT_RESTOCK'; requestId: string; reason: string }
-  | { type: 'REVERT_ACTION'; originalId: string; revertReason: string };
+  | { type: 'REVERT_ACTION'; originalId: string; revertReason: string }
+  // Network (multi-echelon — lateral before external)
+  | { type: 'TRANSFER_STOCK'; fromHotelId: string; toHotelId: string; variantId: string; quantity: number; reason: string }
+  | { type: 'APPROVE_TRANSFER'; transferId: string };
 ```
 
 **Immutable Flow:** StockLogs are never edited or deleted — corrections are always compensating transactions (`is_revert: true`, `revert_of: <original_id>`). The `triggered_by` field must always be set: `'user'`, `'ai_proposal_accepted'`, `'automation_threshold'`, or `'revert'`.
 
-## The AI & Intelligence Rules
+## The Intelligence Stack — AIP-Style Agent Layer (Non-Negotiable)
 
-### LLM functions are graph tools, not UI features
+Beacon's AI is not a chatbot bolted onto an inventory app. It is a Palantir AIP–style agent layer that operates on the Reality Graph and proposes typed actions. Three strict tiers:
 
-Eye and Mind Layer AI functions operate on node sets from the Reality Graph. They are registered in `packages/reality-graph` as named, typed tools. They are never implemented as one-off API calls inside components.
+### Tier 1 — Deterministic Tools
+SQL RPCs, math functions, lookups. Always correct, always auditable. LLMs call these; LLMs never do arithmetic themselves.
+
+Examples: `get_smart_proposals()`, `compute_optimal_par()`, `get_contract_price()`, `learn_supplier_lead_times()`.
+
+### Tier 2 — LLM Tools
+Reason over typed node sets; produce structured output with `reasoning`, `confidence_basis`, and `nodes_considered`. Never free-form strings, never direct database writes. Arithmetic is delegated to Tier 1.
 
 Every LLM tool must:
-1. Accept a typed node set as input (not raw strings)
-2. Return a structured result with `reasoning`, `confidence_basis`, and `proposed_action`
-3. Use a separate deterministic tool for any arithmetic (LLMs cannot do math reliably)
-4. Be callable by both human-triggered and automation-triggered flows
+1. Accept a typed node set as input (not raw strings).
+2. Return a structured result — schema-validated at both ends.
+3. Delegate arithmetic to Tier 1 tools.
+4. Be callable by humans and automations with identical signatures.
 
-### AI transparency is a product requirement
+### Tier 3 — Agents
+Scoped workflows that orchestrate Tier 1 + Tier 2 tools to produce `BeaconAction` **proposals**. Agents never execute actions directly — they drop proposals into an operator's inbox or into the automated-approval pipeline.
 
-Every AI-generated decision shown to an operator must display:
-- Which graph nodes were considered
-- What the confidence basis is (e.g., *"based on 30-day avg, 94% restock adherence"*)
-- The chain-of-thought trace (which tools were called, what they returned)
+Every agent declares:
+- **Purpose** — one sentence.
+- **Scope** — `'hotel' | 'organization'`, inherits caller's role.
+- **Cadence** — how often it runs (see Cycle-First Operation below).
+- **Tool set** — the bounded list of Tier 1 + Tier 2 tools it may invoke.
+- **Approval boundary** — who can approve its proposals (operator, threshold-based auto-approve, or both).
+- **Eval suite** — `*.eval.ts` in `packages/reality-graph/src/evals/` with ≥10 historical cases, documented pass rate.
 
-This is not a debug panel. It is the trust layer of the product. Never ship an AI feature without it.
+### The Agent-Action Contract
 
-### Eval before ship
+> **Every LLM-proposed action must be a `BeaconAction`.**
 
-Before any Eye or Mind Layer AI feature is merged, it requires a `*.eval.ts` file in `packages/reality-graph/src/evals/` with at least 10 historical test cases and a documented pass rate. LLM functions are non-deterministic — without evals you cannot know if a model change broke your proposals.
+The agent's "output" is not text — it is a typed, validated, auditable action proposal that flows through the same action registry as human-triggered mutations. The operator approves; the registry executes; the graph records. This means:
 
-### AI agents inherit human security scope
+- Agents can never bypass validation.
+- Agent actions are visible in the audit trail with `triggered_by: 'ai_proposal_accepted'`.
+- Model changes cannot silently alter system behavior — every proposal is typed, and type changes require a migration.
 
-An AI agent triggered by a manager at Hotel X can only read and write nodes scoped to Hotel X. Never grant agents broader access than the human user who triggered them.
+### AI Transparency Is a Product Requirement
+
+Every AI-shown decision must surface: which graph nodes were considered, what the confidence basis is (e.g., *"based on 30-day avg, 94% restock adherence"*), which tools were called, what each returned. This is not a debug panel — it is the trust layer of the product.
+
+### AI Agents Inherit Human Security Scope
+
+An agent triggered by a hotel manager can only read/write nodes scoped to their hotel. An agent triggered by an org director operates at org scope. Never grant agents broader access than the human who invoked them. Scope = echelon, always.
+
+## Cycle-First Operation (Non-Negotiable)
+
+Beacon is not a dashboard where operators go to *check*. It is a cycle where agents *pre-populate decisions* and operators *approve / adjust*. Gallatin's **Input → Analyze → Act → Repeat** is the canonical loop.
+
+### Every Agent Has a Declared Cadence
+
+| Cadence | Example agent | Example surface |
+|---|---|---|
+| **On-event** | `detect_consumption_spike` (trigger on stock_log insert) | Realtime notification |
+| **Hourly** | `run_intelligence_cycle` | Morning briefing accumulates overnight |
+| **Daily** | `auto_create_alerts`, `detect_expiring_contracts` | Briefing panel |
+| **Weekly** | `learn_supplier_lead_times`, `apply_optimal_par` | Monday morning digest |
+| **Monthly** | Chain benchmarking, contract-renewal sweep | Portfolio review |
+
+### Surfaces Are Organized by Cycle, Not by Table
+
+- **Briefing** = "what's in this operator's current cycle" (unapproved proposals, unread alerts, pending reviews).
+- **SmartProposalsPage** is not "a page of proposals" — it is the **weekly restock agent's inbox**.
+- **AlertsPage** is not "a page of alerts" — it is the **continuous anomaly-detection agent's inbox**.
+- **ContractsPage** is not "a CRUD table" — it is the **contract renewal agent's cycle dashboard**.
+
+### Decision Windows Are First-Class
+Every surface that shows an agent proposal must show: when the agent ran, how long operators have to respond, what happens if they don't (auto-approve / escalate / expire), and what the next cycle looks like.
+
+### Empty States Are Intelligence Opportunities
+"All clear" is never enough. Every empty state explains: which nodes were scanned, against what thresholds, when the next cycle runs, and what the most recent cycle's outcome was.
 
 ## Key Architectural Decisions
 
 - **Ontology-first design:** The Reality Graph (`packages/reality-graph`) is the single source of truth.
+- **Network-as-primitive:** Organization → Hotel → Zone. Every query is scope-aware from day one.
 - **Logic on nodes:** Computed properties and business rules live in `packages/reality-graph`, not in hooks or components.
 - **Typed actions:** Every mutation is a named `BeaconAction` flowing through the action registry.
-- **Progressive disclosure:** Show only what the current role + layer requires.
-- **Role-aware home screen:** Opens in the correct layer based on user role.
+- **Agents are workflows, not chatbots:** declared purpose, scope, cadence, tool set, approval boundary, eval suite.
+- **Proposals, not executions:** LLM agents produce `BeaconAction` proposals; the action registry executes.
+- **Lateral before external:** inter-property `TRANSFER_STOCK` is checked before any external procurement action.
+- **Cycle-first UX:** surfaces are organized by agent cycle and decision window, not by table.
+- **Progressive disclosure:** Show only what the current role + layer + echelon requires.
+- **Role-aware home screen:** Opens in the correct layer based on user role and scope.
 - **Contextual Command Bar:** Bottom navigation that changes by layer/role.
 - **Immutable Flow:** StockLogs are never edited or deleted — corrections are compensating transactions.
 - **State split:** Zustand only for UI/session state. All server data lives in TanStack Query + graph cache. Never duplicate server state in Zustand.
@@ -207,10 +286,13 @@ Before writing any code, answer these questions:
 
 1. Which of the four layers does this belong to?
 2. How does it extend or use the Reality Graph?
-3. Does it respect progressive disclosure and role awareness?
-4. If it's a mutation — is it a named `BeaconAction` with submission criteria and side effects?
-5. If it's a computed value — is it defined as a derived property on the node type, not in a hook?
-6. If it's an AI feature — does it have a `*.eval.ts` file and a transparency trace panel?
+3. Which echelon scope does this operate at — hotel, organization, or both? How is scope enforced at the RLS boundary?
+4. Does it respect progressive disclosure and role awareness?
+5. If it's a mutation — is it a named `BeaconAction` with submission criteria and side effects?
+6. If it's a computed value — is it defined as a derived property on the node type, not in a hook?
+7. If it's an agent — what's its declared purpose, scope, cadence, tool set, approval boundary, and eval suite?
+8. If it's an AI-proposed action — is the proposal a typed `BeaconAction` flowing through the action registry, not free text?
+9. Is there a cycle this belongs to, or does it create a new cadence? Document the next-run expectation.
 
 Document the answers in a comment at the top of the relevant file.
 
@@ -228,9 +310,15 @@ Copy `.env.example` to `.env` and fill in values. Vite exposes only `VITE_*` pre
 
 ---
 
-## Design & Product Philosophy — Palantir Standard
+## Design & Product Philosophy — Foundry + AIP + Gallatin
 
-This is not a hotel inventory app. It is an **operating system for hotel reality**. Every feature must be built to Palantir Foundry/Gotham standards — operator-grade, ontology-first, intelligence-everywhere.
+This is not a hotel inventory app. It is an **operating system for hotel reality**. Three influences define the design:
+
+- **Palantir Foundry** — ontology-first data model. Everything is a typed node or edge in the Reality Graph. No standalone CRUD.
+- **Palantir AIP** — agent-first intelligence layer. LLMs produce typed action proposals, not free text. Every agent declares purpose, scope, cadence, tool set, approval boundary, and eval suite.
+- **Gallatin** — multi-echelon logistics primacy. The network (Organization → Hotel → Zone) is the primitive. Lateral resupply between sister properties comes before external procurement. The Input → Analyze → Act → Repeat cycle is the UX mental model.
+
+Every feature must be built to these standards — operator-grade, ontology-first, agent-driven, multi-echelon, intelligence-everywhere.
 
 ### The 10 Non-Negotiable Principles
 

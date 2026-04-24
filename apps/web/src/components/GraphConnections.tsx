@@ -44,6 +44,7 @@ const EDGE_LABELS: Record<EdgeType, string> = {
   belongs_to_hotel:  'Hotel',
   created_by:        'Created by',
   belongs_to_session: 'Session',
+  similar_to:        'Similar to',
 }
 
 // Edge types that are structural/audit noise, collapsed by default
@@ -62,6 +63,7 @@ const EDGE_COLOR: Partial<Record<EdgeType, string>> = {
   linked_to_po:     'border-cyan-300 bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400',
   invoiced_by:      'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
   influenced_by:    'border-slate-300 bg-slate-50 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400',
+  similar_to:       'border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-400',
 }
 
 const DEFAULT_EDGE_COLOR = 'border-muted bg-muted/40 text-muted-foreground'
@@ -99,7 +101,7 @@ interface ChipProps {
 
 function EdgeChip({ nodeId, nodeType, edgeType, createdAt, role }: ChipProps) {
   const path = NODE_ROUTES[nodeType]
-  const nodeLabel = NODE_LABELS[nodeType] ?? nodeType
+  const nodeLabel = NODE_LABELS[nodeType]
   const colorCls = EDGE_COLOR[edgeType] ?? DEFAULT_EDGE_COLOR
   const shortId = nodeId.slice(0, 8)
   const timeAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true })
@@ -133,7 +135,7 @@ interface GroupProps {
 }
 
 function EdgeGroup({ edgeType, edges = [], nodeId }: GroupProps) {
-  const label = EDGE_LABELS[edgeType] ?? edgeType
+  const label = EDGE_LABELS[edgeType]
 
   return (
     <div className="flex items-start gap-2">
@@ -196,7 +198,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
   const grouped = signalEdges.reduce<Partial<Record<EdgeType, typeof edges>>>((acc, edge) => {
     const key = edge.edge_type
     if (!acc[key]) acc[key] = []
-    acc[key]!.push(edge)
+    acc[key].push(edge)
     return acc
   }, {})
 
@@ -226,7 +228,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
         <div className="pt-1 border-t border-dashed">
           <button
             type="button"
-            onClick={() => setAuditOpen((v) => !v)}
+            onClick={() => { setAuditOpen((v) => !v); }}
             className="flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
           >
             {auditOpen
@@ -238,8 +240,9 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
             <div className="mt-1.5 space-y-1.5">
               {(Object.keys(
                 auditEdges.reduce<Partial<Record<EdgeType, typeof edges>>>((acc, e) => {
-                  if (!acc[e.edge_type]) acc[e.edge_type] = []
-                  acc[e.edge_type]!.push(e)
+                  const existing = acc[e.edge_type]
+                  if (!existing) { acc[e.edge_type] = [e]; return acc }
+                  existing.push(e)
                   return acc
                 }, {})
               ) as EdgeType[]).map((et) => (

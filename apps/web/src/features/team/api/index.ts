@@ -9,10 +9,11 @@ export interface TeamMember {
   created_at: string
 }
 
-export async function fetchTeamMembers(): Promise<TeamMember[]> {
+export async function fetchTeamMembers(hotelId: string): Promise<TeamMember[]> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('*')
+    .select('id, hotel_id, email, role, created_at')
+    .eq('hotel_id', hotelId)
     .order('created_at')
 
   if (error) throw new Error(error.message)

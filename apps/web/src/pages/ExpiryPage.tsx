@@ -261,8 +261,8 @@ function SupplierWasteTable({
               rate >= 10 ? 'text-orange-700 dark:text-orange-400' :
               'text-muted-foreground'
             return (
-              <TableRow key={r.supplier_id ?? r.supplier_name}>
-                <TableCell className="font-medium text-sm">{r.supplier_name ?? '—'}</TableCell>
+              <TableRow key={r.supplier_id}>
+                <TableCell className="font-medium text-sm">{r.supplier_name}</TableCell>
                 <TableCell className="text-right tabular-nums">{r.batches_received}</TableCell>
                 <TableCell className="text-right tabular-nums">{r.batches_wasted}</TableCell>
                 <TableCell className={cn('text-right tabular-nums font-semibold', rateCls)}>
@@ -442,7 +442,7 @@ export default function ExpiryPage() {
       .filter((v) => v.expiry_date)
       .map((v) => ({
         ...v,
-        days: daysUntil(v.expiry_date!),
+        days: daysUntil(v.expiry_date ?? ''),
         costAtRisk: v.current_stock * v.cost,
       }))
       .sort((a, b) => a.days - b.days),   // most urgent first
@@ -457,7 +457,8 @@ export default function ExpiryPage() {
     for (const v of enriched) {
       const key = v.products?.name ?? v.name
       if (!map.has(key)) map.set(key, [])
-      map.get(key)!.push(v)
+      const existing = map.get(key)
+      if (existing) existing.push(v)
     }
     return Array.from(map.entries())
       .map(([productName, pvariants]) => ({
@@ -759,7 +760,7 @@ export default function ExpiryPage() {
                           : <span className="text-muted-foreground font-normal">—</span>}
                       </TableCell>
                       <TableCell className="text-right text-sm text-muted-foreground tabular-nums">
-                        {fmtDate(v.expiry_date!)}
+                        {fmtDate(v.expiry_date)}
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge

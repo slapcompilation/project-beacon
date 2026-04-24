@@ -24,7 +24,7 @@ export function useActivityFeed(limit = 100) {
     queryKey: monitorKeys.activity(hotelId ?? '', limit),
     queryFn:  () => fetchRecentActivity(limit),
     enabled:  !!hotelId,
-    staleTime: 0,
+    staleTime: 30_000,  // 30s — realtime invalidation handles live updates
   })
 
   // Detect newly arrived events when data changes

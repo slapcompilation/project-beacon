@@ -274,7 +274,7 @@ export default function FinancePage() {
           <p className="mt-0.5 text-sm text-muted-foreground">
             {isLoading
               ? 'Loading movements…'
-              : `${movements.length} stock events · ${dr.dateFrom} → ${dr.dateTo}`}
+              : `${String(movements.length)} stock events · ${dr.dateFrom} → ${dr.dateTo}`}
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -302,7 +302,7 @@ export default function FinancePage() {
               <KpiTile
                 label="Cost of Goods Consumed"
                 value={formatCurrency(cogsCost, currency)}
-                sub={`${consumed.length} consumption events`}
+                sub={`${String(consumed.length)} consumption events`}
                 sparkData={dailyCogs}
                 sparkColor="#3b82f6"
               />
@@ -317,7 +317,7 @@ export default function FinancePage() {
               <KpiTile
                 label="Restock Spend"
                 value={formatCurrency(restockCost, currency)}
-                sub={`${restocked.length} restock events`}
+                sub={`${String(restocked.length)} restock events`}
                 sparkColor="#10b981"
               />
               <KpiTile
@@ -370,7 +370,7 @@ export default function FinancePage() {
                         <div className="h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
                             className="h-full rounded-full bg-red-400"
-                            style={{ width: `${wasteCost > 0 ? (cost / wasteCost) * 100 : 0}%` }}
+                            style={{ width: `${String(wasteCost > 0 ? (cost / wasteCost) * 100 : 0)}%` }}
                           />
                         </div>
                       </div>
@@ -402,7 +402,7 @@ export default function FinancePage() {
                           <div
                             className="h-full rounded-full transition-all"
                             style={{
-                              width: `${totalNetCost > 0 ? (cost / totalNetCost) * 100 : 0}%`,
+                              width: `${String(totalNetCost > 0 ? (cost / totalNetCost) * 100 : 0)}%`,
                               backgroundColor: catColors[i % catColors.length],
                             }}
                           />
@@ -487,7 +487,7 @@ export default function FinancePage() {
                               <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden w-20 ml-auto">
                                 <div
                                   className="h-full rounded-full bg-blue-400"
-                                  style={{ width: `${totalNetCost > 0 ? (d.total / (filteredDrivers[0]?.total ?? 1)) * 100 : 0}%` }}
+                                  style={{ width: `${String(totalNetCost > 0 ? (d.total / (filteredDrivers[0]?.total ?? 1)) * 100 : 0)}%` }}
                                 />
                               </div>
                             </td>

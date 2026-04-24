@@ -19,7 +19,8 @@ import { useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Brain, Loader2, AlertTriangle, TrendingDown, Truck,
-  Radar, ChevronRight, Zap, CheckCircle2, Send, RotateCcw,
+  Radar, ChevronRight, Zap, CheckCircle2, Send, RotateCcw, GitBranch,
+  ThumbsUp, ThumbsDown, MessageSquare, Cpu,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -27,11 +28,18 @@ import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useActiveIncidents, useWasteRadar, useSupplierReliability } from '@/features/eye/hooks'
 import { useConsumptionForecast, computePredictiveRestocks } from '@/features/eye/hooks'
+import { CopilotChatView as ExtractedChatView } from '@/features/eye/components/CopilotChatView'
 import { useProducts } from '@/features/inventory/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
 import { useRestockRequests } from '@/features/restock/hooks'
+import { useHotelEdges } from '@/hooks/useHotelEdges'
+import { traverseGraph } from '@beacon/reality-graph'
+import { supabase } from '@/lib/supabase/client'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
 import type { ActiveIncidentRow, WasteRadarRow, SupplierReliabilityRow } from '@beacon/types'
 import type { PredictiveRestockRow } from '@/features/eye/hooks'
+import type { EdgeRecord } from '@beacon/reality-graph'
 
 // ─── Tool definitions ─────────────────────────────────────────────────────────
 
@@ -96,16 +104,16 @@ function synthesizeIncidents(rows: ActiveIncidentRow[]): string {
   const multiDomain = rows.filter((r) => r.correlation_count >= 2)
   const parts: string[] = []
   if (critical.length > 0) {
-    parts.push(`${critical.length} critical incident${critical.length > 1 ? 's' : ''} require immediate attention.`)
+    parts.push(`${String(critical.length)} critical incident${critical.length > 1 ? 's' : ''} require immediate attention.`)
     parts.push(`Most urgent: ${critical[0].variant_label} — ${critical[0].primary_signal}`)
   } else if (elevated.length > 0) {
-    parts.push(`${elevated.length} elevated incident${elevated.length > 1 ? 's' : ''} need monitoring.`)
+    parts.push(`${String(elevated.length)} elevated incident${elevated.length > 1 ? 's' : ''} need monitoring.`)
   }
   if (multiDomain.length > 0) {
-    parts.push(`${multiDomain.length} incident${multiDomain.length > 1 ? 's' : ''} span multiple domains (waste + supply or team).`)
+    parts.push(`${String(multiDomain.length)} incident${multiDomain.length > 1 ? 's' : ''} span multiple domains (waste + supply or team).`)
   }
   if (parts.length === 0) {
-    parts.push(`${rows.length} watch-level incident${rows.length > 1 ? 's' : ''} detected — no immediate action required.`)
+    parts.push(`${String(rows.length)} watch-level incident${rows.length > 1 ? 's' : ''} detected — no immediate action required.`)
   }
   return parts.join(' ')
 }
@@ -116,13 +124,13 @@ function synthesizeRestock(rows: PredictiveRestockRow[]): string {
   const warning  = rows.filter((r) => r.urgency === 'warning')
   const parts: string[] = []
   if (critical.length > 0) {
-    parts.push(`${critical.length} item${critical.length > 1 ? 's' : ''} must be ordered today — order window is closing.`)
+    parts.push(`${String(critical.length)} item${critical.length > 1 ? 's' : ''} must be ordered today — order window is closing.`)
     const top = critical[0]
     const label = top.variantName !== 'Standard' ? `${top.productName} — ${top.variantName}` : top.productName
-    parts.push(`Most critical: ${label} · ${top.daysUntilZero}d left · stockout ${format(top.stockoutDate, 'MMM d')}.`)
+    parts.push(`Most critical: ${label} · ${String(top.daysUntilZero)}d left · stockout ${format(top.stockoutDate, 'MMM d')}.`)
   }
   if (warning.length > 0) {
-    parts.push(`${warning.length} item${warning.length > 1 ? 's' : ''} should be ordered within 1–3 days.`)
+    parts.push(`${String(warning.length)} item${warning.length > 1 ? 's' : ''} should be ordered within 1–3 days.`)
   }
   return parts.join(' ')
 }
@@ -134,13 +142,13 @@ function synthesizeWaste(rows: WasteRadarRow[], currency: string): string {
   const totalCost = rows.reduce((s, r) => s + r.waste_cost_7d, 0)
   const parts: string[] = []
   if (critical.length > 0) {
-    parts.push(`${critical.length} critical anomal${critical.length > 1 ? 'ies' : 'y'} (score ≥8) detected.`)
-    parts.push(`Highest: ${rows[0].variant_label} · score ${rows[0].anomaly_score}/10 · +${rows[0].pct_above_baseline}% above baseline.`)
+    parts.push(`${String(critical.length)} critical anomal${critical.length > 1 ? 'ies' : 'y'} (score ≥8) detected.`)
+    parts.push(`Highest: ${rows[0].variant_label} · score ${String(rows[0].anomaly_score)}/10 · +${String(rows[0].pct_above_baseline)}% above baseline.`)
   } else {
-    parts.push(`${rows.length} anomal${rows.length > 1 ? 'ies' : 'y'} above 50% baseline threshold.`)
+    parts.push(`${String(rows.length)} anomal${rows.length > 1 ? 'ies' : 'y'} above 50% baseline threshold.`)
   }
   if (theft.length > 0) {
-    parts.push(`${theft.length} probable theft signal${theft.length > 1 ? 's' : ''} (low occupancy + theft category).`)
+    parts.push(`${String(theft.length)} probable theft signal${theft.length > 1 ? 's' : ''} (low occupancy + theft category).`)
   }
   if (totalCost > 0) {
     parts.push(`Total cost at risk this week: ${formatCurrency(totalCost, currency)}.`)
@@ -156,15 +164,87 @@ function synthesizeSuppliers(rows: SupplierReliabilityRow[]): string {
   const avgOT    = rows.reduce((s, r) => s + r.on_time_pct, 0) / rows.length
   const parts: string[] = []
   if (critical.length > 0) {
-    parts.push(`${critical.length} supplier${critical.length > 1 ? 's' : ''} are critically unreliable — renegotiate contracts.`)
-    parts.push(`Worst: ${rows[0].supplier_name} · score ${rows[0].reliability_score}/10 · ${rows[0].on_time_pct.toFixed(0)}% on-time.`)
+    parts.push(`${String(critical.length)} supplier${critical.length > 1 ? 's' : ''} are critically unreliable — renegotiate contracts.`)
+    parts.push(`Worst: ${rows[0].supplier_name} · score ${String(rows[0].reliability_score)}/10 · ${rows[0].on_time_pct.toFixed(0)}% on-time.`)
   } else if (high.length > 0) {
-    parts.push(`${high.length} supplier${high.length > 1 ? 's' : ''} are high risk.`)
+    parts.push(`${String(high.length)} supplier${high.length > 1 ? 's' : ''} are high risk.`)
   } else {
-    parts.push(`Supplier fleet looks healthy. ${reliable.length} reliable supplier${reliable.length > 1 ? 's' : ''}.`)
+    parts.push(`Supplier fleet looks healthy. ${String(reliable.length)} reliable supplier${reliable.length > 1 ? 's' : ''}.`)
   }
   parts.push(`Fleet average on-time rate: ${avgOT.toFixed(1)}%.`)
   return parts.join(' ')
+}
+
+// ─── Graph traversal helpers ──────────────────────────────────────────────────
+//
+// These run synchronously against the pre-fetched hotel edge corpus.
+// Each helper answers: "what else in the graph is connected to this node?"
+
+interface GraphInsight {
+  /** Human-readable cross-domain finding, injected into synthesis */
+  sentence: string
+  /** Optional direct nav chip to the implicated node */
+  nav?: { label: string; path: string }
+}
+
+/**
+ * For a variant node, follow: variant →restocks→ restock_request →linked_to_po→
+ * purchase_order →sourced_from→ supplier, then cross-reference supplier
+ * reliability to surface a supplier-risk insight.
+ */
+function supplierInsightForVariant(
+  variantId: string,
+  variantLabel: string,
+  hotelEdges: EdgeRecord[],
+  suppRows: SupplierReliabilityRow[],
+): GraphInsight | null {
+  const nodes = traverseGraph(hotelEdges, variantId, 'variant', {
+    maxDepth: 3,
+    edgeFilter: ['restocks', 'linked_to_po', 'sourced_from'],
+    direction: 'out',
+  })
+
+  const supplierNodes = nodes.filter((n) => n.nodeType === 'supplier')
+  if (supplierNodes.length === 0) return null
+
+  // Cross-reference with reliability scores
+  for (const sn of supplierNodes) {
+    const row = suppRows.find((r) => r.supplier_id === sn.nodeId)
+    if (!row) continue
+    if (row.risk_tier === 'critical' || row.risk_tier === 'high') {
+      return {
+        sentence: `Graph trace: ${variantLabel} is sourced via ${row.supplier_name} (${row.risk_tier} reliability, ${row.on_time_pct.toFixed(0)}% on-time) — supply chain risk compounds this incident.`,
+        nav: { label: `${row.supplier_name} →`, path: `/supplier/${row.supplier_id ?? ''}` },
+      }
+    }
+  }
+  return null
+}
+
+/**
+ * For a variant, check if there's already an open restock_request linked to a PO.
+ * Returns the count of linked PO nodes found via traversal.
+ */
+function linkedPOCount(variantId: string, hotelEdges: EdgeRecord[]): number {
+  const nodes = traverseGraph(hotelEdges, variantId, 'variant', {
+    maxDepth: 2,
+    edgeFilter: ['restocks', 'linked_to_po'],
+    direction: 'out',
+  })
+  return nodes.filter((n) => n.nodeType === 'purchase_order').length
+}
+
+/**
+ * For a supplier node, count how many variants depend on it via reverse
+ * sourced_from traversal. A high count = high blast radius if supplier fails.
+ */
+function variantDependencyCount(supplierId: string, hotelEdges: EdgeRecord[]): number {
+  const nodes = traverseGraph(hotelEdges, supplierId, 'supplier', {
+    maxDepth: 3,
+    edgeFilter: ['sourced_from', 'linked_to_po', 'restocks'],
+    direction: 'in',
+  })
+  return nodes.filter((n) => n.nodeType === 'variant').length
 }
 
 // ─── Trace step component ─────────────────────────────────────────────────────
@@ -172,7 +252,7 @@ function synthesizeSuppliers(rows: SupplierReliabilityRow[]): string {
 type TraceStep =
   | { type: 'pending';  tool: ToolDef }
   | { type: 'running';  tool: ToolDef }
-  | { type: 'done';     tool: ToolDef; resultLine: string }
+  | { type: 'done';     tool: ToolDef; resultLine: string; graphHops?: number }
 
 function TraceStepRow({ step }: { step: TraceStep }) {
   const Icon = step.tool.icon
@@ -206,6 +286,12 @@ function TraceStepRow({ step }: { step: TraceStep }) {
         )}>
           {step.type === 'done' ? step.resultLine : step.tool.description}
         </div>
+        {step.type === 'done' && step.graphHops !== undefined && step.graphHops > 0 && (
+          <div className="flex items-center gap-1 text-[10px] text-violet-500 dark:text-violet-400 mt-0.5">
+            <GitBranch className="w-2.5 h-2.5" />
+            {step.graphHops} graph hop{step.graphHops !== 1 ? 's' : ''} traversed
+          </div>
+        )}
       </div>
     </div>
   )
@@ -221,7 +307,17 @@ const PRESETS = [
   { label: 'Active incidents',       query: 'what are the active incidents and alerts' },
 ]
 
+// ─── Chat mode (LLM tool-calling conversation) ───────────────────────────────
+
+// CHAT_PRESETS, CopilotChatView, and ChatBubble extracted to
+// @/features/eye/components/CopilotChatView.tsx
+
+
 // ─── Main page ────────────────────────────────────────────────────────────────
+
+type CopilotMode = 'quick' | 'chat'
+
+type FeedbackState = 'none' | 'positive' | 'negative' | 'submitted'
 
 type CopilotState =
   | { phase: 'idle' }
@@ -234,8 +330,14 @@ export default function EyeCopilotPage() {
   const inputRef    = useRef<HTMLInputElement>(null)
   const bottomRef   = useRef<HTMLDivElement>(null)
 
-  const [input, setInput]     = useState('')
-  const [state, setState]     = useState<CopilotState>({ phase: 'idle' })
+  const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? null)
+
+  const [mode, setMode]             = useState<CopilotMode>('chat')
+  const [input, setInput]           = useState('')
+  const [state, setState]           = useState<CopilotState>({ phase: 'idle' })
+  const [feedback, setFeedback]     = useState<FeedbackState>('none')
+  const [correction, setCorrection] = useState('')
 
   // Pre-fetch all Eye Layer data — copilot routes against cached results
   const { data: incidents  = [] } = useActiveIncidents(7)
@@ -245,6 +347,8 @@ export default function EyeCopilotPage() {
   const { data: products   = [] } = useProducts()
   const { data: suppliers  = [] } = useSuppliers()
   const { data: requests   = [] } = useRestockRequests()
+  // Hotel-wide operational edge corpus — used for multi-hop graph traversal
+  const { data: hotelEdges = [] } = useHotelEdges()
 
   const suppliersMap = useMemo(
     () => new Map(suppliers.map((s) => [s.id, s])),
@@ -271,6 +375,10 @@ export default function EyeCopilotPage() {
     if (!query.trim()) return
     const tools = routeQuery(query)
 
+    // Reset feedback state for new query
+    setFeedback('none')
+    setCorrection('')
+
     // Build initial pending steps
     const initialSteps: TraceStep[] = tools.map((t) => ({ type: 'pending', tool: t }))
     setState({ phase: 'running', query, steps: initialSteps })
@@ -286,35 +394,71 @@ export default function EyeCopilotPage() {
       // Simulate async tool execution delay
       await new Promise((r) => setTimeout(r, 600 + Math.random() * 400))
 
-      // Compute result line from pre-fetched data
+      // Compute result line from pre-fetched data + graph traversal
       let resultLine = ''
+      let graphHops  = 0
       const tool = tools[i]
+
       if (tool.id === 'incidents') {
         const c = incidents.filter((r) => r.incident_severity === 'critical').length
         const e = incidents.filter((r) => r.incident_severity === 'elevated').length
+        // Graph: count how many critical incidents trace back to a known supplier
+        const supplierLinked = incidents
+          .filter((r) => r.incident_severity === 'critical')
+          .filter((r) => {
+            const nodes = traverseGraph(hotelEdges, r.variant_id, 'variant', {
+              maxDepth: 3, edgeFilter: ['restocks', 'linked_to_po', 'sourced_from'], direction: 'out',
+            })
+            graphHops += nodes.length
+            return nodes.some((n) => n.nodeType === 'supplier')
+          }).length
         resultLine = incidents.length === 0
           ? '→ 0 incidents · all clear'
-          : `→ ${incidents.length} incidents · ${c} critical · ${e} elevated`
+          : `→ ${String(incidents.length)} incidents · ${String(c)} critical · ${String(e)} elevated${supplierLinked > 0 ? ` · ${String(supplierLinked)} supplier-linked` : ''}`
       } else if (tool.id === 'restock') {
         const c = restockRows.filter((r) => r.urgency === 'critical').length
         const w = restockRows.filter((r) => r.urgency === 'warning').length
+        // Graph: count critical items already covered by an open PO
+        const alreadyOrdered = restockRows
+          .filter((r) => r.urgency === 'critical')
+          .filter((r) => {
+            const count = linkedPOCount(r.variantId, hotelEdges)
+            graphHops += count
+            return count > 0
+          }).length
         resultLine = restockRows.length === 0
           ? '→ 0 items · no orders needed'
-          : `→ ${restockRows.length} items · ${c} critical · ${w} warning`
+          : `→ ${String(restockRows.length)} items · ${String(c)} critical · ${String(w)} warning${alreadyOrdered > 0 ? ` · ${String(alreadyOrdered)} already on PO` : ''}`
       } else if (tool.id === 'waste') {
         const c = wasteRows.filter((r) => r.anomaly_score >= 8).length
+        // Graph: check top anomaly for supplier linkage
+        const top = wasteRows.at(0)
+        if (top) {
+          const nodes = traverseGraph(hotelEdges, top.variant_id, 'variant', {
+            maxDepth: 2, edgeFilter: ['restocks', 'sourced_from'], direction: 'out',
+          })
+          graphHops += nodes.length
+        }
         resultLine = wasteRows.length === 0
           ? '→ 0 anomalies · within baseline'
-          : `→ ${wasteRows.length} anomalies · ${c} critical (score ≥8)`
+          : `→ ${String(wasteRows.length)} anomalies · ${String(c)} critical (score ≥8)`
       } else if (tool.id === 'suppliers') {
         const cr = suppRows.filter((r) => r.risk_tier === 'critical').length
         const hi = suppRows.filter((r) => r.risk_tier === 'high').length
+        // Graph: count total variant dependencies on critical suppliers
+        const depCount = suppRows
+          .filter((r) => r.risk_tier === 'critical' && r.supplier_id != null)
+          .reduce((sum, r) => {
+            const n = variantDependencyCount(r.supplier_id ?? '', hotelEdges)
+            graphHops += n
+            return sum + n
+          }, 0)
         resultLine = suppRows.length === 0
           ? '→ no delivery history yet'
-          : `→ ${suppRows.length} suppliers scored · ${cr} critical · ${hi} high risk`
+          : `→ ${String(suppRows.length)} suppliers scored · ${String(cr)} critical · ${String(hi)} high risk${depCount > 0 ? ` · ${String(depCount)} variant${depCount !== 1 ? 's' : ''} at risk` : ''}`
       }
 
-      finalSteps[i] = { type: 'done', tool, resultLine }
+      finalSteps[i] = { type: 'done', tool, resultLine, graphHops }
       setState({ phase: 'running', query, steps: [...finalSteps] })
     }
 
@@ -322,11 +466,21 @@ export default function EyeCopilotPage() {
     const paragraphs: string[] = []
     const navs: { label: string; path: string }[] = []
 
+    const graphInsights: GraphInsight[] = []
+
     for (const tool of tools) {
       if (tool.id === 'incidents') {
         paragraphs.push(synthesizeIncidents(incidents))
         if (incidents.filter((r) => r.incident_severity === 'critical').length > 0) {
-          navs.push({ label: 'View Incident Engine →', path: '/eye?panel=insights' })
+          navs.push({ label: 'View Incident Engine →', path: '/eye?panel=incidents' })
+        }
+        // Graph enrichment: for each critical incident, trace supplier chain
+        for (const inc of incidents.filter((r) => r.incident_severity === 'critical').slice(0, 3)) {
+          const insight = supplierInsightForVariant(inc.variant_id, inc.variant_label, hotelEdges, suppRows)
+          if (insight) {
+            graphInsights.push(insight)
+            if (insight.nav) navs.push(insight.nav)
+          }
         }
       }
       if (tool.id === 'restock') {
@@ -334,18 +488,57 @@ export default function EyeCopilotPage() {
         if (restockRows.filter((r) => r.urgency === 'critical').length > 0) {
           navs.push({ label: 'Open Restock Queue →', path: '/eye?panel=restock' })
         }
+        // Graph enrichment: flag critical items with no open PO
+        const unordered = restockRows
+          .filter((r) => r.urgency === 'critical')
+          .filter((r) => linkedPOCount(r.variantId, hotelEdges) === 0)
+        if (unordered.length > 0) {
+          const labels = unordered.slice(0, 2).map((r) =>
+            r.variantName !== 'Standard' ? `${r.productName} — ${r.variantName}` : r.productName
+          ).join(', ')
+          graphInsights.push({
+            sentence: `Graph check: ${String(unordered.length)} critical item${unordered.length !== 1 ? 's' : ''} (${labels}${unordered.length > 2 ? ', …' : ''}) have no linked purchase order — these require a new PO immediately.`,
+            nav: { label: 'Create PO →', path: '/mind?panel=suppliers' },
+          })
+        }
       }
       if (tool.id === 'waste') {
         paragraphs.push(synthesizeWaste(wasteRows, currency))
         if (wasteRows.length > 0) {
-          navs.push({ label: 'Open Waste Radar →', path: '/eye?panel=signals' })
+          navs.push({ label: 'Open Waste Radar →', path: '/eye?panel=waste' })
+        }
+        // Graph enrichment: trace top anomaly's supplier chain
+        const top = wasteRows.at(0)
+        if (top) {
+          const insight = supplierInsightForVariant(top.variant_id, top.variant_label, hotelEdges, suppRows)
+          if (insight) graphInsights.push(insight)
         }
       }
       if (tool.id === 'suppliers') {
         paragraphs.push(synthesizeSuppliers(suppRows))
         if (suppRows.filter((r) => r.risk_tier === 'critical' || r.risk_tier === 'high').length > 0) {
-          navs.push({ label: 'Supplier Scorecard →', path: '/eye?panel=suppliers' })
+          navs.push({ label: 'Supplier Scorecard →', path: '/mind?panel=suppliers' })
           navs.push({ label: 'Renegotiate Contracts →', path: '/mind?panel=contracts' })
+        }
+        // Graph enrichment: blast radius per critical supplier
+        for (const s of suppRows.filter((r) => r.risk_tier === 'critical' && r.supplier_id != null).slice(0, 2)) {
+          const deps = variantDependencyCount(s.supplier_id ?? '', hotelEdges)
+          if (deps > 0) {
+            graphInsights.push({
+              sentence: `Blast radius: ${s.supplier_name} supplies ${String(deps)} variant${deps !== 1 ? 's' : ''} — failure affects ${String(deps)} product line${deps !== 1 ? 's' : ''} simultaneously.`,
+              nav: { label: `${s.supplier_name} →`, path: `/supplier/${s.supplier_id ?? ''}` },
+            })
+          }
+        }
+      }
+    }
+
+    // Append unique graph insights as a cross-domain synthesis paragraph
+    if (graphInsights.length > 0) {
+      paragraphs.push(graphInsights.map((g) => g.sentence).join(' '))
+      for (const g of graphInsights) {
+        if (g.nav && !navs.some((n) => n.path === g.nav?.path)) {
+          navs.push(g.nav)
         }
       }
     }
@@ -371,7 +564,26 @@ export default function EyeCopilotPage() {
   function handleReset() {
     setState({ phase: 'idle' })
     setInput('')
+    setFeedback('none')
+    setCorrection('')
     setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  async function submitFeedback(rating: 1 | -1, corr?: string) {
+    if (state.phase !== 'done' || !hotelId) return
+    setFeedback(rating === 1 ? 'positive' : 'negative')
+    const totalHops = state.steps.reduce((s, step) => s + (step.type === 'done' ? (step.graphHops ?? 0) : 0), 0)
+    await supabase.from('copilot_feedback').insert({
+      hotel_id:         hotelId,
+      actor_id:         userId,
+      query:            state.query,
+      answer:           state.answer,
+      tools_called:     state.steps.map((s) => s.tool.name),
+      graph_hops_total: totalHops,
+      rating,
+      correction:       corr ?? null,
+    })
+    setFeedback('submitted')
   }
 
   return (
@@ -379,18 +591,49 @@ export default function EyeCopilotPage() {
 
       {/* Header */}
       <div className="px-6 pt-5 pb-3 border-b shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-950/30">
-            <Brain className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-950/30">
+              <Brain className="h-4 w-4 text-violet-600 dark:text-violet-400" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold">Eye · Copilot</h2>
+              <p className="text-xs text-muted-foreground">
+                {mode === 'chat' ? 'LLM-powered · multi-turn · cross-domain synthesis' : 'Deterministic routing · traced tools · live cache'}
+              </p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-base font-semibold">Eye · Copilot</h2>
-            <p className="text-xs text-muted-foreground">
-              Ask a question · routed to typed tools · reasoning shown · based on live data
-            </p>
+          {/* Mode toggle */}
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/30 p-0.5">
+            <button
+              type="button"
+              onClick={() => { setMode('chat') }}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+                mode === 'chat' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <MessageSquare className="w-3 h-3" />Chat
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('quick') }}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors',
+                mode === 'quick' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Cpu className="w-3 h-3" />Quick
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Chat mode — LLM-powered conversational copilot */}
+      {mode === 'chat' && <ExtractedChatView />}
+
+      {/* Quick mode — deterministic routing with trace */}
+      {mode === 'quick' && <>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
@@ -483,7 +726,7 @@ export default function EyeCopilotPage() {
                       <button
                         key={path}
                         type="button"
-                        onClick={() => navigate(path)}
+                        onClick={() => { void navigate(path) }}
                         className="flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg border border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-colors font-medium"
                       >
                         {label}
@@ -493,10 +736,68 @@ export default function EyeCopilotPage() {
                   </div>
                 )}
 
+                {/* Feedback */}
+                {feedback === 'none' && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-[10px] text-muted-foreground">Was this helpful?</span>
+                    <button
+                      type="button"
+                      onClick={() => { void submitFeedback(1) }}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-emerald-500 transition-colors"
+                    >
+                      <ThumbsUp className="w-3 h-3" /> Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setFeedback('negative'); }}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-red-500 transition-colors"
+                    >
+                      <ThumbsDown className="w-3 h-3" /> No
+                    </button>
+                  </div>
+                )}
+                {feedback === 'negative' && (
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-muted-foreground">What was wrong? (optional — helps improve future answers)</p>
+                    <textarea
+                      rows={2}
+                      value={correction}
+                      onChange={(e) => { setCorrection(e.target.value); }}
+                      placeholder="The answer missed… / The supplier risk was actually…"
+                      className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground resize-none placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { void submitFeedback(-1, correction) }}
+                        className="px-3 py-1 text-[10px] rounded border border-red-500/30 bg-red-500/5 text-red-500 hover:bg-red-500/10 transition-colors"
+                      >
+                        Submit correction
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setFeedback('none'); }}
+                        className="px-3 py-1 text-[10px] text-muted-foreground hover:text-foreground"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {feedback === 'submitted' && (
+                  <p className="text-[10px] text-emerald-500 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Feedback recorded — thank you
+                  </p>
+                )}
+
                 {/* Confidence footnote */}
                 <p className="text-[10px] text-muted-foreground">
-                  Based on: {state.steps.length} tool{state.steps.length > 1 ? 's' : ''} called ·
+                  Based on: {String(state.steps.length)} tool{state.steps.length > 1 ? 's' : ''} called ·
                   live data ·{' '}
+                  {(() => {
+                    const totalHops = state.steps.reduce((s, step) => s + (step.type === 'done' ? (step.graphHops ?? 0) : 0), 0)
+                    return totalHops > 0 ? `${String(totalHops)} graph nodes traversed · ` : ''
+                  })()}
                   {state.steps.map((s) => s.tool.name).join(', ')}
                 </p>
               </div>
@@ -524,7 +825,7 @@ export default function EyeCopilotPage() {
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => { setInput(e.target.value); }}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit() }}
             placeholder={
               state.phase === 'running'
@@ -550,6 +851,8 @@ export default function EyeCopilotPage() {
           Routes to typed tools · shows full reasoning · based on real-time graph data
         </p>
       </div>
+
+      </>}
     </div>
   )
 }

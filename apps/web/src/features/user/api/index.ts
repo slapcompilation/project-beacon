@@ -32,15 +32,15 @@ export async function fetchUserPrefs(userId: string): Promise<FullUserPrefs> {
   const raw = (data.preferences ?? {}) as Record<string, unknown>
 
   return {
-    theme:                   (raw.theme as FullUserPrefs['theme'])      ?? DEFAULTS.theme,
-    compact_view:            (raw.compact_view as boolean)              ?? DEFAULTS.compact_view,
-    quiet_hours_start:       (raw.quiet_hours_start as string | null)   ?? DEFAULTS.quiet_hours_start,
-    quiet_hours_end:         (raw.quiet_hours_end as string | null)     ?? DEFAULTS.quiet_hours_end,
-    default_view:            (raw.default_view as string)               ?? DEFAULTS.default_view,
-    language:                (raw.language as string)                   ?? DEFAULTS.language,
-    date_format:             (raw.date_format as string)                ?? DEFAULTS.date_format,
-    low_stock_days_threshold:(raw.low_stock_days_threshold as number)   ?? DEFAULTS.low_stock_days_threshold,
-    waste_alert_threshold:   (raw.waste_alert_threshold as number)      ?? DEFAULTS.waste_alert_threshold,
+    theme:                   (raw.theme as FullUserPrefs['theme'] | undefined)      ?? DEFAULTS.theme,
+    compact_view:            (raw.compact_view as boolean | undefined)              ?? DEFAULTS.compact_view,
+    quiet_hours_start:       (raw.quiet_hours_start as string | null | undefined)   ?? DEFAULTS.quiet_hours_start,
+    quiet_hours_end:         (raw.quiet_hours_end as string | null | undefined)     ?? DEFAULTS.quiet_hours_end,
+    default_view:            (raw.default_view as string | undefined)               ?? DEFAULTS.default_view,
+    language:                (raw.language as string | undefined)                   ?? DEFAULTS.language,
+    date_format:             (raw.date_format as string | undefined)                ?? DEFAULTS.date_format,
+    low_stock_days_threshold:(raw.low_stock_days_threshold as number | undefined)   ?? DEFAULTS.low_stock_days_threshold,
+    waste_alert_threshold:   (raw.waste_alert_threshold as number | undefined)      ?? DEFAULTS.waste_alert_threshold,
   }
 }
 

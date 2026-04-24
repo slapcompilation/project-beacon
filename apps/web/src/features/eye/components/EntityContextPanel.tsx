@@ -29,7 +29,7 @@ function RunwayBar({ days, tier }: { days: number; tier: 'critical' | 'warning' 
     tier === 'watch'    ? 'bg-yellow-400' : 'bg-green-400'
   return (
     <div className="h-1 w-16 rounded-full bg-muted overflow-hidden">
-      <div className={cn('h-full rounded-full transition-all', barCls)} style={{ width: `${pct}%` }} />
+      <div className={cn('h-full rounded-full transition-all', barCls)} style={{ width: `${String(pct)}%` }} />
     </div>
   )
 }
@@ -189,7 +189,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
           <CalendarX className="h-3.5 w-3.5 text-orange-500 shrink-0" />
           <span>
             <span className="font-medium text-orange-700 dark:text-orange-400">Expiry: </span>
-            {format(parseISO(intel.expiry_date!), 'MMM d')}
+            {intel.expiry_date ? format(parseISO(intel.expiry_date), 'MMM d') : null}
             {intel.value_at_risk > 0 && (
               <span className="text-muted-foreground"> · €{intel.value_at_risk.toFixed(2)} at risk</span>
             )}

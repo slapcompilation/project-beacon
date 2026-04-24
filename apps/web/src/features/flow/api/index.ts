@@ -52,10 +52,10 @@ export async function fetchVariantTimeline(
   variantId: string,
   days: number = 90,
 ): Promise<TimelineRow[]> {
-  const { data, error } = await supabase.rpc('get_variant_timeline', {
+  const result = await supabase.rpc('get_variant_timeline', {
     p_variant_id: variantId,
     p_days: days,
   })
-  if (error) throw new Error(error.message)
-  return (data ?? []) as TimelineRow[]
+  if (result.error) throw new Error(result.error.message)
+  return (result.data ?? []) as unknown as TimelineRow[]
 }

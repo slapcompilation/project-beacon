@@ -3,6 +3,7 @@
 // Creates a lightweight heartbeat channel that does nothing except track state.
 
 import { useEffect, useState } from 'react'
+import { REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 
 export type RealtimeStatus = 'connected' | 'connecting' | 'disconnected'
@@ -14,8 +15,8 @@ export function useRealtimeStatus(): RealtimeStatus {
     const channel = supabase
       .channel('__beacon_health__')
       .subscribe((s) => {
-        if (s === 'SUBSCRIBED')           setStatus('connected')
-        else if (s === 'CHANNEL_ERROR' || s === 'TIMED_OUT') setStatus('disconnected')
+        if (s === REALTIME_SUBSCRIBE_STATES.SUBSCRIBED)           setStatus('connected')
+        else if (s === REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR || s === REALTIME_SUBSCRIBE_STATES.TIMED_OUT) setStatus('disconnected')
         else                              setStatus('connecting')
       })
 

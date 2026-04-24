@@ -15,7 +15,7 @@ import { useConsumptionForecast, computePredictiveRestocks } from '@/features/ey
 import { useSuppliers } from '@/features/suppliers/hooks'
 import { useRestockRequests, useCreateRestockRequest } from '@/features/restock/hooks'
 import { ProbabilisticMetric } from '@/components/ProbabilisticMetric'
-import type { Supplier, StockoutProbabilityRow } from '@beacon/types'
+import type { StockoutProbabilityRow } from '@beacon/types'
 import type { PredictiveRestockRow } from '@/features/eye/hooks'
 
 // ─── Urgency badge ────────────────────────────────────────────────────────────
@@ -160,7 +160,7 @@ export default function PredictiveRestockPage() {
   )
 
   const suppliersMap = useMemo(
-    () => new Map((suppliers as Supplier[]).map((s) => [s.id, s])),
+    () => new Map((suppliers).map((s) => [s.id, s])),
     [suppliers]
   )
 

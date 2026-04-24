@@ -1,23 +1,40 @@
-// Layer: Flow — Reality Graph Explorer
+// Layer: Flow — Reality Graph Explorer / Ontology Browser
 // The single source of truth for why the world is the way it is.
 // Surfaces the causal edge graph (consumes → restocks → reverts → alerts)
 // for any variant. Operators investigate: "how did stock get here?"
 // Palantir principle: auditability as a first-class feature.
+// Sprint A: added node-type browser to explore the full ontology.
 
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
   Network, Search, Package, ChevronDown, ChevronRight,
   TrendingDown, TrendingUp, Minus, Info,
+  Truck, ShoppingCart, GitBranch,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useProducts } from '@/features/inventory/hooks'
+import { useSuppliers } from '@/features/suppliers/hooks'
+import { useRestockRequests } from '@/features/restock/hooks'
 import { useActiveHotel } from '@/features/hotel/hooks'
 import { FlowGraph } from '@/features/graph'
+import { GraphConnections } from '@/components/GraphConnections'
+import { EntityLink } from '@/components/EntityLink'
+import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import type { ProductWithVariants, ProductVariant } from '@beacon/types'
+
+// ─── Node type browser tabs ──────────────────────────────────────────────────
+
+type BrowseNodeType = 'variant' | 'supplier' | 'restock_request'
+
+const NODE_TYPE_TABS: { id: BrowseNodeType; label: string; icon: React.ElementType }[] = [
+  { id: 'variant',         label: 'Variants',  icon: Package },
+  { id: 'supplier',        label: 'Suppliers',  icon: Truck },
+  { id: 'restock_request', label: 'Restocks',   icon: ShoppingCart },
+]
 
 // ─── Variant health dot ────────────────────────────────────────────────────────
 
@@ -236,7 +253,7 @@ function VariantHeader({
     : 'ok'
 
   return (
-    <div className="flex items-start gap-6 border-b px-6 py-4 bg-muted/20 flex-shrink-0">
+    <div className="flex items-start gap-6 border-b px-5 py-3 bg-surface-1 flex-shrink-0">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-base font-semibold">{selected.displayName}</h2>
@@ -286,14 +303,27 @@ function VariantHeader({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
+interface SelectedNode {
+  type: BrowseNodeType
+  id: string
+  displayName: string
+  // Variant-specific fields (only when type === 'variant')
+  sku?: string
+  stock?: number
+  cost?: number
+}
+
 export default function GraphPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { data: products = [], isLoading } = useProducts()
+  const { data: suppliers = [] } = useSuppliers()
+  const { data: restocks = [] } = useRestockRequests()
   const activeHotel = useActiveHotel()
   const currency    = activeHotel?.currency ?? 'USD'
 
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<SelectedVariant | null>(null)
+  const [browseType, setBrowseType] = useState<BrowseNodeType>('variant')
+  const [selected, setSelected] = useState<SelectedNode | null>(null)
 
   // Restore selected variant from URL on mount / when products load
   const urlVariantId = searchParams.get('variant')
@@ -303,14 +333,14 @@ export default function GraphPage() {
       const v = p.product_variants.find((pv) => pv.id === urlVariantId)
       if (v) {
         const displayName = v.name !== 'Standard' ? `${p.name} — ${v.name}` : p.name
-        setSelected({ id: v.id, displayName, sku: v.sku, stock: v.current_stock, cost: v.cost })
+        setSelected({ type: 'variant', id: v.id, displayName, sku: v.sku, stock: v.current_stock, cost: v.cost })
         break
       }
     }
   }, [urlVariantId, products, selected?.id])
 
-  const handleSelect = (variantId: string, displayName: string, sku: string, stock: number, cost: number) => {
-    setSelected({ id: variantId, displayName, sku, stock, cost })
+  const handleSelectVariant = (variantId: string, displayName: string, sku: string, stock: number, cost: number) => {
+    setSelected({ type: 'variant', id: variantId, displayName, sku, stock, cost })
     setSearchParams({ variant: variantId }, { replace: true })
   }
 
@@ -319,75 +349,245 @@ export default function GraphPage() {
     [products],
   )
 
+  // Filter suppliers by search
+  const filteredSuppliers = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return suppliers
+    return suppliers.filter((s) =>
+      s.name.toLowerCase().includes(q) || (s.email ?? '').toLowerCase().includes(q)
+    )
+  }, [suppliers, search])
+
+  // Filter restocks by search
+  const filteredRestocks = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return restocks
+    return restocks.filter((r) =>
+      r.status.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)
+    )
+  }, [restocks, search])
+
   return (
     <div className="flex flex-col h-full">
 
       {/* Page header */}
-      <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
+      <div className="page-header justify-between">
         <div>
-          <h1 className="text-xl font-semibold">Flow · Reality Graph</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-primary" />
+            <h1 className="text-base font-semibold">Ontology Browser</h1>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {isLoading
               ? 'Loading…'
-              : `Causal edge history for ${String(totalVariants)} variant${totalVariants !== 1 ? 's' : ''} — consumes · restocks · reverts · alerts`}
+              : `${String(totalVariants)} variants · ${String(suppliers.length)} suppliers · ${String(restocks.length)} restocks`}
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5" />
-          <span>Select a variant to explore its causal graph</span>
+          <span>Browse any entity to see its graph connections</span>
         </div>
       </div>
 
       {/* Split pane */}
       <div className="flex flex-1 overflow-hidden">
 
-        {/* Left — variant selector */}
-        <div className="w-64 flex-shrink-0">
-          <VariantSelector
-            products={products}
-            selectedId={selected?.id ?? null}
-            onSelect={handleSelect}
-            search={search}
-            onSearch={setSearch}
-          />
+        {/* Left — node type browser */}
+        <div className="w-64 flex-shrink-0 flex flex-col border-r border-border bg-surface-1">
+          {/* Node type tabs */}
+          <div className="flex border-b border-border shrink-0">
+            {NODE_TYPE_TABS.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => { setBrowseType(tab.id); setSelected(null) }}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-medium border-b-2 transition-colors',
+                    browseType === tab.id
+                      ? 'border-primary text-foreground'
+                      : 'border-transparent text-muted-foreground hover:text-foreground',
+                  )}
+                >
+                  <Icon className="h-3 w-3" />
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Variant list */}
+          {browseType === 'variant' && (
+            <VariantSelector
+              products={products}
+              selectedId={selected?.type === 'variant' ? selected.id : null}
+              onSelect={handleSelectVariant}
+              search={search}
+              onSearch={setSearch}
+            />
+          )}
+
+          {/* Supplier list */}
+          {browseType === 'supplier' && (
+            <div className="flex flex-col h-full">
+              <div className="p-3 border-b flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search suppliers…"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value) }}
+                    className="pl-8 h-8 text-sm"
+                  />
+                </div>
+                <p className="mt-1.5 text-[10px] text-muted-foreground">
+                  {filteredSuppliers.length} supplier{filteredSuppliers.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-0.5 p-2">
+                {filteredSuppliers.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => { setSelected({ type: 'supplier', id: s.id, displayName: s.name }) }}
+                    className={cn(
+                      'w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors',
+                      selected?.id === s.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                    )}
+                  >
+                    <Truck className="h-3 w-3 flex-shrink-0" />
+                    <span className="flex-1 truncate font-medium">{s.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Restock list */}
+          {browseType === 'restock_request' && (
+            <div className="flex flex-col h-full">
+              <div className="p-3 border-b flex-shrink-0">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    placeholder="Search restocks…"
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value) }}
+                    className="pl-8 h-8 text-sm"
+                  />
+                </div>
+                <p className="mt-1.5 text-[10px] text-muted-foreground">
+                  {filteredRestocks.length} request{filteredRestocks.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <div className="flex-1 overflow-y-auto space-y-0.5 p-2">
+                {filteredRestocks.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => { setSelected({ type: 'restock_request', id: r.id, displayName: `Restock #${r.id.slice(0, 8)}` }) }}
+                    className={cn(
+                      'w-full flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-xs transition-colors',
+                      selected?.id === r.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                    )}
+                  >
+                    <ShoppingCart className="h-3 w-3 flex-shrink-0" />
+                    <span className="flex-1 truncate font-medium">#{r.id.slice(0, 8)}</span>
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">{r.status}</Badge>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Right — graph */}
+        {/* Right — detail pane */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {selected ? (
+          {selected?.type === 'variant' && selected.sku != null ? (
             <>
-              <VariantHeader selected={selected} currency={currency} />
-              <div className="flex-1 overflow-y-auto px-6 py-5">
-                <div className="max-w-2xl">
-                  <div className="mb-4 flex items-center gap-2">
-                    <Network className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold">Causal Edge Timeline</span>
-                    <span className="text-xs text-muted-foreground">
-                      · most recent first · revert chains shown inline
-                    </span>
+              <VariantHeader
+                selected={{
+                  id: selected.id,
+                  displayName: selected.displayName,
+                  sku: selected.sku,
+                  stock: selected.stock ?? 0,
+                  cost: selected.cost ?? 0,
+                }}
+                currency={currency}
+              />
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                <div className="max-w-2xl space-y-6">
+                  {/* Graph connections */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <GitBranch className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold">Graph Connections</span>
+                    </div>
+                    <PanelErrorBoundary name="Graph Connections">
+                      <GraphConnections nodeType="variant" nodeId={selected.id} />
+                    </PanelErrorBoundary>
                   </div>
-                  <FlowGraph variantId={selected.id} variantName={selected.displayName} currentStock={selected.stock} />
+
+                  {/* Causal Edge Timeline */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <Network className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm font-semibold">Causal Edge Timeline</span>
+                      <span className="text-xs text-muted-foreground">
+                        · most recent first · revert chains shown inline
+                      </span>
+                    </div>
+                    <FlowGraph variantId={selected.id} variantName={selected.displayName} currentStock={selected.stock ?? 0} />
+                  </div>
                 </div>
               </div>
             </>
+          ) : selected ? (
+            /* Non-variant node: show name + graph connections */
+            <div className="flex-1 overflow-y-auto">
+              <div className="flex items-start gap-4 border-b px-5 py-3 bg-surface-1 flex-shrink-0">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  {browseType === 'supplier' && <Truck className="h-4 w-4" />}
+                  {browseType === 'restock_request' && <ShoppingCart className="h-4 w-4" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-semibold">{selected.displayName}</h2>
+                  <p className="text-xs text-muted-foreground font-mono">{selected.id}</p>
+                </div>
+                <EntityLink type={selected.type} id={selected.id} className="text-xs">
+                  Open full page
+                </EntityLink>
+              </div>
+              <div className="px-5 py-4 max-w-2xl space-y-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <GitBranch className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-semibold">Graph Connections</span>
+                  </div>
+                  <PanelErrorBoundary name="Graph Connections">
+                    <GraphConnections nodeType={selected.type} nodeId={selected.id} />
+                  </PanelErrorBoundary>
+                </div>
+              </div>
+            </div>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-8">
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-5">
               <div className="rounded-full bg-muted/50 p-5">
                 <Network className="h-10 w-10 text-muted-foreground/50" />
               </div>
               <div>
-                <p className="text-base font-medium">Select a variant</p>
+                <p className="text-base font-medium">Select an entity</p>
                 <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-                  Choose any product variant from the left panel to see its complete
-                  causal graph — every stock movement, restock, correction, and alert
-                  that explains its current state.
+                  Choose any node from the left panel to explore its graph connections,
+                  edge relationships, and causal history.
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-3 mt-2 text-left max-w-lg">
                 {[
-                  { icon: TrendingDown, label: 'consumes', desc: 'Stock removed via adjustment or scan', cls: 'text-slate-600' },
-                  { icon: TrendingUp,   label: 'restocks',  desc: 'Stock added via restock receive',    cls: 'text-green-600' },
-                  { icon: Minus,        label: 'reverts',   desc: 'Correction of a prior event',        cls: 'text-amber-600' },
+                  { icon: TrendingDown, label: 'consumes', desc: 'Stock removed via adjustment or scan', cls: 'text-slate-500' },
+                  { icon: TrendingUp,   label: 'restocks',  desc: 'Stock added via restock receive',    cls: 'text-green-500' },
+                  { icon: Minus,        label: 'reverts',   desc: 'Correction of a prior event',        cls: 'text-amber-500' },
                 ].map(({ icon: Icon, label, desc, cls }) => (
                   <div key={label} className="rounded-lg border bg-card p-3">
                     <div className={cn('flex items-center gap-1.5 mb-1', cls)}>

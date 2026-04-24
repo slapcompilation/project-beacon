@@ -30,7 +30,7 @@ import { useSuppliers } from '@/features/suppliers/hooks'
 import { useProcurementProposals, useCreateBulkRestockRequests } from '@/features/inventory/hooks'
 import { useActiveHotel } from '@/features/hotel/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
-import { useCreatePO } from '@/features/mind/hooks'
+import { useCreatePO, useSupplierContracts } from '@/features/mind/hooks'
 import type { ProcurementProposalRow } from '@/features/inventory/api'
 import type { CreatePOInput } from '@/features/mind/api'
 
@@ -63,6 +63,7 @@ interface POLineItem {
   hasOpenRequest: boolean
   urgency: 'critical' | 'low' | 'reorder'
   avgLeadDays?: number | null
+  isContracted?: boolean  // true = unitCost was populated from an active contract
   _fromRestock?: boolean  // true = came from approved restock request, not forecast
 }
 
@@ -223,6 +224,11 @@ function LineRow({ item, suppliers, onQtyChange, onSupplierChange, currency }: L
       </td>
       <td className="py-2.5 px-2 text-right">
         <p className="text-xs tabular-nums">{formatCurrency(item.unitCost, currency)}</p>
+        {item.isContracted && (
+          <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 inline-block mt-0.5">
+            contracted
+          </span>
+        )}
       </td>
       <td className="py-2.5 px-2 text-right">
         <p className="text-sm font-semibold tabular-nums">{formatCurrency(lineTotal, currency)}</p>
@@ -438,8 +444,20 @@ export function PurchaseOrderContent() {
 
   const { data: proposals = [], isLoading: proposalsLoading } = useProcurementProposals()
   const { data: suppliers = [], isLoading: suppliersLoading } = useSuppliers()
+  const { data: contracts = [] } = useSupplierContracts()
   const createBulkRequests = useCreateBulkRestockRequests()
   const createPO = useCreatePO()
+
+  // Build contract price lookup: "variantId|supplierId" → contracted_price
+  const contractPriceMap = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const c of contracts) {
+      if (c.is_active && c.supplier_id) {
+        map.set(`${c.variant_id}|${c.supplier_id}`, c.contracted_price)
+      }
+    }
+    return map
+  }, [contracts])
 
   const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [search, setSearch] = useState('')
@@ -504,22 +522,27 @@ export function PurchaseOrderContent() {
     // Forecast proposals (skip variants already in restock list)
     const forecastItems: POLineItem[] = proposals
       .filter((r) => !restockVariantIds.has(r.variant_id))
-      .map((r) => ({
-        variantId: r.variant_id,
-        productName: r.product_name,
-        variantName: r.variant_name,
-        sku: r.sku,
-        currentStock: r.current_stock,
-        avgDaily: r.avg_daily ?? 0,
-        daysUntilZero: r.days_until_zero,
-        recommendedQty: r.suggested_qty || 1,
-        overrideQty: qtyOverrides[r.variant_id] ?? null,
-        unitCost: r.unit_cost,
-        supplierId: supplierAssignments[r.variant_id] ?? r.preferred_supplier_id ?? '',
-        hasOpenRequest: r.has_open_request,
-        urgency: getUrgencyFromProposal(r),
-        avgLeadDays: r.avg_lead_days,
-      }))
+      .map((r) => {
+        const sid = supplierAssignments[r.variant_id] ?? r.preferred_supplier_id ?? ''
+        const contractPrice = sid ? contractPriceMap.get(`${r.variant_id}|${sid}`) : undefined
+        return {
+          variantId: r.variant_id,
+          productName: r.product_name,
+          variantName: r.variant_name,
+          sku: r.sku,
+          currentStock: r.current_stock,
+          avgDaily: r.avg_daily ?? 0,
+          daysUntilZero: r.days_until_zero,
+          recommendedQty: r.suggested_qty || 1,
+          overrideQty: qtyOverrides[r.variant_id] ?? null,
+          unitCost: contractPrice ?? r.unit_cost,
+          supplierId: sid,
+          hasOpenRequest: r.has_open_request,
+          urgency: getUrgencyFromProposal(r),
+          avgLeadDays: r.avg_lead_days,
+          isContracted: contractPrice != null,
+        }
+      })
       .sort((a, b) => {
         // Sort: critical → low → reorder, then by days_until_zero asc
         const urgencyOrder = { critical: 0, low: 1, reorder: 2 }
@@ -532,7 +555,7 @@ export function PurchaseOrderContent() {
       })
 
     return [...restockItems, ...forecastItems]
-  }, [proposals, fromRestock, qtyOverrides, supplierAssignments])
+  }, [proposals, fromRestock, qtyOverrides, supplierAssignments, contractPriceMap])
 
   // Filter by mode + search
   const filteredItems = useMemo(() => {

@@ -146,7 +146,7 @@ function POLineList({
 
             {/* PO unit cost */}
             <span className="text-xs tabular-nums w-20 text-right text-muted-foreground">
-              {line.unit_cost != null ? formatCurrency(line.unit_cost, currency) : '—'}
+              {formatCurrency(line.unit_cost, currency)}
             </span>
 
             {/* Contract column */}
@@ -156,9 +156,7 @@ function POLineList({
                   <p className="text-[10px] text-muted-foreground tabular-nums">
                     {formatCurrency(contract.contracted_price, currency)} contracted
                   </p>
-                  {line.unit_cost != null && (
-                    <ContractDeviation poUnitCost={line.unit_cost} contract={contract} />
-                  )}
+                  <ContractDeviation poUnitCost={line.unit_cost} contract={contract} />
                 </div>
               ) : (
                 <span className="text-[10px] text-muted-foreground">No contract</span>
@@ -258,7 +256,7 @@ function POCard({
                 allReceived ? 'bg-emerald-500' :
                 filledPct > 0 ? 'bg-amber-400' : 'bg-muted-foreground/30',
               )}
-              style={{ width: `${filledPct}%` }}
+              style={{ width: `${String(filledPct)}%` }}
             />
           </div>
         </div>

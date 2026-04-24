@@ -17,6 +17,7 @@ import {
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectActions } from '@/components/ObjectActions'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -477,6 +478,16 @@ export default function VariantObjectPage() {
               </div>
             </div>
           )}
+
+          {/* ── Inline actions ── */}
+          <div className="rounded-lg border border-border bg-card p-4">
+            <ObjectActions
+              nodeType="variant"
+              variantId={variantId!}
+              currentStock={variant.current_stock ?? 0}
+              hasOpenRequest={forecast?.has_open_request ?? false}
+            />
+          </div>
 
           {/* ── Graph connections ── */}
           <div className="rounded-lg border border-border bg-card p-4">

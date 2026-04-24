@@ -110,7 +110,7 @@ function Sparkline({ values, color = 'currentColor' }: { values: number[]; color
   const H = 18
   const max = Math.max(...values, 1)
   const pts = values
-    .map((v, i) => `${(i / (values.length - 1)) * W},${H - (v / max) * H}`)
+    .map((v, i) => `${String((i / (values.length - 1)) * W)},${String(H - (v / max) * H)}`)
     .join(' ')
   return (
     <svg width={W} height={H} className="overflow-visible flex-shrink-0">
@@ -141,8 +141,8 @@ function TrendCell({ hotelId, trend }: { hotelId: string; trend: ChainHealthTren
   const values = rows.map(r => r.waste_cost)
 
   // MoM: last vs second-to-last
-  const cur  = rows[rows.length - 1]!.waste_cost
-  const prev = rows[rows.length - 2]!.waste_cost
+  const cur  = rows[rows.length - 1].waste_cost
+  const prev = rows[rows.length - 2].waste_cost
   const momPct = prev > 0 ? ((cur - prev) / prev) * 100 : null
 
   const improving   = momPct != null && momPct < -5
@@ -190,7 +190,7 @@ interface RowProps {
 
 function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: RowProps) {
   const grade           = scoreToGrade(row.health_score)
-  const wastePct        = Math.round((row.waste_rate ?? 0) * 100)
+  const wastePct        = Math.round(row.waste_rate * 100)
   const oosPct          = row.total_variants > 0
     ? (row.out_of_stock_count / row.total_variants) * 100
     : 0
@@ -555,18 +555,18 @@ function OutlierPanel({
 }) {
   if (rows.length < 2) return null
 
-  const worst = rows[0]  // rows are sorted worst-first (health_score ASC)
-  const best  = rows[rows.length - 1]
+  const worst = rows.at(0)  // rows are sorted worst-first (health_score ASC)
+  const best  = rows.at(-1)
   if (!worst || !best) return null
 
   // Build explanation: find which specific dimensions are most off vs median
   const insights: string[] = []
 
-  const wasteRatioPct = Math.round((worst.waste_rate ?? 0) * 100)
+  const wasteRatioPct = Math.round(worst.waste_rate * 100)
   if (medians.waste_rate > 0) {
-    const wasteRatio = (worst.waste_rate ?? 0) / medians.waste_rate
+    const wasteRatio = worst.waste_rate / medians.waste_rate
     if (wasteRatio >= 1.4) {
-      insights.push(`${wasteRatio.toFixed(1)}× the chain median waste rate (${wasteRatioPct}% vs ${Math.round(medians.waste_rate * 100)}% chain avg)`)
+      insights.push(`${wasteRatio.toFixed(1)}× the chain median waste rate (${String(wasteRatioPct)}% vs ${String(Math.round(medians.waste_rate * 100))}% chain avg)`)
     }
   }
 
@@ -576,10 +576,10 @@ function OutlierPanel({
   if (oosPct > 0 && medians.out_of_stock_pct > 0) {
     const oosRatio = oosPct / medians.out_of_stock_pct
     if (oosRatio >= 1.4) {
-      insights.push(`OOS rate ${oosRatio.toFixed(1)}× chain median (${worst.out_of_stock_count} variants out of stock)`)
+      insights.push(`OOS rate ${oosRatio.toFixed(1)}× chain median (${String(worst.out_of_stock_count)} variants out of stock)`)
     }
   } else if (oosPct > 5) {
-    insights.push(`${worst.out_of_stock_count} variants out of stock`)
+    insights.push(`${String(worst.out_of_stock_count)} variants out of stock`)
   }
 
   if (worst.avg_days_supply > 0 && medians.avg_days_supply > 0) {
@@ -592,7 +592,7 @@ function OutlierPanel({
   if (worst.avg_supplier_score != null && medians.supplier_score > 0) {
     const scoreGap = medians.supplier_score - worst.avg_supplier_score
     if (scoreGap >= 10) {
-      insights.push(`supplier score ${Math.round(worst.avg_supplier_score)} vs ${Math.round(medians.supplier_score)} chain median`)
+      insights.push(`supplier score ${String(Math.round(worst.avg_supplier_score))} vs ${String(Math.round(medians.supplier_score))} chain median`)
     }
   }
 
@@ -676,8 +676,8 @@ export default function ChainPage() {
   // Sorted rows for the table
   const sortedRows = useMemo(() => {
     return [...rows].sort((a, b) => {
-      let aVal = a[sortBy] as number | null
-      let bVal = b[sortBy] as number | null
+      let aVal = a[sortBy]
+      let bVal = b[sortBy]
       if (aVal == null) aVal = sortDir === 'asc' ? Infinity : -Infinity
       if (bVal == null) bVal = sortDir === 'asc' ? Infinity : -Infinity
       return sortDir === 'asc' ? aVal - bVal : bVal - aVal
@@ -691,7 +691,7 @@ export default function ChainPage() {
       pending_restock_pct: 0, supplier_score: 0,
     }
     return {
-      waste_rate:          median(rows.map((r) => r.waste_rate ?? 0)),
+      waste_rate:          median(rows.map((r) => r.waste_rate)),
       avg_days_supply:     median(rows.map((r) => r.avg_days_supply)),
       out_of_stock_pct:    median(rows.map((r) =>
         r.total_variants > 0 ? (r.out_of_stock_count / r.total_variants) * 100 : 0
@@ -700,7 +700,7 @@ export default function ChainPage() {
         r.total_variants > 0 ? (r.pending_restocks / r.total_variants) * 100 : 0
       )),
       supplier_score: median(
-        rows.filter((r) => r.avg_supplier_score != null).map((r) => r.avg_supplier_score!)
+        rows.filter((r) => r.avg_supplier_score != null).map((r) => r.avg_supplier_score ?? 0)
       ),
     }
   }, [rows])
@@ -804,7 +804,7 @@ export default function ChainPage() {
               <KpiTile
                 label="Chain avg health"
                 value={`${String(kpis.avgScore)} · ${scoreToGrade(kpis.avgScore)}`}
-                sub={`${String(rows.length)} properties · ${days}d window`}
+                sub={`${String(rows.length)} properties · ${String(days)}d window`}
                 icon={BarChart3}
                 accent={
                   kpis.avgScore >= 85 ? 'text-green-600 dark:text-green-400'

@@ -333,7 +333,7 @@ export default function SetupWizardPage() {
   const navigate     = useNavigate()
   const [step, setStep] = useState(1)
 
-  const next = () => setStep((s) => Math.min(s + 1, 4))
+  const next = () => { setStep((s) => Math.min(s + 1, 4)); }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">

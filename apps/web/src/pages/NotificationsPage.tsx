@@ -119,6 +119,16 @@ const TYPE_CFG: Record<NotifType, {
     actionPath: '/procurement?tab=match',
     actionLabel: 'Review in 3-Way Match →',
   },
+  contract_expiry: {
+    label: 'Contract Expiring',
+    layer: 'Mind',
+    icon: Scale,
+    rowBg: 'bg-indigo-50/60 dark:bg-indigo-950/20',
+    iconColor: 'text-indigo-500',
+    badgeCls: 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400',
+    actionPath: '/mind?panel=contracts',
+    actionLabel: 'View contracts →',
+  },
   approval: {
     label: 'Approval',
     layer: 'Flow',
@@ -166,8 +176,9 @@ const TYPE_PRIORITY: Record<NotifType, number> = {
   price_drift:       5,
   pos_variance:      6,
   po_discrepancy:    7,
-  approval:          8,
-  system:            9,
+  contract_expiry:   8,
+  approval:          9,
+  system:           10,
 }
 
 // ─── Notification row ─────────────────────────────────────────────────────────
@@ -464,7 +475,7 @@ export default function NotificationsPage() {
             <div className="px-6 py-2 bg-muted/30 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               {tab === 'unread'
                 ? `${String(filtered.length)} unread`
-                : `${String(filtered.length)} ${TYPE_CFG[tab as NotifType]?.label ?? tab}`}
+                : `${String(filtered.length)} ${TYPE_CFG[tab]?.label ?? tab}`}
             </div>
             <div className="rounded-lg overflow-hidden border mx-6 my-4">
               {filtered.map((n) => (

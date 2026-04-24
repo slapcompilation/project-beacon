@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase/client'
 import { usePOLines, usePOInvoices, useUpdatePOStatus, useSupplierContracts } from '@/features/mind/hooks'
 import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poIsOverdue, daysUntilDelivery } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectActions } from '@/components/ObjectActions'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
@@ -17,8 +18,11 @@ import { cn } from '@/lib/utils'
 import { format, isPast, isToday, formatDistanceToNow, parseISO } from 'date-fns'
 import {
   ArrowLeft, Truck, Package, CheckCircle2, AlertTriangle, Clock,
-  FileText, ChevronRight, Loader2,
+  FileText, ChevronRight, Loader2, ScanLine, Upload,
 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { dispatchAction } from '@/lib/actions/dispatch'
+import { useAuthStore } from '@/stores/auth.store'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import type { PurchaseOrder, POStatus, SupplierContract } from '@beacon/types'
@@ -249,6 +253,129 @@ function POLinesTable({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+// ─── Invoice OCR intake form ──────────────────────────────────────────────────
+
+interface ParsedInvoiceFields {
+  invoiceNumber: string | null
+  invoiceDate:   string | null
+  invoiceAmount: number | null
+  notes:         string | null
+  confidence:    'high' | 'medium' | 'low'
+}
+
+function InvoiceOCRForm({ poId, hotelId }: { poId: string; hotelId: string }) {
+  const fileRef    = useRef<HTMLInputElement>(null)
+  const userId     = useAuthStore((s) => s.session?.user.id ?? '')
+  const [scanning,   setScanning]   = useState(false)
+  const [parsed,     setParsed]     = useState<ParsedInvoiceFields | null>(null)
+  const [open,       setOpen]       = useState(false)
+  const [invNum,     setInvNum]     = useState('')
+  const [invDate,    setInvDate]    = useState('')
+  const [invAmount,  setInvAmount]  = useState('')
+  const [invNotes,   setInvNotes]   = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  async function handleFile(file: File) {
+    setScanning(true)
+    setParsed(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const { data: { session } } = await supabase.auth.getSession()
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/parse-invoice`
+      const res = await fetch(fnUrl, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+        body:    fd,
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const fields = await res.json() as ParsedInvoiceFields
+      setParsed(fields)
+      setInvNum(fields.invoiceNumber ?? '')
+      setInvDate(fields.invoiceDate ?? '')
+      setInvAmount(fields.invoiceAmount != null ? String(fields.invoiceAmount) : '')
+      setInvNotes(fields.notes ?? '')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'OCR failed — check OPENAI_API_KEY')
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  async function submitInvoice() {
+    const amount = parseFloat(invAmount)
+    if (!invNum.trim())             { toast.error('Invoice number required'); return }
+    if (!invDate)                   { toast.error('Invoice date required'); return }
+    if (isNaN(amount) || amount <= 0) { toast.error('Amount must be > 0'); return }
+    setSubmitting(true)
+    const result = await dispatchAction(
+      { type: 'SUBMIT_PO_INVOICE', poId, hotelId, invoiceNumber: invNum.trim(), invoiceDate: invDate, invoiceAmount: amount, notes: invNotes || null },
+      { hotelId, actorId: userId, triggeredBy: 'user' },
+    )
+    setSubmitting(false)
+    if (result.success) { toast.success('Invoice submitted'); setOpen(false); setParsed(null) }
+    else toast.error(result.error)
+  }
+
+  if (!open) return (
+    <button type="button" onClick={() => { setOpen(true); }}
+      className="flex items-center gap-1.5 text-xs text-primary hover:underline">
+      <ScanLine className="h-3.5 w-3.5" /> Scan &amp; submit invoice
+    </button>
+  )
+
+  return (
+    <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold flex items-center gap-1.5">
+          <ScanLine className="h-3.5 w-3.5 text-primary" />Scan Invoice
+        </p>
+        <button type="button" onClick={() => { setOpen(false); }} className="text-[10px] text-muted-foreground hover:text-foreground">Close</button>
+      </div>
+      <input ref={fileRef} type="file" accept="image/*,.pdf" className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f) }} />
+      <button type="button" disabled={scanning} onClick={() => fileRef.current?.click()}
+        className="flex items-center gap-2 px-3 py-1.5 text-xs rounded border border-border bg-background hover:bg-muted/40 transition-colors disabled:opacity-50">
+        {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+        {scanning ? 'Parsing…' : 'Upload image or PDF'}
+      </button>
+      {parsed && (
+        <>
+          {parsed.confidence !== 'high' && (
+            <p className="text-[10px] text-amber-500 flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" />
+              {parsed.confidence === 'low' ? 'Low confidence — verify all fields' : 'Some fields may be missing'}
+            </p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {([
+              { label: 'Invoice Number *', val: invNum,    set: setInvNum,    type: 'text',   ph: 'INV-001' },
+              { label: 'Invoice Date *',   val: invDate,   set: setInvDate,   type: 'date',   ph: '' },
+              { label: 'Amount *',         val: invAmount, set: setInvAmount, type: 'number', ph: '0.00' },
+              { label: 'Notes',            val: invNotes,  set: setInvNotes,  type: 'text',   ph: 'Payment terms…' },
+            ] as const).map(({ label, val, set, type, ph }) => (
+              <div key={label}>
+                <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">{label}</label>
+                <input type={type} value={val} placeholder={ph}
+                  onChange={(e) => { set(e.target.value); }}
+                  className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-ring" />
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button type="button" onClick={() => { setParsed(null); }} className="text-xs text-muted-foreground hover:text-foreground">Re-scan</button>
+            <button type="button" disabled={submitting} onClick={() => { void submitInvoice() }}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
+              {submitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+              Submit invoice
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -536,8 +663,13 @@ export default function POObjectPage() {
         </div>
 
         {/* Invoices */}
-        <div>
-          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Invoices</h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Invoices</h2>
+            {po.status !== 'cancelled' && po.status !== 'draft' && (
+              <InvoiceOCRForm poId={po.id} hotelId={po.hotel_id} />
+            )}
+          </div>
           <InvoicesSection poId={po.id} currency={currency} />
         </div>
 
@@ -547,6 +679,15 @@ export default function POObjectPage() {
           {po.sent_at && <p>Sent to supplier {format(parseISO(po.sent_at), 'MMM d, yyyy HH:mm')}</p>}
           {po.confirmed_at && <p>Confirmed {format(parseISO(po.confirmed_at), 'MMM d, yyyy HH:mm')}</p>}
           {po.closed_at && <p>Closed {format(parseISO(po.closed_at), 'MMM d, yyyy HH:mm')}</p>}
+        </div>
+
+        {/* ── Inline actions ── */}
+        <div className="rounded-lg border border-border bg-card p-4">
+          <ObjectActions
+            nodeType="purchase_order"
+            poId={po.id}
+            currentStatus={po.status}
+          />
         </div>
 
         {/* ── Graph connections ── */}

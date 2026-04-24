@@ -60,7 +60,7 @@ function buildTooltip(row: StockoutProbabilityRow, horizon: 7 | 14 | 30): string
     prob != null
       ? `P(stockout in ${String(horizon)}d): ${prob.toFixed(1)}%`
       : 'Insufficient data for probability',
-    `Confidence: ${Math.round(row.confidence_score * 100)}% (${String(row.data_days)} active days)`,
+    `Confidence: ${String(Math.round(row.confidence_score * 100))}% (${String(row.data_days)} active days)`,
     `Pattern: ${patternLabel(row.demand_pattern)}`,
     `Based on: 30-day rolling consumption window`,
   ]
@@ -117,14 +117,14 @@ export function ProbabilisticMetric({
         {isInsufficient ? (
           <span className="text-muted-foreground/50 italic">sparse data</span>
         ) : (
-          <span className={cn('font-medium', probColor(prob!))}>
-            {prob!.toFixed(0)}% in {String(horizon)}d
+          <span className={cn('font-medium', probColor(prob))}>
+            {prob.toFixed(0)}% in {String(horizon)}d
           </span>
         )}
         {/* Confidence dot */}
         <span
           className={cn('h-1.5 w-1.5 rounded-full shrink-0', confidenceDot(row.confidence_score))}
-          title={`Confidence: ${Math.round(row.confidence_score * 100)}%`}
+          title={`Confidence: ${String(Math.round(row.confidence_score * 100))}%`}
         />
       </span>
     )
@@ -138,7 +138,7 @@ export function ProbabilisticMetric({
         'rounded-lg border px-4 py-3 space-y-2 text-sm',
         isInsufficient
           ? 'bg-muted/20 border-muted/40'
-          : probBgColor(prob!),
+          : probBgColor(prob),
         className,
       )}
     >
@@ -160,11 +160,11 @@ export function ProbabilisticMetric({
           <div className="flex-1 space-y-0.5">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">P(stockout in {String(horizon)}d)</span>
-              <span className={cn('text-sm font-bold tabular-nums', probColor(prob!))}>
-                {prob!.toFixed(1)}%
+              <span className={cn('text-sm font-bold tabular-nums', probColor(prob))}>
+                {prob.toFixed(1)}%
               </span>
             </div>
-            <ProbBar prob={prob!} compact={false} />
+            <ProbBar prob={prob} compact={false} />
           </div>
         </div>
       )}

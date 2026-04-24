@@ -10,7 +10,7 @@ export async function fetchPickLists(): Promise<PickList[]> {
     .select('*')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  return (data ?? []) as PickList[]
+  return data as PickList[]
 }
 
 export async function createPickList(input: {
@@ -23,27 +23,28 @@ export async function createPickList(input: {
   const userId = session.session?.user.id
   if (!userId) throw new Error('Not authenticated')
 
-  const { data: hotel } = await supabase
+  const hotelResult = await supabase
     .from('profiles')
     .select('hotel_id')
     .eq('id', userId)
     .single()
-  if (!hotel) throw new Error('Hotel not found')
+  if (!hotelResult.data) throw new Error('Hotel not found')
+  const hotelId = (hotelResult.data as { hotel_id: string }).hotel_id
 
-  const { data, error } = await supabase
+  const insertResult = await supabase
     .from('pick_lists')
     .insert({
       name: input.name,
       notes: input.notes ?? null,
       due_date: input.due_date ?? null,
       assigned_to: input.assigned_to ?? null,
-      hotel_id: hotel.hotel_id,
+      hotel_id: hotelId,
       created_by: userId,
     })
     .select()
     .single()
-  if (error) throw new Error(error.message)
-  return data as PickList
+  if (insertResult.error) throw new Error(insertResult.error.message)
+  return insertResult.data as unknown as PickList
 }
 
 export async function updatePickList(
@@ -76,7 +77,7 @@ export async function fetchPickListItems(
     .eq('pick_list_id', pickListId)
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
-  return (data ?? []) as PickListItemWithVariant[]
+  return data as unknown as PickListItemWithVariant[]
 }
 
 export async function addPickListItem(input: {
@@ -85,13 +86,13 @@ export async function addPickListItem(input: {
   quantity_planned: number
   notes?: string
 }): Promise<PickListItem> {
-  const { data, error } = await supabase
+  const addResult = await supabase
     .from('pick_list_items')
     .insert(input)
     .select()
     .single()
-  if (error) throw new Error(error.message)
-  return data as PickListItem
+  if (addResult.error) throw new Error(addResult.error.message)
+  return addResult.data as unknown as PickListItem
 }
 
 export async function updatePickListItem(

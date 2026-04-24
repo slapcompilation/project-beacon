@@ -1,4 +1,6 @@
 // Layer: Eye — TanStack Query hooks for Eye Layer intelligence
+export { useCopilotChat } from './useCopilotChat'
+export type { ChatMessage, ToolTraceEntry, ActionProposal } from './useCopilotChat'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { addDays } from 'date-fns'
@@ -16,6 +18,8 @@ import {
   fetchActiveIncidents,
   fetchStocktakeSessions, fetchStocktakeVariance,
   fetchSupplierReliability,
+  fetchOccupancyAdjustedForecast,
+  fetchProposalQualitySummary,
 } from '../api'
 import type { InventoryIntelligenceRow } from '../api'
 import type { ConsumptionForecastRow, ProductWithVariants, ProductVariant, Supplier, SimulationScenarioType } from '@beacon/types'
@@ -83,7 +87,7 @@ export function computePredictiveRestocks(
       orderDeadlineDays <= 0 ? 'critical' :
       orderDeadlineDays <= 3 ? 'warning'  : 'watch'
 
-    const avgDaily = Number(row.avg_daily)
+    const avgDaily = row.avg_daily
     const parLevel = meta.parLevel
     const recommendedQty = parLevel > 0
       ? Math.max(Math.ceil(parLevel - row.current_stock + avgDaily * leadTimeDays), parLevel)
@@ -253,8 +257,8 @@ export function usePMSHealth() {
     queryKey: ['eye', 'pms-health', hotelId],
     queryFn: fetchPMSHealth,
     enabled: !!hotelId,
-    staleTime: 2 * 60 * 1000,   // 2 min — health status should be fresh
-    refetchInterval: 5 * 60 * 1000, // poll every 5 min for live indicator
+    staleTime: 5 * 60 * 1000,        // match refetch interval to avoid stale-window double-fetches
+    refetchInterval: 5 * 60 * 1000,  // poll every 5 min for live indicator
   })
 }
 
@@ -298,7 +302,7 @@ export function useVariantIntelligence(variantId: string | null) {
   const hotelId = useActiveHotelId()
   return useQuery({
     queryKey: ['eye', 'variant-intelligence', hotelId, variantId],
-    queryFn:  () => fetchVariantIntelligence(variantId!),
+    queryFn:  () => fetchVariantIntelligence(variantId ?? ''),
     enabled:  !!hotelId && !!variantId,
     staleTime: 2 * 60 * 1000,
   })
@@ -320,7 +324,7 @@ export function useAnomalyExplanation(
   return useQuery({
     queryKey:  ['eye', 'anomaly-explanation', hotelId, variantId, anomalyType],
     queryFn:   async () => {
-      const result = await fetchAnomalyExplanation(variantId!, anomalyType)
+      const result = await fetchAnomalyExplanation(variantId ?? '', anomalyType)
       // Fire-and-forget usage log — does not affect the return value
       if (result && variantId) {
         void logCausalTrace('variant', variantId)
@@ -345,7 +349,7 @@ export function useCausalTrace(
   const hotelId = useActiveHotelId()
   return useQuery({
     queryKey:  ['eye', 'causal-trace', hotelId, rootType, rootId],
-    queryFn:   () => fetchCausalTrace(rootType, rootId!, 8),
+    queryFn:   () => fetchCausalTrace(rootType, rootId ?? '', 8),
     enabled:   !!hotelId && !!rootId && enabled,
     staleTime: 5 * 60 * 1000,
     retry:     1,
@@ -436,7 +440,7 @@ export function useStocktakeVariance(sessionId: string | null) {
   const hotelId = useActiveHotelId()
   return useQuery({
     queryKey: ['eye', 'stocktake-variance', hotelId, sessionId],
-    queryFn:  () => fetchStocktakeVariance(sessionId!),
+    queryFn:  () => fetchStocktakeVariance(sessionId ?? ''),
     enabled:  !!hotelId && !!sessionId,
     staleTime: 5 * 60 * 1000,
   })
@@ -464,6 +468,32 @@ export function useActiveIncidents(windowDays = 7) {
     queryFn:  () => fetchActiveIncidents(windowDays),
     enabled:  !!hotelId,
     staleTime: 2 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+// ─── Occupancy-Adjusted Forecast (Phase C) ───────────────────────────────────
+
+export function useOccupancyAdjustedForecast(forecastDays = 14, lookbackDays = 30) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['eye', 'occupancy-forecast', hotelId, forecastDays, lookbackDays],
+    queryFn: () => fetchOccupancyAdjustedForecast(forecastDays, lookbackDays),
+    enabled: !!hotelId,
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+// ─── Proposal Quality Summary (Phase D — Feedback Flywheel) ─────────────────
+
+export function useProposalQualitySummary(days = 90) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['eye', 'proposal-quality', hotelId, days],
+    queryFn: () => fetchProposalQualitySummary(days),
+    enabled: !!hotelId,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
   })
 }

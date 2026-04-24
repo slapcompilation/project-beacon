@@ -3,10 +3,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
+import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchProcurementInsights, fetchChainBenchmarks, fetchChainOverview, fetchChainHealthTrend, fetchWasteCost, fetchCostVarianceReport,
-  createPurchaseOrder, updatePOStatus, fetchPOSummary, fetchPOLines, fetchPOInvoices,
-  submitPOInvoice, updateInvoiceStatus,
+  updatePOStatus, fetchPOSummary, fetchPOLines, fetchPOInvoices,
+  updateInvoiceStatus,
   fetchSupplierSynthesis,
   fetchPriceDrift, fetchSpendConcentration, fetchSupplierExpiryRates,
   fetchPriceVarianceBySupplier, fetchSpendForecast,
@@ -158,8 +160,17 @@ export function usePOInvoices(poId: string | null) {
 export function useCreatePO() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: (input: CreatePOInput) => createPurchaseOrder(input),
+    mutationFn: async (input: CreatePOInput) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'CREATE_PO', hotelId, ...input },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: mindKeys.poSummary(hotelId ?? '') })
       toast.success('Purchase order saved')
@@ -184,11 +195,20 @@ export function useUpdatePOStatus() {
 export function useSubmitPOInvoice() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: ({ poId, invoiceNumber, invoiceDate, invoiceAmount, notes }: {
+    mutationFn: async ({ poId, invoiceNumber, invoiceDate, invoiceAmount, notes }: {
       poId: string; invoiceNumber: string; invoiceDate: string; invoiceAmount: number; notes?: string | null
-    }) => submitPOInvoice(poId, invoiceNumber, invoiceDate, invoiceAmount, notes),
-    onSuccess: (_id, vars) => {
+    }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'SUBMIT_PO_INVOICE', poId, hotelId, invoiceNumber, invoiceDate, invoiceAmount, notes },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
+    onSuccess: (_res, vars) => {
       void queryClient.invalidateQueries({ queryKey: mindKeys.poSummary(hotelId ?? '') })
       void queryClient.invalidateQueries({ queryKey: mindKeys.poInvoices(vars.poId) })
       toast.success('Invoice submitted')
@@ -263,7 +283,7 @@ export function useUpdateInvoiceStatus() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
   return useMutation({
-    mutationFn: ({ invoiceId, status, poId: _poId, notes }: { invoiceId: string; status: POInvoice['status']; poId: string; notes?: string | null }) =>
+    mutationFn: ({ invoiceId, status, notes }: { invoiceId: string; status: POInvoice['status']; poId: string; notes?: string | null }) =>
       updateInvoiceStatus(invoiceId, status, notes),
     onSuccess: (_data, vars) => {
       void queryClient.invalidateQueries({ queryKey: mindKeys.poSummary(hotelId ?? '') })

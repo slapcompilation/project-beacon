@@ -16,7 +16,8 @@ export async function recordPendingScan(
     p_notes:           notes ?? null,
   }) as unknown as { data: string | null; error: { message: string } | null }
   if (result.error) throw new Error(result.error.message)
-  return result.data!
+  if (!result.data) throw new Error('No data returned from record_pending_scan')
+  return result.data
 }
 
 export async function fetchPendingScans(): Promise<PendingScan[]> {

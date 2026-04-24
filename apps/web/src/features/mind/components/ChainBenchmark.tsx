@@ -43,7 +43,7 @@ export function ChainBenchmark() {
 
       <div className="space-y-3">
         {rows.map((row) => {
-          const wasteRatePct  = Math.round((row.waste_rate ?? 0) * 100)
+          const wasteRatePct  = Math.round(row.waste_rate * 100)
           const barPct        = (row.total_wasted / maxWasted) * 100
           const isWorst       = row.hotel_id === rows[0]?.hotel_id && rows.length > 1
           const fillRate      = row.avg_fill_rate

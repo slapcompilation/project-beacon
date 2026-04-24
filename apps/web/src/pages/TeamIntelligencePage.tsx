@@ -340,7 +340,7 @@ export default function TeamIntelligencePage() {
             <button
               key={days}
               type="button"
-              onClick={() => { setWindowDays(days as 7 | 30 | 90) }}
+              onClick={() => { setWindowDays(days) }}
               className={cn(
                 'px-3 py-1 text-xs font-medium rounded-md transition-colors',
                 windowDays === days

@@ -54,7 +54,7 @@ export function useNodeEdges(nodeType: NodeType, nodeId: string | null) {
 
   const query = useQuery({
     queryKey:  ['node-edges', nodeType, nodeId, hotelId],
-    queryFn:   () => fetchNodeEdges(nodeType, nodeId!, hotelId!),
+    queryFn:   () => fetchNodeEdges(nodeType, nodeId ?? '', hotelId ?? ''),
     enabled:   !!nodeId && !!hotelId,
     staleTime: 30_000,
   })
@@ -63,7 +63,7 @@ export function useNodeEdges(nodeType: NodeType, nodeId: string | null) {
   useEffect(() => {
     if (!hotelId) return
     const channel = supabase
-      .channel(`edges:${nodeType}:${nodeId}`)
+      .channel(`edges:${nodeType}:${nodeId ?? ''}`)
       .on(
         'postgres_changes',
         {

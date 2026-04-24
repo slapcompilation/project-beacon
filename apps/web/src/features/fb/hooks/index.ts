@@ -109,7 +109,7 @@ export function usePOSHealth() {
     queryKey:       fbKeys.posHealth(hotelId ?? ''),
     queryFn:        fetchPOSHealth,
     enabled:        !!hotelId,
-    staleTime:      2 * 60 * 1000,
+    staleTime:       5 * 60 * 1000,  // match refetch interval to avoid stale-window double-fetches
     refetchInterval: 5 * 60 * 1000,
   })
 }

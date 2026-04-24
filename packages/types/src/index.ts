@@ -57,6 +57,12 @@ export interface Hotel {
   manager_approval_threshold: number
   director_approval_threshold: number
   escalation_timeout_hours: number
+  /** Restock requests with estimated_cost at or below this value auto-approve. 0 = disabled. */
+  auto_approve_threshold: number
+  /** When true, system auto-generates draft POs when 3+ approved restocks exist for the same supplier. */
+  auto_po_enabled: boolean
+  /** Invoices with discrepancy_pct at or below this value auto-approve. Default 2%. */
+  auto_invoice_tolerance_pct: number
 }
 
 export interface User {
@@ -90,6 +96,8 @@ export interface Category {
   parent_id: string | null
   order: number
   require_photo_for_removal_over: number | null
+  /** Occupancy demand elasticity 0.0–1.0. 1.0 = demand scales linearly with occupancy. */
+  occupancy_sensitivity: number
 }
 
 export type CustomFieldType = 'text' | 'number' | 'date' | 'boolean'
@@ -324,6 +332,12 @@ export interface Supplier {
   notes: string | null
   /** Average delivery lead time in calendar days. Used for gap analysis. */
   lead_time_days: number | null
+  /** Standard deviation of lead time in days. Used for safety stock sigma. */
+  lead_time_stddev: number | null
+  /** When learn_supplier_lead_times() last computed this supplier's lead time. */
+  lead_time_computed_at: string | null
+  /** How lead_time_days was determined. 'manual' entries are never auto-overwritten. */
+  lead_time_source: 'manual' | 'po_history' | 'delivery_history'
   created_at: string
 }
 
@@ -344,7 +358,7 @@ export interface Notification {
   hotel_id: string
   user_id: string
   message: string
-  type: 'low_stock' | 'expiry' | 'approval' | 'system' | 'predicted_outage' | 'waste_alert' | 'consumption_spike' | 'price_drift' | 'pos_variance' | 'po_discrepancy'
+  type: 'low_stock' | 'expiry' | 'approval' | 'system' | 'predicted_outage' | 'waste_alert' | 'consumption_spike' | 'price_drift' | 'pos_variance' | 'po_discrepancy' | 'contract_expiry'
   timestamp: string
   read: boolean
   /** Operator feedback on why this was dismissed. Forms the intelligence feedback loop. */
@@ -1535,6 +1549,8 @@ export interface SmartProposalRow {
   proposed_qty:            number
   unit_cost:               number
   estimated_cost:          number
+  /** Active contracted price for preferred supplier, null if no contract. */
+  contracted_price:        number | null
   // Assessment
   signal_type:             'critical' | 'warning' | 'watch'
   urgency_score:           number   // 0–1

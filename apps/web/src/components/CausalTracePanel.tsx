@@ -180,7 +180,7 @@ export function CausalTracePanel({
             <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
               <AlertCircle className="h-6 w-6 text-destructive" />
               <p className="text-sm text-destructive">Failed to load trace</p>
-              <p className="text-xs text-muted-foreground">{(error as Error).message}</p>
+              <p className="text-xs text-muted-foreground">{(error).message}</p>
             </div>
           ) : ordered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
@@ -195,7 +195,7 @@ export function CausalTracePanel({
             <div>
               {ordered.map((step, i) => (
                 <TraceStep
-                  key={`${step.step}-${step.node_id}`}
+                  key={`${String(step.step)}-${step.node_id}`}
                   step={step}
                   isLast={i === ordered.length - 1}
                 />

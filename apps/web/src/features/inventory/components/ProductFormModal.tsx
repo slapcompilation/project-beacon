@@ -111,7 +111,8 @@ export function ProductFormModal({ open, onClose, product }: Props) {
       const h = Math.round(img.height * scale)
       const canvas = document.createElement('canvas')
       canvas.width = MAX; canvas.height = MAX
-      const ctx = canvas.getContext('2d')!
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
       ctx.fillStyle = '#ffffff'
       ctx.fillRect(0, 0, MAX, MAX)
       ctx.drawImage(img, (MAX - w) / 2, (MAX - h) / 2, w, h)
@@ -291,7 +292,7 @@ export function ProductFormModal({ open, onClose, product }: Props) {
                     e.preventDefault()
                     addTag(tagInput)
                   } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-                    removeTag(tags[tags.length - 1]!)
+                    removeTag(tags[tags.length - 1])
                   }
                 }}
                 onBlur={() => { if (tagInput) addTag(tagInput) }}

@@ -22,6 +22,7 @@ export async function fetchRestockRequests(hotelId: string): Promise<RestockRequ
     .select('*, product_variants(name, sku, cost, products(name)), purchase_order_lines(unit_cost)')
     .eq('hotel_id', hotelId)
     .order('date', { ascending: false })
+    .limit(300)
 
   if (error) throw new Error(error.message)
   return data as RestockRequestRow[]

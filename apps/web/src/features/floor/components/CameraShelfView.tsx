@@ -27,10 +27,10 @@ interface CameraShelfViewProps {
  */
 function DetectedItemOverlay({ item }: { item: ARDetectedItem }) {
   const style = {
-    left:   `${item.boundingBox.x * 100}%`,
-    top:    `${item.boundingBox.y * 100}%`,
-    width:  `${item.boundingBox.width * 100}%`,
-    height: `${item.boundingBox.height * 100}%`,
+    left:   `${String(item.boundingBox.x * 100)}%`,
+    top:    `${String(item.boundingBox.y * 100)}%`,
+    width:  `${String(item.boundingBox.width * 100)}%`,
+    height: `${String(item.boundingBox.height * 100)}%`,
   }
   return (
     <div

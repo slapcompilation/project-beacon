@@ -214,7 +214,7 @@ function SupplierCard({
           <button
             type="button"
             className="h-6 w-6 flex items-center justify-center text-muted-foreground hover:text-foreground"
-            onClick={() => setExpanded((p) => !p)}
+            onClick={() => { setExpanded((p) => !p); }}
           >
             {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
@@ -387,7 +387,7 @@ export default function SupplierReliabilityPage() {
               <button
                 key={d}
                 type="button"
-                onClick={() => setWindowDays(d)}
+                onClick={() => { setWindowDays(d); }}
                 className={cn(
                   'px-3 py-1.5 text-xs rounded border font-medium transition-colors',
                   windowDays === d
@@ -409,7 +409,7 @@ export default function SupplierReliabilityPage() {
           <button
             key={t}
             type="button"
-            onClick={() => setTierFilter(t)}
+            onClick={() => { setTierFilter(t); }}
             className={cn(
               'px-3 py-1 text-xs rounded border capitalize transition-colors',
               tierFilter === t
@@ -417,7 +417,7 @@ export default function SupplierReliabilityPage() {
                 : 'border-border text-muted-foreground hover:text-foreground',
             )}
           >
-            {t === 'all' ? 'All' : t === 'low' ? 'Reliable' : TIER[t as 'critical' | 'high' | 'medium'].label}
+            {t === 'all' ? 'All' : t === 'low' ? 'Reliable' : TIER[t].label}
           </button>
         ))}
         <span className="ml-auto text-xs text-muted-foreground">

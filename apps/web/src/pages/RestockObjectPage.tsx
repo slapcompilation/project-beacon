@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectActions } from '@/components/ObjectActions'
 import { hasPermission } from '@beacon/types'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -593,6 +594,16 @@ export default function RestockObjectPage() {
           <p>Request ID: <span className="font-mono">{req.id.slice(0, 8)}…</span></p>
           <p>Created {format(parseISO(req.created_at), 'MMM d, yyyy HH:mm')}</p>
           {req.escalation_count > 0 && <p>Escalated {req.escalation_count}× · last {req.last_escalated_at ? formatDistanceToNow(parseISO(req.last_escalated_at), { addSuffix: true }) : '—'}</p>}
+        </div>
+
+        {/* ── Inline actions ── */}
+        <div className="rounded-lg border border-border bg-card p-4">
+          <ObjectActions
+            nodeType="restock_request"
+            requestId={req.id}
+            variantId={req.variant_id}
+            status={req.status}
+          />
         </div>
 
         {/* ── Graph connections ── */}

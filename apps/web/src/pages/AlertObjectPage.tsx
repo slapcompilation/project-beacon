@@ -56,6 +56,7 @@ const ALERT_META: Record<AlertType, { label: string; icon: React.ElementType; cl
   price_drift:        { label: 'Price Drift',          icon: FileText,    cls: 'bg-purple-500/10 text-purple-500 border-purple-500/30', dot: 'bg-purple-500' },
   pos_variance:       { label: 'POS Variance',         icon: FileText,    cls: 'bg-purple-500/10 text-purple-500 border-purple-500/30', dot: 'bg-purple-500' },
   po_discrepancy:     { label: 'PO Discrepancy',       icon: Truck,       cls: 'bg-red-500/10 text-red-500 border-red-500/30',         dot: 'bg-red-500' },
+  contract_expiry:    { label: 'Contract Expiring',    icon: FileText,    cls: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/30', dot: 'bg-indigo-500' },
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
@@ -66,7 +67,7 @@ export default function AlertObjectPage() {
 
   const { data: alert, isLoading, error } = useQuery({
     queryKey:  ['alert-object', alertId],
-    queryFn:   () => fetchAlert(alertId!),
+    queryFn:   () => fetchAlert(alertId ?? ''),
     enabled:   !!alertId,
     staleTime: 60_000,
   })
@@ -84,7 +85,7 @@ export default function AlertObjectPage() {
       <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
         <AlertTriangle className="h-8 w-8 text-red-500/60" />
         <p className="text-sm">Alert not found or access denied.</p>
-        <button type="button" onClick={() => { navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
+        <button type="button" onClick={() => { void navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
       </div>
     )
   }

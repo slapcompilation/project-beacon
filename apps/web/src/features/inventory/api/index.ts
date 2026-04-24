@@ -475,6 +475,8 @@ export async function setVariantStock(
 export interface BulkUpdateItem {
   sku: string
   current_stock?: number
+  /** Relative stock adjustment (positive = add, negative = subtract). Mutually exclusive with current_stock. */
+  stock_delta?: number
   cost?: number
   description?: string
 }
@@ -489,53 +491,57 @@ export async function bulkUpdateBySku(
   hotelId: string,
   items: BulkUpdateItem[]
 ): Promise<BulkUpdateResult[]> {
-  const results: BulkUpdateResult[] = []
-
-  for (const item of items) {
-    try {
-      // Look up variant by SKU within this hotel
-      const { data: variant, error: lookupErr } = (await supabase
-        .from('product_variants')
-        .select('id, current_stock, products!inner(id, hotel_id)')
-        .eq('sku', item.sku)
-        .eq('products.hotel_id', hotelId)
-        .eq('enabled', true)
-        .maybeSingle()) as unknown as {
-          data: { id: string; current_stock: number; products: { id: string; hotel_id: string } } | null
-          error: { message: string } | null
-        }
-
-      if (lookupErr) throw new Error(lookupErr.message)
-      if (!variant) { results.push({ sku: item.sku, status: 'not_found' }); continue }
-
-      // Update stock via RPC if new stock value provided
-      if (item.current_stock != null) {
-        await setVariantStock(variant.id, item.current_stock, 'Bulk import cycle count')
-      }
-
-      // Update cost on variant if provided
-      if (item.cost != null) {
-        const { error: varErr } = await supabase
-          .from('product_variants')
-          .update({ cost: item.cost })
-          .eq('id', variant.id)
-        if (varErr) throw new Error(varErr.message)
-      }
-
-      // Update description on product if provided
-      if (item.description != null) {
-        const { error: pErr } = await supabase
-          .from('products')
-          .update({ description: item.description })
-          .eq('id', variant.products.id)
-        if (pErr) throw new Error(pErr.message)
-      }
-
-      results.push({ sku: item.sku, status: 'updated' })
-    } catch (e) {
-      results.push({ sku: item.sku, status: 'error', message: e instanceof Error ? e.message : 'Unknown error' })
+  // ── Step 1: batch-lookup all SKUs in a single query ──────────────────────
+  const allSkus = items.map((i) => i.sku)
+  const { data: variants, error: lookupErr } = (await supabase
+    .from('product_variants')
+    .select('id, sku, current_stock, products!inner(id, hotel_id)')
+    .in('sku', allSkus)
+    .eq('products.hotel_id', hotelId)
+    .eq('enabled', true)) as unknown as {
+      data: Array<{ id: string; sku: string; current_stock: number; products: { id: string; hotel_id: string } }> | null
+      error: { message: string } | null
     }
-  }
+
+  if (lookupErr) throw new Error(lookupErr.message)
+
+  const variantBySku = new Map((variants ?? []).map((v) => [v.sku, v]))
+
+  // ── Step 2: process updates concurrently per item ────────────────────────
+  const results = await Promise.all(items.map(async (item): Promise<BulkUpdateResult> => {
+    try {
+      const variant = variantBySku.get(item.sku)
+      if (!variant) return { sku: item.sku, status: 'not_found' }
+
+      // Fire stock, cost, and description updates concurrently per item
+      const ops: Promise<void>[] = []
+
+      if (item.stock_delta != null) {
+        ops.push(Promise.resolve(supabase.rpc('adjust_stock', {
+          p_variant_id: variant.id,
+          p_delta: item.stock_delta,
+          p_reason: 'Smart import adjustment',
+          p_photo_url: null,
+          p_removal_category: null,
+        })).then(({ error }) => { if (error) throw new Error(error.message) }))
+      } else if (item.current_stock != null) {
+        ops.push(setVariantStock(variant.id, item.current_stock, 'Bulk import cycle count').then(() => {}))
+      }
+      if (item.cost != null) {
+        ops.push(Promise.resolve(supabase.from('product_variants').update({ cost: item.cost }).eq('id', variant.id))
+          .then(({ error }) => { if (error) throw new Error(error.message) }))
+      }
+      if (item.description != null) {
+        ops.push(Promise.resolve(supabase.from('products').update({ description: item.description }).eq('id', variant.products.id))
+          .then(({ error }) => { if (error) throw new Error(error.message) }))
+      }
+
+      await Promise.all(ops)
+      return { sku: item.sku, status: 'updated' }
+    } catch (e) {
+      return { sku: item.sku, status: 'error', message: e instanceof Error ? e.message : 'Unknown error' }
+    }
+  }))
 
   return results
 }

@@ -32,36 +32,48 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
 
+    /* Surface hierarchy (light mode — subtle gray steps) */
+    --surface-0: 210 17% 98%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 0 0% 100%;
+    --surface-3: 210 40% 96.1%;
+
     /* Ring matches primary for consistent focus indicators */
     --ring: 243 75% 59%;
-    --radius: 0.5rem;
+    --radius: 0.375rem;
   }
 
   .dark {
-    --background: 222 47% 4%;
-    --foreground: 210 40% 98%;
+    /* Palantir-deep navy — nearly black with a cold blue undertone */
+    --background: 225 35% 3.5%;
+    --foreground: 210 40% 93%;
 
-    /* Card is lighter than background — gives cards visual separation in dark mode */
-    --card: 220 39% 7%;
-    --card-foreground: 210 40% 98%;
-    --popover: 220 39% 7%;
-    --popover-foreground: 210 40% 98%;
+    /* Layered surface hierarchy for panel depth */
+    --surface-0: 225 35% 3.5%;   /* deepest — page bg */
+    --surface-1: 224 32% 6%;     /* cards, panels */
+    --surface-2: 223 28% 9%;     /* raised: popovers, modals, hover rows */
+    --surface-3: 222 24% 12%;    /* active / selected rows */
 
-    /* Lighter indigo for dark mode — maintains contrast on dark surfaces */
-    --primary: 246 84% 72%;
+    --card: 224 32% 6%;
+    --card-foreground: 210 40% 93%;
+    --popover: 223 28% 9%;
+    --popover-foreground: 210 40% 93%;
+
+    /* Bright indigo primary — Palantir-style accent */
+    --primary: 246 84% 68%;
     --primary-foreground: 224 71% 4%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --secondary: 223 28% 12%;
+    --secondary-foreground: 210 40% 93%;
+    --muted: 223 28% 10%;
+    --muted-foreground: 215 18% 55%;
+    --accent: 223 28% 12%;
+    --accent-foreground: 210 40% 93%;
+    --destructive: 0 70% 42%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 246 84% 72%;
+    --border: 223 22% 13%;
+    --input: 223 22% 13%;
+    --ring: 246 84% 68%;
   }
 }
 
@@ -72,6 +84,32 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+}
+
+/* ── Operator-grade density ────────────────────────────────────────────────── */
+/* Palantir-style: sharper corners, no card shadows in dark mode.             */
+/* Font size stays at browser default (16px) — components control their own   */
+/* density via text-xs / text-sm classes. Global font-size overrides break    */
+/* rem-based sizing in shadcn/ui.                                             */
+
+@layer base {
+  .dark .card, .dark [data-slot="card"] {
+    @apply shadow-none;
+  }
+}
+
+/* ── Standard page spacing ─────────────────────────────────────────────────── */
+/* Use these on page-level containers for consistent insets across all pages.  */
+
+@layer utilities {
+  /* Page header: the thin bar at the top of every page */
+  .page-header {
+    @apply flex items-center gap-3 border-b border-border px-5 py-3 bg-surface-1 flex-shrink-0;
+  }
+  /* Page body: scrollable content area below the header */
+  .page-body {
+    @apply flex-1 overflow-y-auto px-5 py-4;
   }
 }
 

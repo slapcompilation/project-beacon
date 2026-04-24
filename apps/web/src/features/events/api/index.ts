@@ -34,30 +34,34 @@ export async function fetchEvents(hotelId: string): Promise<HotelEvent[]> {
     .order('event_date', { ascending: true })
 
   if (error) throw new Error(error.message)
-  return (data ?? []) as HotelEvent[]
+  return data as HotelEvent[]
 }
 
 export async function createEvent(hotelId: string, input: EventInput): Promise<HotelEvent> {
-  const { data, error } = await supabase
+  const result = await supabase
     .from('events')
     .insert({ hotel_id: hotelId, ...input })
     .select()
     .single()
+  const { error } = result
+  const data = result.data as unknown as HotelEvent
 
   if (error) throw new Error(error.message)
-  return data as HotelEvent
+  return data
 }
 
 export async function updateEvent(id: string, input: Partial<EventInput>): Promise<HotelEvent> {
-  const { data, error } = await supabase
+  const result = await supabase
     .from('events')
     .update(input)
     .eq('id', id)
     .select()
     .single()
+  const { error } = result
+  const data = result.data as unknown as HotelEvent
 
   if (error) throw new Error(error.message)
-  return data as HotelEvent
+  return data
 }
 
 export async function deleteEvent(id: string): Promise<void> {

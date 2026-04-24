@@ -253,7 +253,7 @@ export function CausalChainPanel({
                 </p>
                 <div className="pt-1">
                   {trace.map((step, i) => (
-                    <TraceStep key={`${step.node_id}-${i}`} step={step} isLast={i === trace.length - 1} />
+                    <TraceStep key={`${step.node_id}-${String(i)}`} step={step} isLast={i === trace.length - 1} />
                   ))}
                 </div>
               </div>

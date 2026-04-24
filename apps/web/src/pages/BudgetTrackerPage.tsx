@@ -192,15 +192,15 @@ function CategoryBudgetRow({
           <div className="h-2 rounded-full bg-muted overflow-hidden">
             <div
               className={cn('h-full rounded-full transition-all', meta.bar)}
-              style={{ width: `${Math.min(barWidth, 100)}%` }}
+              style={{ width: `${String(Math.min(barWidth, 100))}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-[10px] text-muted-foreground">
             <span className="tabular-nums">
               {row.spend_pct?.toFixed(0)}% of budget used
-              {isCurrentMonth && daysLeft > 0 && ` · ${daysLeft} days left`}
+              {isCurrentMonth && daysLeft > 0 && ` · ${String(daysLeft)} days left`}
             </span>
-            {projected !== null && row.allocated_amount !== null && projected > row.allocated_amount && (
+            {projected !== null && projected > row.allocated_amount && (
               <span className="text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
                 <TrendingUp className="h-3 w-3" />
                 Proj. {fmt(projected, currency)} at current rate
@@ -382,7 +382,7 @@ function MonthPicker({
     <div className="flex items-center gap-1 rounded-md border p-0.5">
       {months.map((opt) => (
         <button
-          key={`${opt.y}-${opt.m}`}
+          key={`${String(opt.y)}-${String(opt.m)}`}
           type="button"
           onClick={() => { onChange(opt.y, opt.m) }}
           className={cn(

@@ -358,7 +358,7 @@ export default function ShiftHandoverPage() {
               <button
                 key={w.hours}
                 type="button"
-                onClick={() => { setWindowHours(w.hours as 4 | 8 | 12 | 24) }}
+                onClick={() => { setWindowHours(w.hours) }}
                 className={cn(
                   'rounded px-2.5 py-1 text-xs font-medium transition-colors',
                   windowHours === w.hours

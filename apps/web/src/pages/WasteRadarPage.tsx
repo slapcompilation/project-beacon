@@ -197,7 +197,7 @@ function RadarRow({
             variant="outline"
             className="h-7 text-xs gap-1.5 px-2.5"
             onClick={() => {
-              navigate('/flow?panel=timeline', {
+              void navigate('/flow?panel=timeline', {
                 state: { focusVariantId: row.variant_id, focusLabel: row.variant_label },
               })
             }}

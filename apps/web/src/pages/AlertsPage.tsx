@@ -216,7 +216,7 @@ function AlertCard({
             size="sm"
             variant="ghost"
             className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
-            onClick={() => { onTrace(item._notifId!, item.title) }}
+            onClick={() => { if (item._notifId) onTrace(item._notifId, item.title) }}
             title="Explain why this happened"
           >
             Why?
@@ -708,7 +708,7 @@ export default function AlertsPage() {
     })
   }, [
     expiring, products, notifications, forecastMap, wasteRadarIds,
-    navigate, handleWriteOff, handleRestock, handleDismiss,
+    navigate, handleWriteOff, handleRestock, handleDismiss, fmtDate,
   ])
 
   // Band counts for filter tabs

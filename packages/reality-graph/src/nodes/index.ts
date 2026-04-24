@@ -35,6 +35,7 @@ export {
   riskLevel,
   riskLevelFromRow,
   leadTimeLabel,
+  leadTimeSourceLabel,
   daysUntilContractExpiry,
   hasContractExpiringSoon,
   onTimePctLabel,

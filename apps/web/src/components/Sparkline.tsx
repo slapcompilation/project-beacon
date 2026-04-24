@@ -20,7 +20,7 @@ export function Sparkline({ data, color = '#3b82f6', height = 32, width = 120 }:
     .map((v, i) => {
       const x = pad + (i / (data.length - 1)) * w
       const y = pad + h - ((v - min) / range) * h
-      return `${x},${y}`
+      return `${String(x)},${String(y)}`
     })
     .join(' ')
 

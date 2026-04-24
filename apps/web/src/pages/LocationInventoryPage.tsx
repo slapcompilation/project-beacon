@@ -352,8 +352,8 @@ export default function LocationInventoryPage() {
       <div className="flex items-center gap-2 px-6 py-3 border-b shrink-0">
         {(
           [
-            { id: 'all'    as Filter, label: `All locations (${rows.length} variants)` },
-            { id: 'issues' as Filter, label: `Issues only (${issueCount})`, warn: issueCount > 0 },
+            { id: 'all'    as Filter, label: `All locations (${String(rows.length)} variants)` },
+            { id: 'issues' as Filter, label: `Issues only (${String(issueCount)})`, warn: issueCount > 0 },
           ]
         ).map((f) => (
           <button

@@ -1,21 +1,23 @@
 // Layer: Flow — Consolidated operational movement workspace
 // Two groups:
-//   Movement — Timeline (immutable ledger) · Receive · Deliveries
+//   Movement — Dashboard · Timeline (immutable ledger) · Receive · Deliveries
 //   Queue    — Approvals (restock) · Pick Lists · Handover
-// Analytical tools (Causal Chain, Graph, Stocktake analysis) remain as utility
-// routes accessible from within object pages and the causal chain deeplinks.
 
+import { lazy, Suspense } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { cn } from '@/lib/utils'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import FlowTimelinePage from './FlowTimelinePage'
-import ReceivePage from './ReceivePage'
-import RestockPage from './RestockPage'
-import DeliveryQueuePage from './DeliveryQueuePage'
-import ShiftHandoverPage from './ShiftHandoverPage'
-import PickListsPage from './PickListsPage'
+import { WorkspaceTabs, PanelLoader } from '@/components/WorkspaceTabs'
+
+const FlowDashboardPage = lazy(() => import('./FlowDashboardPage'))
+const FlowTimelinePage  = lazy(() => import('./FlowTimelinePage'))
+const ReceivePage       = lazy(() => import('./ReceivePage'))
+const DeliveryQueuePage = lazy(() => import('./DeliveryQueuePage'))
+const RestockPage       = lazy(() => import('./RestockPage'))
+const PickListsPage     = lazy(() => import('./PickListsPage'))
+const ShiftHandoverPage = lazy(() => import('./ShiftHandoverPage'))
 
 const TABS = [
+  { id: 'dashboard',  label: 'Dashboard'  },
   { id: 'timeline',   label: 'Timeline'   },
   { id: 'receive',    label: 'Receive'    },
   { id: 'deliveries', label: 'Deliveries' },
@@ -26,70 +28,37 @@ const TABS = [
 
 type TabId = typeof TABS[number]['id']
 
-const GROUPS: { id: string; label: string; tabs: TabId[] }[] = [
-  { id: 'movement', label: 'Movement', tabs: ['timeline', 'receive', 'deliveries'] },
-  { id: 'queue',    label: 'Queue',    tabs: ['approvals', 'picklists', 'handover'] },
+const GROUPS = [
+  { id: 'movement', label: 'Movement', tabs: ['dashboard', 'timeline', 'receive', 'deliveries'] as TabId[] },
+  { id: 'queue',    label: 'Queue',    tabs: ['approvals', 'picklists', 'handover']              as TabId[] },
 ]
 
 export default function FlowWorkspace() {
   const [params, setParams] = useSearchParams()
-  const raw = params.get('panel') ?? 'timeline'
-  const panel: TabId = TABS.some((t) => t.id === raw) ? raw as TabId : 'timeline'
-
-  const activeGroup = GROUPS.find((g) => g.tabs.includes(panel)) ?? GROUPS[0]
+  const raw   = params.get('panel') ?? 'dashboard'
+  const panel = (TABS.some((t) => t.id === raw) ? raw : 'dashboard') as TabId
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Group selector */}
-      <div className="flex items-center gap-1 px-3 py-2 border-b shrink-0 bg-background">
-        {GROUPS.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            onClick={() => { setParams({ panel: g.tabs[0] }, { replace: true }) }}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium transition-colors',
-              g.id === activeGroup.id
-                ? 'bg-primary/10 text-primary border border-primary/30'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-            )}
-          >
-            {g.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Sub-tabs */}
-      <div className="flex border-b shrink-0 bg-background">
-        {activeGroup.tabs.map((tabId) => {
-          const tab = TABS.find((t) => t.id === tabId)!
-          return (
-            <button
-              key={tabId}
-              type="button"
-              onClick={() => { setParams({ panel: tabId }, { replace: true }) }}
-              className={cn(
-                'px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
-                panel === tabId
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
-      </div>
+      <WorkspaceTabs
+        tabs={TABS}
+        groups={GROUPS}
+        activePanel={panel}
+        onPanelChange={(p) => { setParams({ panel: p }, { replace: true }) }}
+      />
 
       <PanelErrorBoundary name={`Flow · ${panel}`}>
-        <div className="flex-1 overflow-hidden">
-          {panel === 'timeline'   && <FlowTimelinePage />}
-          {panel === 'receive'    && <ReceivePage />}
-          {panel === 'deliveries' && <DeliveryQueuePage />}
-          {panel === 'approvals'  && <RestockPage />}
-          {panel === 'picklists'  && <PickListsPage />}
-          {panel === 'handover'   && <ShiftHandoverPage />}
-        </div>
+        <Suspense fallback={<PanelLoader />}>
+          <div className="flex-1 overflow-hidden">
+            {panel === 'dashboard'  && <FlowDashboardPage />}
+            {panel === 'timeline'   && <FlowTimelinePage />}
+            {panel === 'receive'    && <ReceivePage />}
+            {panel === 'deliveries' && <DeliveryQueuePage />}
+            {panel === 'approvals'  && <RestockPage />}
+            {panel === 'picklists'  && <PickListsPage />}
+            {panel === 'handover'   && <ShiftHandoverPage />}
+          </div>
+        </Suspense>
       </PanelErrorBoundary>
     </div>
   )

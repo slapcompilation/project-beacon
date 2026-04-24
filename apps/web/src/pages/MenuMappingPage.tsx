@@ -23,7 +23,7 @@ function POSHealthBadge({ rows }: { rows: POSHealthRow[] }) {
 
   const order = { connected: 0, warning: 1, disconnected: 2, never_connected: 3 } as const
   const worst = rows.reduce((acc, r) =>
-    (order[r.status] ?? 0) > (order[acc.status] ?? 0) ? r : acc
+    order[r.status] > order[acc.status] ? r : acc
   )
 
   const CFG = {

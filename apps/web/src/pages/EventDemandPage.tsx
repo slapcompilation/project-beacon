@@ -26,8 +26,9 @@ import {
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/features/events/hooks'
-import { useConsumptionForecast } from '@/features/eye/hooks'
+import { useOccupancyAdjustedForecast } from '@/features/eye/hooks'
 import { useProducts } from '@/features/inventory/hooks'
+import { useCreateRestockRequest } from '@/features/restock/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
 import type { HotelEvent, EventInput } from '@/features/events/api'
 
@@ -161,7 +162,7 @@ function EventForm({ initial, onSave, onCancel, saving }: EventFormProps) {
             className="h-9"
           />
           <p className="text-[10px] text-muted-foreground">
-            {parseFloat(factor) > 0 ? `${parseFloat(factor)}× normal daily consumption` : ''}
+            {parseFloat(factor) > 0 ? `${String(parseFloat(factor))}× normal daily consumption` : ''}
           </p>
         </div>
         <div className="col-span-2 space-y-1.5">
@@ -329,7 +330,7 @@ function GapTable({ gaps, currency }: { gaps: DemandGap[]; currency: string }) {
                   <td className="py-2.5 px-2 text-right">
                     <span className="tabular-nums text-sm font-medium">{g.totalRequired}</span>
                     <p className="text-[10px] text-muted-foreground">
-                      {g.normalDailyConsumption > 0 ? `${g.normalDailyConsumption} normal + ` : ''}{g.eventExtraConsumption} event
+                      {g.normalDailyConsumption > 0 ? `${String(g.normalDailyConsumption)} normal + ` : ''}{String(g.eventExtraConsumption)} event
                     </p>
                   </td>
                   <td className="py-2.5 px-2 text-right">
@@ -412,11 +413,12 @@ export default function EventDemandPage() {
   const fmtDate = useDateFormat()
 
   const { data: events = [], isLoading: eventsLoading } = useEvents()
-  const { data: forecast = [], isLoading: forecastLoading } = useConsumptionForecast(30)
+  const { data: forecast = [], isLoading: forecastLoading } = useOccupancyAdjustedForecast(14, 30)
   const { data: products = [] } = useProducts()
   const createEvent  = useCreateEvent()
   const updateEvent  = useUpdateEvent()
   const deleteEvent  = useDeleteEvent()
+  const createRestock = useCreateRestockRequest()
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -445,13 +447,13 @@ export default function EventDemandPage() {
     const { demand_factor: factor } = effectiveSelected
 
     return forecast
-      .filter((r) => r.avg_daily > 0)
+      .filter((r) => r.adjusted_avg_daily > 0)
       .map((r) => {
         const unitCost = costMap.get(r.variant_id) ?? 0
-        // Normal consumption between now and event day
-        const normalDailyConsumption = Math.ceil(r.avg_daily * daysUntil)
-        // Extra consumption ON the event day from the multiplier (factor - 1 = extra above normal)
-        const eventExtraConsumption = Math.ceil(r.avg_daily * (factor - 1))
+        // Normal consumption between now and event day (occupancy-adjusted baseline)
+        const normalDailyConsumption = Math.ceil(r.adjusted_avg_daily * daysUntil)
+        // Extra consumption ON the event day from the event multiplier (factor - 1 = extra above adjusted)
+        const eventExtraConsumption = Math.ceil(r.adjusted_avg_daily * (factor - 1))
         const totalRequired = normalDailyConsumption + eventExtraConsumption
         const gap = Math.max(0, totalRequired - r.current_stock)
         const gapCost = gap * unitCost
@@ -467,7 +469,7 @@ export default function EventDemandPage() {
           variantName: r.variant_name,
           sku: r.sku,
           currentStock: r.current_stock,
-          avgDaily: r.avg_daily,
+          avgDaily: r.adjusted_avg_daily,
           normalDailyConsumption,
           eventExtraConsumption,
           totalRequired,
@@ -511,6 +513,20 @@ export default function EventDemandPage() {
     window.location.href = '/purchase-orders'
   }
 
+  const handleCreateRestocks = () => {
+    if (!effectiveSelected) return
+    const gapsToRestock = demandGaps.filter((g) => g.gap > 0)
+    if (gapsToRestock.length === 0) return
+    for (const gap of gapsToRestock) {
+      createRestock.mutate({
+        variantId: gap.variantId,
+        quantityNeeded: gap.gap,
+        notes: `Event prep: ${effectiveSelected.name} (${effectiveSelected.event_date}) · ${gap.gap} units needed`,
+      })
+    }
+    toast.success(`${String(gapsToRestock.length)} restock request${gapsToRestock.length !== 1 ? 's' : ''} created`)
+  }
+
   const isLoading = eventsLoading || forecastLoading
 
   // Summary for selected event
@@ -530,7 +546,7 @@ export default function EventDemandPage() {
             Event Demand Planner
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            {isLoading ? 'Loading…' : `${upcomingEvents} upcoming event${upcomingEvents !== 1 ? 's' : ''} · pre-calculate consumption gaps before they become stockouts`}
+            {isLoading ? 'Loading…' : `${String(upcomingEvents)} upcoming event${upcomingEvents !== 1 ? 's' : ''} · pre-calculate consumption gaps before they become stockouts`}
           </p>
         </div>
         <Button size="sm" onClick={() => { setShowForm(true) }} className="gap-1.5 text-xs h-8">
@@ -662,10 +678,21 @@ export default function EventDemandPage() {
                     <p className="text-[10px] text-muted-foreground mt-0.5">to order</p>
                   </div>
                   {totalGaps > 0 && (
-                    <Button size="sm" variant="outline" onClick={handleGoToPO} className="gap-1.5 text-xs h-8">
-                      <ShoppingCart className="h-3.5 w-3.5" />
-                      Go to PO Engine
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        onClick={handleCreateRestocks}
+                        disabled={createRestock.isPending}
+                        className="gap-1.5 text-xs h-8"
+                      >
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                        Create Restocks ({totalGaps})
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleGoToPO} className="gap-1.5 text-xs h-8">
+                        <ShoppingCart className="h-3.5 w-3.5" />
+                        Go to PO Engine
+                      </Button>
+                    </>
                   )}
                 </div>
               </div>
@@ -674,8 +701,8 @@ export default function EventDemandPage() {
               <div className="flex items-center gap-2 px-6 py-2 border-b bg-muted/10 text-[11px] text-muted-foreground flex-shrink-0">
                 <Info className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>
-                  Gap = (normal consumption until event) + (avg_daily × {effectiveSelected.demand_factor - 1 > 0 ? `(${effectiveSelected.demand_factor} − 1) on event day` : `0 extra`}) − current stock
-                  · Based on 30-day consumption history
+                  Gap = (occupancy-adjusted daily × days until event) + (adjusted_daily × {effectiveSelected.demand_factor - 1 > 0 ? `(${String(effectiveSelected.demand_factor)} − 1) event spike` : `0 extra`}) − current stock
+                  · Based on 30-day consumption history adjusted for forecasted occupancy
                 </span>
               </div>
 

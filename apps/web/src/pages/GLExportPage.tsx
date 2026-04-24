@@ -21,7 +21,7 @@ import {
 import { useProducts } from '@/features/inventory/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
-import type { GLAccountMapping, GLExportRow, ProductWithVariants } from '@beacon/types'
+import type { GLAccountMapping, GLExportRow } from '@beacon/types'
 
 // ─── Write-off categories that appear in GL export ────────────────────────────
 
@@ -308,7 +308,7 @@ function ExportPreview({ rows, currency }: { rows: GLExportRow[]; currency: stri
         <tbody>
           {displayed.map((row, i) => (
             <tr
-              key={`${row.reference_id}-${i}`}
+              key={`${row.reference_id}-${String(i)}`}
               className={cn(
                 'border-b transition-colors',
                 !row.is_mapped ? 'bg-yellow-50/40 dark:bg-yellow-950/10' : 'hover:bg-muted/20',
@@ -366,9 +366,7 @@ export default function GLExportPage() {
   const [includeWriteOffs,  setIncludeWriteOffs]  = useState(true)
   const [previewLoaded,     setPreviewLoaded]     = useState(false)
 
-  const dates = preset === 'last_month' || preset === 'this_month' || preset === 'last_30d' || preset === 'last_90d'
-    ? presetDates(preset)
-    : { from: customFrom, to: customTo }
+  const dates = presetDates(preset)
 
   const from = dates.from
   const to   = dates.to
@@ -380,9 +378,9 @@ export default function GLExportPage() {
   const { data: products = [] } = useProducts()
   const categories = [
     ...new Map(
-      (products as ProductWithVariants[])
+      (products)
         .filter((p) => p.category_id)
-        .map((p) => [p.category_id, { id: p.category_id!, name: p.categories?.name ?? 'Unnamed' }])
+        .map((p) => [p.category_id, { id: p.category_id ?? '', name: p.categories?.name ?? 'Unnamed' }])
     ).values(),
   ]
 

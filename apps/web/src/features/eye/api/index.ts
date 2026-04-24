@@ -319,6 +319,80 @@ export async function fetchStockPressure(): Promise<StockPressureItem[]> {
   return result.data ?? []
 }
 
+// ─── Occupancy-Adjusted Forecast (Phase C) ──────────────────────────────────
+
+export interface OccupancyAdjustedForecastRow {
+  variant_id: string
+  product_name: string
+  variant_name: string
+  sku: string
+  category_name: string
+  current_stock: number
+  base_avg_daily: number
+  occupancy_sensitivity: number
+  baseline_occupancy_pct: number
+  forecast_occupancy_pct: number
+  demand_multiplier: number
+  adjusted_avg_daily: number
+  adjusted_days_until_zero: number | null
+  adjusted_order_qty: number
+  demand_spike: boolean
+  has_open_request: boolean
+  event_demand_factor: number
+  event_name: string | null
+}
+
+export async function fetchOccupancyAdjustedForecast(
+  forecastDays = 14,
+  lookbackDays = 30,
+): Promise<OccupancyAdjustedForecastRow[]> {
+  const result = await supabase.rpc('get_occupancy_adjusted_forecast', {
+    p_forecast_days: forecastDays,
+    p_lookback_days: lookbackDays,
+  }) as unknown as {
+    data: OccupancyAdjustedForecastRow[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
+}
+
+// ─── Proposal Quality Summary (Phase D — Feedback Flywheel) ─────────────────
+
+export interface ProposalQualitySummary {
+  total_proposals: number
+  avg_quality_score: number | null
+  approval_rate: number | null
+  auto_approval_rate: number | null
+  excess_waste_rate: number | null
+  dismissal_breakdown: {
+    not_needed: number
+    wrong_qty: number
+    wrong_timing: number
+    wrong_supplier: number
+    other: number
+    expired: number
+  }
+  variants_with_learned_thresholds: number
+}
+
+export async function fetchProposalQualitySummary(days = 90): Promise<ProposalQualitySummary> {
+  const result = await supabase.rpc('get_proposal_quality_summary', { p_days: days }) as unknown as {
+    data: ProposalQualitySummary | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? {
+    total_proposals: 0,
+    avg_quality_score: null,
+    approval_rate: null,
+    auto_approval_rate: null,
+    excess_waste_rate: null,
+    dismissal_breakdown: { not_needed: 0, wrong_qty: 0, wrong_timing: 0, wrong_supplier: 0, other: 0, expired: 0 },
+    variants_with_learned_thresholds: 0,
+  }
+}
+
 /** Eye Layer: per-supplier delivery reliability scorecard */
 export async function fetchSupplierReliability(days = 90): Promise<SupplierReliabilityRow[]> {
   const result = await supabase.rpc('get_supplier_reliability', { p_days: days }) as unknown as {

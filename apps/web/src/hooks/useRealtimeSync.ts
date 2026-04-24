@@ -8,7 +8,6 @@ import { inventoryKeys } from '@/features/inventory/hooks'
 import { restockKeys } from '@/features/restock/hooks'
 import { notificationKeys } from '@/features/notifications/hooks'
 import { eyeKeys } from '@/features/eye/hooks'
-import { mindKeys } from '@/features/mind/hooks'
 import { briefingKeys } from '@/features/briefing/hooks'
 import { useUserPrefs } from '@/features/user/hooks'
 
@@ -60,19 +59,25 @@ export function useRealtimeSync() {
       }, filter),
 
       // ── Stock logs ───────────────────────────────────────────────────────────
-      // Invalidates: products (current_stock), activity feed, reports, Eye Layer.
-      // Shows a toast when someone else adjusts stock.
+      // Surgical invalidation: only bust queries that directly depend on stock_logs.
+      // Analytical queries (PMS health, chain benchmarks, CPOR, supplier synthesis,
+      // GL exports, etc.) have their own staleTime and are NOT stock-derived —
+      // busting them here caused 15-25 concurrent refetches per stock adjustment.
       services.realtime.subscribe('stock_logs', 'INSERT', (payload) => {
         void queryClient.invalidateQueries({ queryKey: inventoryKeys.products(hotelId) })
+        void queryClient.invalidateQueries({ queryKey: ['monitor', 'activity', hotelId] })
         void queryClient.invalidateQueries({ queryKey: ['recent-activity', hotelId] })
         void queryClient.invalidateQueries({ queryKey: ['stock-movement-report', hotelId] })
         void queryClient.invalidateQueries({ queryKey: ['audit-log', hotelId] })
-        // Eye + Mind layers — all RPCs compute from stock_logs, so any insert busts them.
-        // eyeKeys.all / mindKeys.all are prefix keys that cover every sub-query for this hotel.
-        void queryClient.invalidateQueries({ queryKey: eyeKeys.all(hotelId) })
-        void queryClient.invalidateQueries({ queryKey: mindKeys.all(hotelId) })
-        void queryClient.invalidateQueries({ queryKey: ['monitor', 'activity', hotelId] })
-        // Briefing feed: stock changes affect low_stock / waste_spike actions in the command center.
+        // Eye — only stock-derived analytics
+        void queryClient.invalidateQueries({ queryKey: eyeKeys.wasteRadar(hotelId) })
+        void queryClient.invalidateQueries({ queryKey: ['eye', 'consumption-stats', hotelId] })
+        void queryClient.invalidateQueries({ queryKey: ['eye', 'forecast', hotelId] })
+        void queryClient.invalidateQueries({ queryKey: ['eye', 'spikes', hotelId] })
+        void queryClient.invalidateQueries({ queryKey: ['eye', 'dead-stock', hotelId] })
+        // Mind — only waste cost is stock-derived
+        void queryClient.invalidateQueries({ queryKey: ['mind', 'waste-cost', hotelId] })
+        // Briefing feed: stock changes affect low_stock / waste_spike actions
         void queryClient.invalidateQueries({ queryKey: briefingKeys.actions(hotelId) })
 
         const row = (payload as { new?: { user_id?: string; quantity_change?: number; is_revert?: boolean } }).new
@@ -114,7 +119,6 @@ export function useRealtimeSync() {
       // Keeps the alerts list in Eye · Alerts fresh when auto_create_alerts fires.
       services.realtime.subscribe('alerts', '*', () => {
         void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
-        void queryClient.invalidateQueries({ queryKey: eyeKeys.all(hotelId) })
       }, filter),
 
       // ── Shift handovers ──────────────────────────────────────────────────────

@@ -34,15 +34,32 @@ export function riskLevelFromRow(row: SupplierReliabilityRow): SupplierRiskLevel
 // ─── Lead time ────────────────────────────────────────────────────────────────
 
 /**
- * Human-readable lead time label.
- * e.g. "4 days", "2 weeks", "Unknown"
+ * Human-readable lead time label, optionally with ±stddev.
+ * e.g. "4 days ±1.2", "2 weeks", "Unknown"
  */
-export function leadTimeLabel(supplier: Pick<Supplier, 'lead_time_days'>): string {
+export function leadTimeLabel(
+  supplier: Pick<Supplier, 'lead_time_days' | 'lead_time_stddev'>,
+): string {
   if (!supplier.lead_time_days) return 'Unknown'
   const days = supplier.lead_time_days
-  if (days < 7) return `${days} day${days === 1 ? '' : 's'}`
-  const weeks = Math.round(days / 7)
-  return `${weeks} week${weeks === 1 ? '' : 's'}`
+  const base = days < 7
+    ? `${days} day${days === 1 ? '' : 's'}`
+    : `${Math.round(days / 7)} week${Math.round(days / 7) === 1 ? '' : 's'}`
+  if (supplier.lead_time_stddev != null && supplier.lead_time_stddev > 0) {
+    return `${base} ±${supplier.lead_time_stddev.toFixed(1)}d`
+  }
+  return base
+}
+
+/**
+ * Human-readable label for the lead-time data source.
+ */
+export function leadTimeSourceLabel(source: Supplier['lead_time_source']): string {
+  switch (source) {
+    case 'po_history':       return 'PO history'
+    case 'delivery_history': return 'Delivery history'
+    case 'manual':           return 'Manual'
+  }
 }
 
 // ─── Contract intelligence ────────────────────────────────────────────────────
@@ -100,6 +117,7 @@ export const supplierNode = {
     riskLevel,
     riskLevelFromRow,
     leadTimeLabel,
+    leadTimeSourceLabel,
     daysUntilContractExpiry,
     hasContractExpiringSoon,
     onTimePctLabel,

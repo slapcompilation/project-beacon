@@ -64,7 +64,7 @@ export function useNodeContext(
   const hotelId = useActiveHotelId()
   return useQuery({
     queryKey: graphKeys.nodeContext(nodeType ?? '', nodeId ?? '', maxHops),
-    queryFn: () => fetchNodeContext(nodeType!, nodeId!, maxHops),
+    queryFn: () => fetchNodeContext(nodeType ?? '', nodeId ?? '', maxHops),
     enabled: !!hotelId && !!nodeType && !!nodeId,
     staleTime: 60 * 1000, // graph structure is stable; re-fetch on mutations via invalidation
   })
@@ -78,7 +78,7 @@ export function useVariantFlow(variantId: string | null) {
   const hotelId = useActiveHotelId()
   return useQuery({
     queryKey: graphKeys.variantFlow(variantId ?? ''),
-    queryFn: () => fetchVariantFlow(variantId!),
+    queryFn: () => fetchVariantFlow(variantId ?? ''),
     enabled: !!hotelId && !!variantId,
     staleTime: 60 * 1000,
   })

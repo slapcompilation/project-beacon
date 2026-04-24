@@ -12,7 +12,7 @@ export function ServiceWorkerUpdatePrompt() {
     needRefresh: [needRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegisteredSW(_url, _reg) {
+    onRegisteredSW() {
       // Workbox handles periodic checks automatically — no polling needed here
     },
   })

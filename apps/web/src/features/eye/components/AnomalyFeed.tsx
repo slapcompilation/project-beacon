@@ -18,7 +18,7 @@ function DeadStockPanel() {
   const activeHotel = useActiveHotel()
   const currency = activeHotel?.currency ?? 'USD'
 
-  const totalIdleValue = rows.reduce((s, r) => s + Number(r.idle_value), 0)
+  const totalIdleValue = rows.reduce((s, r) => s + r.idle_value, 0)
 
   return (
     <div className="space-y-2">
@@ -87,7 +87,7 @@ function DeadStockPanel() {
                     {row.days_idle}d idle
                   </Badge>
                   <span className="tabular-nums text-[10px] font-semibold text-foreground">
-                    {formatCurrency(Number(row.idle_value), currency)}
+                    {formatCurrency(row.idle_value, currency)}
                   </span>
                 </div>
               </div>
@@ -153,18 +153,18 @@ function ConsumptionSpikesPanel() {
               row.variant_name !== 'Standard'
                 ? `${row.product_name} — ${row.variant_name}`
                 : row.product_name
-            const ratio = Number(row.spike_ratio)
+            const ratio = row.spike_ratio
             const spikeClass =
               ratio >= 10 ? 'border-red-300 text-red-700 dark:text-red-400'
               : ratio >= 5  ? 'border-orange-300 text-orange-700 dark:text-orange-400'
               :               'border-yellow-300 text-yellow-700 dark:text-yellow-400'
 
             return (
-              <div key={`${row.variant_id}-${row.spike_date}-${idx}`} className="flex items-center gap-2 px-2.5 py-1.5">
+              <div key={`${row.variant_id}-${row.spike_date}-${String(idx)}`} className="flex items-center gap-2 px-2.5 py-1.5">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-xs font-medium leading-tight">{displayName}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {row.spike_date} · avg {Number(row.avg_daily).toFixed(1)}/day
+                    {row.spike_date} · avg {row.avg_daily.toFixed(1)}/day
                   </p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">

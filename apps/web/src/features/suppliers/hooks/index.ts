@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
+import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchSuppliers,
-  createSupplier,
   updateSupplier,
   deleteSupplier,
   fetchSupplierScorecard,
@@ -28,15 +29,33 @@ export function useSuppliers() {
     queryKey: supplierKeys.all(hotelId ?? ''),
     queryFn: () => fetchSuppliers(hotelId ?? ''),
     enabled: !!hotelId,
+    staleTime: 5 * 60 * 1000,  // suppliers change infrequently
   })
 }
 
 export function useCreateSupplier() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
 
   return useMutation({
-    mutationFn: (input: SupplierInput) => createSupplier(hotelId ?? '', input),
+    mutationFn: async (input: SupplierInput) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        {
+          type:        'CREATE_SUPPLIER',
+          hotelId,
+          name:        input.name,
+          contactName: input.contact_name,
+          email:       input.email,
+          phone:       input.phone,
+          notes:       input.notes,
+        },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error)
+      return result
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: supplierKeys.all(hotelId ?? '') })
       toast.success('Supplier added')
@@ -80,6 +99,7 @@ export function useSupplierScorecard() {
     queryKey: supplierKeys.scorecard(hotelId ?? ''),
     queryFn: () => fetchSupplierScorecard(hotelId ?? ''),
     enabled: !!hotelId,
+    staleTime: 5 * 60 * 1000,  // scorecard is aggregate data, not real-time
   })
 }
 

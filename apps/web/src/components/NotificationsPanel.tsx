@@ -6,7 +6,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
   Bell, CheckCheck, Loader2, ExternalLink,
-  PackageX, CalendarX, Zap, AlertTriangle, ClipboardList, ChevronDown, ShieldAlert, Scale,
+  PackageX, CalendarX, Zap, AlertTriangle, ClipboardList, ChevronDown, ShieldAlert, Scale, FileSignature,
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -38,7 +38,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-purple-50/60 dark:bg-purple-950/20',
     label: 'Predicted Outage',
     badge: 'border-purple-300 bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400',
-    fallbackPath: '/eye?panel=forecasts',
+    fallbackPath: '/eye?panel=occupancy',
   },
   expiry: {
     icon: CalendarX,
@@ -62,7 +62,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     label: 'Waste Alert',
     badge: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
-    fallbackPath: '/eye?panel=signals',
+    fallbackPath: '/eye?panel=waste',
   },
   consumption_spike: {
     icon: Zap,
@@ -70,7 +70,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-yellow-50/60 dark:bg-yellow-950/20',
     label: 'Consumption Spike',
     badge: 'border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300',
-    fallbackPath: '/eye?panel=forecasts',
+    fallbackPath: '/eye?panel=restock',
   },
   price_drift: {
     icon: AlertTriangle,
@@ -95,6 +95,14 @@ const TYPE_META: Record<NotifType, {
     label: 'Invoice Discrepancy',
     badge: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
     fallbackPath: '/mind?panel=intelligence',
+  },
+  contract_expiry: {
+    icon: FileSignature,
+    color: 'text-indigo-500',
+    bg: 'bg-indigo-50/60 dark:bg-indigo-950/20',
+    label: 'Contract Expiring',
+    badge: 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400',
+    fallbackPath: '/mind?panel=contracts',
   },
   approval: {
     icon: ClipboardList,
@@ -129,12 +137,13 @@ const TYPE_PRIORITY: Record<NotifType, number> = {
   price_drift:  5,
   pos_variance:    6,
   po_discrepancy:  7,
-  approval:        8,
-  system:          9,
+  contract_expiry: 8,
+  approval:        9,
+  system:         10,
 }
 
 // Alert types that warrant a dismiss reason (intelligence feedback loop)
-const ALERT_TYPES: Notification['type'][] = ['low_stock', 'waste_alert', 'predicted_outage', 'expiry', 'consumption_spike', 'price_drift', 'pos_variance', 'po_discrepancy']
+const ALERT_TYPES: Notification['type'][] = ['low_stock', 'waste_alert', 'predicted_outage', 'expiry', 'consumption_spike', 'price_drift', 'pos_variance', 'po_discrepancy', 'contract_expiry']
 
 const DISMISS_REASONS: { value: string; label: string }[] = [
   { value: 'resolved',        label: 'Resolved' },

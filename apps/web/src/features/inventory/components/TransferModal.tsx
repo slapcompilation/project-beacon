@@ -1,5 +1,7 @@
-// Layer: Flow — transfer stock quantity between two variants in the same hotel
-// Calls the transfer_stock() Supabase RPC. Creates two stock_logs + a causes edge.
+// Layer: Flow — swap stock quantity between two variants in the same hotel
+// Calls the swap_variant_stock() Supabase RPC. Creates two stock_logs + a causes edge.
+// Renamed from transfer_stock() in migration 110 to free that name for multi-echelon
+// inter-property transfers introduced in Phase R1.
 
 import { useState } from 'react'
 import { ArrowRight, Loader2 } from 'lucide-react'
@@ -52,7 +54,7 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
 
     setIsPending(true)
     try {
-      const { error } = await supabase.rpc('transfer_stock', {
+      const { error } = await supabase.rpc('swap_variant_stock', {
         p_from_variant_id: sourceVariant.id,
         p_to_variant_id: toVariantId,
         p_quantity: qty,

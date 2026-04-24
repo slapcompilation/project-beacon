@@ -1,11 +1,9 @@
-import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import { useOnlineStatus } from '@/hooks/useOnlineStatus'
 import { queueMutation, notifyQueueChanged } from '@/lib/offline-queue'
-import { supabase } from '@/lib/supabase/client'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import type { OfflineMutation, ProductWithVariants } from '@beacon/types'
 import {
@@ -444,54 +442,5 @@ export function useStockoutProbabilities() {
   })
 }
 
-// ─── Floor realtime subscription ─────────────────────────────────────────────
-// Floor Layer · Subscribes to product_variants changes for this hotel.
-// Any INSERT/UPDATE from another session (teammate, admin, sync) triggers a
-// products cache invalidation so the Floor stock view never goes stale.
-
-export function useInventoryRealtime() {
-  const queryClient = useQueryClient()
-  const hotelId = useActiveHotelId()
-
-  useEffect(() => {
-    if (!hotelId) return
-
-    const channel = supabase
-      .channel(`inventory-rt:${hotelId}`)
-      .on(
-        'postgres_changes' as 'system',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'product_variants',
-          filter: `hotel_id=eq.${hotelId}`,
-        },
-        () => {
-          void queryClient.invalidateQueries({
-            queryKey: inventoryKeys.products(hotelId),
-          })
-        }
-      )
-      .on(
-        'postgres_changes' as 'system',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'stock_logs',
-          filter: `hotel_id=eq.${hotelId}`,
-        },
-        () => {
-          // A new stock log from any session invalidates products + eye layer
-          void queryClient.invalidateQueries({
-            queryKey: inventoryKeys.products(hotelId),
-          })
-          void queryClient.invalidateQueries({ queryKey: ['eye', hotelId] })
-        }
-      )
-      .subscribe()
-
-    return () => {
-      void supabase.removeChannel(channel)
-    }
-  }, [hotelId, queryClient])
-}
+// Floor realtime subscription removed — useRealtimeSync (AppLayout) handles
+// product_variants and stock_logs globally, eliminating duplicate channels.

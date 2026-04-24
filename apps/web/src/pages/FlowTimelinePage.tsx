@@ -155,6 +155,10 @@ function ChartTooltip({
   )
 }
 
+// Recharts constants (stable references prevent unnecessary chart re-renders)
+const STOCK_CHART_MARGIN = { top: 12, right: 16, left: 0, bottom: 0 }
+const MUTED_AXIS_TICK = { fontSize: 10, fill: 'hsl(var(--muted-foreground))' }
+
 function StockChart({
   rows, parLevel, currency,
 }: {
@@ -189,7 +193,7 @@ function StockChart({
 
   return (
     <ResponsiveContainer width="100%" height={220}>
-      <ComposedChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
+      <ComposedChart data={data} margin={STOCK_CHART_MARGIN}>
         <defs>
           <linearGradient id="stockGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.25} />
@@ -203,13 +207,13 @@ function StockChart({
           domain={['dataMin', 'dataMax']}
           scale="time"
           tickFormatter={(v: number) => format(new Date(v), 'MMM d')}
-          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+          tick={MUTED_AXIS_TICK}
           tickLine={false}
           axisLine={false}
         />
         <YAxis
           domain={[0, Math.ceil(maxBalance * 1.15)]}
-          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+          tick={MUTED_AXIS_TICK}
           tickLine={false}
           axisLine={false}
           width={36}
@@ -223,7 +227,7 @@ function StockChart({
             y={parLevel}
             stroke="#f59e0b"
             strokeDasharray="5 3"
-            label={{ value: `Par ${parLevel}`, position: 'insideTopRight', fontSize: 10, fill: '#f59e0b' }}
+            label={{ value: `Par ${String(parLevel)}`, position: 'insideTopRight', fontSize: 10, fill: '#f59e0b' }}
           />
         )}
         <Area
@@ -541,11 +545,11 @@ function VariantSelector({
 
   const variants = useMemo<FlatVariant[]>(() => {
     return products.flatMap((p) =>
-      (p.product_variants ?? []).map((v) => ({
+      p.product_variants.map((v) => ({
         variantId:   v.id,
         variantName: v.name,
         productName: p.name,
-        sku:         v.sku ?? '',
+        sku:         v.sku,
       }))
     )
   }, [products])
@@ -668,7 +672,7 @@ export default function FlowTimelinePage() {
     const groups: DayGroup[] = []
     for (const row of timelineRows) {
       const rowDate = new Date(row.happened_at)
-      const last = groups[groups.length - 1]
+      const last = groups.at(-1)
       if (last && isSameDay(last.date, rowDate)) {
         last.rows.push(row)
         last.netCost  += row.cost_impact

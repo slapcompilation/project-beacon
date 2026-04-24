@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
@@ -115,7 +115,8 @@ export function useNotificationFeedback() {
       for (const row of rows) {
         const t = row.type
         if (!byType.has(t)) byType.set(t, { total: 0, reasons: {} })
-        const entry = byType.get(t)!
+        const entry = byType.get(t)
+        if (!entry) continue
         entry.total++
         const reason = row.dismissed_reason ?? 'none'
         entry.reasons[reason] = (entry.reasons[reason] ?? 0) + 1
@@ -132,7 +133,7 @@ export function useNotificationFeedback() {
 
 export function useUnreadNotificationCount(): number {
   const { data = [] } = useNotifications()
-  return data.filter((n) => !n.read).length
+  return useMemo(() => data.filter((n) => !n.read).length, [data])
 }
 
 /**
