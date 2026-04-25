@@ -63,7 +63,49 @@ export interface Hotel {
   auto_po_enabled: boolean
   /** Invoices with discrepancy_pct at or below this value auto-approve. Default 2%. */
   auto_invoice_tolerance_pct: number
+  /** Parent organization. Every hotel belongs to exactly one org (Phase R1 — migration 111). */
+  organization_id: string
 }
+
+// ─── Network tier (Phase R1 — Gallatin-inspired multi-echelon) ──────────────
+
+/**
+ * Organization — portfolio tier above hotels.
+ * Single-property customers have a 1:1 auto-created org; multi-property
+ * customers share one org across all their hotels. Org-scope contracts,
+ * benchmarks, and agents attach here.
+ */
+export interface Organization {
+  id: string
+  name: string
+  slug: string | null
+  logo_url: string | null
+  config: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+/** Org-scope roles (extend the echelon above hotel roles). */
+export type OrgRole = 'org_director' | 'regional_manager'
+
+/**
+ * User ↔ Organization role assignment.
+ * A user with a row here has BOTH their hotel role (on profiles) AND an
+ * org-level role. Org role takes precedence for org-scope queries.
+ */
+export interface UserOrgMembership {
+  id: string
+  user_id: string
+  organization_id: string
+  role: OrgRole
+  created_at: string
+}
+
+/**
+ * Query scope declaration. Every agent, RPC, and query should declare which
+ * echelon it operates at so scope is explicit rather than inferred.
+ */
+export type Scope = 'hotel' | 'organization'
 
 export interface User {
   id: string

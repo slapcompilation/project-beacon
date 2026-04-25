@@ -61,6 +61,16 @@ export {
   hasContractExpiringSoon,
   onTimePctLabel,
   costVarianceLabel,
+  // Network tier — Phase R1
+  organizationNode,
+  isMultiProperty,
+  hotelCount,
+  echelonLabel,
+  canActAtOrgScope,
+  effectiveScope,
+  hasOrgMembership,
+  orgRoleFor,
+  ECHELON_RANK,
 } from './nodes/index'
 export type {
   StockUrgency,

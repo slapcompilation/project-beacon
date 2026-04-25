@@ -42,3 +42,16 @@ export {
   costVarianceLabel,
 } from './supplier'
 export type { SupplierRiskLevel } from './supplier'
+
+// Network tier — Phase R1
+export {
+  organizationNode,
+  isMultiProperty,
+  hotelCount,
+  echelonLabel,
+  canActAtOrgScope,
+  effectiveScope,
+  hasOrgMembership,
+  orgRoleFor,
+  ECHELON_RANK,
+} from './organization'
