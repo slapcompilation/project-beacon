@@ -86,13 +86,13 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
-    name: 'get_anomaly_explanation',
+    name: 'explain_anomaly',
     description: 'Get root cause explanation for a stock anomaly on a specific variant. Use for "why is X spiking", "explain the anomaly on X".',
     input_schema: {
       type: 'object' as const,
       properties: {
-        variant_id: { type: 'string', description: 'The variant UUID' },
-        window_days: { type: 'number', description: 'Lookback window (default 30)', default: 30 },
+        variant_id:   { type: 'string', description: 'The variant UUID' },
+        anomaly_type: { type: 'string', enum: ['waste_spike', 'stock_depletion', 'auto'], description: 'Type of anomaly (default auto-detect)', default: 'auto' },
       },
       required: ['variant_id'],
     },
@@ -292,10 +292,10 @@ async function executeTool(
         if (error) return JSON.stringify({ error: error.message })
         return JSON.stringify(data)
       }
-      case 'get_anomaly_explanation': {
-        const { data, error } = await supabase.rpc('get_anomaly_explanation', {
-          p_variant_id: input.variant_id,
-          p_window_days: input.window_days ?? 30,
+      case 'explain_anomaly': {
+        const { data, error } = await supabase.rpc('explain_anomaly', {
+          p_variant_id:   input.variant_id,
+          p_anomaly_type: input.anomaly_type ?? 'auto',
         })
         if (error) return JSON.stringify({ error: error.message })
         return JSON.stringify(data)

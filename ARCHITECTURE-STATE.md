@@ -221,6 +221,24 @@ All 21 cataloged workflows become formally-declared Tier 3 agents. Every one get
 
 ---
 
+## 4a. Deep Rescan (after migration 111) — additional landmines surfaced
+
+Two back-to-back failures during 110/111 prompted a second pass. Found **five additional landmines** that would have compounded across migrations 111a/b/c (326 RLS policy rewrites). All neutralized by **migration 112 — Reality Graph Repair** before continuing.
+
+| # | Landmine | Severity | Status |
+|---|---|---|---|
+| L1 | Migration 098 dropped `relationship_edges UNIQUE (source_id, edge_type, target_id)` — `create_relationship_edge() ON CONFLICT` silently allowed duplicates | CRITICAL | Fixed in 112 |
+| L2 | 098's `DROP TABLE … CASCADE` killed `trg_stock_log_edges` and `trg_restock_fulfilled_edge`; trigger functions still defined but never fired since. Months of `consumes` / `reverts` / `restocks` edges missing from the Reality Graph | CRITICAL | Fixed in 112 (recreate + backfill) |
+| L3 | Migration 110's edge-type CHECK missed two types actively emitted by code: `batch_of` (056), `influenced_by` (056, 077). Any caller writing them errored | CRITICAL | Fixed in 112 |
+| L4 | Migrations 034, 098 RLS use `hotel_id IN (SELECT hotel_id FROM users WHERE id = auth.uid())` instead of `auth_hotel_id()` — incompatible with org-scope reads | HIGH | Fixed in 112 (realigned to `hotel_is_in_user_scope()`) |
+| F1 | `supabase/functions/copilot-chat/index.ts:296` calls non-existent RPC `get_anomaly_explanation` (actual: `explain_anomaly`) plus wrong parameter `p_window_days` (actual: `p_anomaly_type`) | RUNTIME | Fixed in same commit |
+
+### Notes on items NOT remediated in 112 (deferred — non-blocking)
+
+- **Notifications type CHECK drift** — 5 redeclarations across migrations 025/062/065/067/109. Production state already accepts the union of all types via 109's expansion; safe to leave for the Phase R2 cleanup pass.
+- **`users` table vs `profiles` divergence** — only 2 RLS policies were anti-pattern (now fixed in 112). The `users` table itself remains, kept stale; nothing critical reads from it. Address during Phase R2.
+- **14 raw `.from()` calls in pages/components** — confirmed by RPC drift audit to be parameter-passing rather than RPC-call style, so no broken targets. Migrate to feature hooks during Phase R3 UX reshape.
+
 ## 4. Landmines (fix before Phase R1 migrations)
 
 ### 4.1 Stale edge-type CHECK constraint (migration 018)
