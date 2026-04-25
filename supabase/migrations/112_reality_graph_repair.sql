@@ -191,6 +191,9 @@ COMMENT ON CONSTRAINT relationship_edges_unique_triple ON relationship_edges IS
 
 DROP POLICY IF EXISTS "Hotel members can view relationship edges" ON relationship_edges;
 DROP POLICY IF EXISTS "Hotel members can insert relationship edges" ON relationship_edges;
+-- Idempotent: also drop our own new policies so re-runs work after partial application.
+DROP POLICY IF EXISTS "re_select_in_scope" ON relationship_edges;
+DROP POLICY IF EXISTS "re_insert_in_scope" ON relationship_edges;
 
 CREATE POLICY "re_select_in_scope" ON relationship_edges
   FOR SELECT
