@@ -2,25 +2,14 @@
 // Replaces the sidebar header. Shows logo, hotel switcher, notifications, command bar, copilot toggle.
 
 import { memo } from 'react'
-import {
-  Building2, ChevronDown, BellDot, Command, Sparkles, X,
-} from 'lucide-react'
+import { BellDot, Command, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { useHotels } from '@/features/hotel/hooks'
-import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAlertCount } from '@/hooks/useAlertCount'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { ScopeSwitcher } from './ScopeSwitcher'
 
 export const Topbar = memo(function Topbar() {
-  const activeHotelId = useActiveHotelId()
-  const { data: hotels = [] } = useHotels()
-  const activeHotel = hotels.find((h) => h.id === activeHotelId)
-
-  const setActiveHotelId  = useAppStore((s) => s.setActiveHotelId)
   const setNotifPanelOpen = useAppStore((s) => s.setNotifPanelOpen)
   const toggleCopilot     = useAppStore((s) => s.toggleCopilot)
   const toggleCommandBar  = useAppStore((s) => s.toggleCommandBar)
@@ -35,33 +24,9 @@ export const Topbar = memo(function Topbar() {
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-3">
-      {/* ── Left: Logo + Hotel switcher ──────────────────────────────── */}
+      {/* ── Left: Logo + Scope switcher (hotel ↔ portfolio) ──────────── */}
       <span className="text-sm font-bold tracking-tight text-foreground mr-1">Beacon</span>
-
-      {hotels.length > 1 ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors max-w-[140px]">
-            <Building2 className="h-3 w-3 shrink-0" />
-            <span className="truncate">{activeHotel?.name ?? '…'}</span>
-            <ChevronDown className="h-2.5 w-2.5 shrink-0" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
-            {hotels.map((h) => (
-              <DropdownMenuItem
-                key={h.id}
-                onClick={() => { setActiveHotelId(h.id) }}
-                className={h.id === activeHotelId ? 'font-semibold' : ''}
-              >
-                {h.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ) : activeHotel ? (
-        <span className="text-[10px] text-muted-foreground/50 truncate max-w-[120px]">
-          {activeHotel.name}
-        </span>
-      ) : null}
+      <ScopeSwitcher />
 
       {/* ── Spacer ───────────────────────────────────────────────────── */}
       <div className="flex-1" />
