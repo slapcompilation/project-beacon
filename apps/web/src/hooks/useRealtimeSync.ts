@@ -54,9 +54,12 @@ export function useRealtimeSync() {
         void queryClient.invalidateQueries({ queryKey: inventoryKeys.products(hotelId) })
       }, filter),
 
+      // product_variants has no hotel_id column (scope inherited via parent products);
+      // applying `hotel_id=eq.X` here triggers Postgres "invalid column for filter".
+      // RLS already gates visibility by the parent product's hotel, so subscribe globally.
       services.realtime.subscribe('product_variants', '*', () => {
         void queryClient.invalidateQueries({ queryKey: inventoryKeys.products(hotelId) })
-      }, filter),
+      }),
 
       // ── Stock logs ───────────────────────────────────────────────────────────
       // Surgical invalidation: only bust queries that directly depend on stock_logs.
