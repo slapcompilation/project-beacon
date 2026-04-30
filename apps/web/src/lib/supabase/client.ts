@@ -9,10 +9,30 @@ if (!supabaseUrl || !supabaseKey) {
   )
 }
 
+// In-memory lock keyed by name. Replaces navigator.locks (Web Locks API),
+// which can orphan a lock when a tab/process dies before releasing it —
+// causing every other tab to hang on `acquireLock` indefinitely. An in-memory
+// queue is per-tab, so if the tab dies its locks die with it.
+const memoryLocks = new Map<string, Promise<unknown>>()
+
+async function inMemoryLock<R>(name: string, _acquireTimeout: number, fn: () => Promise<R>): Promise<R> {
+  const previous = memoryLocks.get(name) ?? Promise.resolve()
+  const next = previous.then(fn, fn)
+  memoryLocks.set(name, next.catch(() => {}))
+  try {
+    return await next
+  } finally {
+    if (memoryLocks.get(name) === next.catch(() => {})) {
+      memoryLocks.delete(name)
+    }
+  }
+}
+
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
+    lock: inMemoryLock,
   },
 })
