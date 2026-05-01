@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { dispatchAction } from '@/lib/actions/dispatch'
+import { useBeaconAction } from '@/lib/actions/useBeaconAction'
 import {
   fetchRestockRequests,
   updateRestockStatus,
@@ -205,59 +206,41 @@ export function useUpdateRestockStatus() {
 
 // ─── APPROVE_RESTOCK → dispatches APPROVE_RESTOCK ────────────────────────────
 
+// Canonical example of the useBeaconAction migration (punch-list #2).
+// Was: ~20 lines of useMutation boilerplate. Now: ~10 lines, plus typed
+// `.error: BeaconError | null` for callers that want to branch on `.code`
+// and pre-submit `.validate()` for forms.
 export function useApproveRestock() {
-  const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
-  const userId  = useAuthStore((s) => s.userId)
 
-  return useMutation({
-    mutationFn: async ({
-      id,
+  return useBeaconAction<{ id: string; notes?: string | null }>({
+    type: 'APPROVE_RESTOCK',
+    build: ({ id, notes }) => ({
+      type:      'APPROVE_RESTOCK',
+      requestId: id,
+      hotelId:   hotelId ?? '',
       notes,
-    }: {
-      id: string
-      notes?: string | null
-    }) => {
-      const result = await dispatchAction(
-        { type: 'APPROVE_RESTOCK', requestId: id, hotelId: hotelId ?? '', notes },
-        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
-      )
-      if (!result.success) throw new Error(result.error.message)
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
-      toast.success('Request approved')
-    },
-    onError: (err: Error) => toast.error(err.message),
+    }),
+    invalidate: () => [restockKeys.all(hotelId ?? '')],
+    successMessage: () => 'Request approved',
   })
 }
 
 // ─── REJECT_RESTOCK → dispatches REJECT_RESTOCK ──────────────────────────────
 
 export function useRejectRestock() {
-  const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
-  const userId  = useAuthStore((s) => s.userId)
 
-  return useMutation({
-    mutationFn: async ({
-      id,
+  return useBeaconAction<{ id: string; reason?: string | null }>({
+    type: 'REJECT_RESTOCK',
+    build: ({ id, reason }) => ({
+      type:      'REJECT_RESTOCK',
+      requestId: id,
+      hotelId:   hotelId ?? '',
       reason,
-    }: {
-      id: string
-      reason?: string | null
-    }) => {
-      const result = await dispatchAction(
-        { type: 'REJECT_RESTOCK', requestId: id, hotelId: hotelId ?? '', reason },
-        { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
-      )
-      if (!result.success) throw new Error(result.error.message)
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
-      toast.success('Request rejected')
-    },
-    onError: (err: Error) => toast.error(err.message),
+    }),
+    invalidate: () => [restockKeys.all(hotelId ?? '')],
+    successMessage: () => 'Request rejected',
   })
 }
 
