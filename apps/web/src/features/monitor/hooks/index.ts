@@ -6,10 +6,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-import { fetchRecentActivity } from '../api'
+import { useAuthStore } from '@/stores/auth.store'
+import { fetchRecentActivity, fetchCronHealthSummary } from '../api'
 
 export const monitorKeys = {
-  activity: (hotelId: string, limit: number) => ['monitor', 'activity', hotelId, limit] as const,
+  activity:    (hotelId: string, limit: number) => ['monitor', 'activity', hotelId, limit] as const,
+  cronHealth:  () => ['monitor', 'cron-health'] as const,
 }
 
 export function useActivityFeed(limit = 100) {
@@ -56,4 +58,21 @@ export function useActivityFeed(limit = 100) {
   }, [query.data])
 
   return { ...query, newIds }
+}
+
+/**
+ * Cron health for the Settings → Autonomous Operations panel.
+ * Backed by `get_cron_health_summary()` (admin/owner only — gated server-side).
+ * Disabled for non-admin/owner roles to avoid 42501 noise in the console.
+ */
+export function useCronHealthSummary() {
+  const role = useAuthStore((s) => s.role)
+  const enabled = role === 'admin' || role === 'owner'
+  return useQuery({
+    queryKey:  monitorKeys.cronHealth(),
+    queryFn:   fetchCronHealthSummary,
+    enabled,
+    staleTime: 60_000,        // 1 min — the underlying monitor runs every 5 min
+    refetchInterval: 60_000,  // refresh while panel is open
+  })
 }

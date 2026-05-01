@@ -10,6 +10,7 @@ import {
   Building2, ShieldAlert, Plus, Pencil,
   Trash2, Loader2, GripVertical, ClipboardList, Gauge,
   Users, Crown, User, UserCheck, Check, X, Info, Bot,
+  Activity, AlertTriangle,
 } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -75,6 +76,8 @@ import {
 } from '@/features/webhooks/hooks'
 import type { WebhookEndpoint } from '@/features/webhooks/api'
 import { useApprovalThresholds, useUpdateApprovalThresholds } from '@/features/restock/hooks'
+import { useCronHealthSummary } from '@/features/monitor/hooks'
+import { useOrganizations } from '@/features/organizations/hooks'
 
 // ─── Section nav config ────────────────────────────────────────────────────────
 
@@ -166,12 +169,15 @@ const REASON_LABELS: Record<string, string> = {
 const REASON_ORDER = ['resolved', 'already_knew', 'incorrect_data', 'will_handle_later', 'none']
 
 const TYPE_LABELS: Record<string, string> = {
-  low_stock:        'Low Stock',
-  expiry:           'Expiry',
-  waste_alert:      'Waste Alert',
-  predicted_outage: 'Predicted Outage',
-  approval:         'Approval',
-  system:           'System',
+  low_stock:             'Low Stock',
+  expiry:                'Expiry',
+  waste_alert:           'Waste Alert',
+  predicted_outage:      'Predicted Outage',
+  accelerated_depletion: 'Accelerated Depletion',
+  occupancy_spike:       'Occupancy Spike',
+  theft_alert:           'Theft',
+  approval:              'Approval',
+  system:                'System',
 }
 
 function FeedbackLoopPanel() {
@@ -1142,6 +1148,8 @@ function MoveReasonsSection() {
 function HotelProfileSection() {
   const hotel = useActiveHotel()
   const updateHotel = useUpdateHotel()
+  const { data: orgs = [] } = useOrganizations()
+  const org = orgs.find((o) => o.id === hotel?.organization_id) ?? null
 
   const { register, control, handleSubmit, reset, formState: { errors, isSubmitting, isDirty } } = useForm<HotelFields>({
     resolver: zodResolver(hotelSchema),
@@ -1158,6 +1166,21 @@ function HotelProfileSection() {
   return (
     <div>
       <SectionHeader title="Hotel Profile" description="Name, address, timezone and display currency for this property." />
+
+      {/* Organization affiliation — read-only echelon context */}
+      {org && (
+        <div className="mb-4 rounded-lg border bg-muted/30 px-4 py-3 flex items-center gap-3">
+          <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Part of organization
+            </p>
+            <p className="text-sm font-medium truncate">{org.name}</p>
+          </div>
+          <span className="text-[10px] text-muted-foreground shrink-0">Org-scope contracts and benchmarks attach here</span>
+        </div>
+      )}
+
       <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="rounded-lg border p-4 space-y-4">
         <div className="space-y-1.5">
           <Label htmlFor="hotel-name">Hotel name</Label>
@@ -1702,6 +1725,109 @@ function ApprovalThresholdsSection() {
 
 // ─── Flow: Autonomous Operations ──────────────────────────────────────────────
 
+/**
+ * Live status panel for the autonomous loop. Reads `get_cron_health_summary()`
+ * (admin/owner only). Per CLAUDE.md self-apply: surface our own observability
+ * data on the operator surface — every number carries derived context.
+ */
+function CronHealthPanel() {
+  const { data, isLoading, isError } = useCronHealthSummary()
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />Checking autonomous loop…
+      </div>
+    )
+  }
+  if (isError || !data) {
+    return (
+      <div className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+        Health summary unavailable for this role.
+      </div>
+    )
+  }
+
+  const cycle = data.jobs.find((j) => j.jobname === 'beacon-intelligence-cycle')
+  const failingJobs = data.jobs.filter((j) => j.consecutive_failures >= 2)
+  const overallHealthy = failingJobs.length === 0 && data.open_critical === 0
+
+  const cycleStatus =
+    cycle?.consecutive_failures && cycle.consecutive_failures >= 2 ? 'failing'
+    : (cycle?.last_status === 'succeeded') ? 'healthy'
+    : (cycle?.last_status === 'failed') ? 'degraded'
+    : 'idle'
+
+  const statusColor =
+    cycleStatus === 'healthy'  ? 'text-emerald-600 dark:text-emerald-400'
+    : cycleStatus === 'failing' ? 'text-red-600 dark:text-red-400'
+    : cycleStatus === 'degraded'? 'text-amber-600 dark:text-amber-400'
+    : 'text-muted-foreground'
+
+  const statusDot =
+    cycleStatus === 'healthy'  ? 'bg-emerald-500'
+    : cycleStatus === 'failing' ? 'bg-red-500'
+    : cycleStatus === 'degraded'? 'bg-amber-500'
+    : 'bg-muted-foreground/40'
+
+  return (
+    <div className="rounded-md border bg-muted/30 overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Autonomous loop status
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className={cn('h-1.5 w-1.5 rounded-full inline-block', statusDot)} />
+          <span className={cn('text-xs font-medium', statusColor)}>
+            {cycleStatus === 'healthy'   && 'Healthy'}
+            {cycleStatus === 'failing'   && `Failing (${String(cycle?.consecutive_failures ?? 0)} in a row)`}
+            {cycleStatus === 'degraded'  && 'Last run failed'}
+            {cycleStatus === 'idle'      && 'No runs yet'}
+          </span>
+        </div>
+      </div>
+
+      <div className="px-3 py-2 space-y-1">
+        {data.jobs.map((j) => {
+          const last = j.last_run_at ? new Date(j.last_run_at) : null
+          const ago = last ? Math.round((Date.now() - last.getTime()) / 60000) : null
+          const labelMin = ago == null ? '—' : ago < 1 ? 'just now' : ago < 60 ? `${String(ago)}m ago` : `${String(Math.round(ago / 60))}h ago`
+          const ok = j.last_status === 'succeeded'
+          return (
+            <div key={j.jobname} className="flex items-center gap-2 text-[11px] tabular-nums">
+              <span
+                className={cn(
+                  'h-1 w-1 rounded-full inline-block flex-shrink-0',
+                  ok ? 'bg-emerald-500' : j.last_status === 'failed' ? 'bg-red-500' : 'bg-muted-foreground/40',
+                )}
+              />
+              <span className="font-mono text-muted-foreground truncate flex-1">{j.jobname}</span>
+              <span className="text-muted-foreground/70 shrink-0">{j.schedule}</span>
+              <span className={cn('shrink-0 w-16 text-right', ok ? 'text-foreground' : 'text-red-600 dark:text-red-400')}>
+                {labelMin}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+
+      {!overallHealthy && (
+        <div className="px-3 py-2 border-t bg-red-50/60 dark:bg-red-950/20 flex items-start gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400 mt-px flex-shrink-0" />
+          <p className="text-[11px] text-red-700 dark:text-red-400 leading-relaxed">
+            {data.open_critical > 0 && `${String(data.open_critical)} unacknowledged critical event${data.open_critical === 1 ? '' : 's'}. `}
+            {failingJobs.length > 0 && `${String(failingJobs.length)} job${failingJobs.length === 1 ? '' : 's'} failing. `}
+            Investigate via <code className="font-mono">cron.job_run_details</code> and <code className="font-mono">system_health_events</code>.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function AutonomousSection() {
   const hotel = useActiveHotel()
   const update = useUpdateAutonomousSettings()
@@ -1820,11 +1946,15 @@ function AutonomousSection() {
           Save autonomous settings
         </Button>
 
+        {/* Live cron health — replaces static "Active agents" copy */}
+        <CronHealthPanel />
+
         <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">Active agents</p>
-          <p>Intelligence cycle runs every 15 min: anomaly alerts, restock proposals, stale escalation, discrepancy detection, and the auto-approvals configured above.</p>
-          <p>Critical stockout alerts and PO auto-close fire instantly via database triggers.</p>
-          <p>Price drift scans weekly (Mon 6am UTC). POS variance scans daily (5am UTC).</p>
+          <p className="font-medium text-foreground">What's running</p>
+          <p>Intelligence cycle (every 15 min): anomaly alerts, restock proposals, preemptive restocks, stale escalations, discrepancy detection, and the auto-approvals configured above.</p>
+          <p>Event-driven triggers (real-time): critical stockouts, PO auto-close on full receipt, consumption-spike detection.</p>
+          <p>Weekly: PAR optimization, supplier lead-time learning (Sun 4am UTC), price drift (Mon 6am UTC). Daily: POS variance (5am UTC).</p>
+          <p>Health monitor (every 5 min): scans <code className="font-mono">cron.job_run_details</code>, opens <code className="font-mono">system_health_events</code> rows on failure streaks.</p>
         </div>
       </div>
     </div>
@@ -2287,8 +2417,8 @@ export default function SettingsPage() {
       {/* Page header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Mind · Setup</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Hotel configuration · alerts · categories · GDPR</p>
+          <h1 className="text-xl font-semibold">Settings</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Notifications, autonomous loop, hotel profile, team, webhooks &amp; data governance</p>
         </div>
       </div>
 

@@ -342,6 +342,22 @@ Every feature must be built to these standards — operator-grade, ontology-firs
 
 10. **Confidence and uncertainty** — predictions must always expose their basis inline: *"based on 30-day avg"*. Never present model outputs as ground truth.
 
+### Self-Apply: Intelligence Everywhere Includes Our Own Code
+
+We sell intelligence everywhere — derived context, confidence basis, immutable audit, decision support. **Our own code, migrations, and debug loops must meet the same bar.** Hypocrisy here is a product defect: we cannot promise customers that the world's data will be actively analyzed *for* them while shipping migrations that fail with `stack depth limit exceeded` and zero traceable context.
+
+The recent `SECURITY DEFINER` RLS-recursion incident is the canonical lesson. It surfaced as an opaque HTTP 500 — exactly the failure mode we promise operators they will never have. The fix was one line; the prevention was missing.
+
+**Rules that follow:**
+
+1. **Every new RPC, trigger, or RLS helper ships with a test** that exercises it under realistic RLS context — anonymous, authenticated, cross-org, cross-hotel. RLS recursion, missing `SECURITY DEFINER`, and policy gaps must fail in CI, not in production.
+2. **Every migration touching auth, RLS, or graph helpers runs `get_advisors`** before it is considered done. Advisors are part of the migration cycle, not an ad-hoc debugging step after something breaks.
+3. **Failure modes must carry derived context.** A stack-depth error without a function call chain is a defect, not just a Postgres quirk. Wrap, log, or capture enough context that the failure tells us *where* and *why* on first read.
+4. **Instrument before shipping, not after debugging.** If a feature has a cycle, the cycle emits metrics. If an agent runs, its run logs input nodes, tools called, and outcome — for our observability, not just the customer's UI.
+5. **Our debug loop is a Beacon cycle.** Input (the failure) → Analyze (the trace) → Act (fix + prevention) → Repeat (update tests, advisors, or this file). A patch without prevention is incomplete.
+
+If a bug took longer than ten minutes to root-cause, ask: *what observability would have made this a one-minute fix?* The answer is the real deliverable, alongside the patch.
+
 ### UI Rules That Follow From This
 
 - **Layer-grouped navigation** — tabs and sections are always grouped by ontological layer (Floor / Flow / Eye / Mind) with a visible label prefix.

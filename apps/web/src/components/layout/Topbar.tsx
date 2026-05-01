@@ -2,7 +2,8 @@
 // Replaces the sidebar header. Shows logo, hotel switcher, notifications, command bar, copilot toggle.
 
 import { memo } from 'react'
-import { BellDot, Command, Sparkles, X } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { BellDot, Command, Settings, Sparkles, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
@@ -21,6 +22,8 @@ export const Topbar = memo(function Topbar() {
   const totalBadge       = alertCount + unreadNotifCount
 
   const copilotActive = contextPanelOpen && contextPanelTab === 'copilot'
+  const location      = useLocation()
+  const settingsActive = location.pathname.startsWith('/settings')
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-3">
@@ -59,6 +62,22 @@ export const Topbar = memo(function Topbar() {
         >
           <Command className="h-4 w-4" />
         </button>
+
+        {/* Settings */}
+        <Link
+          to="/settings"
+          title="Settings"
+          aria-label="Settings"
+          aria-current={settingsActive ? 'page' : undefined}
+          className={cn(
+            'rounded p-1.5 transition-colors',
+            settingsActive
+              ? 'bg-surface-2 text-foreground'
+              : 'text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground',
+          )}
+        >
+          <Settings className="h-4 w-4" />
+        </Link>
 
         {/* Copilot toggle */}
         <button
