@@ -153,7 +153,7 @@ export function useAdjustStock() {
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
         { photoFile },
       )
-      if (!actionResult.success) throw new Error(actionResult.error)
+      if (!actionResult.success) throw new Error(actionResult.error.message)
       return { queued: false as const }
     },
     // ── Optimistic update — apply delta immediately so UI doesn't lag ──────────

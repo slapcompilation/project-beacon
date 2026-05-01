@@ -144,6 +144,14 @@ export type BeaconAction =
     }
 
 // ─── Result types ─────────────────────────────────────────────────────────────
+//
+// `ActionFailure.error` is now a tagged `BeaconError` (per the osdk-ts audit
+// punch-list). Every variant carries `.message: string`, so display sites can
+// keep doing `result.error.message`. UI sites that want to switch on the
+// failure mode (retry vs. validation banner vs. force re-login) match on
+// `result.error.code`.
+
+import type { BeaconError, ValidationError } from '../errors'
 
 export type ActionSuccess<T = Record<string, unknown>> = {
   success: true
@@ -155,7 +163,7 @@ export type ActionSuccess<T = Record<string, unknown>> = {
 export type ActionFailure = {
   success: false
   type: BeaconAction['type']
-  error: string
+  error: BeaconError
 }
 
 export type ActionResult<T = Record<string, unknown>> = ActionSuccess<T> | ActionFailure
@@ -164,5 +172,6 @@ export type ActionResult<T = Record<string, unknown>> = ActionSuccess<T> | Actio
 
 export interface ValidationResult {
   valid: boolean
-  errors: string[]
+  /** Field-tagged errors. Empty when `valid: true`. */
+  errors: ValidationError[]
 }

@@ -224,7 +224,7 @@ export default function SupplierQuoteParserPage() {
       toast.success(`PO created · ${result.edgesWritten} edges written`)
       void navigate(`/po/${poId}`)
     } else {
-      toast.error('error' in result ? result.error : 'Failed to create PO')
+      toast.error('error' in result ? result.error.message : 'Failed to create PO')
     }
   }
 

@@ -138,7 +138,7 @@ function RequestRestockForm({ variantId, hotelId, userId, onClose }: {
       void qc.invalidateQueries({ queryKey: ['restock-requests'] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -221,7 +221,7 @@ function AdjustStockForm({ variantId, hotelId, userId, onClose }: {
       void qc.invalidateQueries({ queryKey: ['variant-logs', variantId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -272,7 +272,7 @@ function WriteOffForm({ variantId, hotelId, userId, onClose }: {
       void qc.invalidateQueries({ queryKey: ['variant-logs', variantId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -317,7 +317,7 @@ function ApproveRestockForm({ requestId, variantId, hotelId, userId, onClose }: 
       void qc.invalidateQueries({ queryKey: ['restock-object', requestId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -357,7 +357,7 @@ function RejectRestockForm({ requestId, variantId, hotelId, userId, onClose }: {
       void qc.invalidateQueries({ queryKey: ['restock-object', requestId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -398,7 +398,7 @@ function RevertLogForm({ logId, variantId, hotelId, userId, onClose }: {
       void qc.invalidateQueries({ queryKey: ['stock-log-object', logId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -444,7 +444,7 @@ function UpdatePOStatusForm({ poId, hotelId, userId, currentStatus, onClose }: {
       void qc.invalidateQueries({ queryKey: ['purchase-orders'] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -626,7 +626,7 @@ function CancelRestockInline({ requestId, variantId, hotelId, userId, onClose }:
       void qc.invalidateQueries({ queryKey: ['restock-object', requestId] })
       onClose()
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 

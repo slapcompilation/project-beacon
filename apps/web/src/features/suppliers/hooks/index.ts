@@ -53,7 +53,7 @@ export function useCreateSupplier() {
         },
         { hotelId, actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
       return result
     },
     onSuccess: () => {

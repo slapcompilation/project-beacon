@@ -95,7 +95,7 @@ export default function PhotoStocktakePage() {
       toast.success(`${item.productName} adjusted · ${result.edgesWritten} edges`)
       setSubmitted((prev) => new Set([...prev, i]))
     } else {
-      toast.error(result.error)
+      toast.error(result.error.message)
     }
   }
 
@@ -112,7 +112,7 @@ export default function PhotoStocktakePage() {
         { hotelId, actorId: userId, triggeredBy: 'user' },
       )
       if (result.success) { setSubmitted((prev) => new Set([...prev, i])); count++ }
-      else toast.error(`${item.productName}: ${result.error}`)
+      else toast.error(`${item.productName}: ${result.error.message}`)
     }
     setSubmitting(false)
     if (count > 0) toast.success(`${count} adjustment${count !== 1 ? 's' : ''} applied`)
