@@ -1953,7 +1953,7 @@ function AutonomousSection() {
           <p className="font-medium text-foreground">What's running</p>
           <p>Intelligence cycle (every 15 min): anomaly alerts, restock proposals, preemptive restocks, stale escalations, discrepancy detection, and the auto-approvals configured above.</p>
           <p>Event-driven triggers (real-time): critical stockouts, PO auto-close on full receipt, consumption-spike detection.</p>
-          <p>Weekly: PAR optimization, supplier lead-time learning (Sun 4am UTC), price drift (Mon 6am UTC). Daily: POS variance (5am UTC).</p>
+          <p>Weekly: PAR optimization, supplier lead-time learning (Sun 4am UTC), price drift (Mon 6am UTC). Daily: POS variance (5am UTC), proposal-outcomes feedback flywheel (3am UTC).</p>
           <p>Health monitor (every 5 min): scans <code className="font-mono">cron.job_run_details</code>, opens <code className="font-mono">system_health_events</code> rows on failure streaks.</p>
         </div>
       </div>
