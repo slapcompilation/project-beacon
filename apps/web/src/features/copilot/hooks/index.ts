@@ -13,8 +13,6 @@ import {
   fetchMessages,
   renameConversation,
   sendCopilotMessage,
-  type CopilotConversationRow,
-  type CopilotMessageRow,
   type SendMessageInput,
   type SendMessageResponse,
 } from '../api'
@@ -97,4 +95,10 @@ export function useRenameConversation() {
 }
 
 // Re-export types for convenience at call sites
-export type { CopilotConversationRow, CopilotMessageRow, SendMessageResponse }
+export type {
+  ActionProposal,
+  CopilotConversationRow,
+  CopilotMessageRow,
+  SendMessageResponse,
+  ToolTraceEntry,
+} from '../api'
