@@ -4,6 +4,7 @@
 // these hooks; the keyword-router-based EyeCopilotPage continues to work
 // unchanged until the UI revamp PR.
 
+import { useCallback, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
@@ -13,8 +14,12 @@ import {
   fetchMessages,
   renameConversation,
   sendCopilotMessage,
+  streamCopilotMessage,
+  type ActionProposal,
+  type CopilotStreamEvent,
   type SendMessageInput,
   type SendMessageResponse,
+  type ToolTraceEntry,
 } from '../api'
 
 export const copilotKeys = {
@@ -94,11 +99,120 @@ export function useRenameConversation() {
   })
 }
 
+// ─── Streaming hook ──────────────────────────────────────────────────────────
+//
+// Companion to `useSendCopilotMessage` for surfaces that want progressive
+// rendering: `streamingText` accumulates token-by-token, `currentTool` shows
+// which tool the agent is calling right now, and the rest fills in on `done`.
+// On completion the message + conversation lists are invalidated so the
+// persisted rows replace the local in-flight state.
+
+interface StreamingState {
+  isStreaming:     boolean
+  streamingText:   string
+  currentTool:     { name: string; input: Record<string, unknown> } | null
+  toolTrace:       ToolTraceEntry[]
+  conversationId:  string | null
+  actionProposals: ActionProposal[]
+  iterations:      number
+  error:           Error | null
+}
+
+const INITIAL_STATE: StreamingState = {
+  isStreaming:     false,
+  streamingText:   '',
+  currentTool:     null,
+  toolTrace:       [],
+  conversationId:  null,
+  actionProposals: [],
+  iterations:      0,
+  error:           null,
+}
+
+export function useStreamingCopilotMessage() {
+  const queryClient = useQueryClient()
+  const userId      = useAuthStore((s) => s.userId)
+  const [state, setState] = useState<StreamingState>(INITIAL_STATE)
+
+  const reset = useCallback(() => { setState(INITIAL_STATE) }, [])
+
+  const send = useCallback(async (input: SendMessageInput) => {
+    setState({
+      ...INITIAL_STATE,
+      isStreaming:    true,
+      conversationId: input.conversationId ?? null,
+    })
+
+    try {
+      for await (const event of streamCopilotMessage(input)) {
+        applyEvent(event, setState)
+        if (event.type === 'done') {
+          // Persisted rows are now authoritative — refresh the lists.
+          void queryClient.invalidateQueries({
+            queryKey: copilotKeys.messages(event.conversation_id),
+          })
+          void queryClient.invalidateQueries({
+            queryKey: copilotKeys.conversations(userId ?? ''),
+          })
+        }
+        if (event.type === 'error') {
+          throw new Error(event.message)
+        }
+      }
+    } catch (err) {
+      const e = err instanceof Error ? err : new Error(String(err))
+      setState((s) => ({ ...s, error: e, isStreaming: false }))
+      toast.error(e.message)
+      return
+    }
+
+    setState((s) => ({ ...s, isStreaming: false }))
+  }, [queryClient, userId])
+
+  return { ...state, send, reset }
+}
+
+function applyEvent(
+  event: CopilotStreamEvent,
+  setState: React.Dispatch<React.SetStateAction<StreamingState>>,
+) {
+  switch (event.type) {
+    case 'conversation_id':
+      setState((s) => ({ ...s, conversationId: event.conversation_id }))
+      return
+    case 'text_delta':
+      setState((s) => ({ ...s, streamingText: s.streamingText + event.delta }))
+      return
+    case 'tool_call':
+      setState((s) => ({ ...s, currentTool: { name: event.name, input: event.input } }))
+      return
+    case 'tool_result':
+      setState((s) => ({
+        ...s,
+        currentTool: null,
+        toolTrace: [...s.toolTrace, { tool: event.name, input: {}, duration_ms: event.duration_ms }],
+      }))
+      return
+    case 'done':
+      setState((s) => ({
+        ...s,
+        actionProposals: event.action_proposals ?? [],
+        iterations:      event.iterations,
+        toolTrace:       event.tool_trace,         // server-authoritative trace replaces our incremental one
+      }))
+      return
+    case 'error':
+      // Handled in the caller via throw — nothing to apply here.
+      return
+  }
+}
+
 // Re-export types for convenience at call sites
 export type {
   ActionProposal,
   CopilotConversationRow,
   CopilotMessageRow,
+  CopilotStreamEvent,
   SendMessageResponse,
   ToolTraceEntry,
 } from '../api'

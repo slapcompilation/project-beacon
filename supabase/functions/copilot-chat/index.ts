@@ -583,6 +583,166 @@ Deno.serve(async (req: Request) => {
       ...body.messages.map((m) => ({ role: m.role, content: m.content })),
     ]
 
+    // ── Streaming branch (SSE) ───────────────────────────────────────────
+    // When the caller advertises `Accept: text/event-stream`, we stream the
+    // assistant's response token-by-token over Server-Sent Events. Tool calls
+    // are emitted as `tool_call` / `tool_result` markers between iterations
+    // (no streaming of tool input/output — those are server-internal).
+    //
+    // Event shape (one JSON object per `data:` line):
+    //   { type: 'conversation_id', conversation_id }
+    //   { type: 'text_delta',      delta }
+    //   { type: 'tool_call',       name, input, iteration }
+    //   { type: 'tool_result',     name, duration_ms, iteration }
+    //   { type: 'done',            tool_trace, iterations, model,
+    //                              conversation_id, action_proposals }
+    //   { type: 'error',           message }
+    //
+    // Persistence + action_proposal extraction happen exactly as in the JSON
+    // path; only the transport changes.
+    const acceptHeader = req.headers.get('accept') ?? ''
+    if (acceptHeader.includes('text/event-stream')) {
+      const encoder = new TextEncoder()
+      const sseStream = new ReadableStream({
+        async start(controller) {
+          const send = (event: object) => {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+          }
+          try {
+            // Emit the conversation id up front so the client can pin the URL /
+            // associate UI state before the first token arrives.
+            send({ type: 'conversation_id', conversation_id: conversationId })
+
+            const toolTrace: { tool: string; input: ToolInput; duration_ms: number }[] = []
+            let iterations = 0
+            const MAX_ITERATIONS = 8
+            let finalMessage: Anthropic.Message | null = null
+
+            while (iterations < MAX_ITERATIONS) {
+              iterations++
+
+              const llmStream = anthropic.messages.stream({
+                model:      'claude-haiku-4-5-20251001',
+                max_tokens: 1024,
+                system:     SYSTEM_PROMPT,
+                tools:      TOOLS,
+                messages:   anthropicMessages,
+              })
+
+              // Forward text deltas as they arrive — cuts perceived latency.
+              for await (const event of llmStream) {
+                if (
+                  event.type === 'content_block_delta'
+                  && event.delta.type === 'text_delta'
+                ) {
+                  send({ type: 'text_delta', delta: event.delta.text })
+                }
+              }
+
+              finalMessage = await llmStream.finalMessage()
+
+              // No tool calls → assistant is done; break out of the agentic loop.
+              if (finalMessage.stop_reason !== 'tool_use') break
+
+              // Otherwise, run each tool synchronously and emit markers.
+              const toolUses = finalMessage.content.filter(
+                (block): block is Anthropic.ToolUseBlock => block.type === 'tool_use',
+              )
+              const toolResults: Anthropic.ToolResultBlockParam[] = []
+              for (const tu of toolUses) {
+                send({
+                  type:      'tool_call',
+                  name:      tu.name,
+                  input:     tu.input as Record<string, unknown>,
+                  iteration: iterations,
+                })
+                const start    = Date.now()
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput)
+                const duration = Date.now() - start
+                send({
+                  type:        'tool_result',
+                  name:        tu.name,
+                  duration_ms: duration,
+                  iteration:   iterations,
+                })
+                toolTrace.push({ tool: tu.name, input: tu.input as ToolInput, duration_ms: duration })
+                toolResults.push({ type: 'tool_result', tool_use_id: tu.id, content: result })
+              }
+
+              anthropicMessages.push({ role: 'assistant', content: finalMessage.content })
+              anthropicMessages.push({ role: 'user',      content: toolResults })
+            }
+
+            // Reconstruct the final text response from the last message's
+            // content blocks (delta accumulation isn't safe across iterations).
+            let finalResponse = ''
+            if (finalMessage) {
+              for (const block of finalMessage.content) {
+                if (block.type === 'text') finalResponse += block.text
+              }
+            }
+
+            const actionProposals = extractActionProposals(finalResponse)
+            const proposalsForRow = actionProposals.length > 0 ? actionProposals : null
+
+            // Persist user + assistant turn pair (same shape as JSON path).
+            const lastUserMsg = [...body.messages].reverse().find((m) => m.role === 'user')
+            if (lastUserMsg) {
+              const { error: insErr } = await supabase
+                .from('copilot_messages')
+                .insert([
+                  {
+                    conversation_id: conversationId,
+                    role:            'user' as const,
+                    content:         lastUserMsg.content,
+                    tool_trace:      [],
+                    iterations:      0,
+                    model:           null,
+                    action_proposal: null,
+                  },
+                  {
+                    conversation_id: conversationId,
+                    role:            'assistant' as const,
+                    content:         finalResponse,
+                    tool_trace:      toolTrace,
+                    iterations,
+                    model:           'claude-haiku-4-5-20251001',
+                    action_proposal: proposalsForRow,
+                  },
+                ]) as unknown as { error: { message: string } | null }
+              if (insErr) {
+                console.warn('[copilot-chat] persistence failed (stream):', insErr.message)
+              }
+            }
+
+            send({
+              type:             'done',
+              tool_trace:       toolTrace,
+              iterations,
+              model:            'claude-haiku-4-5-20251001',
+              conversation_id:  conversationId,
+              action_proposals: actionProposals,
+            })
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err)
+            send({ type: 'error', message })
+          } finally {
+            controller.close()
+          }
+        },
+      })
+
+      return new Response(sseStream, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type':  'text/event-stream',
+          'Cache-Control': 'no-cache',
+          Connection:      'keep-alive',
+        },
+      })
+    }
+    // ── End streaming branch ─────────────────────────────────────────────
+
     // Tool-calling loop: Claude may call multiple tools before responding
     const toolTrace: { tool: string; input: ToolInput; duration_ms: number }[] = []
     let finalResponse = ''
