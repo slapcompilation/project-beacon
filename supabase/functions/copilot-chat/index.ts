@@ -1,6 +1,18 @@
 // Layer: Eye — LLM-powered copilot with tool-calling for hotel operations
 // Phase B1 of Beacon AIP roadmap: replaces keyword-based router with Claude tool-calling.
 // Pattern: multi-turn conversation, server-side tool execution, action proposals.
+//
+// Conversation persistence (migration 122):
+//   - If `conversation_id` is provided, prior turns are loaded from
+//     `copilot_messages` and prepended to the LLM context. The client only
+//     sends the new user turn.
+//   - If `conversation_id` is omitted, a new row is created in
+//     `copilot_conversations` (titled from the first ~60 chars of the user's
+//     prompt) and its id is returned in the response.
+//   - User + assistant messages are inserted in `copilot_messages` with the
+//     tool_trace + iterations + model preserved per turn.
+//   - All persistence runs against the user-scoped Supabase client, so RLS
+//     enforces ownership without us needing the service role.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
@@ -410,8 +422,20 @@ interface ChatMessage {
 }
 
 interface RequestBody {
+  /** New user turn (and optionally any client-side override of prior turns).
+   *  When `conversation_id` is provided, history is loaded server-side; the
+   *  client typically only sends a single new `user` message. */
   messages: ChatMessage[]
+  /** Existing conversation to continue. Omit to start a new conversation. */
   conversation_id?: string
+}
+
+/** First-message → derived conversation title. Trimmed to 60 chars,
+ *  whitespace collapsed, no trailing fragment. */
+function deriveTitle(firstUserContent: string): string {
+  const cleaned = firstUserContent.replace(/\s+/g, ' ').trim()
+  if (cleaned.length <= 60) return cleaned || 'New conversation'
+  return cleaned.slice(0, 57).trimEnd() + '…'
 }
 
 Deno.serve(async (req: Request) => {
@@ -439,13 +463,76 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'messages array is required' }, 400)
     }
 
+    // ── Conversation persistence (Phase B1) ──────────────────────────────
+    // Resolve / create the conversation row up front so subsequent inserts
+    // have a valid foreign key. RLS scopes both reads and writes to the
+    // current user via the user-bound supabase client — no service-role hop.
+
+    let conversationId = body.conversation_id ?? null
+    let priorMessages: ChatMessage[] = []
+
+    if (conversationId) {
+      // Load the prior turn history. RLS guarantees the user owns the row.
+      const { data: rows, error: loadErr } = await supabase
+        .from('copilot_messages')
+        .select('role, content')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true }) as unknown as {
+          data: { role: 'user' | 'assistant' | 'system'; content: string }[] | null
+          error: { message: string; code?: string } | null
+        }
+      if (loadErr) {
+        return json({ error: `Failed to load conversation history: ${loadErr.message}` }, 403)
+      }
+      priorMessages = (rows ?? [])
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+    } else {
+      // Brand-new conversation — derive a title from the first user message.
+      const firstUser = body.messages.find((m) => m.role === 'user')
+      if (!firstUser) {
+        return json({ error: 'first message must include a user role' }, 400)
+      }
+
+      // Resolve hotel_id from the auth profile (RLS WITH CHECK requires it).
+      const { data: profile, error: profErr } = await supabase
+        .from('profiles')
+        .select('hotel_id')
+        .eq('id', user.id)
+        .single() as unknown as {
+          data: { hotel_id: string } | null
+          error: { message: string } | null
+        }
+      if (profErr || !profile) {
+        return json({ error: 'Failed to resolve hotel for caller' }, 403)
+      }
+
+      const { data: convRow, error: convErr } = await supabase
+        .from('copilot_conversations')
+        .insert({
+          user_id:  user.id,
+          hotel_id: profile.hotel_id,
+          title:    deriveTitle(firstUser.content),
+        })
+        .select('id')
+        .single() as unknown as {
+          data: { id: string } | null
+          error: { message: string } | null
+        }
+      if (convErr || !convRow) {
+        return json({ error: `Failed to create conversation: ${convErr?.message ?? 'unknown'}` }, 500)
+      }
+      conversationId = convRow.id
+    }
+
     const anthropic = new Anthropic({ apiKey })
 
-    // Convert chat messages to Anthropic format
-    const anthropicMessages: Anthropic.MessageParam[] = body.messages.map((m) => ({
-      role: m.role,
-      content: m.content,
-    }))
+    // Convert chat messages to Anthropic format. Server-loaded history
+    // precedes the client-supplied turn(s) so Claude sees the full context.
+    const anthropicMessages: Anthropic.MessageParam[] = [
+      ...priorMessages.map((m) => ({ role: m.role, content: m.content })),
+      ...body.messages.map((m) => ({ role: m.role, content: m.content })),
+    ]
 
     // Tool-calling loop: Claude may call multiple tools before responding
     const toolTrace: { tool: string; input: ToolInput; duration_ms: number }[] = []
@@ -517,11 +604,49 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ── Persist the new user + assistant turn pair ───────────────────────
+    // Insert the LATEST user message (the one the client just sent — usually
+    // body.messages[body.messages.length - 1]) and the assistant's final
+    // response. The trigger trg_copilot_msg_bump_conv updates message_count
+    // and last_message_at on the parent conversation.
+    const lastUserMsg = [...body.messages].reverse().find((m) => m.role === 'user')
+    if (lastUserMsg) {
+      const turnRows = [
+        {
+          conversation_id: conversationId,
+          role:            'user' as const,
+          content:         lastUserMsg.content,
+          tool_trace:      [],
+          iterations:      0,
+          model:           null,
+          action_proposal: null,
+        },
+        {
+          conversation_id: conversationId,
+          role:            'assistant' as const,
+          content:         finalResponse,
+          tool_trace:      toolTrace,
+          iterations,
+          model:           'claude-haiku-4-5-20251001',
+          action_proposal: null,
+        },
+      ]
+      const { error: insErr } = await supabase
+        .from('copilot_messages')
+        .insert(turnRows) as unknown as { error: { message: string } | null }
+      if (insErr) {
+        // Persistence failure is non-fatal — return the LLM result anyway.
+        // Surface the error so the caller can decide whether to retry sync.
+        console.warn('[copilot-chat] persistence failed:', insErr.message)
+      }
+    }
+
     return json({
-      response: finalResponse,
-      tool_trace: toolTrace,
-      model: 'claude-haiku-4-5-20251001',
+      response:        finalResponse,
+      tool_trace:      toolTrace,
+      model:           'claude-haiku-4-5-20251001',
       iterations,
+      conversation_id: conversationId,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
