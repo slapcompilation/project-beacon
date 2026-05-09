@@ -360,11 +360,28 @@ If a bug took longer than ten minutes to root-cause, ask: *what observability wo
 
 ### UI Rules That Follow From This
 
-- **Layer-grouped navigation** — tabs and sections are always grouped by ontological layer (Floor / Flow / Eye / Mind) with a visible label prefix.
+- **Layer-grouped navigation** — tabs and sections are always grouped by ontological layer (Floor / Flow / Eye / Mind). The layer label is a typographic eyebrow / chip in the page header — **never** a `Layer ·` prefix on tab labels (that pattern doesn't survive the 5/10/30 audit below).
 - **Every list has a sort order with intent** — sort by urgency, anomaly score, or business impact. The most critical item is always at the top.
 - **Trend indicators are mandatory** on any metric that changes over time.
 - **Empty states are intelligence opportunities** — explain what was scanned, when, and what thresholds were applied. Never just a checkmark or a generic "nothing here" message.
 - **Actions live next to data** — operators should never navigate away to act on what they see. Inline `Request Restock`, `Write Off`, `Approve` buttons are the standard.
 - **Every AI decision shows its reasoning** — confidence basis, nodes considered, tools called. This is the trust layer.
+
+### Patterns Lifted From Foundry / AIP (Non-Negotiable Going Forward)
+
+Sourced from Palantir's public Foundry & AIP docs (Workshop, Object Views, Action Types, Agent Studio, AI FDE). Apply these without re-deriving them.
+
+- **The 5 / 10 / 30 rule** — top-level navigation ≤ 5 destinations; visible components per view ≤ 10; target whitespace 30–40%. This is the literal cure for sub-tab proliferation. When a sub-tab appears, the design has failed; collapse to Sections inside the page.
+- **Object Views as the canonical surface for any node type** — every variant / supplier / restock_request / PO / stock_log gets a Full Object View (own page) and a Panel Object View (slide-over). Standard anatomy: **header → metric strip → action bar → body sections → right rail**. Operator never gets a different anatomy depending on the entity.
+- **Action invocation has exactly two modes** — `open-form` (modal auto-rendered from the action's parameter schema; default) and `apply-immediately` (one-click when defaults are valid). Every BeaconAction declares which mode applies. No third pattern.
+- **Color-coded button intents** — Gray = secondary (Back/Cancel), Blue = primary CTA (Create/Next), Green = completion (Submit/Approve), Amber = attention-required (Archive), Red = destructive (Delete). Audit every `<Button>` against these five.
+- **Action log is a first-class node, not a sidebar** — StockLog already is. Surface it bidirectionally: in a global Activity feed AND in every related object's right rail. Never hide audit behind a drawer toggle.
+- **"View reasoning" is a disclosure, not the main copy** — agent reasoning trace lives behind an inline expand under each AI-generated row, not crammed into the response text. The action modal is for parameter review; the trace surface is for *why this was proposed*. Two distinct affordances.
+- **Copilot is a contextual slide-over, not a global drawer** — when open, it knows the current Object View context and passes that node's id to its tools. One drawer, contextually scoped. Right-rail outline panel renders the user → tool → tool → response chain with click-to-jump.
+- **Pinned module header, non-scrolling tabs** — page-level tabs live in a sticky header that survives sub-navigation. Sub-views become **Sections inside the page**, not tab strips at the top.
+- **Compact density default; 16px spacing rhythm** — touch targets ≥ 30px when scrolling is enabled. Tabular numerals (`font-feature-settings: 'tnum'`) on every number that changes over time.
+- **`Request Clarification` as an agent capability** — when an agent is below confidence threshold, it pauses and asks the operator a question inline rather than emitting a low-confidence proposal. Beacon copilot should adopt this for any tool whose result has confidence < 0.6.
+
+Where Foundry's pattern doesn't fit Beacon's scale — single-hotel-to-small-chain, ~15 node types, 1-tenant-per-org typical — translate spiritually but reshape: a single global Copilot slide-over instead of N embedded widgets; a typographic layer eyebrow instead of a `Mind ·` prefix; a linear indented outline instead of a directed-graph reasoning trace.
 
 The key insight: Palantir's products feel like the world's data is being actively analyzed *for* you, not stored *for* you to analyze yourself. Every sprint should move the app further in that direction.
