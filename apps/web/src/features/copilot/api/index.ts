@@ -118,6 +118,90 @@ export async function sendCopilotMessage(
   return data
 }
 
+// ─── Streaming send ──────────────────────────────────────────────────────────
+//
+// Same wire contract as `sendCopilotMessage` but consumes the edge function's
+// SSE branch (Accept: text/event-stream). The async generator yields one
+// event per `data:` line; consumers `for await (const event of ...)` and
+// branch on `event.type`. Consumers MUST NOT throw inside the loop — return
+// instead, or wrap in try/finally — leaking iterators leaves the underlying
+// fetch open until GC.
+
+export type CopilotStreamEvent =
+  | { type: 'conversation_id'; conversation_id: string }
+  | { type: 'text_delta';      delta: string }
+  | { type: 'tool_call';       name: string; input: Record<string, unknown>; iteration: number }
+  | { type: 'tool_result';     name: string; duration_ms: number; iteration: number }
+  | {
+      type:             'done'
+      tool_trace:       ToolTraceEntry[]
+      iterations:       number
+      model:            string
+      conversation_id:  string
+      action_proposals: ActionProposal[]
+    }
+  | { type: 'error'; message: string }
+
+export async function* streamCopilotMessage(
+  input: SendMessageInput,
+): AsyncGenerator<CopilotStreamEvent, void, void> {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Not signed in')
+
+  const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? ''
+  if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL not set')
+
+  const res = await fetch(`${supabaseUrl}/functions/v1/copilot-chat`, {
+    method:  'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Accept':        'text/event-stream',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({
+      conversation_id: input.conversationId ?? undefined,
+      messages:        [{ role: 'user', content: input.content }],
+    }),
+  })
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    throw new Error(text || `copilot-chat returned HTTP ${String(res.status)}`)
+  }
+  if (!res.body) throw new Error('copilot-chat returned no body')
+
+  const reader  = res.body.getReader()
+  const decoder = new TextDecoder()
+  let buffer    = ''
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+
+      // SSE frames are separated by blank lines; events look like `data: {...}\n\n`.
+      const frames = buffer.split('\n\n')
+      buffer = frames.pop() ?? ''
+      for (const frame of frames) {
+        const line = frame.split('\n').find((l) => l.startsWith('data: '))
+        if (!line) continue
+        const json = line.slice(6).trim()
+        if (!json) continue
+        try {
+          yield JSON.parse(json) as CopilotStreamEvent
+        } catch {
+          // Malformed event — skip it. The next frame may parse fine.
+        }
+      }
+    }
+  } finally {
+    // Release the lock so the network connection can finalize cleanly,
+    // even if the consumer breaks out of the loop early.
+    reader.releaseLock()
+  }
+}
+
 // ─── Mutations ───────────────────────────────────────────────────────────────
 
 export async function archiveConversation(id: string): Promise<void> {
