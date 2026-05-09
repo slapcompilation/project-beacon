@@ -438,6 +438,55 @@ function deriveTitle(firstUserContent: string): string {
   return cleaned.slice(0, 57).trimEnd() + '…'
 }
 
+/** A single action proposal emitted by the assistant. Mirrors the structured
+ *  payload returned by the propose_* tools and the JSON block format documented
+ *  in the system prompt. The UI renders Confirm / Edit / Cancel cards from
+ *  these — they are NEVER auto-executed. */
+interface ParsedActionProposal {
+  type:    'action_proposal'
+  action:  string                   // e.g. 'REQUEST_RESTOCK', 'WRITE_OFF', 'BATCH_APPROVE'
+  params:  Record<string, unknown>
+  message?: string
+}
+
+/** Extract every ```action … ``` fenced block from the assistant's final text,
+ *  parse each as JSON, and return the well-shaped ones.
+ *
+ *  The system prompt instructs Claude: "include a JSON block marked with
+ *  ```action that the UI will parse". The propose_* tools also return the same
+ *  shape; the LLM typically echoes their results into a fenced block. We
+ *  ignore non-conforming blocks rather than throwing — a malformed response
+ *  shouldn't crash persistence. */
+function extractActionProposals(text: string): ParsedActionProposal[] {
+  const fenceRe   = /```action\s*\n([\s\S]*?)```/g
+  const proposals: ParsedActionProposal[] = []
+  let match: RegExpExecArray | null
+  while ((match = fenceRe.exec(text)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim()) as Partial<ParsedActionProposal>
+      if (
+        parsed
+        && parsed.type === 'action_proposal'
+        && typeof parsed.action === 'string'
+        && parsed.params
+        && typeof parsed.params === 'object'
+        && !Array.isArray(parsed.params)
+      ) {
+        proposals.push({
+          type:    'action_proposal',
+          action:  parsed.action,
+          params:  parsed.params as Record<string, unknown>,
+          message: typeof parsed.message === 'string' ? parsed.message : undefined,
+        })
+      }
+    } catch {
+      // Malformed JSON inside an ```action fence — silently skip.
+      // Future revision: log to system_health_events for telemetry.
+    }
+  }
+  return proposals
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
@@ -604,6 +653,14 @@ Deno.serve(async (req: Request) => {
       }
     }
 
+    // ── Extract any structured action proposals from the assistant text ──
+    // The system prompt asks Claude to emit ```action JSON blocks for any
+    // mutation it suggests. We parse them out of the final response so the
+    // UI can render Confirm / Edit / Cancel cards. Stored as an array on the
+    // copilot_messages row (or null if none) — never auto-executed.
+    const actionProposals = extractActionProposals(finalResponse)
+    const proposalsForRow  = actionProposals.length > 0 ? actionProposals : null
+
     // ── Persist the new user + assistant turn pair ───────────────────────
     // Insert the LATEST user message (the one the client just sent — usually
     // body.messages[body.messages.length - 1]) and the assistant's final
@@ -628,7 +685,7 @@ Deno.serve(async (req: Request) => {
           tool_trace:      toolTrace,
           iterations,
           model:           'claude-haiku-4-5-20251001',
-          action_proposal: null,
+          action_proposal: proposalsForRow,
         },
       ]
       const { error: insErr } = await supabase
@@ -642,11 +699,12 @@ Deno.serve(async (req: Request) => {
     }
 
     return json({
-      response:        finalResponse,
-      tool_trace:      toolTrace,
-      model:           'claude-haiku-4-5-20251001',
+      response:         finalResponse,
+      tool_trace:       toolTrace,
+      model:            'claude-haiku-4-5-20251001',
       iterations,
-      conversation_id: conversationId,
+      conversation_id:  conversationId,
+      action_proposals: actionProposals,
     })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

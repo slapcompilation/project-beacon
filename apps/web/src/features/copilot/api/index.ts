@@ -30,7 +30,10 @@ export interface CopilotMessageRow {
   tool_trace:      ToolTraceEntry[]
   iterations:      number
   model:           string | null
-  action_proposal: Record<string, unknown> | null
+  /** Structured action proposals parsed from the assistant text. Null when
+   *  the assistant didn't suggest any mutation. UIs render Confirm / Edit /
+   *  Cancel cards from these. NEVER auto-executed. */
+  action_proposal: ActionProposal[] | null
   created_at:      string
 }
 
@@ -38,6 +41,16 @@ export interface ToolTraceEntry {
   tool:        string
   input:       Record<string, unknown>
   duration_ms: number
+}
+
+/** Mirrors the shape emitted by the propose_* tools and the ```action fenced
+ *  blocks the assistant writes per the system prompt. */
+export interface ActionProposal {
+  type:    'action_proposal'
+  /** BeaconAction['type'] — e.g. 'REQUEST_RESTOCK', 'WRITE_OFF', 'BATCH_APPROVE'. */
+  action:  string
+  params:  Record<string, unknown>
+  message?: string
 }
 
 // ─── Reads ───────────────────────────────────────────────────────────────────
@@ -77,11 +90,15 @@ export interface SendMessageInput {
 }
 
 export interface SendMessageResponse {
-  response:        string
-  tool_trace:      ToolTraceEntry[]
-  model:           string
-  iterations:      number
-  conversation_id: string
+  response:         string
+  tool_trace:       ToolTraceEntry[]
+  model:            string
+  iterations:       number
+  conversation_id:  string
+  /** Always present (empty array when no proposals). The same payload is
+   *  persisted on the assistant message row, so this is purely a convenience
+   *  for the immediate response — the persisted row is the source of truth. */
+  action_proposals: ActionProposal[]
 }
 
 export async function sendCopilotMessage(
