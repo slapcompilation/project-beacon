@@ -82,18 +82,31 @@ export interface CreateProductInput {
   initial_stock?: number
 }
 
-export async function uploadProductImage(file: File): Promise<string | null> {
-  try {
-    const id = crypto.randomUUID()
-    const ext = file.name.split('.').pop() ?? 'jpg'
-    const path = `${id}.${ext}`
-    const { error } = await supabase.storage.from('product-images').upload(path, file, { upsert: true })
-    if (error) return null
-    const { data } = supabase.storage.from('product-images').getPublicUrl(path)
-    return data.publicUrl
-  } catch {
-    return null
+/**
+ * Upload a product image to the `product-images` bucket and return the public URL.
+ *
+ * Throws on failure — callers can surface the error message via toast. Previously
+ * this swallowed all errors and returned null, which silently dropped images
+ * when storage RLS blocked the upsert (see migration 125 / Bug A2).
+ */
+export async function uploadProductImage(file: File): Promise<string> {
+  const id   = crypto.randomUUID()
+  const ext  = file.name.split('.').pop() ?? 'jpg'
+  const path = `${id}.${ext}`
+
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(path, file, { upsert: true })
+
+  if (error) {
+    throw new Error(`Image upload failed: ${error.message}`)
   }
+
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path)
+  if (!data.publicUrl) {
+    throw new Error('Image upload succeeded but public URL was empty')
+  }
+  return data.publicUrl
 }
 
 export async function createProduct(

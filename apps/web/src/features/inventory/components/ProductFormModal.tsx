@@ -3,6 +3,7 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Loader2, Camera, X, Tag } from 'lucide-react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -134,11 +135,16 @@ export function ProductFormModal({ open, onClose, product }: Props) {
   }
 
   const onSubmit = async (data: Fields) => {
-    // Upload new image if selected
+    // Upload new image if selected. The helper throws on failure now (see
+    // migration 125 / Bug A2 — silent null-returns hid bucket RLS regressions).
     let imageUrl = product?.image_url ?? null
     if (imageFile) {
-      const uploaded = await uploadProductImage(imageFile)
-      if (uploaded) imageUrl = uploaded
+      try {
+        imageUrl = await uploadProductImage(imageFile)
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Image upload failed')
+        return  // abort save — operator can retry or remove the image and try again
+      }
     } else if (!imagePreview) {
       // User cleared the existing image
       imageUrl = null
