@@ -318,7 +318,7 @@ function InvoiceOCRForm({ poId, hotelId }: { poId: string; hotelId: string }) {
     )
     setSubmitting(false)
     if (result.success) { toast.success('Invoice submitted'); setOpen(false); setParsed(null) }
-    else toast.error(result.error)
+    else toast.error(result.error.message)
   }
 
   if (!open) return (

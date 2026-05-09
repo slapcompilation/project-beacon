@@ -168,7 +168,7 @@ export function useCreatePO() {
         { type: 'CREATE_PO', hotelId, ...input },
         { hotelId, actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
       return result
     },
     onSuccess: () => {
@@ -205,7 +205,7 @@ export function useSubmitPOInvoice() {
         { type: 'SUBMIT_PO_INVOICE', poId, hotelId, invoiceNumber, invoiceDate, invoiceAmount, notes },
         { hotelId, actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
       return result
     },
     onSuccess: (_res, vars) => {

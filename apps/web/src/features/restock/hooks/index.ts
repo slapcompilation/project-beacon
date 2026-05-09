@@ -72,7 +72,7 @@ export function useCreateRestockRequest() {
         },
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
       return { alreadyOpen: false as const, result }
     },
     onSuccess: (data) => {
@@ -132,7 +132,7 @@ export function useReceiveRestock() {
         },
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
       // Return shape expected by call sites: { fulfilled, newBalance }
       return result.data as import('@beacon/reality-graph').ReceiveStockResult
     },
@@ -222,7 +222,7 @@ export function useApproveRestock() {
         { type: 'APPROVE_RESTOCK', requestId: id, hotelId: hotelId ?? '', notes },
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
@@ -251,7 +251,7 @@ export function useRejectRestock() {
         { type: 'REJECT_RESTOCK', requestId: id, hotelId: hotelId ?? '', reason },
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
       )
-      if (!result.success) throw new Error(result.error)
+      if (!result.success) throw new Error(result.error.message)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })

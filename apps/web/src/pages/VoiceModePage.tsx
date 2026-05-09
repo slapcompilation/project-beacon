@@ -106,9 +106,9 @@ export default function VoiceModePage() {
             },
             { hotelId, actorId: userId, triggeredBy: 'user' },
           )
-          setLastAction(result.success ? `Adjusted · ${result.edgesWritten} edges` : `Error: ${result.error}`)
-          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `Stock adjusted by ${args['delta']}` : result.error ?? 'Error', action: 'ADJUST_STOCK', success: result.success }])
-          return result.success ? 'done' : result.error ?? 'error'
+          setLastAction(result.success ? `Adjusted · ${result.edgesWritten} edges` : `Error: ${result.error.message}`)
+          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `Stock adjusted by ${args['delta']}` : result.error.message, action: 'ADJUST_STOCK', success: result.success }])
+          return result.success ? 'done' : result.error.message
         },
 
         requestRestock: async (args: Record<string, unknown>) => {
@@ -123,8 +123,8 @@ export default function VoiceModePage() {
             },
             { hotelId, actorId: userId, triggeredBy: 'user' },
           )
-          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? 'Restock requested' : result.error ?? 'Error', action: 'REQUEST_RESTOCK', success: result.success }])
-          return result.success ? 'done' : result.error ?? 'error'
+          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? 'Restock requested' : result.error.message, action: 'REQUEST_RESTOCK', success: result.success }])
+          return result.success ? 'done' : result.error.message
         },
 
         writeOff: async (args: Record<string, unknown>) => {
@@ -139,8 +139,8 @@ export default function VoiceModePage() {
             },
             { hotelId, actorId: userId, triggeredBy: 'user' },
           )
-          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `${args['quantity']} written off` : result.error ?? 'Error', action: 'WRITE_OFF', success: result.success }])
-          return result.success ? 'done' : result.error ?? 'error'
+          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `${args['quantity']} written off` : result.error.message, action: 'WRITE_OFF', success: result.success }])
+          return result.success ? 'done' : result.error.message
         },
       }
 

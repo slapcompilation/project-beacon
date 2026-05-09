@@ -3,113 +3,123 @@
 //
 // Every BeaconAction has declared submission criteria checked before execution.
 // validateAction() is a pure function — no side effects, no async.
-// dispatchAction() calls this first and throws if invalid.
+// dispatchAction() calls this first; on failure it wraps the result in a
+// VALIDATION_FAILED BeaconError.
+//
+// Errors are now field-tagged (per osdk-ts audit) so UIs can associate each
+// problem with the input that caused it instead of parsing concatenated
+// strings.
 
 import type { BeaconAction, ValidationResult } from './types'
+import type { ValidationError } from '../errors'
 
 export function validateAction(action: BeaconAction): ValidationResult {
-  const errors: string[] = []
+  const errors: ValidationError[] = []
+  const e = (field: string, message: string) => errors.push({ field, message })
 
   switch (action.type) {
     case 'REQUEST_RESTOCK': {
-      if (!action.variantId)     errors.push('variantId is required')
-      if (!action.hotelId)       errors.push('hotelId is required')
-      if (!action.requestorId)   errors.push('requestorId is required')
+      if (!action.variantId)     e('variantId',   'variantId is required')
+      if (!action.hotelId)       e('hotelId',     'hotelId is required')
+      if (!action.requestorId)   e('requestorId', 'requestorId is required')
       if (action.quantityNeeded <= 0)
-        errors.push('quantityNeeded must be greater than 0')
+        e('quantityNeeded', 'quantityNeeded must be greater than 0')
       break
     }
 
     case 'APPROVE_RESTOCK': {
-      if (!action.requestId) errors.push('requestId is required')
-      if (!action.hotelId)   errors.push('hotelId is required')
+      if (!action.requestId) e('requestId', 'requestId is required')
+      if (!action.hotelId)   e('hotelId',   'hotelId is required')
       break
     }
 
     case 'REJECT_RESTOCK': {
-      if (!action.requestId) errors.push('requestId is required')
-      if (!action.hotelId)   errors.push('hotelId is required')
+      if (!action.requestId) e('requestId', 'requestId is required')
+      if (!action.hotelId)   e('hotelId',   'hotelId is required')
       break
     }
 
     case 'CANCEL_RESTOCK': {
-      if (!action.requestId) errors.push('requestId is required')
-      if (!action.hotelId)   errors.push('hotelId is required')
+      if (!action.requestId) e('requestId', 'requestId is required')
+      if (!action.hotelId)   e('hotelId',   'hotelId is required')
       break
     }
 
     case 'RECEIVE_STOCK': {
-      if (!action.requestId) errors.push('requestId is required')
-      if (!action.hotelId)   errors.push('hotelId is required')
+      if (!action.requestId) e('requestId', 'requestId is required')
+      if (!action.hotelId)   e('hotelId',   'hotelId is required')
       if (action.quantityReceived <= 0)
-        errors.push('quantityReceived must be greater than 0')
+        e('quantityReceived', 'quantityReceived must be greater than 0')
       break
     }
 
     case 'ADJUST_STOCK': {
-      if (!action.variantId)   errors.push('variantId is required')
-      if (!action.hotelId)     errors.push('hotelId is required')
-      if (!action.userId)      errors.push('userId is required')
-      if (action.delta === 0)  errors.push('delta cannot be zero — use WRITE_OFF for waste removal')
-      if (!action.reason.trim()) errors.push('reason is required')
+      if (!action.variantId)   e('variantId', 'variantId is required')
+      if (!action.hotelId)     e('hotelId',   'hotelId is required')
+      if (!action.userId)      e('userId',    'userId is required')
+      if (action.delta === 0)
+        e('delta', 'delta cannot be zero — use WRITE_OFF for waste removal')
+      if (!action.reason.trim()) e('reason', 'reason is required')
       break
     }
 
     case 'WRITE_OFF': {
-      if (!action.variantId)   errors.push('variantId is required')
-      if (!action.hotelId)     errors.push('hotelId is required')
-      if (!action.userId)      errors.push('userId is required')
-      if (action.quantity <= 0) errors.push('quantity must be greater than 0')
-      if (!action.wasteReason.trim()) errors.push('wasteReason is required')
+      if (!action.variantId)   e('variantId', 'variantId is required')
+      if (!action.hotelId)     e('hotelId',   'hotelId is required')
+      if (!action.userId)      e('userId',    'userId is required')
+      if (action.quantity <= 0) e('quantity',  'quantity must be greater than 0')
+      if (!action.wasteReason.trim()) e('wasteReason', 'wasteReason is required')
       break
     }
 
     case 'REVERT_ACTION': {
-      if (!action.originalLogId)   errors.push('originalLogId is required')
-      if (!action.variantId)       errors.push('variantId is required')
-      if (!action.hotelId)         errors.push('hotelId is required')
-      if (!action.userId)          errors.push('userId is required')
-      if (!action.revertReason.trim()) errors.push('revertReason is required')
+      if (!action.originalLogId)   e('originalLogId', 'originalLogId is required')
+      if (!action.variantId)       e('variantId',     'variantId is required')
+      if (!action.hotelId)         e('hotelId',       'hotelId is required')
+      if (!action.userId)          e('userId',        'userId is required')
+      if (!action.revertReason.trim()) e('revertReason', 'revertReason is required')
       break
     }
 
     case 'CREATE_SUPPLIER': {
-      if (!action.hotelId)      errors.push('hotelId is required')
-      if (!action.name.trim())  errors.push('supplier name is required')
+      if (!action.hotelId)      e('hotelId', 'hotelId is required')
+      if (!action.name.trim())  e('name',    'supplier name is required')
       break
     }
 
     case 'CREATE_PO': {
-      if (!action.hotelId)            errors.push('hotelId is required')
-      if (!action.supplierName.trim()) errors.push('supplierName is required')
-      if (!action.poNumber.trim())    errors.push('poNumber is required')
-      if (action.lines.length === 0)  errors.push('at least one line item is required')
-      for (const line of action.lines) {
-        if (line.orderedQty <= 0) errors.push(`line for ${line.variantId}: orderedQty must be > 0`)
-      }
+      if (!action.hotelId)             e('hotelId',      'hotelId is required')
+      if (!action.supplierName.trim()) e('supplierName', 'supplierName is required')
+      if (!action.poNumber.trim())     e('poNumber',     'poNumber is required')
+      if (action.lines.length === 0)   e('lines',        'at least one line item is required')
+      action.lines.forEach((line, idx) => {
+        if (line.orderedQty <= 0) {
+          e(`lines[${String(idx)}].orderedQty`, `line for ${line.variantId}: orderedQty must be > 0`)
+        }
+      })
       break
     }
 
     case 'UPDATE_PO_STATUS': {
-      if (!action.poId)    errors.push('poId is required')
-      if (!action.hotelId) errors.push('hotelId is required')
-      if (!action.status)  errors.push('status is required')
+      if (!action.poId)    e('poId',    'poId is required')
+      if (!action.hotelId) e('hotelId', 'hotelId is required')
+      if (!action.status)  e('status',  'status is required')
       break
     }
 
     case 'SUBMIT_PO_INVOICE': {
-      if (!action.poId)              errors.push('poId is required')
-      if (!action.hotelId)           errors.push('hotelId is required')
-      if (!action.invoiceNumber.trim()) errors.push('invoiceNumber is required')
-      if (!action.invoiceDate)       errors.push('invoiceDate is required')
-      if (action.invoiceAmount <= 0) errors.push('invoiceAmount must be > 0')
+      if (!action.poId)              e('poId',           'poId is required')
+      if (!action.hotelId)           e('hotelId',        'hotelId is required')
+      if (!action.invoiceNumber.trim()) e('invoiceNumber', 'invoiceNumber is required')
+      if (!action.invoiceDate)       e('invoiceDate',    'invoiceDate is required')
+      if (action.invoiceAmount <= 0) e('invoiceAmount',  'invoiceAmount must be > 0')
       break
     }
 
     case 'MATCH_INVOICE': {
-      if (!action.invoiceId) errors.push('invoiceId is required')
-      if (!action.poId)      errors.push('poId is required')
-      if (!action.hotelId)   errors.push('hotelId is required')
+      if (!action.invoiceId) e('invoiceId', 'invoiceId is required')
+      if (!action.poId)      e('poId',      'poId is required')
+      if (!action.hotelId)   e('hotelId',   'hotelId is required')
       break
     }
   }

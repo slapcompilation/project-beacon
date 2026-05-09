@@ -16,6 +16,8 @@ import { supabase } from '@/lib/supabase/client'
 import {
   validateAction,
   edgesForAction,
+  validationFailed,
+  mapPostgrestError,
 } from '@beacon/reality-graph'
 import type {
   BeaconAction,
@@ -76,7 +78,7 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
   // 1. Validate submission criteria
   const validation = validateAction(action)
   if (!validation.valid) {
-    return { success: false, type, error: validation.errors.join('; ') }
+    return { success: false, type, error: validationFailed(validation.errors) }
   }
 
   let mutationResult: MutationResult = {}
@@ -225,8 +227,7 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       }
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    return { success: false, type, error: message }
+    return { success: false, type, error: mapPostgrestError(err) }
   }
 
   // 3. Compute semantic edges

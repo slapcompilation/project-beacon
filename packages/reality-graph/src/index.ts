@@ -2,6 +2,24 @@
 // Core ontology and four-layer engine for the hotel Reality Graph.
 // This package is the heart of the application — all features plug into it.
 
+// ── Result + Error primitives — used by every fallible function ─────────────
+export type { Result, Ok, Err } from './result'
+export { ok, err, isOk, isErr, mapResult, unwrapOr, andThen } from './result'
+
+export type {
+  BeaconError,
+  BeaconResult,
+  ValidationError,
+} from './errors'
+export {
+  validationFailed,
+  notFound,
+  scopeDenied,
+  rpcFailed,
+  unknownError,
+  mapPostgrestError,
+} from './errors'
+
 export type { Layer, LayerMeta } from './layers'
 export { LAYERS } from './layers'
 export type { NodeType, EdgeType, GraphNode, GraphEdge, LayerDeclaration } from './types'
