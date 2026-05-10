@@ -384,4 +384,67 @@ Sourced from Palantir's public Foundry & AIP docs (Workshop, Object Views, Actio
 
 Where Foundry's pattern doesn't fit Beacon's scale — single-hotel-to-small-chain, ~15 node types, 1-tenant-per-org typical — translate spiritually but reshape: a single global Copilot slide-over instead of N embedded widgets; a typographic layer eyebrow instead of a `Mind ·` prefix; a linear indented outline instead of a directed-graph reasoning trace.
 
+### The Beacon Design System: Blueprint (Non-Negotiable)
+
+**Beacon's design system is [`@blueprintjs`](https://blueprintjs.com).** Not shadcn/ui, not a custom design language, not Tailwind defaults dressed up to look operator-grade. Blueprint is the same component library Foundry itself uses; adopting it directly buys us pixel-level consistency with the reference platform without re-deriving the visual layer from screenshots and guesses.
+
+**This decision supersedes the prior shadcn/ui + Tailwind direction.** The remaining shadcn components are migration debt; new code does not extend them.
+
+#### Why Blueprint, not shadcn
+
+shadcn was a defensible default while we were prototyping. Now that we've decided to *be* a Foundry-grade product, the philosophical alignment is the lever:
+
+- **Same authoring origin.** Blueprint is Palantir's open-source toolkit; Foundry is built on it. The visual decisions we'd otherwise re-derive (color ramp, type ramp, density, motion) are upstream and battle-tested.
+- **One mental model.** No "Blueprint button vs. shadcn button" cognitive split. Every `<Button>` takes `intent="primary"`, every `<Dialog>` follows the same anatomy, every numeric cell uses `HTMLTable` with tabular numerals out of the box.
+- **`@blueprintjs/table` for dense surfaces.** Virtualized rows, frozen columns, copy/paste, in-cell editing, headless keyboard nav. shadcn `<Table>` is styled HTML; Blueprint Table is the difference between "fine for 100 rows" and "fine for 100,000."
+- **Built-in `HotkeysProvider`.** Beacon's "keyboard-first, high-cadence workflows" principle goes from aspirational to declared.
+
+#### Visual tokens (verified, public source — don't re-derive these)
+
+Pulled from [`palantir/blueprint`'s `_colors.scss`](https://github.com/palantir/blueprint/blob/develop/packages/colors/src/_colors.scss) and [`_variables.scss`](https://github.com/palantir/blueprint/blob/develop/packages/core/src/common/_variables.scss). These are the *actual product values* Foundry uses in production, not approximations.
+
+**Dark-mode background ramp** (cool slate, blue undertone — not warm charcoal):
+
+| Token | Hex | Role |
+|---|---|---|
+| `dark-gray1` | `#1c2127` | Page / app background |
+| `dark-gray2` | `#252a31` | Secondary surface |
+| `dark-gray3` | `#2f343c` | Elevated surface (cards, modals, popovers) |
+| `dark-gray4` | `#383e47` | Subtle borders, hover rows |
+| `dark-gray5` | `#404854` | Top chrome, dividers |
+
+**Intent palette** (semantic, used everywhere: buttons, badges, alerts, RLS errors):
+
+| Intent | Light/inline | Dark-mode focus |
+|---|---|---|
+| `primary` | `#2d72d2` | `#8abbff` |
+| `success` | `#238551` | `#72ca9b` |
+| `warning` | `#c87619` | `#fbb360` |
+| `danger`  | `#cd4246` | `#fa999c` |
+
+**Typography:**
+- Body: `14px` / `line-height 1.286` / system font stack (no webfont).
+- Weights: `400` / `600`. No light, no semibold-as-bold confusion.
+- `font-variant-numeric: tabular-nums` on every metric cell — non-negotiable.
+
+**Density:**
+- `$pt-spacing = 4px`. Every margin / padding is a multiple of 4.
+- Button heights: `30px` (default) / `24px` (small) / `40px` (large).
+- Border radius: `4px` everywhere. Blueprint never goes rounder; we don't either.
+- Card padding: **`24px` vertical, `48px` horizontal** (asymmetric — horizontal breathing room is more generous than vertical, deliberately).
+- **Whitespace target 20–25%** for Beacon's 1440×900 viewport scale (operators on MacBook between covers shifts). Foundry's published 30–40% target assumes terminal-class monitors and over-counts whitespace at our resolution.
+
+#### Migration posture (transitional)
+
+Path C ("full Blueprint migration") is the committed direction, but it is multi-week work. During the transition the rules are:
+
+1. **No new shadcn components.** Any new feature, any new screen — write it in Blueprint from day one. Don't add to migration debt.
+2. **Existing shadcn components stay until their surface is migrated.** Don't half-migrate a single page (mixing shadcn `<Button>` with Blueprint `<Button>` on the same screen is the worst possible state).
+3. **Migration order follows operator pain.** Start with surfaces that genuinely benefit from Blueprint's dense components (`@blueprintjs/table`): Audit, Stock Logs, Flow Timeline, Restock list. Those buy the most user-visible improvement per hour spent. Forms, dialogs, toasts migrate later — shadcn handles those competently in the interim.
+4. **Visual seam is acceptable during the transition.** A Blueprint Table inside a shadcn-themed page is a clear "this surface has been migrated" signal. Don't try to make it invisible.
+5. **`tailwind.config.ts` adopts Blueprint's tokens immediately**, even before any component swap. Means: existing shadcn components inherit the Blueprint palette and type ramp from day one, so the visual gap during migration is narrower.
+6. **Forbidden permanent state**: a screen with both shadcn `<Button>` and Blueprint `<Button>` after migration is *complete* on that screen. Mid-migration is fine; "done" means consistent.
+
+Each migrated surface lands as its own PR with a clear before/after note in the description and an explicit "no shadcn left on this surface" claim.
+
 The key insight: Palantir's products feel like the world's data is being actively analyzed *for* you, not stored *for* you to analyze yourself. Every sprint should move the app further in that direction.
