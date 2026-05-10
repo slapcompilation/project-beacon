@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BlueprintProvider, FocusStyleManager } from '@blueprintjs/core'
 import { Toaster } from '@/components/ui/sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { AuthGuard } from '@/components/AuthGuard'
@@ -8,6 +9,10 @@ import { ThemeProvider } from '@/components/ThemeProvider'
 import { ScanLayout } from '@/components/layout/ScanLayout'
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+
+// Blueprint convention: suppress focus rings when navigating by mouse,
+// keep them when navigating by keyboard. Call once at module load.
+FocusStyleManager.onlyShowFocusOnTabs()
 
 // Route-level lazy imports — each page is its own chunk
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
@@ -153,13 +158,17 @@ function AppRoutes() {
 export function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <AuthProvider>
-          <AppRoutes />
-          <Toaster richColors position="top-right" />
-          <PwaInstallPrompt />
-        </AuthProvider>
-      </ThemeProvider>
+      <BlueprintProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppRoutes />
+            {/* sonner Toaster stays during the migration; replaced when the
+             *  last call site moves to Blueprint's OverlayToaster. */}
+            <Toaster richColors position="top-right" />
+            <PwaInstallPrompt />
+          </AuthProvider>
+        </ThemeProvider>
+      </BlueprintProvider>
     </ErrorBoundary>
   )
 }
