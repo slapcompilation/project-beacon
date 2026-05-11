@@ -1,18 +1,23 @@
 // Layer: Eye — Expiry risk management
 // Palantir principle: every number carries its derived context.
 // Show cost-at-risk, not just counts. Decisions live next to data.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  AlertTriangle, Loader2, TrendingDown, CheckCircle2, ChevronDown, ChevronRight, Layers,
-} from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
+  Button,
+  HTMLTable,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useExpiringVariants, useAdjustStock, useExpiryBatches, useDiscardBatch } from '@/features/inventory/hooks'
 import { useSupplierWasteAnalytics } from '@/features/eye/hooks'
@@ -36,38 +41,42 @@ function getBand(days: number): Band {
 
 const BAND_META: Record<Band, {
   label: string
-  dotColor: string
+  /** Per-row tint preserved as Tailwind — Blueprint Tag intent handles the chip,
+   * but row backgrounds need to stay subtle and themed across light/dark. */
   rowBg: string
+  /** For inline number coloring inside grouped row headers. */
   textColor: string
-  badgeCls: string
+  /** Tag config — these are the Blueprint chips per band. */
+  tagIntent: Intent
+  tagMinimal: boolean
 }> = {
   expired:  {
     label: 'Expired',
-    dotColor: 'bg-red-600',
     rowBg: 'bg-red-50/70 dark:bg-red-950/25',
     textColor: 'text-red-700 dark:text-red-400',
-    badgeCls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+    tagIntent: Intent.DANGER,
+    tagMinimal: false,
   },
   critical: {
     label: '≤ 7 days',
-    dotColor: 'bg-orange-500',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     textColor: 'text-orange-700 dark:text-orange-400',
-    badgeCls: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
+    tagIntent: Intent.WARNING,
+    tagMinimal: false,
   },
   warning:  {
     label: '≤ 30 days',
-    dotColor: 'bg-yellow-500',
     rowBg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     textColor: 'text-yellow-700 dark:text-yellow-400',
-    badgeCls: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
+    tagIntent: Intent.WARNING,
+    tagMinimal: true,
   },
   upcoming: {
     label: '≤ 90 days',
-    dotColor: 'bg-muted-foreground/50',
     rowBg: '',
     textColor: 'text-muted-foreground',
-    badgeCls: 'border-border text-muted-foreground',
+    tagIntent: Intent.NONE,
+    tagMinimal: true,
   },
 }
 
@@ -100,14 +109,14 @@ function RiskStrip({
       </span>
       {expiredValue > 0 && (
         <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-          <AlertTriangle className="h-3.5 w-3.5" />
+          <Icon icon="warning-sign" size={14} />
           <span className="font-semibold tabular-nums">{formatCurrency(expiredValue, currency)}</span>
           <span className="text-xs text-muted-foreground">already expired</span>
         </span>
       )}
       {criticalValue > 0 && (
         <span className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400">
-          <TrendingDown className="h-3.5 w-3.5" />
+          <Icon icon="trending-down" size={14} />
           <span className="font-semibold tabular-nums">{formatCurrency(criticalValue, currency)}</span>
           <span className="text-xs text-muted-foreground">within 7 days</span>
         </span>
@@ -140,81 +149,75 @@ function BatchExpiryTable({
   const fmtDate = useDateFormat()
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Product / Lot</TableHead>
-            <TableHead>SKU</TableHead>
-            <TableHead className="text-right">Qty</TableHead>
-            <TableHead className="text-right">Unit cost</TableHead>
-            <TableHead className="text-right">Value at risk</TableHead>
-            <TableHead className="text-right">Expiry</TableHead>
-            <TableHead className="text-right">Status</TableHead>
-            <TableHead className="w-24" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {batches.map((b) => {
-            const band = getBand(b.days_until_expiry)
-            const meta = BAND_META[band]
-            const daysLabel =
-              b.days_until_expiry < 0
-                ? `Expired ${String(Math.abs(b.days_until_expiry))}d ago`
-                : b.days_until_expiry === 0
-                  ? 'Expires today'
-                  : `${String(b.days_until_expiry)}d`
-            return (
-              <TableRow key={b.batch_id} className={meta.rowBg}>
-                <TableCell>
-                  <p className="text-sm font-medium">
-                    <Link to={`/variant/${b.variant_id}`} className="hover:underline">{b.product_name}</Link>
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {b.variant_name !== 'Standard' ? `${b.variant_name} · ` : ''}
-                    {b.lot_number ? `Lot ${b.lot_number}` : 'No lot number'}
-                    {b.category_name ? ` · ${b.category_name}` : ''}
-                  </p>
-                </TableCell>
-                <TableCell className="font-mono text-xs text-muted-foreground">{b.sku}</TableCell>
-                <TableCell className="text-right tabular-nums font-semibold">{b.quantity}</TableCell>
-                <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
-                  {formatCurrency(b.unit_cost, currency)}
-                </TableCell>
-                <TableCell className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
-                  {b.quantity > 0 ? formatCurrency(b.cost_at_risk, currency) : '—'}
-                </TableCell>
-                <TableCell className="text-right text-sm text-muted-foreground tabular-nums">
-                  {fmtDate(b.expiry_date)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge variant="outline" className={cn('text-[10px] h-5 px-1.5 font-semibold', meta.badgeCls)}>
-                    {daysLabel}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  {b.quantity > 0 ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                      disabled={discarding.has(b.batch_id)}
-                      onClick={() => { onDiscard(b) }}
-                    >
-                      {discarding.has(b.batch_id)
-                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        : 'Write off'}
-                    </Button>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground">Written off</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <HTMLTable compact striped interactive className="w-full">
+      <thead>
+        <tr>
+          <th>Product / Lot</th>
+          <th>SKU</th>
+          <th className="text-right">Qty</th>
+          <th className="text-right">Unit cost</th>
+          <th className="text-right">Value at risk</th>
+          <th className="text-right">Expiry</th>
+          <th className="text-right">Status</th>
+          <th className="w-24" />
+        </tr>
+      </thead>
+      <tbody>
+        {batches.map((b) => {
+          const band = getBand(b.days_until_expiry)
+          const meta = BAND_META[band]
+          const daysLabel =
+            b.days_until_expiry < 0
+              ? `Expired ${String(Math.abs(b.days_until_expiry))}d ago`
+              : b.days_until_expiry === 0
+                ? 'Expires today'
+                : `${String(b.days_until_expiry)}d`
+          return (
+            <tr key={b.batch_id} className={meta.rowBg}>
+              <td>
+                <p className="text-sm font-medium">
+                  <Link to={`/variant/${b.variant_id}`} className="hover:underline">{b.product_name}</Link>
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  {b.variant_name !== 'Standard' ? `${b.variant_name} · ` : ''}
+                  {b.lot_number ? `Lot ${b.lot_number}` : 'No lot number'}
+                  {b.category_name ? ` · ${b.category_name}` : ''}
+                </p>
+              </td>
+              <td className="font-mono text-xs text-muted-foreground">{b.sku}</td>
+              <td className="text-right tabular-nums font-semibold">{b.quantity}</td>
+              <td className="text-right tabular-nums text-sm text-muted-foreground">
+                {formatCurrency(b.unit_cost, currency)}
+              </td>
+              <td className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
+                {b.quantity > 0 ? formatCurrency(b.cost_at_risk, currency) : '—'}
+              </td>
+              <td className="text-right text-sm text-muted-foreground tabular-nums">
+                {fmtDate(b.expiry_date)}
+              </td>
+              <td className="text-right">
+                <Tag intent={meta.tagIntent} minimal={meta.tagMinimal}>{daysLabel}</Tag>
+              </td>
+              <td className="text-right">
+                {b.quantity > 0 ? (
+                  <Button
+                    variant="minimal"
+                    size="small"
+                    intent={Intent.DANGER}
+                    loading={discarding.has(b.batch_id)}
+                    onClick={() => { onDiscard(b) }}
+                  >
+                    Write off
+                  </Button>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">Written off</span>
+                )}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </HTMLTable>
   )
 }
 
@@ -230,61 +233,56 @@ function SupplierWasteTable({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 py-20 text-center">
-        <CheckCircle2 className="h-10 w-10 text-green-500/60" />
-        <p className="text-sm font-medium">No supplier waste data</p>
-        <p className="text-xs text-muted-foreground max-w-xs">
-          Waste analytics appear once you link deliveries to suppliers when receiving stock.
-          As batches are written off, waste rates will be computed per supplier.
-        </p>
-      </div>
+      <NonIdealState
+        icon="tick-circle"
+        title="No supplier waste data"
+        description="Waste analytics appear once you link deliveries to suppliers when receiving stock. As batches are written off, waste rates will be computed per supplier."
+      />
     )
   }
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Supplier</TableHead>
-            <TableHead className="text-right">Batches received</TableHead>
-            <TableHead className="text-right">Batches wasted</TableHead>
-            <TableHead className="text-right">Waste rate</TableHead>
-            <TableHead className="text-right">Units wasted</TableHead>
-            <TableHead className="text-right">Cost wasted</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((r) => {
-            const rate = r.waste_rate_pct ?? 0
-            const rateCls =
-              rate >= 20 ? 'text-red-700 dark:text-red-400' :
-              rate >= 10 ? 'text-orange-700 dark:text-orange-400' :
-              'text-muted-foreground'
-            return (
-              <TableRow key={r.supplier_id}>
-                <TableCell className="font-medium text-sm">{r.supplier_name}</TableCell>
-                <TableCell className="text-right tabular-nums">{r.batches_received}</TableCell>
-                <TableCell className="text-right tabular-nums">{r.batches_wasted}</TableCell>
-                <TableCell className={cn('text-right tabular-nums font-semibold', rateCls)}>
-                  {rate.toFixed(1)}%
-                </TableCell>
-                <TableCell className="text-right tabular-nums text-muted-foreground">{r.units_wasted}</TableCell>
-                <TableCell className="text-right tabular-nums font-semibold text-destructive">
-                  {formatCurrency(r.cost_wasted, currency)}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <HTMLTable compact striped interactive className="w-full">
+      <thead>
+        <tr>
+          <th>Supplier</th>
+          <th className="text-right">Batches received</th>
+          <th className="text-right">Batches wasted</th>
+          <th className="text-right">Waste rate</th>
+          <th className="text-right">Units wasted</th>
+          <th className="text-right">Cost wasted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((r) => {
+          const rate = r.waste_rate_pct ?? 0
+          const rateCls =
+            rate >= 20 ? 'text-red-700 dark:text-red-400' :
+            rate >= 10 ? 'text-orange-700 dark:text-orange-400' :
+            'text-muted-foreground'
+          return (
+            <tr key={r.supplier_id}>
+              <td className="font-medium text-sm">{r.supplier_name}</td>
+              <td className="text-right tabular-nums">{r.batches_received}</td>
+              <td className="text-right tabular-nums">{r.batches_wasted}</td>
+              <td className={cn('text-right tabular-nums font-semibold', rateCls)}>
+                {rate.toFixed(1)}%
+              </td>
+              <td className="text-right tabular-nums text-muted-foreground">{r.units_wasted}</td>
+              <td className="text-right tabular-nums font-semibold text-red-600 dark:text-red-400">
+                {formatCurrency(r.cost_wasted, currency)}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </HTMLTable>
   )
 }
 
 // ─── Window options ────────────────────────────────────────────────────────────
 
 const WINDOWS = [
-  { label: '7d',  days: 7 },
+  { label: '7d',  days: 7  },
   { label: '30d', days: 30 },
   { label: '90d', days: 90 },
 ] as const
@@ -326,7 +324,7 @@ function GroupedExpiryTable({
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden divide-y">
+    <div className="rounded border overflow-hidden divide-y">
       {groups.map((group) => {
         const isOpen = expanded.has(group.productName)
         const worstBand = getBand(group.minDays)
@@ -338,9 +336,7 @@ function GroupedExpiryTable({
               className={cn('flex items-center gap-3 px-4 py-2.5 cursor-pointer select-none hover:bg-muted/40', meta.rowBg)}
               onClick={() => { toggleGroup(group.productName); }}
             >
-              {isOpen
-                ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+              <Icon icon={isOpen ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground flex-shrink-0" />
               <p className="text-sm font-semibold flex-1">{group.productName}</p>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {group.variants.length} lot{group.variants.length !== 1 ? 's' : ''}
@@ -383,24 +379,20 @@ function GroupedExpiryTable({
                   {(band === 'warning' || band === 'critical') && v.current_stock > 0 && (
                     <span className="text-[10px] text-muted-foreground italic">use first</span>
                   )}
-                  <Badge
-                    variant="outline"
-                    className={cn('text-[10px] h-5 px-1.5 font-semibold w-28 justify-center', vm.badgeCls)}
-                  >
-                    {daysLabel}
-                  </Badge>
+                  <div className="w-28 flex justify-center">
+                    <Tag intent={vm.tagIntent} minimal={vm.tagMinimal}>{daysLabel}</Tag>
+                  </div>
                   <div className="w-20 text-right">
                     {v.current_stock > 0 ? (
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 px-2"
-                        disabled={discarding.has(v.id) || batchPending}
+                        variant="minimal"
+                        size="small"
+                        intent={Intent.DANGER}
+                        loading={discarding.has(v.id)}
+                        disabled={batchPending}
                         onClick={() => { onDiscard(v); }}
                       >
-                        {discarding.has(v.id)
-                          ? <Loader2 className="h-3 w-3 animate-spin" />
-                          : 'Write off'}
+                        Write off
                       </Button>
                     ) : (
                       <span className="text-[10px] text-muted-foreground">Written off</span>
@@ -557,6 +549,7 @@ export default function ExpiryPage() {
   }
 
   const totalCount = enriched.length
+  const actionableCount = actionable.filter((v) => v.current_stock > 0).length
 
   return (
     <div className="flex flex-col h-full">
@@ -577,91 +570,50 @@ export default function ExpiryPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {/* View mode toggle — Batches vs Variants */}
-          <div className="flex gap-0.5 rounded-md border p-0.5">
-            <button
-              onClick={() => { setViewMode('batches') }}
-              className={cn(
-                'rounded px-3 py-1 text-xs font-medium transition-colors',
-                viewMode === 'batches'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              )}
-            >
-              By Batch
-              {batches.length > 0 && (
-                <span className={cn(
-                  'ml-1.5 rounded-full px-1.5 py-0 text-[10px] font-bold',
-                  viewMode === 'batches' ? 'bg-primary-foreground/20' : 'bg-orange-100 text-orange-700',
-                )}>
-                  {batches.length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => { setViewMode('variants') }}
-              className={cn(
-                'rounded px-3 py-1 text-xs font-medium transition-colors',
-                viewMode === 'variants'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              )}
-            >
-              By Variant
-            </button>
-            <button
-              onClick={() => { setViewMode('suppliers') }}
-              className={cn(
-                'rounded px-3 py-1 text-xs font-medium transition-colors',
-                viewMode === 'suppliers'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              )}
-            >
-              By Supplier
-            </button>
-          </div>
+          {/* View mode toggle — Batches / Variants / Suppliers */}
+          <SegmentedControl
+            size="small"
+            value={viewMode}
+            onValueChange={(v) => { setViewMode(v as ViewMode) }}
+            options={[
+              {
+                value: 'batches',
+                label: batches.length > 0
+                  ? `By Batch (${String(batches.length)})`
+                  : 'By Batch',
+              },
+              { value: 'variants',  label: 'By Variant' },
+              { value: 'suppliers', label: 'By Supplier' },
+            ]}
+          />
           {/* Group toggle (variant view only) */}
           {viewMode === 'variants' && (
             <Button
-              variant={groupByProduct ? 'secondary' : 'outline'}
-              size="sm"
+              size="small"
+              icon="layers"
+              active={groupByProduct}
               onClick={() => { setGroupByProduct((v) => !v) }}
-              className="h-7 text-xs gap-1.5"
             >
-              <Layers className="h-3.5 w-3.5" />
               Group by product
             </Button>
           )}
           {/* Window toggle */}
-          <div className="flex gap-0.5 rounded-md border p-0.5">
-            {WINDOWS.map((opt) => (
-              <button
-                key={opt.days}
-                onClick={() => { setWindowDays(opt.days) }}
-                className={cn(
-                  'rounded px-3 py-1 text-xs font-medium transition-colors',
-                  windowDays === opt.days
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted'
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="small"
+            value={String(windowDays)}
+            onValueChange={(v) => { setWindowDays(parseInt(v, 10) as 7 | 30 | 90) }}
+            options={WINDOWS.map((w) => ({ value: String(w.days), label: w.label }))}
+          />
           {/* Batch write-off */}
-          {actionable.filter((v) => v.current_stock > 0).length > 0 && (
+          {actionableCount > 0 && (
             <Button
-              variant="destructive"
-              size="sm"
-              disabled={batchPending}
+              intent={Intent.DANGER}
+              size="small"
+              icon="warning-sign"
+              loading={batchPending}
               onClick={() => { void handleBatchDiscard() }}
             >
-              {batchPending
-                ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                : <AlertTriangle className="mr-2 h-3.5 w-3.5" />}
-              Write off {actionable.filter((v) => v.current_stock > 0).length} expired / critical
+              Write off {actionableCount} expired / critical
             </Button>
           )}
         </div>
@@ -673,19 +625,16 @@ export default function ExpiryPage() {
       {/* Table */}
       <div className="flex-1 overflow-auto px-8 py-5">
         {(isLoading || batchLoading || supplierLoading) ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+          <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} />Loading…
           </div>
         ) : viewMode === 'batches' ? (
           batches.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <CheckCircle2 className="h-10 w-10 text-green-500/60" />
-              <p className="text-sm font-medium">No batch expiry data</p>
-              <p className="text-xs text-muted-foreground max-w-xs">
-                Batch tracking activates when you enter an expiry date while receiving stock.
-                Future deliveries with expiry dates will appear here as individual lots.
-              </p>
-            </div>
+            <NonIdealState
+              icon="tick-circle"
+              title="No batch expiry data"
+              description="Batch tracking activates when you enter an expiry date while receiving stock. Future deliveries with expiry dates will appear here as individual lots."
+            />
           ) : (
             <BatchExpiryTable
               batches={batches}
@@ -697,14 +646,11 @@ export default function ExpiryPage() {
         ) : viewMode === 'suppliers' ? (
           <SupplierWasteTable rows={supplierWaste} currency={currency} />
         ) : totalCount === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500/60" />
-            <p className="text-sm font-medium">No expiry risk</p>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              No variants with expiry dates set will expire within the next {String(windowDays)} days.
-              Widening the window or adding expiry dates to variants will surface them here.
-            </p>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title="No expiry risk"
+            description={`No variants with expiry dates set will expire within the next ${String(windowDays)} days. Widening the window or adding expiry dates to variants will surface them here.`}
+          />
         ) : groupByProduct ? (
           <GroupedExpiryTable
             groups={productGroups}
@@ -714,85 +660,77 @@ export default function ExpiryPage() {
             onDiscard={(v) => { void handleDiscard(v) }}
           />
         ) : (
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Lot</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Cost / unit</TableHead>
-                  <TableHead className="text-right">Value at risk</TableHead>
-                  <TableHead className="text-right">Expiry</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                  <TableHead className="w-28" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {enriched.map((v) => {
-                  const band = getBand(v.days)
-                  const meta = BAND_META[band]
-                  const displayName = v.products?.name
-                    ? (v.name !== 'Standard' ? `${v.products.name} — ${v.name}` : v.products.name)
-                    : v.name
-                  const daysLabel =
-                    v.days < 0
-                      ? `Expired ${String(Math.abs(v.days))}d ago`
-                      : v.days === 0
-                        ? 'Expires today'
-                        : `${String(v.days)}d`
+          <HTMLTable compact striped interactive className="w-full">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Lot</th>
+                <th className="text-right">Stock</th>
+                <th className="text-right">Cost / unit</th>
+                <th className="text-right">Value at risk</th>
+                <th className="text-right">Expiry</th>
+                <th className="text-right">Status</th>
+                <th className="w-28" />
+              </tr>
+            </thead>
+            <tbody>
+              {enriched.map((v) => {
+                const band = getBand(v.days)
+                const meta = BAND_META[band]
+                const displayName = v.products?.name
+                  ? (v.name !== 'Standard' ? `${v.products.name} — ${v.name}` : v.products.name)
+                  : v.name
+                const daysLabel =
+                  v.days < 0
+                    ? `Expired ${String(Math.abs(v.days))}d ago`
+                    : v.days === 0
+                      ? 'Expires today'
+                      : `${String(v.days)}d`
 
-                  return (
-                    <TableRow key={v.id} className={meta.rowBg}>
-                      <TableCell className="font-medium text-sm">
-                        <Link to={`/variant/${v.id}`} className="hover:underline">{displayName}</Link>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{v.sku}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">{v.lot_number ?? '—'}</TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold">{v.current_stock}</TableCell>
-                      <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
-                        {formatCurrency(v.cost, currency)}
-                      </TableCell>
-                      <TableCell className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
-                        {v.current_stock > 0
-                          ? formatCurrency(v.costAtRisk, currency)
-                          : <span className="text-muted-foreground font-normal">—</span>}
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground tabular-nums">
-                        {fmtDate(v.expiry_date)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge
-                          variant="outline"
-                          className={cn('text-[10px] h-5 px-1.5 font-semibold', meta.badgeCls)}
+                return (
+                  <tr key={v.id} className={meta.rowBg}>
+                    <td className="font-medium text-sm">
+                      <Link to={`/variant/${v.id}`} className="hover:underline">{displayName}</Link>
+                    </td>
+                    <td className="font-mono text-xs text-muted-foreground">{v.sku}</td>
+                    <td className="text-xs text-muted-foreground">{v.lot_number ?? '—'}</td>
+                    <td className="text-right tabular-nums font-semibold">{v.current_stock}</td>
+                    <td className="text-right tabular-nums text-sm text-muted-foreground">
+                      {formatCurrency(v.cost, currency)}
+                    </td>
+                    <td className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
+                      {v.current_stock > 0
+                        ? formatCurrency(v.costAtRisk, currency)
+                        : <span className="text-muted-foreground font-normal">—</span>}
+                    </td>
+                    <td className="text-right text-sm text-muted-foreground tabular-nums">
+                      {fmtDate(v.expiry_date)}
+                    </td>
+                    <td className="text-right">
+                      <Tag intent={meta.tagIntent} minimal={meta.tagMinimal}>{daysLabel}</Tag>
+                    </td>
+                    <td className="text-right">
+                      {v.current_stock > 0 ? (
+                        <Button
+                          variant="minimal"
+                          size="small"
+                          intent={Intent.DANGER}
+                          loading={discarding.has(v.id)}
+                          disabled={batchPending}
+                          onClick={() => { void handleDiscard(v) }}
                         >
-                          {daysLabel}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {v.current_stock > 0 ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                            disabled={discarding.has(v.id) || batchPending}
-                            onClick={() => { void handleDiscard(v) }}
-                          >
-                            {discarding.has(v.id)
-                              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                              : 'Write off'}
-                          </Button>
-                        ) : (
-                          <span className="text-[10px] text-muted-foreground">Written off</span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                          Write off
+                        </Button>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground">Written off</span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </HTMLTable>
         )}
       </div>
     </div>
