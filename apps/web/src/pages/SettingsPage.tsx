@@ -1,34 +1,38 @@
 // Layer: Mind (hotel/chain config) + Floor (display preferences) + Eye (alert thresholds)
 // Palantir-style Settings: two-column layout, progressive disclosure by role,
 // inline auto-save for preferences, explicit Save only for structured entity forms.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons. The visual seam
+// against shadcn-era pages is intentional during the migration.
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ConfirmDialog } from '@/components/ConfirmDialog'
-import {
-  Bell, FolderOpen, MapPin, SlidersHorizontal,
-  Building2, ShieldAlert, Plus, Pencil,
-  Trash2, Loader2, GripVertical, ClipboardList, Gauge,
-  Users, Check, X, Bot,
-  Activity, AlertTriangle,
-} from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
+import {
+  Alert,
+  Button,
+  Callout,
+  Card,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  FormGroup,
+  HTMLSelect,
+  HTMLTable,
+  Icon,
+  InputGroup,
+  Intent,
+  Slider,
+  Spinner,
+  SpinnerSize,
+  Switch,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Slider } from '@/components/ui/slider'
-import { Badge } from '@/components/ui/badge'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectSeparator, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
 import { getCurrencySymbol } from '@/lib/currency'
 import {
   useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory,
@@ -70,7 +74,7 @@ import { useApprovalThresholds, useUpdateApprovalThresholds } from '@/features/r
 import { useCronHealthSummary } from '@/features/monitor/hooks'
 import { useOrganizations } from '@/features/organizations/hooks'
 
-// ─── Section nav config ────────────────────────────────────────────────────────
+// ─── Nav config ────────────────────────────────────────────────────────────────
 
 type SectionId =
   | 'notifications'
@@ -89,7 +93,7 @@ type SectionId =
 interface NavItem {
   id: SectionId
   label: string
-  icon: React.ElementType
+  icon: IconName
   layerDot: string
   /** Minimum role required to see this section. undefined = all roles. */
   requirePermission?: Parameters<typeof hasPermission>[1]
@@ -97,22 +101,22 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   // Eye
-  { id: 'notifications',       label: 'Notifications',      icon: Bell,             layerDot: 'bg-slate-400' },
-  { id: 'alert-thresholds',    label: 'Alert Thresholds',   icon: Gauge,            layerDot: 'bg-orange-500' },
+  { id: 'notifications',       label: 'Notifications',      icon: 'notifications',           layerDot: 'bg-slate-400' },
+  { id: 'alert-thresholds',    label: 'Alert Thresholds',   icon: 'dashboard',               layerDot: 'bg-orange-500' },
   // Flow
-  { id: 'approval-thresholds', label: 'Approval Thresholds',icon: ShieldAlert,      layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
-  { id: 'autonomous',          label: 'Autonomous Ops',     icon: Bot,              layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
+  { id: 'approval-thresholds', label: 'Approval Thresholds',icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
+  { id: 'autonomous',          label: 'Autonomous Ops',     icon: 'predictive-analysis',     layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   // Inventory
-  { id: 'categories',        label: 'Categories',       icon: FolderOpen,       layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'locations',         label: 'Locations',        icon: MapPin,           layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'custom-fields',     label: 'Custom Fields',    icon: SlidersHorizontal,layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'move-reasons',      label: 'Move Reasons',     icon: ClipboardList,    layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
+  { id: 'categories',        label: 'Categories',       icon: 'folder-open',                 layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
+  { id: 'locations',         label: 'Locations',        icon: 'map-marker',                  layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
+  { id: 'custom-fields',     label: 'Custom Fields',    icon: 'horizontal-bar-chart-desc',   layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
+  { id: 'move-reasons',      label: 'Move Reasons',     icon: 'clipboard',                   layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
   // Hotel
-  { id: 'hotel',             label: 'Hotel Profile',    icon: Building2,        layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
-  { id: 'team',              label: 'Team',             icon: Users,            layerDot: 'bg-purple-500', requirePermission: 'can_manage_users' },
-  { id: 'webhooks',          label: 'Webhooks',         icon: Bell,             layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
+  { id: 'hotel',             label: 'Hotel Profile',    icon: 'office',                      layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
+  { id: 'team',              label: 'Team',             icon: 'people',                      layerDot: 'bg-purple-500', requirePermission: 'can_manage_users' },
+  { id: 'webhooks',          label: 'Webhooks',         icon: 'notifications-updated',       layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   // Danger zone
-  { id: 'danger',            label: 'GDPR',             icon: ShieldAlert,      layerDot: 'bg-red-500',    requirePermission: 'can_manage_users' },
+  { id: 'danger',            label: 'GDPR',             icon: 'shield',                      layerDot: 'bg-red-500',    requirePermission: 'can_manage_users' },
 ]
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -182,90 +186,88 @@ function FeedbackLoopPanel() {
   }, [feedback, totalDismissed])
 
   const qualityLabel =
-    overallIncorrectRate < 10  ? { text: 'Well-calibrated', color: 'text-emerald-600 dark:text-emerald-400' } :
-    overallIncorrectRate < 20  ? { text: 'Some noise — review thresholds', color: 'text-yellow-600 dark:text-yellow-500' } :
-                                  { text: 'High noise — thresholds need tuning', color: 'text-red-600 dark:text-red-400' }
+    overallIncorrectRate < 10  ? { text: 'Well-calibrated', intent: Intent.SUCCESS } :
+    overallIncorrectRate < 20  ? { text: 'Some noise — review thresholds', intent: Intent.WARNING } :
+                                  { text: 'High noise — thresholds need tuning', intent: Intent.DANGER }
 
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />Loading feedback data…
+        <Spinner size={SpinnerSize.SMALL} />Loading feedback data…
       </div>
     )
   }
 
   if (feedback.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed px-5 py-8 text-center">
+      <Card className="px-5 py-8 text-center">
         <p className="text-sm font-medium text-muted-foreground">No feedback signal yet</p>
         <p className="mt-1 text-xs text-muted-foreground/70 max-w-xs mx-auto">
           Dismiss alerts with a reason from the Notifications panel to start building this dataset.
           Incorrect data rate &lt; 10% means the model is well-calibrated.
         </p>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card compact className="!p-0 overflow-hidden">
       {/* Panel header */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 border-b">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Alert Intelligence Loop</span>
-        <span className="text-[10px] text-muted-foreground tabular-nums">Last 90 days · {totalDismissed} dismissed</span>
+        <span className="text-[10px] text-muted-foreground tabular-nums">Last 90 days · {String(totalDismissed)} dismissed</span>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs">
-          <thead>
-            <tr className="border-b bg-muted/20">
-              <th className="text-left px-4 py-2 font-medium text-muted-foreground w-36">Alert type</th>
-              <th className="text-right px-3 py-2 font-medium text-muted-foreground w-14">Total</th>
-              {REASON_ORDER.map((r) => (
-                <th key={r} className={cn(
-                  'text-right px-3 py-2 font-medium',
-                  r === 'incorrect_data' ? 'text-orange-500' : 'text-muted-foreground',
-                )}>
-                  {REASON_LABELS[r]}
-                  {r === 'incorrect_data' && ' ⚠'}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {feedback.map((row: TypeFeedback) => (
-              <tr key={row.type} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                <td className="px-4 py-2 font-medium">{TYPE_LABELS[row.type] ?? row.type}</td>
-                <td className="px-3 py-2 text-right tabular-nums font-semibold">{row.total}</td>
-                {REASON_ORDER.map((r) => {
-                  const count = row.reasons[r] ?? 0
-                  const pct   = row.total > 0 ? Math.round((count / row.total) * 100) : 0
-                  return (
-                    <td key={r} className={cn(
-                      'px-3 py-2 text-right tabular-nums',
-                      count === 0 ? 'text-muted-foreground/40' :
-                      r === 'incorrect_data' && pct >= 20 ? 'text-red-600 dark:text-red-400 font-semibold' :
-                      r === 'incorrect_data' && pct >= 10 ? 'text-yellow-600 dark:text-yellow-500 font-medium' :
-                      'text-foreground',
-                    )}>
-                      {count === 0 ? '—' : `${String(count)} (${String(pct)}%)`}
-                    </td>
-                  )
-                })}
-              </tr>
+      <HTMLTable compact striped className="w-full">
+        <thead>
+          <tr>
+            <th className="text-left w-36">Alert type</th>
+            <th className="text-right w-14">Total</th>
+            {REASON_ORDER.map((r) => (
+              <th key={r} className={cn(
+                'text-right',
+                r === 'incorrect_data' && 'text-orange-500',
+              )}>
+                {REASON_LABELS[r]}
+                {r === 'incorrect_data' && ' ⚠'}
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody>
+          {feedback.map((row: TypeFeedback) => (
+            <tr key={row.type}>
+              <td className="font-medium">{TYPE_LABELS[row.type] ?? row.type}</td>
+              <td className="text-right tabular-nums font-semibold">{row.total}</td>
+              {REASON_ORDER.map((r) => {
+                const count = row.reasons[r] ?? 0
+                const pct   = row.total > 0 ? Math.round((count / row.total) * 100) : 0
+                return (
+                  <td key={r} className={cn(
+                    'text-right tabular-nums',
+                    count === 0 ? 'text-muted-foreground/40' :
+                    r === 'incorrect_data' && pct >= 20 ? 'text-red-600 dark:text-red-400 font-semibold' :
+                    r === 'incorrect_data' && pct >= 10 ? 'text-yellow-600 dark:text-yellow-500 font-medium' :
+                    'text-foreground',
+                  )}>
+                    {count === 0 ? '—' : `${String(count)} (${String(pct)}%)`}
+                  </td>
+                )
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </HTMLTable>
 
       {/* Footer — overall quality signal */}
       <div className="px-4 py-2.5 bg-muted/20 border-t flex items-center justify-between">
         <span className="text-xs text-muted-foreground">
           Overall incorrect data rate: <span className="font-semibold tabular-nums">{overallIncorrectRate.toFixed(1)}%</span>
         </span>
-        <span className={cn('text-xs font-medium', qualityLabel.color)}>{qualityLabel.text}</span>
+        <Tag intent={qualityLabel.intent} minimal>{qualityLabel.text}</Tag>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -296,11 +298,11 @@ function NotificationsSection() {
             description="Low-stock alerts, restock approvals, system events"
           >
             {permission === 'granted' ? (
-              <Badge variant="secondary" className="text-green-700 border-green-300 bg-green-50 dark:bg-green-950/30">Enabled</Badge>
+              <Tag intent={Intent.SUCCESS} minimal>Enabled</Tag>
             ) : permission === 'denied' ? (
-              <Badge variant="outline" className="text-muted-foreground">Blocked by browser</Badge>
+              <Tag minimal>Blocked by browser</Tag>
             ) : (
-              <Button size="sm" className="h-7 text-xs" onClick={() => { void requestPush() }}>
+              <Button intent={Intent.PRIMARY} size="small" onClick={() => { void requestPush() }}>
                 Enable
               </Button>
             )}
@@ -311,9 +313,9 @@ function NotificationsSection() {
           label="Quiet hours — start"
           description="Suppress notifications from this time"
         >
-          <Input
+          <InputGroup
             type="time"
-            className="w-32 h-8 text-sm"
+            className="w-32"
             defaultValue={prefs?.quiet_hours_start ?? ''}
             onBlur={(e) => {
               const v = e.target.value
@@ -326,9 +328,9 @@ function NotificationsSection() {
           label="Quiet hours — end"
           description="Resume notifications at this time"
         >
-          <Input
+          <InputGroup
             type="time"
-            className="w-32 h-8 text-sm"
+            className="w-32"
             defaultValue={prefs?.quiet_hours_end ?? ''}
             onBlur={(e) => {
               const v = e.target.value
@@ -380,15 +382,16 @@ function AlertThresholdsSection() {
               <p className="text-xs text-muted-foreground">Alert when days-until-zero falls below this threshold</p>
             </div>
             <span className="tabular-nums text-sm font-semibold text-foreground w-16 text-right">
-              {daysThreshold}d
+              {String(daysThreshold)}d
             </span>
           </div>
           <Slider
             min={1}
             max={60}
-            step={1}
-            value={[daysThreshold]}
-            onValueChange={([v]) => {
+            stepSize={1}
+            labelStepSize={10}
+            value={daysThreshold}
+            onChange={(v) => {
               update.mutate({ days_threshold: v, waste_threshold: wasteThreshold })
             }}
             className="w-full"
@@ -406,15 +409,16 @@ function AlertThresholdsSection() {
               <p className="text-xs text-muted-foreground">Alert when wasted units in the period exceeds this</p>
             </div>
             <span className="tabular-nums text-sm font-semibold text-foreground w-16 text-right">
-              {wasteThreshold} units
+              {String(wasteThreshold)} units
             </span>
           </div>
           <Slider
             min={1}
             max={500}
-            step={1}
-            value={[wasteThreshold]}
-            onValueChange={([v]) => {
+            stepSize={1}
+            labelStepSize={100}
+            value={wasteThreshold}
+            onChange={(v) => {
               update.mutate({ days_threshold: daysThreshold, waste_threshold: v })
             }}
             className="w-full"
@@ -471,55 +475,73 @@ function CategoryModal({
   const parentOptions = categories.filter((c) => !c.parent_id && c.id !== editing?.id)
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Edit Category' : 'Add Category'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="cat-name">Name</Label>
-            <Input id="cat-name" placeholder="e.g. Beverages" {...register('name')} />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-          </div>
-          <div className="space-y-1.5">
-            <Label>Parent category</Label>
+    <Dialog
+      isOpen={open}
+      onClose={onClose}
+      title={editing ? 'Edit Category' : 'Add Category'}
+      icon="folder-open"
+    >
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody>
+          <FormGroup
+            label="Name"
+            labelFor="cat-name"
+            intent={errors.name ? Intent.DANGER : Intent.NONE}
+            helperText={errors.name?.message}
+          >
+            <InputGroup
+              id="cat-name"
+              placeholder="e.g. Beverages"
+              intent={errors.name ? Intent.DANGER : Intent.NONE}
+              {...register('name')}
+            />
+          </FormGroup>
+          <FormGroup label="Parent category" labelFor="cat-parent">
             <Controller
               name="parentId"
               control={control}
               render={({ field }) => (
-                <Select
+                <HTMLSelect
+                  id="cat-parent"
+                  fill
                   value={field.value ?? '__none__'}
-                  onValueChange={(v) => { field.onChange(v === '__none__' ? null : v) }}
-                >
-                  <SelectTrigger><SelectValue placeholder="None (top-level)" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">None (top-level)</SelectItem>
-                    {parentOptions.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => { field.onChange(e.target.value === '__none__' ? null : e.target.value) }}
+                  options={[
+                    { value: '__none__', label: 'None (top-level)' },
+                    ...parentOptions.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                />
               )}
             />
-          </div>
+          </FormGroup>
           {editing && (
-            <div className="space-y-1.5">
-              <Label htmlFor="cat-photo">Require photo for removals over (units)</Label>
-              <Input id="cat-photo" type="number" min="0" step="1" placeholder="Leave blank to disable"
-                {...register('requirePhotoOver', { valueAsNumber: true })} />
-              <p className="text-xs text-muted-foreground">Staff must attach a photo when removing more than this quantity.</p>
-            </div>
+            <FormGroup
+              label="Require photo for removals over (units)"
+              labelFor="cat-photo"
+              helperText="Staff must attach a photo when removing more than this quantity."
+            >
+              <InputGroup
+                id="cat-photo"
+                type="number"
+                min={0}
+                step={1}
+                placeholder="Leave blank to disable"
+                {...register('requirePhotoOver', { valueAsNumber: true })}
+              />
+            </FormGroup>
           )}
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editing ? 'Save Changes' : 'Add Category'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isSubmitting}>
+                {editing ? 'Save Changes' : 'Add Category'}
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }
@@ -569,7 +591,7 @@ function CategoriesSection() {
       )}
     >
       <div className="flex items-center gap-2">
-        <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 cursor-grab flex-shrink-0" />
+        <Icon icon="drag-handle-vertical" size={14} className="text-muted-foreground/40 cursor-grab flex-shrink-0" />
         <div>
           <span className={cn('text-sm', indent ? 'text-muted-foreground' : 'font-medium')}>{cat.name}</span>
           {cat.require_photo_for_removal_over != null && (
@@ -578,14 +600,21 @@ function CategoriesSection() {
         </div>
       </div>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="icon" className="h-7 w-7"
-          onClick={() => { setEditing(cat); setModalOpen(true) }}>
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
-        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-          onClick={() => { deleteCategory.mutate(cat.id) }}>
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        <Button
+          icon="edit"
+          variant="minimal"
+          size="small"
+          aria-label="Edit category"
+          onClick={() => { setEditing(cat); setModalOpen(true) }}
+        />
+        <Button
+          icon="trash"
+          variant="minimal"
+          size="small"
+          intent={Intent.DANGER}
+          aria-label="Delete category"
+          onClick={() => { deleteCategory.mutate(cat.id) }}
+        />
       </div>
     </div>
   )
@@ -594,25 +623,25 @@ function CategoriesSection() {
     <div>
       <SectionHeader title="Categories" description="Organise products into categories and sub-categories. Drag a category onto another to nest it." />
       <div className="flex justify-end mb-3">
-        <Button size="sm" onClick={() => { setEditing(null); setModalOpen(true) }}>
-          <Plus className="mr-2 h-3.5 w-3.5" />Add Category
+        <Button icon="plus" intent={Intent.PRIMARY} onClick={() => { setEditing(null); setModalOpen(true) }}>
+          Add Category
         </Button>
       </div>
       {isLoading ? (
         <div className="flex items-center gap-2 text-sm text-muted-foreground py-6">
-          <Loader2 className="h-4 w-4 animate-spin" />Loading…
+          <Spinner size={SpinnerSize.SMALL} />Loading…
         </div>
       ) : categories.length === 0 ? (
         <p className="text-sm text-muted-foreground py-4">No categories yet.</p>
       ) : (
-        <div className="rounded-lg border divide-y">
+        <Card compact className="!p-0 divide-y">
           {topLevel.map((cat) => (
             <div key={cat.id}>
               {renderCatRow(cat)}
               {childrenOf(cat.id).map((child) => renderCatRow(child, true))}
             </div>
           ))}
-        </div>
+        </Card>
       )}
       <CategoryModal
         open={modalOpen}
@@ -654,27 +683,37 @@ function LocationsSection() {
 
   const renderRow = (loc: Location, indent = false) => (
     <div key={loc.id} className={cn('flex items-center gap-3 px-4 py-2.5', indent && 'pl-10 bg-muted/30')}>
-      <MapPin className={cn('h-3.5 w-3.5 flex-shrink-0', indent ? 'text-muted-foreground/60' : 'text-muted-foreground')} />
+      <Icon icon="map-marker" size={14} className={cn('flex-shrink-0', indent ? 'text-muted-foreground/60' : 'text-muted-foreground')} />
       {editingId === loc.id ? (
-        <Input className="h-7 text-sm flex-1" value={editName}
+        <InputGroup
+          className="flex-1"
+          value={editName}
           onChange={(e) => { setEditName(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveEdit(loc); if (e.key === 'Escape') setEditingId(null) }}
-          autoFocus />
+          autoFocus
+        />
       ) : (
         <span className="flex-1 text-sm">{loc.name}</span>
       )}
       {editingId === loc.id ? (
-        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => void handleSaveEdit(loc)}>Save</Button>
+        <Button size="small" onClick={() => void handleSaveEdit(loc)}>Save</Button>
       ) : (
         <>
-          <Button variant="ghost" size="icon" className="h-7 w-7"
-            onClick={() => { setEditingId(loc.id); setEditName(loc.name) }}>
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-            onClick={() => { deleteLocation.mutate(loc.id) }}>
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          <Button
+            icon="edit"
+            variant="minimal"
+            size="small"
+            aria-label="Edit location"
+            onClick={() => { setEditingId(loc.id); setEditName(loc.name) }}
+          />
+          <Button
+            icon="trash"
+            variant="minimal"
+            size="small"
+            intent={Intent.DANGER}
+            aria-label="Delete location"
+            onClick={() => { deleteLocation.mutate(loc.id) }}
+          />
         </>
       )}
     </div>
@@ -684,43 +723,48 @@ function LocationsSection() {
     <div>
       <SectionHeader title="Storage Locations" description="Define floors, rooms, and storage units. Assign them to variants." />
       <div className="flex justify-end mb-3">
-        <Button size="sm" onClick={() => { setAdding(true) }}><Plus className="mr-2 h-3.5 w-3.5" />Add Location</Button>
+        <Button icon="plus" intent={Intent.PRIMARY} onClick={() => { setAdding(true) }}>Add Location</Button>
       </div>
       {adding && (
-        <div className="mb-3 rounded-lg border bg-muted/30 p-3 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Input className="h-8 text-sm" placeholder="Location name…" value={addName}
+        <Card compact className="mb-3 !bg-muted/30">
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <InputGroup
+              placeholder="Location name…"
+              value={addName}
               onChange={(e) => { setAddName(e.target.value) }}
-              onKeyDown={(e) => { if (e.key === 'Enter') void handleAdd() }} autoFocus />
-            <Select value={addParentId} onValueChange={setAddParentId}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Top level" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__none__">Top level</SelectItem>
-                {topLevel.map((l) => <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+              onKeyDown={(e) => { if (e.key === 'Enter') void handleAdd() }}
+              autoFocus
+            />
+            <HTMLSelect
+              value={addParentId}
+              onChange={(e) => { setAddParentId(e.target.value) }}
+              options={[
+                { value: '__none__', label: 'Top level' },
+                ...topLevel.map((l) => ({ value: l.id, label: l.name })),
+              ]}
+            />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button size="sm" variant="outline" onClick={() => { setAdding(false) }}>Cancel</Button>
-            <Button size="sm" onClick={() => void handleAdd()} disabled={!addName.trim() || createLocation.isPending}>
-              {createLocation.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}Add Location
+            <Button onClick={() => { setAdding(false) }}>Cancel</Button>
+            <Button intent={Intent.PRIMARY} onClick={() => void handleAdd()} disabled={!addName.trim()} loading={createLocation.isPending}>
+              Add Location
             </Button>
           </div>
-        </div>
+        </Card>
       )}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground py-6"><Loader2 className="h-4 w-4 animate-spin" />Loading…</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-6"><Spinner size={SpinnerSize.SMALL} />Loading…</div>
       ) : locations.length === 0 && !adding ? (
-        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed py-10 text-center">
-          <MapPin className="h-8 w-8 text-muted-foreground/50" />
+        <Card compact className="py-10 flex flex-col items-center gap-2 text-center">
+          <Icon icon="map-marker" size={32} className="text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">No locations yet.</p>
-        </div>
+        </Card>
       ) : locations.length > 0 ? (
-        <div className="rounded-lg border divide-y">
+        <Card compact className="!p-0 divide-y">
           {topLevel.map((loc) => (
             <div key={loc.id}>{renderRow(loc)}{childrenOf(loc.id).map((c) => renderRow(c, true))}</div>
           ))}
-        </div>
+        </Card>
       ) : null}
     </div>
   )
@@ -772,38 +816,43 @@ function CustomFieldsSection() {
     <div>
       <SectionHeader title="Custom Fields" description="Add extra fields to all product variants. Mark as required to enforce data entry. Drag to reorder." />
       <div className="flex justify-end mb-3">
-        <Button size="sm" onClick={() => { setAddingOpen(true) }}><Plus className="mr-2 h-3.5 w-3.5" />Add Field</Button>
+        <Button icon="plus" intent={Intent.PRIMARY} onClick={() => { setAddingOpen(true) }}>Add Field</Button>
       </div>
       {addingOpen && (
-        <div className="mb-3 rounded-lg border bg-muted/30 p-3 space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <Input className="h-8 text-sm" placeholder="Field name…" value={addName}
+        <Card compact className="mb-3 !bg-muted/30">
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <InputGroup
+              placeholder="Field name…"
+              value={addName}
               onChange={(e) => { setAddName(e.target.value) }}
-              onKeyDown={(e) => { if (e.key === 'Enter') void handleAdd() }} autoFocus />
-            <Select value={addType} onValueChange={(v) => { setAddType(v as CustomFieldType) }}>
-              <SelectTrigger className="h-8 text-sm"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="date">Date</SelectItem>
-                <SelectItem value="boolean">Yes/No</SelectItem>
-              </SelectContent>
-            </Select>
+              onKeyDown={(e) => { if (e.key === 'Enter') void handleAdd() }}
+              autoFocus
+            />
+            <HTMLSelect
+              value={addType}
+              onChange={(e) => { setAddType(e.target.value as CustomFieldType) }}
+              options={[
+                { value: 'text',    label: 'Text' },
+                { value: 'number',  label: 'Number' },
+                { value: 'date',    label: 'Date' },
+                { value: 'boolean', label: 'Yes/No' },
+              ]}
+            />
           </div>
           <div className="flex gap-2 justify-end">
-            <Button size="sm" variant="outline" onClick={() => { setAddingOpen(false) }}>Cancel</Button>
-            <Button size="sm" onClick={() => void handleAdd()} disabled={!addName.trim() || createField.isPending}>
-              {createField.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}Add Field
+            <Button onClick={() => { setAddingOpen(false) }}>Cancel</Button>
+            <Button intent={Intent.PRIMARY} onClick={() => void handleAdd()} disabled={!addName.trim()} loading={createField.isPending}>
+              Add Field
             </Button>
           </div>
-        </div>
+        </Card>
       )}
       {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground py-6"><Loader2 className="h-4 w-4 animate-spin" />Loading…</div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground py-6"><Spinner size={SpinnerSize.SMALL} />Loading…</div>
       ) : fields.length === 0 && !addingOpen ? (
         <p className="text-sm text-muted-foreground py-4">No custom fields yet.</p>
       ) : fields.length > 0 ? (
-        <div className="rounded-lg border divide-y">
+        <Card compact className="!p-0 divide-y">
           {fields.map((field) => (
             <div
               key={field.id}
@@ -818,62 +867,73 @@ function CustomFieldsSection() {
                 dropFieldId === field.id && dragFieldId !== field.id && 'bg-primary/10 ring-1 ring-inset ring-primary/30'
               )}
             >
-              <GripVertical className="h-3.5 w-3.5 text-muted-foreground/40 cursor-grab flex-shrink-0" />
+              <Icon icon="drag-handle-vertical" size={14} className="text-muted-foreground/40 cursor-grab flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 {editingField?.id === field.id ? (
-                  <Input className="h-7 text-sm" value={editName}
+                  <InputGroup
+                    value={editName}
                     onChange={(e) => { setEditName(e.target.value) }}
                     onKeyDown={(e) => { if (e.key === 'Enter') void handleSaveEdit(field); if (e.key === 'Escape') setEditingField(null) }}
-                    autoFocus />
+                    autoFocus
+                  />
                 ) : (
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{field.name}</span>
-                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                      {FIELD_TYPE_LABELS[field.field_type]}
-                    </span>
+                    <Tag minimal>{FIELD_TYPE_LABELS[field.field_type]}</Tag>
                     {field.required && (
-                      <span className="text-xs font-medium text-destructive">Required</span>
+                      <Tag minimal intent={Intent.DANGER}>Required</Tag>
                     )}
                   </div>
                 )}
               </div>
               {editingField?.id === field.id ? (
-                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => void handleSaveEdit(field)}>Save</Button>
+                <Button size="small" onClick={() => void handleSaveEdit(field)}>Save</Button>
               ) : (
                 <>
-                  {/* Required toggle */}
-                  <div className="flex items-center gap-1.5">
-                    <Switch
-                      checked={field.required}
-                      onCheckedChange={(checked) => {
-                        updateField.mutate({ id: field.id, input: { required: checked } })
-                      }}
-                      aria-label={`Mark ${field.name} as required`}
-                    />
-                  </div>
-                  <Button variant="ghost" size="icon" className="h-7 w-7"
-                    onClick={() => { setEditingField(field); setEditName(field.name) }}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive"
-                    onClick={() => { setDeleteFieldConfirm({ id: field.id, name: field.name }) }}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  <Switch
+                    checked={field.required}
+                    onChange={(e) => {
+                      updateField.mutate({ id: field.id, input: { required: e.currentTarget.checked } })
+                    }}
+                    aria-label={`Mark ${field.name} as required`}
+                    className="!mb-0"
+                  />
+                  <Button
+                    icon="edit"
+                    variant="minimal"
+                    size="small"
+                    aria-label="Edit field"
+                    onClick={() => { setEditingField(field); setEditName(field.name) }}
+                  />
+                  <Button
+                    icon="trash"
+                    variant="minimal"
+                    size="small"
+                    intent={Intent.DANGER}
+                    aria-label="Delete field"
+                    onClick={() => { setDeleteFieldConfirm({ id: field.id, name: field.name }) }}
+                  />
                 </>
               )}
             </div>
           ))}
-        </div>
+        </Card>
       ) : null}
-      <ConfirmDialog
-        open={deleteFieldConfirm !== null}
-        title={`Remove field "${deleteFieldConfirm?.name ?? ''}"?`}
-        description="Any existing data for this field will be lost."
-        confirmLabel="Remove"
-        destructive
-        onConfirm={() => { if (deleteFieldConfirm) deleteField.mutate(deleteFieldConfirm.id) }}
+      <Alert
+        isOpen={deleteFieldConfirm !== null}
+        intent={Intent.DANGER}
+        icon="trash"
+        cancelButtonText="Cancel"
+        confirmButtonText="Remove"
         onCancel={() => { setDeleteFieldConfirm(null) }}
-      />
+        onConfirm={() => {
+          if (deleteFieldConfirm) deleteField.mutate(deleteFieldConfirm.id)
+          setDeleteFieldConfirm(null)
+        }}
+      >
+        <p className="font-semibold mb-1">{`Remove field "${deleteFieldConfirm?.name ?? ''}"?`}</p>
+        <p className="text-sm">Any existing data for this field will be lost.</p>
+      </Alert>
     </div>
   )
 }
@@ -964,25 +1024,19 @@ const CURRENCY_GROUPS = [
   },
 ] as const
 
-function CurrencySelectItems() {
+// Native <optgroup>/<option> children for Blueprint HTMLSelect — supports
+// labelled groups, which HTMLSelect's `options` prop does not.
+function CurrencyOptions() {
   return (
     <>
-      {CURRENCY_GROUPS.map((group, idx) => (
-        <SelectGroup key={group.label}>
-          {idx > 0 && <SelectSeparator />}
-          <SelectLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1">
-            {group.label}
-          </SelectLabel>
+      {CURRENCY_GROUPS.map((group) => (
+        <optgroup key={group.label} label={group.label}>
           {group.currencies.map((c) => (
-            <SelectItem key={c.code} value={c.code}>
-              <span className="font-mono text-xs w-8 inline-block text-muted-foreground">
-                {getCurrencySymbol(c.code)}
-              </span>
-              <span className="font-mono text-xs mr-2">{c.code}</span>
-              <span className="text-xs text-muted-foreground">{c.name}</span>
-            </SelectItem>
+            <option key={c.code} value={c.code}>
+              {getCurrencySymbol(c.code)}  {c.code}  {c.name}
+            </option>
           ))}
-        </SelectGroup>
+        </optgroup>
       ))}
     </>
   )
@@ -1009,7 +1063,7 @@ function MoveReasonsSection() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
 
-  const requireRemovalReason = hotel?.config?.require_removal_reason === true
+  const requireRemovalReason = hotel?.config.require_removal_reason === true
 
   const handleAdd = async () => {
     const name = newName.trim()
@@ -1033,25 +1087,26 @@ function MoveReasonsSection() {
       />
 
       {/* Require removal category toggle */}
-      <div className="mb-5 rounded-lg border p-4">
+      <Card compact className="mb-5">
         <SettingRow
           label="Require move reason category"
           description="Operators must select a category when removing stock. Enables enforcement in the adjustment modal."
         >
           <Switch
             checked={requireRemovalReason}
-            onCheckedChange={(v) => {
-              void updateHotelConfig.mutateAsync({ key: 'require_removal_reason', value: v })
+            onChange={(e) => {
+              void updateHotelConfig.mutateAsync({ key: 'require_removal_reason', value: e.currentTarget.checked })
             }}
+            className="!mb-0"
           />
         </SettingRow>
-      </div>
+      </Card>
 
       {/* Custom reasons list */}
-      <div className="rounded-lg border divide-y">
+      <Card compact className="!p-0 divide-y">
         {isLoading && (
           <div className="flex items-center justify-center py-6 text-muted-foreground text-sm">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+            <Spinner size={SpinnerSize.SMALL} />Loading…
           </div>
         )}
         {!isLoading && reasons.length === 0 && (
@@ -1061,10 +1116,10 @@ function MoveReasonsSection() {
         )}
         {reasons.map((r) => (
           <div key={r.id} className="flex items-center gap-3 px-4 py-2.5">
-            <GripVertical className="h-4 w-4 text-muted-foreground/40 flex-shrink-0" />
+            <Icon icon="drag-handle-vertical" size={14} className="text-muted-foreground/40 flex-shrink-0" />
             {editingId === r.id ? (
-              <Input
-                className="h-7 text-sm flex-1"
+              <InputGroup
+                className="flex-1"
                 value={editName}
                 onChange={(e) => { setEditName(e.target.value) }}
                 onKeyDown={(e) => {
@@ -1079,27 +1134,26 @@ function MoveReasonsSection() {
             <div className="flex items-center gap-1">
               {editingId === r.id ? (
                 <>
-                  <Button size="sm" className="h-7 text-xs" onClick={() => { void handleSaveEdit(r.id) }}>Save</Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setEditingId(null) }}>Cancel</Button>
+                  <Button size="small" intent={Intent.PRIMARY} onClick={() => { void handleSaveEdit(r.id) }}>Save</Button>
+                  <Button size="small" variant="minimal" onClick={() => { setEditingId(null) }}>Cancel</Button>
                 </>
               ) : (
                 <>
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
+                    icon="edit"
+                    variant="minimal"
+                    size="small"
+                    aria-label="Edit reason"
                     onClick={() => { setEditingId(r.id); setEditName(r.name) }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
+                  />
                   <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 text-destructive hover:text-destructive"
+                    icon="trash"
+                    variant="minimal"
+                    size="small"
+                    intent={Intent.DANGER}
+                    aria-label="Delete reason"
                     onClick={() => { deleteReason.mutate(r.id) }}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  />
                 </>
               )}
             </div>
@@ -1108,8 +1162,8 @@ function MoveReasonsSection() {
 
         {/* Add new reason */}
         <div className="flex items-center gap-2 px-4 py-3">
-          <Input
-            className="h-8 text-sm flex-1"
+          <InputGroup
+            className="flex-1"
             placeholder="e.g. Event consumption, Guest request…"
             value={newName}
             onChange={(e) => { setNewName(e.target.value) }}
@@ -1118,18 +1172,16 @@ function MoveReasonsSection() {
             }}
           />
           <Button
-            size="sm"
-            className="h-8"
-            disabled={!newName.trim() || createReason.isPending}
+            icon="plus"
+            intent={Intent.PRIMARY}
+            disabled={!newName.trim()}
+            loading={createReason.isPending}
             onClick={() => { void handleAdd() }}
           >
-            {createReason.isPending
-              ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              : <Plus className="mr-1.5 h-3.5 w-3.5" />}
             Add
           </Button>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -1160,59 +1212,74 @@ function HotelProfileSection() {
 
       {/* Organization affiliation — read-only echelon context */}
       {org && (
-        <div className="mb-4 rounded-lg border bg-muted/30 px-4 py-3 flex items-center gap-3">
-          <Building2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              Part of organization
-            </p>
-            <p className="text-sm font-medium truncate">{org.name}</p>
+        <Callout icon="office" compact className="mb-4">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Part of organization
+              </p>
+              <p className="text-sm font-medium truncate">{org.name}</p>
+            </div>
+            <span className="text-[10px] text-muted-foreground shrink-0">Org-scope contracts and benchmarks attach here</span>
           </div>
-          <span className="text-[10px] text-muted-foreground shrink-0">Org-scope contracts and benchmarks attach here</span>
-        </div>
+        </Callout>
       )}
 
-      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="rounded-lg border p-4 space-y-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="hotel-name">Hotel name</Label>
-          <Input id="hotel-name" {...register('name')} />
-          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="hotel-address">Address</Label>
-          <Input id="hotel-address" {...register('address')} />
-          {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="hotel-timezone">Timezone</Label>
-            <Input id="hotel-timezone" placeholder="Europe/Athens" {...register('timezone')} />
-            {errors.timezone && <p className="text-sm text-destructive">{errors.timezone.message}</p>}
+      <Card compact>
+        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+          <FormGroup
+            label="Hotel name"
+            labelFor="hotel-name"
+            intent={errors.name ? Intent.DANGER : Intent.NONE}
+            helperText={errors.name?.message}
+          >
+            <InputGroup id="hotel-name" intent={errors.name ? Intent.DANGER : Intent.NONE} {...register('name')} />
+          </FormGroup>
+          <FormGroup
+            label="Address"
+            labelFor="hotel-address"
+            intent={errors.address ? Intent.DANGER : Intent.NONE}
+            helperText={errors.address?.message}
+          >
+            <InputGroup id="hotel-address" intent={errors.address ? Intent.DANGER : Intent.NONE} {...register('address')} />
+          </FormGroup>
+          <div className="grid grid-cols-2 gap-3">
+            <FormGroup
+              label="Timezone"
+              labelFor="hotel-timezone"
+              intent={errors.timezone ? Intent.DANGER : Intent.NONE}
+              helperText={errors.timezone?.message}
+            >
+              <InputGroup id="hotel-timezone" placeholder="Europe/Athens" intent={errors.timezone ? Intent.DANGER : Intent.NONE} {...register('timezone')} />
+            </FormGroup>
+            <FormGroup
+              label="Display currency"
+              labelFor="hotel-currency"
+              intent={errors.currency ? Intent.DANGER : Intent.NONE}
+              helperText={errors.currency?.message}
+            >
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <HTMLSelect
+                    id="hotel-currency"
+                    fill
+                    value={field.value}
+                    onChange={(e) => { field.onChange(e.target.value) }}
+                  >
+                    <option value="" disabled>Select currency…</option>
+                    <CurrencyOptions />
+                  </HTMLSelect>
+                )}
+              />
+            </FormGroup>
           </div>
-          <div className="space-y-1.5">
-            <Label>Display currency</Label>
-            <Controller
-              name="currency"
-              control={control}
-              render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency…" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-80">
-                    <CurrencySelectItems />
-                  </SelectContent>
-                </Select>
-              )}
-            />
-            {errors.currency && <p className="text-sm text-destructive">{errors.currency.message}</p>}
-          </div>
-        </div>
-        <Button type="submit" size="sm" disabled={isSubmitting || !isDirty}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Save Changes
-        </Button>
-      </form>
+          <Button type="submit" intent={Intent.PRIMARY} disabled={!isDirty} loading={isSubmitting}>
+            Save Changes
+          </Button>
+        </form>
+      </Card>
     </div>
   )
 }
@@ -1250,7 +1317,7 @@ function ApprovalThresholdsSection() {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />Loading thresholds…
+        <Spinner size={SpinnerSize.SMALL} />Loading thresholds…
       </div>
     )
   }
@@ -1262,76 +1329,65 @@ function ApprovalThresholdsSection() {
         description="Restock requests above these spend limits are routed for sign-off before they can be ordered. Manager tier requires admin or owner; Director tier requires owner only."
       />
       <div className="space-y-5 max-w-sm">
-        <div>
-          <Label className="text-sm font-medium">Manager approval above</Label>
-          <p className="text-xs text-muted-foreground mb-2">Orders above this value require admin or owner approval</p>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{sym}</span>
-            <Input
-              type="number"
-              min={0}
-              step={10}
-              className="pl-7 h-9 text-sm"
-              placeholder={String(managerVal)}
-              value={manager}
-              onChange={(e) => { setManager(e.target.value) }}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Current: {sym}{managerVal.toFixed(2)}</p>
-        </div>
+        <FormGroup
+          label="Manager approval above"
+          helperText={`Orders above this value require admin or owner approval · Current: ${sym}${managerVal.toFixed(2)}`}
+        >
+          <InputGroup
+            type="number"
+            min={0}
+            step={10}
+            leftElement={<span className="px-3 py-1 text-sm text-muted-foreground">{sym}</span>}
+            placeholder={String(managerVal)}
+            value={manager}
+            onChange={(e) => { setManager(e.target.value) }}
+          />
+        </FormGroup>
 
-        <div>
-          <Label className="text-sm font-medium">Director approval above</Label>
-          <p className="text-xs text-muted-foreground mb-2">Orders above this value require owner approval only</p>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{sym}</span>
-            <Input
-              type="number"
-              min={0}
-              step={50}
-              className="pl-7 h-9 text-sm"
-              placeholder={String(directorVal)}
-              value={director}
-              onChange={(e) => { setDirector(e.target.value) }}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Current: {sym}{directorVal.toFixed(2)}</p>
-        </div>
+        <FormGroup
+          label="Director approval above"
+          helperText={`Orders above this value require owner approval only · Current: ${sym}${directorVal.toFixed(2)}`}
+        >
+          <InputGroup
+            type="number"
+            min={0}
+            step={50}
+            leftElement={<span className="px-3 py-1 text-sm text-muted-foreground">{sym}</span>}
+            placeholder={String(directorVal)}
+            value={director}
+            onChange={(e) => { setDirector(e.target.value) }}
+          />
+        </FormGroup>
 
-        <div>
-          <Label className="text-sm font-medium">Auto-escalation timeout</Label>
-          <p className="text-xs text-muted-foreground mb-2">Hours before a stale pending_manager request is auto-escalated to pending_director</p>
-          <div className="relative">
-            <Input
-              type="number"
-              min={1}
-              max={168}
-              step={1}
-              className="pr-10 h-9 text-sm"
-              placeholder={String(escalationVal)}
-              value={escalation}
-              onChange={(e) => { setEscalation(e.target.value) }}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">hrs</span>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">Current: {String(escalationVal)}h · checked every 30 min by scheduled job</p>
-        </div>
+        <FormGroup
+          label="Auto-escalation timeout"
+          helperText={`Hours before a stale pending_manager request is auto-escalated to pending_director · Current: ${String(escalationVal)}h · checked every 30 min`}
+        >
+          <InputGroup
+            type="number"
+            min={1}
+            max={168}
+            step={1}
+            rightElement={<span className="px-3 py-1 text-xs text-muted-foreground">hrs</span>}
+            placeholder={String(escalationVal)}
+            value={escalation}
+            onChange={(e) => { setEscalation(e.target.value) }}
+          />
+        </FormGroup>
 
         <Button
-          size="sm"
+          intent={Intent.PRIMARY}
           onClick={handleSave}
-          disabled={update.isPending || (!manager && !director && !escalation)}
-          className="gap-1.5"
+          disabled={!manager && !director && !escalation}
+          loading={update.isPending}
         >
-          {update.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Save thresholds
         </Button>
 
-        <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">How it works</p>
+        <Callout intent={Intent.NONE} icon="info-sign" compact title="How it works">
           <p>When a restock request is created, its estimated cost (qty × unit cost) is compared against these thresholds automatically. Cost history is used as fallback when the variant has no current price set.</p>
           <p>Requests that sit in pending_manager past the escalation timeout are automatically promoted to pending_director by a scheduled job.</p>
-        </div>
+        </Callout>
       </div>
     </div>
   )
@@ -1349,16 +1405,16 @@ function CronHealthPanel() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />Checking autonomous loop…
-      </div>
+      <Callout icon={<Spinner size={14} />} compact>
+        Checking autonomous loop…
+      </Callout>
     )
   }
   if (isError || !data) {
     return (
-      <div className="rounded-md border border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
+      <Callout intent={Intent.WARNING} icon="warning-sign" compact>
         Health summary unavailable for this role.
-      </div>
+      </Callout>
     )
   }
 
@@ -1372,36 +1428,27 @@ function CronHealthPanel() {
     : (cycle?.last_status === 'failed') ? 'degraded'
     : 'idle'
 
-  const statusColor =
-    cycleStatus === 'healthy'  ? 'text-emerald-600 dark:text-emerald-400'
-    : cycleStatus === 'failing' ? 'text-red-600 dark:text-red-400'
-    : cycleStatus === 'degraded'? 'text-amber-600 dark:text-amber-400'
-    : 'text-muted-foreground'
-
-  const statusDot =
-    cycleStatus === 'healthy'  ? 'bg-emerald-500'
-    : cycleStatus === 'failing' ? 'bg-red-500'
-    : cycleStatus === 'degraded'? 'bg-amber-500'
-    : 'bg-muted-foreground/40'
+  const statusIntent =
+    cycleStatus === 'healthy'  ? Intent.SUCCESS
+    : cycleStatus === 'failing' ? Intent.DANGER
+    : cycleStatus === 'degraded'? Intent.WARNING
+    : Intent.NONE
 
   return (
-    <div className="rounded-md border bg-muted/30 overflow-hidden">
+    <Card compact className="!p-0 overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/20">
         <div className="flex items-center gap-2">
-          <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+          <Icon icon="pulse" size={14} className="text-muted-foreground" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Autonomous loop status
           </span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className={cn('h-1.5 w-1.5 rounded-full inline-block', statusDot)} />
-          <span className={cn('text-xs font-medium', statusColor)}>
-            {cycleStatus === 'healthy'   && 'Healthy'}
-            {cycleStatus === 'failing'   && `Failing (${String(cycle?.consecutive_failures ?? 0)} in a row)`}
-            {cycleStatus === 'degraded'  && 'Last run failed'}
-            {cycleStatus === 'idle'      && 'No runs yet'}
-          </span>
-        </div>
+        <Tag intent={statusIntent} minimal>
+          {cycleStatus === 'healthy'   && 'Healthy'}
+          {cycleStatus === 'failing'   && `Failing (${String(cycle?.consecutive_failures ?? 0)} in a row)`}
+          {cycleStatus === 'degraded'  && 'Last run failed'}
+          {cycleStatus === 'idle'      && 'No runs yet'}
+        </Tag>
       </div>
 
       <div className="px-3 py-2 space-y-1">
@@ -1430,7 +1477,7 @@ function CronHealthPanel() {
 
       {!overallHealthy && (
         <div className="px-3 py-2 border-t bg-red-50/60 dark:bg-red-950/20 flex items-start gap-2">
-          <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400 mt-px flex-shrink-0" />
+          <Icon icon="warning-sign" size={14} className="text-red-600 dark:text-red-400 mt-px flex-shrink-0" />
           <p className="text-[11px] text-red-700 dark:text-red-400 leading-relaxed">
             {data.open_critical > 0 && `${String(data.open_critical)} unacknowledged critical event${data.open_critical === 1 ? '' : 's'}. `}
             {failingJobs.length > 0 && `${String(failingJobs.length)} job${failingJobs.length === 1 ? '' : 's'} failing. `}
@@ -1438,7 +1485,7 @@ function CronHealthPanel() {
           </p>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -1474,7 +1521,7 @@ function AutonomousSection() {
   if (!hotel) {
     return (
       <div className="flex items-center gap-2 py-8 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />Loading hotel…
+        <Spinner size={SpinnerSize.SMALL} />Loading hotel…
       </div>
     )
   }
@@ -1487,89 +1534,71 @@ function AutonomousSection() {
       />
       <div className="space-y-6 max-w-sm">
         {/* Auto-approve threshold */}
-        <div>
-          <Label className="text-sm font-medium">Auto-approve restock threshold</Label>
-          <p className="text-xs text-muted-foreground mb-2">
-            Pending restock requests with estimated cost at or below this amount are auto-approved. Set to 0 to disable.
-          </p>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">{sym}</span>
-            <Input
-              type="number"
-              min={0}
-              step={5}
-              className="pl-7 h-9 text-sm"
-              placeholder={String(currentThreshold)}
-              value={threshold}
-              onChange={(e) => { setThreshold(e.target.value) }}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Current: {sym}{currentThreshold.toFixed(2)}
-            {currentThreshold === 0 ? ' (disabled)' : ''}
-          </p>
-        </div>
+        <FormGroup
+          label="Auto-approve restock threshold"
+          helperText={`Pending restock requests with estimated cost at or below this amount are auto-approved. Set to 0 to disable · Current: ${sym}${currentThreshold.toFixed(2)}${currentThreshold === 0 ? ' (disabled)' : ''}`}
+        >
+          <InputGroup
+            type="number"
+            min={0}
+            step={5}
+            leftElement={<span className="px-3 py-1 text-sm text-muted-foreground">{sym}</span>}
+            placeholder={String(currentThreshold)}
+            value={threshold}
+            onChange={(e) => { setThreshold(e.target.value) }}
+          />
+        </FormGroup>
 
         {/* Auto PO generation */}
-        <div>
-          <div className="flex items-center justify-between">
-            <div>
-              <Label className="text-sm font-medium">Auto-generate Purchase Orders</Label>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                When 3+ approved restocks exist for the same supplier, automatically create a draft PO
-              </p>
-            </div>
-            <Switch
-              checked={effectivePoEnabled}
-              onCheckedChange={(v) => { setPoEnabled(v) }}
-            />
+        <div className="flex items-center justify-between">
+          <div className="flex-1 pr-3">
+            <p className="text-sm font-medium">Auto-generate Purchase Orders</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              When 3+ approved restocks exist for the same supplier, automatically create a draft PO
+            </p>
           </div>
+          <Switch
+            checked={effectivePoEnabled}
+            onChange={(e) => { setPoEnabled(e.currentTarget.checked) }}
+            className="!mb-0"
+          />
         </div>
 
         {/* Invoice tolerance */}
-        <div>
-          <Label className="text-sm font-medium">Invoice auto-approve tolerance</Label>
-          <p className="text-xs text-muted-foreground mb-2">
-            Invoices with discrepancy at or below this percentage are auto-approved after 3-way match
-          </p>
-          <div className="relative">
-            <Input
-              type="number"
-              min={0}
-              max={100}
-              step={0.5}
-              className="pr-8 h-9 text-sm"
-              placeholder={String(currentTolerance)}
-              value={tolerance}
-              onChange={(e) => { setTolerance(e.target.value) }}
-            />
-            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
-          </div>
-          <p className="text-[10px] text-muted-foreground mt-1">
-            Current: {String(currentTolerance)}%
-          </p>
-        </div>
+        <FormGroup
+          label="Invoice auto-approve tolerance"
+          helperText={`Invoices with discrepancy at or below this percentage are auto-approved after 3-way match · Current: ${String(currentTolerance)}%`}
+        >
+          <InputGroup
+            type="number"
+            min={0}
+            max={100}
+            step={0.5}
+            rightElement={<span className="px-3 py-1 text-xs text-muted-foreground">%</span>}
+            placeholder={String(currentTolerance)}
+            value={tolerance}
+            onChange={(e) => { setTolerance(e.target.value) }}
+          />
+        </FormGroup>
 
         <Button
-          size="sm"
+          intent={Intent.PRIMARY}
           onClick={handleSave}
-          disabled={update.isPending || !isDirty}
-          className="gap-1.5"
+          disabled={!isDirty}
+          loading={update.isPending}
         >
-          {update.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Save autonomous settings
         </Button>
 
         {/* Live cron health — replaces static "Active agents" copy */}
         <CronHealthPanel />
 
-        <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
-          <p className="font-medium text-foreground">What's running</p>
+        <Callout intent={Intent.NONE} icon="info-sign" compact title="What's running">
           <p>Intelligence cycle (every 15 min): anomaly alerts, restock proposals, preemptive restocks, stale escalations, discrepancy detection, and the auto-approvals configured above.</p>
           <p>Event-driven triggers (real-time): critical stockouts, PO auto-close on full receipt, consumption-spike detection.</p>
           <p>Weekly: PAR optimization, supplier lead-time learning (Sun 4am UTC), per-variant alert threshold learning (Sun 4:30am UTC), price drift (Mon 6am UTC). Daily: POS variance (5am UTC), proposal-outcomes feedback flywheel (3am UTC).</p>
           <p>Health monitor (every 5 min): scans <code className="font-mono">cron.job_run_details</code>, opens <code className="font-mono">system_health_events</code> rows on failure streaks.</p>
-        </div>
+        </Callout>
       </div>
     </div>
   )
@@ -1586,7 +1615,7 @@ const ALL_ACTION_TYPES = [
 
 const webhookSchema = z.object({
   name:   z.string().min(1, 'Name is required').max(80),
-  url:    z.string().url('Must be a valid URL').refine((u) => u.startsWith('https://'), 'Must use HTTPS'),
+  url:    z.url('Must be a valid URL').refine((u) => u.startsWith('https://'), 'Must use HTTPS'),
   secret: z.string().min(16, 'Secret must be at least 16 characters'),
 })
 type WebhookFields = z.infer<typeof webhookSchema>
@@ -1599,22 +1628,16 @@ function generateSecret(): string {
 
 function DeliveryBadge({ success }: { success: boolean }) {
   return (
-    <span className={cn(
-      'inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium',
-      success
-        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400'
-        : 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-    )}>
-      {success ? <Check className="h-2.5 w-2.5" /> : <X className="h-2.5 w-2.5" />}
+    <Tag intent={success ? Intent.SUCCESS : Intent.DANGER} icon={success ? 'tick' : 'cross'} minimal>
       {success ? 'Delivered' : 'Failed'}
-    </span>
+    </Tag>
   )
 }
 
 function EndpointDeliveries({ endpointId }: { endpointId: string }) {
   const { data: deliveries = [], isLoading } = useWebhookDeliveries(endpointId)
 
-  if (isLoading) return <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>
+  if (isLoading) return <div className="flex justify-center py-4"><Spinner size={SpinnerSize.SMALL} /></div>
   if (deliveries.length === 0) return (
     <p className="text-xs text-muted-foreground py-3 text-center">No deliveries yet — webhooks fire after any BeaconAction</p>
   )
@@ -1698,81 +1721,83 @@ function WebhookEndpointModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Edit webhook' : 'Add webhook endpoint'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4">
-          <div className="space-y-1">
-            <Label>Name</Label>
-            <Input {...register('name')} placeholder="e.g. PMS sync, Supplier notify" />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <Label>URL</Label>
-            <Input {...register('url')} placeholder="https://your-endpoint.com/webhook" />
-            {errors.url && <p className="text-xs text-destructive">{errors.url.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <Label>Signing secret</Label>
-              <button
-                type="button"
-                onClick={() => { setValue('secret', generateSecret()) }}
-                className="text-[10px] text-primary hover:underline"
-              >
+    <Dialog isOpen={open} onClose={onClose} title={editing ? 'Edit webhook' : 'Add webhook endpoint'} icon="notifications-updated">
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody>
+          <FormGroup
+            label="Name"
+            intent={errors.name ? Intent.DANGER : Intent.NONE}
+            helperText={errors.name?.message}
+          >
+            <InputGroup intent={errors.name ? Intent.DANGER : Intent.NONE} placeholder="e.g. PMS sync, Supplier notify" {...register('name')} />
+          </FormGroup>
+          <FormGroup
+            label="URL"
+            intent={errors.url ? Intent.DANGER : Intent.NONE}
+            helperText={errors.url?.message}
+          >
+            <InputGroup intent={errors.url ? Intent.DANGER : Intent.NONE} placeholder="https://your-endpoint.com/webhook" {...register('url')} />
+          </FormGroup>
+          <FormGroup
+            label="Signing secret"
+            intent={errors.secret ? Intent.DANGER : Intent.NONE}
+            helperText={
+              errors.secret?.message ??
+              'Beacon signs every payload with X-Beacon-Signature: sha256=…'
+            }
+            labelInfo={
+              <Button variant="minimal" size="small" intent={Intent.PRIMARY} onClick={() => { setValue('secret', generateSecret()) }}>
                 Generate
-              </button>
-            </div>
-            <Input {...register('secret')} className="font-mono text-xs" placeholder="min 16 characters" />
-            {errors.secret && <p className="text-xs text-destructive">{errors.secret.message}</p>}
-            <p className="text-[10px] text-muted-foreground">
-              Beacon signs every payload with <code className="font-mono">X-Beacon-Signature: sha256=…</code>
-            </p>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Event filter</Label>
-              <button
-                type="button"
-                onClick={() => { setSelectedEvents([]) }}
-                className="text-[10px] text-muted-foreground hover:text-foreground"
-              >
+              </Button>
+            }
+          >
+            <InputGroup
+              className="font-mono"
+              intent={errors.secret ? Intent.DANGER : Intent.NONE}
+              placeholder="min 16 characters"
+              {...register('secret')}
+            />
+          </FormGroup>
+          <FormGroup
+            label="Event filter"
+            helperText={
+              selectedEvents.length === 0
+                ? 'Firing on all action types'
+                : `Firing on ${String(selectedEvents.length)} selected type${selectedEvents.length !== 1 ? 's' : ''}`
+            }
+            labelInfo={
+              <Button variant="minimal" size="small" onClick={() => { setSelectedEvents([]) }}>
                 All events (clear)
-              </button>
-            </div>
+              </Button>
+            }
+          >
             <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto rounded border p-2">
               {ALL_ACTION_TYPES.map((type) => (
-                <button
+                <Tag
                   key={type}
-                  type="button"
+                  interactive
+                  minimal={!selectedEvents.includes(type)}
+                  intent={selectedEvents.includes(type) ? Intent.PRIMARY : Intent.NONE}
                   onClick={() => { toggleEvent(type) }}
-                  className={cn(
-                    'rounded px-2 py-0.5 text-[10px] font-mono font-medium transition-colors',
-                    selectedEvents.includes(type)
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/70',
-                  )}
+                  className="font-mono"
                 >
                   {type}
-                </button>
+                </Tag>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground">
-              {selectedEvents.length === 0
-                ? 'Firing on all action types'
-                : `Firing on ${selectedEvents.length} selected type${selectedEvents.length !== 1 ? 's' : ''}`}
-            </p>
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : (editing ? 'Save' : 'Create')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+          </FormGroup>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button onClick={onClose}>Cancel</Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isSubmitting}>
+                {editing ? 'Save' : 'Create'}
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }
@@ -1790,41 +1815,32 @@ function WebhookEndpointRow({
   const update                   = useUpdateWebhookEndpoint()
 
   return (
-    <div className="rounded-lg border divide-y">
+    <Card compact className="!p-0 divide-y">
       {/* Header row */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-medium truncate">{ep.name}</p>
-            {!ep.enabled && (
-              <span className="text-[10px] bg-muted text-muted-foreground rounded px-1.5 py-0.5">Disabled</span>
-            )}
+            {!ep.enabled && <Tag minimal>Disabled</Tag>}
           </div>
           <p className="text-xs text-muted-foreground font-mono truncate">{ep.url}</p>
           <p className="text-[10px] text-muted-foreground mt-0.5">
             {ep.event_types.length === 0
               ? 'All events'
-              : ep.event_types.slice(0, 3).join(', ') + (ep.event_types.length > 3 ? ` +${ep.event_types.length - 3}` : '')}
+              : ep.event_types.slice(0, 3).join(', ') + (ep.event_types.length > 3 ? ` +${String(ep.event_types.length - 3)}` : '')}
           </p>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <Switch
             checked={ep.enabled}
-            onCheckedChange={(v) => { void update.mutateAsync({ id: ep.id, patch: { enabled: v } }) }}
+            onChange={(e) => { void update.mutateAsync({ id: ep.id, patch: { enabled: e.currentTarget.checked } }) }}
+            className="!mb-0"
           />
-          <button
-            type="button"
-            onClick={() => { setExpanded((x) => !x) }}
-            className="p-1.5 rounded hover:bg-muted transition-colors text-muted-foreground text-[10px]"
-          >
+          <Button variant="minimal" size="small" onClick={() => { setExpanded((x) => !x) }}>
             {expanded ? 'Hide' : 'Log'}
-          </button>
-          <button type="button" onClick={onEdit} className="p-1.5 rounded hover:bg-muted transition-colors">
-            <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
-          <button type="button" onClick={onDelete} className="p-1.5 rounded hover:bg-muted transition-colors">
-            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-          </button>
+          </Button>
+          <Button icon="edit" variant="minimal" size="small" onClick={onEdit} aria-label="Edit webhook" />
+          <Button icon="trash" variant="minimal" size="small" intent={Intent.DANGER} onClick={onDelete} aria-label="Delete webhook" />
         </div>
       </div>
       {/* Delivery log */}
@@ -1834,7 +1850,7 @@ function WebhookEndpointRow({
           <EndpointDeliveries endpointId={ep.id} />
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -1853,16 +1869,16 @@ function WebhooksSection() {
       />
 
       {isLoading ? (
-        <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+        <div className="flex justify-center py-8"><Spinner size={SpinnerSize.STANDARD} /></div>
       ) : (
         <div className="space-y-3">
           {endpoints.length === 0 ? (
-            <div className="rounded-lg border px-4 py-8 text-center space-y-2">
+            <Card compact className="px-4 py-8 text-center space-y-2">
               <p className="text-sm font-medium text-muted-foreground">No webhook endpoints configured</p>
               <p className="text-xs text-muted-foreground">
                 Add an endpoint to push BeaconAction events to your PMS, supplier systems, or automation tools.
               </p>
-            </div>
+            </Card>
           ) : (
             endpoints.map((ep) => (
               <WebhookEndpointRow
@@ -1873,26 +1889,19 @@ function WebhooksSection() {
               />
             ))
           )}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => { setEditing(null); setModalOpen(true) }}
-            className="gap-1.5"
-          >
-            <Plus className="h-3.5 w-3.5" />
+          <Button icon="plus" onClick={() => { setEditing(null); setModalOpen(true) }}>
             Add endpoint
           </Button>
         </div>
       )}
 
-      <div className="mt-6 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
-        <p className="font-medium text-foreground">Verification</p>
+      <Callout intent={Intent.NONE} icon="info-sign" compact title="Verification" className="mt-6">
         <p>
           Validate each request server-side: <code className="font-mono">HMAC_SHA256(body, secret)</code> must match
           the <code className="font-mono">X-Beacon-Signature</code> header (after stripping the <code className="font-mono">sha256=</code> prefix).
         </p>
         <p>Beacon retries are not automatic — re-delivery is available via the delivery log.</p>
-      </div>
+      </Callout>
 
       <WebhookEndpointModal
         open={modalOpen}
@@ -1900,17 +1909,21 @@ function WebhooksSection() {
         editing={editing}
       />
 
-      <ConfirmDialog
-        open={!!deleting}
-        title="Delete webhook endpoint"
-        description={`Remove "${deleting?.name}"? Delivery history will also be deleted.`}
-        confirmLabel="Delete"
+      <Alert
+        isOpen={!!deleting}
+        intent={Intent.DANGER}
+        icon="trash"
+        cancelButtonText="Cancel"
+        confirmButtonText="Delete"
         onConfirm={() => {
           if (deleting) { void deleteEndpoint.mutateAsync(deleting.id) }
           setDeleting(null)
         }}
         onCancel={() => { setDeleting(null) }}
-      />
+      >
+        <p className="font-semibold mb-1">Delete webhook endpoint</p>
+        <p className="text-sm">{`Remove "${deleting?.name ?? ''}"? Delivery history will also be deleted.`}</p>
+      </Alert>
     </div>
   )
 }
@@ -1955,16 +1968,24 @@ function DangerZoneSection() {
         description="Anonymise a user's personally identifiable data from all stock logs within this hotel. This action is irreversible."
       />
       <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-3 max-w-sm">
-        <div className="space-y-1.5">
-          <Label htmlFor="gdpr-email">User email</Label>
-          <Input id="gdpr-email" type="email" placeholder="user@example.com" {...register('email')} />
-          {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-        </div>
+        <FormGroup
+          label="User email"
+          labelFor="gdpr-email"
+          intent={errors.email ? Intent.DANGER : Intent.NONE}
+          helperText={errors.email?.message}
+        >
+          <InputGroup
+            id="gdpr-email"
+            type="email"
+            placeholder="user@example.com"
+            intent={errors.email ? Intent.DANGER : Intent.NONE}
+            {...register('email')}
+          />
+        </FormGroup>
         {result && (
-          <p className="rounded-md bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800">{result}</p>
+          <Callout intent={Intent.SUCCESS} icon="tick" compact>{result}</Callout>
         )}
-        <Button type="submit" variant="destructive" size="sm" disabled={isSubmitting}>
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        <Button type="submit" intent={Intent.DANGER} loading={isSubmitting}>
           Anonymise User Data
         </Button>
       </form>
@@ -2055,7 +2076,6 @@ export default function SettingsPage() {
                   </span>
                 </div>
                 {groupItems.map((item) => {
-                  const Icon = item.icon
                   const isActive = safeActive === item.id
                   return (
                     <button
@@ -2068,7 +2088,7 @@ export default function SettingsPage() {
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                       )}
                     >
-                      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+                      <Icon icon={item.icon} size={14} className="flex-shrink-0" />
                       {item.label}
                     </button>
                   )
