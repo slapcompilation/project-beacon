@@ -2,22 +2,28 @@
 // Palantir principle: every delta carries its cost impact.
 // Operators see loss/gain magnitude — not just unit counts.
 // Commit review panel surfaces variance severity before any write.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { format } from 'date-fns'
-import { useDateFormat } from '@/features/user/hooks'
 import {
-  Search, CheckCircle2, Loader2, ClipboardCheck,
-  AlertTriangle, X, Play, TrendingDown, TrendingUp,
-  Eye, ChevronRight, ScanLine, Copy, Check, PackageX, Zap,
-} from 'lucide-react'
+  Button,
+  Callout,
+  Card,
+  Drawer,
+  HTMLTable,
+  Icon,
+  InputGroup,
+  Intent,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import { useDateFormat } from '@/features/user/hooks'
 import { useWasteRadar } from '@/features/eye/hooks'
 import type { WasteRadarRow } from '@beacon/types'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import { cn } from '@/lib/utils'
 import {
   useActiveDraftSession,
@@ -61,7 +67,7 @@ function NoSessionScreen() {
   return (
     <div className="flex flex-col items-center justify-center flex-1 gap-6 px-8 py-24 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-        <ClipboardCheck className="h-8 w-8 text-primary" />
+        <Icon icon="clipboard" size={32} intent={Intent.PRIMARY} />
       </div>
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">No active stocktake</h2>
@@ -71,19 +77,18 @@ function NoSessionScreen() {
         </p>
       </div>
       <div className="flex w-full max-w-xs flex-col gap-3">
-        <Input
+        <InputGroup
           placeholder="Optional note (e.g. End of month count)"
           value={note}
           onChange={(e) => { setNote(e.target.value) }}
         />
         <Button
+          icon="play"
+          intent={Intent.PRIMARY}
+          fill
           onClick={() => { begin.mutate(note || undefined) }}
-          disabled={begin.isPending}
-          className="w-full"
+          loading={begin.isPending}
         >
-          {begin.isPending
-            ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            : <Play className="mr-2 h-4 w-4" />}
           Begin Stocktake
         </Button>
       </div>
@@ -123,18 +128,16 @@ function CountInput({
 
   return (
     <div className="flex items-center justify-end gap-3">
-      <Input
+      <InputGroup
         type="number"
-        min="0"
-        step="1"
+        min={0}
+        step={1}
         placeholder={String(systemQty)}
         value={localValue}
         onChange={(e) => { setLocalValue(e.target.value) }}
         onBlur={handleBlur}
-        className={cn(
-          'h-8 w-24 text-right',
-          isInvalid && 'border-destructive focus-visible:ring-destructive'
-        )}
+        intent={isInvalid ? Intent.DANGER : Intent.NONE}
+        className="w-24 [&_input]:text-right"
       />
       <span className={cn(
         'w-16 text-right text-sm font-semibold tabular-nums',
@@ -169,50 +172,43 @@ function CommitReviewPanel({
   const changed = lines.filter((l) => l.band !== 'uncounted' && l.band !== 'matched')
   const sorted = [...changed].sort((a, b) => Math.abs(b.costImpact) - Math.abs(a.costImpact))
 
-  // Count how many loss lines have a correlating waste radar signal
   const wasteCorrelatedCount = sorted.filter(
     (l) => l.delta < 0 && wasteRadarMap.has(l.variant_id)
   ).length
 
   const totalLoss = changed.filter((l) => l.delta < 0).reduce((s, l) => s + l.costImpact, 0)
   const totalGain = changed.filter((l) => l.delta > 0).reduce((s, l) => s + l.costImpact, 0)
-  const netImpact = totalGain + totalLoss // loss is negative
+  const netImpact = totalGain + totalLoss
   const significantCount = changed.filter((l) => l.band === 'loss-significant').length
 
   return (
-    <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      {/* Panel */}
-      <div className="relative ml-auto flex h-full w-full max-w-lg flex-col border-l bg-background shadow-2xl">
-        {/* Header */}
-        <div className="flex items-center justify-between border-b px-6 py-4">
-          <div>
-            <h2 className="font-semibold">Review variances</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {String(changed.length)} changed line{changed.length !== 1 ? 's' : ''} will generate stock adjustments
-            </p>
-          </div>
-          <button onClick={onClose} className="rounded p-1 hover:bg-muted">
-            <X className="h-4 w-4" />
-          </button>
+    <Drawer
+      isOpen
+      onClose={onClose}
+      title="Review variances"
+      size="500px"
+      position="right"
+    >
+      <div className="flex h-full flex-col">
+        {/* Subtitle */}
+        <div className="border-b px-6 py-3">
+          <p className="text-xs text-muted-foreground">
+            {String(changed.length)} changed line{changed.length !== 1 ? 's' : ''} will generate stock adjustments
+          </p>
         </div>
 
         {/* Cost summary strip */}
         <div className="flex items-center gap-6 border-b px-6 py-3 text-sm bg-muted/30">
           {totalLoss < 0 && (
             <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-              <TrendingDown className="h-3.5 w-3.5" />
+              <Icon icon="trending-down" size={14} />
               <span className="font-semibold tabular-nums">{formatCurrency(Math.abs(totalLoss), currency)}</span>
               <span className="text-xs text-muted-foreground">loss</span>
             </span>
           )}
           {totalGain > 0 && (
             <span className="flex items-center gap-1.5 text-green-700 dark:text-green-500">
-              <TrendingUp className="h-3.5 w-3.5" />
+              <Icon icon="trending-up" size={14} />
               <span className="font-semibold tabular-nums">{formatCurrency(totalGain, currency)}</span>
               <span className="text-xs text-muted-foreground">gain</span>
             </span>
@@ -225,55 +221,47 @@ function CommitReviewPanel({
           </span>
         </div>
 
-        {/* Significant variance alert */}
         {significantCount > 0 && (
-          <div className="flex items-start gap-2 border-b px-6 py-3 bg-red-50/60 dark:bg-red-950/20 text-sm text-red-700 dark:text-red-400">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>
-              <span className="font-semibold">{String(significantCount)} significant variance{significantCount !== 1 ? 's' : ''}</span>
-              {' '}(≥20% of system stock) — verify before committing.
-            </span>
-          </div>
+          <Callout intent={Intent.DANGER} icon="warning-sign" compact className="!border-x-0 !rounded-none">
+            <span className="font-semibold">{String(significantCount)} significant variance{significantCount !== 1 ? 's' : ''}</span>
+            {' '}(≥20% of system stock) — verify before committing.
+          </Callout>
         )}
 
-        {/* Waste radar correlation banner */}
         {wasteCorrelatedCount > 0 && (
-          <div className="flex items-start gap-2 border-b px-6 py-3 bg-amber-50/60 dark:bg-amber-950/20 text-sm text-amber-700 dark:text-amber-400">
-            <Zap className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>
-              <span className="font-semibold">Waste radar correlation detected</span>
-              {' '}— {wasteCorrelatedCount} loss line{wasteCorrelatedCount !== 1 ? 's' : ''} match active write-off spikes.
-              Shrinkage may be ongoing, not a counting error.
-            </span>
-          </div>
+          <Callout intent={Intent.WARNING} icon="flash" compact className="!border-x-0 !rounded-none">
+            <span className="font-semibold">Waste radar correlation detected</span>
+            {' '}— {wasteCorrelatedCount} loss line{wasteCorrelatedCount !== 1 ? 's' : ''} match active write-off spikes.
+            Shrinkage may be ongoing, not a counting error.
+          </Callout>
         )}
 
         {/* Variance lines */}
         <div className="flex-1 overflow-auto">
           {sorted.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-center text-muted-foreground">
-              <CheckCircle2 className="h-8 w-8 text-green-500/60" />
+              <Icon icon="tick-circle" size={32} className="text-green-500/60" />
               <p className="text-sm">All counted quantities match system stock.</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead className="text-right">System</TableHead>
-                  <TableHead className="text-right">Counted</TableHead>
-                  <TableHead className="text-right">Δ Units</TableHead>
-                  <TableHead className="text-right">Δ Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <HTMLTable compact striped className="w-full">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th className="text-right">System</th>
+                  <th className="text-right">Counted</th>
+                  <th className="text-right">Δ Units</th>
+                  <th className="text-right">Δ Value</th>
+                </tr>
+              </thead>
+              <tbody>
                 {sorted.map((l) => {
                   const pv = l.product_variants
                   const displayName = pv?.products?.name
                     ? (pv.name !== 'Standard' ? `${pv.products.name} — ${pv.name}` : pv.products.name)
                     : pv?.name ?? '—'
                   return (
-                    <TableRow
+                    <tr
                       key={l.id}
                       className={cn(
                         l.band === 'loss-significant' && 'bg-red-50/50 dark:bg-red-950/20',
@@ -281,10 +269,10 @@ function CommitReviewPanel({
                         l.band === 'gain' && 'bg-green-50/40 dark:bg-green-950/15',
                       )}
                     >
-                      <TableCell className="text-sm">
+                      <td className="text-sm">
                         <div className="flex items-center gap-1.5">
                           {l.band === 'loss-significant' && (
-                            <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />
+                            <Icon icon="warning-sign" size={12} className="text-red-500 shrink-0" />
                           )}
                           <span className="font-medium">{displayName}</span>
                         </div>
@@ -294,7 +282,7 @@ function CommitReviewPanel({
                           if (!wr || l.delta >= 0) return null
                           return (
                             <div className="mt-0.5 flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
-                              <Zap className="h-2.5 w-2.5 shrink-0" />
+                              <Icon icon="flash" size={10} className="shrink-0" />
                               <span>
                                 Waste spike: +{String(wr.pct_above_baseline)}% above baseline
                                 {wr.occupancy_band === 'low' ? ' · low occupancy — unexplained' : ''}
@@ -303,48 +291,46 @@ function CommitReviewPanel({
                             </div>
                           )
                         })()}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{l.system_qty}</TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold">{l.counted_qty}</TableCell>
-                      <TableCell className={cn(
+                      </td>
+                      <td className="text-right tabular-nums text-muted-foreground">{l.system_qty}</td>
+                      <td className="text-right tabular-nums font-semibold">{l.counted_qty}</td>
+                      <td className={cn(
                         'text-right tabular-nums font-semibold',
                         l.delta > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-400'
                       )}>
                         {l.delta > 0 ? '+' : ''}{String(l.delta)}
-                      </TableCell>
-                      <TableCell className={cn(
+                      </td>
+                      <td className={cn(
                         'text-right tabular-nums font-semibold text-sm',
                         l.costImpact > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-400'
                       )}>
                         {l.costImpact > 0 ? '+' : ''}{formatCurrency(l.costImpact, currency)}
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   )
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+            </HTMLTable>
           )}
         </div>
 
         {/* Footer */}
         <div className="border-t px-6 py-4 flex items-center gap-3">
-          <Button variant="outline" className="flex-1" onClick={onClose}>
+          <Button fill onClick={onClose}>
             Back to count
           </Button>
           <Button
-            className="flex-1"
-            variant={significantCount > 0 ? 'destructive' : 'default'}
-            disabled={isPending}
+            fill
+            icon="tick-circle"
+            intent={significantCount > 0 ? Intent.DANGER : Intent.PRIMARY}
+            loading={isPending}
             onClick={onConfirm}
           >
-            {isPending
-              ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              : <CheckCircle2 className="mr-2 h-4 w-4" />}
             Commit {String(changed.length)} change{changed.length !== 1 ? 's' : ''}
           </Button>
         </div>
       </div>
-    </div>
+    </Drawer>
   )
 }
 
@@ -363,38 +349,17 @@ function FilterTabs({
   uncountedCount: number
   changedCount: number
 }) {
-  const tabs: { key: FilterTab; label: string; count?: number }[] = [
-    { key: 'all', label: 'All' },
-    { key: 'uncounted', label: 'Uncounted', count: uncountedCount },
-    { key: 'changed', label: 'Changed', count: changedCount },
-  ]
   return (
-    <div className="flex gap-0.5 rounded-md border p-0.5">
-      {tabs.map((t) => (
-        <button
-          key={t.key}
-          onClick={() => { onChange(t.key) }}
-          className={cn(
-            'flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors',
-            active === t.key
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:bg-muted'
-          )}
-        >
-          {t.label}
-          {t.count !== undefined && t.count > 0 && (
-            <span className={cn(
-              'rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
-              active === t.key
-                ? 'bg-primary-foreground/20 text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
-            )}>
-              {String(t.count)}
-            </span>
-          )}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      size="small"
+      value={active}
+      onValueChange={(v) => { onChange(v as FilterTab) }}
+      options={[
+        { value: 'all',       label: 'All' },
+        { value: 'uncounted', label: uncountedCount > 0 ? `Uncounted (${String(uncountedCount)})` : 'Uncounted' },
+        { value: 'changed',   label: changedCount > 0 ? `Changed (${String(changedCount)})` : 'Changed' },
+      ]}
+    />
   )
 }
 
@@ -465,7 +430,7 @@ function PostCommitReport({
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
+            <Icon icon="tick-circle" size={20} className="text-green-600" />
             Stocktake committed
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -473,13 +438,14 @@ function PostCommitReport({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => { void handleCopy() }}>
-            {copied
-              ? <><Check className="mr-2 h-3.5 w-3.5 text-green-600" />Copied!</>
-              : <><Copy className="mr-2 h-3.5 w-3.5" />Copy report</>}
+          <Button
+            size="small"
+            icon={copied ? 'tick' : 'duplicate'}
+            onClick={() => { void handleCopy() }}
+          >
+            {copied ? 'Copied!' : 'Copy report'}
           </Button>
-          <Button size="sm" onClick={onDismiss}>
-            <Play className="mr-2 h-3.5 w-3.5" />
+          <Button size="small" intent={Intent.PRIMARY} icon="play" onClick={onDismiss}>
             New count
           </Button>
         </div>
@@ -497,46 +463,44 @@ function PostCommitReport({
             color: netImpact < 0 ? 'text-red-600 dark:text-red-400' : netImpact > 0 ? 'text-green-600 dark:text-green-400' : '',
           },
         ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-lg border bg-card px-3 py-2.5 text-center">
+          <Card key={label} compact className="text-center">
             <p className={cn('text-lg font-bold tabular-nums leading-none', color)}>{value}</p>
             <p className="mt-1 text-[10px] text-muted-foreground">{label}</p>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Significant alert */}
       {significant.length > 0 && (
-        <div className="flex items-start gap-2 border-b px-8 py-3 bg-red-50/60 dark:bg-red-950/20 text-sm text-red-700 dark:text-red-400 flex-shrink-0">
-          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-          <span>
+        <div className="mx-8 mt-4">
+          <Callout intent={Intent.DANGER} icon="warning-sign" compact>
             <span className="font-semibold">{significant.length} significant variance{significant.length !== 1 ? 's' : ''}</span>
             {' '}(≥20% shrinkage) — investigate before next shift.
-          </span>
+          </Callout>
         </div>
       )}
 
       {/* Body */}
       <div className="flex-1 overflow-auto px-8 py-5 space-y-6">
-        {/* Variance table */}
         {sorted.length > 0 && (
           <div>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
               Flow · Variances
             </h2>
-            <div className="rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead className="text-right">System</TableHead>
-                    <TableHead className="text-right">Counted</TableHead>
-                    <TableHead className="text-right">Δ Units</TableHead>
-                    <TableHead className="text-right">Δ Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <Card compact className="!p-0 overflow-hidden">
+              <HTMLTable compact striped className="w-full">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th className="text-right">System</th>
+                    <th className="text-right">Counted</th>
+                    <th className="text-right">Δ Units</th>
+                    <th className="text-right">Δ Value</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {sorted.map((l) => (
-                    <TableRow
+                    <tr
                       key={l.id}
                       className={cn(
                         l.band === 'loss-significant' && 'bg-red-50/50 dark:bg-red-950/20',
@@ -544,36 +508,35 @@ function PostCommitReport({
                         l.band === 'gain'             && 'bg-green-50/40 dark:bg-green-950/15',
                       )}
                     >
-                      <TableCell className="text-sm">
+                      <td className="text-sm">
                         <div className="flex items-center gap-1.5">
-                          {l.band === 'loss-significant' && <AlertTriangle className="h-3 w-3 text-red-500 shrink-0" />}
+                          {l.band === 'loss-significant' && <Icon icon="warning-sign" size={12} className="text-red-500 shrink-0" />}
                           <span className="font-medium">{getDisplayName(l)}</span>
                         </div>
                         <span className="font-mono text-[10px] text-muted-foreground">{l.product_variants?.sku}</span>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums text-muted-foreground">{l.system_qty}</TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold">{l.counted_qty}</TableCell>
-                      <TableCell className={cn(
+                      </td>
+                      <td className="text-right tabular-nums text-muted-foreground">{l.system_qty}</td>
+                      <td className="text-right tabular-nums font-semibold">{l.counted_qty}</td>
+                      <td className={cn(
                         'text-right tabular-nums font-semibold',
                         l.delta > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-400',
                       )}>
                         {l.delta > 0 ? '+' : ''}{String(l.delta)}
-                      </TableCell>
-                      <TableCell className={cn(
+                      </td>
+                      <td className={cn(
                         'text-right tabular-nums font-semibold text-sm',
                         l.costImpact > 0 ? 'text-green-700 dark:text-green-500' : 'text-red-700 dark:text-red-400',
                       )}>
                         {l.costImpact > 0 ? '+' : ''}{formatCurrency(l.costImpact, currency)}
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
+                </tbody>
+              </HTMLTable>
+            </Card>
           </div>
         )}
 
-        {/* Now-empty items */}
         {nowEmpty.length > 0 && (
           <div>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
@@ -581,12 +544,14 @@ function PostCommitReport({
             </h2>
             <div className="space-y-1.5">
               {nowEmpty.map((l) => (
-                <div key={l.id} className="flex items-center gap-3 rounded-lg border bg-red-50/30 dark:bg-red-950/15 px-3 py-2.5">
-                  <PackageX className="h-4 w-4 text-red-500 shrink-0" />
-                  <span className="flex-1 text-sm font-medium">{getDisplayName(l)}</span>
-                  <span className="font-mono text-xs text-muted-foreground">{l.product_variants?.sku}</span>
-                  <span className="text-xs font-semibold text-red-600">0 units</span>
-                </div>
+                <Card key={l.id} compact className="!bg-red-50/30 dark:!bg-red-950/15">
+                  <div className="flex items-center gap-3">
+                    <Icon icon="box" size={14} className="text-red-500 shrink-0" />
+                    <span className="flex-1 text-sm font-medium">{getDisplayName(l)}</span>
+                    <span className="font-mono text-xs text-muted-foreground">{l.product_variants?.sku}</span>
+                    <Tag intent={Intent.DANGER} minimal>0 units</Tag>
+                  </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -594,7 +559,7 @@ function PostCommitReport({
 
         {changed.length === 0 && (
           <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500/60" />
+            <Icon icon="tick-circle" size={40} className="text-green-500/60" />
             <p className="text-sm font-medium">Perfect match</p>
             <p className="text-xs text-muted-foreground">Every counted quantity matched the system stock.</p>
           </div>
@@ -615,7 +580,6 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
   const fmtDate = useDateFormat()
   const { data: wasteRadarRows = [] } = useWasteRadar()
 
-  // Build O(1) lookup map: variant_id → WasteRadarRow
   const wasteRadarMap = useMemo(
     () => new Map(wasteRadarRows.map((r) => [r.variant_id, r])),
     [wasteRadarRows]
@@ -629,14 +593,12 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
   const [scanError, setScanError] = useState<string | null>(null)
   const rowRefs = useRef<Map<string, HTMLTableRowElement>>(new Map())
 
-  // Clear scan error after 3s
   useEffect(() => {
     if (!scanError) return
     const t = setTimeout(() => { setScanError(null) }, 3000)
     return () => { clearTimeout(t) }
   }, [scanError])
 
-  // Clear highlight after 2.5s
   useEffect(() => {
     if (!highlightedLineId) return
     const t = setTimeout(() => { setHighlightedLineId(null) }, 2500)
@@ -659,18 +621,15 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
       setScanError(`No item found for "${raw}"`)
       return
     }
-    // Show all lines, reset filter so the row is visible
     setFilterTab('all')
     setSearch('')
     setHighlightedLineId(match.id)
     setScanInput('')
-    // Scroll to the row after a tick (filter state needs to propagate)
     setTimeout(() => {
       rowRefs.current.get(match.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, 50)
   }, [lines])
 
-  // Enrich lines with delta, costImpact, band
   const enriched = useMemo<EnrichedLine[]>(() =>
     lines.map((l) => {
       const delta = l.counted_qty !== null ? l.counted_qty - l.system_qty : 0
@@ -685,7 +644,6 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
   const changedCount = enriched.filter((l) => l.band !== 'uncounted' && l.band !== 'matched').length
   const countedCount = lines.length - uncountedCount
 
-  // Sort: uncounted first → then by cost impact magnitude desc
   const sorted = useMemo(() =>
     [...enriched].sort((a, b) => {
       if (a.band === 'uncounted' && b.band !== 'uncounted') return -1
@@ -727,7 +685,6 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
 
   return (
     <div className="flex flex-col h-full">
-      {/* Commit review panel */}
       {reviewOpen && (
         <CommitReviewPanel
           lines={enriched}
@@ -750,7 +707,7 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
         </div>
         <div className="flex items-center gap-3">
           {/* Progress pill */}
-          <div className="flex items-center gap-2 rounded-lg border px-3 py-1.5">
+          <div className="flex items-center gap-2 rounded border px-3 py-1.5">
             <div className="h-1.5 w-24 rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full rounded-full bg-primary transition-all"
@@ -761,32 +718,32 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
               {countedCount} / {totalLines}
             </span>
             {countedCount === totalLines && totalLines > 0 && (
-              <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+              <Icon icon="tick-circle" size={14} className="text-green-600" />
             )}
           </div>
 
           <Button
-            variant="outline"
-            size="sm"
+            icon="cross"
+            size="small"
             onClick={() => { cancel.mutate(sessionId) }}
             disabled={cancel.isPending || commit.isPending}
           >
-            <X className="mr-1.5 h-3.5 w-3.5" />
             Cancel
           </Button>
 
           <Button
+            icon="eye-open"
+            endIcon="chevron-right"
+            intent={Intent.PRIMARY}
             onClick={() => { setReviewOpen(true) }}
             disabled={countedCount === 0 || commit.isPending}
           >
-            <Eye className="mr-2 h-4 w-4" />
             Review &amp; Commit
             {changedCount > 0 && (
-              <span className="ml-1.5 rounded-full bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-semibold">
+              <Tag minimal intent={Intent.NONE} round className="ml-1.5">
                 {String(changedCount)}
-              </span>
+              </Tag>
             )}
-            <ChevronRight className="ml-1 h-3.5 w-3.5 opacity-60" />
           </Button>
         </div>
       </div>
@@ -794,20 +751,17 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
       {/* Toolbar: search + scan + filter tabs */}
       <div className="flex items-center justify-between gap-4 border-b px-8 py-3 flex-shrink-0">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="relative max-w-xs w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search product or SKU…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value) }}
-              className="pl-9"
-            />
-          </div>
+          <InputGroup
+            leftIcon="search"
+            placeholder="Search product or SKU…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value) }}
+            className="max-w-xs w-full"
+          />
 
-          {/* Scan to Count input — accepts hardware scanner or manual SKU entry */}
           <div className="relative">
-            <ScanLine className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
+            <InputGroup
+              leftIcon="barcode"
               placeholder="Scan to count…"
               value={scanInput}
               onChange={(e) => { setScanInput(e.target.value) }}
@@ -817,13 +771,11 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
                   e.preventDefault()
                 }
               }}
-              className={cn(
-                'pl-9 w-44',
-                scanError && 'border-destructive focus-visible:ring-destructive',
-              )}
+              intent={scanError ? Intent.DANGER : Intent.NONE}
+              className="w-44"
             />
             {scanError && (
-              <p className="absolute top-full mt-1 whitespace-nowrap text-[10px] text-destructive">
+              <p className="absolute top-full mt-1 whitespace-nowrap text-[10px] text-red-600 dark:text-red-400">
                 {scanError}
               </p>
             )}
@@ -841,38 +793,37 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
       {/* Table */}
       <div className="flex-1 overflow-auto px-8 py-4">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} />Loading…
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
             No lines match the current filter.
           </div>
         ) : (
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead className="text-right">System qty</TableHead>
-                  <TableHead className="text-right">Cost / unit</TableHead>
-                  <TableHead className="text-right w-52">Counted · Δ units</TableHead>
-                  <TableHead className="text-right">Δ Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <Card compact className="!p-0 overflow-hidden">
+            <HTMLTable compact striped interactive className="w-full">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>SKU</th>
+                  <th className="text-right">System qty</th>
+                  <th className="text-right">Cost / unit</th>
+                  <th className="text-right w-52">Counted · Δ units</th>
+                  <th className="text-right">Δ Value</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filtered.map((line) => {
                   const pv = line.product_variants
                   const displayName = pv?.products?.name
                     ? (pv.name !== 'Standard' ? `${pv.products.name} — ${pv.name}` : pv.products.name)
                     : pv?.name ?? '—'
                   const showCostImpact = line.band !== 'uncounted' && line.band !== 'matched'
-
                   const isHighlighted = highlightedLineId === line.id
 
                   return (
-                    <TableRow
+                    <tr
                       key={line.id}
                       ref={(el) => {
                         if (el) rowRefs.current.set(line.id, el)
@@ -883,35 +834,35 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
                         isHighlighted && 'ring-2 ring-inset ring-primary bg-primary/5 dark:bg-primary/10',
                       )}
                     >
-                      <TableCell className="font-medium text-sm">
+                      <td className="font-medium text-sm">
                         <div className="flex items-center gap-1.5">
                           {line.band === 'loss-significant' && (
-                            <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                            <Icon icon="warning-sign" size={14} className="text-red-500 shrink-0" />
                           )}
                           {isHighlighted && (
-                            <ScanLine className="h-3.5 w-3.5 text-primary shrink-0 animate-pulse" />
+                            <Icon icon="barcode" size={14} className="text-primary shrink-0 animate-pulse" />
                           )}
                           {displayName}
                         </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">
+                      </td>
+                      <td className="font-mono text-xs text-muted-foreground">
                         {pv?.sku ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-right font-semibold tabular-nums">
+                      </td>
+                      <td className="text-right font-semibold tabular-nums">
                         {line.system_qty}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
+                      </td>
+                      <td className="text-right tabular-nums text-sm text-muted-foreground">
                         {pv ? formatCurrency(pv.cost, currency) : '—'}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <CountInput
                           lineId={line.id}
                           sessionId={sessionId}
                           systemQty={line.system_qty}
                           countedQty={line.counted_qty}
                         />
-                      </TableCell>
-                      <TableCell className={cn(
+                      </td>
+                      <td className={cn(
                         'text-right tabular-nums font-semibold text-sm',
                         !showCostImpact && 'text-muted-foreground font-normal',
                         showCostImpact && line.costImpact > 0 && 'text-green-700 dark:text-green-500',
@@ -920,13 +871,13 @@ function ActiveSession({ sessionId, onCommitSuccess }: { sessionId: string; onCo
                         {!showCostImpact
                           ? '—'
                           : `${line.costImpact > 0 ? '+' : ''}${formatCurrency(line.costImpact, currency)}`}
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   )
                 })}
-              </TableBody>
-            </Table>
-          </div>
+              </tbody>
+            </HTMLTable>
+          </Card>
         )}
       </div>
     </div>
@@ -943,8 +894,8 @@ export default function StocktakePage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      <div className="flex items-center justify-center h-full text-muted-foreground gap-2">
+        <Spinner size={SpinnerSize.STANDARD} />
         Loading…
       </div>
     )
