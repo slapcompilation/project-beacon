@@ -3,14 +3,23 @@
 // "which property needs my attention right now, and why?" for regional
 // directors and chain owners. Every metric includes the chain median as context.
 // Sort order: worst health score first — the most at-risk property is always top.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import {
-  AlertTriangle, Building2, BarChart3, Loader2,
-  TrendingDown, TrendingUp, ShieldCheck, ShieldAlert,
-  CircleDot, Package, RefreshCw, Truck, Activity,
-  ChevronsUpDown, ChevronUp, ChevronDown, Zap, Target,
-} from 'lucide-react'
+  Callout,
+  Card,
+  HTMLTable,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { scoreToGrade, GRADE_STYLES, GRADE_ICONS } from '@/lib/grades'
@@ -22,13 +31,12 @@ import type { ChainPropertyRow, ChainHealthTrendRow, SupplierLeverageRow } from 
 
 function ScorePill({ score }: { score: number }) {
   const grade = scoreToGrade(score)
-  const Icon = GRADE_ICONS[grade]
   return (
     <span className={cn(
       'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold',
       GRADE_STYLES[grade],
     )}>
-      <Icon className="h-3 w-3" />
+      <Icon icon={GRADE_ICONS[grade]} size={12} />
       {score} · {grade}
     </span>
   )
@@ -53,21 +61,18 @@ function DeviationBadge({
   if (ratio < threshold && ratio > 1 / threshold) return null
 
   const isBad  = higherIsBad ? ratio > 1 : ratio < 1
-  const isHigh = ratio > 1   // determines icon direction, independent of good/bad
+  const isHigh = ratio > 1
   const label  = `${ratio.toFixed(1)}× avg`
 
   return (
-    <span className={cn(
-      'ml-1.5 inline-flex items-center gap-0.5 rounded px-1 py-0 text-[10px] font-bold',
-      isBad
-        ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
-        : 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400',
-    )}>
-      {isHigh
-        ? <TrendingUp className="h-2.5 w-2.5" />
-        : <TrendingDown className="h-2.5 w-2.5" />}
+    <Tag
+      icon={isHigh ? 'trending-up' : 'trending-down'}
+      intent={isBad ? Intent.DANGER : Intent.SUCCESS}
+      minimal
+      className="ml-1.5"
+    >
       {label}
-    </span>
+    </Tag>
   )
 }
 
@@ -85,19 +90,21 @@ function median(values: number[]): number {
 // ─── KPI Tile ─────────────────────────────────────────────────────────────────
 
 function KpiTile({
-  label, value, sub, icon: Icon, accent = 'text-foreground',
+  label, value, sub, icon, accent = 'text-foreground',
 }: {
-  label: string; value: string; sub?: string; icon: React.ElementType; accent?: string
+  label: string; value: string; sub?: string; icon: IconName; accent?: string
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-lg border bg-card px-4 py-3">
-      <Icon className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className={cn('mt-0.5 text-lg font-semibold leading-none', accent)}>{value}</p>
-        {sub && <p className="mt-1 text-[11px] text-muted-foreground">{sub}</p>}
+    <Card compact>
+      <div className="flex items-start gap-3">
+        <Icon icon={icon} size={14} className="mt-0.5 flex-shrink-0 text-muted-foreground" />
+        <div className="min-w-0">
+          <p className="text-xs text-muted-foreground">{label}</p>
+          <p className={cn('mt-0.5 text-lg font-semibold leading-none', accent)}>{value}</p>
+          {sub && <p className="mt-1 text-[11px] text-muted-foreground">{sub}</p>}
+        </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -127,7 +134,6 @@ function Sparkline({ values, color = 'currentColor' }: { values: number[]; color
 }
 
 // ─── Trend cell ───────────────────────────────────────────────────────────────
-// Sparkline + MoM waste_cost delta for a single hotel row.
 
 function TrendCell({ hotelId, trend }: { hotelId: string; trend: ChainHealthTrendRow[] }) {
   const rows = trend
@@ -139,20 +145,18 @@ function TrendCell({ hotelId, trend }: { hotelId: string; trend: ChainHealthTren
   }
 
   const values = rows.map(r => r.waste_cost)
-
-  // MoM: last vs second-to-last
   const cur  = rows[rows.length - 1].waste_cost
   const prev = rows[rows.length - 2].waste_cost
   const momPct = prev > 0 ? ((cur - prev) / prev) * 100 : null
 
-  const improving   = momPct != null && momPct < -5
+  const improving     = momPct != null && momPct < -5
   const deteriorating = momPct != null && momPct > 5
 
   const sparkColor = improving
-    ? '#34d399'        // emerald
+    ? '#34d399'
     : deteriorating
-    ? '#f87171'        // red
-    : '#94a3b8'        // slate
+    ? '#f87171'
+    : '#94a3b8'
 
   return (
     <div className="flex items-center gap-2 justify-end">
@@ -203,23 +207,19 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
 
   return (
     <tr className={cn(
-      'border-b text-sm transition-colors hover:bg-muted/30',
+      'text-sm transition-colors',
       isCurrentHotel && 'bg-primary/5',
     )}>
-      {/* Rank */}
-      <td className="w-8 py-3 pl-4 text-center text-[11px] font-mono text-muted-foreground">
+      <td className="w-8 text-center text-[11px] font-mono text-muted-foreground">
         {rank}
       </td>
 
-      {/* Property name */}
-      <td className="py-3 pl-2 pr-4">
+      <td>
         <div className="flex items-center gap-2">
-          <Building2 className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+          <Icon icon="office" size={14} className="flex-shrink-0 text-muted-foreground" />
           <span className="font-medium">{row.hotel_name}</span>
           {isCurrentHotel && (
-            <span className="rounded bg-primary/10 px-1.5 py-0 text-[10px] font-medium text-primary">
-              current
-            </span>
+            <Tag minimal intent={Intent.PRIMARY}>current</Tag>
           )}
         </div>
         <p className="ml-6 text-[11px] text-muted-foreground mt-0.5">
@@ -227,13 +227,11 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </p>
       </td>
 
-      {/* Health score */}
-      <td className="py-3 px-4 text-center">
+      <td className="text-center">
         <ScorePill score={row.health_score} />
       </td>
 
-      {/* Stock health: OOS + Low */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         <div>
           <span className={cn(
             'text-sm font-semibold tabular-nums',
@@ -250,8 +248,7 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </div>
       </td>
 
-      {/* Avg days supply */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         <div>
           <span className={cn(
             'text-sm font-semibold tabular-nums',
@@ -271,8 +268,7 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </div>
       </td>
 
-      {/* Waste */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         <div>
           <span className={cn(
             'text-sm font-semibold tabular-nums',
@@ -289,8 +285,7 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </div>
       </td>
 
-      {/* Restocks pending */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         <div>
           <span className={cn(
             'text-sm font-semibold tabular-nums',
@@ -307,8 +302,7 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </div>
       </td>
 
-      {/* Supplier score */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         {row.avg_supplier_score != null ? (
           <div>
             <span className={cn(
@@ -332,8 +326,7 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         )}
       </td>
 
-      {/* Activity */}
-      <td className="py-3 px-4 text-right">
+      <td className="text-right">
         <div>
           <span className={cn(
             'text-sm font-semibold tabular-nums',
@@ -347,32 +340,22 @@ function PropertyRow({ row, rank, medians, currency, isCurrentHotel, trend }: Ro
         </div>
       </td>
 
-      {/* Waste trend sparkline */}
-      <td className="py-3 px-4">
+      <td>
         <TrendCell hotelId={row.hotel_id} trend={trend} />
       </td>
 
-      {/* Grade context */}
-      <td className="py-3 px-4 pr-6">
+      <td>
         {grade === 'D' && (
-          <span className="flex items-center gap-1 text-[11px] font-medium text-red-600 dark:text-red-400">
-            <AlertTriangle className="h-3 w-3" />Critical
-          </span>
+          <Tag intent={Intent.DANGER} minimal icon="warning-sign">Critical</Tag>
         )}
         {grade === 'C' && (
-          <span className="flex items-center gap-1 text-[11px] text-orange-600 dark:text-orange-400">
-            <AlertTriangle className="h-3 w-3" />Watch
-          </span>
+          <Tag intent={Intent.WARNING} minimal icon="warning-sign">Watch</Tag>
         )}
         {grade === 'B' && (
-          <span className="flex items-center gap-1 text-[11px] text-lime-600 dark:text-lime-400">
-            <CircleDot className="h-3 w-3" />Good
-          </span>
+          <Tag intent={Intent.SUCCESS} minimal icon="dot">Good</Tag>
         )}
         {grade === 'A' && (
-          <span className="flex items-center gap-1 text-[11px] text-green-600 dark:text-green-400">
-            <ShieldCheck className="h-3 w-3" />Healthy
-          </span>
+          <Tag intent={Intent.SUCCESS} minimal icon="endorsed">Healthy</Tag>
         )}
       </td>
     </tr>
@@ -394,11 +377,11 @@ function SortableTh({
   onSort: (field: string) => void
 }) {
   const active = sortBy === field
-  const Icon = active ? (sortDir === 'asc' ? ChevronUp : ChevronDown) : ChevronsUpDown
+  const iconName: IconName = active ? (sortDir === 'asc' ? 'chevron-up' : 'chevron-down') : 'double-caret-vertical'
   return (
     <th
       className={cn(
-        'cursor-pointer select-none py-2.5 px-4 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors',
+        'cursor-pointer select-none text-xs font-medium text-muted-foreground hover:text-foreground transition-colors',
         align === 'right' && 'text-right',
         align === 'center' && 'text-center',
         align === 'left' && 'text-left',
@@ -407,9 +390,9 @@ function SortableTh({
       onClick={() => { onSort(field) }}
     >
       <span className="inline-flex items-center gap-1">
-        {align === 'right' && <Icon className="h-3 w-3" />}
+        {align === 'right' && <Icon icon={iconName} size={12} />}
         {label}
-        {align !== 'right' && <Icon className="h-3 w-3" />}
+        {align !== 'right' && <Icon icon={iconName} size={12} />}
       </span>
     </th>
   )
@@ -417,17 +400,16 @@ function SortableTh({
 
 // ─── Procurement leverage opportunities ───────────────────────────────────────
 
-const ACTION_STYLES: Record<SupplierLeverageRow['recommended_action'], string> = {
-  'Find Alternative':   'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400',
-  'Renegotiate':        'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400',
-  'Monitor':            'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-  'Preferred Supplier': 'bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400',
+const ACTION_INTENT: Record<SupplierLeverageRow['recommended_action'], Intent> = {
+  'Find Alternative':   Intent.DANGER,
+  'Renegotiate':        Intent.WARNING,
+  'Monitor':            Intent.PRIMARY,
+  'Preferred Supplier': Intent.SUCCESS,
 }
 
 function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
   const { data: leverage = [], isLoading } = useSupplierLeverage(90)
 
-  // Focus on suppliers with actual leverage (not preferred)
   const opportunities = useMemo(() => (
     leverage
       .filter((s) => s.recommended_action !== 'Preferred Supplier')
@@ -445,10 +427,10 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
 
   return (
     <div className="px-4 md:px-8 pb-6">
-      <div className="rounded-lg border overflow-hidden">
+      <Card compact className="!p-0 overflow-hidden">
         <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
           <div className="flex items-center gap-2">
-            <Zap className="h-4 w-4 text-yellow-500" />
+            <Icon icon="flash" size={14} className="text-yellow-500" />
             <span className="text-sm font-semibold">Procurement Leverage Opportunities</span>
             <span className="text-[11px] text-muted-foreground ml-1">90-day window</span>
           </div>
@@ -456,21 +438,21 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
             {formatCurrency(totalExposure, currency)} at-risk spend across {opportunities.length} supplier{opportunities.length !== 1 ? 's' : ''}
           </span>
         </div>
-        <table className="w-full text-sm">
+        <HTMLTable compact striped className="w-full">
           <thead>
-            <tr className="border-b bg-muted/20 text-xs font-medium text-muted-foreground">
-              <th className="py-2 px-4 text-left">Supplier</th>
-              <th className="py-2 px-4 text-center">Action</th>
-              <th className="py-2 px-4 text-right">Leverage score</th>
-              <th className="py-2 px-4 text-right">On-time rate</th>
-              <th className="py-2 px-4 text-right">Price drift</th>
-              <th className="py-2 px-4 text-right">90d spend</th>
+            <tr>
+              <th className="text-left">Supplier</th>
+              <th className="text-center">Action</th>
+              <th className="text-right">Leverage score</th>
+              <th className="text-right">On-time rate</th>
+              <th className="text-right">Price drift</th>
+              <th className="text-right">90d spend</th>
             </tr>
           </thead>
           <tbody>
             {opportunities.map((s) => (
-              <tr key={s.supplier_id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                <td className="py-2.5 px-4">
+              <tr key={s.supplier_id}>
+                <td>
                   <span className="font-medium">{s.supplier_name}</span>
                   {s.pending_deliveries > 0 && (
                     <span className="ml-2 text-[10px] text-yellow-600 dark:text-yellow-400">
@@ -478,15 +460,12 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
                     </span>
                   )}
                 </td>
-                <td className="py-2.5 px-4 text-center">
-                  <span className={cn(
-                    'rounded-full px-2 py-0.5 text-[11px] font-medium',
-                    ACTION_STYLES[s.recommended_action],
-                  )}>
+                <td className="text-center">
+                  <Tag intent={ACTION_INTENT[s.recommended_action]} minimal round>
                     {s.recommended_action}
-                  </span>
+                  </Tag>
                 </td>
-                <td className="py-2.5 px-4 text-right">
+                <td className="text-right">
                   <span className={cn(
                     'text-sm font-semibold tabular-nums',
                     s.leverage_score >= 70 ? 'text-red-600 dark:text-red-400'
@@ -497,7 +476,7 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
                   </span>
                   <span className="ml-1 text-[10px] text-muted-foreground">/100</span>
                 </td>
-                <td className="py-2.5 px-4 text-right">
+                <td className="text-right">
                   {s.on_time_rate != null ? (
                     <span className={cn(
                       'text-sm tabular-nums',
@@ -511,7 +490,7 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
                     <span className="text-xs text-muted-foreground">—</span>
                   )}
                 </td>
-                <td className="py-2.5 px-4 text-right">
+                <td className="text-right">
                   {s.avg_price_drift_pct != null ? (
                     <span className={cn(
                       'text-sm tabular-nums',
@@ -525,24 +504,22 @@ function ProcurementOpportunitiesPanel({ currency }: { currency: string }) {
                     <span className="text-xs text-muted-foreground">—</span>
                   )}
                 </td>
-                <td className="py-2.5 px-4 text-right font-medium tabular-nums">
+                <td className="text-right font-medium tabular-nums">
                   {formatCurrency(s.total_spend, currency)}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </HTMLTable>
         <div className="border-t bg-muted/20 px-4 py-2 text-[11px] text-muted-foreground">
           Leverage score = supplier dependency + price drift + reliability gaps. Higher = more negotiating room.
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
 
 // ─── Outlier synthesis panel ──────────────────────────────────────────────────
-// Computes the chain outlier and explains WHY in plain language.
-// Uses existing ChainPropertyRow data — no new SQL required.
 
 function OutlierPanel({
   rows,
@@ -555,11 +532,10 @@ function OutlierPanel({
 }) {
   if (rows.length < 2) return null
 
-  const worst = rows.at(0)  // rows are sorted worst-first (health_score ASC)
+  const worst = rows.at(0)
   const best  = rows.at(-1)
   if (!worst || !best) return null
 
-  // Build explanation: find which specific dimensions are most off vs median
   const insights: string[] = []
 
   const wasteRatioPct = Math.round(worst.waste_rate * 100)
@@ -600,40 +576,38 @@ function OutlierPanel({
 
   return (
     <div className="mx-4 md:mx-8 mt-4 flex-shrink-0 space-y-2">
-      {/* Worst-performer card */}
-      <div className="flex items-start gap-3 rounded-lg border border-orange-300/60 bg-orange-50/50 dark:border-orange-800/50 dark:bg-orange-950/20 px-4 py-3">
-        <Target className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2 flex-wrap">
-            <span className="text-sm font-semibold">{worst.hotel_name}</span>
-            <span className="text-xs text-muted-foreground">is the chain outlier</span>
-            <span className="rounded bg-orange-200 dark:bg-orange-900/60 px-1.5 py-0 text-[10px] font-bold text-orange-800 dark:text-orange-300">
-              score {worst.health_score} · {scoreToGrade(worst.health_score)}
-            </span>
+      <Callout icon="locate" intent={Intent.WARNING} compact>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-sm font-semibold">{worst.hotel_name}</span>
+              <span className="text-xs">is the chain outlier</span>
+              <Tag minimal intent={Intent.WARNING}>
+                score {worst.health_score} · {scoreToGrade(worst.health_score)}
+              </Tag>
+            </div>
+            {insights.length > 0 ? (
+              <p className="mt-1 text-xs">
+                {insights.join(' · ')}
+              </p>
+            ) : (
+              <p className="mt-1 text-xs">
+                Health score {healthGap} points below chain best ({best.hotel_name}: {best.health_score}).
+              </p>
+            )}
+            <p className="mt-1 text-[11px]">
+              Waste cost this period: {formatCurrency(worst.waste_cost, currency)} ·
+              {' '}{worst.pending_restocks} pending restocks ·
+              {' '}activity {(worst.stock_log_count / 30).toFixed(1)} logs/day
+            </p>
           </div>
-          {insights.length > 0 ? (
-            <p className="mt-1 text-xs text-muted-foreground">
-              {insights.join(' · ')}
-            </p>
-          ) : (
-            <p className="mt-1 text-xs text-muted-foreground">
-              Health score {healthGap} points below chain best ({best.hotel_name}: {best.health_score}).
-            </p>
-          )}
-          <p className="mt-1 text-[11px] text-orange-700 dark:text-orange-400">
-            Waste cost this period: {formatCurrency(worst.waste_cost, currency)} ·
-            {' '}{worst.pending_restocks} pending restocks ·
-            {' '}activity {(worst.stock_log_count / 30).toFixed(1)} logs/day
-          </p>
+          <div className="shrink-0 text-right hidden sm:block">
+            <p className="text-[10px] opacity-70">Best performer</p>
+            <p className="text-sm font-semibold text-green-600 dark:text-green-400">{best.hotel_name}</p>
+            <p className="text-[10px] opacity-70">score {best.health_score} · {scoreToGrade(best.health_score)}</p>
+          </div>
         </div>
-
-        {/* Best performer */}
-        <div className="shrink-0 text-right hidden sm:block">
-          <p className="text-[10px] text-muted-foreground">Best performer</p>
-          <p className="text-sm font-semibold text-green-600 dark:text-green-400">{best.hotel_name}</p>
-          <p className="text-[10px] text-muted-foreground">score {best.health_score} · {scoreToGrade(best.health_score)}</p>
-        </div>
-      </div>
+      </Callout>
     </div>
   )
 }
@@ -666,14 +640,11 @@ export default function ChainPage() {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortBy(f)
-      // Default direction: asc for health/supplier (higher is better → show worst first),
-      // desc for problems (OOS, waste, pending restocks → show most severe first)
       const defaultDesc: SortField[] = ['out_of_stock_count', 'waste_rate', 'pending_restocks']
       setSortDir(defaultDesc.includes(f) ? 'desc' : 'asc')
     }
   }
 
-  // Sorted rows for the table
   const sortedRows = useMemo(() => {
     return [...rows].sort((a, b) => {
       let aVal = a[sortBy]
@@ -684,7 +655,6 @@ export default function ChainPage() {
     })
   }, [rows, sortBy, sortDir])
 
-  // Chain-level medians for deviation callouts
   const medians = useMemo(() => {
     if (rows.length === 0) return {
       waste_rate: 0, avg_days_supply: 0, out_of_stock_pct: 0,
@@ -705,21 +675,19 @@ export default function ChainPage() {
     }
   }, [rows])
 
-  // Chain-level aggregate KPIs
   const kpis = useMemo(() => {
     if (rows.length === 0) return null
     const atRisk         = rows.filter((r) => r.health_score < 60).length
     const totalWasteCost = rows.reduce((s, r) => s + r.waste_cost, 0)
     const totalPending   = rows.reduce((s, r) => s + r.pending_restocks, 0)
     const avgScore       = Math.round(rows.reduce((s, r) => s + r.health_score, 0) / rows.length)
-    const worst          = rows[0]   // already sorted worst-first
+    const worst          = rows[0]
     const best           = rows[rows.length - 1]
     return { atRisk, totalWasteCost, totalPending, avgScore, worst, best }
   }, [rows])
 
   const criticalRows = rows.filter((r) => scoreToGrade(r.health_score) === 'D')
 
-  // Single-hotel: show upgrade message instead of empty table
   if (!isLoading && rows.length <= 1) {
     return (
       <div className="flex flex-col h-full">
@@ -729,14 +697,11 @@ export default function ChainPage() {
             <p className="mt-0.5 text-sm text-muted-foreground">Multi-property intelligence</p>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-3 py-24 text-center">
-          <Building2 className="h-12 w-12 text-muted-foreground/30" />
-          <p className="text-sm font-medium">Single property detected</p>
-          <p className="max-w-sm text-xs text-muted-foreground">
-            Chain Overview becomes active when your account manages 2 or more hotels.
-            Cross-property benchmarking, waste comparisons, and health rankings will appear here.
-          </p>
-        </div>
+        <NonIdealState
+          icon="office"
+          title="Single property detected"
+          description="Chain Overview becomes active when your account manages 2 or more hotels. Cross-property benchmarking, waste comparisons, and health rankings will appear here."
+        />
       </div>
     )
   }
@@ -754,58 +719,44 @@ export default function ChainPage() {
               : `${String(rows.length)} properties · sorted by health score · worst first · last ${String(days)} days`}
           </p>
         </div>
-        <div className="flex gap-1">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.days}
-              onClick={() => { setDays(opt.days) }}
-              className={cn(
-                'rounded px-3 py-1.5 text-xs font-medium transition-colors',
-                days === opt.days
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted',
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={String(days)}
+          onValueChange={(v) => { setDays(parseInt(v, 10) as 7 | 30 | 90) }}
+          options={RANGE_OPTIONS.map((o) => ({ value: String(o.days), label: o.label }))}
+        />
       </div>
 
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading chain data…
+        <div className="flex flex-1 items-center justify-center gap-2 text-muted-foreground">
+          <Spinner size={SpinnerSize.SMALL} />Loading chain data…
         </div>
       ) : (
         <>
-          {/* Critical alert banner */}
           {criticalRows.length > 0 && (
-            <div className="mx-4 md:mx-8 mt-4 flex items-start gap-2.5 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400 flex-shrink-0">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <div>
+            <div className="mx-4 md:mx-8 mt-4 flex-shrink-0">
+              <Callout intent={Intent.DANGER} icon="warning-sign" compact>
                 <span className="font-semibold">
                   {criticalRows.length} propert{criticalRows.length > 1 ? 'ies' : 'y'} in critical state (score &lt;50):
                 </span>
                 {' '}
                 {criticalRows.map((r) => r.hotel_name).join(', ')}
                 {' '}— immediate attention required.
-              </div>
+              </Callout>
             </div>
           )}
 
-          {/* Outlier synthesis */}
           {rows.length >= 2 && (
             <OutlierPanel rows={rows} medians={medians} currency={currency} />
           )}
 
-          {/* KPI strip */}
           {kpis && (
             <div className="grid grid-cols-2 gap-3 px-4 md:px-8 py-4 border-b sm:grid-cols-4 flex-shrink-0">
               <KpiTile
                 label="Chain avg health"
                 value={`${String(kpis.avgScore)} · ${scoreToGrade(kpis.avgScore)}`}
                 sub={`${String(rows.length)} properties · ${String(days)}d window`}
-                icon={BarChart3}
+                icon="horizontal-bar-chart"
                 accent={
                   kpis.avgScore >= 85 ? 'text-green-600 dark:text-green-400'
                   : kpis.avgScore >= 70 ? 'text-lime-600 dark:text-lime-400'
@@ -817,27 +768,26 @@ export default function ChainPage() {
                 label="Properties at risk"
                 value={String(kpis.atRisk)}
                 sub={kpis.atRisk > 0 ? 'score below 60 — review needed' : 'All properties healthy'}
-                icon={ShieldAlert}
+                icon="shield"
                 accent={kpis.atRisk > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}
               />
               <KpiTile
                 label={`Chain waste cost (${String(days)}d)`}
                 value={formatCurrency(kpis.totalWasteCost, currency)}
                 sub={`${String(Math.round(medians.waste_rate * 100))}% chain median waste rate`}
-                icon={TrendingDown}
+                icon="trending-down"
                 accent={kpis.totalWasteCost > 0 ? 'text-red-600 dark:text-red-400' : ''}
               />
               <KpiTile
                 label="Chain pending restocks"
                 value={String(kpis.totalPending)}
                 sub={`across all ${String(rows.length)} properties`}
-                icon={RefreshCw}
+                icon="refresh"
                 accent={kpis.totalPending > 20 ? 'text-yellow-600 dark:text-yellow-400' : ''}
               />
             </div>
           )}
 
-          {/* Chain median context bar */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1 px-4 md:px-8 py-2 border-b bg-muted/20 flex-shrink-0 text-[11px] text-muted-foreground">
             <span className="font-medium text-foreground">Chain medians:</span>
             <span>Waste rate {Math.round(medians.waste_rate * 100)}%</span>
@@ -849,14 +799,13 @@ export default function ChainPage() {
             <span className="ml-auto italic">Red badges = ≥1.4× chain median</span>
           </div>
 
-          {/* Table */}
           <div className="flex-1 overflow-auto px-4 md:px-8 py-5">
-            <div className="rounded-lg border overflow-hidden">
-              <table className="w-full text-sm">
+            <Card compact className="!p-0 overflow-hidden">
+              <HTMLTable compact striped interactive className="w-full">
                 <thead>
-                  <tr className="border-b bg-muted/50">
-                    <th className="w-8 py-2.5 pl-4 text-center text-xs font-medium text-muted-foreground">#</th>
-                    <th className="py-2.5 pl-2 pr-4 text-left text-xs font-medium text-muted-foreground">Property</th>
+                  <tr>
+                    <th className="w-8 text-center">#</th>
+                    <th className="text-left">Property</th>
                     <SortableTh label="Health"    field="health_score"       sortBy={sortBy} sortDir={sortDir} align="center" onSort={handleSort} />
                     <SortableTh label="Stock"     field="out_of_stock_count" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                     <SortableTh label="Avg Supply" field="avg_days_supply"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
@@ -864,8 +813,8 @@ export default function ChainPage() {
                     <SortableTh label="Restocks"  field="pending_restocks"   sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                     <SortableTh label="Supplier"  field="avg_supplier_score" sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
                     <SortableTh label="Activity"  field="stock_log_count"    sortBy={sortBy} sortDir={sortDir} onSort={handleSort} />
-                    <th className="py-2.5 px-4 text-right text-xs font-medium text-muted-foreground">Waste trend</th>
-                    <th className="py-2.5 px-4 pr-6 text-left text-xs font-medium text-muted-foreground">Status</th>
+                    <th className="text-right">Waste trend</th>
+                    <th className="text-left">Status</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -881,26 +830,24 @@ export default function ChainPage() {
                     />
                   ))}
                 </tbody>
-              </table>
-            </div>
+              </HTMLTable>
+            </Card>
 
-            {/* Legend */}
             <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-[11px] text-muted-foreground">
-              <span className="flex items-center gap-1"><Package className="h-3 w-3" />Health = stock (35%) + waste (30%) + supply (20%) + restocks (15%)</span>
+              <span className="flex items-center gap-1"><Icon icon="box" size={12} />Health = stock (35%) + waste (30%) + supply (20%) + restocks (15%)</span>
               <span className="flex items-center gap-1.5">
                 <span className="inline-flex h-2 w-2 rounded-full bg-green-500" />A ≥85 ·
                 <span className="inline-flex h-2 w-2 rounded-full bg-lime-500 ml-1" />B ≥70 ·
                 <span className="inline-flex h-2 w-2 rounded-full bg-orange-500 ml-1" />C ≥50 ·
                 <span className="inline-flex h-2 w-2 rounded-full bg-red-500 ml-1" />D &lt;50
               </span>
-              <span className="flex items-center gap-1"><Activity className="h-3 w-3" />Activity = stock log entries per day</span>
-              <span className="flex items-center gap-1"><Truck className="h-3 w-3" />Supplier score only available after logging deliveries</span>
-              <span className="flex items-center gap-1"><TrendingDown className="h-3 w-3 text-emerald-400" />Waste trend = 6-month sparkline · green = improving · red = deteriorating · % = MoM change</span>
-              <span className="flex items-center gap-1"><ChevronsUpDown className="h-3 w-3" />Click column headers to sort</span>
+              <span className="flex items-center gap-1"><Icon icon="pulse" size={12} />Activity = stock log entries per day</span>
+              <span className="flex items-center gap-1"><Icon icon="truck" size={12} />Supplier score only available after logging deliveries</span>
+              <span className="flex items-center gap-1"><Icon icon="trending-down" size={12} className="text-emerald-400" />Waste trend = 6-month sparkline · green = improving · red = deteriorating · % = MoM change</span>
+              <span className="flex items-center gap-1"><Icon icon="double-caret-vertical" size={12} />Click column headers to sort</span>
             </div>
           </div>
 
-          {/* Procurement leverage opportunities */}
           <ProcurementOpportunitiesPanel currency={currency} />
         </>
       )}
