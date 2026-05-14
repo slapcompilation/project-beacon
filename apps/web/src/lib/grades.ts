@@ -1,6 +1,6 @@
 // Layer: Mind — supplier / property grade helpers.
-// Single source of truth for thresholds and styles used by
-// SuppliersPage, ProcurementLeveragePage, and ChainPage.
+// Single source of truth for thresholds and styles used across
+// supplier / procurement / chain surfaces.
 
 import { ShieldCheck, ShieldAlert, Shield, CircleDot } from 'lucide-react'
 

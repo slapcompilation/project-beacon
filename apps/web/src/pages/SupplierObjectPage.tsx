@@ -2,19 +2,26 @@
 // Palantir-pattern: every named entity is navigable to its full object context.
 // Combines Mind (contracts, POs), Eye (reliability, price history), Flow (deliveries).
 // Route: /supplier/:supplierId
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { format, formatDistanceToNow } from 'date-fns'
+import {
+  AnchorButton,
+  Button,
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
 import { useSupplierReliability } from '@/features/eye/hooks'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { cn } from '@/lib/utils'
-import { format, formatDistanceToNow } from 'date-fns'
-import {
-  ArrowLeft, ChevronRight, AlertTriangle, TrendingDown,
-  Package, Phone, Mail, FileText, ExternalLink, XCircle, CheckCircle2,
-  Star, Clock,
-} from 'lucide-react'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import {
@@ -28,10 +35,10 @@ import {
   stockUrgency,
 } from '@beacon/reality-graph'
 
-const LT_SOURCE_BADGE: Record<Supplier['lead_time_source'], string> = {
-  po_history:       'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-  delivery_history: 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400',
-  manual:           'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
+const LT_SOURCE_INTENT: Record<Supplier['lead_time_source'], Intent> = {
+  po_history:       Intent.SUCCESS,
+  delivery_history: Intent.PRIMARY,
+  manual:           Intent.NONE,
 }
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -111,27 +118,27 @@ function StatCard({
     muted: 'text-muted-foreground',
   }
   return (
-    <div className="rounded border border-border bg-card p-3 space-y-0.5">
+    <Card compact>
       <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
       <div className={cn('text-2xl font-mono font-semibold tabular-nums', accent ? colors[accent] : 'text-foreground')}>
         {value}
       </div>
       {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-    </div>
+    </Card>
   )
 }
 
 function RiskTierBadge({ tier }: { tier: 'low' | 'medium' | 'high' | 'critical' }) {
-  const map: Record<string, string> = {
-    low:      'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
-    medium:   'bg-amber-500/15   text-amber-500   border-amber-500/30',
-    high:     'bg-red-500/15     text-red-500     border-red-500/30',
-    critical: 'bg-red-500/25     text-red-400     border-red-500/50',
+  const intentMap: Record<typeof tier, Intent> = {
+    low:      Intent.SUCCESS,
+    medium:   Intent.WARNING,
+    high:     Intent.DANGER,
+    critical: Intent.DANGER,
   }
   return (
-    <span className={cn('rounded text-xs font-medium px-2 py-0.5 border uppercase', map[tier])}>
+    <Tag intent={intentMap[tier]} minimal className="uppercase">
       {tier}
-    </span>
+    </Tag>
   )
 }
 
@@ -163,11 +170,11 @@ function DeliveryRow({ delivery }: { delivery: DeliveryEventRow }) {
       <div>
         <div className="flex items-center gap-2 text-sm">
           {isPending ? (
-            <Clock className="h-3.5 w-3.5 text-blue-500/60" />
+            <Icon icon="time" size={14} className="text-blue-500/60" />
           ) : isLate ? (
-            <TrendingDown className="h-3.5 w-3.5 text-red-500" />
+            <Icon icon="trending-down" size={14} className="text-red-500" />
           ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+            <Icon icon="tick-circle" size={14} className="text-emerald-500" />
           )}
           <span>
             {isPending ? 'In transit' : isLate ? 'Late' : 'On time'}
@@ -199,7 +206,7 @@ function ContractRow({ contract }: { contract: SupplierContract }) {
         <div className="flex items-center gap-2 text-sm">
           <span className="font-medium truncate">{contract.product_name} · {contract.variant_name}</span>
           <Link to={`/variant/${contract.variant_id}`} className="text-primary/70 hover:text-primary">
-            <ExternalLink className="h-3 w-3" />
+            <Icon icon="share" size={12} />
           </Link>
         </div>
         <div className="text-xs text-muted-foreground font-mono">{contract.sku}</div>
@@ -276,11 +283,16 @@ export default function SupplierObjectPage() {
 
   if (supplierError || !supplier) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
-        <XCircle className="h-8 w-8 text-red-500/60" />
-        <p className="text-sm">Supplier not found or you don't have access.</p>
-        <button type="button" onClick={() => { navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
-      </div>
+      <NonIdealState
+        icon="cross-circle"
+        title="Supplier not found"
+        description="Supplier not found or you don&apos;t have access."
+        action={
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { navigate(-1) }}>
+            ← Go back
+          </Button>
+        }
+      />
     )
   }
 
@@ -308,17 +320,17 @@ export default function SupplierObjectPage() {
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <button
-          type="button"
+        <Button
+          icon="arrow-left"
+          variant="minimal"
+          size="small"
           onClick={() => { navigate(-1) }}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
           Back
-        </button>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+        </Button>
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
         <span className="text-sm text-muted-foreground">Suppliers</span>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
         <span className="text-sm font-medium text-foreground">{supplier.name}</span>
       </div>
 
@@ -339,26 +351,23 @@ export default function SupplierObjectPage() {
                   )}
                   {supplier.email && (
                     <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Mail className="h-3 w-3" />
+                      <Icon icon="envelope" size={12} />
                       {supplier.email}
                     </a>
                   )}
                   {supplier.phone && (
                     <a href={`tel:${supplier.phone}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Phone className="h-3 w-3" />
+                      <Icon icon="phone" size={12} />
                       {supplier.phone}
                     </a>
                   )}
                   {supplier.lead_time_days != null && (
                     <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
+                      <Icon icon="time" size={12} />
                       {ltLabel} lead time
-                      <span className={cn(
-                        'text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded',
-                        LT_SOURCE_BADGE[supplier.lead_time_source],
-                      )}>
+                      <Tag minimal intent={LT_SOURCE_INTENT[supplier.lead_time_source]}>
                         {leadTimeSourceLabel(supplier.lead_time_source)}
-                      </span>
+                      </Tag>
                     </span>
                   )}
                 </div>
@@ -415,7 +424,7 @@ export default function SupplierObjectPage() {
           </div>
 
           {/* ── Active contracts ── */}
-          <div className="rounded border border-border bg-card">
+          <Card compact className="!p-0">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Active Contracts ({activeContracts.length})
@@ -434,27 +443,27 @@ export default function SupplierObjectPage() {
                   : ' Consider formalising pricing agreements.'}
               </div>
             ) : (
-              <div className="px-3 divide-y-0">
+              <div className="px-3">
                 {activeContracts.map((c) => (
                   <ContractRow key={c.id} contract={c} />
                 ))}
               </div>
             )}
             {contractExpirySoon && daysToExpiry !== null && (
-              <div className="px-3 py-2 border-t border-amber-500/30 bg-amber-500/5 text-xs text-amber-500">
+              <Callout intent={Intent.WARNING} icon="time" compact className="!border-t !rounded-none">
                 Contract expires in {daysToExpiry}d — renew soon to avoid pricing gaps.
-              </div>
+              </Callout>
             )}
             {expiredContracts.length > 0 && (
               <div className="px-3 py-2 border-t border-border text-xs text-amber-500/80">
                 {expiredContracts.length} expired contract{expiredContracts.length > 1 ? 's' : ''} — review and renew.
               </div>
             )}
-          </div>
+          </Card>
 
           {/* ── Variants this supplier supplies ── */}
           {variantsSupplied.length > 0 && (
-            <div className="rounded border border-border bg-card">
+            <Card compact className="!p-0">
               <div className="px-3 py-2 border-b border-border">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Variants Supplied ({variantsSupplied.length})
@@ -484,51 +493,35 @@ export default function SupplierObjectPage() {
                         {v.current_stock} {v.unit_of_measure || 'units'}
                       </span>
                       <Link to={`/variant/${v.id}`} className="text-muted-foreground/60 hover:text-primary">
-                        <ExternalLink className="h-3.5 w-3.5" />
+                        <Icon icon="share" size={14} />
                       </Link>
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           )}
 
           {/* ── Actions ── */}
           <div className="flex flex-wrap gap-2">
-            <Link
-              to="/mind?panel=contracts"
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <FileText className="h-4 w-4" />
+            <AnchorButton href="/mind?panel=contracts" icon="document">
               View Contracts
-            </Link>
-            <Link
-              to="/mind?panel=procurement"
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <Package className="h-4 w-4" />
+            </AnchorButton>
+            <AnchorButton href="/mind?panel=procurement" icon="box">
               Procurement
-            </Link>
-            <Link
-              to="/mind?panel=suppliers"
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <Star className="h-4 w-4" />
+            </AnchorButton>
+            <AnchorButton href="/mind?panel=suppliers" icon="star">
               Reliability Scorecard
-            </Link>
+            </AnchorButton>
             {(tier === 'critical' || tier === 'high') && (
-              <Link
-                to="/mind?panel=leverage"
-                className="inline-flex items-center gap-1.5 rounded border border-red-500/30 bg-red-500/5 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-              >
-                <AlertTriangle className="h-4 w-4" />
+              <AnchorButton href="/mind?panel=leverage" icon="warning-sign" intent={Intent.DANGER}>
                 Negotiate Leverage
-              </Link>
+              </AnchorButton>
             )}
           </div>
 
           {/* ── Recent delivery history ── */}
-          <div className="rounded border border-border bg-card">
+          <Card compact className="!p-0">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Delivery History — Last 20
@@ -550,13 +543,13 @@ export default function SupplierObjectPage() {
                 Delivery data is captured on the Flow · Deliveries tab when stock is received.
               </div>
             ) : (
-              <div className="px-3 divide-y-0">
+              <div className="px-3">
                 {deliveries.map((d) => (
                   <DeliveryRow key={d.id} delivery={d} />
                 ))}
               </div>
             )}
-          </div>
+          </Card>
 
           {reliability && (
             <div className="text-xs text-muted-foreground/50 pb-2">
@@ -568,9 +561,9 @@ export default function SupplierObjectPage() {
           )}
 
           {/* ── Graph connections ── */}
-          <div className="rounded-lg border border-border bg-card p-4">
+          <Card>
             <GraphConnections nodeType="supplier" nodeId={supplierId!} />
-          </div>
+          </Card>
 
         </div>
       </div>
