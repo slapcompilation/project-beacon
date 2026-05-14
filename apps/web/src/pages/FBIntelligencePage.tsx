@@ -3,12 +3,25 @@
 //   1. What does each dish actually cost to make? (COGS per serve)
 //   2. Where is stock disappearing faster than POS explains? (variance = theft/waste)
 // Palantir principle: cross-domain synthesis — POS + stock + cost history = situational picture.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import {
-  TrendingUp, TrendingDown, AlertTriangle, Loader2,
-  UtensilsCrossed, ShieldAlert, Info,
-} from 'lucide-react'
+  Button,
+  Callout,
+  Card,
+  HTMLTable,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tab,
+  Tabs,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useCOGSByItem, usePOSVariance } from '@/features/fb/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -44,52 +57,50 @@ function COGSTable({
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 py-14 text-center">
-        <UtensilsCrossed className="h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm text-muted-foreground">No POS sales in this window</p>
-        <p className="text-xs text-muted-foreground/60 max-w-xs leading-relaxed">
-          COGS data appears once POS sales are ingested and menu items have ingredient mappings.
-        </p>
-      </div>
+      <NonIdealState
+        icon="menu"
+        title="No POS sales in this window"
+        description="COGS data appears once POS sales are ingested and menu items have ingredient mappings."
+      />
     )
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <table className="w-full text-sm">
+    <Card compact className="!p-0 overflow-hidden">
+      <HTMLTable compact striped interactive className="w-full">
         <thead>
-          <tr className="border-b bg-muted/50 text-xs font-medium text-muted-foreground">
-            <th className="py-2.5 px-4 text-left">Menu item</th>
-            <th className="py-2.5 px-3 text-right">Qty sold</th>
-            <th className="py-2.5 px-3 text-right">Cost/serve</th>
-            <th className="py-2.5 px-3 text-right">Sell price</th>
-            <th className="py-2.5 px-3 text-right">Margin</th>
-            <th className="py-2.5 px-4 text-right">Total COGS</th>
+          <tr>
+            <th className="text-left">Menu item</th>
+            <th className="text-right">Qty sold</th>
+            <th className="text-right">Cost/serve</th>
+            <th className="text-right">Sell price</th>
+            <th className="text-right">Margin</th>
+            <th className="text-right">Total COGS</th>
           </tr>
         </thead>
         <tbody>
           {displayed.map((row) => (
-            <tr key={row.menu_item_id} className="border-b hover:bg-muted/20 transition-colors">
-              <td className="py-2.5 px-4">
+            <tr key={row.menu_item_id}>
+              <td>
                 <p className="text-sm font-medium">{row.name}</p>
                 {row.category && (
                   <p className="text-[10px] text-muted-foreground">{row.category}</p>
                 )}
               </td>
-              <td className="py-2.5 px-3 text-right tabular-nums text-sm">
+              <td className="text-right tabular-nums text-sm">
                 {row.qty_sold > 0 ? row.qty_sold.toFixed(0) : <span className="text-muted-foreground/40">—</span>}
               </td>
-              <td className="py-2.5 px-3 text-right tabular-nums text-sm font-medium">
+              <td className="text-right tabular-nums text-sm font-medium">
                 {row.avg_cost_per_serve > 0
                   ? formatCurrency(row.avg_cost_per_serve, currency)
                   : <span className="text-muted-foreground/40">—</span>}
               </td>
-              <td className="py-2.5 px-3 text-right tabular-nums text-sm text-muted-foreground">
+              <td className="text-right tabular-nums text-sm text-muted-foreground">
                 {row.sell_price != null
                   ? formatCurrency(row.sell_price, currency)
                   : <span className="text-muted-foreground/40">—</span>}
               </td>
-              <td className="py-2.5 px-3 text-right tabular-nums text-sm">
+              <td className="text-right tabular-nums text-sm">
                 {row.margin_pct != null ? (
                   <span className={cn('font-semibold', marginColor(row.margin_pct))}>
                     {row.margin_pct.toFixed(1)}%
@@ -98,7 +109,7 @@ function COGSTable({
                   <span className="text-muted-foreground/40 text-xs">no price</span>
                 )}
               </td>
-              <td className="py-2.5 px-4 text-right tabular-nums text-sm font-semibold">
+              <td className="text-right tabular-nums text-sm font-semibold">
                 {row.total_ingredient_cost > 0
                   ? formatCurrency(row.total_ingredient_cost, currency)
                   : <span className="text-muted-foreground/40">—</span>}
@@ -106,18 +117,15 @@ function COGSTable({
             </tr>
           ))}
         </tbody>
-      </table>
+      </HTMLTable>
       {rows.length > 20 && (
         <div className="border-t px-4 py-2 bg-muted/20">
-          <button
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => { setShowAll((v) => !v) }}
-          >
+          <Button variant="minimal" size="small" onClick={() => { setShowAll((v) => !v) }}>
             {showAll ? 'Show fewer' : `Show all ${String(rows.length)} items`}
-          </button>
+          </Button>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -176,27 +184,24 @@ function COGSSummary({ rows, currency }: { rows: COGSByItemRow[]; currency: stri
 function VarianceTable({ rows }: { rows: POSVarianceRow[] }) {
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 py-14 text-center">
-        <ShieldAlert className="h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm text-muted-foreground">No significant variance detected</p>
-        <p className="text-xs text-muted-foreground/60 max-w-xs leading-relaxed">
-          Variance appears when actual stock removals exceed POS-implied consumption
-          by more than the threshold. Lower the threshold to see more.
-        </p>
-      </div>
+      <NonIdealState
+        icon="shield"
+        title="No significant variance detected"
+        description="Variance appears when actual stock removals exceed POS-implied consumption by more than the threshold. Lower the threshold to see more."
+      />
     )
   }
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <table className="w-full text-sm">
+    <Card compact className="!p-0 overflow-hidden">
+      <HTMLTable compact striped interactive className="w-full">
         <thead>
-          <tr className="border-b bg-muted/50 text-xs font-medium text-muted-foreground">
-            <th className="py-2.5 px-4 text-left">Ingredient</th>
-            <th className="py-2.5 px-3 text-right">POS-implied</th>
-            <th className="py-2.5 px-3 text-right">Actual used</th>
-            <th className="py-2.5 px-3 text-right">Unexplained</th>
-            <th className="py-2.5 px-4 text-right">Variance %</th>
+          <tr>
+            <th className="text-left">Ingredient</th>
+            <th className="text-right">POS-implied</th>
+            <th className="text-right">Actual used</th>
+            <th className="text-right">Unexplained</th>
+            <th className="text-right">Variance %</th>
           </tr>
         </thead>
         <tbody>
@@ -205,12 +210,9 @@ function VarianceTable({ rows }: { rows: POSVarianceRow[] }) {
             return (
               <tr
                 key={row.variant_id}
-                className={cn(
-                  'border-b hover:bg-muted/20 transition-colors',
-                  severity === 'high' ? 'bg-red-50/30 dark:bg-red-950/10' : '',
-                )}
+                className={cn(severity === 'high' && 'bg-red-50/30 dark:bg-red-950/10')}
               >
-                <td className="py-2.5 px-4">
+                <td>
                   <p className="text-sm font-medium">
                     {row.variant_name !== 'Standard'
                       ? `${row.product_name} — ${row.variant_name}`
@@ -218,45 +220,41 @@ function VarianceTable({ rows }: { rows: POSVarianceRow[] }) {
                   </p>
                   <p className="text-[10px] font-mono text-muted-foreground">{row.sku}</p>
                 </td>
-                <td className="py-2.5 px-3 text-right tabular-nums text-sm text-muted-foreground">
+                <td className="text-right tabular-nums text-sm text-muted-foreground">
                   {row.pos_implied_qty.toFixed(1)}
                 </td>
-                <td className="py-2.5 px-3 text-right tabular-nums text-sm font-medium">
+                <td className="text-right tabular-nums text-sm font-medium">
                   {row.actual_qty.toFixed(1)}
                 </td>
-                <td className="py-2.5 px-3 text-right tabular-nums text-sm font-semibold">
+                <td className="text-right tabular-nums text-sm font-semibold">
                   <span className={severity === 'high' ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'}>
                     +{row.variance_qty.toFixed(1)}
                   </span>
                 </td>
-                <td className="py-2.5 px-4 text-right">
+                <td className="text-right">
                   {row.variance_pct != null ? (
-                    <span className={cn(
-                      'inline-flex items-center gap-0.5 text-xs font-semibold',
-                      severity === 'high'
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-yellow-600 dark:text-yellow-400',
-                    )}>
-                      {severity === 'high'
-                        ? <TrendingUp className="h-3 w-3" />
-                        : <AlertTriangle className="h-3 w-3" />}
+                    <Tag
+                      icon={severity === 'high' ? 'trending-up' : 'warning-sign'}
+                      intent={severity === 'high' ? Intent.DANGER : Intent.WARNING}
+                      minimal
+                    >
                       +{row.variance_pct.toFixed(1)}%
-                    </span>
+                    </Tag>
                   ) : '—'}
                 </td>
               </tr>
             )
           })}
         </tbody>
-      </table>
-    </div>
+      </HTMLTable>
+    </Card>
   )
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FBIntelligencePage() {
-  const [cogsWindow,         setCogsWindow]         = useState<30 | 7 | 90>(30)
+  const [cogsWindow,         setCogsWindow]         = useState<7 | 30 | 90>(30)
   const [varianceWindow,     setVarianceWindow]     = useState<7 | 30 | 90>(7)
   const [varianceThreshold,  setVarianceThreshold]  = useState<10 | 15 | 20 | 30>(15)
   const [activeTab,          setActiveTab]          = useState<'cogs' | 'variance'>('cogs')
@@ -273,7 +271,7 @@ export default function FBIntelligencePage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Eye · F&B Intelligence</h1>
+          <h1 className="text-xl font-semibold">Eye · F&amp;B Intelligence</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {cogsLoading
               ? 'Loading…'
@@ -289,87 +287,63 @@ export default function FBIntelligencePage() {
 
       {/* Tabs + window controls */}
       <div className="flex items-center gap-4 border-b px-8 flex-shrink-0">
-        <div className="flex">
-          {(['cogs', 'variance'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => { setActiveTab(tab) }}
-              className={cn(
-                'px-4 py-3 text-sm font-medium transition-colors border-b-2',
-                activeTab === tab
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {tab === 'cogs' ? 'COGS by Item' : (
-                <span className="flex items-center gap-1.5">
-                  <TrendingDown className="h-3.5 w-3.5" />
-                  Variance Feed
-                  {varianceRows.length > 0 && (
-                    <span className="ml-0.5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold px-1.5 py-0.5 leading-none">
-                      {varianceRows.length}
-                    </span>
-                  )}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        <Tabs
+          id="fb-tabs"
+          selectedTabId={activeTab}
+          onChange={(v) => { setActiveTab(v as 'cogs' | 'variance') }}
+        >
+          <Tab id="cogs" title="COGS by Item" />
+          <Tab
+            id="variance"
+            title={
+              <span className="flex items-center gap-1.5">
+                <Icon icon="trending-down" size={14} />
+                Variance Feed
+                {varianceRows.length > 0 && (
+                  <Tag intent={Intent.DANGER} round className="ml-0.5">
+                    {String(varianceRows.length)}
+                  </Tag>
+                )}
+              </span>
+            }
+          />
+        </Tabs>
 
         <div className="ml-auto flex items-center gap-2 py-2">
           {activeTab === 'cogs' && (
             <>
               <span className="text-xs text-muted-foreground">Window:</span>
-              {COGS_WINDOWS.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => { setCogsWindow(d) }}
-                  className={cn(
-                    'rounded px-2 py-0.5 text-xs font-medium transition-colors',
-                    cogsWindow === d ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                  )}
-                >
-                  {d}d
-                </button>
-              ))}
+              <SegmentedControl
+                size="small"
+                value={String(cogsWindow)}
+                onValueChange={(v) => { setCogsWindow(parseInt(v, 10) as 7 | 30 | 90) }}
+                options={COGS_WINDOWS.map((d) => ({ value: String(d), label: `${String(d)}d` }))}
+              />
             </>
           )}
           {activeTab === 'variance' && (
             <>
               <span className="text-xs text-muted-foreground">Window:</span>
-              {VARIANCE_WINDOWS.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => { setVarianceWindow(d) }}
-                  className={cn(
-                    'rounded px-2 py-0.5 text-xs font-medium transition-colors',
-                    varianceWindow === d ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                  )}
-                >
-                  {d}d
-                </button>
-              ))}
+              <SegmentedControl
+                size="small"
+                value={String(varianceWindow)}
+                onValueChange={(v) => { setVarianceWindow(parseInt(v, 10) as 7 | 30 | 90) }}
+                options={VARIANCE_WINDOWS.map((d) => ({ value: String(d), label: `${String(d)}d` }))}
+              />
               <span className="text-xs text-muted-foreground ml-2">Threshold:</span>
-              {VARIANCE_THRESHOLDS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => { setVarianceThreshold(t) }}
-                  className={cn(
-                    'rounded px-2 py-0.5 text-xs font-medium transition-colors',
-                    varianceThreshold === t ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                  )}
-                >
-                  {t}%
-                </button>
-              ))}
+              <SegmentedControl
+                size="small"
+                value={String(varianceThreshold)}
+                onValueChange={(v) => { setVarianceThreshold(parseInt(v, 10) as 10 | 15 | 20 | 30) }}
+                options={VARIANCE_THRESHOLDS.map((t) => ({ value: String(t), label: `${String(t)}%` }))}
+              />
             </>
           )}
         </div>
       </div>
 
       {/* Methodology note */}
-      <div className="flex items-center gap-2 px-8 py-2 border-b bg-muted/10 text-[11px] text-muted-foreground flex-shrink-0">
-        <Info className="h-3.5 w-3.5 flex-shrink-0" />
+      <Callout icon="info-sign" compact className="!border-x-0 !rounded-none">
         {activeTab === 'cogs' ? (
           <span>
             Cost per serve uses variant_cost_history at sale time · Total COGS = Σ (cost_per_serve × qty_sold) ·
@@ -381,14 +355,14 @@ export default function FBIntelligencePage() {
             Only variants wired into active menu items · threshold = minimum variance % to surface
           </span>
         )}
-      </div>
+      </Callout>
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-8 py-5">
         {activeTab === 'cogs' ? (
           cogsLoading ? (
             <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Spinner size={SpinnerSize.SMALL} />
             </div>
           ) : (
             <COGSTable rows={cogsRows} currency={currency} />
@@ -396,7 +370,7 @@ export default function FBIntelligencePage() {
         ) : (
           varianceLoading ? (
             <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Spinner size={SpinnerSize.SMALL} />
             </div>
           ) : (
             <VarianceTable rows={varianceRows} />

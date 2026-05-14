@@ -1,14 +1,20 @@
+// Layer: Floor — Authentication entry point.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
+
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Button,
+  Card,
+  FormGroup,
+  InputGroup,
+  Intent,
+} from '@blueprintjs/core'
 import { services } from '@/lib/services'
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
@@ -39,11 +45,9 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
   const onSubmit = async (data: LoginFields) => {
     try {
       await services.auth.signIn(data.email, data.password)
-      // AuthProvider's onAuthStateChange fires, updates store, AuthGuard lets through
       void navigate('/floor', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign in failed'
-      // Surface Supabase's error messages clearly
       if (message.toLowerCase().includes('invalid login')) {
         toast.error('Incorrect email or password')
       } else if (message.toLowerCase().includes('email not confirmed')) {
@@ -55,53 +59,46 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
   }
 
   return (
-    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} noValidate className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="email">Email</Label>
-        <Input
+    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} noValidate>
+      <FormGroup
+        label="Email"
+        labelFor="email"
+        intent={errors.email ? Intent.DANGER : Intent.NONE}
+        helperText={errors.email?.message}
+      >
+        <InputGroup
           id="email"
           type="email"
           autoComplete="email"
           autoFocus
           placeholder="you@hotel.com"
+          intent={errors.email ? Intent.DANGER : Intent.NONE}
           {...register('email')}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
-      </div>
+      </FormGroup>
 
-      <div className="space-y-1.5">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">Password</Label>
-          <button
-            type="button"
-            onClick={onForgotPassword}
-            className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-          >
+      <FormGroup
+        label="Password"
+        labelFor="password"
+        intent={errors.password ? Intent.DANGER : Intent.NONE}
+        helperText={errors.password?.message}
+        labelInfo={
+          <Button variant="minimal" size="small" intent={Intent.PRIMARY} onClick={onForgotPassword}>
             Forgot password?
-          </button>
-        </div>
-        <Input
+          </Button>
+        }
+      >
+        <InputGroup
           id="password"
           type="password"
           autoComplete="current-password"
+          intent={errors.password ? Intent.DANGER : Intent.NONE}
           {...register('password')}
         />
-        {errors.password && (
-          <p className="text-sm text-destructive">{errors.password.message}</p>
-        )}
-      </div>
+      </FormGroup>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Signing in…
-          </>
-        ) : (
-          'Sign in'
-        )}
+      <Button type="submit" fill intent={Intent.PRIMARY} loading={isSubmitting}>
+        Sign in
       </Button>
     </form>
   )
@@ -132,7 +129,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
         <p className="text-sm text-muted-foreground">
           If an account exists for that email, a reset link is on its way.
         </p>
-        <Button variant="outline" className="w-full" onClick={onBack}>
+        <Button fill onClick={onBack}>
           Back to sign in
         </Button>
       </div>
@@ -140,37 +137,32 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} noValidate className="space-y-4">
-      <div className="space-y-1.5">
-        <Label htmlFor="reset-email">Email</Label>
-        <Input
+    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} noValidate className="space-y-2">
+      <FormGroup
+        label="Email"
+        labelFor="reset-email"
+        intent={errors.email ? Intent.DANGER : Intent.NONE}
+        helperText={errors.email?.message}
+      >
+        <InputGroup
           id="reset-email"
           type="email"
           autoComplete="email"
           autoFocus
           placeholder="you@hotel.com"
+          intent={errors.email ? Intent.DANGER : Intent.NONE}
           {...register('email')}
         />
-        {errors.email && (
-          <p className="text-sm text-destructive">{errors.email.message}</p>
-        )}
-      </div>
+      </FormGroup>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Sending…
-          </>
-        ) : (
-          'Send reset link'
-        )}
+      <Button type="submit" fill intent={Intent.PRIMARY} loading={isSubmitting}>
+        Send reset link
       </Button>
 
       <Button
         type="button"
-        variant="ghost"
-        className="w-full"
+        variant="minimal"
+        fill
         onClick={onBack}
         disabled={isSubmitting}
       >
@@ -194,23 +186,19 @@ export default function LoginPage() {
         </div>
 
         <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-xl">
-              {view === 'login' ? 'Sign in' : 'Reset password'}
-            </CardTitle>
-            <CardDescription>
-              {view === 'login'
-                ? 'Enter your work email and password to continue.'
-                : "Enter your email and we'll send a reset link."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {view === 'login' ? (
-              <LoginForm onForgotPassword={() => { setView('forgot'); }} />
-            ) : (
-              <ForgotPasswordForm onBack={() => { setView('login'); }} />
-            )}
-          </CardContent>
+          <h2 className="text-xl font-semibold">
+            {view === 'login' ? 'Sign in' : 'Reset password'}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
+            {view === 'login'
+              ? 'Enter your work email and password to continue.'
+              : "Enter your email and we'll send a reset link."}
+          </p>
+          {view === 'login' ? (
+            <LoginForm onForgotPassword={() => { setView('forgot'); }} />
+          ) : (
+            <ForgotPasswordForm onBack={() => { setView('login'); }} />
+          )}
         </Card>
       </div>
     </div>

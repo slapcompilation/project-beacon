@@ -2,12 +2,13 @@
 // The command center. Ranked decision feed surfaces what to do today across all
 // layers. Each section is a self-contained component in features/briefing/components/.
 // Palantir principle: the system has already done the analysis before you open it.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useEffect, useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
-import { Clipboard, ClipboardCheck } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button } from '@blueprintjs/core'
 import {
   useCaptureSnapshot, snapshotCapturedToday, useIntelligenceHistory,
 } from '@/features/briefing/hooks'
@@ -48,7 +49,6 @@ export default function BriefingPage() {
     now.getHours() < 12 ? 'Good morning' :
     now.getHours() < 17 ? 'Good afternoon' : 'Good evening'
 
-  // Freshness label from latest snapshot
   const latestSnapshot = history.at(-1)
   const freshnessLabel = latestSnapshot
     ? (() => {
@@ -81,9 +81,13 @@ export default function BriefingPage() {
             {freshnessLabel ? ` · ${freshnessLabel}` : ' · Decision feed'}
           </p>
         </div>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={() => { void handleCopy() }}>
-          {copied ? <ClipboardCheck className="h-3.5 w-3.5" /> : <Clipboard className="h-3.5 w-3.5" />}
-          Copy summary
+        <Button
+          variant="minimal"
+          size="small"
+          icon={copied ? 'clipboard' : 'clipboard'}
+          onClick={() => { void handleCopy() }}
+        >
+          {copied ? 'Copied' : 'Copy summary'}
         </Button>
       </div>
 

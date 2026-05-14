@@ -2,14 +2,22 @@
 // Real-time feed of every stock movement as it happens — the Bloomberg terminal
 // for hotel operations. Palantir principle: the world is being actively analysed
 // for you; you are not hunting for information.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { memo, useMemo, useRef } from 'react'
 import { formatDistanceToNow, startOfDay } from 'date-fns'
 import {
-  ArrowUpCircle, MinusCircle, AlertCircle, RotateCcw,
-  Activity, Package,
-  Loader2, RefreshCw,
-} from 'lucide-react'
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { cn } from '@/lib/utils'
 import { useActivityFeed } from '@/features/monitor/hooks'
@@ -17,7 +25,6 @@ import { useRestockRequests } from '@/features/restock/hooks'
 import { useProducts } from '@/features/inventory/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
-import { Button } from '@/components/ui/button'
 import type { ActivityEvent } from '@beacon/types'
 
 // ─── Event classification ──────────────────────────────────────────────────────
@@ -31,19 +38,26 @@ function classifyEvent(e: ActivityEvent): EventKind {
   return 'consume'
 }
 
-const KIND = {
-  add:      { Icon: ArrowUpCircle, color: 'text-green-500',  border: 'border-l-green-500',  badge: 'bg-green-500/10 text-green-600 dark:text-green-400',  label: 'Received' },
-  consume:  { Icon: MinusCircle,   color: 'text-blue-500',   border: 'border-l-blue-500',   badge: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',    label: 'Consumed' },
-  writeoff: { Icon: AlertCircle,   color: 'text-red-500',    border: 'border-l-red-500',    badge: 'bg-red-500/10 text-red-600 dark:text-red-400',       label: 'Write-off' },
-  revert:   { Icon: RotateCcw,     color: 'text-amber-500',  border: 'border-l-amber-500',  badge: 'bg-amber-500/10 text-amber-600 dark:text-amber-400', label: 'Reverted' },
-} as const
+interface KindCfg {
+  icon: IconName
+  color: string
+  border: string
+  intent: Intent
+  label: string
+}
+
+const KIND: Record<EventKind, KindCfg> = {
+  add:      { icon: 'arrow-up',     color: 'text-green-500', border: 'border-l-green-500', intent: Intent.SUCCESS, label: 'Received' },
+  consume:  { icon: 'minus',        color: 'text-blue-500',  border: 'border-l-blue-500',  intent: Intent.PRIMARY, label: 'Consumed' },
+  writeoff: { icon: 'warning-sign', color: 'text-red-500',   border: 'border-l-red-500',   intent: Intent.DANGER,  label: 'Write-off' },
+  revert:   { icon: 'undo',         color: 'text-amber-500', border: 'border-l-amber-500', intent: Intent.WARNING, label: 'Reverted' },
+}
 
 // ─── Single event row ──────────────────────────────────────────────────────────
 
 const EventRow = memo(function EventRow({ event, isNew }: { event: ActivityEvent; isNew: boolean }) {
   const kind   = classifyEvent(event)
   const cfg    = KIND[kind]
-  const { Icon } = cfg
   const actor  = event.actor_email === 'system' ? 'system' : (event.actor_email.split('@')[0] ?? event.actor_email)
   const label  = event.removal_category ?? (
     event.reason === 'Received against restock request' ? 'Received' :
@@ -60,10 +74,9 @@ const EventRow = memo(function EventRow({ event, isNew }: { event: ActivityEvent
           : 'hover:bg-muted/40',
       )}
     >
-      <Icon className={cn('h-4 w-4 mt-0.5 flex-shrink-0', cfg.color)} />
+      <Icon icon={cfg.icon} size={14} className={cn('mt-0.5 flex-shrink-0', cfg.color)} />
 
       <div className="flex-1 min-w-0">
-        {/* Product + NEW badge */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm leading-snug">
             {event.product_name}
@@ -72,13 +85,10 @@ const EventRow = memo(function EventRow({ event, isNew }: { event: ActivityEvent
             <span className="text-muted-foreground text-xs">— {event.variant_name}</span>
           )}
           {isNew && (
-            <span className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
-              NEW
-            </span>
+            <Tag intent={Intent.WARNING} minimal>NEW</Tag>
           )}
         </div>
 
-        {/* Detail row */}
         <div className="flex items-center gap-2.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
           <span className={cn(
             'font-bold tabular-nums',
@@ -88,14 +98,11 @@ const EventRow = memo(function EventRow({ event, isNew }: { event: ActivityEvent
           </span>
           <span className="text-muted-foreground/60">→</span>
           <span className="tabular-nums">{event.balance_after} on hand</span>
-          <span className={cn('rounded px-1.5 py-0.5 text-[10px] font-medium', cfg.badge)}>
-            {label}
-          </span>
+          <Tag intent={cfg.intent} minimal>{label}</Tag>
           <span className="font-mono text-[10px] text-muted-foreground/50">{event.sku}</span>
         </div>
       </div>
 
-      {/* Actor + time */}
       <div className="flex-shrink-0 text-right space-y-0.5">
         <p className="text-xs font-medium text-muted-foreground">{actor}</p>
         <p className="text-[10px] text-muted-foreground/50 tabular-nums">
@@ -166,8 +173,6 @@ function RightRail({
     [products],
   )
 
-  // Today stats derived from already-loaded feed (no extra query)
-  // Stable across renders — only recomputes once per day, not on every render
   const todayStart  = useMemo(() => startOfDay(new Date()).toISOString(), [])
   const todayEvents = useMemo(() => events.filter((e) => e.happened_at >= todayStart), [events, todayStart])
 
@@ -181,7 +186,6 @@ function RightRail({
     [todayEvents],
   )
 
-  // Rough waste cost using product costs (available in inventory cache)
   const todayWasteCost = useMemo(() => {
     const costMap = new Map<string, number>()
     for (const p of products) {
@@ -195,8 +199,7 @@ function RightRail({
   return (
     <div className="space-y-3 w-64 flex-shrink-0">
 
-      {/* Stock health */}
-      <div className="rounded-lg border bg-card p-3">
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Stock Health</p>
         <div className="space-y-2">
           <KpiRow
@@ -210,10 +213,9 @@ function RightRail({
             color={lowStock > 0 ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted-foreground'}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Restock queue */}
-      <div className="rounded-lg border bg-card p-3">
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Restock Queue</p>
         <div className="space-y-2">
           <KpiRow
@@ -227,10 +229,9 @@ function RightRail({
             color={approved > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}
           />
         </div>
-      </div>
+      </Card>
 
-      {/* Today activity */}
-      <div className="rounded-lg border bg-card p-3">
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Today</p>
         <div className="space-y-2">
           <KpiRow label="Total movements" value={todayMovements} />
@@ -253,20 +254,19 @@ function RightRail({
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Legend */}
-      <div className="rounded-lg border bg-card p-3">
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2.5">Legend</p>
         <div className="space-y-1.5">
-          {(Object.entries(KIND) as [EventKind, typeof KIND[EventKind]][]).map(([key, cfg]) => (
+          {(Object.entries(KIND) as [EventKind, KindCfg][]).map(([key, cfg]) => (
             <div key={key} className="flex items-center gap-2">
-              <cfg.Icon className={cn('h-3.5 w-3.5', cfg.color)} />
+              <Icon icon={cfg.icon} size={14} className={cfg.color} />
               <span className="text-xs text-muted-foreground">{cfg.label}</span>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -307,8 +307,8 @@ export default function MonitorPage() {
       <div className="flex-shrink-0 border-b px-6 py-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
-              <Activity className="h-5 w-5 text-emerald-600" />
+            <div className="flex h-9 w-9 items-center justify-center rounded bg-emerald-100 dark:bg-emerald-900/30">
+              <Icon icon="pulse" size={20} className="text-emerald-600" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -331,13 +331,11 @@ export default function MonitorPage() {
           </div>
 
           <Button
-            variant="outline"
-            size="sm"
+            icon="refresh"
+            size="small"
             onClick={() => { void refetch() }}
-            disabled={isFetching}
-            className="gap-1.5"
+            loading={isFetching}
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
             Refresh
           </Button>
         </div>
@@ -347,27 +345,21 @@ export default function MonitorPage() {
       <div className="flex-1 overflow-hidden flex gap-4 p-4 md:p-6">
 
         {/* Feed */}
-        <div className="flex-1 min-w-0 overflow-hidden rounded-lg border bg-card">
+        <Card compact className="flex-1 min-w-0 !p-0 overflow-hidden">
           {isLoading ? (
             <div className="flex h-40 items-center justify-center">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <Spinner size={SpinnerSize.STANDARD} />
             </div>
           ) : events.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-20 text-center px-6">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-                <Package className="h-8 w-8 text-muted-foreground/40" />
-              </div>
-              <div>
-                <p className="font-semibold">No activity recorded yet</p>
-                <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-                  Stock movements, receives, and write-offs will appear here in real time.
-                </p>
-              </div>
-            </div>
+            <NonIdealState
+              icon="box"
+              title="No activity recorded yet"
+              description="Stock movements, receives, and write-offs will appear here in real time."
+            />
           ) : (
             <VirtualizedFeed events={events} newIds={newIds} />
           )}
-        </div>
+        </Card>
 
         {/* Right rail */}
         <RightRail events={events} currency={currency} />
