@@ -1,20 +1,24 @@
 // Layer: Flow — Immutable audit trail as a live event timeline
 // Palantir principle: auditability is a first-class feature, not a debug tool.
 // Operators must always be able to see why the world is the way it is.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { format, isToday, isYesterday } from 'date-fns'
 import {
-  Download, FileText, Search, RotateCcw, PlusCircle, MinusCircle,
-  Wifi, WifiOff, Camera, ArrowRight,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Button,
+  Card,
+  FormGroup,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { exportToCsv } from '@/lib/csv'
 import { exportToPdf } from '@/lib/pdf'
@@ -39,18 +43,18 @@ function SummaryStrip({ rows }: { rows: AuditLogRow[] }) {
         <span className="font-semibold text-foreground">{rows.length}</span> events
       </span>
       <span className="flex items-center gap-1.5 text-green-700 dark:text-green-400">
-        <PlusCircle className="h-3.5 w-3.5" />
+        <Icon icon="plus" size={14} />
         <span className="tabular-nums font-semibold">+{totalIn}</span>
         <span className="text-muted-foreground text-xs">units added</span>
       </span>
       <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-        <MinusCircle className="h-3.5 w-3.5" />
+        <Icon icon="minus" size={14} />
         <span className="tabular-nums font-semibold">{totalOut}</span>
         <span className="text-muted-foreground text-xs">units removed</span>
       </span>
       {reverts > 0 && (
         <span className="flex items-center gap-1.5 text-muted-foreground">
-          <RotateCcw className="h-3.5 w-3.5" />
+          <Icon icon="undo" size={14} />
           <span className="tabular-nums font-semibold">{reverts}</span>
           <span className="text-xs">reverted</span>
         </span>
@@ -106,15 +110,17 @@ function EventCard({
       {/* Timeline spine dot */}
       <div className="flex flex-col items-center pt-1.5">
         <div className={cn('h-2.5 w-2.5 rounded-full flex-shrink-0 ring-2 ring-background', dotColor)} />
-        {/* spine line rendered by parent */}
       </div>
 
       {/* Card */}
-      <div className={cn(
-        'mb-3 flex-1 rounded-lg border bg-card px-4 py-3 shadow-sm',
-        isReverted && 'opacity-60',
-        isRevert && 'border-dashed bg-muted/40',
-      )}>
+      <Card
+        compact
+        className={cn(
+          'mb-3 flex-1',
+          isReverted && 'opacity-60',
+          isRevert && '!border-dashed !bg-muted/40',
+        )}
+      >
         <div className="flex items-start justify-between gap-3">
           {/* Left: product + change */}
           <div className="min-w-0 flex-1">
@@ -126,7 +132,7 @@ function EventCard({
               {/* Balance arrow */}
               <span className="flex items-center gap-1 text-xs text-muted-foreground tabular-nums">
                 {balanceBefore}
-                <ArrowRight className="h-3 w-3" />
+                <Icon icon="arrow-right" size={12} />
                 <span className="font-medium text-foreground">{row.balance_after}</span>
               </span>
             </div>
@@ -134,44 +140,24 @@ function EventCard({
             {/* Reason */}
             <p className="text-sm text-muted-foreground leading-snug mb-2">{row.reason}</p>
 
-            {/* Badges row */}
+            {/* Tags row */}
             <div className="flex flex-wrap items-center gap-1.5">
-              {isAdd && (
-                <Badge variant="outline" className="h-5 px-1.5 text-[10px] border-green-300 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400">
-                  Addition
-                </Badge>
-              )}
-              {isRemove && (
-                <Badge variant="outline" className="h-5 px-1.5 text-[10px] border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
-                  Removal
-                </Badge>
-              )}
-              {isRevert && (
-                <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-muted-foreground">
-                  <RotateCcw className="mr-1 h-2.5 w-2.5" />Undo
-                </Badge>
-              )}
-              {isReverted && (
-                <Badge variant="outline" className="h-5 px-1.5 text-[10px] text-muted-foreground border-dashed">
-                  Reverted
-                </Badge>
-              )}
-              {row.removal_category && (
-                <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-                  {row.removal_category}
-                </Badge>
-              )}
+              {isAdd && <Tag minimal intent={Intent.SUCCESS}>Addition</Tag>}
+              {isRemove && <Tag minimal intent={Intent.DANGER}>Removal</Tag>}
+              {isRevert && <Tag minimal icon="undo">Undo</Tag>}
+              {isReverted && <Tag minimal>Reverted</Tag>}
+              {row.removal_category && <Tag minimal>{row.removal_category}</Tag>}
               {userLabel && (
                 <span className="text-[10px] text-muted-foreground">{userLabel}</span>
               )}
               {row.was_offline && (
                 <span className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400">
-                  <WifiOff className="h-2.5 w-2.5" />offline
+                  <Icon icon="offline" size={10} />offline
                 </span>
               )}
               {!row.was_offline && row.photo_url && (
                 <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                  <Wifi className="h-2.5 w-2.5" />online
+                  <Icon icon="globe-network" size={10} />online
                 </span>
               )}
             </div>
@@ -186,7 +172,7 @@ function EventCard({
             {row.photo_url && (
               <a href={row.photo_url} target="_blank" rel="noopener noreferrer">
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors">
-                  <Camera className="h-3 w-3" />
+                  <Icon icon="camera" size={12} />
                   <img
                     src={row.photo_url}
                     alt="evidence"
@@ -198,19 +184,18 @@ function EventCard({
 
             {canUndo && !row.is_revert && !isReverted && (
               <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground"
+                icon="undo"
+                variant="minimal"
+                size="small"
                 onClick={() => { onUndo(row.id) }}
                 disabled={undoPending}
               >
-                <RotateCcw className="mr-1 h-3 w-3" />
                 Undo
               </Button>
             )}
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -241,7 +226,6 @@ function Timeline({
       existing.push(row)
       map.set(dayKey, existing)
     }
-    // Return sorted descending (most recent first, already sorted from API)
     return [...map.entries()].map(([key, events]) => ({ key, events }))
   }, [rows])
 
@@ -373,57 +357,50 @@ export default function AuditPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleCsv} disabled={rows.length === 0}>
-            <Download className="mr-2 h-4 w-4" />CSV
-          </Button>
-          <Button variant="outline" size="sm" onClick={handlePdf} disabled={rows.length === 0}>
-            <FileText className="mr-2 h-4 w-4" />PDF
-          </Button>
+          <Button icon="download" size="small" onClick={handleCsv} disabled={rows.length === 0}>CSV</Button>
+          <Button icon="document" size="small" onClick={handlePdf} disabled={rows.length === 0}>PDF</Button>
         </div>
       </div>
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-end gap-4 border-b px-8 py-4 flex-shrink-0">
-        <div className="space-y-1.5">
-          <Label className="text-xs">From</Label>
-          <Input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value) }} className="w-36 h-8 text-sm" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">To</Label>
-          <Input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value) }} className="w-36 h-8 text-sm" />
-        </div>
-        <div className="space-y-1.5 flex-1 min-w-[200px]">
-          <Label className="text-xs">Search reason</Label>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <Input placeholder="Filter by reason…" value={search}
-              onChange={(e) => { handleSearchChange(e.target.value) }}
-              className="pl-8 h-8 text-sm" />
-          </div>
-        </div>
+        <FormGroup label="From" className="!mb-0">
+          <InputGroup type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value) }} className="w-36" />
+        </FormGroup>
+        <FormGroup label="To" className="!mb-0">
+          <InputGroup type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value) }} className="w-36" />
+        </FormGroup>
+        <FormGroup label="Search reason" className="!mb-0 flex-1 min-w-[200px]">
+          <InputGroup
+            leftIcon="search"
+            placeholder="Filter by reason…"
+            value={search}
+            onChange={(e) => { handleSearchChange(e.target.value) }}
+          />
+        </FormGroup>
         {members.length > 0 && (
-          <div className="space-y-1.5">
-            <Label className="text-xs">User</Label>
-            <Select value={userFilter} onValueChange={setUserFilter}>
-              <SelectTrigger className="w-44 h-8 text-sm"><SelectValue placeholder="All users" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All users</SelectItem>
-                {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.email}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
+          <FormGroup label="User" className="!mb-0">
+            <HTMLSelect
+              value={userFilter}
+              onChange={(e) => { setUserFilter(e.target.value) }}
+              options={[
+                { value: '__all__', label: 'All users' },
+                ...members.map((m) => ({ value: m.id, label: m.email })),
+              ]}
+            />
+          </FormGroup>
         )}
-        <div className="space-y-1.5">
-          <Label className="text-xs">Category</Label>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-44 h-8 text-sm"><SelectValue placeholder="All" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">All</SelectItem>
-              <SelectItem value="__none__">— No category —</SelectItem>
-              {REMOVAL_CATEGORIES.map((cat) => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        <FormGroup label="Category" className="!mb-0">
+          <HTMLSelect
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value) }}
+            options={[
+              { value: '__all__', label: 'All' },
+              { value: '__none__', label: '— No category —' },
+              ...REMOVAL_CATEGORIES.map((cat) => ({ value: cat, label: cat })),
+            ]}
+          />
+        </FormGroup>
       </div>
 
       {/* Summary strip */}
@@ -433,15 +410,15 @@ export default function AuditPage() {
       <div className="flex-1 overflow-auto px-8 py-6">
         {isLoading ? (
           <div className="flex flex-col items-center gap-3 py-20 text-muted-foreground">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <Spinner size={SpinnerSize.STANDARD} />
             <p className="text-sm">Loading timeline…</p>
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 py-20 text-center">
-            <RotateCcw className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">No events found for this range.</p>
-            <p className="text-xs text-muted-foreground">Try widening the date range or clearing filters.</p>
-          </div>
+          <NonIdealState
+            icon="history"
+            title="No events found"
+            description="No events found for this range. Try widening the date range or clearing filters."
+          />
         ) : (
           <Timeline
             rows={rows}

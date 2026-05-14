@@ -2,18 +2,24 @@
 // Sprint B UX: layer-grouped tab bar (Eye / Flow / Floor) and layer-grouped
 // list sections in "All" view. Notifications are decision triggers, not passive receipts.
 // Palantir principle: progressive disclosure with layer-awareness.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Bell, BellOff, CheckCheck, Loader2, AlertTriangle,
-  PackageX, CalendarX, ClipboardList, Zap, Trash2, Download,
-  Filter, ShieldAlert, Scale,
-} from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
+import {
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { useDateFormat } from '@/features/user/hooks'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { exportToCsv } from '@/lib/csv'
 import {
@@ -32,120 +38,120 @@ type NotifLayer = 'Eye' | 'Flow' | 'Floor' | 'Mind'
 const TYPE_CFG: Record<NotifType, {
   label: string
   layer: NotifLayer
-  icon: React.ElementType
+  icon: IconName
   rowBg: string
   iconColor: string
-  badgeCls: string
+  tagIntent: Intent
   actionPath: string
   actionLabel: string
 }> = {
   low_stock: {
     label: 'Low Stock',
     layer: 'Eye',
-    icon: PackageX,
+    icon: 'box',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     iconColor: 'text-orange-500',
-    badgeCls: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
+    tagIntent: Intent.WARNING,
     actionPath: '/inventory',
     actionLabel: 'View inventory →',
   },
   expiry: {
     label: 'Expiry',
     layer: 'Eye',
-    icon: CalendarX,
+    icon: 'calendar',
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
-    badgeCls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+    tagIntent: Intent.DANGER,
     actionPath: '/expiry',
     actionLabel: 'View expiry →',
   },
   predicted_outage: {
     label: 'Predicted Outage',
     layer: 'Eye',
-    icon: Zap,
+    icon: 'flash',
     rowBg: 'bg-purple-50/60 dark:bg-purple-950/20',
     iconColor: 'text-purple-500',
-    badgeCls: 'border-purple-300 bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400',
+    tagIntent: Intent.PRIMARY,
     actionPath: '/dashboard',
     actionLabel: 'View forecast →',
   },
   waste_alert: {
     label: 'Waste Alert',
     layer: 'Eye',
-    icon: AlertTriangle,
+    icon: 'warning-sign',
     rowBg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     iconColor: 'text-yellow-500',
-    badgeCls: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
+    tagIntent: Intent.WARNING,
     actionPath: '/reports',
     actionLabel: 'View waste report →',
   },
   consumption_spike: {
     label: 'Consumption Spike',
     layer: 'Eye',
-    icon: Zap,
+    icon: 'flash',
     rowBg: 'bg-yellow-50/60 dark:bg-yellow-950/20',
     iconColor: 'text-yellow-600',
-    badgeCls: 'border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300',
+    tagIntent: Intent.WARNING,
     actionPath: '/reports',
     actionLabel: 'View consumption →',
   },
   price_drift: {
     label: 'Price Drift',
     layer: 'Eye',
-    icon: AlertTriangle,
+    icon: 'warning-sign',
     rowBg: 'bg-blue-50/60 dark:bg-blue-950/20',
     iconColor: 'text-blue-500',
-    badgeCls: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
+    tagIntent: Intent.PRIMARY,
     actionPath: '/negotiation-prep',
     actionLabel: 'View negotiation prep →',
   },
   pos_variance: {
     label: 'POS Variance',
     layer: 'Eye',
-    icon: ShieldAlert,
+    icon: 'shield',
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
-    badgeCls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+    tagIntent: Intent.DANGER,
     actionPath: '/fb-intelligence',
     actionLabel: 'View F&B intelligence →',
   },
   po_discrepancy: {
     label: 'Invoice Discrepancy',
     layer: 'Mind',
-    icon: Scale,
+    icon: 'comparison',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     iconColor: 'text-orange-500',
-    badgeCls: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
+    tagIntent: Intent.WARNING,
     actionPath: '/procurement?tab=match',
     actionLabel: 'Review in 3-Way Match →',
   },
   contract_expiry: {
     label: 'Contract Expiring',
     layer: 'Mind',
-    icon: Scale,
+    icon: 'comparison',
     rowBg: 'bg-indigo-50/60 dark:bg-indigo-950/20',
     iconColor: 'text-indigo-500',
-    badgeCls: 'border-indigo-300 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400',
+    tagIntent: Intent.PRIMARY,
     actionPath: '/mind?panel=contracts',
     actionLabel: 'View contracts →',
   },
   approval: {
     label: 'Approval',
     layer: 'Flow',
-    icon: ClipboardList,
+    icon: 'clipboard',
     rowBg: 'bg-blue-50/60 dark:bg-blue-950/20',
     iconColor: 'text-blue-500',
-    badgeCls: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
+    tagIntent: Intent.PRIMARY,
     actionPath: '/restocks',
     actionLabel: 'View restocks →',
   },
   system: {
     label: 'System',
     layer: 'Floor',
-    icon: Bell,
+    icon: 'notifications',
     rowBg: '',
     iconColor: 'text-muted-foreground',
-    badgeCls: 'border-border text-muted-foreground',
+    tagIntent: Intent.NONE,
     actionPath: '/dashboard',
     actionLabel: 'Dashboard →',
   },
@@ -188,7 +194,6 @@ function NotifRow({ notif }: { notif: Notification }) {
   const fmtDate = useDateFormat()
   const markRead = useMarkNotificationRead()
   const cfg = TYPE_CFG[notif.type]
-  const Icon = cfg.icon
 
   const handleClick = () => {
     if (!notif.read) {
@@ -219,15 +224,13 @@ function NotifRow({ notif }: { notif: Notification }) {
 
       {/* Icon */}
       <div className={cn('mt-0.5 flex-shrink-0', cfg.iconColor)}>
-        <Icon className="h-4 w-4" />
+        <Icon icon={cfg.icon} size={14} />
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge variant="outline" className={cn('text-[10px] h-4 px-1.5', cfg.badgeCls)}>
-            {cfg.label}
-          </Badge>
+          <Tag intent={cfg.tagIntent} minimal>{cfg.label}</Tag>
           <span className={cn('text-sm', notif.read ? 'text-muted-foreground' : 'font-medium')}>
             {notif.message}
           </span>
@@ -244,14 +247,14 @@ function NotifRow({ notif }: { notif: Notification }) {
 
       {/* Mark read button */}
       {!notif.read && (
-        <button
-          type="button"
+        <Button
+          icon="updated"
+          variant="minimal"
+          size="small"
           onClick={handleMarkRead}
-          className="flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
-          title="Mark as read"
-        >
-          <CheckCheck className="h-4 w-4" />
-        </button>
+          aria-label="Mark as read"
+          className="!opacity-0 group-hover:!opacity-100 transition-opacity"
+        />
       )}
     </div>
   )
@@ -321,23 +324,20 @@ export default function NotificationsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            size="sm"
+            icon="download"
+            size="small"
             onClick={handleExport}
             disabled={notifications.length === 0}
           >
-            <Download className="mr-2 h-4 w-4" />
             CSV
           </Button>
           <Button
-            variant="outline"
-            size="sm"
+            icon="updated"
+            size="small"
             onClick={() => { void markAllRead.mutateAsync() }}
-            disabled={unreadCount === 0 || markAllRead.isPending}
+            disabled={unreadCount === 0}
+            loading={markAllRead.isPending}
           >
-            {markAllRead.isPending
-              ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              : <CheckCheck className="mr-2 h-4 w-4" />}
             Mark all read
           </Button>
         </div>
@@ -345,33 +345,33 @@ export default function NotificationsPage() {
 
       {/* Tab bar — layer-grouped */}
       <div className="flex items-center gap-1 border-b px-8 py-2 flex-shrink-0 overflow-x-auto bg-muted/10">
-        <Filter className="h-3.5 w-3.5 text-muted-foreground mr-1 flex-shrink-0" />
+        <Icon icon="filter" size={14} className="text-muted-foreground mr-1 flex-shrink-0" />
         {/* Base filters */}
         {[
           { id: 'all' as TabFilter,    label: 'All',    badge: undefined },
           { id: 'unread' as TabFilter, label: 'Unread', badge: unreadCount || undefined },
         ].map((t) => (
-          <button
+          <Button
             key={t.id}
-            type="button"
+            size="small"
+            active={tab === t.id}
+            intent={tab === t.id ? Intent.PRIMARY : Intent.NONE}
+            variant={tab === t.id ? 'solid' : 'minimal'}
             onClick={() => { setTab(t.id) }}
-            className={cn(
-              'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
-              tab === t.id
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-            )}
+            className="flex-shrink-0"
           >
             {t.label}
             {t.badge != null && t.badge > 0 && (
-              <span className={cn(
-                'flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none',
-                tab === t.id ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-red-500 text-white',
-              )}>
-                {t.badge > 99 ? '99+' : t.badge}
-              </span>
+              <Tag
+                minimal={tab === t.id}
+                intent={tab === t.id ? Intent.NONE : Intent.DANGER}
+                round
+                className="ml-1.5"
+              >
+                {t.badge > 99 ? '99+' : String(t.badge)}
+              </Tag>
             )}
-          </button>
+          </Button>
         ))}
 
         {/* Layer-grouped type tabs */}
@@ -387,27 +387,27 @@ export default function NotificationsPage() {
                 const cfg   = TYPE_CFG[t]
                 const badge = typeCounts[t]
                 return (
-                  <button
+                  <Button
                     key={t}
-                    type="button"
+                    size="small"
+                    active={tab === t}
+                    intent={tab === t ? Intent.PRIMARY : Intent.NONE}
+                    variant={tab === t ? 'solid' : 'minimal'}
                     onClick={() => { setTab(t) }}
-                    className={cn(
-                      'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors flex-shrink-0',
-                      tab === t
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                    )}
+                    className="flex-shrink-0"
                   >
                     {cfg.label}
                     {badge != null && badge > 0 && (
-                      <span className={cn(
-                        'flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none',
-                        tab === t ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-red-500 text-white',
-                      )}>
-                        {badge > 99 ? '99+' : badge}
-                      </span>
+                      <Tag
+                        minimal={tab === t}
+                        intent={tab === t ? Intent.NONE : Intent.DANGER}
+                        round
+                        className="ml-1.5"
+                      >
+                        {badge > 99 ? '99+' : String(badge)}
+                      </Tag>
                     )}
-                  </button>
+                  </Button>
                 )
               })}
             </div>
@@ -418,33 +418,30 @@ export default function NotificationsPage() {
       {/* List */}
       <div className="flex-1 overflow-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+          <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} />Loading…
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <BellOff className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm font-medium">No notifications yet</p>
-            <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-              Notifications fire automatically when stock falls below par, items approach expiry within 7 days,
-              waste events spike, or restocks need approval.
-              Run a scan from the Alerts page to generate the first batch.
-            </p>
-          </div>
+          <NonIdealState
+            icon="notifications-snooze"
+            title="No notifications yet"
+            description="Notifications fire automatically when stock falls below par, items approach expiry within 7 days, waste events spike, or restocks need approval. Run a scan from the Alerts page to generate the first batch."
+          />
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <Trash2 className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">
-              {tab === 'unread' ? 'All caught up — no unread notifications.' : `No ${TYPE_CFG[tab as NotifType]?.label ?? ''} notifications.`}
-            </p>
-            <button
-              type="button"
-              onClick={() => { setTab('all') }}
-              className="text-xs text-primary hover:underline"
-            >
-              Show all
-            </button>
-          </div>
+          <NonIdealState
+            icon="trash"
+            title={tab === 'unread' ? 'All caught up' : 'No notifications'}
+            description={tab === 'unread' ? 'No unread notifications.' : `No ${TYPE_CFG[tab as NotifType].label} notifications.`}
+            action={
+              <Button
+                variant="minimal"
+                intent={Intent.PRIMARY}
+                onClick={() => { setTab('all') }}
+              >
+                Show all
+              </Button>
+            }
+          />
         ) : tab === 'all' ? (
           // Layer-grouped view for "all"
           <div className="px-6 py-4 space-y-6">
@@ -463,25 +460,25 @@ export default function NotificationsPage() {
                         : String(items.length)}
                     </span>
                   </div>
-                  <div className="rounded-lg overflow-hidden border">
+                  <Card compact className="!p-0 overflow-hidden">
                     {items.map((n) => <NotifRow key={n.id} notif={n} />)}
-                  </div>
+                  </Card>
                 </div>
               )
             })}
           </div>
         ) : (
-          <div className="divide-y">
+          <div>
             <div className="px-6 py-2 bg-muted/30 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               {tab === 'unread'
                 ? `${String(filtered.length)} unread`
-                : `${String(filtered.length)} ${TYPE_CFG[tab]?.label ?? tab}`}
+                : `${String(filtered.length)} ${TYPE_CFG[tab].label}`}
             </div>
-            <div className="rounded-lg overflow-hidden border mx-6 my-4">
+            <Card compact className="!p-0 overflow-hidden mx-6 my-4">
               {filtered.map((n) => (
                 <NotifRow key={n.id} notif={n} />
               ))}
-            </div>
+            </Card>
           </div>
         )}
       </div>

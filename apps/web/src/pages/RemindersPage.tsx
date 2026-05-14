@@ -4,19 +4,24 @@
 // events: maintenance, warranty expiry, inspection, permit renewal, certification.
 // Palantir principle: every number carries its context — cost exposure is shown
 // alongside each overdue/upcoming item so the operator understands what's at stake.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
-import { Bell, CheckCircle2, Loader2, AlertTriangle, Search, Download } from 'lucide-react'
 import { format } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Button,
+  HTMLSelect,
+  HTMLTable,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { exportToCsv } from '@/lib/csv'
 import { useUpcomingReminders } from '@/features/inventory/hooks'
@@ -39,45 +44,45 @@ function getBand(days: number): Band {
 
 const BAND_META: Record<Band, {
   label: string
-  dotColor: string
   rowBg: string
   textColor: string
-  badgeCls: string
+  tagIntent: Intent
+  tagMinimal: boolean
 }> = {
   overdue:  {
     label: 'Overdue',
-    dotColor: 'bg-red-600',
     rowBg: 'bg-red-50/70 dark:bg-red-950/25',
     textColor: 'text-red-700 dark:text-red-400',
-    badgeCls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+    tagIntent: Intent.DANGER,
+    tagMinimal: false,
   },
   urgent: {
     label: '≤ 7 days',
-    dotColor: 'bg-orange-500',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     textColor: 'text-orange-700 dark:text-orange-400',
-    badgeCls: 'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
+    tagIntent: Intent.WARNING,
+    tagMinimal: false,
   },
   soon: {
     label: '≤ 30 days',
-    dotColor: 'bg-yellow-500',
     rowBg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     textColor: 'text-yellow-700 dark:text-yellow-400',
-    badgeCls: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
+    tagIntent: Intent.WARNING,
+    tagMinimal: true,
   },
   upcoming: {
     label: '≤ 90 days',
-    dotColor: 'bg-muted-foreground/50',
     rowBg: '',
     textColor: 'text-muted-foreground',
-    badgeCls: 'border-border text-muted-foreground',
+    tagIntent: Intent.NONE,
+    tagMinimal: true,
   },
 }
 
 // ─── Window options ─────────────────────────────────────────────────────────────
 
 const WINDOWS = [
-  { label: '7d',  days: 7 },
+  { label: '7d',  days: 7  },
   { label: '30d', days: 30 },
   { label: '90d', days: 90 },
 ] as const
@@ -88,8 +93,8 @@ function SummaryStrip({
   enriched,
   currency,
 }: {
-  enriched: (ReminderVariant & { days: number })[],
-  currency: string,
+  enriched: (ReminderVariant & { days: number })[]
+  currency: string
 }) {
   const overdue = enriched.filter((v) => v.days < 0)
   const urgent  = enriched.filter((v) => v.days >= 0 && v.days <= 7)
@@ -109,14 +114,14 @@ function SummaryStrip({
       </span>
       {overdue.length > 0 && (
         <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-          <AlertTriangle className="h-3.5 w-3.5" />
+          <Icon icon="warning-sign" size={14} />
           <span className="font-semibold tabular-nums">{overdue.length}</span>
           <span className="text-xs text-muted-foreground">overdue</span>
         </span>
       )}
       {urgent.length > 0 && (
         <span className="flex items-center gap-1.5 text-orange-700 dark:text-orange-400">
-          <Bell className="h-3.5 w-3.5" />
+          <Icon icon="notifications" size={14} />
           <span className="font-semibold tabular-nums">{urgent.length}</span>
           <span className="text-xs text-muted-foreground">within 7 days</span>
         </span>
@@ -146,7 +151,7 @@ export default function RemindersPage() {
   const enriched = useMemo(() =>
     reminders
       .filter((v) => v.reminder_date)
-      .map((v) => ({ ...v, days: daysUntil(v.reminder_date!) }))
+      .map((v) => ({ ...v, days: daysUntil(v.reminder_date ?? '') }))
       .sort((a, b) => a.days - b.days),
     [reminders],
   )
@@ -207,33 +212,21 @@ export default function RemindersPage() {
                 : `${String(enriched.length)} reminder${enriched.length !== 1 ? 's' : ''} due within ${String(windowDays)} days`}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
-            variant="outline"
-            size="sm"
+            icon="download"
+            size="small"
             onClick={handleExport}
             disabled={filtered.length === 0}
           >
-            <Download className="mr-2 h-4 w-4" />
             CSV
           </Button>
-          {/* Window toggle */}
-          <div className="flex gap-0.5 rounded-md border p-0.5">
-            {WINDOWS.map((opt) => (
-              <button
-                key={opt.days}
-                onClick={() => { setWindowDays(opt.days) }}
-                className={cn(
-                  'rounded px-3 py-1 text-xs font-medium transition-colors',
-                  windowDays === opt.days
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted',
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="small"
+            value={String(windowDays)}
+            onValueChange={(v) => { setWindowDays(parseInt(v, 10) as 7 | 30 | 90) }}
+            options={WINDOWS.map((w) => ({ value: String(w.days), label: w.label }))}
+          />
         </div>
       </div>
 
@@ -243,53 +236,48 @@ export default function RemindersPage() {
       {/* Filter bar */}
       {enriched.length > 0 && (
         <div className="flex flex-wrap items-center gap-3 border-b px-8 py-3 flex-shrink-0 bg-muted/20">
-          <div className="relative flex-1 min-w-[180px] max-w-xs">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search product or SKU…"
-              value={search}
-              onChange={(e) => { setSearch(e.target.value) }}
-              className="pl-9 h-8 text-sm"
-            />
-          </div>
+          <InputGroup
+            leftIcon="search"
+            className="flex-1 min-w-[180px] max-w-xs"
+            placeholder="Search product or SKU…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value) }}
+          />
 
           {/* Urgency band filter */}
-          <Select value={bandFilter} onValueChange={(v) => { setBandFilter(v as Band | '__all__') }}>
-            <SelectTrigger className="h-8 w-40 text-sm">
-              <SelectValue placeholder="All urgencies" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">All urgencies</SelectItem>
-              <SelectItem value="overdue">Overdue</SelectItem>
-              <SelectItem value="urgent">≤ 7 days</SelectItem>
-              <SelectItem value="soon">≤ 30 days</SelectItem>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
-            </SelectContent>
-          </Select>
+          <HTMLSelect
+            value={bandFilter}
+            onChange={(e) => { setBandFilter(e.target.value as Band | '__all__') }}
+            options={[
+              { value: '__all__', label: 'All urgencies' },
+              { value: 'overdue', label: 'Overdue' },
+              { value: 'urgent',  label: '≤ 7 days' },
+              { value: 'soon',    label: '≤ 30 days' },
+              { value: 'upcoming',label: 'Upcoming' },
+            ]}
+          />
 
           {/* Reminder label filter */}
           {allLabels.length > 1 && (
-            <Select value={labelFilter} onValueChange={setLabelFilter}>
-              <SelectTrigger className="h-8 w-44 text-sm">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">All types</SelectItem>
-                {allLabels.map((l) => (
-                  <SelectItem key={l} value={l}>{l}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <HTMLSelect
+              value={labelFilter}
+              onChange={(e) => { setLabelFilter(e.target.value) }}
+              options={[
+                { value: '__all__', label: 'All types' },
+                ...allLabels.map((l) => ({ value: l, label: l })),
+              ]}
+            />
           )}
 
           {(search || bandFilter !== '__all__' || labelFilter !== '__all__') && (
-            <button
-              type="button"
+            <Button
+              variant="minimal"
+              size="small"
               onClick={() => { setSearch(''); setBandFilter('__all__'); setLabelFilter('__all__') }}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto"
+              className="ml-auto"
             >
               Clear filters
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -297,88 +285,82 @@ export default function RemindersPage() {
       {/* Table */}
       <div className="flex-1 overflow-auto px-8 py-5">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+          <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} />Loading…
           </div>
         ) : enriched.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <CheckCircle2 className="h-10 w-10 text-green-500/60" />
-            <p className="text-sm font-medium">No reminders due</p>
-            <p className="text-xs text-muted-foreground max-w-xs">
-              No variants have reminder dates set within the next {String(windowDays)} days.
-              Add reminder dates to variants (maintenance, warranty, inspection) to see them here.
-            </p>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title="No reminders due"
+            description={`No variants have reminder dates set within the next ${String(windowDays)} days. Add reminder dates to variants (maintenance, warranty, inspection) to see them here.`}
+          />
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <p className="text-sm text-muted-foreground">No reminders match the current filter.</p>
-            <button
-              type="button"
-              onClick={() => { setSearch(''); setBandFilter('__all__'); setLabelFilter('__all__') }}
-              className="text-xs text-primary hover:underline"
-            >
-              Clear filters
-            </button>
-          </div>
+          <NonIdealState
+            icon="search"
+            title="No matches"
+            description="No reminders match the current filter."
+            action={
+              <Button
+                variant="minimal"
+                intent={Intent.PRIMARY}
+                onClick={() => { setSearch(''); setBandFilter('__all__'); setLabelFilter('__all__') }}
+              >
+                Clear filters
+              </Button>
+            }
+          />
         ) : (
-          <div className="rounded-lg border overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Reminder type</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Value at stake</TableHead>
-                  <TableHead className="text-right">Due date</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((v) => {
-                  const band  = getBand(v.days)
-                  const meta  = BAND_META[band]
-                  const displayName = v.products?.name
-                    ? (v.name !== 'Standard' ? `${v.products.name} — ${v.name}` : v.products.name)
-                    : v.name
-                  const daysLabel =
-                    v.days < 0
-                      ? `Overdue ${String(Math.abs(v.days))}d`
-                      : v.days === 0
-                        ? 'Due today'
-                        : `${String(v.days)}d`
-                  const valueAtStake = v.current_stock * v.cost
+          <HTMLTable compact striped interactive className="w-full">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>SKU</th>
+                <th>Reminder type</th>
+                <th className="text-right">Stock</th>
+                <th className="text-right">Value at stake</th>
+                <th className="text-right">Due date</th>
+                <th className="text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((v) => {
+                const band  = getBand(v.days)
+                const meta  = BAND_META[band]
+                const displayName = v.products?.name
+                  ? (v.name !== 'Standard' ? `${v.products.name} — ${v.name}` : v.products.name)
+                  : v.name
+                const daysLabel =
+                  v.days < 0
+                    ? `Overdue ${String(Math.abs(v.days))}d`
+                    : v.days === 0
+                      ? 'Due today'
+                      : `${String(v.days)}d`
+                const valueAtStake = v.current_stock * v.cost
 
-                  return (
-                    <TableRow key={v.id} className={meta.rowBg}>
-                      <TableCell className="font-medium text-sm">{displayName}</TableCell>
-                      <TableCell className="font-mono text-xs text-muted-foreground">{v.sku}</TableCell>
-                      <TableCell className="text-sm">
-                        {v.reminder_label
-                          ? <span className="flex items-center gap-1.5"><Bell className="h-3.5 w-3.5 text-muted-foreground" />{v.reminder_label}</span>
-                          : <span className="text-muted-foreground">—</span>}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums font-semibold">{v.current_stock}</TableCell>
-                      <TableCell className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
-                        {valueAtStake > 0 ? formatCurrency(valueAtStake, currency) : <span className="text-muted-foreground font-normal">—</span>}
-                      </TableCell>
-                      <TableCell className="text-right text-sm text-muted-foreground tabular-nums">
-                        {fmtDate(v.reminder_date)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge
-                          variant="outline"
-                          className={cn('text-[10px] h-5 px-1.5 font-semibold', meta.badgeCls)}
-                        >
-                          {daysLabel}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                return (
+                  <tr key={v.id} className={meta.rowBg}>
+                    <td className="font-medium text-sm">{displayName}</td>
+                    <td className="font-mono text-xs text-muted-foreground">{v.sku}</td>
+                    <td className="text-sm">
+                      {v.reminder_label
+                        ? <span className="flex items-center gap-1.5"><Icon icon="notifications" size={14} className="text-muted-foreground" />{v.reminder_label}</span>
+                        : <span className="text-muted-foreground">—</span>}
+                    </td>
+                    <td className="text-right tabular-nums font-semibold">{v.current_stock}</td>
+                    <td className={cn('text-right tabular-nums font-semibold text-sm', meta.textColor)}>
+                      {valueAtStake > 0 ? formatCurrency(valueAtStake, currency) : <span className="text-muted-foreground font-normal">—</span>}
+                    </td>
+                    <td className="text-right text-sm text-muted-foreground tabular-nums">
+                      {fmtDate(v.reminder_date)}
+                    </td>
+                    <td className="text-right">
+                      <Tag intent={meta.tagIntent} minimal={meta.tagMinimal}>{daysLabel}</Tag>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </HTMLTable>
         )}
       </div>
     </div>
