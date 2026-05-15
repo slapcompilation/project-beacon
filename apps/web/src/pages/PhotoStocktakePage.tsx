@@ -3,14 +3,17 @@
 // Photograph a shelf → GPT-4o Vision identifies items + estimates quantities
 // → operator reviews → submits as stock adjustments via ADJUST_STOCK actions.
 //
-// Setup required: OPENAI_API_KEY set in Supabase Edge Function env vars.
-// Edge function: supabase/functions/parse-shelf-photo/index.ts
-//
-// Palantir Principle #4: decision support — AI pre-fills the form, operator confirms.
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useRef } from 'react'
-import { Camera, Upload, Loader2, CheckCircle2, AlertTriangle, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Button,
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { dispatchAction } from '@/lib/actions/dispatch'
@@ -23,9 +26,9 @@ interface RecognizedItem {
   productName:    string
   variantName:    string
   estimatedQty:   number
-  confidence:     number   // 0-1
+  confidence:     number
   variantId:      string | null
-  delta:          number   // quantity to adjust (diff from current, or absolute)
+  delta:          number
   reason:         string
 }
 
@@ -46,7 +49,6 @@ export default function PhotoStocktakePage() {
     setItems([])
     setSubmitted(new Set())
 
-    // Show preview
     const reader = new FileReader()
     reader.onload = (e) => { setPreview(e.target?.result as string); }
     reader.readAsDataURL(file)
@@ -125,7 +127,7 @@ export default function PhotoStocktakePage() {
       {/* Header */}
       <div className="px-6 pt-5 pb-3 border-b shrink-0">
         <h2 className="text-base font-semibold flex items-center gap-2">
-          <Camera className="w-4 h-4 text-primary" />
+          <Icon icon="camera" size={14} intent={Intent.PRIMARY} />
           Photo Stocktake
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -141,36 +143,42 @@ export default function PhotoStocktakePage() {
             onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleFile(f) }} />
 
           {preview ? (
-            <div className="relative rounded-lg overflow-hidden border border-border max-w-sm">
+            <div className="relative rounded overflow-hidden border border-border max-w-sm">
               <img src={preview} alt="Shelf scan" className="w-full object-cover max-h-48" />
-              <button type="button"
+              <Button
+                icon="trash"
+                variant="minimal"
+                size="small"
+                aria-label="Clear preview"
                 onClick={() => { setPreview(null); setItems([]); setSubmitted(new Set()) }}
-                className="absolute top-2 right-2 p-1 rounded-full bg-background/80 text-muted-foreground hover:text-foreground">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+                className="!absolute !top-2 !right-2 !bg-background/80"
+              />
             </div>
           ) : (
-            <button type="button" onClick={() => fileRef.current?.click()}
-              className="flex flex-col items-center gap-3 w-full max-w-sm rounded-lg border-2 border-dashed border-border bg-card hover:border-foreground/30 hover:bg-muted/20 transition-colors py-10">
+            <Card
+              interactive
+              onClick={() => fileRef.current?.click()}
+              className="!border-2 !border-dashed flex flex-col items-center gap-3 w-full max-w-sm py-10"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Camera className="w-6 h-6 text-primary" />
+                <Icon icon="camera" size={24} intent={Intent.PRIMARY} />
               </div>
               <div className="text-center">
                 <p className="text-sm font-medium">Take or upload a shelf photo</p>
                 <p className="text-xs text-muted-foreground mt-1">Tap to use camera or choose from gallery</p>
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Upload className="w-3.5 h-3.5" />
+                <Icon icon="upload" size={14} />
                 Or upload image file
               </div>
-            </button>
+            </Card>
           )}
         </div>
 
         {/* Scanning indicator */}
         {scanning && (
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <Icon icon="refresh" size={14} intent={Intent.PRIMARY} className="animate-spin" />
             Identifying items on shelf…
           </div>
         )}
@@ -183,11 +191,15 @@ export default function PhotoStocktakePage() {
                 {items.length} item{items.length !== 1 ? 's' : ''} recognized
               </p>
               {pendingCount > 0 && (
-                <button type="button" disabled={submitting} onClick={() => { void applyAll() }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors">
-                  {submitting ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+                <Button
+                  icon="tick-circle"
+                  intent={Intent.PRIMARY}
+                  size="small"
+                  loading={submitting}
+                  onClick={() => { void applyAll() }}
+                >
                   Apply all ({pendingCount})
-                </button>
+                </Button>
               )}
             </div>
 
@@ -203,7 +215,7 @@ export default function PhotoStocktakePage() {
                 const done = submitted.has(i)
                 return (
                   <div key={i} className={cn(
-                    'grid grid-cols-[1fr_70px_70px_80px_36px] gap-2 items-center px-3 py-2 rounded-lg border transition-colors',
+                    'grid grid-cols-[1fr_70px_70px_80px_36px] gap-2 items-center px-3 py-2 rounded border transition-colors',
                     done           ? 'border-emerald-500/30 bg-emerald-500/5 opacity-60' :
                     !item.variantId ? 'border-amber-500/30 bg-amber-500/5' :
                     'border-border bg-card',
@@ -215,18 +227,20 @@ export default function PhotoStocktakePage() {
                       )}
                       {!item.variantId && (
                         <p className="text-[10px] text-amber-500 flex items-center gap-0.5">
-                          <AlertTriangle className="w-2.5 h-2.5" />unmatched
+                          <Icon icon="warning-sign" size={10} />unmatched
                         </p>
                       )}
                     </div>
 
                     <span className="text-xs tabular-nums text-right">{item.estimatedQty}</span>
 
-                    <input type="number"
-                      value={item.delta}
+                    <InputGroup
+                      type="number"
+                      value={String(item.delta)}
                       disabled={done}
-                      onChange={(e) => { updateItem(i, { delta: parseInt(e.target.value, 10) || 0 }); }}
-                      className="w-full rounded border border-input bg-background px-1.5 py-1 text-xs tabular-nums text-right focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+                      onChange={(e) => { updateItem(i, { delta: parseInt(e.target.value, 10) || 0 }) }}
+                      className="[&_input]:text-right [&_input]:tabular-nums"
+                      size="small"
                     />
 
                     <div className="text-right">
@@ -237,18 +251,16 @@ export default function PhotoStocktakePage() {
                       <span className="text-[10px] text-muted-foreground">{Math.round(item.confidence * 100)}%</span>
                     </div>
 
-                    <button type="button"
-                      disabled={done || !item.variantId || item.delta === 0 || submitting}
+                    <Button
+                      icon="tick-circle"
+                      variant="minimal"
+                      size="small"
+                      intent={done ? Intent.SUCCESS : Intent.PRIMARY}
+                      disabled={done || !item.variantId || item.delta === 0}
+                      loading={submitting && !done}
                       onClick={() => { void applyAdjustment(i) }}
-                      className={cn('flex items-center justify-center w-8 h-8 rounded-lg transition-colors',
-                        done ? 'bg-emerald-500/10 text-emerald-500 cursor-not-allowed' :
-                        'bg-primary/10 text-primary hover:bg-primary/20 disabled:opacity-30 disabled:cursor-not-allowed'
-                      )}>
-                      {done
-                        ? <CheckCircle2 className="w-3.5 h-3.5" />
-                        : submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        : <CheckCircle2 className="w-3.5 h-3.5" />}
-                    </button>
+                      aria-label={done ? 'Applied' : 'Apply adjustment'}
+                    />
                   </div>
                 )
               })}
