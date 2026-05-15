@@ -2,16 +2,23 @@
 // Palantir-pattern: every alert is a navigable entity with full context — what triggered it,
 // which node it concerns, how it was resolved, and the operator's feedback.
 // Route: /alert/:alertId
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils'
 import { format, formatDistanceToNow } from 'date-fns'
 import {
-  ArrowLeft, AlertTriangle, CheckCircle2, Bell, Package,
-  TrendingDown, Truck, FileText, Zap, ShieldAlert,
-} from 'lucide-react'
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
+import { supabase } from '@/lib/supabase/client'
+import { cn } from '@/lib/utils'
 import type { Notification } from '@beacon/types'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -45,18 +52,18 @@ async function fetchAlert(alertId: string): Promise<AlertWithContext | null> {
 
 type AlertType = Notification['type']
 
-const ALERT_META: Record<AlertType, { label: string; icon: React.ElementType; cls: string; dot: string }> = {
-  low_stock:          { label: 'Low Stock',           icon: Package,     cls: 'bg-amber-500/10 text-amber-500 border-amber-500/30',   dot: 'bg-amber-500' },
-  expiry:             { label: 'Expiry Warning',       icon: AlertTriangle, cls: 'bg-orange-500/10 text-orange-500 border-orange-500/30', dot: 'bg-orange-500' },
-  approval:           { label: 'Approval Required',    icon: CheckCircle2,  cls: 'bg-blue-500/10 text-blue-500 border-blue-500/30',     dot: 'bg-blue-500' },
-  system:             { label: 'System',               icon: Bell,        cls: 'bg-muted text-muted-foreground border-border',         dot: 'bg-muted-foreground' },
-  predicted_outage:   { label: 'Predicted Outage',     icon: TrendingDown, cls: 'bg-red-500/10 text-red-500 border-red-500/30',        dot: 'bg-red-500' },
-  waste_alert:        { label: 'Waste Alert',          icon: ShieldAlert,  cls: 'bg-orange-500/10 text-orange-500 border-orange-500/30', dot: 'bg-orange-500' },
-  consumption_spike:  { label: 'Consumption Spike',    icon: Zap,         cls: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30', dot: 'bg-yellow-500' },
-  price_drift:        { label: 'Price Drift',          icon: FileText,    cls: 'bg-purple-500/10 text-purple-500 border-purple-500/30', dot: 'bg-purple-500' },
-  pos_variance:       { label: 'POS Variance',         icon: FileText,    cls: 'bg-purple-500/10 text-purple-500 border-purple-500/30', dot: 'bg-purple-500' },
-  po_discrepancy:     { label: 'PO Discrepancy',       icon: Truck,       cls: 'bg-red-500/10 text-red-500 border-red-500/30',         dot: 'bg-red-500' },
-  contract_expiry:    { label: 'Contract Expiring',    icon: FileText,    cls: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/30', dot: 'bg-indigo-500' },
+const ALERT_META: Record<AlertType, { label: string; icon: IconName; intent: Intent }> = {
+  low_stock:          { label: 'Low Stock',           icon: 'box',           intent: Intent.WARNING },
+  expiry:             { label: 'Expiry Warning',       icon: 'warning-sign',  intent: Intent.WARNING },
+  approval:           { label: 'Approval Required',    icon: 'tick-circle',   intent: Intent.PRIMARY },
+  system:             { label: 'System',               icon: 'notifications', intent: Intent.NONE    },
+  predicted_outage:   { label: 'Predicted Outage',     icon: 'trending-down', intent: Intent.DANGER  },
+  waste_alert:        { label: 'Waste Alert',          icon: 'shield',        intent: Intent.WARNING },
+  consumption_spike:  { label: 'Consumption Spike',    icon: 'flash',         intent: Intent.WARNING },
+  price_drift:        { label: 'Price Drift',          icon: 'document',      intent: Intent.PRIMARY },
+  pos_variance:       { label: 'POS Variance',         icon: 'document',      intent: Intent.PRIMARY },
+  po_discrepancy:     { label: 'PO Discrepancy',       icon: 'truck',         intent: Intent.DANGER  },
+  contract_expiry:    { label: 'Contract Expiring',    icon: 'document',      intent: Intent.PRIMARY },
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
@@ -82,16 +89,20 @@ export default function AlertObjectPage() {
 
   if (error || !alert) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
-        <AlertTriangle className="h-8 w-8 text-red-500/60" />
-        <p className="text-sm">Alert not found or access denied.</p>
-        <button type="button" onClick={() => { void navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
-      </div>
+      <NonIdealState
+        icon="warning-sign"
+        title="Alert not found"
+        description="Alert not found or access denied."
+        action={
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { void navigate(-1) }}>
+            ← Go back
+          </Button>
+        }
+      />
     )
   }
 
   const meta       = ALERT_META[alert.type]
-  const Icon       = meta.icon
   const variantId  = alert.variant_id ?? alert.product_variants?.id ?? null
   const pv         = alert.product_variants
   const productName = pv?.products?.name ?? null
@@ -102,26 +113,23 @@ export default function AlertObjectPage() {
       {/* Header */}
       <div className="border-b px-6 py-4 shrink-0 bg-background">
         <div className="flex items-start gap-4">
-          <button
-            type="button"
+          <Button
+            icon="arrow-left"
+            variant="minimal"
+            size="small"
             onClick={() => { void navigate(-1) }}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-0.5 shrink-0"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
             Back
-          </button>
+          </Button>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-3">
-              <div className={cn('flex h-9 w-9 items-center justify-center rounded-lg shrink-0', meta.cls)}>
-                <Icon className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded shrink-0 bg-muted/40">
+                <Icon icon={meta.icon} size={20} intent={meta.intent} />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={cn('text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border', meta.cls)}>
-                    <span className={cn('inline-block h-1.5 w-1.5 rounded-full mr-1', meta.dot)} />
-                    {meta.label}
-                  </span>
+                  <Tag icon={meta.icon} intent={meta.intent} minimal>{meta.label}</Tag>
                   {alert.read ? (
                     <span className="text-[10px] text-muted-foreground">Read</span>
                   ) : (
@@ -132,7 +140,7 @@ export default function AlertObjectPage() {
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                   {variantId && variantLabel && (
                     <Link to={`/variant/${variantId}`} className="flex items-center gap-1 hover:text-foreground hover:underline">
-                      <Package className="h-3 w-3" />
+                      <Icon icon="box" size={12} />
                       {variantLabel}
                     </Link>
                   )}
@@ -148,33 +156,33 @@ export default function AlertObjectPage() {
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl">
 
         {/* Message card */}
-        <div className={cn('rounded-lg border px-4 py-4', meta.cls)}>
+        <Card compact>
           <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">{meta.label}</p>
           <p className="text-sm leading-relaxed">{alert.message}</p>
-        </div>
+        </Card>
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <div className="rounded-lg border bg-card p-3 space-y-1">
+          <Card compact>
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</div>
             <div className={cn('text-sm font-semibold', alert.read ? 'text-muted-foreground' : 'text-primary')}>
               {alert.read ? 'Read' : 'Unread'}
             </div>
-          </div>
-          <div className="rounded-lg border bg-card p-3 space-y-1">
+          </Card>
+          <Card compact>
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Triggered</div>
             <div className="text-xs font-medium">{format(new Date(alert.timestamp), 'dd MMM yyyy')}</div>
             <div className="text-[10px] text-muted-foreground">{format(new Date(alert.timestamp), 'HH:mm')}</div>
-          </div>
-          <div className="rounded-lg border bg-card p-3 space-y-1">
+          </Card>
+          <Card compact>
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Type</div>
             <div className="text-xs font-medium">{meta.label}</div>
-          </div>
+          </Card>
         </div>
 
         {/* Variant context */}
         {pv && variantId && (
-          <div className="rounded-lg border bg-card">
+          <Card compact className="!p-0">
             <div className="px-4 py-2.5 border-b">
               <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Related Variant</p>
             </div>
@@ -193,22 +201,22 @@ export default function AlertObjectPage() {
                 )}>
                   {pv.current_stock} in stock
                 </span>
-                <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground/40" />
+                <Icon icon="chevron-right" size={14} className="text-muted-foreground/40" />
               </div>
             </Link>
-          </div>
+          </Card>
         )}
 
         {/* Dismissal reason */}
         {alert.dismissed_reason && (
-          <div className="rounded-lg border bg-muted/20 px-4 py-3">
+          <Card compact className="!bg-muted/20">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Dismissal Reason</p>
             <p className="text-xs text-foreground leading-relaxed">{alert.dismissed_reason}</p>
-          </div>
+          </Card>
         )}
 
         {/* Metadata */}
-        <div className="rounded-lg border bg-card divide-y text-xs">
+        <Card compact className="!p-0 divide-y text-xs">
           <div className="flex items-center justify-between px-4 py-2.5">
             <span className="text-muted-foreground">Alert ID</span>
             <span className="font-mono text-[10px]">{alert.id}</span>
@@ -217,7 +225,7 @@ export default function AlertObjectPage() {
             <span className="text-muted-foreground">User</span>
             <span className="font-mono text-[10px]">{alert.user_id}</span>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )
