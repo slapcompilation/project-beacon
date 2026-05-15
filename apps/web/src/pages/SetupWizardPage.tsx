@@ -1,13 +1,9 @@
 // Layer: Cross-layer — First-run onboarding wizard
 //
-// Hotel-structure-only setup. The previous flow asked for "First Product"
-// + "First Supplier" — those steps were broken (UUID error from missing
-// hotel context) and out-of-place: setup should establish the hotel SHAPE
-// (categories / locations / team), not jump to specific records.
+// Hotel-structure-only setup. Steps: (1) Hotel profile → (2) Categories →
+// (3) Locations → (4) Team → (5) Done. Every step is skippable.
 //
-// Steps: (1) Hotel profile → (2) Categories → (3) Locations → (4) Team → (5) Done
-// Every step is skippable. Wizard is accessible via /setup and prompted from
-// Briefing when the hotel has zero categories or locations.
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -15,15 +11,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-  Building2, FolderOpen, MapPin, Users, CheckCircle2,
-  ArrowRight, Loader2, X, Plus, Crown, User as UserIcon,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Button,
+  Card,
+  FormGroup,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useActiveHotel, useUpdateHotel } from '@/features/hotel/hooks'
 import { useCategories, useCreateCategory } from '@/features/categories/hooks'
@@ -32,13 +28,13 @@ import { useTeamMembers, useInviteTeamMember } from '@/features/team/hooks'
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
 
-const STEPS = [
-  { id: 1, icon: Building2,    label: 'Hotel profile' },
-  { id: 2, icon: FolderOpen,   label: 'Categories'    },
-  { id: 3, icon: MapPin,       label: 'Locations'     },
-  { id: 4, icon: Users,        label: 'Team'          },
-  { id: 5, icon: CheckCircle2, label: 'Ready'         },
-] as const
+const STEPS: { id: number; icon: IconName; label: string }[] = [
+  { id: 1, icon: 'office',       label: 'Hotel profile' },
+  { id: 2, icon: 'folder-open',  label: 'Categories'    },
+  { id: 3, icon: 'map-marker',   label: 'Locations'     },
+  { id: 4, icon: 'people',       label: 'Team'          },
+  { id: 5, icon: 'tick-circle',  label: 'Ready'         },
+]
 
 // ─── Step 1 — Hotel profile ───────────────────────────────────────────────────
 
@@ -83,42 +79,58 @@ function StepHotel({ onNext, onSkip }: { onNext: () => void; onSkip: () => void 
   }
 
   return (
-    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4">
-      <div className="space-y-1">
-        <Label>Hotel name *</Label>
-        <Input {...register('name')} placeholder="Grand Beacon Hotel" />
-        {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-      </div>
+    <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+      <FormGroup
+        label="Hotel name *"
+        intent={errors.name ? Intent.DANGER : Intent.NONE}
+        helperText={errors.name?.message}
+      >
+        <InputGroup
+          {...register('name')}
+          placeholder="Grand Beacon Hotel"
+          intent={errors.name ? Intent.DANGER : Intent.NONE}
+        />
+      </FormGroup>
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label>Currency *</Label>
-          <Input {...register('currency')} placeholder="USD" maxLength={3} className="uppercase" />
-          {errors.currency && <p className="text-xs text-red-500">{errors.currency.message}</p>}
-        </div>
-        <div className="space-y-1">
-          <Label>Timezone *</Label>
-          <Input {...register('timezone')} placeholder="America/New_York" />
-          {errors.timezone && <p className="text-xs text-red-500">{errors.timezone.message}</p>}
-        </div>
+        <FormGroup
+          label="Currency *"
+          intent={errors.currency ? Intent.DANGER : Intent.NONE}
+          helperText={errors.currency?.message}
+        >
+          <InputGroup
+            {...register('currency')}
+            placeholder="USD"
+            maxLength={3}
+            className="uppercase"
+            intent={errors.currency ? Intent.DANGER : Intent.NONE}
+          />
+        </FormGroup>
+        <FormGroup
+          label="Timezone *"
+          intent={errors.timezone ? Intent.DANGER : Intent.NONE}
+          helperText={errors.timezone?.message}
+        >
+          <InputGroup
+            {...register('timezone')}
+            placeholder="America/New_York"
+            intent={errors.timezone ? Intent.DANGER : Intent.NONE}
+          />
+        </FormGroup>
       </div>
-      <div className="space-y-1">
-        <Label>Address <span className="text-muted-foreground">(optional)</span></Label>
-        <Input {...register('address')} placeholder="123 Main St, City" />
-      </div>
+      <FormGroup label="Address" labelInfo="(optional)">
+        <InputGroup {...register('address')} placeholder="123 Main St, City" />
+      </FormGroup>
       <WizardActions isSubmitting={isSubmitting} onSkip={onSkip} submitLabel="Save & continue" />
     </form>
   )
 }
 
 // ─── Inline-list step shell ──────────────────────────────────────────────────
-// Categories / Locations / Team all share the same shape: show what's there,
-// inline form to add, skip moves on. Each item-row is plain text (the wizard
-// is a setup pass, not a settings page).
 
-function ItemRow({ icon: Icon, label, sub }: { icon: React.ElementType; label: string; sub?: string }) {
+function ItemRow({ icon, label, sub }: { icon: IconName; label: string; sub?: string }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2 rounded border bg-muted/20">
-      <Icon className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+      <Icon icon={icon} size={14} className="text-muted-foreground flex-shrink-0" />
       <span className="text-sm flex-1 truncate">{label}</span>
       {sub && <span className="text-[10px] text-muted-foreground shrink-0">{sub}</span>}
     </div>
@@ -149,27 +161,26 @@ function StepCategories({ onNext, onSkip }: { onNext: () => void; onSkip: () => 
       {topLevel.length > 0 && (
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
           {topLevel.map((c) => (
-            <ItemRow key={c.id} icon={FolderOpen} label={c.name} />
+            <ItemRow key={c.id} icon="folder-open" label={c.name} />
           ))}
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <Input
+        <InputGroup
           value={name}
           onChange={(e) => { setName(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleAdd() } }}
           placeholder="e.g. Beverages"
-          className="h-8 text-sm"
+          className="flex-1"
         />
         <Button
-          type="button"
-          size="sm"
+          icon="plus"
+          intent={Intent.PRIMARY}
           onClick={() => void handleAdd()}
-          disabled={!name.trim() || createCategory.isPending}
-          className="gap-1.5 h-8"
+          disabled={!name.trim()}
+          loading={createCategory.isPending}
         >
-          {createCategory.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
           Add
         </Button>
       </div>
@@ -208,27 +219,26 @@ function StepLocations({ onNext, onSkip }: { onNext: () => void; onSkip: () => v
       {topLevel.length > 0 && (
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
           {topLevel.map((l) => (
-            <ItemRow key={l.id} icon={MapPin} label={l.name} />
+            <ItemRow key={l.id} icon="map-marker" label={l.name} />
           ))}
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <Input
+        <InputGroup
           value={name}
           onChange={(e) => { setName(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void handleAdd() } }}
           placeholder="e.g. Main bar"
-          className="h-8 text-sm"
+          className="flex-1"
         />
         <Button
-          type="button"
-          size="sm"
+          icon="plus"
+          intent={Intent.PRIMARY}
           onClick={() => void handleAdd()}
-          disabled={!name.trim() || createLocation.isPending}
-          className="gap-1.5 h-8"
+          disabled={!name.trim()}
+          loading={createLocation.isPending}
         >
-          {createLocation.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
           Add
         </Button>
       </div>
@@ -263,7 +273,7 @@ function StepTeam({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
   const role = watch('role')
 
   const onAdd = async (data: InviteForm) => {
-    if (!data.email) return  // user just hit submit without entering an email — no-op
+    if (!data.email) return
     await invite.mutateAsync({ email: data.email, role: data.role })
     reset({ email: '', role: data.role })
   }
@@ -271,49 +281,43 @@ function StepTeam({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground leading-relaxed">
-        Invite teammates by email. They'll get an invite link to sign in. You can manage roles later from Settings → Team.
+        Invite teammates by email. They&apos;ll get an invite link to sign in. You can manage roles later from Settings → Team.
       </p>
 
       {members.length > 0 && (
         <div className="space-y-1.5 max-h-40 overflow-y-auto">
-          {members.map((m) => {
-            const Icon = m.role === 'owner' ? Crown : UserIcon
-            return (
-              <ItemRow
-                key={m.id}
-                icon={Icon}
-                label={m.email}
-                sub={m.role}
-              />
-            )
-          })}
+          {members.map((m) => (
+            <ItemRow
+              key={m.id}
+              icon={m.role === 'owner' ? 'crown' : 'user'}
+              label={m.email}
+              sub={m.role}
+            />
+          ))}
         </div>
       )}
 
       <form onSubmit={(e) => { void handleSubmit(onAdd)(e) }} className="space-y-2">
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Input
+          <InputGroup
             type="email"
             {...register('email')}
             placeholder="colleague@hotel.com"
-            className="h-8 text-sm"
+            intent={errors.email ? Intent.DANGER : Intent.NONE}
           />
-          <Select
+          <HTMLSelect
             value={role}
-            onValueChange={(v) => { reset({ email: watch('email'), role: v as InviteForm['role'] }) }}
-          >
-            <SelectTrigger className="h-8 text-sm w-36"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="team_member">Team Member</SelectItem>
-              <SelectItem value="limited_access">Limited Access</SelectItem>
-            </SelectContent>
-          </Select>
+            onChange={(e) => { reset({ email: watch('email'), role: e.target.value as InviteForm['role'] }) }}
+            options={[
+              { value: 'admin',          label: 'Admin' },
+              { value: 'team_member',    label: 'Team Member' },
+              { value: 'limited_access', label: 'Limited Access' },
+            ]}
+          />
         </div>
         {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
         <div className="flex justify-end">
-          <Button type="submit" size="sm" disabled={isSubmitting} className="gap-1.5 h-8">
-            {isSubmitting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+          <Button type="submit" icon="plus" intent={Intent.PRIMARY} loading={isSubmitting}>
             Send invite
           </Button>
         </div>
@@ -343,27 +347,22 @@ function StepDone() {
   return (
     <div className="space-y-5">
       <div className="flex flex-col items-center gap-2 py-4 text-center">
-        <CheckCircle2 className="h-10 w-10 text-green-500" />
-        <p className="text-base font-semibold">You're ready</p>
+        <Icon icon="tick-circle" size={40} intent={Intent.SUCCESS} />
+        <p className="text-base font-semibold">You&apos;re ready</p>
         <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
           Your hotel structure is set up. Add products, suppliers, and stock from the operations layers.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {WORKSPACE_LINKS.map((l) => (
-          <button
-            key={l.path}
-            type="button"
-            onClick={() => { void navigate(l.path) }}
-            className="rounded-lg border p-3 text-left hover:bg-muted/40 transition-colors"
-          >
+          <Card key={l.path} interactive onClick={() => { void navigate(l.path) }} compact>
             <p className="text-xs font-semibold">{l.label}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">{l.hint}</p>
-          </button>
+          </Card>
         ))}
       </div>
-      <Button className="w-full" onClick={() => { void navigate('/briefing') }}>
-        Go to Briefing →
+      <Button fill intent={Intent.PRIMARY} endIcon="arrow-right" onClick={() => { void navigate('/briefing') }}>
+        Go to Briefing
       </Button>
     </div>
   )
@@ -377,29 +376,20 @@ function WizardActions({
   isSubmitting: boolean
   onSkip:       () => void
   submitLabel:  string
-  /** When provided, the action row renders a button instead of a form-submit
-   *  (used by inline-list steps that aren't wrapped in a single-form). */
+  /** When provided, the action row renders a button instead of a form-submit. */
   onSubmit?:    () => void
 }) {
   return (
     <div className="flex items-center justify-between pt-2">
-      <button
-        type="button"
-        onClick={onSkip}
-        className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-      >
+      <Button variant="minimal" size="small" onClick={onSkip}>
         Skip this step
-      </button>
+      </Button>
       {onSubmit ? (
-        <Button type="button" size="sm" onClick={onSubmit} disabled={isSubmitting} className="gap-1.5">
-          <ArrowRight className="h-3.5 w-3.5" />
+        <Button type="button" icon="arrow-right" intent={Intent.PRIMARY} onClick={onSubmit} disabled={isSubmitting}>
           {submitLabel}
         </Button>
       ) : (
-        <Button type="submit" size="sm" disabled={isSubmitting} className="gap-1.5">
-          {isSubmitting
-            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            : <ArrowRight className="h-3.5 w-3.5" />}
+        <Button type="submit" icon="arrow-right" intent={Intent.PRIMARY} loading={isSubmitting}>
           {submitLabel}
         </Button>
       )}
@@ -415,7 +405,6 @@ function Stepper({ current }: { current: number }) {
       {STEPS.map((s, i) => {
         const done    = s.id < current
         const active  = s.id === current
-        const Icon    = s.icon
         return (
           <div key={s.id} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center gap-1">
@@ -426,8 +415,8 @@ function Stepper({ current }: { current: number }) {
                          'border-muted-foreground/30 bg-muted/20',
               )}>
                 {done
-                  ? <CheckCircle2 className="h-4 w-4 text-primary-foreground" />
-                  : <Icon className={cn('h-4 w-4', active ? 'text-primary' : 'text-muted-foreground/40')} />}
+                  ? <Icon icon="tick-circle" size={14} className="text-primary-foreground" />
+                  : <Icon icon={s.icon} size={14} className={active ? 'text-primary' : 'text-muted-foreground/40'} />}
               </div>
               <span className={cn('text-[9px] font-medium uppercase tracking-wide whitespace-nowrap',
                 active ? 'text-primary' : done ? 'text-foreground' : 'text-muted-foreground/40',
@@ -464,25 +453,23 @@ export default function SetupWizardPage() {
             <h1 className="text-xl font-semibold">Set up your hotel</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Step {step} of {STEPS.length}</p>
           </div>
-          <button
-            type="button"
+          <Button
+            icon="cross"
+            variant="minimal"
+            aria-label="Exit wizard"
             onClick={() => { void navigate('/briefing') }}
-            className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            title="Exit wizard"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          />
         </div>
 
         <Stepper current={step} />
 
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <Card>
           {step === 1 && <StepHotel       onNext={next} onSkip={next} />}
           {step === 2 && <StepCategories  onNext={next} onSkip={next} />}
           {step === 3 && <StepLocations   onNext={next} onSkip={next} />}
           {step === 4 && <StepTeam        onNext={next} onSkip={next} />}
           {step === 5 && <StepDone />}
-        </div>
+        </Card>
       </div>
     </div>
   )

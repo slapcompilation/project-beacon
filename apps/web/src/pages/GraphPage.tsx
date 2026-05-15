@@ -3,17 +3,20 @@
 // Surfaces the causal edge graph (consumes → restocks → reverts → alerts)
 // for any variant. Operators investigate: "how did stock get here?"
 // Palantir principle: auditability as a first-class feature.
-// Sprint A: added node-type browser to explore the full ontology.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState, useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import {
-  Network, Search, Package, ChevronDown, ChevronRight,
-  TrendingDown, TrendingUp, Minus, Info,
-  Truck, ShoppingCart, GitBranch,
-} from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useProducts } from '@/features/inventory/hooks'
@@ -30,10 +33,10 @@ import type { ProductWithVariants, ProductVariant } from '@beacon/types'
 
 type BrowseNodeType = 'variant' | 'supplier' | 'restock_request'
 
-const NODE_TYPE_TABS: { id: BrowseNodeType; label: string; icon: React.ElementType }[] = [
-  { id: 'variant',         label: 'Variants',  icon: Package },
-  { id: 'supplier',        label: 'Suppliers',  icon: Truck },
-  { id: 'restock_request', label: 'Restocks',   icon: ShoppingCart },
+const NODE_TYPE_TABS: { id: BrowseNodeType; label: string; icon: IconName }[] = [
+  { id: 'variant',         label: 'Variants',  icon: 'box' },
+  { id: 'supplier',        label: 'Suppliers', icon: 'truck' },
+  { id: 'restock_request', label: 'Restocks',  icon: 'shop' },
 ]
 
 // ─── Variant health dot ────────────────────────────────────────────────────────
@@ -68,7 +71,6 @@ interface VariantEntry {
 }
 
 function VariantSelector({ products, selectedId, onSelect, search, onSearch }: VariantSelectorProps) {
-  // Flat list filtered by search
   const flat = useMemo<VariantEntry[]>(() => {
     const q = search.trim().toLowerCase()
     const entries: VariantEntry[] = []
@@ -88,7 +90,6 @@ function VariantSelector({ products, selectedId, onSelect, search, onSearch }: V
     return entries
   }, [products, search])
 
-  // Group by product for display when not searching
   const grouped = useMemo<{ product: ProductWithVariants; variants: VariantEntry[] }[]>(() => {
     const map = new Map<string, { product: ProductWithVariants; variants: VariantEntry[] }>()
     for (const entry of flat) {
@@ -117,26 +118,20 @@ function VariantSelector({ products, selectedId, onSelect, search, onSearch }: V
 
   return (
     <div className="flex flex-col h-full border-r">
-      {/* Search */}
       <div className="p-3 border-b flex-shrink-0">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search variants or SKU…"
-            value={search}
-            onChange={(e) => { onSearch(e.target.value) }}
-            className="pl-8 h-8 text-sm"
-          />
-        </div>
+        <InputGroup
+          leftIcon="search"
+          placeholder="Search variants or SKU…"
+          value={search}
+          onChange={(e) => { onSearch(e.target.value) }}
+        />
         <p className="mt-1.5 text-[10px] text-muted-foreground">
           {flat.length} variant{flat.length !== 1 ? 's' : ''}
         </p>
       </div>
 
-      {/* List */}
       <div className="flex-1 overflow-y-auto">
         {isSearching ? (
-          // Flat search results
           <div className="space-y-0.5 p-2">
             {flat.map(({ variant, displayName }) => (
               <button
@@ -164,29 +159,24 @@ function VariantSelector({ products, selectedId, onSelect, search, onSearch }: V
             ))}
           </div>
         ) : (
-          // Grouped by product
           <div className="py-1">
             {grouped.map(({ product, variants }) => {
               const isOpen = !collapsed.has(product.id)
               return (
                 <div key={product.id}>
-                  {/* Product header */}
                   <button
                     type="button"
                     onClick={() => { toggle(product.id) }}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-left hover:bg-muted/50 transition-colors"
                   >
-                    {isOpen
-                      ? <ChevronDown className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      : <ChevronRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />}
-                    <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                    <Icon icon={isOpen ? 'chevron-down' : 'chevron-right'} size={12} className="text-muted-foreground flex-shrink-0" />
+                    <Icon icon="box" size={12} className="text-muted-foreground flex-shrink-0" />
                     <span className="flex-1 truncate text-xs font-semibold">{product.name}</span>
                     <span className="text-[10px] text-muted-foreground tabular-nums">
                       {variants.length}
                     </span>
                   </button>
 
-                  {/* Variant rows */}
                   {isOpen && variants.map(({ variant, displayName }) => (
                     <button
                       key={variant.id}
@@ -257,16 +247,12 @@ function VariantHeader({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-base font-semibold">{selected.displayName}</h2>
-          <Badge variant="outline" className={cn(
-            'text-[10px] h-5 px-1.5 font-semibold',
-            stockStatus === 'out'
-              ? 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400'
-              : stockStatus === 'low'
-                ? 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400'
-                : 'border-green-300 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400',
-          )}>
+          <Tag
+            minimal
+            intent={stockStatus === 'out' ? Intent.DANGER : stockStatus === 'low' ? Intent.WARNING : Intent.SUCCESS}
+          >
             {stockStatus === 'out' ? 'Out of stock' : stockStatus === 'low' ? 'Low stock' : 'In stock'}
-          </Badge>
+          </Tag>
         </div>
         <p className="mt-0.5 text-xs text-muted-foreground font-mono">{selected.sku}</p>
       </div>
@@ -307,7 +293,6 @@ interface SelectedNode {
   type: BrowseNodeType
   id: string
   displayName: string
-  // Variant-specific fields (only when type === 'variant')
   sku?: string
   stock?: number
   cost?: number
@@ -325,7 +310,6 @@ export default function GraphPage() {
   const [browseType, setBrowseType] = useState<BrowseNodeType>('variant')
   const [selected, setSelected] = useState<SelectedNode | null>(null)
 
-  // Restore selected variant from URL on mount / when products load
   const urlVariantId = searchParams.get('variant')
   useEffect(() => {
     if (!urlVariantId || products.length === 0 || selected?.id === urlVariantId) return
@@ -349,7 +333,6 @@ export default function GraphPage() {
     [products],
   )
 
-  // Filter suppliers by search
   const filteredSuppliers = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return suppliers
@@ -358,7 +341,6 @@ export default function GraphPage() {
     )
   }, [suppliers, search])
 
-  // Filter restocks by search
   const filteredRestocks = useMemo(() => {
     const q = search.trim().toLowerCase()
     if (!q) return restocks
@@ -374,7 +356,7 @@ export default function GraphPage() {
       <div className="page-header justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <GitBranch className="h-4 w-4 text-primary" />
+            <Icon icon="git-branch" size={14} intent={Intent.PRIMARY} />
             <h1 className="text-base font-semibold">Ontology Browser</h1>
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -384,7 +366,7 @@ export default function GraphPage() {
           </p>
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Info className="h-3.5 w-3.5" />
+          <Icon icon="info-sign" size={14} />
           <span>Browse any entity to see its graph connections</span>
         </div>
       </div>
@@ -396,25 +378,22 @@ export default function GraphPage() {
         <div className="w-64 flex-shrink-0 flex flex-col border-r border-border bg-surface-1">
           {/* Node type tabs */}
           <div className="flex border-b border-border shrink-0">
-            {NODE_TYPE_TABS.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => { setBrowseType(tab.id); setSelected(null) }}
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-medium border-b-2 transition-colors',
-                    browseType === tab.id
-                      ? 'border-primary text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-3 w-3" />
-                  {tab.label}
-                </button>
-              )
-            })}
+            {NODE_TYPE_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => { setBrowseType(tab.id); setSelected(null) }}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-[10px] font-medium border-b-2 transition-colors',
+                  browseType === tab.id
+                    ? 'border-primary text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon icon={tab.icon} size={12} />
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Variant list */}
@@ -432,15 +411,12 @@ export default function GraphPage() {
           {browseType === 'supplier' && (
             <div className="flex flex-col h-full">
               <div className="p-3 border-b flex-shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search suppliers…"
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value) }}
-                    className="pl-8 h-8 text-sm"
-                  />
-                </div>
+                <InputGroup
+                  leftIcon="search"
+                  placeholder="Search suppliers…"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value) }}
+                />
                 <p className="mt-1.5 text-[10px] text-muted-foreground">
                   {filteredSuppliers.length} supplier{filteredSuppliers.length !== 1 ? 's' : ''}
                 </p>
@@ -456,7 +432,7 @@ export default function GraphPage() {
                       selected?.id === s.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                     )}
                   >
-                    <Truck className="h-3 w-3 flex-shrink-0" />
+                    <Icon icon="truck" size={12} className="flex-shrink-0" />
                     <span className="flex-1 truncate font-medium">{s.name}</span>
                   </button>
                 ))}
@@ -468,15 +444,12 @@ export default function GraphPage() {
           {browseType === 'restock_request' && (
             <div className="flex flex-col h-full">
               <div className="p-3 border-b flex-shrink-0">
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    placeholder="Search restocks…"
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value) }}
-                    className="pl-8 h-8 text-sm"
-                  />
-                </div>
+                <InputGroup
+                  leftIcon="search"
+                  placeholder="Search restocks…"
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value) }}
+                />
                 <p className="mt-1.5 text-[10px] text-muted-foreground">
                   {filteredRestocks.length} request{filteredRestocks.length !== 1 ? 's' : ''}
                 </p>
@@ -492,9 +465,9 @@ export default function GraphPage() {
                       selected?.id === r.id ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
                     )}
                   >
-                    <ShoppingCart className="h-3 w-3 flex-shrink-0" />
+                    <Icon icon="shop" size={12} className="flex-shrink-0" />
                     <span className="flex-1 truncate font-medium">#{r.id.slice(0, 8)}</span>
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4">{r.status}</Badge>
+                    <Tag minimal>{r.status}</Tag>
                   </button>
                 ))}
               </div>
@@ -518,10 +491,9 @@ export default function GraphPage() {
               />
               <div className="flex-1 overflow-y-auto px-5 py-4">
                 <div className="max-w-2xl space-y-6">
-                  {/* Graph connections */}
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <GitBranch className="h-4 w-4 text-muted-foreground" />
+                      <Icon icon="git-branch" size={14} className="text-muted-foreground" />
                       <span className="text-sm font-semibold">Graph Connections</span>
                     </div>
                     <PanelErrorBoundary name="Graph Connections">
@@ -529,10 +501,9 @@ export default function GraphPage() {
                     </PanelErrorBoundary>
                   </div>
 
-                  {/* Causal Edge Timeline */}
                   <div>
                     <div className="flex items-center gap-2 mb-3">
-                      <Network className="h-4 w-4 text-muted-foreground" />
+                      <Icon icon="diagram-tree" size={14} className="text-muted-foreground" />
                       <span className="text-sm font-semibold">Causal Edge Timeline</span>
                       <span className="text-xs text-muted-foreground">
                         · most recent first · revert chains shown inline
@@ -544,12 +515,11 @@ export default function GraphPage() {
               </div>
             </>
           ) : selected ? (
-            /* Non-variant node: show name + graph connections */
             <div className="flex-1 overflow-y-auto">
               <div className="flex items-start gap-4 border-b px-5 py-3 bg-surface-1 flex-shrink-0">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                  {browseType === 'supplier' && <Truck className="h-4 w-4" />}
-                  {browseType === 'restock_request' && <ShoppingCart className="h-4 w-4" />}
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/15 text-primary">
+                  {browseType === 'supplier' && <Icon icon="truck" size={14} />}
+                  {browseType === 'restock_request' && <Icon icon="shop" size={14} />}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-base font-semibold">{selected.displayName}</h2>
@@ -562,7 +532,7 @@ export default function GraphPage() {
               <div className="px-5 py-4 max-w-2xl space-y-5">
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <GitBranch className="h-4 w-4 text-muted-foreground" />
+                    <Icon icon="git-branch" size={14} className="text-muted-foreground" />
                     <span className="text-sm font-semibold">Graph Connections</span>
                   </div>
                   <PanelErrorBoundary name="Graph Connections">
@@ -572,30 +542,25 @@ export default function GraphPage() {
               </div>
             </div>
           ) : (
-            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center px-5">
-              <div className="rounded-full bg-muted/50 p-5">
-                <Network className="h-10 w-10 text-muted-foreground/50" />
-              </div>
-              <div>
-                <p className="text-base font-medium">Select an entity</p>
-                <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-                  Choose any node from the left panel to explore its graph connections,
-                  edge relationships, and causal history.
-                </p>
-              </div>
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-5">
+              <NonIdealState
+                icon="diagram-tree"
+                title="Select an entity"
+                description="Choose any node from the left panel to explore its graph connections, edge relationships, and causal history."
+              />
               <div className="grid grid-cols-3 gap-3 mt-2 text-left max-w-lg">
-                {[
-                  { icon: TrendingDown, label: 'consumes', desc: 'Stock removed via adjustment or scan', cls: 'text-slate-500' },
-                  { icon: TrendingUp,   label: 'restocks',  desc: 'Stock added via restock receive',    cls: 'text-green-500' },
-                  { icon: Minus,        label: 'reverts',   desc: 'Correction of a prior event',        cls: 'text-amber-500' },
-                ].map(({ icon: Icon, label, desc, cls }) => (
-                  <div key={label} className="rounded-lg border bg-card p-3">
+                {([
+                  { icon: 'trending-down', label: 'consumes', desc: 'Stock removed via adjustment or scan', cls: 'text-slate-500' },
+                  { icon: 'trending-up',   label: 'restocks',  desc: 'Stock added via restock receive',    cls: 'text-green-500' },
+                  { icon: 'minus',         label: 'reverts',   desc: 'Correction of a prior event',        cls: 'text-amber-500' },
+                ] as const).map(({ icon, label, desc, cls }) => (
+                  <Card key={label} compact>
                     <div className={cn('flex items-center gap-1.5 mb-1', cls)}>
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon icon={icon} size={14} />
                       <span className="text-xs font-semibold">{label}</span>
                     </div>
                     <p className="text-[11px] text-muted-foreground">{desc}</p>
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
