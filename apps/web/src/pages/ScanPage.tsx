@@ -4,22 +4,27 @@
 //   - Auto-advance back to scan after success (2.5 s countdown)
 //   - Name-based product search fallback when SKU not found
 //   - Keyboard: Enter submits, Escape resets
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import {
-  RotateCcw, Plus, Minus, Loader2, Camera, X, CheckCircle2,
-  Clock, Search, ChevronRight, MapPin, Flag, AlertTriangle, Layers,
-} from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import {
+  Button,
+  Callout,
+  Card,
+  FormGroup,
+  Icon,
+  InputGroup,
+  Intent,
+  TextArea,
+  Tag,
+} from '@blueprintjs/core'
 import { BarcodeScanner } from '@/components/BarcodeScanner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { useProducts, useAdjustStock, useExpiringVariants } from '@/features/inventory/hooks'
 import { useLocations } from '@/features/locations/hooks'
@@ -117,7 +122,6 @@ function QuickAdjustForm({
 
   const qty = watch('quantity')
 
-  // Keyboard: Escape resets
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onReset()
@@ -158,7 +162,7 @@ function QuickAdjustForm({
   return (
     <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4">
       {/* Product info */}
-      <div className="rounded-xl border bg-muted/30 px-4 py-3 space-y-2">
+      <Card compact className="!bg-muted/30 space-y-2">
         <div>
           <p className="font-semibold">{match.product.name}</p>
           {match.variant.name !== 'Standard' && (
@@ -172,37 +176,29 @@ function QuickAdjustForm({
         {/* Eye Layer signals */}
         <div className="flex flex-wrap gap-1.5">
           {daysUntilZero !== null && (
-            <span className={cn(
-              'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border',
-              daysUntilZero <= 7
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : daysUntilZero <= 14
-                  ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
-                  : 'bg-muted border-border text-muted-foreground'
-            )}>
+            <Tag
+              intent={daysUntilZero <= 7 ? Intent.DANGER : daysUntilZero <= 14 ? Intent.WARNING : Intent.NONE}
+              minimal
+              round
+            >
               ~{Math.round(daysUntilZero)}d until zero
-            </span>
+            </Tag>
           )}
           {hasWaste && (
-            <span className="inline-flex items-center rounded-full border border-orange-200 bg-orange-50 px-2 py-0.5 text-[10px] font-semibold text-orange-700">
-              waste signal
-            </span>
+            <Tag intent={Intent.WARNING} minimal round>waste signal</Tag>
           )}
           {expiryDays !== null && expiryDays <= 30 && (
-            <span className={cn(
-              'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold border',
-              expiryDays <= 7
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : 'bg-yellow-50 border-yellow-200 text-yellow-700'
-            )}>
+            <Tag intent={expiryDays <= 7 ? Intent.DANGER : Intent.WARNING} minimal round>
               expires in {expiryDays}d
-            </span>
+            </Tag>
           )}
         </div>
-      </div>
+      </Card>
 
-      {/* Direction toggle */}
-      <div className="flex rounded-lg border overflow-hidden">
+      {/* Direction toggle — kept as bespoke because the green/red color story
+       *  is more salient than Blueprint's intent palette for this critical
+       *  add-vs-remove choice on the floor scan flow. */}
+      <div className="flex rounded border overflow-hidden">
         <button
           type="button"
           onClick={() => { setDirection('add') }}
@@ -211,7 +207,7 @@ function QuickAdjustForm({
             direction === 'add' ? 'bg-green-600 text-white' : 'bg-background text-muted-foreground hover:bg-muted'
           )}
         >
-          <Plus className="h-4 w-4" /> Add
+          <Icon icon="plus" size={14} /> Add
         </button>
         <button
           type="button"
@@ -221,61 +217,60 @@ function QuickAdjustForm({
             direction === 'remove' ? 'bg-red-600 text-white' : 'bg-background text-muted-foreground hover:bg-muted'
           )}
         >
-          <Minus className="h-4 w-4" /> Remove
+          <Icon icon="minus" size={14} /> Remove
         </button>
       </div>
 
       {/* Quantity + presets */}
-      <div className="space-y-1.5">
-        <Label htmlFor="qty">Quantity</Label>
+      <FormGroup
+        label="Quantity"
+        labelFor="qty"
+        intent={errors.quantity ? Intent.DANGER : Intent.NONE}
+        helperText={errors.quantity?.message ?? (costImpact > 0 ? `${formatCurrency(costImpact, currency)} cost impact` : undefined)}
+      >
         <div className="flex gap-2">
           {[1, 5, 10].map((n) => (
-            <button
+            <Button
               key={n}
-              type="button"
+              size="small"
+              intent={qty === n ? Intent.PRIMARY : Intent.NONE}
+              variant={qty === n ? 'solid' : 'outlined'}
               onClick={() => { setValue('quantity', n, { shouldValidate: true }) }}
-              className={cn(
-                'rounded border px-3 py-1.5 text-xs font-semibold transition-colors',
-                qty === n
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-muted-foreground hover:bg-muted'
-              )}
             >
               {n}
-            </button>
+            </Button>
           ))}
-          <Input
+          <InputGroup
             id="qty"
             type="number"
-            min="1"
-            step="1"
+            min={1}
+            step={1}
             className="flex-1"
+            intent={errors.quantity ? Intent.DANGER : Intent.NONE}
             {...register('quantity', { valueAsNumber: true })}
           />
         </div>
-        {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
-        {costImpact > 0 && (
-          <p className="text-xs text-muted-foreground">
-            {formatCurrency(costImpact, currency)} cost impact
-          </p>
-        )}
-      </div>
+      </FormGroup>
 
       {/* Reason */}
-      <div className="space-y-1.5">
-        <Label htmlFor="reason">Reason</Label>
-        <Textarea
+      <FormGroup
+        label="Reason"
+        labelFor="reason"
+        intent={errors.reason ? Intent.DANGER : Intent.NONE}
+        helperText={errors.reason?.message}
+      >
+        <TextArea
           id="reason"
           rows={2}
+          fill
           placeholder="e.g. Morning delivery…"
+          intent={errors.reason ? Intent.DANGER : Intent.NONE}
           {...register('reason')}
         />
-        {errors.reason && <p className="text-sm text-destructive">{errors.reason.message}</p>}
-      </div>
+      </FormGroup>
 
       {/* Photo */}
-      <div className="space-y-1.5">
-        <Label>Photo (optional)</Label>
+      <FormGroup label="Photo (optional)">
         <input
           ref={photoInputRef}
           type="file"
@@ -286,56 +281,45 @@ function QuickAdjustForm({
         />
         {photoPreview ? (
           <div className="relative inline-block">
-            <img src={photoPreview} alt="preview" className="h-20 w-20 rounded-lg object-cover border" />
-            <button
-              type="button"
+            <img src={photoPreview} alt="preview" className="h-20 w-20 rounded object-cover border" />
+            <Button
+              icon="cross"
+              variant="minimal"
+              intent={Intent.DANGER}
+              size="small"
+              aria-label="Clear photo"
               onClick={clearPhoto}
-              className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white"
-            >
-              <X className="h-3 w-3" />
-            </button>
+              className="!absolute -right-2 -top-2"
+            />
           </div>
         ) : (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => { photoInputRef.current?.click() }}
-          >
-            <Camera className="mr-2 h-4 w-4" />
+          <Button icon="camera" size="small" onClick={() => { photoInputRef.current?.click() }}>
             Take Photo
           </Button>
         )}
-      </div>
+      </FormGroup>
 
       {/* Flag for review */}
-      <button
-        type="button"
+      <Button
+        icon="flag"
+        fill
+        alignText="start"
+        intent={flagged ? Intent.WARNING : Intent.NONE}
         onClick={() => { setFlagged((f) => !f) }}
-        className={cn(
-          'flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors',
-          flagged
-            ? 'border-amber-400 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200'
-            : 'border-border bg-background text-muted-foreground hover:bg-muted',
-        )}
       >
-        <Flag className={cn('h-4 w-4 shrink-0', flagged ? 'text-amber-600' : '')} />
-        <span className="flex-1 text-left">
-          {flagged ? 'Flagged as approximate — manager will review' : 'Approximate count — flag for review'}
-        </span>
-      </button>
+        {flagged ? 'Flagged as approximate — manager will review' : 'Approximate count — flag for review'}
+      </Button>
 
       <div className="flex gap-2">
-        <Button type="button" variant="outline" onClick={onReset} className="flex-1">
-          <RotateCcw className="mr-2 h-4 w-4" />
+        <Button icon="undo" fill onClick={onReset}>
           Scan Again
         </Button>
         <Button
           type="submit"
-          disabled={isSubmitting}
-          className={cn('flex-1', direction === 'remove' && 'bg-red-600 hover:bg-red-700')}
+          fill
+          intent={direction === 'add' ? Intent.SUCCESS : Intent.DANGER}
+          loading={isSubmitting}
         >
-          {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           {direction === 'add' ? 'Add Stock' : 'Remove Stock'}
         </Button>
       </div>
@@ -372,7 +356,7 @@ function SuccessScreen({
 
   return (
     <div className="flex flex-col items-center gap-4 py-10 text-center">
-      <CheckCircle2 className="h-14 w-14 text-green-600" />
+      <Icon icon="tick-circle" size={56} className="text-green-600" />
       <div className="space-y-1">
         <p className="text-lg font-semibold">Stock updated</p>
         <p className="text-sm text-muted-foreground">
@@ -385,7 +369,6 @@ function SuccessScreen({
         </p>
       </div>
 
-      {/* Progress bar auto-advance */}
       <div className="w-full max-w-[200px] space-y-1.5">
         <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
           <div
@@ -401,8 +384,7 @@ function SuccessScreen({
         </p>
       </div>
 
-      <Button size="sm" variant="outline" onClick={onScanAgain}>
-        <RotateCcw className="mr-2 h-3.5 w-3.5" />
+      <Button icon="undo" size="small" onClick={onScanAgain}>
         Scan Now
       </Button>
     </div>
@@ -429,67 +411,65 @@ function NotFoundPanel({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-dashed px-4 py-5 text-center">
+      <Card compact className="!border-dashed text-center">
         <p className="font-medium">No product found</p>
         <p className="mt-1 text-sm text-muted-foreground">
           No product matched SKU{' '}
           <code className="rounded bg-muted px-1 py-0.5 text-xs">{lastCode}</code>
         </p>
-      </div>
+      </Card>
 
       {/* Name search fallback */}
-      <div className="space-y-2">
-        <Label htmlFor="name-search" className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Search className="h-3.5 w-3.5" />
-          Search by name or SKU
-        </Label>
-        <Input
+      <FormGroup
+        label={
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Icon icon="search" size={14} />
+            Search by name or SKU
+          </span>
+        }
+        labelFor="name-search"
+      >
+        <InputGroup
           id="name-search"
           placeholder="Type product name…"
           value={query}
           onChange={(e) => { setQuery(e.target.value) }}
           autoFocus
         />
-        {results.length > 0 && (
-          <div className="rounded-lg border divide-y overflow-hidden">
-            {results.map(({ product, variant }) => (
-              <button
-                key={`${product.id}-${variant.id}`}
-                type="button"
-                className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-muted transition-colors"
-                onClick={() => { onSelect({ product, variant }) }}
-              >
-                <div>
-                  <p className="text-sm font-medium">{product.name}</p>
-                  {variant.name !== 'Standard' && (
-                    <p className="text-xs text-muted-foreground">{variant.name}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    SKU {variant.sku} · {variant.current_stock} in stock
-                  </p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-              </button>
-            ))}
-          </div>
-        )}
-        {query.length >= 2 && results.length === 0 && (
-          <p className="py-2 text-center text-sm text-muted-foreground">No matches for "{query}"</p>
-        )}
-      </div>
+      </FormGroup>
+      {results.length > 0 && (
+        <Card compact className="!p-0 divide-y overflow-hidden">
+          {results.map(({ product, variant }) => (
+            <button
+              key={`${product.id}-${variant.id}`}
+              type="button"
+              className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-muted transition-colors"
+              onClick={() => { onSelect({ product, variant }) }}
+            >
+              <div>
+                <p className="text-sm font-medium">{product.name}</p>
+                {variant.name !== 'Standard' && (
+                  <p className="text-xs text-muted-foreground">{variant.name}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  SKU {variant.sku} · {variant.current_stock} in stock
+                </p>
+              </div>
+              <Icon icon="chevron-right" size={14} className="text-muted-foreground shrink-0" />
+            </button>
+          ))}
+        </Card>
+      )}
+      {query.length >= 2 && results.length === 0 && (
+        <p className="py-2 text-center text-sm text-muted-foreground">No matches for &quot;{query}&quot;</p>
+      )}
 
-      <Button variant="outline" onClick={onReset} className="w-full">
-        <RotateCcw className="mr-2 h-4 w-4" />
+      <Button icon="undo" fill onClick={onReset}>
         Try Scan Again
       </Button>
-      <button
-        type="button"
-        onClick={() => { onLogPending(lastCode) }}
-        className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
-      >
-        <AlertTriangle className="h-4 w-4" />
+      <Button icon="warning-sign" variant="outlined" fill onClick={() => { onLogPending(lastCode) }}>
         Log for manager review &amp; continue
-      </button>
+      </Button>
     </div>
   )
 }
@@ -502,38 +482,37 @@ function SessionHistory({ entries }: { entries: HistoryEntry[] }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
-        <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+        <Icon icon="time" size={14} className="text-muted-foreground" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           This session · {entries.length} scan{entries.length !== 1 ? 's' : ''}
         </p>
       </div>
       <div className="space-y-1">
         {entries.map((entry, i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between rounded-lg border bg-muted/30 px-3 py-2"
-          >
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-medium">{entry.productName}</p>
-              {entry.variantName !== 'Standard' && (
-                <p className="truncate text-[10px] text-muted-foreground">{entry.variantName}</p>
-              )}
+          <Card key={i} compact className="!bg-muted/30">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium">{entry.productName}</p>
+                {entry.variantName !== 'Standard' && (
+                  <p className="truncate text-[10px] text-muted-foreground">{entry.variantName}</p>
+                )}
+              </div>
+              <div className="ml-3 flex shrink-0 items-center gap-2.5">
+                <span className={cn(
+                  'text-xs font-bold tabular-nums',
+                  entry.delta > 0 ? 'text-green-600' : 'text-red-600',
+                )}>
+                  {entry.delta > 0 ? '+' : ''}{entry.delta}
+                </span>
+                <span className="text-[10px] text-muted-foreground tabular-nums">
+                  {entry.newStock} stk
+                </span>
+                <span className="text-[10px] text-muted-foreground">
+                  {formatDistanceToNow(entry.ts, { addSuffix: true })}
+                </span>
+              </div>
             </div>
-            <div className="ml-3 flex shrink-0 items-center gap-2.5">
-              <span className={cn(
-                'text-xs font-bold tabular-nums',
-                entry.delta > 0 ? 'text-green-600' : 'text-red-600',
-              )}>
-                {entry.delta > 0 ? '+' : ''}{entry.delta}
-              </span>
-              <span className="text-[10px] text-muted-foreground tabular-nums">
-                {entry.newStock} stk
-              </span>
-              <span className="text-[10px] text-muted-foreground">
-                {formatDistanceToNow(entry.ts, { addSuffix: true })}
-              </span>
-            </div>
-          </div>
+          </Card>
         ))}
       </div>
     </div>
@@ -544,27 +523,26 @@ function SessionHistory({ entries }: { entries: HistoryEntry[] }) {
 
 function OnboardingBanner({ onDismiss }: { onDismiss: () => void }) {
   return (
-    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
+    <Callout intent={Intent.PRIMARY} icon={null} className="!relative">
       <div className="flex items-start gap-3">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold">
           1
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Welcome to Floor Scan</p>
-          <p className="mt-0.5 text-xs text-blue-700 dark:text-blue-300">
+          <p className="text-sm font-semibold">Welcome to Floor Scan</p>
+          <p className="mt-0.5 text-xs">
             Tap <strong>Start Camera</strong> and point it at any product barcode. Use the location filter to pre-sort your items. Adjustments sync automatically — even offline.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="shrink-0 text-blue-400 hover:text-blue-600"
+        <Button
+          icon="cross"
+          variant="minimal"
+          size="small"
           aria-label="Dismiss"
-        >
-          <X className="h-4 w-4" />
-        </button>
+          onClick={onDismiss}
+        />
       </div>
-    </div>
+    </Callout>
   )
 }
 
@@ -593,7 +571,6 @@ export default function ScanPage() {
     () => !localStorage.getItem(ONBOARDED_KEY),
   )
 
-  // Location-aware filtering
   const visibleProducts = useMemo(() => {
     if (!selectedLocationId) return products
     return products.filter((p) =>
@@ -694,12 +671,10 @@ export default function ScanPage() {
           </p>
         </div>
         <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0 gap-1.5 text-xs"
+          icon="layers"
+          size="small"
           onClick={() => { void navigate('/scan/ar') }}
         >
-          <Layers className="h-3.5 w-3.5" />
           AR Preview
         </Button>
       </div>
@@ -707,33 +682,29 @@ export default function ScanPage() {
       {/* Location filter */}
       {locations.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <button
-            type="button"
+          <Icon icon="map-marker" size={14} className="shrink-0 text-muted-foreground" />
+          <Tag
+            interactive
+            round
+            minimal={!!selectedLocationId}
+            intent={!selectedLocationId ? Intent.PRIMARY : Intent.NONE}
             onClick={() => { handleLocationChange(null) }}
-            className={cn(
-              'shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-              !selectedLocationId
-                ? 'bg-primary text-primary-foreground border-primary'
-                : 'bg-background text-muted-foreground hover:bg-muted',
-            )}
+            className="shrink-0"
           >
             All
-          </button>
+          </Tag>
           {locations.map((loc) => (
-            <button
+            <Tag
               key={loc.id}
-              type="button"
+              interactive
+              round
+              minimal={selectedLocationId !== loc.id}
+              intent={selectedLocationId === loc.id ? Intent.PRIMARY : Intent.NONE}
               onClick={() => { handleLocationChange(loc.id) }}
-              className={cn(
-                'shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors',
-                selectedLocationId === loc.id
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background text-muted-foreground hover:bg-muted',
-              )}
+              className="shrink-0"
             >
               {loc.name}
-            </button>
+            </Tag>
           ))}
         </div>
       )}
