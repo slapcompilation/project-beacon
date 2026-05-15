@@ -2,14 +2,24 @@
 // Palantir principle: auditability as a first-class feature.
 // After every stocktake, surface the unexplained variance — the gap between
 // what the system accounts for (write-offs + receives) and what was physically counted.
-// Unexplained deficit = potential shrinkage/theft signal that needs investigation.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import { format, formatDuration, intervalToDuration } from 'date-fns'
 import {
-  AlertTriangle, CheckCircle2, Loader2, Search, TrendingDown,
-  TrendingUp, Minus, Package, ClipboardList, ShieldAlert,
-} from 'lucide-react'
+  Card,
+  Callout,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -50,14 +60,13 @@ function SessionCard({
   const hasAnomalies = session.anomaly_items > 0
 
   return (
-    <button
-      type="button"
+    <Card
+      compact
+      interactive
       onClick={onSelect}
       className={cn(
-        'w-full text-left rounded-lg border px-4 py-3 transition-colors space-y-2',
-        selected
-          ? 'border-primary bg-primary/5'
-          : 'hover:bg-muted/40',
+        'space-y-2',
+        selected && '!border-primary !bg-primary/5',
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -75,7 +84,7 @@ function SessionCard({
           )}
         </div>
         {hasAnomalies && (
-          <ShieldAlert className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+          <Icon icon="shield" size={14} className="text-red-500 shrink-0 mt-0.5" />
         )}
       </div>
 
@@ -98,7 +107,7 @@ function SessionCard({
           {fmt(session.total_variance_cost, currency)} unexplained variance
         </p>
       )}
-    </button>
+    </Card>
   )
 }
 
@@ -115,41 +124,41 @@ function SessionSummaryStrip({
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Coverage</p>
         <p className="text-2xl font-bold tabular-nums">{pct}%</p>
         <p className="text-[10px] text-muted-foreground">{session.counted_lines} of {session.total_lines} variants counted</p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Variance Items</p>
         <p className="text-2xl font-bold tabular-nums">{session.variance_items}</p>
         <p className="text-[10px] text-muted-foreground">counted ≠ system snapshot</p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Anomalies</p>
         <p className={cn('text-2xl font-bold tabular-nums', session.anomaly_items > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400')}>
           {session.anomaly_items}
         </p>
         <p className="text-[10px] text-muted-foreground">unexplained ≥3 units or ≥$25</p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card compact>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Unexplained Value</p>
         <p className={cn('text-2xl font-bold tabular-nums', session.total_variance_cost > 0 ? 'text-red-600 dark:text-red-400' : '')}>
           {fmt(session.total_variance_cost, currency)}
         </p>
         <p className="text-[10px] text-muted-foreground">|unexplained| × unit cost</p>
-      </div>
+      </Card>
     </div>
   )
 }
 
 // ─── Variance Table ───────────────────────────────────────────────────────────
 
-const DIRECTION_META = {
-  deficit:  { icon: TrendingDown, cls: 'text-red-600 dark:text-red-400',     label: 'Deficit'  },
-  surplus:  { icon: TrendingUp,   cls: 'text-amber-600 dark:text-amber-400', label: 'Surplus'  },
-  exact:    { icon: Minus,        cls: 'text-emerald-600 dark:text-emerald-400', label: 'Exact' },
-} as const
+const DIRECTION_META: Record<StocktakeVarianceRow['direction'], { icon: IconName; cls: string; label: string }> = {
+  deficit: { icon: 'trending-down', cls: 'text-red-600 dark:text-red-400',         label: 'Deficit' },
+  surplus: { icon: 'trending-up',   cls: 'text-amber-600 dark:text-amber-400',     label: 'Surplus' },
+  exact:   { icon: 'minus',         cls: 'text-emerald-600 dark:text-emerald-400', label: 'Exact'   },
+}
 
 function VarianceRow({
   row,
@@ -160,7 +169,6 @@ function VarianceRow({
 }) {
   const [open, setOpen] = useState(false)
   const meta = DIRECTION_META[row.direction]
-  const Icon = meta.icon
 
   return (
     <>
@@ -173,7 +181,7 @@ function VarianceRow({
       >
         {/* Anomaly flag */}
         <td className="px-4 py-2.5 w-6">
-          {row.is_anomaly && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+          {row.is_anomaly && <Icon icon="warning-sign" size={14} className="text-red-500" />}
         </td>
         {/* Item */}
         <td className="px-4 py-2.5">
@@ -208,7 +216,7 @@ function VarianceRow({
         {/* Unexplained */}
         <td className="px-4 py-2.5 text-right">
           <div className="flex items-center justify-end gap-1">
-            <Icon className={cn('h-3 w-3', meta.cls)} />
+            <Icon icon={meta.icon} size={12} className={meta.cls} />
             <span className={cn('text-xs font-semibold tabular-nums', meta.cls)}>
               {row.unexplained_variance > 0 ? '+' : ''}{row.unexplained_variance}
             </span>
@@ -262,7 +270,7 @@ function VarianceRow({
                   {row.direction === 'deficit' && row.is_anomaly && (
                     <div className="space-y-1">
                       <p className="flex items-start gap-1 text-red-700 dark:text-red-400">
-                        <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                        <Icon icon="warning-sign" size={12} className="mt-0.5 shrink-0" />
                         Unexplained deficit — check for unlogged write-offs, miscounts, or theft
                       </p>
                       {row.write_offs_during === 0 && (
@@ -280,7 +288,7 @@ function VarianceRow({
                   )}
                   {row.direction === 'exact' && (
                     <p className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      <Icon icon="tick-circle" size={14} />
                       Perfect match — no unexplained variance
                     </p>
                   )}
@@ -316,39 +324,26 @@ function VarianceTable({
   const deficitCount  = rows.filter((r) => r.direction === 'deficit').length
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card compact className="!p-0 overflow-hidden">
       {/* Toolbar */}
       <div className="px-4 py-2 bg-muted/30 flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-1 rounded-md border p-0.5 bg-background">
-          {[
-            { id: 'all'       as const, label: `All (${rows.length})` },
-            { id: 'anomalies' as const, label: `Anomalies (${anomalyCount})` },
-            { id: 'deficits'  as const, label: `Deficits (${deficitCount})` },
-          ].map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => { setFilter(f.id) }}
-              className={cn(
-                'px-2.5 py-1 text-[10px] rounded transition-colors',
-                filter === f.id
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1.5 flex-1 min-w-32">
-          <Search className="h-3 w-3 text-muted-foreground shrink-0" />
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value) }}
-            placeholder="Filter by item…"
-            className="text-xs bg-transparent border-0 outline-none flex-1 placeholder:text-muted-foreground"
-          />
-        </div>
+        <SegmentedControl
+          size="small"
+          value={filter}
+          onValueChange={(v) => { setFilter(v as 'all' | 'anomalies' | 'deficits') }}
+          options={[
+            { value: 'all',       label: `All (${String(rows.length)})` },
+            { value: 'anomalies', label: `Anomalies (${String(anomalyCount)})` },
+            { value: 'deficits',  label: `Deficits (${String(deficitCount)})` },
+          ]}
+        />
+        <InputGroup
+          leftIcon="search"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value) }}
+          placeholder="Filter by item…"
+          className="flex-1 min-w-32"
+        />
       </div>
 
       <div className="overflow-x-auto">
@@ -385,7 +380,7 @@ function VarianceTable({
           Anomaly = unexplained ≥3 units OR ≥{fmt(25, currency)}
         </p>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -393,30 +388,19 @@ function VarianceTable({
 
 function NoSessions() {
   return (
-    <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-      <ClipboardList className="h-10 w-10 text-muted-foreground/40" />
-      <div className="space-y-1">
-        <p className="text-sm font-medium">No committed stocktakes yet</p>
-        <p className="text-xs text-muted-foreground max-w-xs">
-          Complete a stocktake session from the Floor workspace to see variance intelligence here.
-          The system snapshots stock at the start and explains every discrepancy after commit.
-        </p>
-      </div>
-    </div>
+    <NonIdealState
+      icon="clipboard"
+      title="No committed stocktakes yet"
+      description="Complete a stocktake session from the Floor workspace to see variance intelligence here. The system snapshots stock at the start and explains every discrepancy after commit."
+    />
   )
 }
 
 function NoVariance() {
   return (
-    <div className="flex flex-col items-center gap-3 py-12 text-center px-8">
-      <CheckCircle2 className="h-8 w-8 text-emerald-500/60" />
-      <div className="space-y-1">
-        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">No unexplained variance</p>
-        <p className="text-xs text-muted-foreground">
-          Every discrepancy in this session is accounted for by logged write-offs or receives.
-        </p>
-      </div>
-    </div>
+    <Callout intent={Intent.SUCCESS} icon="tick-circle" title="No unexplained variance" compact>
+      Every discrepancy in this session is accounted for by logged write-offs or receives.
+    </Callout>
   )
 }
 
@@ -427,7 +411,6 @@ export default function StocktakeIntelligencePage() {
   const { data: sessions = [], isLoading: sessionsLoading } = useStocktakeSessions(15)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  // Auto-select the most recent session
   const activeId = selectedId ?? sessions[0]?.session_id ?? null
   const activeSession = sessions.find((s) => s.session_id === activeId) ?? null
 
@@ -436,7 +419,7 @@ export default function StocktakeIntelligencePage() {
   if (sessionsLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} />
       </div>
     )
   }
@@ -451,7 +434,7 @@ export default function StocktakeIntelligencePage() {
       <div className="w-64 shrink-0 border-r overflow-y-auto flex flex-col">
         <div className="px-3 py-2 border-b bg-muted/30">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <ClipboardList className="inline h-3 w-3 mr-1 -mt-px" />
+            <Icon icon="clipboard" size={12} className="inline mr-1 -mt-px" />
             Stocktake Sessions
           </p>
         </div>
@@ -478,7 +461,7 @@ export default function StocktakeIntelligencePage() {
             <div className="flex items-start justify-between gap-4 shrink-0">
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
+                  <Icon icon="box" size={14} className="text-muted-foreground" />
                   <h2 className="text-sm font-semibold">
                     Variance Report ·{' '}
                     {activeSession.committed_at
@@ -493,10 +476,9 @@ export default function StocktakeIntelligencePage() {
                 </p>
               </div>
               {activeSession.anomaly_items > 0 && (
-                <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 font-semibold border border-red-200 dark:border-red-900 rounded-md px-2 py-1 bg-red-50 dark:bg-red-950/20 shrink-0">
-                  <AlertTriangle className="h-3.5 w-3.5" />
+                <Tag icon="warning-sign" intent={Intent.DANGER} minimal>
                   {activeSession.anomaly_items} item{activeSession.anomaly_items !== 1 ? 's' : ''} need investigation
-                </div>
+                </Tag>
               )}
             </div>
 
@@ -504,7 +486,7 @@ export default function StocktakeIntelligencePage() {
 
             {varianceLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                <Spinner size={SpinnerSize.STANDARD} />
               </div>
             ) : varianceRows.every((r) => r.direction === 'exact') ? (
               <NoVariance />
