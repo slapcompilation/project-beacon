@@ -3,9 +3,26 @@
 // Combines Floor/Flow (request lifecycle, receive history), Mind (linked PO),
 // Eye (variant context: stock level, days until zero).
 // Route: /restock/:restockId
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import {
+  Button,
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  TextArea,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { supabase } from '@/lib/supabase/client'
 import { useReceives, useApproveRestock, useRejectRestock } from '@/features/restock/hooks'
 import { useConsumptionForecast } from '@/features/eye/hooks'
@@ -18,15 +35,6 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
-import {
-  ArrowLeft, Package, CheckCircle2, XCircle, Clock, ShieldCheck,
-  ShieldAlert, Loader2, Sparkles, AlertTriangle,
-  ChevronRight, FileText, PackageCheck,
-} from 'lucide-react'
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
@@ -88,25 +96,25 @@ async function fetchLinkedPO(poId: string): Promise<LinkedPO | null> {
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_CFG: Record<RestockStatus, { label: string; cls: string; dot: string; icon: React.ElementType }> = {
-  pending:          { label: 'Pending',           cls: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-border',                        dot: 'bg-slate-400',    icon: Clock        },
-  pending_manager:  { label: 'Awaiting Manager',  cls: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-900/40',  dot: 'bg-amber-500',  icon: ShieldAlert  },
-  pending_director: { label: 'Awaiting Director', cls: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-900/40', dot: 'bg-orange-500', icon: ShieldAlert  },
-  approved:         { label: 'Approved',          cls: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 border-blue-200 dark:border-blue-900/40',    dot: 'bg-blue-500',   icon: ShieldCheck  },
-  fulfilled:        { label: 'Fulfilled',         cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/40', dot: 'bg-emerald-500', icon: CheckCircle2 },
-  cancelled:        { label: 'Cancelled',         cls: 'bg-muted text-muted-foreground border-border',                                                              dot: 'bg-slate-400',    icon: XCircle      },
-  rejected:         { label: 'Rejected',          cls: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 border-red-200 dark:border-red-900/40',          dot: 'bg-red-500',    icon: XCircle      },
+const STATUS_CFG: Record<RestockStatus, { label: string; intent: Intent; icon: IconName }> = {
+  pending:          { label: 'Pending',           intent: Intent.NONE,    icon: 'time' },
+  pending_manager:  { label: 'Awaiting Manager',  intent: Intent.WARNING, icon: 'shield' },
+  pending_director: { label: 'Awaiting Director', intent: Intent.WARNING, icon: 'shield' },
+  approved:         { label: 'Approved',          intent: Intent.PRIMARY, icon: 'endorsed' },
+  fulfilled:        { label: 'Fulfilled',         intent: Intent.SUCCESS, icon: 'tick-circle' },
+  cancelled:        { label: 'Cancelled',         intent: Intent.NONE,    icon: 'cross-circle' },
+  rejected:         { label: 'Rejected',          intent: Intent.DANGER,  icon: 'cross-circle' },
 }
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
   return (
-    <div className="rounded-lg border bg-card px-4 py-3 space-y-1">
+    <Card compact>
       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={cn('text-2xl font-bold tabular-nums leading-none', color ?? 'text-foreground')}>{value}</p>
-      {sub && <p className="text-[11px] text-muted-foreground">{sub}</p>}
-    </div>
+      <p className={cn('text-2xl font-bold tabular-nums leading-none mt-1', color ?? 'text-foreground')}>{value}</p>
+      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
+    </Card>
   )
 }
 
@@ -128,35 +136,28 @@ function ApprovalTrail({
   const rejectorEmail  = req.rejected_by ? (emailMap.get(req.rejected_by) ?? req.rejected_by.slice(0, 8) + '…') : null
 
   return (
-    <div className="rounded-lg border overflow-hidden">
-      <p className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30 border-b">
+    <Card compact className="!p-0 overflow-hidden">
+      <div className="px-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30 border-b flex items-center gap-2">
         Approval Trail
         {tier !== 'none' && (
-          <span className={cn(
-            'ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold border',
-            tier === 'director'
-              ? 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400 border-orange-200 dark:border-orange-900/40'
-              : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-900/40',
-          )}>
+          <Tag intent={tier === 'director' ? Intent.WARNING : Intent.WARNING} minimal>
             {tier === 'director' ? 'Director sign-off required' : 'Manager sign-off required'}
-          </span>
+          </Tag>
         )}
-      </p>
+      </div>
       <div className="divide-y">
         {/* Created */}
         <div className="flex items-start gap-3 px-4 py-3">
           <div className="h-6 w-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
-            <FileText className="h-3 w-3 text-slate-500" />
+            <Icon icon="document" size={12} className="text-slate-500" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-medium">Created by {requestorEmail}</p>
             <p className="text-[10px] text-muted-foreground">{format(parseISO(req.created_at), 'MMM d, yyyy HH:mm')}</p>
-            {req.notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">"{req.notes}"</p>}
+            {req.notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">&quot;{req.notes}&quot;</p>}
           </div>
           {req.is_auto_proposed && (
-            <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5 shrink-0">
-              <Sparkles className="h-3 w-3" />AI proposed
-            </span>
+            <Tag icon="predictive-analysis" intent={Intent.SUCCESS} minimal>AI proposed</Tag>
           )}
         </div>
 
@@ -164,12 +165,12 @@ function ApprovalTrail({
         {approverEmail && req.approved_at && (
           <div className="flex items-start gap-3 px-4 py-3">
             <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 mt-0.5">
-              <ShieldCheck className="h-3 w-3 text-emerald-600" />
+              <Icon icon="endorsed" size={12} className="text-emerald-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Approved by {approverEmail}</p>
               <p className="text-[10px] text-muted-foreground">{format(parseISO(req.approved_at), 'MMM d, yyyy HH:mm')}</p>
-              {req.approval_notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">"{req.approval_notes}"</p>}
+              {req.approval_notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">&quot;{req.approval_notes}&quot;</p>}
             </div>
           </div>
         )}
@@ -178,17 +179,17 @@ function ApprovalTrail({
         {rejectorEmail && req.rejected_at && (
           <div className="flex items-start gap-3 px-4 py-3">
             <div className="h-6 w-6 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center shrink-0 mt-0.5">
-              <XCircle className="h-3 w-3 text-red-600" />
+              <Icon icon="cross-circle" size={12} className="text-red-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium text-red-700 dark:text-red-400">Rejected by {rejectorEmail}</p>
               <p className="text-[10px] text-muted-foreground">{format(parseISO(req.rejected_at), 'MMM d, yyyy HH:mm')}</p>
-              {req.rejected_reason && <p className="text-[10px] text-muted-foreground italic mt-0.5">"{req.rejected_reason}"</p>}
+              {req.rejected_reason && <p className="text-[10px] text-muted-foreground italic mt-0.5">&quot;{req.rejected_reason}&quot;</p>}
             </div>
           </div>
         )}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -197,30 +198,30 @@ function ApprovalTrail({
 function ReceiveHistory({ receives, currency }: { receives: RestockReceive[]; currency: string }) {
   if (receives.length === 0) {
     return (
-      <div className="rounded-lg border px-4 py-4 text-xs text-muted-foreground flex items-center gap-2">
-        <PackageCheck className="h-4 w-4" />
+      <Card compact className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon icon="box" size={14} />
         No stock received against this request yet.
-      </div>
+      </Card>
     )
   }
 
-  const totalReceived = receives.reduce((s, r) => s + r.quantity_received, 0)
+  const totalReceivedQty = receives.reduce((s, r) => s + r.quantity_received, 0)
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card compact className="!p-0 overflow-hidden">
       <div className="px-4 py-2.5 bg-muted/30 border-b flex items-center justify-between">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Receive History · {receives.length} event{receives.length !== 1 ? 's' : ''}
         </p>
         <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
-          +{totalReceived} total received
+          +{totalReceivedQty} total received
         </span>
       </div>
       <div className="divide-y">
         {receives.map((r) => (
           <div key={r.id} className="flex items-start gap-3 px-4 py-3">
             <div className="h-6 w-6 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center shrink-0 mt-0.5">
-              <PackageCheck className="h-3 w-3 text-emerald-600" />
+              <Icon icon="box" size={12} className="text-emerald-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold tabular-nums">
@@ -231,7 +232,7 @@ function ReceiveHistory({ receives, currency }: { receives: RestockReceive[]; cu
                 {r.lot_number && ` · Lot ${r.lot_number}`}
                 {r.unit_cost != null && r.unit_cost > 0 && ` · ${formatCurrency(r.unit_cost, currency)}/unit`}
               </p>
-              {r.notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">"{r.notes}"</p>}
+              {r.notes && <p className="text-[10px] text-muted-foreground italic mt-0.5">&quot;{r.notes}&quot;</p>}
             </div>
             <span className="text-xs text-muted-foreground tabular-nums shrink-0">
               {formatDistanceToNow(parseISO(r.received_at), { addSuffix: true })}
@@ -239,7 +240,7 @@ function ReceiveHistory({ receives, currency }: { receives: RestockReceive[]; cu
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -253,30 +254,27 @@ function LinkedPOCard({ poId }: { poId: string }) {
   })
 
   if (isLoading) return (
-    <div className="rounded-lg border px-4 py-4 flex items-center gap-2">
-      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+    <Card compact className="flex items-center gap-2">
+      <Spinner size={SpinnerSize.SMALL} />
       <span className="text-xs text-muted-foreground">Loading PO…</span>
-    </div>
+    </Card>
   )
 
   if (!po) return null
 
-  const statusCls = {
-    draft: 'bg-muted text-muted-foreground',
-    sent: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-    confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400',
-    partially_received: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
-    closed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-    cancelled: 'bg-muted text-muted-foreground',
-  }[po.status] ?? 'bg-muted text-muted-foreground'
+  const statusIntent =
+    po.status === 'closed' ? Intent.SUCCESS :
+    po.status === 'partially_received' ? Intent.WARNING :
+    po.status === 'sent' || po.status === 'confirmed' ? Intent.PRIMARY :
+    Intent.NONE
 
   return (
     <Link
       to={`/po/${po.id}`}
-      className="flex items-center gap-3 rounded-lg border px-4 py-3 hover:bg-muted/30 transition-colors"
+      className="flex items-center gap-3 rounded border bg-card px-4 py-3 hover:bg-muted/30 transition-colors"
     >
-      <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
-        <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+      <div className="h-8 w-8 rounded bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center shrink-0">
+        <Icon icon="document" size={16} className="text-blue-600 dark:text-blue-400" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold">{po.po_number}</p>
@@ -285,10 +283,8 @@ function LinkedPOCard({ poId }: { poId: string }) {
           {po.expected_delivery_date && ` · Expected ${format(parseISO(po.expected_delivery_date), 'MMM d, yyyy')}`}
         </p>
       </div>
-      <span className={cn('text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded', statusCls)}>
-        {po.status.replace('_', ' ')}
-      </span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+      <Tag intent={statusIntent} minimal>{po.status.replace('_', ' ')}</Tag>
+      <Icon icon="chevron-right" size={14} className="text-muted-foreground shrink-0" />
     </Link>
   )
 }
@@ -323,54 +319,53 @@ function ApprovalActions({
 
   if (mode) {
     return (
-      <div className="rounded-lg border p-4 space-y-3">
+      <Card compact className="space-y-3">
         <p className="text-sm font-medium">
           {mode === 'approve' ? 'Confirm approval' : 'Confirm rejection'}
         </p>
-        <Textarea
+        <TextArea
           placeholder={mode === 'approve' ? 'Approval notes (optional)' : 'Reason for rejection (optional)'}
           value={notes}
           onChange={(e) => { setNotes(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter' && e.metaKey) handleConfirm() }}
-          className="text-sm min-h-[60px] resize-none"
+          fill
           autoFocus
+          rows={3}
         />
         <div className="flex items-center gap-2">
           <Button
-            size="sm"
-            variant={mode === 'approve' ? 'default' : 'destructive'}
-            disabled={approve.isPending || reject.isPending}
+            size="small"
+            intent={mode === 'approve' ? Intent.SUCCESS : Intent.DANGER}
+            loading={approve.isPending || reject.isPending}
             onClick={handleConfirm}
-            className="h-8 text-xs"
           >
-            {(approve.isPending || reject.isPending) && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
             {mode === 'approve' ? 'Approve' : 'Reject'}
           </Button>
-          <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => { setMode(null); setNotes('') }}>
+          <Button size="small" variant="minimal" onClick={() => { setMode(null); setNotes('') }}>
             Cancel
           </Button>
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
     <div className="flex items-center gap-2">
       <Button
-        size="sm"
-        className="h-8 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700 text-white"
+        icon="endorsed"
+        intent={Intent.SUCCESS}
+        size="small"
         onClick={() => { setMode('approve') }}
       >
-        <ShieldCheck className="h-3.5 w-3.5" />
         Approve Request
       </Button>
       <Button
-        size="sm"
-        variant="outline"
-        className="h-8 text-xs gap-1 border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400"
+        icon="cross-circle"
+        size="small"
+        intent={Intent.DANGER}
+        variant="outlined"
         onClick={() => { setMode('reject') }}
       >
-        <XCircle className="h-3.5 w-3.5" />
         Reject
       </Button>
     </div>
@@ -404,18 +399,22 @@ export default function RestockObjectPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} />
       </div>
     )
   }
 
   if (!req) {
     return (
-      <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-        <AlertTriangle className="h-8 w-8 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Restock request not found.</p>
-        <Button variant="outline" size="sm" onClick={() => { void navigate(-1) }}>Go back</Button>
-      </div>
+      <NonIdealState
+        icon="warning-sign"
+        title="Restock request not found"
+        action={
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { void navigate(-1) }}>
+            Go back
+          </Button>
+        }
+      />
     )
   }
 
@@ -434,7 +433,6 @@ export default function RestockObjectPage() {
   const linkedPoId = req.purchase_order_lines?.[0]?.po_id ?? null
   const poUnitCost = req.purchase_order_lines?.[0]?.unit_cost ?? null
 
-  // Approval permission: pending_manager → admin or owner; pending_director → owner only
   const isAwaiting    = req.status === 'pending_manager' || req.status === 'pending_director'
   const canApprove    = isAwaiting && (
     req.status === 'pending_director'
@@ -447,19 +445,19 @@ export default function RestockObjectPage() {
       {/* Header */}
       <div className="border-b px-6 py-4 shrink-0 bg-background">
         <div className="flex items-start gap-4">
-          <button
-            type="button"
+          <Button
+            icon="arrow-left"
+            variant="minimal"
+            size="small"
             onClick={() => { void navigate(-1) }}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-0.5 shrink-0"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
             Back
-          </button>
+          </Button>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-950/40 shrink-0">
-                <Package className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 dark:bg-indigo-950/40 shrink-0">
+                <Icon icon="box" size={20} className="text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -469,14 +467,9 @@ export default function RestockObjectPage() {
                       : variantLabel
                     }
                   </h1>
-                  <span className={cn('text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border flex items-center gap-1', cfg.cls)}>
-                    <span className={cn('h-1.5 w-1.5 rounded-full', cfg.dot)} />
-                    {cfg.label}
-                  </span>
+                  <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
                   {req.is_auto_proposed && (
-                    <span className="text-[9px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-0.5">
-                      <Sparkles className="h-3 w-3" />AI proposed
-                    </span>
+                    <Tag icon="predictive-analysis" intent={Intent.SUCCESS} minimal>AI proposed</Tag>
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
@@ -544,30 +537,26 @@ export default function RestockObjectPage() {
 
         {/* Approval actions (if awaiting) */}
         {isAwaiting && (
-          <div className="rounded-lg border border-amber-200 dark:border-amber-900/40 bg-amber-50/30 dark:bg-amber-950/10 p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-              <p className="text-xs font-semibold text-amber-700 dark:text-amber-400">
-                Awaiting {req.status === 'pending_director' ? 'Director' : 'Manager'} approval
-              </p>
+          <Callout intent={Intent.WARNING} icon="shield" title={`Awaiting ${req.status === 'pending_director' ? 'Director' : 'Manager'} approval`}>
+            <div className="mt-3">
+              <ApprovalActions restockId={req.id} canApprove={canApprove} />
+              {!canApprove && (
+                <p className="text-[10px] mt-2 opacity-80">
+                  You don&apos;t have permission to approve {req.status === 'pending_director' ? 'director-tier' : 'this'} request.
+                </p>
+              )}
             </div>
-            <ApprovalActions restockId={req.id} canApprove={canApprove} />
-            {!canApprove && (
-              <p className="text-[10px] text-muted-foreground">
-                You don't have permission to approve {req.status === 'pending_director' ? 'director-tier' : 'this'} request.
-              </p>
-            )}
-          </div>
+          </Callout>
         )}
 
         {/* Quick action — go to receive */}
         {(req.status === 'approved' || req.status === 'partially_received' as string) && (
           <Button
-            size="sm"
-            className="h-8 text-xs gap-1"
+            icon="box"
+            intent={Intent.PRIMARY}
+            size="small"
             onClick={() => { void navigate(`/flow?panel=receive&request=${req.id}`) }}
           >
-            <PackageCheck className="h-3.5 w-3.5" />
             Receive stock for this request
           </Button>
         )}
@@ -597,19 +586,19 @@ export default function RestockObjectPage() {
         </div>
 
         {/* ── Inline actions ── */}
-        <div className="rounded-lg border border-border bg-card p-4">
+        <Card>
           <ObjectActions
             nodeType="restock_request"
             requestId={req.id}
             variantId={req.variant_id}
             status={req.status}
           />
-        </div>
+        </Card>
 
         {/* ── Graph connections ── */}
-        <div className="rounded-lg border border-border bg-card p-4">
+        <Card>
           <GraphConnections nodeType="restock_request" nodeId={req.id} />
-        </div>
+        </Card>
       </div>
     </div>
   )

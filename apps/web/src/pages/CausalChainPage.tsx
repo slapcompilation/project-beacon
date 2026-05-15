@@ -6,19 +6,21 @@
 // Palantir Principle 5 (auditability): operators must always be able to see WHY.
 // Palantir Principle 6 (cross-domain synthesis): one chain, not three widgets.
 //
-// Entry points:
-//   - URL params  ?root_type=variant&root_id=<uuid>   (linked from Incident cards)
-//   - Manual search within the page
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useEffect } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import {
-  AlertTriangle, ArrowUpCircle, MinusCircle, Package, Box,
-  GitBranch, Clock, User, ChevronRight, Activity, Search,
-  CornerDownRight, Layers, CheckCircle2, XCircle,
-} from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
-import { Input } from '@/components/ui/input'
+import {
+  Button,
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useProducts } from '@/features/inventory/hooks'
 import { useCausalTrace, useAnomalyExplanation } from '@/features/eye/hooks'
@@ -30,16 +32,16 @@ type RootType = 'variant' | 'notification' | 'restock_request'
 
 // ─── Node type config ─────────────────────────────────────────────────────────
 
-const NODE_META: Record<string, { icon: React.ElementType; color: string; ring: string }> = {
-  notification:    { icon: AlertTriangle,  color: 'text-amber-400',   ring: 'ring-amber-500/40'   },
-  stock_log:       { icon: MinusCircle,    color: 'text-slate-400',   ring: 'ring-slate-500/40'   },
-  restock_request: { icon: Package,        color: 'text-blue-400',    ring: 'ring-blue-500/40'    },
-  restock_receive: { icon: ArrowUpCircle,  color: 'text-emerald-400', ring: 'ring-emerald-500/40' },
-  variant:         { icon: Box,            color: 'text-primary',     ring: 'ring-primary/40'     },
+const NODE_META: Record<string, { icon: IconName; color: string; ring: string }> = {
+  notification:    { icon: 'warning-sign', color: 'text-amber-400',   ring: 'ring-amber-500/40'   },
+  stock_log:       { icon: 'minus',        color: 'text-slate-400',   ring: 'ring-slate-500/40'   },
+  restock_request: { icon: 'box',          color: 'text-blue-400',    ring: 'ring-blue-500/40'    },
+  restock_receive: { icon: 'arrow-up',     color: 'text-emerald-400', ring: 'ring-emerald-500/40' },
+  variant:         { icon: 'cube',         color: 'text-primary',     ring: 'ring-primary/40'     },
 }
 
-function nodeIcon(nodeType: string) {
-  return NODE_META[nodeType] ?? { icon: Activity, color: 'text-muted-foreground', ring: 'ring-muted/40' }
+function nodeIcon(nodeType: string): { icon: IconName; color: string; ring: string } {
+  return NODE_META[nodeType] ?? { icon: 'pulse', color: 'text-muted-foreground', ring: 'ring-muted/40' }
 }
 
 // ─── Domain weight bars ───────────────────────────────────────────────────────
@@ -82,18 +84,13 @@ function AnomalyExplanationPanel({ explanation }: { explanation: AnomalyExplanat
   const ctx = explanation.cross_domain_context
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4 mb-4">
+    <Card compact className="mb-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className={cn(
-              'px-2 py-0.5 text-xs font-bold rounded border',
-              explanation.anomaly_type === 'waste_spike'
-                ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                : 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-            )}>
+            <Tag intent={explanation.anomaly_type === 'waste_spike' ? Intent.DANGER : Intent.WARNING} minimal>
               {explanation.anomaly_type === 'waste_spike' ? 'WASTE SPIKE' : 'STOCK DEPLETION'}
-            </span>
+            </Tag>
             <span className="text-xs text-muted-foreground">{explanation.variant_label}</span>
           </div>
           <p className="text-sm font-medium leading-snug">{explanation.summary}</p>
@@ -131,31 +128,31 @@ function AnomalyExplanationPanel({ explanation }: { explanation: AnomalyExplanat
 
       {/* Cross-domain context chips */}
       <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-        <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
-          30d avg: <strong className="text-foreground">{ctx.mean_daily_30d.toFixed(1)}/day</strong>
-        </span>
-        <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
-          7d avg: <strong className="text-foreground">{ctx.mean_daily_7d.toFixed(1)}/day</strong>
-        </span>
-        <span className="px-2 py-1 rounded text-xs bg-muted/30 text-muted-foreground">
-          Occupancy: <strong className="text-foreground">{ctx.occupancy_7d.toFixed(0)}%</strong>
-        </span>
+        <Tag minimal>
+          30d avg: <strong className="ml-1">{ctx.mean_daily_30d.toFixed(1)}/day</strong>
+        </Tag>
+        <Tag minimal>
+          7d avg: <strong className="ml-1">{ctx.mean_daily_7d.toFixed(1)}/day</strong>
+        </Tag>
+        <Tag minimal>
+          Occupancy: <strong className="ml-1">{ctx.occupancy_7d.toFixed(0)}%</strong>
+        </Tag>
         {ctx.last_supply_days != null && (
-          <span className={cn('px-2 py-1 rounded text-xs', ctx.last_supply_days > 14 ? 'bg-orange-500/15 text-orange-400' : 'bg-muted/30 text-muted-foreground')}>
-            Last supply: <strong>{ctx.last_supply_days}d ago</strong>
+          <Tag intent={ctx.last_supply_days > 14 ? Intent.WARNING : Intent.NONE} minimal>
+            Last supply: <strong className="ml-1">{ctx.last_supply_days}d ago</strong>
             {ctx.supplier_name && <> · {ctx.supplier_name}</>}
-          </span>
+          </Tag>
         )}
         {ctx.has_open_request && (
-          <span className="px-2 py-1 rounded text-xs bg-blue-500/15 text-blue-400">Open restock request</span>
+          <Tag intent={Intent.PRIMARY} minimal>Open restock request</Tag>
         )}
         {ctx.days_until_zero != null && (
-          <span className={cn('px-2 py-1 rounded text-xs font-medium', ctx.days_until_zero <= 3 ? 'bg-red-500/15 text-red-400' : 'bg-amber-500/15 text-amber-400')}>
+          <Tag intent={ctx.days_until_zero <= 3 ? Intent.DANGER : Intent.WARNING} minimal>
             ~{ctx.days_until_zero}d until zero
-          </span>
+          </Tag>
         )}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -173,7 +170,6 @@ function CausalStep({
   causalLinkBelow: string | null
 }) {
   const meta    = nodeIcon(step.node_type)
-  const Icon    = meta.icon
   const happenedAt = new Date(step.happened_at)
   const isSystem   = step.actor === 'System'
 
@@ -186,14 +182,14 @@ function CausalStep({
           meta.ring,
           isRoot && 'ring-2',
         )}>
-          <Icon className={cn('w-4 h-4', meta.color)} />
+          <Icon icon={meta.icon} size={14} className={meta.color} />
         </div>
         {!isLast && (
           <div className="flex-1 flex flex-col items-center mt-1">
             <div className="w-px flex-1 bg-border min-h-[24px]" />
             {causalLinkBelow && (
               <div className="flex items-center gap-1 py-1">
-                <CornerDownRight className="w-3 h-3 text-muted-foreground/60" />
+                <Icon icon="key-enter" size={12} className="text-muted-foreground/60" />
               </div>
             )}
             <div className="w-px flex-1 bg-border min-h-[8px]" />
@@ -203,20 +199,15 @@ function CausalStep({
 
       {/* Right: content */}
       <div className={cn('flex-1 pb-5', isLast && 'pb-0')}>
-        <div className={cn(
-          'rounded-lg border bg-card p-3 hover:bg-muted/10 transition-colors',
-          isRoot && 'border-primary/30 bg-primary/5',
-        )}>
+        <Card compact className={cn('hover:bg-muted/10 transition-colors', isRoot && '!border-primary/30 !bg-primary/5')}>
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className={cn('text-xs font-semibold uppercase tracking-wide', isRoot ? 'text-primary' : 'text-foreground')}>
                 {step.event_label}
               </span>
-              <span className="text-xs text-muted-foreground capitalize px-1.5 py-0.5 rounded bg-muted/30">
-                {step.node_type.replace('_', ' ')}
-              </span>
+              <Tag minimal>{step.node_type.replace('_', ' ')}</Tag>
               {isRoot && (
-                <span className="text-xs px-1.5 py-0.5 rounded bg-primary/15 text-primary font-medium">Root</span>
+                <Tag intent={Intent.PRIMARY} minimal>Root</Tag>
               )}
             </div>
             <div className="text-right shrink-0">
@@ -229,22 +220,22 @@ function CausalStep({
 
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <User className="w-3 h-3" />
+              <Icon icon="user" size={12} />
               {isSystem ? <span className="italic">System</span> : <span>{step.actor}</span>}
             </span>
             {step.causal_link && (
               <span className="flex items-center gap-1 text-violet-400/80">
-                <GitBranch className="w-3 h-3" />
+                <Icon icon="git-branch" size={12} />
                 {step.causal_link}
               </span>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Causal link label between steps */}
         {causalLinkBelow && !isLast && (
           <div className="flex items-center gap-1.5 mt-2 ml-1 text-xs text-muted-foreground/60 italic">
-            <ChevronRight className="w-3 h-3" />
+            <Icon icon="chevron-right" size={12} />
             {causalLinkBelow}
           </div>
         )}
@@ -258,11 +249,11 @@ function CausalStep({
 function CausalChainTimeline({ steps }: { steps: CausalTraceStep[] }) {
   if (steps.length === 0) {
     return (
-      <div className="flex flex-col items-center py-12 text-center">
-        <GitBranch className="w-8 h-8 text-muted-foreground/30 mb-3" />
-        <div className="text-sm text-muted-foreground">No causal chain data available</div>
-        <div className="text-xs text-muted-foreground/60 mt-1">This may mean the variant has no logged history yet</div>
-      </div>
+      <NonIdealState
+        icon="git-branch"
+        title="No causal chain data available"
+        description="This may mean the variant has no logged history yet"
+      />
     )
   }
 
@@ -302,17 +293,14 @@ function VariantSearch({
 
   return (
     <div className="relative">
-      <div className="relative">
-        <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search variant to trace…"
-          value={query}
-          onChange={e => { setQuery(e.target.value); }}
-          className="pl-9 text-sm"
-        />
-      </div>
+      <InputGroup
+        leftIcon="search"
+        placeholder="Search variant to trace…"
+        value={query}
+        onChange={e => { setQuery(e.target.value); }}
+      />
       {matches.length > 0 && (
-        <div className="absolute top-full left-0 right-0 z-20 mt-1 rounded-lg border border-border bg-card shadow-lg overflow-hidden">
+        <Card compact className="absolute top-full left-0 right-0 z-20 mt-1 !p-0 overflow-hidden">
           {matches.map(m => (
             <button
               key={m.variantId}
@@ -323,7 +311,7 @@ function VariantSearch({
               {m.label}
             </button>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   )
@@ -331,10 +319,10 @@ function VariantSearch({
 
 // ─── Root type tab ─────────────────────────────────────────────────────────────
 
-const ROOT_TABS: { id: RootType; label: string; icon: React.ElementType }[] = [
-  { id: 'variant',          label: 'Variant',         icon: Box       },
-  { id: 'notification',     label: 'Alert',           icon: AlertTriangle },
-  { id: 'restock_request',  label: 'Restock Request', icon: Package   },
+const ROOT_TABS: { id: RootType; label: string; icon: IconName }[] = [
+  { id: 'variant',          label: 'Variant',         icon: 'cube' },
+  { id: 'notification',     label: 'Alert',           icon: 'warning-sign' },
+  { id: 'restock_request',  label: 'Restock Request', icon: 'box' },
 ]
 
 // ─── Main page ────────────────────────────────────────────────────────────────
@@ -342,7 +330,6 @@ const ROOT_TABS: { id: RootType; label: string; icon: React.ElementType }[] = [
 export default function CausalChainPage() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Prefer URL params (set by deep-links from IncidentCorrelationPage)
   const urlRootType = (searchParams.get('root_type') ?? 'variant') as RootType
   const urlRootId   = searchParams.get('root_id') ?? null
 
@@ -350,7 +337,6 @@ export default function CausalChainPage() {
   const [rootId,   setRootId]     = useState<string | null>(urlRootId)
   const [rootLabel, setRootLabel] = useState<string>(urlRootId ? 'From incident card' : '')
 
-  // Sync URL params → local state when navigating from another page
   useEffect(() => {
     const t = (searchParams.get('root_type') ?? 'variant') as RootType
     const id = searchParams.get('root_id') ?? null
@@ -389,7 +375,7 @@ export default function CausalChainPage() {
       {/* Header */}
       <div className="px-6 pt-5 pb-3 border-b border-border shrink-0">
         <div className="flex items-center gap-2 mb-1">
-          <GitBranch className="w-4 h-4 text-primary" />
+          <Icon icon="git-branch" size={14} intent={Intent.PRIMARY} />
           <h2 className="text-base font-semibold">Causal Chain</h2>
           <span className="text-xs text-muted-foreground">— why does this state exist?</span>
         </div>
@@ -402,21 +388,18 @@ export default function CausalChainPage() {
       <div className="px-6 py-3 border-b border-border shrink-0 space-y-3">
         {/* Root type tabs */}
         <div className="flex gap-1">
-          {ROOT_TABS.map(({ id, label, icon: Icon }) => (
-            <button
+          {ROOT_TABS.map(({ id, label, icon }) => (
+            <Button
               key={id}
-              type="button"
-              onClick={() => { selectRootType(id); }}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs rounded border font-medium transition-colors',
-                rootType === id
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              )}
+              icon={icon}
+              size="small"
+              active={rootType === id}
+              intent={rootType === id ? Intent.PRIMARY : Intent.NONE}
+              variant={rootType === id ? 'solid' : 'outlined'}
+              onClick={() => { selectRootType(id) }}
             >
-              <Icon className="w-3 h-3" />
               {label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -424,34 +407,33 @@ export default function CausalChainPage() {
         {rootType === 'variant' ? (
           <VariantSearch onSelect={selectVariant} />
         ) : (
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder={`Paste ${rootType.replace('_', ' ')} UUID…`}
-              className="pl-9 text-sm font-mono"
-              onKeyDown={e => {
-                if (e.key === 'Enter') {
-                  const val = (e.target as HTMLInputElement).value.trim()
-                  if (val) { setRootId(val); setRootLabel(val) }
-                }
-              }}
-            />
-          </div>
+          <InputGroup
+            leftIcon="search"
+            placeholder={`Paste ${rootType.replace('_', ' ')} UUID…`}
+            className="font-mono"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                const val = (e.target as HTMLInputElement).value.trim()
+                if (val) { setRootId(val); setRootLabel(val) }
+              }
+            }}
+          />
         )}
 
         {/* Active root label */}
         {rootId && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Layers className="w-3 h-3" />
+            <Icon icon="layers" size={12} />
             <span>Tracing:</span>
             <span className="text-foreground font-medium">{rootLabel || rootId}</span>
-            <button
-              type="button"
+            <Button
+              icon="cross-circle"
+              variant="minimal"
+              size="small"
+              aria-label="Clear root"
               onClick={() => { setRootId(null); setRootLabel(''); setSearchParams({ panel: 'causal' }, { replace: true }) }}
-              className="ml-auto text-muted-foreground hover:text-foreground"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-            </button>
+              className="ml-auto"
+            />
           </div>
         )}
       </div>
@@ -460,14 +442,14 @@ export default function CausalChainPage() {
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {!rootId && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <GitBranch className="w-10 h-10 text-muted-foreground/20 mb-4" />
+            <Icon icon="git-branch" size={40} className="text-muted-foreground/20 mb-4" />
             <div className="text-sm font-medium text-foreground mb-1">Select a root to trace</div>
             <div className="text-xs text-muted-foreground max-w-sm">
               Search for a variant above, or navigate here from an incident card in{' '}
               <Link to="/eye?panel=incidents" className="text-primary underline underline-offset-2">
                 Eye · Insights
               </Link>
-              {' '}using the "Explain" button.
+              {' '}using the &quot;Explain&quot; button.
             </div>
             <div className="mt-6 grid grid-cols-3 gap-3 text-left max-w-md w-full">
               {[
@@ -475,10 +457,10 @@ export default function CausalChainPage() {
                 { type: 'Variant root',      steps: 'Current state → Recent removals → Open requests → Active alerts', color: 'text-primary' },
                 { type: 'Restock root',      steps: 'Request → Prior consumption → Approval chain → Fulfillment', color: 'text-blue-400' },
               ].map(({ type, steps, color }) => (
-                <div key={type} className="p-3 rounded-lg border border-border bg-card">
+                <Card key={type} compact>
                   <div className={cn('text-xs font-medium mb-1.5', color)}>{type}</div>
                   <div className="text-xs text-muted-foreground leading-relaxed">{steps}</div>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -486,7 +468,7 @@ export default function CausalChainPage() {
 
         {rootId && isLoading && (
           <div className="flex items-center justify-center py-16 text-muted-foreground text-sm gap-2">
-            <Activity className="w-4 h-4 animate-pulse" />
+            <Icon icon="pulse" size={14} className="animate-pulse" />
             Traversing Reality Graph…
           </div>
         )}
@@ -498,12 +480,12 @@ export default function CausalChainPage() {
 
             {/* Status bar */}
             <div className="flex items-center gap-2 mb-4 text-xs text-muted-foreground">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <Icon icon="tick-circle" size={14} className="text-emerald-400" />
               <span>{steps.length} events in causal chain</span>
               {steps.length > 0 && (
                 <>
                   <span>·</span>
-                  <Clock className="w-3 h-3" />
+                  <Icon icon="time" size={12} />
                   <span>
                     {format(new Date(steps[steps.length - 1].happened_at), 'dd MMM')}
                     {' → '}
