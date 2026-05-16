@@ -3,11 +3,20 @@
 // This page synthesises waste rate + stockout exposure + PAR compliance into a
 // single performance scorecard per variant, ranked by operational burden.
 // Answers: "which products are causing the most pain right now?"
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import {
-  Loader2, Package, BarChart3, Search,
-} from 'lucide-react'
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -30,11 +39,11 @@ type Tier = keyof typeof TIER_META
 const TIER_ORDER: Tier[] = ['critical', 'waste_heavy', 'stockout_prone', 'at_risk', 'idle', 'efficient']
 
 const WINDOW_OPTIONS = [
-  { label: '7d',  days: 7  },
-  { label: '14d', days: 14 },
-  { label: '30d', days: 30 },
-  { label: '60d', days: 60 },
-] as const
+  { label: '7d',  value: '7'  },
+  { label: '14d', value: '14' },
+  { label: '30d', value: '30' },
+  { label: '60d', value: '60' },
+]
 
 // ─── Summary strip ────────────────────────────────────────────────────────────
 
@@ -46,12 +55,12 @@ function SummaryStrip({ rows, currency }: { rows: ProductPerformanceRow[]; curre
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Products Tracked</p>
         <p className="text-2xl font-bold tabular-nums">{rows.length}</p>
         <p className="text-[10px] text-muted-foreground">{efficient} efficient · {critical} critical</p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Waste Cost</p>
         <p className={cn('text-2xl font-bold tabular-nums', wasteCost > 0 ? 'text-red-600 dark:text-red-400' : '')}>
           {formatCurrency(wasteCost, currency)}
@@ -59,15 +68,15 @@ function SummaryStrip({ rows, currency }: { rows: ProductPerformanceRow[]; curre
         <p className="text-[10px] text-muted-foreground">
           {rows.reduce((s, r) => s + r.waste_units, 0)} units written off
         </p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stockout Events</p>
         <p className={cn('text-2xl font-bold tabular-nums', stockouts > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400')}>
           {stockouts}
         </p>
         <p className="text-[10px] text-muted-foreground">product{stockouts !== 1 ? 's' : ''} hit zero stock</p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avg PAR Compliance</p>
         {rows.length > 0 ? (
           <>
@@ -79,7 +88,7 @@ function SummaryStrip({ rows, currency }: { rows: ProductPerformanceRow[]; curre
         ) : (
           <p className="text-sm text-muted-foreground">—</p>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
@@ -248,92 +257,70 @@ export default function ProductPerformancePage() {
     return true
   })
 
+  const tierFilterOptions = [
+    { value: 'all', label: `All (${String(rows.length)})` },
+    ...TIER_ORDER.filter((t) => (tierCounts[t] ?? 0) > 0).map((t) => ({
+      value: t,
+      label: `${TIER_META[t].label} (${String(tierCounts[t] ?? 0)})`,
+    })),
+  ]
+
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5 max-w-6xl">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap shrink-0">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="chart" size={14} className="text-muted-foreground" />
             <h2 className="text-sm font-semibold">Product Performance Scorecard</h2>
           </div>
           <p className="text-xs text-muted-foreground">
             Waste rate · stockout exposure · PAR compliance · composite score — ranked by operational burden
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border p-0.5 shrink-0">
-          {WINDOW_OPTIONS.map((opt) => (
-            <button
-              key={opt.days}
-              type="button"
-              onClick={() => { setWindowDays(opt.days) }}
-              className={cn(
-                'px-3 py-1 text-xs rounded transition-colors',
-                windowDays === opt.days
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={String(windowDays)}
+          onValueChange={(v) => { setWindowDays(Number(v)) }}
+          options={WINDOW_OPTIONS}
+        />
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-20 text-center">
-          <Package className="h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No product activity in the last {windowDays} days.</p>
-        </div>
+        <NonIdealState
+          icon="box"
+          title="No product activity"
+          description={`No product activity in the last ${String(windowDays)} days.`}
+        />
       ) : (
         <>
           <SummaryStrip rows={rows} currency={currency} />
 
           {/* Tier filter + search */}
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-1 rounded-md border p-0.5 bg-background">
-              <button
-                type="button"
-                onClick={() => { setTierFilter('all') }}
-                className={cn('px-2.5 py-1 text-[10px] rounded', tierFilter === 'all' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground')}
-              >
-                All ({rows.length})
-              </button>
-              {TIER_ORDER.filter((t) => (tierCounts[t] ?? 0) > 0).map((t) => {
-                const meta = TIER_META[t]
-                return (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => { setTierFilter(t) }}
-                    className={cn(
-                      'flex items-center gap-1 px-2.5 py-1 text-[10px] rounded transition-colors',
-                      tierFilter === t ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    <span className={cn('h-1.5 w-1.5 rounded-full', meta.dot)} />
-                    {meta.label} ({tierCounts[t]})
-                  </button>
-                )
-              })}
-            </div>
-            <div className="flex items-center gap-1.5 flex-1 min-w-40 border rounded px-2.5 py-1">
-              <Search className="h-3 w-3 text-muted-foreground shrink-0" />
-              <input
+            <SegmentedControl
+              size="small"
+              value={tierFilter}
+              onValueChange={(v) => { setTierFilter(v as Tier | 'all') }}
+              options={tierFilterOptions}
+            />
+            <div className="flex-1 min-w-40">
+              <InputGroup
+                leftIcon="search"
                 value={search}
                 onChange={(e) => { setSearch(e.target.value) }}
                 placeholder="Search by product, SKU, or category…"
-                className="text-xs bg-transparent border-0 outline-none flex-1 placeholder:text-muted-foreground"
+                size="small"
               />
             </div>
           </div>
 
           {/* Table */}
-          <div className="rounded-lg border overflow-hidden">
+          <Card className="!p-0 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-xs">
                 <thead>
@@ -368,7 +355,7 @@ export default function ProductPerformancePage() {
                 Score = 0–100 composite (waste 40% + stockouts 35% + below-PAR 15% + idle 10%) · based on {windowDays}-day window
               </p>
             </div>
-          </div>
+          </Card>
         </>
       )}
     </div>

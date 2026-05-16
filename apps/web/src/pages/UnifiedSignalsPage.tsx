@@ -4,10 +4,21 @@
 // Waste, stockout, incident, expiry, supplier risk are signal TYPES on objects —
 // not separate destinations. One surface. One truth. Sorted by urgency.
 // Filter bar narrows signal type; clicking any row navigates to the object page.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import {
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import {
   useWasteRadar,
   useActiveIncidents,
@@ -18,10 +29,6 @@ import { fetchExpiryBatches } from '@/features/inventory/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useHotelEdges } from '@/hooks/useHotelEdges'
 import { cn } from '@/lib/utils'
-import {
-  Package, Truck, ChevronRight, Loader2, AlertTriangle,
-  TrendingDown, Clock, ShieldAlert, Flame, Shuffle,
-} from 'lucide-react'
 import type {
   WasteRadarRow, ConsumptionForecastRow, ActiveIncidentRow,
   SupplierReliabilityRow, ExpiryBatchRow,
@@ -50,12 +57,12 @@ interface UnifiedSignal {
 
 // ─── Signal config ────────────────────────────────────────────────────────────
 
-const SIG: Record<SignalType, { label: string; rowCls: string; badgeCls: string; Icon: React.FC<{ className?: string }> }> = {
-  incident: { label: 'INCIDENT', rowCls: 'border-l-red-500',    badgeCls: 'bg-red-500/15 text-red-400 border-red-500/30',      Icon: AlertTriangle },
-  waste:    { label: 'WASTE',    rowCls: 'border-l-orange-500', badgeCls: 'bg-orange-500/15 text-orange-400 border-orange-500/30', Icon: Flame },
-  stockout: { label: 'STOCKOUT', rowCls: 'border-l-amber-500',  badgeCls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',  Icon: TrendingDown },
-  expiry:   { label: 'EXPIRY',   rowCls: 'border-l-purple-500', badgeCls: 'bg-purple-500/15 text-purple-400 border-purple-500/30', Icon: Clock },
-  supplier: { label: 'SUPPLIER', rowCls: 'border-l-blue-500',   badgeCls: 'bg-blue-500/15 text-blue-400 border-blue-500/30',    Icon: ShieldAlert },
+const SIG: Record<SignalType, { label: string; rowCls: string; badgeCls: string; icon: IconName }> = {
+  incident: { label: 'INCIDENT', rowCls: 'border-l-red-500',    badgeCls: 'bg-red-500/15 text-red-400 border-red-500/30',         icon: 'warning-sign'  },
+  waste:    { label: 'WASTE',    rowCls: 'border-l-orange-500', badgeCls: 'bg-orange-500/15 text-orange-400 border-orange-500/30', icon: 'flame'         },
+  stockout: { label: 'STOCKOUT', rowCls: 'border-l-amber-500',  badgeCls: 'bg-amber-500/15 text-amber-400 border-amber-500/30',    icon: 'trending-down' },
+  expiry:   { label: 'EXPIRY',   rowCls: 'border-l-purple-500', badgeCls: 'bg-purple-500/15 text-purple-400 border-purple-500/30', icon: 'time'          },
+  supplier: { label: 'SUPPLIER', rowCls: 'border-l-blue-500',   badgeCls: 'bg-blue-500/15 text-blue-400 border-blue-500/30',       icon: 'shield'        },
 }
 
 const urgencyBorderCls = (u: number) =>
@@ -182,16 +189,14 @@ function SignalRow({ signal, rank, substituteCount }: { signal: UnifiedSignal; r
 
       {/* Object type icon */}
       <div className="mt-0.5 shrink-0 text-muted-foreground/60">
-        {signal.objectType === 'supplier'
-          ? <Truck className="h-4 w-4" />
-          : <Package className="h-4 w-4" />}
+        <Icon icon={signal.objectType === 'supplier' ? 'truck' : 'box'} size={14} />
       </div>
 
       {/* Main content */}
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-start justify-between gap-2">
           <span className="font-semibold text-sm leading-tight">{signal.objectName}</span>
-          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground/40 mt-0.5" />
+          <Icon icon="chevron-right" size={14} className="shrink-0 text-muted-foreground/40 mt-0.5" />
         </div>
 
         {/* Signal badges */}
@@ -202,7 +207,7 @@ function SignalRow({ signal, rank, substituteCount }: { signal: UnifiedSignal; r
               const cfg = SIG[badge.type]
               return (
                 <span key={i} className={cn('inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide', cfg.badgeCls)}>
-                  <cfg.Icon className="h-2.5 w-2.5" />
+                  <Icon icon={cfg.icon} size={10} />
                   {cfg.label}
                 </span>
               )
@@ -220,7 +225,7 @@ function SignalRow({ signal, rank, substituteCount }: { signal: UnifiedSignal; r
         {/* Substitute chip — only for stock-crisis variant signals */}
         {hasStockCrisis && substituteCount > 0 && signal.objectType === 'variant' && (
           <span className="inline-flex items-center gap-1 rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400">
-            <Shuffle className="h-2.5 w-2.5" />
+            <Icon icon="swap-horizontal" size={10} />
             {substituteCount} substitute{substituteCount !== 1 ? 's' : ''} available
           </span>
         )}
@@ -294,33 +299,16 @@ export default function UnifiedSignalsPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Filter bar */}
-      <div className="flex items-center gap-1 px-3 py-2 border-b shrink-0 bg-background overflow-x-auto">
-        {FILTERS.map((f) => (
-          <button
-            key={f.mode}
-            type="button"
-            onClick={() => { setFilter(f.mode) }}
-            className={cn(
-              'shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
-              filter === f.mode
-                ? 'bg-primary/10 text-primary border border-primary/30'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-            )}
-          >
-            {f.label}
-            {counts[f.mode] > 0 && (
-              <span className={cn(
-                'rounded-full px-1.5 py-0.5 text-[10px] font-bold tabular-nums',
-                filter === f.mode ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground',
-                f.mode !== 'all' && counts[f.mode] > 0 && filter !== f.mode && [
-                  'incident', 'supplier',
-                ].includes(f.mode) ? 'bg-red-500/15 text-red-400' : '',
-              )}>
-                {counts[f.mode]}
-              </span>
-            )}
-          </button>
-        ))}
+      <div className="flex items-center gap-2 px-3 py-2 border-b shrink-0 bg-background overflow-x-auto">
+        <SegmentedControl
+          size="small"
+          value={filter}
+          onValueChange={(v) => { setFilter(v as FilterMode) }}
+          options={FILTERS.map((f) => ({
+            value: f.mode,
+            label: counts[f.mode] > 0 ? `${f.label} (${String(counts[f.mode])})` : f.label,
+          }))}
+        />
         <div className="ml-auto shrink-0 text-xs text-muted-foreground/60 pr-1">
           Sorted by urgency · live data
         </div>
@@ -330,19 +318,17 @@ export default function UnifiedSignalsPage() {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex h-32 items-center justify-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
             Scanning all signals…
           </div>
         ) : visible.length === 0 ? (
-          <div className="px-6 py-12 text-center space-y-2">
-            <div className="text-3xl">✓</div>
-            <p className="text-sm font-medium text-foreground">No active {filter === 'all' ? 'signals' : filter} signals</p>
-            <p className="text-xs text-muted-foreground">
-              {filter === 'all'
-                ? `Scanned ${waste.length + forecast.filter((f) => (f.days_until_zero ?? 99) <= 14).length + incidents.length + reliability.filter((r) => r.risk_tier === 'critical' || r.risk_tier === 'high').length} sources · all objects within thresholds`
-                : `No ${filter} anomalies detected in the current window.`}
-            </p>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title={`No active ${filter === 'all' ? 'signals' : filter} signals`}
+            description={filter === 'all'
+              ? `Scanned ${String(waste.length + forecast.filter((f) => (f.days_until_zero ?? 99) <= 14).length + incidents.length + reliability.filter((r) => r.risk_tier === 'critical' || r.risk_tier === 'high').length)} sources · all objects within thresholds`
+              : `No ${filter} anomalies detected in the current window.`}
+          />
         ) : (
           <div className="divide-y-0">
             {visible.map((signal, i) => (
