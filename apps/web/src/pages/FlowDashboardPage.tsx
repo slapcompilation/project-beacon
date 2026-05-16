@@ -2,6 +2,8 @@
 // Palantir principle: decision support, not data display.
 // This page answers: what needs my sign-off, how fast is the queue moving,
 // and is spend trending up or down? All three questions resolved in one view.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo } from 'react'
 import { formatDistanceToNow, format } from 'date-fns'
@@ -10,14 +12,16 @@ import {
   Tooltip as RechartsTooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 import {
-  ShieldCheck, ShieldAlert, Clock, TrendingUp, AlertTriangle,
-  Loader2, CheckCircle2, XCircle, ArrowUpRight,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
+  Button,
+  HTMLTable,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -34,11 +38,16 @@ import type { RestockRequestRow } from '@/features/restock/api'
 
 // ─── Tier config ───────────────────────────────────────────────────────────────
 
-const TIER_CFG = {
-  none:     { label: 'Auto',     icon: CheckCircle2, cls: 'border-border text-muted-foreground' },
-  manager:  { label: 'Manager',  icon: ShieldCheck,  cls: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' },
-  director: { label: 'Director', icon: ShieldAlert,  cls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' },
-} as const
+const TIER_CFG: Record<'none' | 'manager' | 'director', {
+  label: string
+  icon: IconName
+  intent: Intent
+  cls: string
+}> = {
+  none:     { label: 'Auto',     icon: 'tick-circle', intent: Intent.NONE,    cls: 'border-border text-muted-foreground' },
+  manager:  { label: 'Manager',  icon: 'shield',      intent: Intent.PRIMARY, cls: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300' },
+  director: { label: 'Director', icon: 'shield',      intent: Intent.DANGER,  cls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' },
+}
 
 // ─── Pending queue row ─────────────────────────────────────────────────────────
 
@@ -57,7 +66,6 @@ function PendingRow({
   const pv  = req.product_variants
   const tier = req.required_approval_tier
   const cfg  = TIER_CFG[tier]
-  const Icon = cfg.icon
 
   const createdAt  = new Date(req.date)
   const ageLabel   = formatDistanceToNow(createdAt, { addSuffix: true })
@@ -71,57 +79,58 @@ function PendingRow({
     : productName
 
   return (
-    <TableRow className={cn(escalated && 'bg-orange-50/40 dark:bg-orange-950/10')}>
-      <TableCell>
+    <tr className={cn(escalated && 'bg-orange-50/40 dark:bg-orange-950/10')}>
+      <td>
         <p className="text-sm font-medium">{variantName}</p>
         <p className="text-[11px] text-muted-foreground font-mono">{pv?.sku ?? '—'}</p>
-      </TableCell>
-      <TableCell>
-        <Badge variant="outline" className={cn('text-[10px] h-5 px-1.5 font-semibold gap-1', cfg.cls)}>
-          <Icon className="h-2.5 w-2.5" />
+      </td>
+      <td>
+        <Tag minimal intent={cfg.intent} icon={cfg.icon} className="!text-[10px] !h-5 !px-1.5 !font-semibold">
           {cfg.label}
-        </Badge>
+        </Tag>
         {escalated && (
           <p className="text-[10px] text-orange-600 dark:text-orange-400 mt-0.5 font-medium">
             Escalated ×{String(req.escalation_count)}
           </p>
         )}
-      </TableCell>
-      <TableCell className="text-right tabular-nums">{req.quantity_needed}</TableCell>
-      <TableCell className={cn('text-right tabular-nums font-semibold text-sm', req.estimated_cost ? '' : 'text-muted-foreground')}>
+      </td>
+      <td className="text-right tabular-nums">{req.quantity_needed}</td>
+      <td className={cn('text-right tabular-nums font-semibold text-sm', req.estimated_cost ? '' : 'text-muted-foreground')}>
         {req.estimated_cost != null ? formatCurrency(req.estimated_cost, currency) : '—'}
-      </TableCell>
-      <TableCell className={cn('text-right text-xs tabular-nums', isStale && 'text-orange-600 dark:text-orange-400 font-medium')}>
-        {isStale && <AlertTriangle className="inline h-3 w-3 mr-1" />}
+      </td>
+      <td className={cn('text-right text-xs tabular-nums', isStale && 'text-orange-600 dark:text-orange-400 font-medium')}>
+        {isStale && <Icon icon="warning-sign" size={12} className="inline mr-1" />}
         {ageLabel}
-      </TableCell>
-      <TableCell className="text-right">
+      </td>
+      <td className="text-right">
         {canApprove ? (
           <div className="flex items-center justify-end gap-1">
             <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-xs px-2 text-green-700 border-green-300 hover:bg-green-50"
-              disabled={approve.isPending}
+              size="small"
+              intent={Intent.SUCCESS}
+              variant="outlined"
+              icon="tick-circle"
+              loading={approve.isPending}
               onClick={() => { approve.mutate({ id: req.id }) }}
             >
-              <CheckCircle2 className="h-3 w-3 mr-1" />Approve
+              Approve
             </Button>
             <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-xs px-2 text-destructive border-destructive/30 hover:bg-destructive/10"
-              disabled={reject.isPending}
+              size="small"
+              intent={Intent.DANGER}
+              variant="outlined"
+              icon="cross-circle"
+              loading={reject.isPending}
               onClick={() => { reject.mutate({ id: req.id }) }}
             >
-              <XCircle className="h-3 w-3 mr-1" />Reject
+              Reject
             </Button>
           </div>
         ) : (
           <span className="text-[10px] text-muted-foreground">No permission</span>
         )}
-      </TableCell>
-    </TableRow>
+      </td>
+    </tr>
   )
 }
 
@@ -188,12 +197,11 @@ export default function FlowDashboardPage() {
           </p>
         </div>
         <Button
-          size="sm"
-          variant="outline"
+          size="small"
+          variant="outlined"
+          endIcon="arrow-top-right"
           onClick={() => { window.location.href = '/restocks' }}
-          className="gap-1.5"
         >
-          <ArrowUpRight className="h-3.5 w-3.5" />
           Open Kanban
         </Button>
       </div>
@@ -249,36 +257,35 @@ export default function FlowDashboardPage() {
         {/* Left: Pending queue */}
         <div className="flex-[3] border-r overflow-y-auto">
           <div className="px-6 py-4 border-b flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="time" size={14} className="text-muted-foreground" />
             <span className="text-sm font-semibold">Pending Queue</span>
             <span className="ml-auto text-xs text-muted-foreground">Oldest first · inline approve/reject</span>
           </div>
 
           {reqLoading ? (
-            <div className="flex items-center justify-center py-16 text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />Loading…
+            <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+              <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
+              Loading…
             </div>
           ) : pending.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-20 text-center">
-              <CheckCircle2 className="h-10 w-10 text-green-500/60" />
-              <p className="text-sm font-medium">Queue is clear</p>
-              <p className="text-xs text-muted-foreground max-w-xs">
-                No requests are currently awaiting manager or director approval.
-              </p>
-            </div>
+            <NonIdealState
+              icon="tick-circle"
+              title="Queue is clear"
+              description="No requests are currently awaiting manager or director approval."
+            />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Tier</TableHead>
-                  <TableHead className="text-right">Qty</TableHead>
-                  <TableHead className="text-right">Est. cost</TableHead>
-                  <TableHead className="text-right">Age</TableHead>
-                  <TableHead className="w-40" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <HTMLTable compact striped className="w-full">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Tier</th>
+                  <th className="text-right">Qty</th>
+                  <th className="text-right">Est. cost</th>
+                  <th className="text-right">Age</th>
+                  <th className="w-40" />
+                </tr>
+              </thead>
+              <tbody>
                 {pending.map((req) => {
                   const tier = req.required_approval_tier
                   const canApprove =
@@ -292,8 +299,8 @@ export default function FlowDashboardPage() {
                     />
                   )
                 })}
-              </TableBody>
-            </Table>
+              </tbody>
+            </HTMLTable>
           )}
         </div>
 
@@ -302,19 +309,20 @@ export default function FlowDashboardPage() {
           {/* Spend trend chart */}
           <div className="border-b px-6 py-4">
             <div className="flex items-center gap-2 mb-4">
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <Icon icon="trending-up" size={14} className="text-muted-foreground" />
               <span className="text-sm font-semibold">Spend Trend</span>
               <span className="ml-auto text-[10px] text-muted-foreground">6-month · estimated at creation vs actual received cost</span>
             </div>
             {trendLoading ? (
               <div className="flex items-center justify-center h-40 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
             ) : chartData.length === 0 ? (
-              <div className="flex flex-col items-center gap-2 py-10 text-center">
-                <p className="text-sm text-muted-foreground">No spend data yet</p>
-                <p className="text-xs text-muted-foreground">Spend trend populates as restock requests are fulfilled</p>
-              </div>
+              <NonIdealState
+                icon="chart"
+                title="No spend data yet"
+                description="Spend trend populates as restock requests are fulfilled"
+              />
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={chartData} barGap={2} margin={BAR_MARGIN}>
@@ -337,28 +345,28 @@ export default function FlowDashboardPage() {
           {/* Approval velocity table */}
           <div className="px-6 py-4">
             <div className="flex items-center gap-2 mb-3">
-              <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+              <Icon icon="shield" size={14} className="text-muted-foreground" />
               <span className="text-sm font-semibold">Approval Velocity</span>
               <span className="ml-auto text-[10px] text-muted-foreground">30-day window</span>
             </div>
             {velLoading ? (
               <div className="flex items-center justify-center h-20 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
             ) : velocity.length === 0 ? (
               <p className="text-xs text-muted-foreground py-4 text-center">No approval activity in the last 30 days</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tier</TableHead>
-                    <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Approved</TableHead>
-                    <TableHead className="text-right">Avg time</TableHead>
-                    <TableHead className="text-right">Escalated</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <HTMLTable compact striped className="w-full">
+                <thead>
+                  <tr>
+                    <th>Tier</th>
+                    <th className="text-right">Total</th>
+                    <th className="text-right">Approved</th>
+                    <th className="text-right">Avg time</th>
+                    <th className="text-right">Escalated</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {velocity.map((row) => {
                     const tier = row.required_approval_tier
                     const cfg  = TIER_CFG[tier]
@@ -366,28 +374,28 @@ export default function FlowDashboardPage() {
                       ? Math.round((row.approved_count / row.total_requests) * 100)
                       : 0
                     return (
-                      <TableRow key={row.required_approval_tier}>
-                        <TableCell>
-                          <Badge variant="outline" className={cn('text-[10px] h-5 px-1.5 font-semibold', cfg.cls)}>
+                      <tr key={row.required_approval_tier}>
+                        <td>
+                          <Tag minimal intent={cfg.intent} className="!text-[10px] !h-5 !px-1.5 !font-semibold">
                             {cfg.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums text-sm">{row.total_requests}</TableCell>
-                        <TableCell className="text-right tabular-nums text-sm">
+                          </Tag>
+                        </td>
+                        <td className="text-right tabular-nums text-sm">{row.total_requests}</td>
+                        <td className="text-right tabular-nums text-sm">
                           {row.approved_count}
                           <span className="text-[10px] text-muted-foreground ml-1">({String(approvalRate)}%)</span>
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums text-sm">
+                        </td>
+                        <td className="text-right tabular-nums text-sm">
                           {row.avg_hours_to_approve != null ? `${String(row.avg_hours_to_approve)}h` : '—'}
-                        </TableCell>
-                        <TableCell className={cn('text-right tabular-nums text-sm', row.escalated_count > 0 && 'text-orange-600 dark:text-orange-400 font-medium')}>
+                        </td>
+                        <td className={cn('text-right tabular-nums text-sm', row.escalated_count > 0 && 'text-orange-600 dark:text-orange-400 font-medium')}>
                           {row.escalated_count}
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     )
                   })}
-                </TableBody>
-              </Table>
+                </tbody>
+              </HTMLTable>
             )}
           </div>
         </div>

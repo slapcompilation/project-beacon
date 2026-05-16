@@ -2,9 +2,20 @@
 // Palantir principle #6: cross-domain synthesis.
 // procurement spend + write-offs + occupancy → CPOR (Cost Per Occupied Room)
 // This is the owner/GM's crown-jewel KPI: what does running this hotel cost per room per night?
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
-import { TrendingUp, TrendingDown, Minus, Loader2, AlertTriangle, DollarSign, Hotel, PieChart } from 'lucide-react'
+import {
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -13,11 +24,18 @@ import type { CPORPeriodRow, CostByCategoryRow } from '@beacon/types'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function trendIcon(changePct: number | null) {
-  if (changePct === null) return <Minus className="h-3.5 w-3.5 text-muted-foreground" />
-  if (changePct > 0) return <TrendingUp className="h-3.5 w-3.5 text-red-500" />
-  if (changePct < 0) return <TrendingDown className="h-3.5 w-3.5 text-emerald-500" />
-  return <Minus className="h-3.5 w-3.5 text-muted-foreground" />
+function trendIconName(changePct: number | null): IconName {
+  if (changePct === null) return 'minus'
+  if (changePct > 0) return 'trending-up'
+  if (changePct < 0) return 'trending-down'
+  return 'minus'
+}
+
+function trendIconColorCls(changePct: number | null): string {
+  if (changePct === null) return 'text-muted-foreground'
+  if (changePct > 0) return 'text-red-500'
+  if (changePct < 0) return 'text-emerald-500'
+  return 'text-muted-foreground'
 }
 
 function trendColor(changePct: number | null): string {
@@ -63,13 +81,13 @@ function CPORKPIStrip({
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
       {/* CPOR */}
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Current CPOR</p>
         {latest ? (
           <>
             <p className="text-2xl font-bold tabular-nums">{fmt(latest.cpor, currency)}</p>
             <div className="flex items-center gap-1 text-xs">
-              {trendIcon(latest.cpor_change_pct)}
+              <Icon icon={trendIconName(latest.cpor_change_pct)} size={14} className={trendIconColorCls(latest.cpor_change_pct)} />
               <span className={trendColor(latest.cpor_change_pct)}>
                 {fmtPct(latest.cpor_change_pct)} MoM
               </span>
@@ -84,20 +102,20 @@ function CPORKPIStrip({
         ) : (
           <p className="text-sm text-muted-foreground">No occupancy data</p>
         )}
-      </div>
+      </Card>
 
       {/* Total spend */}
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Cost (window)</p>
         <p className="text-2xl font-bold tabular-nums">{fmt(totalSpend, currency)}</p>
         <div className="text-[10px] text-muted-foreground space-y-0.5 tabular-nums">
           <p><span className="text-foreground">{fmt(totalProcure, currency)}</span> procurement</p>
           <p><span className="text-red-500">{fmt(totalWriteOff, currency)}</span> write-offs</p>
         </div>
-      </div>
+      </Card>
 
       {/* Write-off share */}
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Waste Share</p>
         {totalSpend > 0 ? (
           <>
@@ -112,10 +130,10 @@ function CPORKPIStrip({
         ) : (
           <p className="text-sm text-muted-foreground">No cost data</p>
         )}
-      </div>
+      </Card>
 
       {/* Avg occupancy */}
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avg Occupancy</p>
         {meanOcc !== null ? (
           <>
@@ -126,11 +144,11 @@ function CPORKPIStrip({
           </>
         ) : (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
+            <Icon icon="warning-sign" size={14} className="text-amber-500" />
             No occupancy logs
           </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
@@ -141,9 +159,9 @@ function CPORPeriodTable({ rows, currency }: { rows: CPORPeriodRow[]; currency: 
   const sorted = [...rows].sort((a, b) => b.period_start.localeCompare(a.period_start))
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card className="!p-0 overflow-hidden">
       <div className="px-4 py-2 bg-muted/30 flex items-center gap-2">
-        <Hotel className="h-3.5 w-3.5 text-muted-foreground" />
+        <Icon icon="office" size={14} className="text-muted-foreground" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Monthly CPOR Trend
         </p>
@@ -198,7 +216,7 @@ function CPORPeriodTable({ rows, currency }: { rows: CPORPeriodRow[]; currency: 
                   <td className="px-4 py-2.5 text-right">
                     {row.cpor_change_pct !== null ? (
                       <span className={cn('flex items-center justify-end gap-0.5 tabular-nums', trendColor(row.cpor_change_pct))}>
-                        {trendIcon(row.cpor_change_pct)}
+                        <Icon icon={trendIconName(row.cpor_change_pct)} size={12} className={trendIconColorCls(row.cpor_change_pct)} />
                         {fmtPct(row.cpor_change_pct)}
                       </span>
                     ) : (
@@ -216,7 +234,7 @@ function CPORPeriodTable({ rows, currency }: { rows: CPORPeriodRow[]; currency: 
           CPOR = (procurement spend + write-off cost) / occupied room nights · — = no occupancy data logged
         </p>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -226,9 +244,9 @@ function CategoryBreakdown({ rows, currency }: { rows: CostByCategoryRow[]; curr
   const maxCost = rows[0]?.total_cost ?? 1
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card className="!p-0 overflow-hidden">
       <div className="px-4 py-2 bg-muted/30 flex items-center gap-2">
-        <PieChart className="h-3.5 w-3.5 text-muted-foreground" />
+        <Icon icon="pie-chart" size={14} className="text-muted-foreground" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Cost by Category · {rows.length} categories
         </p>
@@ -275,7 +293,7 @@ function CategoryBreakdown({ rows, currency }: { rows: CostByCategoryRow[]; curr
 
                 {wasteHigh && (
                   <p className="text-[10px] text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3" />
+                    <Icon icon="warning-sign" size={12} />
                     High waste rate — investigate Breakage/Theft/Spoilage for {cat.category_name}
                   </p>
                 )}
@@ -289,7 +307,7 @@ function CategoryBreakdown({ rows, currency }: { rows: CostByCategoryRow[]; curr
           Sorted by total cost · waste rate = write-offs / (procurement + write-offs)
         </p>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -297,33 +315,27 @@ function CategoryBreakdown({ rows, currency }: { rows: CostByCategoryRow[]; curr
 
 function NoOccupancyBanner() {
   return (
-    <div className="rounded-lg border border-amber-200 dark:border-amber-900 bg-amber-50 dark:bg-amber-950/20 px-4 py-4 flex items-start gap-3">
-      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-      <div className="space-y-1">
-        <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">Occupancy data not found</p>
-        <p className="text-xs text-amber-700 dark:text-amber-400">
-          CPOR requires daily occupancy logs. To enable CPOR tracking, log occupancy data from the
-          Hotel Settings page. Cost breakdowns are still accurate — only the per-room normalisation is unavailable.
-        </p>
-      </div>
-    </div>
+    <Callout intent={Intent.WARNING} icon="warning-sign" title="Occupancy data not found">
+      CPOR requires daily occupancy logs. To enable CPOR tracking, log occupancy data from the
+      Hotel Settings page. Cost breakdowns are still accurate — only the per-room normalisation is unavailable.
+    </Callout>
   )
 }
 
 // ─── Window selector ──────────────────────────────────────────────────────────
 
 const PERIOD_OPTIONS = [
-  { label: '3 mo',  months: 3,  days: 90  },
-  { label: '6 mo',  months: 6,  days: 180 },
-  { label: '12 mo', months: 12, days: 365 },
-] as const
+  { label: '3 mo',  value: '3',  months: 3,  days: 90  },
+  { label: '6 mo',  value: '6',  months: 6,  days: 180 },
+  { label: '12 mo', value: '12', months: 12, days: 365 },
+]
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function CPORDashboard() {
   const currency = useCurrency()
-  const [windowIdx, setWindowIdx] = useState(0)
-  const selected = PERIOD_OPTIONS[windowIdx]
+  const [windowMonths, setWindowMonths] = useState(3)
+  const selected = PERIOD_OPTIONS.find((p) => p.months === windowMonths) ?? PERIOD_OPTIONS[0]
 
   const { data: periodRows = [], isLoading: periodsLoading } = useCPORByPeriod(selected.months)
   const { data: catRows   = [], isLoading: catsLoading    } = useCostByCategory(selected.days)
@@ -337,35 +349,24 @@ export default function CPORDashboard() {
       <div className="flex items-center justify-between gap-4 shrink-0">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="dollar" size={14} className="text-muted-foreground" />
             <h2 className="text-sm font-semibold">Cost Per Occupied Room (CPOR)</h2>
           </div>
           <p className="text-xs text-muted-foreground">
             Hotel economics KPI — procurement + waste cost normalised by occupied room nights
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border p-0.5 shrink-0">
-          {PERIOD_OPTIONS.map((opt, i) => (
-            <button
-              key={opt.label}
-              type="button"
-              onClick={() => { setWindowIdx(i) }}
-              className={cn(
-                'px-3 py-1 text-xs rounded transition-colors',
-                windowIdx === i
-                  ? 'bg-primary text-primary-foreground font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={String(windowMonths)}
+          onValueChange={(v) => { setWindowMonths(Number(v)) }}
+          options={PERIOD_OPTIONS.map((o) => ({ label: o.label, value: o.value }))}
+        />
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
         </div>
       ) : (
         <>

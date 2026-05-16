@@ -6,13 +6,21 @@
 // "Receive" deep-links into ReceivePage with the request pre-selected.
 //
 // Palantir principle: actions live next to data — no navigation away to act.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
-  Truck, ChevronDown, ChevronUp, AlertTriangle,
-  CheckCircle2, Loader2, ArrowRight,
-} from 'lucide-react'
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
@@ -46,16 +54,13 @@ function ContractDeviation({
   const pct = ((poUnitCost - contract.contracted_price) / contract.contracted_price) * 100
   if (Math.abs(pct) < 0.1) return null
   const over = pct > 0
+  const intent: Intent = over
+    ? pct > 3 ? Intent.DANGER : Intent.WARNING
+    : Intent.SUCCESS
   return (
-    <span className={cn(
-      'text-[9px] font-bold px-1 py-0.5 rounded',
-      over
-        ? pct > 3 ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
-                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400'
-        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
-    )}>
+    <Tag intent={intent} minimal className="!text-[9px] !font-bold !px-1 !py-0.5">
       {over ? '+' : ''}{pct.toFixed(1)}% vs contract
-    </span>
+    </Tag>
   )
 }
 
@@ -86,7 +91,7 @@ function POLineList({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-6">
-        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
       </div>
     )
   }
@@ -141,7 +146,7 @@ function POLineList({
               line.received_qty > 0 ? 'text-amber-600' : 'text-muted-foreground'
             )}>
               {line.received_qty}
-              {fullyReceived && <CheckCircle2 className="inline h-3 w-3 ml-1 text-emerald-500" />}
+              {fullyReceived && <Icon icon="tick-circle" size={12} className="inline ml-1 text-emerald-500" />}
             </span>
 
             {/* PO unit cost */}
@@ -168,13 +173,15 @@ function POLineList({
               {fullyReceived ? (
                 <span className="text-[10px] text-emerald-600 font-medium">Done</span>
               ) : (
-                <button
-                  type="button"
+                <Button
+                  variant="minimal"
+                  size="small"
+                  intent={Intent.PRIMARY}
+                  endIcon="arrow-right"
                   onClick={() => { handleReceive(line.request_id ?? null) }}
-                  className="flex items-center gap-1 text-xs text-primary hover:underline ml-auto"
                 >
-                  Receive <ArrowRight className="h-3 w-3" />
-                </button>
+                  Receive
+                </Button>
               )}
             </div>
           </div>
@@ -222,12 +229,11 @@ function POCard({
           isToday_  ? 'bg-emerald-100 dark:bg-emerald-950/40' :
           'bg-muted/60',
         )}>
-          {isOverdue
-            ? <AlertTriangle className="h-4 w-4 text-red-600" />
-            : allReceived
-              ? <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              : <Truck className="h-4 w-4 text-muted-foreground" />
-          }
+          <Icon
+            icon={isOverdue ? 'warning-sign' : allReceived ? 'tick-circle' : 'truck'}
+            size={14}
+            className={isOverdue ? 'text-red-600' : allReceived ? 'text-emerald-600' : 'text-muted-foreground'}
+          />
         </div>
 
         {/* PO info */}
@@ -266,10 +272,7 @@ function POCard({
           {formatCurrency(po.total_amount, currency)}
         </span>
 
-        {open
-          ? <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
-          : <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-        }
+        <Icon icon={open ? 'chevron-up' : 'chevron-down'} size={14} className="text-muted-foreground shrink-0" />
       </button>
 
       {open && (
@@ -341,24 +344,18 @@ export default function DeliveryQueuePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
       </div>
     )
   }
 
   if (openPos.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 py-20 px-8 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/30">
-          <CheckCircle2 className="h-8 w-8 text-emerald-500" />
-        </div>
-        <div>
-          <p className="text-base font-semibold">All deliveries up to date</p>
-          <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-            No POs are currently awaiting receiving. Create purchase orders in Mind · Procurement.
-          </p>
-        </div>
-      </div>
+      <NonIdealState
+        icon="tick-circle"
+        title="All deliveries up to date"
+        description="No POs are currently awaiting receiving. Create purchase orders in Mind · Procurement."
+      />
     )
   }
 
@@ -366,7 +363,7 @@ export default function DeliveryQueuePage() {
     <div className="flex flex-col h-full overflow-hidden">
       <SummaryBar pos={openPos} currency={currency} />
 
-      <div className="flex-1 overflow-y-auto">
+      <Card className="!p-0 !rounded-none !shadow-none flex-1 overflow-y-auto">
         <div className="divide-y">
           {openPos.map((po, i) => (
             <POCard
@@ -378,7 +375,7 @@ export default function DeliveryQueuePage() {
             />
           ))}
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
