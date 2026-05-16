@@ -6,10 +6,20 @@
 //
 // Shows: all active variants ranked by stockout probability
 //        with confidence bands, demand pattern, and 7/14/30d horizon toggle.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
-import { AlertTriangle, Clock, CheckCircle2, HelpCircle, Loader2, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import {
+  Button,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useStockoutProbabilities } from '@/features/inventory/hooks'
 import { ProbabilisticMetric } from '@/components/ProbabilisticMetric'
@@ -21,29 +31,24 @@ type Horizon = 7 | 14 | 30
 
 function HorizonToggle({ value, onChange }: { value: Horizon; onChange: (h: Horizon) => void }) {
   return (
-    <div className="flex rounded-md border overflow-hidden text-xs shrink-0">
-      {([7, 14, 30] as Horizon[]).map((h) => (
-        <button
-          key={h}
-          type="button"
-          onClick={() => { onChange(h) }}
-          className={cn(
-            'px-3 py-1.5 transition-colors',
-            value === h
-              ? 'bg-primary text-primary-foreground font-medium'
-              : 'text-muted-foreground hover:bg-muted/50',
-          )}
-        >
-          {String(h)}d
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      size="small"
+      value={String(value)}
+      onValueChange={(v) => { onChange(Number(v) as Horizon) }}
+      options={[
+        { label: '7d',  value: '7'  },
+        { label: '14d', value: '14' },
+        { label: '30d', value: '30' },
+      ]}
+    />
   )
 }
 
 // ─── Risk tier helpers ────────────────────────────────────────────────────────
 
-function riskTier(row: StockoutProbabilityRow, horizon: Horizon): 'high' | 'moderate' | 'low' | 'no_data' {
+type Tier = 'high' | 'moderate' | 'low' | 'no_data'
+
+function riskTier(row: StockoutProbabilityRow, horizon: Horizon): Tier {
   const prob = horizon === 7  ? row.stockout_prob_7d
              : horizon === 14 ? row.stockout_prob_14d
              : row.stockout_prob_30d
@@ -53,18 +58,19 @@ function riskTier(row: StockoutProbabilityRow, horizon: Horizon): 'high' | 'mode
   return 'low'
 }
 
-function TierHeader({ tier, count }: { tier: 'high' | 'moderate' | 'low' | 'no_data'; count: number }) {
-  const config = {
-    high:    { label: 'High Risk',        icon: AlertTriangle, color: 'text-red-600 dark:text-red-400',    bg: 'bg-red-50/60 dark:bg-red-950/20',     border: 'border-red-200 dark:border-red-900' },
-    moderate:{ label: 'Moderate Risk',    icon: Clock,         color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50/60 dark:bg-amber-950/20', border: 'border-amber-200 dark:border-amber-900' },
-    low:     { label: 'Low Risk',         icon: CheckCircle2,  color: 'text-green-600 dark:text-green-500', bg: 'bg-green-50/30 dark:bg-green-950/10',  border: 'border-green-200/60 dark:border-green-900/40' },
-    no_data: { label: 'Insufficient Data',icon: HelpCircle,    color: 'text-muted-foreground',              bg: 'bg-muted/20',                          border: 'border-muted/40' },
-  }[tier]
-  const Icon = config.icon
+const TIER_META: Record<Tier, { label: string; icon: IconName; color: string; bg: string; border: string }> = {
+  high:     { label: 'High Risk',         icon: 'warning-sign', color: 'text-red-600 dark:text-red-400',    bg: 'bg-red-50/60 dark:bg-red-950/20',    border: 'border-red-200 dark:border-red-900' },
+  moderate: { label: 'Moderate Risk',     icon: 'time',         color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50/60 dark:bg-amber-950/20', border: 'border-amber-200 dark:border-amber-900' },
+  low:      { label: 'Low Risk',          icon: 'tick-circle',  color: 'text-green-600 dark:text-green-500', bg: 'bg-green-50/30 dark:bg-green-950/10', border: 'border-green-200/60 dark:border-green-900/40' },
+  no_data:  { label: 'Insufficient Data', icon: 'help',         color: 'text-muted-foreground',              bg: 'bg-muted/20',                          border: 'border-muted/40' },
+}
+
+function TierHeader({ tier, count }: { tier: Tier; count: number }) {
+  const meta = TIER_META[tier]
   return (
-    <div className={cn('flex items-center gap-2 px-5 py-2.5 rounded-lg border', config.bg, config.border)}>
-      <Icon className={cn('h-3.5 w-3.5 shrink-0', config.color)} />
-      <span className={cn('text-xs font-semibold', config.color)}>{config.label}</span>
+    <div className={cn('flex items-center gap-2 px-5 py-2.5 rounded-lg border', meta.bg, meta.border)}>
+      <Icon icon={meta.icon} size={14} className={cn('shrink-0', meta.color)} />
+      <span className={cn('text-xs font-semibold', meta.color)}>{meta.label}</span>
       <span className="text-xs text-muted-foreground ml-auto">{String(count)} variant{count !== 1 ? 's' : ''}</span>
     </div>
   )
@@ -139,7 +145,7 @@ export default function StockRiskMatrixPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground gap-2">
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         Computing probability distributions…
       </div>
     )
@@ -161,15 +167,13 @@ export default function StockRiskMatrixPage() {
         <div className="flex items-center gap-3">
           <HorizonToggle value={horizon} onChange={setHorizon} />
           <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
+            icon="refresh"
+            variant="minimal"
+            size="small"
             onClick={() => { void refetch() }}
-            disabled={isFetching}
-            title="Refresh"
-          >
-            <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
-          </Button>
+            loading={isFetching}
+            aria-label="Refresh"
+          />
         </div>
       </div>
 
@@ -198,10 +202,11 @@ export default function StockRiskMatrixPage() {
       {/* Matrix list */}
       <div className="flex-1 overflow-auto px-8 py-4 space-y-4">
         {total === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
-            <CheckCircle2 className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No active variants found.</p>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title="No active variants"
+            description="No active variants found."
+          />
         ) : (
           <>
             {high.length > 0 && (
