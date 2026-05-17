@@ -4,15 +4,22 @@
 // automatically, without a spreadsheet.
 // No other hotel inventory system synthesizes this view automatically.
 // Palantir principle: cross-domain synthesis — stock movements + costs = financial reality.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
-import {
-  DollarSign, TrendingDown, TrendingUp, AlertTriangle, Download,
-  ArrowDownRight, ArrowUpRight, Minus, BarChart2, Package, Filter,
-} from 'lucide-react'
 import { format, subDays } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {
+  Button,
+  Callout,
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useStockMovementReport } from '@/features/inventory/hooks/reports'
@@ -53,10 +60,10 @@ interface KpiTileProps {
 function KpiTile({ label, value, sub, trend, trendLabel, highlight, sparkData, sparkColor }: KpiTileProps) {
   const trendUp   = trend != null && trend > 0
   const trendDown = trend != null && trend < 0
-  const TrendIcon = trendUp ? ArrowUpRight : trendDown ? ArrowDownRight : Minus
+  const trendIconName: IconName = trendUp ? 'arrow-top-right' : trendDown ? 'arrow-bottom-right' : 'minus'
 
   return (
-    <div className="bg-card border rounded-lg px-5 py-4 flex flex-col gap-1">
+    <Card className="!px-5 !py-4 flex flex-col gap-1">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
       <div className="flex items-end justify-between gap-2">
         <div>
@@ -74,7 +81,7 @@ function KpiTile({ label, value, sub, trend, trendLabel, highlight, sparkData, s
               'flex items-center gap-1 mt-1.5 text-[11px] font-medium',
               trendUp ? 'text-red-500' : trendDown ? 'text-green-500' : 'text-muted-foreground',
             )}>
-              <TrendIcon className="h-3 w-3" />
+              <Icon icon={trendIconName} size={10} />
               <span>{trendLabel ?? `${Math.abs(trend).toFixed(1)}%`}</span>
             </div>
           )}
@@ -83,7 +90,7 @@ function KpiTile({ label, value, sub, trend, trendLabel, highlight, sparkData, s
           <Sparkline data={sparkData} color={sparkColor ?? '#3b82f6'} width={80} height={36} />
         )}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -268,7 +275,7 @@ export default function FinancePage() {
       <div className="flex items-start justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="dollar" size={16} className="text-muted-foreground" />
             Financial Intelligence
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -278,8 +285,7 @@ export default function FinancePage() {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5 text-xs h-8">
-            <Download className="h-3.5 w-3.5" />
+          <Button size="small" variant="outlined" icon="download" onClick={handleExport}>
             Export CSV
           </Button>
         </div>
@@ -293,7 +299,7 @@ export default function FinancePage() {
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
           </div>
         ) : (
           <>
@@ -330,25 +336,19 @@ export default function FinancePage() {
 
             {/* ── Waste alert ── */}
             {wastePct > 15 && (
-              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800 px-4 py-3 text-sm">
-                <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-red-800 dark:text-red-400">High waste rate: {wastePct.toFixed(1)}%</p>
-                  <p className="text-xs text-red-700 dark:text-red-500 mt-0.5">
-                    Industry benchmark is &lt;8%. Your waste cost is {formatCurrency(wasteCost, currency)} this period.
-                    Review the waste breakdown below to identify the top contributors.
-                  </p>
-                </div>
-              </div>
+              <Callout intent={Intent.DANGER} icon="warning-sign" title={`High waste rate: ${wastePct.toFixed(1)}%`}>
+                Industry benchmark is &lt;8%. Your waste cost is {formatCurrency(wasteCost, currency)} this period.
+                Review the waste breakdown below to identify the top contributors.
+              </Callout>
             )}
 
             {/* ── Two column: waste breakdown + category breakdown ── */}
             <div className="grid grid-cols-2 gap-6">
 
               {/* Waste by category */}
-              <div className="rounded-lg border bg-card p-5">
+              <Card className="!p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <TrendingDown className="h-4 w-4 text-red-500" />
+                  <Icon icon="trending-down" size={14} className="text-red-500" />
                   <h3 className="text-sm font-semibold">Waste by Category</h3>
                   <span className="ml-auto text-xs text-muted-foreground tabular-nums">
                     {formatCurrency(wasteCost, currency)} total
@@ -377,12 +377,12 @@ export default function FinancePage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
 
               {/* Cost by product category */}
-              <div className="rounded-lg border bg-card p-5">
+              <Card className="!p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <BarChart2 className="h-4 w-4 text-blue-500" />
+                  <Icon icon="horizontal-bar-chart" size={14} className="text-blue-500" />
                   <h3 className="text-sm font-semibold">Spend by Category</h3>
                   <span className="ml-auto text-xs text-muted-foreground tabular-nums">
                     {formatCurrency(totalNetCost, currency)} total
@@ -411,22 +411,22 @@ export default function FinancePage() {
                     ))}
                   </div>
                 )}
-              </div>
+              </Card>
             </div>
 
             {/* ── Top cost drivers table ── */}
-            <div className="rounded-lg border bg-card">
+            <Card className="!p-0">
               <div className="flex items-center gap-3 px-5 py-4 border-b">
-                <Package className="h-4 w-4 text-muted-foreground" />
+                <Icon icon="box" size={14} className="text-muted-foreground" />
                 <h3 className="text-sm font-semibold">Top Cost Drivers</h3>
                 <span className="text-xs text-muted-foreground">· highest spend this period</span>
-                <div className="ml-auto relative w-48">
-                  <Filter className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                  <Input
+                <div className="ml-auto w-48">
+                  <InputGroup
+                    leftIcon="filter"
                     placeholder="Filter…"
                     value={searchCost}
                     onChange={(e) => { setSearchCost(e.target.value) }}
-                    className="pl-8 h-7 text-xs"
+                    size="small"
                   />
                 </div>
               </div>
@@ -514,12 +514,12 @@ export default function FinancePage() {
                   </table>
                 </div>
               )}
-            </div>
+            </Card>
 
             {/* ── Summary insight ── */}
-            <div className="rounded-lg border bg-muted/20 px-5 py-4 text-sm">
+            <Card className="!px-5 !py-4 !bg-muted/20 text-sm">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Icon icon="trending-up" size={14} className="text-muted-foreground" />
                 <span className="font-semibold">Period Summary</span>
               </div>
               <div className="grid grid-cols-3 gap-6 text-xs text-muted-foreground">
@@ -547,7 +547,7 @@ export default function FinancePage() {
                   </p>
                 </div>
               </div>
-            </div>
+            </Card>
           </>
         )}
       </div>

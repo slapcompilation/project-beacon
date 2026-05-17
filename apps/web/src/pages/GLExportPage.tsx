@@ -5,13 +5,23 @@
 //   Right — Export: date range → preview → CSV / JSON download.
 // Palantir principle: auditability as a first-class feature.
 // "Posting garbage to Xero is significantly worse than not posting at all." — hence is_mapped flag.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useCallback } from 'react'
-import {
-  Download, AlertTriangle, Loader2, Check, X, Pencil,
-  BookOpen, FileText, Info, ChevronDown, ChevronRight,
-} from 'lucide-react'
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import {
+  Button,
+  Callout,
+  Checkbox,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import {
@@ -79,39 +89,33 @@ function MappingRow({
 
       {editing ? (
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <input
+          <InputGroup
             autoFocus
             value={code}
             onChange={(e) => { setCode(e.target.value) }}
             onKeyDown={handleKeyDown}
             placeholder="Code *"
-            className="w-20 rounded border bg-background px-2 py-1 text-xs font-mono outline-none focus:ring-1 focus:ring-primary/40"
+            size="small"
+            className="!w-20 [&_input]:!font-mono"
           />
-          <input
+          <InputGroup
             value={name}
             onChange={(e) => { setName(e.target.value) }}
             onKeyDown={handleKeyDown}
             placeholder="Account name"
-            className="w-36 rounded border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+            size="small"
+            className="!w-36"
           />
-          <button type="button" onClick={handleSave} className="rounded p-1 text-primary hover:bg-primary/10">
-            <Check className="h-3.5 w-3.5" />
-          </button>
-          <button type="button" onClick={() => { setEditing(false) }} className="rounded p-1 text-muted-foreground hover:bg-muted">
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <Button variant="minimal" size="small" intent={Intent.PRIMARY} icon="tick" onClick={handleSave} aria-label="Save" />
+          <Button variant="minimal" size="small" icon="cross" onClick={() => { setEditing(false) }} aria-label="Cancel" />
         </div>
       ) : existing ? (
         <div className="flex items-center gap-2 flex-shrink-0">
           <code className="text-xs font-mono text-foreground bg-muted/60 px-1.5 py-0.5 rounded">{existing.gl_account_code}</code>
           <span className="text-xs text-muted-foreground truncate max-w-[120px]">{existing.gl_account_name}</span>
           <div className="hidden group-hover:flex items-center gap-1">
-            <button type="button" onClick={() => { setCode(existing.gl_account_code); setName(existing.gl_account_name); setEditing(true) }} className="rounded p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground">
-              <Pencil className="h-3 w-3" />
-            </button>
-            <button type="button" onClick={() => { onDelete(mappingType, mappingKey) }} className="rounded p-0.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-              <X className="h-3 w-3" />
-            </button>
+            <Button variant="minimal" size="small" icon="edit" onClick={() => { setCode(existing.gl_account_code); setName(existing.gl_account_name); setEditing(true) }} aria-label="Edit" />
+            <Button variant="minimal" size="small" intent={Intent.DANGER} icon="cross" onClick={() => { onDelete(mappingType, mappingKey) }} aria-label="Delete" />
           </div>
         </div>
       ) : (
@@ -152,14 +156,14 @@ function AccountMappingPanel({
     remove.mutate({ mappingType: type, mappingKey: key })
   }, [remove])
 
-  const sectionClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2 mt-3 first:mt-0 flex items-center justify-between cursor-pointer hover:text-foreground transition-colors'
+  const sectionClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground px-3 py-2 mt-3 first:mt-0 flex items-center justify-between cursor-pointer hover:text-foreground transition-colors w-full'
 
   return (
     <div className="text-sm">
       {/* Category mappings */}
       <button type="button" className={sectionClass} onClick={() => { setShowCategories((v) => !v) }}>
         <span>Procurement Expenses · by Category</span>
-        {showCategories ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <Icon icon={showCategories ? 'chevron-down' : 'chevron-right'} size={12} />
       </button>
       {showCategories && (
         <div>
@@ -184,7 +188,7 @@ function AccountMappingPanel({
       {/* Write-off type mappings */}
       <button type="button" className={sectionClass} onClick={() => { setShowWriteOffs((v) => !v) }}>
         <span>Write-offs · by Removal Category</span>
-        {showWriteOffs ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <Icon icon={showWriteOffs ? 'chevron-down' : 'chevron-right'} size={12} />
       </button>
       {showWriteOffs && (
         <div>
@@ -205,7 +209,7 @@ function AccountMappingPanel({
       {/* Default fallbacks */}
       <button type="button" className={sectionClass} onClick={() => { setShowDefaults((v) => !v) }}>
         <span>Default Fallbacks</span>
-        {showDefaults ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+        <Icon icon={showDefaults ? 'chevron-down' : 'chevron-right'} size={12} />
       </button>
       {showDefaults && (
         <div>
@@ -283,10 +287,10 @@ function ExportPreview({ rows, currency }: { rows: GLExportRow[]; currency: stri
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 py-12 text-center">
-        <FileText className="h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm text-muted-foreground">No transactions in this date range</p>
-      </div>
+      <NonIdealState
+        icon="document"
+        title="No transactions in this date range"
+      />
     )
   }
 
@@ -335,9 +339,11 @@ function ExportPreview({ rows, currency }: { rows: GLExportRow[]; currency: stri
               <td className="py-1.5 px-3 text-muted-foreground truncate max-w-[120px]">{row.gl_account_name || '—'}</td>
               <td className="py-1.5 px-3 text-right tabular-nums font-medium">{formatCurrency(row.amount, currency)}</td>
               <td className="py-1.5 px-3 text-center">
-                {row.is_mapped
-                  ? <Check className="h-3 w-3 text-green-500 mx-auto" />
-                  : <AlertTriangle className="h-3 w-3 text-yellow-500 mx-auto" />}
+                <Icon
+                  icon={row.is_mapped ? 'tick' : 'warning-sign'}
+                  size={10}
+                  className={cn('mx-auto', row.is_mapped ? 'text-green-500' : 'text-yellow-500')}
+                />
               </td>
             </tr>
           ))}
@@ -386,10 +392,10 @@ export default function GLExportPage() {
 
   if (!['admin', 'owner'].includes(role)) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-center p-8">
-        <BookOpen className="h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm font-medium">Admin access required</p>
-      </div>
+      <NonIdealState
+        icon="book"
+        title="Admin access required"
+      />
     )
   }
 
@@ -412,11 +418,10 @@ export default function GLExportPage() {
       </div>
 
       {/* Methodology note */}
-      <div className="flex items-center gap-2 px-8 py-2 border-b bg-muted/10 text-[11px] text-muted-foreground flex-shrink-0">
-        <Info className="h-3.5 w-3.5 flex-shrink-0" />
-        <span>
+      <div className="px-8 py-2 border-b flex-shrink-0">
+        <Callout intent={Intent.NONE} icon="info-sign" compact>
           Procurement expenses from <code className="font-mono">restock_receives</code> · Write-offs from <code className="font-mono">stock_logs</code> WHERE removal_category IN (Breakage, Theft, Spoilage) · POS auto-decrements and corrections excluded · is_mapped = false flags rows that need a GL code before posting
-        </span>
+        </Callout>
       </div>
 
       {/* Body */}
@@ -433,7 +438,7 @@ export default function GLExportPage() {
           <div className="flex-1 overflow-y-auto">
             {mappingsLoading ? (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
             ) : (
               <AccountMappingPanel mappings={mappings} categories={categories} />
@@ -447,83 +452,75 @@ export default function GLExportPage() {
           {/* Controls */}
           <div className="flex items-center gap-4 border-b px-6 py-3 flex-shrink-0 flex-wrap">
             {/* Date presets */}
-            <div className="flex items-center gap-1.5 flex-shrink-0">
-              {([
-                { key: 'this_month', label: 'This month' },
-                { key: 'last_month', label: 'Last month' },
-                { key: 'last_30d',   label: '30d' },
-                { key: 'last_90d',   label: '90d' },
-              ] as { key: Preset; label: string }[]).map(({ key, label }) => (
-                <button
-                  key={key}
-                  onClick={() => { setPreset(key); setPreviewLoaded(false) }}
-                  className={cn(
-                    'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                    preset === key ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              size="small"
+              value={preset}
+              onValueChange={(v) => { setPreset(v as Preset); setPreviewLoaded(false) }}
+              options={[
+                { value: 'this_month', label: 'This month' },
+                { value: 'last_month', label: 'Last month' },
+                { value: 'last_30d',   label: '30d' },
+                { value: 'last_90d',   label: '90d' },
+              ]}
+            />
 
             {/* Custom range */}
             <div className="flex items-center gap-1.5 text-xs flex-shrink-0">
-              <input
+              <InputGroup
                 type="date"
                 value={customFrom}
                 onChange={(e) => { setCustomFrom(e.target.value); setPreset('' as Preset); setPreviewLoaded(false) }}
-                className="rounded border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+                size="small"
               />
               <span className="text-muted-foreground">to</span>
-              <input
+              <InputGroup
                 type="date"
                 value={customTo}
                 onChange={(e) => { setCustomTo(e.target.value); setPreset('' as Preset); setPreviewLoaded(false) }}
-                className="rounded border bg-background px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+                size="small"
               />
             </div>
 
             {/* Write-offs toggle */}
-            <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none flex-shrink-0">
-              <input
-                type="checkbox"
-                checked={includeWriteOffs}
-                onChange={(e) => { setIncludeWriteOffs(e.target.checked); setPreviewLoaded(false) }}
-                className="rounded"
-              />
-              Include write-offs
-            </label>
+            <Checkbox
+              checked={includeWriteOffs}
+              onChange={(e) => { setIncludeWriteOffs(e.currentTarget.checked); setPreviewLoaded(false) }}
+              label="Include write-offs"
+              className="!mb-0"
+            />
 
             <div className="ml-auto flex items-center gap-2 flex-shrink-0">
               {/* Load preview */}
               {!previewLoaded && (
-                <button
-                  onClick={() => { setPreviewLoaded(true) }}
+                <Button
+                  size="small"
+                  variant="outlined"
                   disabled={!from || !to}
-                  className="flex items-center gap-1.5 rounded border px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:opacity-40 transition-colors"
+                  onClick={() => { setPreviewLoaded(true) }}
                 >
                   Preview
-                </button>
+                </Button>
               )}
 
               {/* Export CSV */}
               {exportRows.length > 0 && (
                 <>
-                  <button
+                  <Button
+                    size="small"
+                    intent={Intent.PRIMARY}
+                    icon="download"
                     onClick={() => { downloadFile(generateCSV(exportRows), `${filename}.csv`, 'text/csv') }}
-                    className="flex items-center gap-1.5 rounded-lg bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90"
                   >
-                    <Download className="h-3.5 w-3.5" />
                     CSV
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    icon="download"
                     onClick={() => { downloadFile(JSON.stringify(exportRows, null, 2), `${filename}.json`, 'application/json') }}
-                    className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted"
                   >
-                    <Download className="h-3.5 w-3.5" />
                     JSON
-                  </button>
+                  </Button>
                 </>
               )}
             </div>
@@ -572,19 +569,14 @@ export default function GLExportPage() {
           {/* Preview */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {!previewLoaded ? (
-              <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-                <FileText className="h-10 w-10 text-muted-foreground/30" />
-                <p className="text-sm text-muted-foreground">Select a date range and click Preview</p>
-                {summary && (
-                  <p className="text-xs text-muted-foreground/60">
-                    {String(summary.procurement_count + summary.write_off_count)} transactions in this window ·{' '}
-                    {formatCurrency(summary.procurement_total + summary.write_off_total, currency)} total
-                  </p>
-                )}
-              </div>
+              <NonIdealState
+                icon="document"
+                title="Select a date range and click Preview"
+                description={summary ? `${String(summary.procurement_count + summary.write_off_count)} transactions in this window · ${formatCurrency(summary.procurement_total + summary.write_off_total, currency)} total` : undefined}
+              />
             ) : exportLoading ? (
-              <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex items-center justify-center py-16">
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
             ) : (
               <ExportPreview rows={exportRows} currency={currency} />

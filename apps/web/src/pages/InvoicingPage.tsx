@@ -2,15 +2,23 @@
 // Palantir principle: decision support, not data display.
 // Answers: "Which suppliers are systematically overcharging us, and by how much?"
 // Cross-domain synthesis: invoice pattern + fill rate + leverage score → negotiation brief.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  AlertTriangle, TrendingUp, CheckCircle2,
-  Loader2, ChevronDown, ChevronUp, ArrowRight, Scale,
-  BarChart2, Info,
-} from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import {
+  Button,
+  Callout,
+  HTMLSelect,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -52,7 +60,7 @@ function StreakBadge({ count }: { count: number }) {
         ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400'
         : 'bg-muted text-muted-foreground',
     )}>
-      <TrendingUp className="h-2.5 w-2.5" />
+      <Icon icon="trending-up" size={10} />
       {count} in a row
     </span>
   )
@@ -97,7 +105,7 @@ function SupplierRow({
         {/* Anomaly indicator */}
         <div className="shrink-0">
           {row.anomaly_flag ? (
-            <AlertTriangle className="h-4 w-4 text-red-500" />
+            <Icon icon="warning-sign" size={14} className="text-red-500" />
           ) : (
             <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30" />
           )}
@@ -157,9 +165,7 @@ function SupplierRow({
 
         {/* Expand toggle */}
         <div className="shrink-0 text-muted-foreground">
-          {expanded
-            ? <ChevronUp className="h-4 w-4" />
-            : <ChevronDown className="h-4 w-4" />}
+          <Icon icon={expanded ? 'chevron-up' : 'chevron-down'} size={14} />
         </div>
       </button>
 
@@ -169,29 +175,26 @@ function SupplierRow({
 
           {/* Anomaly narrative */}
           {row.anomaly_flag && (
-            <div className="flex items-start gap-2 rounded-md bg-red-100/60 dark:bg-red-950/30 px-3 py-2.5 text-sm text-red-700 dark:text-red-400">
-              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-              <p>
-                {row.consecutive_above_count >= 3 ? (
-                  <>
-                    <strong>{row.supplier_name}</strong> has charged above the contracted
-                    rate on the last <strong>{row.consecutive_above_count} consecutive
-                    deliveries</strong>
-                    {row.avg_variance_pct > 0 && (
-                      <> (avg +{row.avg_variance_pct.toFixed(1)}% above expected)</>
-                    )}
-                    . This is a systematic pricing pattern, not a one-time variance.
-                  </>
-                ) : (
-                  <>
-                    <strong>{row.supplier_name}</strong> has averaged
-                    {' '}<strong>+{row.avg_variance_pct.toFixed(1)}%</strong> above
-                    expected cost across {row.deliveries_above_baseline} of{' '}
-                    {row.total_deliveries} deliveries in this period.
-                  </>
-                )}
-              </p>
-            </div>
+            <Callout intent={Intent.DANGER} icon="warning-sign" compact>
+              {row.consecutive_above_count >= 3 ? (
+                <>
+                  <strong>{row.supplier_name}</strong> has charged above the contracted
+                  rate on the last <strong>{row.consecutive_above_count} consecutive
+                  deliveries</strong>
+                  {row.avg_variance_pct > 0 && (
+                    <> (avg +{row.avg_variance_pct.toFixed(1)}% above expected)</>
+                  )}
+                  . This is a systematic pricing pattern, not a one-time variance.
+                </>
+              ) : (
+                <>
+                  <strong>{row.supplier_name}</strong> has averaged
+                  {' '}<strong>+{row.avg_variance_pct.toFixed(1)}%</strong> above
+                  expected cost across {row.deliveries_above_baseline} of{' '}
+                  {row.total_deliveries} deliveries in this period.
+                </>
+              )}
+            </Callout>
           )}
 
           {/* Stats grid */}
@@ -277,7 +280,7 @@ function SupplierRow({
 
           {/* Confidence footnote */}
           <div className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
-            <Info className="h-3 w-3 shrink-0 mt-0.5" />
+            <Icon icon="info-sign" size={10} className="shrink-0 mt-0.5" />
             <span>
               Based on {row.total_deliveries} deliveries with recorded unit costs in the selected window.
               Expected cost = product_variants.cost (master price list). Leverage score = streak weight + overcharge magnitude + financial impact.
@@ -286,15 +289,15 @@ function SupplierRow({
 
           {/* Actions */}
           <div className="flex gap-2 pt-1">
-            <button
-              type="button"
+            <Button
+              size="small"
+              intent={Intent.PRIMARY}
+              icon="th"
+              endIcon="arrow-right"
               onClick={onNegotiate}
-              className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
             >
-              <Scale className="h-3.5 w-3.5" />
               Open Negotiation Prep
-              <ArrowRight className="h-3 w-3" />
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -358,20 +361,14 @@ function SummaryStrip({
 
 type SortKey = 'leverage_score' | 'total_financial_impact' | 'avg_variance_pct' | 'consecutive_above_count'
 
-const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'leverage_score',         label: 'Leverage' },
-  { key: 'total_financial_impact', label: 'Impact' },
-  { key: 'avg_variance_pct',       label: 'Overcharge %' },
-  { key: 'consecutive_above_count', label: 'Streak' },
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'leverage_score',           label: 'Sort: Leverage'      },
+  { value: 'total_financial_impact',   label: 'Sort: Impact'        },
+  { value: 'avg_variance_pct',         label: 'Sort: Overcharge %'  },
+  { value: 'consecutive_above_count',  label: 'Sort: Streak'        },
 ]
 
 // ─── Page ──────────────────────────────────────────────────────────────────────
-
-const RANGE_OPTIONS = [
-  { label: '30d', days: 30 },
-  { label: '90d', days: 90 },
-  { label: '180d', days: 180 },
-] as const
 
 export default function InvoicingPage() {
   const navigate  = useNavigate()
@@ -409,53 +406,40 @@ export default function InvoicingPage() {
 
         <div className="flex items-center gap-2 shrink-0">
           {/* Range */}
-          <div className="flex gap-1">
-            {RANGE_OPTIONS.map((opt) => (
-              <button
-                key={opt.days}
-                onClick={() => { setDays(opt.days) }}
-                className={cn(
-                  'rounded px-3 py-1.5 text-xs font-medium transition-colors',
-                  days === opt.days
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted',
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            size="small"
+            value={String(days)}
+            onValueChange={(v) => { setDays(Number(v) as 30 | 90 | 180) }}
+            options={[
+              { value: '30',  label: '30d'  },
+              { value: '90',  label: '90d'  },
+              { value: '180', label: '180d' },
+            ]}
+          />
 
           {/* Sort */}
-          <select
+          <HTMLSelect
             value={sortBy}
             onChange={(e) => { setSortBy(e.target.value as SortKey) }}
-            className="rounded-md border bg-background px-2 py-1.5 text-xs text-muted-foreground"
-          >
-            {SORT_OPTIONS.map((o) => (
-              <option key={o.key} value={o.key}>Sort: {o.label}</option>
-            ))}
-          </select>
+            options={SORT_OPTIONS}
+            minimal
+          />
         </div>
       </div>
 
       <div className="flex-1 overflow-auto px-4 md:px-8 py-5 space-y-6">
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-24 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          <div className="flex items-center justify-center py-24 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
             Analysing invoice patterns…
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-24 text-center">
-            <CheckCircle2 className="h-8 w-8 text-green-500" />
-            <p className="text-sm font-medium">No invoice patterns to analyse</p>
-            <p className="max-w-sm text-xs text-muted-foreground">
-              Invoice intelligence requires at least 2 deliveries with recorded unit costs
-              (entered at receiving time). Log unit costs when receiving stock to activate
-              pattern detection.
-            </p>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title="No invoice patterns to analyse"
+            description="Invoice intelligence requires at least 2 deliveries with recorded unit costs (entered at receiving time). Log unit costs when receiving stock to activate pattern detection."
+          />
         ) : (
           <>
             {/* Summary strip */}
@@ -465,7 +449,7 @@ export default function InvoicingPage() {
             {anomalyRows.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                  <Icon icon="warning-sign" size={14} className="text-red-500" />
                   <h2 className="text-sm font-semibold">
                     Anomalies requiring attention
                     <span className="ml-1.5 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
@@ -493,7 +477,7 @@ export default function InvoicingPage() {
             {normalRows.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                  <Icon icon="horizontal-bar-chart" size={14} className="text-muted-foreground" />
                   <h2 className="text-sm font-semibold text-muted-foreground">
                     Within acceptable range
                     <span className="ml-1.5 text-xs font-normal">({normalRows.length})</span>
@@ -517,7 +501,7 @@ export default function InvoicingPage() {
 
             {/* Confidence footer */}
             <div className="flex items-start gap-1.5 text-[11px] text-muted-foreground pb-4">
-              <Info className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+              <Icon icon="info-sign" size={12} className="shrink-0 mt-0.5" />
               <span>
                 Pattern analysis covers delivers with recorded unit costs in the {days}-day window.
                 Anomaly threshold: 3+ consecutive overcharges OR avg overcharge &gt;10%.
