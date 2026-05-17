@@ -9,14 +9,21 @@
 //   #3  Intelligence everywhere — each category row carries waste %, budget %, health score
 //   #4  Decision support     — worst categories float to top; action chips inline
 //   #6  Cross-domain synthesis — performance + financial + waste in one view
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { format, startOfMonth } from 'date-fns'
-import {
-  ChevronDown, ChevronRight, AlertTriangle,
-  Package, DollarSign, Activity, Layers, BarChart3,
-} from 'lucide-react'
 import { Link } from 'react-router-dom'
+import {
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -216,7 +223,7 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
         onClick={() => { setExpanded(!expanded); }}
       >
         <span className="text-muted-foreground shrink-0">
-          {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={14} />
         </span>
 
         {/* Name + count */}
@@ -345,14 +352,14 @@ function CategoryRow({ agg, currency }: { agg: CategoryAgg; currency: string }) 
               to="/eye?panel=performance"
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
-              <BarChart3 className="w-3 h-3" />
+              <Icon icon="chart" size={12} />
               Full performance view →
             </Link>
             <Link
               to="/eye?panel=incidents"
               className="text-xs text-primary hover:underline flex items-center gap-1"
             >
-              <Activity className="w-3 h-3" />
+              <Icon icon="pulse" size={12} />
               Active incidents →
             </Link>
           </div>
@@ -391,6 +398,13 @@ export default function CategoryIntelligencePage() {
 
   const isLoading = loadPerf || loadBudget
 
+  const sortOptions: { value: SortKey; label: string; icon: IconName }[] = [
+    { value: 'health',   label: 'Health Score',  icon: 'pulse'         },
+    { value: 'waste',    label: 'Waste Rate',    icon: 'warning-sign'  },
+    { value: 'budget',   label: 'Budget Spend',  icon: 'dollar'        },
+    { value: 'stockout', label: 'Stockout Days', icon: 'box'           },
+  ]
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
@@ -398,7 +412,7 @@ export default function CategoryIntelligencePage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold flex items-center gap-2">
-              <Layers className="w-4 h-4 text-primary" />
+              <Icon icon="layers" size={14} intent={Intent.PRIMARY} />
               Category Intelligence
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -407,18 +421,17 @@ export default function CategoryIntelligencePage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Window:</span>
-            {([7, 14, 30, 60] as const).map(d => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => { setWindowDays(d); }}
-                className={cn('px-3 py-1.5 text-xs rounded border font-medium transition-colors',
-                  windowDays === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {d}d
-              </button>
-            ))}
+            <SegmentedControl
+              size="small"
+              value={String(windowDays)}
+              onValueChange={(v) => { setWindowDays(Number(v)) }}
+              options={[
+                { value: '7',  label: '7d'  },
+                { value: '14', label: '14d' },
+                { value: '30', label: '30d' },
+                { value: '60', label: '60d' },
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -426,25 +439,12 @@ export default function CategoryIntelligencePage() {
       {/* Sort controls */}
       <div className="px-6 py-3 border-b border-border shrink-0 flex items-center gap-2 flex-wrap">
         <span className="text-xs text-muted-foreground">Sort by:</span>
-        {([
-          { key: 'health' as SortKey,   label: 'Health Score', icon: Activity    },
-          { key: 'waste' as SortKey,    label: 'Waste Rate',   icon: AlertTriangle },
-          { key: 'budget' as SortKey,   label: 'Budget Spend', icon: DollarSign  },
-          { key: 'stockout' as SortKey, label: 'Stockout Days',icon: Package     },
-        ]).map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => { setSortKey(key); }}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1 text-xs rounded border transition-colors',
-              sortKey === key ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <Icon className="w-3 h-3" />
-            {label}
-          </button>
-        ))}
+        <SegmentedControl
+          size="small"
+          value={sortKey}
+          onValueChange={(v) => { setSortKey(v as SortKey) }}
+          options={sortOptions.map((o) => ({ value: o.value, label: o.label }))}
+        />
         <span className="ml-auto text-xs text-muted-foreground">{aggs.length} categories</span>
       </div>
 
@@ -452,15 +452,15 @@ export default function CategoryIntelligencePage() {
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground text-sm gap-2">
-            <Activity className="w-4 h-4 animate-pulse" />
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
             Aggregating category intelligence…
           </div>
         ) : aggs.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-center">
-            <Layers className="w-10 h-10 text-muted-foreground/20 mb-3" />
-            <div className="text-sm text-muted-foreground">No category data in this window</div>
-            <div className="text-xs text-muted-foreground/60 mt-1">Log some stock activity to see category aggregates</div>
-          </div>
+          <NonIdealState
+            icon="layers"
+            title="No category data in this window"
+            description="Log some stock activity to see category aggregates"
+          />
         ) : (
           <>
             <SummaryStrip aggs={aggs} currency={currency} />
