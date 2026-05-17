@@ -1,14 +1,14 @@
 // Layer: Mind — Consolidated supplier + procurement + finance workspace
-// Replaces: ProcurementPage, NegotiationPrepPage, InvoicingPage, GLExportPage,
+// Replaces: ProcurementPage, InvoicingPage, GLExportPage,
 //           SavedOrdersPage, POMatchPage (all now tabs in one surface)
 //
 // Palantir principle #6: cross-domain synthesis. The operator sees one object
 // (supplier intelligence) from all angles — not 5 separate pages.
 //
 // Tabs:
-//   Operations  — triage: supplier risk + discrepancies + mind briefing actions
-//   Procurement — supplier list + POs + 3-way match (existing ProcurementPage)
-//   Intelligence — cost analysis (NegotiationPrep) + leverage (Invoicing) sub-tabs
+//   Operations   — triage: supplier risk + discrepancies + mind briefing actions
+//   Procurement  — supplier list + POs + 3-way match (existing ProcurementPage)
+//   Intelligence — cost analysis + leverage (Invoicing) sub-tabs
 //   GL Export    — existing GLExportPage
 
 import { lazy, Suspense, useState } from 'react'
@@ -396,15 +396,14 @@ function FinancialTab() {
 // ─── Strategy sub-tabs (Chain + Team + Events) ───────────────────────────────
 
 function StrategyTab({ role }: { role: string }) {
-  const [sub, setSub] = useState<'chain' | 'team' | 'events' | 'simulation'>('chain')
+  const [sub, setSub] = useState<'chain' | 'team' | 'events'>('chain')
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
         {[
-          { id: 'chain'      as const, label: 'Chain'      },
-          { id: 'team'       as const, label: 'Team'       },
-          { id: 'events'     as const, label: 'Events'     },
-          { id: 'simulation' as const, label: 'Simulation' },
+          { id: 'chain'  as const, label: 'Chain'  },
+          { id: 'team'   as const, label: 'Team'   },
+          { id: 'events' as const, label: 'Events' },
         ].map((t) => (
           <button
             key={t.id}
@@ -432,9 +431,8 @@ function StrategyTab({ role }: { role: string }) {
                 </div>
               )
             )}
-            {sub === 'team'       && <TeamIntelligencePage />}
-            {sub === 'events'     && <EventDemandPage />}
-            {sub === 'simulation' && <SimulationCockpitPage />}
+            {sub === 'team'   && <TeamIntelligencePage />}
+            {sub === 'events' && <EventDemandPage />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
@@ -456,7 +454,6 @@ const CategoryIntelligencePage = lazy(() => import('./CategoryIntelligencePage')
 const SupplierQuoteParserPage  = lazy(() => import('./SupplierQuoteParserPage'))
 const ProcurementLeveragePage  = lazy(() => import('./ProcurementLeveragePage'))
 const SmartProposalsPage       = lazy(() => import('./SmartProposalsPage'))
-const SimulationCockpitPage    = lazy(() => import('./SimulationCockpitPage'))
 
 type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
 
@@ -477,7 +474,6 @@ const PANEL_REDIRECT: Record<string, PanelId> = {
   'chain':        'strategy',
   'team':         'strategy',
   'events':       'strategy',
-  'simulation':   'strategy',
 }
 
 // Deep-link sub-tab seeds: if the raw panel was one of these, open that sub-tab directly

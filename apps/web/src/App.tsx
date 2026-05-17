@@ -28,11 +28,9 @@ const NotificationsPage = lazy(() => import('@/pages/NotificationsPage'))
 const GraphPage = lazy(() => import('@/pages/GraphPage'))
 const EventDemandPage = lazy(() => import('@/pages/EventDemandPage'))
 const ChainPage = lazy(() => import('@/pages/ChainPage'))
-const MonitorPage = lazy(() => import('@/pages/MonitorPage'))
 const PendingScansPage = lazy(() => import('@/pages/PendingScansPage'))
 const MenuMappingPage = lazy(() => import('@/pages/MenuMappingPage'))
 const FBIntelligencePage = lazy(() => import('@/pages/FBIntelligencePage'))
-const ARPreviewPage   = lazy(() => import('@/pages/ARPreviewPage'))
 const SetupWizardPage = lazy(() => import('@/pages/SetupWizardPage'))
 
 // Four-layer workspaces
@@ -113,7 +111,6 @@ function AppRoutes() {
             <Route path="/graph"         element={<GraphPage />} />
             <Route path="/events"        element={<EventDemandPage />} />
             <Route path="/chain"         element={<ChainPage />} />
-            <Route path="/monitor"       element={<MonitorPage />} />
             <Route path="/pending-scans" element={<PendingScansPage />} />
             <Route path="/menu-mapping"  element={<MenuMappingPage />} />
             <Route path="/fb-intelligence" element={<FBIntelligencePage />} />
@@ -144,8 +141,7 @@ function AppRoutes() {
 
             {/* Scan-first UI — uses its own minimal layout */}
             <Route element={<ScanLayout />}>
-              <Route path="/scan"    element={<ScanPage />} />
-              <Route path="/scan/ar" element={<ARPreviewPage />} />
+              <Route path="/scan" element={<ScanPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/briefing" replace />} />

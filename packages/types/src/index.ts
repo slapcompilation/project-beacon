@@ -872,22 +872,6 @@ export interface SupplierPriceHistoryRow {
   received_qty:       number
 }
 
-/** One row from get_recent_activity() — Eye Layer live ops feed */
-export interface ActivityEvent {
-  log_id:           string
-  happened_at:      string       // ISO timestamptz
-  actor_email:      string       // 'system' when no user
-  variant_id:       string
-  variant_name:     string
-  product_name:     string
-  sku:              string
-  quantity_change:  number
-  balance_after:    number
-  reason:           string
-  removal_category: string | null
-  is_revert:        boolean
-}
-
 /** One receive line from get_cost_variance_report() — Mind Layer invoice matching */
 export interface CostVarianceRow {
   receive_id: string
@@ -1747,57 +1731,5 @@ export interface StocktakeVarianceRow {
   variance_cost:         number        // |unexplained| × unit_cost
   is_anomaly:            boolean       // |unexplained| >= 3 OR cost >= $25
   direction:             'surplus' | 'deficit' | 'exact'
-}
-
-// ─── Simulation Cockpit (Sprint 5) ────────────────────────────────────────────
-
-export type SimulationScenarioType =
-  | 'demand_shock'    // consumption rises/falls by param%
-  | 'supplier_delay'  // supply arrives param days late for variants with open requests
-  | 'writeoff_spike'  // write-off rate increases by param%
-  | 'par_change'      // PAR level adjusted to param% of current
-
-/** Per-variant projection row returned inside SimulationResult.affected_variants */
-export interface SimulationVariantRow {
-  variant_id:          string
-  product_name:        string
-  sku:                 string
-  current_stock:       number
-  mean_daily_30d:      number
-  par_level:           number
-  has_open_request:    boolean
-  demand_pattern:      'steady' | 'variable' | 'event_driven' | 'sparse'
-  confidence_score:    number              // 0–1
-  /** Deterministic days-to-zero at baseline rate */
-  baseline_days_zero:  number
-  /** Deterministic days-to-zero under scenario */
-  projected_days_zero: number
-  /** P(stockout in 7d) 0–100 at baseline */
-  baseline_prob_7d:    number
-  /** P(stockout in 7d) 0–100 under scenario */
-  projected_prob_7d:   number
-  /** projected_days_zero − baseline_days_zero (negative = worse) */
-  delta_days:          number
-  /** projected_prob_7d − baseline_prob_7d (positive = higher risk) */
-  delta_prob_7d:       number
-  recommended_action:  'request_restock' | 'monitor' | null
-  /** Units to order to cover 14d projected consumption */
-  recommended_qty:     number
-}
-
-export interface SimulationSummary {
-  variants_at_risk: number
-  critical_in_7d:   number
-}
-
-export interface SimulationResult {
-  scenario_type:      SimulationScenarioType
-  param_value:        number
-  param_label:        string
-  /** Average confidence across all variant projections (0–1) */
-  confidence:         number
-  baseline_summary:   SimulationSummary
-  projected_summary:  SimulationSummary & { restock_needed: number }
-  affected_variants:  SimulationVariantRow[]
 }
 

@@ -12,7 +12,7 @@ import {
   fetchSupplierWasteAnalytics,
   fetchPMSHealth, fetchBookingForecasts, upsertBookingForecast, deleteBookingForecast,
   fetchVariantIntelligence, fetchStockPressure,
-  fetchAnomalyExplanation, fetchCausalTrace, logCausalTrace, fetchSimulation, fetchOptimalPAR,
+  fetchAnomalyExplanation, fetchCausalTrace, logCausalTrace, fetchOptimalPAR,
   fetchTeamPerformance,
   fetchProductPerformance,
   fetchActiveIncidents,
@@ -22,7 +22,7 @@ import {
   fetchProposalQualitySummary,
 } from '../api'
 import type { InventoryIntelligenceRow } from '../api'
-import type { ConsumptionForecastRow, ProductWithVariants, ProductVariant, Supplier, SimulationScenarioType } from '@beacon/types'
+import type { ConsumptionForecastRow, ProductWithVariants, ProductVariant, Supplier } from '@beacon/types'
 
 // ─── Predictive Restock Engine ─────────────────────────────────────────────────
 // Eye Layer · Move from reactive (alert when low) to predictive (flag before the
@@ -369,28 +369,6 @@ export function useOptimalPAR(serviceLevel = 0.95) {
     queryFn:   () => fetchOptimalPAR(serviceLevel),
     enabled:   !!hotelId,
     staleTime: 5 * 60 * 1000,
-  })
-}
-
-// ─── Simulation Cockpit (Sprint 5) ────────────────────────────────────────────
-
-/**
- * Runs what-if scenario. Only fires when `runTrigger` is non-null.
- * Include `runTrigger` in the query key so changing it forces a fresh fetch
- * without the operator having to wait for cache expiry.
- */
-export function useSimulation(
-  scenarioType: SimulationScenarioType | null,
-  paramValue:   number,
-  runTrigger:   number | null,  // increment to re-run with the same params
-) {
-  const hotelId = useActiveHotelId()
-  return useQuery({
-    queryKey:  ['eye', 'simulation', hotelId, scenarioType, paramValue, runTrigger],
-    queryFn:   () => fetchSimulation(scenarioType!, paramValue),
-    enabled:   !!hotelId && !!scenarioType && runTrigger !== null,
-    staleTime: 0,       // always re-fetch — simulation result depends on exact params
-    retry:     1,
   })
 }
 

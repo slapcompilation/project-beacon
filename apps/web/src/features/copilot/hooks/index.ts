@@ -1,8 +1,7 @@
 // Layer: Eye — Copilot conversation hooks
 //
-// TanStack Query wiring for the persisted copilot. The chat UI consumes
-// these hooks; the keyword-router-based EyeCopilotPage continues to work
-// unchanged until the UI revamp PR.
+// TanStack Query wiring for the persisted copilot. Consumed by the
+// CopilotChatView slide-over (rendered in ContextPanel).
 
 import { useCallback, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'

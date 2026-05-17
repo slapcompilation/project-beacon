@@ -1,7 +1,7 @@
 // Layer: Eye — API calls for Eye Layer intelligence RPCs
 
 import { supabase } from '@/lib/supabase/client'
-import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, SimulationScenarioType, SimulationResult, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow, ActiveIncidentRow, SupplierReliabilityRow } from '@beacon/types'
+import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow, ActiveIncidentRow, SupplierReliabilityRow } from '@beacon/types'
 
 // ─── Shift Intelligence ────────────────────────────────────────────────────────
 
@@ -236,24 +236,6 @@ export async function fetchOptimalPAR(serviceLevel = 0.95): Promise<OptimalPARRo
   }) as unknown as { data: OptimalPARRow[] | null; error: { message: string } | null }
   if (result.error) throw new Error(result.error.message)
   return result.data ?? []
-}
-
-/**
- * Runs what-if scenario simulation against current stockout probability baseline.
- * Returns null when the session has no hotel context.
- */
-export async function fetchSimulation(
-  scenarioType: SimulationScenarioType,
-  paramValue:   number,
-  variantIds?:  string[],
-): Promise<SimulationResult | null> {
-  const result = await supabase.rpc('simulate_scenario', {
-    p_scenario_type: scenarioType,
-    p_param_value:   paramValue,
-    p_variant_ids:   variantIds ?? null,
-  }) as unknown as { data: SimulationResult | null; error: { message: string } | null }
-  if (result.error) throw new Error(result.error.message)
-  return result.data
 }
 
 // ─── Team Performance Intelligence (Sprint 7) ─────────────────────────────────
