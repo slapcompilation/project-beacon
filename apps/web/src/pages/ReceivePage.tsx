@@ -2,16 +2,24 @@
 // The highest-frequency physical touchpoint in hotel ops.
 // Goal: scan or search → select open request → qty → done in 3 taps.
 // Palantir principle: actions live next to data; no navigation required mid-task.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import {
-  QrCode, Search, CheckCircle2, Package, ChevronRight,
-  ArrowLeft, Loader2, ScanLine, X, TrendingUp, TrendingDown,
-} from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import {
+  Button,
+  Callout,
+  Card,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useRestockRequests, useReceiveRestock } from '@/features/restock/hooks'
 import { useProducts, useLookupBarcode } from '@/features/inventory/hooks'
@@ -82,28 +90,28 @@ function SearchStep({
   return (
     <div className="flex flex-col gap-6">
       {/* Pending count hint */}
-      <div className="rounded-xl border bg-muted/30 px-4 py-3 text-sm text-muted-foreground text-center">
+      <Callout intent={Intent.NONE} className="text-center">
         <span className="font-semibold text-foreground tabular-nums">{pendingCount}</span> open restock request{pendingCount !== 1 ? 's' : ''} awaiting delivery
-      </div>
+      </Callout>
 
       {/* Search by name / SKU */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Search by product or SKU</p>
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            ref={inputRef}
-            placeholder="e.g. Orange Juice, OJ-500…"
-            value={query}
-            onChange={(e) => { setQuery(e.target.value) }}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(query) }}
-            className="pl-11 h-14 text-base rounded-xl"
-          />
-        </div>
+        <InputGroup
+          inputRef={inputRef}
+          leftIcon="search"
+          placeholder="e.g. Orange Juice, OJ-500…"
+          value={query}
+          onChange={(e) => { setQuery(e.target.value) }}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(query) }}
+          size="large"
+        />
         <Button
-          className="w-full h-12 text-base rounded-xl"
-          onClick={() => { handleSearch(query) }}
+          fill
+          size="large"
+          intent={Intent.PRIMARY}
           disabled={!query.trim()}
+          onClick={() => { handleSearch(query) }}
         >
           Find request
         </Button>
@@ -119,20 +127,17 @@ function SearchStep({
       {/* Barcode scan */}
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Scan barcode</p>
-        <div className="relative">
-          <ScanLine className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Scan or type barcode…"
-            value={barcode}
-            onChange={(e) => { setBarcode(e.target.value) }}
-            onKeyDown={(e) => { if (e.key === 'Enter') void handleBarcode(barcode) }}
-            className="pl-11 h-14 text-base font-mono rounded-xl"
-            disabled={lookupBarcode.isPending}
-          />
-          {lookupBarcode.isPending && (
-            <Loader2 className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
-          )}
-        </div>
+        <InputGroup
+          leftIcon="barcode"
+          rightElement={lookupBarcode.isPending ? <Spinner size={14} intent={Intent.PRIMARY} /> : undefined}
+          placeholder="Scan or type barcode…"
+          value={barcode}
+          onChange={(e) => { setBarcode(e.target.value) }}
+          onKeyDown={(e) => { if (e.key === 'Enter') void handleBarcode(barcode) }}
+          disabled={lookupBarcode.isPending}
+          size="large"
+          className="[&_input]:!font-mono"
+        />
       </div>
 
       {/* Recent open requests shortlist */}
@@ -153,12 +158,12 @@ function SearchStep({
                   onClick={() => { onMatch([r]) }}
                   className="w-full flex items-center gap-3 rounded-xl border bg-card p-4 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
                 >
-                  <Package className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  <Icon icon="box" size={16} className="text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{displayName}</p>
                     <p className="text-xs text-muted-foreground tabular-nums">{r.quantity_needed} units requested{r.supplier ? ` · ${r.supplier}` : ''}</p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <Icon icon="chevron-right" size={14} className="text-muted-foreground flex-shrink-0" />
                 </button>
               )
             })}
@@ -185,13 +190,9 @@ function PickStep({
 }) {
   return (
     <div className="space-y-4">
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />Back
-      </button>
+      <Button variant="minimal" size="small" icon="arrow-left" onClick={onBack}>
+        Back
+      </Button>
       <p className="text-sm font-medium">{matches.length} open requests matched — select one:</p>
       <div className="space-y-2">
         {matches.map((r) => {
@@ -207,7 +208,7 @@ function PickStep({
               onClick={() => { onSelect(r) }}
               className="w-full flex items-center gap-3 rounded-xl border bg-card p-4 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
             >
-              <Package className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+              <Icon icon="box" size={16} className="text-muted-foreground flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{displayName}</p>
                 <p className="text-xs text-muted-foreground">
@@ -215,7 +216,7 @@ function PickStep({
                   {r.supplier ? ` · ${r.supplier}` : ''}
                 </p>
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <Icon icon="chevron-right" size={14} className="text-muted-foreground flex-shrink-0" />
             </button>
           )
         })}
@@ -223,8 +224,6 @@ function PickStep({
     </div>
   )
 }
-
-// ─── Receive step ─────────────────────────────────────────────────────────────
 
 // ─── Cost variance indicator ──────────────────────────────────────────────────
 
@@ -234,28 +233,21 @@ function CostVarianceIndicator({ actual, expected }: { actual: number; expected:
   const absPct = Math.abs(pct)
   const isDiscount = pct < 0
 
-  let color = 'text-green-600 dark:text-green-400'
-  let bg    = 'bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800'
-  if (absPct > 10 && !isDiscount) {
-    color = 'text-red-600 dark:text-red-400'
-    bg    = 'bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800'
-  } else if (absPct > 2 && !isDiscount) {
-    color = 'text-yellow-600 dark:text-yellow-400'
-    bg    = 'bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800'
-  }
+  let intent: Intent = Intent.SUCCESS
+  if (absPct > 10 && !isDiscount)       intent = Intent.DANGER
+  else if (absPct > 2 && !isDiscount)   intent = Intent.WARNING
 
   return (
-    <div className={cn('flex items-center gap-2 rounded-lg border px-3 py-2 text-xs', bg, color)}>
-      {isDiscount
-        ? <TrendingDown className="h-3.5 w-3.5 flex-shrink-0" />
-        : <TrendingUp className="h-3.5 w-3.5 flex-shrink-0" />}
-      <span className="font-semibold">
-        {isDiscount ? '−' : '+'}{absPct.toFixed(1)}% vs expected
-      </span>
-      <span className="text-muted-foreground ml-auto tabular-nums">
-        expected ${expected.toFixed(2)} · invoice ${actual.toFixed(2)}
-      </span>
-    </div>
+    <Callout intent={intent} icon={isDiscount ? 'trending-down' : 'trending-up'} compact>
+      <div className="flex items-center gap-2 text-xs">
+        <span className="font-semibold">
+          {isDiscount ? '−' : '+'}{absPct.toFixed(1)}% vs expected
+        </span>
+        <span className="text-muted-foreground ml-auto tabular-nums">
+          expected ${expected.toFixed(2)} · invoice ${actual.toFixed(2)}
+        </span>
+      </div>
+    </Callout>
   )
 }
 
@@ -315,18 +307,14 @@ function ReceiveStep({
 
   return (
     <div className="space-y-5">
-      <button
-        type="button"
-        onClick={onBack}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />Back
-      </button>
+      <Button variant="minimal" size="small" icon="arrow-left" onClick={onBack}>
+        Back
+      </Button>
 
       {/* Product card */}
-      <div className="rounded-xl border bg-card p-4">
+      <Card className="!p-4">
         <div className="flex items-start gap-3">
-          <Package className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+          <Icon icon="box" size={16} className="text-muted-foreground mt-0.5 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-base leading-snug">{displayName}</p>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -338,7 +326,7 @@ function ReceiveStep({
             </p>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Qty input — large tap target */}
       <div className="space-y-2">
@@ -346,11 +334,11 @@ function ReceiveStep({
           Quantity received
         </label>
         <div className="flex items-center gap-3">
-          <button
-            type="button"
+          <Button
+            size="large"
+            className="!h-14 !w-14 !text-2xl !font-bold !flex-shrink-0 !rounded-xl"
             onClick={() => { setQty((v) => String(Math.max(1, (parseInt(v, 10) || 0) - 1))) }}
-            className="h-14 w-14 rounded-xl border bg-muted text-2xl font-bold flex items-center justify-center hover:bg-muted/70 active:scale-95 transition-all flex-shrink-0"
-          >−</button>
+          >−</Button>
           <input
             ref={qtyRef}
             type="number"
@@ -360,11 +348,11 @@ function ReceiveStep({
             onChange={(e) => { setQty(e.target.value) }}
             className="flex-1 h-14 rounded-xl border bg-background text-center text-3xl font-bold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
-          <button
-            type="button"
+          <Button
+            size="large"
+            className="!h-14 !w-14 !text-2xl !font-bold !flex-shrink-0 !rounded-xl"
             onClick={() => { setQty((v) => String((parseInt(v, 10) || 0) + 1)) }}
-            className="h-14 w-14 rounded-xl border bg-muted text-2xl font-bold flex items-center justify-center hover:bg-muted/70 active:scale-95 transition-all flex-shrink-0"
-          >+</button>
+          >+</Button>
         </div>
         {isPartial && (
           <p className="text-xs text-yellow-600 dark:text-yellow-400 text-center">
@@ -379,45 +367,45 @@ function ReceiveStep({
       </div>
 
       {/* Lot / Notes / Invoice cost (collapsed by default) */}
-      <button
-        type="button"
+      <Button
+        variant="minimal"
+        size="small"
+        icon={showExtra ? 'cross' : 'plus'}
         onClick={() => { setShowExtra((v) => !v) }}
-        className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
       >
-        {showExtra ? <X className="h-3 w-3" /> : <QrCode className="h-3 w-3" />}
         {showExtra ? 'Hide' : 'Add lot number / invoice cost / notes'}
-      </button>
+      </Button>
 
       {showExtra && (
         <div className="space-y-3">
           {suppliers.length > 0 && (
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground">Supplier</label>
-              <select
+              <HTMLSelect
                 value={selectedSupplierId}
                 onChange={(e) => { setSelectedSupplierId(e.target.value) }}
-                className="h-12 w-full rounded-xl border bg-background px-3 text-base focus:outline-none focus:ring-2 focus:ring-primary/50"
-              >
-                <option value="">No supplier selected</option>
-                {suppliers.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
+                options={[
+                  { value: '', label: 'No supplier selected' },
+                  ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+                ]}
+                fill
+                size="large"
+              />
             </div>
           )}
-          <Input
+          <InputGroup
             placeholder="Lot / batch number (optional)"
             value={lot}
             onChange={(e) => { setLot(e.target.value) }}
-            className="h-12 rounded-xl text-base"
+            size="large"
           />
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-muted-foreground">Expiry date (optional)</label>
-            <Input
+            <InputGroup
               type="date"
               value={expiryDate}
               onChange={(e) => { setExpiryDate(e.target.value) }}
-              className="h-12 rounded-xl text-base"
+              size="large"
             />
           </div>
           <div className="space-y-1.5">
@@ -427,40 +415,41 @@ function ReceiveStep({
                 <span className="ml-1 font-normal">· expected ${expectedCost.toFixed(2)}</span>
               )}
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base font-medium">$</span>
-              <Input
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                value={unitCostStr}
-                onChange={(e) => { setUnitCostStr(e.target.value) }}
-                className="h-12 rounded-xl text-base pl-8"
-              />
-            </div>
+            <InputGroup
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              leftIcon="dollar"
+              value={unitCostStr}
+              onChange={(e) => { setUnitCostStr(e.target.value) }}
+              size="large"
+            />
           </div>
           {parsedUnitCost !== null && !isNaN(parsedUnitCost) && parsedUnitCost > 0 && expectedCost !== null && expectedCost > 0 && (
             <CostVarianceIndicator actual={parsedUnitCost} expected={expectedCost} />
           )}
-          <Input
+          <InputGroup
             placeholder="Notes (optional)"
             value={notes}
             onChange={(e) => { setNotes(e.target.value) }}
-            className="h-12 rounded-xl text-base"
+            size="large"
           />
         </div>
       )}
 
       {/* Submit */}
       <Button
-        className="w-full h-14 text-base font-semibold rounded-xl"
+        fill
+        size="large"
+        intent={Intent.PRIMARY}
+        icon="tick-circle"
+        loading={receive.isPending}
+        disabled={!qty || parseInt(qty, 10) <= 0}
         onClick={() => { void handleSubmit() }}
-        disabled={receive.isPending || !qty || parseInt(qty, 10) <= 0}
+        className="!h-14 !text-base !font-semibold !rounded-xl"
       >
-        {receive.isPending
-          ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Recording…</>
-          : <>Confirm receive · {qty || '0'} units</>}
+        Confirm receive · {qty || '0'} units
       </Button>
     </div>
   )
@@ -491,7 +480,7 @@ function DoneStep({
         'flex h-20 w-20 items-center justify-center rounded-full',
         fulfilled ? 'bg-green-100 dark:bg-green-900/30' : 'bg-blue-100 dark:bg-blue-900/30'
       )}>
-        <CheckCircle2 className={cn('h-10 w-10', fulfilled ? 'text-green-600' : 'text-blue-600')} />
+        <Icon icon="tick-circle" size={40} className={fulfilled ? 'text-green-600' : 'text-blue-600'} />
       </div>
 
       <div>
@@ -502,14 +491,14 @@ function DoneStep({
       </div>
 
       <div className="grid grid-cols-2 gap-3 w-full max-w-xs">
-        <div className="rounded-xl border bg-card p-4 text-center">
+        <Card className="!p-4 text-center">
           <p className="text-2xl font-bold tabular-nums text-green-600">+{received}</p>
           <p className="text-xs text-muted-foreground mt-1">units received</p>
-        </div>
-        <div className="rounded-xl border bg-card p-4 text-center">
+        </Card>
+        <Card className="!p-4 text-center">
           <p className="text-2xl font-bold tabular-nums">{newBalance}</p>
           <p className="text-xs text-muted-foreground mt-1">new balance</p>
-        </div>
+        </Card>
       </div>
 
       {!fulfilled && (
@@ -535,12 +524,12 @@ function DoneStep({
                 onClick={() => { onSelectNext(r) }}
                 className="w-full flex items-center gap-3 rounded-xl border bg-card p-3.5 text-left hover:bg-muted/40 active:bg-muted/60 transition-colors"
               >
-                <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Icon icon="box" size={14} className="text-muted-foreground flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{label}</p>
                   <p className="text-xs text-muted-foreground">{r.quantity_needed} units</p>
                 </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <Icon icon="chevron-right" size={14} className="text-muted-foreground flex-shrink-0" />
               </button>
             )
           })}
@@ -550,7 +539,7 @@ function DoneStep({
         </div>
       )}
 
-      <Button variant="outline" className="w-full h-12 rounded-xl text-base" onClick={onAnother}>
+      <Button fill size="large" variant="outlined" onClick={onAnother} className="!h-12 !rounded-xl !text-base">
         Search all requests
       </Button>
     </div>
@@ -586,7 +575,7 @@ export default function ReceivePage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
       </div>
     )
   }
@@ -597,7 +586,7 @@ export default function ReceivePage() {
         <div className="border-b px-4 md:px-8 py-4 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-              <Package className="h-5 w-5 text-green-600" />
+              <Icon icon="box" size={16} className="text-green-600" />
             </div>
             <div>
               <h1 className="text-lg font-semibold leading-none">Receive Stock</h1>
@@ -605,21 +594,16 @@ export default function ReceivePage() {
             </div>
           </div>
         </div>
-        <div className="flex flex-col items-center gap-4 py-20 px-6 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-            <Package className="h-8 w-8 text-muted-foreground/50" />
-          </div>
-          <div>
-            <p className="font-semibold text-base">No pending deliveries</p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-xs">
-              All restock requests have been fulfilled or no requests exist yet.
-              Create a restock request first, then come back here to receive it.
-            </p>
-          </div>
-          <Button variant="outline" className="mt-2" onClick={() => { window.location.href = '/restocks' }}>
-            Go to Restocks
-          </Button>
-        </div>
+        <NonIdealState
+          icon="box"
+          title="No pending deliveries"
+          description="All restock requests have been fulfilled or no requests exist yet. Create a restock request first, then come back here to receive it."
+          action={
+            <Button variant="outlined" onClick={() => { window.location.href = '/restocks' }}>
+              Go to Restocks
+            </Button>
+          }
+        />
       </div>
     )
   }
@@ -630,7 +614,7 @@ export default function ReceivePage() {
       <div className="border-b px-4 md:px-8 py-4 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
-            <Package className="h-5 w-5 text-green-600" />
+            <Icon icon="box" size={16} className="text-green-600" />
           </div>
           <div>
             <h1 className="text-lg font-semibold leading-none">Receive Stock</h1>
