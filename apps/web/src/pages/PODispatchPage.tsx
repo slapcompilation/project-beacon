@@ -5,26 +5,30 @@
 // Palantir Principle #4: Decision support — operators see exactly which POs need action,
 // ordered by urgency, with one-click dispatch and confirmation tracking.
 //
-// No new SQL — uses existing update_po_status RPC, get_po_summary, get_po_lines, suppliers.
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { differenceInDays, format, parseISO, addDays } from 'date-fns'
 import {
-  Send, Clock, CheckCircle2, AlertTriangle, Loader2,
-  Copy, Check, Printer, X, Truck, CalendarDays, Ban,
-} from 'lucide-react'
+  Button,
+  Card,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  Icon,
+  InputGroup,
+  Intent,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useActiveHotel } from '@/features/hotel/hooks'
 import { usePOSummary, usePOLines, useUpdatePOStatus } from '@/features/mind/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
-import { toast } from 'sonner'
 import type { POSummaryRow } from '@beacon/types'
 
 // ─── PO Document Modal ────────────────────────────────────────────────────────
@@ -79,14 +83,17 @@ function PODocumentModal({ po, hotelName, supplierEmail, onClose }: PODocumentMo
   if (!po) return null
 
   return (
-    <Dialog open={!!po} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-mono text-sm">
-            {po.po_number} · {po.supplier_name}
-          </DialogTitle>
-        </DialogHeader>
-
+    <Dialog
+      isOpen={!!po}
+      onClose={onClose}
+      title={
+        <span className="font-mono text-sm">
+          {po.po_number} · {po.supplier_name}
+        </span>
+      }
+      className="!w-[36rem]"
+    >
+      <DialogBody>
         {/* Document body */}
         <div className="border rounded-lg p-5 bg-card text-xs space-y-4 font-mono">
           {/* Header */}
@@ -122,7 +129,7 @@ function PODocumentModal({ po, hotelName, supplierEmail, onClose }: PODocumentMo
           {/* Line items */}
           {linesLoading ? (
             <div className="flex items-center gap-2 text-muted-foreground py-3">
-              <Loader2 className="w-3 h-3 animate-spin" /> Loading items…
+              <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /> Loading items…
             </div>
           ) : (
             <table className="w-full border-collapse text-[11px]">
@@ -158,33 +165,31 @@ function PODocumentModal({ po, hotelName, supplierEmail, onClose }: PODocumentMo
             </table>
           )}
         </div>
-
-        {/* Actions */}
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleCopy} className="gap-1.5 text-xs">
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="outlined" size="small" icon={copied ? 'tick' : 'duplicate'} intent={copied ? Intent.SUCCESS : Intent.NONE} onClick={() => { void handleCopy() }}>
               {copied ? 'Copied' : 'Copy email text'}
             </Button>
-            <Button variant="outline" size="sm" onClick={() => { window.print(); }} className="gap-1.5 text-xs">
-              <Printer className="w-3.5 h-3.5" />
+            <Button variant="outlined" size="small" icon="print" onClick={() => { window.print() }}>
               Print
             </Button>
-          </div>
-
-          {po.status === 'draft' && (
-            <Button
-              size="sm"
-              onClick={handleConfirmDispatch}
-              disabled={sending || linesLoading}
-              className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-700"
-            >
-              {sending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-              Confirm Dispatch
-            </Button>
-          )}
-        </div>
-      </DialogContent>
+            {po.status === 'draft' && (
+              <Button
+                size="small"
+                intent={Intent.SUCCESS}
+                icon="send-message"
+                loading={sending}
+                disabled={linesLoading}
+                onClick={() => { void handleConfirmDispatch() }}
+              >
+                Confirm Dispatch
+              </Button>
+            )}
+          </>
+        }
+      />
     </Dialog>
   )
 }
@@ -214,8 +219,7 @@ function ETAConfirmRow({ po }: { po: POSummaryRow }) {
 
   if (!open) {
     return (
-      <Button size="sm" variant="outline" onClick={() => { setOpen(true); }} className="gap-1.5 text-xs h-7">
-        <CalendarDays className="w-3 h-3" />
+      <Button size="small" variant="outlined" icon="calendar" onClick={() => { setOpen(true) }}>
         Mark Confirmed
       </Button>
     )
@@ -223,19 +227,18 @@ function ETAConfirmRow({ po }: { po: POSummaryRow }) {
 
   return (
     <div className="flex items-center gap-1.5 mt-1">
-      <Input
-        type="date"
-        value={eta}
-        onChange={e => { setEta(e.target.value); }}
-        className="h-7 text-xs w-36"
-      />
-      <Button size="sm" onClick={handleSave} disabled={saving} className="h-7 text-xs gap-1">
-        {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle2 className="w-3 h-3" />}
+      <div className="w-36">
+        <InputGroup
+          type="date"
+          value={eta}
+          onChange={(e) => { setEta(e.target.value) }}
+          size="small"
+        />
+      </div>
+      <Button size="small" intent={Intent.PRIMARY} icon="tick-circle" loading={saving} onClick={() => { void handleSave() }}>
         Save ETA
       </Button>
-      <Button size="sm" variant="ghost" onClick={() => { setOpen(false); }} className="h-7 px-2">
-        <X className="w-3 h-3" />
-      </Button>
+      <Button size="small" variant="minimal" icon="cross" onClick={() => { setOpen(false) }} aria-label="Cancel" />
     </div>
   )
 }
@@ -252,7 +255,7 @@ interface POCardProps {
 function DraftCard({ po, currency, onOpen, onCancel }: POCardProps) {
   const ageDays = differenceInDays(new Date(), parseISO(po.created_at))
   return (
-    <div className="border rounded-lg p-3 space-y-2 bg-card hover:border-foreground/20 transition-colors">
+    <Card className="!p-3 space-y-2 hover:border-foreground/20 transition-colors">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-xs font-mono font-bold">{po.po_number}</div>
@@ -270,24 +273,24 @@ function DraftCard({ po, currency, onOpen, onCancel }: POCardProps) {
         </div>
         <div className="flex gap-1.5">
           <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => { onCancel(po); }}
-            className="h-7 px-2 text-[10px] text-muted-foreground hover:text-destructive"
-          >
-            <Ban className="w-3 h-3" />
-          </Button>
+            variant="minimal"
+            size="small"
+            intent={Intent.DANGER}
+            icon="ban-circle"
+            onClick={() => { onCancel(po) }}
+            aria-label="Cancel"
+          />
           <Button
-            size="sm"
-            onClick={() => { onOpen(po); }}
-            className="h-7 text-xs gap-1.5 bg-primary/90 hover:bg-primary"
+            size="small"
+            intent={Intent.PRIMARY}
+            icon="send-message"
+            onClick={() => { onOpen(po) }}
           >
-            <Send className="w-3 h-3" />
             Review & Send
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -296,10 +299,7 @@ function SentCard({ po, currency, onOpen, onCancel }: POCardProps) {
   const daysSent  = sentAt ? differenceInDays(new Date(), sentAt) : null
   const isStale   = daysSent != null && daysSent >= 3
   return (
-    <div className={cn(
-      'border rounded-lg p-3 space-y-2 bg-card transition-colors',
-      isStale ? 'border-amber-500/40' : '',
-    )}>
+    <Card className={cn('!p-3 space-y-2 transition-colors', isStale && '!border-amber-500/40')}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <div className="text-xs font-mono font-bold">{po.po_number}</div>
@@ -309,7 +309,7 @@ function SentCard({ po, currency, onOpen, onCancel }: POCardProps) {
           <div className="text-sm font-semibold font-mono">{formatCurrency(po.total_amount, currency)}</div>
           {isStale && (
             <div className="text-[10px] text-amber-400 flex items-center justify-end gap-1">
-              <AlertTriangle className="w-2.5 h-2.5" />
+              <Icon icon="warning-sign" size={10} />
               {daysSent}d no reply
             </div>
           )}
@@ -325,24 +325,23 @@ function SentCard({ po, currency, onOpen, onCancel }: POCardProps) {
         <ETAConfirmRow po={po} />
         <div className="flex gap-1.5">
           <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => { onCancel(po); }}
-            className="h-7 px-2 text-[10px] text-muted-foreground hover:text-destructive"
-          >
-            <Ban className="w-3 h-3" />
-          </Button>
+            variant="minimal"
+            size="small"
+            intent={Intent.DANGER}
+            icon="ban-circle"
+            onClick={() => { onCancel(po) }}
+            aria-label="Cancel"
+          />
           <Button
-            size="sm"
-            variant="outline"
-            onClick={() => { onOpen(po); }}
-            className="h-7 text-xs gap-1"
+            size="small"
+            variant="outlined"
+            onClick={() => { onOpen(po) }}
           >
             View PO
           </Button>
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -353,10 +352,10 @@ function ConfirmedCard({ po, currency }: { po: POSummaryRow; currency: string })
   const isDueSoon  = daysToETA != null && daysToETA >= 0 && daysToETA <= 2
 
   return (
-    <div className={cn(
-      'border rounded-lg p-3 space-y-2 bg-card',
-      isOverdue  ? 'border-red-500/40' :
-      isDueSoon  ? 'border-emerald-500/40' : '',
+    <Card className={cn(
+      '!p-3 space-y-2',
+      isOverdue && '!border-red-500/40',
+      isDueSoon && '!border-emerald-500/40',
     )}>
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
@@ -367,7 +366,7 @@ function ConfirmedCard({ po, currency }: { po: POSummaryRow; currency: string })
           <div className="text-sm font-semibold font-mono">{formatCurrency(po.total_amount, currency)}</div>
           {isOverdue && (
             <div className="text-[10px] text-red-400 flex items-center justify-end gap-1">
-              <AlertTriangle className="w-2.5 h-2.5" />
+              <Icon icon="warning-sign" size={10} />
               {Math.abs(daysToETA)}d overdue
             </div>
           )}
@@ -380,7 +379,7 @@ function ConfirmedCard({ po, currency }: { po: POSummaryRow; currency: string })
       </div>
       <div className="flex items-center justify-between gap-2">
         <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-          <Truck className="w-3 h-3" />
+          <Icon icon="truck" size={12} />
           {eta ? (
             isOverdue
               ? `Expected ${format(eta, 'dd MMM')} — chase supplier`
@@ -395,18 +394,18 @@ function ConfirmedCard({ po, currency }: { po: POSummaryRow; currency: string })
           )}
         </div>
       </div>
-    </div>
+    </Card>
   )
 }
 
 // ─── Section header ────────────────────────────────────────────────────────────
 
-function SectionHeader({ label, count, icon: Icon, accent }: {
-  label: string; count: number; icon: React.ElementType; accent: string
+function SectionHeader({ label, count, icon, accent }: {
+  label: string; count: number; icon: IconName; accent: string
 }) {
   return (
     <div className={cn('flex items-center gap-2 pb-2 border-b', accent)}>
-      <Icon className="w-3.5 h-3.5" />
+      <Icon icon={icon} size={12} />
       <span className="text-xs font-semibold">{label}</span>
       <span className="text-[10px] font-mono bg-muted px-1.5 py-0.5 rounded">{count}</span>
     </div>
@@ -483,54 +482,56 @@ export default function PODispatchPage() {
   if (isLoading) {
     return (
       <div className="flex items-center gap-2 p-6 text-xs text-muted-foreground">
-        <Loader2 className="w-4 h-4 animate-spin" /> Loading dispatch queue…
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /> Loading dispatch queue…
       </div>
     )
   }
+
+  const summaryTiles: { label: string; value: string | number; sub: string; accent: string; icon: IconName }[] = [
+    {
+      label: 'Awaiting Dispatch',
+      value: draftPOs.length,
+      sub: 'draft POs',
+      accent: draftPOs.length > 0 ? 'text-amber-400' : 'text-muted-foreground',
+      icon: 'time',
+    },
+    {
+      label: 'Sent · No Confirmation',
+      value: sentPOs.length,
+      sub: staleCount > 0 ? `${staleCount} stale (3d+)` : 'awaiting supplier',
+      accent: staleCount > 0 ? 'text-amber-400' : 'text-blue-400',
+      icon: 'send-message',
+    },
+    {
+      label: 'In Transit',
+      value: confirmedPOs.length,
+      sub: overdueCount > 0 ? `${overdueCount} overdue` : 'confirmed ETAs',
+      accent: overdueCount > 0 ? 'text-red-400' : 'text-emerald-400',
+      icon: 'truck',
+    },
+    {
+      label: 'Total Value In-flight',
+      value: formatCurrency([...draftPOs, ...sentPOs, ...confirmedPOs].reduce((s, p) => s + p.total_amount, 0), currency),
+      sub: `across ${draftPOs.length + sentPOs.length + confirmedPOs.length} open POs`,
+      accent: 'text-foreground',
+      icon: 'tick-circle',
+    },
+  ]
 
   return (
     <div className="h-full overflow-y-auto p-6 space-y-6">
 
       {/* Summary strip */}
       <div className="grid grid-cols-4 gap-3">
-        {[
-          {
-            label: 'Awaiting Dispatch',
-            value: draftPOs.length,
-            sub: 'draft POs',
-            accent: draftPOs.length > 0 ? 'text-amber-400' : 'text-muted-foreground',
-            icon: Clock,
-          },
-          {
-            label: 'Sent · No Confirmation',
-            value: sentPOs.length,
-            sub: staleCount > 0 ? `${staleCount} stale (3d+)` : 'awaiting supplier',
-            accent: staleCount > 0 ? 'text-amber-400' : 'text-blue-400',
-            icon: Send,
-          },
-          {
-            label: 'In Transit',
-            value: confirmedPOs.length,
-            sub: overdueCount > 0 ? `${overdueCount} overdue` : 'confirmed ETAs',
-            accent: overdueCount > 0 ? 'text-red-400' : 'text-emerald-400',
-            icon: Truck,
-          },
-          {
-            label: 'Total Value In-flight',
-            value: formatCurrency([...draftPOs, ...sentPOs, ...confirmedPOs].reduce((s, p) => s + p.total_amount, 0), currency),
-            sub: `across ${draftPOs.length + sentPOs.length + confirmedPOs.length} open POs`,
-            accent: 'text-foreground',
-            icon: CheckCircle2,
-          },
-        ].map(({ label, value, sub, accent, icon: Icon }) => (
-          <div key={label} className="border rounded-lg p-3 bg-card">
+        {summaryTiles.map(({ label, value, sub, accent, icon }) => (
+          <Card key={label} className="!p-3">
             <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground mb-1">
-              <Icon className="w-3 h-3" />
+              <Icon icon={icon} size={12} />
               {label}
             </div>
             <div className={cn('text-xl font-mono font-bold', accent)}>{value}</div>
             <div className="text-[10px] text-muted-foreground">{sub}</div>
-          </div>
+          </Card>
         ))}
       </div>
 
@@ -542,7 +543,7 @@ export default function PODispatchPage() {
           <SectionHeader
             label="Awaiting Dispatch"
             count={draftPOs.length}
-            icon={Clock}
+            icon="time"
             accent="border-amber-500/40 text-amber-400"
           />
           {draftPOs.length === 0 ? (
@@ -567,7 +568,7 @@ export default function PODispatchPage() {
           <SectionHeader
             label="Sent · Awaiting Confirmation"
             count={sentPOs.length}
-            icon={Send}
+            icon="send-message"
             accent="border-blue-500/40 text-blue-400"
           />
           {sentPOs.length === 0 ? (
@@ -592,7 +593,7 @@ export default function PODispatchPage() {
           <SectionHeader
             label="Confirmed · In Transit"
             count={confirmedPOs.length}
-            icon={Truck}
+            icon="truck"
             accent="border-emerald-500/40 text-emerald-400"
           />
           {confirmedPOs.length === 0 ? (
@@ -617,37 +618,40 @@ export default function PODispatchPage() {
         po={docPO}
         hotelName={hotelName}
         supplierEmail={docPO ? getSupplierEmail(docPO) : null}
-        onClose={() => { setDocPO(null); }}
+        onClose={() => { setDocPO(null) }}
       />
 
       {/* Cancel confirmation */}
       {cancelPO && (
-        <Dialog open={!!cancelPO} onOpenChange={() => { setCancelPO(null); }}>
-          <DialogContent className="max-w-sm">
-            <div className="space-y-4">
-              <div>
-                <div className="font-semibold text-sm">Cancel PO {cancelPO.po_number}?</div>
-                <div className="text-xs text-muted-foreground mt-1">
-                  This will mark the PO as cancelled. The action can be noted in the audit log but cannot be undone.
-                </div>
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => { setCancelPO(null); }} className="text-xs">
+        <Dialog
+          isOpen={!!cancelPO}
+          onClose={() => { setCancelPO(null) }}
+          title={`Cancel PO ${cancelPO.po_number}?`}
+          className="!w-[24rem]"
+        >
+          <DialogBody>
+            <p className="text-xs text-muted-foreground">
+              This will mark the PO as cancelled. The action will be noted in the audit log but cannot be undone.
+            </p>
+          </DialogBody>
+          <DialogFooter
+            actions={
+              <>
+                <Button variant="outlined" size="small" onClick={() => { setCancelPO(null) }}>
                   Keep
                 </Button>
                 <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={handleCancel}
-                  disabled={cancelling}
-                  className="text-xs gap-1"
+                  size="small"
+                  intent={Intent.DANGER}
+                  icon="ban-circle"
+                  loading={cancelling}
+                  onClick={() => { void handleCancel() }}
                 >
-                  {cancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : <Ban className="w-3 h-3" />}
                   Cancel PO
                 </Button>
-              </div>
-            </div>
-          </DialogContent>
+              </>
+            }
+          />
         </Dialog>
       )}
     </div>

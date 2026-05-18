@@ -2,13 +2,25 @@
 // Supplier Contract Intelligence — manage contracted prices per variant/supplier.
 // Shows live deviation between contracted and last-received price so operators
 // know immediately when a supplier is charging above the agreed rate.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
-import {
-  FilePlus2, ChevronDown, ChevronUp, AlertTriangle,
-  CheckCircle2, Clock, Loader2, X, Pencil, Ban,
-} from 'lucide-react'
 import { format, addDays, parseISO, isBefore } from 'date-fns'
+import {
+  Button,
+  Card,
+  FormGroup,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  TextArea,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -27,7 +39,7 @@ function DeviationBadge({ pct }: { pct: number | null }) {
   if (pct > 3) {
     return (
       <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-red-600 dark:text-red-400">
-        <AlertTriangle className="h-2.5 w-2.5" />
+        <Icon icon="warning-sign" size={10} />
         +{pct.toFixed(1)}% over contract
       </span>
     )
@@ -40,7 +52,7 @@ function DeviationBadge({ pct }: { pct: number | null }) {
   }
   return (
     <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-      <CheckCircle2 className="h-2.5 w-2.5" />
+      <Icon icon="tick-circle" size={10} />
       Within {abs.toFixed(1)}%
     </span>
   )
@@ -57,7 +69,7 @@ function ExpiryLabel({ end }: { end: string | null }) {
   if (isBefore(d, warn)) {
     return (
       <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-        <Clock className="h-2.5 w-2.5" />
+        <Icon icon="time" size={10} />
         Expires {format(d, 'MMM d')}
       </span>
     )
@@ -166,19 +178,15 @@ function ContractForm({
     parseFloat(form.contracted_price) > 0 && !!form.contract_start
 
   return (
-    <div className="border rounded-lg p-5 space-y-4 bg-muted/20">
+    <Card className="!p-5 space-y-4 !bg-muted/20">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">{form.id ? 'Edit Contract' : 'New Contract'}</p>
-        <button type="button" onClick={onClose}>
-          <X className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-        </button>
+        <Button variant="minimal" size="small" icon="cross" onClick={onClose} aria-label="Close" />
       </div>
 
       {/* Variant search */}
-      <div className="space-y-1 relative">
-        <label className="text-xs text-muted-foreground">Product · Variant</label>
-        <input
-          className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+      <FormGroup label="Product · Variant" className="!mb-0 relative">
+        <InputGroup
           placeholder="Search by name or SKU…"
           value={variantSearch}
           onChange={(e) => {
@@ -210,14 +218,12 @@ function ContractForm({
             ))}
           </ul>
         )}
-      </div>
+      </FormGroup>
 
       {/* Supplier */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Supplier</label>
-          <select
-            className="w-full rounded border bg-background px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+        <FormGroup label="Supplier" className="!mb-0">
+          <HTMLSelect
             value={form.supplier_id}
             onChange={(e) => {
               const sup = suppliers.find((s) => s.id === e.target.value)
@@ -225,104 +231,90 @@ function ContractForm({
               if (sup) set('supplier_name', sup.name)
               else if (!e.target.value) set('supplier_name', '')
             }}
-          >
-            <option value="">— select or type below —</option>
-            {suppliers.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Supplier name (override)</label>
-          <input
-            className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+            options={[
+              { value: '', label: '— select or type below —' },
+              ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+            ]}
+            fill
+          />
+        </FormGroup>
+        <FormGroup label="Supplier name (override)" className="!mb-0">
+          <InputGroup
             placeholder="e.g. Metro Cash & Carry"
             value={form.supplier_name}
             onChange={(e) => { set('supplier_name', e.target.value) }}
           />
-        </div>
+        </FormGroup>
       </div>
 
       {/* Price + MOQ */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Contracted unit price</label>
-          <input
+        <FormGroup label="Contracted unit price" className="!mb-0">
+          <InputGroup
             type="number"
             min={0}
             step={0.01}
-            className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="0.00"
             value={form.contracted_price}
             onChange={(e) => { set('contracted_price', e.target.value) }}
           />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Min order qty (optional)</label>
-          <input
+        </FormGroup>
+        <FormGroup label="Min order qty (optional)" className="!mb-0">
+          <InputGroup
             type="number"
             min={1}
-            className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="—"
             value={form.min_order_qty}
             onChange={(e) => { set('min_order_qty', e.target.value) }}
           />
-        </div>
+        </FormGroup>
       </div>
 
       {/* Dates */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Contract start</label>
-          <input
+        <FormGroup label="Contract start" className="!mb-0">
+          <InputGroup
             type="date"
-            className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             value={form.contract_start}
             onChange={(e) => { set('contract_start', e.target.value) }}
           />
-        </div>
-        <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Contract end (optional)</label>
-          <input
+        </FormGroup>
+        <FormGroup label="Contract end (optional)" className="!mb-0">
+          <InputGroup
             type="date"
-            className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
             value={form.contract_end}
             onChange={(e) => { set('contract_end', e.target.value) }}
           />
-        </div>
+        </FormGroup>
       </div>
 
       {/* Notes */}
-      <div className="space-y-1">
-        <label className="text-xs text-muted-foreground">Notes (optional)</label>
-        <textarea
+      <FormGroup label="Notes (optional)" className="!mb-0">
+        <TextArea
           rows={2}
-          className="w-full rounded border bg-background px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary resize-none"
           placeholder="e.g. 90-day price lock, includes delivery"
           value={form.notes}
           onChange={(e) => { set('notes', e.target.value) }}
+          fill
+          className="!resize-none"
         />
-      </div>
+      </FormGroup>
 
       <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="px-3 py-1.5 rounded border text-sm hover:bg-muted/40"
-        >
+        <Button variant="outlined" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          disabled={!isValid || upsert.isPending}
+        </Button>
+        <Button
+          intent={Intent.PRIMARY}
+          icon="floppy-disk"
+          loading={upsert.isPending}
+          disabled={!isValid}
           onClick={handleSubmit}
-          className="px-4 py-1.5 rounded bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 flex items-center gap-1.5"
         >
-          {upsert.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
           Save Contract
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -346,15 +338,13 @@ function ContractRow({
     <div className={cn('divide-y', isOverBudget && 'bg-red-50/40 dark:bg-red-950/10')}>
       <div className="flex items-center gap-3 px-4 py-3">
         {/* Expand */}
-        <button
-          type="button"
+        <Button
+          variant="minimal"
+          size="small"
+          icon={expanded ? 'chevron-up' : 'chevron-down'}
           onClick={() => { setExpanded((v) => !v) }}
-          className="text-muted-foreground hover:text-foreground shrink-0"
-        >
-          {expanded
-            ? <ChevronUp className="h-3.5 w-3.5" />
-            : <ChevronDown className="h-3.5 w-3.5" />}
-        </button>
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+        />
 
         {/* Product + supplier */}
         <div className="flex-1 min-w-0">
@@ -390,23 +380,22 @@ function ContractRow({
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            title="Edit"
+          <Button
+            variant="minimal"
+            size="small"
+            icon="edit"
             onClick={() => { onEdit(contract) }}
-            className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-foreground"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            title="Deactivate"
-            disabled={deactivate.isPending}
+            aria-label="Edit"
+          />
+          <Button
+            variant="minimal"
+            size="small"
+            intent={Intent.DANGER}
+            icon="ban-circle"
+            loading={deactivate.isPending}
             onClick={() => { deactivate.mutate(contract.id) }}
-            className="p-1 rounded hover:bg-muted/60 text-muted-foreground hover:text-red-600 disabled:opacity-40"
-          >
-            <Ban className="h-3.5 w-3.5" />
-          </button>
+            aria-label="Deactivate"
+          />
         </div>
       </div>
 
@@ -518,41 +507,19 @@ export default function ContractsPage() {
 
       {/* Toolbar */}
       <div className="flex items-center justify-between gap-3 px-6 py-3 border-b shrink-0">
-        <div className="flex items-center gap-1">
-          {(
-            [
-              { id: 'all'       as FilterId, label: `All (${String(contracts.length)})` },
-              { id: 'deviating' as FilterId, label: `Overpaying (${String(deviatingCount)})`, alert: deviatingCount > 0 },
-              { id: 'expiring'  as FilterId, label: `Expiring soon (${String(expiringCount)})`, warn: expiringCount > 0 },
-            ] as { id: FilterId; label: string; alert?: boolean; warn?: boolean }[]
-          ).map((f) => (
-            <button
-              key={f.id}
-              type="button"
-              onClick={() => { setFilter(f.id) }}
-              className={cn(
-                'px-3 py-1.5 rounded text-xs font-medium transition-colors',
-                filter === f.id
-                  ? 'bg-primary text-primary-foreground'
-                  : f.alert
-                    ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20'
-                    : f.warn
-                      ? 'text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20'
-                      : 'text-muted-foreground hover:bg-muted/40',
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => { setShowForm(true) }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded bg-primary text-primary-foreground text-xs font-medium"
-        >
-          <FilePlus2 className="h-3.5 w-3.5" />
+        <SegmentedControl
+          size="small"
+          value={filter}
+          onValueChange={(v) => { setFilter(v as FilterId) }}
+          options={[
+            { value: 'all',       label: `All (${String(contracts.length)})` },
+            { value: 'deviating', label: `Overpaying (${String(deviatingCount)})` },
+            { value: 'expiring',  label: `Expiring soon (${String(expiringCount)})` },
+          ]}
+        />
+        <Button intent={Intent.PRIMARY} icon="document" onClick={() => { setShowForm(true) }}>
           Add Contract
-        </button>
+        </Button>
       </div>
 
       {/* Form */}
@@ -566,28 +533,29 @@ export default function ContractsPage() {
       <div className="flex-1 overflow-y-auto">
         {isLoading && (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
           </div>
         )}
 
         {!isLoading && filtered.length === 0 && (
-          <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-            <FilePlus2 className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">
-              {filter === 'all'
-                ? 'No active contracts. Add your first to start tracking price compliance.'
-                : filter === 'deviating'
-                  ? 'No contracts are currently above the contracted price.'
-                  : 'No contracts expiring in the next 30 days.'}
-            </p>
-          </div>
+          <NonIdealState
+            icon="document"
+            title={filter === 'all'
+              ? 'No active contracts'
+              : filter === 'deviating'
+                ? 'No contracts above the contracted price'
+                : 'No contracts expiring in the next 30 days'}
+            description={filter === 'all'
+              ? 'Add your first to start tracking price compliance.'
+              : undefined}
+          />
         )}
 
         {!isLoading && filtered.length > 0 && (
           <div className="rounded-none border-b divide-y">
             {/* Column headers */}
             <div className="flex items-center gap-3 px-4 py-2 bg-muted/30">
-              <div className="w-3.5 shrink-0" />
+              <div className="w-7 shrink-0" />
               <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Product · Variant
               </div>
