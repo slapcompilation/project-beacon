@@ -389,7 +389,7 @@ function ReceiveStep({
                   ...suppliers.map((s) => ({ value: s.id, label: s.name })),
                 ]}
                 fill
-                size="large"
+                large
               />
             </div>
           )}
