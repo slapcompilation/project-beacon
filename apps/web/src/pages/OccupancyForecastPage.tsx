@@ -3,12 +3,21 @@
 // The consumption forecast uses historical burn rate. This page makes it predictive:
 // enter upcoming occupancy, get an adjusted burn rate before stockouts happen.
 // Formula: adjusted_daily = avg_daily × (upcoming_avg_occ / historical_avg_occ)
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState, useCallback } from 'react'
 import {
-  TrendingUp, TrendingDown, Minus, Loader2, Hotel,
-  AlertTriangle, Info, Wifi, WifiOff, Clock, CalendarDays,
-} from 'lucide-react'
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import {
   format, addDays, subDays, startOfWeek, isSameDay, isBefore, isAfter,
 } from 'date-fns'
@@ -292,19 +301,16 @@ function ForecastTable({
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-3 py-16 text-center">
-        <Hotel className="h-10 w-10 text-muted-foreground/30" />
-        <p className="text-sm font-medium">No consumption data</p>
-        <p className="text-xs text-muted-foreground max-w-xs">
-          Items need usage history for demand-adjusted forecasting.
-          Stock movements over the last 30 days generate the baseline.
-        </p>
-      </div>
+      <NonIdealState
+        icon="office"
+        title="No consumption data"
+        description="Items need usage history for demand-adjusted forecasting. Stock movements over the last 30 days generate the baseline."
+      />
     )
   }
 
   return (
-    <div className="space-y-0 rounded-lg border overflow-hidden">
+    <Card className="!p-0 overflow-hidden">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b bg-muted/50 text-xs font-medium text-muted-foreground">
@@ -340,7 +346,7 @@ function ForecastTable({
                   <p className="text-[10px] font-mono text-muted-foreground">{r.sku}</p>
                   {r.becomesCritical && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400">
-                      <AlertTriangle className="h-2.5 w-2.5" />
+                      <Icon icon="warning-sign" size={10} />
                       Newly critical at this occupancy
                     </span>
                   )}
@@ -382,13 +388,11 @@ function ForecastTable({
                       'inline-flex items-center gap-0.5 text-[11px] font-semibold',
                       r.delta < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400',
                     )}>
-                      {r.delta < 0
-                        ? <TrendingDown className="h-3 w-3" />
-                        : <TrendingUp className="h-3 w-3" />}
+                      <Icon icon={r.delta < 0 ? 'trending-down' : 'trending-up'} size={10} />
                       {r.delta > 0 ? '+' : ''}{r.delta}d
                     </span>
                   ) : (
-                    <Minus className="h-3 w-3 text-muted-foreground/40 ml-auto" />
+                    <Icon icon="minus" size={10} className="text-muted-foreground/40 ml-auto" />
                   )}
                 </td>
               </tr>
@@ -407,7 +411,7 @@ function ForecastTable({
           </button>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -424,15 +428,14 @@ function PMSHealthBadge({ rows }: { rows: PMSHealthRow[] }) {
 
   if (!worst) return null
 
-  const STATUS = {
-    connected:       { icon: Wifi,    color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-50 dark:bg-green-950/30',  label: 'PMS connected' },
-    warning:         { icon: Clock,   color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-950/20', label: 'PMS delayed' },
-    disconnected:    { icon: WifiOff, color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-950/20',       label: 'PMS disconnected' },
-    never_connected: { icon: WifiOff, color: 'text-muted-foreground',               bg: 'bg-muted/40',                        label: 'PMS not connected' },
+  const STATUS: Record<string, { icon: IconName; color: string; bg: string; label: string }> = {
+    connected:       { icon: 'globe-network', color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-50 dark:bg-green-950/30',  label: 'PMS connected' },
+    warning:         { icon: 'time',          color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-950/20', label: 'PMS delayed' },
+    disconnected:    { icon: 'offline',       color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-950/20',       label: 'PMS disconnected' },
+    never_connected: { icon: 'offline',       color: 'text-muted-foreground',                bg: 'bg-muted/40',                        label: 'PMS not connected' },
   }
 
   const cfg = STATUS[worst.status]
-  const Icon = cfg.icon
   const detail = worst.status === 'never_connected'
     ? `${worst.source_system} · no events received`
     : worst.status === 'connected'
@@ -441,7 +444,7 @@ function PMSHealthBadge({ rows }: { rows: PMSHealthRow[] }) {
 
   return (
     <div className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1', cfg.bg)}>
-      <Icon className={cn('h-3 w-3', cfg.color)} />
+      <Icon icon={cfg.icon} size={12} className={cfg.color} />
       <span className={cn('text-[11px] font-medium', cfg.color)}>{cfg.label}</span>
       <span className="text-[10px] text-muted-foreground">· {detail}</span>
     </div>
@@ -572,7 +575,7 @@ function BookingHorizonPanel({
     <div className="space-y-2">
       {pmsCount > 0 && (
         <p className="text-[10px] text-blue-600 dark:text-blue-400 flex items-center gap-1">
-          <Wifi className="h-2.5 w-2.5" />
+          <Icon icon="globe-network" size={10} />
           {pmsCount} days populated by PMS · manual edits override
         </p>
       )}
@@ -625,7 +628,7 @@ export default function OccupancyForecastPage() {
   const { data: pmsHealth = [] } = usePMSHealth()
   const { data: bookingForecasts = [] } = useBookingForecasts(futureFrom, horizonTo)
 
-  const [showBookingHorizon, setShowBookingHorizon] = useState(false)
+  const [view, setView] = useState<'actuals' | 'horizon'>('actuals')
 
   const upsert        = useUpsertOccupancy()
   const remove        = useDeleteOccupancy()
@@ -746,24 +749,22 @@ export default function OccupancyForecastPage() {
 
       {/* Newly critical alert */}
       {newlyCritical > 0 && ctx.daysEntered > 0 && (
-        <div className="mx-8 mt-4 flex items-start gap-2.5 rounded-lg border border-red-300 bg-red-50 dark:bg-red-950/20 px-4 py-3 text-sm flex-shrink-0">
-          <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 mt-0.5 flex-shrink-0" />
-          <span className="text-red-700 dark:text-red-400">
+        <div className="mx-8 mt-4 flex-shrink-0">
+          <Callout intent={Intent.DANGER} icon="warning-sign">
             <span className="font-semibold">{newlyCritical} item{newlyCritical !== 1 ? 's' : ''} become critical</span>
             {' '}at {ctx.upcomingAvg.toFixed(0)}% occupancy that would be fine at baseline —
             demand sensing detected before stockout.
-          </span>
+          </Callout>
         </div>
       )}
 
       {/* Methodology note */}
-      <div className="flex items-center gap-2 px-8 py-2 border-b bg-muted/10 text-[11px] text-muted-foreground flex-shrink-0">
-        <Info className="h-3.5 w-3.5 flex-shrink-0" />
-        <span>
+      <div className="px-8 py-2 border-b flex-shrink-0">
+        <Callout intent={Intent.NONE} icon="info-sign" compact>
           Adjusted days = current_stock ÷ (avg_daily × demand_factor) ·
           Demand factor = upcoming_{FORECAST_WINDOW}d avg ÷ historical_{HISTORICAL_DAYS}d avg ·
           {ctx.daysEntered === 0 ? ` No occupancy data — factor defaults to 1.0×` : ` Based on ${ctx.daysEntered} entered days`}
-        </span>
+        </Callout>
       </div>
 
       {/* Body — split layout */}
@@ -772,38 +773,25 @@ export default function OccupancyForecastPage() {
         {/* Left — occupancy calendar + booking horizon */}
         <div className="w-80 flex-shrink-0 border-r flex flex-col overflow-hidden">
           {/* Tab toggle */}
-          <div className="flex border-b flex-shrink-0">
-            <button
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors',
-                !showBookingHorizon
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-              onClick={() => { setShowBookingHorizon(false) }}
-            >
-              Actuals
-            </button>
-            <button
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 text-xs font-medium transition-colors',
-                showBookingHorizon
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-              onClick={() => { setShowBookingHorizon(true) }}
-            >
-              <CalendarDays className="h-3 w-3" />
-              Booking Horizon
-            </button>
+          <div className="px-3 py-2 border-b flex-shrink-0">
+            <SegmentedControl
+              size="small"
+              fill
+              value={view}
+              onValueChange={(v) => { setView(v as 'actuals' | 'horizon') }}
+              options={[
+                { value: 'actuals', label: 'Actuals' },
+                { value: 'horizon', label: 'Booking Horizon' },
+              ]}
+            />
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-3">
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
-            ) : showBookingHorizon ? (
+            ) : view === 'horizon' ? (
               <BookingHorizonPanel
                 fromDate={fromDate}
                 toDate={addDays(today, 29)}
@@ -838,7 +826,7 @@ export default function OccupancyForecastPage() {
           <div className="flex-1 overflow-y-auto px-6 py-4">
             {forecastLoading ? (
               <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
               </div>
             ) : (
               <ForecastTable rows={adjustedRows} factor={ctx.factor} />
