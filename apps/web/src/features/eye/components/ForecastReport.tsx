@@ -1,30 +1,10 @@
-// Layer: Eye — Consumption Forecast Report
-// Shows predicted days-until-zero for every active variant alongside recommended
-// order quantities. Allows one-click restock request creation per row.
-// Cross-domain: overlays waste radar signal — if depletion is partially driven by
-// waste, the operator sees a flame indicator before placing a restock order.
+// Days-until-zero per variant with one-click restock. Waste rate overlaid inline.
 
 import { useState, useMemo } from 'react'
-import { PackageSearch, Loader2, Flame } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import { Button, HTMLTable, Icon, Intent, NonIdealState, SegmentedControl, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useConsumptionForecast, useWasteRadar } from '../hooks'
 import { useCreateRestockRequest } from '@/features/restock/hooks'
-
-const RANGE_OPTIONS = [
-  { label: '7d',  days: 7 },
-  { label: '30d', days: 30 },
-  { label: '90d', days: 90 },
-] as const
 
 function urgencyBand(days: number | null): 'critical' | 'warning' | 'ok' {
   if (days === null) return 'ok'
@@ -40,7 +20,6 @@ export function ForecastReport() {
   const createRestock = useCreateRestockRequest()
   const [requesting, setRequesting] = useState<Set<string>>(new Set())
 
-  // Cross-domain synthesis: map variantId → waste signal for inline display
   const wasteMap = useMemo(() => {
     const m = new Map<string, { qty_7d: number; waste_cost_7d: number }>()
     for (const w of wasteRows) m.set(w.variant_id, { qty_7d: w.qty_7d, waste_cost_7d: w.waste_cost_7d })
@@ -65,56 +44,47 @@ export function ForecastReport() {
 
   return (
     <div className="space-y-4">
-      {/* Header row */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Ranked by urgency · consumption window:
         </p>
-        <div className="flex gap-1">
-          {RANGE_OPTIONS.map((opt) => (
-            <button
-              key={opt.days}
-              onClick={() => { setRangeDays(opt.days) }}
-              className={cn(
-                'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                rangeDays === opt.days
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted'
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={[
+            { value: '7',  label: '7d' },
+            { value: '30', label: '30d' },
+            { value: '90', label: '90d' },
+          ]}
+          value={String(rangeDays)}
+          onValueChange={(v) => { setRangeDays(Number(v) as 7 | 30 | 90) }}
+          size="small"
+        />
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+          <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
           Calculating forecast…
         </div>
       ) : rows.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3 text-center">
-          <PackageSearch className="h-8 w-8 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">
-            No consumption data in the last {rangeDays} days.
-          </p>
-        </div>
+        <NonIdealState
+          icon="search"
+          title={`No consumption data in the last ${rangeDays} days.`}
+        />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>SKU</TableHead>
-              <TableHead className="text-right">In stock</TableHead>
-              <TableHead className="text-right">Avg daily</TableHead>
-              <TableHead className="text-right">Waste</TableHead>
-              <TableHead className="text-right">Days left</TableHead>
-              <TableHead className="text-right">Order qty</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <HTMLTable interactive className="w-full">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>SKU</th>
+              <th className="text-right">In stock</th>
+              <th className="text-right">Avg daily</th>
+              <th className="text-right">Waste</th>
+              <th className="text-right">Days left</th>
+              <th className="text-right">Order qty</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
             {rows.map((row) => {
               const band = urgencyBand(row.days_until_zero)
               const daysLabel =
@@ -129,26 +99,25 @@ export function ForecastReport() {
                   : row.product_name
               const isPending = requesting.has(row.variant_id)
               const waste = wasteMap.get(row.variant_id)
-              // Waste rate: wasted / (wasted + consumed) as a fraction of avg_daily
               const wasteRate = waste && row.avg_daily > 0
                 ? Math.round(((waste.qty_7d / 7) / row.avg_daily) * 100)
                 : null
 
               return (
-                <TableRow
+                <tr
                   key={row.variant_id}
                   className={cn(
                     band === 'critical' && 'bg-red-50/60 dark:bg-red-950/20',
                     band === 'warning' && 'bg-yellow-50/60 dark:bg-yellow-950/20',
                   )}
                 >
-                  <TableCell className="font-medium">{displayName}</TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{row.sku}</TableCell>
-                  <TableCell className="text-right tabular-nums">{row.current_stock}</TableCell>
-                  <TableCell className="text-right tabular-nums text-muted-foreground">
+                  <td className="font-medium">{displayName}</td>
+                  <td className="font-mono text-xs text-muted-foreground">{row.sku}</td>
+                  <td className="text-right tabular-nums">{row.current_stock}</td>
+                  <td className="text-right tabular-nums text-muted-foreground">
                     {row.avg_daily.toFixed(1)}/day
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </td>
+                  <td className="text-right">
                     {wasteRate !== null && wasteRate > 0 ? (
                       <span
                         className={cn(
@@ -157,52 +126,47 @@ export function ForecastReport() {
                         )}
                         title={`${String(waste?.qty_7d ?? 0)} units written off this week`}
                       >
-                        <Flame className="h-3 w-3 flex-shrink-0" />
+                        <Icon icon="flame" size={12} className="flex-shrink-0" />
                         {wasteRate}%
                       </span>
                     ) : (
                       <span className="text-muted-foreground/30 text-xs">—</span>
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        'tabular-nums font-semibold',
-                        band === 'critical' && 'border-red-300 text-red-700 dark:text-red-400',
-                        band === 'warning' && 'border-yellow-300 text-yellow-700 dark:text-yellow-400',
-                        band === 'ok' && 'border-green-300 text-green-700 dark:text-green-400',
-                      )}
+                  </td>
+                  <td className="text-right">
+                    <Tag
+                      minimal
+                      intent={band === 'critical' ? Intent.DANGER : band === 'warning' ? Intent.WARNING : Intent.SUCCESS}
+                      className="tabular-nums !font-semibold"
                     >
                       {daysLabel}{daysLabel !== '—' && daysLabel !== 'Out' ? 'd' : ''}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums font-semibold">
+                    </Tag>
+                  </td>
+                  <td className="text-right tabular-nums font-semibold">
                     {row.recommended_order_qty > 0 ? row.recommended_order_qty : '—'}
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </td>
+                  <td className="text-right">
                     {row.recommended_order_qty > 0 && (
                       row.has_open_request ? (
-                        <Badge variant="secondary" className="text-xs">Requested</Badge>
+                        <Tag minimal className="!text-xs">Requested</Tag>
                       ) : (
                         <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-7 text-xs"
+                          size="small"
+                          variant="outlined"
+                          loading={isPending}
                           disabled={isPending}
                           onClick={() => { handleRequest(row.variant_id, row.recommended_order_qty) }}
                         >
-                          {isPending && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
                           Request
                         </Button>
                       )
                     )}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               )
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </HTMLTable>
       )}
     </div>
   )

@@ -1,6 +1,5 @@
 import { differenceInDays, parseISO } from 'date-fns'
-import { CalendarDays, ChevronDown, ChevronRight } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Icon, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useOccupancyAdjustedForecast } from '@/features/eye/hooks'
 import { useEvents } from '@/features/events/hooks'
@@ -42,18 +41,18 @@ export function OccupancyInsightSection() {
         onClick={() => { setOpen(!open) }}
         className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-surface-2/50 transition-colors"
       >
-        {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground" />
         <LayerDot layer="eye" />
         <span className="text-sm font-medium flex-1">Occupancy & Demand Forecast</span>
         {upcomingEvents.length > 0 && (
-          <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-300">
+          <Tag minimal className="!text-[10px] !text-blue-600 !border-blue-300">
             {upcomingEvents.length} event{upcomingEvents.length !== 1 ? 's' : ''}
-          </Badge>
+          </Tag>
         )}
         {spikes.length > 0 && (
-          <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-300">
+          <Tag minimal className="!text-[10px] !text-amber-600 !border-amber-300">
             {spikes.length} spike{spikes.length !== 1 ? 's' : ''}
-          </Badge>
+          </Tag>
         )}
       </button>
 
@@ -80,7 +79,7 @@ export function OccupancyInsightSection() {
             <div className="space-y-1">
               {upcomingEvents.slice(0, 3).map((evt) => (
                 <div key={evt.id} className="flex items-center gap-2 text-[11px]">
-                  <CalendarDays className="h-3 w-3 text-blue-500 shrink-0" />
+                  <Icon icon="calendar" size={12} className="text-blue-500 shrink-0" />
                   <span className="truncate flex-1">{evt.name}</span>
                   <span className="text-muted-foreground tabular-nums">{evt.guest_count} guests</span>
                   <span className="text-blue-600 font-medium tabular-nums">{evt.demand_factor}x</span>

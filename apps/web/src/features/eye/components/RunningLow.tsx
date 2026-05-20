@@ -3,7 +3,7 @@
 // based on avg daily consumption from stock_logs.
 
 import { useMemo } from 'react'
-import { Clock } from 'lucide-react'
+import { Icon } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useConsumptionStats } from '../hooks'
 import { useProducts } from '@/features/inventory/hooks'
@@ -66,7 +66,7 @@ export function RunningLow({ thresholdDays = 14 }: Props) {
               'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full',
               isUrgent ? 'bg-red-100 text-red-600' : isWarn ? 'bg-yellow-100 text-yellow-600' : 'bg-muted text-muted-foreground'
             )}>
-              <Clock className="h-3.5 w-3.5" />
+              <Icon icon="time" size={14} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium">

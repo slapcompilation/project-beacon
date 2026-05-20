@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { format, parseISO } from 'date-fns'
-import { PackageCheck, AlertTriangle } from 'lucide-react'
+import { Icon } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { TIER_CFG } from './constants'
 import type { StockPressureItem } from '@beacon/types'
@@ -41,7 +41,7 @@ export function PressureRow({ item }: { item: StockPressureItem }) {
       {/* PO badge or warning */}
       {item.open_po_number ? (
         <div className="shrink-0 flex items-center gap-1 text-[10px] text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border border-green-100 dark:border-green-900/40 rounded px-1.5 py-0.5">
-          <PackageCheck className="h-2.5 w-2.5" />
+          <Icon icon="confirm" size={10} />
           {item.open_po_id
             ? <Link to={`/po/${item.open_po_id}`} className="hover:underline" onClick={(e) => { e.stopPropagation(); }}>{item.open_po_number}</Link>
             : item.open_po_number
@@ -54,7 +54,7 @@ export function PressureRow({ item }: { item: StockPressureItem }) {
         </div>
       ) : (
         <div className="shrink-0 flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/40 rounded px-1.5 py-0.5">
-          <AlertTriangle className="h-2.5 w-2.5" />
+          <Icon icon="warning-sign" size={10} />
           No PO
         </div>
       )}

@@ -1,17 +1,12 @@
-// Layer: Eye — Active Intelligence Panel
-// Synthesizes cross-domain signals (depletion risk + waste spikes) into a single
-// ranked list with confidence scores and uncertainty bands.
-// Palantir principle: every number carries its derived context.
+// Cross-domain signals (depletion, waste, dead stock, cost-at-risk) ranked by urgency.
 
 import { useNavigate } from 'react-router-dom'
-import { TrendingDown, Flame, Archive, CalendarX, ArrowRight, Loader2, Sparkles } from 'lucide-react'
+import { Button, Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
-import { Button } from '@/components/ui/button'
 import { useShiftIntelligence } from '../hooks'
 import type { ShiftIntelligenceRow } from '../api'
-
-// ─── Confidence bar ──────────────────────────────────────────────────────────
 
 function ConfidenceBar({ value }: { value: number }) {
   const pct = Math.round(value * 100)
@@ -29,48 +24,49 @@ function ConfidenceBar({ value }: { value: number }) {
   )
 }
 
-// ─── Individual signal card ──────────────────────────────────────────────────
-
-const SIGNAL_META = {
+const SIGNAL_META: Record<ShiftIntelligenceRow['signal_type'], {
+  icon: IconName
+  borderClass: (critical: boolean, warning: boolean) => string
+  iconClass: (critical: boolean, warning: boolean) => string
+  pillClass: (critical: boolean, warning: boolean) => string
+}> = {
   depletion_risk: {
-    icon:        TrendingDown,
-    borderClass: (critical: boolean, warning: boolean) =>
-      critical ? 'border-red-200 bg-red-50/40 dark:border-red-800 dark:bg-red-950/20'
-      : warning ? 'border-yellow-200 bg-yellow-50/40 dark:border-yellow-800 dark:bg-yellow-950/20'
+    icon: 'trending-down',
+    borderClass: (c, w) =>
+      c ? 'border-red-200 bg-red-50/40 dark:border-red-800 dark:bg-red-950/20'
+      : w ? 'border-yellow-200 bg-yellow-50/40 dark:border-yellow-800 dark:bg-yellow-950/20'
       : 'border-border bg-muted/20',
-    iconClass: (critical: boolean, warning: boolean) =>
-      critical ? 'bg-red-100 text-red-600 dark:bg-red-900/40'
-      : warning ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40'
+    iconClass: (c, w) =>
+      c ? 'bg-red-100 text-red-600 dark:bg-red-900/40'
+      : w ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40'
       : 'bg-slate-100 text-slate-600 dark:bg-slate-800',
-    pillClass: (critical: boolean, warning: boolean) =>
-      critical ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
-      : warning ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400'
+    pillClass: (c, w) =>
+      c ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400'
+      : w ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950/40 dark:text-yellow-400'
       : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
   },
   waste_spike: {
-    icon:        Flame,
+    icon: 'flame',
     borderClass: () => 'border-orange-200 bg-orange-50/40 dark:border-orange-800 dark:bg-orange-950/20',
     iconClass:   () => 'bg-orange-100 text-orange-600 dark:bg-orange-900/40',
     pillClass:   () => 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400',
   },
   dead_stock: {
-    icon:        Archive,
+    icon: 'archive',
     borderClass: () => 'border-slate-200 bg-slate-50/40 dark:border-slate-700 dark:bg-slate-900/30',
     iconClass:   () => 'bg-slate-100 text-slate-500 dark:bg-slate-800',
     pillClass:   () => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
   },
   cost_at_risk: {
-    icon:        CalendarX,
+    icon: 'calendar',
     borderClass: () => 'border-purple-200 bg-purple-50/40 dark:border-purple-800 dark:bg-purple-950/20',
     iconClass:   () => 'bg-purple-100 text-purple-600 dark:bg-purple-900/40',
     pillClass:   () => 'bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-400',
   },
-} as const
+}
 
 function SignalCard({
-  row,
-  currency,
-  onRestock,
+  row, currency, onRestock,
 }: {
   row: ShiftIntelligenceRow
   currency: string
@@ -81,7 +77,6 @@ function SignalCard({
   const isWarning   = isDepletion && row.days_until_zero !== null && row.days_until_zero <= 14 && !isCritical
 
   const meta = SIGNAL_META[row.signal_type]
-  const SignalIcon = meta.icon
 
   const label = row.variant_name !== 'Standard'
     ? `${row.product_name} — ${row.variant_name}`
@@ -89,11 +84,9 @@ function SignalCard({
 
   return (
     <div className={cn('rounded-lg border px-3 py-2.5 space-y-1.5', meta.borderClass(isCritical, isWarning))}>
-
-      {/* Header row */}
       <div className="flex items-start gap-2">
         <div className={cn('mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full', meta.iconClass(isCritical, isWarning))}>
-          <SignalIcon className="h-2.5 w-2.5" />
+          <Icon icon={meta.icon} size={10} />
         </div>
 
         <div className="min-w-0 flex-1">
@@ -128,7 +121,6 @@ function SignalCard({
           )}
         </div>
 
-        {/* Urgency pill */}
         <span className={cn(
           'flex-shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold tabular-nums uppercase tracking-wide',
           meta.pillClass(isCritical, isWarning),
@@ -137,12 +129,10 @@ function SignalCard({
         </span>
       </div>
 
-      {/* Signal note */}
       <p className="text-[10px] text-muted-foreground leading-relaxed pl-7">
         {row.signal_note}
       </p>
 
-      {/* Bottom row: confidence + cost + action */}
       <div className="flex items-center justify-between gap-2 pl-7">
         <div className="flex items-center gap-3">
           <ConfidenceBar value={row.confidence} />
@@ -155,9 +145,8 @@ function SignalCard({
 
         {isDepletion && (
           <Button
-            size="sm"
-            variant="outline"
-            className="h-5 text-[10px] px-2 py-0 flex-shrink-0"
+            size="small"
+            variant="outlined"
             onClick={() => { onRestock(row.variant_id, Math.ceil(row.avg_daily * 30)) }}
           >
             Restock
@@ -165,13 +154,10 @@ function SignalCard({
         )}
       </div>
 
-      {/* Basis / provenance */}
       <p className="text-[9px] text-muted-foreground/60 pl-7 font-mono">{row.basis}</p>
     </div>
   )
 }
-
-// ─── Panel ──────────────────────────────────────────────────────────────────
 
 interface IntelligencePanelProps {
   currency: string
@@ -186,20 +172,20 @@ export function IntelligencePanel({ currency, onRestock }: IntelligencePanelProp
     <div>
       <div className="flex items-center justify-between mb-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
-          <Sparkles className="h-2.5 w-2.5 text-orange-500" />
+          <Icon icon="predictive-analysis" size={10} className="text-orange-500" />
           Eye · Intelligence
         </p>
         <button
           onClick={() => { void navigate('/reports?tab=forecast') }}
           className="text-[10px] text-muted-foreground hover:text-foreground transition-colors flex items-center gap-0.5"
         >
-          All <ArrowRight className="h-2.5 w-2.5" />
+          All <Icon icon="arrow-right" size={10} />
         </button>
       </div>
 
       {isLoading ? (
         <div className="flex items-center justify-center py-6">
-          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         </div>
       ) : signals.length === 0 ? (
         <div className="rounded-lg border border-green-200 bg-green-50/40 dark:border-green-800 dark:bg-green-950/20 px-3 py-3 text-center">

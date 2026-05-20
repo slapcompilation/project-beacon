@@ -2,7 +2,7 @@
 // Shows variants with write-off spikes vs their 4-week baseline, ranked by anomaly_score.
 // Compact panel version; /waste-radar is the full analytical surface.
 
-import { Flame, ShieldAlert } from 'lucide-react'
+import { Icon } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useWasteRadar } from '../hooks'
 
@@ -23,7 +23,7 @@ export function WasteRadar() {
       <div className="flex items-center justify-between gap-2">
         {!isLoading && rows.length > 0 && (
           <div className="flex items-center gap-1 text-xs text-red-600 font-semibold">
-            <Flame className="h-3.5 w-3.5" />
+            <Icon icon="flame" size={14} />
             <span>{rows.length} spike{rows.length !== 1 ? 's' : ''} · {fmtCost(totalCost)} at risk (7d)</span>
           </div>
         )}
@@ -54,9 +54,9 @@ export function WasteRadar() {
                   <div className="flex items-center justify-between text-sm gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       {isHot
-                        ? <Flame className="h-3.5 w-3.5 flex-shrink-0 text-red-500" />
+                        ? <Icon icon="flame" size={14} className="flex-shrink-0 text-red-500" />
                         : isProbableTheft
-                          ? <ShieldAlert className="h-3.5 w-3.5 flex-shrink-0 text-red-600" />
+                          ? <Icon icon="shield" size={14} className="flex-shrink-0 text-red-600" />
                           : null
                       }
                       <span className="font-medium truncate">{row.variant_label}</span>

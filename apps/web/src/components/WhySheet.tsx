@@ -1,10 +1,7 @@
-// Layer: Flow — Contextual graph traversal, surfaced inline on any decision surface.
-// Palantir principle: every alert, restock, and waste signal should be traceable
-// to its root cause in one click. This component makes the Reality Graph visible.
+// "Why?" trigger + Drawer. Opens the variant's causal chain inline.
 
 import { useState } from 'react'
-import { GitBranch } from 'lucide-react'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Drawer, Icon } from '@blueprintjs/core'
 import { FlowGraph } from '@/features/graph/components/FlowGraph'
 import { cn } from '@/lib/utils'
 
@@ -12,17 +9,11 @@ interface WhyButtonProps {
   variantId: string
   variantName: string
   currentStock?: number
-  /** Button style variant — 'link' (inline text) or 'pill' (border pill) */
+  /** 'link' (inline text) or 'pill' (bordered chip) */
   variant?: 'link' | 'pill'
   className?: string
 }
 
-/**
- * Self-contained "Why?" trigger + Sheet.
- * Drop this next to any metric that has a causal history — the sheet opens
- * the Reality Graph flow for that variant, showing the full causal chain:
- * consumed → restocked → alert triggered → corrected.
- */
 export function WhyButton({
   variantId,
   variantName,
@@ -46,30 +37,34 @@ export function WhyButton({
         )}
         title="Trace causal history for this item"
       >
-        <GitBranch className="h-2.5 w-2.5" />
+        <Icon icon="git-branch" size={10} />
         Why?
       </button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="right" className="w-full max-w-xl flex flex-col p-0 gap-0">
-          <SheetHeader className="border-b px-5 py-4 flex-shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-sm font-semibold">
-              <GitBranch className="h-4 w-4 text-muted-foreground" />
-              Causal history · {variantName}
-            </SheetTitle>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Every stock movement, restock, correction, and alert — in order.
-            </p>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto px-5 py-4">
-            <FlowGraph
-              variantId={variantId}
-              variantName={variantName}
-              currentStock={currentStock}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <Drawer
+        isOpen={open}
+        onClose={() => { setOpen(false) }}
+        position="right"
+        size="36rem"
+        title={
+          <span className="flex items-center gap-2">
+            <Icon icon="git-branch" size={14} className="text-muted-foreground" />
+            Causal history · {variantName}
+          </span>
+        }
+        className="!p-0"
+      >
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          <p className="text-xs text-muted-foreground mb-3">
+            Every stock movement, restock, correction, and alert — in order.
+          </p>
+          <FlowGraph
+            variantId={variantId}
+            variantName={variantName}
+            currentStock={currentStock}
+          />
+        </div>
+      </Drawer>
     </>
   )
 }

@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { Camera, CameraOff, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { Button, Icon, InputGroup, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 
 interface Props {
   onDetected: (code: string) => void
 }
 
-// BarcodeDetector is a browser-native API, not yet in TypeScript's lib
+// BarcodeDetector is browser-native, not yet typed in lib.dom
 const BarcodeDetectorAPI = (window as Window & { BarcodeDetector?: unknown }).BarcodeDetector as
   | (new (opts: { formats: string[] }) => {
-      detect: (source: HTMLVideoElement) => Promise<Array<{ rawValue: string }>>
+      detect: (source: HTMLVideoElement) => Promise<{ rawValue: string }[]>
     })
   | undefined
 
@@ -28,7 +26,7 @@ export function BarcodeScanner({ onDetected }: Props) {
 
   const stop = () => {
     if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null }
-    streamRef.current?.getTracks().forEach((t) => { t.stop(); })
+    streamRef.current?.getTracks().forEach((t) => { t.stop() })
     streamRef.current = null
     if (videoRef.current) videoRef.current.srcObject = null
     setStatus('idle')
@@ -63,7 +61,7 @@ export function BarcodeScanner({ onDetected }: Props) {
             onDetected(barcodes[0].rawValue)
           }
         }).catch(() => {
-          // Ignore per-frame decode errors
+          // ignore per-frame decode errors
         })
       }, 300)
     } catch {
@@ -81,44 +79,34 @@ export function BarcodeScanner({ onDetected }: Props) {
 
   return (
     <div className="space-y-4">
-      {/* Camera viewfinder */}
       {isSupported && (
         <div className="relative overflow-hidden rounded-xl bg-black aspect-[4/3] flex items-center justify-center">
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            playsInline
-            muted
-          />
+          <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
 
           {status === 'idle' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/60">
-              <Camera className="h-10 w-10 text-white/70" />
-              <Button onClick={() => { void start() }} variant="secondary">
-                Start Camera
-              </Button>
+              <Icon icon="camera" size={40} className="text-white/70" />
+              <Button onClick={() => { void start() }}>Start Camera</Button>
             </div>
           )}
 
           {status === 'starting' && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-              <Loader2 className="h-8 w-8 animate-spin text-white" />
+              <Spinner size={SpinnerSize.STANDARD} />
             </div>
           )}
 
           {status === 'scanning' && (
             <>
-              {/* Scan guide overlay */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-2/3 h-1/3 border-2 border-white/70 rounded-lg" />
               </div>
               <Button
                 onClick={stop}
-                size="sm"
-                variant="secondary"
+                size="small"
+                icon="disable"
                 className="absolute bottom-3 right-3"
               >
-                <CameraOff className="mr-2 h-4 w-4" />
                 Stop
               </Button>
             </>
@@ -126,9 +114,9 @@ export function BarcodeScanner({ onDetected }: Props) {
 
           {status === 'error' && (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 px-6 text-center">
-              <CameraOff className="h-8 w-8 text-white/70" />
+              <Icon icon="disable" size={32} className="text-white/70" />
               <p className="text-sm text-white/80">{errorMsg}</p>
-              <Button onClick={() => { void start() }} variant="secondary" size="sm">Retry</Button>
+              <Button onClick={() => { void start() }} size="small">Retry</Button>
             </div>
           )}
         </div>
@@ -136,21 +124,19 @@ export function BarcodeScanner({ onDetected }: Props) {
 
       {!isSupported && (
         <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-          Barcode camera scanning is not supported in this browser.
-          Use the manual input below.
+          Barcode camera scanning is not supported in this browser. Use the manual input below.
         </div>
       )}
 
-      {/* Manual input — always shown */}
       <form onSubmit={handleManualSubmit} className="flex gap-2">
-        <Input
+        <InputGroup
           placeholder="Type or paste SKU / barcode…"
           value={manualValue}
-          onChange={(e) => { setManualValue(e.target.value); }}
+          onChange={(e) => { setManualValue(e.target.value) }}
           className="flex-1"
           autoComplete="off"
         />
-        <Button type="submit" disabled={!manualValue.trim()}>
+        <Button type="submit" intent={Intent.PRIMARY} disabled={!manualValue.trim()}>
           Search
         </Button>
       </form>

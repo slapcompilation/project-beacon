@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, Icon } from '@blueprintjs/core'
 import { useProducts } from '@/features/inventory/hooks'
 
 export function GetStartedBanner() {
@@ -12,7 +11,7 @@ export function GetStartedBanner() {
   return (
     <div className="rounded-lg border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/40 dark:bg-indigo-950/20 px-5 py-4 flex items-start gap-4">
       <div className="h-9 w-9 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center shrink-0">
-        <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <Icon icon="predictive-analysis" size={20} className="text-indigo-600 dark:text-indigo-400" />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
@@ -24,9 +23,9 @@ export function GetStartedBanner() {
         </p>
       </div>
       <Button
-        size="sm"
-        className="shrink-0 bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8"
+        size="small"
         onClick={() => { void navigate('/setup') }}
+        className="!shrink-0 !bg-indigo-600 hover:!bg-indigo-700 !text-white"
       >
         Get started →
       </Button>

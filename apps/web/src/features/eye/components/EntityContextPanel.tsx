@@ -4,21 +4,16 @@
 // Palantir principle: the system has already done the analysis. The panel
 // shows the operator what matters without them having to ask.
 
+import { Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useVariantIntelligence } from '../hooks'
-import {
-  TrendingUp, TrendingDown, Minus, PackageCheck, AlertTriangle,
-  CalendarX, Loader2, ShieldCheck,
-} from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function VelocityArrow({ pct }: { pct: number | null }) {
-  if (pct === null) return <Minus className="h-3 w-3 text-muted-foreground" />
-  if (pct >= 10)  return <TrendingUp   className="h-3 w-3 text-red-500"   />
-  if (pct <= -10) return <TrendingDown className="h-3 w-3 text-green-500" />
-  return <Minus className="h-3 w-3 text-muted-foreground" />
+  if (pct === null) return <Icon icon="minus" size={12} className="text-muted-foreground" />
+  if (pct >= 10)  return <Icon icon="trending-up"   size={12} className="text-red-500" />
+  if (pct <= -10) return <Icon icon="trending-down" size={12} className="text-green-500" />
+  return <Icon icon="minus" size={12} className="text-muted-foreground" />
 }
 
 function RunwayBar({ days, tier }: { days: number; tier: 'critical' | 'warning' | 'watch' | 'safe' }) {
@@ -59,7 +54,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
   if (isLoading) {
     return (
       <div className={cn('flex items-center gap-2 text-xs text-muted-foreground px-3 py-2', className)}>
-        <Loader2 className="h-3 w-3 animate-spin" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         Loading intelligence…
       </div>
     )
@@ -93,7 +88,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
         )}
         {intel.open_po_number && (
           <span className="flex items-center gap-1 text-green-700 dark:text-green-400">
-            <PackageCheck className="h-3 w-3" />
+            <Icon icon="confirm" size={12} />
             {intel.open_po_number}
           </span>
         )}
@@ -152,7 +147,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
       <div className="flex items-center gap-2 px-4 py-2.5">
         {intel.open_po_number ? (
           <>
-            <PackageCheck className="h-3.5 w-3.5 text-green-500 shrink-0" />
+            <Icon icon="confirm" size={14} className="text-green-500 shrink-0" />
             <span className="text-green-700 dark:text-green-400 font-medium">
               PO {intel.open_po_number}
             </span>
@@ -164,7 +159,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
           </>
         ) : (
           <>
-            <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+            <Icon icon="warning-sign" size={14} className="text-amber-500 shrink-0" />
             <span className="text-amber-700 dark:text-amber-400">No purchase order in flight</span>
           </>
         )}
@@ -173,7 +168,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
       {/* Waste spike — only shown when notable */}
       {hasSpike && (
         <div className="flex items-center gap-2 px-4 py-2.5">
-          <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+          <Icon icon="warning-sign" size={14} className="text-red-500 shrink-0" />
           <span>
             <span className="font-medium text-red-700 dark:text-red-400">Write-off spike: </span>
             {intel.waste_7d} units this week vs {intel.waste_avg_weekly} avg
@@ -186,7 +181,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
       {/* Expiry — only shown when imminent and at-risk */}
       {hasExpiry && (
         <div className="flex items-center gap-2 px-4 py-2.5">
-          <CalendarX className="h-3.5 w-3.5 text-orange-500 shrink-0" />
+          <Icon icon="calendar" size={14} className="text-orange-500 shrink-0" />
           <span>
             <span className="font-medium text-orange-700 dark:text-orange-400">Expiry: </span>
             {intel.expiry_date ? format(parseISO(intel.expiry_date), 'MMM d') : null}
@@ -200,7 +195,7 @@ export function EntityContextPanel({ variantId, compact = false, className }: En
       {/* All clear */}
       {!hasSpike && !hasExpiry && intel.open_po_number && tier === 'safe' && (
         <div className="flex items-center gap-2 px-4 py-2.5 text-muted-foreground">
-          <ShieldCheck className="h-3.5 w-3.5 text-green-500 shrink-0" />
+          <Icon icon="shield" size={14} className="text-green-500 shrink-0" />
           <span>Stock position healthy</span>
         </div>
       )}

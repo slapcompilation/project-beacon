@@ -3,26 +3,11 @@ import { toast } from 'sonner'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Plus, Minus } from 'lucide-react'
+import {
+  Button, Dialog, DialogBody, DialogFooter, FormGroup,
+  HTMLSelect, Icon, InputGroup, Intent, TextArea,
+} from '@blueprintjs/core'
 import { VoiceAdjustButton } from '@/components/VoiceAdjustButton'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useAdjustStock } from '../hooks'
 import { REMOVAL_CATEGORIES } from '@beacon/types'
@@ -76,7 +61,6 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
     onClose()
   }
 
-  // Voice pre-fill: productQuery is ignored (product already selected); delta + reason fill the form.
   const handleVoiceCommand = useCallback((_productQuery: string, delta: number, reason: string) => {
     setDirection(delta >= 0 ? 'add' : 'remove')
     setValue('quantity', Math.abs(delta), { shouldValidate: true })
@@ -100,7 +84,6 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
     handleClose()
   }
 
-  // Build combined reason list: built-in categories first, then custom hotel-defined ones
   const allRemovalCategories = [
     ...REMOVAL_CATEGORIES,
     ...customReasons.map((r) => r.name),
@@ -109,160 +92,144 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
   const currentStock = selectedVariant.current_stock
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { handleClose() } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <DialogTitle>Stock Adjustment — {product.name}</DialogTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">For corrections and removals. Use Restock Requests for inbound stock.</p>
-            </div>
-            <VoiceAdjustButton
-              onCommand={handleVoiceCommand}
-              className="shrink-0 pt-0.5"
-            />
+    <Dialog
+      isOpen={open}
+      onClose={handleClose}
+      title={
+        <div className="flex items-start justify-between gap-3 w-full">
+          <div>
+            <span>Stock Adjustment — {product.name}</span>
+            <p className="text-xs text-muted-foreground mt-0.5 font-normal">For corrections and removals. Use Restock Requests for inbound stock.</p>
           </div>
-        </DialogHeader>
+          <VoiceAdjustButton onCommand={handleVoiceCommand} className="shrink-0 pt-0.5" />
+        </div>
+      }
+      className="!w-[28rem]"
+    >
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody>
+          <div className="space-y-4">
+            {product.product_variants.length > 1 && (
+              <FormGroup label="Variant">
+                <div className="flex flex-wrap gap-2">
+                  {product.product_variants.map((v) => (
+                    <Button
+                      key={v.id}
+                      type="button"
+                      size="small"
+                      intent={selectedVariant.id === v.id ? Intent.PRIMARY : Intent.NONE}
+                      variant={selectedVariant.id === v.id ? undefined : 'outlined'}
+                      onClick={() => { setSelectedVariant(v) }}
+                    >
+                      {v.name}
+                    </Button>
+                  ))}
+                </div>
+              </FormGroup>
+            )}
 
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4 py-2">
-          {/* Variant selector — only shown if multiple variants */}
-          {product.product_variants.length > 1 && (
-            <div className="space-y-1.5">
-              <Label>Variant</Label>
-              <div className="flex flex-wrap gap-2">
-                {product.product_variants.map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => { setSelectedVariant(v); }}
-                    className={cn(
-                      'rounded-md border px-3 py-1.5 text-sm transition-colors',
-                      selectedVariant.id === v.id
-                        ? 'border-primary bg-primary text-primary-foreground'
-                        : 'border-border hover:bg-muted'
-                    )}
-                  >
-                    {v.name}
-                  </button>
-                ))}
+            <div className="rounded-lg bg-muted px-4 py-3">
+              <p className="text-sm text-muted-foreground">Current stock</p>
+              <p className="text-2xl font-bold">{currentStock}</p>
+            </div>
+
+            <FormGroup label="Type">
+              <div className="flex rounded-lg border overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => { setDirection('add') }}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 py-2 text-sm font-medium transition-colors',
+                    direction === 'add'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  <Icon icon="plus" size={14} /> Correction (+)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setDirection('remove') }}
+                  className={cn(
+                    'flex flex-1 items-center justify-center gap-2 py-2 text-sm font-medium transition-colors',
+                    direction === 'remove'
+                      ? 'bg-red-600 text-white'
+                      : 'bg-background text-muted-foreground hover:bg-muted'
+                  )}
+                >
+                  <Icon icon="minus" size={14} /> Removal (−)
+                </button>
               </div>
-            </div>
-          )}
+            </FormGroup>
 
-          {/* Current stock display */}
-          <div className="rounded-lg bg-muted px-4 py-3">
-            <p className="text-sm text-muted-foreground">Current stock</p>
-            <p className="text-2xl font-bold">{currentStock}</p>
-          </div>
-
-          {/* Correction / Removal toggle */}
-          <div className="space-y-1.5">
-            <Label>Type</Label>
-            <div className="flex rounded-lg border overflow-hidden">
-              <button
-                type="button"
-                onClick={() => { setDirection('add'); }}
-                className={cn(
-                  'flex flex-1 items-center justify-center gap-2 py-2 text-sm font-medium transition-colors',
-                  direction === 'add'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-background text-muted-foreground hover:bg-muted'
-                )}
-              >
-                <Plus className="h-4 w-4" /> Correction (+)
-              </button>
-              <button
-                type="button"
-                onClick={() => { setDirection('remove'); }}
-                className={cn(
-                  'flex flex-1 items-center justify-center gap-2 py-2 text-sm font-medium transition-colors',
-                  direction === 'remove'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-background text-muted-foreground hover:bg-muted'
-                )}
-              >
-                <Minus className="h-4 w-4" /> Removal (−)
-              </button>
-            </div>
-          </div>
-
-          {/* Quantity */}
-          <div className="space-y-1.5">
-            <Label htmlFor="quantity">Quantity</Label>
-            <Input
-              id="quantity"
-              type="number"
-              min="1"
-              step="1"
-              placeholder="0"
-              {...register('quantity', { valueAsNumber: true })}
-            />
-            {errors.quantity && (
-              <p className="text-sm text-destructive">{errors.quantity.message}</p>
-            )}
-          </div>
-
-          {/* Reason */}
-          <div className="space-y-1.5">
-            <Label htmlFor="reason">Reason</Label>
-            <Textarea
-              id="reason"
-              rows={2}
-              placeholder="e.g. Morning delivery, consumed at event…"
-              {...register('reason')}
-            />
-            {errors.reason && (
-              <p className="text-sm text-destructive">{errors.reason.message}</p>
-            )}
-          </div>
-
-          {/* Removal category — only for removals */}
-          {direction === 'remove' && (
-            <div className="space-y-1.5">
-              <Label>
-                Category
-                {requireRemovalCategory
-                  ? <span className="ml-0.5 text-destructive">*</span>
-                  : <span className="ml-1 text-xs text-muted-foreground font-normal">(optional)</span>}
-              </Label>
-              <Controller
-                name="removal_category"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    value={field.value ?? '__none__'}
-                    onValueChange={(v) => { field.onChange(v === '__none__' ? null : v); }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select reason category…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {!requireRemovalCategory && <SelectItem value="__none__">— None —</SelectItem>}
-                      {allRemovalCategories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
+            <FormGroup label="Quantity" intent={errors.quantity ? Intent.DANGER : Intent.NONE} helperText={errors.quantity?.message}>
+              <InputGroup
+                id="quantity"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="0"
+                {...register('quantity', { valueAsNumber: true })}
               />
-            </div>
-          )}
+            </FormGroup>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-              className={direction === 'remove' ? 'bg-red-600 hover:bg-red-700' : ''}
-            >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {direction === 'add' ? 'Apply Correction' : 'Remove Stock'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+            <FormGroup label="Reason" intent={errors.reason ? Intent.DANGER : Intent.NONE} helperText={errors.reason?.message}>
+              <TextArea
+                id="reason"
+                rows={2}
+                placeholder="e.g. Morning delivery, consumed at event…"
+                fill
+                {...register('reason')}
+              />
+            </FormGroup>
+
+            {direction === 'remove' && (
+              <FormGroup
+                label={
+                  <>
+                    Category
+                    {requireRemovalCategory
+                      ? <span className="ml-0.5 text-destructive">*</span>
+                      : <span className="ml-1 text-xs text-muted-foreground font-normal">(optional)</span>}
+                  </>
+                }
+              >
+                <Controller
+                  name="removal_category"
+                  control={control}
+                  render={({ field }) => (
+                    <HTMLSelect
+                      value={field.value ?? '__none__'}
+                      onChange={(e) => { field.onChange(e.target.value === '__none__' ? null : e.target.value) }}
+                      options={[
+                        ...(!requireRemovalCategory ? [{ value: '__none__', label: '— None —' }] : []),
+                        ...allRemovalCategories.map((cat) => ({ value: cat, label: cat })),
+                      ]}
+                      fill
+                    />
+                  )}
+                />
+              </FormGroup>
+            )}
+          </div>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button type="button" variant="minimal" onClick={handleClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                intent={direction === 'remove' ? Intent.DANGER : Intent.PRIMARY}
+                loading={isSubmitting}
+              >
+                {direction === 'add' ? 'Apply Correction' : 'Remove Stock'}
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }

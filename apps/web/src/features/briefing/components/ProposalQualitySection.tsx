@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { Icon } from '@blueprintjs/core'
 import { useProposalQualitySummary } from '@/features/eye/hooks'
 import { useSectionCollapse } from './useSectionCollapse'
 import { LayerDot } from './LayerDot'
@@ -20,7 +20,7 @@ export function ProposalQualitySection() {
         onClick={() => { setOpen(!open) }}
         className="flex w-full items-center gap-2 px-4 py-3 text-left hover:bg-surface-2/50 transition-colors"
       >
-        {open ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground" />
         <LayerDot layer="eye" />
         <span className="text-sm font-medium flex-1">Proposal Quality</span>
         <span className="text-[10px] text-muted-foreground tabular-nums">{summary.total_proposals} proposals · 90d</span>

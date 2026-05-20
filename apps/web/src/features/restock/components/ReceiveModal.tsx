@@ -2,19 +2,10 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, PackageCheck } from 'lucide-react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+  Button, Dialog, DialogBody, DialogFooter, FormGroup,
+  Icon, InputGroup, Intent, Switch, TextArea,
+} from '@blueprintjs/core'
 import { useReceiveRestock, useReceives } from '../hooks'
 import { useUpdateVariant } from '@/features/inventory/hooks'
 import { format } from 'date-fns'
@@ -77,10 +68,10 @@ export function ReceiveModal({ open, onClose, request }: Props) {
       lotNumber: data.lot_number || null,
       notes: data.notes || null,
       unitCost: data.received_unit_cost || null,
-      expiryDate: data.expiry_date || null,  // creates a product_batches record
+      expiryDate: data.expiry_date || null,
     })
 
-    // Patch variant: lot/expiry kept on variant for backwards compat + cost if toggled
+    // Patch variant lot/expiry for back-compat, plus cost if user opted in
     const variantPatch: Record<string, unknown> = {}
     if (data.lot_number) variantPatch.lot_number = data.lot_number
     if (data.expiry_date) variantPatch.expiry_date = data.expiry_date
@@ -97,17 +88,14 @@ export function ReceiveModal({ open, onClose, request }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { handleClose() } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <PackageCheck className="h-4 w-4" />
-            Receive Stock
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          {/* Request summary */}
+    <Dialog
+      isOpen={open}
+      onClose={handleClose}
+      title={<span className="flex items-center gap-2"><Icon icon="confirm" size={14} />Receive Stock</span>}
+      className="!w-[28rem]"
+    >
+      <DialogBody>
+        <div className="space-y-4">
           <div className="rounded-lg bg-muted px-4 py-3 space-y-1">
             <p className="text-sm font-medium">
               {productName}
@@ -125,75 +113,58 @@ export function ReceiveModal({ open, onClose, request }: Props) {
           </div>
 
           <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-3" id="receive-form">
-            <div className="space-y-1.5">
-              <Label htmlFor="qty">Quantity received</Label>
-              <Input
+            <FormGroup
+              label="Quantity received"
+              intent={errors.quantity_received ? Intent.DANGER : Intent.NONE}
+              helperText={errors.quantity_received?.message ?? (isPartial ? 'Partial receive — request will remain approved until fully fulfilled.' : undefined)}
+            >
+              <InputGroup
                 id="qty"
                 type="number"
                 min="1"
                 step="1"
                 {...register('quantity_received', { valueAsNumber: true })}
               />
-              {errors.quantity_received && (
-                <p className="text-sm text-destructive">{errors.quantity_received.message}</p>
-              )}
-              {isPartial && (
-                <p className="text-xs text-yellow-600">
-                  Partial receive — request will remain approved until fully fulfilled.
-                </p>
-              )}
-            </div>
+            </FormGroup>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="lot">Lot / Batch number</Label>
-                <Input id="lot" placeholder="e.g. LOT-2024-001" {...register('lot_number')} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="expiry">Expiry date</Label>
-                <Input id="expiry" type="date" {...register('expiry_date')} />
-              </div>
+              <FormGroup label="Lot / Batch number">
+                <InputGroup id="lot" placeholder="e.g. LOT-2024-001" {...register('lot_number')} />
+              </FormGroup>
+              <FormGroup label="Expiry date">
+                <InputGroup id="expiry" type="date" {...register('expiry_date')} />
+              </FormGroup>
             </div>
 
-            {/* Received unit cost — ignore price differences or update variant cost */}
             <div className="rounded-md border p-3 space-y-2.5">
-              <div className="space-y-1.5">
-                <Label htmlFor="rcost" className="text-xs">
-                  Received unit cost
-                  <span className="ml-1 font-normal text-muted-foreground">(leave blank to ignore)</span>
-                </Label>
-                <Input
+              <FormGroup
+                label={<>Received unit cost <span className="ml-1 font-normal text-muted-foreground">(leave blank to ignore)</span></>}
+              >
+                <InputGroup
                   id="rcost"
                   type="number"
                   step="0.01"
                   min="0"
                   placeholder="e.g. 4.50"
-                  className="h-8 text-sm"
+                  size="small"
                   {...register('received_unit_cost', { valueAsNumber: true })}
                 />
-              </div>
+              </FormGroup>
               {receivedCost != null && !isNaN(receivedCost) && receivedCost > 0 && (
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="update-cost" className="text-xs text-muted-foreground cursor-pointer">
-                    Update variant cost to this price
-                  </Label>
-                  <Switch
-                    id="update-cost"
-                    checked={updateCost}
-                    onCheckedChange={setUpdateCost}
-                    className="scale-75"
-                  />
-                </div>
+                <Switch
+                  checked={updateCost}
+                  onChange={(e) => { setUpdateCost(e.currentTarget.checked) }}
+                  label="Update variant cost to this price"
+                  className="!mb-0"
+                />
               )}
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="notes">Notes (optional)</Label>
-              <Textarea id="notes" rows={2} placeholder="Delivery condition, discrepancies…" {...register('notes')} />
-            </div>
+            <FormGroup label="Notes (optional)">
+              <TextArea id="notes" rows={2} placeholder="Delivery condition, discrepancies…" fill {...register('notes')} />
+            </FormGroup>
           </form>
 
-          {/* Receive history */}
           {history.length > 0 && (
             <div className="space-y-1.5">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Previous receives</p>
@@ -209,17 +180,19 @@ export function ReceiveModal({ open, onClose, request }: Props) {
             </div>
           )}
         </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button type="submit" form="receive-form" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Record Receive
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button type="button" variant="minimal" onClick={handleClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" form="receive-form" intent={Intent.PRIMARY} loading={isSubmitting}>
+              Record Receive
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   )
 }

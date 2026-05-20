@@ -1,24 +1,11 @@
-// Layer: Flow — variant stock history + Reality Graph flow timeline
-// Shows the immutable stock_log audit trail and the causal edge graph
-// (consumes, reverts, restocks) for the selected variant.
+// Variant stock history + Reality Graph flow timeline.
 
 import { useState, useMemo } from 'react'
 import { format } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { useDateFormat } from '@/features/user/hooks'
-import { RotateCcw, TrendingUp, TrendingDown, RefreshCw, BarChart2 } from 'lucide-react'
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from 'recharts'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Button, Divider, Drawer, Icon, SegmentedControl } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useStockLogs, useUndoStock } from '../hooks'
 import { FlowGraph } from '@/features/graph'
@@ -26,15 +13,10 @@ import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
 import type { ProductWithVariants, StockLog } from '@beacon/types'
 
-
-// ─── Recharts constants (hoisted to avoid re-renders from new object refs) ───
-
 const CHART_MARGIN = { top: 4, right: 4, left: -20, bottom: 0 }
 const AXIS_TICK    = { fontSize: 10 }
 const TOOLTIP_STYLE = { fontSize: 12, borderRadius: 6 }
 const tooltipFormatter = (v: unknown) => [String(v ?? ''), 'Balance']
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 
 interface Props {
   open: boolean
@@ -42,12 +24,8 @@ interface Props {
   product: ProductWithVariants
 }
 
-
-// ─── Stock Chart ──────────────────────────────────────────────────────────────
-
 function StockChart({ logs }: { logs: StockLog[] }) {
   const fmtDate = useDateFormat()
-  // Build a point series from newest→oldest logs (logs are desc, reverse for chart)
   const chartData = useMemo(() => {
     const ordered = [...logs].reverse()
     return ordered.map((l) => ({
@@ -77,7 +55,6 @@ function StockChart({ logs }: { logs: StockLog[] }) {
 
   return (
     <div className="space-y-5 py-4">
-      {/* KPI row */}
       <div className="grid grid-cols-3 gap-3">
         {[
           { label: 'Received', value: `+${String(kpis.totalIn)}`, color: 'text-green-700' },
@@ -91,7 +68,6 @@ function StockChart({ logs }: { logs: StockLog[] }) {
         ))}
       </div>
 
-      {/* Balance chart */}
       <div>
         <p className="mb-2 text-xs font-medium text-muted-foreground">Stock balance over time</p>
         <ResponsiveContainer width="100%" height={160}>
@@ -134,8 +110,6 @@ function StockChart({ logs }: { logs: StockLog[] }) {
   )
 }
 
-// ─── Main drawer ──────────────────────────────────────────────────────────────
-
 export function StockLogDrawer({ open, onClose, product }: Props) {
   const role = useAuthStore((s) => s.role)
   const canUndo = role ? hasPermission(role, 'can_undo_logs') : false
@@ -160,222 +134,184 @@ export function StockLogDrawer({ open, onClose, product }: Props) {
   const hasMultipleVariants = product.product_variants.length > 1
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) { onClose() } }}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col p-0">
-        <SheetHeader className="px-6 pt-6 pb-4 border-b">
-          <SheetTitle className="text-base">Stock History — {product.name}</SheetTitle>
-          <p className="text-sm text-muted-foreground">
-            Current stock: <span className="font-semibold text-foreground">{selectedVariant.current_stock}</span>
-          </p>
+    <Drawer
+      isOpen={open}
+      onClose={onClose}
+      position="right"
+      size="32rem"
+      title={`Stock History — ${product.name}`}
+      className="!p-0"
+    >
+      <div className="px-6 pt-3 pb-4 border-b shrink-0 space-y-2">
+        <p className="text-sm text-muted-foreground">
+          Current stock: <span className="font-semibold text-foreground">{selectedVariant.current_stock}</span>
+        </p>
 
-          {/* Variant selector — shown only when there are multiple variants */}
-          {hasMultipleVariants && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {product.product_variants.map((v) => (
-                <button
-                  key={v.id}
-                  onClick={() => { setSelectedVariantId(v.id) }}
-                  className={cn(
-                    'rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors border',
-                    v.id === selectedVariantId
-                      ? 'bg-primary text-primary-foreground border-primary'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:border-foreground/30'
-                  )}
-                >
-                  {v.name}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Tab bar */}
-          <div className="flex gap-1 mt-2">
-            <button
-              onClick={() => { setTab('logs') }}
-              className={cn(
-                'rounded px-3 py-1 text-xs font-medium transition-colors',
-                tab === 'logs'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              Audit Log
-            </button>
-            <button
-              onClick={() => { setTab('flow') }}
-              className={cn(
-                'flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors',
-                tab === 'flow'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <RefreshCw className="h-3 w-3" />
-              Flow Graph
-            </button>
-            <button
-              onClick={() => { setTab('chart') }}
-              className={cn(
-                'flex items-center gap-1 rounded px-3 py-1 text-xs font-medium transition-colors',
-                tab === 'chart'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <BarChart2 className="h-3 w-3" />
-              Chart
-            </button>
+        {hasMultipleVariants && (
+          <div className="flex flex-wrap gap-1">
+            {product.product_variants.map((v) => (
+              <Button
+                key={v.id}
+                size="small"
+                variant={v.id === selectedVariantId ? undefined : 'outlined'}
+                intent={v.id === selectedVariantId ? 'primary' : 'none'}
+                onClick={() => { setSelectedVariantId(v.id) }}
+              >
+                {v.name}
+              </Button>
+            ))}
           </div>
-        </SheetHeader>
+        )}
 
-        <ScrollArea className="flex-1 px-6">
-          {/* ── Audit Log tab ─────────────────────────────────────── */}
-          {tab === 'logs' && (
-            <>
-              {isLoading && (
-                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  Loading…
-                </div>
-              )}
+        <SegmentedControl
+          options={[
+            { value: 'logs',  label: 'Audit Log' },
+            { value: 'flow',  label: 'Flow Graph' },
+            { value: 'chart', label: 'Chart' },
+          ]}
+          value={tab}
+          onValueChange={(v) => { setTab(v as 'logs' | 'flow' | 'chart') }}
+          size="small"
+        />
+      </div>
 
-              {!isLoading && logs.length === 0 && (
-                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  No adjustments yet
-                </div>
-              )}
+      <div className="flex-1 overflow-y-auto px-6">
+        {tab === 'logs' && (
+          <>
+            {isLoading && (
+              <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+                Loading…
+              </div>
+            )}
 
-              {!isLoading && logs.length > 0 && (
-                <div className="py-4 space-y-0">
-                  {logs.map((log, i) => {
-                    const isPositive = log.quantity_change > 0
-                    const alreadyReverted = logs.some((l) => l.revert_of === log.id)
-                    const canUndoThis = canUndo && !log.is_revert && !alreadyReverted
+            {!isLoading && logs.length === 0 && (
+              <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+                No adjustments yet
+              </div>
+            )}
 
-                    return (
-                      <div key={log.id}>
-                        <div className="flex items-start gap-3 py-3">
-                          {/* Icon */}
-                          <div
-                            className={cn(
-                              'mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full',
-                              log.is_revert
-                                ? 'bg-slate-100 text-slate-500'
-                                : isPositive
-                                  ? 'bg-green-100 text-green-600'
-                                  : 'bg-red-100 text-red-600'
-                            )}
-                          >
-                            {log.is_revert ? (
-                              <RotateCcw className="h-3.5 w-3.5" />
-                            ) : isPositive ? (
-                              <TrendingUp className="h-3.5 w-3.5" />
-                            ) : (
-                              <TrendingDown className="h-3.5 w-3.5" />
-                            )}
-                          </div>
+            {!isLoading && logs.length > 0 && (
+              <div className="py-4 space-y-0">
+                {logs.map((log, i) => {
+                  const isPositive = log.quantity_change > 0
+                  const alreadyReverted = logs.some((l) => l.revert_of === log.id)
+                  const canUndoThis = canUndo && !log.is_revert && !alreadyReverted
 
-                          {/* Content */}
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-baseline justify-between gap-2">
-                              <span
-                                className={cn(
-                                  'text-sm font-semibold',
-                                  log.is_revert
-                                    ? 'text-muted-foreground'
-                                    : isPositive
-                                      ? 'text-green-700'
-                                      : 'text-red-700'
-                                )}
-                              >
-                                {isPositive ? '+' : ''}
-                                {log.quantity_change}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                Balance: {log.balance_after}
-                              </span>
-                            </div>
-                            <p className="mt-0.5 truncate text-sm text-foreground">{log.reason}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
-                              <span>{`${fmtDate(new Date(log.timestamp))} · ${format(new Date(log.timestamp), 'HH:mm')}`}</span>
-                              {log.is_revert && (
-                                <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs">
-                                  undo
-                                </span>
+                  return (
+                    <div key={log.id}>
+                      <div className="flex items-start gap-3 py-3">
+                        <div
+                          className={cn(
+                            'mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full',
+                            log.is_revert
+                              ? 'bg-slate-100 text-slate-500'
+                              : isPositive
+                                ? 'bg-green-100 text-green-600'
+                                : 'bg-red-100 text-red-600'
+                          )}
+                        >
+                          <Icon
+                            icon={log.is_revert ? 'undo' : isPositive ? 'trending-up' : 'trending-down'}
+                            size={14}
+                          />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-baseline justify-between gap-2">
+                            <span
+                              className={cn(
+                                'text-sm font-semibold',
+                                log.is_revert
+                                  ? 'text-muted-foreground'
+                                  : isPositive
+                                    ? 'text-green-700'
+                                    : 'text-red-700'
                               )}
-                              {alreadyReverted && !log.is_revert && (
-                                <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs text-muted-foreground">
-                                  undone
-                                </span>
-                              )}
-                              <Link to={`/log/${log.id}`} className="ml-auto text-primary hover:underline text-[10px]">
-                                View →
-                              </Link>
-                            </p>
-                            {log.photo_url && (
-                              <a
-                                href={log.photo_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="mt-1.5 inline-block"
-                              >
-                                <img
-                                  src={log.photo_url}
-                                  alt="adjustment photo"
-                                  className="h-16 w-16 rounded-md object-cover border hover:opacity-80 transition-opacity"
-                                />
-                              </a>
-                            )}
-                          </div>
-
-                          {/* Undo button */}
-                          {canUndoThis && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-                              disabled={undoStock.isPending}
-                              onClick={() => { void handleUndo(log.id) }}
                             >
-                              Undo
-                            </Button>
+                              {isPositive ? '+' : ''}
+                              {log.quantity_change}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Balance: {log.balance_after}
+                            </span>
+                          </div>
+                          <p className="mt-0.5 truncate text-sm text-foreground">{log.reason}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+                            <span>{`${fmtDate(new Date(log.timestamp))} · ${format(new Date(log.timestamp), 'HH:mm')}`}</span>
+                            {log.is_revert && (
+                              <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs">
+                                undo
+                              </span>
+                            )}
+                            {alreadyReverted && !log.is_revert && (
+                              <span className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-xs text-muted-foreground">
+                                undone
+                              </span>
+                            )}
+                            <Link to={`/log/${log.id}`} className="ml-auto text-primary hover:underline text-[10px]">
+                              View →
+                            </Link>
+                          </p>
+                          {log.photo_url && (
+                            <a
+                              href={log.photo_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-block"
+                            >
+                              <img
+                                src={log.photo_url}
+                                alt="adjustment photo"
+                                className="h-16 w-16 rounded-md object-cover border hover:opacity-80 transition-opacity"
+                              />
+                            </a>
                           )}
                         </div>
-                        {i < logs.length - 1 && <Separator />}
+
+                        {canUndoThis && (
+                          <Button
+                            variant="minimal"
+                            size="small"
+                            disabled={undoStock.isPending}
+                            onClick={() => { void handleUndo(log.id) }}
+                          >
+                            Undo
+                          </Button>
+                        )}
                       </div>
-                    )
-                  })}
-                </div>
-              )}
-            </>
-          )}
+                      {i < logs.length - 1 && <Divider className="!m-0" />}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
 
-          {/* ── Flow Graph tab ────────────────────────────────────── */}
-          {tab === 'flow' && (
-            <div className="py-4">
-              <p className="mb-3 text-xs text-muted-foreground">
-                Causal edges in the Reality Graph for this variant.
-              </p>
-              <FlowGraph
-                variantId={selectedVariantId}
-                variantName={selectedVariant.name}
-              />
-            </div>
-          )}
+        {tab === 'flow' && (
+          <div className="py-4">
+            <p className="mb-3 text-xs text-muted-foreground">
+              Causal edges in the Reality Graph for this variant.
+            </p>
+            <FlowGraph
+              variantId={selectedVariantId}
+              variantName={selectedVariant.name}
+            />
+          </div>
+        )}
 
-          {/* ── Chart tab ─────────────────────────────────────────── */}
-          {tab === 'chart' && (
-            <div className="px-1">
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
-                  Loading…
-                </div>
-              ) : (
-                <StockChart logs={logs} />
-              )}
-            </div>
-          )}
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+        {tab === 'chart' && (
+          <div className="px-1">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12 text-muted-foreground text-sm">
+                Loading…
+              </div>
+            ) : (
+              <StockChart logs={logs} />
+            )}
+          </div>
+        )}
+      </div>
+    </Drawer>
   )
 }

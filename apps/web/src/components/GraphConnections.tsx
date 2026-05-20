@@ -5,7 +5,7 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, GitBranch, Loader2 } from 'lucide-react'
+import { Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { useNodeEdges } from '@/hooks/useNodeEdges'
@@ -176,7 +176,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
   if (isLoading) {
     return (
       <div className={cn('flex items-center gap-2 text-xs text-muted-foreground', className)}>
-        <Loader2 className="h-3 w-3 animate-spin" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         Loading connections…
       </div>
     )
@@ -207,7 +207,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
   return (
     <div className={cn('space-y-2', className)}>
       <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <GitBranch className="h-3.5 w-3.5" />
+        <Icon icon="git-branch" size={14} />
         Graph connections
         <span className="ml-auto font-normal text-[10px] text-muted-foreground/50">
           {edges.length} edge{edges.length !== 1 ? 's' : ''}
@@ -231,9 +231,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
             onClick={() => { setAuditOpen((v) => !v); }}
             className="flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-muted-foreground transition-colors"
           >
-            {auditOpen
-              ? <ChevronDown className="h-3 w-3" />
-              : <ChevronRight className="h-3 w-3" />}
+            <Icon icon={auditOpen ? 'chevron-down' : 'chevron-right'} size={12} />
             Audit edges ({auditEdges.length})
           </button>
           {auditOpen && (

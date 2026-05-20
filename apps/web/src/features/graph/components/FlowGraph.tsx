@@ -6,68 +6,55 @@
 import { useMemo } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { useDateFormat } from '@/features/user/hooks'
-import {
-  TrendingDown,
-  PackagePlus,
-  RotateCcw,
-  ArrowRight,
-  GitBranch,
-  Zap,
-  Network,
-  BookOpen,
-} from 'lucide-react'
+import { Icon } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useVariantFlow } from '../hooks'
 import type { RelationshipEdge } from '@beacon/types'
 
-// ─── Edge type config ─────────────────────────────────────────────────────────
-
-const EDGE_CFG = {
+const EDGE_CFG: Record<string, { label: string; icon: IconName; card: string; badge: string }> = {
   consumes: {
     label: 'consumes',
-    Icon: TrendingDown,
+    icon: 'trending-down',
     card: 'border-slate-200 bg-slate-50/60 dark:border-slate-700 dark:bg-slate-900/30',
     badge: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300',
   },
   restocks: {
     label: 'restocks',
-    Icon: PackagePlus,
+    icon: 'add-to-folder',
     card: 'border-green-200 bg-green-50/60 dark:border-green-800 dark:bg-green-950/20',
     badge: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400',
   },
   reverts: {
     label: 'reverts',
-    Icon: RotateCcw,
+    icon: 'undo',
     card: 'border-amber-200 bg-amber-50/60 dark:border-amber-800 dark:bg-amber-950/20',
     badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
   },
   triggered_alert: {
     label: 'triggered alert',
-    Icon: Zap,
+    icon: 'flash',
     card: 'border-red-200 bg-red-50/60 dark:border-red-800 dark:bg-red-950/20',
     badge: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400',
   },
   causes: {
     label: 'causes',
-    Icon: ArrowRight,
+    icon: 'arrow-right',
     card: 'border-purple-200 bg-purple-50/60 dark:border-purple-800 dark:bg-purple-950/20',
     badge: 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400',
   },
   belongs_to_session: {
     label: 'stocktake',
-    Icon: GitBranch,
+    icon: 'git-branch',
     card: 'border-blue-200 bg-blue-50/60 dark:border-blue-800 dark:bg-blue-950/20',
     badge: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400',
   },
-} as const
-
-type EdgeCfgKey = keyof typeof EDGE_CFG
+}
 
 function getEdgeCfg(type: string) {
-  const known = EDGE_CFG[type as EdgeCfgKey] as typeof EDGE_CFG[EdgeCfgKey] | undefined
-  return known ?? {
+  return EDGE_CFG[type] ?? {
     label: type,
-    Icon: ArrowRight,
+    icon: 'arrow-right' as IconName,
     card: 'border-border bg-muted/20',
     badge: 'bg-muted text-muted-foreground',
   }
@@ -153,7 +140,6 @@ function EdgeCard({
 }) {
   const fmtDate = useDateFormat()
   const cfg = getEdgeCfg(edge.edge_type)
-  const Icon = cfg.Icon
 
   const sourceLabel = edge.source_type === 'variant' ? variantName : undefined
   const targetLabel = edge.target_type === 'variant' ? variantName : undefined
@@ -180,7 +166,7 @@ function EdgeCard({
                 cfg.badge,
               )}
             >
-              <Icon className="h-2.5 w-2.5" />
+              <Icon icon={cfg.icon} size={10} />
               {cfg.label}
             </span>
             <span className="block h-px w-3 bg-current opacity-25" />
@@ -209,7 +195,7 @@ function EdgeCard({
           {/* Vertical connector line */}
           <div className="flex flex-col items-center">
             <div className="w-px flex-1 bg-amber-300 dark:bg-amber-700" />
-            <RotateCcw className="h-3 w-3 text-amber-500 shrink-0 my-0.5" />
+            <Icon icon="undo" size={12} className="text-amber-500 shrink-0 my-0.5" />
           </div>
           <div className="flex-1 pb-1">
             <EdgeCard
@@ -352,7 +338,7 @@ function StorySummary({
 
   return (
     <div className="flex items-start gap-3 rounded-lg border bg-muted/30 px-4 py-3">
-      <BookOpen className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+      <Icon icon="book" size={14} className="text-muted-foreground mt-0.5 shrink-0" />
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">
           Story · {variantName}
@@ -431,7 +417,7 @@ export function FlowGraph({ variantId, variantName, currentStock }: FlowGraphPro
   if (edges.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 py-10 text-center">
-        <Network className="h-8 w-8 text-muted-foreground/30" />
+        <Icon icon="graph" size={32} className="text-muted-foreground/30" />
         <p className="text-sm font-medium text-muted-foreground">No graph edges yet</p>
         <p className="max-w-xs text-xs text-muted-foreground">
           Edges appear automatically after stock events — adjustments, restocks, and corrections are

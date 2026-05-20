@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { GitBranch, Loader2 } from 'lucide-react'
+import { Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { useAppStore } from '@/stores/app.store'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { GRAPH_NODE_TYPE } from './EntityMeta'
@@ -17,7 +17,7 @@ export function GraphTabContent() {
   if (!contextEntity || !nodeType) {
     return (
       <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-        <GitBranch className="h-8 w-8 text-muted-foreground/30 mb-3" />
+        <Icon icon="git-branch" size={32} className="text-muted-foreground/30 mb-3" />
         <p className="text-sm text-muted-foreground">Graph View</p>
         <p className="text-xs text-muted-foreground/60 mt-1">
           Select an entity to view its graph connections
@@ -31,7 +31,7 @@ export function GraphTabContent() {
       <PanelErrorBoundary name="Graph View" className="min-h-[100px]">
         <Suspense fallback={
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
           </div>
         }>
           <GraphConnections nodeType={nodeType as 'variant'} nodeId={entityId!} />

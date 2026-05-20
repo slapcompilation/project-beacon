@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { BlueprintProvider, FocusStyleManager } from '@blueprintjs/core'
-import { Toaster } from '@/components/ui/sonner'
+import { BlueprintProvider, FocusStyleManager, Spinner, SpinnerSize, Intent } from '@blueprintjs/core'
+import { Toaster } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { AuthGuard } from '@/components/AuthGuard'
 import { AuthProvider } from '@/components/AuthProvider'
@@ -10,11 +10,9 @@ import { ScanLayout } from '@/components/layout/ScanLayout'
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
-// Blueprint convention: suppress focus rings when navigating by mouse,
-// keep them when navigating by keyboard. Call once at module load.
+// Hide focus rings on mouse nav, show them on keyboard nav.
 FocusStyleManager.onlyShowFocusOnTabs()
 
-// Route-level lazy imports — each page is its own chunk
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const BriefingPage = lazy(() => import('@/pages/BriefingPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
@@ -33,13 +31,11 @@ const MenuMappingPage = lazy(() => import('@/pages/MenuMappingPage'))
 const FBIntelligencePage = lazy(() => import('@/pages/FBIntelligencePage'))
 const SetupWizardPage = lazy(() => import('@/pages/SetupWizardPage'))
 
-// Four-layer workspaces
 const FloorWorkspace = lazy(() => import('@/pages/FloorWorkspace'))
 const FlowWorkspace  = lazy(() => import('@/pages/FlowWorkspace'))
 const EyeWorkspace   = lazy(() => import('@/pages/EyeWorkspace'))
 const MindWorkspace  = lazy(() => import('@/pages/MindWorkspace'))
 
-// Object pages — click any entity name to see full object context
 const VariantObjectPage       = lazy(() => import('@/pages/VariantObjectPage'))
 const SupplierObjectPage      = lazy(() => import('@/pages/SupplierObjectPage'))
 const POObjectPage            = lazy(() => import('@/pages/POObjectPage'))
@@ -53,14 +49,13 @@ const CausalChainPage         = lazy(() => import('@/pages/CausalChainPage'))
 function PageLoader() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background">
-      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      <Spinner size={SpinnerSize.LARGE} intent={Intent.PRIMARY} />
     </div>
   )
 }
 
 function RootRedirect() {
   const role = useAuthStore((s) => s.role)
-  // Mission-driven home: each role lands on its primary decision surface
   const home =
     role === 'limited_access' ? '/scan' :
     role === 'team_member'    ? '/floor' :
@@ -68,7 +63,6 @@ function RootRedirect() {
   return <Navigate to={home} replace />
 }
 
-// Separated so AuthProvider (which starts getSession) always mounts first
 function AppRoutes() {
   const isLoading = useAuthStore((s) => s.isLoading)
 
@@ -82,14 +76,12 @@ function AppRoutes() {
           <Route element={<AuthGuard />}>
             <Route path="/" element={<RootRedirect />} />
 
-            {/* ── Primary nav (5 items) ──────────────────────────────────── */}
             <Route path="/briefing" element={<BriefingPage />} />
             <Route path="/floor"    element={<FloorWorkspace />} />
             <Route path="/flow"     element={<FlowWorkspace />} />
             <Route path="/eye"      element={<EyeWorkspace />} />
             <Route path="/mind"     element={<MindWorkspace />} />
 
-            {/* ── Object pages — entity deep-dives ─────────────────────── */}
             <Route path="/variant/:variantId"      element={<VariantObjectPage />} />
             <Route path="/supplier/:supplierId"    element={<SupplierObjectPage />} />
             <Route path="/po/:poId"                element={<POObjectPage />} />
@@ -100,7 +92,6 @@ function AppRoutes() {
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
             <Route path="/causal-chain"            element={<CausalChainPage />} />
 
-            {/* ── Utility routes ────────────────────────────────────────── */}
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
             <Route path="/stocktake"     element={<StocktakePage />} />
@@ -116,7 +107,6 @@ function AppRoutes() {
             <Route path="/fb-intelligence" element={<FBIntelligencePage />} />
             <Route path="/setup"           element={<SetupWizardPage />} />
 
-            {/* ── Redirects: old routes → workspace panels ──────────────── */}
             <Route path="/dashboard"        element={<Navigate to="/briefing"                  replace />} />
             <Route path="/inventory"        element={<Navigate to="/floor?panel=stock"         replace />} />
             <Route path="/alerts"           element={<Navigate to="/floor?panel=alerts"        replace />} />
@@ -139,7 +129,6 @@ function AppRoutes() {
             <Route path="/suppliers"        element={<Navigate to="/mind?panel=procurement"    replace />} />
             <Route path="/team"             element={<Navigate to="/settings?section=team"     replace />} />
 
-            {/* Scan-first UI — uses its own minimal layout */}
             <Route element={<ScanLayout />}>
               <Route path="/scan" element={<ScanPage />} />
             </Route>
@@ -158,8 +147,6 @@ export function App() {
         <ThemeProvider>
           <AuthProvider>
             <AppRoutes />
-            {/* sonner Toaster stays during the migration; replaced when the
-             *  last call site moves to Blueprint's OverlayToaster. */}
             <Toaster richColors position="top-right" />
             <PwaInstallPrompt />
           </AuthProvider>

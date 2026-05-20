@@ -1,6 +1,5 @@
-/* Blueprint stylesheets — load BEFORE Tailwind so utilities can override
- * Blueprint's defaults via specificity-equal flat class selectors.
- * Blueprint is Beacon's design system per CLAUDE.md "The Beacon Design System". */
+/* Blueprint stylesheets load BEFORE Tailwind so utilities can override
+ * Blueprint defaults via specificity-equal flat class selectors. */
 @import '@blueprintjs/core/lib/css/blueprint.css';
 @import '@blueprintjs/icons/lib/css/blueprint-icons.css';
 @import '@blueprintjs/table/lib/css/table.css';
@@ -11,16 +10,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─────────────────────────────────────────────────────────────────────────────
- * Blueprint design tokens (Beacon's design system as of CLAUDE.md PR #17).
- *
- * Source of truth: palantir/blueprint's _colors.scss + _color-aliases.scss on
- * the develop branch. Values below are the Blueprint hexes converted to HSL
- * channels (so shadcn's `hsl(var(--x) / opacity)` pattern keeps working).
- *
- * Comments next to each var show the Blueprint hex it represents.
- * Don't introduce new ad-hoc colors here — extend through Blueprint tokens.
- * ──────────────────────────────────────────────────────────────────────────── */
+/* Blueprint design tokens, exposed as HSL channels so `hsl(var(--x) / opacity)` works.
+ * Source: palantir/blueprint _colors.scss + _color-aliases.scss. Hex shown beside each var.
+ * Don't introduce ad-hoc colors here — extend through Blueprint tokens. */
 
 @layer base {
   :root {
@@ -93,15 +85,7 @@
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────────
- * Body defaults — 14px / 1.286 / tabular numerals.
- *
- * Per CLAUDE.md "The Beacon Design System: Blueprint" — the operator-grade
- * type rhythm. We use `@apply text-sm` (= 0.875rem = 14px when html stays at
- * the browser default 16px) so rem-based sizing inside shadcn/Radix
- * components is unaffected. Tabular numerals applied globally because
- * stable column widths help reading at every layer of the app.
- * ──────────────────────────────────────────────────────────────────────────── */
+/* Body defaults: 14px / 1.286 / tabular numerals. text-sm = 0.875rem when html is at 16px. */
 
 @layer base {
   * {
@@ -119,16 +103,11 @@
   }
 }
 
-/* ── Operator-grade density (Blueprint) ────────────────────────────────────── */
-/* Sharper corners (4px), no card shadows in dark mode (Blueprint matches).   */
-
 @layer base {
-  .dark .card, .dark [data-slot="card"] {
+  .dark .card {
     @apply shadow-none;
   }
 }
-
-/* ── Standard page spacing ─────────────────────────────────────────────────── */
 
 @layer utilities {
   /* Page header: thin bar at the top of every page */

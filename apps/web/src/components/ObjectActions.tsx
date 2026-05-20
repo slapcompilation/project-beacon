@@ -1,21 +1,14 @@
-// Layer: meta — inline action panel (used by all object pages)
-// Palantir Principle 4: actions live next to data. Operators never navigate away to act.
-//
-// Every action renders as a button that expands an inline form on click.
-// Validates via validateAction() before submission, dispatches via dispatchAction().
-// Shows audit trail context (edgesWritten) on success.
+// Inline expandable action forms. Used by every object page.
+// Validates via the Action Registry; surfaces audit edge count on success.
 
 import { useState, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Camera, CheckCircle2, ChevronDown, Loader2, X, XCircle, Zap } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button, FormGroup, HTMLSelect, Icon, InputGroup, Intent, TextArea } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-
-// ─── Prop shapes (discriminated by nodeType) ──────────────────────────────────
 
 export type ObjectActionsProps =
   | {
@@ -42,41 +35,6 @@ export type ObjectActionsProps =
       currentStatus: string
     }
 
-// ─── Inline form primitives ───────────────────────────────────────────────────
-
-function Label({ children }: { children: React.ReactNode }) {
-  return <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">{children}</label>
-}
-
-function Input({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <input
-      {...props}
-      className={cn(
-        'w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground',
-        'placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring',
-        props.className,
-      )}
-    />
-  )
-}
-
-function Textarea({ ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return (
-    <textarea
-      rows={2}
-      {...props}
-      className={cn(
-        'w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground resize-none',
-        'placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-ring',
-        props.className,
-      )}
-    />
-  )
-}
-
-// ─── Expandable action row ────────────────────────────────────────────────────
-
 interface ActionShellProps {
   label: string
   variant?: 'default' | 'destructive' | 'outline'
@@ -92,7 +50,7 @@ function ActionShell({ label, variant = 'outline', disabled, children }: ActionS
       <button
         type="button"
         disabled={disabled}
-        onClick={() => { setOpen((v) => !v); }}
+        onClick={() => { setOpen((v) => !v) }}
         className={cn(
           'flex w-full items-center justify-between px-3 py-2 text-xs font-medium transition-colors',
           variant === 'destructive'
@@ -102,18 +60,16 @@ function ActionShell({ label, variant = 'outline', disabled, children }: ActionS
         )}
       >
         {label}
-        <ChevronDown className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', open && 'rotate-180')} />
+        <Icon icon="chevron-down" size={14} className={cn('text-muted-foreground transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
         <div className="px-3 pb-3 pt-2 space-y-2 bg-background border-t border-border">
-          {children(() => { setOpen(false); })}
+          {children(() => { setOpen(false) })}
         </div>
       )}
     </div>
   )
 }
-
-// ─── Per-action forms ─────────────────────────────────────────────────────────
 
 function RequestRestockForm({ variantId, hotelId, userId, onClose }: {
   variantId: string; hotelId: string; userId: string; onClose: () => void
@@ -144,18 +100,16 @@ function RequestRestockForm({ variantId, hotelId, userId, onClose }: {
 
   return (
     <>
-      <div>
-        <Label>Quantity needed</Label>
-        <Input type="number" min={1} placeholder="0" value={qty} onChange={(e) => { setQty(e.target.value); }} />
-      </div>
-      <div>
-        <Label>Notes (optional)</Label>
-        <Textarea placeholder="Urgency reason, preferred supplier…" value={notes} onChange={(e) => { setNotes(e.target.value); }} />
-      </div>
+      <FormGroup label="Quantity needed" labelInfo="(required)">
+        <InputGroup type="number" min={1} placeholder="0" value={qty} onChange={(e) => { setQty(e.target.value) }} />
+      </FormGroup>
+      <FormGroup label="Notes (optional)">
+        <TextArea placeholder="Urgency reason, preferred supplier…" value={notes} onChange={(e) => { setNotes(e.target.value) }} fill rows={2} />
+      </FormGroup>
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" className="h-7 text-xs" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Submit'}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.PRIMARY} loading={loading} onClick={() => { void submit() }}>
+          Submit
         </Button>
       </div>
     </>
@@ -165,33 +119,32 @@ function RequestRestockForm({ variantId, hotelId, userId, onClose }: {
 function PhotoUpload({ file, onFile }: { file: File | null; onFile: (f: File | null) => void }) {
   const ref = useRef<HTMLInputElement>(null)
   return (
-    <div>
-      <Label>Photo evidence (optional)</Label>
+    <FormGroup label="Photo evidence (optional)">
       {file ? (
         <div className="flex items-center gap-2 rounded border border-input bg-background px-2 py-1.5">
-          <Camera className="h-3 w-3 text-muted-foreground shrink-0" />
+          <Icon icon="camera" size={12} className="text-muted-foreground shrink-0" />
           <span className="text-xs truncate flex-1">{file.name}</span>
-          <button type="button" onClick={() => { onFile(null); }} className="text-muted-foreground hover:text-foreground">
-            <X className="h-3 w-3" />
-          </button>
+          <Button variant="minimal" size="small" icon="cross" onClick={() => { onFile(null) }} aria-label="Remove" />
         </div>
       ) : (
-        <button
-          type="button"
+        <Button
+          variant="outlined"
+          size="small"
+          icon="camera"
+          fill
           onClick={() => ref.current?.click()}
-          className="flex w-full items-center gap-2 rounded border border-dashed border-input px-2 py-1.5 text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground transition-colors"
         >
-          <Camera className="h-3 w-3" /> Attach photo
-        </button>
+          Attach photo
+        </Button>
       )}
       <input
         ref={ref}
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => { onFile(e.target.files?.[0] ?? null); }}
+        onChange={(e) => { onFile(e.target.files?.[0] ?? null) }}
       />
-    </div>
+    </FormGroup>
   )
 }
 
@@ -227,19 +180,17 @@ function AdjustStockForm({ variantId, hotelId, userId, onClose }: {
 
   return (
     <>
-      <div>
-        <Label>Delta (+ add / − remove)</Label>
-        <Input type="number" placeholder="+10 or -5" value={delta} onChange={(e) => { setDelta(e.target.value); }} />
-      </div>
-      <div>
-        <Label>Reason</Label>
-        <Input placeholder="Counted stock, delivery shortfall…" value={reason} onChange={(e) => { setReason(e.target.value); }} />
-      </div>
+      <FormGroup label="Delta (+ add / − remove)">
+        <InputGroup type="number" placeholder="+10 or -5" value={delta} onChange={(e) => { setDelta(e.target.value) }} />
+      </FormGroup>
+      <FormGroup label="Reason">
+        <InputGroup placeholder="Counted stock, delivery shortfall…" value={reason} onChange={(e) => { setReason(e.target.value) }} />
+      </FormGroup>
       <PhotoUpload file={photo} onFile={setPhoto} />
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" className="h-7 text-xs" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Adjust'}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.PRIMARY} loading={loading} onClick={() => { void submit() }}>
+          Adjust
         </Button>
       </div>
     </>
@@ -278,19 +229,17 @@ function WriteOffForm({ variantId, hotelId, userId, onClose }: {
 
   return (
     <>
-      <div>
-        <Label>Quantity to write off</Label>
-        <Input type="number" min={1} placeholder="0" value={qty} onChange={(e) => { setQty(e.target.value); }} />
-      </div>
-      <div>
-        <Label>Waste reason</Label>
-        <Input placeholder="Expired, spilled, damaged…" value={reason} onChange={(e) => { setReason(e.target.value); }} />
-      </div>
+      <FormGroup label="Quantity to write off">
+        <InputGroup type="number" min={1} placeholder="0" value={qty} onChange={(e) => { setQty(e.target.value) }} />
+      </FormGroup>
+      <FormGroup label="Waste reason">
+        <InputGroup placeholder="Expired, spilled, damaged…" value={reason} onChange={(e) => { setReason(e.target.value) }} />
+      </FormGroup>
       <PhotoUpload file={photo} onFile={setPhoto} />
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" variant="destructive" className="h-7 text-xs" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Write off'}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.DANGER} loading={loading} onClick={() => { void submit() }}>
+          Write off
         </Button>
       </div>
     </>
@@ -323,14 +272,13 @@ function ApproveRestockForm({ requestId, variantId, hotelId, userId, onClose }: 
 
   return (
     <>
-      <div>
-        <Label>Notes (optional)</Label>
-        <Textarea placeholder="Approval context…" value={notes} onChange={(e) => { setNotes(e.target.value); }} />
-      </div>
+      <FormGroup label="Notes (optional)">
+        <TextArea placeholder="Approval context…" value={notes} onChange={(e) => { setNotes(e.target.value) }} fill rows={2} />
+      </FormGroup>
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <><CheckCircle2 className="h-3 w-3 mr-1" />Approve</>}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.SUCCESS} icon="tick-circle" loading={loading} onClick={() => { void submit() }}>
+          Approve
         </Button>
       </div>
     </>
@@ -363,14 +311,13 @@ function RejectRestockForm({ requestId, variantId, hotelId, userId, onClose }: {
 
   return (
     <>
-      <div>
-        <Label>Reason (optional)</Label>
-        <Textarea placeholder="Why is this being rejected?" value={reason} onChange={(e) => { setReason(e.target.value); }} />
-      </div>
+      <FormGroup label="Reason (optional)">
+        <TextArea placeholder="Why is this being rejected?" value={reason} onChange={(e) => { setReason(e.target.value) }} fill rows={2} />
+      </FormGroup>
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" variant="destructive" className="h-7 text-xs" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <><XCircle className="h-3 w-3 mr-1" />Reject</>}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.DANGER} icon="cross-circle" loading={loading} onClick={() => { void submit() }}>
+          Reject
         </Button>
       </div>
     </>
@@ -407,14 +354,13 @@ function RevertLogForm({ logId, variantId, hotelId, userId, onClose }: {
       <p className="text-[10px] text-muted-foreground">
         A compensating stock entry will be created. The original log is preserved for audit.
       </p>
-      <div>
-        <Label>Revert reason</Label>
-        <Input placeholder="Data entry error, system glitch…" value={reason} onChange={(e) => { setReason(e.target.value); }} />
-      </div>
+      <FormGroup label="Revert reason">
+        <InputGroup placeholder="Data entry error, system glitch…" value={reason} onChange={(e) => { setReason(e.target.value) }} />
+      </FormGroup>
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" variant="destructive" className="h-7 text-xs" disabled={loading} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Revert'}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.DANGER} loading={loading} onClick={() => { void submit() }}>
+          Revert
         </Button>
       </div>
     </>
@@ -450,29 +396,23 @@ function UpdatePOStatusForm({ poId, hotelId, userId, currentStatus, onClose }: {
 
   return (
     <>
-      <div>
-        <Label>New status</Label>
-        <select
+      <FormGroup label="New status">
+        <HTMLSelect
           value={status}
-          onChange={(e) => { setStatus(e.target.value as POStatus); }}
-          className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-        >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-          ))}
-        </select>
-      </div>
+          onChange={(e) => { setStatus(e.target.value as POStatus) }}
+          options={STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, ' ') }))}
+          fill
+        />
+      </FormGroup>
       <div className="flex gap-2 justify-end">
-        <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Cancel</Button>
-        <Button size="sm" className="h-7 text-xs" disabled={loading || status === currentStatus} onClick={() => { void submit(); }}>
-          {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Update'}
+        <Button size="small" variant="minimal" onClick={onClose}>Cancel</Button>
+        <Button size="small" intent={Intent.PRIMARY} loading={loading} disabled={loading || status === currentStatus} onClick={() => { void submit() }}>
+          Update
         </Button>
       </div>
     </>
   )
 }
-
-// ─── Main component ───────────────────────────────────────────────────────────
 
 export function ObjectActions(props: ObjectActionsProps) {
   const hotelId = useActiveHotelId()
@@ -487,11 +427,10 @@ export function ObjectActions(props: ObjectActionsProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <Zap className="h-3.5 w-3.5" />
+        <Icon icon="flash" size={14} />
         Actions
       </div>
 
-      {/* ── Variant actions ──────────────────────────────────────── */}
       {props.nodeType === 'variant' && (
         <>
           <ActionShell label="Request restock" disabled={props.hasOpenRequest}>
@@ -533,10 +472,9 @@ export function ObjectActions(props: ObjectActionsProps) {
         </>
       )}
 
-      {/* ── Restock request actions ──────────────────────────────── */}
       {props.nodeType === 'restock_request' && (
         <>
-              {canApprove && (props.status === 'pending_manager' || props.status === 'pending_director') && (
+          {canApprove && (props.status === 'pending_manager' || props.status === 'pending_director') && (
             <ActionShell label="Approve restock">
               {(close) => (
                 <ApproveRestockForm
@@ -572,7 +510,6 @@ export function ObjectActions(props: ObjectActionsProps) {
         </>
       )}
 
-      {/* ── Stock log actions ────────────────────────────────────── */}
       {props.nodeType === 'stock_log' && !props.isRevert && canAdjust && (
         <ActionShell label="Revert this log entry" variant="destructive">
           {(close) => (
@@ -587,7 +524,6 @@ export function ObjectActions(props: ObjectActionsProps) {
         </ActionShell>
       )}
 
-      {/* ── Purchase order actions ───────────────────────────────── */}
       {props.nodeType === 'purchase_order' && canApprove && (
         <ActionShell label="Update PO status">
           {(close) => (
@@ -604,8 +540,6 @@ export function ObjectActions(props: ObjectActionsProps) {
     </div>
   )
 }
-
-// ─── Inline cancel (simple confirm, no form) ──────────────────────────────────
 
 function CancelRestockInline({ requestId, variantId, hotelId, userId, onClose }: {
   requestId: string; variantId?: string | null; hotelId: string; userId: string; onClose: () => void
@@ -632,9 +566,9 @@ function CancelRestockInline({ requestId, variantId, hotelId, userId, onClose }:
 
   return (
     <div className="flex gap-2 justify-end">
-      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={onClose}>Keep it</Button>
-      <Button size="sm" variant="destructive" className="h-7 text-xs" disabled={loading} onClick={() => { void confirm(); }}>
-        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Yes, cancel'}
+      <Button size="small" variant="minimal" onClick={onClose}>Keep it</Button>
+      <Button size="small" intent={Intent.DANGER} loading={loading} onClick={() => { void confirm() }}>
+        Yes, cancel
       </Button>
     </div>
   )

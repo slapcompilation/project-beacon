@@ -459,6 +459,22 @@ StockLog already is. Surface it bidirectionally: in a global Activity feed AND i
 - `packages/reality-graph` must never import from `apps/web`. The graph is deployable independently
 - State split: Zustand only for UI/session state. All server data lives in TanStack Query + graph cache. Never duplicate server state in Zustand
 
+### Write less code
+
+If the same outcome fits in 50 lines instead of 100, that's the version that ships. Pick the shorter path when it's equally clear. No wrapper layers that exist only to be wrappers, no intermediate variables that get used once, no defensive branches for cases that can't happen, no abstractions for a single caller. Prefer composing existing primitives over building new ones. When two patterns work, pick the one with less code.
+
+### Comments stay human
+
+Default to no comment. When a comment is genuinely useful, write it like a coworker leaving a quick note — short, direct, present-tense, no marketing voice. The bar:
+
+- One short line max — multi-line explainers belong in the PR description or the commit, not the file
+- Explain the *why* / a hidden constraint / a gotcha, never restate what the code obviously does
+- No "Breakthrough feature:", no "Palantir principle:", no "Layer X — [grand phrase]", no congratulatory framing
+- No decorative banner separators (`// ───── Foo ─────`) — blank lines and clear function names do that work
+- File-top docstring (if any): a single short sentence stating what the file is for, plus the layer label if relevant
+
+When you edit a file, rewrite or remove AI-flavored comments in the area you touch.
+
 ---
 
 ## Adding Features (AIP Checklist)

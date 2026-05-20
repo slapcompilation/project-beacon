@@ -1,25 +1,10 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2 } from 'lucide-react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Button, Dialog, DialogBody, DialogFooter, FormGroup,
+  HTMLSelect, InputGroup, Intent, TextArea,
+} from '@blueprintjs/core'
 import { useProducts } from '@/features/inventory/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
 import { useCreateRestockRequest } from '../hooks'
@@ -72,95 +57,74 @@ export function RestockRequestModal({ open, onClose }: Props) {
     onClose()
   }
 
-  return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { reset(); onClose() } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>New Restock Request</DialogTitle>
-        </DialogHeader>
+  const handleClose = () => { reset(); onClose() }
 
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <Label>Product / Variant</Label>
+  return (
+    <Dialog isOpen={open} onClose={handleClose} title="New Restock Request" className="!w-[28rem]">
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody>
+          <FormGroup label="Product / Variant" intent={errors.variantId ? Intent.DANGER : Intent.NONE} helperText={errors.variantId?.message}>
             <Controller
               name="variantId"
               control={control}
               render={({ field }) => (
-                <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a product…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {variantOptions.map((opt) => (
-                      <SelectItem key={opt.id} value={opt.id}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <HTMLSelect
+                  value={field.value ?? ''}
+                  onChange={(e) => { field.onChange(e.target.value) }}
+                  options={[
+                    { value: '', label: 'Select a product…' },
+                    ...variantOptions.map((opt) => ({ value: opt.id, label: opt.label })),
+                  ]}
+                  fill
+                />
               )}
             />
-            {errors.variantId && (
-              <p className="text-sm text-destructive">{errors.variantId.message}</p>
-            )}
-          </div>
+          </FormGroup>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="qty">Quantity Needed</Label>
-            <Input
+          <FormGroup label="Quantity Needed" intent={errors.quantityNeeded ? Intent.DANGER : Intent.NONE} helperText={errors.quantityNeeded?.message}>
+            <InputGroup
               id="qty"
               type="number"
               min="1"
               {...register('quantityNeeded', { valueAsNumber: true })}
             />
-            {errors.quantityNeeded && (
-              <p className="text-sm text-destructive">{errors.quantityNeeded.message}</p>
-            )}
-          </div>
+          </FormGroup>
 
-          <div className="space-y-1.5">
-            <Label>Supplier</Label>
+          <FormGroup label="Supplier">
             <Controller
               name="supplier"
               control={control}
               render={({ field }) => (
-                <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select supplier (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {suppliers.map((s) => (
-                      <SelectItem key={s.id} value={s.name}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <HTMLSelect
+                  value={field.value ?? ''}
+                  onChange={(e) => { field.onChange(e.target.value) }}
+                  options={[
+                    { value: '', label: 'Select supplier (optional)' },
+                    ...suppliers.map((s) => ({ value: s.name, label: s.name })),
+                  ]}
+                  fill
+                />
               )}
             />
-          </div>
+          </FormGroup>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea id="notes" rows={2} placeholder="Optional" {...register('notes')} />
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => { reset(); onClose() }}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Submit Request
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+          <FormGroup label="Notes">
+            <TextArea id="notes" rows={2} placeholder="Optional" fill {...register('notes')} />
+          </FormGroup>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button type="button" variant="minimal" onClick={handleClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isSubmitting}>
+                Submit Request
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }

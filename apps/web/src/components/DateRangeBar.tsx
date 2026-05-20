@@ -1,10 +1,8 @@
-// Layer: Eye / Mind — shared date-range picker used across Reports, Finance, Audit.
-// Exposes useDateRange() hook + DateRangeBar UI in one import.
+// Shared date-range picker for Reports, Finance, Audit. Exports the hook + the bar.
 
 import { useState, useMemo } from 'react'
 import { format, subDays, startOfMonth } from 'date-fns'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
+import { InputGroup, SegmentedControl } from '@blueprintjs/core'
 
 export type DatePreset = '7d' | '30d' | '90d' | 'month' | 'custom'
 
@@ -18,13 +16,12 @@ const PRESET_LABELS: Record<DatePreset, string> = {
 
 interface DateRangeOptions {
   defaultPreset?: DatePreset
-  /** Subset of presets to show; defaults to ['7d','30d','month','custom'] */
   presets?: DatePreset[]
 }
 
 export function useDateRange(options: DateRangeOptions = {}) {
   const { defaultPreset = '30d', presets = ['7d', '30d', 'month', 'custom'] } = options
-  const today      = format(new Date(), 'yyyy-MM-dd')
+  const today = format(new Date(), 'yyyy-MM-dd')
   const [preset, setPreset]         = useState<DatePreset>(defaultPreset)
   const [customFrom, setCustomFrom] = useState(format(subDays(new Date(), 29), 'yyyy-MM-dd'))
   const [customTo,   setCustomTo]   = useState(today)
@@ -45,38 +42,31 @@ export function DateRangeBar(props: ReturnType<typeof useDateRange>) {
   const { preset, setPreset, presets, dateFrom, dateTo, customFrom, setCustomFrom, customTo, setCustomTo } = props
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex rounded-lg border overflow-hidden text-xs">
-        {presets.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => { setPreset(p) }}
-            className={cn(
-              'px-3 py-1.5 font-medium transition-colors',
-              preset === p
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-background text-muted-foreground hover:bg-muted',
-            )}
-          >
-            {PRESET_LABELS[p]}
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        options={presets.map((p) => ({ value: p, label: PRESET_LABELS[p] }))}
+        value={preset}
+        onValueChange={(v) => { setPreset(v as DatePreset) }}
+        size="small"
+      />
       {preset === 'custom' && (
         <>
-          <Input
-            type="date"
-            value={customFrom}
-            onChange={(e) => { setCustomFrom(e.target.value) }}
-            className="w-36 h-8 text-sm"
-          />
+          <div className="w-36">
+            <InputGroup
+              type="date"
+              value={customFrom}
+              onChange={(e) => { setCustomFrom(e.target.value) }}
+              size="small"
+            />
+          </div>
           <span className="text-muted-foreground text-sm">→</span>
-          <Input
-            type="date"
-            value={customTo}
-            onChange={(e) => { setCustomTo(e.target.value) }}
-            className="w-36 h-8 text-sm"
-          />
+          <div className="w-36">
+            <InputGroup
+              type="date"
+              value={customTo}
+              onChange={(e) => { setCustomTo(e.target.value) }}
+              size="small"
+            />
+          </div>
         </>
       )}
       {preset !== 'custom' && (

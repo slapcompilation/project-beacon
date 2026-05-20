@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from 'date-fns'
-import { Badge } from '@/components/ui/badge'
+import { Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import type { ObjectPanelEntity } from '@/stores/app.store'
 
@@ -51,7 +51,7 @@ export function EntitySummary({ entityType, data }: { entityType: ObjectPanelEnt
           <FieldRow label="Variant" value={pv?.name as string ?? '—'} />
           <FieldRow label="Quantity" value={d.quantity as number ?? 0} />
           <FieldRow label="Status" value={
-            <Badge variant="outline" className="text-[10px] px-1.5 py-0">{d.status as string}</Badge>
+            <Tag minimal className="!text-[10px] !px-1.5 !py-0">{d.status as string}</Tag>
           } />
           <FieldRow label="Urgency" value={d.urgency as string ?? '—'} />
           <FieldRow label="Requested" value={d.date ? formatDistanceToNow(new Date(d.date as string), { addSuffix: true }) : '—'} />

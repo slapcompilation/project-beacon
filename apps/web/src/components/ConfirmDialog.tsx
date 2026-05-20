@@ -1,10 +1,6 @@
-// Layer: meta — reusable confirmation dialog.
-// Replaces window.confirm() throughout the app with a themeable, accessible modal.
+// Reusable confirm modal. Replaces window.confirm() everywhere.
 
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Button, Dialog, DialogBody, DialogFooter, Intent } from '@blueprintjs/core'
 
 interface ConfirmDialogProps {
   open: boolean
@@ -12,7 +8,7 @@ interface ConfirmDialogProps {
   description?: string
   confirmLabel?: string
   cancelLabel?: string
-  /** When true, the confirm button renders as destructive (red). */
+  /** Red confirm button when true. */
   destructive?: boolean
   onConfirm: () => void
   onCancel: () => void
@@ -29,22 +25,25 @@ export function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onCancel() }}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          {description && <DialogDescription>{description}</DialogDescription>}
-        </DialogHeader>
-        <DialogFooter className="mt-2">
-          <Button variant="outline" onClick={onCancel}>{cancelLabel}</Button>
-          <Button
-            variant={destructive ? 'destructive' : 'default'}
-            onClick={() => { onConfirm(); onCancel() }}
-          >
-            {confirmLabel}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+    <Dialog isOpen={open} onClose={onCancel} title={title} className="!w-[24rem]">
+      {description && (
+        <DialogBody>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </DialogBody>
+      )}
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="minimal" onClick={onCancel}>{cancelLabel}</Button>
+            <Button
+              intent={destructive ? Intent.DANGER : Intent.PRIMARY}
+              onClick={() => { onConfirm(); onCancel() }}
+            >
+              {confirmLabel}
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   )
 }

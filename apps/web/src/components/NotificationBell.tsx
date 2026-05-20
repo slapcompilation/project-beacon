@@ -1,15 +1,7 @@
-import { Bell, CheckCheck } from 'lucide-react'
+import { useState } from 'react'
 import { format } from 'date-fns'
 import { useDateFormat } from '@/features/user/hooks'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+import { Button, Drawer, Icon, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import {
   useNotifications,
@@ -33,6 +25,7 @@ const TYPE_STYLES: Record<Notification['type'], string> = {
 }
 
 export function NotificationBell() {
+  const [open, setOpen] = useState(false)
   const { data: notifications = [] } = useNotifications()
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllNotificationsRead()
@@ -41,39 +34,47 @@ export function NotificationBell() {
   const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button className="relative flex items-center justify-center rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100">
-          <Bell className="h-4 w-4" />
-          {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </button>
-      </SheetTrigger>
+    <>
+      <button
+        type="button"
+        onClick={() => { setOpen(true) }}
+        className="relative flex items-center justify-center rounded-md p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
+      >
+        <Icon icon="notifications" size={14} />
+        {unreadCount > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
 
-      <SheetContent side="right" className="w-96 flex flex-col p-0">
-        <SheetHeader className="flex flex-row items-center justify-between border-b px-5 py-4">
-          <SheetTitle className="text-base">Notifications</SheetTitle>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              onClick={() => { markAll.mutate(); }}
-              disabled={markAll.isPending}
-            >
-              <CheckCheck className="mr-1.5 h-3.5 w-3.5" />
-              Mark all read
-            </Button>
-          )}
-        </SheetHeader>
-
+      <Drawer
+        isOpen={open}
+        onClose={() => { setOpen(false) }}
+        position="right"
+        size="24rem"
+        title={
+          <div className="flex items-center justify-between w-full">
+            <span>Notifications</span>
+            {unreadCount > 0 && (
+              <Button
+                variant="minimal"
+                size="small"
+                icon="double-chevron-up"
+                onClick={() => { markAll.mutate() }}
+                disabled={markAll.isPending}
+              >
+                Mark all read
+              </Button>
+            )}
+          </div>
+        }
+        className="!p-0"
+      >
         <div className="flex-1 overflow-y-auto">
           {notifications.length === 0 ? (
             <div className="flex flex-col items-center gap-2 py-16 text-center">
-              <Bell className="h-8 w-8 text-muted-foreground/40" />
+              <Icon icon="notifications" size={32} className="text-muted-foreground/40" />
               <p className="text-sm text-muted-foreground">No notifications</p>
             </div>
           ) : (
@@ -89,32 +90,31 @@ export function NotificationBell() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{n.message}</p>
                     <div className="mt-1.5 flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className={cn('text-xs capitalize px-1.5 py-0', TYPE_STYLES[n.type])}
-                      >
+                      <Tag minimal className={cn('!text-xs !capitalize !px-1.5 !py-0', TYPE_STYLES[n.type])}>
                         {n.type.replace('_', ' ')}
-                      </Badge>
+                      </Tag>
                       <span className="text-xs text-muted-foreground">
                         {`${fmtDate(new Date(n.timestamp))}, ${format(new Date(n.timestamp), 'HH:mm')}`}
                       </span>
                     </div>
                   </div>
                   {!n.read && (
-                    <button
-                      onClick={() => { markRead.mutate({ id: n.id }); }}
-                      className="mt-0.5 flex-shrink-0 rounded-full p-1 text-muted-foreground hover:text-foreground transition-colors"
+                    <Button
+                      variant="minimal"
+                      size="small"
+                      icon="tick"
+                      onClick={() => { markRead.mutate({ id: n.id }) }}
                       title="Mark as read"
-                    >
-                      <CheckCheck className="h-3.5 w-3.5" />
-                    </button>
+                      aria-label="Mark as read"
+                      className="!mt-0.5 flex-shrink-0"
+                    />
                   )}
                 </li>
               ))}
             </ul>
           )}
         </div>
-      </SheetContent>
-    </Sheet>
+      </Drawer>
+    </>
   )
 }

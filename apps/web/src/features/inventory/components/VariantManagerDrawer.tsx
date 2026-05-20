@@ -1,27 +1,16 @@
-// Eye Layer synthesis: EntityContextPanel wired per variant so any variant
-// inspected here surfaces velocity, runway, PO status and waste signals.
+// EntityContextPanel per-variant so any inspection surfaces velocity, runway, PO status, waste.
+
 import { useState, useCallback } from 'react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Plus, Pencil, Trash2, Loader2, X, Package, MapPin, Bell, PowerOff, Activity } from 'lucide-react'
-import { EntityContextPanel } from '@/features/eye/components/EntityContextPanel'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Separator } from '@/components/ui/separator'
-import { Badge } from '@/components/ui/badge'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Button, Divider, Drawer, FormGroup, HTMLSelect,
+  Icon, InputGroup, Intent, Tag,
+} from '@blueprintjs/core'
+import { EntityContextPanel } from '@/features/eye/components/EntityContextPanel'
 import { cn } from '@/lib/utils'
 import { useCreateVariant, useUpdateVariant, useDeleteVariant, useToggleVariantActive } from '../hooks'
 import { useDateFormat } from '@/features/user/hooks'
@@ -30,8 +19,6 @@ import { useSuppliers } from '@/features/suppliers/hooks'
 import { useCustomFieldDefs, useUpdateVariantCustomValues } from '@/features/custom-fields/hooks'
 import type { ProductWithVariants, ProductVariant, CustomFieldDef, VariantStatus } from '@beacon/types'
 import { VARIANT_STATUS_LABELS } from '@beacon/types'
-
-// ─── Variant form ─────────────────────────────────────────────────────────────
 
 const variantSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -56,45 +43,42 @@ function renderCustomInput(
   switch (def.field_type) {
     case 'text':
       return (
-        <Input
-          className="h-8 text-sm"
+        <InputGroup
+          size="small"
           value={value as string}
-          onChange={(e) => { onChange(e.target.value || null); }}
+          onChange={(e) => { onChange(e.target.value || null) }}
         />
       )
     case 'number':
       return (
-        <Input
-          className="h-8 text-sm"
+        <InputGroup
+          size="small"
           type="number"
           value={value == null ? '' : String(value as number)}
-          onChange={(e) => { onChange(e.target.value === '' ? null : Number(e.target.value)); }}
+          onChange={(e) => { onChange(e.target.value === '' ? null : Number(e.target.value)) }}
         />
       )
     case 'date':
       return (
-        <Input
-          className="h-8 text-sm"
+        <InputGroup
+          size="small"
           type="date"
           value={value as string}
-          onChange={(e) => { onChange(e.target.value || null); }}
+          onChange={(e) => { onChange(e.target.value || null) }}
         />
       )
     case 'boolean':
       return (
-        <Select
+        <HTMLSelect
           value={value == null ? '__none__' : String(value as boolean)}
-          onValueChange={(v) => { onChange(v === '__none__' ? null : v === 'true'); }}
-        >
-          <SelectTrigger className="h-8 text-sm">
-            <SelectValue placeholder="—" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">—</SelectItem>
-            <SelectItem value="true">Yes</SelectItem>
-            <SelectItem value="false">No</SelectItem>
-          </SelectContent>
-        </Select>
+          onChange={(e) => { onChange(e.target.value === '__none__' ? null : e.target.value === 'true') }}
+          options={[
+            { value: '__none__', label: '—' },
+            { value: 'true', label: 'Yes' },
+            { value: 'false', label: 'No' },
+          ]}
+          fill
+        />
       )
   }
 }
@@ -149,7 +133,6 @@ function VariantForm({
   })
 
   const onSubmit = async (data: VariantFields) => {
-    // Validate required custom fields before submit
     const missing = fieldDefs.filter(
       (d) => d.required && (customValues[d.id] == null || customValues[d.id] === '')
     )
@@ -183,150 +166,113 @@ function VariantForm({
     <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold">{editing ? 'Edit Variant' : 'New Variant'}</p>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDone}>
-          <X className="h-3.5 w-3.5" />
-        </Button>
+        <Button variant="minimal" size="small" icon="cross" onClick={onDone} aria-label="Close" />
       </div>
 
       <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs">Name</Label>
-            <Input className="h-8 text-sm" placeholder="e.g. 500ml" {...register('name')} />
-            {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">SKU</Label>
-            <Input className="h-8 text-sm" placeholder="e.g. WATER-500" {...register('sku')} />
-            {errors.sku && <p className="text-xs text-destructive">{errors.sku.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Barcode (EAN / UPC)</Label>
-            <Input className="h-8 text-sm font-mono" placeholder="Leave blank to use SKU" {...register('barcode')} />
-            <p className="text-[10px] text-muted-foreground">Leave blank to use SKU as barcode</p>
-          </div>
+          <FormGroup label="Name" intent={errors.name ? Intent.DANGER : Intent.NONE} helperText={errors.name?.message}>
+            <InputGroup size="small" placeholder="e.g. 500ml" {...register('name')} />
+          </FormGroup>
+          <FormGroup label="SKU" intent={errors.sku ? Intent.DANGER : Intent.NONE} helperText={errors.sku?.message}>
+            <InputGroup size="small" placeholder="e.g. WATER-500" {...register('sku')} />
+          </FormGroup>
+          <FormGroup label="Barcode (EAN / UPC)" helperText="Leave blank to use SKU">
+            <InputGroup size="small" className="!font-mono" placeholder="Leave blank to use SKU" {...register('barcode')} />
+          </FormGroup>
           {locations.length > 0 && (
-            <div className="space-y-1 col-span-2">
-              <Label className="text-xs">Storage Location</Label>
+            <FormGroup label="Storage Location" className="col-span-2">
               <Controller
                 name="location_id"
                 control={control}
                 render={({ field }) => (
-                  <Select
+                  <HTMLSelect
                     value={field.value ?? '__none__'}
-                    onValueChange={(v) => { field.onChange(v === '__none__' ? null : v); }}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder="— No location —" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">— No location —</SelectItem>
-                      {locations.map((loc) => (
-                        <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => { field.onChange(e.target.value === '__none__' ? null : e.target.value) }}
+                    options={[
+                      { value: '__none__', label: '— No location —' },
+                      ...locations.map((loc) => ({ value: loc.id, label: loc.name })),
+                    ]}
+                    fill
+                  />
                 )}
               />
-            </div>
+            </FormGroup>
           )}
           {suppliers.length > 0 && (
-            <div className="space-y-1 col-span-2">
-              <Label className="text-xs">Default Supplier</Label>
+            <FormGroup label="Default Supplier" className="col-span-2" helperText="Used for lead-time gap analysis in inventory rows.">
               <Controller
                 name="default_supplier_id"
                 control={control}
                 render={({ field }) => (
-                  <Select
+                  <HTMLSelect
                     value={field.value ?? '__none__'}
-                    onValueChange={(v) => { field.onChange(v === '__none__' ? null : v); }}
-                  >
-                    <SelectTrigger className="h-8 text-sm">
-                      <SelectValue placeholder="— No supplier —" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">— No supplier —</SelectItem>
-                      {suppliers.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>
-                          {s.name}{s.lead_time_days != null ? ` · ${String(s.lead_time_days)}d lead` : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => { field.onChange(e.target.value === '__none__' ? null : e.target.value) }}
+                    options={[
+                      { value: '__none__', label: '— No supplier —' },
+                      ...suppliers.map((s) => ({
+                        value: s.id,
+                        label: `${s.name}${s.lead_time_days != null ? ` · ${String(s.lead_time_days)}d lead` : ''}`,
+                      })),
+                    ]}
+                    fill
+                  />
                 )}
               />
-              <p className="text-[10px] text-muted-foreground">
-                Used for lead-time gap analysis in inventory rows.
-              </p>
-            </div>
+            </FormGroup>
           )}
-          <div className="space-y-1">
-            <Label className="text-xs">Unit Cost</Label>
-            <Input
-              className="h-8 text-sm"
+          <FormGroup label="Unit Cost">
+            <InputGroup
+              size="small"
               type="number"
               step="0.01"
               min="0"
               {...register('cost', { valueAsNumber: true })}
             />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Unit of Measure</Label>
-            <Input
-              className="h-8 text-sm"
-              placeholder="e.g. bottles, kg, cases"
-              {...register('unit_of_measure')}
-            />
-            <p className="text-[10px] text-muted-foreground">Shown next to stock counts — "47 bottles"</p>
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Low Stock Threshold</Label>
-            <Input
-              className="h-8 text-sm"
+          </FormGroup>
+          <FormGroup label="Unit of Measure" helperText='Shown next to stock counts — "47 bottles"'>
+            <InputGroup size="small" placeholder="e.g. bottles, kg, cases" {...register('unit_of_measure')} />
+          </FormGroup>
+          <FormGroup label="Low Stock Threshold">
+            <InputGroup
+              size="small"
               type="number"
               min="0"
               step="1"
               {...register('low_stock_threshold', { valueAsNumber: true })}
             />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs">Status</Label>
+          </FormGroup>
+          <FormGroup label="Status">
             <Controller
               name="status"
               control={control}
               render={({ field }) => (
-                <Select
+                <HTMLSelect
                   value={field.value ?? 'available'}
-                  onValueChange={(v) => { field.onChange(v); }}
-                >
-                  <SelectTrigger className="h-8 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(Object.entries(VARIANT_STATUS_LABELS) as [VariantStatus, string][]).map(([val, label]) => (
-                      <SelectItem key={val} value={val}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(e) => { field.onChange(e.target.value) }}
+                  options={(Object.entries(VARIANT_STATUS_LABELS) as [VariantStatus, string][]).map(([val, label]) => ({
+                    value: val,
+                    label,
+                  }))}
+                  fill
+                />
               )}
             />
-          </div>
-          <div className="space-y-1 col-span-2">
-            <Label className="text-xs">Date Reminder (optional)</Label>
+          </FormGroup>
+          <FormGroup
+            label="Date Reminder (optional)"
+            className="col-span-2"
+            helperText="Set a date to be reminded — maintenance, warranty, inspection, permit renewal…"
+          >
             <div className="flex gap-2">
-              <Input
-                className="h-8 text-sm w-40"
-                type="date"
-                {...register('reminder_date')}
-              />
-              <Input
-                className="h-8 text-sm flex-1"
-                placeholder="Label, e.g. Boiler service due"
-                {...register('reminder_label')}
-              />
+              <div className="w-40">
+                <InputGroup size="small" type="date" {...register('reminder_date')} />
+              </div>
+              <div className="flex-1">
+                <InputGroup size="small" placeholder="Label, e.g. Boiler service due" {...register('reminder_label')} />
+              </div>
             </div>
-            <p className="text-[10px] text-muted-foreground">Set a date to be reminded — maintenance, warranty, inspection, permit renewal…</p>
-          </div>
+          </FormGroup>
         </div>
 
         {fieldDefs.length > 0 && (
@@ -336,13 +282,13 @@ function VariantForm({
               {fieldDefs.map((def) => {
                 const isMissing = def.required && (customValues[def.id] == null || customValues[def.id] === '')
                 return (
-                  <div key={def.id} className="space-y-1">
-                    <Label className={cn('text-xs', isMissing && 'text-destructive')}>
-                      {def.name}
-                      {def.required && <span className="ml-0.5 text-destructive">*</span>}
-                    </Label>
-                    {renderCustomInput(def, customValues[def.id], (val) => { handleCustomChange(def.id, val); })}
-                  </div>
+                  <FormGroup
+                    key={def.id}
+                    label={<>{def.name}{def.required && <span className="ml-0.5 text-destructive">*</span>}</>}
+                    intent={isMissing ? Intent.DANGER : Intent.NONE}
+                  >
+                    {renderCustomInput(def, customValues[def.id], (val) => { handleCustomChange(def.id, val) })}
+                  </FormGroup>
                 )
               })}
             </div>
@@ -350,11 +296,10 @@ function VariantForm({
         )}
 
         <div className="flex justify-end gap-2 pt-1">
-          <Button type="button" variant="outline" size="sm" onClick={onDone} disabled={isSubmitting}>
+          <Button type="button" variant="minimal" size="small" onClick={onDone} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button type="submit" size="sm" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+          <Button type="submit" size="small" intent={Intent.PRIMARY} loading={isSubmitting}>
             {editing ? 'Save' : 'Add Variant'}
           </Button>
         </div>
@@ -362,8 +307,6 @@ function VariantForm({
     </div>
   )
 }
-
-// ─── Variant row ──────────────────────────────────────────────────────────────
 
 function VariantRow({
   variant,
@@ -394,35 +337,34 @@ function VariantRow({
     <div className={cn(isInactive && 'opacity-50')}>
       <div className="flex items-start gap-3 py-3">
         <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-muted">
-          <Package className="h-4 w-4 text-muted-foreground" />
+          <Icon icon="box" size={14} className="text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className={cn('text-sm font-medium', isInactive && 'line-through text-muted-foreground')}>{variant.name}</p>
             {isInactive && (
-              <Badge variant="outline" className="text-[10px] px-1 py-0 border-slate-300 bg-slate-50 text-slate-500">
-                Inactive
-              </Badge>
+              <Tag minimal className="!text-[10px] !px-1 !py-0">Inactive</Tag>
             )}
             {!isInactive && isOut && (
-              <Badge variant="outline" className="text-[10px] px-1 py-0 border-red-200 bg-red-50 text-red-700">
-                Out
-              </Badge>
+              <Tag minimal intent={Intent.DANGER} className="!text-[10px] !px-1 !py-0">Out</Tag>
             )}
             {!isInactive && isLow && !isOut && (
-              <Badge variant="outline" className="text-[10px] px-1 py-0 border-yellow-200 bg-yellow-50 text-yellow-700">
-                Low
-              </Badge>
+              <Tag minimal intent={Intent.WARNING} className="!text-[10px] !px-1 !py-0">Low</Tag>
             )}
             {variant.status !== 'available' && (
-              <Badge variant="outline" className={cn('text-[10px] px-1 py-0',
-                variant.status === 'in_use'      && 'border-blue-200 bg-blue-50 text-blue-700',
-                variant.status === 'maintenance' && 'border-orange-200 bg-orange-50 text-orange-700',
-                variant.status === 'retired'     && 'border-slate-200 bg-slate-50 text-slate-600',
-                variant.status === 'ordered'     && 'border-purple-200 bg-purple-50 text-purple-700',
-              )}>
+              <Tag
+                minimal
+                intent={
+                  variant.status === 'in_use'      ? Intent.PRIMARY :
+                  variant.status === 'maintenance' ? Intent.WARNING :
+                  variant.status === 'retired'     ? Intent.NONE :
+                  variant.status === 'ordered'     ? Intent.PRIMARY :
+                  Intent.NONE
+                }
+                className="!text-[10px] !px-1 !py-0"
+              >
                 {VARIANT_STATUS_LABELS[variant.status]}
-              </Badge>
+              </Tag>
             )}
           </div>
           <p className="text-xs text-muted-foreground font-mono">{variant.sku}</p>
@@ -436,10 +378,10 @@ function VariantRow({
             {variant.cost > 0 && <span>Cost: {variant.cost.toFixed(2)}</span>}
             {variant.low_stock_threshold > 0 && <span>Alert at: {variant.low_stock_threshold}</span>}
             {variant.barcode && <span>Barcode: {variant.barcode}</span>}
-            {variant.location_id && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />Location set</span>}
+            {variant.location_id && <span className="flex items-center gap-0.5"><Icon icon="map-marker" size={12} />Location set</span>}
             {variant.reminder_date && (
               <span className="flex items-center gap-0.5 text-blue-600 dark:text-blue-400">
-                <Bell className="h-3 w-3" />
+                <Icon icon="notifications" size={12} />
                 {variant.reminder_label ?? 'Reminder'}: {fmtDate(variant.reminder_date)}
               </span>
             )}
@@ -447,35 +389,33 @@ function VariantRow({
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
           <Button
-            variant="ghost"
-            size="icon"
-            className={cn('h-7 w-7', expanded ? 'text-blue-600 bg-blue-50 dark:bg-blue-950/30' : 'text-muted-foreground hover:text-foreground')}
+            variant="minimal"
+            size="small"
+            icon="pulse"
             title={expanded ? 'Hide intelligence' : 'Show velocity & runway'}
-            onClick={() => { onToggleExpand(variant.id); }}
-          >
-            <Activity className="h-3.5 w-3.5" />
-          </Button>
+            onClick={() => { onToggleExpand(variant.id) }}
+            aria-label="Toggle intelligence"
+            className={expanded ? '!text-blue-600 !bg-blue-50 dark:!bg-blue-950/30' : ''}
+          />
           <Button
-            variant="ghost"
-            size="icon"
-            className={cn('h-7 w-7', isInactive ? 'text-green-600 hover:text-green-700' : 'text-muted-foreground hover:text-foreground')}
+            variant="minimal"
+            size="small"
+            icon="power"
             title={isInactive ? 'Mark active' : 'Mark inactive'}
-            onClick={() => { onToggleActive(variant.id, !isInactive); }}
-          >
-            <PowerOff className="h-3.5 w-3.5" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => { onEdit(variant); }}>
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
+            onClick={() => { onToggleActive(variant.id, !isInactive) }}
+            aria-label="Toggle active"
+            className={isInactive ? '!text-green-600 hover:!text-green-700' : ''}
+          />
+          <Button variant="minimal" size="small" icon="edit" onClick={() => { onEdit(variant) }} aria-label="Edit" />
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-destructive hover:text-destructive"
-            onClick={() => { onDelete(variant.id); }}
+            variant="minimal"
+            size="small"
+            icon="trash"
+            intent={Intent.DANGER}
+            onClick={() => { onDelete(variant.id) }}
             disabled={isDeleting}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+            aria-label="Delete"
+          />
         </div>
       </div>
       {expanded && (
@@ -486,8 +426,6 @@ function VariantRow({
     </div>
   )
 }
-
-// ─── Drawer ───────────────────────────────────────────────────────────────────
 
 interface Props {
   open: boolean
@@ -525,7 +463,7 @@ export function VariantManagerDrawer({ open, onClose, product }: Props) {
   const handleDelete = (id: string) => {
     const variant = product.product_variants.find((v) => v.id === id)
     if (variant && variant.current_stock > 0) {
-      // Soft guard — prompt via ConfirmDialog before archiving variants with remaining stock
+      // Soft guard — prompt before archiving with remaining stock
       setDeleteConfirm(id)
       return
     }
@@ -537,63 +475,66 @@ export function VariantManagerDrawer({ open, onClose, product }: Props) {
     : null
 
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) { onClose() } }}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
-        <SheetHeader className="flex flex-row items-center justify-between border-b px-6 py-4">
+    <Drawer
+      isOpen={open}
+      onClose={onClose}
+      position="right"
+      size="28rem"
+      title={
+        <div className="flex items-center justify-between w-full">
           <div>
-            <SheetTitle className="text-base">Variants — {product.name}</SheetTitle>
-            <p className="text-sm text-muted-foreground">
+            <span>Variants — {product.name}</span>
+            <p className="text-sm text-muted-foreground font-normal">
               {product.product_variants.length} variant{product.product_variants.length !== 1 ? 's' : ''}
             </p>
           </div>
           {!showForm && (
-            <Button size="sm" onClick={openAdd}>
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
+            <Button size="small" intent={Intent.PRIMARY} icon="plus" onClick={openAdd}>
               Add
             </Button>
           )}
-        </SheetHeader>
+        </div>
+      }
+      className="!p-0"
+    >
+      <div className="flex-1 overflow-y-auto px-6">
+        <div className="py-4 space-y-2">
+          {showForm && (
+            <VariantForm
+              productId={product.id}
+              editing={editingVariant}
+              onDone={closeForm}
+            />
+          )}
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="py-4 space-y-2">
-            {showForm && (
-              <VariantForm
-                productId={product.id}
-                editing={editingVariant}
-                onDone={closeForm}
-              />
-            )}
-
-            {product.product_variants.length === 0 && !showForm ? (
-              <div className="flex flex-col items-center gap-2 py-12 text-center">
-                <Package className="h-8 w-8 text-muted-foreground/40" />
-                <p className="text-sm text-muted-foreground">No variants yet.</p>
-                <Button variant="outline" size="sm" onClick={openAdd}>
-                  <Plus className="mr-1.5 h-3.5 w-3.5" />
-                  Add first variant
-                </Button>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {product.product_variants.map((v, i) => (
-                  <div key={v.id}>
-                    <VariantRow
-                      variant={v}
-                      expanded={expandedVariantId === v.id}
-                      onToggleExpand={handleToggleExpand}
-                      onEdit={openEdit}
-                      onDelete={handleDelete}
-                      onToggleActive={(id, active) => { toggleActive.mutate({ id, active }); }}
-                      isDeleting={deleteVariant.isPending}
-                    />
-                    {i < product.product_variants.length - 1 && <Separator className="my-0" />}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </SheetContent>
+          {product.product_variants.length === 0 && !showForm ? (
+            <div className="flex flex-col items-center gap-2 py-12 text-center">
+              <Icon icon="box" size={32} className="text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">No variants yet.</p>
+              <Button variant="outlined" size="small" icon="plus" onClick={openAdd}>
+                Add first variant
+              </Button>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {product.product_variants.map((v, i) => (
+                <div key={v.id}>
+                  <VariantRow
+                    variant={v}
+                    expanded={expandedVariantId === v.id}
+                    onToggleExpand={handleToggleExpand}
+                    onEdit={openEdit}
+                    onDelete={handleDelete}
+                    onToggleActive={(id, active) => { toggleActive.mutate({ id, active }) }}
+                    isDeleting={deleteVariant.isPending}
+                  />
+                  {i < product.product_variants.length - 1 && <Divider className="!my-0" />}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
 
       <ConfirmDialog
         open={deleteConfirm !== null}
@@ -611,6 +552,6 @@ export function VariantManagerDrawer({ open, onClose, product }: Props) {
         }}
         onCancel={() => { setDeleteConfirm(null) }}
       />
-    </Sheet>
+    </Drawer>
   )
 }
