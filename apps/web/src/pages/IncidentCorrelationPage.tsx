@@ -1,10 +1,21 @@
 // Layer: Eye — Cross-Domain Incident Correlation Engine (Sprint 13)
 // Synthesises waste, team, supply, occupancy, and stock signals into fused incident cards.
 // Palantir Principle 6: cross-domain synthesis — one incident, not three widgets.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { AlertTriangle, Users, Truck, TrendingUp, Package, ChevronDown, ChevronRight, Shield, Activity, GitBranch, Shuffle } from 'lucide-react'
+import {
+  Callout,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useActiveIncidents } from '@/features/eye/hooks'
 import { useHotelEdges } from '@/hooks/useHotelEdges'
@@ -13,21 +24,21 @@ import type { ActiveIncidentRow } from '@beacon/types'
 // ─── Severity config ──────────────────────────────────────────────────────────
 
 const SEVERITY = {
-  critical: { label: 'CRITICAL', class: 'bg-red-500/15 text-red-400 border-red-500/30', dot: 'bg-red-500', border: 'border-l-red-500' },
+  critical: { label: 'CRITICAL', class: 'bg-red-500/15 text-red-400 border-red-500/30',   dot: 'bg-red-500',   border: 'border-l-red-500' },
   elevated: { label: 'ELEVATED', class: 'bg-amber-500/15 text-amber-400 border-amber-500/30', dot: 'bg-amber-500', border: 'border-l-amber-500' },
-  watch:    { label: 'WATCH',    class: 'bg-blue-500/15 text-blue-400 border-blue-500/30',  dot: 'bg-blue-500',  border: 'border-l-blue-500'  },
+  watch:    { label: 'WATCH',    class: 'bg-blue-500/15 text-blue-400 border-blue-500/30', dot: 'bg-blue-500',  border: 'border-l-blue-500'  },
 } as const
 
 const SIGNAL_LABEL: Record<ActiveIncidentRow['primary_signal_type'], string> = {
-  waste_spike:       'Waste Spike',
-  stockout:          'Stockout',
+  waste_spike:         'Waste Spike',
+  stockout:            'Stockout',
   below_par_sustained: 'Below PAR',
-  supply_gap:        'Supply Gap',
+  supply_gap:          'Supply Gap',
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function CorrelationPill({ active, icon: Icon, label }: { active: boolean; icon: React.ElementType; label: string }) {
+function CorrelationPill({ active, icon, label }: { active: boolean; icon: IconName; label: string }) {
   return (
     <span className={cn(
       'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium border',
@@ -35,7 +46,7 @@ function CorrelationPill({ active, icon: Icon, label }: { active: boolean; icon:
         ? 'bg-violet-500/15 text-violet-300 border-violet-500/30'
         : 'bg-muted/30 text-muted-foreground border-transparent opacity-40'
     )}>
-      <Icon className="w-3 h-3" />
+      <Icon icon={icon} size={12} />
       {label}
     </span>
   )
@@ -76,7 +87,7 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
       >
         {/* Expand icon */}
         <span className="mt-1 text-muted-foreground shrink-0">
-          {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={14} />
         </span>
 
         {/* Severity + variant */}
@@ -113,11 +124,11 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
           <div className="flex flex-wrap items-center gap-2">
             <CorrelationCount count={incident.correlation_count} />
             <span className="text-xs text-muted-foreground">correlated signals</span>
-            <CorrelationPill active={!!incident.waste_spike_pct && incident.waste_spike_pct > 0} icon={TrendingUp} label="Waste" />
-            <CorrelationPill active={incident.team_correlated}   icon={Users}       label="Team"   />
-            <CorrelationPill active={incident.supply_correlated} icon={Truck}       label="Supply" />
-            <CorrelationPill active={incident.occupancy_explains} icon={Activity} label="Occupancy" />
-            <CorrelationPill active={incident.stockout_days > 0} icon={Package}     label="Stock"  />
+            <CorrelationPill active={!!incident.waste_spike_pct && incident.waste_spike_pct > 0} icon="trending-up" label="Waste" />
+            <CorrelationPill active={incident.team_correlated}   icon="people"     label="Team"   />
+            <CorrelationPill active={incident.supply_correlated} icon="truck"      label="Supply" />
+            <CorrelationPill active={incident.occupancy_explains} icon="pulse"     label="Occupancy" />
+            <CorrelationPill active={incident.stockout_days > 0} icon="box"        label="Stock"  />
           </div>
         </div>
 
@@ -140,13 +151,13 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
           <div className="mb-4 p-3 rounded-lg bg-background border border-border">
             <div className="flex items-center justify-between mb-1.5">
               <div className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <Shield className="w-3 h-3" /> Incident Intelligence
+                <Icon icon="shield" size={12} /> Incident Intelligence
               </div>
               <Link
                 to={`/flow?panel=causal&root_type=variant&root_id=${incident.variant_id}`}
                 className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
               >
-                <GitBranch className="w-3 h-3" />
+                <Icon icon="git-branch" size={12} />
                 Explain →
               </Link>
             </div>
@@ -185,7 +196,7 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
             {/* Team signal */}
             <div className={cn('p-3 rounded-lg border text-sm', incident.team_correlated ? 'border-violet-500/30 bg-violet-500/5' : 'border-border bg-card opacity-60')}>
               <div className="flex items-center gap-1.5 mb-1 text-xs font-medium text-muted-foreground">
-                <Users className="w-3.5 h-3.5" />
+                <Icon icon="people" size={12} />
                 Team Signal
               </div>
               {incident.team_correlated && incident.top_actor_email ? (
@@ -202,7 +213,7 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
             <div className={cn('p-3 rounded-lg border text-sm', incident.supply_correlated ? 'border-orange-500/30 bg-orange-500/5' : 'border-border bg-card opacity-60')}>
               <div className="flex items-center justify-between mb-1">
                 <div className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5" />
+                  <Icon icon="truck" size={12} />
                   Supply Signal
                 </div>
                 {substituteCount > 0 && (
@@ -211,7 +222,7 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
                     onClick={(e) => { e.stopPropagation() }}
                     className="inline-flex items-center gap-1 rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400 hover:bg-violet-500/20 transition-colors"
                   >
-                    <Shuffle className="w-2.5 h-2.5" />
+                    <Icon icon="swap-horizontal" size={10} />
                     {substituteCount} substitute{substituteCount !== 1 ? 's' : ''}
                   </Link>
                 )}
@@ -300,7 +311,7 @@ export default function IncidentCorrelationPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h2 className="text-base font-semibold flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <Icon icon="warning-sign" size={14} intent={Intent.WARNING} />
               Incident Correlation Engine
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -309,64 +320,54 @@ export default function IncidentCorrelationPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Window:</span>
-            {([3, 7, 14] as const).map(d => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => { setWindowDays(d); }}
-                className={cn('px-3 py-1.5 text-xs rounded border font-medium transition-colors',
-                  windowDays === d ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {d}d
-              </button>
-            ))}
+            <SegmentedControl
+              size="small"
+              value={String(windowDays)}
+              onValueChange={(v) => { setWindowDays(Number(v)) }}
+              options={[
+                { value: '3',  label: '3d'  },
+                { value: '7',  label: '7d'  },
+                { value: '14', label: '14d' },
+              ]}
+            />
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="px-6 py-3 border-b border-border shrink-0 flex flex-wrap gap-3">
+      <div className="px-6 py-3 border-b border-border shrink-0 flex flex-wrap items-center gap-3">
         {/* Severity filter */}
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground mr-1">Severity:</span>
-          {(['all', 'critical', 'elevated', 'watch'] as SeverityFilter[]).map(s => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => { setSevFilter(s); }}
-              className={cn('px-3 py-1 text-xs rounded border capitalize transition-colors',
-                sevFilter === s ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {s === 'all' ? 'All' : SEVERITY[s].label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Severity:</span>
+          <SegmentedControl
+            size="small"
+            value={sevFilter}
+            onValueChange={(v) => { setSevFilter(v as SeverityFilter) }}
+            options={[
+              { value: 'all',      label: 'All'      },
+              { value: 'critical', label: 'Critical' },
+              { value: 'elevated', label: 'Elevated' },
+              { value: 'watch',    label: 'Watch'    },
+            ]}
+          />
         </div>
 
         <div className="h-5 border-l border-border" />
 
         {/* Domain filter */}
-        <div className="flex items-center gap-1">
-          <span className="text-xs text-muted-foreground mr-1">Domain:</span>
-          {([
-            { id: 'all',       label: 'All',       Icon: null     },
-            { id: 'team',      label: 'Team',      Icon: Users    },
-            { id: 'supply',    label: 'Supply',    Icon: Truck    },
-            { id: 'occupancy', label: 'Occupancy', Icon: Activity },
-          ] as { id: DomainFilter; label: string; Icon: React.ElementType | null }[]).map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => { setDomFilter(id); }}
-              className={cn('px-3 py-1 text-xs rounded border flex items-center gap-1 transition-colors',
-                domFilter === id ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {Icon && <Icon className="w-3 h-3" />}
-              {label}
-            </button>
-          ))}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Domain:</span>
+          <SegmentedControl
+            size="small"
+            value={domFilter}
+            onValueChange={(v) => { setDomFilter(v as DomainFilter) }}
+            options={[
+              { value: 'all',       label: 'All'       },
+              { value: 'team',      label: 'Team'      },
+              { value: 'supply',    label: 'Supply'    },
+              { value: 'occupancy', label: 'Occupancy' },
+            ]}
+          />
         </div>
 
         <div className="ml-auto text-xs text-muted-foreground self-center">
@@ -377,15 +378,16 @@ export default function IncidentCorrelationPage() {
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading && (
-          <div className="flex items-center justify-center h-40 text-muted-foreground text-sm">
+          <div className="flex items-center justify-center h-40 text-muted-foreground text-sm gap-2">
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
             Scanning all domains for correlated signals…
           </div>
         )}
 
         {error && (
-          <div className="p-4 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 text-sm">
+          <Callout intent={Intent.DANGER} icon="error">
             {error instanceof Error ? error.message : 'Failed to load incidents'}
-          </div>
+          </Callout>
         )}
 
         {!isLoading && !error && (
@@ -393,14 +395,11 @@ export default function IncidentCorrelationPage() {
             <SummaryStrip incidents={incidents} />
 
             {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-center">
-                <Shield className="w-10 h-10 text-emerald-400 mb-3" />
-                <div className="text-sm font-medium text-foreground">No active incidents</div>
-                <div className="text-xs text-muted-foreground mt-1 max-w-sm">
-                  Scanned {windowDays}-day window across waste, team activity, supply chain, occupancy, and stock levels.
-                  {incidents.length === 0 ? ' No anomalous correlations detected.' : ' No incidents match the current filters.'}
-                </div>
-              </div>
+              <NonIdealState
+                icon="shield"
+                title="No active incidents"
+                description={`Scanned ${String(windowDays)}-day window across waste, team activity, supply chain, occupancy, and stock levels. ${incidents.length === 0 ? 'No anomalous correlations detected.' : 'No incidents match the current filters.'}`}
+              />
             ) : (
               <div className="space-y-3">
                 {filtered.map(incident => (

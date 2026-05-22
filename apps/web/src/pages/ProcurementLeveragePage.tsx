@@ -2,13 +2,23 @@
 // Turns delivery history + cost variance into negotiation intelligence.
 // Palantir principle: decision support, not data display. Every supplier row
 // answers "what should I do?" and the brief tells you exactly how to do it.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import {
-  TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp,
-  Copy, Check, ShieldX, ShieldOff,
-  Handshake, Loader2, Zap, AlertTriangle, Package,
-} from 'lucide-react'
+  Button,
+  Callout,
+  Card,
+  HTMLTable,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency, getCurrencySymbol } from '@/lib/currency'
 import { scoreToGrade, GRADE_STYLES, GRADE_ICONS } from '@/lib/grades'
@@ -16,19 +26,15 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { useDateFormat } from '@/features/user/hooks'
 import { useSupplierLeverage, useSupplierPriceHistory } from '@/features/suppliers/hooks'
 import { useCostVarianceReport } from '@/features/mind/hooks'
-import { Button } from '@/components/ui/button'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
 import type { SupplierLeverageRow, SupplierPriceHistoryRow } from '@beacon/types'
 
 // ─── Action badge ──────────────────────────────────────────────────────────────
 
-const ACTION_STYLE: Record<SupplierLeverageRow['recommended_action'], string> = {
-  'Find Alternative': 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  'Renegotiate':      'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  'Monitor':          'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-  'Preferred Supplier': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+const ACTION_INTENT: Record<SupplierLeverageRow['recommended_action'], Intent> = {
+  'Find Alternative':   Intent.DANGER,
+  'Renegotiate':        Intent.WARNING,
+  'Monitor':            Intent.NONE,
+  'Preferred Supplier': Intent.SUCCESS,
 }
 
 // ─── Leverage score bar ────────────────────────────────────────────────────────
@@ -180,12 +186,10 @@ function DetailPanel({
             Negotiation Brief
           </p>
           <Button
-            size="sm"
-            variant="outline"
+            size="small"
+            icon={copied ? 'tick' : 'duplicate'}
             onClick={handleCopy}
-            className="gap-1.5 h-7 text-xs"
           >
-            {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
             {copied ? 'Copied' : 'Copy brief'}
           </Button>
         </div>
@@ -198,7 +202,7 @@ function DetailPanel({
       <div className="space-y-3">
         {isLoading ? (
           <div className="flex h-24 items-center justify-center">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <Spinner size={SpinnerSize.SMALL} />
           </div>
         ) : (
           <PriceDriftChart history={history} />
@@ -212,12 +216,12 @@ function DetailPanel({
             { label: 'Avg price drift', value: supplier.avg_price_drift_pct !== null ? `${supplier.avg_price_drift_pct >= 0 ? '+' : ''}${supplier.avg_price_drift_pct.toFixed(1)}%` : '—', good: (supplier.avg_price_drift_pct ?? 0) <= 2 },
             { label: 'Avg days late', value: supplier.avg_days_late !== null ? `${supplier.avg_days_late >= 0 ? '+' : ''}${supplier.avg_days_late.toFixed(1)}d` : '—', good: (supplier.avg_days_late ?? 0) <= 1 },
           ].map(({ label, value, good }) => (
-            <div key={label} className="rounded-md border bg-card p-2.5">
+            <Card key={label} compact>
               <p className="text-[10px] text-muted-foreground">{label}</p>
               <p className={cn('text-sm font-bold tabular-nums', good ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400')}>
                 {value}
               </p>
-            </div>
+            </Card>
           ))}
         </div>
       </div>
@@ -226,14 +230,11 @@ function DetailPanel({
 }
 
 // ─── Cost variance section ────────────────────────────────────────────────────
-// Shows specific SKUs where the supplier is consistently overcharging vs expected.
-// This is the most actionable procurement intelligence — line items to dispute.
 
 function CostVarianceSection({ days, currency }: { days: number; currency: string }) {
   const { data: rows = [], isLoading } = useCostVarianceReport(days)
   const [showAll, setShowAll] = useState(false)
 
-  // Only overcharged items (variance_amount > 0), sorted by absolute overcharge desc
   const overcharged = useMemo(() =>
     rows
       .filter((r) => (r.variance_amount ?? 0) > 0)
@@ -255,7 +256,7 @@ function CostVarianceSection({ days, currency }: { days: number; currency: strin
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-orange-500" />
+          <Icon icon="warning-sign" size={14} className="text-orange-500" />
           <h2 className="text-sm font-semibold">Cost Variance — Overcharged Line Items</h2>
           <span className="text-[11px] text-muted-foreground">last {days} days</span>
         </div>
@@ -267,39 +268,38 @@ function CostVarianceSection({ days, currency }: { days: number; currency: strin
       </div>
 
       {overcharged.length === 0 ? (
-        <div className="flex items-center gap-3 rounded-lg border bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-          <Package className="h-4 w-4 flex-shrink-0" />
-          <span>No price overcharges detected in {rows.length} deliveries scanned. All invoices within expected range.</span>
-        </div>
+        <Callout intent={Intent.SUCCESS} icon="box" compact>
+          No price overcharges detected in {rows.length} deliveries scanned. All invoices within expected range.
+        </Callout>
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product / SKU</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead className="text-right">Expected</TableHead>
-                <TableHead className="text-right">Actual</TableHead>
-                <TableHead className="text-right">Variance</TableHead>
-                <TableHead className="text-right">Overcharge</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card compact className="!p-0 overflow-hidden">
+          <HTMLTable compact striped className="w-full">
+            <thead>
+              <tr>
+                <th>Product / SKU</th>
+                <th>Supplier</th>
+                <th className="text-right">Expected</th>
+                <th className="text-right">Actual</th>
+                <th className="text-right">Variance</th>
+                <th className="text-right">Overcharge</th>
+                <th className="text-right">Qty</th>
+              </tr>
+            </thead>
+            <tbody>
               {displayed.map((r) => (
-                <TableRow key={r.receive_id}>
-                  <TableCell>
+                <tr key={r.receive_id}>
+                  <td>
                     <p className="text-sm font-medium">{r.product_name}</p>
                     <p className="text-[11px] text-muted-foreground">{r.variant_name} · {r.sku}</p>
-                  </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{r.supplier}</TableCell>
-                  <TableCell className="text-right text-sm tabular-nums text-muted-foreground">
+                  </td>
+                  <td className="text-sm text-muted-foreground">{r.supplier}</td>
+                  <td className="text-right text-sm tabular-nums text-muted-foreground">
                     {r.unit_cost_expected > 0 ? formatCurrency(r.unit_cost_expected, currency) : '—'}
-                  </TableCell>
-                  <TableCell className="text-right text-sm tabular-nums font-medium">
+                  </td>
+                  <td className="text-right text-sm tabular-nums font-medium">
                     {formatCurrency(r.unit_cost_actual, currency)}
-                  </TableCell>
-                  <TableCell className="text-right">
+                  </td>
+                  <td className="text-right">
                     <span className={cn(
                       'text-sm font-semibold tabular-nums',
                       (r.variance_pct ?? 0) > 10 ? 'text-red-600 dark:text-red-400'
@@ -308,31 +308,32 @@ function CostVarianceSection({ days, currency }: { days: number; currency: strin
                     )}>
                       +{(r.variance_pct ?? 0).toFixed(1)}%
                     </span>
-                  </TableCell>
-                  <TableCell className="text-right text-sm font-semibold text-red-600 dark:text-red-400 tabular-nums">
+                  </td>
+                  <td className="text-right text-sm font-semibold text-red-600 dark:text-red-400 tabular-nums">
                     +{formatCurrency(r.variance_amount ?? 0, currency)}
-                  </TableCell>
-                  <TableCell className="text-right text-sm tabular-nums text-muted-foreground">
+                  </td>
+                  <td className="text-right text-sm tabular-nums text-muted-foreground">
                     {r.quantity_received}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))}
-            </TableBody>
-          </Table>
+            </tbody>
+          </HTMLTable>
 
           {overcharged.length > 8 && (
             <div className="border-t px-4 py-2 bg-muted/20">
-              <button
+              <Button
+                variant="minimal"
+                size="small"
                 onClick={() => { setShowAll((v) => !v) }}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 {showAll
                   ? 'Show fewer'
                   : `Show all ${String(overcharged.length)} overcharged items`}
-              </button>
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
       )}
     </div>
   )
@@ -368,7 +369,7 @@ export default function ProcurementLeveragePage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-100 dark:bg-violet-900/30">
-            <Handshake className="h-5 w-5 text-violet-600" />
+            <Icon icon="people" size={20} className="text-violet-600" />
           </div>
           <div>
             <h1 className="text-xl font-semibold leading-none">Procurement Leverage Engine</h1>
@@ -378,166 +379,147 @@ export default function ProcurementLeveragePage() {
           </div>
         </div>
 
-        {/* Time range */}
-        <div className="flex rounded-lg border overflow-hidden text-xs">
-          {([30, 60, 90] as const).map((d) => (
-            <button
-              key={d}
-              onClick={() => { setDays(d) }}
-              className={cn(
-                'px-3 py-1.5 font-medium transition-colors',
-                days === d ? 'bg-primary text-primary-foreground' : 'bg-background text-muted-foreground hover:bg-muted',
-              )}
-            >
-              {d}d
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={String(days)}
+          onValueChange={(v) => { setDays(parseInt(v, 10) as 30 | 60 | 90) }}
+          options={([30, 60, 90] as const).map((d) => ({ value: String(d), label: `${String(d)}d` }))}
+        />
       </div>
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map(({ label, value, color }) => (
-          <div key={label} className="rounded-lg border bg-card p-3">
+          <Card key={label} compact>
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className={cn('text-2xl font-bold tabular-nums mt-0.5', color)}>{value}</p>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Alert banner for high-leverage suppliers */}
       {data.some((s) => s.recommended_action === 'Find Alternative') && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 px-4 py-3">
-          <ShieldX className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
-          <div className="text-sm">
-            <span className="font-semibold text-red-700 dark:text-red-400">Alternative required: </span>
-            <span className="text-red-600 dark:text-red-300">
-              {data.filter((s) => s.recommended_action === 'Find Alternative').map((s) => s.supplier_name).join(', ')} — poor reliability combined with price overcharging.
-            </span>
-          </div>
-        </div>
+        <Callout intent={Intent.DANGER} icon="disable">
+          <span className="font-semibold">Alternative required: </span>
+          {data.filter((s) => s.recommended_action === 'Find Alternative').map((s) => s.supplier_name).join(', ')} — poor reliability combined with price overcharging.
+        </Callout>
       )}
 
       {/* Main table */}
       {isLoading ? (
         <div className="flex h-40 items-center justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.STANDARD} />
         </div>
       ) : data.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed py-16 text-center">
-          <ShieldOff className="h-8 w-8 text-muted-foreground/40" />
-          <div>
-            <p className="font-semibold">No delivery data yet</p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Log deliveries in the Suppliers page to start building negotiation intelligence.
-              The leverage engine analyses price drift and reliability over time.
-            </p>
-          </div>
-        </div>
+        <NonIdealState
+          icon="disable"
+          title="No delivery data yet"
+          description="Log deliveries in the Suppliers page to start building negotiation intelligence. The leverage engine analyses price drift and reliability over time."
+        />
       ) : (
-        <div className="rounded-lg border overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8">#</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Grade</TableHead>
-                <TableHead>Leverage</TableHead>
-                <TableHead className="text-right">Price drift</TableHead>
-                <TableHead className="text-right">On-time</TableHead>
-                <TableHead className="text-right">Fill rate</TableHead>
-                <TableHead className="text-right">Total spend</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="w-8" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card compact className="!p-0 overflow-hidden">
+          <HTMLTable compact striped interactive className="w-full">
+            <thead>
+              <tr>
+                <th className="w-8">#</th>
+                <th>Supplier</th>
+                <th>Grade</th>
+                <th>Leverage</th>
+                <th className="text-right">Price drift</th>
+                <th className="text-right">On-time</th>
+                <th className="text-right">Fill rate</th>
+                <th className="text-right">Total spend</th>
+                <th>Action</th>
+                <th className="w-8" />
+              </tr>
+            </thead>
+            <tbody>
               {data.map((s, i) => {
                 const grade   = scoreToGrade(s.reliability_score)
-                const GIcon   = GRADE_ICONS[grade]
                 const drift   = s.avg_price_drift_pct
                 const isOpen  = expandedId === s.supplier_id
 
                 return (
                   <>
-                    <TableRow
+                    <tr
                       key={s.supplier_id}
                       className={cn('cursor-pointer', isOpen && 'bg-muted/30')}
                       onClick={() => { setExpandedId(isOpen ? null : s.supplier_id) }}
                     >
-                      <TableCell className="text-muted-foreground text-xs tabular-nums">{i + 1}</TableCell>
+                      <td className="text-muted-foreground text-xs tabular-nums">{i + 1}</td>
 
-                      <TableCell>
+                      <td>
                         <div>
                           <p className="font-semibold text-sm">{s.supplier_name}</p>
                           <p className="text-xs text-muted-foreground tabular-nums">
                             {s.total_deliveries} deliveries · {s.pending_deliveries > 0 ? `${s.pending_deliveries} pending` : 'none pending'}
                           </p>
                         </div>
-                      </TableCell>
+                      </td>
 
-                      <TableCell>
+                      <td>
                         <div className={cn('inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-bold', GRADE_STYLES[grade])}>
-                          <GIcon className="h-3 w-3" />
+                          <Icon icon={GRADE_ICONS[grade]} size={12} />
                           {grade}
                         </div>
-                      </TableCell>
+                      </td>
 
-                      <TableCell>
+                      <td>
                         <LeverageBar score={s.leverage_score} />
-                      </TableCell>
+                      </td>
 
-                      <TableCell className="text-right">
+                      <td className="text-right">
                         {drift !== null ? (
                           <span className={cn(
                             'inline-flex items-center gap-0.5 text-sm font-semibold tabular-nums',
                             drift > 2 ? 'text-red-600 dark:text-red-400' : drift < 0 ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground',
                           )}>
-                            {drift > 0.5 ? <TrendingUp className="h-3 w-3" /> : drift < -0.5 ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
+                            <Icon icon={drift > 0.5 ? 'trending-up' : drift < -0.5 ? 'trending-down' : 'minus'} size={12} />
                             {drift >= 0 ? '+' : ''}{drift.toFixed(1)}%
                           </span>
                         ) : <span className="text-muted-foreground text-sm">—</span>}
-                      </TableCell>
+                      </td>
 
-                      <TableCell className={cn('text-right text-sm font-semibold tabular-nums', (s.on_time_rate ?? 0) < 85 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400')}>
+                      <td className={cn('text-right text-sm font-semibold tabular-nums', (s.on_time_rate ?? 0) < 85 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400')}>
                         {s.on_time_rate !== null ? `${s.on_time_rate.toFixed(0)}%` : '—'}
-                      </TableCell>
+                      </td>
 
-                      <TableCell className={cn('text-right text-sm font-semibold tabular-nums', (s.avg_fill_rate ?? 0) < 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted-foreground')}>
+                      <td className={cn('text-right text-sm font-semibold tabular-nums', (s.avg_fill_rate ?? 0) < 90 ? 'text-yellow-600 dark:text-yellow-400' : 'text-muted-foreground')}>
                         {s.avg_fill_rate !== null ? `${s.avg_fill_rate.toFixed(0)}%` : '—'}
-                      </TableCell>
+                      </td>
 
-                      <TableCell className="text-right text-sm tabular-nums">
+                      <td className="text-right text-sm tabular-nums">
                         {formatCurrency(s.total_spend, currency)}
-                      </TableCell>
+                      </td>
 
-                      <TableCell>
-                        <span className={cn('inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide', ACTION_STYLE[s.recommended_action])}>
-                          {s.recommended_action === 'Find Alternative' && <Zap className="h-2.5 w-2.5" />}
+                      <td>
+                        <Tag
+                          intent={ACTION_INTENT[s.recommended_action]}
+                          minimal
+                          icon={s.recommended_action === 'Find Alternative' ? 'flash' : undefined}
+                        >
                           {s.recommended_action}
-                        </span>
-                      </TableCell>
+                        </Tag>
+                      </td>
 
-                      <TableCell>
-                        {isOpen
-                          ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
-                          : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                      </TableCell>
-                    </TableRow>
+                      <td>
+                        <Icon icon={isOpen ? 'chevron-up' : 'chevron-down'} size={14} className="text-muted-foreground" />
+                      </td>
+                    </tr>
 
                     {isOpen && (
-                      <TableRow key={`${s.supplier_id}-detail`} className="hover:bg-transparent">
-                        <TableCell colSpan={10} className="p-0">
+                      <tr key={`${s.supplier_id}-detail`} className="hover:bg-transparent">
+                        <td colSpan={10} className="!p-0">
                           <DetailPanel supplier={s} days={days} currency={currency} />
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     )}
                   </>
                 )
               })}
-            </TableBody>
-          </Table>
-        </div>
+            </tbody>
+          </HTMLTable>
+        </Card>
       )}
 
       {/* Cost variance section — specific overcharged SKUs */}

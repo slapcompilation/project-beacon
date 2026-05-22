@@ -1,31 +1,20 @@
-// Layer: Flow — swap stock quantity between two variants in the same hotel
-// Calls the swap_variant_stock() Supabase RPC. Creates two stock_logs + a causes edge.
-// Renamed from transfer_stock() in migration 110 to free that name for multi-echelon
-// inter-property transfers introduced in Phase R1.
+// Swap stock between two variants in the same hotel via swap_variant_stock RPC.
 
 import { useState } from 'react'
-import { ArrowRight, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
+  Button, Dialog, DialogBody, DialogFooter, FormGroup,
+  HTMLSelect, Icon, InputGroup, Intent,
+} from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
-import { useProducts } from '../hooks'
-import { inventoryKeys } from '../hooks'
+import { useProducts, inventoryKeys } from '../hooks'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import type { ProductVariant } from '@beacon/types'
 
 interface Props {
   open: boolean
   onClose: () => void
-  /** Pre-selected source variant (from the current product context) */
   sourceVariant: ProductVariant
 }
 
@@ -39,7 +28,6 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
   const [note, setNote] = useState('')
   const [isPending, setIsPending] = useState(false)
 
-  // Flatten all variants except the source
   const allVariants = products.flatMap((p) =>
     p.product_variants
       .filter((v) => v.id !== sourceVariant.id && v.enabled)
@@ -79,14 +67,9 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
   const canSubmit = !!toVariantId && !isNaN(qty) && qty > 0 && qty <= sourceVariant.current_stock
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose() } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Transfer Stock</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4 py-2">
-          {/* From */}
+    <Dialog isOpen={open} onClose={onClose} title="Transfer Stock" className="!w-[28rem]">
+      <DialogBody>
+        <div className="space-y-4">
           <div className="rounded-lg border bg-muted/40 px-4 py-3">
             <p className="text-xs text-muted-foreground mb-0.5">From</p>
             <p className="text-sm font-medium">{sourceVariant.name}</p>
@@ -96,32 +79,30 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
           </div>
 
           <div className="flex items-center justify-center">
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="arrow-right" size={14} className="text-muted-foreground" />
           </div>
 
-          {/* To */}
-          <div className="space-y-1.5">
-            <Label htmlFor="to-variant">To variant</Label>
-            <Select value={toVariantId} onValueChange={setToVariantId}>
-              <SelectTrigger id="to-variant">
-                <SelectValue placeholder="Select destination variant…" />
-              </SelectTrigger>
-              <SelectContent>
-                {allVariants.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.productName} — {v.name}
-                    <span className="ml-2 text-muted-foreground text-xs">({v.current_stock} in stock)</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <FormGroup label="To variant">
+            <HTMLSelect
+              value={toVariantId}
+              onChange={(e) => { setToVariantId(e.target.value) }}
+              options={[
+                { value: '', label: 'Select destination variant…' },
+                ...allVariants.map((v) => ({
+                  value: v.id,
+                  label: `${v.productName} — ${v.name} (${String(v.current_stock)} in stock)`,
+                })),
+              ]}
+              fill
+            />
+          </FormGroup>
 
-          {/* Quantity */}
-          <div className="space-y-1.5">
-            <Label htmlFor="qty">Quantity to transfer</Label>
-            <Input
-              id="qty"
+          <FormGroup
+            label="Quantity to transfer"
+            intent={qty > sourceVariant.current_stock ? Intent.DANGER : Intent.NONE}
+            helperText={qty > sourceVariant.current_stock ? 'Exceeds available stock' : undefined}
+          >
+            <InputGroup
               type="number"
               min={1}
               max={sourceVariant.current_stock}
@@ -129,21 +110,15 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
               value={quantity}
               onChange={(e) => { setQuantity(e.target.value) }}
             />
-            {qty > sourceVariant.current_stock && (
-              <p className="text-xs text-destructive">Exceeds available stock</p>
-            )}
-          </div>
+          </FormGroup>
 
-          {/* Note */}
-          <div className="space-y-1.5">
-            <Label htmlFor="note">Note (optional)</Label>
-            <Input
-              id="note"
+          <FormGroup label="Note (optional)">
+            <InputGroup
               placeholder="e.g. Moving to kitchen for service"
               value={note}
               onChange={(e) => { setNote(e.target.value) }}
             />
-          </div>
+          </FormGroup>
 
           {selectedTarget && qty > 0 && (
             <p className="text-xs text-muted-foreground">
@@ -152,17 +127,17 @@ export function TransferModal({ open, onClose, sourceVariant }: Props) {
             </p>
           )}
         </div>
-
-        <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose} disabled={isPending}>
-            Cancel
-          </Button>
-          <Button onClick={() => { void handleSubmit() }} disabled={!canSubmit || isPending}>
-            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Transfer
-          </Button>
-        </div>
-      </DialogContent>
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="minimal" onClick={onClose} disabled={isPending}>Cancel</Button>
+            <Button intent={Intent.PRIMARY} loading={isPending} disabled={!canSubmit || isPending} onClick={() => { void handleSubmit() }}>
+              Transfer
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   )
 }

@@ -3,27 +3,26 @@
 // Groups by supplier, allows qty overrides, produces formatted POs with mailto links.
 // Eliminates hours of manual procurement work weekly.
 // Palantir principle: decision support — every number carries context and recommended action.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
-  ShoppingCart, Copy, Check, Mail, Printer, ChevronDown, ChevronRight,
-  AlertTriangle, TrendingDown, Package, Filter, RefreshCw, Info, CheckCircle, Loader2,
-  SlidersHorizontal, PackageCheck,
-} from 'lucide-react'
+  Button,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  TextArea,
+} from '@blueprintjs/core'
 import { useDateFormat } from '@/features/user/hooks'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useSuppliers } from '@/features/suppliers/hooks'
@@ -78,9 +77,9 @@ function getUrgencyFromProposal(r: ProcurementProposalRow): 'critical' | 'low' |
 }
 
 const URGENCY_CFG = {
-  critical: { label: 'Critical',   cls: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400' },
-  low:      { label: 'Low Stock',  cls: 'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400' },
-  reorder:  { label: 'Reorder',    cls: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400' },
+  critical: { label: 'Critical',   intent: Intent.DANGER },
+  low:      { label: 'Low Stock',  intent: Intent.WARNING },
+  reorder:  { label: 'Reorder',    intent: Intent.PRIMARY },
 } as const
 
 // ─── PO Text builder ──────────────────────────────────────────────────────────
@@ -153,13 +152,13 @@ function LineRow({ item, suppliers, onQtyChange, onSupplierChange, currency }: L
       <td className="py-2.5 pl-4 pr-2">
         <div className="flex items-center gap-2 flex-wrap">
           {item._fromRestock ? (
-            <Badge variant="outline" className="text-[10px] h-4.5 px-1.5 font-semibold shrink-0 border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+            <Tag minimal intent={Intent.PRIMARY} className="!text-[10px] !h-4 !px-1.5 !font-semibold shrink-0">
               Restock
-            </Badge>
+            </Tag>
           ) : (
-            <Badge variant="outline" className={cn('text-[10px] h-4.5 px-1.5 font-semibold shrink-0', urgencyCfg.cls)}>
+            <Tag minimal intent={urgencyCfg.intent} className="!text-[10px] !h-4 !px-1.5 !font-semibold shrink-0">
               {urgencyCfg.label}
-            </Badge>
+            </Tag>
           )}
         </div>
       </td>
@@ -192,20 +191,21 @@ function LineRow({ item, suppliers, onQtyChange, onSupplierChange, currency }: L
       </td>
       <td className="py-2.5 px-2">
         <div className="flex items-center gap-1">
-          <Input
+          <InputGroup
             type="number"
             min={0}
-            value={item.overrideQty ?? item.recommendedQty}
+            value={String(item.overrideQty ?? item.recommendedQty)}
             onChange={(e) => {
               const v = parseInt(e.target.value, 10)
               if (isNaN(v) || v < 0) return
-              // If equal to recommended, clear override
               onQtyChange(item.variantId, v === item.recommendedQty ? null : v)
             }}
             className={cn(
-              'h-7 w-16 text-center text-sm tabular-nums',
-              item.overrideQty != null ? 'border-amber-400 bg-amber-50/50 dark:bg-amber-950/20' : '',
+              '!w-16',
+              item.overrideQty != null ? '!bg-amber-50/50 dark:!bg-amber-950/20' : '',
             )}
+            inputClassName="!h-7 !text-center !text-sm tabular-nums"
+            size="small"
           />
           {item.overrideQty != null && (
             <button
@@ -234,22 +234,16 @@ function LineRow({ item, suppliers, onQtyChange, onSupplierChange, currency }: L
         <p className="text-sm font-semibold tabular-nums">{formatCurrency(lineTotal, currency)}</p>
       </td>
       <td className="py-2.5 pl-2 pr-4">
-        <Select
+        <HTMLSelect
           value={item.supplierId || '__none__'}
-          onValueChange={(v) => { onSupplierChange(item.variantId, v === '__none__' ? '' : v) }}
-        >
-          <SelectTrigger className="h-7 w-36 text-xs">
-            <SelectValue placeholder="Assign supplier…" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__none__">
-              <span className="text-muted-foreground italic">Unassigned</span>
-            </SelectItem>
-            {suppliers.map((s) => (
-              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          onChange={(e) => { onSupplierChange(item.variantId, e.target.value === '__none__' ? '' : e.target.value) }}
+          options={[
+            { value: '__none__', label: 'Unassigned' },
+            ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+          ]}
+          className="!w-36"
+          fill
+        />
       </td>
     </tr>
   )
@@ -325,7 +319,7 @@ function SupplierPOPanel({
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-muted/20 transition-colors rounded-t-lg"
         onClick={() => { setOpen((v) => !v) }}
       >
-        {open ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" /> : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+        <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground flex-shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <h3 className={cn(
@@ -338,9 +332,9 @@ function SupplierPOPanel({
               <span className="text-[10px] text-muted-foreground font-mono">{supplierEmail}</span>
             )}
             {criticalCount > 0 && (
-              <Badge variant="outline" className="text-[10px] h-4.5 px-1.5 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400">
+              <Tag minimal intent={Intent.DANGER} className="!text-[10px] !h-4 !px-1.5">
                 {criticalCount} critical
-              </Badge>
+              </Tag>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -349,28 +343,26 @@ function SupplierPOPanel({
         </div>
         {!isUnassigned && (
           <div className="flex items-center gap-2 shrink-0" onClick={(e) => { e.stopPropagation() }}>
-            <Button size="sm" variant="outline" onClick={() => { void handleCopy() }} className="h-7 text-xs gap-1.5">
-              {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+            <Button size="small" variant="outlined" icon={copied ? 'tick' : 'duplicate'} onClick={() => { void handleCopy() }}>
               {copied ? 'Copied!' : 'Copy PO'}
             </Button>
             <Button
-              size="sm"
-              variant={supplierEmail ? 'default' : 'outline'}
+              size="small"
+              intent={supplierEmail ? Intent.PRIMARY : Intent.NONE}
+              variant={supplierEmail ? undefined : 'outlined'}
+              icon="envelope"
               onClick={handleMailto}
               disabled={!supplierEmail}
-              className="h-7 text-xs gap-1.5"
               title={!supplierEmail ? 'No email address on file for this supplier' : ''}
             >
-              <Mail className="h-3 w-3" />
               {supplierEmail ? 'Send Email' : 'No Email'}
             </Button>
             <Button
-              size="sm"
-              variant="default"
-              className="gap-1.5 text-xs h-8"
+              size="small"
+              intent={Intent.PRIMARY}
+              icon="tick-circle"
               onClick={onPlaceOrder}
             >
-              <CheckCircle className="h-3.5 w-3.5" />
               Place Order
             </Button>
           </div>
@@ -410,7 +402,7 @@ function SupplierPOPanel({
                 <td colSpan={4} className="py-2 pl-4 text-xs text-muted-foreground">
                   {items.filter((l) => l.hasOpenRequest).length > 0 && (
                     <span className="flex items-center gap-1">
-                      <Info className="h-3 w-3" />
+                      <Icon icon="info-sign" size={12} />
                       {items.filter((l) => l.hasOpenRequest).length} items already have open restock requests
                     </span>
                   )}
@@ -544,7 +536,6 @@ export function PurchaseOrderContent() {
         }
       })
       .sort((a, b) => {
-        // Sort: critical → low → reorder, then by days_until_zero asc
         const urgencyOrder = { critical: 0, low: 1, reorder: 2 }
         if (urgencyOrder[a.urgency] !== urgencyOrder[b.urgency]) {
           return urgencyOrder[a.urgency] - urgencyOrder[b.urgency]
@@ -590,7 +581,6 @@ export function PurchaseOrderContent() {
       group.items.push(item)
     }
 
-    // Sort: named suppliers first, unassigned last
     return [...groups.values()].sort((a, b) => {
       if (a.supplierId === '__unassigned__') return 1
       if (b.supplierId === '__unassigned__') return -1
@@ -615,7 +605,6 @@ export function PurchaseOrderContent() {
   }, [])
 
   const handleAssignAll = useCallback((supplierId: string) => {
-    // Assign all unassigned items to this supplier
     const unassigned = filteredItems.filter((i) => !i.supplierId)
     if (unassigned.length === 0) {
       toast.info('No unassigned items')
@@ -683,7 +672,7 @@ export function PurchaseOrderContent() {
       }
       await createPO.mutateAsync(input)
     }
-  }, [supplierGroups, suppliers, poNumber, customNotes, createPO])
+  }, [supplierGroups, poNumber, customNotes, createPO])
 
   const isLoading = proposalsLoading || suppliersLoading
 
@@ -694,6 +683,13 @@ export function PurchaseOrderContent() {
   const unassignedCount = filteredItems.filter((i) => !i.supplierId).length
   const assignedSupplierCount = supplierGroups.filter((g) => g.supplierId !== '__unassigned__').length
 
+  const filterOptions = [
+    { value: 'all',      label: `All (${allItems.length})` },
+    { value: 'critical', label: `Critical (${allItems.filter(i => i.urgency === 'critical').length})` },
+    { value: 'low',      label: `Low (${allItems.filter(i => i.urgency === 'low').length})` },
+    { value: 'reorder',  label: `Reorder (${allItems.filter(i => i.urgency === 'reorder').length})` },
+  ]
+
   return (
     <div className={cn('flex flex-col h-full', printMode && 'print:block')}>
 
@@ -701,7 +697,7 @@ export function PurchaseOrderContent() {
       <div className="flex items-start justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="shopping-cart" size={18} className="text-muted-foreground" />
             Purchase Order Engine
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -712,20 +708,17 @@ export function PurchaseOrderContent() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button
-            variant={showTemplate ? 'secondary' : 'outline'}
-            size="sm"
-            className="gap-1.5 text-xs h-8"
+            size="small"
+            variant={showTemplate ? undefined : 'outlined'}
+            icon="settings"
             onClick={() => { setShowTemplate((v) => !v) }}
           >
-            <SlidersHorizontal className="h-3.5 w-3.5" />
             Template
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => { void handleCopyAll() }}>
-            <Copy className="h-3.5 w-3.5" />
+          <Button size="small" variant="outlined" icon="duplicate" onClick={() => { void handleCopyAll() }}>
             Copy All POs
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={() => { setPrintMode(true); setTimeout(() => { window.print(); setPrintMode(false) }, 100) }}>
-            <Printer className="h-3.5 w-3.5" />
+          <Button size="small" variant="outlined" icon="print" onClick={() => { setPrintMode(true); setTimeout(() => { window.print(); setPrintMode(false) }, 100) }}>
             Print
           </Button>
         </div>
@@ -734,7 +727,7 @@ export function PurchaseOrderContent() {
       {/* Restock source banner */}
       {fromRestock && (
         <div className="flex items-center gap-3 px-8 py-2.5 border-b bg-blue-50/70 dark:bg-blue-950/20 text-sm flex-shrink-0">
-          <PackageCheck className="h-4 w-4 text-blue-600 flex-shrink-0" />
+          <Icon icon="confirm" size={14} className="text-blue-600 flex-shrink-0" />
           <span className="text-blue-700 dark:text-blue-400">
             <span className="font-semibold">{fromRestock.length} items loaded from approved restock requests.</span>
             {' '}Quantities are editable — forecast proposals for other variants appear below.
@@ -749,28 +742,28 @@ export function PurchaseOrderContent() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">PO Number / Reference</label>
-              <Input
+              <InputGroup
                 placeholder="e.g. PO-2026-001"
                 value={poNumber}
                 onChange={(e) => {
                   setPoNumber(e.target.value)
                   localStorage.setItem('po_number', e.target.value)
                 }}
-                className="h-8 text-sm"
               />
               <p className="text-[10px] text-muted-foreground">Appears on all POs from this session</p>
             </div>
             <div className="col-span-2 space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Custom Notes / Terms</label>
-              <Textarea
+              <TextArea
                 placeholder={`• Current stock levels as of today\n• Quantities based on 30-day consumption forecast\n• Please confirm delivery date on receipt`}
                 value={customNotes}
                 onChange={(e) => {
                   setCustomNotes(e.target.value)
                   localStorage.setItem('po_custom_notes', e.target.value)
                 }}
-                className="text-xs min-h-[64px] resize-none"
+                fill
                 rows={3}
+                className="!text-xs !min-h-[64px] !resize-none"
               />
               <p className="text-[10px] text-muted-foreground">Replaces default notes. Leave blank to use defaults.</p>
             </div>
@@ -797,52 +790,41 @@ export function PurchaseOrderContent() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b px-6 py-2.5 flex-shrink-0">
-        <div className="relative flex-1 max-w-xs">
-          <Filter className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex-1 max-w-xs">
+          <InputGroup
+            leftIcon="filter"
             placeholder="Filter by product or SKU…"
             value={search}
             onChange={(e) => { setSearch(e.target.value) }}
-            className="pl-8 h-8 text-sm"
+            size="small"
           />
         </div>
-        <div className="flex items-center gap-1 rounded-md border p-0.5">
-          {(['all', 'critical', 'low', 'reorder'] as FilterMode[]).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => { setFilterMode(mode) }}
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium rounded transition-colors capitalize',
-                filterMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {mode === 'all' ? `All (${allItems.length})` : mode === 'critical' ? `Critical (${allItems.filter(i => i.urgency === 'critical').length})` : mode === 'low' ? `Low (${allItems.filter(i => i.urgency === 'low').length})` : `Reorder (${allItems.filter(i => i.urgency === 'reorder').length})`}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={filterOptions}
+          value={filterMode}
+          onValueChange={(v) => { setFilterMode(v as FilterMode) }}
+          size="small"
+        />
         {suppliers.length > 0 && unassignedCount > 0 && (
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-xs text-muted-foreground">{unassignedCount} unassigned →</span>
-            <Select onValueChange={handleAssignAll}>
-              <SelectTrigger className="h-8 w-44 text-xs">
-                <SelectValue placeholder="Assign all to…" />
-              </SelectTrigger>
-              <SelectContent>
-                {suppliers.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <HTMLSelect
+              value=""
+              onChange={(e) => { if (e.target.value) handleAssignAll(e.target.value) }}
+              options={[
+                { value: '', label: 'Assign all to…' },
+                ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+              ]}
+              className="!w-44"
+            />
           </div>
         )}
         <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 text-xs gap-1.5"
+          variant="minimal"
+          size="small"
+          icon="refresh"
           onClick={() => { setQtyOverrides({}); setSupplierAssignments({}); setSearch(''); setFilterMode('all') }}
         >
-          <RefreshCw className="h-3.5 w-3.5" />
           Reset
         </Button>
       </div>
@@ -851,26 +833,24 @@ export function PurchaseOrderContent() {
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
-            <div className="rounded-full bg-muted/50 p-4">
-              <Package className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-            <p className="text-sm font-medium">No items match this filter</p>
-            <p className="text-xs text-muted-foreground">
-              {allItems.length === 0
+          <NonIdealState
+            icon="box"
+            title="No items match this filter"
+            description={
+              allItems.length === 0
                 ? 'All stock levels are healthy — no reorders needed right now.'
-                : 'Try changing the filter or search term.'}
-            </p>
-          </div>
+                : 'Try changing the filter or search term.'
+            }
+          />
         ) : (
           <>
             {/* Help banner if no suppliers set up */}
             {suppliers.length === 0 && (
               <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 px-4 py-3 text-sm">
-                <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                <Icon icon="warning-sign" size={14} className="text-amber-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-amber-800 dark:text-amber-400">No suppliers configured</p>
                   <p className="text-amber-700 dark:text-amber-500 text-xs mt-0.5">
@@ -914,25 +894,24 @@ export function PurchaseOrderContent() {
                 </div>
                 {Object.keys(qtyOverrides).length > 0 && (
                   <div className="flex items-center gap-1 text-amber-600">
-                    <TrendingDown className="h-3.5 w-3.5" />
+                    <Icon icon="trending-down" size={12} />
                     <span className="text-xs">{Object.keys(qtyOverrides).length} quantity overrides active</span>
                   </div>
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" className="gap-1.5 text-xs h-8" onClick={() => { void handleCopyAll() }}>
-                  <Copy className="h-3.5 w-3.5" />
+                <Button size="small" variant="outlined" icon="duplicate" onClick={() => { void handleCopyAll() }}>
                   Copy All POs
                 </Button>
                 <Button
-                  size="sm"
-                  className="gap-1.5 text-xs h-8"
+                  size="small"
+                  intent={Intent.PRIMARY}
+                  icon="tick-circle"
+                  loading={createPO.isPending}
                   onClick={() => { void handleSaveAllPOs() }}
                   disabled={createPO.isPending || supplierGroups.filter((g) => g.supplierId !== '__unassigned__').length === 0}
                 >
-                  {createPO.isPending
-                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" />Saving…</>
-                    : <><CheckCircle className="h-3.5 w-3.5" />Save &amp; Track</>}
+                  Save &amp; Track
                 </Button>
               </div>
             </div>

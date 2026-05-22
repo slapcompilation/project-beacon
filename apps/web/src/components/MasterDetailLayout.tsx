@@ -1,28 +1,14 @@
-// Layer: meta — master-detail split pane layout
-// Palantir pattern: list on the left, detail on the right. Never leave the list.
-// Resizable via drag handle. Detail panel collapses on mobile.
-//
-// Usage:
-//   <MasterDetailLayout
-//     detail={selectedId ? <VariantDetail id={selectedId} /> : undefined}
-//     onCloseDetail={() => setSelectedId(null)}
-//   >
-//     <InventoryTable onSelect={setSelectedId} selectedId={selectedId} />
-//   </MasterDetailLayout>
+// Resizable split pane: list on left, optional detail on right. Closes on Escape.
 
 import { useCallback, useRef, useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import { Button } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 
 interface MasterDetailLayoutProps {
   children: React.ReactNode
-  /** When provided, the detail panel slides open on the right */
   detail?: React.ReactNode
-  /** Called when the user closes the detail panel */
   onCloseDetail?: () => void
-  /** Minimum width of the master pane in px (default 360) */
   minMasterWidth?: number
-  /** Default detail pane width in px (default 420) */
   defaultDetailWidth?: number
   className?: string
 }
@@ -69,7 +55,6 @@ export function MasterDetailLayout({
     document.addEventListener('mouseup', onUp)
   }, [detailWidth, minMasterWidth])
 
-  // Close on Escape
   useEffect(() => {
     if (!detail) return
     const handler = (e: KeyboardEvent) => {
@@ -83,7 +68,6 @@ export function MasterDetailLayout({
 
   return (
     <div ref={containerRef} className={cn('flex h-full overflow-hidden', className)}>
-      {/* Master pane */}
       <div
         className="flex-1 overflow-y-auto min-w-0"
         style={isOpen ? { minWidth: minMasterWidth } : undefined}
@@ -91,10 +75,8 @@ export function MasterDetailLayout({
         {children}
       </div>
 
-      {/* Detail pane — slides in from right */}
       {isOpen && (
         <>
-          {/* Drag handle */}
           <div
             className="hidden lg:flex w-1 flex-shrink-0 cursor-col-resize items-center justify-center bg-border/50 hover:bg-primary/30 transition-colors group"
             onMouseDown={handleMouseDown}
@@ -102,28 +84,24 @@ export function MasterDetailLayout({
             <div className="w-0.5 h-8 rounded-full bg-muted-foreground/30 group-hover:bg-primary/60 transition-colors" />
           </div>
 
-          {/* Detail content */}
           <div
             className={cn(
               'flex-shrink-0 overflow-y-auto border-l border-border bg-surface-1',
-              // On mobile: full-width overlay
               'fixed inset-0 z-40 lg:relative lg:z-auto',
             )}
             style={{ width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? detailWidth : undefined }}
           >
-            {/* Detail header with close button */}
             <div className="sticky top-0 z-10 flex items-center justify-between px-3 py-2 border-b border-border bg-surface-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                 Detail
               </span>
-              <button
-                type="button"
+              <Button
+                variant="minimal"
+                size="small"
+                icon="cross"
                 onClick={onCloseDetail}
-                className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-surface-2 transition-colors"
                 aria-label="Close detail"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              />
             </div>
             {detail}
           </div>

@@ -1,8 +1,9 @@
 // Layer: Mind — supplier / property grade helpers.
-// Single source of truth for thresholds and styles used by
-// SuppliersPage, ProcurementLeveragePage, and ChainPage.
+// Single source of truth for thresholds and styles used across
+// supplier / procurement / chain surfaces.
 
-import { ShieldCheck, ShieldAlert, Shield, CircleDot } from 'lucide-react'
+import { Intent } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -10,7 +11,6 @@ export type Grade = 'A' | 'B' | 'C' | 'D' | '—'
 
 // ─── Thresholds ────────────────────────────────────────────────────────────────
 // A: ≥ 85   B: ≥ 70   C: ≥ 50   D: < 50
-// (was inconsistent — ProcurementLeveragePage used 55 for C; now unified at 50)
 
 export function scoreToGrade(score: number | null): Grade {
   if (score === null) return '—'
@@ -21,6 +21,7 @@ export function scoreToGrade(score: number | null): Grade {
 }
 
 // ─── Styles ────────────────────────────────────────────────────────────────────
+// Tailwind classes preserved for inline pill chrome where Tag's tint isn't enough.
 
 export const GRADE_STYLES: Record<Grade, string> = {
   A: 'border-green-400 bg-green-50 text-green-700 dark:bg-green-950/40 dark:text-green-400',
@@ -30,10 +31,21 @@ export const GRADE_STYLES: Record<Grade, string> = {
   '—': 'border-border bg-muted text-muted-foreground',
 }
 
-export const GRADE_ICONS: Record<Grade, React.ElementType> = {
-  A: ShieldCheck,
-  B: Shield,
-  C: ShieldAlert,
-  D: ShieldAlert,
-  '—': CircleDot,
+// Blueprint icon name + intent per grade — consumers render <Icon icon={GRADE_ICONS[g]} />
+// and pass GRADE_INTENTS[g] as the Tag intent.
+
+export const GRADE_ICONS: Record<Grade, IconName> = {
+  A: 'endorsed',
+  B: 'shield',
+  C: 'shield',
+  D: 'issue',
+  '—': 'dot',
+}
+
+export const GRADE_INTENTS: Record<Grade, Intent> = {
+  A: Intent.SUCCESS,
+  B: Intent.SUCCESS,
+  C: Intent.WARNING,
+  D: Intent.DANGER,
+  '—': Intent.NONE,
 }

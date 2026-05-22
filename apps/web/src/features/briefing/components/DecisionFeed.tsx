@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
-import { CheckCircle2, RefreshCw, Loader2, ChevronDown, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, Icon, Intent, NonIdealState, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useBriefingActions } from '@/features/briefing/hooks'
 import { BAND, BAND_CFG } from './constants'
@@ -33,9 +32,7 @@ function PriorityGroup({
         <span className={cn('text-xs font-bold tabular-nums ml-auto', cfg.labelCls)}>
           {actions.length}
         </span>
-        {open
-          ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground" />
       </button>
       {open && (
         <div>
@@ -75,38 +72,40 @@ export function DecisionFeed({ currency }: { currency: string }) {
           )}
         </div>
         <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 w-7 p-0"
+          variant="minimal"
+          size="small"
+          icon="refresh"
           onClick={() => { void refetch() }}
           disabled={isRefetching}
+          loading={isRefetching}
           title="Refresh"
-        >
-          <RefreshCw className={cn('h-3.5 w-3.5', isRefetching && 'animate-spin')} />
-        </Button>
+          aria-label="Refresh"
+        />
       </div>
 
       {isLoading && (
         <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
+          <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
           <span className="text-xs">Checking all layers…</span>
         </div>
       )}
 
       {!isLoading && nonProposals.length === 0 && (
-        <div className="rounded-lg border bg-muted/10 px-6 py-10 flex flex-col items-center gap-3 text-center">
-          <CheckCircle2 className="h-8 w-8 text-green-500/60" />
-          <p className="text-sm font-medium">No action required right now</p>
-          <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-            Stock levels are above par, no invoice discrepancies pending, no expiry warnings,
-            and write-off patterns are within baseline.
-          </p>
-          {lastUpdated && (
-            <p className="text-[10px] text-muted-foreground/60">
-              Based on live data · {format(lastUpdated, 'HH:mm')}
-            </p>
-          )}
-        </div>
+        <NonIdealState
+          icon="tick-circle"
+          title="No action required right now"
+          description={
+            <>
+              Stock levels are above par, no invoice discrepancies pending, no expiry warnings,
+              and write-off patterns are within baseline.
+              {lastUpdated && (
+                <p className="text-[10px] text-muted-foreground/60 mt-2">
+                  Based on live data · {format(lastUpdated, 'HH:mm')}
+                </p>
+              )}
+            </>
+          }
+        />
       )}
 
       {!isLoading && nonProposals.length > 0 && (

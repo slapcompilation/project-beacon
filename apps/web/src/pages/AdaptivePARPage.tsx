@@ -2,25 +2,26 @@
 // Palantir principle: intelligence everywhere — every threshold carries its basis.
 //
 // AdaptivePARPage computes the statistically optimal PAR level for every variant
-// using the full probabilistic model:
-//   PAR = ceil(adj_μ × L + z × σ_dL)
-// where
-//   adj_μ  = mean_daily × occupancy_adj_factor   (real demand, forecast-adjusted)
-//   L      = actual supplier lead time from PO history, or stated, or hotel median
-//   z      = _normal_quantile(service_level)      — no hardcoding
-//   σ_dL   = √(L×σ_d² + adj_μ²×σ_L²)            — combined demand + lead-time uncertainty
+// using the full probabilistic model. Operators select their target service level,
+// review the ranked recommendations, and apply individual or batch PAR changes.
 //
-// Operators select their target service level, review the ranked recommendations,
-// and apply individual or batch PAR changes with one click.
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo, useCallback } from 'react'
-import {
-  SlidersHorizontal, Check, CheckCheck, X, TrendingUp, TrendingDown,
-  Minus, Info, Package2, Loader2, AlertTriangle, Truck,
-  ChevronDown, ChevronUp, Thermometer, Zap,
-} from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import {
+  Button,
+  Callout,
+  Checkbox,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useOptimalPAR } from '@/features/eye/hooks'
 import { useUpdateVariant } from '@/features/inventory/hooks'
@@ -38,20 +39,12 @@ const SERVICE_LEVELS = [
 
 type FilterId = 'all' | 'increase' | 'decrease' | 'calibrated' | 'no_data'
 
-const FILTERS: { id: FilterId; label: string }[] = [
-  { id: 'all',        label: 'All'        },
-  { id: 'increase',   label: 'Increase'   },
-  { id: 'decrease',   label: 'Decrease'   },
-  { id: 'calibrated', label: 'Calibrated' },
-  { id: 'no_data',    label: 'No data'    },
-]
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function changeIcon(type: OptimalPARRow['change_type']) {
-  if (type === 'increase') return TrendingUp
-  if (type === 'decrease') return TrendingDown
-  return Minus
+function changeIcon(type: OptimalPARRow['change_type']): IconName {
+  if (type === 'increase') return 'trending-up'
+  if (type === 'decrease') return 'trending-down'
+  return 'minus'
 }
 
 function changeColor(type: OptimalPARRow['change_type']): string {
@@ -68,24 +61,15 @@ function slColor(sl: number | null): string {
   return 'text-red-600 dark:text-red-400'
 }
 
-function ltSourceBadge(src: OptimalPARRow['lead_time_source']) {
-  const styles: Record<typeof src, string> = {
-    po_history:       'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400',
-    supplier_stated:  'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
-    hotel_median:     'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
-    unknown:          'bg-muted text-muted-foreground',
+function LeadTimeSourceBadge({ src }: { src: OptimalPARRow['lead_time_source'] }) {
+  const config: Record<typeof src, { label: string; intent: Intent }> = {
+    po_history:      { label: 'From POs', intent: Intent.SUCCESS },
+    supplier_stated: { label: 'Stated',   intent: Intent.PRIMARY },
+    hotel_median:    { label: 'Median',   intent: Intent.WARNING },
+    unknown:         { label: 'Unknown',  intent: Intent.NONE },
   }
-  const labels: Record<typeof src, string> = {
-    po_history:      'From POs',
-    supplier_stated: 'Stated',
-    hotel_median:    'Median',
-    unknown:         'Unknown',
-  }
-  return (
-    <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded', styles[src])}>
-      {labels[src]}
-    </span>
-  )
+  const cfg = config[src]
+  return <Tag intent={cfg.intent} minimal>{cfg.label}</Tag>
 }
 
 function ConfidenceDot({ score }: { score: number }) {
@@ -120,28 +104,28 @@ function SummaryStrip({
     <div className="flex items-center gap-5 px-5 py-2.5 border-b bg-muted/30 text-xs shrink-0 flex-wrap">
       {increases > 0 && (
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="h-3.5 w-3.5 text-red-500" />
+          <Icon icon="trending-up" size={14} className="text-red-500" />
           <span className="font-semibold text-red-600">{increases}</span>
           <span className="text-muted-foreground">need increase</span>
         </div>
       )}
       {decreases > 0 && (
         <div className="flex items-center gap-1.5">
-          <TrendingDown className="h-3.5 w-3.5 text-blue-500" />
+          <Icon icon="trending-down" size={14} className="text-blue-500" />
           <span className="font-semibold text-blue-600">{decreases}</span>
           <span className="text-muted-foreground">can reduce</span>
         </div>
       )}
       {calibrated > 0 && (
         <div className="flex items-center gap-1.5">
-          <Check className="h-3.5 w-3.5 text-green-500" />
+          <Icon icon="tick" size={14} className="text-green-500" />
           <span className="font-semibold text-green-600">{calibrated}</span>
           <span className="text-muted-foreground">calibrated</span>
         </div>
       )}
       {noData > 0 && (
         <div className="flex items-center gap-1.5">
-          <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
+          <Icon icon="warning-sign" size={14} className="text-muted-foreground" />
           <span className="font-semibold text-muted-foreground">{noData}</span>
           <span className="text-muted-foreground">insufficient data</span>
         </div>
@@ -149,15 +133,12 @@ function SummaryStrip({
       <div className="ml-auto flex items-center gap-2">
         {selected.size > 0 && (
           <Button
-            size="sm"
-            className="h-7 gap-1.5 text-xs"
+            icon="double-chevron-up"
+            intent={Intent.PRIMARY}
+            size="small"
+            loading={applying}
             onClick={onApplyAll}
-            disabled={applying}
           >
-            {applying
-              ? <Loader2 className="h-3 w-3 animate-spin" />
-              : <CheckCheck className="h-3 w-3" />
-            }
             Apply {selected.size} change{selected.size > 1 ? 's' : ''}
           </Button>
         )}
@@ -178,7 +159,6 @@ function PARRow({
   onToggle: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  const ChangeIcon = changeIcon(row.change_type)
   const isActionable = row.change_type === 'increase' || row.change_type === 'decrease'
   const hasNoData = row.change_type === 'no_data' || row.change_type === 'no_lead_time'
 
@@ -190,22 +170,12 @@ function PARRow({
     )}>
       {/* Main row */}
       <div className="flex items-center gap-3 px-5 py-3">
-        {/* Checkbox */}
-        <button
-          type="button"
-          onClick={() => { if (isActionable) onToggle() }}
+        <Checkbox
+          checked={checked}
           disabled={!isActionable}
-          className={cn(
-            'h-4 w-4 rounded border flex items-center justify-center shrink-0 transition-colors',
-            isActionable
-              ? checked
-                ? 'bg-primary border-primary text-primary-foreground'
-                : 'border-border hover:border-primary'
-              : 'border-border/30 cursor-not-allowed opacity-40',
-          )}
-        >
-          {checked && <Check className="h-2.5 w-2.5" />}
-        </button>
+          onChange={() => { if (isActionable) onToggle() }}
+          className="!mb-0"
+        />
 
         {/* Product */}
         <div className="w-44 shrink-0 min-w-0">
@@ -219,7 +189,7 @@ function PARRow({
             <p className="text-[10px] text-muted-foreground mb-0.5">Current</p>
             <span className="text-sm font-bold tabular-nums">{row.current_par}</span>
           </div>
-          <ChangeIcon className={cn('h-4 w-4 shrink-0', changeColor(row.change_type))} />
+          <Icon icon={changeIcon(row.change_type)} size={14} className={cn('shrink-0', changeColor(row.change_type))} />
           <div className="text-center w-14">
             <p className="text-[10px] text-muted-foreground mb-0.5">Optimal</p>
             <span className={cn(
@@ -284,16 +254,15 @@ function PARRow({
         <div className="flex items-center gap-1.5 shrink-0">
           {row.supplier_name && (
             <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-              <Truck className="h-3 w-3" />
+              <Icon icon="truck" size={12} />
               {row.lead_time_days !== null ? `${String(Math.round(row.lead_time_days))}d` : '?'}
             </span>
           )}
-          {ltSourceBadge(row.lead_time_source)}
+          <LeadTimeSourceBadge src={row.lead_time_source} />
           {row.occupancy_adj_factor !== 1.0 && (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-400 flex items-center gap-1">
-              <Thermometer className="h-2.5 w-2.5" />
+            <Tag intent={Intent.PRIMARY} minimal icon="temperature">
               ×{row.occupancy_adj_factor.toFixed(2)}
-            </span>
+            </Tag>
           )}
         </div>
 
@@ -305,16 +274,13 @@ function PARRow({
               {Math.round(row.confidence_score * 100)}%
             </span>
           </div>
-          <button
-            type="button"
+          <Button
+            icon={expanded ? 'chevron-up' : 'chevron-down'}
+            variant="minimal"
+            size="small"
+            aria-label={expanded ? 'Collapse' : 'Expand'}
             onClick={() => { setExpanded((e) => !e) }}
-            className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          >
-            {expanded
-              ? <ChevronUp className="h-3.5 w-3.5" />
-              : <ChevronDown className="h-3.5 w-3.5" />
-            }
-          </button>
+          />
         </div>
       </div>
 
@@ -417,10 +383,9 @@ function PARRow({
           </div>
 
           {/* Rationale */}
-          <div className="mt-3 flex items-start gap-1.5 text-[10px] text-muted-foreground bg-muted/30 rounded px-2.5 py-2">
-            <Info className="h-3 w-3 shrink-0 mt-0.5" />
-            <span className="font-mono leading-relaxed">{row.rationale}</span>
-          </div>
+          <Callout intent={Intent.NONE} icon="info-sign" compact className="mt-3">
+            <span className="font-mono leading-relaxed text-[10px]">{row.rationale}</span>
+          </Callout>
         </div>
       )}
     </div>
@@ -438,7 +403,6 @@ export default function AdaptivePARPage() {
   const { data: rows = [], isLoading, dataUpdatedAt } = useOptimalPAR(serviceLevel)
   const updateVariant = useUpdateVariant()
 
-  // Reset selection when data or service level changes
   const handleServiceLevelChange = useCallback((sl: number) => {
     setServiceLevel(sl)
     setSelected(new Set())
@@ -497,8 +461,8 @@ export default function AdaptivePARPage() {
       <div className="border-b px-6 py-4 shrink-0">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-              <SlidersHorizontal className="h-4 w-4 text-primary" />
+            <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/10">
+              <Icon icon="horizontal-bar-chart-desc" size={14} intent={Intent.PRIMARY} />
             </div>
             <div>
               <h1 className="text-base font-semibold">Adaptive PAR Engine</h1>
@@ -513,27 +477,12 @@ export default function AdaptivePARPage() {
             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Target in-stock rate
             </p>
-            <div className="flex items-center gap-1 rounded-md border p-0.5">
-              {SERVICE_LEVELS.map((sl) => (
-                <button
-                  key={sl.value}
-                  type="button"
-                  onClick={() => { handleServiceLevelChange(sl.value) }}
-                  className={cn(
-                    'flex flex-col items-center px-3 py-1.5 rounded text-xs transition-colors',
-                    serviceLevel === sl.value
-                      ? 'bg-foreground text-background'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                  title={sl.description}
-                >
-                  <span className="font-bold">{sl.label}</span>
-                  <span className={cn('text-[9px]', serviceLevel === sl.value ? 'opacity-70' : 'opacity-50')}>
-                    {sl.description}
-                  </span>
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              size="small"
+              value={String(serviceLevel)}
+              onValueChange={(v) => { handleServiceLevelChange(parseFloat(v)) }}
+              options={SERVICE_LEVELS.map((sl) => ({ value: String(sl.value), label: sl.label }))}
+            />
           </div>
 
           {lastUpdated && (
@@ -548,76 +497,57 @@ export default function AdaptivePARPage() {
       <div className="flex-1 overflow-hidden flex flex-col min-h-0">
         {isLoading ? (
           <div className="flex items-center justify-center h-48 gap-2 text-muted-foreground text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Spinner size={SpinnerSize.SMALL} />
             Computing optimal PAR levels…
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center px-6">
-            <Package2 className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">
-              No variants with sufficient consumption data found.
-            </p>
-          </div>
+          <NonIdealState
+            icon="box"
+            title="No variants with sufficient consumption data found"
+          />
         ) : (
           <>
             {/* Filter tabs */}
-            <div className="flex items-center gap-0 border-b shrink-0">
-              {FILTERS.map((f) => {
-                const count = f.id === 'all'
-                  ? rows.length
-                  : f.id === 'no_data'
-                  ? rows.filter((r) => r.change_type === 'no_data' || r.change_type === 'no_lead_time').length
-                  : rows.filter((r) => r.change_type === f.id).length
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    onClick={() => { setFilter(f.id) }}
-                    className={cn(
-                      'px-4 py-2.5 text-xs font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5',
-                      filter === f.id
-                        ? 'border-primary text-foreground'
-                        : 'border-transparent text-muted-foreground hover:text-foreground',
-                    )}
-                  >
-                    {f.label}
-                    <span className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded-full tabular-nums',
-                      filter === f.id ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground',
-                    )}>
-                      {count}
-                    </span>
-                  </button>
-                )
-              })}
+            <div className="flex items-center gap-3 border-b shrink-0 px-4 py-2">
+              <SegmentedControl
+                size="small"
+                value={filter}
+                onValueChange={(v) => { setFilter(v as FilterId) }}
+                options={[
+                  { value: 'all',        label: `All (${String(rows.length)})` },
+                  { value: 'increase',   label: `Increase (${String(rows.filter((r) => r.change_type === 'increase').length)})` },
+                  { value: 'decrease',   label: `Decrease (${String(rows.filter((r) => r.change_type === 'decrease').length)})` },
+                  { value: 'calibrated', label: `Calibrated (${String(rows.filter((r) => r.change_type === 'calibrated').length)})` },
+                  { value: 'no_data',    label: `No data (${String(rows.filter((r) => r.change_type === 'no_data' || r.change_type === 'no_lead_time').length)})` },
+                ]}
+              />
 
               {/* Select all for current filter */}
-              <div className="ml-auto px-4 flex items-center gap-2">
-                {filtered.some((r) => r.change_type === 'increase' || r.change_type === 'decrease') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const actionable = filtered
-                        .filter((r) => r.change_type === 'increase' || r.change_type === 'decrease')
-                        .map((r) => r.variant_id)
-                      const allSelected = actionable.every((id) => selected.has(id))
-                      if (allSelected) {
-                        setSelected((prev) => {
-                          const next = new Set(prev)
-                          actionable.forEach((id) => next.delete(id))
-                          return next
-                        })
-                      } else {
-                        setSelected((prev) => new Set([...prev, ...actionable]))
-                      }
-                    }}
-                    className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  >
-                    <Zap className="h-3 w-3" />
-                    Select all actionable
-                  </button>
-                )}
-              </div>
+              {filtered.some((r) => r.change_type === 'increase' || r.change_type === 'decrease') && (
+                <Button
+                  icon="flash"
+                  variant="minimal"
+                  size="small"
+                  className="ml-auto"
+                  onClick={() => {
+                    const actionable = filtered
+                      .filter((r) => r.change_type === 'increase' || r.change_type === 'decrease')
+                      .map((r) => r.variant_id)
+                    const allSelected = actionable.every((id) => selected.has(id))
+                    if (allSelected) {
+                      setSelected((prev) => {
+                        const next = new Set(prev)
+                        actionable.forEach((id) => next.delete(id))
+                        return next
+                      })
+                    } else {
+                      setSelected((prev) => new Set([...prev, ...actionable]))
+                    }
+                  }}
+                >
+                  Select all actionable
+                </Button>
+              )}
             </div>
 
             {/* Summary strip */}
@@ -643,7 +573,7 @@ export default function AdaptivePARPage() {
             <div className="flex-1 overflow-y-auto">
               {filtered.length === 0 ? (
                 <div className="flex items-center justify-center py-10 text-sm text-muted-foreground gap-2">
-                  <X className="h-4 w-4" />
+                  <Icon icon="cross" size={14} />
                   No variants match this filter
                 </div>
               ) : (

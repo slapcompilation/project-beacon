@@ -1,6 +1,8 @@
 // Layer: Mind — team governance, role permissions, access control
 // Palantir principle: operators must understand who can do what. Role matrix is a
 // first-class feature, not buried in a help article.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -8,41 +10,24 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
-  Plus, Trash2, Loader2, Users, Crown, Shield,
-  User, UserCheck, Check, X, Info,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import {
+  Button,
   Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  DialogBody,
   DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
+  FormGroup,
+  HTMLSelect,
+  HTMLTable,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
   Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
@@ -60,7 +45,7 @@ import type { TeamMember } from '@/features/team/api'
 
 interface RoleConfig {
   label: string
-  icon: React.ElementType
+  icon: IconName
   color: string
   badgeClass: string
   description: string
@@ -71,7 +56,7 @@ interface RoleConfig {
 const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
   owner: {
     label: 'Owner',
-    icon: Crown,
+    icon: 'crown',
     color: 'text-purple-700',
     badgeClass: 'border-purple-200 bg-purple-50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300',
     description: 'Full access to everything including billing and user management.',
@@ -80,7 +65,7 @@ const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
   },
   admin: {
     label: 'Admin',
-    icon: Shield,
+    icon: 'shield',
     color: 'text-blue-700',
     badgeClass: 'border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300',
     description: 'Full operational access. Cannot manage users or billing.',
@@ -89,7 +74,7 @@ const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
   },
   team_member: {
     label: 'Team Member',
-    icon: User,
+    icon: 'user',
     color: 'text-green-700',
     badgeClass: 'border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300',
     description: 'Day-to-day operational access. No admin capabilities.',
@@ -98,7 +83,7 @@ const ROLE_CONFIG: Record<UserRole, RoleConfig> = {
   },
   limited_access: {
     label: 'Limited Access',
-    icon: UserCheck,
+    icon: 'id-number',
     color: 'text-slate-600',
     badgeClass: 'border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400',
     description: 'Scan-first mobile role for floor staff. Minimal access, maximum security.',
@@ -133,41 +118,40 @@ const MATRIX_ROWS: { label: string; owner: boolean; admin: boolean; team_member:
 function RoleMatrix() {
   return (
     <div className="overflow-hidden rounded-lg border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-52">Capability</TableHead>
+      <HTMLTable compact striped className="w-full">
+        <thead>
+          <tr>
+            <th className="w-52">Capability</th>
             {(['owner', 'admin', 'team_member', 'limited_access'] as const).map((role) => {
               const cfg = ROLE_CONFIG[role]
-              const Icon = cfg.icon
               return (
-                <TableHead key={role} className="text-center w-28">
+                <th key={role} className="text-center w-28">
                   <div className="flex flex-col items-center gap-1">
-                    <Icon className={cn('h-3.5 w-3.5', cfg.color)} />
+                    <Icon icon={cfg.icon} size={12} className={cfg.color} />
                     <span className="text-xs">{cfg.label}</span>
                   </div>
-                </TableHead>
+                </th>
               )
             })}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+          </tr>
+        </thead>
+        <tbody>
           {MATRIX_ROWS.map((row) => (
-            <TableRow key={row.label}>
-              <TableCell className="text-sm">{row.label}</TableCell>
+            <tr key={row.label}>
+              <td className="text-sm">{row.label}</td>
               {(['owner', 'admin', 'team_member', 'limited_access'] as const).map((role) => (
-                <TableCell key={role} className="text-center">
+                <td key={role} className="text-center">
                   {row[role] ? (
-                    <Check className="h-3.5 w-3.5 text-green-600 mx-auto" />
+                    <Icon icon="tick" size={12} className="text-green-600 mx-auto" />
                   ) : (
-                    <X className="h-3.5 w-3.5 text-muted-foreground/40 mx-auto" />
+                    <Icon icon="cross" size={12} className="text-muted-foreground/40 mx-auto" />
                   )}
-                </TableCell>
+                </td>
               ))}
-            </TableRow>
+            </tr>
           ))}
-        </TableBody>
-      </Table>
+        </tbody>
+      </HTMLTable>
     </div>
   )
 }
@@ -177,32 +161,29 @@ function RoleMatrix() {
 function RoleCards() {
   return (
     <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-      {(Object.entries(ROLE_CONFIG) as [UserRole, RoleConfig][]).map(([role, cfg]) => {
-        const Icon = cfg.icon
-        return (
-          <div key={role} className="rounded-lg border p-4 space-y-2">
-            <div className="flex items-center gap-2">
-              <Icon className={cn('h-4 w-4', cfg.color)} />
-              <span className="text-sm font-semibold">{cfg.label}</span>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">{cfg.description}</p>
-            <ul className="space-y-0.5">
-              {cfg.capabilities.slice(0, 3).map((c) => (
-                <li key={c} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                  <Check className="h-3 w-3 text-green-500 mt-px flex-shrink-0" />
-                  {c}
-                </li>
-              ))}
-              {cfg.restrictions[0] && (
-                <li className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                  <X className="h-3 w-3 text-red-400 mt-px flex-shrink-0" />
-                  {cfg.restrictions[0]}
-                </li>
-              )}
-            </ul>
+      {(Object.entries(ROLE_CONFIG) as [UserRole, RoleConfig][]).map(([role, cfg]) => (
+        <div key={role} className="rounded-lg border p-4 space-y-2">
+          <div className="flex items-center gap-2">
+            <Icon icon={cfg.icon} size={14} className={cfg.color} />
+            <span className="text-sm font-semibold">{cfg.label}</span>
           </div>
-        )
-      })}
+          <p className="text-xs text-muted-foreground leading-relaxed">{cfg.description}</p>
+          <ul className="space-y-0.5">
+            {cfg.capabilities.slice(0, 3).map((c) => (
+              <li key={c} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                <Icon icon="tick" size={12} className="text-green-500 mt-px flex-shrink-0" />
+                {c}
+              </li>
+            ))}
+            {cfg.restrictions[0] && (
+              <li className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                <Icon icon="cross" size={12} className="text-red-400 mt-px flex-shrink-0" />
+                {cfg.restrictions[0]}
+              </li>
+            )}
+          </ul>
+        </div>
+      ))}
     </div>
   )
 }
@@ -232,7 +213,6 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
 
   const selectedRole = watch('role')
   const roleInfo = ROLE_CONFIG[selectedRole]
-  const RoleIcon = roleInfo.icon
 
   const onSubmit = async (data: InviteFields) => {
     await invite.mutateAsync(data)
@@ -241,51 +221,39 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Invite Team Member</DialogTitle>
-        </DialogHeader>
+    <Dialog isOpen={open} onClose={onClose} title="Invite Team Member" className="!w-[28rem]">
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody className="space-y-4">
+          <FormGroup label="Email address" labelFor="inv-email" intent={errors.email ? Intent.DANGER : Intent.NONE} helperText={errors.email?.message}>
+            <InputGroup id="inv-email" type="email" placeholder="colleague@hotel.com" {...register('email')} intent={errors.email ? Intent.DANGER : Intent.NONE} />
+          </FormGroup>
 
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4 py-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="inv-email">Email address</Label>
-            <Input id="inv-email" type="email" placeholder="colleague@hotel.com" {...register('email')} />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Role</Label>
-            <Select value={selectedRole} onValueChange={(v) => { setValue('role', v as InviteFields['role']); }}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ASSIGNABLE_ROLES.map((r) => (
-                  <SelectItem key={r.value} value={r.value}>
-                    {r.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {/* Role description inline */}
-            <div className="rounded-md bg-muted/50 border px-3 py-2 flex gap-2">
-              <RoleIcon className={cn('h-3.5 w-3.5 mt-px flex-shrink-0', roleInfo.color)} />
+          <FormGroup label="Role">
+            <HTMLSelect
+              value={selectedRole}
+              onChange={(e) => { setValue('role', e.target.value as InviteFields['role']) }}
+              options={ASSIGNABLE_ROLES.map((r) => ({ value: r.value, label: r.label }))}
+              fill
+            />
+            <div className="rounded-md bg-muted/50 border px-3 py-2 flex gap-2 mt-2">
+              <Icon icon={roleInfo.icon} size={12} className={cn('mt-px flex-shrink-0', roleInfo.color)} />
               <p className="text-xs text-muted-foreground leading-relaxed">{roleInfo.description}</p>
             </div>
-          </div>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Send Invite
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+          </FormGroup>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button type="button" variant="minimal" onClick={onClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isSubmitting}>
+                Send Invite
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }
@@ -306,14 +274,13 @@ function MemberRow({
   const fmtDate = useDateFormat()
   const isSelf = member.id === currentUserId
   const cfg = ROLE_CONFIG[member.role]
-  const Icon = cfg.icon
 
   const [confirmRemove, setConfirmRemove] = useState<{ id: string } | null>(null)
 
   return (
     <>
-      <TableRow>
-        <TableCell>
+      <tr>
+        <td>
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-sm font-semibold uppercase">
               {member.email[0]}
@@ -323,58 +290,48 @@ function MemberRow({
               {isSelf && <p className="text-xs text-muted-foreground">You</p>}
             </div>
           </div>
-        </TableCell>
-        <TableCell>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge variant="outline" className={cn('gap-1.5 cursor-help', cfg.badgeClass)}>
-                  <Icon className="h-3 w-3" />
-                  {cfg.label}
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="max-w-xs">
+        </td>
+        <td>
+          <Tooltip
+            content={
+              <div className="max-w-xs">
                 <p className="text-xs font-medium mb-1">{cfg.label}</p>
                 <p className="text-xs text-muted-foreground">{cfg.description}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </TableCell>
-        <TableCell className="text-sm text-muted-foreground">
+              </div>
+            }
+            placement="right"
+          >
+            <Tag minimal icon={cfg.icon} className={cn('cursor-help', cfg.badgeClass)}>
+              {cfg.label}
+            </Tag>
+          </Tooltip>
+        </td>
+        <td className="text-sm text-muted-foreground">
           {fmtDate(new Date(member.created_at))}
-        </TableCell>
-        <TableCell className="text-right">
+        </td>
+        <td className="text-right">
           {canManage && !isSelf && member.role !== 'owner' && (
             <div className="flex items-center justify-end gap-2">
-              <Select
+              <HTMLSelect
                 value={member.role}
-                onValueChange={(v) => { updateRole.mutate({ userId: member.id, role: v }); }}
+                onChange={(e) => { updateRole.mutate({ userId: member.id, role: e.target.value }) }}
                 disabled={updateRole.isPending}
-              >
-                <SelectTrigger className="h-8 w-36 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ASSIGNABLE_ROLES.map((r) => (
-                    <SelectItem key={r.value} value={r.value} className="text-xs">
-                      {r.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={ASSIGNABLE_ROLES.map((r) => ({ value: r.value, label: r.label }))}
+                className="!h-8 !min-h-8"
+              />
               <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                variant="minimal"
+                size="small"
+                intent={Intent.DANGER}
+                icon="trash"
+                loading={removeMember.isPending}
                 onClick={() => { setConfirmRemove({ id: member.id }) }}
-                disabled={removeMember.isPending}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+                aria-label="Remove member"
+              />
             </div>
           )}
-        </TableCell>
-      </TableRow>
+        </td>
+      </tr>
 
       <ConfirmDialog
         open={confirmRemove !== null}
@@ -424,23 +381,17 @@ export default function TeamPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-md border overflow-hidden text-xs">
-            <button
-              onClick={() => { setView('members') }}
-              className={cn('px-3 py-1.5 font-medium transition-colors', view === 'members' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted')}
-            >
-              Members
-            </button>
-            <button
-              onClick={() => { setView('roles') }}
-              className={cn('px-3 py-1.5 font-medium transition-colors border-l', view === 'roles' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted')}
-            >
-              Role Matrix
-            </button>
-          </div>
+          <SegmentedControl
+            size="small"
+            value={view}
+            onValueChange={(v) => { setView(v as TeamView) }}
+            options={[
+              { value: 'members', label: 'Members' },
+              { value: 'roles',   label: 'Role Matrix' },
+            ]}
+          />
           {canManage && (
-            <Button onClick={() => { setInviteOpen(true); }}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button intent={Intent.PRIMARY} icon="plus" onClick={() => { setInviteOpen(true) }}>
               Invite Member
             </Button>
           )}
@@ -453,7 +404,7 @@ export default function TeamPage() {
             <div>
               <div className="flex items-center gap-2 mb-3">
                 <h2 className="text-sm font-semibold">Role Descriptions</h2>
-                <Info className="h-3.5 w-3.5 text-muted-foreground" />
+                <Icon icon="info-sign" size={12} className="text-muted-foreground" />
               </div>
               <RoleCards />
             </div>
@@ -463,29 +414,30 @@ export default function TeamPage() {
             </div>
           </>
         ) : isLoading ? (
-          <p className="py-16 text-center text-sm text-muted-foreground">Loading…</p>
+          <div className="flex items-center justify-center py-16">
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
+          </div>
         ) : members.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-16 text-center">
-            <Users className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm text-muted-foreground">No team members yet.</p>
-            {canManage && (
-              <Button variant="outline" size="sm" onClick={() => { setInviteOpen(true); }}>
-                <Plus className="mr-2 h-4 w-4" />
+          <NonIdealState
+            icon="people"
+            title="No team members yet"
+            action={canManage ? (
+              <Button variant="outlined" size="small" icon="plus" onClick={() => { setInviteOpen(true) }}>
                 Invite your first member
               </Button>
-            )}
-          </div>
+            ) : undefined}
+          />
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Member</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Joined</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <HTMLTable compact striped className="w-full">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th className="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
               {members.map((m) => (
                 <MemberRow
                   key={m.id}
@@ -494,12 +446,12 @@ export default function TeamPage() {
                   canManage={canManage}
                 />
               ))}
-            </TableBody>
-          </Table>
+            </tbody>
+          </HTMLTable>
         )}
       </div>
 
-      <InviteModal open={inviteOpen} onClose={() => { setInviteOpen(false); }} />
+      <InviteModal open={inviteOpen} onClose={() => { setInviteOpen(false) }} />
     </div>
   )
 }

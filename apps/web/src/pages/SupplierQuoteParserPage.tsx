@@ -6,11 +6,22 @@
 //
 // Palantir Principle #4: decision support, not data display.
 // Palantir Principle #1: every mutation flows through the action registry (CREATE_PO).
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileText, ChevronRight, Plus, Trash2, Loader2, Sparkles, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Button,
+  Callout,
+  FormGroup,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  TextArea,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -40,10 +51,10 @@ export interface ParsedLine {
 
 const QTY_PRICE_RE = new RegExp(
   [
-    /(?:(?<qtyA>\d+(?:\.\d+)?)\s*[x×]\s*(?<descA>[^@$\n\t]+?)\s*[@\-]\s*\$?(?<priceA>\d+(?:\.\d{2})?))/, // "5x Tomatoes @ $2.50"
+    /(?:(?<qtyA>\d+(?:\.\d+)?)\s*[x×]\s*(?<descA>[^@$\n\t]+?)\s*[@\-]\s*\$?(?<priceA>\d+(?:\.\d{2})?))/,
     /(?:(?<descB>[^:,\n\t]+?)\s*:?\s*(?:qty|quantity)?\s*(?<qtyB>\d+)\s*[@\-@]\s*\$?(?<priceB>\d+(?:\.\d{2})?)\s*(?:each|\/\w+)?)/,
-    /(?:(?<qtyC>\d+(?:\.\d+)?)\s+(?<descC>[^$@\n\t]+?)\s*[@\-]\s*\$?(?<priceC>\d+(?:\.\d{2})?))/, // "10 Chicken Breast - $45.00"
-    /(?:(?<descD>[^\t\n]+?)\t(?<qtyD>\d+(?:\.\d+)?)\t\$?(?<priceD>\d+(?:\.\d{2})?))/,             // tab-separated
+    /(?:(?<qtyC>\d+(?:\.\d+)?)\s+(?<descC>[^$@\n\t]+?)\s*[@\-]\s*\$?(?<priceC>\d+(?:\.\d{2})?))/,
+    /(?:(?<descD>[^\t\n]+?)\t(?<qtyD>\d+(?:\.\d+)?)\t\$?(?<priceD>\d+(?:\.\d{2})?))/,
     /(?:(?<descE>[^@$\n\t0-9][^@$\n\t]*?)\s+(?<qtyE>\d+(?:\.\d+)?)\s*[@]\s*\$?(?<priceE>\d+(?:\.\d{2})?))/,
   ].map((r) => r.source).join('|'),
   'i',
@@ -81,7 +92,6 @@ function matchVariant(
   for (const p of products) {
     for (const v of p.variants) {
       const candidate = `${p.name} ${v.name}`.toLowerCase()
-      // Count overlapping words
       const descWords  = lower.split(/\s+/)
       const candWords  = candidate.split(/\s+/)
       const overlap    = descWords.filter((w) => w.length > 2 && candWords.some((c) => c.includes(w) || w.includes(c))).length
@@ -110,39 +120,36 @@ function EditableLine({ line, currency, onChange, onRemove }: EditableLineProps)
       line.variantId ? 'border-border bg-card' : 'border-amber-500/30 bg-amber-500/5',
     )}>
       <div className="min-w-0">
-        <input
+        <InputGroup
           value={line.description}
-          onChange={(e) => { onChange({ ...line, description: e.target.value }); }}
-          className="w-full bg-transparent text-xs font-medium text-foreground focus:outline-none truncate"
+          onChange={(e) => { onChange({ ...line, description: e.target.value }) }}
         />
         {!line.variantId && (
-          <p className="text-[10px] text-amber-500 flex items-center gap-1">
-            <AlertTriangle className="w-2.5 h-2.5" /> No variant match — will create as note only
+          <p className="mt-1 text-[10px] text-amber-500 flex items-center gap-1">
+            <Icon icon="warning-sign" size={10} /> No variant match — will create as note only
           </p>
         )}
       </div>
-      <input
+      <InputGroup
         type="number"
         min={0.01}
         step={0.01}
-        value={line.qty}
-        onChange={(e) => { onChange({ ...line, qty: parseFloat(e.target.value) || 0 }); }}
-        className="w-full rounded border border-input bg-background px-1.5 py-1 text-xs tabular-nums text-right focus:outline-none focus:ring-1 focus:ring-ring"
+        value={String(line.qty)}
+        onChange={(e) => { onChange({ ...line, qty: parseFloat(e.target.value) || 0 }) }}
+        className="tabular-nums"
       />
-      <input
+      <InputGroup
         type="number"
         min={0}
         step={0.01}
-        value={line.unitPrice}
-        onChange={(e) => { onChange({ ...line, unitPrice: parseFloat(e.target.value) || 0 }); }}
-        className="w-full rounded border border-input bg-background px-1.5 py-1 text-xs tabular-nums text-right focus:outline-none focus:ring-1 focus:ring-ring"
+        value={String(line.unitPrice)}
+        onChange={(e) => { onChange({ ...line, unitPrice: parseFloat(e.target.value) || 0 }) }}
+        className="tabular-nums"
       />
       <span className="text-xs tabular-nums text-right text-muted-foreground">
         {formatCurrency(line.qty * line.unitPrice, currency)}
       </span>
-      <button type="button" onClick={onRemove} className="text-muted-foreground hover:text-red-500 transition-colors">
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
+      <Button icon="trash" variant="minimal" size="small" intent={Intent.DANGER} onClick={onRemove} aria-label="Remove line" />
     </div>
   )
 }
@@ -229,13 +236,14 @@ export default function SupplierQuoteParserPage() {
   }
 
   const unmatched = lines.filter((l) => !l.variantId).length
+  const matchedCount = lines.filter((l) => l.variantId).length
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="px-6 pt-5 pb-3 border-b shrink-0">
         <h2 className="text-base font-semibold flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Icon icon="predictive-analysis" size={16} intent={Intent.PRIMARY} />
           Quote Parser
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -248,27 +256,24 @@ export default function SupplierQuoteParserPage() {
         {/* Paste area */}
         {!parsed ? (
           <div className="space-y-3">
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1.5">
-                Paste supplier quote text
-              </label>
-              <textarea
+            <FormGroup label="Paste supplier quote text">
+              <TextArea
                 rows={10}
+                fill
                 value={quoteText}
-                onChange={(e) => { setQuoteText(e.target.value); }}
+                onChange={(e) => { setQuoteText(e.target.value) }}
                 placeholder={`Examples:\n5 x Tomatoes @ $2.50\n10 Chicken Breast - $8.99\nOlive Oil: qty 6 @ 5.50 each\n3\tSalmon Fillet\t$18.00`}
-                className="w-full rounded-lg border border-input bg-card px-3 py-2.5 text-xs text-foreground placeholder:text-muted-foreground/50 font-mono focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                className="font-mono text-xs"
               />
-            </div>
-            <button
-              type="button"
+            </FormGroup>
+            <Button
+              icon="predictive-analysis"
+              intent={Intent.PRIMARY}
               disabled={!quoteText.trim()}
               onClick={handleParse}
-              className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
             >
-              <Sparkles className="w-3.5 h-3.5" />
               Parse quote
-            </button>
+            </Button>
           </div>
         ) : (
           <div className="space-y-5">
@@ -280,13 +285,14 @@ export default function SupplierQuoteParserPage() {
                   <span className="ml-2 text-amber-500">· {unmatched} unmatched</span>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                variant="minimal"
+                size="small"
+                intent={Intent.PRIMARY}
                 onClick={() => { setParsed(false); setLines([]) }}
-                className="text-[10px] text-primary hover:underline"
               >
                 ← Re-parse
-              </button>
+              </Button>
             </div>
 
             {/* Column headers */}
@@ -299,15 +305,16 @@ export default function SupplierQuoteParserPage() {
             {/* Lines */}
             <div className="space-y-2">
               {lines.map((line, i) => (
-                <EditableLine key={i} line={line} currency={currency} onChange={(u) => { updateLine(i, u); }} onRemove={() => { removeLine(i); }} />
+                <EditableLine key={i} line={line} currency={currency} onChange={(u) => { updateLine(i, u) }} onRemove={() => { removeLine(i) }} />
               ))}
-              <button
-                type="button"
+              <Button
+                icon="plus"
+                variant="minimal"
+                size="small"
                 onClick={addBlankLine}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
-                <Plus className="w-3.5 h-3.5" /> Add line
-              </button>
+                Add line
+              </Button>
             </div>
 
             {/* Total */}
@@ -320,59 +327,52 @@ export default function SupplierQuoteParserPage() {
 
             {/* PO metadata */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-border">
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Supplier</label>
-                <select
+              <FormGroup label="Supplier" className="!mb-0">
+                <HTMLSelect
+                  fill
                   value={supplierId}
-                  onChange={(e) => { setSupplierId(e.target.value); }}
-                  className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                >
-                  <option value="">— Select supplier</option>
-                  {suppliers.map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">PO Number *</label>
-                <input
-                  value={poNumber}
-                  onChange={(e) => { setPoNumber(e.target.value); }}
-                  placeholder="PO-2026-042"
-                  className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                  onChange={(e) => { setSupplierId(e.target.value) }}
+                  options={[
+                    { value: '', label: '— Select supplier' },
+                    ...suppliers.map((s) => ({ value: s.id, label: s.name })),
+                  ]}
                 />
-              </div>
-              <div>
-                <label className="block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Expected Delivery</label>
-                <input
+              </FormGroup>
+              <FormGroup label="PO Number *" className="!mb-0">
+                <InputGroup
+                  value={poNumber}
+                  onChange={(e) => { setPoNumber(e.target.value) }}
+                  placeholder="PO-2026-042"
+                />
+              </FormGroup>
+              <FormGroup label="Expected Delivery" className="!mb-0">
+                <InputGroup
                   type="date"
                   value={deliveryDate}
-                  onChange={(e) => { setDeliveryDate(e.target.value); }}
-                  className="w-full rounded border border-input bg-background px-2 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                  onChange={(e) => { setDeliveryDate(e.target.value) }}
                 />
-              </div>
+              </FormGroup>
             </div>
 
             {unmatched > 0 && (
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="inline w-3.5 h-3.5 mr-1.5 -mt-px" />
-                {unmatched} line{unmatched !== 1 ? 's' : ''} couldn't be matched to a variant and will be excluded from the PO.
+              <Callout intent={Intent.WARNING} icon="warning-sign" compact>
+                {unmatched} line{unmatched !== 1 ? 's' : ''} couldn&apos;t be matched to a variant and will be excluded from the PO.
                 Edit the descriptions above or add the products to inventory first.
-              </div>
+              </Callout>
             )}
 
             {/* Submit */}
             <div className="flex gap-3 items-center">
-              <button
-                type="button"
-                disabled={submitting || lines.filter((l) => l.variantId).length === 0 || !poNumber.trim()}
+              <Button
+                icon="document"
+                endIcon="chevron-right"
+                intent={Intent.PRIMARY}
+                disabled={matchedCount === 0 || !poNumber.trim()}
+                loading={submitting}
                 onClick={() => { void createPO() }}
-                className="flex items-center gap-2 px-4 py-2 text-xs font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
               >
-                {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileText className="w-3.5 h-3.5" />}
-                Create PO · {lines.filter((l) => l.variantId).length} line{lines.filter((l) => l.variantId).length !== 1 ? 's' : ''}
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+                Create PO · {matchedCount} line{matchedCount !== 1 ? 's' : ''}
+              </Button>
               <span className="text-xs text-muted-foreground">Routes through the action registry · edges written to graph</span>
             </div>
           </div>

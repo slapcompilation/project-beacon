@@ -11,10 +11,8 @@
 
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import {
-  CheckCircle2, AlertTriangle, Clock, Flame, TrendingUp, TrendingDown,
-  GitBranch, Truck, Loader2,
-} from 'lucide-react'
+import { Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
@@ -33,11 +31,11 @@ interface Recommendation {
   confidence:  number               // 0–1
 }
 
-const DECISION_STYLES: Record<Decision, { badge: string; icon: React.ElementType }> = {
-  approve: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: CheckCircle2 },
-  modify:  { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',    icon: AlertTriangle },
-  hold:    { badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',       icon: Clock         },
-  flag:    { badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',       icon: Flame         },
+const DECISION_STYLES: Record<Decision, { badge: string; icon: IconName }> = {
+  approve: { badge: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: 'tick-circle'  },
+  modify:  { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/30',       icon: 'warning-sign' },
+  hold:    { badge: 'bg-blue-500/15 text-blue-400 border-blue-500/30',          icon: 'time'         },
+  flag:    { badge: 'bg-rose-500/15 text-rose-400 border-rose-500/30',          icon: 'flame'        },
 }
 
 function computeRecommendation(
@@ -217,7 +215,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
   if (loadVI || loadPAR) {
     return (
       <div className="flex items-center gap-2 py-3 text-xs text-muted-foreground">
-        <Loader2 className="w-3 h-3 animate-spin" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         Loading intelligence…
       </div>
     )
@@ -231,7 +229,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
     )
   }
 
-  const { icon: DecIcon, badge: badgeClass } = DECISION_STYLES[rec.decision]
+  const { icon: decIcon, badge: badgeClass } = DECISION_STYLES[rec.decision]
   const dtz    = vi.days_until_zero
   const lt     = parRow?.lead_time_days ?? 7
   const confPct = Math.round(rec.confidence * 100)
@@ -241,7 +239,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
       {/* Recommendation header */}
       <div className="flex items-start gap-2">
         <div className={cn('flex items-center gap-1.5 px-2 py-1 rounded border text-xs font-bold shrink-0', badgeClass)}>
-          <DecIcon className="w-3 h-3" />
+          <Icon icon={decIcon} size={12} />
           {rec.label}
         </div>
         <div className="flex-1 min-w-0">
@@ -294,7 +292,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
             'flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted/30',
             vi.velocity_change_pct > 0 ? 'text-amber-400' : 'text-emerald-400',
           )}>
-            {vi.velocity_change_pct > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            <Icon icon={vi.velocity_change_pct > 0 ? 'trending-up' : 'trending-down'} size={12} />
             {Math.abs(Math.round(vi.velocity_change_pct))}% velocity {vi.velocity_change_pct > 0 ? 'up' : 'down'} vs 30d
           </span>
         )}
@@ -302,7 +300,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
         {/* Open PO */}
         {vi.open_po_id && (
           <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400">
-            <Truck className="w-3 h-3" />
+            <Icon icon="truck" size={12} />
             PO {vi.open_po_number ?? 'in flight'}
             {vi.expected_delivery && <> · due {format(new Date(vi.expected_delivery), 'MMM d')}</>}
           </span>
@@ -336,7 +334,7 @@ export function ApprovalCopilotPanel({ variantId, requestedQty, estimatedCost }:
           to={`/flow?panel=causal&root_type=variant&root_id=${variantId}`}
           className="flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary transition-colors"
         >
-          <GitBranch className="w-3 h-3" />
+          <Icon icon="git-branch" size={12} />
           Full causal trace →
         </Link>
       </div>

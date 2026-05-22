@@ -6,15 +6,20 @@
 //   • team attribution (top write-off contributor in the 7-day window)
 // Purpose: turn the correlation_score logic already in get_briefing_actions() into a
 // full analytical surface so operators see the complete anomaly picture, not just the top 2.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import {
-  Radar, AlertTriangle, TrendingUp, Users, Activity,
-  ArrowUpRight, ShieldAlert, Flame, Thermometer, Eye,
-  ChevronDown, ChevronUp, GitBranch,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  Button,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -53,7 +58,7 @@ function OccupancyBand({ band, pct }: { band: WasteRadarRow['occupancy_band']; p
       band === 'normal' && 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400',
       band === 'high'   && 'bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400',
     )}>
-      <Thermometer className="h-2.5 w-2.5" />
+      <Icon icon="temperature" size={10} />
       {pct}% occ · {band}
     </span>
   )
@@ -144,7 +149,7 @@ function RadarRow({
               row.pct_above_baseline >= 100 ? 'text-red-600' :
               row.pct_above_baseline >= 50  ? 'text-amber-600' : 'text-yellow-600',
             )}>
-              <TrendingUp className="h-3 w-3" />
+              <Icon icon="trending-up" size={12} />
               +{row.pct_above_baseline}% vs baseline
             </span>
           </p>
@@ -154,7 +159,7 @@ function RadarRow({
             <CategoryPills row={row} />
             {row.top_user_email && (
               <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                <Users className="h-2.5 w-2.5" />
+                <Icon icon="people" size={10} />
                 {row.top_user_email} · {row.top_user_qty} units
               </span>
             )}
@@ -168,13 +173,13 @@ function RadarRow({
           {/* Synthesis signal — shown when context is especially meaningful */}
           {isProbableTheft && (
             <div className="flex items-center gap-1.5 text-[11px] text-red-700 dark:text-red-400 font-medium">
-              <ShieldAlert className="h-3 w-3 shrink-0" />
+              <Icon icon="shield" size={12} className="shrink-0" />
               Low occupancy + Theft category — high probability of non-operational loss
             </div>
           )}
           {row.occupancy_band === 'low' && row.anomaly_score >= 7 && !isProbableTheft && (
             <div className="flex items-center gap-1.5 text-[11px] text-orange-700 dark:text-orange-400 font-medium">
-              <AlertTriangle className="h-3 w-3 shrink-0" />
+              <Icon icon="warning-sign" size={12} className="shrink-0" />
               Strong anomaly at low occupancy — spike not explained by operational demand
             </div>
           )}
@@ -183,37 +188,34 @@ function RadarRow({
         {/* Actions */}
         <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
           <Button
-            size="sm"
-            variant={explaining ? 'default' : 'outline'}
-            className="h-7 text-xs gap-1.5 px-2.5"
+            size="small"
+            variant={explaining ? 'solid' : 'outlined'}
+            intent={explaining ? Intent.PRIMARY : Intent.NONE}
+            icon="git-branch"
             onClick={onToggleExplain}
             title="Root cause attribution — traverses the Reality Graph to explain this anomaly"
           >
-            <GitBranch className="h-3 w-3" />
             Explain
           </Button>
           <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs gap-1.5 px-2.5"
+            size="small"
+            variant="outlined"
+            icon="arrow-top-right"
             onClick={() => {
               void navigate('/flow?panel=timeline', {
                 state: { focusVariantId: row.variant_id, focusLabel: row.variant_label },
               })
             }}
           >
-            <ArrowUpRight className="h-3 w-3" />
             Review
           </Button>
           <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
+            variant="minimal"
+            size="small"
+            icon={expanded ? 'chevron-up' : 'chevron-down'}
             onClick={onToggleExpand}
-            title={expanded ? 'Collapse' : 'Expand details'}
-          >
-            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-          </Button>
+            aria-label={expanded ? 'Collapse' : 'Expand details'}
+          />
         </div>
       </div>
 
@@ -242,7 +244,7 @@ function RadarRow({
             <div className="mt-3 text-xs">
               <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Attribution</p>
               <p className="flex items-center gap-1.5">
-                <Users className="h-3 w-3 text-muted-foreground" />
+                <Icon icon="people" size={12} className="text-muted-foreground" />
                 <span className="font-medium">{row.top_user_email}</span>
                 <span className="text-muted-foreground">logged the most units this week ({row.top_user_qty} units)</span>
               </p>
@@ -279,20 +281,20 @@ function SummaryStrip({ rows, currency }: { rows: WasteRadarRow[]; currency: str
   return (
     <div className="flex items-center gap-6 px-4 py-3 border-b bg-muted/30 text-xs">
       <div className="flex items-center gap-1.5">
-        <Flame className="h-3.5 w-3.5 text-red-500" />
+        <Icon icon="flame" size={12} className="text-red-500" />
         <span className="font-semibold text-foreground">{rows.length}</span>
         <span className="text-muted-foreground">anomal{rows.length === 1 ? 'y' : 'ies'} detected</span>
       </div>
       {criticalCount > 0 && (
         <div className="flex items-center gap-1.5">
-          <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+          <Icon icon="warning-sign" size={12} className="text-red-600" />
           <span className="font-semibold text-red-600">{criticalCount}</span>
           <span className="text-muted-foreground">critical (score ≥8)</span>
         </div>
       )}
       {probableTheft > 0 && (
         <div className="flex items-center gap-1.5">
-          <ShieldAlert className="h-3.5 w-3.5 text-red-700" />
+          <Icon icon="shield" size={12} className="text-red-700" />
           <span className="font-semibold text-red-700">{probableTheft}</span>
           <span className="text-muted-foreground">probable theft signal</span>
         </div>
@@ -336,7 +338,7 @@ export default function WasteRadarPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-950/30">
-              <Radar className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <Icon icon="satellite" size={14} className="text-red-600 dark:text-red-400" />
             </div>
             <div>
               <h1 className="text-base font-semibold">Waste Radar</h1>
@@ -350,27 +352,16 @@ export default function WasteRadarPage() {
               <span className="text-xs text-muted-foreground">Updated {lastUpdated}</span>
             )}
             {/* Sort controls */}
-            <div className="flex items-center gap-1 rounded-md border p-0.5">
-              {([
-                ['anomaly', 'Anomaly score', Activity],
-                ['cost',    'Cost at risk',  TrendingUp],
-                ['spike',   'Spike %',       ArrowUpRight],
-              ] as const).map(([key, label, Icon]) => (
-                <button
-                  key={key}
-                  onClick={() => { setSortBy(key); }}
-                  className={cn(
-                    'flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors',
-                    sortBy === key
-                      ? 'bg-foreground text-background'
-                      : 'text-muted-foreground hover:text-foreground',
-                  )}
-                >
-                  <Icon className="h-3 w-3" />
-                  {label}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              size="small"
+              value={sortBy}
+              onValueChange={(v) => { setSortBy(v as 'anomaly' | 'cost' | 'spike') }}
+              options={[
+                { value: 'anomaly', label: 'Anomaly score' },
+                { value: 'cost',    label: 'Cost at risk'  },
+                { value: 'spike',   label: 'Spike %'       },
+              ]}
+            />
           </div>
         </div>
       </div>
@@ -379,24 +370,14 @@ export default function WasteRadarPage() {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
           </div>
         ) : rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-20 text-center px-6">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-50 dark:bg-green-950/20">
-              <Eye className="h-7 w-7 text-green-500" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold">No anomalies detected</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
-                All write-off categories (Breakage, Theft, Spoilage) are within 50% of their
-                4-week weekly baseline. Scanned at {lastUpdated ?? 'load time'}.
-              </p>
-            </div>
-            <p className="text-[10px] text-muted-foreground">
-              Threshold: ≥50% above 4-week avg · occupancy-weighted · anomaly score 1–10
-            </p>
-          </div>
+          <NonIdealState
+            icon="eye-open"
+            title="No anomalies detected"
+            description={`All write-off categories (Breakage, Theft, Spoilage) are within 50% of their 4-week weekly baseline. Scanned at ${lastUpdated ?? 'load time'}. Threshold: ≥50% above 4-week avg · occupancy-weighted · anomaly score 1–10.`}
+          />
         ) : (
           <>
             <SummaryStrip rows={rows} currency={currency} />

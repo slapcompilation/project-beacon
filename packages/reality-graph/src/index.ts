@@ -100,3 +100,57 @@ export type {
   RestockUrgency,
   SupplierRiskLevel,
 } from './nodes/index'
+
+// ── Logic Tool Registry — typed functions, dual-callable by humans + LLMs ────
+// Phase A stub: contracts only. Tool implementations land in src/tools/<name>.ts
+// See CLAUDE.md → "The Logic Tool Registry (Compute Layer)".
+export type { LogicTool, ToolResultMeta, ToolScope } from './tools/index'
+export {
+  toolRegistry,
+  registerTool,
+  getTool,
+  listTools,
+} from './tools/index'
+
+// ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
+// Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.
+// See CLAUDE.md → "AIP-Style Agents".
+export type {
+  AgentSpec,
+  AgentScope,
+  AgentCadence,
+  AgentReleaseStage,
+  AgentApprovalBoundary,
+  AgentInput,
+  AgentRunResult,
+  AgentRunTrace,
+  AgentRunStep,
+  AgentRunStepType,
+} from './agents/index'
+export {
+  agentRegistry,
+  registerAgent,
+  getAgent,
+  listAgents,
+} from './agents/index'
+
+// ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
+// Phase C stub: contracts only. Objectives land in src/objectives/<name>/.
+// See CLAUDE.md → "Modeling Objectives and Adapters (Predictive Layer — Deferred)".
+export type {
+  ModelAdapter,
+  ModelingObjective,
+  EvalSuite,
+  Release,
+  ReleaseStage,
+  Deployment,
+  DeploymentKind,
+} from './objectives/index'
+export {
+  objectiveRegistry,
+  adapterRegistry,
+  registerObjective,
+  registerAdapter,
+  getObjective,
+  getAdapter,
+} from './objectives/index'

@@ -1,15 +1,11 @@
-// Layer: Floor — voice-activated stock adjustment button
-// Phase 6: shows raw transcript + parse-failure feedback so operators know
-// exactly what was heard and whether it was understood.
+// Voice-activated stock adjustment. Shows transcript and parse-failure feedback.
 
 import { useEffect, useState } from 'react'
-import { Mic, MicOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, Icon, Intent } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useSpeechRecognition, parseVoiceCommand } from '@/hooks/useSpeechRecognition'
 
 interface Props {
-  /** Called when a valid command is parsed. Populate your form with these values. */
   onCommand: (productQuery: string, delta: number, reason: string) => void
   className?: string
 }
@@ -27,7 +23,6 @@ export function VoiceAdjustButton({ onCommand, className }: Props) {
 
   const [feedback, setFeedback] = useState<FeedbackState>({ kind: 'idle' })
 
-  // Parse and fire whenever a final transcript arrives
   useEffect(() => {
     if (!transcript) return
 
@@ -44,7 +39,6 @@ export function VoiceAdjustButton({ onCommand, className }: Props) {
     return () => { clearTimeout(t) }
   }, [transcript, onCommand, reset])
 
-  // Clear feedback when listening starts again
   useEffect(() => {
     if (listening) setFeedback({ kind: 'idle' })
   }, [listening])
@@ -56,8 +50,11 @@ export function VoiceAdjustButton({ onCommand, className }: Props) {
       <div className="flex items-center gap-2">
         <Button
           type="button"
-          variant={listening ? 'destructive' : 'outline'}
-          size="sm"
+          size="small"
+          intent={listening ? Intent.DANGER : Intent.NONE}
+          variant={listening ? undefined : 'outlined'}
+          icon={listening ? undefined : 'microphone'}
+          loading={listening}
           onClick={() => { if (listening) { stop() } else { start() } }}
           title={
             listening
@@ -66,29 +63,17 @@ export function VoiceAdjustButton({ onCommand, className }: Props) {
           }
           className={cn(listening && 'animate-pulse')}
         >
-          {listening ? (
-            <>
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              Listening…
-            </>
-          ) : (
-            <>
-              <Mic className="mr-1.5 h-3.5 w-3.5" />
-              Voice
-            </>
-          )}
+          {listening ? 'Listening…' : 'Voice'}
         </Button>
 
-        {/* Mic permission error */}
         {error && (
           <span className="flex items-center gap-1 text-xs text-destructive">
-            <MicOff className="h-3 w-3" />
+            <Icon icon="microphone" size={12} />
             {error === 'not-allowed' ? 'Mic blocked' : error}
           </span>
         )}
       </div>
 
-      {/* Transcript feedback */}
       {feedback.kind !== 'idle' && (
         <div
           className={cn(
@@ -98,11 +83,11 @@ export function VoiceAdjustButton({ onCommand, className }: Props) {
               : 'border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-800 dark:bg-orange-950/30 dark:text-orange-300',
           )}
         >
-          {feedback.kind === 'ok' ? (
-            <CheckCircle2 className="mt-px h-3 w-3 shrink-0" />
-          ) : (
-            <AlertCircle className="mt-px h-3 w-3 shrink-0" />
-          )}
+          <Icon
+            icon={feedback.kind === 'ok' ? 'tick-circle' : 'warning-sign'}
+            size={12}
+            className="mt-px shrink-0"
+          />
           <span>
             {feedback.kind === 'ok' ? (
               <>

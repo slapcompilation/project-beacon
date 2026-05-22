@@ -1,40 +1,29 @@
+// Layer: Flow — Inventory
+// Dense, virtualized product table with inline stock correction, intelligence
+// strips, multi-variant rollups, and bulk actions. The default operator workspace.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
+
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
-  Plus, Search, MoreHorizontal, SlidersHorizontal, History,
-  Trash2, Pencil, Upload, Layers, QrCode,
-  Download, Tag, ArrowLeftRight,
-  Columns3, RefreshCw, TrendingUp, TrendingDown, Minus,
-} from 'lucide-react'
+  Button,
+  Drawer,
+  HTMLSelect,
+  HTMLTable,
+  Icon,
+  InputGroup,
+  Intent,
+  Menu,
+  MenuDivider,
+  MenuItem,
+  NonIdealState,
+  Popover,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { ParOptimizerContent } from '@/pages/ParOptimizerPage'
 import { cn } from '@/lib/utils'
 import { addDays, format } from 'date-fns'
@@ -124,9 +113,10 @@ function DaysLeft({ variantIds, currentStocks, forecastMap, intelligenceMap }: {
             trendPct < -5 ? 'text-emerald-600 dark:text-emerald-400' :
             'text-muted-foreground',
           )}>
-            {trendPct > 5  ? <TrendingUp   className="h-2.5 w-2.5" /> :
-             trendPct < -5 ? <TrendingDown className="h-2.5 w-2.5" /> :
-                             <Minus        className="h-2.5 w-2.5" />}
+            <Icon
+              icon={trendPct > 5 ? 'trending-up' : trendPct < -5 ? 'trending-down' : 'minus'}
+              size={10}
+            />
             {Math.abs(Math.round(trendPct))}%
           </span>
         )}
@@ -164,7 +154,6 @@ function RowIntelStrip({
   const variants = product.product_variants
   if (variants.length === 0) return null
 
-  // Use the variant with the most critical situation as primary
   const totalStock = getTotalStock(variants)
   const primaryVariant = variants.reduce((worst, v) => {
     const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
@@ -179,10 +168,8 @@ function RowIntelStrip({
   const trendPct  = intel?.trend_pct ?? null
   const hasWaste  = variants.some((v) => wasteRadarIds.has(v.id))
   const hasOpen   = variants.some((v) => openRestockIds.has(v.id))
-  // Show restock CTA if ≤14d supply and no pending request
   const showCta   = days !== null && days <= 14 && !hasOpen && totalStock > 0
 
-  // Supplier lead-time synthesis (Move 2)
   const supplierEntry = (primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id
     ? suppliersMap.get((primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id)
     : undefined
@@ -212,7 +199,7 @@ function RowIntelStrip({
           trendPct < -5 ? 'text-emerald-600 dark:text-emerald-400' :
           'text-muted-foreground',
         )}>
-          {trendPct > 3 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+          <Icon icon={trendPct > 3 ? 'trending-up' : 'trending-down'} size={10} />
           {Math.abs(Math.round(trendPct))}%
         </span>
       )}
@@ -241,8 +228,6 @@ function RowIntelStrip({
           type="button"
           onClick={(e) => {
             e.stopPropagation()
-            // Lead-time-aware qty: par - current + burn_rate × lead_time
-            // Ensures we cover stock consumed during the replenishment window
             const reorderQty = (() => {
               if (par > 0 && avgDaily && avgDaily > 0 && leadTimeDays !== null) {
                 return Math.max(Math.ceil(par - totalStock + avgDaily * leadTimeDays), par)
@@ -325,12 +310,10 @@ function InlineStockCell({
   const totalStock = getTotalStock(variants)
   const threshold = variant?.low_stock_threshold ?? 0
 
-  // Par health bar: 0..2 range (0=out, 1=at threshold, 2=2× threshold)
   const parRatio = variant && threshold > 0
     ? Math.min(variant.current_stock / threshold, 2)
     : null
 
-  // Derived intelligence: trend + days-left for the most critical variant
   const primaryV = variants.length > 0
     ? variants.reduce((worst, v) => {
         const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
@@ -405,7 +388,7 @@ function InlineStockCell({
               trendPctCell < -5 ? 'text-emerald-600 dark:text-emerald-400' :
               'text-muted-foreground',
             )}>
-              {trendPctCell > 1 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
+              <Icon icon={trendPctCell > 1 ? 'trending-up' : 'trending-down'} size={10} />
               {Math.abs(Math.round(trendPctCell))}%
             </span>
           )}
@@ -607,7 +590,6 @@ export default function InventoryPage() {
       const matchesTag = !tagFilter || p.tags.includes(tagFilter)
       return matchesSearch && matchesCategory && matchesLocation && matchesTag
     })
-    // Sort by urgency: out-of-stock first → low-stock → waste signal → in-stock
     const urgency = (p: ProductWithVariants) => {
       if (p.product_variants.every((v) => v.current_stock === 0)) return 0
       if (p.product_variants.some((v) => v.low_stock_threshold > 0 && v.current_stock <= v.low_stock_threshold)) return 1
@@ -630,7 +612,6 @@ export default function InventoryPage() {
   const toggleAll = () =>
     { setSelected(isAllSelected ? new Set() : new Set(filtered.map((p) => p.id))); }
 
-  // All unique tags across all products for the filter chips
   const allTags = useMemo(() => {
     const set = new Set<string>()
     for (const p of products) {
@@ -715,6 +696,44 @@ export default function InventoryPage() {
       (v) => v.low_stock_threshold > 0 && v.current_stock > v.low_stock_threshold * 2
     )
 
+  const columnsMenu = (
+    <Menu>
+      <MenuDivider title="Visible columns" />
+      <MenuItem
+        icon={colSku ? 'tick' : 'blank'}
+        text="SKU"
+        shouldDismissPopover={false}
+        onClick={() => { setColSku((v) => !v) }}
+      />
+      <MenuItem
+        icon={colValue ? 'tick' : 'blank'}
+        text="Value"
+        shouldDismissPopover={false}
+        onClick={() => { setColValue((v) => !v) }}
+      />
+      <MenuItem
+        icon={colStatus ? 'tick' : 'blank'}
+        text="Status"
+        shouldDismissPopover={false}
+        onClick={() => { setColStatus((v) => !v) }}
+      />
+      <MenuItem
+        icon={colDays ? 'tick' : 'blank'}
+        text="Days Left"
+        shouldDismissPopover={false}
+        onClick={() => { setColDays((v) => !v) }}
+      />
+      {locations.length > 0 && (
+        <MenuItem
+          icon={colLocation ? 'tick' : 'blank'}
+          text="Location"
+          shouldDismissPopover={false}
+          onClick={() => { setColLocation((v) => !v) }}
+        />
+      )}
+    </Menu>
+  )
+
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
@@ -726,27 +745,22 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleExportInventory} disabled={products.length === 0}>
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
-            <Button variant="outline" onClick={() => { setImportOpen(true); }}>
-              <Upload className="mr-2 h-4 w-4" />
-              Import CSV
-            </Button>
-            <Button variant="outline" onClick={() => { void navigate('/labels') }}>
-              <Tag className="mr-2 h-4 w-4" />
-              Print Labels
-            </Button>
-            <Button variant="outline" onClick={() => { setParOptimizerOpen(true); }}>
-              <SlidersHorizontal className="mr-2 h-4 w-4" />
-              Optimize Pars
-            </Button>
-            <Button onClick={() => { setModal({ type: 'add' }); }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Product
-            </Button>
-          </div>
+          <Button variant="outlined" icon="download" onClick={handleExportInventory} disabled={products.length === 0}>
+            Export CSV
+          </Button>
+          <Button variant="outlined" icon="upload" onClick={() => { setImportOpen(true); }}>
+            Import CSV
+          </Button>
+          <Button variant="outlined" icon="tag" onClick={() => { void navigate('/labels') }}>
+            Print Labels
+          </Button>
+          <Button variant="outlined" icon="settings" onClick={() => { setParOptimizerOpen(true); }}>
+            Optimize Pars
+          </Button>
+          <Button intent={Intent.PRIMARY} icon="plus" onClick={() => { setModal({ type: 'add' }); }}>
+            Add Product
+          </Button>
+        </div>
       </div>
 
       {/* Products content */}
@@ -758,70 +772,57 @@ export default function InventoryPage() {
 
           {/* Toolbar */}
           <div className="flex items-center gap-3 px-8 py-4 border-b">
-            <div className="relative flex-1 max-w-xs">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search by name or SKU…" value={search} onChange={(e) => { setSearch(e.target.value); }} className="pl-9" />
+            <div className="flex-1 max-w-xs">
+              <InputGroup
+                leftIcon="search"
+                placeholder="Search by name or SKU…"
+                value={search}
+                onChange={(e) => { setSearch(e.target.value) }}
+              />
             </div>
             {/* Barcode scan-to-open */}
-            <div className="relative">
-              <QrCode className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
+            <div className="w-44">
+              <InputGroup
+                leftIcon="barcode"
                 placeholder="Scan barcode…"
                 value={barcodeInput}
-                onChange={(e) => { setBarcodeInput(e.target.value); }}
+                onChange={(e) => { setBarcodeInput(e.target.value) }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') void handleBarcodeScan(barcodeInput)
                 }}
-                className="pl-9 w-44 font-mono"
+                className="!font-mono"
                 disabled={lookupBarcode.isPending}
               />
             </div>
             {categories.length > 0 && (
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">All categories</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <HTMLSelect
+                value={categoryFilter}
+                onChange={(e) => { setCategoryFilter(e.target.value) }}
+                options={[
+                  { value: '__all__', label: 'All categories' },
+                  ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+                ]}
+                className="!w-44"
+              />
             )}
             {locations.length > 0 && (
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="All locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">All locations</SelectItem>
-                  {locations.map((loc) => (
-                    <SelectItem key={loc.id} value={loc.id}>{loc.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <HTMLSelect
+                value={locationFilter}
+                onChange={(e) => { setLocationFilter(e.target.value) }}
+                options={[
+                  { value: '__all__', label: 'All locations' },
+                  ...locations.map((loc) => ({ value: loc.id, label: loc.name })),
+                ]}
+                className="!w-44"
+              />
             )}
             <VoiceAdjustButton onCommand={handleVoiceCommand} className="ml-auto" />
             {/* Column visibility */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-1.5">
-                  <Columns3 className="h-3.5 w-3.5" />Columns
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">Visible columns</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem checked={colSku}      onCheckedChange={setColSku}>SKU</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem checked={colValue}    onCheckedChange={setColValue}>Value</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem checked={colStatus}   onCheckedChange={setColStatus}>Status</DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem checked={colDays}     onCheckedChange={setColDays}>Days Left</DropdownMenuCheckboxItem>
-                {locations.length > 0 && (
-                  <DropdownMenuCheckboxItem checked={colLocation} onCheckedChange={setColLocation}>Location</DropdownMenuCheckboxItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Popover content={columnsMenu} placement="bottom-end">
+              <Button size="small" variant="outlined" icon="column-layout" endIcon="caret-down">
+                Columns
+              </Button>
+            </Popover>
           </div>
 
           {/* Tag filter chips */}
@@ -859,93 +860,148 @@ export default function InventoryPage() {
           {selected.size > 0 && (
             <div className="flex items-center gap-3 px-8 py-2.5 bg-primary/5 border-b border-primary/20 text-sm">
               <span className="font-medium text-primary tabular-nums">{selected.size} selected</span>
-              <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={handleBulkExport}>
-                <Download className="h-3.5 w-3.5" />Export
+              <Button size="small" variant="outlined" icon="download" onClick={handleBulkExport}>
+                Export
               </Button>
-              <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs" onClick={() => { void handleBulkRestock() }}
-                disabled={createRestock.isPending}>
-                <RefreshCw className="h-3.5 w-3.5" />Request Restock
+              <Button
+                size="small"
+                variant="outlined"
+                icon="refresh"
+                loading={createRestock.isPending}
+                onClick={() => { void handleBulkRestock() }}
+              >
+                Request Restock
               </Button>
-              <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                onClick={handleBulkDelete}>
-                <Trash2 className="h-3.5 w-3.5" />Delete
+              <Button
+                size="small"
+                variant="outlined"
+                intent={Intent.DANGER}
+                icon="trash"
+                onClick={handleBulkDelete}
+              >
+                Delete
               </Button>
-              <button className="ml-auto text-xs text-muted-foreground hover:text-foreground" onClick={() => { setSelected(new Set()) }}>
+              <Button variant="minimal" size="small" className="!ml-auto" onClick={() => { setSelected(new Set()) }}>
                 Clear
-              </button>
+              </Button>
             </div>
           )}
 
           {/* Table */}
           <div ref={tableScrollRef} className="flex-1 overflow-auto px-8 py-4">
             {isLoading ? (
-              <div className="flex items-center justify-center py-24 text-muted-foreground text-sm">Loading…</div>
+              <div className="flex items-center justify-center py-24 text-muted-foreground text-sm gap-2">
+                <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
+                Loading…
+              </div>
             ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-24 text-center">
-                <p className="text-muted-foreground text-sm">
-                  {search ? 'No products match your search.' : 'No products yet.'}
-                </p>
-                {!search && (
-                  <Button variant="outline" className="mt-4" onClick={() => { setModal({ type: 'add' }); }}>
-                    <Plus className="mr-2 h-4 w-4" />
+              <NonIdealState
+                icon="box"
+                title={search ? 'No products match your search.' : 'No products yet.'}
+                action={!search ? (
+                  <Button variant="outlined" icon="plus" onClick={() => { setModal({ type: 'add' }); }}>
                     Add your first product
                   </Button>
-                )}
-              </div>
+                ) : undefined}
+              />
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-8 px-3">
+              <HTMLTable interactive className="w-full">
+                <thead>
+                  <tr>
+                    <th className="w-8 px-3">
                       <input
                         type="checkbox"
                         checked={isAllSelected}
                         onChange={toggleAll}
                         className="h-3.5 w-3.5 rounded border-muted-foreground/30 accent-primary"
                       />
-                    </TableHead>
-                    <TableHead className="w-10" />
-                    <TableHead>Product</TableHead>
-                    {colSku && <TableHead>SKU</TableHead>}
-                    <TableHead>Category</TableHead>
-                    {locations.length > 0 && colLocation && <TableHead>Location</TableHead>}
-                    <TableHead className="text-right">Stock ✎</TableHead>
-                    {colValue && <TableHead className="text-right">Value</TableHead>}
-                    {colStatus && <TableHead>Status</TableHead>}
-                    {colDays && <TableHead>Days Left · Burn</TableHead>}
-                    <TableHead className="w-10" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+                    </th>
+                    <th className="w-10" />
+                    <th>Product</th>
+                    {colSku && <th>SKU</th>}
+                    <th>Category</th>
+                    {locations.length > 0 && colLocation && <th>Location</th>}
+                    <th className="text-right">Stock ✎</th>
+                    {colValue && <th className="text-right">Value</th>}
+                    {colStatus && <th>Status</th>}
+                    {colDays && <th>Days Left · Burn</th>}
+                    <th className="w-10" />
+                  </tr>
+                </thead>
+                <tbody>
                   {/* Spacer row to position virtualized rows */}
                   {rowVirtualizer.getVirtualItems().length > 0 && (
                     <tr style={{ height: rowVirtualizer.getVirtualItems()[0].start }} />
                   )}
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const product = filtered[virtualRow.index]
+                    const rowMenu = (
+                      <Menu>
+                        <MenuItem
+                          icon="layers"
+                          text="Manage Variants"
+                          onClick={() => { setModal({ type: 'variants', product }) }}
+                        />
+                        <MenuItem
+                          icon="settings"
+                          text="Adjust Stock"
+                          disabled={product.product_variants.length === 0}
+                          onClick={() => { setModal({ type: 'adjust', product }) }}
+                        />
+                        <MenuItem
+                          icon="history"
+                          text="View History"
+                          disabled={product.product_variants.length === 0}
+                          onClick={() => { setModal({ type: 'history', product }) }}
+                        />
+                        <MenuItem
+                          icon="swap-horizontal"
+                          text="Transfer Stock"
+                          disabled={product.product_variants.length === 0}
+                          onClick={() => { setTransferVariant(product.product_variants[0]) }}
+                        />
+                        <MenuItem
+                          icon="barcode"
+                          text="Print Labels"
+                          onClick={() => { void handlePrintLabels(product) }}
+                        />
+                        <MenuDivider />
+                        <MenuItem
+                          icon="edit"
+                          text="Edit"
+                          onClick={() => { setModal({ type: 'edit', product }) }}
+                        />
+                        <MenuItem
+                          icon="trash"
+                          text="Delete"
+                          intent={Intent.DANGER}
+                          onClick={() => { deleteProduct.mutate(product.id) }}
+                        />
+                      </Menu>
+                    )
                     return (
-                    <TableRow
+                    <tr
                       key={product.id}
                       data-index={virtualRow.index}
                       ref={rowVirtualizer.measureElement}
                       className={selected.has(product.id) ? 'bg-primary/5' : undefined}
                     >
-                      <TableCell className="px-3">
+                      <td className="px-3">
                         <input
                           type="checkbox"
                           checked={selected.has(product.id)}
                           onChange={() => { toggleSelect(product.id) }}
                           className="h-3.5 w-3.5 rounded border-muted-foreground/30 accent-primary"
                         />
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         {product.image_url ? (
                           <img src={product.image_url} alt={product.name} className="h-9 w-9 rounded-md object-cover border" />
                         ) : (
                           <div className="h-9 w-9 rounded-md bg-muted border flex items-center justify-center text-muted-foreground/40 text-xs">—</div>
                         )}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div>
                           <EntityLink type="product" id={product.id} className="font-medium text-sm">{product.name}</EntityLink>
                           {product.description && (
@@ -981,60 +1037,56 @@ export default function InventoryPage() {
                             }}
                           />
                         </div>
-                      </TableCell>
-                      {colSku && <TableCell className="text-muted-foreground font-mono text-sm">{product.sku}</TableCell>}
+                      </td>
+                      {colSku && <td className="text-muted-foreground font-mono text-sm">{product.sku}</td>}
 
                       {/* Inline category select */}
-                      <TableCell>
-                        <Select
+                      <td>
+                        <HTMLSelect
                           value={product.category_id ?? '__none__'}
-                          onValueChange={(val) =>
-                            { updateProduct.mutate({
+                          onChange={(e) => {
+                            updateProduct.mutate({
                               id: product.id,
-                              input: { category_id: val === '__none__' ? null : val },
-                            }); }
-                          }
-                        >
-                          <SelectTrigger className="h-7 w-36 border-0 shadow-none text-sm text-muted-foreground px-1 focus:ring-0 focus:ring-offset-0">
-                            <SelectValue placeholder="—" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="__none__">—</SelectItem>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
+                              input: { category_id: e.target.value === '__none__' ? null : e.target.value },
+                            })
+                          }}
+                          options={[
+                            { value: '__none__', label: '—' },
+                            ...categories.map((cat) => ({ value: cat.id, label: cat.name })),
+                          ]}
+                          minimal
+                          className="!w-36"
+                        />
+                      </td>
 
                       {locations.length > 0 && colLocation && (
-                        <TableCell className="text-xs text-muted-foreground">
+                        <td className="text-xs text-muted-foreground">
                           {(() => {
                             const locIds = [...new Set(product.product_variants.map((v) => v.location_id).filter(Boolean))]
                             if (locIds.length === 0) return '—'
                             if (locIds.length === 1) return locationNameMap.get(locIds[0] ?? '') ?? '—'
                             return `${String(locIds.length)} locations`
                           })()}
-                        </TableCell>
+                        </td>
                       )}
-                      <TableCell className="text-right">
+                      <td className="text-right">
                         <InlineStockCell
                           product={product}
                           forecastMap={forecastMap}
                           intelligenceMap={intelligenceMap}
                           onOpenModal={() => { setModal({ type: 'adjust', product }) }}
                         />
-                      </TableCell>
+                      </td>
                       {colValue && (
-                        <TableCell className="text-right tabular-nums text-sm text-muted-foreground">
+                        <td className="text-right tabular-nums text-sm text-muted-foreground">
                           {formatCurrency(
                             product.product_variants.reduce((s, v) => s + v.current_stock * v.cost, 0),
                             currency
                           )}
-                        </TableCell>
+                        </td>
                       )}
                       {colStatus && (
-                        <TableCell>
+                        <td>
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <StockBadge variants={product.product_variants} />
                             {isOverstock(product) && (
@@ -1048,79 +1100,32 @@ export default function InventoryPage() {
                               </span>
                             )}
                           </div>
-                        </TableCell>
+                        </td>
                       )}
                       {colDays && (
-                        <TableCell>
+                        <td>
                           <DaysLeft
                             variantIds={product.product_variants.map((v) => v.id)}
                             currentStocks={product.product_variants.map((v) => v.current_stock)}
                             forecastMap={forecastMap}
                             intelligenceMap={intelligenceMap}
                           />
-                        </TableCell>
+                        </td>
                       )}
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setModal({ type: 'variants', product }); }}>
-                              <Layers className="mr-2 h-4 w-4" />
-                              Manage Variants
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => { setModal({ type: 'adjust', product }); }}
-                              disabled={product.product_variants.length === 0}
-                            >
-                              <SlidersHorizontal className="mr-2 h-4 w-4" />
-                              Adjust Stock
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => { setModal({ type: 'history', product }); }}
-                              disabled={product.product_variants.length === 0}
-                            >
-                              <History className="mr-2 h-4 w-4" />
-                              View History
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => { setTransferVariant(product.product_variants[0]); }}
-                              disabled={product.product_variants.length === 0}
-                            >
-                              <ArrowLeftRight className="mr-2 h-4 w-4" />
-                              Transfer Stock
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => void handlePrintLabels(product)}>
-                              <QrCode className="mr-2 h-4 w-4" />
-                              Print Labels
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => { setModal({ type: 'edit', product }); }}>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              className="text-destructive focus:text-destructive"
-                              onClick={() => { deleteProduct.mutate(product.id); }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
+                      <td>
+                        <Popover content={rowMenu} placement="bottom-end">
+                          <Button variant="minimal" size="small" icon="more" aria-label="Row actions" />
+                        </Popover>
+                      </td>
+                    </tr>
                     )
                   })}
                   {/* Bottom spacer for correct scroll height */}
                   {rowVirtualizer.getVirtualItems().length > 0 && (
                     <tr style={{ height: rowVirtualizer.getTotalSize() - (rowVirtualizer.getVirtualItems().at(-1)?.end ?? 0) }} />
                   )}
-                </TableBody>
-              </Table>
+                </tbody>
+              </HTMLTable>
             )}
           </div>
       </div>
@@ -1158,15 +1163,19 @@ export default function InventoryPage() {
         />
       )}
 
-      {/* Par Optimizer sheet */}
-      <Sheet open={parOptimizerOpen} onOpenChange={setParOptimizerOpen}>
-        <SheetContent side="right" className="w-full max-w-5xl p-0 flex flex-col">
-          <SheetHeader className="sr-only">
-            <SheetTitle>Par Level Optimizer</SheetTitle>
-          </SheetHeader>
+      {/* Par Optimizer drawer */}
+      <Drawer
+        isOpen={parOptimizerOpen}
+        onClose={() => { setParOptimizerOpen(false) }}
+        position="right"
+        size="80%"
+        title="Par Level Optimizer"
+        className="!p-0"
+      >
+        <div className="flex flex-col flex-1 overflow-hidden">
           <ParOptimizerContent />
-        </SheetContent>
-      </Sheet>
+        </div>
+      </Drawer>
     </div>
   )
 }

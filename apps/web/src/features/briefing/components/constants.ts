@@ -1,14 +1,11 @@
-import {
-  PackageMinus, Package, Package2, Scale, AlertTriangle, CalendarX,
-  FileQuestion, FileDown, PackageCheck, Truck, TrendingUp, Trash2,
-} from 'lucide-react'
+import type { IconName } from '@blueprintjs/icons'
 import type { BriefingActionType, SituationIncident } from '@beacon/types'
 
-export const DOMAIN_ICON: Record<SituationIncident['domain'], React.ElementType> = {
-  stock:     Package2,
-  waste:     Trash2,
-  suppliers: Truck,
-  demand:    TrendingUp,
+export const DOMAIN_ICON: Record<SituationIncident['domain'], IconName> = {
+  stock:     'box',
+  waste:     'trash',
+  suppliers: 'truck',
+  demand:    'trending-up',
 }
 
 export const SITUATION_CFG = {
@@ -31,20 +28,20 @@ export const SITUATION_CFG = {
 } as const
 
 export const ACTION_CFG: Record<BriefingActionType, {
-  icon: React.ElementType
+  icon: IconName
   iconCls: string
   groupHint?: string
 }> = {
-  restock_proposal:           { icon: PackageCheck,  iconCls: 'text-green-600',  groupHint: 'Auto-Propose' },
-  supplier_risk:              { icon: AlertTriangle, iconCls: 'text-red-500',    groupHint: 'Supplier' },
-  low_stock_no_po:            { icon: PackageMinus,  iconCls: 'text-red-500',    groupHint: 'Stock' },
-  invoice_discrepancy:        { icon: Scale,         iconCls: 'text-orange-500', groupHint: 'Finance' },
-  waste_spike_low_occupancy:  { icon: AlertTriangle, iconCls: 'text-red-500',    groupHint: 'Waste' },
-  expiry_soon:                { icon: CalendarX,     iconCls: 'text-red-500',    groupHint: 'Expiry' },
-  low_stock_po_in_flight:     { icon: Package,       iconCls: 'text-amber-500',  groupHint: 'Stock' },
-  waste_spike_high_occupancy: { icon: AlertTriangle, iconCls: 'text-amber-400',  groupHint: 'Waste' },
-  gl_unmapped:                { icon: FileQuestion,  iconCls: 'text-orange-500', groupHint: 'GL' },
-  gl_period_ending:           { icon: FileDown,      iconCls: 'text-blue-500',   groupHint: 'GL' },
+  restock_proposal:           { icon: 'confirm',       iconCls: 'text-green-600',  groupHint: 'Auto-Propose' },
+  supplier_risk:              { icon: 'warning-sign',  iconCls: 'text-red-500',    groupHint: 'Supplier' },
+  low_stock_no_po:            { icon: 'remove',        iconCls: 'text-red-500',    groupHint: 'Stock' },
+  invoice_discrepancy:        { icon: 'comparison',    iconCls: 'text-orange-500', groupHint: 'Finance' },
+  waste_spike_low_occupancy:  { icon: 'warning-sign',  iconCls: 'text-red-500',    groupHint: 'Waste' },
+  expiry_soon:                { icon: 'calendar',      iconCls: 'text-red-500',    groupHint: 'Expiry' },
+  low_stock_po_in_flight:     { icon: 'box',           iconCls: 'text-amber-500',  groupHint: 'Stock' },
+  waste_spike_high_occupancy: { icon: 'warning-sign',  iconCls: 'text-amber-400',  groupHint: 'Waste' },
+  gl_unmapped:                { icon: 'help',          iconCls: 'text-orange-500', groupHint: 'GL' },
+  gl_period_ending:           { icon: 'document-share',iconCls: 'text-blue-500',   groupHint: 'GL' },
 }
 
 export const BAND = (p: number) => p <= 1 ? 'act' as const : p <= 3 ? 'monitor' as const : 'info' as const

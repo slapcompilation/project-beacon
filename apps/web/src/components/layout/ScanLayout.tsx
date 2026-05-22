@@ -1,11 +1,8 @@
-// Layer: Floor — Minimal layout for scan-first UI (floor staff / limited access)
-// Includes OfflineBanner so the offline queue is never invisible on the scan surface.
-// Includes error recovery (retry/discard) so floor staff are never silently stuck.
+// Minimal scan-first layout for floor staff. Shows OfflineBanner so the queue is never invisible.
 
 import { Outlet, useNavigate } from 'react-router-dom'
-import { LogOut } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button } from '@blueprintjs/core'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { services } from '@/lib/services'
@@ -28,8 +25,7 @@ export function ScanLayout() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <span className="text-lg font-bold tracking-tight">Beacon</span>
-        <Button variant="ghost" size="sm" onClick={() => { void handleSignOut() }}>
-          <LogOut className="mr-2 h-4 w-4" />
+        <Button variant="minimal" size="small" icon="log-out" onClick={() => { void handleSignOut() }}>
           Sign out
         </Button>
       </header>

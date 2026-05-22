@@ -1,8 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Activity, Loader2, PackageCheck } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
+import { Button, Icon, Intent } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useBriefingActions, useApproveRestockProposal } from '@/features/briefing/hooks'
@@ -51,7 +50,7 @@ export function ProposalsPanel({ currency }: { currency: string }) {
         setApprovedCount((n) => n + 1)
         if (p.entity_id) setDoneIds((prev) => new Set([...prev, p.entity_id ?? '']))
       } catch {
-        // Skip failed; continue with the rest
+        // skip failures, continue with the rest
       }
     }
     setAllDone(true)
@@ -65,9 +64,8 @@ export function ProposalsPanel({ currency }: { currency: string }) {
 
   return (
     <div className="rounded-lg border border-green-200 dark:border-green-900/50 overflow-hidden">
-      {/* Header */}
       <div className="flex items-center gap-3 px-4 py-3 bg-green-50/60 dark:bg-green-950/20 border-b border-green-100 dark:border-green-900/30">
-        <Activity className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+        <Icon icon="pulse" size={14} className="text-green-600 dark:text-green-400 shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-green-700 dark:text-green-400 uppercase tracking-widest">
             {proposals.length} Autonomous Proposal{proposals.length > 1 ? 's' : ''} Ready
@@ -79,37 +77,25 @@ export function ProposalsPanel({ currency }: { currency: string }) {
         </div>
 
         {allDone ? (
-          <Button
-            size="sm"
-            variant="outline"
-            className="h-7 text-xs shrink-0"
-            onClick={() => { void navigate('/mind?panel=procurement') }}
-          >
+          <Button size="small" variant="outlined" onClick={() => { void navigate('/mind?panel=procurement') }}>
             View Procurement →
           </Button>
         ) : (
           <Button
-            size="sm"
-            className="h-7 text-xs shrink-0 gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+            size="small"
+            intent={Intent.SUCCESS}
+            icon="confirm"
+            loading={approving}
             disabled={approving || pendingCount === 0}
             onClick={() => { void handleApproveAll() }}
           >
-            {approving ? (
-              <>
-                <Loader2 className="h-3 w-3 animate-spin" />
-                {approvedCount}/{pendingCount}…
-              </>
-            ) : (
-              <>
-                <PackageCheck className="h-3 w-3" />
-                Approve All {pendingCount > 1 ? `${String(pendingCount)} ` : ''}& Create POs
-              </>
-            )}
+            {approving
+              ? `${approvedCount}/${pendingCount}…`
+              : `Approve All ${pendingCount > 1 ? `${String(pendingCount)} ` : ''}& Create POs`}
           </Button>
         )}
       </div>
 
-      {/* Proposal rows */}
       <div className="divide-y">
         {proposals.map((p) => {
           const m         = p.metadata
@@ -140,9 +126,9 @@ export function ProposalsPanel({ currency }: { currency: string }) {
               </div>
               {!isDone && (
                 <Button
-                  size="sm"
-                  variant="outline"
-                  className="h-6 text-[10px] px-2 shrink-0 border-green-200 dark:border-green-900/50 text-green-700 dark:text-green-400 hover:bg-green-50"
+                  size="small"
+                  variant="outlined"
+                  intent={Intent.SUCCESS}
                   disabled={approving}
                   onClick={() => {
                     void approveProposal.mutateAsync({

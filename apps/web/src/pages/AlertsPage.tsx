@@ -1,18 +1,25 @@
 // Layer: Eye — intelligence surface for waste, expiry, low-stock, and notification signals
-// Sprint A UX: layer-grouped sections (Eye · Expiry / Eye · Stock / Floor · Notifications),
+// Layer-grouped sections (Eye · Expiry / Eye · Stock / Eye · Anomalies / Floor · Notifications),
 // bulk restock action, and a scope-aware empty state.
 // Palantir principle: cross-domain synthesis + decision support, not data display.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState, useCallback, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import { format } from 'date-fns'
 import {
-  AlertTriangle, CalendarX2, PackageX, BellDot,
-  RefreshCw, Flame, Clock, Sparkles, Loader2,
-  TrendingDown, CheckCircle2, BellOff, Eye, Zap,
-  PackagePlus, Check, Settings2, ChevronDown, ChevronUp, RotateCcw,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+  Button,
+  Callout,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { CausalTracePanel } from '@/components/CausalTracePanel'
 import { cn } from '@/lib/utils'
 import { useProducts, useExpiringVariants, useAdjustStock } from '@/features/inventory/hooks'
@@ -28,7 +35,6 @@ import { formatCurrency } from '@/lib/currency'
 import { daysUntil } from '@/lib/date'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useDateFormat } from '@/features/user/hooks'
-import { format } from 'date-fns'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -40,51 +46,48 @@ interface AlertItem {
   id: string
   band: Band
   layer: AlertLayer
-  icon: React.ElementType
+  icon: IconName
   title: string
   subtitle: string
   costExposure?: number
-  actions: { label: string; onClick: () => void; variant?: 'default' | 'outline' }[]
-  // For bulk restock
+  actions: { label: string; onClick: () => void; intent?: Intent }[]
   _variantId?: string
   _restockQty?: number
-  // True for variants that have never received any stock (setup state, not an emergency)
   _neverStocked?: boolean
-  // For causal trace: notification id when the alert originated from a notification
   _notifId?: string
 }
 
 const BAND_META: Record<Band, {
-  label: string; bg: string; border: string; iconColor: string; dot: string
+  label: string; bg: string; border: string; iconColor: string; intent: Intent
 }> = {
   critical: {
     label: 'Critical',
     bg: 'bg-red-50 dark:bg-red-950/20',
     border: 'border-red-200 dark:border-red-800',
     iconColor: 'text-red-600',
-    dot: 'bg-red-500',
+    intent: Intent.DANGER,
   },
   warning: {
     label: 'Warning',
     bg: 'bg-yellow-50 dark:bg-yellow-950/20',
     border: 'border-yellow-200 dark:border-yellow-800',
     iconColor: 'text-yellow-600',
-    dot: 'bg-yellow-500',
+    intent: Intent.WARNING,
   },
   info: {
     label: 'Info',
     bg: 'bg-muted/40',
     border: 'border-border',
     iconColor: 'text-muted-foreground',
-    dot: 'bg-muted-foreground',
+    intent: Intent.NONE,
   },
 }
 
-const LAYER_META: Record<AlertLayer, { icon: React.ElementType; color: string }> = {
-  'Eye · Expiry Risk':      { icon: CalendarX2,    color: 'text-orange-600 dark:text-orange-400' },
-  'Eye · Stock Forecast':   { icon: TrendingDown,  color: 'text-red-600 dark:text-red-400' },
-  'Eye · Anomalies':        { icon: Zap,           color: 'text-yellow-600 dark:text-yellow-400' },
-  'Floor · Notifications':  { icon: BellDot,       color: 'text-blue-600 dark:text-blue-400' },
+const LAYER_META: Record<AlertLayer, { icon: IconName; color: string }> = {
+  'Eye · Expiry Risk':      { icon: 'calendar',       color: 'text-orange-600 dark:text-orange-400' },
+  'Eye · Stock Forecast':   { icon: 'trending-down',  color: 'text-red-600 dark:text-red-400' },
+  'Eye · Anomalies':        { icon: 'flash',          color: 'text-yellow-600 dark:text-yellow-400' },
+  'Floor · Notifications':  { icon: 'notifications',  color: 'text-blue-600 dark:text-blue-400' },
 }
 
 // ─── Summary strip ────────────────────────────────────────────────────────────
@@ -114,63 +117,11 @@ function SummaryStrip({ alerts, currency }: { alerts: AlertItem[]; currency: str
       )}
       {totalExposure > 0 && (
         <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-          <TrendingDown className="h-3.5 w-3.5" />
+          <Icon icon="trending-down" size={14} />
           <span className="font-semibold tabular-nums">{formatCurrency(totalExposure, currency)}</span>
           <span className="text-xs text-muted-foreground">total cost exposure</span>
         </span>
       )}
-    </div>
-  )
-}
-
-// ─── Filter tabs ──────────────────────────────────────────────────────────────
-
-function FilterTabs({
-  active,
-  onChange,
-  counts,
-}: {
-  active: FilterBand
-  onChange: (b: FilterBand) => void
-  counts: Record<Band, number>
-}) {
-  const tabs: { key: FilterBand; label: string }[] = [
-    { key: 'all',      label: 'All' },
-    { key: 'critical', label: 'Critical' },
-    { key: 'warning',  label: 'Warning' },
-    { key: 'info',     label: 'Info' },
-  ]
-  return (
-    <div className="flex gap-0.5 rounded-md border p-0.5">
-      {tabs.map((t) => {
-        const count = t.key === 'all'
-          ? counts.critical + counts.warning + counts.info
-          : counts[t.key]
-        return (
-          <button
-            key={t.key}
-            onClick={() => { onChange(t.key) }}
-            className={cn(
-              'flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors',
-              active === t.key
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-muted'
-            )}
-          >
-            {t.label}
-            {count > 0 && (
-              <span className={cn(
-                'rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
-                active === t.key
-                  ? 'bg-primary-foreground/20 text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
-              )}>
-                {String(count)}
-              </span>
-            )}
-          </button>
-        )
-      })}
     </div>
   )
 }
@@ -189,12 +140,11 @@ function AlertCard({
   onTrace?: (notifId: string, title: string) => void
 }) {
   const meta = BAND_META[item.band]
-  const Icon = item.icon
   const isRequested = !!item._variantId && requestedVariantIds.has(item._variantId)
   return (
-    <div className={cn('flex items-start gap-4 rounded-lg border p-3.5', meta.bg, meta.border)}>
+    <div className={cn('flex items-start gap-4 rounded border p-3.5', meta.bg, meta.border)}>
       <div className={cn('mt-0.5 flex-shrink-0', meta.iconColor)}>
-        <Icon className="h-4 w-4" />
+        <Icon icon={item.icon} size={14} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium leading-snug">
@@ -213,9 +163,8 @@ function AlertCard({
       <div className="flex flex-shrink-0 items-center gap-2">
         {item._notifId && onTrace && (
           <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 text-xs text-muted-foreground hover:text-foreground gap-1"
+            size="small"
+            variant="minimal"
             onClick={() => { if (item._notifId) onTrace(item._notifId, item.title) }}
             title="Explain why this happened"
           >
@@ -228,12 +177,11 @@ function AlertCard({
             return (
               <Button
                 key={a.label}
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs gap-1 border-green-300 text-green-700 dark:border-green-700 dark:text-green-400"
+                size="small"
+                icon="tick"
+                intent={Intent.SUCCESS}
                 disabled
               >
-                <Check className="h-3 w-3" />
                 Requested
               </Button>
             )
@@ -241,9 +189,8 @@ function AlertCard({
           return (
             <Button
               key={a.label}
-              size="sm"
-              variant={a.variant ?? 'outline'}
-              className="h-7 text-xs"
+              size="small"
+              intent={a.intent}
               onClick={a.onClick}
             >
               {a.label}
@@ -255,7 +202,7 @@ function AlertCard({
   )
 }
 
-// ─── Layer section (Eye · Expiry / Eye · Stock / Floor · Notifications) ──────
+// ─── Layer section ────────────────────────────────────────────────────────────
 
 function LayerSection({
   layer,
@@ -272,7 +219,6 @@ function LayerSection({
 }) {
   if (items.length === 0) return null
   const meta = LAYER_META[layer]
-  const LayerIcon = meta.icon
 
   const critCount = items.filter((i) => i.band === 'critical').length
   const warnCount = items.filter((i) => i.band === 'warning').length
@@ -281,7 +227,7 @@ function LayerSection({
     <div className="space-y-2">
       {/* Layer header */}
       <div className="flex items-center gap-2">
-        <LayerIcon className={cn('h-3.5 w-3.5 flex-shrink-0', meta.color)} />
+        <Icon icon={meta.icon} size={14} className={cn('flex-shrink-0', meta.color)} />
         <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
           {layer}
         </h2>
@@ -317,8 +263,6 @@ function LayerSection({
 }
 
 // ─── Alert config panel ───────────────────────────────────────────────────────
-// Inline collapsible panel for admins/owners to tune alert sensitivity.
-// Saves to alert_preferences table; auto_create_alerts reads these on next scan.
 
 const DAYS_MIN = 1, DAYS_MAX = 60
 const WASTE_MIN = 1, WASTE_MAX = 500
@@ -330,7 +274,6 @@ function AlertConfigPanel({ onClose }: { onClose: () => void }) {
   const [days,  setDays]  = useState<number>(prefs?.days_threshold  ?? 7)
   const [waste, setWaste] = useState<number>(prefs?.waste_threshold ?? 10)
 
-  // Sync form when prefs load
   useEffect(() => {
     if (prefs) { setDays(prefs.days_threshold); setWaste(prefs.waste_threshold) }
   }, [prefs])
@@ -355,13 +298,7 @@ function AlertConfigPanel({ onClose }: { onClose: () => void }) {
       <div className="max-w-2xl space-y-4">
         <div className="flex items-center justify-between">
           <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Alert Thresholds</p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Close
-          </button>
+          <Button variant="minimal" size="small" onClick={onClose}>Close</Button>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
@@ -371,13 +308,13 @@ function AlertConfigPanel({ onClose }: { onClose: () => void }) {
               Low stock alert — days until empty
             </label>
             <div className="flex items-center gap-2">
-              <Input
+              <InputGroup
                 type="number"
                 min={DAYS_MIN}
                 max={DAYS_MAX}
-                value={days}
+                value={String(days)}
                 onChange={(e) => { setDays(parseInput(e.target.value, DAYS_MIN, DAYS_MAX)) }}
-                className="h-8 w-24 text-sm tabular-nums"
+                className="w-24 [&_input]:tabular-nums"
               />
               <span className="text-xs text-muted-foreground">days remaining</span>
             </div>
@@ -395,13 +332,13 @@ function AlertConfigPanel({ onClose }: { onClose: () => void }) {
               Waste alert — weekly units threshold
             </label>
             <div className="flex items-center gap-2">
-              <Input
+              <InputGroup
                 type="number"
                 min={WASTE_MIN}
                 max={WASTE_MAX}
-                value={waste}
+                value={String(waste)}
                 onChange={(e) => { setWaste(parseInput(e.target.value, WASTE_MIN, WASTE_MAX)) }}
-                className="h-8 w-24 text-sm tabular-nums"
+                className="w-24 [&_input]:tabular-nums"
               />
               <span className="text-xs text-muted-foreground">units / week</span>
             </div>
@@ -416,22 +353,24 @@ function AlertConfigPanel({ onClose }: { onClose: () => void }) {
 
         <div className="flex items-center gap-3 pt-1">
           <Button
-            size="sm"
+            icon="floppy-disk"
+            size="small"
+            intent={Intent.PRIMARY}
             onClick={handleSave}
-            disabled={!isDirty || update.isPending}
-            className="gap-1.5 h-8 text-xs"
+            disabled={!isDirty}
+            loading={update.isPending}
           >
-            {update.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             Save preferences
           </Button>
           {!isDefault && (
-            <button
-              type="button"
+            <Button
+              icon="undo"
+              variant="minimal"
+              size="small"
               onClick={handleReset}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              <RotateCcw className="h-3 w-3" />Reset to defaults (7d / 10 units)
-            </button>
+              Reset to defaults (7d / 10 units)
+            </Button>
           )}
           <p className="ml-auto text-[11px] text-muted-foreground">
             Applies on next &ldquo;Scan Alerts&rdquo; run
@@ -456,7 +395,6 @@ export default function AlertsPage() {
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null)
   const [configOpen, setConfigOpen] = useState(false)
 
-  // Causal trace panel state
   const [traceTarget, setTraceTarget] = useState<{ id: string; title: string } | null>(null)
 
   const handleOpenTrace = useCallback((notifId: string, title: string) => {
@@ -476,7 +414,6 @@ export default function AlertsPage() {
   const autoAlerts   = useAutoAlerts()
   const { data: alertPrefs } = useAlertPreferences()
 
-  // Track when the alert scan last succeeded
   useEffect(() => {
     if (autoAlerts.isSuccess) setLastScanTime(new Date())
   }, [autoAlerts.isSuccess])
@@ -536,19 +473,17 @@ export default function AlertsPage() {
         id: `expiry-${v.id}`,
         band,
         layer: 'Eye · Expiry Risk',
-        icon: CalendarX2,
+        icon: 'calendar',
         title: variantLabel,
         subtitle: subtitleParts.join(' · '),
         costExposure: v.current_stock * v.cost,
         actions: [
           {
             label: 'Write off',
-            variant: 'outline',
             onClick: () => { handleWriteOff(v.id, v.current_stock) },
           },
           {
             label: 'View Expiry',
-            variant: 'outline',
             onClick: () => { void navigate('/floor?panel=expiry') },
           },
         ],
@@ -565,13 +500,11 @@ export default function AlertsPage() {
           : product.name
 
         if (variant.current_stock === 0 && !variant.has_stock_history) {
-          // "Never stocked" — setup state, not an operational emergency.
-          // Render as info band with "Receive stock" action (not a restock request).
           items.push({
             id: `stock-out-${variant.id}`,
             band: 'info',
             layer: 'Eye · Stock Forecast',
-            icon: PackagePlus,
+            icon: 'add',
             title: `Needs initial stock: ${label}`,
             subtitle: [`SKU ${variant.sku}`, 'Never received — receive initial stock to activate'].join(' · '),
             costExposure: 0,
@@ -580,13 +513,11 @@ export default function AlertsPage() {
             actions: [
               {
                 label: 'Receive stock',
-                variant: 'outline',
                 onClick: () => { void navigate('/flow?panel=receive') },
               },
             ],
           })
         } else if (variant.current_stock === 0) {
-          // Depleted — had stock, now gone. This is the real operational emergency.
           const subtitleParts = [
             `SKU ${variant.sku}`,
             `par ${String(variant.low_stock_threshold)}`,
@@ -597,7 +528,7 @@ export default function AlertsPage() {
             id: `stock-out-${variant.id}`,
             band: 'critical',
             layer: 'Eye · Stock Forecast',
-            icon: PackageX,
+            icon: 'box',
             title: `Out of stock: ${label}`,
             subtitle: subtitleParts.join(' · '),
             costExposure: 0,
@@ -606,6 +537,7 @@ export default function AlertsPage() {
             actions: [
               {
                 label: 'Request restock',
+                intent: Intent.PRIMARY,
                 onClick: () => { handleRestock(variant.id, Math.max(variant.low_stock_threshold * 2, 1)) },
               },
             ],
@@ -626,7 +558,7 @@ export default function AlertsPage() {
             id: `stock-low-${variant.id}`,
             band: 'warning',
             layer: 'Eye · Stock Forecast',
-            icon: AlertTriangle,
+            icon: 'warning-sign',
             title: `Low stock: ${label}`,
             subtitle: subtitleParts.join(' · '),
             costExposure: variant.current_stock * variant.cost,
@@ -635,7 +567,6 @@ export default function AlertsPage() {
             actions: [
               {
                 label: 'Request restock',
-                variant: 'outline',
                 onClick: () => { handleRestock(variant.id, variant.low_stock_threshold * 2 - variant.current_stock) },
               },
             ],
@@ -644,7 +575,7 @@ export default function AlertsPage() {
       }
     }
 
-    // ── Eye · Anomalies (consumption spikes) + Floor · Notifications ─────────
+    // ── Eye · Anomalies + Floor · Notifications ─────────
     for (const n of notifications) {
       if (n.read) continue
 
@@ -653,14 +584,13 @@ export default function AlertsPage() {
           id: `notif-${n.id}`,
           band: 'warning',
           layer: 'Eye · Anomalies',
-          icon: Zap,
+          icon: 'flash',
           title: n.message,
           subtitle: `Detected ${fmtDate(n.timestamp)} at ${format(new Date(n.timestamp), 'HH:mm')} · based on 30-day avg`,
           _notifId: n.id,
           actions: [
             {
               label: 'Dismiss',
-              variant: 'outline',
               onClick: () => { handleDismiss(n.id) },
             },
           ],
@@ -673,12 +603,11 @@ export default function AlertsPage() {
         n.type === 'low_stock' || n.type === 'expiry' || n.type === 'waste_alert' ? 'warning' :
         'info'
 
-      const icon =
-        n.type === 'predicted_outage' ? Clock :
-        n.type === 'waste_alert' ? Flame :
-        BellDot
+      const icon: IconName =
+        n.type === 'predicted_outage' ? 'time' :
+        n.type === 'waste_alert' ? 'flame' :
+        'notifications'
 
-      // Traceable alert types get the "Why?" button
       const isTraceable = n.type === 'predicted_outage' || n.type === 'low_stock'
 
       items.push({
@@ -692,14 +621,12 @@ export default function AlertsPage() {
         actions: [
           {
             label: 'Dismiss',
-            variant: 'outline',
             onClick: () => { handleDismiss(n.id) },
           },
         ],
       })
     }
 
-    // Sort: critical first → warning → info; within band by cost exposure desc
     const ORDER: Record<Band, number> = { critical: 0, warning: 1, info: 2 }
     return items.sort((a, b) => {
       const bandDiff = ORDER[a.band] - ORDER[b.band]
@@ -711,18 +638,15 @@ export default function AlertsPage() {
     navigate, handleWriteOff, handleRestock, handleDismiss, fmtDate,
   ])
 
-  // Band counts for filter tabs
   const criticalItems = alerts.filter((a) => a.band === 'critical')
   const warningItems  = alerts.filter((a) => a.band === 'warning')
   const infoItems     = alerts.filter((a) => a.band === 'info')
 
-  // Apply band filter
   const visibleAlerts = useMemo(() => {
     if (filterBand === 'all') return alerts
     return alerts.filter((a) => a.band === filterBand)
   }, [alerts, filterBand])
 
-  // Group visible alerts by layer
   const byLayer = useMemo(() => {
     const map = new Map<AlertLayer, AlertItem[]>()
     const order: AlertLayer[] = ['Eye · Expiry Risk', 'Eye · Stock Forecast', 'Eye · Anomalies', 'Floor · Notifications']
@@ -733,7 +657,6 @@ export default function AlertsPage() {
     return map
   }, [visibleAlerts])
 
-  // Bulk restock — only depleted alerts (not "never stocked" info items)
   const stockAlerts = useMemo(
     () => visibleAlerts.filter((a) => a.layer === 'Eye · Stock Forecast' && a._variantId && !a._neverStocked),
     [visibleAlerts]
@@ -749,6 +672,7 @@ export default function AlertsPage() {
   }
 
   const variantCount = products.reduce((s, p) => s + p.product_variants.length, 0)
+  const totalCount = criticalItems.length + warningItems.length + infoItems.length
 
   return (
     <div className="flex flex-col h-full">
@@ -756,7 +680,7 @@ export default function AlertsPage() {
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <Eye className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="eye-open" size={20} className="text-muted-foreground" />
             Alerts
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
@@ -768,39 +692,31 @@ export default function AlertsPage() {
         <div className="flex items-center gap-2">
           {unreadNotifCount > 0 && (
             <Button
-              variant="outline"
-              size="sm"
+              icon="notifications-snooze"
+              size="small"
+              loading={markAllRead.isPending}
               onClick={() => { markAllRead.mutate() }}
-              disabled={markAllRead.isPending}
             >
-              {markAllRead.isPending
-                ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                : <BellOff className="mr-2 h-3.5 w-3.5" />}
               Dismiss notifications ({unreadNotifCount})
             </Button>
           )}
           {canScan && (
             <>
               <Button
-                variant="outline"
-                size="sm"
+                icon="cog"
+                endIcon={configOpen ? 'chevron-up' : 'chevron-down'}
+                size="small"
                 onClick={() => { setConfigOpen((v) => !v) }}
-                className="gap-1.5"
               >
-                <Settings2 className="h-3.5 w-3.5" />
                 Configure
-                {configOpen
-                  ? <ChevronUp className="h-3 w-3 ml-0.5" />
-                  : <ChevronDown className="h-3 w-3 ml-0.5" />}
               </Button>
               <Button
-                size="sm"
+                icon="predictive-analysis"
+                intent={Intent.PRIMARY}
+                size="small"
+                loading={autoAlerts.isPending}
                 onClick={() => { autoAlerts.mutate({}) }}
-                disabled={autoAlerts.isPending}
               >
-                {autoAlerts.isPending
-                  ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  : <Sparkles className="mr-2 h-3.5 w-3.5" />}
                 Scan Alerts
               </Button>
             </>
@@ -819,27 +735,27 @@ export default function AlertsPage() {
       {/* Filter toolbar + bulk action */}
       {!isLoading && alerts.length > 0 && (
         <div className="flex items-center gap-3 border-b px-8 py-3 flex-shrink-0">
-          <FilterTabs
-            active={filterBand}
-            onChange={setFilterBand}
-            counts={{
-              critical: criticalItems.length,
-              warning:  warningItems.length,
-              info:     infoItems.length,
-            }}
+          <SegmentedControl
+            size="small"
+            value={filterBand}
+            onValueChange={(v) => { setFilterBand(v as FilterBand) }}
+            options={[
+              { value: 'all',      label: `All (${String(totalCount)})` },
+              { value: 'critical', label: `Critical (${String(criticalItems.length)})` },
+              { value: 'warning',  label: `Warning (${String(warningItems.length)})` },
+              { value: 'info',     label: `Info (${String(infoItems.length)})` },
+            ]}
           />
           {/* Bulk restock CTA */}
           {stockAlerts.length > 0 && (
             <Button
-              size="sm"
-              variant="outline"
-              className="ml-auto gap-1.5 border-orange-300 text-orange-700 hover:bg-orange-50 dark:border-orange-700 dark:text-orange-400 dark:hover:bg-orange-950/30"
+              icon="flash"
+              intent={Intent.WARNING}
+              size="small"
+              className="ml-auto"
+              loading={createRestock.isPending}
               onClick={handleBulkRestock}
-              disabled={createRestock.isPending}
             >
-              {createRestock.isPending
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : <Zap className="h-3.5 w-3.5" />}
               Request restock for all {stockAlerts.length} stock alerts
             </Button>
           )}
@@ -849,47 +765,43 @@ export default function AlertsPage() {
       {/* Body */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-24 text-muted-foreground">
-            <RefreshCw className="h-5 w-5 animate-spin mr-2" />
+          <div className="flex items-center justify-center py-24 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.STANDARD} />
             Loading alerts…
           </div>
         ) : alerts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-              <CheckCircle2 className="h-7 w-7 text-green-600" />
-            </div>
-            <p className="text-base font-medium">All clear</p>
-            <div className="space-y-1 text-sm text-muted-foreground max-w-sm">
-              <p>
-                Scanned <span className="font-semibold text-foreground tabular-nums">{variantCount}</span> variants
-                {lastScanTime && (
-                  <span> at <span className="font-semibold text-foreground">{format(lastScanTime, 'HH:mm')}</span></span>
-                )}
-              </p>
-              <p className="text-xs text-muted-foreground/80 tabular-nums">
-                Low stock: &lt;{alertPrefs?.days_threshold ?? 7}d remaining · Waste: &gt;{alertPrefs?.waste_threshold ?? 10} units/week · {expiring.length} expiry dates checked
-              </p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">All conditions normal</p>
-            </div>
-            {canScan && (
+          <NonIdealState
+            icon="tick-circle"
+            title="All clear"
+            description={
+              <div className="space-y-1 max-w-sm">
+                <p>
+                  Scanned <span className="font-semibold text-foreground tabular-nums">{variantCount}</span> variants
+                  {lastScanTime && (
+                    <span> at <span className="font-semibold text-foreground">{format(lastScanTime, 'HH:mm')}</span></span>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground/80 tabular-nums">
+                  Low stock: &lt;{alertPrefs?.days_threshold ?? 7}d remaining · Waste: &gt;{alertPrefs?.waste_threshold ?? 10} units/week · {expiring.length} expiry dates checked
+                </p>
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">All conditions normal</p>
+              </div>
+            }
+            action={canScan ? (
               <Button
-                size="sm"
-                variant="outline"
-                className="mt-1 gap-1.5"
+                icon="predictive-analysis"
+                size="small"
+                loading={autoAlerts.isPending}
                 onClick={() => { autoAlerts.mutate({}) }}
-                disabled={autoAlerts.isPending}
               >
-                {autoAlerts.isPending
-                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  : <Sparkles className="h-3.5 w-3.5" />}
                 Re-scan now
               </Button>
-            )}
-          </div>
+            ) : undefined}
+          />
         ) : visibleAlerts.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">
+          <Callout intent={Intent.NONE} icon="info-sign" compact>
             No alerts in this band.
-          </div>
+          </Callout>
         ) : (
           <div className="space-y-8 max-w-3xl">
             {([

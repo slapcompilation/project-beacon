@@ -2,12 +2,20 @@
 // Palantir principle: decision support, not data display.
 // Operator sees exactly what to order, why, at what confidence — and approves with one click.
 // Proposals are probabilistically enriched: stockout probability, PAR-aware qty, PO-history lead times.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import {
-  AlertTriangle, CheckCircle2, Clock, ChevronDown, ChevronUp,
-  Loader2, RefreshCw, Zap, Package, TrendingUp,
-} from 'lucide-react'
+  Button,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -165,37 +173,28 @@ function ProposalDetail({
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-1">
-        <button
-          type="button"
-          disabled={approving}
+        <Button
+          size="small"
+          intent={row.preferred_supplier_id ? Intent.PRIMARY : Intent.WARNING}
+          icon="tick-circle"
+          loading={approving}
           onClick={onApprove}
-          className={cn(
-            'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
-            row.preferred_supplier_id
-              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-              : 'bg-amber-600 text-white hover:bg-amber-700',
-            'disabled:opacity-50',
-          )}
         >
-          {approving ? (
-            <Loader2 className="h-3 w-3 animate-spin" />
-          ) : (
-            <CheckCircle2 className="h-3 w-3" />
-          )}
           {row.preferred_supplier_id ? 'Approve & Create PO' : 'Create Restock Request'}
-        </button>
+        </Button>
         {!row.preferred_supplier_id && (
           <p className="text-[10px] text-amber-600 dark:text-amber-400">
             No supplier — assign in Procurement after approve
           </p>
         )}
-        <button
-          type="button"
+        <Button
+          size="small"
+          variant="minimal"
+          className="!ml-auto"
           onClick={onDismiss}
-          className="ml-auto text-[10px] text-muted-foreground hover:text-foreground transition-colors"
         >
           Dismiss 48h
-        </button>
+        </Button>
       </div>
     </div>
   )
@@ -304,32 +303,24 @@ function ProposalRow({
 
           {/* Quick approve button (visible on non-expanded) */}
           {!expanded && (
-            <button
-              type="button"
-              disabled={approving}
+            <Button
+              size="small"
+              variant="minimal"
+              intent={row.preferred_supplier_id ? Intent.PRIMARY : Intent.WARNING}
+              icon="tick-circle"
+              loading={approving}
               onClick={(e) => {
                 e.stopPropagation()
                 onApprove()
               }}
-              className={cn(
-                'flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded transition-colors shrink-0',
-                row.preferred_supplier_id
-                  ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 hover:bg-amber-200',
-                'disabled:opacity-50',
-              )}
             >
-              {approving
-                ? <Loader2 className="h-3 w-3 animate-spin" />
-                : <CheckCircle2 className="h-3 w-3" />
-              }
               {row.preferred_supplier_id ? 'Approve' : 'Request'}
-            </button>
+            </Button>
           )}
 
           {/* Expand toggle */}
           <div className="shrink-0 text-muted-foreground">
-            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            <Icon icon={expanded ? 'chevron-up' : 'chevron-down'} size={12} />
           </div>
         </div>
       </button>
@@ -364,39 +355,42 @@ function SummaryStrip({
   const totalCost = rows.reduce((s, r) => s + r.estimated_cost, 0)
   const withPO    = rows.filter((r) => !!r.preferred_supplier_id)
 
+  const tiles: { label: string; value: string; sub: string; icon: IconName; iconClass?: string }[] = [
+    {
+      label: 'Total proposals',
+      value: rows.length.toString(),
+      sub:   `${rows.filter((r) => r.signal_type === 'warning').length} warning · ${rows.filter((r) => r.signal_type === 'watch').length} watch`,
+      icon:  'box',
+    },
+    {
+      label: 'Critical',
+      value: critical.length.toString(),
+      sub:   critical.length > 0 ? 'Stockout within lead time' : 'None — all within window',
+      icon:  'warning-sign',
+      iconClass: critical.length > 0 ? 'text-red-500' : 'text-muted-foreground',
+    },
+    {
+      label: 'Estimated cost',
+      value: formatCurrency(totalCost, currency),
+      sub:   `${withPO.length} of ${rows.length} can create PO automatically`,
+      icon:  'trending-up',
+    },
+    {
+      label: 'Avg confidence',
+      value: rows.length > 0
+        ? `${Math.round(rows.reduce((s, r) => s + r.confidence_score, 0) / rows.length * 100)}%`
+        : '—',
+      sub:   'Based on data quality + lead time source',
+      icon:  'flash',
+    },
+  ]
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-      {[
-        {
-          label: 'Total proposals',
-          value: rows.length.toString(),
-          sub:   `${rows.filter((r) => r.signal_type === 'warning').length} warning · ${rows.filter((r) => r.signal_type === 'watch').length} watch`,
-          icon:  <Package className="h-3.5 w-3.5" />,
-        },
-        {
-          label: 'Critical',
-          value: critical.length.toString(),
-          sub:   critical.length > 0 ? 'Stockout within lead time' : 'None — all within window',
-          icon:  <AlertTriangle className={cn('h-3.5 w-3.5', critical.length > 0 ? 'text-red-500' : 'text-muted-foreground')} />,
-        },
-        {
-          label: 'Estimated cost',
-          value: formatCurrency(totalCost, currency),
-          sub:   `${withPO.length} of ${rows.length} can create PO automatically`,
-          icon:  <TrendingUp className="h-3.5 w-3.5" />,
-        },
-        {
-          label: 'Avg confidence',
-          value: rows.length > 0
-            ? `${Math.round(rows.reduce((s, r) => s + r.confidence_score, 0) / rows.length * 100)}%`
-            : '—',
-          sub:   'Based on data quality + lead time source',
-          icon:  <Zap className="h-3.5 w-3.5" />,
-        },
-      ].map(({ label, value, sub, icon }) => (
+      {tiles.map(({ label, value, sub, icon, iconClass }) => (
         <div key={label} className="bg-background px-4 py-3">
           <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-            {icon}
+            <Icon icon={icon} size={12} className={iconClass} />
             <p className="text-[10px] uppercase tracking-widest font-bold">{label}</p>
           </div>
           <p className="text-sm font-bold tabular-nums">{value}</p>
@@ -410,15 +404,15 @@ function SummaryStrip({
           <p className="text-xs text-muted-foreground">
             {critical.length} critical proposal{critical.length > 1 ? 's' : ''} — all have known suppliers
           </p>
-          <button
-            type="button"
-            disabled={approvingAll}
+          <Button
+            size="small"
+            intent={Intent.DANGER}
+            icon="flash"
+            loading={approvingAll}
             onClick={onApproveAllCritical}
-            className="flex items-center gap-1.5 text-xs font-medium bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
-            {approvingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <Zap className="h-3 w-3" />}
             Approve All Critical ({critical.length})
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -500,19 +494,22 @@ export default function SmartProposalsPage() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
       </div>
     )
   }
 
   if (isError) {
     return (
-      <div className="flex-1 flex flex-col items-center gap-3 py-20 text-center px-8">
-        <AlertTriangle className="h-8 w-8 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Failed to load proposals.</p>
-        <button type="button" onClick={() => { void refetch() }}
-          className="text-xs text-primary hover:underline">Retry</button>
-      </div>
+      <NonIdealState
+        icon="warning-sign"
+        title="Failed to load proposals"
+        action={
+          <Button intent={Intent.PRIMARY} icon="refresh" onClick={() => { void refetch() }}>
+            Retry
+          </Button>
+        }
+      />
     )
   }
 
@@ -538,15 +535,15 @@ export default function SmartProposalsPage() {
             Probabilistic restock proposals · approve to create PO + restock request
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="minimal"
+          size="small"
+          icon="refresh"
+          loading={isFetching}
           onClick={() => { void refetch() }}
-          disabled={isFetching}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
         >
-          <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
           Refresh
-        </button>
+        </Button>
       </div>
 
       {/* Summary strip */}
@@ -561,32 +558,18 @@ export default function SmartProposalsPage() {
 
       {/* Filter tabs */}
       {rows.length > 0 && (
-        <div className="flex border-b shrink-0 px-4 bg-background">
-          {(['all', 'critical', 'warning', 'watch'] as Filter[]).map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => { setFilter(f) }}
-              className={cn(
-                'px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px capitalize',
-                filter === f
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {f}
-              {counts[f] > 0 && (
-                <span className={cn(
-                  'ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded',
-                  f === 'critical' ? 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' :
-                  f === 'warning'  ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400' :
-                  'bg-muted text-muted-foreground',
-                )}>
-                  {counts[f]}
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="px-4 py-2 border-b shrink-0">
+          <SegmentedControl
+            size="small"
+            value={filter}
+            onValueChange={(v) => { setFilter(v as Filter) }}
+            options={(['all', 'critical', 'warning', 'watch'] as Filter[]).map((f) => ({
+              value: f,
+              label: counts[f] > 0
+                ? `${f.charAt(0).toUpperCase()}${f.slice(1)} (${String(counts[f])})`
+                : f.charAt(0).toUpperCase() + f.slice(1),
+            }))}
+          />
         </div>
       )}
 
@@ -614,23 +597,21 @@ export default function SmartProposalsPage() {
       {/* Rows */}
       <div className="flex-1 overflow-y-auto">
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-20 text-center px-8">
-            <CheckCircle2 className="h-12 w-12 text-emerald-500/40" />
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">All clear — no proposals needed</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Checked: variants with ≥3 days of consumption data · excludes items with open POs or requests · dismissed proposals re-surface after 48h
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => { void navigate('/mind?panel=procurement') }}
-              className="flex items-center gap-1.5 text-xs text-primary hover:underline"
-            >
-              <Clock className="h-3.5 w-3.5" />
-              View open purchase orders
-            </button>
-          </div>
+          <NonIdealState
+            icon="tick-circle"
+            title="All clear — no proposals needed"
+            description="Checked: variants with ≥3 days of consumption data · excludes items with open POs or requests · dismissed proposals re-surface after 48h"
+            action={
+              <Button
+                variant="minimal"
+                intent={Intent.PRIMARY}
+                icon="time"
+                onClick={() => { void navigate('/mind?panel=procurement') }}
+              >
+                View open purchase orders
+              </Button>
+            }
+          />
         ) : filtered.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-xs text-muted-foreground">
             No {filter} proposals

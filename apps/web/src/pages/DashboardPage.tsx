@@ -2,19 +2,23 @@
 // Palantir-style mission dashboard: cross-domain synthesis, operator-grade
 // density, decision support not data display.
 // Every item surfaces what the operator should do next, not just what is.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, differenceInDays } from 'date-fns'
+import {
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { useDateFormat } from '@/features/user/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
-import {
-  AlertTriangle, CalendarX2, PackageX, Clock, Flame, BellDot,
-  CheckCircle2, TrendingUp, TrendingDown, Sparkles,
-  ArrowRight, Circle, CalendarClock,
-} from 'lucide-react'
 import { WhyButton } from '@/components/WhySheet'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useProducts, useExpiringVariants, useAdjustStock } from '@/features/inventory/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
@@ -34,11 +38,12 @@ import { getTotalStock, hasPermission } from '@beacon/types'
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Severity = 'critical' | 'warning' | 'info'
+type ActionVariant = 'default' | 'outline' | 'destructive'
 
 interface ActionItem {
   id: string
   severity: Severity
-  icon: React.ElementType
+  icon: IconName
   title: string
   subtitle: string
   /** Cross-domain synthesis note — e.g. "8 wasted this week · restock pending" */
@@ -47,7 +52,7 @@ interface ActionItem {
   variantId?: string
   variantName?: string
   currentStock?: number
-  actions: { label: string; variant?: 'default' | 'outline' | 'destructive'; onClick: () => void }[]
+  actions: { label: string; variant?: ActionVariant; onClick: () => void }[]
 }
 
 // ─── Status strip ─────────────────────────────────────────────────────────────
@@ -138,7 +143,6 @@ function StatusStrip({
 // ─── Action card ──────────────────────────────────────────────────────────────
 
 function ActionCard({ item }: { item: ActionItem }) {
-  const Icon = item.icon
   return (
     <div className={cn(
       'flex items-start gap-3 rounded-lg border px-4 py-3',
@@ -152,7 +156,7 @@ function ActionCard({ item }: { item: ActionItem }) {
         item.severity === 'warning'  && 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/40',
         item.severity === 'info'     && 'bg-blue-100 text-blue-600 dark:bg-blue-900/40',
       )}>
-        <Icon className="h-3.5 w-3.5" />
+        <Icon icon={item.icon} size={12} />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -174,17 +178,24 @@ function ActionCard({ item }: { item: ActionItem }) {
 
       {item.actions.length > 0 && (
         <div className="flex flex-shrink-0 items-center gap-1.5 flex-wrap justify-end">
-          {item.actions.map((a) => (
-            <Button
-              key={a.label}
-              size="sm"
-              variant={a.variant ?? 'default'}
-              className="h-7 text-xs px-2.5"
-              onClick={a.onClick}
-            >
-              {a.label}
-            </Button>
-          ))}
+          {item.actions.map((a) => {
+            const intent: Intent =
+              a.variant === 'destructive' ? Intent.DANGER :
+              a.variant === 'outline'     ? Intent.NONE   :
+              Intent.PRIMARY
+            const variant = a.variant === 'outline' ? 'outlined' as const : undefined
+            return (
+              <Button
+                key={a.label}
+                size="small"
+                variant={variant}
+                intent={intent}
+                onClick={a.onClick}
+              >
+                {a.label}
+              </Button>
+            )
+          })}
         </div>
       )}
     </div>
@@ -229,19 +240,18 @@ function MicroKpi({
     const isUp   = trend.startsWith('up')
     const isGood = trend.endsWith('good')
     const color  = isGood ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-    const Icon   = isUp ? TrendingUp : TrendingDown
-    return <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', color)} />
+    return <Icon icon={isUp ? 'trending-up' : 'trending-down'} size={12} className={color} />
   })() : null
 
   return (
-    <div className="rounded-lg border bg-card px-3 py-2.5">
+    <Card className="!px-3 !py-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
       <div className="mt-0.5 flex items-center gap-1.5">
         <p className="text-lg font-bold tabular-nums">{value}</p>
         {trendEl}
       </div>
       {sub && <p className="mt-0.5 text-[10px] text-muted-foreground">{sub}</p>}
-    </div>
+    </Card>
   )
 }
 
@@ -346,7 +356,7 @@ export default function DashboardPage() {
         items.push({
           id: `out-${variant.id}`,
           severity: 'critical',
-          icon: PackageX,
+          icon: 'box',
           title: `Out of stock · ${label}`,
           subtitle: `SKU ${variant.sku} · par level ${String(variant.low_stock_threshold)}`,
           context: ctxFor(variant.id),
@@ -369,7 +379,7 @@ export default function DashboardPage() {
       items.push({
         id: `fcast-crit-${row.variant_id}`,
         severity: 'critical',
-        icon: Clock,
+        icon: 'time',
         title: `${label} — ~${String(Math.round(row.days_until_zero))}d supply left`,
         subtitle: `${String(row.current_stock)} units · ${row.avg_daily.toFixed(1)}/day avg · based on 30-day window`,
         context: ctxFor(row.variant_id),
@@ -391,7 +401,7 @@ export default function DashboardPage() {
       items.push({
         id: `expiry-crit-${v.id}`,
         severity: 'critical',
-        icon: CalendarX2,
+        icon: 'calendar',
         title: `${label} — expires ${days <= 0 ? 'today' : `in ${String(days)}d`}`,
         subtitle: `${v.current_stock} units · ${formatCurrency(v.current_stock * v.cost, currency)} at risk`,
         actions: [
@@ -413,7 +423,7 @@ export default function DashboardPage() {
       items.push({
         id: `fcast-warn-${row.variant_id}`,
         severity: 'warning',
-        icon: Clock,
+        icon: 'time',
         title: `${label} — ~${String(Math.round(row.days_until_zero))}d supply left`,
         subtitle: `${String(row.current_stock)} units · ${row.avg_daily.toFixed(1)}/day avg · based on 30-day window`,
         context: ctxFor(row.variant_id),
@@ -433,7 +443,7 @@ export default function DashboardPage() {
       items.push({
         id: `predict-${row.variantId}`,
         severity: row.urgency === 'critical' ? 'critical' : row.urgency === 'warning' ? 'warning' : 'info',
-        icon: CalendarClock,
+        icon: 'calendar',
         title: row.urgency === 'critical'
           ? `${label} — order now · stockout ${format(row.stockoutDate, 'MMM d')}`
           : `${label} — order by ${format(row.orderDeadlineDate, 'MMM d')}`,
@@ -463,7 +473,7 @@ export default function DashboardPage() {
         items.push({
           id: `low-${variant.id}`,
           severity: 'warning',
-          icon: AlertTriangle,
+          icon: 'warning-sign',
           title: `${label} — low stock`,
           subtitle: `${String(variant.current_stock)} units · par level ${String(variant.low_stock_threshold)}`,
           context: ctxFor(variant.id),
@@ -483,7 +493,7 @@ export default function DashboardPage() {
       items.push({
         id: `expiry-warn-${v.id}`,
         severity: 'warning',
-        icon: CalendarX2,
+        icon: 'calendar',
         title: `${label} — expires in ${String(days)}d`,
         subtitle: `${v.current_stock} units · ${formatCurrency(v.current_stock * v.cost, currency)} at risk`,
         actions: [],
@@ -501,7 +511,7 @@ export default function DashboardPage() {
       items.push({
         id: `notif-waste-${n.id}`,
         severity: 'warning',
-        icon: Flame,
+        icon: 'flame',
         title: n.message,
         subtitle: `${fmtDate(new Date(n.timestamp))}, ${format(new Date(n.timestamp), 'HH:mm')} ${costNote}`,
         context: matchedWaste ? ctxFor(matchedWaste.variant_id) : undefined,
@@ -519,7 +529,7 @@ export default function DashboardPage() {
         items.push({
           id: `approval-${r.id}`,
           severity: 'info',
-          icon: CheckCircle2,
+          icon: 'tick-circle',
           title: `Restock approval needed · ${label}`,
           subtitle: `${String(r.quantity_needed)} units requested${r.supplier ? ` · ${r.supplier}` : ''}`,
           actions: [
@@ -536,7 +546,7 @@ export default function DashboardPage() {
       items.push({
         id: `notif-${n.id}`,
         severity: 'info',
-        icon: BellDot,
+        icon: 'notifications',
         title: n.message,
         subtitle: `${fmtDate(new Date(n.timestamp))}, ${format(new Date(n.timestamp), 'HH:mm')}`,
         actions: [{ label: 'Dismiss', variant: 'outline', onClick: () => { markRead.mutate({ id: n.id }) } }],
@@ -556,7 +566,7 @@ export default function DashboardPage() {
       items.push({
         id: `notif-outage-${n.id}`,
         severity: 'info',
-        icon: Clock,
+        icon: 'time',
         title: n.message,
         subtitle: `Detected ${fmtDate(new Date(n.timestamp))}, ${format(new Date(n.timestamp), 'HH:mm')} · based on 30-day avg consumption`,
         actions: [{ label: 'Dismiss', variant: 'outline', onClick: () => { markRead.mutate({ id: n.id }) } }],
@@ -620,42 +630,61 @@ export default function DashboardPage() {
             </div>
             {!isStaff && (
               <div className="flex items-center gap-1.5">
-                <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { void navigate('/alerts') }}>
-                  All Alerts <ArrowRight className="ml-1.5 h-3 w-3" />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  endIcon="arrow-right"
+                  onClick={() => { void navigate('/alerts') }}
+                >
+                  All Alerts
                 </Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950/30" onClick={() => { void navigate('/receive') }}>
-                  <CheckCircle2 className="mr-1.5 h-3 w-3" />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  intent={Intent.SUCCESS}
+                  icon="tick-circle"
+                  onClick={() => { void navigate('/receive') }}
+                >
                   Receive Stock
                 </Button>
-                <Button size="sm" className="h-7 text-xs" onClick={() => { void navigate('/restocks') }}>
-                  <Sparkles className="mr-1.5 h-3 w-3" />
+                <Button
+                  size="small"
+                  intent={Intent.PRIMARY}
+                  icon="predictive-analysis"
+                  onClick={() => { void navigate('/restocks') }}
+                >
                   Restocks
                 </Button>
               </div>
             )}
             {isStaff && displayedItems.length > 0 && (
-              <Button size="sm" variant="outline" className="h-7 text-xs border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-950/30" onClick={() => { void navigate('/receive') }}>
-                <CheckCircle2 className="mr-1.5 h-3 w-3" />
+              <Button
+                size="small"
+                variant="outlined"
+                intent={Intent.SUCCESS}
+                icon="tick-circle"
+                onClick={() => { void navigate('/receive') }}
+              >
                 Receive Stock
               </Button>
             )}
           </div>
 
           {displayedItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                <Circle className="h-6 w-6 text-green-600" />
-              </div>
-              <p className="text-sm font-medium">All clear</p>
-              <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground max-w-sm">
-                <span><span className="font-semibold text-foreground tabular-nums">{products.reduce((s, p) => s + p.product_variants.length, 0)}</span> variants checked</span>
-                <span><span className="font-semibold text-foreground tabular-nums">{expiring.length}</span> expiry dates scanned</span>
-                {!isStaff && <span><span className="font-semibold text-foreground tabular-nums">{notifications.filter((n) => !n.read).length}</span> unread alerts</span>}
-                {avgDaysSupply !== null && (
-                  <span><span className="font-semibold text-foreground tabular-nums">{String(avgDaysSupply)}d</span> avg supply</span>
-                )}
-              </div>
-            </div>
+            <NonIdealState
+              icon="tick-circle"
+              title="All clear"
+              description={
+                <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground max-w-sm">
+                  <span><span className="font-semibold text-foreground tabular-nums">{products.reduce((s, p) => s + p.product_variants.length, 0)}</span> variants checked</span>
+                  <span><span className="font-semibold text-foreground tabular-nums">{expiring.length}</span> expiry dates scanned</span>
+                  {!isStaff && <span><span className="font-semibold text-foreground tabular-nums">{notifications.filter((n) => !n.read).length}</span> unread alerts</span>}
+                  {avgDaysSupply !== null && (
+                    <span><span className="font-semibold text-foreground tabular-nums">{String(avgDaysSupply)}d</span> avg supply</span>
+                  )}
+                </div>
+              }
+            />
           ) : (
             <div className="space-y-6">
               <ActionQueueSection severity="critical" items={critical} />

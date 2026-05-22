@@ -1,13 +1,11 @@
 import { useState } from 'react'
-import { WifiOff, Loader2, AlertTriangle, RefreshCw, Trash2 } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { Button, Icon, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 
 interface Props {
   isOnline:     boolean
   isSyncing:    boolean
   pendingCount: number
-  syncError?:   boolean          // queue stalled — an item failed to sync
+  syncError?:   boolean
   onRetry?:     () => void
   onDiscardAll?: () => Promise<void>
 }
@@ -17,7 +15,6 @@ export function OfflineBanner({
 }: Props) {
   const [discarding, setDiscarding] = useState(false)
 
-  // Nothing to show when fully online and queue is clear
   if (isOnline && !isSyncing && pendingCount === 0 && !syncError) return null
 
   const handleDiscard = async () => {
@@ -26,11 +23,11 @@ export function OfflineBanner({
     try { await onDiscardAll() } finally { setDiscarding(false) }
   }
 
-  // ── Sync stalled — an RPC error blocked the queue ──────────────────────────
+  // Sync stalled — an RPC error blocked the queue
   if (syncError && isOnline) {
     return (
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 bg-amber-600 px-4 py-2 text-sm text-white">
-        <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+        <Icon icon="warning-sign" size={14} className="flex-shrink-0" />
         <span className="flex-1 min-w-0">
           {pendingCount > 0
             ? `${String(pendingCount)} adjustment${pendingCount !== 1 ? 's' : ''} couldn't sync — possible network or server issue.`
@@ -39,28 +36,27 @@ export function OfflineBanner({
         <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
           {onRetry && (
             <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-xs border-white/40 text-white hover:bg-white/10 hover:text-white"
+              size="small"
+              variant="outlined"
+              icon="refresh"
               onClick={onRetry}
               disabled={isSyncing}
+              className="!h-6 !text-xs !border-white/40 !text-white hover:!bg-white/10"
             >
-              <RefreshCw className="h-3 w-3 mr-1" />
               Retry
             </Button>
           )}
           {onDiscardAll && pendingCount > 0 && (
             <Button
-              size="sm"
-              variant="outline"
-              className="h-6 text-xs border-white/40 text-white hover:bg-white/10 hover:text-white"
+              size="small"
+              variant="outlined"
+              icon="trash"
+              loading={discarding}
               onClick={() => { void handleDiscard() }}
               disabled={discarding}
+              className="!h-6 !text-xs !border-white/40 !text-white hover:!bg-white/10"
             >
-              {discarding
-                ? <Loader2 className="h-3 w-3 animate-spin" />
-                : <><Trash2 className="h-3 w-3 mr-1" />Discard all</>
-              }
+              Discard all
             </Button>
           )}
         </div>
@@ -68,30 +64,25 @@ export function OfflineBanner({
     )
   }
 
-  // ── Offline ─────────────────────────────────────────────────────────────────
   if (!isOnline) {
     return (
       <div className="flex items-center gap-2.5 bg-red-600 px-4 py-2 text-sm text-white">
-        <WifiOff className="h-4 w-4 flex-shrink-0" />
+        <Icon icon="offline" size={14} className="flex-shrink-0" />
         <span className="flex-1 min-w-0 leading-snug">
           Offline — adjustments will sync when you reconnect.
         </span>
         {pendingCount > 0 && (
-          <Badge
-            variant="outline"
-            className="ml-auto flex-shrink-0 border-white/40 text-white"
-          >
+          <Tag minimal className="ml-auto flex-shrink-0 !border-white/40 !text-white">
             {pendingCount} queued
-          </Badge>
+          </Tag>
         )}
       </div>
     )
   }
 
-  // ── Online, syncing ─────────────────────────────────────────────────────────
   return (
     <div className="flex items-center gap-2.5 bg-yellow-500 px-4 py-2 text-sm text-white">
-      <Loader2 className="h-4 w-4 flex-shrink-0 animate-spin" />
+      <Spinner size={SpinnerSize.SMALL} className="flex-shrink-0" />
       <span>
         Syncing {pendingCount} offline adjustment{pendingCount !== 1 ? 's' : ''}…
       </span>

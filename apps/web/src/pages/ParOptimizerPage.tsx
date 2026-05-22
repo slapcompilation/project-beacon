@@ -3,16 +3,24 @@
 // Prevents stockouts permanently by keeping par levels calibrated to real usage patterns.
 // Operators accept/reject recommendations per row or batch-accept all.
 // Palantir principle: intelligence everywhere — every threshold carries its basis.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState, useCallback } from 'react'
-import {
-  SlidersHorizontal, Check, X, CheckCheck, TrendingUp, TrendingDown,
-  Minus, Info, Package, RefreshCw, Filter,
-} from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
+import {
+  Button,
+  Callout,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useConsumptionForecast } from '@/features/eye/hooks'
 import { useProducts, useUpdateVariant } from '@/features/inventory/hooks'
@@ -59,11 +67,11 @@ function getChangeType(current: number, recommended: number): ChangeType {
   return 'ok'
 }
 
-const CHANGE_CFG: Record<ChangeType, { label: string; icon: React.ElementType; cls: string; rowCls: string }> = {
-  increase: { label: 'Increase', icon: TrendingUp,   cls: 'text-green-600',  rowCls: 'bg-green-50/30 dark:bg-green-950/10' },
-  decrease: { label: 'Decrease', icon: TrendingDown,  cls: 'text-blue-600',   rowCls: 'bg-blue-50/20 dark:bg-blue-950/10' },
-  new:      { label: 'Set Par',  icon: TrendingUp,   cls: 'text-amber-600',  rowCls: 'bg-amber-50/30 dark:bg-amber-950/10' },
-  ok:       { label: 'On Track', icon: Minus,        cls: 'text-muted-foreground', rowCls: '' },
+const CHANGE_CFG: Record<ChangeType, { label: string; icon: IconName; cls: string; rowCls: string }> = {
+  increase: { label: 'Increase', icon: 'trending-up',   cls: 'text-green-600',        rowCls: 'bg-green-50/30 dark:bg-green-950/10' },
+  decrease: { label: 'Decrease', icon: 'trending-down', cls: 'text-blue-600',         rowCls: 'bg-blue-50/20 dark:bg-blue-950/10' },
+  new:      { label: 'Set Par',  icon: 'trending-up',   cls: 'text-amber-600',        rowCls: 'bg-amber-50/30 dark:bg-amber-950/10' },
+  ok:       { label: 'On Track', icon: 'minus',         cls: 'text-muted-foreground', rowCls: '' },
 }
 
 type FilterMode = 'all' | 'increase' | 'decrease' | 'new' | 'ok' | 'pending'
@@ -78,7 +86,6 @@ interface ParRowProps {
 
 function ParRow({ rec, onAccept, onReject }: ParRowProps) {
   const cfg = CHANGE_CFG[rec.changeType]
-  const Icon = cfg.icon
 
   return (
     <tr className={cn(
@@ -89,7 +96,7 @@ function ParRow({ rec, onAccept, onReject }: ParRowProps) {
     )}>
       <td className="py-2.5 pl-4 pr-2">
         <div className="flex items-center gap-1.5">
-          <Icon className={cn('h-3.5 w-3.5 flex-shrink-0', cfg.cls)} />
+          <Icon icon={cfg.icon} size={12} className={cn('flex-shrink-0', cfg.cls)} />
           <span className={cn('text-xs font-medium', cfg.cls)}>{cfg.label}</span>
         </div>
       </td>
@@ -147,32 +154,30 @@ function ParRow({ rec, onAccept, onReject }: ParRowProps) {
         {rec.decision === null ? (
           <div className="flex items-center gap-1.5">
             <Button
-              size="sm"
-              variant="outline"
+              size="small"
+              variant="outlined"
+              intent={Intent.SUCCESS}
+              icon="tick"
               onClick={() => { onAccept(rec.variantId) }}
-              className="h-7 w-7 p-0 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
-              title="Accept recommendation"
-            >
-              <Check className="h-3.5 w-3.5 text-green-600" />
-            </Button>
+              aria-label="Accept recommendation"
+            />
             <Button
-              size="sm"
-              variant="outline"
+              size="small"
+              variant="outlined"
+              intent={Intent.DANGER}
+              icon="cross"
               onClick={() => { onReject(rec.variantId) }}
-              className="h-7 w-7 p-0 border-red-200 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/30"
-              title="Reject (keep current par)"
-            >
-              <X className="h-3.5 w-3.5 text-red-500" />
-            </Button>
+              aria-label="Reject (keep current par)"
+            />
           </div>
         ) : rec.decision === 'accepted' ? (
-          <Badge variant="outline" className="text-[10px] border-green-300 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400 h-5">
-            <Check className="h-3 w-3 mr-1" /> Applied
-          </Badge>
+          <Tag minimal intent={Intent.SUCCESS} icon="tick" className="!text-[10px] !h-5">
+            Applied
+          </Tag>
         ) : (
-          <Badge variant="outline" className="text-[10px] text-muted-foreground h-5">
+          <Tag minimal className="!text-[10px] !h-5 !text-muted-foreground">
             Skipped
-          </Badge>
+          </Tag>
         )}
       </td>
     </tr>
@@ -308,6 +313,15 @@ export function ParOptimizerContent() {
   const okCount       = allRecs.filter((r) => r.changeType === 'ok').length
   const pendingCount  = pendingRecs.length
 
+  const filterOptions = [
+    { value: 'pending',  label: `Pending (${pendingCount})` },
+    { value: 'all',      label: 'All' },
+    { value: 'increase', label: `↑ Increase (${increaseCount})` },
+    { value: 'decrease', label: `↓ Decrease (${decreaseCount})` },
+    { value: 'new',      label: `New (${newCount})` },
+    { value: 'ok',       label: `OK (${okCount})` },
+  ]
+
   return (
     <div className="flex flex-col h-full">
 
@@ -315,7 +329,7 @@ export function ParOptimizerContent() {
       <div className="flex items-start justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="settings" size={16} className="text-muted-foreground" />
             Par Level Optimizer
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
@@ -326,22 +340,18 @@ export function ParOptimizerContent() {
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {pendingCount > 0 && (
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={handleAcceptAll}>
-              <CheckCheck className="h-3.5 w-3.5" />
+            <Button size="small" variant="outlined" icon="confirm" onClick={handleAcceptAll}>
               Accept All ({pendingCount})
             </Button>
           )}
           <Button
-            size="sm"
-            className="gap-1.5 text-xs h-8"
+            size="small"
+            intent={Intent.PRIMARY}
+            icon={applying ? undefined : 'tick'}
+            loading={applying}
+            disabled={acceptedCount === 0}
             onClick={() => { void handleApply() }}
-            disabled={acceptedCount === 0 || applying}
           >
-            {applying ? (
-              <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Check className="h-3.5 w-3.5" />
-            )}
             Apply {acceptedCount > 0 ? `(${acceptedCount})` : ''} Changes
           </Button>
         </div>
@@ -350,11 +360,11 @@ export function ParOptimizerContent() {
       {/* KPI strip */}
       <div className="grid grid-cols-5 gap-px border-b bg-border flex-shrink-0">
         {[
-          { label: 'Pending',    value: pendingCount,   sub: 'need your decision',          highlight: pendingCount > 0 },
-          { label: 'Increase',   value: increaseCount,  sub: 'par too low for usage' },
-          { label: 'Decrease',   value: decreaseCount,  sub: 'par higher than needed' },
-          { label: 'Set New',    value: newCount,       sub: 'no par configured',           highlight: newCount > 0 },
-          { label: 'On Track',   value: okCount,        sub: 'par correctly calibrated' },
+          { label: 'Pending',  value: pendingCount,  sub: 'need your decision',     highlight: pendingCount > 0 },
+          { label: 'Increase', value: increaseCount, sub: 'par too low for usage' },
+          { label: 'Decrease', value: decreaseCount, sub: 'par higher than needed' },
+          { label: 'Set New',  value: newCount,      sub: 'no par configured',      highlight: newCount > 0 },
+          { label: 'On Track', value: okCount,       sub: 'par correctly calibrated' },
         ].map(({ label, value, sub, highlight }) => (
           <div key={label} className="bg-card px-5 py-3">
             <p className={cn('text-lg font-bold tabular-nums leading-none', highlight ? 'text-amber-600' : '')}>{value}</p>
@@ -366,45 +376,29 @@ export function ParOptimizerContent() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 border-b px-6 py-2.5 flex-shrink-0">
-        <div className="relative flex-1 max-w-xs">
-          <Filter className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input
+        <div className="flex-1 max-w-xs">
+          <InputGroup
+            leftIcon="filter"
             placeholder="Filter by product or SKU…"
             value={search}
             onChange={(e) => { setSearch(e.target.value) }}
-            className="pl-8 h-8 text-sm"
+            size="small"
           />
         </div>
-        <div className="flex items-center gap-1 rounded-md border p-0.5">
-          {([
-            { mode: 'pending',  label: `Pending (${pendingCount})` },
-            { mode: 'all',      label: 'All' },
-            { mode: 'increase', label: `↑ Increase (${increaseCount})` },
-            { mode: 'decrease', label: `↓ Decrease (${decreaseCount})` },
-            { mode: 'new',      label: `New (${newCount})` },
-            { mode: 'ok',       label: `OK (${okCount})` },
-          ] as { mode: FilterMode; label: string }[]).map(({ mode, label }) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => { setFilterMode(mode) }}
-              className={cn(
-                'px-2.5 py-1 text-xs font-medium rounded transition-colors',
-                filterMode === mode ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={filterMode}
+          onValueChange={(v) => { setFilterMode(v as FilterMode) }}
+          options={filterOptions}
+        />
         {Object.keys(decisions).length > 0 && (
           <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 text-xs gap-1.5 ml-auto"
+            size="small"
+            variant="minimal"
+            icon="refresh"
+            className="!ml-auto"
             onClick={() => { setDecisions({}) }}
           >
-            <RefreshCw className="h-3.5 w-3.5" />
             Reset decisions
           </Button>
         )}
@@ -414,29 +408,24 @@ export function ParOptimizerContent() {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex items-center justify-center h-40">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
           </div>
         ) : filteredRecs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
-            <div className="rounded-full bg-muted/50 p-4">
-              <Package className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-            <p className="text-sm font-medium">No items match this filter</p>
-            {filterMode === 'pending' && allRecs.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                All recommendations have been reviewed. Click Apply Changes to save.
-              </p>
-            )}
-          </div>
+          <NonIdealState
+            icon="box"
+            title="No items match this filter"
+            description={filterMode === 'pending' && allRecs.length > 0
+              ? 'All recommendations have been reviewed. Click Apply Changes to save.'
+              : undefined}
+          />
         ) : (
           <>
             {/* Method note */}
-            <div className="flex items-center gap-2 px-6 py-2.5 border-b bg-muted/20 text-[11px] text-muted-foreground">
-              <Info className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>
+            <div className="px-6 py-2.5 border-b">
+              <Callout intent={Intent.NONE} icon="info-sign" compact>
                 Optimal par = <span className="font-mono">⌈avg_daily × ({LEAD_DAYS} lead days + {SAFETY_FACTOR}× safety buffer)⌉</span>
                 · Based on 30-day consumption history · Accept or reject each recommendation individually, or batch-accept all.
-              </span>
+              </Callout>
             </div>
 
             <div className="overflow-x-auto">
@@ -469,10 +458,9 @@ export function ParOptimizerContent() {
             {acceptedCount > 0 && (
               <div className="sticky bottom-0 border-t bg-background px-6 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3 text-sm">
-                  <Badge variant="outline" className="border-green-300 bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-400">
-                    <Check className="h-3 w-3 mr-1" />
+                  <Tag minimal intent={Intent.SUCCESS} icon="tick">
                     {acceptedCount} accepted
-                  </Badge>
+                  </Tag>
                   {Object.values(decisions).filter((d) => d === 'rejected').length > 0 && (
                     <span className="text-xs text-muted-foreground">
                       {Object.values(decisions).filter((d) => d === 'rejected').length} rejected
@@ -480,15 +468,11 @@ export function ParOptimizerContent() {
                   )}
                 </div>
                 <Button
+                  intent={Intent.PRIMARY}
+                  icon={applying ? undefined : 'tick'}
+                  loading={applying}
                   onClick={() => { void handleApply() }}
-                  disabled={applying}
-                  className="gap-1.5 text-sm"
                 >
-                  {applying ? (
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check className="h-4 w-4" />
-                  )}
                   Apply {acceptedCount} Change{acceptedCount !== 1 ? 's' : ''}
                 </Button>
               </div>

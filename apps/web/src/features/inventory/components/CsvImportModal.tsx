@@ -1,16 +1,10 @@
 // Layer: Flow + Eye — Bulk import (CSV or AI-powered natural language)
 
 import { useState, useRef } from 'react'
-import { Upload, Download, Loader2, CheckCircle2, XCircle, AlertCircle, RefreshCw, Plus, Sparkles, FileSpreadsheet, ChevronDown, ChevronRight } from 'lucide-react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+  Button, Dialog, DialogBody, DialogFooter, Icon, Intent,
+  Spinner, SpinnerSize, Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useCreateProduct } from '../hooks'
 import { useCategories } from '@/features/categories/hooks'
@@ -320,12 +314,8 @@ export function ImportModal({ open, onClose }: Props) {
   // ─── Render ────────────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { handleClose() } }}>
-      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Bulk Import</DialogTitle>
-        </DialogHeader>
-
+    <Dialog isOpen={open} onClose={handleClose} title="Bulk Import" className="!w-[42rem]">
+      <DialogBody>
         {state === 'idle' && (
           <div className="space-y-4 py-2">
             {/* Input method tabs */}
@@ -335,7 +325,7 @@ export function ImportModal({ open, onClose }: Props) {
                 className={cn('flex-1 flex items-center justify-center gap-1.5 px-3 py-2 transition-colors',
                   inputMethod === 'csv' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground')}
               >
-                <FileSpreadsheet className="h-3.5 w-3.5" />
+                <Icon icon="th" size={14} />
                 CSV Upload
               </button>
               <button
@@ -343,7 +333,7 @@ export function ImportModal({ open, onClose }: Props) {
                 className={cn('flex-1 flex items-center justify-center gap-1.5 px-3 py-2 transition-colors',
                   inputMethod === 'smart' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted text-muted-foreground')}
               >
-                <Sparkles className="h-3.5 w-3.5" />
+                <Icon icon="predictive-analysis" size={14} />
                 Smart Import
               </button>
             </div>
@@ -355,7 +345,7 @@ export function ImportModal({ open, onClose }: Props) {
                 className={cn('flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 transition-colors',
                   mode === 'create' ? 'bg-muted font-medium' : 'hover:bg-muted/50 text-muted-foreground')}
               >
-                <Plus className="h-3 w-3" />
+                <Icon icon="plus" size={12} />
                 Create products
               </button>
               <button
@@ -363,7 +353,7 @@ export function ImportModal({ open, onClose }: Props) {
                 className={cn('flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 transition-colors',
                   mode === 'update' ? 'bg-muted font-medium' : 'hover:bg-muted/50 text-muted-foreground')}
               >
-                <RefreshCw className="h-3 w-3" />
+                <Icon icon="refresh" size={12} />
                 Update stock
               </button>
             </div>
@@ -384,7 +374,7 @@ export function ImportModal({ open, onClose }: Props) {
                   onDragOver={(e) => { e.preventDefault() }}
                   onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files.item(0); if (f) handleFile(f) }}
                 >
-                  <Upload className="h-8 w-8 text-muted-foreground/50" />
+                  <Icon icon="upload" size={32} className="text-muted-foreground/50" />
                   <p className="text-sm text-muted-foreground">Click to upload or drag and drop</p>
                   <input
                     ref={inputRef}
@@ -395,13 +385,12 @@ export function ImportModal({ open, onClose }: Props) {
                   />
                 </div>
 
-                <DialogFooter>
-                  <Button variant="outline" size="sm" onClick={mode === 'create' ? downloadCreateTemplate : downloadUpdateTemplate}>
-                    <Download className="mr-2 h-4 w-4" />
+                <div className="flex justify-end gap-2">
+                  <Button variant="outlined" size="small" icon="download" onClick={mode === 'create' ? downloadCreateTemplate : downloadUpdateTemplate}>
                     Download Template
                   </Button>
-                  <Button variant="outline" onClick={handleClose}>Cancel</Button>
-                </DialogFooter>
+                  <Button variant="minimal" onClick={handleClose}>Cancel</Button>
+                </div>
               </>
             )}
 
@@ -426,30 +415,23 @@ export function ImportModal({ open, onClose }: Props) {
 
                 {smartImport.error && (
                   <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
-                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <Icon icon="error" size={14} className="mt-0.5 flex-shrink-0" />
                     <span>{smartImport.error}</span>
                   </div>
                 )}
 
-                <DialogFooter>
-                  <Button variant="outline" onClick={handleClose}>Cancel</Button>
+                <div className="flex justify-end gap-2">
+                  <Button variant="minimal" onClick={handleClose}>Cancel</Button>
                   <Button
+                    intent={Intent.PRIMARY}
+                    icon={smartImport.isLoading ? undefined : 'predictive-analysis'}
+                    loading={smartImport.isLoading}
                     onClick={() => { void handleSmartParse() }}
                     disabled={!smartText.trim() || smartImport.isLoading}
                   >
-                    {smartImport.isLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Parsing…
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        Parse with AI
-                      </>
-                    )}
+                    {smartImport.isLoading ? 'Parsing…' : 'Parse with AI'}
                   </Button>
-                </DialogFooter>
+                </div>
               </>
             )}
           </div>
@@ -462,22 +444,23 @@ export function ImportModal({ open, onClose }: Props) {
             {aiMeta && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      aiMeta.confidence === 'high' && 'border-green-200 bg-green-50 text-green-700',
-                      aiMeta.confidence === 'medium' && 'border-amber-200 bg-amber-50 text-amber-700',
-                      aiMeta.confidence === 'low' && 'border-red-200 bg-red-50 text-red-700',
-                    )}
+                  <Tag
+                    minimal
+                    icon="predictive-analysis"
+                    intent={
+                      aiMeta.confidence === 'high'   ? Intent.SUCCESS :
+                      aiMeta.confidence === 'medium' ? Intent.WARNING :
+                      aiMeta.confidence === 'low'    ? Intent.DANGER  :
+                      Intent.NONE
+                    }
                   >
-                    <Sparkles className="mr-1 h-3 w-3" />
                     AI confidence: {aiMeta.confidence}
-                  </Badge>
+                  </Tag>
                   <button
                     onClick={() => { setAiTraceOpen(!aiTraceOpen) }}
                     className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    {aiTraceOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                    <Icon icon={aiTraceOpen ? 'chevron-down' : 'chevron-right'} size={12} />
                     AI reasoning
                   </button>
                 </div>
@@ -488,7 +471,7 @@ export function ImportModal({ open, onClose }: Props) {
                 )}
                 {aiMeta.warnings.length > 0 && (
                   <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 text-xs text-amber-700">
-                    <AlertCircle className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                    <Icon icon="error" size={14} className="mt-0.5 flex-shrink-0" />
                     <div>
                       {aiMeta.warnings.map((w, i) => <p key={i}>{w}</p>)}
                     </div>
@@ -498,15 +481,13 @@ export function ImportModal({ open, onClose }: Props) {
             )}
 
             <div className="flex items-center gap-3 text-sm">
-              <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700">
-                <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+              <Tag minimal intent={Intent.SUCCESS} icon="tick-circle">
                 {mode === 'create' ? validCreateRows.length : validUpdateRows.length} valid
-              </Badge>
+              </Tag>
               {invalidCount > 0 && (
-                <Badge variant="outline" className="border-red-200 bg-red-50 text-red-700">
-                  <XCircle className="mr-1 h-3.5 w-3.5" />
+                <Tag minimal intent={Intent.DANGER} icon="cross-circle">
                   {invalidCount} with errors (will be skipped)
-                </Badge>
+                </Tag>
               )}
             </div>
 
@@ -545,10 +526,10 @@ export function ImportModal({ open, onClose }: Props) {
                         </td>
                         <td className="px-3 py-2">
                           {row.errors.length === 0 ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <Icon icon="tick-circle" size={14} className="text-green-600" />
                           ) : (
                             <div className="flex items-center gap-1 text-destructive text-xs">
-                              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                              <Icon icon="error" size={14} className="flex-shrink-0" />
                               {row.errors[0]}
                             </div>
                           )}
@@ -576,11 +557,18 @@ export function ImportModal({ open, onClose }: Props) {
                         {updateRows.some((r) => r.action) && (
                           <td className="px-3 py-2">
                             {row.action ? (
-                              <Badge variant="outline" className={cn('text-[10px]',
-                                row.action === 'set' && 'border-blue-200 text-blue-700',
-                                row.action === 'add' && 'border-green-200 text-green-700',
-                                row.action === 'subtract' && 'border-red-200 text-red-700',
-                              )}>{row.action}</Badge>
+                              <Tag
+                                minimal
+                                intent={
+                                  row.action === 'set'      ? Intent.PRIMARY :
+                                  row.action === 'add'      ? Intent.SUCCESS :
+                                  row.action === 'subtract' ? Intent.DANGER  :
+                                  Intent.NONE
+                                }
+                                className="!text-[10px]"
+                              >
+                                {row.action}
+                              </Tag>
                             ) : 'set'}
                           </td>
                         )}
@@ -589,10 +577,10 @@ export function ImportModal({ open, onClose }: Props) {
                         <td className="px-3 py-2 text-muted-foreground truncate max-w-[140px]">{row.description || '—'}</td>
                         <td className="px-3 py-2">
                           {row.errors.length === 0 ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <Icon icon="tick-circle" size={14} className="text-green-600" />
                           ) : (
                             <div className="flex items-center gap-1 text-destructive text-xs">
-                              <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+                              <Icon icon="error" size={14} className="flex-shrink-0" />
                               {row.errors[0]}
                             </div>
                           )}
@@ -604,11 +592,10 @@ export function ImportModal({ open, onClose }: Props) {
               )}
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={handleBack}>
-                Back
-              </Button>
+            <div className="flex justify-end gap-2">
+              <Button variant="minimal" onClick={handleBack}>Back</Button>
               <Button
+                intent={Intent.PRIMARY}
                 onClick={() => { void handleImport() }}
                 disabled={mode === 'create' ? validCreateRows.length === 0 : validUpdateRows.length === 0}
               >
@@ -617,13 +604,13 @@ export function ImportModal({ open, onClose }: Props) {
                   : `Update ${String(validUpdateRows.length)} item${validUpdateRows.length !== 1 ? 's' : ''}`
                 }
               </Button>
-            </DialogFooter>
+            </div>
           </div>
         )}
 
         {state === 'importing' && (
           <div className="flex flex-col items-center gap-3 py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
             <p className="text-sm text-muted-foreground">
               {mode === 'create' ? 'Importing products…' : 'Updating items…'}
             </p>
@@ -633,7 +620,7 @@ export function ImportModal({ open, onClose }: Props) {
         {state === 'done' && (
           <div className="space-y-4 py-4">
             <div className="flex flex-col items-center gap-2 text-center">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
+              <Icon icon="tick-circle" size={40} className="text-green-600" />
               {mode === 'create' ? (
                 <p className="font-semibold">{results.created} product{results.created !== 1 ? 's' : ''} imported</p>
               ) : (
@@ -645,12 +632,10 @@ export function ImportModal({ open, onClose }: Props) {
                 </p>
               )}
             </div>
-            <DialogFooter>
-              <Button onClick={handleClose}>Done</Button>
-            </DialogFooter>
+            <DialogFooter actions={<Button intent={Intent.PRIMARY} onClick={handleClose}>Done</Button>} />
           </div>
         )}
-      </DialogContent>
+      </DialogBody>
     </Dialog>
   )
 }

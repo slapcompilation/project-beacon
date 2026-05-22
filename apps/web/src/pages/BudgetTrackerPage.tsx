@@ -2,13 +2,21 @@
 // Palantir principle: decision support, not data display.
 // Knowing you spent $4,200 last month is data.
 // Knowing you're 18% over the F&B budget with 12 days remaining is a decision.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useRef, useEffect } from 'react'
 import { format, getDaysInMonth, getDate } from 'date-fns'
 import {
-  TrendingUp, Loader2, AlertTriangle,
-  CheckCircle2, Target, Pencil, Trash2, Check, X,
-} from 'lucide-react'
+  Button,
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -86,12 +94,8 @@ function BudgetInput({
           onKeyDown={handleKey}
           className="w-24 text-xs border rounded px-1.5 py-0.5 bg-background tabular-nums"
         />
-        <button type="button" onClick={handleSave} className="text-emerald-600 hover:text-emerald-700 p-0.5">
-          <Check className="h-3.5 w-3.5" />
-        </button>
-        <button type="button" onClick={() => { setEditing(false) }} className="text-muted-foreground hover:text-foreground p-0.5">
-          <X className="h-3.5 w-3.5" />
-        </button>
+        <Button variant="minimal" size="small" intent={Intent.SUCCESS} icon="tick" onClick={handleSave} aria-label="Save" />
+        <Button variant="minimal" size="small" icon="cross" onClick={() => { setEditing(false) }} aria-label="Cancel" />
       </div>
     )
   }
@@ -101,12 +105,8 @@ function BudgetInput({
       {current !== null ? (
         <>
           <span className="text-xs tabular-nums font-medium">{fmt(current, currency)}</span>
-          <button type="button" onClick={() => { setEditing(true) }} className="text-muted-foreground hover:text-foreground p-0.5">
-            <Pencil className="h-3 w-3" />
-          </button>
-          <button type="button" onClick={onClear} className="text-muted-foreground hover:text-red-500 p-0.5">
-            <Trash2 className="h-3 w-3" />
-          </button>
+          <Button variant="minimal" size="small" icon="edit" onClick={() => { setEditing(true) }} aria-label="Edit budget" />
+          <Button variant="minimal" size="small" intent={Intent.DANGER} icon="trash" onClick={onClear} aria-label="Clear budget" />
         </>
       ) : (
         <button
@@ -202,7 +202,7 @@ function CategoryBudgetRow({
             </span>
             {projected !== null && projected > row.allocated_amount && (
               <span className="text-amber-600 dark:text-amber-400 flex items-center gap-0.5">
-                <TrendingUp className="h-3 w-3" />
+                <Icon icon="trending-up" size={10} />
                 Proj. {fmt(projected, currency)} at current rate
               </span>
             )}
@@ -225,7 +225,7 @@ function BudgetKPIStrip({ rows, currency }: { rows: BudgetVsActualRow[]; currenc
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 shrink-0">
-      <div className="rounded-lg border p-4 space-y-1">
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Budget</p>
         {totalBudget > 0 ? (
           <>
@@ -235,8 +235,8 @@ function BudgetKPIStrip({ rows, currency }: { rows: BudgetVsActualRow[]; currenc
         ) : (
           <p className="text-sm text-muted-foreground">No budgets set</p>
         )}
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Actual</p>
         <p className="text-2xl font-bold tabular-nums">{fmt(totalActual, currency)}</p>
         {totalBudget > 0 && (
@@ -244,8 +244,8 @@ function BudgetKPIStrip({ rows, currency }: { rows: BudgetVsActualRow[]; currenc
             {((totalActual / totalBudget) * 100).toFixed(1)}% of total budget
           </p>
         )}
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Over Budget</p>
         <p className={cn('text-2xl font-bold', overCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400')}>
           {overCount}
@@ -253,8 +253,8 @@ function BudgetKPIStrip({ rows, currency }: { rows: BudgetVsActualRow[]; currenc
         <p className="text-[10px] text-muted-foreground">
           {overCount === 0 ? 'All categories within limit' : `categor${overCount === 1 ? 'y' : 'ies'} exceeded`}
         </p>
-      </div>
-      <div className="rounded-lg border p-4 space-y-1">
+      </Card>
+      <Card className="!p-4 space-y-1">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Remaining</p>
         {totalBudget > 0 ? (
           <>
@@ -268,7 +268,7 @@ function BudgetKPIStrip({ rows, currency }: { rows: BudgetVsActualRow[]; currenc
         ) : (
           <p className="text-sm text-muted-foreground">—</p>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
@@ -279,9 +279,9 @@ function BudgetTrendTable({ rows, currency }: { rows: BudgetTrendRow[]; currency
   const sorted = [...rows].sort((a, b) => b.period_month.localeCompare(a.period_month))
 
   return (
-    <div className="rounded-lg border overflow-hidden">
+    <Card className="!p-0 overflow-hidden">
       <div className="px-4 py-2 bg-muted/30 flex items-center gap-2">
-        <Target className="h-3.5 w-3.5 text-muted-foreground" />
+        <Icon icon="target" size={12} className="text-muted-foreground" />
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Budget Adherence Trend
         </p>
@@ -343,11 +343,11 @@ function BudgetTrendTable({ rows, currency }: { rows: BudgetTrendRow[]; currency
                       <span className="text-muted-foreground text-[10px]">No budgets</span>
                     ) : row.on_track ? (
                       <span className="flex items-center justify-end gap-1 text-emerald-600 dark:text-emerald-400">
-                        <CheckCircle2 className="h-3.5 w-3.5" /> On track
+                        <Icon icon="tick-circle" size={12} /> On track
                       </span>
                     ) : (
                       <span className="flex items-center justify-end gap-1 text-red-600 dark:text-red-400">
-                        <AlertTriangle className="h-3.5 w-3.5" /> Over
+                        <Icon icon="warning-sign" size={12} /> Over
                       </span>
                     )}
                   </td>
@@ -357,7 +357,7 @@ function BudgetTrendTable({ rows, currency }: { rows: BudgetTrendRow[]; currency
           </tbody>
         </table>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -378,24 +378,20 @@ function MonthPicker({
     months.push({ y: d.getFullYear(), m: d.getMonth() + 1, label: format(d, 'MMM yyyy') })
   }
 
+  const current = `${String(year)}-${String(month)}`
   return (
-    <div className="flex items-center gap-1 rounded-md border p-0.5">
-      {months.map((opt) => (
-        <button
-          key={`${String(opt.y)}-${String(opt.m)}`}
-          type="button"
-          onClick={() => { onChange(opt.y, opt.m) }}
-          className={cn(
-            'px-2.5 py-1 text-[10px] rounded transition-colors',
-            year === opt.y && month === opt.m
-              ? 'bg-primary text-primary-foreground font-semibold'
-              : 'text-muted-foreground hover:text-foreground',
-          )}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      size="small"
+      value={current}
+      onValueChange={(v) => {
+        const [y, m] = v.split('-').map(Number)
+        onChange(y, m)
+      }}
+      options={months.map((opt) => ({
+        value: `${String(opt.y)}-${String(opt.m)}`,
+        label: opt.label,
+      }))}
+    />
   )
 }
 
@@ -436,7 +432,7 @@ export default function BudgetTrackerPage() {
       <div className="flex items-start justify-between gap-4 shrink-0 flex-wrap">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground" />
+            <Icon icon="target" size={14} className="text-muted-foreground" />
             <h2 className="text-sm font-semibold">Budget vs Actual</h2>
           </div>
           <p className="text-xs text-muted-foreground">
@@ -451,34 +447,31 @@ export default function BudgetTrackerPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
         </div>
       ) : (
         <>
           {/* Over-budget alert banner */}
           {overRows.length > 0 && (
-            <div className="rounded-lg border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20 px-4 py-3 flex items-start gap-3">
-              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-red-800 dark:text-red-300">
-                <span className="font-semibold">{overRows.length} categor{overRows.length === 1 ? 'y has' : 'ies have'} exceeded budget: </span>
-                {overRows.map((r) => r.category_name).join(', ')} — review spending or adjust budget targets.
-              </p>
-            </div>
+            <Callout intent={Intent.DANGER} icon="warning-sign">
+              <span className="font-semibold">{overRows.length} categor{overRows.length === 1 ? 'y has' : 'ies have'} exceeded budget: </span>
+              {overRows.map((r) => r.category_name).join(', ')} — review spending or adjust budget targets.
+            </Callout>
           )}
 
           <BudgetKPIStrip rows={budgetRows} currency={currency} />
 
           {/* Category list */}
           {activeRows.length === 0 ? (
-            <div className="rounded-lg border px-4 py-12 flex flex-col items-center gap-3 text-center">
-              <Target className="h-8 w-8 text-muted-foreground/40" />
+            <Card className="!px-4 !py-12 flex flex-col items-center gap-3 text-center">
+              <Icon icon="target" size={32} className="text-muted-foreground/40" />
               <div className="space-y-1">
                 <p className="text-sm font-medium">No spend activity for {format(periodMonth, 'MMMM yyyy')}</p>
                 <p className="text-xs text-muted-foreground">Spend or write-offs logged in this month will appear here. Budget targets can be set per category.</p>
               </div>
-            </div>
+            </Card>
           ) : (
-            <div className="rounded-lg border divide-y">
+            <Card className="!p-0 overflow-hidden divide-y">
               <div className="px-4 py-2 bg-muted/30">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   Categories · {format(periodMonth, 'MMMM yyyy')}
@@ -499,7 +492,7 @@ export default function BudgetTrackerPage() {
                   Click "Set budget" to enter a monthly target · budgets auto-save · over 85% = warning, over 100% = over budget
                 </p>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* Rolling trend */}

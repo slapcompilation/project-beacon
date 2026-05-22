@@ -2,13 +2,22 @@
 // Admin-only setup page. Maps menu items to their stock ingredients (Reality Graph
 // "contains" edges). Each POS sale triggers automatic stock decrements via these bindings.
 // Palantir principle: data structure as operational infrastructure — the map IS the engine.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useCallback } from 'react'
 import {
-  Plus, ChevronDown, ChevronRight, Pencil, Trash2,
-  Loader2, UtensilsCrossed, Wifi, WifiOff, Clock,
-  Package, AlertCircle, Check, X,
-} from 'lucide-react'
+  Button,
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { useMenuItems, useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem,
@@ -26,15 +35,14 @@ function POSHealthBadge({ rows }: { rows: POSHealthRow[] }) {
     order[r.status] > order[acc.status] ? r : acc
   )
 
-  const CFG = {
-    connected:       { icon: Wifi,    color: 'text-green-600 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-950/30',   label: 'POS connected' },
-    warning:         { icon: Clock,   color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-950/20', label: 'POS delayed' },
-    disconnected:    { icon: WifiOff, color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-950/20',       label: 'POS disconnected' },
-    never_connected: { icon: WifiOff, color: 'text-muted-foreground',               bg: 'bg-muted/40',                        label: 'POS not connected' },
-  } as const
+  const CFG: Record<POSHealthRow['status'], { icon: IconName; intent: Intent; label: string }> = {
+    connected:       { icon: 'globe-network', intent: Intent.SUCCESS, label: 'POS connected' },
+    warning:         { icon: 'time',          intent: Intent.WARNING, label: 'POS delayed' },
+    disconnected:    { icon: 'offline',       intent: Intent.DANGER,  label: 'POS disconnected' },
+    never_connected: { icon: 'offline',       intent: Intent.NONE,    label: 'POS not connected' },
+  }
 
-  const cfg  = CFG[worst.status]
-  const Icon = cfg.icon
+  const cfg = CFG[worst.status]
   const sub  = worst.status === 'never_connected'
     ? `${worst.source_system} · no events`
     : worst.status === 'connected'
@@ -42,11 +50,9 @@ function POSHealthBadge({ rows }: { rows: POSHealthRow[] }) {
       : `${worst.source_system} · ${worst.hours_since_last != null ? `${String(worst.hours_since_last)}h ago` : 'unknown'}`
 
   return (
-    <div className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1', cfg.bg)}>
-      <Icon className={cn('h-3 w-3', cfg.color)} />
-      <span className={cn('text-[11px] font-medium', cfg.color)}>{cfg.label}</span>
-      <span className="text-[10px] text-muted-foreground">· {sub}</span>
-    </div>
+    <Tag icon={cfg.icon} intent={cfg.intent} minimal round>
+      {cfg.label} <span className="opacity-60">· {sub}</span>
+    </Tag>
   )
 }
 
@@ -76,35 +82,31 @@ function MenuItemForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 rounded-lg border bg-muted/20">
-      <input
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 rounded border bg-muted/20">
+      <InputGroup
         autoFocus
         value={name}
         onChange={(e) => { setName(e.target.value) }}
         placeholder="Menu item name *"
-        className="flex-1 min-w-0 rounded border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary/40"
+        className="flex-1 min-w-0"
       />
-      <input
+      <InputGroup
         value={category}
         onChange={(e) => { setCategory(e.target.value) }}
         placeholder="Category"
-        className="w-28 rounded border bg-background px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary/40"
+        className="w-28"
       />
-      <input
+      <InputGroup
         type="number"
         min={0}
         step={0.01}
         value={sellPrice}
         onChange={(e) => { setSellPrice(e.target.value) }}
         placeholder="Sell price"
-        className="w-24 rounded border bg-background px-2 py-1.5 text-sm text-right outline-none focus:ring-1 focus:ring-primary/40 tabular-nums"
+        className="w-24 tabular-nums"
       />
-      <button type="submit" className="rounded p-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-        <Check className="h-3.5 w-3.5" />
-      </button>
-      <button type="button" onClick={onCancel} className="rounded p-1.5 hover:bg-muted">
-        <X className="h-3.5 w-3.5" />
-      </button>
+      <Button type="submit" icon="tick" intent={Intent.PRIMARY} size="small" aria-label="Save" />
+      <Button type="button" icon="cross" variant="minimal" size="small" onClick={onCancel} aria-label="Cancel" />
     </form>
   )
 }
@@ -145,66 +147,67 @@ function AddIngredientRow({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 rounded-lg border bg-muted/10 mt-1">
+    <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2 rounded border bg-muted/10 mt-1">
       <div className="flex-1 min-w-0 relative">
         {variantId ? (
           <div className="flex items-center gap-1.5">
-            <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <Icon icon="box" size={12} className="text-muted-foreground flex-shrink-0" />
             <span className="text-xs font-medium truncate">
               {variants.find((v) => v.id === variantId)?.label ?? variantId}
             </span>
-            <button type="button" onClick={() => { setVariantId(''); setSearch('') }} className="ml-auto text-muted-foreground hover:text-foreground">
-              <X className="h-3 w-3" />
-            </button>
+            <Button
+              icon="cross"
+              variant="minimal"
+              size="small"
+              aria-label="Clear selection"
+              onClick={() => { setVariantId(''); setSearch('') }}
+              className="ml-auto"
+            />
           </div>
         ) : (
           <div className="relative">
-            <input
+            <InputGroup
               autoFocus
+              leftIcon="search"
               value={search}
               onChange={(e) => { setSearch(e.target.value) }}
               placeholder="Search ingredient…"
-              className="w-full rounded border bg-background px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary/40"
             />
             {search && filtered.length > 0 && (
-              <div className="absolute top-full left-0 z-20 mt-0.5 w-full rounded-lg border bg-popover shadow-lg py-1 max-h-40 overflow-y-auto">
+              <Card compact className="absolute top-full left-0 z-20 mt-0.5 w-full !p-1 max-h-40 overflow-y-auto">
                 {filtered.map((v) => (
                   <button
                     key={v.id}
                     type="button"
-                    className="w-full text-left px-2 py-1.5 text-xs hover:bg-muted flex items-center gap-2"
+                    className="w-full text-left px-2 py-1.5 text-xs hover:bg-muted rounded flex items-center gap-2"
                     onClick={() => { setVariantId(v.id); setSearch('') }}
                   >
                     <span className="font-medium truncate">{v.label}</span>
                     <span className="font-mono text-muted-foreground ml-auto flex-shrink-0">{v.sku}</span>
                   </button>
                 ))}
-              </div>
+              </Card>
             )}
           </div>
         )}
       </div>
-      <input
+      <InputGroup
         type="number"
         min={0.001}
         step={0.001}
         value={qty}
         onChange={(e) => { setQty(e.target.value) }}
         placeholder="Qty/serve"
-        className="w-20 rounded border bg-background px-2 py-1.5 text-xs text-right outline-none focus:ring-1 focus:ring-primary/40 tabular-nums"
+        className="w-20 tabular-nums"
       />
-      <input
+      <InputGroup
         value={unit}
         onChange={(e) => { setUnit(e.target.value) }}
         placeholder="unit"
-        className="w-14 rounded border bg-background px-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+        className="w-14"
       />
-      <button type="submit" className="rounded p-1.5 bg-primary text-primary-foreground hover:bg-primary/90">
-        <Check className="h-3 w-3" />
-      </button>
-      <button type="button" onClick={onCancel} className="rounded p-1.5 hover:bg-muted">
-        <X className="h-3 w-3" />
-      </button>
+      <Button type="submit" icon="tick" intent={Intent.PRIMARY} size="small" aria-label="Add" />
+      <Button type="button" icon="cross" variant="minimal" size="small" onClick={onCancel} aria-label="Cancel" />
     </form>
   )
 }
@@ -236,7 +239,7 @@ function IngredientRow({
 
   return (
     <div className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-muted/20 group">
-      <Package className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+      <Icon icon="box" size={12} className="text-muted-foreground flex-shrink-0" />
       <div className="flex-1 min-w-0">
         <span className="text-xs font-medium">{pv.products.name}</span>
         {pv.name !== 'Standard' && (
@@ -247,27 +250,23 @@ function IngredientRow({
 
       {editing ? (
         <div className="flex items-center gap-1.5 flex-shrink-0">
-          <input
+          <InputGroup
             autoFocus
             type="number"
             min={0.001}
             step={0.001}
             value={qty}
             onChange={(e) => { setQty(e.target.value) }}
-            className="w-16 rounded border bg-background px-1.5 py-0.5 text-xs text-right outline-none focus:ring-1 focus:ring-primary/40 tabular-nums"
+            className="w-16 tabular-nums"
           />
-          <input
+          <InputGroup
             value={unit}
             onChange={(e) => { setUnit(e.target.value) }}
             placeholder="unit"
-            className="w-12 rounded border bg-background px-1.5 py-0.5 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+            className="w-12"
           />
-          <button type="button" onClick={handleSave} className="text-primary hover:text-primary/80">
-            <Check className="h-3 w-3" />
-          </button>
-          <button type="button" onClick={() => { setEditing(false) }} className="text-muted-foreground hover:text-foreground">
-            <X className="h-3 w-3" />
-          </button>
+          <Button icon="tick" variant="minimal" intent={Intent.PRIMARY} size="small" onClick={handleSave} aria-label="Save" />
+          <Button icon="cross" variant="minimal" size="small" onClick={() => { setEditing(false) }} aria-label="Cancel" />
         </div>
       ) : (
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -275,12 +274,8 @@ function IngredientRow({
             {ing.qty_per_serve} {ing.unit ?? ''}
           </span>
           <div className="hidden group-hover:flex items-center gap-1">
-            <button type="button" onClick={() => { setEditing(true) }} className="rounded p-0.5 hover:bg-muted text-muted-foreground hover:text-foreground">
-              <Pencil className="h-3 w-3" />
-            </button>
-            <button type="button" onClick={() => { onRemove(ing.id) }} className="rounded p-0.5 hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-              <Trash2 className="h-3 w-3" />
-            </button>
+            <Button icon="edit" variant="minimal" size="small" onClick={() => { setEditing(true) }} aria-label="Edit ingredient" />
+            <Button icon="trash" variant="minimal" size="small" intent={Intent.DANGER} onClick={() => { onRemove(ing.id) }} aria-label="Remove ingredient" />
           </div>
         </div>
       )}
@@ -321,7 +316,7 @@ function MenuItemCard({
   }, [removeIngredient])
 
   return (
-    <div className="rounded-lg border bg-card overflow-hidden">
+    <Card compact className="!p-0 overflow-hidden">
       {/* Header */}
       {editing ? (
         <div className="p-2">
@@ -332,18 +327,16 @@ function MenuItemCard({
           />
         </div>
       ) : (
-        <div className="flex items-center gap-2 px-3 py-2.5">
+        <div className="flex items-center gap-2 px-3 py-2.5 group">
           <button
             type="button"
             onClick={() => { setExpanded((v) => !v) }}
             className="flex items-center gap-2 flex-1 min-w-0 text-left"
           >
-            {expanded
-              ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-              : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />}
+            <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground flex-shrink-0" />
             <span className="text-sm font-medium truncate">{item.name}</span>
             {item.category && (
-              <span className="text-[10px] text-muted-foreground border rounded-full px-1.5 py-0.5 flex-shrink-0">{item.category}</span>
+              <Tag minimal round>{item.category}</Tag>
             )}
             <span className="ml-auto flex-shrink-0 text-[10px] text-muted-foreground">
               {ingredientCount} ingredient{ingredientCount !== 1 ? 's' : ''}
@@ -354,12 +347,23 @@ function MenuItemCard({
               </span>
             )}
           </button>
-          <button type="button" onClick={() => { setEditing(true) }} className="flex-shrink-0 rounded p-1 hover:bg-muted text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100">
-            <Pencil className="h-3 w-3" />
-          </button>
-          <button type="button" onClick={() => { onDelete(item.id) }} className="flex-shrink-0 rounded p-1 hover:bg-destructive/10 text-muted-foreground hover:text-destructive">
-            <Trash2 className="h-3 w-3" />
-          </button>
+          <Button
+            icon="edit"
+            variant="minimal"
+            size="small"
+            aria-label="Edit menu item"
+            onClick={() => { setEditing(true) }}
+            className="flex-shrink-0 !opacity-0 group-hover:!opacity-100"
+          />
+          <Button
+            icon="trash"
+            variant="minimal"
+            size="small"
+            intent={Intent.DANGER}
+            aria-label="Delete menu item"
+            onClick={() => { onDelete(item.id) }}
+            className="flex-shrink-0"
+          />
         </div>
       )}
 
@@ -391,18 +395,19 @@ function MenuItemCard({
               onCancel={() => { setAddingIng(false) }}
             />
           ) : (
-            <button
-              type="button"
+            <Button
+              icon="plus"
+              variant="minimal"
+              size="small"
               onClick={() => { setAddingIng(true) }}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-1 py-0.5"
+              className="mt-1"
             >
-              <Plus className="h-3 w-3" />
               Add ingredient
-            </button>
+            </Button>
           )}
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -432,11 +437,11 @@ export default function MenuMappingPage() {
 
   if (!['admin', 'owner'].includes(role)) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-center p-8">
-        <AlertCircle className="h-8 w-8 text-muted-foreground/30" />
-        <p className="text-sm font-medium">Admin access required</p>
-        <p className="text-xs text-muted-foreground">Menu mapping is available to admins and owners.</p>
-      </div>
+      <NonIdealState
+        icon="lock"
+        title="Admin access required"
+        description="Menu mapping is available to admins and owners."
+      />
     )
   }
 
@@ -465,38 +470,45 @@ export default function MenuMappingPage() {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-8 py-3 border-b flex-shrink-0 flex-wrap">
-        <input
+        <InputGroup
+          leftIcon="search"
           value={search}
           onChange={(e) => { setSearch(e.target.value) }}
           placeholder="Search menu items…"
-          className="h-7 w-48 rounded border bg-background px-2 text-xs outline-none focus:ring-1 focus:ring-primary/40"
+          className="w-48"
         />
         <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            className={cn('rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
-              filterCat === null ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted')}
+          <Tag
+            interactive
+            minimal={filterCat !== null}
+            intent={filterCat === null ? Intent.PRIMARY : Intent.NONE}
+            round
             onClick={() => { setFilterCat(null) }}
           >
             All
-          </button>
+          </Tag>
           {categories.map((cat) => (
-            <button
+            <Tag
               key={cat}
-              className={cn('rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors',
-                filterCat === cat ? 'bg-primary text-primary-foreground border-primary' : 'hover:bg-muted')}
+              interactive
+              minimal={filterCat !== cat}
+              intent={filterCat === cat ? Intent.PRIMARY : Intent.NONE}
+              round
               onClick={() => { setFilterCat(cat) }}
             >
               {cat}
-            </button>
+            </Tag>
           ))}
         </div>
-        <button
-          className="ml-auto flex items-center gap-1.5 rounded-lg border bg-primary text-primary-foreground px-3 py-1.5 text-xs font-medium hover:bg-primary/90"
+        <Button
+          icon="plus"
+          intent={Intent.PRIMARY}
+          size="small"
+          className={cn('ml-auto')}
           onClick={() => { setAddingItem(true) }}
         >
-          <Plus className="h-3.5 w-3.5" />
           Add menu item
-        </button>
+        </Button>
       </div>
 
       {/* Body */}
@@ -512,18 +524,15 @@ export default function MenuMappingPage() {
 
         {itemsLoading ? (
           <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Spinner size={SpinnerSize.SMALL} />
             <span className="text-sm">Loading menu…</span>
           </div>
         ) : displayedItems.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-            <UtensilsCrossed className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm font-medium">No menu items yet</p>
-            <p className="text-xs text-muted-foreground max-w-xs leading-relaxed">
-              Add menu items and bind each one to its stock ingredients.
-              Once mapped, POS sales will automatically decrement inventory.
-            </p>
-          </div>
+          <NonIdealState
+            icon="menu"
+            title="No menu items yet"
+            description="Add menu items and bind each one to its stock ingredients. Once mapped, POS sales will automatically decrement inventory."
+          />
         ) : (
           <div className="space-y-2 max-w-3xl">
             {displayedItems.map((item) => (

@@ -3,43 +3,29 @@
 // Voice-driven interface that triggers BeaconActions through speech.
 // The agent has access to: adjustStock, requestRestock, writeOff, checkBalance.
 //
-// Setup required: set VITE_ELEVENLABS_AGENT_ID in .env
-// ElevenLabs agent must be configured with tools matching BeaconAction shapes.
-//
-// Palantir Principle #8: keyboard/voice-first, high-cadence workflows.
-// Floor operators should never need to type during a physical stock count.
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useCallback } from 'react'
-import { Mic, MicOff, Volume2, AlertTriangle, CheckCircle2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import {
+  Button,
+  Callout,
+  Card,
+  Icon,
+  Intent,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 
-// ─── Tool definitions (shown to operators for context) ────────────��───────────
+// ─── Tool definitions ────────────────────────────────────────────────────────
 
 const VOICE_TOOLS = [
-  {
-    name:     'adjustStock',
-    example:  '"Adjust Tomatoes down 5, spoilage"',
-    action:   'ADJUST_STOCK',
-  },
-  {
-    name:     'requestRestock',
-    example:  '"Request 20 units of Chicken Breast"',
-    action:   'REQUEST_RESTOCK',
-  },
-  {
-    name:     'writeOff',
-    example:  '"Write off 3 Olive Oil, expired"',
-    action:   'WRITE_OFF',
-  },
-  {
-    name:     'checkBalance',
-    example:  '"What\'s the current stock of Salmon?"',
-    action:   'READ_ONLY',
-  },
+  { name: 'adjustStock',    example: '"Adjust Tomatoes down 5, spoilage"',     action: 'ADJUST_STOCK' },
+  { name: 'requestRestock', example: '"Request 20 units of Chicken Breast"',   action: 'REQUEST_RESTOCK' },
+  { name: 'writeOff',       example: '"Write off 3 Olive Oil, expired"',       action: 'WRITE_OFF' },
+  { name: 'checkBalance',   example: '"What\'s the current stock of Salmon?"', action: 'READ_ONLY' },
 ]
 
 // ─── Transcript entry ─────────────────────────────────────────────────────────
@@ -64,8 +50,6 @@ export default function VoiceModePage() {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
   const [lastAction, setLastAction] = useState<string | null>(null)
 
-  // ─── ElevenLabs WebSocket connection ─────────────────────────────────────
-
   const connect = useCallback(async () => {
     if (!agentId) {
       toast.error('Set VITE_ELEVENLABS_AGENT_ID in .env to enable voice mode')
@@ -77,8 +61,7 @@ export default function VoiceModePage() {
     setTranscript([])
 
     try {
-      // Dynamic import — only load ElevenLabs SDK when voice mode is activated
-      // @ts-ignore — @11labs/client is an optional runtime dep; install with: pnpm --filter @beacon/web add @11labs/client
+      // @ts-ignore — @11labs/client is an optional runtime dep
       const { Conversation } = await import('@11labs/client') as unknown as {
         Conversation: {
           startSession: (opts: {
@@ -92,7 +75,6 @@ export default function VoiceModePage() {
         }
       }
 
-      // Client-side tools — dispatched through the action registry
       const clientTools = {
         adjustStock: async (args: Record<string, unknown>) => {
           const result = await dispatchAction(
@@ -155,7 +137,6 @@ export default function VoiceModePage() {
         onError:      (err) => { toast.error(`Voice error: ${err}`); setSession('error') },
       })
 
-      // Store disconnect fn — called by the stop button
       ;(window as unknown as Record<string, unknown>).__beaconVoiceEnd = () => { conv.endSession(); }
 
     } catch (err) {
@@ -178,7 +159,7 @@ export default function VoiceModePage() {
       {/* Header */}
       <div className="px-6 pt-5 pb-3 border-b shrink-0">
         <h2 className="text-base font-semibold flex items-center gap-2">
-          <Mic className="w-4 h-4 text-primary" />
+          <Icon icon="headset" size={14} intent={Intent.PRIMARY} />
           Voice Mode
         </h2>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -190,27 +171,23 @@ export default function VoiceModePage() {
 
         {/* Setup warning */}
         {!configured && (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-xs text-amber-600 dark:text-amber-400 space-y-1.5">
-            <p className="font-semibold flex items-center gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              Configuration required
-            </p>
+          <Callout intent={Intent.WARNING} icon="warning-sign" title="Configuration required">
             <p>Add to your <code className="font-mono bg-muted/50 px-1 rounded">.env</code>:</p>
-            <pre className="font-mono bg-muted/30 rounded px-2 py-1 text-[10px]">
+            <pre className="font-mono bg-muted/30 rounded px-2 py-1 text-[10px] mt-1">
               {`VITE_ELEVENLABS_AGENT_ID=your_agent_id`}
             </pre>
-            <p>Also install the SDK: <code className="font-mono bg-muted/50 px-1 rounded">pnpm --filter @beacon/web add @11labs/client</code></p>
-            <p className="text-muted-foreground">Create an ElevenLabs Conversational AI agent with the tools: adjustStock, requestRestock, writeOff.</p>
-          </div>
+            <p className="mt-1">Also install the SDK: <code className="font-mono bg-muted/50 px-1 rounded">pnpm --filter @beacon/web add @11labs/client</code></p>
+            <p className="text-muted-foreground mt-1">Create an ElevenLabs Conversational AI agent with the tools: adjustStock, requestRestock, writeOff.</p>
+          </Callout>
         )}
 
         {/* Tool reference */}
         <div className="grid grid-cols-2 gap-2">
           {VOICE_TOOLS.map((t) => (
-            <div key={t.name} className="rounded-lg border bg-card p-3 space-y-1">
+            <Card key={t.name} compact>
               <p className="text-[10px] font-mono font-semibold text-primary">{t.name}</p>
-              <p className="text-[10px] text-muted-foreground italic">{t.example}</p>
-            </div>
+              <p className="text-[10px] text-muted-foreground italic mt-1">{t.example}</p>
+            </Card>
           ))}
         </div>
 
@@ -218,7 +195,7 @@ export default function VoiceModePage() {
         {transcript.length > 0 && (
           <div className="space-y-2">
             <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Session Transcript</p>
-            <div className="rounded-lg border divide-y max-h-64 overflow-y-auto">
+            <Card compact className="!p-0 divide-y max-h-64 overflow-y-auto">
               {transcript.map((entry, i) => (
                 <div key={i} className={cn('px-3 py-2 flex items-start gap-2', entry.role === 'user' ? 'bg-muted/20' : 'bg-background')}>
                   <span className={cn('text-[9px] font-bold uppercase tracking-wide shrink-0 mt-0.5', entry.role === 'user' ? 'text-primary' : 'text-muted-foreground')}>
@@ -227,18 +204,18 @@ export default function VoiceModePage() {
                   <span className="text-xs flex-1">{entry.text}</span>
                   {entry.action && (
                     entry.success
-                      ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      : <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                      ? <Icon icon="tick-circle" size={14} className="text-emerald-500 shrink-0" />
+                      : <Icon icon="warning-sign" size={14} className="text-red-500 shrink-0" />
                   )}
                 </div>
               ))}
-            </div>
+            </Card>
           </div>
         )}
 
         {lastAction && session === 'active' && (
           <p className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+            <Icon icon="tick-circle" size={14} className="text-emerald-500" />
             {lastAction}
           </p>
         )}
@@ -248,34 +225,31 @@ export default function VoiceModePage() {
       <div className="border-t px-6 py-4 shrink-0 bg-background">
         <div className="flex items-center gap-3">
           {session === 'idle' || session === 'error' ? (
-            <button
-              type="button"
+            <Button
+              icon="record"
+              intent={Intent.PRIMARY}
               disabled={!configured}
               onClick={() => { void connect() }}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-40 transition-colors"
             >
-              <Mic className="w-4 h-4" />
               Start voice session
-            </button>
+            </Button>
           ) : session === 'connecting' ? (
-            <button type="button" disabled
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-full bg-muted text-muted-foreground">
-              <Loader2 className="w-4 h-4 animate-spin" />
+            <Button disabled loading>
               Connecting…
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
+            <Button
+              icon="record"
+              intent={Intent.DANGER}
               onClick={disconnect}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-full bg-red-500 text-white hover:bg-red-600 transition-colors animate-pulse"
+              className="animate-pulse"
             >
-              <MicOff className="w-4 h-4" />
               End session
-            </button>
+            </Button>
           )}
           {session === 'active' && (
             <div className="flex items-center gap-1.5 text-xs text-emerald-500">
-              <Volume2 className="w-3.5 h-3.5" />
+              <Icon icon="volume-up" size={14} />
               Listening…
             </div>
           )}

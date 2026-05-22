@@ -2,15 +2,22 @@
 // Location Inventory Map — shows all active variants grouped by their assigned
 // location. Operators see PAR health at a glance per physical area and can
 // reassign a variant's location inline without navigating away.
-// Palantir principle: decision support, not data display. Each location group
-// shows its health state and the operator can act immediately.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  MapPin, ChevronDown, ChevronUp, Loader2,
-  AlertTriangle, TrendingDown, CheckCircle2, X,
-} from 'lucide-react'
+  Button,
+  HTMLSelect,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -19,20 +26,16 @@ import type { LocationInventoryRow } from '@beacon/types'
 
 // ─── PAR status badge ─────────────────────────────────────────────────────────
 
-const PAR_CFG = {
-  ok:       { label: 'OK',       cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400' },
-  low:      { label: 'Low',      cls: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400' },
-  critical: { label: 'Critical', cls: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' },
-  out:      { label: 'Out',      cls: 'bg-red-200 text-red-800 dark:bg-red-950/60 dark:text-red-300 font-bold' },
-} as const
+const PAR_INTENT: Record<LocationInventoryRow['par_status'], { label: string; intent: Intent }> = {
+  ok:       { label: 'OK',       intent: Intent.SUCCESS },
+  low:      { label: 'Low',      intent: Intent.WARNING },
+  critical: { label: 'Critical', intent: Intent.DANGER  },
+  out:      { label: 'Out',      intent: Intent.DANGER  },
+}
 
 function ParBadge({ status }: { status: LocationInventoryRow['par_status'] }) {
-  const cfg = PAR_CFG[status]
-  return (
-    <span className={cn('text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded', cfg.cls)}>
-      {cfg.label}
-    </span>
-  )
+  const cfg = PAR_INTENT[status]
+  return <Tag intent={cfg.intent} minimal>{cfg.label}</Tag>
 }
 
 // ─── Relocate popover ─────────────────────────────────────────────────────────
@@ -59,28 +62,24 @@ function RelocateSelect({
 
   return (
     <div className="flex items-center gap-1.5">
-      <select
+      <HTMLSelect
         autoFocus
-        className="rounded border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
         value={selected}
         onChange={(e) => { setSelected(e.target.value) }}
-      >
-        <option value="">— Unassigned —</option>
-        {locations.map((l) => (
-          <option key={l.id} value={l.id}>{l.name}</option>
-        ))}
-      </select>
-      <button
-        type="button"
-        disabled={reassign.isPending}
+        options={[
+          { value: '', label: '— Unassigned —' },
+          ...locations.map((l) => ({ value: l.id, label: l.name })),
+        ]}
+      />
+      <Button
+        size="small"
+        intent={Intent.PRIMARY}
+        loading={reassign.isPending}
         onClick={handleSave}
-        className="px-2 py-1 rounded bg-primary text-primary-foreground text-xs font-medium disabled:opacity-50"
       >
-        {reassign.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Save'}
-      </button>
-      <button type="button" onClick={onClose}>
-        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-      </button>
+        Save
+      </Button>
+      <Button icon="cross" variant="minimal" size="small" onClick={onClose} aria-label="Cancel" />
     </div>
   )
 }
@@ -139,7 +138,7 @@ function VariantRow({
         </div>
 
         {/* Relocate */}
-        <div className="w-40">
+        <div className="w-48">
           {relocating
             ? (
               <RelocateSelect
@@ -149,14 +148,14 @@ function VariantRow({
               />
             )
             : (
-              <button
-                type="button"
+              <Button
+                variant="minimal"
+                size="small"
+                icon="map-marker"
                 onClick={() => { setRelocating(true) }}
-                className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
               >
-                <MapPin className="h-3 w-3" />
                 {row.location_name ?? 'Unassigned'}
-              </button>
+              </Button>
             )
           }
         </div>
@@ -168,7 +167,7 @@ function VariantRow({
 // ─── Location group ───────────────────────────────────────────────────────────
 
 interface LocationGroup {
-  key:       string            // location_path or 'Unassigned'
+  key:       string
   locationId: string | null
   rows:      LocationInventoryRow[]
 }
@@ -204,12 +203,16 @@ function LocationGroup({
           open ? 'bg-muted/10' : '',
         )}
       >
-        <MapPin className={cn(
-          'h-4 w-4 shrink-0',
-          headerStatus === 'critical' ? 'text-red-500' :
-          headerStatus === 'low'      ? 'text-amber-500' :
-          'text-muted-foreground',
-        )} />
+        <Icon
+          icon="map-marker"
+          size={14}
+          className={cn(
+            'shrink-0',
+            headerStatus === 'critical' ? 'text-red-500' :
+            headerStatus === 'low'      ? 'text-amber-500' :
+            'text-muted-foreground',
+          )}
+        />
 
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate">
@@ -232,10 +235,10 @@ function LocationGroup({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {atRisk > 0 && <AlertTriangle className="h-4 w-4 text-red-500" />}
-          {low > 0 && atRisk === 0 && <TrendingDown className="h-4 w-4 text-amber-500" />}
-          {atRisk === 0 && low === 0 && <CheckCircle2 className="h-4 w-4 text-emerald-500/60" />}
-          {open ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+          {atRisk > 0 && <Icon icon="warning-sign" size={14} className="text-red-500" />}
+          {low > 0 && atRisk === 0 && <Icon icon="trending-down" size={14} className="text-amber-500" />}
+          {atRisk === 0 && low === 0 && <Icon icon="tick-circle" size={14} className="text-emerald-500/60" />}
+          <Icon icon={open ? 'chevron-up' : 'chevron-down'} size={14} className="text-muted-foreground" />
         </div>
       </button>
 
@@ -251,7 +254,7 @@ function LocationGroup({
               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-10 text-right">Stock</span>
               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-16 text-right">Value</span>
               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-14 text-right">PAR</span>
-              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-40">Location</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground w-48">Location</span>
             </div>
           </div>
           {group.rows.map((row) => (
@@ -309,7 +312,6 @@ export default function LocationInventoryPage() {
     ? rows.filter((r) => r.par_status !== 'ok')
     : rows
 
-  // Group by location_path (nulls → 'Unassigned')
   const groups = useMemo<LocationGroup[]>(() => {
     const map = new Map<string, LocationGroup>()
     for (const row of filtered) {
@@ -321,13 +323,11 @@ export default function LocationInventoryPage() {
         map.set(key, { key, locationId: row.location_id, rows: [row] })
       }
     }
-    // Sort: issues first, then alphabetical
     return [...map.values()].sort((a, b) => {
       const aHasIssues = a.rows.some((r) => r.par_status !== 'ok')
       const bHasIssues = b.rows.some((r) => r.par_status !== 'ok')
       if (aHasIssues && !bHasIssues) return -1
       if (!aHasIssues && bHasIssues) return 1
-      // Unassigned last
       if (a.key === 'Unassigned') return 1
       if (b.key === 'Unassigned') return -1
       return a.key.localeCompare(b.key)
@@ -339,7 +339,7 @@ export default function LocationInventoryPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} />
       </div>
     )
   }
@@ -350,41 +350,25 @@ export default function LocationInventoryPage() {
 
       {/* Filter bar */}
       <div className="flex items-center gap-2 px-6 py-3 border-b shrink-0">
-        {(
-          [
-            { id: 'all'    as Filter, label: `All locations (${String(rows.length)} variants)` },
-            { id: 'issues' as Filter, label: `Issues only (${String(issueCount)})`, warn: issueCount > 0 },
-          ]
-        ).map((f) => (
-          <button
-            key={f.id}
-            type="button"
-            onClick={() => { setFilter(f.id) }}
-            className={cn(
-              'px-3 py-1.5 rounded text-xs font-medium transition-colors',
-              filter === f.id
-                ? 'bg-primary text-primary-foreground'
-                : f.warn
-                  ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20'
-                  : 'text-muted-foreground hover:bg-muted/40',
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+        <SegmentedControl
+          size="small"
+          value={filter}
+          onValueChange={(v) => { setFilter(v as Filter) }}
+          options={[
+            { value: 'all',    label: `All locations (${String(rows.length)} variants)` },
+            { value: 'issues', label: `Issues only (${String(issueCount)})` },
+          ]}
+        />
       </div>
 
       {/* Location groups */}
       <div className="flex-1 overflow-y-auto">
         {groups.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-            <MapPin className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">
-              {filter === 'issues'
-                ? 'All locations are fully stocked.'
-                : 'No active variants found. Add products in Floor · Live Stock.'}
-            </p>
-          </div>
+          <NonIdealState
+            icon="map-marker"
+            title={filter === 'issues' ? 'All locations are fully stocked' : 'No active variants found'}
+            description={filter === 'issues' ? undefined : 'Add products in Floor · Live Stock.'}
+          />
         ) : (
           <div>
             {groups.map((group, i) => (

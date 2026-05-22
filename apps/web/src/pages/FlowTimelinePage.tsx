@@ -2,6 +2,8 @@
 // Palantir principle: auditability is a first-class feature, not a debug tool.
 // Operators must always see WHY the world is the way it is — with cost impact,
 // team attribution, and causal correction chains laid out as a visual story.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -12,15 +14,15 @@ import {
   ReferenceLine, ResponsiveContainer,
 } from 'recharts'
 import {
-  ArrowUpCircle, MinusCircle, AlertTriangle, RotateCcw,
-  Search, Clock, TrendingUp, WifiOff,
-  Camera, Package, Activity, Pencil,
-} from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
+  Button,
+  Card,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  NonIdealState,
+  SegmentedControl,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
@@ -45,7 +47,7 @@ function classifyEvent(row: TimelineRow): EventType {
 
 const EVENT_META: Record<EventType, {
   label: string
-  icon: React.ElementType
+  icon: IconName
   dot: string          // chart dot fill (hex)
   badge: string        // tailwind badge classes
   border: string       // left-border color
@@ -53,7 +55,7 @@ const EVENT_META: Record<EventType, {
 }> = {
   receive:  {
     label:  'Received',
-    icon:   ArrowUpCircle,
+    icon:   'arrow-up',
     dot:    '#10b981',
     badge:  'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
     border: 'border-emerald-400',
@@ -61,7 +63,7 @@ const EVENT_META: Record<EventType, {
   },
   consume:  {
     label:  'Consumed',
-    icon:   MinusCircle,
+    icon:   'minus',
     dot:    '#64748b',
     badge:  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
     border: 'border-slate-300',
@@ -69,7 +71,7 @@ const EVENT_META: Record<EventType, {
   },
   writeoff: {
     label:  'Write-off',
-    icon:   AlertTriangle,
+    icon:   'warning-sign',
     dot:    '#f43f5e',
     badge:  'bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400',
     border: 'border-rose-400',
@@ -77,7 +79,7 @@ const EVENT_META: Record<EventType, {
   },
   revert:   {
     label:  'Correction',
-    icon:   RotateCcw,
+    icon:   'undo',
     dot:    '#f59e0b',
     badge:  'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400',
     border: 'border-amber-400',
@@ -265,7 +267,6 @@ function EventCard({
   const fmtDate = useDateFormat()
   const type = classifyEvent(row)
   const meta = EVENT_META[type]
-  const Icon = meta.icon
   const sign = row.quantity_change > 0 ? '+' : ''
   const timeAgo = formatDistanceToNow(new Date(row.happened_at), { addSuffix: true })
   const fullTime = `${fmtDate(new Date(row.happened_at))}, ${format(new Date(row.happened_at), 'HH:mm')}`
@@ -278,7 +279,6 @@ function EventCard({
       type === 'writeoff' ? 'border-l-rose-400' :
       'border-l-slate-300 dark:border-l-slate-600',
     )}>
-      {/* Dot on the timeline line */}
       <div className={cn(
         'absolute -left-[5px] top-1 h-2 w-2 rounded-full',
         type === 'revert'   ? 'bg-amber-400' :
@@ -295,12 +295,12 @@ function EventCard({
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className={cn('inline-flex items-center gap-1 text-xs font-semibold rounded px-1.5 py-0.5', meta.badge)}>
-              <Icon className="h-3 w-3" />
+              <Icon icon={meta.icon} size={12} />
               {meta.label}
             </span>
             {isCorrected && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold rounded px-1.5 py-0.5 bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400">
-                <AlertTriangle className="h-3 w-3" />
+                <Icon icon="warning-sign" size={12} />
                 Corrected {correctedByTime}
               </span>
             )}
@@ -311,7 +311,7 @@ function EventCard({
             )}
             {row.was_offline && (
               <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                <WifiOff className="h-2.5 w-2.5" /> offline
+                <Icon icon="offline" size={10} /> offline
               </span>
             )}
           </div>
@@ -353,7 +353,7 @@ function EventCard({
             <span className="ml-auto truncate max-w-[160px]">{row.actor_email}</span>
           )}
           {row.photo_url && (
-            <Camera className="h-3 w-3 shrink-0 text-blue-500" />
+            <Icon icon="camera" size={12} className="shrink-0 text-blue-500" />
           )}
         </div>
 
@@ -361,12 +361,11 @@ function EventCard({
         {canUndo && !row.is_revert && (
           <div className="mt-2 pt-2 border-t">
             <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+              variant="minimal"
+              size="small"
+              icon="undo"
               onClick={() => { onUndo(row.log_id) }}
             >
-              <RotateCcw className="h-3 w-3 mr-1" />
               Undo adjustment
             </Button>
           </div>
@@ -394,7 +393,6 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
     const currentBalance = rows.length > 0 ? rows[rows.length - 1].balance_after : 0
     const parLevel       = rows.length > 0 ? rows[0].par_level : 0
 
-    // Avg daily consumption over the window
     const avgDaily = totalConsumed > 0 ? totalConsumed / days : 0
     const daysLeft = avgDaily > 0 ? Math.floor(currentBalance / avgDaily) : null
 
@@ -414,11 +412,11 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
   return (
     <div className="space-y-4">
       {/* Current stock */}
-      <div className={cn(
-        'rounded-lg border p-4',
-        stockStatus === 'critical' ? 'border-rose-300 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/20' :
-        stockStatus === 'warning'  ? 'border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/20' :
-        'border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/20',
+      <Card className={cn(
+        '!p-4',
+        stockStatus === 'critical' ? '!border-rose-300 !bg-rose-50 dark:!border-rose-800 dark:!bg-rose-950/20' :
+        stockStatus === 'warning'  ? '!border-amber-300 !bg-amber-50 dark:!border-amber-800 dark:!bg-amber-950/20' :
+        '!border-emerald-300 !bg-emerald-50 dark:!border-emerald-800 dark:!bg-emerald-950/20',
       )}>
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Current Stock</p>
         <div className="flex items-baseline gap-2">
@@ -435,8 +433,8 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
           </p>
         )}
         {stats.daysLeft !== null && (
-          <p className="mt-1 text-xs">
-            <Clock className="inline h-3 w-3 mr-0.5 -mt-0.5" />
+          <p className="mt-1 text-xs inline-flex items-center gap-1">
+            <Icon icon="time" size={12} />
             {stats.daysLeft > 30 ? (
               <span className="text-emerald-600 dark:text-emerald-400">~{stats.daysLeft}d left at current rate</span>
             ) : stats.daysLeft > 7 ? (
@@ -446,16 +444,16 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
             )}
           </p>
         )}
-      </div>
+      </Card>
 
       {/* {days}-day summary */}
-      <div className="rounded-lg border bg-card p-4 space-y-3">
+      <Card className="!p-4 space-y-3">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           {days}-Day Summary
         </p>
         <div className="space-y-2">
           <StatRow
-            icon={<TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
+            icon={<Icon icon="trending-up" size={12} className="text-emerald-500" />}
             label="Received"
             units={stats.totalReceived}
             cost={stats.receivedCost}
@@ -463,14 +461,14 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
             positive
           />
           <StatRow
-            icon={<MinusCircle className="h-3.5 w-3.5 text-slate-500" />}
+            icon={<Icon icon="minus" size={12} className="text-slate-500" />}
             label="Consumed"
             units={stats.totalConsumed}
             cost={stats.consumedCost}
             currency={currency}
           />
           <StatRow
-            icon={<AlertTriangle className="h-3.5 w-3.5 text-rose-500" />}
+            icon={<Icon icon="warning-sign" size={12} className="text-rose-500" />}
             label="Written Off"
             units={stats.totalWrittenOff}
             cost={stats.writtenOffCost}
@@ -478,7 +476,7 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
           />
           {stats.corrections > 0 && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <RotateCcw className="h-3.5 w-3.5 text-amber-500" />
+              <Icon icon="undo" size={12} className="text-amber-500" />
               <span>{stats.corrections} correction{stats.corrections > 1 ? 's' : ''} made</span>
             </div>
           )}
@@ -495,7 +493,7 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
             </span>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }
@@ -568,15 +566,13 @@ function VariantSelector({
   return (
     <div className="flex flex-col h-full">
       <div className="px-3 py-2 border-b">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Search products…"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value) }}
-            className="pl-8 h-8 text-sm"
-          />
-        </div>
+        <InputGroup
+          leftIcon="search"
+          placeholder="Search products…"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value) }}
+          size="small"
+        />
       </div>
       <div className="flex-1 overflow-y-auto py-1">
         {filtered.map((v) => (
@@ -643,13 +639,11 @@ export default function FlowTimelinePage() {
   const { data: rows = [], isLoading } = useVariantTimeline(variantId, days)
   const { mutate: undoStock } = useUndoStock()
 
-  // Find the product that contains the selected variant (for StockAdjustModal)
   const selectedProduct = useMemo(() =>
     variantId ? products.find((p) => p.product_variants.some((v) => v.id === variantId)) ?? null : null,
     [variantId, products]
   )
 
-  // Correction map: original log_id → { revertLogId, revertTime }
   const correctionMap = useMemo(() => {
     const map = new Map<string, { revertLogId: string; revertTime: string }>()
     for (const r of rows) {
@@ -660,7 +654,6 @@ export default function FlowTimelinePage() {
     return map
   }, [rows])
 
-  // Timeline list: newest first, optionally filtered by event type
   const timelineRows = useMemo(() => {
     const reversed = [...rows].reverse()
     if (eventFilter === 'all') return reversed
@@ -712,7 +705,7 @@ export default function FlowTimelinePage() {
             {headerSubtitle ? (
               <>
                 <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-indigo-500 shrink-0" />
+                  <Icon icon="pulse" size={14} className="text-indigo-500 shrink-0" />
                   <span className="text-sm font-semibold truncate">{headerSubtitle}</span>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-0.5 ml-6">
@@ -721,7 +714,7 @@ export default function FlowTimelinePage() {
               </>
             ) : (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Package className="h-4 w-4" />
+                <Icon icon="box" size={14} />
                 Select a product to view its stock narrative
               </div>
             )}
@@ -730,66 +723,44 @@ export default function FlowTimelinePage() {
             <div className="flex items-center gap-1.5">
               <VoiceAdjustButton
                 onCommand={(_q, delta, reason) => {
-                  // Pre-fill handled by StockAdjustModal prefill prop
                   void delta; void reason
                   setAdjustOpen(true)
                 }}
                 className="h-8"
               />
               <Button
-                size="sm"
-                variant="outline"
-                className="h-8 gap-1.5 text-xs"
+                size="small"
+                variant="outlined"
+                icon="edit"
                 onClick={() => { setAdjustOpen(true) }}
               >
-                <Pencil className="h-3 w-3" />
                 Adjust Stock
               </Button>
             </div>
           )}
-          {/* Event type filter pills */}
-          <div className="flex items-center gap-0.5 rounded-md border p-0.5">
-            {EVENT_FILTER_OPTS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => { setEventFilter(opt.value) }}
-                className={cn(
-                  'rounded px-2.5 py-1 text-xs font-medium transition-colors',
-                  eventFilter === opt.value
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:bg-muted',
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          {/* Event type filter */}
+          <SegmentedControl
+            size="small"
+            value={eventFilter}
+            onValueChange={(v) => { setEventFilter(v as EventFilter) }}
+            options={EVENT_FILTER_OPTS}
+          />
 
-          <Select
+          <HTMLSelect
             value={String(days)}
-            onValueChange={(v) => { setDays(Number(v)) }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DAY_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onChange={(e) => { setDays(Number(e.target.value)) }}
+            options={DAY_OPTIONS}
+            minimal
+          />
         </div>
 
         {!variantId ? (
           /* Empty state */
-          <div className="flex flex-col items-center justify-center h-[calc(100vh-57px)] text-center px-8">
-            <Activity className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <p className="text-base font-semibold text-muted-foreground">No product selected</p>
-            <p className="text-sm text-muted-foreground/70 mt-1 max-w-xs">
-              Choose a product from the left panel to see its complete stock story — every receive, consume, write-off, and correction, with cost impact.
-            </p>
-          </div>
+          <NonIdealState
+            icon="pulse"
+            title="No product selected"
+            description="Choose a product from the left panel to see its complete stock story — every receive, consume, write-off, and correction, with cost impact."
+          />
         ) : isLoading ? (
           /* Loading skeleton */
           <div className="p-6 space-y-4">
@@ -805,17 +776,15 @@ export default function FlowTimelinePage() {
           </div>
         ) : rows.length === 0 ? (
           /* No events in period */
-          <div className="flex flex-col items-center justify-center h-[calc(100vh-57px)] text-center px-8">
-            <Package className="h-12 w-12 text-muted-foreground/30 mb-4" />
-            <p className="text-base font-semibold text-muted-foreground">No events in this period</p>
-            <p className="text-sm text-muted-foreground/70 mt-1 max-w-xs">
-              No stock movements recorded for this product in the last {days} days. Try extending the time range.
-            </p>
-          </div>
+          <NonIdealState
+            icon="box"
+            title="No events in this period"
+            description={`No stock movements recorded for this product in the last ${String(days)} days. Try extending the time range.`}
+          />
         ) : (
           <div className="p-6 space-y-6">
             {/* Stock chart */}
-            <div className="rounded-lg border bg-card p-4">
+            <Card className="!p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                   Stock Level Over Time
@@ -839,7 +808,7 @@ export default function FlowTimelinePage() {
                 </div>
               </div>
               <StockChart rows={rows} parLevel={parLevel} currency={currency} />
-            </div>
+            </Card>
 
             {/* Timeline + Summary */}
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_288px] gap-6 items-start">
@@ -857,7 +826,6 @@ export default function FlowTimelinePage() {
                 <div className="space-y-6 pl-1">
                   {dayGroups.map((group) => (
                     <div key={group.date.toISOString()}>
-                      {/* Day separator */}
                       <div className="flex items-center gap-3 mb-3">
                         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground whitespace-nowrap">
                           {format(group.date, 'EEE, MMM d')}
@@ -873,7 +841,6 @@ export default function FlowTimelinePage() {
                           {group.netUnits >= 0 ? '+' : ''}{group.netUnits} units
                         </span>
                       </div>
-                      {/* Events for this day */}
                       <div className="space-y-0">
                         {group.rows.map((row) => {
                           const correction = correctionMap.get(row.log_id)
@@ -912,7 +879,7 @@ export default function FlowTimelinePage() {
         )}
       </main>
 
-      {/* Quick adjust modal — opened from toolbar for the selected variant */}
+      {/* Quick adjust modal */}
       {adjustOpen && selectedProduct && (
         <StockAdjustModal
           open

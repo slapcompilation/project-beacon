@@ -1,50 +1,39 @@
-// Production Hardening — Sprint 19
-// Per-panel error boundary: one broken panel doesn't crash the whole app.
-// Shows an operator-grade inline error card — the tab bar and other panels
-// remain fully functional. Click "Retry" to clear and re-mount the panel.
-//
-// Use case: wrap each workspace panel container so a runtime crash in e.g.
-// PredictiveRestockPage doesn't kill EyeWorkspace.
+// Per-panel error boundary: one broken panel doesn't crash the workspace.
+// Retry forces a remount by bumping a key.
 
 import { Component, useState } from 'react'
 import type { ReactNode, ErrorInfo } from 'react'
-import { AlertTriangle, RefreshCw, Copy, Check } from 'lucide-react'
+import { Button, Icon, Intent } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
-
-// ─── Copy button (functional component used inside the class fallback) ─────────
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
   async function handleCopy() {
     await navigator.clipboard.writeText(text)
     setCopied(true)
-    setTimeout(() => { setCopied(false); }, 2000)
+    setTimeout(() => { setCopied(false) }, 2000)
   }
   return (
-    <button
+    <Button
+      size="small"
+      variant="outlined"
+      icon={copied ? 'tick' : 'duplicate'}
       onClick={() => { void handleCopy() }}
-      className="flex items-center gap-1.5 rounded border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
     >
-      {copied
-        ? <><Check className="w-3 h-3 text-emerald-400" /> Copied</>
-        : <><Copy className="w-3 h-3" /> Copy error</>
-      }
-    </button>
+      {copied ? 'Copied' : 'Copy error'}
+    </Button>
   )
 }
 
-// ─── Boundary ──────────────────────────────────────────────────────────────────
-
 interface Props {
   children:  ReactNode
-  /** Shown in the error card header for context. Defaults to "Panel". */
   name?:     string
   className?: string
 }
 
 interface State {
   error: Error | null
-  errorId: number   // increment on each retry to force a fresh mount
+  errorId: number
 }
 
 export class PanelErrorBoundary extends Component<Props, State> {
@@ -80,10 +69,8 @@ export class PanelErrorBoundary extends Component<Props, State> {
           this.props.className,
         )}>
           <div className="w-full max-w-lg rounded-lg border border-destructive/40 bg-destructive/5 p-5 space-y-4">
-
-            {/* Header */}
             <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-destructive" />
+              <Icon icon="warning-sign" size={14} intent={Intent.DANGER} className="mt-0.5 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold">
                   {this.props.name ? `${this.props.name} — ` : ''}Runtime error
@@ -94,36 +81,31 @@ export class PanelErrorBoundary extends Component<Props, State> {
               </div>
             </div>
 
-            {/* Stack excerpt */}
             {error.stack && (
               <pre className="max-h-32 overflow-y-auto rounded border bg-muted/30 p-2.5 text-[10px] font-mono leading-relaxed text-muted-foreground whitespace-pre-wrap break-all">
                 {error.stack.slice(0, 600)}{error.stack.length > 600 ? '…' : ''}
               </pre>
             )}
 
-            {/* Actions */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={this.handleRetry}
-                className="flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                <RefreshCw className="w-3 h-3" />
+              <Button size="small" intent={Intent.PRIMARY} icon="refresh" onClick={this.handleRetry}>
                 Retry panel
-              </button>
+              </Button>
               <CopyButton text={details} />
-              <button
+              <Button
+                variant="minimal"
+                size="small"
                 onClick={() => { window.location.reload() }}
-                className="ml-auto text-[11px] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
+                className="!ml-auto"
               >
                 Reload page
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )
     }
 
-    // Key on errorId so Retry forces a full remount of the child tree
     return (
       <div key={errorId} className={cn('contents', this.props.className)}>
         {this.props.children}

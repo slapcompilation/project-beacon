@@ -2,18 +2,26 @@
 // Palantir-pattern: every named entity is navigable to its full object context.
 // Combines Floor (stock/location), Flow (logs, restocks), Eye (forecast, waste anomaly).
 // Route: /variant/:variantId
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { format, formatDistanceToNow } from 'date-fns'
+import {
+  AnchorButton,
+  Button,
+  Callout,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
 import { useWasteRadar, useConsumptionForecast } from '@/features/eye/hooks'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { cn } from '@/lib/utils'
-import { format, formatDistanceToNow } from 'date-fns'
-import {
-  ArrowLeft, AlertTriangle, TrendingDown, ShoppingCart, Package,
-  MapPin, Clock, CheckCircle2, XCircle, RotateCcw, ChevronRight,
-} from 'lucide-react'
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
@@ -92,21 +100,21 @@ function StatCard({
     muted: 'text-muted-foreground',
   }
   return (
-    <div className="rounded border border-border bg-card p-3 space-y-0.5">
+    <Card compact>
       <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
       <div className={cn('text-2xl font-mono font-semibold tabular-nums', accent ? colors[accent] : 'text-foreground')}>
         {value}
       </div>
       {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-    </div>
+    </Card>
   )
 }
 
 function PARStatusBadge({ stock, par }: { stock: number; par: number }) {
-  if (stock === 0) return <span className="rounded text-xs font-medium px-2 py-0.5 bg-red-500/15 text-red-500 border border-red-500/30">OUT</span>
-  if (par > 0 && stock <= par * 0.5) return <span className="rounded text-xs font-medium px-2 py-0.5 bg-red-500/15 text-red-500 border border-red-500/30">CRITICAL</span>
-  if (par > 0 && stock <= par) return <span className="rounded text-xs font-medium px-2 py-0.5 bg-amber-500/15 text-amber-500 border border-amber-500/30">LOW</span>
-  return <span className="rounded text-xs font-medium px-2 py-0.5 bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">OK</span>
+  if (stock === 0) return <Tag intent={Intent.DANGER} minimal>OUT</Tag>
+  if (par > 0 && stock <= par * 0.5) return <Tag intent={Intent.DANGER} minimal>CRITICAL</Tag>
+  if (par > 0 && stock <= par) return <Tag intent={Intent.WARNING} minimal>LOW</Tag>
+  return <Tag intent={Intent.SUCCESS} minimal>OK</Tag>
 }
 
 function LogRow({ log }: { log: StockLog }) {
@@ -123,7 +131,7 @@ function LogRow({ log }: { log: StockLog }) {
         isRevert ? 'bg-purple-500/15 text-purple-500' :
         isPositive ? 'bg-emerald-500/15 text-emerald-500' : 'bg-red-500/15 text-red-500',
       )}>
-        {isRevert ? <RotateCcw className="h-3 w-3" /> : isPositive ? '+' : '−'}
+        {isRevert ? <Icon icon="undo" size={12} /> : isPositive ? '+' : '−'}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2">
@@ -154,14 +162,14 @@ function LogRow({ log }: { log: StockLog }) {
 }
 
 function RestockStatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    pending:          { label: 'Pending',  cls: 'bg-slate-500/15 text-slate-400 border-slate-500/30' },
-    pending_manager:  { label: 'Awaiting Manager', cls: 'bg-amber-500/15 text-amber-500 border-amber-500/30' },
-    pending_director: { label: 'Awaiting Director', cls: 'bg-orange-500/15 text-orange-500 border-orange-500/30' },
-    approved:         { label: 'Approved', cls: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30' },
+  const map: Record<string, { label: string; intent: Intent }> = {
+    pending:          { label: 'Pending',           intent: Intent.NONE },
+    pending_manager:  { label: 'Awaiting Manager',  intent: Intent.WARNING },
+    pending_director: { label: 'Awaiting Director', intent: Intent.WARNING },
+    approved:         { label: 'Approved',          intent: Intent.SUCCESS },
   }
-  const s = map[status] ?? { label: status, cls: 'bg-slate-500/15 text-slate-400 border-slate-500/30' }
-  return <span className={cn('rounded text-xs font-medium px-2 py-0.5 border', s.cls)}>{s.label}</span>
+  const s = map[status] ?? { label: status, intent: Intent.NONE }
+  return <Tag intent={s.intent} minimal>{s.label}</Tag>
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
@@ -192,14 +200,11 @@ export default function VariantObjectPage() {
     staleTime: 30_000,
   })
 
-  // Cross-domain intelligence — filter from cached Eye layer data
   const { data: wasteRows = [] }    = useWasteRadar()
   const { data: forecastRows = [] } = useConsumptionForecast(30)
 
   const wasteAnomaly  = wasteRows.find((r) => r.variant_id === variantId) ?? null
   const forecast      = forecastForVariant(variantId!, forecastRows)
-
-  // ─── Loading / error states ───────────────────────────────────────────────
 
   if (loadingVariant) {
     return (
@@ -211,15 +216,18 @@ export default function VariantObjectPage() {
 
   if (variantError || !variant) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground">
-        <XCircle className="h-8 w-8 text-red-500/60" />
-        <p className="text-sm">Variant not found or you don't have access.</p>
-        <button type="button" onClick={() => { navigate(-1) }} className="text-xs text-primary hover:underline">← Go back</button>
-      </div>
+      <NonIdealState
+        icon="cross-circle"
+        title="Variant not found"
+        description="Variant not found or you don&apos;t have access."
+        action={
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { navigate(-1) }}>
+            ← Go back
+          </Button>
+        }
+      />
     )
   }
-
-  // ─── Derived metrics ──────────────────────────────────────────────────────
 
   const productName  = variant.products?.name ?? 'Unknown product'
   const categoryName = variant.products?.categories?.name ?? null
@@ -241,7 +249,6 @@ export default function VariantObjectPage() {
 
   const costAtRisk = (variant.cost ?? 0) * (variant.current_stock ?? 0)
 
-  // 30-day totals from logs
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const logsLast30  = logs.filter((l) => new Date(l.timestamp) >= thirtyDaysAgo)
@@ -252,23 +259,23 @@ export default function VariantObjectPage() {
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Header ── */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <button
-          type="button"
+        <Button
+          icon="arrow-left"
+          variant="minimal"
+          size="small"
           onClick={() => { navigate(-1) }}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ArrowLeft className="h-4 w-4" />
           Back
-        </button>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+        </Button>
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
         {categoryName && (
           <>
             <span className="text-sm text-muted-foreground">{categoryName}</span>
-            <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+            <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
           </>
         )}
         <span className="text-sm text-muted-foreground">{productName}</span>
-        <ChevronRight className="h-3 w-3 text-muted-foreground/40" />
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
         <span className="text-sm font-medium text-foreground">{variant.name}</span>
       </div>
 
@@ -279,14 +286,14 @@ export default function VariantObjectPage() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <Package className="h-5 w-5 text-muted-foreground" />
+                <Icon icon="box" size={20} className="text-muted-foreground" />
                 <h1 className="text-xl font-semibold">{productName} · {variant.name}</h1>
               </div>
               <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="font-mono">{variant.sku}</span>
                 {locationName && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
+                    <Icon icon="map-marker" size={12} />
                     {locationName}
                   </span>
                 )}
@@ -296,10 +303,9 @@ export default function VariantObjectPage() {
             <div className="flex items-center gap-2 shrink-0">
               <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
               {wasteAnomaly && (
-                <span className="rounded text-xs font-medium px-2 py-0.5 bg-orange-500/15 text-orange-500 border border-orange-500/30 flex items-center gap-1">
-                  <AlertTriangle className="h-3 w-3" />
+                <Tag icon="warning-sign" intent={Intent.WARNING} minimal>
                   Waste anomaly
-                </span>
+                </Tag>
               )}
             </div>
           </div>
@@ -332,27 +338,21 @@ export default function VariantObjectPage() {
 
           {/* ── Waste anomaly callout ── */}
           {wasteAnomaly && (
-            <div className="rounded border border-orange-500/30 bg-orange-500/5 p-3">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                <div className="space-y-0.5">
-                  <div className="text-sm font-medium text-orange-500">Waste anomaly detected</div>
-                  <div className="text-xs text-muted-foreground">
-                    {wasteAnomaly.qty_7d} units written off this week — {wasteAnomaly.pct_above_baseline.toFixed(0)}% above 4-week baseline.
-                    Anomaly score: <span className="text-orange-400 font-mono">{wasteAnomaly.anomaly_score.toFixed(1)}/10</span>
-                    {wasteAnomaly.top_user_email && ` · most write-offs by ${wasteAnomaly.top_user_email}`}.
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Breakdown — Spoilage: {wasteAnomaly.spoilage_qty} · Breakage: {wasteAnomaly.breakage_qty} · Theft: {wasteAnomaly.theft_qty}
-                  </div>
-                </div>
+            <Callout intent={Intent.WARNING} icon="warning-sign" title="Waste anomaly detected" compact>
+              <div className="text-xs">
+                {wasteAnomaly.qty_7d} units written off this week — {wasteAnomaly.pct_above_baseline.toFixed(0)}% above 4-week baseline.
+                Anomaly score: <span className="font-mono">{wasteAnomaly.anomaly_score.toFixed(1)}/10</span>
+                {wasteAnomaly.top_user_email && ` · most write-offs by ${wasteAnomaly.top_user_email}`}.
               </div>
-            </div>
+              <div className="text-xs mt-1">
+                Breakdown — Spoilage: {wasteAnomaly.spoilage_qty} · Breakage: {wasteAnomaly.breakage_qty} · Theft: {wasteAnomaly.theft_qty}
+              </div>
+            </Callout>
           )}
 
           {/* ── Open restock requests ── */}
           {!loadingRestocks && (
-            <div className="rounded border border-border bg-card">
+            <Card compact className="!p-0">
               <div className="flex items-center justify-between px-3 py-2 border-b border-border">
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Open Restock Requests ({restocks.length})
@@ -388,43 +388,27 @@ export default function VariantObjectPage() {
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           )}
 
           {/* ── Actions ── */}
           <div className="flex flex-wrap gap-2">
-            <Link
-              to={`/flow?panel=approvals`}
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <ShoppingCart className="h-4 w-4" />
+            <AnchorButton href="/flow?panel=approvals" icon="shopping-cart">
               Request Restock
-            </Link>
-            <Link
-              to={`/floor?panel=stock`}
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <TrendingDown className="h-4 w-4" />
+            </AnchorButton>
+            <AnchorButton href="/floor?panel=stock" icon="trending-down">
               Adjust Stock
-            </Link>
-            <Link
-              to={`/eye?panel=signals`}
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <AlertTriangle className="h-4 w-4" />
+            </AnchorButton>
+            <AnchorButton href="/eye?panel=signals" icon="warning-sign">
               Waste Radar
-            </Link>
-            <Link
-              to={`/flow?panel=causal`}
-              className="inline-flex items-center gap-1.5 rounded border border-border bg-card px-3 py-2 text-sm hover:bg-accent transition-colors"
-            >
-              <Clock className="h-4 w-4" />
+            </AnchorButton>
+            <AnchorButton href="/flow?panel=causal" icon="time">
               Causal Chain
-            </Link>
+            </AnchorButton>
           </div>
 
           {/* ── Stock log timeline ── */}
-          <div className="rounded border border-border bg-card">
+          <Card compact className="!p-0">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Stock Log — Last 50 Events
@@ -439,17 +423,17 @@ export default function VariantObjectPage() {
                 )}
               </div>
             ) : (
-              <div className="px-3 divide-y-0">
+              <div className="px-3">
                 {logs.map((log) => (
                   <LogRow key={log.id} log={log} />
                 ))}
               </div>
             )}
-          </div>
+          </Card>
 
           {/* ── Intelligence summary ── */}
           {forecast && (
-            <div className="rounded border border-border bg-card px-3 py-3">
+            <Card compact>
               <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
                 Consumption Intelligence
               </div>
@@ -470,29 +454,31 @@ export default function VariantObjectPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Open request</span>
-                  <span>{forecast.has_open_request ? <CheckCircle2 className="h-4 w-4 text-emerald-500 inline" /> : <XCircle className="h-4 w-4 text-red-500/60 inline" />}</span>
+                  <span>{forecast.has_open_request
+                    ? <Icon icon="tick-circle" size={14} className="text-emerald-500 inline" />
+                    : <Icon icon="cross-circle" size={14} className="text-red-500/60 inline" />}</span>
                 </div>
               </div>
               <div className="mt-2 text-xs text-muted-foreground/60">
                 Based on 30-day burn rate · {format(new Date(), 'dd/MM/yyyy HH:mm')} snapshot
               </div>
-            </div>
+            </Card>
           )}
 
           {/* ── Inline actions ── */}
-          <div className="rounded-lg border border-border bg-card p-4">
+          <Card>
             <ObjectActions
               nodeType="variant"
               variantId={variantId!}
               currentStock={variant.current_stock ?? 0}
               hasOpenRequest={forecast?.has_open_request ?? false}
             />
-          </div>
+          </Card>
 
           {/* ── Graph connections ── */}
-          <div className="rounded-lg border border-border bg-card p-4">
+          <Card>
             <GraphConnections nodeType="variant" nodeId={variantId!} />
-          </div>
+          </Card>
 
         </div>
       </div>

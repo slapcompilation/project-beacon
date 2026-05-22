@@ -5,8 +5,7 @@
 // anomaly flag) anchored to the detected product's shelf position.
 
 import { useEffect, useRef } from 'react'
-import { Loader2, CameraOff, ShieldAlert } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button, Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import type { ARSessionState, ARDetectedItem } from '../hooks/useARSession'
 
@@ -52,12 +51,12 @@ function DetectedItemOverlay({ item }: { item: ARDetectedItem }) {
 function PermissionDeniedState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-      <ShieldAlert className="h-8 w-8 text-destructive" />
+      <Icon icon="shield" size={32} intent={Intent.DANGER} />
       <p className="text-sm font-medium">Camera access denied</p>
       <p className="text-xs text-muted-foreground max-w-xs">
         Enable camera permissions in your browser settings, then try again.
       </p>
-      <Button size="sm" variant="outline" onClick={onRetry}>
+      <Button size="small" variant="outlined" onClick={onRetry}>
         Try Again
       </Button>
     </div>
@@ -67,7 +66,7 @@ function PermissionDeniedState({ onRetry }: { onRetry: () => void }) {
 function UnsupportedState() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
-      <CameraOff className="h-8 w-8 text-muted-foreground" />
+      <Icon icon="disable" size={32} className="text-muted-foreground" />
       <p className="text-sm font-medium">Camera not available</p>
       <p className="text-xs text-muted-foreground max-w-xs">
         AR Preview requires a device with a camera and a browser that supports
@@ -126,7 +125,7 @@ export function CameraShelfView({
             <span className="text-amber-500">Phase 9 feature — overlay detection coming soon.</span>
           </p>
         </div>
-        <Button onClick={onRequestStart}>
+        <Button intent={Intent.PRIMARY} onClick={onRequestStart}>
           Start Camera
         </Button>
       </div>
@@ -136,7 +135,7 @@ export function CameraShelfView({
   if (session.status === 'requesting') {
     return (
       <div className="flex flex-col items-center justify-center gap-3 p-8">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         <p className="text-sm text-muted-foreground">Requesting camera access…</p>
       </div>
     )

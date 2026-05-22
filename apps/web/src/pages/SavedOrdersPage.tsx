@@ -3,18 +3,24 @@
 // Every PO has a full lifecycle trace (draft → sent → confirmed → closed).
 // Invoice 3-way match: PO total vs invoice amount — discrepancies are flagged
 // automatically and require explicit approval or dispute resolution.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
 import {
-  ShoppingCart, ChevronDown, ChevronRight, CheckCircle2, XCircle,
-  AlertTriangle, FileText, Loader2, Send, PackageCheck,
-  ClipboardCheck, Ban, Plus,
-} from 'lucide-react'
+  Button,
+  FormGroup,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { format } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -29,19 +35,19 @@ import type { POSummaryRow, POStatus, POInvoiceStatus } from '@beacon/types'
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const PO_STATUS_CFG: Record<POStatus, { label: string; cls: string }> = {
-  draft:              { label: 'Draft',             cls: 'border-border text-muted-foreground' },
-  sent:               { label: 'Sent',              cls: 'border-blue-300 text-blue-700 dark:text-blue-400' },
-  confirmed:          { label: 'Confirmed',         cls: 'border-indigo-300 text-indigo-700 dark:text-indigo-400' },
-  partially_received: { label: 'Partial Receipt',   cls: 'border-amber-300 text-amber-700 dark:text-amber-400' },
-  closed:             { label: 'Closed',            cls: 'border-green-300 text-green-700 dark:text-green-400' },
-  cancelled:          { label: 'Cancelled',         cls: 'border-red-300 text-muted-foreground' },
+  draft:              { label: 'Draft',           cls: 'border-border text-muted-foreground' },
+  sent:               { label: 'Sent',            cls: 'border-blue-300 text-blue-700 dark:text-blue-400' },
+  confirmed:          { label: 'Confirmed',       cls: 'border-indigo-300 text-indigo-700 dark:text-indigo-400' },
+  partially_received: { label: 'Partial Receipt', cls: 'border-amber-300 text-amber-700 dark:text-amber-400' },
+  closed:             { label: 'Closed',          cls: 'border-green-300 text-green-700 dark:text-green-400' },
+  cancelled:          { label: 'Cancelled',       cls: 'border-red-300 text-muted-foreground' },
 }
 
-const INV_STATUS_CFG: Record<POInvoiceStatus, { label: string; cls: string; icon: React.ElementType }> = {
-  pending:  { label: 'Pending Review', cls: 'border-amber-300 text-amber-700 dark:text-amber-400',   icon: AlertTriangle },
-  matched:  { label: 'Matched',        cls: 'border-green-300 text-green-700 dark:text-green-400',   icon: CheckCircle2  },
-  disputed: { label: 'Disputed',       cls: 'border-red-300 text-red-700 dark:text-red-400',         icon: XCircle       },
-  approved: { label: 'Approved',       cls: 'border-green-300 text-green-700 dark:text-green-400',   icon: ClipboardCheck},
+const INV_STATUS_CFG: Record<POInvoiceStatus, { label: string; cls: string; icon: IconName }> = {
+  pending:  { label: 'Pending Review', cls: 'border-amber-300 text-amber-700 dark:text-amber-400', icon: 'warning-sign' },
+  matched:  { label: 'Matched',        cls: 'border-green-300 text-green-700 dark:text-green-400', icon: 'tick-circle'  },
+  disputed: { label: 'Disputed',       cls: 'border-red-300 text-red-700 dark:text-red-400',       icon: 'cross-circle' },
+  approved: { label: 'Approved',       cls: 'border-green-300 text-green-700 dark:text-green-400', icon: 'tick'         },
 }
 
 // ─── Invoice submission form ───────────────────────────────────────────────────
@@ -66,29 +72,24 @@ function InvoiceForm({ poId, onDone }: { poId: string; onDone: () => void }) {
     <div className="rounded-md border border-border/60 bg-muted/20 p-4 space-y-3">
       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Submit Invoice</p>
       <div className="grid grid-cols-3 gap-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs">Invoice Number</Label>
-          <Input placeholder="INV-2026-001" value={num} onChange={(e) => { setNum(e.target.value) }} className="h-8 text-xs" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">Invoice Date</Label>
-          <Input type="date" value={date} onChange={(e) => { setDate(e.target.value) }} className="h-8 text-xs" />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">Invoice Amount</Label>
-          <Input type="number" min={0} step={0.01} placeholder="0.00" value={amount} onChange={(e) => { setAmount(e.target.value) }} className="h-8 text-xs" />
-        </div>
+        <FormGroup label="Invoice Number" className="!mb-0">
+          <InputGroup placeholder="INV-2026-001" value={num} onChange={(e) => { setNum(e.target.value) }} size="small" />
+        </FormGroup>
+        <FormGroup label="Invoice Date" className="!mb-0">
+          <InputGroup type="date" value={date} onChange={(e) => { setDate(e.target.value) }} size="small" />
+        </FormGroup>
+        <FormGroup label="Invoice Amount" className="!mb-0">
+          <InputGroup type="number" min={0} step={0.01} placeholder="0.00" value={amount} onChange={(e) => { setAmount(e.target.value) }} size="small" />
+        </FormGroup>
       </div>
-      <div className="space-y-1.5">
-        <Label className="text-xs">Notes (optional)</Label>
-        <Input placeholder="Discrepancy details, payment terms…" value={notes} onChange={(e) => { setNotes(e.target.value) }} className="h-8 text-xs" />
-      </div>
+      <FormGroup label="Notes (optional)" className="!mb-0">
+        <InputGroup placeholder="Discrepancy details, payment terms…" value={notes} onChange={(e) => { setNotes(e.target.value) }} size="small" />
+      </FormGroup>
       <div className="flex items-center gap-2 pt-1">
-        <Button size="sm" onClick={handleSubmit} disabled={submit.isPending || !num || !amount} className="gap-1.5 text-xs h-8">
-          {submit.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FileText className="h-3.5 w-3.5" />}
+        <Button size="small" intent={Intent.PRIMARY} icon="document" loading={submit.isPending} disabled={!num || !amount} onClick={handleSubmit}>
           Submit Invoice
         </Button>
-        <Button size="sm" variant="ghost" onClick={onDone} className="text-xs h-8">Cancel</Button>
+        <Button size="small" variant="minimal" onClick={onDone}>Cancel</Button>
       </div>
     </div>
   )
@@ -122,25 +123,37 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
       {canApprove && (
         <div className="flex items-center gap-2 flex-wrap">
           {nextStatus[po.status] && (
-            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7"
-              disabled={updateStatus.isPending}
+            <Button
+              size="small"
+              variant="outlined"
+              icon="send-message"
+              loading={updateStatus.isPending}
               onClick={() => { updateStatus.mutate({ poId: po.id, status: nextStatus[po.status]! }) }}
             >
-              {updateStatus.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
               {nextLabel[po.status]}
             </Button>
           )}
           {po.status !== 'cancelled' && po.status !== 'closed' && (
-            <Button size="sm" variant="ghost" className="gap-1.5 text-xs h-7 text-destructive hover:text-destructive"
-              disabled={updateStatus.isPending}
-              onClick={() => { updateStatus.mutate({ poId: po.id, status: 'cancelled' }) }}>
-              <Ban className="h-3 w-3" />Cancel PO
+            <Button
+              size="small"
+              variant="minimal"
+              intent={Intent.DANGER}
+              icon="ban-circle"
+              loading={updateStatus.isPending}
+              onClick={() => { updateStatus.mutate({ poId: po.id, status: 'cancelled' }) }}
+            >
+              Cancel PO
             </Button>
           )}
           {(po.status === 'sent' || po.status === 'confirmed' || po.status === 'closed') && !showInvoiceForm && (
-            <Button size="sm" variant="outline" className="gap-1.5 text-xs h-7 ml-auto"
-              onClick={() => { setShowInvoiceForm(true) }}>
-              <Plus className="h-3 w-3" />Add Invoice
+            <Button
+              size="small"
+              variant="outlined"
+              icon="plus"
+              className="!ml-auto"
+              onClick={() => { setShowInvoiceForm(true) }}
+            >
+              Add Invoice
             </Button>
           )}
         </div>
@@ -162,7 +175,7 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
       {/* Line items */}
       {linesLoading ? (
         <div className="flex items-center gap-2 text-xs text-muted-foreground py-2">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />Loading lines…
+          <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />Loading lines…
         </div>
       ) : (
         <div className="rounded-md border overflow-hidden">
@@ -189,7 +202,7 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
                     <td className="px-3 py-2 text-right tabular-nums">{l.ordered_qty}</td>
                     <td className={cn('px-3 py-2 text-right tabular-nums font-semibold', fullyReceived ? 'text-green-600 dark:text-green-400' : 'text-foreground')}>
                       {l.received_qty}
-                      {fullyReceived && <CheckCircle2 className="h-3 w-3 inline ml-1" />}
+                      {fullyReceived && <Icon icon="tick-circle" size={10} className="inline ml-1" />}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">{formatCurrency(l.unit_cost, currency)}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold">{formatCurrency(l.line_total, currency)}</td>
@@ -218,7 +231,6 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Invoices</p>
           {invoices.map((inv) => {
             const cfg = INV_STATUS_CFG[inv.status]
-            const StatusIcon = cfg.icon
             const discrepancy = Number(inv.discrepancy_amount)
             const isOver  = discrepancy > 0.01
             const isUnder = discrepancy < -0.01
@@ -227,9 +239,9 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
               <div key={inv.id} className="rounded-md border border-border/60 bg-card p-3 space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={cn('h-5 px-1.5 text-[10px] gap-1', cfg.cls)}>
-                      <StatusIcon className="h-3 w-3" />{cfg.label}
-                    </Badge>
+                    <Tag minimal icon={cfg.icon} className={cn('!h-5 !px-1.5 !text-[10px]', cfg.cls)}>
+                      {cfg.label}
+                    </Tag>
                     <span className="text-sm font-semibold">{inv.invoice_number}</span>
                     <span className="text-xs text-muted-foreground">· {format(new Date(inv.invoice_date), 'dd MMM yyyy')}</span>
                   </div>
@@ -237,15 +249,25 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
                     <span className="tabular-nums font-bold text-sm">{formatCurrency(inv.invoice_amount, currency)}</span>
                     {canApprove && (inv.status === 'pending' || inv.status === 'matched') && (
                       <div className="flex items-center gap-1">
-                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 gap-1 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
-                          disabled={updateInvoice.isPending}
-                          onClick={() => { updateInvoice.mutate({ invoiceId: inv.id, status: 'approved', poId: po.id }) }}>
-                          <CheckCircle2 className="h-3 w-3" />Approve
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          intent={Intent.SUCCESS}
+                          icon="tick-circle"
+                          loading={updateInvoice.isPending}
+                          onClick={() => { updateInvoice.mutate({ invoiceId: inv.id, status: 'approved', poId: po.id }) }}
+                        >
+                          Approve
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2 text-destructive hover:text-destructive"
-                          disabled={updateInvoice.isPending}
-                          onClick={() => { updateInvoice.mutate({ invoiceId: inv.id, status: 'disputed', poId: po.id }) }}>
-                          <XCircle className="h-3 w-3" />Dispute
+                        <Button
+                          size="small"
+                          variant="minimal"
+                          intent={Intent.DANGER}
+                          icon="cross-circle"
+                          loading={updateInvoice.isPending}
+                          onClick={() => { updateInvoice.mutate({ invoiceId: inv.id, status: 'disputed', poId: po.id }) }}
+                        >
+                          Dispute
                         </Button>
                       </div>
                     )}
@@ -290,7 +312,6 @@ function PORow({ po, currency, canApprove }: { po: POSummaryRow; currency: strin
 
   const hasInvoiceAlert = po.invoice_status === 'pending' || po.invoice_status === 'disputed'
   const invCfg = po.invoice_status ? INV_STATUS_CFG[po.invoice_status] : null
-  const InvIcon = invCfg?.icon
 
   return (
     <div className="rounded-lg border bg-card shadow-sm overflow-hidden">
@@ -300,9 +321,7 @@ function PORow({ po, currency, canApprove }: { po: POSummaryRow; currency: strin
         className="w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors"
         onClick={() => { setExpanded((v) => !v) }}
       >
-        {expanded
-          ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-          : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+        <Icon icon={expanded ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground flex-shrink-0" />
 
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-sm font-semibold tabular-nums">{po.po_number}</span>
@@ -310,14 +329,14 @@ function PORow({ po, currency, canApprove }: { po: POSummaryRow; currency: strin
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
-          {hasInvoiceAlert && invCfg && InvIcon && (
-            <Badge variant="outline" className={cn('h-5 px-1.5 text-[10px] gap-1', invCfg.cls)}>
-              <InvIcon className="h-3 w-3" />{invCfg.label}
-            </Badge>
+          {hasInvoiceAlert && invCfg && (
+            <Tag minimal icon={invCfg.icon} className={cn('!h-5 !px-1.5 !text-[10px]', invCfg.cls)}>
+              {invCfg.label}
+            </Tag>
           )}
-          <Badge variant="outline" className={cn('h-5 px-1.5 text-[10px]', statusCfg.cls)}>
+          <Tag minimal className={cn('!h-5 !px-1.5 !text-[10px]', statusCfg.cls)}>
             {statusCfg.label}
-          </Badge>
+          </Tag>
           <span className="text-sm font-bold tabular-nums text-right min-w-[80px]">
             {formatCurrency(po.total_amount, currency)}
           </span>
@@ -356,10 +375,10 @@ function KpiStrip({ pos, currency }: { pos: POSummaryRow[]; currency: string }) 
   return (
     <div className="grid grid-cols-4 gap-px border-b bg-border flex-shrink-0">
       {[
-        { label: 'Open Orders',        value: String(open.length),             sub: `${formatCurrency(totalOpen, currency)} outstanding` },
-        { label: 'Invoices Pending',   value: String(pending),                  sub: 'awaiting review', highlight: pending > 0 },
-        { label: 'Disputed Invoices',  value: String(disputed),                 sub: 'need resolution',  highlight: disputed > 0 },
-        { label: 'Total Discrepancy',  value: formatCurrency(totalDiscrepancy, currency), sub: 'across all invoices', highlight: totalDiscrepancy > 0 },
+        { label: 'Open Orders',        value: String(open.length),                         sub: `${formatCurrency(totalOpen, currency)} outstanding` },
+        { label: 'Invoices Pending',   value: String(pending),                              sub: 'awaiting review', highlight: pending > 0 },
+        { label: 'Disputed Invoices',  value: String(disputed),                             sub: 'need resolution',  highlight: disputed > 0 },
+        { label: 'Total Discrepancy',  value: formatCurrency(totalDiscrepancy, currency),   sub: 'across all invoices', highlight: totalDiscrepancy > 0 },
       ].map(({ label, value, sub, highlight }) => (
         <div key={label} className="bg-card px-5 py-3">
           <p className={cn('text-lg font-bold tabular-nums leading-none', highlight ? 'text-red-600 dark:text-red-400' : '')}>{value}</p>
@@ -382,13 +401,13 @@ export default function SavedOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<POStatus | 'all'>('all')
   const [search, setSearch]             = useState('')
 
-  const STATUS_TABS: { key: POStatus | 'all'; label: string }[] = [
-    { key: 'all',              label: `All (${pos.length})` },
-    { key: 'draft',            label: `Draft (${pos.filter(p => p.status === 'draft').length})` },
-    { key: 'sent',             label: `Sent (${pos.filter(p => p.status === 'sent').length})` },
-    { key: 'confirmed',        label: `Confirmed (${pos.filter(p => p.status === 'confirmed').length})` },
-    { key: 'partially_received', label: `Partial (${pos.filter(p => p.status === 'partially_received').length})` },
-    { key: 'closed',           label: `Closed (${pos.filter(p => p.status === 'closed').length})` },
+  const statusOptions = [
+    { value: 'all',                label: `All (${pos.length})` },
+    { value: 'draft',              label: `Draft (${pos.filter(p => p.status === 'draft').length})` },
+    { value: 'sent',               label: `Sent (${pos.filter(p => p.status === 'sent').length})` },
+    { value: 'confirmed',          label: `Confirmed (${pos.filter(p => p.status === 'confirmed').length})` },
+    { value: 'partially_received', label: `Partial (${pos.filter(p => p.status === 'partially_received').length})` },
+    { value: 'closed',             label: `Closed (${pos.filter(p => p.status === 'closed').length})` },
   ]
 
   const filtered = useMemo(() => {
@@ -414,61 +433,52 @@ export default function SavedOrdersPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center justify-between border-b px-6 py-4 flex-shrink-0">
+      <div className="flex items-center justify-between border-b px-6 py-4 flex-shrink-0 gap-3">
         <div>
           <h1 className="text-lg font-semibold flex items-center gap-2">
-            <PackageCheck className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="box" size={16} className="text-muted-foreground" />
             Saved Orders
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             {isLoading ? 'Loading…' : `${pos.length} purchase order${pos.length !== 1 ? 's' : ''} · click to expand`}
           </p>
         </div>
-        <Input
-          placeholder="Search PO number or supplier…"
-          value={search}
-          onChange={(e) => { setSearch(e.target.value) }}
-          className="h-8 w-52 text-xs"
-        />
+        <div className="w-52">
+          <InputGroup
+            leftIcon="search"
+            placeholder="Search PO number or supplier…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value) }}
+            size="small"
+          />
+        </div>
       </div>
 
       {/* KPI strip */}
       {pos.length > 0 && <KpiStrip pos={pos} currency={currency} />}
 
       {/* Status tabs */}
-      <div className="flex items-center gap-1 border-b px-4 flex-shrink-0">
-        {STATUS_TABS.map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => { setStatusFilter(tab.key) }}
-            className={cn(
-              'px-3 py-2.5 text-xs font-medium border-b-2 transition-colors',
-              statusFilter === tab.key
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="px-4 py-2 border-b flex-shrink-0">
+        <SegmentedControl
+          size="small"
+          value={statusFilter}
+          onValueChange={(v) => { setStatusFilter(v as POStatus | 'all') }}
+          options={statusOptions}
+        />
       </div>
 
       {/* PO list */}
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {isLoading ? (
           <div className="flex items-center gap-2 justify-center h-40 text-sm text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />Loading orders…
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />Loading orders…
           </div>
         ) : sorted.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
-            <ShoppingCart className="h-10 w-10 text-muted-foreground/20" />
-            <p className="text-sm font-medium text-muted-foreground">
-              {pos.length === 0
-                ? 'No purchase orders yet — use the PO Generator and click Save & Track'
-                : 'No orders match this filter'}
-            </p>
-          </div>
+          <NonIdealState
+            icon="shopping-cart"
+            title={pos.length === 0 ? 'No purchase orders yet' : 'No orders match this filter'}
+            description={pos.length === 0 ? 'Use the PO Generator and click Save & Track to create one.' : undefined}
+          />
         ) : (
           <div className="space-y-2">
             {sorted.map((po) => (

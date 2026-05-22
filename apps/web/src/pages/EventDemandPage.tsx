@@ -4,25 +4,28 @@
 // and generates a targeted purchase order — before the event happens.
 // No other inventory system for hotels does this automatically.
 // Palantir principle: cross-domain synthesis — calendar + stock + forecast = action.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
-import {
-  CalendarDays, Plus, Trash2, ShoppingCart, AlertTriangle,
-  TrendingUp, Package, ChevronDown, ChevronRight, Info, Edit2, Check,
-} from 'lucide-react'
 import { parseISO, differenceInDays, isPast } from 'date-fns'
-import { useDateFormat } from '@/features/user/hooks'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Button,
+  Callout,
+  Card,
+  FormGroup,
+  HTMLSelect,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  Tooltip,
+} from '@blueprintjs/core'
+import { useDateFormat } from '@/features/user/hooks'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useEvents, useCreateEvent, useUpdateEvent, useDeleteEvent } from '@/features/events/hooks'
@@ -52,10 +55,10 @@ interface DemandGap {
   sku: string
   currentStock: number
   avgDaily: number
-  normalDailyConsumption: number    // what would normally be used before event
-  eventExtraConsumption: number     // additional from event multiplier
-  totalRequired: number             // normal + event extra
-  gap: number                       // max(0, totalRequired - currentStock)
+  normalDailyConsumption: number
+  eventExtraConsumption: number
+  totalRequired: number
+  gap: number
   unitCost: number
   gapCost: number
   severity: 'critical' | 'warning' | 'ok'
@@ -95,94 +98,76 @@ function EventForm({ initial, onSave, onCancel, saving }: EventFormProps) {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-5 space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="col-span-2 space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Event Name</label>
-          <Input
+    <Card compact>
+      <div className="grid grid-cols-2 gap-3">
+        <FormGroup label="Event Name" className="col-span-2 !mb-0">
+          <InputGroup
             placeholder="e.g. Annual Gala Dinner, Tech Conference…"
             value={name}
             onChange={(e) => { setName(e.target.value) }}
-            className="h-9"
             autoFocus
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Event Date</label>
-          <Input
+        </FormGroup>
+        <FormGroup label="Event Date" className="!mb-0">
+          <InputGroup
             type="date"
             value={date}
             onChange={(e) => { setDate(e.target.value) }}
-            className="h-9"
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Expected Guests</label>
-          <Input
+        </FormGroup>
+        <FormGroup label="Expected Guests" className="!mb-0">
+          <InputGroup
             type="number"
             min={1}
             placeholder="e.g. 200"
             value={guests}
             onChange={(e) => { setGuests(e.target.value) }}
-            className="h-9"
           />
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Event Type</label>
-          <Select value={type} onValueChange={handleTypeChange}>
-            <SelectTrigger className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {EVENT_TYPES.map((t) => (
-                <SelectItem key={t.value} value={t.value}>
-                  <div>
-                    <p className="font-medium">{t.label}</p>
-                    <p className="text-[10px] text-muted-foreground">{t.description}</p>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-            Demand Multiplier
-            <span title="How many times more than normal daily consumption this event generates">
-              <Info className="h-3 w-3 text-muted-foreground" />
+        </FormGroup>
+        <FormGroup label="Event Type" className="!mb-0">
+          <HTMLSelect
+            fill
+            value={type}
+            onChange={(e) => { handleTypeChange(e.target.value) }}
+            options={EVENT_TYPES.map((t) => ({ value: t.value, label: t.label }))}
+          />
+        </FormGroup>
+        <FormGroup
+          label={
+            <span className="flex items-center gap-1">
+              Demand Multiplier
+              <Tooltip content="How many times more than normal daily consumption this event generates">
+                <Icon icon="info-sign" size={12} className="text-muted-foreground" />
+              </Tooltip>
             </span>
-          </label>
-          <Input
+          }
+          helperText={parseFloat(factor) > 0 ? `${String(parseFloat(factor))}× normal daily consumption` : ''}
+          className="!mb-0"
+        >
+          <InputGroup
             type="number"
             step={0.1}
             min={0.1}
             placeholder="e.g. 2.5"
             value={factor}
             onChange={(e) => { setFactor(e.target.value) }}
-            className="h-9"
           />
-          <p className="text-[10px] text-muted-foreground">
-            {parseFloat(factor) > 0 ? `${String(parseFloat(factor))}× normal daily consumption` : ''}
-          </p>
-        </div>
-        <div className="col-span-2 space-y-1.5">
-          <label className="text-xs font-medium text-muted-foreground">Notes (optional)</label>
-          <Input
+        </FormGroup>
+        <FormGroup label="Notes (optional)" className="col-span-2 !mb-0">
+          <InputGroup
             placeholder="Any special requirements or notes…"
             value={notes}
             onChange={(e) => { setNotes(e.target.value) }}
-            className="h-9"
           />
-        </div>
+        </FormGroup>
       </div>
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button variant="ghost" size="sm" onClick={onCancel}>Cancel</Button>
-        <Button size="sm" onClick={handleSubmit} disabled={saving} className="gap-1.5">
-          <Check className="h-3.5 w-3.5" />
-          {saving ? 'Saving…' : 'Save Event'}
+      <div className="flex items-center justify-end gap-2 pt-3 mt-2">
+        <Button variant="minimal" onClick={onCancel}>Cancel</Button>
+        <Button icon="tick" intent={Intent.PRIMARY} onClick={handleSubmit} loading={saving}>
+          Save Event
         </Button>
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -197,7 +182,7 @@ interface EventCardProps {
   currency: string
 }
 
-function EventCard({ event, isSelected, onSelect, onDelete, gaps, currency }: EventCardProps) {
+function EventCardRow({ event, isSelected, onSelect, onDelete, gaps, currency }: EventCardProps) {
   const fmtDate = useDateFormat()
   const daysAway = differenceInDays(parseISO(event.event_date), new Date())
   const past = isPast(parseISO(event.event_date))
@@ -210,7 +195,7 @@ function EventCard({ event, isSelected, onSelect, onDelete, gaps, currency }: Ev
       type="button"
       onClick={onSelect}
       className={cn(
-        'w-full text-left rounded-lg border p-4 transition-all',
+        'w-full text-left rounded border p-4 transition-all',
         isSelected
           ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
           : 'hover:border-border/80 hover:bg-muted/20',
@@ -226,13 +211,14 @@ function EventCard({ event, isSelected, onSelect, onDelete, gaps, currency }: Ev
             {past && <span className="ml-1.5 text-muted-foreground">(past)</span>}
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          icon="trash"
+          variant="minimal"
+          size="small"
+          intent={Intent.DANGER}
           onClick={(e) => { e.stopPropagation(); onDelete() }}
-          className="h-6 w-6 rounded flex items-center justify-center text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 flex-shrink-0 transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+          aria-label="Delete event"
+        />
       </div>
       <div className="mt-2.5 flex items-center gap-3 text-xs text-muted-foreground">
         <span>{event.guest_count} guests</span>
@@ -242,14 +228,12 @@ function EventCard({ event, isSelected, onSelect, onDelete, gaps, currency }: Ev
       {gaps.length > 0 && (
         <div className="mt-2.5 flex items-center gap-2 flex-wrap">
           {criticalGaps > 0 && (
-            <Badge variant="outline" className="text-[10px] border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400 h-4.5">
+            <Tag intent={Intent.DANGER} minimal>
               {criticalGaps} critical gap{criticalGaps !== 1 ? 's' : ''}
-            </Badge>
+            </Tag>
           )}
           {totalGapCost > 0 && (
-            <Badge variant="outline" className="text-[10px] h-4.5">
-              {formatCurrency(totalGapCost, currency)} to order
-            </Badge>
+            <Tag minimal>{formatCurrency(totalGapCost, currency)} to order</Tag>
           )}
         </div>
       )}
@@ -266,27 +250,22 @@ function GapTable({ gaps, currency }: { gaps: DemandGap[]; currency: string }) {
 
   if (gaps.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-3 text-center">
-        <div className="rounded-full bg-muted/50 p-4">
-          <Package className="h-8 w-8 text-muted-foreground/50" />
-        </div>
-        <p className="text-sm font-medium">No consumption data available</p>
-        <p className="text-xs text-muted-foreground">
-          Items need at least some usage history to project demand gaps.
-        </p>
-      </div>
+      <NonIdealState
+        icon="box"
+        title="No consumption data available"
+        description="Items need at least some usage history to project demand gaps."
+      />
     )
   }
 
   return (
     <div>
       {withGaps.length === 0 ? (
-        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 px-4 py-3 text-sm text-green-700 dark:text-green-400">
-          <Check className="h-4 w-4 flex-shrink-0" />
-          <span>All stock levels are sufficient for this event. No gaps detected.</span>
-        </div>
+        <Callout intent={Intent.SUCCESS} icon="tick" compact>
+          All stock levels are sufficient for this event. No gaps detected.
+        </Callout>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
+        <Card compact className="!p-0 overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b bg-muted/30 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -307,15 +286,9 @@ function GapTable({ gaps, currency }: { gaps: DemandGap[]; currency: string }) {
                 )}>
                   <td className="py-2.5 pl-4 pr-2">
                     {g.severity === 'critical' ? (
-                      <div className="flex items-center gap-1 text-red-600">
-                        <AlertTriangle className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Critical</span>
-                      </div>
+                      <Tag intent={Intent.DANGER} minimal icon="warning-sign">Critical</Tag>
                     ) : (
-                      <div className="flex items-center gap-1 text-yellow-600">
-                        <TrendingUp className="h-3.5 w-3.5" />
-                        <span className="text-xs font-medium">Warning</span>
-                      </div>
+                      <Tag intent={Intent.WARNING} minimal icon="trending-up">Warning</Tag>
                     )}
                   </td>
                   <td className="py-2.5 px-2">
@@ -357,31 +330,28 @@ function GapTable({ gaps, currency }: { gaps: DemandGap[]; currency: string }) {
               </tr>
             </tfoot>
           </table>
-        </div>
+        </Card>
       )}
 
       {/* Sufficient stock items */}
       {withoutGaps.length > 0 && (
         <div className="mt-3">
-          <button
-            type="button"
+          <Button
+            variant="minimal"
+            size="small"
+            icon={showOk ? 'chevron-down' : 'chevron-right'}
             onClick={() => { setShowOk((v) => !v) }}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            {showOk ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
             {withoutGaps.length} item{withoutGaps.length !== 1 ? 's' : ''} have sufficient stock
-          </button>
+          </Button>
           {showOk && (
-            <div className="mt-2 rounded-lg border overflow-hidden">
+            <Card compact className="mt-2 !p-0 overflow-hidden">
               <table className="w-full text-left">
                 <tbody>
                   {withoutGaps.map((g) => (
                     <tr key={g.variantId} className="border-b border-border/30 last:border-0">
                       <td className="py-2 pl-4 pr-2">
-                        <div className="flex items-center gap-1 text-green-600">
-                          <Check className="h-3 w-3" />
-                          <span className="text-[10px] font-medium">OK</span>
-                        </div>
+                        <Tag intent={Intent.SUCCESS} minimal icon="tick">OK</Tag>
                       </td>
                       <td className="py-2 px-2">
                         <p className="text-xs font-medium">
@@ -398,7 +368,7 @@ function GapTable({ gaps, currency }: { gaps: DemandGap[]; currency: string }) {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </Card>
           )}
         </div>
       )}
@@ -424,7 +394,6 @@ export default function EventDemandPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  // Cost map from products
   const costMap = useMemo(() => {
     const m = new Map<string, number>()
     for (const p of products) {
@@ -433,12 +402,10 @@ export default function EventDemandPage() {
     return m
   }, [products])
 
-  // Set first event as selected if nothing selected yet
   const effectiveSelected = selectedId
     ? events.find((e) => e.id === selectedId) ?? null
     : events[0] ?? null
 
-  // Calculate demand gaps for the selected event
   const demandGaps = useMemo<DemandGap[]>(() => {
     if (!effectiveSelected || forecast.length === 0) return []
 
@@ -450,9 +417,7 @@ export default function EventDemandPage() {
       .filter((r) => r.adjusted_avg_daily > 0)
       .map((r) => {
         const unitCost = costMap.get(r.variant_id) ?? 0
-        // Normal consumption between now and event day (occupancy-adjusted baseline)
         const normalDailyConsumption = Math.ceil(r.adjusted_avg_daily * daysUntil)
-        // Extra consumption ON the event day from the event multiplier (factor - 1 = extra above adjusted)
         const eventExtraConsumption = Math.ceil(r.adjusted_avg_daily * (factor - 1))
         const totalRequired = normalDailyConsumption + eventExtraConsumption
         const gap = Math.max(0, totalRequired - r.current_stock)
@@ -509,7 +474,6 @@ export default function EventDemandPage() {
 
   const handleGoToPO = () => {
     if (!effectiveSelected) return
-    // Navigate to PO page — in a real integration we'd pass event context via URL
     window.location.href = '/purchase-orders'
   }
 
@@ -529,7 +493,6 @@ export default function EventDemandPage() {
 
   const isLoading = eventsLoading || forecastLoading
 
-  // Summary for selected event
   const totalGaps   = demandGaps.filter((g) => g.gap > 0).length
   const criticalCount = demandGaps.filter((g) => g.severity === 'critical').length
   const totalGapCost  = demandGaps.filter((g) => g.gap > 0).reduce((s, g) => s + g.gapCost, 0)
@@ -542,15 +505,14 @@ export default function EventDemandPage() {
       <div className="flex items-start justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
           <h1 className="text-xl font-semibold flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-muted-foreground" />
+            <Icon icon="calendar" size={20} className="text-muted-foreground" />
             Event Demand Planner
           </h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {isLoading ? 'Loading…' : `${String(upcomingEvents)} upcoming event${upcomingEvents !== 1 ? 's' : ''} · pre-calculate consumption gaps before they become stockouts`}
           </p>
         </div>
-        <Button size="sm" onClick={() => { setShowForm(true) }} className="gap-1.5 text-xs h-8">
-          <Plus className="h-3.5 w-3.5" />
+        <Button icon="plus" intent={Intent.PRIMARY} size="small" onClick={() => { setShowForm(true) }}>
           Add Event
         </Button>
       </div>
@@ -562,7 +524,6 @@ export default function EventDemandPage() {
         <div className="w-72 flex-shrink-0 border-r flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
 
-            {/* New event form */}
             {showForm && (
               <EventForm
                 onSave={handleCreate}
@@ -573,22 +534,19 @@ export default function EventDemandPage() {
 
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                <Spinner size={SpinnerSize.STANDARD} />
               </div>
             ) : events.length === 0 && !showForm ? (
-              <div className="flex flex-col items-center justify-center py-12 gap-3 text-center px-4">
-                <div className="rounded-full bg-muted/50 p-4">
-                  <CalendarDays className="h-8 w-8 text-muted-foreground/50" />
-                </div>
-                <p className="text-sm font-medium">No events yet</p>
-                <p className="text-xs text-muted-foreground">
-                  Add your first event to see predicted stock gaps.
-                </p>
-                <Button size="sm" variant="outline" onClick={() => { setShowForm(true) }} className="gap-1.5">
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Event
-                </Button>
-              </div>
+              <NonIdealState
+                icon="calendar"
+                title="No events yet"
+                description="Add your first event to see predicted stock gaps."
+                action={
+                  <Button icon="plus" intent={Intent.PRIMARY} size="small" onClick={() => { setShowForm(true) }}>
+                    Add Event
+                  </Button>
+                }
+              />
             ) : (
               events.map((event) => (
                 editingId === event.id ? (
@@ -608,7 +566,7 @@ export default function EventDemandPage() {
                   />
                 ) : (
                   <div key={event.id} className="group relative">
-                    <EventCard
+                    <EventCardRow
                       event={event}
                       isSelected={effectiveSelected?.id === event.id}
                       onSelect={() => { setSelectedId(event.id) }}
@@ -616,13 +574,14 @@ export default function EventDemandPage() {
                       gaps={effectiveSelected?.id === event.id ? demandGaps : []}
                       currency={currency}
                     />
-                    <button
-                      type="button"
+                    <Button
+                      icon="edit"
+                      variant="minimal"
+                      size="small"
                       onClick={() => { setEditingId(event.id) }}
-                      className="absolute right-9 top-3 h-6 w-6 rounded flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 hover:text-foreground hover:bg-muted/50 transition-all"
-                    >
-                      <Edit2 className="h-3.5 w-3.5" />
-                    </button>
+                      aria-label="Edit event"
+                      className="!absolute right-9 top-3 !opacity-0 group-hover:!opacity-100"
+                    />
                   </div>
                 )
               ))
@@ -633,18 +592,11 @@ export default function EventDemandPage() {
         {/* Right — gap analysis */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {!effectiveSelected ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
-              <div className="rounded-full bg-muted/50 p-5">
-                <CalendarDays className="h-10 w-10 text-muted-foreground/50" />
-              </div>
-              <div>
-                <p className="text-base font-medium">No event selected</p>
-                <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-                  Create an event and select it to see projected stock gaps
-                  and the estimated cost to fill them before the event.
-                </p>
-              </div>
-            </div>
+            <NonIdealState
+              icon="calendar"
+              title="No event selected"
+              description="Create an event and select it to see projected stock gaps and the estimated cost to fill them before the event."
+            />
           ) : (
             <>
               {/* Selected event KPI strip */}
@@ -653,11 +605,11 @@ export default function EventDemandPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="text-base font-semibold">{effectiveSelected.name}</h2>
                     {isPast(parseISO(effectiveSelected.event_date)) ? (
-                      <Badge variant="outline" className="text-[10px]">Past</Badge>
+                      <Tag minimal>Past</Tag>
                     ) : (
-                      <Badge variant="outline" className="text-[10px] border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400">
+                      <Tag intent={Intent.PRIMARY} minimal>
                         {differenceInDays(parseISO(effectiveSelected.event_date), new Date())}d away
-                      </Badge>
+                      </Tag>
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -680,16 +632,15 @@ export default function EventDemandPage() {
                   {totalGaps > 0 && (
                     <>
                       <Button
-                        size="sm"
+                        icon="shopping-cart"
+                        intent={Intent.PRIMARY}
+                        size="small"
                         onClick={handleCreateRestocks}
-                        disabled={createRestock.isPending}
-                        className="gap-1.5 text-xs h-8"
+                        loading={createRestock.isPending}
                       >
-                        <ShoppingCart className="h-3.5 w-3.5" />
                         Create Restocks ({totalGaps})
                       </Button>
-                      <Button size="sm" variant="outline" onClick={handleGoToPO} className="gap-1.5 text-xs h-8">
-                        <ShoppingCart className="h-3.5 w-3.5" />
+                      <Button icon="shopping-cart" size="small" onClick={handleGoToPO}>
                         Go to PO Engine
                       </Button>
                     </>
@@ -697,20 +648,15 @@ export default function EventDemandPage() {
                 </div>
               </div>
 
-              {/* Methodology note */}
-              <div className="flex items-center gap-2 px-6 py-2 border-b bg-muted/10 text-[11px] text-muted-foreground flex-shrink-0">
-                <Info className="h-3.5 w-3.5 flex-shrink-0" />
-                <span>
-                  Gap = (occupancy-adjusted daily × days until event) + (adjusted_daily × {effectiveSelected.demand_factor - 1 > 0 ? `(${String(effectiveSelected.demand_factor)} − 1) event spike` : `0 extra`}) − current stock
-                  · Based on 30-day consumption history adjusted for forecasted occupancy
-                </span>
-              </div>
+              <Callout icon="info-sign" compact className="!border-x-0 !rounded-none">
+                Gap = (occupancy-adjusted daily × days until event) + (adjusted_daily × {effectiveSelected.demand_factor - 1 > 0 ? `(${String(effectiveSelected.demand_factor)} − 1) event spike` : `0 extra`}) − current stock
+                · Based on 30-day consumption history adjusted for forecasted occupancy
+              </Callout>
 
-              {/* Gap table */}
               <div className="flex-1 overflow-y-auto px-6 py-5">
                 {forecastLoading ? (
                   <div className="flex items-center justify-center h-32">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    <Spinner size={SpinnerSize.STANDARD} />
                   </div>
                 ) : (
                   <GapTable gaps={demandGaps} currency={currency} />

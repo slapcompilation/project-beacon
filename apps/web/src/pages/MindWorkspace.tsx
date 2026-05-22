@@ -1,15 +1,17 @@
 // Layer: Mind — Consolidated supplier + procurement + finance workspace
-// Replaces: ProcurementPage, NegotiationPrepPage, InvoicingPage, GLExportPage,
+// Replaces: ProcurementPage, InvoicingPage, GLExportPage,
 //           SavedOrdersPage, POMatchPage (all now tabs in one surface)
 //
 // Palantir principle #6: cross-domain synthesis. The operator sees one object
 // (supplier intelligence) from all angles — not 5 separate pages.
 //
 // Tabs:
-//   Operations  — triage: supplier risk + discrepancies + mind briefing actions
-//   Procurement — supplier list + POs + 3-way match (existing ProcurementPage)
-//   Intelligence — cost analysis (NegotiationPrep) + leverage (Invoicing) sub-tabs
+//   Operations   — triage: supplier risk + discrepancies + mind briefing actions
+//   Procurement  — supplier list + POs + 3-way match (existing ProcurementPage)
+//   Intelligence — cost analysis + leverage (Invoicing) sub-tabs
 //   GL Export    — existing GLExportPage
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { lazy, Suspense, useState } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
@@ -17,9 +19,14 @@ import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { PanelLoader } from '@/components/WorkspaceTabs'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import {
-  ShieldAlert, AlertTriangle, Check, Loader2, ChevronRight,
-  CheckCircle2, Brain, Package, Clock, TrendingDown,
-} from 'lucide-react'
+  Button,
+  Card,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -60,7 +67,7 @@ function MindBriefingStrip({ actions }: { actions: BriefingAction[] }) {
   if (mind.length === 0) return null
 
   return (
-    <div className="rounded-lg border divide-y">
+    <Card className="!p-0 overflow-hidden divide-y">
       <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30">
         Needs attention · {mind.length}
       </p>
@@ -78,16 +85,18 @@ function MindBriefingStrip({ actions }: { actions: BriefingAction[] }) {
             </p>
             <p className="text-xs text-muted-foreground truncate">{a.context}</p>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="minimal"
+            size="small"
+            intent={Intent.PRIMARY}
+            endIcon="chevron-right"
             onClick={() => { void navigate(a.action_url) }}
-            className="flex items-center gap-1 text-xs text-primary hover:underline shrink-0"
           >
-            {a.action_label} <ChevronRight className="h-3 w-3" />
-          </button>
+            {a.action_label}
+          </Button>
         </div>
       ))}
-    </div>
+    </Card>
   )
 }
 
@@ -95,14 +104,14 @@ function SupplierRiskTriage({ rows, currency }: { rows: SupplierSynthesisRow[]; 
   const actionable = rows.filter((r) => r.urgency_tier === 'critical' || r.urgency_tier === 'review')
   if (actionable.length === 0) {
     return (
-      <div className="rounded-lg border px-4 py-6 flex items-center gap-2 text-xs text-muted-foreground">
-        <ShieldAlert className="h-4 w-4" />
+      <Card className="!px-4 !py-6 flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon icon="shield" size={14} />
         All suppliers within acceptable thresholds
-      </div>
+      </Card>
     )
   }
   return (
-    <div className="rounded-lg border divide-y">
+    <Card className="!p-0 overflow-hidden divide-y">
       <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted/30">
         Supplier Risk · {actionable.length}
       </p>
@@ -131,7 +140,7 @@ function SupplierRiskTriage({ rows, currency }: { rows: SupplierSynthesisRow[]; 
           </div>
         </div>
       ))}
-    </div>
+    </Card>
   )
 }
 
@@ -152,36 +161,37 @@ function DiscrepancyTriage({ currency }: { currency: string }) {
   }
 
   if (isLoading) return (
-    <div className="rounded-lg border px-4 py-6 flex items-center justify-center">
-      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-    </div>
+    <Card className="!px-4 !py-6 flex items-center justify-center">
+      <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
+    </Card>
   )
 
   if (pending.length === 0) {
     return (
-      <div className="rounded-lg border px-4 py-6 flex items-center gap-2 text-xs text-muted-foreground">
-        <CheckCircle2 className="h-4 w-4 text-green-500/60" />
+      <Card className="!px-4 !py-6 flex items-center gap-2 text-xs text-muted-foreground">
+        <Icon icon="tick-circle" size={14} className="text-green-500/60" />
         No invoice discrepancies pending review
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="rounded-lg border divide-y">
+    <Card className="!p-0 overflow-hidden divide-y">
       <div className="px-4 py-2 bg-muted/30 flex items-center justify-between gap-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
           Invoice Discrepancies · {pending.length}
         </p>
         {autoApprovable.length > 0 && (
-          <button
-            type="button"
-            disabled={autoApproving}
+          <Button
+            variant="minimal"
+            size="small"
+            intent={Intent.SUCCESS}
+            icon="tick"
+            loading={autoApproving}
             onClick={() => { void handleAutoApprove() }}
-            className="flex items-center gap-1 text-[10px] text-green-700 dark:text-green-400 hover:underline disabled:opacity-50"
           >
-            {autoApproving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
             Approve {autoApprovable.length} ≤2%
-          </button>
+          </Button>
         )}
       </div>
       {pending.slice(0, 5).map((d: PODiscrepancy) => {
@@ -189,7 +199,7 @@ function DiscrepancyTriage({ currency }: { currency: string }) {
         const amount = Math.abs(d.invoiced_value - d.received_value)
         return (
           <div key={d.id} className="flex items-center gap-3 px-4 py-3">
-            <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+            <Icon icon="warning-sign" size={12} className="text-red-500 shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-xs font-medium truncate">
                 {d.supplier_name ?? 'Unknown supplier'} · {d.variance_pct.toFixed(1)}%
@@ -204,7 +214,7 @@ function DiscrepancyTriage({ currency }: { currency: string }) {
       {pending.length > 5 && (
         <p className="px-4 py-2 text-xs text-muted-foreground">+{pending.length - 5} more → Procurement tab</p>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -244,20 +254,20 @@ function OpenPOPipeline({ currency }: { currency: string }) {
   const totalOpen     = open.reduce((s, p) => s + p.total_amount, 0)
 
   if (isLoading) return (
-    <div className="rounded-lg border px-4 py-6 flex items-center justify-center">
-      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-    </div>
+    <Card className="!px-4 !py-6 flex items-center justify-center">
+      <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
+    </Card>
   )
 
   if (sorted.length === 0) return (
-    <div className="rounded-lg border px-4 py-6 flex items-center gap-2 text-xs text-muted-foreground">
-      <Package className="h-4 w-4" />
+    <Card className="!px-4 !py-6 flex items-center gap-2 text-xs text-muted-foreground">
+      <Icon icon="box" size={14} />
       No open purchase orders
-    </div>
+    </Card>
   )
 
   return (
-    <div className="rounded-lg border divide-y">
+    <Card className="!p-0 overflow-hidden divide-y">
       {/* Header */}
       <div className="px-4 py-2 bg-muted/30 flex items-center justify-between gap-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -267,17 +277,19 @@ function OpenPOPipeline({ currency }: { currency: string }) {
           )}
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-muted-foreground tabular-nums">
-            <TrendingDown className="inline h-3 w-3 mr-0.5 -mt-px" />
+          <span className="text-xs text-muted-foreground tabular-nums inline-flex items-center gap-1">
+            <Icon icon="trending-down" size={12} />
             {formatCurrency(totalOpen, currency)} open value
           </span>
-          <button
-            type="button"
+          <Button
+            variant="minimal"
+            size="small"
+            intent={Intent.PRIMARY}
+            endIcon="chevron-right"
             onClick={() => { void navigate('/mind?panel=procurement') }}
-            className="flex items-center gap-0.5 text-[10px] text-primary hover:underline"
           >
-            All POs <ChevronRight className="h-3 w-3" />
-          </button>
+            All POs
+          </Button>
         </div>
       </div>
 
@@ -300,8 +312,8 @@ function OpenPOPipeline({ currency }: { currency: string }) {
                 }
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className={cn('text-[10px]', eta.cls)}>
-                  <Clock className="inline h-2.5 w-2.5 mr-0.5 -mt-px" />
+                <span className={cn('text-[10px] inline-flex items-center gap-0.5', eta.cls)}>
+                  <Icon icon="time" size={10} />
                   {eta.text}
                 </span>
                 {po.status === 'partially_received' && (
@@ -322,7 +334,7 @@ function OpenPOPipeline({ currency }: { currency: string }) {
           +{sorted.length - 5} more → <button type="button" onClick={() => { void navigate('/mind?panel=procurement') }} className="text-primary hover:underline">Procurement tab</button>
         </p>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -336,7 +348,7 @@ function OperationsTab() {
       <MindBriefingStrip actions={actions} />
       {synthLoading ? (
         <div className="flex items-center justify-center py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
         </div>
       ) : (
         <>
@@ -396,15 +408,14 @@ function FinancialTab() {
 // ─── Strategy sub-tabs (Chain + Team + Events) ───────────────────────────────
 
 function StrategyTab({ role }: { role: string }) {
-  const [sub, setSub] = useState<'chain' | 'team' | 'events' | 'simulation'>('chain')
+  const [sub, setSub] = useState<'chain' | 'team' | 'events'>('chain')
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
         {[
-          { id: 'chain'      as const, label: 'Chain'      },
-          { id: 'team'       as const, label: 'Team'       },
-          { id: 'events'     as const, label: 'Events'     },
-          { id: 'simulation' as const, label: 'Simulation' },
+          { id: 'chain'  as const, label: 'Chain'  },
+          { id: 'team'   as const, label: 'Team'   },
+          { id: 'events' as const, label: 'Events' },
         ].map((t) => (
           <button
             key={t.id}
@@ -426,15 +437,14 @@ function StrategyTab({ role }: { role: string }) {
           <div className="flex-1 overflow-hidden">
             {sub === 'chain' && (
               role === 'owner' ? <ChainPage /> : (
-                <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-                  <Brain className="h-10 w-10 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">Chain benchmarking is available to owner role only.</p>
-                </div>
+                <NonIdealState
+                  icon="lightbulb"
+                  title="Chain benchmarking is available to owner role only"
+                />
               )
             )}
-            {sub === 'team'       && <TeamIntelligencePage />}
-            {sub === 'events'     && <EventDemandPage />}
-            {sub === 'simulation' && <SimulationCockpitPage />}
+            {sub === 'team'   && <TeamIntelligencePage />}
+            {sub === 'events' && <EventDemandPage />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
@@ -456,7 +466,6 @@ const CategoryIntelligencePage = lazy(() => import('./CategoryIntelligencePage')
 const SupplierQuoteParserPage  = lazy(() => import('./SupplierQuoteParserPage'))
 const ProcurementLeveragePage  = lazy(() => import('./ProcurementLeveragePage'))
 const SmartProposalsPage       = lazy(() => import('./SmartProposalsPage'))
-const SimulationCockpitPage    = lazy(() => import('./SimulationCockpitPage'))
 
 type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
 
@@ -477,7 +486,6 @@ const PANEL_REDIRECT: Record<string, PanelId> = {
   'chain':        'strategy',
   'team':         'strategy',
   'events':       'strategy',
-  'simulation':   'strategy',
 }
 
 // Deep-link sub-tab seeds: if the raw panel was one of these, open that sub-tab directly
@@ -604,10 +612,10 @@ export default function MindWorkspace() {
 
   if (role !== 'admin' && role !== 'owner') {
     return (
-      <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-        <Brain className="h-10 w-10 text-muted-foreground/40" />
-        <p className="text-sm text-muted-foreground">Mind layer is available to admin and owner roles only.</p>
-      </div>
+      <NonIdealState
+        icon="lightbulb"
+        title="Mind layer is available to admin and owner roles only"
+      />
     )
   }
 

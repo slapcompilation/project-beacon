@@ -2,6 +2,8 @@
 // Operators create lists of items needed for a job or service round.
 // A picker works through items scanning or tapping; stock deducts on commit.
 // Principle: actions live next to data — pick quantity inline, commit from the same view.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -9,19 +11,23 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { format } from 'date-fns'
 import { useDateFormat } from '@/features/user/hooks'
 import {
-  Plus, CheckCircle2, Loader2, ClipboardList, Trash2,
-  Pencil, X, ArrowRight, Search, ScanLine, PackageCheck,
-  ChevronDown, ChevronUp, Calendar, Circle, AlertTriangle,
-} from 'lucide-react'
+  Button,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  Divider,
+  FormGroup,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  TextArea,
+} from '@blueprintjs/core'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog'
-import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import {
   usePickLists, usePickListItems, useCreatePickList, useUpdatePickList,
@@ -34,10 +40,10 @@ import type { PickList, PickListItemWithVariant, ProductWithVariants, ProductVar
 // ─── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_CFG = {
-  draft:       { label: 'Draft',       cls: 'bg-muted text-muted-foreground border-border' },
-  in_progress: { label: 'In progress', cls: 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/30 dark:text-blue-300' },
-  completed:   { label: 'Completed',   cls: 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950/30 dark:text-green-300' },
-  cancelled:   { label: 'Cancelled',   cls: 'bg-muted text-muted-foreground border-border opacity-50' },
+  draft:       { label: 'Draft',       intent: Intent.NONE },
+  in_progress: { label: 'In progress', intent: Intent.PRIMARY },
+  completed:   { label: 'Completed',   intent: Intent.SUCCESS },
+  cancelled:   { label: 'Cancelled',   intent: Intent.NONE },
 } as const
 
 // ─── Create / edit pick list dialog ───────────────────────────────────────────
@@ -90,47 +96,50 @@ function PickListFormDialog({
   const isPending = create.isPending || update.isPending
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>{editing ? 'Edit Pick List' : 'New Pick List'}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={(e) => { void handleSubmit(e) }} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Name</Label>
-            <Input
+    <Dialog
+      isOpen={open}
+      onClose={onClose}
+      title={editing ? 'Edit Pick List' : 'New Pick List'}
+      className="!w-[24rem]"
+    >
+      <form onSubmit={(e) => { void handleSubmit(e) }}>
+        <DialogBody>
+          <FormGroup label="Name">
+            <InputGroup
               placeholder="e.g. VIP Room Setup · 18 Mar"
               value={name}
               onChange={(e) => { setName(e.target.value) }}
               autoFocus
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Notes (optional)</Label>
-            <Textarea
+          </FormGroup>
+          <FormGroup label="Notes (optional)">
+            <TextArea
               placeholder="e.g. Suite 201–205, check minibar + toiletries"
               rows={2}
               value={notes}
               onChange={(e) => { setNotes(e.target.value) }}
+              fill
             />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Due date (optional)</Label>
-            <Input
+          </FormGroup>
+          <FormGroup label="Due date (optional)">
+            <InputGroup
               type="date"
               value={dueDate}
               onChange={(e) => { setDueDate(e.target.value) }}
             />
-          </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" disabled={isPending || !name.trim()}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {editing ? 'Save' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+          </FormGroup>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button variant="minimal" onClick={onClose}>Cancel</Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isPending} disabled={!name.trim()}>
+                {editing ? 'Save' : 'Create'}
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }
@@ -197,122 +206,105 @@ function AddItemDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Add Item</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          {!selected ? (
-            <div className="space-y-2">
-              <Label>Search product</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-9"
-                  placeholder="Name or SKU…"
-                  value={query}
-                  onChange={(e) => { setQuery(e.target.value) }}
-                  autoFocus
-                />
-              </div>
-              {results.length > 0 && (
-                <div className="rounded-lg border divide-y max-h-48 overflow-y-auto">
-                  {results.map(({ product, variant }) => (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-muted transition-colors"
-                      onClick={() => { setSelected({ product, variant }); setQuery('') }}
-                    >
-                      <div>
-                        <p className="text-sm font-medium">{product.name}</p>
-                        {variant.name !== 'Standard' && (
-                          <p className="text-xs text-muted-foreground">{variant.name}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          SKU {variant.sku} · {variant.current_stock}{variant.unit_of_measure ? ` ${variant.unit_of_measure}` : ''} in stock
-                        </p>
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
-                    </button>
-                  ))}
-                </div>
-              )}
-              {query.length >= 1 && results.length === 0 && (
-                <p className="py-2 text-center text-sm text-muted-foreground">No matches</p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between rounded-lg border px-3 py-2.5 bg-muted/30">
-                <div>
-                  <p className="text-sm font-medium">{selected.product.name}</p>
-                  {selected.variant.name !== 'Standard' && (
-                    <p className="text-xs text-muted-foreground">{selected.variant.name}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground">
-                    {selected.variant.current_stock}{selected.variant.unit_of_measure ? ` ${selected.variant.unit_of_measure}` : ''} in stock
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground"
-                  onClick={() => { setSelected(null) }}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Quantity needed</Label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 5, 10].map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => { setQty(n) }}
-                      className={cn(
-                        'rounded border px-3 py-1.5 text-xs font-semibold transition-colors',
-                        qty === n
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-background text-muted-foreground hover:bg-muted',
+    <Dialog isOpen={open} onClose={onClose} title="Add Item" className="!w-[24rem]">
+      <DialogBody>
+        {!selected ? (
+          <FormGroup label="Search product">
+            <InputGroup
+              leftIcon="search"
+              placeholder="Name or SKU…"
+              value={query}
+              onChange={(e) => { setQuery(e.target.value) }}
+              autoFocus
+            />
+            {results.length > 0 && (
+              <div className="mt-2 rounded-lg border divide-y max-h-48 overflow-y-auto">
+                {results.map(({ product, variant }) => (
+                  <button
+                    key={variant.id}
+                    type="button"
+                    className="flex w-full items-center justify-between px-3 py-2.5 text-left hover:bg-muted transition-colors"
+                    onClick={() => { setSelected({ product, variant }); setQuery('') }}
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{product.name}</p>
+                      {variant.name !== 'Standard' && (
+                        <p className="text-xs text-muted-foreground">{variant.name}</p>
                       )}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                  <Input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={qty}
-                    onChange={(e) => { setQty(Math.max(1, parseInt(e.target.value, 10) || 1)) }}
-                    className="w-20"
-                  />
-                </div>
+                      <p className="text-xs text-muted-foreground">
+                        SKU {variant.sku} · {variant.current_stock}{variant.unit_of_measure ? ` ${variant.unit_of_measure}` : ''} in stock
+                      </p>
+                    </div>
+                    <Icon icon="arrow-right" size={14} className="text-muted-foreground shrink-0" />
+                  </button>
+                ))}
               </div>
-              <div className="space-y-1.5">
-                <Label>Notes (optional)</Label>
-                <Input
-                  placeholder="e.g. Check expiry date"
-                  value={notes}
-                  onChange={(e) => { setNotes(e.target.value) }}
+            )}
+            {query.length >= 1 && results.length === 0 && (
+              <p className="py-2 text-center text-sm text-muted-foreground">No matches</p>
+            )}
+          </FormGroup>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between rounded-lg border px-3 py-2.5 bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">{selected.product.name}</p>
+                {selected.variant.name !== 'Standard' && (
+                  <p className="text-xs text-muted-foreground">{selected.variant.name}</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {selected.variant.current_stock}{selected.variant.unit_of_measure ? ` ${selected.variant.unit_of_measure}` : ''} in stock
+                </p>
+              </div>
+              <Button variant="minimal" size="small" icon="cross" onClick={() => { setSelected(null) }} aria-label="Clear" />
+            </div>
+            <FormGroup label="Quantity needed">
+              <div className="flex items-center gap-2">
+                {[1, 2, 5, 10].map((n) => (
+                  <Button
+                    key={n}
+                    size="small"
+                    intent={qty === n ? Intent.PRIMARY : Intent.NONE}
+                    variant={qty === n ? undefined : 'outlined'}
+                    onClick={() => { setQty(n) }}
+                  >
+                    {n}
+                  </Button>
+                ))}
+                <InputGroup
+                  type="number"
+                  min="1"
+                  value={String(qty)}
+                  onChange={(e) => { setQty(Math.max(1, parseInt(e.target.value, 10) || 1)) }}
+                  className="!w-20"
                 />
               </div>
-            </div>
-          )}
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={() => { void handleAdd() }}
-            disabled={!selected || addItem.isPending}
-          >
-            {addItem.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+            </FormGroup>
+            <FormGroup label="Notes (optional)">
+              <InputGroup
+                placeholder="e.g. Check expiry date"
+                value={notes}
+                onChange={(e) => { setNotes(e.target.value) }}
+              />
+            </FormGroup>
+          </div>
+        )}
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="minimal" onClick={onClose}>Cancel</Button>
+            <Button
+              intent={Intent.PRIMARY}
+              loading={addItem.isPending}
+              onClick={() => { void handleAdd() }}
+              disabled={!selected || addItem.isPending}
+            >
+              Add
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   )
 }
@@ -359,11 +351,11 @@ function PickItemRow({
     >
       {/* Status circle */}
       <div className="shrink-0">
-        {isFulfilled ? (
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
-        ) : (
-          <Circle className="h-5 w-5 text-muted-foreground/40" />
-        )}
+        <Icon
+          icon={isFulfilled ? 'tick-circle' : 'circle'}
+          size={18}
+          className={isFulfilled ? 'text-green-600' : 'text-muted-foreground/40'}
+        />
       </div>
 
       {/* Item info */}
@@ -412,44 +404,42 @@ function PickItemRow({
       {/* Increment / decrement (only when list is active) */}
       {isActive && (
         <div className="shrink-0 flex items-center gap-1">
-          <button
-            type="button"
-            onClick={() => { handlePick(-1) }}
+          <Button
+            size="small"
+            variant="outlined"
+            icon="chevron-down"
             disabled={item.quantity_picked === 0 || updateItem.isPending}
-            className="flex h-7 w-7 items-center justify-center rounded border text-muted-foreground hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
+            onClick={() => { handlePick(-1) }}
+            aria-label="Decrement"
+          />
+          <Button
+            size="small"
+            variant="outlined"
+            icon="chevron-up"
+            disabled={isFulfilled || updateItem.isPending}
             onClick={() => { handlePick(1) }}
+            aria-label="Increment"
+          />
+          <Button
+            size="small"
+            variant="outlined"
+            intent={Intent.SUCCESS}
+            icon="tick-circle"
             disabled={isFulfilled || updateItem.isPending}
-            className="flex h-7 w-7 items-center justify-center rounded border text-muted-foreground hover:bg-muted disabled:opacity-30 transition-colors"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
             onClick={() => { handlePick(item.quantity_planned - item.quantity_picked) }}
-            disabled={isFulfilled || updateItem.isPending}
             title="Mark all as picked"
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded border transition-colors',
-              isFulfilled
-                ? 'opacity-30 text-muted-foreground'
-                : 'text-green-600 border-green-200 hover:bg-green-50 dark:border-green-800 dark:hover:bg-green-950/30',
-            )}
-          >
-            <CheckCircle2 className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => { removeItem.mutate(item.id) }}
+            aria-label="Pick all"
+          />
+          <Button
+            size="small"
+            variant="minimal"
+            intent={Intent.DANGER}
+            icon="trash"
             disabled={removeItem.isPending}
-            className="ml-1 flex h-7 w-7 items-center justify-center rounded border text-destructive/60 hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+            onClick={() => { removeItem.mutate(item.id) }}
+            aria-label="Remove"
+            className="!ml-1"
+          />
         </div>
       )}
     </div>
@@ -566,12 +556,12 @@ function PickListDetail({
           </div>
           <h1 className="text-xl font-semibold">{list.name}</h1>
           <div className="mt-1 flex items-center gap-3 flex-wrap">
-            <span className={cn('inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide', cfg.cls)}>
+            <Tag minimal intent={cfg.intent} className="!text-[10px] !uppercase !tracking-wide">
               {cfg.label}
-            </span>
+            </Tag>
             {list.due_date && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
+                <Icon icon="calendar" size={12} />
                 Due {fmtDate(new Date(list.due_date))}
               </span>
             )}
@@ -594,31 +584,30 @@ function PickListDetail({
               <span className="text-xs font-medium tabular-nums text-muted-foreground">
                 {pickedCount} / {items.length}
               </span>
-              {allPicked && <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />}
+              {allPicked && <Icon icon="tick-circle" size={14} className="text-green-600" />}
             </div>
           )}
 
           {isActive && (
             <Button
-              size="sm"
-              variant="outline"
+              size="small"
+              variant="outlined"
+              icon="plus"
               onClick={() => { setAddOpen(true) }}
             >
-              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Add Item
             </Button>
           )}
 
           {isActive && items.length > 0 && (
             <Button
-              size="sm"
+              size="small"
+              intent={Intent.PRIMARY}
+              icon="confirm"
+              loading={commit.isPending}
               onClick={() => { void handleCommit() }}
-              disabled={commit.isPending}
-              className={cn(!allPicked && 'opacity-80')}
+              className={cn(!allPicked && '!opacity-80')}
             >
-              {commit.isPending
-                ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                : <PackageCheck className="mr-2 h-4 w-4" />}
               Commit &amp; Deduct Stock
             </Button>
           )}
@@ -628,18 +617,19 @@ function PickListDetail({
       {/* Scan to Pick toolbar */}
       {isActive && items.length > 0 && (
         <div className="flex items-center gap-3 border-b px-8 py-2.5 flex-shrink-0 bg-muted/20">
-          <ScanLine className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Icon icon="barcode" size={14} className="text-muted-foreground shrink-0" />
           <span className="text-xs text-muted-foreground font-medium">Scan to Pick:</span>
-          <div className="relative">
-            <Input
+          <div className="relative w-56">
+            <InputGroup
               placeholder="Scan barcode or enter SKU…"
               value={scanInput}
               onChange={(e) => { setScanInput(e.target.value) }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') { handleScanToPick(scanInput); e.preventDefault() }
               }}
-              className={cn('h-8 w-56 text-sm', scanError && 'border-destructive')}
+              intent={scanError ? Intent.DANGER : Intent.NONE}
               autoFocus
+              size="small"
             />
             {scanError && (
               <p className="absolute top-full mt-1 whitespace-nowrap text-[10px] text-destructive z-10">
@@ -654,7 +644,7 @@ function PickListDetail({
       {shortfalls.length > 0 && (
         <div className="flex-shrink-0 border-b bg-yellow-50/60 dark:bg-yellow-950/20 px-8 py-3">
           <div className="flex items-start gap-2 text-sm text-yellow-800 dark:text-yellow-300">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-yellow-600" />
+            <Icon icon="warning-sign" size={14} className="mt-0.5 shrink-0 text-yellow-600" />
             <div>
               <span className="font-semibold">
                 {shortfalls.length} item{shortfalls.length !== 1 ? 's' : ''} may be short on stock
@@ -684,20 +674,19 @@ function PickListDetail({
       {/* Items */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading…
+          <div className="flex items-center justify-center py-16 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /> Loading…
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center">
-            <ClipboardList className="h-10 w-10 text-muted-foreground/30" />
-            <p className="text-sm font-medium text-muted-foreground">No items yet</p>
-            {isActive && (
-              <Button size="sm" variant="outline" onClick={() => { setAddOpen(true) }}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" />
+          <NonIdealState
+            icon="clipboard"
+            title="No items yet"
+            action={isActive ? (
+              <Button size="small" variant="outlined" icon="plus" onClick={() => { setAddOpen(true) }}>
                 Add first item
               </Button>
-            )}
-          </div>
+            ) : undefined}
+          />
         ) : (
           <div className="rounded-none divide-y-0">
             {items.map((item) => (
@@ -767,12 +756,12 @@ function PickListCard({
               <p className="mt-0.5 text-xs text-muted-foreground truncate italic">{list.notes}</p>
             )}
             <div className="mt-1.5 flex items-center gap-2 flex-wrap">
-              <span className={cn('inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide', cfg.cls)}>
+              <Tag minimal intent={cfg.intent} className="!text-[10px] !uppercase !tracking-wide">
                 {cfg.label}
-              </span>
+              </Tag>
               {list.due_date && (
                 <span className={cn('flex items-center gap-1 text-xs', isPast ? 'text-red-600 font-medium' : 'text-muted-foreground')}>
-                  <Calendar className="h-3 w-3" />
+                  <Icon icon="calendar" size={12} />
                   {isPast ? 'Overdue · ' : 'Due '}
                   {fmtDate(new Date(list.due_date))}
                 </span>
@@ -782,27 +771,26 @@ function PickListCard({
               </span>
             </div>
           </div>
-          <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
+          <Icon icon="arrow-right" size={14} className="text-muted-foreground shrink-0 mt-1 group-hover:text-foreground transition-colors" />
         </div>
       </button>
-      <Separator />
+      <Divider className="!m-0" />
       <div className="flex items-center justify-end gap-1 px-3 py-2">
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
+          variant="minimal"
+          size="small"
+          icon="edit"
           onClick={(e) => { e.stopPropagation(); onEdit() }}
-        >
-          <Pencil className="h-3.5 w-3.5" />
-        </Button>
+          aria-label="Edit"
+        />
         <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7 text-destructive/60 hover:text-destructive"
+          variant="minimal"
+          size="small"
+          intent={Intent.DANGER}
+          icon="trash"
           onClick={(e) => { e.stopPropagation(); onDelete() }}
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+          aria-label="Delete"
+        />
       </div>
     </div>
   )
@@ -858,67 +846,41 @@ export default function PickListsPage() {
             Build item lists for jobs, events, or service rounds. Stock deducts on commit.
           </p>
         </div>
-        <Button onClick={() => { setCreateOpen(true) }}>
-          <Plus className="mr-2 h-4 w-4" />
+        <Button intent={Intent.PRIMARY} icon="plus" onClick={() => { setCreateOpen(true) }}>
           New Pick List
         </Button>
       </div>
 
       {/* Filter strip */}
       <div className="flex items-center gap-3 border-b px-8 py-3 flex-shrink-0 bg-muted/20">
-        <div className="flex gap-0.5 rounded-md border p-0.5">
-          {(['active', 'all'] as const).map((key) => (
-            <button
-              key={key}
-              onClick={() => { setStatusFilter(key) }}
-              className={cn(
-                'flex items-center gap-1.5 rounded px-3 py-1 text-xs font-medium transition-colors',
-                statusFilter === key
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted',
-              )}
-            >
-              {key === 'active' ? 'Active' : 'All'}
-              {key === 'active' && activeCount > 0 && (
-                <span className={cn(
-                  'rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none',
-                  statusFilter === 'active'
-                    ? 'bg-primary-foreground/20 text-primary-foreground'
-                    : 'bg-muted text-muted-foreground',
-                )}>
-                  {activeCount}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          options={[
+            { value: 'active', label: activeCount > 0 ? `Active (${String(activeCount)})` : 'Active' },
+            { value: 'all',    label: 'All' },
+          ]}
+          value={statusFilter}
+          onValueChange={(v) => { setStatusFilter(v as 'active' | 'all') }}
+          size="small"
+        />
       </div>
 
       {/* List */}
       <div className="flex-1 overflow-y-auto px-8 py-6">
         {isLoading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Loading…
+          <div className="flex items-center justify-center py-20 text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /> Loading…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 py-20 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-              <ClipboardList className="h-7 w-7 text-primary" />
-            </div>
-            <div>
-              <p className="font-medium">
-                {statusFilter === 'active' ? 'No active pick lists' : 'No pick lists yet'}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground max-w-xs">
-                Create a pick list to plan items for an event, room service, or any picking job.
-                Stock only deducts when you commit.
-              </p>
-            </div>
-            <Button onClick={() => { setCreateOpen(true) }}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Pick List
-            </Button>
-          </div>
+          <NonIdealState
+            icon="clipboard"
+            title={statusFilter === 'active' ? 'No active pick lists' : 'No pick lists yet'}
+            description="Create a pick list to plan items for an event, room service, or any picking job. Stock only deducts when you commit."
+            action={
+              <Button intent={Intent.PRIMARY} icon="plus" onClick={() => { setCreateOpen(true) }}>
+                New Pick List
+              </Button>
+            }
+          />
         ) : (
           <div className="grid gap-3 max-w-2xl">
             {filtered.map((list) => (

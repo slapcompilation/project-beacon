@@ -2,18 +2,24 @@
 // Header-level match: PO value (ordered) vs. received value vs. invoiced value.
 // Palantir principle: decision support, not data display.
 // Every row answers "do we owe what was invoiced?" with a clear approve/reject action.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  CheckCircle2, AlertTriangle, Clock, Loader2,
-  Check, X, ChevronRight, BarChart3, Handshake,
-} from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import {
+  Button,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  TextArea,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Badge } from '@/components/ui/badge'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
 import {
@@ -35,9 +41,9 @@ const MATCH_STATUS_STYLE = {
 function MatchStatusBadge({ status }: { status: POMatchRow['match_status'] }) {
   const { cls, label } = MATCH_STATUS_STYLE[status]
   return (
-    <Badge variant="outline" className={cn('text-xs h-5 px-1.5 font-medium', cls)}>
+    <Tag minimal className={cn('!text-xs !h-5 !px-1.5 !font-medium', cls)}>
       {label}
-    </Badge>
+    </Tag>
   )
 }
 
@@ -117,7 +123,7 @@ function POMatchDetail({
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-12">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
     </div>
   )
   if (!match) return null
@@ -150,20 +156,22 @@ function POMatchDetail({
       {pendingDiscrepancy && !confirming && (
         <div className="flex gap-2 pt-1">
           <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs h-7 text-green-700 border-green-300 hover:bg-green-50"
+            size="small"
+            variant="outlined"
+            intent={Intent.SUCCESS}
+            icon="tick"
             onClick={() => { setConfirming('approved') }}
           >
-            <Check className="h-3 w-3" />Approve
+            Approve
           </Button>
           <Button
-            size="sm"
-            variant="outline"
-            className="gap-1.5 text-xs h-7 text-red-700 border-red-300 hover:bg-red-50"
+            size="small"
+            variant="outlined"
+            intent={Intent.DANGER}
+            icon="cross"
             onClick={() => { setConfirming('rejected') }}
           >
-            <X className="h-3 w-3" />Reject
+            Reject
           </Button>
         </div>
       )}
@@ -175,26 +183,25 @@ function POMatchDetail({
               ? 'Approve — confirm variance is acceptable'
               : 'Reject — flag for supplier follow-up'}
           </p>
-          <Textarea
+          <TextArea
             placeholder="Notes (optional)"
             value={notes}
             onChange={(e) => { setNotes(e.target.value) }}
-            className="text-xs h-16 resize-none"
+            className="!text-xs !h-16 !resize-none"
+            fill
           />
           <div className="flex gap-2">
             <Button
-              size="sm"
-              className={cn('text-xs h-7 gap-1', confirming === 'approved' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700')}
-              disabled={review.isPending}
+              size="small"
+              intent={confirming === 'approved' ? Intent.SUCCESS : Intent.DANGER}
+              loading={review.isPending}
               onClick={() => { handleReview(confirming) }}
             >
-              {review.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
               Confirm {confirming === 'approved' ? 'Approval' : 'Rejection'}
             </Button>
             <Button
-              size="sm"
-              variant="ghost"
-              className="text-xs h-7"
+              size="small"
+              variant="minimal"
               onClick={() => { setConfirming(null) }}
             >
               Cancel
@@ -257,18 +264,16 @@ function DiscrepancyQueue({
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-16">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
     </div>
   )
 
   if (pending.length === 0 && reviewed.length === 0) return (
-    <div className="flex flex-col items-center gap-3 py-16 text-center px-6">
-      <CheckCircle2 className="h-8 w-8 text-green-500/50" />
-      <p className="text-sm font-medium">All clear</p>
-      <p className="text-xs text-muted-foreground">
-        No invoice discrepancies detected. The match engine runs automatically when a PO closes with an invoice.
-      </p>
-    </div>
+    <NonIdealState
+      icon="tick-circle"
+      title="All clear"
+      description="No invoice discrepancies detected. The match engine runs automatically when a PO closes with an invoice."
+    />
   )
 
   return (
@@ -281,15 +286,13 @@ function DiscrepancyQueue({
             </p>
             {autoApprovable.length > 0 && (
               <Button
-                size="sm"
-                variant="outline"
-                className="h-6 text-[10px] px-2 gap-1 text-green-700 border-green-300 hover:bg-green-50 dark:text-green-400 dark:border-green-900/40"
-                disabled={autoApproving}
+                size="small"
+                variant="outlined"
+                intent={Intent.SUCCESS}
+                icon="tick"
+                loading={autoApproving}
                 onClick={() => { void handleAutoApprove() }}
               >
-                {autoApproving
-                  ? <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                  : <Check className="h-2.5 w-2.5" />}
                 Approve {autoApprovable.length} ≤2%
               </Button>
             )}
@@ -351,9 +354,11 @@ function DiscrepancyRow({
         d.status === 'pending'  ? 'bg-red-100 dark:bg-red-950/40' :
         d.status === 'approved' ? 'bg-green-100 dark:bg-green-950/40' : 'bg-muted',
       )}>
-        {d.status === 'pending'  ? <AlertTriangle className="h-3.5 w-3.5 text-red-600 dark:text-red-400" /> :
-         d.status === 'approved' ? <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400" /> :
-         <X className="h-3.5 w-3.5 text-muted-foreground" />}
+        <Icon
+          icon={d.status === 'pending' ? 'warning-sign' : d.status === 'approved' ? 'tick' : 'cross'}
+          size={12}
+          className={d.status === 'pending' ? 'text-red-600 dark:text-red-400' : d.status === 'approved' ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}
+        />
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -364,9 +369,9 @@ function DiscrepancyRow({
             <span className="text-[10px] text-muted-foreground">{d.supplier_name}</span>
           )}
           {streak != null && streak >= 2 && (
-            <Badge variant="outline" className="text-[9px] h-3.5 px-1 border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:border-red-900/40 dark:text-red-400">
+            <Tag minimal intent={Intent.DANGER} className="!text-[9px] !h-3.5 !px-1">
               {streak}× streak
-            </Badge>
+            </Tag>
           )}
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
@@ -387,10 +392,10 @@ function DiscrepancyRow({
             className="flex items-center gap-0.5 text-[10px] text-muted-foreground hover:text-foreground transition-colors px-1.5 py-0.5 rounded hover:bg-muted"
             title="View supplier leverage"
           >
-            <Handshake className="h-3 w-3" />
+            <Icon icon="hand" size={12} />
           </button>
         )}
-        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground" />
       </div>
     </button>
   )
@@ -411,15 +416,15 @@ function MatchSummaryTab({
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-16">
-      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+      <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
     </div>
   )
 
   if (rows.length === 0) return (
-    <div className="flex flex-col items-center gap-3 py-16 text-center px-6">
-      <BarChart3 className="h-8 w-8 text-muted-foreground/30" />
-      <p className="text-xs text-muted-foreground">No purchase orders in the last 90 days.</p>
-    </div>
+    <NonIdealState
+      icon="chart"
+      title="No purchase orders in the last 90 days"
+    />
   )
 
   return (
@@ -439,9 +444,9 @@ function MatchSummaryTab({
               <span className="text-xs font-medium">{row.po_number}</span>
               <MatchStatusBadge status={row.match_status} />
               {row.discrepancy_status === 'pending' && (
-                <Badge variant="outline" className="text-xs h-4 px-1 border-red-300 bg-red-50 text-red-700">
+                <Tag minimal intent={Intent.DANGER} className="!text-xs !h-4 !px-1">
                   Review needed
-                </Badge>
+                </Tag>
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-0.5">{row.supplier_name}</p>
@@ -450,7 +455,7 @@ function MatchSummaryTab({
             <p className="text-xs font-semibold tabular-nums">{formatCurrency(row.invoiced_value, currency)}</p>
             <VariancePill pct={row.variance_pct} />
           </div>
-          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          <Icon icon="chevron-right" size={12} className="text-muted-foreground shrink-0" />
         </button>
       ))}
     </div>
@@ -474,25 +479,17 @@ export function POMatchContent() {
       {/* Left: list panel */}
       <div className="w-80 flex-shrink-0 border-r flex flex-col">
         {/* Sub-tabs */}
-        <div className="flex border-b shrink-0">
-          {[
-            { id: 'queue' as const, label: `Discrepancies${pendingCount > 0 ? ` · ${pendingCount}` : ''}` },
-            { id: 'all'   as const, label: 'All POs' },
-          ].map(({ id, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => { setInnerTab(id) }}
-              className={cn(
-                'flex-1 px-3 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
-                innerTab === id
-                  ? 'border-primary text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="px-2 py-2 border-b shrink-0">
+          <SegmentedControl
+            size="small"
+            fill
+            value={innerTab}
+            onValueChange={(v) => { setInnerTab(v as 'queue' | 'all') }}
+            options={[
+              { value: 'queue', label: `Discrepancies${pendingCount > 0 ? ` · ${String(pendingCount)}` : ''}` },
+              { value: 'all',   label: 'All POs' },
+            ]}
+          />
         </div>
 
         {innerTab === 'queue' ? (
@@ -519,12 +516,10 @@ export function POMatchContent() {
             pendingDiscrepancy={pendingForPo}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
-            <Clock className="h-8 w-8 text-muted-foreground/30" />
-            <p className="text-xs text-muted-foreground">
-              Select a PO to see the 3-way comparison.
-            </p>
-          </div>
+          <NonIdealState
+            icon="time"
+            description="Select a PO to see the 3-way comparison."
+          />
         )}
       </div>
     </div>

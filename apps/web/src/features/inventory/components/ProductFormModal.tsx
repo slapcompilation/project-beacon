@@ -2,26 +2,11 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Loader2, Camera, X, Tag } from 'lucide-react'
 import { toast } from 'sonner'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Button, Dialog, DialogBody, DialogFooter, FormGroup,
+  HTMLSelect, Icon, InputGroup, Intent, TextArea,
+} from '@blueprintjs/core'
 import { useCreateProduct, useUpdateProduct } from '../hooks'
 import { useCategories } from '@/features/categories/hooks'
 import { uploadProductImage } from '../api'
@@ -101,7 +86,7 @@ export function ProductFormModal({ open, onClose, product }: Props) {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    // Resize to max 512×512, letterbox (contain), output as jpeg at 0.85 quality
+    // Resize to max 512×512, letterbox, output as jpeg @ 0.85
     const img = new Image()
     const objectUrl = URL.createObjectURL(file)
     img.onload = () => {
@@ -135,18 +120,16 @@ export function ProductFormModal({ open, onClose, product }: Props) {
   }
 
   const onSubmit = async (data: Fields) => {
-    // Upload new image if selected. The helper throws on failure now (see
-    // migration 125 / Bug A2 — silent null-returns hid bucket RLS regressions).
+    // uploadProductImage throws on failure (migration 125 / Bug A2 — silent null returns hid RLS regressions)
     let imageUrl = product?.image_url ?? null
     if (imageFile) {
       try {
         imageUrl = await uploadProductImage(imageFile)
       } catch (err) {
         toast.error(err instanceof Error ? err.message : 'Image upload failed')
-        return  // abort save — operator can retry or remove the image and try again
+        return
       }
     } else if (!imagePreview) {
-      // User cleared the existing image
       imageUrl = null
     }
 
@@ -162,15 +145,10 @@ export function ProductFormModal({ open, onClose, product }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v) { onClose() } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Product' : 'Add Product'}</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4 py-2">
-          {/* Product image */}
-          <div>
+    <Dialog isOpen={open} onClose={onClose} title={isEdit ? 'Edit Product' : 'Add Product'} className="!w-[28rem]">
+      <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
+        <DialogBody>
+          <div className="space-y-4">
             <input
               ref={imageInputRef}
               type="file"
@@ -185,139 +163,125 @@ export function ProductFormModal({ open, onClose, product }: Props) {
                   alt="preview"
                   className="h-16 w-16 rounded-lg object-cover border"
                 />
-                <Button type="button" variant="outline" size="sm" onClick={clearImage}>
-                  <X className="mr-1.5 h-3.5 w-3.5" />
+                <Button type="button" variant="outlined" size="small" icon="cross" onClick={clearImage}>
                   Remove
                 </Button>
               </div>
             ) : (
               <Button
                 type="button"
-                variant="outline"
-                size="sm"
+                variant="outlined"
+                size="small"
+                icon="camera"
                 onClick={() => imageInputRef.current?.click()}
               >
-                <Camera className="mr-2 h-4 w-4" />
                 Upload Image
               </Button>
             )}
-          </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" placeholder="e.g. Sparkling Water" {...register('name')} />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
-          </div>
+            <FormGroup label="Name" intent={errors.name ? Intent.DANGER : Intent.NONE} helperText={errors.name?.message}>
+              <InputGroup id="name" placeholder="e.g. Sparkling Water" {...register('name')} />
+            </FormGroup>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="sku">SKU</Label>
-            <Input id="sku" placeholder="e.g. WATER-SPARK-500" {...register('sku')} />
-            {errors.sku && <p className="text-sm text-destructive">{errors.sku.message}</p>}
-          </div>
+            <FormGroup label="SKU" intent={errors.sku ? Intent.DANGER : Intent.NONE} helperText={errors.sku?.message}>
+              <InputGroup id="sku" placeholder="e.g. WATER-SPARK-500" {...register('sku')} />
+            </FormGroup>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" rows={2} placeholder="Optional" {...register('description')} />
-          </div>
+            <FormGroup label="Description">
+              <TextArea id="description" rows={2} placeholder="Optional" fill {...register('description')} />
+            </FormGroup>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="cost">Unit Cost</Label>
-              <Input id="cost" type="number" step="0.01" min="0" {...register('cost', { valueAsNumber: true })} />
-              {errors.cost && <p className="text-sm text-destructive">{errors.cost.message}</p>}
-            </div>
-            {!isEdit && (
-              <div className="space-y-1.5">
-                <Label htmlFor="initial_stock">
-                  Initial Quantity
-                  <span className="ml-1 text-[10px] font-normal text-muted-foreground">(on hand now)</span>
-                </Label>
-                <Input
-                  id="initial_stock"
-                  type="number"
-                  step="1"
-                  min="0"
-                  placeholder="0"
-                  {...register('initial_stock', { valueAsNumber: true })}
-                />
-                {errors.initial_stock && <p className="text-sm text-destructive">{errors.initial_stock.message}</p>}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Category</Label>
-            <Controller
-              name="category_id"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value ?? '__none__'}
-                  onValueChange={(v) => { field.onChange(v === '__none__' ? null : v); }}
+            <div className="grid grid-cols-2 gap-3">
+              <FormGroup label="Unit Cost" intent={errors.cost ? Intent.DANGER : Intent.NONE} helperText={errors.cost?.message}>
+                <InputGroup id="cost" type="number" step="0.01" min="0" {...register('cost', { valueAsNumber: true })} />
+              </FormGroup>
+              {!isEdit && (
+                <FormGroup
+                  label={<>Initial Quantity <span className="ml-1 text-[10px] font-normal text-muted-foreground">(on hand now)</span></>}
+                  intent={errors.initial_stock ? Intent.DANGER : Intent.NONE}
+                  helperText={errors.initial_stock?.message}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="No category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">No category</SelectItem>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.parent_id ? `  ${cat.name}` : cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <InputGroup
+                    id="initial_stock"
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder="0"
+                    {...register('initial_stock', { valueAsNumber: true })}
+                  />
+                </FormGroup>
               )}
-            />
-          </div>
-
-          {/* Tags */}
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5"><Tag className="h-3.5 w-3.5" />Tags</Label>
-            <div className="flex flex-wrap gap-1.5 min-h-8 rounded-md border px-2 py-1.5 bg-background focus-within:ring-1 focus-within:ring-ring">
-              {tags.map((tag) => (
-                <span key={tag} className="inline-flex items-center gap-1 rounded-full border bg-muted px-2 py-0.5 text-xs font-medium">
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => { removeTag(tag) }}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              ))}
-              <input
-                type="text"
-                className="flex-1 min-w-20 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                placeholder={tags.length === 0 ? 'Add tags (press Enter or comma)…' : ''}
-                value={tagInput}
-                onChange={(e) => { setTagInput(e.target.value) }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ',') {
-                    e.preventDefault()
-                    addTag(tagInput)
-                  } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-                    removeTag(tags[tags.length - 1])
-                  }
-                }}
-                onBlur={() => { if (tagInput) addTag(tagInput) }}
-              />
             </div>
-            <p className="text-[10px] text-muted-foreground">e.g. "bar", "premium", "seasonal" — type and press Enter or comma</p>
-          </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEdit ? 'Save Changes' : 'Add Product'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
+            <FormGroup label="Category">
+              <Controller
+                name="category_id"
+                control={control}
+                render={({ field }) => (
+                  <HTMLSelect
+                    value={field.value ?? '__none__'}
+                    onChange={(e) => { field.onChange(e.target.value === '__none__' ? null : e.target.value) }}
+                    options={[
+                      { value: '__none__', label: 'No category' },
+                      ...categories.map((cat) => ({
+                        value: cat.id,
+                        label: cat.parent_id ? `  ${cat.name}` : cat.name,
+                      })),
+                    ]}
+                    fill
+                  />
+                )}
+              />
+            </FormGroup>
+
+            <FormGroup label={<span className="flex items-center gap-1.5"><Icon icon="tag" size={14} />Tags</span>}>
+              <div className="flex flex-wrap gap-1.5 min-h-8 rounded-md border px-2 py-1.5 bg-background focus-within:ring-1 focus-within:ring-ring">
+                {tags.map((tag) => (
+                  <span key={tag} className="inline-flex items-center gap-1 rounded-full border bg-muted px-2 py-0.5 text-xs font-medium">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => { removeTag(tag) }}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <Icon icon="cross" size={12} />
+                    </button>
+                  </span>
+                ))}
+                <input
+                  type="text"
+                  className="flex-1 min-w-20 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  placeholder={tags.length === 0 ? 'Add tags (press Enter or comma)…' : ''}
+                  value={tagInput}
+                  onChange={(e) => { setTagInput(e.target.value) }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault()
+                      addTag(tagInput)
+                    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+                      removeTag(tags[tags.length - 1])
+                    }
+                  }}
+                  onBlur={() => { if (tagInput) addTag(tagInput) }}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground mt-1">e.g. "bar", "premium", "seasonal" — type and press Enter or comma</p>
+            </FormGroup>
+          </div>
+        </DialogBody>
+        <DialogFooter
+          actions={
+            <>
+              <Button type="button" variant="minimal" onClick={onClose} disabled={isSubmitting}>
+                Cancel
+              </Button>
+              <Button type="submit" intent={Intent.PRIMARY} loading={isSubmitting}>
+                {isEdit ? 'Save Changes' : 'Add Product'}
+              </Button>
+            </>
+          }
+        />
+      </form>
     </Dialog>
   )
 }

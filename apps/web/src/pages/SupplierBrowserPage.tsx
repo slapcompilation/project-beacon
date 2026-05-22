@@ -1,20 +1,25 @@
 // Layer: Mind — Supplier Object Browser
 // Palantir-pattern: navigation by object type, not by feature page.
-// Replaces: ProcurementPage, ContractsPage, SupplierReliabilityPage,
-//           ProcurementLeveragePage, PODispatchPage as separate tabs.
 // All supplier intelligence (reliability, contracts, leverage, POs) is inline
 // per supplier row. Clicking a row goes to the full SupplierObjectPage.
 // Filter by risk tier; sort worst-first.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  AnchorButton,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { useSuppliers } from '@/features/suppliers/hooks'
 import { useSupplierReliability } from '@/features/eye/hooks'
 import { cn } from '@/lib/utils'
-import {
-  Truck, Plus, ChevronRight, AlertTriangle, CheckCircle2,
-  Clock, FileText, ShieldAlert, Loader2,
-} from 'lucide-react'
 import type { Supplier, SupplierReliabilityRow } from '@beacon/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -31,32 +36,12 @@ interface SupplierDisplayRow {
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const TIER_CONFIG: Record<RiskTier, { label: string; borderCls: string; badgeCls: string }> = {
-  critical: {
-    label:     'CRITICAL',
-    borderCls: 'border-l-red-500',
-    badgeCls:  'bg-red-500/15 text-red-400 border-red-500/30',
-  },
-  high: {
-    label:     'HIGH RISK',
-    borderCls: 'border-l-orange-500',
-    badgeCls:  'bg-orange-500/15 text-orange-400 border-orange-500/30',
-  },
-  medium: {
-    label:     'MONITOR',
-    borderCls: 'border-l-amber-500',
-    badgeCls:  'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  },
-  low: {
-    label:     'RELIABLE',
-    borderCls: 'border-l-emerald-500',
-    badgeCls:  'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
-  },
-  no_data: {
-    label:     'NO DATA',
-    borderCls: 'border-l-slate-500/30',
-    badgeCls:  'bg-slate-500/10 text-slate-400 border-slate-500/20',
-  },
+const TIER_CONFIG: Record<RiskTier, { label: string; borderCls: string; tagIntent: Intent }> = {
+  critical: { label: 'CRITICAL',  borderCls: 'border-l-red-500',        tagIntent: Intent.DANGER  },
+  high:     { label: 'HIGH RISK', borderCls: 'border-l-orange-500',     tagIntent: Intent.WARNING },
+  medium:   { label: 'MONITOR',   borderCls: 'border-l-amber-500',      tagIntent: Intent.WARNING },
+  low:      { label: 'RELIABLE',  borderCls: 'border-l-emerald-500',    tagIntent: Intent.SUCCESS },
+  no_data:  { label: 'NO DATA',   borderCls: 'border-l-slate-500/30',   tagIntent: Intent.NONE    },
 }
 
 // ─── Score gauge ──────────────────────────────────────────────────────────────
@@ -122,7 +107,7 @@ function SupplierRow({ row, rank }: { row: SupplierDisplayRow; rank: number }) {
         {r ? (
           <ScoreCell score={r.reliability_score} tier={riskTier} />
         ) : (
-          <Truck className="h-4 w-4 text-muted-foreground/40 mx-auto" />
+          <Icon icon="truck" size={14} className="text-muted-foreground/40 mx-auto" />
         )}
       </div>
 
@@ -130,12 +115,10 @@ function SupplierRow({ row, rank }: { row: SupplierDisplayRow; rank: number }) {
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-sm">{s.name}</span>
-          <span className={cn('text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded border', tier.badgeCls)}>
-            {tier.label}
-          </span>
+          <Tag intent={tier.tagIntent} minimal>{tier.label}</Tag>
           {s.lead_time_days != null && (
             <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-              <Clock className="h-2.5 w-2.5" />
+              <Icon icon="time" size={10} />
               {s.lead_time_days}d lead
             </span>
           )}
@@ -168,7 +151,7 @@ function SupplierRow({ row, rank }: { row: SupplierDisplayRow; rank: number }) {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {r.active_contracts > 0 && (
               <span className="flex items-center gap-0.5">
-                <FileText className="h-3 w-3" />
+                <Icon icon="document" size={12} />
                 {r.active_contracts}
               </span>
             )}
@@ -177,11 +160,11 @@ function SupplierRow({ row, rank }: { row: SupplierDisplayRow; rank: number }) {
         )}
         {(riskTier === 'critical' || riskTier === 'high') && (
           <span className="flex items-center gap-0.5 text-[10px] text-red-400/80">
-            <AlertTriangle className="h-2.5 w-2.5" />
+            <Icon icon="warning-sign" size={10} />
             Act required
           </span>
         )}
-        <ChevronRight className="h-4 w-4 text-muted-foreground/40" />
+        <Icon icon="chevron-right" size={14} className="text-muted-foreground/40" />
       </div>
     </Link>
   )
@@ -194,8 +177,9 @@ function SummaryStrip({ rows }: { rows: SupplierDisplayRow[] }) {
   const high      = rows.filter((r) => r.riskTier === 'high').length
   const reliable  = rows.filter((r) => r.riskTier === 'low').length
   const noData    = rows.filter((r) => r.riskTier === 'no_data').length
-  const avgScore  = rows.filter((r) => r.reliability).length
-    ? rows.filter((r) => r.reliability).reduce((s, r) => s + r.reliability!.reliability_score, 0) / rows.filter((r) => r.reliability).length
+  const scored    = rows.filter((r) => r.reliability)
+  const avgScore  = scored.length
+    ? scored.reduce((s, r) => s + (r.reliability?.reliability_score ?? 0), 0) / scored.length
     : null
 
   return (
@@ -214,7 +198,7 @@ function SummaryStrip({ rows }: { rows: SupplierDisplayRow[] }) {
       )}
       {reliable > 0 && (
         <div className="flex items-center gap-1.5 text-xs shrink-0">
-          <CheckCircle2 className="h-3 w-3 text-emerald-500" />
+          <Icon icon="tick-circle" size={12} intent={Intent.SUCCESS} />
           <span className="text-emerald-400">{reliable} reliable</span>
         </div>
       )}
@@ -263,8 +247,6 @@ export default function SupplierBrowserPage() {
     return suppliers.map((s): SupplierDisplayRow => {
       const r = reliabilityById.get(s.id) ?? null
       const riskTier: RiskTier = r ? r.risk_tier : 'no_data'
-      // Sort score: critical=0, high=1, medium=2, no_data=3, low=4
-      // Within tier: sort by reliability_score ascending (worse first)
       const tierOrder = { critical: 0, high: 1, medium: 2, no_data: 3, low: 4 }
       const sortScore = tierOrder[riskTier] * 100 + (r ? (10 - r.reliability_score) : 50)
       return { supplier: s, reliability: r, riskTier, sortScore }
@@ -285,28 +267,28 @@ export default function SupplierBrowserPage() {
       {/* Filter bar */}
       <div className="flex items-center gap-1 px-3 py-2 border-b shrink-0 bg-background overflow-x-auto">
         {FILTERS.map((f) => (
-          <button
+          <Tag
             key={f.mode}
-            type="button"
+            interactive
+            round
+            minimal={filter !== f.mode}
+            intent={filter === f.mode ? Intent.PRIMARY : Intent.NONE}
             onClick={() => { setFilter(f.mode) }}
-            className={cn(
-              'shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap',
-              filter === f.mode
-                ? 'bg-primary/10 text-primary border border-primary/30'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted',
-            )}
+            className="shrink-0"
           >
             {f.label}
-          </button>
+          </Tag>
         ))}
         <div className="ml-auto shrink-0">
-          <Link
-            to="/mind?panel=operations"
-            className="flex items-center gap-1 text-xs text-primary hover:underline"
+          <AnchorButton
+            href="/mind?panel=operations"
+            icon="plus"
+            variant="minimal"
+            size="small"
+            intent={Intent.PRIMARY}
           >
-            <Plus className="h-3 w-3" />
             Add supplier
-          </Link>
+          </AnchorButton>
         </div>
       </div>
 
@@ -316,18 +298,15 @@ export default function SupplierBrowserPage() {
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex h-32 items-center justify-center gap-2 text-muted-foreground text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Spinner size={SpinnerSize.SMALL} />
             Loading suppliers…
           </div>
         ) : filtered.length === 0 ? (
-          <div className="px-6 py-12 text-center">
-            <ShieldAlert className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
-              {filter === 'all'
-                ? 'No suppliers configured. Add suppliers to begin tracking procurement.'
-                : `No suppliers in this tier.`}
-            </p>
-          </div>
+          <NonIdealState
+            icon="shield"
+            title={filter === 'all' ? 'No suppliers configured' : 'No suppliers in this tier'}
+            description={filter === 'all' ? 'Add suppliers to begin tracking procurement.' : undefined}
+          />
         ) : (
           <div className="divide-y-0">
             {filtered.map((row, i) => (

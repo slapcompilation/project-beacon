@@ -2,13 +2,21 @@
 // Palantir principle: decision support not data display.
 // Shows variants that must be ordered before their lead time window closes.
 // Operators see urgency, deadline, recommended qty, and one-click request.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { format } from 'date-fns'
-import { AlertTriangle, Clock, CheckCircle2, Loader2, TrendingDown, Zap, Package } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import {
+  Button,
+  Icon,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useProducts, useStockoutProbabilities } from '@/features/inventory/hooks'
 import { useConsumptionForecast, computePredictiveRestocks } from '@/features/eye/hooks'
@@ -23,25 +31,22 @@ import type { PredictiveRestockRow } from '@/features/eye/hooks'
 function UrgencyBadge({ urgency }: { urgency: PredictiveRestockRow['urgency'] }) {
   if (urgency === 'critical') {
     return (
-      <Badge className="bg-red-600 text-white gap-1 shrink-0">
-        <AlertTriangle className="h-3 w-3" />
+      <Tag intent={Intent.DANGER} icon="warning-sign" className="shrink-0">
         Critical
-      </Badge>
+      </Tag>
     )
   }
   if (urgency === 'warning') {
     return (
-      <Badge className="bg-amber-500 text-white gap-1 shrink-0">
-        <Clock className="h-3 w-3" />
+      <Tag intent={Intent.WARNING} icon="time" className="shrink-0">
         Warning
-      </Badge>
+      </Tag>
     )
   }
   return (
-    <Badge variant="outline" className="gap-1 shrink-0 text-muted-foreground">
-      <Zap className="h-3 w-3" />
+    <Tag minimal icon="flash" className="shrink-0">
       Watch
-    </Badge>
+    </Tag>
   )
 }
 
@@ -87,7 +92,7 @@ function RestockRow({ row, probRow }: { row: PredictiveRestockRow; probRow?: Sto
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <TrendingDown className="h-3 w-3" />
+            <Icon icon="trending-down" size={12} />
             <span className="tabular-nums font-medium text-foreground">{String(row.currentStock)}</span> in stock
           </span>
           <span className="tabular-nums">
@@ -120,21 +125,16 @@ function RestockRow({ row, probRow }: { row: PredictiveRestockRow; probRow?: Sto
           Rec. qty: <span className="font-semibold text-foreground">{String(row.recommendedQty)}</span>
         </p>
         {row.hasOpenRequest ? (
-          <Badge variant="outline" className="text-green-700 dark:text-green-500 border-green-300 gap-1">
-            <CheckCircle2 className="h-3 w-3" />
+          <Tag intent={Intent.SUCCESS} icon="tick-circle" minimal>
             Requested
-          </Badge>
+          </Tag>
         ) : (
           <Button
-            size="sm"
-            variant={row.urgency === 'critical' ? 'destructive' : 'default'}
-            className="h-8 text-xs"
-            disabled={createRequest.isPending}
+            size="small"
+            intent={row.urgency === 'critical' ? Intent.DANGER : Intent.PRIMARY}
+            loading={createRequest.isPending}
             onClick={handleRequest}
           >
-            {createRequest.isPending
-              ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-              : null}
             Request Restock
           </Button>
         )}
@@ -187,8 +187,8 @@ export default function PredictiveRestockPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+      <div className="flex items-center justify-center h-full text-muted-foreground gap-2">
+        <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
         Analysing stock…
       </div>
     )
@@ -196,18 +196,11 @@ export default function PredictiveRestockPage() {
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-3 text-center px-8">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-500/10">
-          <CheckCircle2 className="h-7 w-7 text-green-600" />
-        </div>
-        <div>
-          <p className="font-semibold">No orders needed in the next 14 days</p>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            All variants with a configured supplier have sufficient stock through their lead time.
-            Based on 30-day consumption averages.
-          </p>
-        </div>
-      </div>
+      <NonIdealState
+        icon="tick-circle"
+        title="No orders needed in the next 14 days"
+        description="All variants with a configured supplier have sufficient stock through their lead time. Based on 30-day consumption averages."
+      />
     )
   }
 
@@ -224,19 +217,19 @@ export default function PredictiveRestockPage() {
         <div className="flex items-center gap-4 text-xs">
           {critical.length > 0 && (
             <span className="flex items-center gap-1.5 text-red-600 font-semibold">
-              <AlertTriangle className="h-3.5 w-3.5" />
+              <Icon icon="warning-sign" size={14} />
               {String(critical.length)} critical
             </span>
           )}
           {warning.length > 0 && (
             <span className="flex items-center gap-1.5 text-amber-600 font-semibold">
-              <Clock className="h-3.5 w-3.5" />
+              <Icon icon="time" size={14} />
               {String(warning.length)} warning
             </span>
           )}
           {watch.length > 0 && (
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Package className="h-3.5 w-3.5" />
+              <Icon icon="box" size={14} />
               {String(watch.length)} watch
             </span>
           )}
@@ -250,12 +243,14 @@ export default function PredictiveRestockPage() {
         ))}
 
         {watch.length > 0 && !showAll && (
-          <button
-            className="w-full rounded-lg border border-dashed py-2.5 text-xs text-muted-foreground hover:bg-muted/40 transition-colors"
+          <Button
+            variant="outlined"
+            fill
+            className="!border-dashed"
             onClick={() => { setShowAll(true) }}
           >
             + Show {String(watch.length)} watch-level item{watch.length !== 1 ? 's' : ''} (order window &gt; 3 days)
-          </button>
+          </Button>
         )}
       </div>
     </div>

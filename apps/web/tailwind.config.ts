@@ -54,24 +54,14 @@ const config: Config = {
           3: 'hsl(var(--surface-3, var(--accent)))',
         },
       },
+      /* Blueprint rule: 4px everywhere. The size of the radius doesn't change
+       * with the size of the component — Blueprint never goes rounder than 4px.
+       * Keeps the same `rounded-lg` / `rounded-md` / `rounded-sm` API but they
+       * all resolve to `var(--radius)` (= 4px). Predictable, operator-grade. */
       borderRadius: {
         lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
-      },
-      keyframes: {
-        'accordion-down': {
-          from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
-        },
-        'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
-          to: { height: '0' },
-        },
-      },
-      animation: {
-        'accordion-down': 'accordion-down 0.2s ease-out',
-        'accordion-up': 'accordion-up 0.2s ease-out',
+        md: 'var(--radius)',
+        sm: 'var(--radius)',
       },
     },
   },

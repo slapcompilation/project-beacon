@@ -1,14 +1,20 @@
 // Layer: Floor — Pending Scan Resolution (manager reconciliation surface)
 // Floor staff log unresolved barcodes as pending scans rather than blocking their
 // workflow. This page surfaces them for managers to link to variants or dismiss.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo } from 'react'
-import { Search, CheckCircle2, X, Tag, MapPin, AlertTriangle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import {
+  Button,
+  Card,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Tag,
+} from '@blueprintjs/core'
 import { usePendingScans, useResolvePendingScan, useSkipPendingScan } from '@/features/floor/hooks'
 import { useProducts } from '@/features/inventory/hooks'
 import type { PendingScan, ProductWithVariants, ProductVariant } from '@beacon/types'
@@ -47,14 +53,15 @@ function VariantPicker({
 
   return (
     <div className="mt-3 space-y-2">
-      <Input
+      <InputGroup
         autoFocus
+        leftIcon="search"
         placeholder="Search product name or SKU…"
         value={q}
         onChange={(e) => { setQ(e.target.value) }}
       />
       {results.length > 0 && (
-        <div className="rounded-lg border divide-y overflow-hidden max-h-48 overflow-y-auto">
+        <Card compact className="!p-0 divide-y overflow-hidden max-h-48 overflow-y-auto">
           {results.map(({ product, variant }) => (
             <button
               key={variant.id}
@@ -64,7 +71,7 @@ function VariantPicker({
                 onSelect(variant.id, `${product.name}${variant.name !== 'Standard' ? ` · ${variant.name}` : ''}`)
               }}
             >
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600" />
+              <Icon icon="tick-circle" size={14} intent={Intent.SUCCESS} className="shrink-0" />
               <div>
                 <p className="font-medium">{product.name}</p>
                 {variant.name !== 'Standard' && (
@@ -74,9 +81,9 @@ function VariantPicker({
               </div>
             </button>
           ))}
-        </div>
+        </Card>
       )}
-      <Button variant="ghost" size="sm" onClick={onCancel} className="w-full">
+      <Button variant="minimal" onClick={onCancel} fill>
         Cancel
       </Button>
     </div>
@@ -109,42 +116,44 @@ function PendingScanRow({
 
   if (scan.status !== 'unresolved') {
     return (
-      <div className="flex items-center justify-between rounded-lg border bg-muted/30 px-4 py-3 text-sm opacity-60">
-        <div>
-          <code className="text-xs rounded bg-muted px-1">{scan.scanned_code}</code>
-          <span className="ml-2 text-muted-foreground">
-            {scan.status === 'resolved' ? `→ ${resolvedLabel ?? 'resolved'}` : 'skipped'}
-          </span>
+      <Card compact className="!bg-muted/30 opacity-60">
+        <div className="flex items-center justify-between text-sm">
+          <div>
+            <code className="text-xs rounded bg-muted px-1">{scan.scanned_code}</code>
+            <span className="ml-2 text-muted-foreground">
+              {scan.status === 'resolved' ? `→ ${resolvedLabel ?? 'resolved'}` : 'skipped'}
+            </span>
+          </div>
+          <Tag minimal intent={scan.status === 'resolved' ? Intent.SUCCESS : Intent.NONE}>
+            {scan.status}
+          </Tag>
         </div>
-        <Badge variant="outline" className={cn(scan.status === 'resolved' ? 'text-green-700 border-green-300' : '')}>
-          {scan.status}
-        </Badge>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="rounded-lg border px-4 py-3 space-y-2">
-      <div className="flex items-start justify-between gap-3">
+    <Card compact>
+      <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <code className="rounded bg-muted px-1.5 py-0.5 text-xs font-mono">{scan.scanned_code}</code>
-            <Badge variant="destructive" className="text-[10px]">unresolved</Badge>
+            <Tag minimal intent={Intent.DANGER}>unresolved</Tag>
           </div>
           <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
             {scan.location_name && (
               <span className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
+                <Icon icon="map-marker" size={12} />
                 {scan.location_name}
               </span>
             )}
             {scan.approx_quantity && (
               <span className="flex items-center gap-1">
-                <Tag className="h-3 w-3" />
+                <Icon icon="tag" size={12} />
                 ~{scan.approx_quantity} units approx.
               </span>
             )}
-            {scan.notes && <span>"{scan.notes}"</span>}
+            {scan.notes && <span>&quot;{scan.notes}&quot;</span>}
             <span>{formatDistanceToNow(new Date(scan.created_at), { addSuffix: true })}</span>
             {scan.created_by_email && <span>by {scan.created_by_email}</span>}
           </div>
@@ -160,28 +169,24 @@ function PendingScanRow({
       ) : (
         <div className="flex gap-2">
           <Button
-            size="sm"
-            variant="outline"
-            className="flex-1"
+            icon="search"
+            fill
             onClick={() => { setShowPicker(true) }}
             disabled={resolve.isPending || skip.isPending}
           >
-            <Search className="mr-1.5 h-3.5 w-3.5" />
             Link to product
           </Button>
           <Button
-            size="sm"
-            variant="ghost"
-            className="text-muted-foreground"
+            icon="cross"
+            variant="minimal"
             onClick={handleSkip}
             disabled={skip.isPending || resolve.isPending}
           >
-            <X className="mr-1.5 h-3.5 w-3.5" />
             Skip
           </Button>
         </div>
       )}
-    </div>
+    </Card>
   )
 }
 
@@ -197,10 +202,10 @@ export default function PendingScansPage() {
     <div className="mx-auto max-w-2xl px-4 py-8 space-y-6">
       <div>
         <div className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-amber-600" />
+          <Icon icon="warning-sign" size={18} intent={Intent.WARNING} />
           <h1 className="text-xl font-semibold">Floor · Pending Scans</h1>
           {unresolvedCount > 0 && (
-            <Badge variant="destructive">{unresolvedCount} unresolved</Badge>
+            <Tag intent={Intent.DANGER}>{String(unresolvedCount)} unresolved</Tag>
           )}
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -216,13 +221,11 @@ export default function PendingScansPage() {
       )}
 
       {!isLoading && scans.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed py-12 text-center">
-          <CheckCircle2 className="h-8 w-8 text-green-600" />
-          <p className="font-medium">No pending scans</p>
-          <p className="text-sm text-muted-foreground">
-            All floor scans have been resolved. Well done.
-          </p>
-        </div>
+        <NonIdealState
+          icon="tick-circle"
+          title="No pending scans"
+          description="All floor scans have been resolved. Well done."
+        />
       )}
 
       {!isLoading && scans.length > 0 && (

@@ -1,11 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import {
-  ChevronDown, Loader2, PackageCheck,
-} from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { Button, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useApproveRestockProposal } from '@/features/briefing/hooks'
@@ -18,7 +14,6 @@ export function ActionCard({ action, currency }: { action: BriefingAction; curre
   const createRestock   = useCreateRestockRequest()
   const approveProposal = useApproveRestockProposal()
   const cfg  = ACTION_CFG[action.action_type]
-  const Icon = cfg.icon
   const band = BAND(action.priority)
 
   const [restockExpanded, setRestockExpanded] = useState(false)
@@ -148,7 +143,7 @@ export function ActionCard({ action, currency }: { action: BriefingAction; curre
           band === 'monitor' ? 'bg-amber-100 dark:bg-amber-950/40' :
           'bg-muted',
         )}>
-          <Icon className={cn('h-4 w-4', cfg.iconCls)} />
+          <Icon icon={cfg.icon} size={14} className={cfg.iconCls} />
         </div>
 
         <div className="flex-1 min-w-0">
@@ -166,19 +161,19 @@ export function ActionCard({ action, currency }: { action: BriefingAction; curre
               : <span className="text-sm font-semibold leading-snug">{action.entity_label}</span>
             }
             {cfg.groupHint && (
-              <Badge variant="outline" className="text-[10px] h-4 px-1 py-0 font-normal text-muted-foreground">
+              <Tag minimal className="!text-[10px] !h-4 !px-1 !py-0 !font-normal !text-muted-foreground">
                 {cfg.groupHint}
-              </Badge>
+              </Tag>
             )}
             {restockDone && (
-              <Badge className="text-[10px] h-4 px-1 py-0 bg-green-100 text-green-700 border-green-200">
+              <Tag intent={Intent.SUCCESS} minimal className="!text-[10px] !h-4 !px-1 !py-0">
                 Requested
-              </Badge>
+              </Tag>
             )}
             {proposalDone && (
-              <Badge className="text-[10px] h-4 px-1 py-0 bg-green-100 text-green-700 border-green-200">
+              <Tag intent={Intent.SUCCESS} minimal className="!text-[10px] !h-4 !px-1 !py-0">
                 PO Created
-              </Badge>
+              </Tag>
             )}
           </div>
           <p className="text-xs text-muted-foreground mt-0.5 leading-snug">{action.context}</p>
@@ -197,47 +192,36 @@ export function ActionCard({ action, currency }: { action: BriefingAction; curre
         <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
           {action.action_type === 'low_stock_no_po' && !restockDone && (
             <Button
-              size="sm"
-              variant="outline"
-              className="text-xs h-7 px-2.5 border-red-200 text-red-700 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400"
+              size="small"
+              variant="outlined"
+              intent={Intent.DANGER}
+              endIcon={<Icon icon="chevron-down" size={12} className={cn('transition-transform', restockExpanded && 'rotate-180')} />}
               onClick={() => { setRestockExpanded((v) => !v) }}
             >
               Quick restock
-              <ChevronDown className={cn('h-3 w-3 ml-0.5 transition-transform', restockExpanded && 'rotate-180')} />
             </Button>
           )}
           {action.action_type === 'restock_proposal' && !proposalDone && (
             <Button
-              size="sm"
-              className="text-xs h-7 px-2.5 gap-1 bg-green-600 hover:bg-green-700 text-white"
-              disabled={approveProposal.isPending}
+              size="small"
+              intent={Intent.SUCCESS}
+              icon="confirm"
+              loading={approveProposal.isPending}
               onClick={() => { void handleApproveProposal() }}
             >
-              {approveProposal.isPending
-                ? <Loader2 className="h-3 w-3 animate-spin" />
-                : <><PackageCheck className="h-3 w-3" />Approve & Create PO</>
-              }
+              Approve & Create PO
             </Button>
           )}
           {action.action_type === 'restock_proposal' && proposalDone && (
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-xs h-7 px-2.5"
-              onClick={() => { void navigate('/procurement?tab=saved') }}
-            >
+            <Button size="small" variant="outlined" onClick={() => { void navigate('/procurement?tab=saved') }}>
               View PO
             </Button>
           )}
           {action.action_type !== 'restock_proposal' && (
             <Button
-              size="sm"
-              variant={band === 'act' ? 'default' : 'outline'}
-              className={cn(
-                'text-xs h-7 px-2.5',
-                band === 'act'     ? 'bg-red-600 hover:bg-red-700 text-white' :
-                band === 'monitor' ? 'border-amber-300 text-amber-700 hover:bg-amber-50' : '',
-              )}
+              size="small"
+              intent={band === 'act' ? Intent.DANGER : band === 'monitor' ? Intent.WARNING : Intent.NONE}
+              variant={band === 'act' ? undefined : 'outlined'}
               onClick={handleNavigate}
             >
               {action.action_label}
@@ -249,31 +233,28 @@ export function ActionCard({ action, currency }: { action: BriefingAction; curre
       {restockExpanded && action.action_type === 'low_stock_no_po' && (
         <div className="mt-3 ml-11 flex items-center gap-2 p-3 rounded-lg bg-muted/40 border border-red-100 dark:border-red-900/30">
           <label className="text-xs text-muted-foreground shrink-0">Qty to request:</label>
-          <input
-            type="number"
-            min={1}
-            value={restockQty}
-            onChange={(e) => { setRestockQty(Math.max(1, Number(e.target.value))) }}
-            className="w-20 h-7 rounded border border-input bg-background px-2 text-xs tabular-nums focus:outline-none focus:ring-1 focus:ring-ring"
-          />
+          <div className="w-20">
+            <InputGroup
+              type="number"
+              min={1}
+              value={String(restockQty)}
+              onChange={(e) => { setRestockQty(Math.max(1, Number(e.target.value))) }}
+              size="small"
+            />
+          </div>
           <p className="text-[10px] text-muted-foreground flex-1">
             Pre-filled: par − current stock
             {action.metadata.days_left != null && ` · ~${String(action.metadata.days_left as number)}d at current rate`}
           </p>
           <Button
-            size="sm"
-            className="h-7 text-xs bg-red-600 hover:bg-red-700 text-white"
-            disabled={createRestock.isPending}
+            size="small"
+            intent={Intent.DANGER}
+            loading={createRestock.isPending}
             onClick={() => { void handleInlineRestock() }}
           >
-            {createRestock.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Confirm'}
+            Confirm
           </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-7 text-xs text-muted-foreground"
-            onClick={() => { setRestockExpanded(false) }}
-          >
+          <Button size="small" variant="minimal" onClick={() => { setRestockExpanded(false) }}>
             Cancel
           </Button>
         </div>

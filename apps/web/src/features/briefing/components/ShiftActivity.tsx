@@ -1,11 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { subHours } from 'date-fns'
-import {
-  AlertTriangle, ChevronDown, ChevronRight,
-  Users, ArrowUp, RotateCcw, Flame, Loader2, Package,
-} from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Icon, Intent, SegmentedControl, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useShiftActivity } from '@/features/inventory/hooks/reports'
@@ -72,39 +68,35 @@ export function ShiftActivity({
         onClick={() => { setShiftOpen((v) => !v) }}
         className="flex w-full items-center gap-3 px-4 py-3 bg-muted/20 hover:bg-muted/40 transition-colors text-left"
       >
-        <Flame className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <Icon icon="flame" size={14} className="text-muted-foreground flex-shrink-0" />
         <span className="flex-1 text-sm font-semibold text-muted-foreground">
           Shift Activity · last {windowHours}h
         </span>
         {isLoading
-          ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />
+          ? <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
           : <span className="text-xs text-muted-foreground tabular-nums">{nonReverts.length} events</span>}
-        {shiftOpen ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+        <Icon icon={shiftOpen ? 'chevron-down' : 'chevron-right'} size={14} className="text-muted-foreground" />
       </button>
 
       {shiftOpen && (
         <div className="p-4 space-y-4 bg-muted/5">
-          <div className="flex items-center gap-1">
-            {([8, 12, 24, 48] as const).map((h) => (
-              <button
-                key={h}
-                type="button"
-                onClick={() => { setWindowHours(h) }}
-                className={cn(
-                  'px-2.5 py-1 text-xs font-medium rounded border transition-colors',
-                  windowHours === h ? 'bg-foreground text-background border-foreground' : 'border-border text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {h}h
-              </button>
-            ))}
-          </div>
+          <SegmentedControl
+            options={[
+              { value: '8',  label: '8h' },
+              { value: '12', label: '12h' },
+              { value: '24', label: '24h' },
+              { value: '48', label: '48h' },
+            ]}
+            value={String(windowHours)}
+            onValueChange={(v) => { setWindowHours(Number(v) as 8 | 12 | 24 | 48) }}
+            size="small"
+          />
 
           <SummaryStrip logs={logs} currency={currency} costMap={costMap} />
 
           <div className="space-y-3">
             {staffBreakdown.length > 0 && (
-              <Section icon={Users} title="Staff activity" count={staffBreakdown.length} defaultOpen>
+              <Section icon="people" title="Staff activity" count={staffBreakdown.length} defaultOpen>
                 {staffBreakdown.map((s) => (
                   <Row key={s.email}>
                     <span className="flex-1 text-xs font-medium truncate">{s.email}</span>
@@ -117,7 +109,7 @@ export function ShiftActivity({
             )}
 
             {additions.length > 0 && (
-              <Section icon={ArrowUp} title="Stock added" count={additions.length} accent="text-green-500" defaultOpen={false}>
+              <Section icon="arrow-up" title="Stock added" count={additions.length} accent="text-green-500" defaultOpen={false}>
                 {additions.map((l) => {
                   const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
                   const costImpact = costMap.get(l.variant_id)
@@ -145,7 +137,7 @@ export function ShiftActivity({
             )}
 
             {writeOffs.length > 0 && (
-              <Section icon={AlertTriangle} title="Write-offs" count={writeOffs.length} accent="text-orange-500" defaultOpen>
+              <Section icon="warning-sign" title="Write-offs" count={writeOffs.length} accent="text-orange-500" defaultOpen>
                 {writeOffs.map((l) => {
                   const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
                   const costImpact = costMap.get(l.variant_id)
@@ -158,7 +150,7 @@ export function ShiftActivity({
                     >
                       {name}
                     </button>
-                    <Badge variant="outline" className="text-[10px] h-4">{l.removal_category}</Badge>
+                    <Tag minimal className="!text-[10px] !h-4">{l.removal_category}</Tag>
                     {costImpact != null && (
                       <span className="text-[11px] text-red-600 dark:text-red-400 tabular-nums">
                         -{formatCurrency(costImpact * Math.abs(l.quantity_change), currency)}
@@ -174,7 +166,7 @@ export function ShiftActivity({
             )}
 
             {corrections.length > 0 && (
-              <Section icon={RotateCcw} title="Corrections / reverts" count={corrections.length} accent="text-amber-500" defaultOpen={false}>
+              <Section icon="undo" title="Corrections / reverts" count={corrections.length} accent="text-amber-500" defaultOpen={false}>
                 {corrections.map((l) => {
                   const name = l.variant_name !== 'Standard' ? `${l.product_name} — ${l.variant_name}` : l.product_name
                   return (
@@ -196,7 +188,7 @@ export function ShiftActivity({
             )}
 
             {criticalForecasts.length > 0 && (
-              <Section icon={AlertTriangle} title="Running out soon" count={criticalForecasts.length} accent="text-red-500" defaultOpen>
+              <Section icon="warning-sign" title="Running out soon" count={criticalForecasts.length} accent="text-red-500" defaultOpen>
                 {criticalForecasts.map((f) => {
                   const name = f.variant_name !== 'Standard' ? `${f.product_name} — ${f.variant_name}` : f.product_name
                   return (
@@ -219,7 +211,7 @@ export function ShiftActivity({
             )}
 
             {pendingRestocks.length > 0 && (
-              <Section icon={Package} title="Pending restocks" count={pendingRestocks.length} defaultOpen={false}>
+              <Section icon="box" title="Pending restocks" count={pendingRestocks.length} defaultOpen={false}>
                 {pendingRestocks.map((r) => {
                   const productName = r.product_variants?.products?.name ?? 'Unknown'
                   const variantName = r.product_variants?.name

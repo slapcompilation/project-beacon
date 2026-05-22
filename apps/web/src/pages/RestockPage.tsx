@@ -5,22 +5,26 @@
 //   pending_director → requires owner-only sign-off
 // Palantir principle: every number carries its derived context — estimated cost is shown
 // inline on every card so approvers can make decisions without navigating away.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState, useMemo, useCallback } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import {
-  Plus, CheckCircle2, XCircle, PackageCheck, ShoppingCart, Circle,
-  Sparkles, Loader2, TrendingDown, AlertTriangle, Archive, Zap,
-  Search, ShieldCheck, ShieldAlert, User, BookOpen, X, Brain,
-} from 'lucide-react'
 import { format } from 'date-fns'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog'
+  Button,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  Icon,
+  InputGroup,
+  Intent,
+  NonIdealState,
+  Spinner,
+  SpinnerSize,
+  Tag,
+  TextArea,
+} from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { EntityContextPanel } from '@/features/eye/components/EntityContextPanel'
 import { RestockRequestModal } from '@/features/restock/components/RestockRequestModal'
@@ -83,7 +87,7 @@ function BriefingContextBanner() {
   return (
     <div className="border-b bg-amber-50/50 dark:bg-amber-950/10 border-amber-100 dark:border-amber-900/30 px-6 py-3">
       <div className="flex items-start gap-3">
-        <BookOpen className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+        <Icon icon="book" size={14} className="text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0 space-y-2">
           <div className="flex items-center gap-2">
             <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
@@ -97,14 +101,13 @@ function BriefingContextBanner() {
             <EntityContextPanel variantId={state.entityId} compact />
           )}
         </div>
-        <button
-          type="button"
+        <Button
+          variant="minimal"
+          size="small"
+          icon="cross"
           onClick={() => { setDismissed(true) }}
-          className="shrink-0 rounded p-0.5 text-amber-500 hover:text-amber-700 hover:bg-amber-100 dark:hover:bg-amber-950/30 transition-colors"
           aria-label="Dismiss"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
+        />
       </div>
     </div>
   )
@@ -127,21 +130,21 @@ function EyeSignalChips({ signals }: { signals: EyeSignals }) {
         'flex items-center gap-1 text-[10px] font-semibold tabular-nums',
         d <= 7 ? 'text-red-600 dark:text-red-400' : d <= 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400',
       )}>
-        <TrendingDown className="h-2.5 w-2.5" />{d <= 0 ? 'Out of stock' : `${d}d left`}
+        <Icon icon="trending-down" size={10} />{d <= 0 ? 'Out of stock' : `${d}d left`}
       </span>
     )
   }
   if (signals.wasteEvents !== null && signals.wasteEvents > 0) {
     chips.push(
       <span key="waste" className="flex items-center gap-1 text-[10px] text-orange-600 dark:text-orange-400">
-        <Zap className="h-2.5 w-2.5" />{signals.wasteEvents} waste event{signals.wasteEvents !== 1 ? 's' : ''}
+        <Icon icon="flash" size={10} />{signals.wasteEvents} waste event{signals.wasteEvents !== 1 ? 's' : ''}
       </span>
     )
   }
   if (signals.isDeadStock) {
     chips.push(
       <span key="dead" className="flex items-center gap-1 text-[10px] text-muted-foreground">
-        <Archive className="h-2.5 w-2.5" />idle — verify demand
+        <Icon icon="archive" size={10} />idle — verify demand
       </span>
     )
   }
@@ -169,38 +172,43 @@ function ApprovalDialog({
   const handleConfirm = () => { onConfirm(text); setText('') }
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) handleClose() }}>
-      <DialogContent className="sm:max-w-sm" onKeyDown={(e) => { if (e.key === 'Escape') handleClose() }}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-sm">
-            {mode === 'approve'
-              ? <><ShieldCheck className="h-4 w-4 text-green-600" />Approve Request</>
-              : <><ShieldAlert className="h-4 w-4 text-destructive" />Reject Request</>
-            }
-          </DialogTitle>
-        </DialogHeader>
-        <Textarea
+    <Dialog
+      isOpen={open}
+      onClose={handleClose}
+      title={
+        <span className="flex items-center gap-2 text-sm">
+          <Icon icon="shield" size={14} intent={mode === 'approve' ? Intent.SUCCESS : Intent.DANGER} />
+          {mode === 'approve' ? 'Approve Request' : 'Reject Request'}
+        </span>
+      }
+      className="!w-[24rem]"
+    >
+      <DialogBody>
+        <TextArea
           placeholder={mode === 'approve' ? 'Approval notes (optional)' : 'Reason for rejection (optional)'}
           value={text}
           onChange={(e) => { setText(e.target.value) }}
           onKeyDown={(e) => { if (e.key === 'Enter' && e.metaKey) handleConfirm() }}
-          className="text-sm min-h-[72px] resize-none"
           autoFocus
+          fill
+          className="!text-sm !min-h-[72px] !resize-none"
         />
-        <DialogFooter className="gap-2">
-          <Button variant="ghost" size="sm" onClick={handleClose}>Cancel</Button>
-          <Button
-            size="sm"
-            variant={mode === 'approve' ? 'default' : 'destructive'}
-            onClick={handleConfirm}
-            disabled={isPending}
-            className="gap-1"
-          >
-            {isPending && <Loader2 className="h-3 w-3 animate-spin" />}
-            {mode === 'approve' ? 'Approve' : 'Reject'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="minimal" size="small" onClick={handleClose}>Cancel</Button>
+            <Button
+              size="small"
+              intent={mode === 'approve' ? Intent.SUCCESS : Intent.DANGER}
+              loading={isPending}
+              onClick={handleConfirm}
+            >
+              {mode === 'approve' ? 'Approve' : 'Reject'}
+            </Button>
+          </>
+        }
+      />
     </Dialog>
   )
 }
@@ -208,16 +216,18 @@ function ApprovalDialog({
 // ─── Tier badge ───────────────────────────────────────────────────────────────
 
 function TierBadge({ tier }: { tier: 'manager' | 'director' }) {
-  return tier === 'director'
-    ? (
-      <Badge variant="outline" className="h-4 px-1 text-[9px] gap-0.5 border-red-300 text-red-700 dark:text-red-400 shrink-0">
-        <ShieldAlert className="h-2.5 w-2.5" />Director
-      </Badge>
-    ) : (
-      <Badge variant="outline" className="h-4 px-1 text-[9px] gap-0.5 border-orange-300 text-orange-700 dark:text-orange-400 shrink-0">
-        <ShieldCheck className="h-2.5 w-2.5" />Manager
-      </Badge>
+  if (tier === 'director') {
+    return (
+      <Tag minimal icon="shield" className="!h-4 !px-1 !text-[9px] !border-red-300 !text-red-700 dark:!text-red-400 shrink-0">
+        Director
+      </Tag>
     )
+  }
+  return (
+    <Tag minimal icon="shield" className="!h-4 !px-1 !text-[9px] !border-orange-300 !text-orange-700 dark:!text-orange-400 shrink-0">
+      Manager
+    </Tag>
+  )
 }
 
 // ─── Kanban card ──────────────────────────────────────────────────────────────
@@ -321,27 +331,27 @@ function KanbanCard({
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             {req.is_auto_proposed && (
-              <Badge variant="secondary" className="h-4 px-1 text-[9px] gap-0.5 shrink-0">
-                <Sparkles className="h-2.5 w-2.5" />AI
-              </Badge>
+              <Tag minimal icon="predictive-analysis" className="!h-4 !px-1 !text-[9px] shrink-0">
+                AI
+              </Tag>
             )}
             {(tier === 'manager' || tier === 'director') && (
               <TierBadge tier={tier} />
             )}
             {mergedCount > 0 && (
-              <Badge variant="outline" className="h-4 px-1 text-[9px] text-muted-foreground shrink-0"
+              <Tag minimal className="!h-4 !px-1 !text-[9px] !text-muted-foreground shrink-0"
                 title={`${String(allIds.length)} duplicate requests merged`}>
                 ×{String(allIds.length)}
-              </Badge>
+              </Tag>
             )}
             {req.status === 'cancelled' && (
-              <Badge variant="outline" className="h-4 px-1 text-[9px] text-muted-foreground">Cancelled</Badge>
+              <Tag minimal className="!h-4 !px-1 !text-[9px] !text-muted-foreground">Cancelled</Tag>
             )}
             {req.status === 'rejected' && (
-              <Badge variant="outline" className="h-4 px-1 text-[9px] border-red-300 text-red-700 dark:text-red-400">Rejected</Badge>
+              <Tag minimal intent={Intent.DANGER} className="!h-4 !px-1 !text-[9px]">Rejected</Tag>
             )}
             {req.status === 'fulfilled' && (
-              <Badge variant="outline" className="h-4 px-1 text-[9px] border-green-300 text-green-700 dark:text-green-400">Fulfilled</Badge>
+              <Tag minimal intent={Intent.SUCCESS} className="!h-4 !px-1 !text-[9px]">Fulfilled</Tag>
             )}
           </div>
         </div>
@@ -368,7 +378,7 @@ function KanbanCard({
           {/* Approval audit trail */}
           {req.approved_at && approverEmail && (
             <p className="flex items-center gap-1 text-green-700 dark:text-green-500">
-              <User className="h-2.5 w-2.5 shrink-0" />
+              <Icon icon="user" size={10} className="shrink-0" />
               Approved by {approverEmail} · {format(new Date(req.approved_at), 'dd MMM HH:mm')}
             </p>
           )}
@@ -377,7 +387,7 @@ function KanbanCard({
           )}
           {req.rejected_at && rejectorEmail && (
             <p className="flex items-center gap-1 text-red-700 dark:text-red-400">
-              <User className="h-2.5 w-2.5 shrink-0" />
+              <Icon icon="user" size={10} className="shrink-0" />
               Rejected by {rejectorEmail} · {format(new Date(req.rejected_at), 'dd MMM HH:mm')}
             </p>
           )}
@@ -400,7 +410,7 @@ function KanbanCard({
                 showCopilot ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              <Brain className="h-2.5 w-2.5" />
+              <Icon icon="lightbulb" size={10} />
               {showCopilot ? 'Hide intelligence' : 'Show intelligence'}
             </button>
             {showCopilot && (
@@ -418,62 +428,82 @@ function KanbanCard({
           <div className="flex items-center gap-1.5 pt-1">
             {canActOnThis && onApprove ? (
               <>
-                <Button size="sm" variant="outline"
-                  className="h-6 gap-1 text-[11px] px-2 flex-1 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
+                <Button
+                  size="small"
+                  variant="outlined"
+                  intent={Intent.SUCCESS}
+                  icon="tick-circle"
+                  fill
+                  disabled={isMutating}
                   onClick={() => { setDialogMode('approve') }}
-                  disabled={isMutating}>
-                  <CheckCircle2 className="h-3 w-3" />Approve{allIds.length > 1 ? ' all' : ''}
+                >
+                  Approve{allIds.length > 1 ? ' all' : ''}
                 </Button>
                 {onReject && (
-                  <Button size="sm" variant="ghost"
-                    className="h-6 gap-1 text-[11px] px-2 text-destructive hover:text-destructive"
+                  <Button
+                    size="small"
+                    variant="minimal"
+                    intent={Intent.DANGER}
+                    icon="cross-circle"
+                    disabled={isMutating}
                     onClick={() => { setDialogMode('reject') }}
-                    disabled={isMutating}>
-                    <XCircle className="h-3 w-3" />
-                  </Button>
+                    aria-label="Reject"
+                  />
                 )}
               </>
             ) : isAwaiting ? (
-              // Not authorized for this tier — show informational badge
               <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                <ShieldAlert className="h-3 w-3" />
+                <Icon icon="shield" size={10} />
                 {req.status === 'pending_director' ? 'Owner approval required' : 'Admin approval required'}
               </span>
             ) : (
-              // Plain pending — no approval tier, canApprove is false
               <span className="text-[10px] text-muted-foreground">Awaiting approval</span>
             )}
             {req.status === 'pending' && canApprove && !isAwaiting && (
-              <Button size="sm" variant="ghost"
-                className="h-6 gap-1 text-[11px] px-2 text-destructive hover:text-destructive"
+              <Button
+                size="small"
+                variant="minimal"
+                intent={Intent.DANGER}
+                icon="cross-circle"
+                loading={update.isPending}
                 onClick={cancelAll}
-                disabled={update.isPending}>
-                <XCircle className="h-3 w-3" />
-              </Button>
+                aria-label="Cancel"
+              />
             )}
           </div>
         )}
         {req.status === 'approved' && (
           <div className="flex items-center gap-1.5 pt-1">
-            <Button size="sm" variant="outline"
-              className="h-6 gap-1 text-[11px] px-2 flex-1"
-              onClick={() => { onReceive?.(req) }}>
-              <PackageCheck className="h-3 w-3" />Receive
+            <Button
+              size="small"
+              variant="outlined"
+              fill
+              icon="box"
+              onClick={() => { onReceive?.(req) }}
+            >
+              Receive
             </Button>
             {onDraftPO && (
-              <Button size="sm" variant="outline"
-                className="h-6 gap-1 text-[11px] px-2 flex-1"
-                onClick={onDraftPO}>
-                <ShoppingCart className="h-3 w-3" />PO
+              <Button
+                size="small"
+                variant="outlined"
+                fill
+                icon="shopping-cart"
+                onClick={onDraftPO}
+              >
+                PO
               </Button>
             )}
             {canApprove && (
-              <Button size="sm" variant="ghost"
-                className="h-6 gap-1 text-[11px] px-2 text-destructive hover:text-destructive"
+              <Button
+                size="small"
+                variant="minimal"
+                intent={Intent.DANGER}
+                icon="cross-circle"
+                loading={update.isPending}
                 onClick={cancelAll}
-                disabled={update.isPending}>
-                <XCircle className="h-3 w-3" />
-              </Button>
+                aria-label="Cancel"
+              />
             )}
           </div>
         )}
@@ -588,7 +618,6 @@ export default function RestockPage() {
       .filter((r) => r.status === 'pending_manager' || r.status === 'pending_director')
       .filter(filterReq)
     return consolidateByVariant(rows).sort((a, b) => {
-      // Director tier first, then by urgency
       if (a.req.status !== b.req.status) {
         return a.req.status === 'pending_director' ? -1 : 1
       }
@@ -648,7 +677,6 @@ export default function RestockPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Briefing context banner (shown when navigating from a Briefing action) */}
       <BriefingContextBanner />
 
       {/* Header */}
@@ -662,30 +690,34 @@ export default function RestockPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-            <Input
+          <div className="w-52">
+            <InputGroup
+              leftIcon="search"
               placeholder="Search product, SKU, supplier…"
               value={search}
               onChange={(e) => { setSearch(e.target.value) }}
-              className="pl-8 h-8 w-52 text-xs"
+              size="small"
             />
           </div>
           {canApprove && (
-            <Button variant="outline" size="sm"
+            <Button
+              size="small"
+              variant="outlined"
+              icon="predictive-analysis"
+              loading={autoProposeMutation.isPending}
               onClick={() => { autoProposeMutation.mutate({}) }}
-              disabled={autoProposeMutation.isPending}
-              className="gap-1.5 text-xs h-8"
             >
-              {autoProposeMutation.isPending
-                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                : <Sparkles className="h-3.5 w-3.5" />}
               Run Proposals
             </Button>
           )}
           {canCreate && (
-            <Button size="sm" onClick={() => { setModalOpen(true) }} className="gap-1.5 text-xs h-8">
-              <Plus className="h-3.5 w-3.5" />New Request
+            <Button
+              size="small"
+              intent={Intent.PRIMARY}
+              icon="plus"
+              onClick={() => { setModalOpen(true) }}
+            >
+              New Request
             </Button>
           )}
         </div>
@@ -694,8 +726,8 @@ export default function RestockPage() {
       {/* Kanban board */}
       <div className="flex-1 overflow-hidden px-4 py-4">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin mr-2" />Loading…
+          <div className="flex items-center justify-center h-full text-sm text-muted-foreground gap-2">
+            <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />Loading…
           </div>
         ) : (
           <div className="flex gap-3 h-full overflow-x-auto">
@@ -707,24 +739,27 @@ export default function RestockPage() {
               accent="bg-amber-50/50 dark:bg-amber-950/10 border-amber-200/60 dark:border-amber-800/40"
               badge={urgentCount > 0 ? (
                 <span className="flex items-center gap-1 text-[10px] font-semibold text-red-600">
-                  <AlertTriangle className="h-3 w-3" />{urgentCount} urgent
+                  <Icon icon="warning-sign" size={12} />{urgentCount} urgent
                 </span>
               ) : undefined}
               headerActions={aiProposals.length > 0 && canApprove ? (
-                <Button size="sm" variant="outline"
-                  className="h-6 text-[10px] px-2 gap-1 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
-                  onClick={handleApproveAllAI}
+                <Button
+                  size="small"
+                  variant="outlined"
+                  intent={Intent.SUCCESS}
+                  icon="tick-circle"
                   disabled={isMutating}
+                  onClick={handleApproveAllAI}
                 >
-                  <CheckCircle2 className="h-3 w-3" />Approve all AI ({aiProposals.length})
+                  Approve all AI ({aiProposals.length})
                 </Button>
               ) : undefined}
             >
               {toAction.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 gap-2 text-center">
-                  <CheckCircle2 className="h-8 w-8 text-green-500/40" />
-                  <p className="text-xs text-muted-foreground">All caught up</p>
-                </div>
+                <NonIdealState
+                  icon="tick-circle"
+                  description="All caught up"
+                />
               ) : (
                 toAction.map((c) => (
                   <KanbanCard
@@ -752,33 +787,39 @@ export default function RestockPage() {
               accent="bg-orange-50/50 dark:bg-orange-950/10 border-orange-200/60 dark:border-orange-800/40"
               badge={directorCount > 0 ? (
                 <span className="flex items-center gap-1 text-[10px] font-semibold text-red-600 dark:text-red-400">
-                  <ShieldAlert className="h-3 w-3" />{directorCount} director
+                  <Icon icon="shield" size={12} />{directorCount} director
                 </span>
               ) : undefined}
               headerActions={approvableAwaiting.length > 0 ? (
                 <div className="flex items-center gap-1">
-                  <Button size="sm" variant="outline"
-                    className="h-6 text-[10px] px-2 gap-1 border-green-300 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-950/30"
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    intent={Intent.SUCCESS}
+                    icon="tick-circle"
+                    disabled={isMutating}
                     onClick={handleBulkApproveAwaiting}
-                    disabled={isMutating}
                   >
-                    <CheckCircle2 className="h-3 w-3" />Approve all ({approvableAwaiting.length})
+                    Approve all ({approvableAwaiting.length})
                   </Button>
-                  <Button size="sm" variant="ghost"
-                    className="h-6 text-[10px] px-2 gap-1 text-destructive hover:text-destructive"
-                    onClick={() => { setBulkRejectOpen(true) }}
+                  <Button
+                    size="small"
+                    variant="minimal"
+                    intent={Intent.DANGER}
+                    icon="cross-circle"
                     disabled={isMutating}
+                    onClick={() => { setBulkRejectOpen(true) }}
                   >
-                    <XCircle className="h-3 w-3" />Reject all
+                    Reject all
                   </Button>
                 </div>
               ) : undefined}
             >
               {awaitingApproval.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 gap-2 text-center">
-                  <ShieldCheck className="h-8 w-8 text-muted-foreground/20" />
-                  <p className="text-xs text-muted-foreground">No approvals pending</p>
-                </div>
+                <NonIdealState
+                  icon="shield"
+                  description="No approvals pending"
+                />
               ) : (
                 awaitingApproval.map((c) => (
                   <KanbanCard
@@ -805,8 +846,10 @@ export default function RestockPage() {
               count={approved.length}
               accent="bg-blue-50/50 dark:bg-blue-950/10 border-blue-200/60 dark:border-blue-800/40"
               headerActions={approved.length > 0 ? (
-                <Button size="sm" variant="default"
-                  className="h-6 text-[10px] px-2 gap-1"
+                <Button
+                  size="small"
+                  intent={Intent.PRIMARY}
+                  icon="shopping-cart"
                   onClick={() => {
                     navigate('/purchase-orders', {
                       state: {
@@ -824,15 +867,15 @@ export default function RestockPage() {
                     })
                   }}
                 >
-                  <ShoppingCart className="h-3 w-3" />Draft PO ({approved.length})
+                  Draft PO ({approved.length})
                 </Button>
               ) : undefined}
             >
               {approved.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 gap-2 text-center">
-                  <Circle className="h-8 w-8 text-muted-foreground/20" />
-                  <p className="text-xs text-muted-foreground">None approved yet</p>
-                </div>
+                <NonIdealState
+                  icon="circle"
+                  description="None approved yet"
+                />
               ) : (
                 approved.map((c) => (
                   <KanbanCard
@@ -875,10 +918,10 @@ export default function RestockPage() {
               accent="bg-muted/30 border-border/60"
             >
               {done.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 gap-2 text-center">
-                  <Circle className="h-8 w-8 text-muted-foreground/20" />
-                  <p className="text-xs text-muted-foreground">No history yet</p>
-                </div>
+                <NonIdealState
+                  icon="circle"
+                  description="No history yet"
+                />
               ) : (
                 done.slice(0, 20).map((r) => (
                   <KanbanCard

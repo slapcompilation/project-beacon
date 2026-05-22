@@ -3,13 +3,21 @@
 // stock_logs + users + restock activity → per-member waste attribution,
 // outlier detection, and team-relative benchmarking.
 // Only admin/owner can view. Outliers float to top.
+//
+// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import {
-  AlertTriangle, ChevronDown, ChevronUp, Users, TrendingUp, TrendingDown,
-  Minus, ShieldAlert, Loader2, Activity,
-} from 'lucide-react'
+  Callout,
+  Icon,
+  Intent,
+  NonIdealState,
+  SegmentedControl,
+  Spinner,
+  SpinnerSize,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -19,10 +27,10 @@ import type { TeamPerformanceRow } from '@beacon/types'
 // ─── Window selector ──────────────────────────────────────────────────────────
 
 const WINDOWS = [
-  { days: 7,  label: '7d'  },
-  { days: 30, label: '30d' },
-  { days: 90, label: '90d' },
-] as const
+  { value: '7',  label: '7d'  },
+  { value: '30', label: '30d' },
+  { value: '90', label: '90d' },
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -33,10 +41,10 @@ function rateColor(rate: number): string {
   return 'text-foreground'
 }
 
-function rateIcon(rate: number) {
-  if (rate >= 1.5) return <TrendingUp className="h-3 w-3 inline -mt-px" />
-  if (rate <= 0.6) return <TrendingDown className="h-3 w-3 inline -mt-px" />
-  return <Minus className="h-3 w-3 inline -mt-px text-muted-foreground" />
+function rateIconName(rate: number): IconName {
+  if (rate >= 1.5) return 'trending-up'
+  if (rate <= 0.6) return 'trending-down'
+  return 'minus'
 }
 
 function wasteRateBar(pct: number | null) {
@@ -153,9 +161,10 @@ function MemberDetail({ row, currency }: { row: TeamPerformanceRow; currency: st
 
       {/* Outlier reason inline */}
       {row.outlier_reason && (
-        <div className="mt-3 flex items-start gap-2 rounded-md border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/20 px-3 py-2">
-          <AlertTriangle className="h-3.5 w-3.5 text-red-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700 dark:text-red-300">{row.outlier_reason}</p>
+        <div className="mt-3">
+          <Callout intent={Intent.DANGER} icon="warning-sign" compact>
+            {row.outlier_reason}
+          </Callout>
         </div>
       )}
     </div>
@@ -191,7 +200,7 @@ function MemberRow({
           {/* Outlier badge / rank */}
           <div className="w-6 shrink-0 text-center">
             {row.is_outlier
-              ? <ShieldAlert className="h-4 w-4 text-red-500 mx-auto" />
+              ? <Icon icon="shield" size={14} className="text-red-500 mx-auto" />
               : <span className="text-[10px] text-muted-foreground tabular-nums">{rank}</span>
             }
           </div>
@@ -230,8 +239,8 @@ function MemberRow({
 
           {/* Rate vs team avg */}
           <div className="w-20 shrink-0 text-right">
-            <p className={cn('text-xs tabular-nums font-bold', rateColor(row.write_off_rate_vs_team_avg))}>
-              {rateIcon(row.write_off_rate_vs_team_avg)}{' '}
+            <p className={cn('text-xs tabular-nums font-bold inline-flex items-center justify-end gap-1', rateColor(row.write_off_rate_vs_team_avg))}>
+              <Icon icon={rateIconName(row.write_off_rate_vs_team_avg)} size={12} />
               {row.write_off_rate_vs_team_avg.toFixed(2)}×
             </p>
             <p className="text-[10px] text-muted-foreground">vs avg</p>
@@ -253,7 +262,7 @@ function MemberRow({
 
           {/* Expand toggle */}
           <div className="shrink-0 text-muted-foreground">
-            {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            <Icon icon={expanded ? 'chevron-up' : 'chevron-down'} size={12} />
           </div>
         </div>
       </button>
@@ -271,20 +280,27 @@ function SummaryStrip({ rows, currency }: { rows: TeamPerformanceRow[]; currency
   const totalUnits   = rows.reduce((s, r) => s + r.write_off_units, 0)
   const activeCount  = rows.filter((r) => r.active_days > 0).length
 
+  const stats: { label: string; value: string; icon: IconName; iconClass?: string; extra?: React.ReactNode }[] = [
+    { label: 'Team members',         value: rows.length.toString(),            icon: 'people' },
+    { label: 'Active this window',   value: activeCount.toString(),            icon: 'pulse' },
+    { label: 'Total write-off cost', value: formatCurrency(totalCost, currency), icon: 'trending-up', iconClass: 'text-red-500' },
+    {
+      label: 'Outlier members',
+      value: outliers.toString(),
+      icon: 'shield',
+      iconClass: outliers > 0 ? 'text-red-500' : 'text-muted-foreground',
+      extra: outliers > 0
+        ? <span className="text-red-600 dark:text-red-400 font-bold"> · {Math.round((rows.filter((r) => r.is_outlier).reduce((s, r) => s + r.write_off_cost, 0) / Math.max(totalCost, 0.01)) * 100)}% of cost</span>
+        : null,
+    },
+  ]
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border">
-      {[
-        { label: 'Team members',    value: rows.length.toString(),                icon: <Users className="h-3.5 w-3.5" /> },
-        { label: 'Active this window', value: activeCount.toString(),             icon: <Activity className="h-3.5 w-3.5" /> },
-        { label: 'Total write-off cost', value: formatCurrency(totalCost, currency), icon: <TrendingUp className="h-3.5 w-3.5 text-red-500" /> },
-        { label: 'Outlier members',  value: outliers.toString(),
-          extra: outliers > 0 ? <span className="text-red-600 dark:text-red-400 font-bold"> · {Math.round((rows.filter((r) => r.is_outlier).reduce((s, r) => s + r.write_off_cost, 0) / Math.max(totalCost, 0.01)) * 100)}% of cost</span> : null,
-          icon: <ShieldAlert className={cn('h-3.5 w-3.5', outliers > 0 ? 'text-red-500' : 'text-muted-foreground')} />,
-        },
-      ].map(({ label, value, icon, extra }) => (
+      {stats.map(({ label, value, icon, iconClass, extra }) => (
         <div key={label} className="bg-background px-4 py-3">
           <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
-            {icon}
+            <Icon icon={icon} size={12} className={iconClass} />
             <p className="text-[10px] uppercase tracking-widest font-bold">{label}</p>
           </div>
           <p className="text-sm font-bold tabular-nums">
@@ -309,16 +325,17 @@ export default function TeamIntelligencePage() {
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center py-20">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} />
       </div>
     )
   }
 
   if (isError) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 text-xs text-muted-foreground">
-        Failed to load team performance data.
-      </div>
+      <NonIdealState
+        icon="error"
+        title="Failed to load team performance data"
+      />
     )
   }
 
@@ -334,24 +351,12 @@ export default function TeamIntelligencePage() {
           </p>
         </div>
 
-        {/* Window selector */}
-        <div className="flex items-center gap-1 rounded-lg border p-0.5 bg-muted/30">
-          {WINDOWS.map(({ days, label }) => (
-            <button
-              key={days}
-              type="button"
-              onClick={() => { setWindowDays(days) }}
-              className={cn(
-                'px-3 py-1 text-xs font-medium rounded-md transition-colors',
-                windowDays === days
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          size="small"
+          value={String(windowDays)}
+          onValueChange={(v) => { setWindowDays(Number(v) as 7 | 30 | 90) }}
+          options={WINDOWS}
+        />
       </div>
 
       {/* Summary strip */}
@@ -381,13 +386,11 @@ export default function TeamIntelligencePage() {
       {/* Rows */}
       <div className="flex-1 overflow-y-auto">
         {rows.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 py-20 text-center px-8">
-            <Users className="h-10 w-10 text-muted-foreground/40" />
-            <p className="text-sm font-medium text-muted-foreground">No team activity in this window</p>
-            <p className="text-xs text-muted-foreground">
-              Switch to a longer window or check that stock logs have user attribution.
-            </p>
-          </div>
+          <NonIdealState
+            icon="people"
+            title="No team activity in this window"
+            description="Switch to a longer window or check that stock logs have user attribution."
+          />
         ) : (
           <div className="divide-y-0">
             {rows.map((row, i) => (
