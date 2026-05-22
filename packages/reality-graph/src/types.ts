@@ -20,6 +20,13 @@ export type NodeType =
   | 'purchase_order'
   | 'po_invoice'
   | 'occupancy_log'
+  // AIP-native nodes
+  | 'document'
+  | 'proposal'
+  | 'principle'
+  | 'approved_answer'
+  | 'case'
+  | 'constraint'
 
 export type EdgeType =
   | 'belongs_to_hotel'
@@ -41,6 +48,15 @@ export type EdgeType =
   | 'invoiced_by'
   | 'influenced_by'
   | 'similar_to'
+  // AIP-native edges
+  | 'belongs_to_org'
+  | 'transfers'
+  | 'proposed_by'
+  | 'benchmarks'
+  | 'harmonized_to'
+  | 'describes_entity'
+  | 'cited_in'
+  | 'applies_to'
 
 export interface GraphNode {
   id: string

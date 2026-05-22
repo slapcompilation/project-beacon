@@ -13,6 +13,7 @@
 export type TriggeredBy =
   | 'user'                    // direct human action
   | 'ai_proposal_accepted'    // human accepted an AI proposal
+  | 'ai_auto_approved'        // confidence × constraints cleared the auto-execution threshold
   | 'automation_threshold'    // rule-based automation (e.g. auto_propose_restocks)
   | 'revert'                  // compensating transaction
   | 'system'                  // background job / migration
