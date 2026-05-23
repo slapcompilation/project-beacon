@@ -93,23 +93,45 @@ export {
   hasOrgMembership,
   orgRoleFor,
   ECHELON_RANK,
+  // AIP-native nodes
+  documentNode,
+  proposalNode,
+  principleNode,
+  approvedAnswerNode,
+  caseNode,
+  constraintNode,
 } from './nodes/index'
 export type {
   StockUrgency,
   ConsumptionUrgency,
   RestockUrgency,
   SupplierRiskLevel,
+  // AIP-native node payloads
+  DocumentPayload,
+  DocumentSource,
+  IngestionStage,
+  ProposalPayload,
+  ProposalStatus,
+  PrinciplePayload,
+  PrincipleCategory,
+  ApprovedAnswerPayload,
+  CasePayload,
+  CaseStatus,
+  ConstraintPayload,
+  ConstraintBucket,
+  ConstraintSeverity,
 } from './nodes/index'
 
 // ── Logic Tool Registry — typed functions, dual-callable by humans + LLMs ────
 // Phase A stub: contracts only. Tool implementations land in src/tools/<name>.ts
 // See CLAUDE.md → "The Logic Tool Registry (Compute Layer)".
-export type { LogicTool, ToolResultMeta, ToolScope } from './tools/index'
+export type { LogicTool, ToolResultMeta, ToolScope, ToolCategory, ToolKind } from './tools/index'
 export {
   toolRegistry,
   registerTool,
   getTool,
   listTools,
+  listToolsByCategory,
 } from './tools/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─

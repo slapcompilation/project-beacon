@@ -45,6 +45,14 @@ const EDGE_LABELS: Record<EdgeType, string> = {
   created_by:        'Created by',
   belongs_to_session: 'Session',
   similar_to:        'Similar to',
+  belongs_to_org:    'Organization',
+  transfers:         'Transfers',
+  proposed_by:       'Proposed by',
+  benchmarks:        'Benchmarks',
+  harmonized_to:     'Harmonized to',
+  describes_entity:  'Describes',
+  cited_in:          'Cited in',
+  applies_to:        'Applies to',
 }
 
 // Edge types that are structural/audit noise, collapsed by default
@@ -87,6 +95,12 @@ const NODE_LABELS: Record<NodeType, string> = {
   purchase_order:    'Purchase Order',
   po_invoice:        'Invoice',
   occupancy_log:     'Occupancy',
+  document:          'Document',
+  proposal:          'Proposal',
+  principle:         'Principle',
+  approved_answer:   'Answer',
+  case:              'Case',
+  constraint:        'Constraint',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────
