@@ -69,14 +69,34 @@ export interface AgentSpec {
 
 export interface AgentInput {
   prompt: string
+  /** The operator who invoked the agent. Becomes `requestorId` / `actor_id` on emitted proposals. */
+  userId: string
   /** Caller's resolved scope; agents must not exceed this. */
   scope: { hotelId?: string; organizationId?: string }
   /** Optional structured context (e.g. the Object View node id when invoked from a slide-over). */
   context?: Record<string, unknown>
 }
 
+/**
+ * A typed proposal: the action the agent wants to apply, plus the metadata
+ * the operator UI renders (confidence + reasoning + provenance) and the
+ * Proposal node persists.
+ */
+export interface AgentProposal {
+  action: BeaconAction
+  confidence: number
+  reasoning: string
+  provenance: ReadonlyArray<{ kind: 'tool' | 'document'; ref: string; detail?: string }>
+}
+
 export interface AgentRunResult {
-  proposals: ReadonlyArray<BeaconAction>
+  proposals: ReadonlyArray<AgentProposal>
+  /** Set when the agent paused for clarification instead of proposing. */
+  paused?: {
+    question: string
+    contextSummary: string
+    currentConfidence: number
+  }
   trace: AgentRunTrace
 }
 

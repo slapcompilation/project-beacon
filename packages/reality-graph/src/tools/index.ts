@@ -90,3 +90,32 @@ export function listTools(): ReadonlyArray<LogicTool> {
 export function listToolsByCategory(category: ToolCategory): ReadonlyArray<LogicTool> {
   return [...toolRegistry.values()].filter((t) => t.category === category)
 }
+
+// ── Concrete tools — Phase 1: restock_advisor toolset ─────────────────────────
+
+export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow } from './graph_reader'
+export {
+  makeQueryOpenRestockRequestsTool,
+  type QueryOpenRestockRequestsInput,
+  type QueryOpenRestockRequestsOutput,
+} from './data/query_open_restock_requests'
+export {
+  makeQuerySisterPropertyInventoryTool,
+  type QuerySisterPropertyInventoryInput,
+  type QuerySisterPropertyInventoryOutput,
+} from './data/query_sister_property_inventory'
+export {
+  makeForecastConsumptionTool,
+  type ForecastConsumptionInput,
+  type ForecastConsumptionOutput,
+} from './logic/forecast_consumption'
+export {
+  makeRankAlternativeSuppliersTool,
+  type RankAlternativeSuppliersInput,
+  type RankAlternativeSuppliersOutput,
+} from './logic/rank_alternative_suppliers'
+export {
+  requestClarificationTool,
+  type RequestClarificationInput,
+  type RequestClarificationOutput,
+} from './predefined/request_clarification'
