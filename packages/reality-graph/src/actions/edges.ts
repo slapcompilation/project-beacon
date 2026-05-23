@@ -35,6 +35,7 @@ export interface SupplierCreateResult   { supplierId: string }
 export interface POCreateResult         { poId: string }
 export interface InvoiceSubmitResult    { invoiceId: string }
 export interface TransferCreateResult   { transferId: string }
+export interface TransferApproveResult  { fromLogId: string; toLogId: string; fromBalance: number; toBalance: number }
 
 export type MutationResult =
   | SupplierCreateResult
@@ -45,6 +46,7 @@ export type MutationResult =
   | POCreateResult
   | InvoiceSubmitResult
   | TransferCreateResult
+  | TransferApproveResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────
@@ -205,8 +207,19 @@ export function edgesForAction(
     }
 
     case 'APPROVE_TRANSFER': {
-      if (!actorId) break
-      push({ ...base, edge_type: 'approved_by', source_type: 'stock_transfer', source_id: action.transferId, target_type: 'user', target_id: actorId })
+      if (actorId) {
+        push({ ...base, edge_type: 'approved_by', source_type: 'stock_transfer', source_id: action.transferId, target_type: 'user', target_id: actorId })
+      }
+      const approve = result as Partial<TransferApproveResult>
+      if (approve.fromLogId) {
+        push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: approve.fromLogId, target_type: 'hotel', target_id: hotelId })
+        if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: approve.fromLogId, target_type: 'user', target_id: actorId })
+      }
+      if (approve.toLogId) {
+        // toLog lives in the destination hotel — its belongs_to_hotel edge would be in the dest hotel scope,
+        // not the dispatch context's hotelId, so we leave that to a server-side trigger if/when added.
+        if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: approve.toLogId, target_type: 'user', target_id: actorId })
+      }
       break
     }
   }

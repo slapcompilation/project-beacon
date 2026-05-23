@@ -20,5 +20,7 @@ export type {
   RevertActionResult,
   POCreateResult,
   InvoiceSubmitResult,
+  TransferCreateResult,
+  TransferApproveResult,
 } from './edges'
 export { edgesForAction } from './edges'

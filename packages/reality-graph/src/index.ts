@@ -49,6 +49,8 @@ export type {
   SupplierCreateResult,
   POCreateResult,
   InvoiceSubmitResult,
+  TransferCreateResult,
+  TransferApproveResult,
 } from './actions/index'
 export { validateAction, edgesForAction } from './actions/index'
 
