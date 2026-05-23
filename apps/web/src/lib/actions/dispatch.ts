@@ -52,6 +52,10 @@ import {
 import {
   createSupplier,
 } from '@/features/suppliers/api'
+import {
+  createStockTransfer,
+  approveStockTransfer,
+} from '@/features/agents/transfersApi'
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -223,6 +227,31 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
           .update({ matched: true, matched_at: new Date().toISOString() })
           .eq('id', action.invoiceId)
         if (error) throw new Error(error.message)
+        break
+      }
+
+      // ── Lateral transfers ─────────────────────────────────────────────────
+
+      case 'TRANSFER_STOCK': {
+        if (!ctx.actorId) throw new Error('TRANSFER_STOCK requires actorId')
+        const transfer = await createStockTransfer({
+          fromHotelId:       action.fromHotelId,
+          toHotelId:         action.toHotelId,
+          variantId:         action.variantId,
+          quantity:          action.quantity,
+          reason:            action.reason,
+          requestedByUserId: ctx.actorId,
+        })
+        mutationResult = { transferId: transfer.id } as MutationResult
+        break
+      }
+
+      case 'APPROVE_TRANSFER': {
+        if (!ctx.actorId) throw new Error('APPROVE_TRANSFER requires actorId')
+        await approveStockTransfer({
+          transferId:     action.transferId,
+          approverUserId: ctx.actorId,
+        })
         break
       }
     }
