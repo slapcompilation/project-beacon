@@ -13,7 +13,9 @@ import { dispatchAction } from '@/lib/actions/dispatch'
 import { fetchActiveConstraints, rowToConstraintRecord } from '@/features/constraints/api'
 import { makeSupabaseGraphReader } from './graphReader'
 import { HeuristicLLMClient } from './heuristicLLM'
+import { AnthropicLLMClient } from './anthropicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
+import { useActivePrinciples } from '@/features/principles/hooks'
 
 /**
  * Per-action-type auto-execution thresholds. Conservative defaults: only
@@ -50,9 +52,14 @@ export interface RunRestockAdvisorResult {
   trace: AgentRunResult['trace']
 }
 
+/** Flip to false to force the heuristic stub (useful for local dev without
+ *  the agent-llm edge function deployed). Defaults to true. */
+const USE_REAL_LLM = (import.meta.env.VITE_AGENT_USE_REAL_LLM ?? 'true') !== 'false'
+
 export function useRestockAdvisor() {
   const hotelId = useActiveHotelId()
   const userId  = useAuthStore((s) => s.userId)
+  const { data: principles = [] } = useActivePrinciples()
 
   return useMutation<RunRestockAdvisorResult, Error, RunRestockAdvisorInput>({
     mutationFn: async (input) => {
@@ -60,15 +67,21 @@ export function useRestockAdvisor() {
       if (!userId)  throw new Error('Not signed in')
 
       const reader = makeSupabaseGraphReader()
-      const llm    = new HeuristicLLMClient({ variantId: input.variantId, variantName: input.variantName })
+      const llm    = USE_REAL_LLM
+        ? new AnthropicLLMClient()
+        : new HeuristicLLMClient({ variantId: input.variantId, variantName: input.variantName })
       const agent  = buildRestockAdvisorAgent({ reader, llm })
 
-      const promptWithRefinement = input.refinement
-        ? `${input.prompt}\n\n[Refinement note from operator]: ${input.refinement.note}`
-        : input.prompt
+      const principleBlock = principles.length > 0
+        ? `\n\n[Active operator principles to respect]:\n${principles.map((p) => `- ${p.body}`).join('\n')}`
+        : ''
+      const refinementBlock = input.refinement
+        ? `\n\n[Refinement note from operator]: ${input.refinement.note}`
+        : ''
+      const promptWithContext = `${input.prompt}${principleBlock}${refinementBlock}`
 
       const run = await agent.run({
-        prompt: promptWithRefinement,
+        prompt: promptWithContext,
         userId,
         scope: { hotelId },
       })

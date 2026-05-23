@@ -74,6 +74,7 @@ import { useApprovalThresholds, useUpdateApprovalThresholds } from '@/features/r
 import { useCronHealthSummary } from '@/features/monitor/hooks'
 import { useOrganizations } from '@/features/organizations/hooks'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
+import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 
 // ─── Nav config ────────────────────────────────────────────────────────────────
 
@@ -83,6 +84,7 @@ type SectionId =
   | 'approval-thresholds'
   | 'autonomous'
   | 'constraints'
+  | 'principles'
   | 'categories'
   | 'locations'
   | 'custom-fields'
@@ -109,6 +111,7 @@ const NAV: NavItem[] = [
   { id: 'approval-thresholds', label: 'Approval Thresholds',icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'autonomous',          label: 'Autonomous Ops',     icon: 'predictive-analysis',     layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'constraints',         label: 'Constraints',        icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
+  { id: 'principles',          label: 'Principles',         icon: 'learning',                layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   // Inventory
   { id: 'categories',        label: 'Categories',       icon: 'folder-open',                 layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
   { id: 'locations',         label: 'Locations',        icon: 'map-marker',                  layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
@@ -2005,6 +2008,7 @@ function renderSection(id: SectionId) {
     case 'approval-thresholds': return <ApprovalThresholdsSection />
     case 'autonomous':          return <AutonomousSection />
     case 'constraints':         return <ConstraintsSection />
+    case 'principles':          return <PrinciplesSection />
     case 'categories':       return <CategoriesSection />
     case 'locations':        return <LocationsSection />
     case 'custom-fields':    return <CustomFieldsSection />
@@ -2020,7 +2024,7 @@ function renderSection(id: SectionId) {
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
   { dot: 'bg-slate-400',   label: 'Eye',         ids: ['notifications', 'alert-thresholds'] },
-  { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous', 'constraints'] },
+  { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous', 'constraints', 'principles'] },
   { dot: 'bg-blue-500',    label: 'Inventory',   ids: ['categories', 'locations', 'custom-fields', 'move-reasons'] },
   { dot: 'bg-purple-500',  label: 'Hotel',       ids: ['hotel', 'team', 'webhooks'] },
   { dot: 'bg-red-500',     label: 'Danger',      ids: ['danger'] },
