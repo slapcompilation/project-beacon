@@ -1,10 +1,28 @@
 import { useMutation } from '@tanstack/react-query'
-import { buildRestockAdvisorAgent, type AgentProposal, type AgentRunResult } from '@beacon/reality-graph'
+import {
+  buildRestockAdvisorAgent,
+  evaluateConstraints,
+  isAutoExecutable,
+  type AgentProposal,
+  type AgentRunResult,
+  type BeaconAction,
+} from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
+import { dispatchAction } from '@/lib/actions/dispatch'
+import { fetchActiveConstraints, rowToConstraintRecord } from '@/features/constraints/api'
 import { makeSupabaseGraphReader } from './graphReader'
 import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
+
+/**
+ * Per-action-type auto-execution thresholds. Conservative defaults: only
+ * REQUEST_RESTOCK is eligible in V1. Org-level overrides land in a follow-up;
+ * for now the map is the source of truth.
+ */
+const AUTO_EXEC_THRESHOLDS: Partial<Record<BeaconAction['type'], number>> = {
+  REQUEST_RESTOCK: 0.9,
+}
 
 export interface RunRestockAdvisorInput {
   variantId: string
@@ -79,6 +97,41 @@ export function useRestockAdvisor() {
         })
       }
 
+      // Auto-execution: confidence × constraint criteria above per-type threshold
+      // → dispatch immediately as 'ai_auto_approved' instead of waiting for the
+      // operator. Skipped during refinement runs (the operator is already
+      // engaged).
+      if (!input.refinement) {
+        const constraintRows = await safeFetchConstraints(hotelId)
+        const constraintRecords = constraintRows.map(rowToConstraintRecord)
+        for (let i = 0; i < persisted.length; i++) {
+          const p = persisted[i]
+          const threshold = AUTO_EXEC_THRESHOLDS[p.proposal.action.type]
+          if (threshold == null) continue
+          const violations = evaluateConstraints(p.proposal.action, constraintRecords, { now: new Date() })
+          if (!isAutoExecutable({ confidence: p.proposal.confidence, threshold, violations })) continue
+
+          try {
+            const result = await dispatchAction(
+              { ...p.proposal.action, triggeredBy: 'ai_auto_approved' } as BeaconAction,
+              { hotelId, actorId: userId, triggeredBy: 'ai_auto_approved' },
+            )
+            if (!result.success) continue
+            await decideProposal({
+              proposalId: p.row.id,
+              status: 'approved',
+              decidedByUserId: userId,
+            })
+            persisted[i] = {
+              ...p,
+              row: { ...p.row, status: 'approved', decided_at: new Date().toISOString(), decided_by_user_id: userId },
+            }
+          } catch {
+            // Don't fail the run on auto-exec error — leave proposal pending for operator.
+          }
+        }
+      }
+
       return {
         proposals: persisted,
         paused: run.paused,
@@ -86,4 +139,12 @@ export function useRestockAdvisor() {
       }
     },
   })
+}
+
+async function safeFetchConstraints(hotelId: string) {
+  try {
+    return await fetchActiveConstraints(hotelId)
+  } catch {
+    return []
+  }
 }

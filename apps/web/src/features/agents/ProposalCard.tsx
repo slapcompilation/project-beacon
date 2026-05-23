@@ -38,6 +38,7 @@ export function ProposalCard({ persisted, trace, onApprove, onRefine, parentActi
   const supported = isApprovalSupported(action)
   const summary = summarize(action)
   const superseded = row.status === 'superseded'
+  const autoApproved = row.status === 'approved' && row.decided_at !== null && done !== 'approved'
 
   const handleApprove = async () => {
     setPending('approve')
@@ -77,6 +78,7 @@ export function ProposalCard({ persisted, trace, onApprove, onRefine, parentActi
           )}
         </div>
         {done === 'approved' && <Tag minimal intent={Intent.SUCCESS} icon="tick">Applied</Tag>}
+        {autoApproved && <Tag minimal intent={Intent.SUCCESS} icon="automatic-updates">Auto-approved</Tag>}
         {superseded && <Tag minimal icon="archive">Superseded</Tag>}
       </header>
 
@@ -172,10 +174,10 @@ export function ProposalCard({ persisted, trace, onApprove, onRefine, parentActi
           intent={Intent.PRIMARY}
           icon="tick"
           loading={pending === 'approve'}
-          disabled={!supported || done !== null || superseded || pending !== null}
+          disabled={!supported || done !== null || superseded || autoApproved || pending !== null}
           onClick={() => { void handleApprove() }}
         >
-          {done === 'approved' ? 'Approved' : 'Approve'}
+          {done === 'approved' || autoApproved ? 'Approved' : 'Approve'}
         </Button>
       </footer>
     </Card>

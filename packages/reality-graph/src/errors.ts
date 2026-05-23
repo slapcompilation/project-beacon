@@ -55,6 +55,15 @@ export type BeaconError =
       readonly conflictField?: string
     }
 
+  /** Action rejected by the constraint engine (hard violation). The action
+   *  never reached the dispatcher's executor; surface violations to the UI so
+   *  the operator can see which rules fired. */
+  | {
+      readonly code: 'CONSTRAINT_REJECTED'
+      readonly message: string
+      readonly violations: ReadonlyArray<{ constraintId: string; message: string; severity: 'hard' | 'soft' }>
+    }
+
   /** Foreign-key, check, or NOT NULL constraint failed (Postgres 23xxx
    *  excluding 23505). The mutation is structurally invalid against the
    *  current schema. */
@@ -94,6 +103,15 @@ export function validationFailed(errors: readonly ValidationError[]): BeaconErro
     ? errors[0].message
     : errors.map((e) => e.message).join('; ')
   return { code: 'VALIDATION_FAILED', message: summary, errors }
+}
+
+export function constraintRejected(
+  violations: ReadonlyArray<{ constraintId: string; message: string; severity: 'hard' | 'soft' }>,
+): BeaconError {
+  const summary = violations.length === 1
+    ? `Constraint violated: ${violations[0].message}`
+    : `${String(violations.length)} constraints violated: ${violations.map((v) => v.message).join('; ')}`
+  return { code: 'CONSTRAINT_REJECTED', message: summary, violations }
 }
 
 export function notFound(entity: string, id?: string): BeaconError {
