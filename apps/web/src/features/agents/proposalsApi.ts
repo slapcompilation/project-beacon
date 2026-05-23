@@ -84,6 +84,64 @@ export async function decideProposal(input: DecideProposalInput): Promise<void> 
   if (error) throw new Error(error.message)
 }
 
+export interface PendingProposalFilters {
+  hotelId: string
+  /** When set, only proposals from these agents. */
+  agentNames?: string[]
+  /** When set, only proposals with these action types. */
+  actionTypes?: string[]
+  /** When set, only proposals with confidence in [min, max]. */
+  confidenceMin?: number
+  confidenceMax?: number
+}
+
+/**
+ * Triage feed: pending proposals for the hotel, lowest-confidence first so the
+ * operator sees the most uncertain calls before auto-approvable ones.
+ */
+export async function fetchPendingProposals(filters: PendingProposalFilters): Promise<ProposalRow[]> {
+  let q = supabase
+    .from('proposals')
+    .select('*')
+    .eq('hotel_id', filters.hotelId)
+    .eq('status', 'pending')
+    .order('confidence', { ascending: true })
+    .order('created_at', { ascending: false })
+    .limit(200)
+
+  if (filters.agentNames && filters.agentNames.length > 0) {
+    q = q.in('agent_name', filters.agentNames)
+  }
+  if (filters.actionTypes && filters.actionTypes.length > 0) {
+    q = q.in('action_type', filters.actionTypes)
+  }
+  if (typeof filters.confidenceMin === 'number') {
+    q = q.gte('confidence', filters.confidenceMin)
+  }
+  if (typeof filters.confidenceMax === 'number') {
+    q = q.lte('confidence', filters.confidenceMax)
+  }
+
+  const { data, error } = await q.overrideTypes<ProposalRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function rejectProposal(input: {
+  proposalId: string
+  decidedByUserId: string
+}): Promise<void> {
+  const { error } = await supabase
+    .from('proposals')
+    .update({
+      status:             'rejected',
+      decided_by_user_id: input.decidedByUserId,
+      decided_at:         new Date().toISOString(),
+    })
+    .eq('id', input.proposalId)
+  if (error) throw new Error(error.message)
+}
+
 export async function fetchProposalsByParent(parentId: string): Promise<ProposalRow[]> {
   const { data, error } = await supabase
     .from('proposals')

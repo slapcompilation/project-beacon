@@ -51,6 +51,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Eye',   icon: 'pulse',           label: 'Live Monitor',       path: '/monitor' },
   { group: 'Eye',   icon: 'graph',           label: 'Reality Graph',      path: '/graph' },
 
+  { group: 'Mind',  icon: 'predictive-analysis', label: 'Mind · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
   { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Triage',      path: '/mind?panel=triage' },
   { group: 'Mind',  icon: 'truck',           label: 'Mind · Suppliers',   path: '/mind?panel=suppliers' },
   { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Builder',  path: '/mind?panel=procurement' },
