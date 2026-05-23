@@ -144,6 +144,7 @@ export type {
   AgentReleaseStage,
   AgentApprovalBoundary,
   AgentInput,
+  AgentProposal,
   AgentRunResult,
   AgentRunTrace,
   AgentRunStep,
@@ -155,6 +156,19 @@ export {
   getAgent,
   listAgents,
 } from './agents/index'
+
+// ── Agent runtime + LLM adapter ─────────────────────────────────────────────
+export type { LLMClient, LLMCallInput, LLMResponse, LLMMessage, LLMToolCall, LLMToolSpec } from './agents/llm'
+export { StubLLMClient } from './agents/llm'
+export type { BlockDef, BlockContext, RunAgentArgs, AgentRunner } from './agents/runtime'
+export { createBlock, buildRunner, llmCallWithSchema } from './agents/runtime'
+
+// ── First concrete agent: restock_advisor v1 ────────────────────────────────
+export {
+  buildRestockAdvisorAgent,
+  RESTOCK_ADVISOR_TASK_PROMPT,
+  type RestockAdvisorDeps,
+} from './agents/restock_advisor/index'
 
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
 // Phase C stub: contracts only. Objectives land in src/objectives/<name>/.

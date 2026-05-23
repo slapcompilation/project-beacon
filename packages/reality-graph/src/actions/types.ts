@@ -26,6 +26,7 @@ export type BeaconAction =
       type: 'REQUEST_RESTOCK'
       variantId: string
       quantityNeeded: number
+      urgency?: 'low' | 'medium' | 'high'
       supplier?: string | null
       notes?: string | null
       hotelId: string
@@ -142,6 +143,22 @@ export type BeaconAction =
       invoiceId: string
       poId: string
       hotelId: string
+    }
+
+  // ── Network: lateral-before-external transfers ─────────────────────────────
+  | {
+      type: 'TRANSFER_STOCK'
+      fromHotelId: string
+      toHotelId:   string
+      variantId:   string
+      quantity:    number
+      reason:      string
+      triggeredBy?: TriggeredBy
+    }
+  | {
+      type: 'APPROVE_TRANSFER'
+      transferId: string
+      hotelId:    string
     }
 
 // ─── Result types ─────────────────────────────────────────────────────────────
