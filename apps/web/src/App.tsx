@@ -45,6 +45,7 @@ const StockLogObjectPage      = lazy(() => import('@/pages/StockLogObjectPage'))
 const AlertObjectPage         = lazy(() => import('@/pages/AlertObjectPage'))
 const ShiftHandoverObjectPage = lazy(() => import('@/pages/ShiftHandoverObjectPage'))
 const CausalChainPage         = lazy(() => import('@/pages/CausalChainPage'))
+const ReviewQueuePage         = lazy(() => import('@/pages/ReviewQueuePage'))
 
 function PageLoader() {
   return (
@@ -91,6 +92,7 @@ function AppRoutes() {
             <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
             <Route path="/causal-chain"            element={<CausalChainPage />} />
+            <Route path="/review-queue"            element={<ReviewQueuePage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
