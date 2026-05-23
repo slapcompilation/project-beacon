@@ -33,6 +33,7 @@ import type {
   RevertActionResult,
   POCreateResult,
   InvoiceSubmitResult,
+  TransferApproveResult,
   MutationResult,
 } from '@beacon/reality-graph'
 
@@ -278,10 +279,16 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
 
       case 'APPROVE_TRANSFER': {
         if (!ctx.actorId) throw new Error('APPROVE_TRANSFER requires actorId')
-        await approveStockTransfer({
+        const res = await approveStockTransfer({
           transferId:     action.transferId,
           approverUserId: ctx.actorId,
         })
+        mutationResult = {
+          fromLogId:   res.fromLogId,
+          toLogId:     res.toLogId,
+          fromBalance: res.fromBalance,
+          toBalance:   res.toBalance,
+        } satisfies TransferApproveResult
         break
       }
     }

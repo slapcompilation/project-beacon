@@ -1,6 +1,6 @@
-// stock_transfers — minimal create + approve writers used by the dispatcher.
-// Stock movement on approval happens via two adjust_stock calls (source/dest)
-// so existing audit + edge writing applies unchanged.
+// stock_transfers — create + approve writers used by the dispatcher.
+// Approval is a single SECURITY DEFINER RPC that decrements source, increments
+// destination, writes both stock_logs rows, and flips the transfer to completed.
 
 import { supabase } from '@/lib/supabase/client'
 
@@ -52,19 +52,39 @@ export interface ApproveStockTransferInput {
   approverUserId: string
 }
 
+export interface ApproveStockTransferResult {
+  fromLogId:   string
+  toLogId:     string
+  fromBalance: number
+  toBalance:   number
+}
+
+interface ApproveRpcRow {
+  from_log_id:  string
+  to_log_id:    string
+  from_balance: number
+  to_balance:   number
+}
+
 /**
- * Marks the transfer approved. Stock movement is recorded via a server-side
- * function on approval — keep the write path simple here and let the trigger
- * (or a follow-up worker) reconcile the inventory ledger.
+ * Completes the transfer via approve_stock_transfer RPC. Atomically:
+ *  - decrements source variant + writes a stock_logs row in the source hotel
+ *  - resolves destination variant by product+variant name, increments + logs
+ *  - flips status to 'completed' with both log ids + approver stamp
  */
-export async function approveStockTransfer(input: ApproveStockTransferInput): Promise<void> {
-  const { error } = await supabase
-    .from('stock_transfers')
-    .update({
-      status:              'approved',
-      approved_by_user_id: input.approverUserId,
-      approved_at:         new Date().toISOString(),
-    })
-    .eq('id', input.transferId)
-  if (error) throw new Error(error.message)
+export async function approveStockTransfer(
+  input: ApproveStockTransferInput,
+): Promise<ApproveStockTransferResult> {
+  const result = await supabase.rpc('approve_stock_transfer', {
+    p_transfer_id: input.transferId,
+  }) as { data: ApproveRpcRow[] | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  const row = result.data?.[0]
+  if (!row) throw new Error('approve_stock_transfer returned no row')
+  return {
+    fromLogId:   row.from_log_id,
+    toLogId:     row.to_log_id,
+    fromBalance: row.from_balance,
+    toBalance:   row.to_balance,
+  }
 }
