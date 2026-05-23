@@ -16,9 +16,12 @@ import { supabase } from '@/lib/supabase/client'
 import {
   validateAction,
   edgesForAction,
+  evaluateConstraints,
   validationFailed,
+  constraintRejected,
   mapPostgrestError,
 } from '@beacon/reality-graph'
+import { fetchActiveConstraints, rowToConstraintRecord } from '@/features/constraints/api'
 import type {
   BeaconAction,
   ActionResult,
@@ -83,6 +86,33 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
   const validation = validateAction(action)
   if (!validation.valid) {
     return { success: false, type, error: validationFailed(validation.errors) }
+  }
+
+  // 1b. Evaluate constraint engine (hard violations short-circuit the dispatch).
+  //     Soft violations are intentionally not blocking here — Phase 4 only gates
+  //     on hard rules. Soft → higher approval tier lands in Phase 4.b.
+  try {
+    const rows = await fetchActiveConstraints(ctx.hotelId)
+    if (rows.length > 0) {
+      const violations = evaluateConstraints(
+        action,
+        rows.map(rowToConstraintRecord),
+        { now: new Date() },
+      )
+      const hard = violations.filter((v) => v.severity === 'hard')
+      if (hard.length > 0) {
+        return {
+          success: false,
+          type,
+          error: constraintRejected(
+            hard.map((v) => ({ constraintId: v.constraintId, message: v.message, severity: v.severity })),
+          ),
+        }
+      }
+    }
+  } catch {
+    // Constraint fetch failed — don't block writes on the engine itself being down.
+    // Surface to telemetry in a follow-up; for now fail-open keeps existing flows.
   }
 
   let mutationResult: MutationResult = {}

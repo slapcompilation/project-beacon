@@ -13,6 +13,7 @@ export type {
 } from './errors'
 export {
   validationFailed,
+  constraintRejected,
   notFound,
   scopeDenied,
   rpcFailed,
@@ -191,3 +192,19 @@ export {
   getObjective,
   getAdapter,
 } from './objectives/index'
+
+// ── Constraint engine — typed rules + pure evaluator ────────────────────────
+export {
+  evaluateConstraints,
+  isAutoExecutable,
+} from './constraints/index'
+export type {
+  ConstraintRecord,
+  ConstraintTypedRule,
+  ScopeRule,
+  ThresholdRule,
+  TimeWindowRule,
+  ActorRoleRule,
+  ConstraintViolation,
+  EvaluationContext,
+} from './constraints/index'
