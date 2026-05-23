@@ -34,6 +34,7 @@ export interface RevertActionResult     { newLogId: string }
 export interface SupplierCreateResult   { supplierId: string }
 export interface POCreateResult         { poId: string }
 export interface InvoiceSubmitResult    { invoiceId: string }
+export interface TransferCreateResult   { transferId: string }
 
 export type MutationResult =
   | SupplierCreateResult
@@ -43,6 +44,7 @@ export type MutationResult =
   | RevertActionResult
   | POCreateResult
   | InvoiceSubmitResult
+  | TransferCreateResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────
@@ -188,6 +190,23 @@ export function edgesForAction(
     case 'MATCH_INVOICE': {
       // purchase_order --invoiced_by--> po_invoice
       push({ ...base, edge_type: 'invoiced_by', source_type: 'purchase_order', source_id: action.poId, target_type: 'po_invoice', target_id: action.invoiceId })
+      break
+    }
+
+    case 'TRANSFER_STOCK': {
+      const { transferId } = result as TransferCreateResult
+      if (!transferId) break
+      // stock_transfer --transfers--> variant
+      push({ ...base, edge_type: 'transfers', source_type: 'stock_transfer', source_id: transferId, target_type: 'variant', target_id: action.variantId })
+      // stock_transfer --belongs_to_hotel--> hotel (destination)
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_transfer', source_id: transferId, target_type: 'hotel', target_id: action.toHotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_transfer', source_id: transferId, target_type: 'user', target_id: actorId })
+      break
+    }
+
+    case 'APPROVE_TRANSFER': {
+      if (!actorId) break
+      push({ ...base, edge_type: 'approved_by', source_type: 'stock_transfer', source_id: action.transferId, target_type: 'user', target_id: actorId })
       break
     }
   }

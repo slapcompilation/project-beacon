@@ -27,6 +27,8 @@ export type NodeType =
   | 'approved_answer'
   | 'case'
   | 'constraint'
+  // Network — lateral inter-property moves
+  | 'stock_transfer'
 
 export type EdgeType =
   | 'belongs_to_hotel'

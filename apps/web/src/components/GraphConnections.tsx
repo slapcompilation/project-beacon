@@ -101,6 +101,7 @@ const NODE_LABELS: Record<NodeType, string> = {
   approved_answer:   'Answer',
   case:              'Case',
   constraint:        'Constraint',
+  stock_transfer:    'Transfer',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────
