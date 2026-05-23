@@ -5,6 +5,7 @@
 //
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
+import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
@@ -26,6 +27,7 @@ import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
+import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -177,6 +179,7 @@ function RestockStatusBadge({ status }: { status: string }) {
 export default function VariantObjectPage() {
   const { variantId } = useParams<{ variantId: string }>()
   const navigate      = useNavigate()
+  const [adviceOpen, setAdviceOpen] = useState(false)
   useActiveHotelId() // ensures hotel context is ready for RLS
 
   const { data: variant, isLoading: loadingVariant, error: variantError } = useQuery({
@@ -307,6 +310,14 @@ export default function VariantObjectPage() {
                   Waste anomaly
                 </Tag>
               )}
+              <Button
+                icon="predictive-analysis"
+                intent={Intent.PRIMARY}
+                size="small"
+                onClick={() => { setAdviceOpen(true) }}
+              >
+                Get restock advice
+              </Button>
             </div>
           </div>
 
@@ -482,6 +493,13 @@ export default function VariantObjectPage() {
 
         </div>
       </div>
+
+      <AdviceSlideOver
+        open={adviceOpen}
+        onClose={() => { setAdviceOpen(false) }}
+        variantId={variantId!}
+        variantName={variant.name}
+      />
     </div>
   )
 }

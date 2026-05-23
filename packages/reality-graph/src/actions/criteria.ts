@@ -122,6 +122,23 @@ export function validateAction(action: BeaconAction): ValidationResult {
       if (!action.hotelId)   e('hotelId',   'hotelId is required')
       break
     }
+
+    case 'TRANSFER_STOCK': {
+      if (!action.fromHotelId)       e('fromHotelId', 'fromHotelId is required')
+      if (!action.toHotelId)         e('toHotelId',   'toHotelId is required')
+      if (action.fromHotelId === action.toHotelId)
+        e('toHotelId', 'fromHotelId and toHotelId must differ')
+      if (!action.variantId)         e('variantId',   'variantId is required')
+      if (action.quantity <= 0)      e('quantity',    'quantity must be > 0')
+      if (!action.reason.trim())     e('reason',      'reason is required')
+      break
+    }
+
+    case 'APPROVE_TRANSFER': {
+      if (!action.transferId) e('transferId', 'transferId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
   }
 
   return { valid: errors.length === 0, errors }
