@@ -53,10 +53,10 @@ export default defineConfig({
       output: {
         // Route-based code splitting — each route is its own chunk
         manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'query-vendor': ['@tanstack/react-query'],
-          'ui-vendor': ['lucide-react'],
-          'chart-vendor': ['recharts'],
+          'react-vendor':     ['react', 'react-dom', 'react-router-dom'],
+          'query-vendor':     ['@tanstack/react-query'],
+          'blueprint-vendor': ['@blueprintjs/core', '@blueprintjs/icons', '@blueprintjs/select', '@blueprintjs/table', '@blueprintjs/datetime2'],
+          'chart-vendor':     ['recharts'],
         },
       },
     },
