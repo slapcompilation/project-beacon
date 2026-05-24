@@ -10,6 +10,14 @@ export type {
 export { validateAction } from './criteria'
 
 export type {
+  ActionField,
+  ActionFieldKind,
+  ActionDescriptor,
+  InvocationMode,
+} from './descriptors'
+export { actionDescriptors, getActionDescriptor } from './descriptors'
+
+export type {
   EdgeInsert,
   EdgeContext,
   MutationResult,
