@@ -69,6 +69,8 @@ export interface AgentDescriptor {
   approvalBoundary: AgentApprovalBoundary
   releaseStage:     AgentReleaseStage
   toolset:          ReadonlyArray<string>
+  /** BeaconAction types the agent can emit as proposals. Used by the System Map. */
+  emits:            ReadonlyArray<string>
   blocks:           ReadonlyArray<BlockDef<unknown, unknown>>
   taskPrompt:       string
   /** Tells the studio which UI surface launches a live run. */
@@ -93,6 +95,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'rank_alternative_suppliers',
       'request_clarification',
     ],
+    emits: ['TRANSFER_STOCK', 'REQUEST_RESTOCK'],
     blocks: [
       restockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
       restockExtractSupplierBlock as unknown as BlockDef<unknown, unknown>,
@@ -116,6 +119,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'query_sister_property_inventory',
       'request_clarification',
     ],
+    emits: ['TRANSFER_STOCK', 'WRITE_OFF'],
     blocks: [
       wasteExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
       wasteProposeActionsBlock as unknown as BlockDef<unknown, unknown>,
