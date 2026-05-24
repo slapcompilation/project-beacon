@@ -50,6 +50,8 @@ const AgentStudioPage         = lazy(() => import('@/pages/AgentStudioPage'))
 const AgentDetailPage         = lazy(() => import('@/pages/AgentDetailPage'))
 const ToolsPage               = lazy(() => import('@/pages/ToolsPage'))
 const ToolDetailPage          = lazy(() => import('@/pages/ToolDetailPage'))
+const ModelingObjectivesPage      = lazy(() => import('@/pages/ModelingObjectivesPage'))
+const ModelingObjectiveDetailPage = lazy(() => import('@/pages/ModelingObjectiveDetailPage'))
 
 function PageLoader() {
   return (
@@ -101,6 +103,8 @@ function AppRoutes() {
             <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
             <Route path="/tools"                   element={<ToolsPage />} />
             <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
+            <Route path="/modeling-objectives"                  element={<ModelingObjectivesPage />} />
+            <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
