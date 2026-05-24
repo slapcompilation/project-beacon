@@ -183,6 +183,13 @@ export {
   type RestockAdvisorDeps,
 } from './agents/restock_advisor/index'
 
+// ── Second concrete agent: waste_triage v1 ──────────────────────────────────
+export {
+  buildWasteTriageAgent,
+  WASTE_TRIAGE_TASK_PROMPT,
+  type WasteTriageDeps,
+} from './agents/waste_triage/index'
+
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
 // Phase C stub: contracts only. Objectives land in src/objectives/<name>/.
 // See CLAUDE.md → "Modeling Objectives and Adapters (Predictive Layer — Deferred)".

@@ -28,6 +28,7 @@ import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/re
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
+import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -180,6 +181,7 @@ export default function VariantObjectPage() {
   const { variantId } = useParams<{ variantId: string }>()
   const navigate      = useNavigate()
   const [adviceOpen, setAdviceOpen] = useState(false)
+  const [wasteOpen, setWasteOpen]   = useState(false)
   useActiveHotelId() // ensures hotel context is ready for RLS
 
   const { data: variant, isLoading: loadingVariant, error: variantError } = useQuery({
@@ -310,6 +312,13 @@ export default function VariantObjectPage() {
                   Waste anomaly
                 </Tag>
               )}
+              <Button
+                icon="trash"
+                size="small"
+                onClick={() => { setWasteOpen(true) }}
+              >
+                Waste triage
+              </Button>
               <Button
                 icon="predictive-analysis"
                 intent={Intent.PRIMARY}
@@ -497,6 +506,13 @@ export default function VariantObjectPage() {
       <AdviceSlideOver
         open={adviceOpen}
         onClose={() => { setAdviceOpen(false) }}
+        variantId={variantId!}
+        variantName={variant.name}
+      />
+
+      <WasteAdviceSlideOver
+        open={wasteOpen}
+        onClose={() => { setWasteOpen(false) }}
         variantId={variantId!}
         variantName={variant.name}
       />

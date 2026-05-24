@@ -26,6 +26,10 @@ export interface StockLogRow {
   hotel_id: string
   delta: number
   created_at: string
+  /** Operator-supplied note. Used to flag waste/spoilage when removal_category is unset. */
+  reason?: string | null
+  /** Tags like 'waste', 'spoilage', 'damaged'. Set on intentional removals. */
+  removal_category?: string | null
 }
 
 export interface SupplierRow {

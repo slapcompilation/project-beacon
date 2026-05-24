@@ -35,6 +35,8 @@ interface StockLogQueryRow {
   hotel_id: string
   delta: number
   created_at: string
+  reason: string | null
+  removal_category: string | null
 }
 
 interface SupplierQueryRow {
@@ -77,13 +79,15 @@ export function makeSupabaseGraphReader(): GraphReader {
 
     async getStockLogs(variantId, sinceDays) {
       const cutoff = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000).toISOString()
+      // Column aliases: live table uses quantity_change + timestamp; the typed
+      // shape uses delta + created_at so reality-graph stays schema-agnostic.
       const { data, error } = await supabase
         .from('stock_logs')
-        .select('id, variant_id, hotel_id, delta, created_at')
+        .select('id, variant_id, hotel_id, delta:quantity_change, created_at:timestamp, reason, removal_category')
         .eq('variant_id', variantId)
-        .gte('created_at', cutoff)
+        .gte('timestamp', cutoff)
       if (error) throw new Error(error.message)
-      return (data ?? []) as StockLogRow[]
+      return (data ?? []) as unknown as StockLogRow[]
     },
 
     async getSisterHotels(hotelId) {
