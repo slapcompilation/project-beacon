@@ -144,6 +144,11 @@ export {
   getTool,
   listTools,
   listToolsByCategory,
+  makeQueryOpenRestockRequestsTool,
+  makeQuerySisterPropertyInventoryTool,
+  makeForecastConsumptionTool,
+  makeRankAlternativeSuppliersTool,
+  requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow } from './tools/index'
 
@@ -180,6 +185,9 @@ export { createBlock, buildRunner, llmCallWithSchema } from './agents/runtime'
 export {
   buildRestockAdvisorAgent,
   RESTOCK_ADVISOR_TASK_PROMPT,
+  restockExtractVariantBlock,
+  restockExtractSupplierBlock,
+  restockReasonAndProposeBlock,
   type RestockAdvisorDeps,
 } from './agents/restock_advisor/index'
 
@@ -187,8 +195,13 @@ export {
 export {
   buildWasteTriageAgent,
   WASTE_TRIAGE_TASK_PROMPT,
+  wasteExtractVariantBlock,
+  wasteProposeActionsBlock,
   type WasteTriageDeps,
 } from './agents/waste_triage/index'
+
+// ── Tool factories (re-exported for descriptor introspection) ──────────────
+export { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
 
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
 // Phase C stub: contracts only. Objectives land in src/objectives/<name>/.
