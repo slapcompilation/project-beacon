@@ -224,6 +224,18 @@ export {
   getAdapter,
 } from './objectives/index'
 
+// ── First concrete modeling objective: consumption_forecast ────────────────
+export {
+  CONSUMPTION_FORECAST_OBJECTIVE_NAME,
+  consumptionForecastObjective,
+  consumptionForecastEvalSuite,
+  baselineRolling30dAdapter,
+  seasonalNaiveV1Adapter,
+  registerConsumptionForecast,
+  type ConsumptionForecastInput,
+  type ConsumptionForecastOutput,
+} from './objectives/consumption_forecast/index'
+
 // ── Constraint engine — typed rules + pure evaluator ────────────────────────
 export {
   evaluateConstraints,
