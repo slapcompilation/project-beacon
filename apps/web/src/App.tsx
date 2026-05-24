@@ -52,6 +52,7 @@ const ToolsPage               = lazy(() => import('@/pages/ToolsPage'))
 const ToolDetailPage          = lazy(() => import('@/pages/ToolDetailPage'))
 const ModelingObjectivesPage      = lazy(() => import('@/pages/ModelingObjectivesPage'))
 const ModelingObjectiveDetailPage = lazy(() => import('@/pages/ModelingObjectiveDetailPage'))
+const DeploymentDetailPage        = lazy(() => import('@/pages/DeploymentDetailPage'))
 
 function PageLoader() {
   return (
@@ -105,6 +106,7 @@ function AppRoutes() {
             <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
             <Route path="/modeling-objectives"                  element={<ModelingObjectivesPage />} />
             <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
+            <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />

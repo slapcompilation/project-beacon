@@ -16,6 +16,7 @@ import { HeuristicLLMClient } from './heuristicLLM'
 import { AnthropicLLMClient } from './anthropicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
 import { useActivePrinciples } from '@/features/principles/hooks'
+import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 
 /**
  * Per-action-type auto-execution thresholds. Conservative defaults: only
@@ -60,6 +61,7 @@ export function useRestockAdvisor() {
   const hotelId = useActiveHotelId()
   const userId  = useAuthStore((s) => s.userId)
   const { data: principles = [] } = useActivePrinciples()
+  const forecastAdapter = useActiveForecastAdapter()
 
   return useMutation<RunRestockAdvisorResult, Error, RunRestockAdvisorInput>({
     mutationFn: async (input) => {
@@ -70,7 +72,7 @@ export function useRestockAdvisor() {
       const llm    = USE_REAL_LLM
         ? new AnthropicLLMClient()
         : new HeuristicLLMClient({ variantId: input.variantId, variantName: input.variantName })
-      const agent  = buildRestockAdvisorAgent({ reader, llm })
+      const agent  = buildRestockAdvisorAgent({ reader, llm, forecastAdapter })
 
       const principleBlock = principles.length > 0
         ? `\n\n[Active operator principles to respect]:\n${principles.map((p) => `- ${p.body}`).join('\n')}`

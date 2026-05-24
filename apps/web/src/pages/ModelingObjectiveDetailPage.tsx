@@ -101,7 +101,7 @@ export default function ModelingObjectiveDetailPage() {
           loading={evalLoading}
           datasets={descriptor.evalSuite.datasets as string[]}
           metrics={descriptor.evalSuite.metrics as string[]}
-          subsets={(descriptor.evalSuite.subsets as string[]) ?? []}
+          subsets={(descriptor.evalSuite.subsets ?? []) as string[]}
         />
 
         <ReleasesSection
@@ -174,6 +174,8 @@ function AdapterCard({
   const promote   = usePromoteRelease(objectiveName)
   const runEval   = useRunEvalForAdapter(objectiveName)
   const [stage, setStage] = useState<ReleaseStage>('staging')
+  const hasEval   = !!latestMae
+  const blockedByGate = stage === 'production' && !hasEval
 
   return (
     <Card className="space-y-3">
@@ -213,11 +215,19 @@ function AdapterCard({
           intent={Intent.PRIMARY}
           icon="flag"
           loading={promote.isPending}
+          disabled={blockedByGate}
+          title={blockedByGate ? 'Run an eval before promoting to production' : undefined}
           onClick={() => { promote.mutate({ adapterName: adapter.name, adapterVersion: adapter.version, stage }) }}
         >
           Promote to {stage}
         </Button>
       </div>
+      {blockedByGate && (
+        <p className="text-[11px] text-amber-600 dark:text-amber-400">
+          <Icon icon="warning-sign" size={10} className="mr-1" />
+          Production promotion gate: run an eval first so a baseline exists for comparison.
+        </p>
+      )}
     </Card>
   )
 }
@@ -372,33 +382,35 @@ function DeploymentsSection({
           {deployments.map((d) => {
             const rel = releaseById.get(d.release_id)
             return (
-              <div key={d.id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
-                <Tag minimal intent={statusIntent(d.status)}>{d.status}</Tag>
-                <Tag minimal icon="cloud">{d.kind}</Tag>
-                {rel && (
-                  <>
-                    <Tag minimal intent={stageIntent(rel.stage)}>{rel.stage}</Tag>
-                    <span className="font-mono text-[11px]">{rel.adapter_name}@{rel.adapter_version}</span>
-                  </>
-                )}
-                <span className="text-[10px] text-muted-foreground">{d.resource_profile}</span>
-                <span className="flex-1" />
-                <span className="text-[10px] text-muted-foreground">
-                  started {formatDistanceToNow(new Date(d.started_at), { addSuffix: true })}
-                </span>
-                {d.status === 'running' && (
-                  <Button
-                    size="small"
-                    variant="minimal"
-                    intent={Intent.DANGER}
-                    icon="stop"
-                    loading={stop.isPending}
-                    onClick={() => { stop.mutate(d.id) }}
-                  >
-                    Stop
-                  </Button>
-                )}
-              </div>
+              <Link key={d.id} to={`/deployments/${d.id}`}>
+                <div className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs hover:bg-surface-2 transition-colors">
+                  <Tag minimal intent={statusIntent(d.status)}>{d.status}</Tag>
+                  <Tag minimal icon="cloud">{d.kind}</Tag>
+                  {rel && (
+                    <>
+                      <Tag minimal intent={stageIntent(rel.stage)}>{rel.stage}</Tag>
+                      <span className="font-mono text-[11px]">{rel.adapter_name}@{rel.adapter_version}</span>
+                    </>
+                  )}
+                  <span className="text-[10px] text-muted-foreground">{d.resource_profile}</span>
+                  <span className="flex-1" />
+                  <span className="text-[10px] text-muted-foreground">
+                    started {formatDistanceToNow(new Date(d.started_at), { addSuffix: true })}
+                  </span>
+                  {d.status === 'running' && (
+                    <Button
+                      size="small"
+                      variant="minimal"
+                      intent={Intent.DANGER}
+                      icon="stop"
+                      loading={stop.isPending}
+                      onClick={(e) => { e.preventDefault(); stop.mutate(d.id) }}
+                    >
+                      Stop
+                    </Button>
+                  )}
+                </div>
+              </Link>
             )
           })}
         </div>
