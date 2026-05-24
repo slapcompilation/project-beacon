@@ -85,6 +85,26 @@ export async function fetchDeployments(organizationId: string | null): Promise<D
   return data
 }
 
+export async function fetchDeployment(id: string): Promise<DeploymentRow | null> {
+  const { data, error } = await supabase
+    .from('model_deployments')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle<DeploymentRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function fetchRelease(id: string): Promise<ReleaseRow | null> {
+  const { data, error } = await supabase
+    .from('model_releases')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle<ReleaseRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 // ─── Writes ─────────────────────────────────────────────────────────────────
 
 export interface CreateReleaseInput {

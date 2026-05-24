@@ -5,8 +5,10 @@ import { useActiveOrgId } from '@/hooks/useActiveOrgId'
 import {
   createDeployment,
   createRelease,
+  fetchDeployment,
   fetchDeployments,
   fetchEvalRuns,
+  fetchRelease,
   fetchReleases,
   stopDeployment,
   type DeploymentKind,
@@ -51,6 +53,24 @@ export function useDeployments() {
   })
 }
 
+export function useDeployment(id: string) {
+  return useQuery({
+    queryKey: ['mo', 'deployment', id],
+    queryFn:  () => fetchDeployment(id),
+    enabled:  !!id,
+    staleTime: 30_000,
+  })
+}
+
+export function useRelease(id: string | null | undefined) {
+  return useQuery({
+    queryKey: ['mo', 'release', id ?? ''],
+    queryFn:  () => (id ? fetchRelease(id) : Promise.resolve(null)),
+    enabled:  !!id,
+    staleTime: 60_000,
+  })
+}
+
 export function usePromoteRelease(objectiveName: string) {
   const orgId  = useActiveOrgId()
   const userId = useAuthStore((s) => s.userId)
@@ -58,6 +78,20 @@ export function usePromoteRelease(objectiveName: string) {
 
   return useMutation({
     mutationFn: async (args: { adapterName: string; adapterVersion: string; stage: ReleaseStage; tag?: string }) => {
+      // Promotion gate: production requires at least one eval row for this
+      // exact adapter version. Sandbox/staging are unrestricted.
+      if (args.stage === 'production') {
+        const allRuns = await fetchEvalRuns(objectiveName, orgId)
+        const hasEval = allRuns.some(
+          (r) => r.adapter_name === args.adapterName && r.adapter_version === args.adapterVersion,
+        )
+        if (!hasEval) {
+          throw new Error(
+            `Cannot promote ${args.adapterName}@${args.adapterVersion} to production: no eval runs recorded. Run the eval suite first.`,
+          )
+        }
+      }
+
       return createRelease({
         organizationId:    orgId,
         objectiveName,

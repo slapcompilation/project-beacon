@@ -11,6 +11,7 @@ import { HeuristicLLMClient } from './heuristicLLM'
 import { AnthropicLLMClient } from './anthropicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
 import { useActivePrinciples } from '@/features/principles/hooks'
+import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 
 export interface RunWasteTriageInput {
   variantId:   string
@@ -36,6 +37,7 @@ export function useWasteTriage() {
   const hotelId = useActiveHotelId()
   const userId  = useAuthStore((s) => s.userId)
   const { data: principles = [] } = useActivePrinciples()
+  const forecastAdapter = useActiveForecastAdapter()
 
   return useMutation<RunWasteTriageResult, Error, RunWasteTriageInput>({
     mutationFn: async (input) => {
@@ -46,7 +48,7 @@ export function useWasteTriage() {
       const llm    = USE_REAL_LLM
         ? new AnthropicLLMClient()
         : new HeuristicLLMClient({ variantId: input.variantId, variantName: input.variantName })
-      const agent  = buildWasteTriageAgent({ reader, llm })
+      const agent  = buildWasteTriageAgent({ reader, llm, forecastAdapter })
 
       const principleBlock = principles.length > 0
         ? `\n\n[Active operator principles to respect]:\n${principles.map((p) => `- ${p.body}`).join('\n')}`

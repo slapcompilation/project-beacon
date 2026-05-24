@@ -12,6 +12,11 @@ import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sis
 import { makeRankAlternativeSuppliersTool } from '../../tools/logic/rank_alternative_suppliers'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
 import type { LLMClient } from '../llm'
+import type { ModelAdapter } from '../../objectives/index'
+import type {
+  ConsumptionForecastInput,
+  ConsumptionForecastOutput,
+} from '../../objectives/consumption_forecast/types'
 import { buildRunner } from '../runtime'
 import { extractVariantBlock } from './blocks/extract_variant'
 import { extractSupplierBlock } from './blocks/extract_supplier'
@@ -29,12 +34,15 @@ const AGENT_VERSION = '1.0.0'
 export interface RestockAdvisorDeps {
   llm: LLMClient
   reader: GraphReader
+  /** Adapter the forecast_consumption tool delegates to. When omitted, the
+   *  tool falls back to its inline baseline. */
+  forecastAdapter?: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>
 }
 
 export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
   const tools: LogicTool[] = [
     makeQueryOpenRestockRequestsTool(deps.reader) as LogicTool,
-    makeForecastConsumptionTool(deps.reader) as LogicTool,
+    makeForecastConsumptionTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
     makeQuerySisterPropertyInventoryTool(deps.reader) as LogicTool,
     makeRankAlternativeSuppliersTool(deps.reader) as LogicTool,
     requestClarificationTool as LogicTool,
