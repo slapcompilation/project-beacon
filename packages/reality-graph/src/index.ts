@@ -51,8 +51,17 @@ export type {
   InvoiceSubmitResult,
   TransferCreateResult,
   TransferApproveResult,
+  ActionField,
+  ActionFieldKind,
+  ActionDescriptor,
+  InvocationMode,
 } from './actions/index'
-export { validateAction, edgesForAction } from './actions/index'
+export {
+  validateAction,
+  edgesForAction,
+  actionDescriptors,
+  getActionDescriptor,
+} from './actions/index'
 
 // ── Node computed properties — logic on nodes, never in UI ────────────────────
 export {

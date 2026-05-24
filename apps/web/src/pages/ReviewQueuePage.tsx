@@ -17,10 +17,17 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
-import type { BeaconAction } from '@beacon/reality-graph'
+import { actionDescriptors, type BeaconAction } from '@beacon/reality-graph'
+import { ActionFormModal } from '@/features/actions/ActionFormModal'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
+import { useQueryClient } from '@tanstack/react-query'
+import { decideProposal } from '@/features/agents/proposalsApi'
+import { toast } from 'sonner'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
 import {
   bandByConfidence,
+  reviewQueueKeys,
   usePendingProposals,
   useApproveProposalFromQueue,
   useRejectProposalFromQueue,
@@ -178,9 +185,15 @@ function QueueRow({
   onReject:  () => void
 }) {
   const navigate = useNavigate()
+  const hotelId  = useActiveHotelId()
+  const userId   = useAuthStore((s) => s.userId)
+  const qc       = useQueryClient()
+  const [editOpen, setEditOpen] = useState(false)
   const action   = row.action_payload as unknown as BeaconAction
   const supported = isApprovalSupported(action)
   const variantId = extractVariantId(action)
+  const descriptor = actionDescriptors[action.type]
+  const canEdit   = descriptor.invocationMode === 'open-form' && descriptor.fields.length > 0
   const borderClass =
     row.confidence >= 0.85 ? 'border-l-emerald-500' :
     row.confidence >= 0.6  ? 'border-l-amber-400'   :
@@ -236,6 +249,16 @@ function QueueRow({
             Direct {action.type} approval will land in a follow-up.
           </span>
         )}
+        {canEdit && hotelId && userId && (
+          <Button
+            variant="minimal"
+            icon="edit"
+            disabled={busy}
+            onClick={() => { setEditOpen(true) }}
+          >
+            Edit &amp; approve
+          </Button>
+        )}
         {variantId && (
           <Button
             variant="minimal"
@@ -264,6 +287,28 @@ function QueueRow({
           Approve
         </Button>
       </footer>
+
+      {canEdit && hotelId && userId && (
+        <ActionFormModal
+          open={editOpen}
+          onClose={() => { setEditOpen(false) }}
+          actionType={action.type}
+          context={action as unknown as Record<string, unknown>}
+          initialValues={action as unknown as Record<string, unknown>}
+          dispatchContext={{ hotelId, actorId: userId, triggeredBy: 'ai_proposal_accepted' }}
+          titleOverride={`Edit &amp; approve · ${descriptor.title}`}
+          onSuccess={() => {
+            void decideProposal({
+              proposalId:      row.id,
+              status:          'approved',
+              decidedByUserId: userId,
+            }).then(() => {
+              toast.success('Edited proposal approved')
+              void qc.invalidateQueries({ queryKey: reviewQueueKeys.pending(hotelId) })
+            })
+          }}
+        />
+      )}
     </Card>
   )
 }
