@@ -19,6 +19,9 @@ import { reasonAndProposeBlock } from './blocks/reason_and_propose'
 import { RESTOCK_ADVISOR_TASK_PROMPT } from './prompt'
 
 export { RESTOCK_ADVISOR_TASK_PROMPT }
+export { extractVariantBlock as restockExtractVariantBlock }
+export { extractSupplierBlock as restockExtractSupplierBlock }
+export { reasonAndProposeBlock as restockReasonAndProposeBlock }
 
 const AGENT_NAME = 'restock_advisor'
 const AGENT_VERSION = '1.0.0'

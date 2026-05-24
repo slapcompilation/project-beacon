@@ -17,6 +17,8 @@ import { proposeWasteActionsBlock } from './blocks/propose_waste_actions'
 import { WASTE_TRIAGE_TASK_PROMPT } from './prompt'
 
 export { WASTE_TRIAGE_TASK_PROMPT }
+export { extractVariantBlock as wasteExtractVariantBlock }
+export { proposeWasteActionsBlock as wasteProposeActionsBlock }
 
 const AGENT_NAME    = 'waste_triage'
 const AGENT_VERSION = '1.0.0'

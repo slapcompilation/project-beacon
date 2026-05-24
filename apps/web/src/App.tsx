@@ -46,6 +46,10 @@ const AlertObjectPage         = lazy(() => import('@/pages/AlertObjectPage'))
 const ShiftHandoverObjectPage = lazy(() => import('@/pages/ShiftHandoverObjectPage'))
 const CausalChainPage         = lazy(() => import('@/pages/CausalChainPage'))
 const ReviewQueuePage         = lazy(() => import('@/pages/ReviewQueuePage'))
+const AgentStudioPage         = lazy(() => import('@/pages/AgentStudioPage'))
+const AgentDetailPage         = lazy(() => import('@/pages/AgentDetailPage'))
+const ToolsPage               = lazy(() => import('@/pages/ToolsPage'))
+const ToolDetailPage          = lazy(() => import('@/pages/ToolDetailPage'))
 
 function PageLoader() {
   return (
@@ -93,6 +97,10 @@ function AppRoutes() {
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
             <Route path="/causal-chain"            element={<CausalChainPage />} />
             <Route path="/review-queue"            element={<ReviewQueuePage />} />
+            <Route path="/agent-studio"            element={<AgentStudioPage />} />
+            <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
+            <Route path="/tools"                   element={<ToolsPage />} />
+            <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
