@@ -17,6 +17,7 @@ import {
 import type { CaseStatus } from '@/features/cases/api'
 import { fetchProposal, type ProposalRow } from '@/features/agents/proposalsApi'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
+import { AuditRail } from '@/components/AuditRail'
 
 const NEXT_STATUS: Record<CaseStatus, CaseStatus[]> = {
   open:      ['in_review', 'resolved', 'closed'],
@@ -130,7 +131,8 @@ export default function CaseObjectPage() {
       )}
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+       <div className="flex-1 min-w-0 space-y-4">
         {row.outcome && (
           <Section title="Outcome" icon="tick">
             <Callout intent={Intent.SUCCESS} icon="confirm" title={row.outcome.action_type}>
@@ -178,6 +180,8 @@ export default function CaseObjectPage() {
             {row.resolved_at && <div>Resolved {new Date(row.resolved_at).toISOString()} by <span className="font-mono">{row.resolved_by_user_id ?? '—'}</span></div>}
           </Card>
         </Section>
+       </div>
+       <AuditRail nodeType="case" nodeId={row.id} />
       </div>
 
     </div>
