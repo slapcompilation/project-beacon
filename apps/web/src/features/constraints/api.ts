@@ -68,6 +68,16 @@ export async function createConstraint(input: CreateConstraintInput): Promise<Co
   return data
 }
 
+export async function fetchConstraint(id: string): Promise<ConstraintRow | null> {
+  const { data, error } = await supabase
+    .from('constraints')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle<ConstraintRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function setConstraintActive(id: string, active: boolean): Promise<void> {
   const { error } = await supabase
     .from('constraints')

@@ -55,6 +55,9 @@ const ModelingObjectiveDetailPage = lazy(() => import('@/pages/ModelingObjective
 const DeploymentDetailPage        = lazy(() => import('@/pages/DeploymentDetailPage'))
 const SystemMapPage               = lazy(() => import('@/pages/SystemMapPage'))
 const PendingApprovalsPage        = lazy(() => import('@/pages/PendingApprovalsPage'))
+const ProposalObjectPage          = lazy(() => import('@/pages/ProposalObjectPage'))
+const PrincipleObjectPage         = lazy(() => import('@/pages/PrincipleObjectPage'))
+const ConstraintObjectPage        = lazy(() => import('@/pages/ConstraintObjectPage'))
 
 function PageLoader() {
   return (
@@ -111,6 +114,9 @@ function AppRoutes() {
             <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
             <Route path="/system-map"                           element={<SystemMapPage />} />
             <Route path="/pending-approvals"                    element={<PendingApprovalsPage />} />
+            <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
+            <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
+            <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />

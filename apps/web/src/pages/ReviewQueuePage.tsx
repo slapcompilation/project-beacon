@@ -212,9 +212,18 @@ function QueueRow({
             <Tag minimal icon="refresh">Refined</Tag>
           )}
         </div>
-        <span className="text-[11px] text-muted-foreground">
-          {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-muted-foreground">
+            {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
+          </span>
+          <Button
+            variant="minimal"
+            size="small"
+            icon="document-open"
+            title="Open proposal detail"
+            onClick={() => { void navigate(`/proposals/${row.id}`) }}
+          />
+        </div>
       </header>
 
       <p className="text-sm font-medium">{summarize(action)}</p>
