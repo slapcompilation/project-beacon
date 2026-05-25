@@ -30,5 +30,6 @@ export type {
   InvoiceSubmitResult,
   TransferCreateResult,
   TransferApproveResult,
+  PendingApprovalResult,
 } from './edges'
 export { edgesForAction } from './edges'
