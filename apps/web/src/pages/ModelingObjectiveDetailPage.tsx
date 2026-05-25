@@ -234,6 +234,8 @@ function AdapterCard({
 
 // ─── Evaluation ──────────────────────────────────────────────────────────────
 
+const ALL_COHORTS = '__all__'
+
 function EvaluationSection({
   evalRuns, loading, datasets, metrics, subsets,
 }: {
@@ -243,6 +245,25 @@ function EvaluationSection({
   metrics:  string[]
   subsets:  string[]
 }) {
+  const [cohort, setCohort] = useState<string>(ALL_COHORTS)
+
+  // Subsets present in the data right now (in addition to 'overall').
+  const knownSubsets = ['overall', ...new Set(evalRuns.map((r) => r.subset).filter((s) => s !== 'overall'))]
+  const filtered = cohort === ALL_COHORTS ? evalRuns : evalRuns.filter((r) => r.subset === cohort)
+
+  // Latest run per (adapter_version, metric, subset)
+  const latestByAdapterMetric = new Map<string, EvalRunRow>()
+  for (const r of filtered) {
+    const key = `${r.adapter_name}@${r.adapter_version}::${r.metric}`
+    const existing = latestByAdapterMetric.get(key)
+    if (!existing || new Date(r.run_at).getTime() > new Date(existing.run_at).getTime()) {
+      latestByAdapterMetric.set(key, r)
+    }
+  }
+  const latestRuns = [...latestByAdapterMetric.values()]
+  const adapterKeys = [...new Set(latestRuns.map((r) => `${r.adapter_name}@${r.adapter_version}`))].sort()
+  const metricNames = [...new Set(latestRuns.map((r) => r.metric))]
+
   return (
     <Section title="Evaluation" icon="confirm" subtitle={`${String(datasets.length)} dataset(s) · ${String(metrics.length)} metric(s)`}>
       <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -256,30 +277,154 @@ function EvaluationSection({
             {subsets.map((s) => <Tag key={s} minimal icon="people">{s}</Tag>)}
           </>
         )}
+
+        {knownSubsets.length > 1 && (
+          <>
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold ml-3">View:</span>
+            <HTMLSelect
+              minimal
+              value={cohort}
+              onChange={(e) => { setCohort(e.currentTarget.value) }}
+              options={[
+                { label: 'All cohorts', value: ALL_COHORTS },
+                ...knownSubsets.map((s) => ({ label: s, value: s })),
+              ]}
+            />
+          </>
+        )}
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-6"><Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /></div>
-      ) : evalRuns.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <Card className="text-xs italic text-muted-foreground">
-          No eval runs yet. Click <span className="font-medium">Run eval</span> on a Submissions card to populate the dashboard.
+          {evalRuns.length === 0
+            ? <>No eval runs yet. Click <span className="font-medium">Run eval</span> on a Submissions card to populate the dashboard.</>
+            : <>No eval runs for cohort <span className="font-mono">{cohort}</span>.</>}
         </Card>
       ) : (
-        <div className="space-y-1.5">
-          {evalRuns.slice(0, 15).map((r) => (
-            <div key={r.id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
-              <Tag minimal className="font-mono text-[10px]">{r.adapter_name}@{r.adapter_version}</Tag>
-              <Tag minimal>{r.metric}</Tag>
-              <span className="tabular-nums font-semibold">{r.value}</span>
-              <span className="text-[10px] text-muted-foreground">({String(r.case_count)} cases)</span>
-              <span className="flex-1" />
-              <span className="text-[10px] text-muted-foreground">{r.dataset}</span>
-              <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(r.run_at), { addSuffix: true })}</span>
+        <div className="space-y-4">
+          {/* Diff matrix: latest score per (metric, adapter), winner highlighted */}
+          {adapterKeys.length >= 1 && (
+            <DiffMatrix
+              adapterKeys={adapterKeys}
+              metrics={metricNames}
+              latest={latestByAdapterMetric}
+              runs={filtered}
+            />
+          )}
+
+          {/* Recent runs log */}
+          <div>
+            <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-1.5">Recent runs</h4>
+            <div className="space-y-1.5">
+              {filtered.slice(0, 15).map((r) => (
+                <div key={r.id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
+                  <Tag minimal className="font-mono text-[10px]">{r.adapter_name}@{r.adapter_version}</Tag>
+                  <Tag minimal>{r.metric}</Tag>
+                  <Tag minimal className="text-[10px]">{r.subset}</Tag>
+                  <span className="tabular-nums font-semibold">{r.value}</span>
+                  <span className="text-[10px] text-muted-foreground">({String(r.case_count)} cases)</span>
+                  <span className="flex-1" />
+                  <span className="text-[10px] text-muted-foreground">{r.dataset}</span>
+                  <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(r.run_at), { addSuffix: true })}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
       )}
     </Section>
+  )
+}
+
+// ─── Eval diff matrix ────────────────────────────────────────────────────────
+
+/** For each metric, render one row per adapter with its latest value + delta
+ *  from the best (lowest, since MAE/RMSE are loss metrics) adapter. */
+function DiffMatrix({
+  adapterKeys, metrics, latest, runs,
+}: {
+  adapterKeys: string[]
+  metrics:     string[]
+  latest:      Map<string, EvalRunRow>
+  runs:        EvalRunRow[]
+}) {
+  return (
+    <div className="space-y-3">
+      {metrics.map((metric) => {
+        const rows = adapterKeys
+          .map((key) => ({ key, row: latest.get(`${key}::${metric}`) }))
+          .filter((r) => !!r.row) as Array<{ key: string; row: EvalRunRow }>
+        if (rows.length === 0) return null
+        const best = rows.reduce((a, b) => (a.row.value <= b.row.value ? a : b))
+
+        return (
+          <Card key={metric} className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Tag minimal intent={Intent.PRIMARY}>{metric}</Tag>
+              <span className="text-[11px] text-muted-foreground">lower is better</span>
+            </div>
+            <div className="space-y-1">
+              {rows.map(({ key, row }) => {
+                const isBest = key === best.key
+                const delta  = row.value - best.row.value
+                const sparkline = sparkRuns(runs, row.adapter_name, row.adapter_version, metric)
+                return (
+                  <div
+                    key={key}
+                    className={cn(
+                      'flex items-center gap-3 px-2 py-1.5 rounded text-xs',
+                      isBest ? 'bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/40' : 'border border-border/40',
+                    )}
+                  >
+                    <Tag minimal className="font-mono text-[10px]">{key}</Tag>
+                    <span className="tabular-nums font-semibold">{row.value}</span>
+                    {isBest ? (
+                      <Tag minimal intent={Intent.SUCCESS} icon="tick">best</Tag>
+                    ) : (
+                      <Tag minimal intent={Intent.WARNING} icon="arrow-up">+{delta.toFixed(4)}</Tag>
+                    )}
+                    <span className="text-[10px] text-muted-foreground">({String(row.case_count)} cases)</span>
+                    <span className="flex-1" />
+                    {sparkline.length > 1 && <Sparkline values={sparkline} />}
+                    <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(row.run_at), { addSuffix: true })}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </Card>
+        )
+      })}
+    </div>
+  )
+}
+
+function sparkRuns(runs: EvalRunRow[], adapterName: string, adapterVersion: string, metric: string): number[] {
+  const matching = runs
+    .filter((r) => r.adapter_name === adapterName && r.adapter_version === adapterVersion && r.metric === metric)
+    .sort((a, b) => new Date(a.run_at).getTime() - new Date(b.run_at).getTime())
+    .map((r) => r.value)
+  return matching.slice(-10)
+}
+
+function Sparkline({ values }: { values: number[] }) {
+  const w = 60
+  const h = 16
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const range = max - min || 1
+  const points = values
+    .map((v, i) => {
+      const x = (i / (values.length - 1)) * w
+      const y = h - ((v - min) / range) * h
+      return `${x.toFixed(1)},${y.toFixed(1)}`
+    })
+    .join(' ')
+  return (
+    <svg width={w} height={h} className="text-muted-foreground/70">
+      <polyline points={points} fill="none" stroke="currentColor" strokeWidth={1} />
+    </svg>
   )
 }
 
