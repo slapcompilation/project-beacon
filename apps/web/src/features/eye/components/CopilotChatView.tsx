@@ -1,11 +1,12 @@
 // Multi-turn LLM chat with tool-call trace display.
 
 import { useState, useRef, useEffect } from 'react'
-import { Button, Icon, InputGroup, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
+import { Button, Icon, InputGroup, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useCopilotChat } from '@/features/eye/hooks'
 import type { ChatMessage } from '@/features/eye/hooks'
 import { CopilotProposalCard } from './CopilotProposalCard'
+import { useCurateAnswer } from '@/features/approvedAnswers/hooks'
 
 const CHAT_PRESETS = [
   { label: "What needs my attention?",           query: "What needs my attention right now?" },
@@ -17,6 +18,8 @@ const CHAT_PRESETS = [
 
 function ChatBubble({ message }: { message: ChatMessage }) {
   const [traceOpen, setTraceOpen] = useState(false)
+  const [curated, setCurated]   = useState(false)
+  const curate = useCurateAnswer()
 
   if (message.role === 'user') {
     return (
@@ -34,9 +37,35 @@ function ChatBubble({ message }: { message: ChatMessage }) {
         <Icon icon="lightbulb" size={14} className="text-violet-600 dark:text-violet-400" />
       </div>
       <div className="flex-1 min-w-0 space-y-2">
+        {message.served_from_cache && (
+          <div className="flex items-center gap-1.5 text-[10px] text-emerald-700 dark:text-emerald-400">
+            <Icon icon="cube" size={11} />
+            <span>Served from approved answers · {String(Math.round(message.served_from_cache.similarity * 100))}% match</span>
+            <span className="text-muted-foreground italic">("{message.served_from_cache.question}")</span>
+          </div>
+        )}
+
         <div className="prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed [&_p]:mb-2 [&_ul]:mb-2 [&_li]:mb-0.5 whitespace-pre-wrap">
           {message.content}
         </div>
+
+        {!message.served_from_cache && message.source_question && (
+          <button
+            type="button"
+            disabled={curated || curate.isPending}
+            onClick={() => {
+              curate.mutate(
+                { question: message.source_question ?? '', answer: message.content, sourceMessageId: message.id },
+                { onSuccess: () => { setCurated(true) } },
+              )
+            }}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+          >
+            <Icon icon={curated ? 'tick' : 'bookmark'} size={11} />
+            {curated ? 'Curated' : 'Curate this answer'}
+            {curated && <Tag minimal intent={Intent.SUCCESS} className="text-[9px]">cached</Tag>}
+          </button>
+        )}
 
         {message.tool_trace && message.tool_trace.length > 0 && (
           <div>

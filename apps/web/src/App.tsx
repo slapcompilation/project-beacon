@@ -58,6 +58,7 @@ const PendingApprovalsPage        = lazy(() => import('@/pages/PendingApprovalsP
 const ProposalObjectPage          = lazy(() => import('@/pages/ProposalObjectPage'))
 const PrincipleObjectPage         = lazy(() => import('@/pages/PrincipleObjectPage'))
 const ConstraintObjectPage        = lazy(() => import('@/pages/ConstraintObjectPage'))
+const ApprovedAnswersPage         = lazy(() => import('@/pages/ApprovedAnswersPage'))
 
 function PageLoader() {
   return (
@@ -117,6 +118,7 @@ function AppRoutes() {
             <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
             <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
             <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
+            <Route path="/approved-answers"                     element={<ApprovedAnswersPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
