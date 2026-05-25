@@ -7,6 +7,7 @@ import {
   Button, Card, FormGroup, Icon, Intent,
   NonIdealState, Spinner, SpinnerSize, Switch, Tag, TextArea,
 } from '@blueprintjs/core'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import type { PrincipleCategory } from '@beacon/reality-graph'
 import { useAllPrinciples, useCreatePrinciple, useSetPrincipleActive } from './hooks'
@@ -109,6 +110,13 @@ function PrincipleRowCard({ row, onToggle, toggleDisabled }: RowCardProps) {
       <div className="flex-1 space-y-1.5">
         <div className="flex items-center gap-2 flex-wrap">
           <Tag minimal intent={CATEGORY_INTENT[row.category]}>{row.category}</Tag>
+          <Link
+            to={`/principles/${row.id}`}
+            className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5"
+          >
+            <Icon icon="document-open" size={10} />
+            Open
+          </Link>
         </div>
         <p className="text-sm">{row.body}</p>
       </div>

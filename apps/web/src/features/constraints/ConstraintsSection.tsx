@@ -4,9 +4,10 @@
 
 import { useState } from 'react'
 import {
-  Button, Callout, Card, FormGroup, HTMLSelect, Intent,
+  Button, Callout, Card, FormGroup, HTMLSelect, Icon, Intent,
   NonIdealState, Spinner, SpinnerSize, Switch, Tag, TextArea,
 } from '@blueprintjs/core'
+import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAllConstraints, useCreateConstraint, useSetConstraintActive } from './hooks'
 import { categorizeConstraint } from './categorizer'
@@ -174,6 +175,13 @@ function ConstraintRowCard({ row, onToggle, toggleDisabled }: RowCardProps) {
           {row.applies_to_action_types.length > 0 && (
             <Tag minimal>{row.applies_to_action_types.join(', ')}</Tag>
           )}
+          <Link
+            to={`/constraints/${row.id}`}
+            className="text-[10px] text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5"
+          >
+            <Icon icon="document-open" size={10} />
+            Open
+          </Link>
         </div>
         <p className="text-sm">{row.body}</p>
         <pre className="text-[10px] text-muted-foreground font-mono whitespace-pre-wrap">

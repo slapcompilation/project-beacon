@@ -62,6 +62,16 @@ export async function createPrinciple(input: CreatePrincipleInput): Promise<Prin
   return data
 }
 
+export async function fetchPrinciple(id: string): Promise<PrincipleRow | null> {
+  const { data, error } = await supabase
+    .from('principles')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle<PrincipleRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function setPrincipleActive(id: string, active: boolean): Promise<void> {
   const { error } = await supabase
     .from('principles')
