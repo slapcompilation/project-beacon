@@ -139,3 +139,89 @@ export async function deleteDocument(id: string, storagePath: string): Promise<v
     .eq('id', id)
   if (deleteError) throw new Error(deleteError.message)
 }
+
+// ─── Ingestion (Phase 16.b) ──────────────────────────────────────────────────
+
+export interface IngestDocumentResponse {
+  document_id: string
+  chunks:      DocumentChunk[]
+  page_count:  number
+  tokens_used: number
+  stage:       IngestionStage
+}
+
+/** Runs the document-ingest edge function: Anthropic vision OCR for pdf +
+ *  jpeg/png/webp/gif. Persists chunks back to the row and lifts
+ *  ingestion_stage from 'raw' to 'ocr'. Returns the parsed chunks for
+ *  immediate inline rendering. */
+export async function ingestDocument(documentId: string): Promise<IngestDocumentResponse> {
+  const result = await supabase.functions.invoke<IngestDocumentResponse>('document-ingest', {
+    body: { document_id: documentId },
+  }) as { data: IngestDocumentResponse | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  if (!result.data) throw new Error('document-ingest returned no data')
+  return result.data
+}
+
+// ─── describes_entity edges (Phase 16.b) ────────────────────────────────────
+
+export type EntityNodeType =
+  | 'variant'
+  | 'supplier'
+  | 'purchase_order'
+  | 'restock_request'
+  | 'product'
+  | 'hotel'
+  | 'organization'
+  | 'case'
+
+export interface DescribesEntityEdgeRow {
+  id:          string
+  source_id:   string
+  target_id:   string
+  target_type: EntityNodeType
+  created_at:  string
+}
+
+export async function linkDocumentToEntity(args: {
+  documentId:  string
+  entityType:  EntityNodeType
+  entityId:    string
+  hotelId:     string
+  actorId:     string | null
+}): Promise<void> {
+  const { error } = await supabase
+    .from('relationship_edges')
+    .insert({
+      hotel_id:     args.hotelId,
+      edge_type:    'describes_entity',
+      source_type:  'document',
+      source_id:    args.documentId,
+      target_type:  args.entityType,
+      target_id:    args.entityId,
+      triggered_by: 'user',
+      actor_id:     args.actorId,
+    })
+  if (error) throw new Error(error.message)
+}
+
+export async function fetchDocumentEntityLinks(documentId: string): Promise<DescribesEntityEdgeRow[]> {
+  const { data, error } = await supabase
+    .from('relationship_edges')
+    .select('id, source_id, target_id, target_type, created_at')
+    .eq('source_type', 'document')
+    .eq('source_id', documentId)
+    .eq('edge_type', 'describes_entity')
+    .order('created_at', { ascending: false })
+    .overrideTypes<DescribesEntityEdgeRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function unlinkDocumentFromEntity(edgeId: string): Promise<void> {
+  const { error } = await supabase
+    .from('relationship_edges')
+    .delete()
+    .eq('id', edgeId)
+  if (error) throw new Error(error.message)
+}

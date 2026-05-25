@@ -1,17 +1,23 @@
 // Document Object View — metadata + signed-URL preview for one uploaded file.
 // Uniform anatomy: header → metric strip → action bar → body sections.
 
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Callout, Card, Icon, Intent, NonIdealState, Spinner, Tag,
+  Button, Callout, Card, Dialog, DialogBody, DialogFooter,
+  HTMLSelect, Icon, InputGroup, Intent, NonIdealState, Spinner, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import {
   useDeleteDocument,
   useDocument,
+  useDocumentEntityLinks,
+  useIngestDocument,
+  useLinkDocumentToEntity,
   useSignedDocumentUrl,
+  useUnlinkDocumentFromEntity,
 } from '@/features/documents/hooks'
-import type { IngestionStage } from '@/features/documents/api'
+import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
 
 export default function DocumentObjectPage() {
@@ -19,7 +25,12 @@ export default function DocumentObjectPage() {
   const navigate = useNavigate()
   const { data: row, isLoading } = useDocument(documentId)
   const { data: signedUrl } = useSignedDocumentUrl(row?.storage_path)
-  const del = useDeleteDocument()
+  const { data: entityLinks = [] } = useDocumentEntityLinks(documentId)
+  const del     = useDeleteDocument()
+  const ingest  = useIngestDocument(documentId)
+  const link    = useLinkDocumentToEntity(documentId)
+  const unlink  = useUnlinkDocumentFromEntity(documentId)
+  const [linkOpen, setLinkOpen] = useState(false)
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center"><Spinner intent={Intent.PRIMARY} /></div>
@@ -55,7 +66,35 @@ export default function DocumentObjectPage() {
         <Metric label="Uploaded" value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
       </div>
 
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        <Button
+          variant="minimal"
+          icon="link"
+          onClick={() => { setLinkOpen(true) }}
+        >
+          Link to entity
+        </Button>
+        {row.ingestion_stage === 'raw' && (
+          <Button
+            intent={Intent.PRIMARY}
+            variant="minimal"
+            icon="eye-open"
+            loading={ingest.isPending}
+            onClick={() => { ingest.mutate() }}
+          >
+            Run ingestion
+          </Button>
+        )}
+        {row.ingestion_stage !== 'raw' && (
+          <Button
+            variant="minimal"
+            icon="refresh"
+            loading={ingest.isPending}
+            onClick={() => { ingest.mutate() }}
+          >
+            Re-ingest
+          </Button>
+        )}
         {signedUrl && (
           <Button
             intent={Intent.PRIMARY}
@@ -116,10 +155,56 @@ export default function DocumentObjectPage() {
           )}
         </Section>
 
-        <Section title="Ingestion pipeline" icon="layers">
-          <Callout intent={Intent.NONE} icon="info-sign">
-            Stage is <span className="font-mono">{row.ingestion_stage}</span>. The OCR / Vision / Whisper pipeline + chunk extraction + cited_in edge writers arrive in Phase 16.b. The <span className="font-mono">chunks</span> column is reserved so the upgrade is additive.
-          </Callout>
+        <Section title="Chunks" icon="layers">
+          {!row.chunks || row.chunks.length === 0 ? (
+            <Callout intent={Intent.NONE} icon="info-sign">
+              {row.ingestion_stage === 'raw'
+                ? 'No chunks yet. Click Run ingestion above to extract per-page text via Anthropic vision.'
+                : `Stage is ${row.ingestion_stage} but the row carries no chunks. Try Re-ingest.`}
+            </Callout>
+          ) : (
+            <div className="space-y-1.5">
+              {row.chunks.map((c) => (
+                <Card key={c.chunk_id} className="text-xs">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Tag minimal intent={Intent.PRIMARY} className="text-[10px]">page {String(c.page)}</Tag>
+                    <span className="font-mono text-[10px] text-muted-foreground">{c.chunk_id}</span>
+                  </div>
+                  <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{c.text_preview}</p>
+                </Card>
+              ))}
+            </div>
+          )}
+        </Section>
+
+        <Section title="Linked entities" icon="link">
+          {entityLinks.length === 0 ? (
+            <Card className="text-xs italic text-muted-foreground">
+              No entity links yet. Use Link to entity above to write a <span className="font-mono">describes_entity</span> edge from this document to a Variant / Supplier / Case / etc. Operators and agents can then cite this document as the source of truth for that node.
+            </Card>
+          ) : (
+            <div className="space-y-1.5">
+              {entityLinks.map((edge) => (
+                <div key={edge.id} className="flex items-center gap-2 px-2 py-1.5 border border-border/40 rounded text-xs">
+                  <Icon icon="link" size={11} className="text-muted-foreground" />
+                  <Tag minimal intent={Intent.PRIMARY}>{edge.target_type}</Tag>
+                  <Link to={objectPathFor(edge.target_type, edge.target_id)} className="font-mono hover:underline truncate">
+                    {edge.target_id}
+                  </Link>
+                  <span className="flex-1" />
+                  <span className="text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(edge.created_at), { addSuffix: true })}</span>
+                  <Button
+                    variant="minimal"
+                    size="small"
+                    icon="cross"
+                    intent={Intent.DANGER}
+                    disabled={unlink.isPending}
+                    onClick={() => { unlink.mutate(edge.id) }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </Section>
 
         <Section title="Audit" icon="time">
@@ -132,8 +217,84 @@ export default function DocumentObjectPage() {
        </div>
        <AuditRail nodeType="document" nodeId={row.id} />
       </div>
+
+      <LinkEntityDialog
+        open={linkOpen}
+        onClose={() => { setLinkOpen(false) }}
+        pending={link.isPending}
+        onSubmit={(entityType, entityId) => {
+          link.mutate({ entityType, entityId }, { onSuccess: () => { setLinkOpen(false) } })
+        }}
+      />
     </div>
   )
+}
+
+const ENTITY_TYPES: EntityNodeType[] = [
+  'variant', 'supplier', 'purchase_order', 'restock_request',
+  'product', 'hotel', 'organization', 'case',
+]
+
+function LinkEntityDialog({ open, onClose, onSubmit, pending }: {
+  open: boolean
+  onClose: () => void
+  pending: boolean
+  onSubmit: (entityType: EntityNodeType, entityId: string) => void
+}) {
+  const [type, setType] = useState<EntityNodeType>('variant')
+  const [id, setId]     = useState('')
+  return (
+    <Dialog isOpen={open} onClose={onClose} title="Link document to entity" className="!w-[24rem]">
+      <DialogBody>
+        <p className="text-xs text-muted-foreground mb-2">
+          Writes a <span className="font-mono">describes_entity</span> edge from this document to the target node. Operators and agents can then surface this document as the source of truth.
+        </p>
+        <div className="space-y-2">
+          <HTMLSelect
+            value={type}
+            onChange={(e) => { setType(e.currentTarget.value as EntityNodeType) }}
+            options={ENTITY_TYPES.map((t) => ({ value: t, label: t }))}
+            fill
+          />
+          <InputGroup
+            placeholder="Entity UUID"
+            value={id}
+            onChange={(e) => { setId(e.target.value) }}
+            className="font-mono"
+          />
+        </div>
+      </DialogBody>
+      <DialogFooter
+        actions={
+          <>
+            <Button variant="minimal" disabled={pending} onClick={onClose}>Cancel</Button>
+            <Button
+              intent={Intent.PRIMARY}
+              icon="link"
+              loading={pending}
+              disabled={!id.trim()}
+              onClick={() => { onSubmit(type, id.trim()) }}
+            >
+              Link
+            </Button>
+          </>
+        }
+      />
+    </Dialog>
+  )
+}
+
+function objectPathFor(type: EntityNodeType, id: string): string {
+  switch (type) {
+    case 'variant':         return `/variant/${id}`
+    case 'supplier':        return `/supplier/${id}`
+    case 'purchase_order':  return `/po/${id}`
+    case 'restock_request': return `/restock/${id}`
+    case 'product':         return `/product/${id}`
+    case 'case':            return `/cases/${id}`
+    case 'hotel':           return `/hotel/${id}`
+    case 'organization':    return `/`
+  }
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -145,7 +306,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Section({ title, icon, children }: { title: string; icon: 'document' | 'eye-open' | 'layers' | 'time'; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon: 'document' | 'eye-open' | 'layers' | 'time' | 'link'; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">

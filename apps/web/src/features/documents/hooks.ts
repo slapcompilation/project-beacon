@@ -6,10 +6,15 @@ import {
   createSignedDocumentUrl,
   deleteDocument,
   fetchDocument,
+  fetchDocumentEntityLinks,
   fetchDocuments,
+  ingestDocument,
+  linkDocumentToEntity,
+  unlinkDocumentFromEntity,
   uploadDocument,
   type DocumentRow,
   type DocumentSource,
+  type EntityNodeType,
 } from './api'
 
 export const documentKeys = {
@@ -80,6 +85,68 @@ export function useDeleteDocument() {
     onSuccess: () => {
       toast.success('Document deleted')
       void qc.invalidateQueries({ queryKey: documentKeys.list(hotelId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+// ─── Ingestion + entity linking ──────────────────────────────────────────────
+
+export function useIngestDocument(documentId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => ingestDocument(documentId),
+    onSuccess: (res) => {
+      toast.success(`Ingested ${String(res.page_count)} page(s) · ${String(res.tokens_used)} tokens`)
+      void qc.invalidateQueries({ queryKey: documentKeys.detail(documentId) })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export const documentLinkKeys = {
+  list: (documentId: string) => ['documents', 'entity-links', documentId] as const,
+}
+
+export function useDocumentEntityLinks(documentId: string) {
+  return useQuery({
+    queryKey: documentLinkKeys.list(documentId),
+    queryFn:  () => fetchDocumentEntityLinks(documentId),
+    enabled:  !!documentId,
+    staleTime: 60_000,
+  })
+}
+
+export function useLinkDocumentToEntity(documentId: string) {
+  const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
+  const qc      = useQueryClient()
+  return useMutation({
+    mutationFn: async (args: { entityType: EntityNodeType; entityId: string }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      return linkDocumentToEntity({
+        documentId,
+        entityType: args.entityType,
+        entityId:   args.entityId,
+        hotelId,
+        actorId:    userId,
+      })
+    },
+    onSuccess: () => {
+      toast.success('Linked')
+      void qc.invalidateQueries({ queryKey: documentLinkKeys.list(documentId) })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useUnlinkDocumentFromEntity(documentId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (edgeId: string) => unlinkDocumentFromEntity(edgeId),
+    onSuccess: () => {
+      toast.success('Unlinked')
+      void qc.invalidateQueries({ queryKey: documentLinkKeys.list(documentId) })
     },
     onError: (err: Error) => toast.error(err.message),
   })
