@@ -59,6 +59,8 @@ const ProposalObjectPage          = lazy(() => import('@/pages/ProposalObjectPag
 const PrincipleObjectPage         = lazy(() => import('@/pages/PrincipleObjectPage'))
 const ConstraintObjectPage        = lazy(() => import('@/pages/ConstraintObjectPage'))
 const ApprovedAnswersPage         = lazy(() => import('@/pages/ApprovedAnswersPage'))
+const CasesPage                   = lazy(() => import('@/pages/CasesPage'))
+const CaseObjectPage              = lazy(() => import('@/pages/CaseObjectPage'))
 
 function PageLoader() {
   return (
@@ -119,6 +121,8 @@ function AppRoutes() {
             <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
             <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
             <Route path="/approved-answers"                     element={<ApprovedAnswersPage />} />
+            <Route path="/cases"                                element={<CasesPage />} />
+            <Route path="/cases/:caseId"                        element={<CaseObjectPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />

@@ -18,6 +18,12 @@ import {
 } from '@/features/agents/proposalsApi'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
+import {
+  useAttachProposalToCase,
+  useCases,
+  useCasesForProposal,
+  useCreateCase,
+} from '@/features/cases/hooks'
 
 export default function ProposalObjectPage() {
   const { proposalId = '' } = useParams<{ proposalId: string }>()
@@ -153,6 +159,8 @@ export default function ProposalObjectPage() {
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <CasesSection proposalId={row.id} proposalTitle={`${action.type} · ${row.agent_name}`} />
+
         <Section title="Reasoning" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.reasoning}</p></Card>
         </Section>
@@ -235,7 +243,7 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
   )
 }
 
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'lightbulb' | 'cog' | 'function' | 'annotation' | 'git-branch'; subtitle?: string; children: React.ReactNode }) {
+function Section({ title, icon, subtitle, children }: { title: string; icon: 'lightbulb' | 'cog' | 'function' | 'annotation' | 'git-branch' | 'folder-open'; subtitle?: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
@@ -245,5 +253,91 @@ function Section({ title, icon, subtitle, children }: { title: string; icon: 'li
       {subtitle && <p className="text-[11px] text-muted-foreground -mt-1.5 ml-6">{subtitle}</p>}
       {children}
     </section>
+  )
+}
+
+// ─── Cases section ──────────────────────────────────────────────────────────
+//
+// Shows cases this proposal is already attached to + lets the operator open a
+// fresh case or attach to an existing open one. Keeps the workflow-envelope
+// affordance one click away from the proposal that triggered it.
+
+function CasesSection({ proposalId, proposalTitle }: { proposalId: string; proposalTitle: string }) {
+  const { data: attached = [] } = useCasesForProposal(proposalId)
+  const { data: openCases = [] } = useCases('open')
+  const createCase                 = useCreateCase()
+  const attach                     = useAttachProposalToCase()
+  const [picker, setPicker]        = useState(false)
+
+  const openCaseCandidates = openCases.filter((c) => !c.proposal_ids.includes(proposalId))
+
+  return (
+    <Section title="Cases" icon="folder-open" subtitle="Workflow envelopes wrapping this proposal.">
+      {attached.length === 0 ? (
+        <Card className="text-xs italic text-muted-foreground">Not attached to any case yet.</Card>
+      ) : (
+        <div className="space-y-1.5">
+          {attached.map((c) => (
+            <Link key={c.id} to={`/cases/${c.id}`}>
+              <Card interactive className="flex items-center gap-2 hover:bg-surface-2">
+                <Tag minimal intent={Intent.PRIMARY} icon="folder-open">{c.status.replace('_', ' ')}</Tag>
+                <span className="flex-1 truncate text-sm">{c.title}</span>
+                <span className="text-[10px] text-muted-foreground">{String(c.proposal_ids.length)} proposal(s)</span>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 pt-1">
+        <Button
+          variant="minimal"
+          icon="add"
+          size="small"
+          loading={createCase.isPending}
+          onClick={() => {
+            createCase.mutate({
+              title:       `Triage · ${proposalTitle}`,
+              proposalIds: [proposalId],
+              inputRefs:   [{ kind: 'proposal', ref: proposalId }],
+            })
+          }}
+        >
+          Open new case
+        </Button>
+        {openCaseCandidates.length > 0 && (
+          <Button
+            variant="minimal"
+            icon="link"
+            size="small"
+            onClick={() => { setPicker((v) => !v) }}
+          >
+            Attach to existing
+          </Button>
+        )}
+      </div>
+
+      {picker && openCaseCandidates.length > 0 && (
+        <Card className="space-y-1">
+          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">Open cases</h4>
+          {openCaseCandidates.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              disabled={attach.isPending}
+              onClick={() => {
+                attach.mutate({ caseId: c.id, proposalId })
+                setPicker(false)
+              }}
+              className="flex items-center gap-2 w-full text-left px-2 py-1 rounded hover:bg-surface-2 text-xs"
+            >
+              <Icon icon="folder-open" size={11} className="text-muted-foreground" />
+              <span className="flex-1 truncate">{c.title}</span>
+              <span className="text-[10px] text-muted-foreground">{String(c.proposal_ids.length)} proposal(s)</span>
+            </button>
+          ))}
+        </Card>
+      )}
+    </Section>
   )
 }
