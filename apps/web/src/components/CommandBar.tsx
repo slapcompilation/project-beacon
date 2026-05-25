@@ -58,6 +58,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Mind',  icon: 'graph',               label: 'Mind · System Map',          path: '/system-map',          shortcut: 'G X' },
   { group: 'Mind',  icon: 'warning-sign',        label: 'Mind · Pending Approvals',   path: '/pending-approvals',   shortcut: 'G P' },
   { group: 'Mind',  icon: 'bookmark',            label: 'Mind · Approved Answers',    path: '/approved-answers',    shortcut: 'G Y' },
+  { group: 'Mind',  icon: 'folder-open',         label: 'Mind · Cases',               path: '/cases',               shortcut: 'G C' },
   { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Triage',      path: '/mind?panel=triage' },
   { group: 'Mind',  icon: 'truck',           label: 'Mind · Suppliers',   path: '/mind?panel=suppliers' },
   { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Builder',  path: '/mind?panel=procurement' },
