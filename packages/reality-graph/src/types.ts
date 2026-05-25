@@ -29,6 +29,8 @@ export type NodeType =
   | 'constraint'
   // Network — lateral inter-property moves
   | 'stock_transfer'
+  // Exploratory sandbox branches (Phase 18.a)
+  | 'scenario'
 
 export type EdgeType =
   | 'belongs_to_hotel'

@@ -102,6 +102,7 @@ const NODE_LABELS: Record<NodeType, string> = {
   case:              'Case',
   constraint:        'Constraint',
   stock_transfer:    'Transfer',
+  scenario:          'Scenario',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────

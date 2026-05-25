@@ -25,6 +25,7 @@ import {
   useCasesForProposal,
   useCreateCase,
 } from '@/features/cases/hooks'
+import { useCreateScenario } from '@/features/scenarios/hooks'
 
 export default function ProposalObjectPage() {
   const { proposalId = '' } = useParams<{ proposalId: string }>()
@@ -121,6 +122,7 @@ export default function ProposalObjectPage() {
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        <TryInScenarioButton proposalId={row.id} action={action} agentName={row.agent_name} />
         {canEdit && hotelId && userId && row.status === 'pending' && (
           <Button
             variant="minimal"
@@ -244,6 +246,33 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
       <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
       <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>
+  )
+}
+
+// ─── Try-in-scenario button ─────────────────────────────────────────────────
+
+function TryInScenarioButton({ proposalId, action, agentName }: { proposalId: string; action: BeaconAction; agentName: string }) {
+  const navigate = useNavigate()
+  const create   = useCreateScenario()
+  return (
+    <Button
+      variant="minimal"
+      icon="lab-test"
+      loading={create.isPending}
+      onClick={() => {
+        create.mutate(
+          {
+            title:           `What-if · ${action.type} · ${agentName}`,
+            description:     `Forked from proposal ${proposalId}. Use this sandbox to tweak the action payload + try variations without committing.`,
+            baseProposalId:  proposalId,
+            simulatedActions: [action],
+          },
+          { onSuccess: (sc) => { void navigate(`/scenarios/${sc.id}`) } },
+        )
+      }}
+    >
+      Try in scenario
+    </Button>
   )
 }
 
