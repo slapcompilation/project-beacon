@@ -36,6 +36,9 @@ export interface POCreateResult         { poId: string }
 export interface InvoiceSubmitResult    { invoiceId: string }
 export interface TransferCreateResult   { transferId: string }
 export interface TransferApproveResult  { fromLogId: string; toLogId: string; fromBalance: number; toBalance: number }
+/** Returned when an action hit a SOFT constraint violation and was routed to
+ *  the pending_action_approvals queue instead of executing. */
+export interface PendingApprovalResult  { pendingApprovalId: string }
 
 export type MutationResult =
   | SupplierCreateResult
@@ -47,6 +50,7 @@ export type MutationResult =
   | InvoiceSubmitResult
   | TransferCreateResult
   | TransferApproveResult
+  | PendingApprovalResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────

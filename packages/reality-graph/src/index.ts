@@ -51,6 +51,7 @@ export type {
   InvoiceSubmitResult,
   TransferCreateResult,
   TransferApproveResult,
+  PendingApprovalResult,
   ActionField,
   ActionFieldKind,
   ActionDescriptor,

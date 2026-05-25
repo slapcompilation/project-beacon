@@ -56,6 +56,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Mind',  icon: 'function',            label: 'Mind · Logic Tools',  path: '/tools',                 shortcut: 'G L' },
   { group: 'Mind',  icon: 'predictive-analysis', label: 'Mind · Modeling Objectives', path: '/modeling-objectives', shortcut: 'G M' },
   { group: 'Mind',  icon: 'graph',               label: 'Mind · System Map',          path: '/system-map',          shortcut: 'G X' },
+  { group: 'Mind',  icon: 'warning-sign',        label: 'Mind · Pending Approvals',   path: '/pending-approvals',   shortcut: 'G P' },
   { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Triage',      path: '/mind?panel=triage' },
   { group: 'Mind',  icon: 'truck',           label: 'Mind · Suppliers',   path: '/mind?panel=suppliers' },
   { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Builder',  path: '/mind?panel=procurement' },

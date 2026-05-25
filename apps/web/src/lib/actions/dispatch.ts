@@ -34,6 +34,7 @@ import type {
   POCreateResult,
   InvoiceSubmitResult,
   TransferApproveResult,
+  PendingApprovalResult,
   MutationResult,
 } from '@beacon/reality-graph'
 
@@ -60,6 +61,9 @@ import {
   createStockTransfer,
   approveStockTransfer,
 } from '@/features/agents/transfersApi'
+import {
+  createPendingApproval,
+} from '@/features/pendingApprovals/api'
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -67,6 +71,11 @@ export interface DispatchContext {
   hotelId: string
   actorId?: string | null
   triggeredBy?: TriggeredBy
+  organizationId?: string | null
+  /** Bypass the constraint check (used when an admin approves a previously
+   *  soft-rejected action — the original check already ran and the violation
+   *  is being explicitly accepted). */
+  skipConstraintCheck?: boolean
 }
 
 // Browser-only extras that can't live in the platform-agnostic BeaconAction type
@@ -89,31 +98,67 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
     return { success: false, type, error: validationFailed(validation.errors) }
   }
 
-  // 1b. Evaluate constraint engine (hard violations short-circuit the dispatch).
-  //     Soft violations are intentionally not blocking here — Phase 4 only gates
-  //     on hard rules. Soft → higher approval tier lands in Phase 4.b.
-  try {
-    const rows = await fetchActiveConstraints(ctx.hotelId)
-    if (rows.length > 0) {
-      const violations = evaluateConstraints(
-        action,
-        rows.map(rowToConstraintRecord),
-        { now: new Date() },
-      )
-      const hard = violations.filter((v) => v.severity === 'hard')
-      if (hard.length > 0) {
-        return {
-          success: false,
-          type,
-          error: constraintRejected(
-            hard.map((v) => ({ constraintId: v.constraintId, message: v.message, severity: v.severity })),
-          ),
+  // 1b. Evaluate constraint engine.
+  //     Hard violations short-circuit the dispatch.
+  //     Soft violations pause the action: a row is written to
+  //     pending_action_approvals and the dispatcher returns a special
+  //     `pendingApprovalId` result so the caller can surface the pause.
+  //     A subsequent approval calls dispatchAction with
+  //     skipConstraintCheck=true to replay the original payload.
+  if (!ctx.skipConstraintCheck) {
+    try {
+      const rows = await fetchActiveConstraints(ctx.hotelId)
+      if (rows.length > 0) {
+        const violations = evaluateConstraints(
+          action,
+          rows.map(rowToConstraintRecord),
+          { now: new Date() },
+        )
+        const hard = violations.filter((v) => v.severity === 'hard')
+        if (hard.length > 0) {
+          return {
+            success: false,
+            type,
+            error: constraintRejected(
+              hard.map((v) => ({ constraintId: v.constraintId, message: v.message, severity: v.severity })),
+            ),
+          }
+        }
+
+        const soft = violations.filter((v) => v.severity === 'soft')
+        if (soft.length > 0 && ctx.actorId) {
+          try {
+            const pending = await createPendingApproval({
+              hotelId:              ctx.hotelId,
+              organizationId:       ctx.organizationId ?? null,
+              actionType:           type,
+              actionPayload:        action as unknown as Record<string, unknown>,
+              violations:           soft.map((v) => ({
+                constraintId: v.constraintId,
+                message:      v.message,
+                severity:     v.severity,
+                ruleType:     v.bucket,
+              })),
+              originalTriggeredBy:  ctx.triggeredBy ?? 'user',
+              originalActorId:      ctx.actorId,
+              requestedByUserId:    ctx.actorId,
+            })
+            return {
+              success:      true,
+              type,
+              data:         { pendingApprovalId: pending.id } satisfies PendingApprovalResult as unknown as T,
+              edgesWritten: 0,
+            }
+          } catch {
+            // Persistence failed — fall through to dispatch so we don't lose
+            // the action; soft routing is best-effort, not a hard gate.
+          }
         }
       }
+    } catch {
+      // Constraint fetch failed — don't block writes on the engine itself being down.
+      // Surface to telemetry in a follow-up; for now fail-open keeps existing flows.
     }
-  } catch {
-    // Constraint fetch failed — don't block writes on the engine itself being down.
-    // Surface to telemetry in a follow-up; for now fail-open keeps existing flows.
   }
 
   let mutationResult: MutationResult = {}

@@ -54,6 +54,7 @@ const ModelingObjectivesPage      = lazy(() => import('@/pages/ModelingObjective
 const ModelingObjectiveDetailPage = lazy(() => import('@/pages/ModelingObjectiveDetailPage'))
 const DeploymentDetailPage        = lazy(() => import('@/pages/DeploymentDetailPage'))
 const SystemMapPage               = lazy(() => import('@/pages/SystemMapPage'))
+const PendingApprovalsPage        = lazy(() => import('@/pages/PendingApprovalsPage'))
 
 function PageLoader() {
   return (
@@ -109,6 +110,7 @@ function AppRoutes() {
             <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
             <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
             <Route path="/system-map"                           element={<SystemMapPage />} />
+            <Route path="/pending-approvals"                    element={<PendingApprovalsPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
