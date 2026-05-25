@@ -5,6 +5,7 @@ import { Button, Icon, InputGroup, Intent, Spinner, SpinnerSize } from '@bluepri
 import { cn } from '@/lib/utils'
 import { useCopilotChat } from '@/features/eye/hooks'
 import type { ChatMessage } from '@/features/eye/hooks'
+import { CopilotProposalCard } from './CopilotProposalCard'
 
 const CHAT_PRESETS = [
   { label: "What needs my attention?",           query: "What needs my attention right now?" },
@@ -52,21 +53,48 @@ function ChatBubble({ message }: { message: ChatMessage }) {
               <Icon icon="chevron-right" size={12} className={cn('transition-transform', traceOpen && 'rotate-90')} />
             </button>
             {traceOpen && (
-              <div className="mt-1.5 space-y-1 pl-4 border-l border-border/50">
+              <div className="mt-1.5 space-y-1.5 pl-4 border-l border-border/50">
                 {message.tool_trace.map((t, i) => (
-                  <div key={i} className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                    <Icon icon="tick-circle" size={12} className="text-green-500 shrink-0" />
-                    <span className="font-mono">{t.tool}</span>
-                    <span className="text-muted-foreground/60">{String(t.duration_ms)}ms</span>
+                  <div key={i} className="space-y-0.5">
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <Icon icon="tick-circle" size={12} className="text-green-500 shrink-0" />
+                      <span className="font-mono">{t.tool}</span>
+                      <span className="text-muted-foreground/60">{String(t.duration_ms)}ms</span>
+                    </div>
+                    {Object.keys(t.input).length > 0 && (
+                      <pre className="ml-4 text-[10px] font-mono text-muted-foreground/80 whitespace-pre-wrap break-all">{summarizeInput(t.input)}</pre>
+                    )}
                   </div>
                 ))}
               </div>
             )}
           </div>
         )}
+
+        {message.action_proposals && message.action_proposals.length > 0 && (
+          <div className="space-y-2">
+            {message.action_proposals.map((p, i) => (
+              <CopilotProposalCard key={i} proposal={p} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
+}
+
+function summarizeInput(input: Record<string, unknown>): string {
+  // One-line preview; truncate long blob values so the chat doesn't get noisy.
+  const entries = Object.entries(input).map(([k, v]) => {
+    let s: string
+    if (v == null) s = 'null'
+    else if (typeof v === 'string') s = v.length > 40 ? `"${v.slice(0, 40)}…"` : `"${v}"`
+    else if (typeof v === 'number' || typeof v === 'boolean') s = String(v)
+    else s = JSON.stringify(v)
+    if (s.length > 60) s = `${s.slice(0, 60)}…`
+    return `${k}: ${s}`
+  })
+  return entries.join(', ')
 }
 
 interface CopilotChatViewProps {

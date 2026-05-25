@@ -9,6 +9,7 @@ export interface ChatMessage {
   role: 'user' | 'assistant'
   content: string
   tool_trace?: ToolTraceEntry[]
+  action_proposals?: ActionProposal[]
   timestamp: string
 }
 
@@ -69,6 +70,7 @@ export function useCopilotChat() {
           response: string
           tool_trace: ToolTraceEntry[]
           iterations: number
+          action_proposals?: ActionProposal[]
           error?: string
         } | null
         error: { message: string } | null
@@ -83,6 +85,7 @@ export function useCopilotChat() {
         role: 'assistant',
         content: res.data.response,
         tool_trace: res.data.tool_trace,
+        action_proposals: res.data.action_proposals ?? [],
         timestamp: new Date().toISOString(),
       }
 
