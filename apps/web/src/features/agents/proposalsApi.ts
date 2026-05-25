@@ -59,7 +59,38 @@ export async function createProposal(input: CreateProposalInput): Promise<Propos
     .select('*')
     .single<ProposalRow>()
   if (error) throw new Error(error.message)
+
+  // Scan provenance for { kind: 'document', ref: '<doc_id>' } entries and
+  // write proposal --cited_in--> document edges into relationship_edges.
+  // Best-effort: edge-write failures don't block proposal creation; the
+  // citation is still visible inline via the proposal's provenance array.
+  const docRefs = input.proposal.provenance
+    .filter((p) => p.kind === 'document' && isUuid(p.ref))
+    .map((p) => p.ref)
+  if (docRefs.length > 0) {
+    const edges = docRefs.map((docId) => ({
+      hotel_id:     input.hotelId,
+      edge_type:    'cited_in' as const,
+      source_type:  'proposal',
+      source_id:    data.id,
+      target_type:  'document',
+      target_id:    docId,
+      triggered_by: 'ai_proposal_accepted',
+      actor_id:     input.createdByUserId,
+    }))
+    const { error: edgeError } = await supabase
+      .from('relationship_edges')
+      .insert(edges)
+    if (edgeError) {
+      console.warn('[beacon:proposals] cited_in edge write failed:', edgeError.message)
+    }
+  }
+
   return data
+}
+
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 }
 
 export interface DecideProposalInput {

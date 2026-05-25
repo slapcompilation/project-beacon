@@ -19,6 +19,7 @@ import {
   makeForecastConsumptionTool,
   makeRankAlternativeSuppliersTool,
   makeQueryRecentWasteLogsTool,
+  makeQueryVariantDocumentsTool,
   requestClarificationTool,
   // types
   type BlockDef,
@@ -39,6 +40,7 @@ const noopReader: GraphReader = {
   getSisterHotels:         () => Promise.resolve([]),
   getVariantsByName:       () => Promise.resolve([]),
   getSuppliersForVariant:  () => Promise.resolve([]),
+  getDocumentsForEntity:   () => Promise.resolve([]),
 }
 
 // ─── Tool descriptors ────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ const tools: LogicTool[] = [
   makeForecastConsumptionTool(noopReader) as LogicTool,
   makeRankAlternativeSuppliersTool(noopReader) as LogicTool,
   makeQueryRecentWasteLogsTool(noopReader) as LogicTool,
+  makeQueryVariantDocumentsTool(noopReader) as LogicTool,
   requestClarificationTool as LogicTool,
 ]
 
@@ -93,6 +96,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'forecast_consumption',
       'query_sister_property_inventory',
       'rank_alternative_suppliers',
+      'query_variant_documents',
       'request_clarification',
     ],
     emits: ['TRANSFER_STOCK', 'REQUEST_RESTOCK'],
@@ -117,6 +121,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'query_recent_waste_logs',
       'forecast_consumption',
       'query_sister_property_inventory',
+      'query_variant_documents',
       'request_clarification',
     ],
     emits: ['TRANSFER_STOCK', 'WRITE_OFF'],

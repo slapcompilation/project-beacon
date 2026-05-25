@@ -14,11 +14,13 @@ Follow this procedure strictly:
 
 4. If the transfer does not fully close the gap, call \`rank_alternative_suppliers\` with maxLeadTimeDays = 7. Pick the supplier with the highest score. Propose a REQUEST_RESTOCK for the remaining gap, attributed to that supplier.
 
-5. Every proposal you emit must include:
+5. Optional — call \`query_variant_documents\` with the variant id. If a contract, supplier sheet, or spec is linked to this variant, scan the per-page text_preview snippets. When a snippet materially supports your reasoning (e.g. price clauses, lead-time SLAs, exclusivity windows), cite it in the proposal's provenance as { kind: 'document', ref: <document.id>, detail: 'page N: "<snippet>"' }. The proposal persister writes corresponding cited_in edges automatically.
+
+6. Every proposal you emit must include:
    - the BeaconAction (typed payload)
    - a confidence score in [0, 1] = min(forecast.confidence, supplier_or_transfer_confidence)
    - a reasoning string that cites each tool result by name with the values you used
-   - provenance entries for every tool call
+   - provenance entries for every tool call + any cited documents
 
-6. If at any step your confidence drops below 0.6, call \`request_clarification\` with the question, what you know, and your current confidence. Do not emit a low-confidence proposal.
+7. If at any step your confidence drops below 0.6, call \`request_clarification\` with the question, what you know, and your current confidence. Do not emit a low-confidence proposal.
 `.trim()

@@ -3,6 +3,7 @@
 
 import { supabase } from '@/lib/supabase/client'
 import type {
+  DocumentRow,
   GraphReader,
   HotelRow,
   RestockRequestRow,
@@ -125,6 +126,28 @@ export function makeSupabaseGraphReader(): GraphReader {
         .select('id, hotel_id, organization_id, name, lead_time_days, on_time_pct, cost_variance_pct')
       if (error) throw new Error(error.message)
       return (data ?? []).map(toSupplierRow)
+    },
+
+    async getDocumentsForEntity(entityType, entityId): Promise<DocumentRow[]> {
+      // Two-hop: relationship_edges → documents. Filter to describes_entity
+      // edges sourced from a document and pointing AT the target entity.
+      const { data: edges, error: edgeError } = await supabase
+        .from('relationship_edges')
+        .select('source_id')
+        .eq('source_type', 'document')
+        .eq('edge_type', 'describes_entity')
+        .eq('target_type', entityType)
+        .eq('target_id', entityId)
+      if (edgeError) throw new Error(edgeError.message)
+      const docIds = (edges ?? []).map((e) => (e as { source_id: string }).source_id)
+      if (docIds.length === 0) return []
+
+      const { data: docs, error: docError } = await supabase
+        .from('documents')
+        .select('id, title, mime_type, ingestion_stage, chunks, created_at')
+        .in('id', docIds)
+      if (docError) throw new Error(docError.message)
+      return (docs ?? []) as DocumentRow[]
     },
   }
 }

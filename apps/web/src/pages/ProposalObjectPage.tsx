@@ -182,7 +182,11 @@ export default function ProposalObjectPage() {
                 {row.provenance.map((p, i) => (
                   <li key={`${p.ref}-${String(i)}`} className="flex items-baseline gap-2 text-xs">
                     <Icon icon={p.kind === 'tool' ? 'function' : 'document'} size={11} className="text-muted-foreground mt-0.5" />
-                    <span className="font-mono">{p.ref}</span>
+                    {p.kind === 'document' && isUuid(p.ref) ? (
+                      <Link to={`/documents/${p.ref}`} className="font-mono hover:underline">{p.ref}</Link>
+                    ) : (
+                      <span className="font-mono">{p.ref}</span>
+                    )}
                     {p.detail && <span className="text-muted-foreground">— {p.detail}</span>}
                   </li>
                 ))}
@@ -247,6 +251,10 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
       <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>
   )
+}
+
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 }
 
 // ─── Try-in-scenario button ─────────────────────────────────────────────────

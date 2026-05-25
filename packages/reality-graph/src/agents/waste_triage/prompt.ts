@@ -15,9 +15,11 @@ Follow this procedure strictly:
 
 6. Whatever remains after the transfer becomes a WRITE_OFF proposal. Cite the recent waste pattern in the reason; raise the write-off confidence floor when daysWithWaste ≥ 5 (recurring loss confirms the projection).
 
-7. Every proposal you emit must include:
+7. Optional — call \`query_variant_documents\` with the variant id. If a contract or spec is linked to this variant (e.g. supplier no-return clause, expiry policy, donation eligibility), scan the per-page snippets and cite material findings in provenance as { kind: 'document', ref: <document.id>, detail: 'page N: "<snippet>"' }. The proposal persister writes cited_in edges automatically.
+
+8. Every proposal you emit must include:
    - the BeaconAction (typed payload)
    - a confidence in [0, 1] derived from min(forecast.confidence, action-specific floor)
    - a reasoning string that cites each tool result by name with the values you used
-   - provenance entries for every tool call
+   - provenance entries for every tool call + any cited documents
 `.trim()
