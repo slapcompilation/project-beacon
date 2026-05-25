@@ -50,6 +50,17 @@ export interface HotelRow {
   name: string
 }
 
+/** Minimal Document shape the tools need. Mirrors DocumentPayload from
+ *  packages/reality-graph/src/nodes/aip.ts with the chunks elaborated. */
+export interface DocumentRow {
+  id:              string
+  title:           string
+  mime_type:       string
+  ingestion_stage: string
+  chunks:          ReadonlyArray<{ chunk_id: string; page: number; text_preview: string }> | null
+  created_at:      string
+}
+
 /** Read-only abstraction used by all data/logic tools. */
 export interface GraphReader {
   getVariant(variantId: string): Promise<VariantRow | null>
@@ -58,4 +69,7 @@ export interface GraphReader {
   getSisterHotels(hotelId: string): Promise<HotelRow[]>
   getVariantsByName(name: string, hotelIds: ReadonlyArray<string>): Promise<VariantRow[]>
   getSuppliersForVariant(variantId: string): Promise<SupplierRow[]>
+  /** Documents linked to a node via a `describes_entity` edge.
+   *  Used by query_variant_documents and any future entity-document tool. */
+  getDocumentsForEntity(entityType: string, entityId: string): Promise<DocumentRow[]>
 }

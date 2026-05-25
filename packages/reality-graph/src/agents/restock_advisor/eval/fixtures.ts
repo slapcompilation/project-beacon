@@ -64,6 +64,7 @@ export function makeReader(world: FixtureWorld): GraphReader {
       )
     },
     getSuppliersForVariant: (_variantId) => Promise.resolve(world.suppliers),
+    getDocumentsForEntity:  (_entityType, _entityId) => Promise.resolve([]),
   }
 }
 

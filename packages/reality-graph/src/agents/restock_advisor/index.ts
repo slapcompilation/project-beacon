@@ -10,6 +10,7 @@ import { makeQueryOpenRestockRequestsTool } from '../../tools/data/query_open_re
 import { makeForecastConsumptionTool } from '../../tools/logic/forecast_consumption'
 import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sister_property_inventory'
 import { makeRankAlternativeSuppliersTool } from '../../tools/logic/rank_alternative_suppliers'
+import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
 import type { LLMClient } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
@@ -45,6 +46,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
     makeForecastConsumptionTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
     makeQuerySisterPropertyInventoryTool(deps.reader) as LogicTool,
     makeRankAlternativeSuppliersTool(deps.reader) as LogicTool,
+    makeQueryVariantDocumentsTool(deps.reader) as LogicTool,
     requestClarificationTool as LogicTool,
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))
