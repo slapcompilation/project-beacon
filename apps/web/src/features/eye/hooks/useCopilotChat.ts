@@ -3,6 +3,8 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { useApprovedAnswers, recordApprovedAnswerHit } from '@/features/approvedAnswers/hooks'
+import { bestMatch } from '@/features/approvedAnswers/similarity'
 
 export interface ChatMessage {
   id: string
@@ -10,6 +12,11 @@ export interface ChatMessage {
   content: string
   tool_trace?: ToolTraceEntry[]
   action_proposals?: ActionProposal[]
+  /** When set, the assistant message came from the ApprovedAnswers tier-1
+   *  cache instead of a fresh LLM call. */
+  served_from_cache?: { approvedAnswerId: string; similarity: number; question: string }
+  /** Source user question — used by the Curate button to save the pair. */
+  source_question?: string
   timestamp: string
 }
 
@@ -32,6 +39,7 @@ export function useCopilotChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const idCounter = useRef(0)
+  const { data: approvedAnswers = [] } = useApprovedAnswers()
 
   const nextId = () => {
     idCounter.current += 1
@@ -40,17 +48,40 @@ export function useCopilotChat() {
 
   const send = useCallback(async (text: string) => {
     if (!text.trim()) return null
+    const trimmed = text.trim()
 
     const userMsg: ChatMessage = {
       id: nextId(),
       role: 'user',
-      content: text.trim(),
+      content: trimmed,
       timestamp: new Date().toISOString(),
     }
 
     setMessages((prev) => [...prev, userMsg])
     setIsLoading(true)
     setError(null)
+
+    // Tier-1 lookup: serve from the ApprovedAnswers cache when similarity is
+    // high enough. On hit we skip the LLM entirely.
+    const hit = bestMatch(trimmed, approvedAnswers, (a) => a.question, 0.6)
+    if (hit) {
+      const cachedMsg: ChatMessage = {
+        id:        nextId(),
+        role:      'assistant',
+        content:   hit.item.answer,
+        timestamp: new Date().toISOString(),
+        served_from_cache: {
+          approvedAnswerId: hit.item.id,
+          similarity:       Number(hit.score.toFixed(2)),
+          question:         hit.item.question,
+        },
+        source_question: trimmed,
+      }
+      setMessages((prev) => [...prev, cachedMsg])
+      setIsLoading(false)
+      void recordApprovedAnswerHit(hit.item.id).catch(() => { /* fire-and-forget */ })
+      return cachedMsg
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession()
@@ -86,6 +117,7 @@ export function useCopilotChat() {
         content: res.data.response,
         tool_trace: res.data.tool_trace,
         action_proposals: res.data.action_proposals ?? [],
+        source_question: trimmed,
         timestamp: new Date().toISOString(),
       }
 
@@ -98,7 +130,7 @@ export function useCopilotChat() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages])
+  }, [messages, approvedAnswers])
 
   const clear = useCallback(() => {
     setMessages([])
