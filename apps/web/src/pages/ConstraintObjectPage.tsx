@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchConstraint, setConstraintActive } from '@/features/constraints/api'
+import { AuditRail } from '@/components/AuditRail'
 
 const BUCKET_INTENT: Record<string, Intent> = {
   'scope':       Intent.PRIMARY,
@@ -87,7 +88,8 @@ export default function ConstraintObjectPage() {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+       <div className="flex-1 min-w-0 space-y-4">
         <Section title="Body" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.body}</p></Card>
         </Section>
@@ -131,6 +133,8 @@ export default function ConstraintObjectPage() {
             {row.deactivated_at && <div>Retired {new Date(row.deactivated_at).toISOString()}</div>}
           </Card>
         </Section>
+       </div>
+       <AuditRail nodeType="constraint" nodeId={row.id} />
       </div>
     </div>
   )

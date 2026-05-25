@@ -12,6 +12,7 @@ import {
   useSignedDocumentUrl,
 } from '@/features/documents/hooks'
 import type { IngestionStage } from '@/features/documents/api'
+import { AuditRail } from '@/components/AuditRail'
 
 export default function DocumentObjectPage() {
   const { documentId = '' } = useParams<{ documentId: string }>()
@@ -81,7 +82,8 @@ export default function DocumentObjectPage() {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+       <div className="flex-1 min-w-0 space-y-4">
         <Section title="File" icon="document">
           <Card className="space-y-1 text-xs">
             <div className="font-mono"><span className="text-muted-foreground">MIME:</span> {row.mime_type}</div>
@@ -127,6 +129,8 @@ export default function DocumentObjectPage() {
             <div>Updated {new Date(row.updated_at).toISOString()}</div>
           </Card>
         </Section>
+       </div>
+       <AuditRail nodeType="document" nodeId={row.id} />
       </div>
     </div>
   )

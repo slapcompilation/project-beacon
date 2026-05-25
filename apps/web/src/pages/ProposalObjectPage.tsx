@@ -18,6 +18,7 @@ import {
 } from '@/features/agents/proposalsApi'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
+import { AuditRail } from '@/components/AuditRail'
 import {
   useAttachProposalToCase,
   useCases,
@@ -158,7 +159,8 @@ export default function ProposalObjectPage() {
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+       <div className="flex-1 min-w-0 space-y-4">
         <CasesSection proposalId={row.id} proposalTitle={`${action.type} · ${row.agent_name}`} />
 
         <Section title="Reasoning" icon="lightbulb">
@@ -210,6 +212,8 @@ export default function ProposalObjectPage() {
             </div>
           </Section>
         )}
+       </div>
+       <AuditRail nodeType="proposal" nodeId={row.id} />
       </div>
 
       {canEdit && hotelId && userId && (
