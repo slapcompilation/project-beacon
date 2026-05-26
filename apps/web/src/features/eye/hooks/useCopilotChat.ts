@@ -4,7 +4,9 @@
 import { useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useApprovedAnswers, recordApprovedAnswerHit } from '@/features/approvedAnswers/hooks'
+import { matchApprovedAnswers } from '@/features/approvedAnswers/api'
 import { bestMatch } from '@/features/approvedAnswers/similarity'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 
 export interface ChatMessage {
   id: string
@@ -40,6 +42,7 @@ export function useCopilotChat() {
   const [error, setError] = useState<string | null>(null)
   const idCounter = useRef(0)
   const { data: approvedAnswers = [] } = useApprovedAnswers()
+  const hotelId = useActiveHotelId()
 
   const nextId = () => {
     idCounter.current += 1
@@ -61,9 +64,24 @@ export function useCopilotChat() {
     setIsLoading(true)
     setError(null)
 
-    // Tier-1 lookup: serve from the ApprovedAnswers cache when similarity is
-    // high enough. On hit we skip the LLM entirely.
-    const hit = bestMatch(trimmed, approvedAnswers, (a) => a.question, 0.6)
+    // Tier-1 lookup: try semantic match via pgvector first (Phase 14.b);
+    // fall back to client-side Jaccard if the embedding pipeline is down or
+    // the OPENAI_API_KEY isn't set. On hit we skip the LLM entirely.
+    let semanticHit: { id: string; question: string; answer: string; similarity: number } | null = null
+    if (hotelId) {
+      try {
+        const matches = await matchApprovedAnswers({ hotelId, query: trimmed, threshold: 0.78, limit: 1 })
+        if (matches.length > 0 && matches[0]) {
+          semanticHit = matches[0]
+        }
+      } catch {
+        // embed-text down — fall through to Jaccard
+      }
+    }
+
+    const hit = semanticHit
+      ? { item: { id: semanticHit.id, question: semanticHit.question, answer: semanticHit.answer }, score: semanticHit.similarity }
+      : bestMatch(trimmed, approvedAnswers, (a) => a.question, 0.6)
     if (hit) {
       const cachedMsg: ChatMessage = {
         id:        nextId(),
@@ -130,7 +148,7 @@ export function useCopilotChat() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, approvedAnswers])
+  }, [messages, approvedAnswers, hotelId])
 
   const clear = useCallback(() => {
     setMessages([])

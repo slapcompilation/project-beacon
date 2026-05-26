@@ -138,7 +138,7 @@ Deno.serve(async (req: Request) => {
       tokensUsed = result.tokensUsed
     }
 
-    // 4. Persist.
+    // 4. Persist preview chunks on the documents row.
     const { error: updateErr } = await supabase
       .from('documents')
       .update({
@@ -149,6 +149,41 @@ Deno.serve(async (req: Request) => {
       })
       .eq('id', body.document_id)
     if (updateErr) return json({ error: `Update failed: ${updateErr.message}` }, 502)
+
+    // 5. Embed each chunk (best-effort) and persist into document_chunks
+    //    so semantic search across pages works. Failure here doesn't
+    //    abort ingestion — operators can still read the previews on the
+    //    documents row; semantic search just won't find this doc.
+    if (openaiKey && chunks.length > 0) {
+      try {
+        const embedResp = await fetch(`${Deno.env.get('SUPABASE_URL')!}/functions/v1/embed-text`, {
+          method:  'POST',
+          headers: {
+            'Content-Type':  'application/json',
+            'Authorization': authHeader,
+          },
+          body: JSON.stringify({ texts: chunks.map((c) => c.text_preview) }),
+        })
+        if (embedResp.ok) {
+          const embedData = await embedResp.json() as { embeddings: number[][] }
+          const chunkRows = chunks.map((c, i) => ({
+            document_id:  body.document_id,
+            hotel_id:     doc.hotel_id,
+            chunk_key:    c.chunk_id,
+            page:         c.page,
+            text_preview: c.text_preview,
+            embedding:    embedData.embeddings[i] ? `[${embedData.embeddings[i].join(',')}]` : null,
+          }))
+          await supabase
+            .from('document_chunks')
+            .upsert(chunkRows, { onConflict: 'document_id,chunk_key' })
+        }
+      } catch (e) {
+        // Surface to logs but don't fail the ingestion. The documents row
+        // still has chunks for inline preview.
+        console.warn('[document-ingest] chunk embedding failed:', e)
+      }
+    }
 
     const response: IngestResponse = {
       document_id: body.document_id,
