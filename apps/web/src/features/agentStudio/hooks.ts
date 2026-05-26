@@ -4,13 +4,15 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
 
 export interface AgentRecentRunsSummary {
-  agentName:   string
-  totalRuns:   number
-  pending:     number
-  approved:    number
-  rejected:    number
-  superseded:  number
+  agentName:     string
+  totalRuns:     number
+  pending:       number
+  approved:      number
+  rejected:      number
+  superseded:    number
   avgConfidence: number
+  lastRunAt:     string | null
+  lastRunStatus: string | null
 }
 
 /** Aggregate counts per agent_name from the proposals table. */
@@ -22,16 +24,20 @@ export function useAgentRunSummaries() {
       if (!hotelId) return []
       const { data, error } = await supabase
         .from('proposals')
-        .select('agent_name, status, confidence')
+        .select('agent_name, status, confidence, created_at')
         .eq('hotel_id', hotelId)
+        .order('created_at', { ascending: false })
         .limit(2000)
       if (error) throw new Error(error.message)
-      const rows = data as Array<{ agent_name: string; status: string; confidence: number }>
+      const rows = data as Array<{ agent_name: string; status: string; confidence: number; created_at: string }>
       const byAgent = new Map<string, AgentRecentRunsSummary>()
       for (const r of rows) {
         let s = byAgent.get(r.agent_name)
         if (!s) {
-          s = { agentName: r.agent_name, totalRuns: 0, pending: 0, approved: 0, rejected: 0, superseded: 0, avgConfidence: 0 }
+          s = {
+            agentName: r.agent_name, totalRuns: 0, pending: 0, approved: 0, rejected: 0, superseded: 0,
+            avgConfidence: 0, lastRunAt: r.created_at, lastRunStatus: r.status,
+          }
           byAgent.set(r.agent_name, s)
         }
         s.totalRuns++
