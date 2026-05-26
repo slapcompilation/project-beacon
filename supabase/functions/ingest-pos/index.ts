@@ -5,13 +5,8 @@
 //   Auth: x-beacon-secret header vs WEBHOOK_SIGNING_SECRET env var.
 //   Calls ingest_pos_sale() which auto-decrements stock via the immutable log pipeline.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-beacon-secret',
-}
+import { corsHeaders, json, preflight } from '../_shared/http.ts'
+import { isAuthError, verifySharedSecret } from '../_shared/auth.ts'
 
 interface POSSaleEvent {
   menu_item_id:           string
@@ -27,22 +22,13 @@ interface IngestPayload {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-  if (req.method !== 'POST') {
-    return json({ error: 'Method not allowed' }, 405)
-  }
+  const pre = preflight(req)
+  if (pre) return pre
+  if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  const signingSecret = Deno.env.get('WEBHOOK_SIGNING_SECRET')
-  if (!signingSecret) {
-    console.error('WEBHOOK_SIGNING_SECRET not set')
-    return json({ error: 'Server misconfiguration' }, 500)
-  }
-  if (req.headers.get('x-beacon-secret') !== signingSecret) {
-    return json({ error: 'Unauthorized' }, 401)
-  }
+  const auth = verifySharedSecret(req)
+  if (isAuthError(auth)) return auth
+  const { supabase: adminClient } = auth
 
   // ── Parse payload ─────────────────────────────────────────────────────────
   let body: IngestPayload
@@ -58,12 +44,6 @@ Deno.serve(async (req: Request) => {
   if (!Array.isArray(sales) || !sales.length) return json({ error: 'sales[] must be non-empty' }, 400)
 
   // ── Persist ───────────────────────────────────────────────────────────────
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  )
-
   let inserted = 0
   const errors: string[] = []
 
@@ -99,10 +79,3 @@ Deno.serve(async (req: Request) => {
     errors.length > 0 && inserted === 0 ? 422 : 200,
   )
 })
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
