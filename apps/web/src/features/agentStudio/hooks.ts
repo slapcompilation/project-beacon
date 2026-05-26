@@ -15,7 +15,20 @@ export interface AgentRecentRunsSummary {
   lastRunStatus: string | null
 }
 
-/** Aggregate counts per agent_name from the proposals table. */
+interface AgentRunSummaryRow {
+  hotel_id:         string
+  agent_name:       string
+  total_runs:       number
+  pending:          number
+  approved:         number
+  rejected:         number
+  superseded:       number
+  avg_confidence:   number | null
+  last_run_at:      string | null
+  last_run_status:  string | null
+}
+
+/** Per-agent stats hosted in the agent_run_summary view. RLS-scoped server-side. */
 export function useAgentRunSummaries() {
   const hotelId = useActiveHotelId()
   return useQuery({
@@ -23,36 +36,23 @@ export function useAgentRunSummaries() {
     queryFn:  async (): Promise<AgentRecentRunsSummary[]> => {
       if (!hotelId) return []
       const { data, error } = await supabase
-        .from('proposals')
-        .select('agent_name, status, confidence, created_at')
+        .from('agent_run_summary')
+        .select('agent_name, total_runs, pending, approved, rejected, superseded, avg_confidence, last_run_at, last_run_status')
         .eq('hotel_id', hotelId)
-        .order('created_at', { ascending: false })
-        .limit(2000)
+        .order('agent_name')
+        .overrideTypes<AgentRunSummaryRow[], { merge: false }>()
       if (error) throw new Error(error.message)
-      const rows = data as Array<{ agent_name: string; status: string; confidence: number; created_at: string }>
-      const byAgent = new Map<string, AgentRecentRunsSummary>()
-      for (const r of rows) {
-        let s = byAgent.get(r.agent_name)
-        if (!s) {
-          s = {
-            agentName: r.agent_name, totalRuns: 0, pending: 0, approved: 0, rejected: 0, superseded: 0,
-            avgConfidence: 0, lastRunAt: r.created_at, lastRunStatus: r.status,
-          }
-          byAgent.set(r.agent_name, s)
-        }
-        s.totalRuns++
-        if (r.status === 'pending')     s.pending++
-        if (r.status === 'approved')    s.approved++
-        if (r.status === 'rejected')    s.rejected++
-        if (r.status === 'superseded')  s.superseded++
-        s.avgConfidence += r.confidence
-      }
-      const out: AgentRecentRunsSummary[] = []
-      byAgent.forEach((s) => {
-        s.avgConfidence = s.totalRuns > 0 ? Number((s.avgConfidence / s.totalRuns).toFixed(2)) : 0
-        out.push(s)
-      })
-      return out.sort((a, b) => a.agentName.localeCompare(b.agentName))
+      return data.map((r) => ({
+        agentName:     r.agent_name,
+        totalRuns:     r.total_runs,
+        pending:       r.pending,
+        approved:      r.approved,
+        rejected:      r.rejected,
+        superseded:    r.superseded,
+        avgConfidence: r.avg_confidence ?? 0,
+        lastRunAt:     r.last_run_at,
+        lastRunStatus: r.last_run_status,
+      }))
     },
     enabled:   !!hotelId,
     staleTime: 60_000,
