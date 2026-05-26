@@ -238,6 +238,16 @@ export {
   type ConsumptionForecastOutput,
 } from './objectives/consumption_forecast/index'
 
+// ── Eval primitives — rubric grader (LLM-as-judge) + CI auto-persist ───────
+export {
+  gradeWithRubric,
+  type RubricCheck,
+  type RubricResult,
+  type RubricPerCheck,
+  evalAutoPersistReporter,
+  type EvalRunRecord,
+} from './evals/index'
+
 // ── Constraint engine — typed rules + pure evaluator ────────────────────────
 export {
   evaluateConstraints,
