@@ -10,6 +10,8 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
+import mammoth from 'https://esm.sh/mammoth@1.8.0'
+import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -44,9 +46,10 @@ interface IngestResponse {
 const MODEL = 'claude-haiku-4-5-20251001'
 const WHISPER_MODEL = 'whisper-1'
 
-// PDF + images go through Anthropic vision; audio routes to OpenAI Whisper.
-// DOCX/XLSX/CSV land in 16.e (mammoth + sheetjs in Deno). Fail fast on the
-// rest with a clear message.
+// Three pipelines, gated by MIME:
+//   VISION  → Anthropic vision (pdf + images)
+//   AUDIO   → OpenAI Whisper (audio/*)
+//   STRUCT  → in-process mammoth (docx) + sheetjs (xlsx) + plain split (text/csv)
 const VISION_MIMES = new Set([
   'application/pdf',
   'image/jpeg', 'image/png', 'image/webp', 'image/gif',
@@ -55,7 +58,15 @@ const AUDIO_MIMES = new Set([
   'audio/mpeg', 'audio/wav', 'audio/webm', 'audio/mp4',
   'audio/x-m4a', 'audio/ogg',
 ])
-const SUPPORTED_MIMES = new Set([...VISION_MIMES, ...AUDIO_MIMES])
+const STRUCT_MIMES = new Set([
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',       // .xlsx
+  'text/plain',
+  'text/csv',
+])
+const SUPPORTED_MIMES = new Set([...VISION_MIMES, ...AUDIO_MIMES, ...STRUCT_MIMES])
+
+const PREVIEW_LIMIT = 240
 
 interface WhisperSegment {
   id:    number
@@ -108,13 +119,13 @@ Deno.serve(async (req: Request) => {
 
     if (!SUPPORTED_MIMES.has(doc.mime_type)) {
       return json({
-        error: `Unsupported mime_type ${doc.mime_type}. v1 supports pdf + jpeg/png/webp/gif (Anthropic vision) and mpeg/wav/webm/mp4/m4a/ogg (OpenAI Whisper). DOCX/XLSX land in 16.e.`,
+        error: `Unsupported mime_type ${doc.mime_type}. Supported: pdf + jpeg/png/webp/gif (Anthropic vision), mpeg/wav/webm/mp4/m4a/ogg (OpenAI Whisper), docx/xlsx/csv/text (in-process).`,
       }, 400)
     }
 
     if (AUDIO_MIMES.has(doc.mime_type) && !openaiKey) {
       return json({
-        error: 'OPENAI_API_KEY secret not set on this project. Required for audio ingestion (Whisper). PDF and image ingestion still work via Anthropic.',
+        error: 'OPENAI_API_KEY secret not set on this project. Required for audio ingestion (Whisper). PDF/image/docx/xlsx still work without it.',
       }, 500)
     }
 
@@ -130,6 +141,10 @@ Deno.serve(async (req: Request) => {
 
     if (AUDIO_MIMES.has(doc.mime_type)) {
       const result = await ingestAudio(blob, body.document_id, doc.mime_type, doc.title, openaiKey!)
+      chunks     = result.chunks
+      tokensUsed = result.tokensUsed
+    } else if (STRUCT_MIMES.has(doc.mime_type)) {
+      const result = await ingestStructured(blob, body.document_id, doc.mime_type)
       chunks     = result.chunks
       tokensUsed = result.tokensUsed
     } else {
@@ -331,4 +346,95 @@ function extForMime(mimeType: string): string {
     case 'audio/ogg':  return 'ogg'
     default:           return 'bin'
   }
+}
+
+// ─── Structured pipeline (DOCX / XLSX / CSV / plain text) ───────────────────
+//
+// All three run in-process — no external API. mammoth for .docx, sheetjs
+// for .xlsx, line/row split for csv/plain. Chunking rule: one chunk per
+// "section" (paragraph group for docx, sheet for xlsx, ~50-line group for
+// text/csv) so the page field carries something meaningful for the operator
+// scanning the chunk list.
+
+async function ingestStructured(
+  blob:     Blob,
+  docId:    string,
+  mimeType: string,
+): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  switch (mimeType) {
+    case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+      return ingestDocx(blob, docId)
+    case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
+      return ingestXlsx(blob, docId)
+    case 'text/plain':
+    case 'text/csv':
+      return ingestPlainText(blob, docId)
+    default:
+      throw new Error(`ingestStructured: unhandled mime ${mimeType}`)
+  }
+}
+
+interface MammothResult {
+  value:    string
+  messages: Array<{ type: string; message: string }>
+}
+
+async function ingestDocx(blob: Blob, docId: string): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  const arrayBuffer = await blob.arrayBuffer()
+  const result = await (mammoth as { extractRawText: (input: { arrayBuffer: ArrayBuffer }) => Promise<MammothResult> })
+    .extractRawText({ arrayBuffer })
+
+  // Split on blank lines to make paragraph-group chunks; drop empties.
+  const paragraphs = result.value
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0)
+
+  if (paragraphs.length === 0) return { chunks: [], tokensUsed: 0 }
+
+  const chunks: ChunkOut[] = paragraphs.map((text, i) => ({
+    chunk_id:     `${docId}-para-${String(i + 1)}`,
+    page:         i + 1,
+    text_preview: text.slice(0, PREVIEW_LIMIT),
+  }))
+  return { chunks, tokensUsed: result.value.length }
+}
+
+async function ingestXlsx(blob: Blob, docId: string): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  const ab = await blob.arrayBuffer()
+  const wb = XLSX.read(new Uint8Array(ab), { type: 'array' })
+  const chunks: ChunkOut[] = []
+  let totalChars = 0
+  wb.SheetNames.forEach((sheetName, i) => {
+    const sheet = wb.Sheets[sheetName]
+    if (!sheet) return
+    const csv = XLSX.utils.sheet_to_csv(sheet, { blankrows: false })
+    if (csv.trim().length === 0) return
+    chunks.push({
+      chunk_id:     `${docId}-sheet-${String(i + 1)}`,
+      page:         i + 1,
+      text_preview: `[${sheetName}] ${csv}`.slice(0, PREVIEW_LIMIT),
+    })
+    totalChars += csv.length
+  })
+  return { chunks, tokensUsed: totalChars }
+}
+
+async function ingestPlainText(blob: Blob, docId: string): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  const text  = await blob.text()
+  const lines = text.split(/\r?\n/)
+  const GROUP = 50
+
+  const chunks: ChunkOut[] = []
+  for (let i = 0; i < lines.length; i += GROUP) {
+    const group = lines.slice(i, i + GROUP).join('\n').trim()
+    if (group.length === 0) continue
+    const pageNo = Math.floor(i / GROUP) + 1
+    chunks.push({
+      chunk_id:     `${docId}-block-${String(pageNo)}`,
+      page:         pageNo,
+      text_preview: group.slice(0, PREVIEW_LIMIT),
+    })
+  }
+  return { chunks, tokensUsed: text.length }
 }
