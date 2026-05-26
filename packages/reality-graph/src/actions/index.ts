@@ -31,5 +31,6 @@ export type {
   TransferCreateResult,
   TransferApproveResult,
   PendingApprovalResult,
+  DeliveryLogResult,
 } from './edges'
 export { edgesForAction } from './edges'

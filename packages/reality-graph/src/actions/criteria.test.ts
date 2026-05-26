@@ -39,6 +39,12 @@ describe('validateAction — happy paths', () => {
   it('WRITE_OFF',        () => expectValid({ type: 'WRITE_OFF',        variantId: VAR, hotelId: HOTEL, userId: USER, quantity: 3, wasteReason: 'expired' }))
   it('REVERT_ACTION',    () => expectValid({ type: 'REVERT_ACTION',    variantId: VAR, hotelId: HOTEL, userId: USER, originalLogId: 'log-1', revertReason: 'mistake' }))
   it('CREATE_SUPPLIER',  () => expectValid({ type: 'CREATE_SUPPLIER',  hotelId: HOTEL, name: 'Sysco' }))
+  it('UPDATE_SUPPLIER',  () => expectValid({ type: 'UPDATE_SUPPLIER',  supplierId: SUP, hotelId: HOTEL, name: 'Sysco Foods' }))
+  it('DELETE_SUPPLIER',  () => expectValid({ type: 'DELETE_SUPPLIER',  supplierId: SUP, hotelId: HOTEL }))
+  it('LOG_DELIVERY',     () => expectValid({
+    type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: SUP,
+    orderedQty: 10, receivedQty: 10, expectedDate: '2026-05-27',
+  }))
   it('CREATE_PO',        () => expectValid({
     type: 'CREATE_PO', hotelId: HOTEL, supplierId: SUP, supplierName: 'Sysco', poNumber: 'PO-1',
     lines: [{ variantId: VAR, orderedQty: 5, unitCost: 1.0 }],
@@ -78,5 +84,14 @@ describe('validateAction — canonical failures', () => {
   it('SUBMIT_PO_INVOICE rejects non-positive amount', () => expectInvalid(
     { type: 'SUBMIT_PO_INVOICE', poId: PO, hotelId: HOTEL,
       invoiceNumber: 'INV-1', invoiceDate: '2026-01-01', invoiceAmount: 0 }, 'invoiceAmount',
+  ))
+  it('UPDATE_SUPPLIER rejects blank-string name', () => expectInvalid(
+    { type: 'UPDATE_SUPPLIER', supplierId: SUP, hotelId: HOTEL, name: '   ' }, 'name',
+  ))
+  it('LOG_DELIVERY rejects missing expectedDate', () => expectInvalid(
+    { type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: SUP, orderedQty: 1, receivedQty: 1, expectedDate: '' }, 'expectedDate',
+  ))
+  it('LOG_DELIVERY rejects non-positive orderedQty', () => expectInvalid(
+    { type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: SUP, orderedQty: 0, receivedQty: 0, expectedDate: '2026-05-27' }, 'orderedQty',
   ))
 })

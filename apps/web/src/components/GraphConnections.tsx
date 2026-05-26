@@ -35,6 +35,7 @@ const EDGE_LABELS: Record<EdgeType, string> = {
   triggered_alert:   'Triggered alert',
   approved_by:       'Approved by',
   rejected_by:       'Rejected by',
+  modified_by:       'Modified by',
   sourced_from:      'Sourced from',
   linked_to_po:      'Linked to PO',
   invoiced_by:       'Invoiced by',
@@ -103,6 +104,7 @@ const NODE_LABELS: Record<NodeType, string> = {
   constraint:        'Constraint',
   stock_transfer:    'Transfer',
   scenario:          'Scenario',
+  delivery_event:    'Delivery',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────
