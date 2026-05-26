@@ -162,6 +162,61 @@ export function validateAction(action: BeaconAction): ValidationResult {
       if (!action.hotelId)    e('hotelId',    'hotelId is required')
       break
     }
+
+    case 'CREATE_LOCATION':
+    case 'CREATE_CATEGORY': {
+      if (!action.hotelId)     e('hotelId', 'hotelId is required')
+      if (!action.name.trim()) e('name',    'name is required')
+      break
+    }
+
+    case 'UPDATE_LOCATION': {
+      if (!action.locationId)            e('locationId', 'locationId is required')
+      if (!action.hotelId)               e('hotelId',    'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+
+    case 'DELETE_LOCATION': {
+      if (!action.locationId) e('locationId', 'locationId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
+
+    case 'UPDATE_CATEGORY': {
+      if (!action.categoryId)            e('categoryId', 'categoryId is required')
+      if (!action.hotelId)               e('hotelId',    'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+
+    case 'DELETE_CATEGORY': {
+      if (!action.categoryId) e('categoryId', 'categoryId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
+
+    case 'CREATE_REMOVAL_REASON': {
+      if (!action.hotelId)     e('hotelId', 'hotelId is required')
+      if (!action.name.trim()) e('name',    'name is required')
+      break
+    }
+
+    case 'UPDATE_REMOVAL_REASON': {
+      if (!action.reasonId)              e('reasonId', 'reasonId is required')
+      if (!action.hotelId)               e('hotelId',  'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+
+    case 'DELETE_REMOVAL_REASON': {
+      if (!action.reasonId) e('reasonId', 'reasonId is required')
+      if (!action.hotelId)  e('hotelId',  'hotelId is required')
+      break
+    }
   }
 
   return { valid: errors.length === 0, errors }

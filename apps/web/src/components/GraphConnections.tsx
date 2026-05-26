@@ -105,6 +105,9 @@ const NODE_LABELS: Record<NodeType, string> = {
   stock_transfer:    'Transfer',
   scenario:          'Scenario',
   delivery_event:    'Delivery',
+  location:          'Location',
+  category:          'Category',
+  removal_reason:    'Reason',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────

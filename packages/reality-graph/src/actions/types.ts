@@ -190,6 +190,63 @@ export type BeaconAction =
       hotelId:    string
     }
 
+  // ── Taxonomy: hotel-scoped reference data ─────────────────────────────────
+  | {
+      type: 'CREATE_LOCATION'
+      hotelId:   string
+      name:      string
+      parentId?: string | null
+    }
+  | {
+      type: 'UPDATE_LOCATION'
+      locationId: string
+      hotelId:    string
+      name?:      string
+      parentId?:  string | null
+    }
+  | {
+      type: 'DELETE_LOCATION'
+      locationId: string
+      hotelId:    string
+    }
+  | {
+      type: 'CREATE_CATEGORY'
+      hotelId:   string
+      name:      string
+      parentId?: string | null
+    }
+  | {
+      type: 'UPDATE_CATEGORY'
+      categoryId:        string
+      hotelId:           string
+      name?:             string
+      parentId?:         string | null
+      requirePhotoOver?: number | null
+    }
+  | {
+      type: 'DELETE_CATEGORY'
+      categoryId: string
+      hotelId:    string
+    }
+  | {
+      type: 'CREATE_REMOVAL_REASON'
+      hotelId:   string
+      name:      string
+      sortOrder?: number
+    }
+  | {
+      type: 'UPDATE_REMOVAL_REASON'
+      reasonId:   string
+      hotelId:    string
+      name?:      string
+      sortOrder?: number
+    }
+  | {
+      type: 'DELETE_REMOVAL_REASON'
+      reasonId: string
+      hotelId:  string
+    }
+
 // ─── Result types ─────────────────────────────────────────────────────────────
 //
 // `ActionFailure.error` is now a tagged `BeaconError` (per the osdk-ts audit

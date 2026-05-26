@@ -116,6 +116,38 @@ describe('edgesForAction', () => {
     expect(sourcedFrom).toMatchObject({ source_type: 'delivery_event', source_id: 'd-1', target_type: 'supplier', target_id: 's-1' })
   })
 
+  it('CREATE_LOCATION fans out belongs_to_hotel + created_by, scoped to a location node', () => {
+    const edges = edgesForAction(
+      { type: 'CREATE_LOCATION', hotelId: HOTEL, name: 'Walk-in' },
+      { nodeId: 'loc-1' },
+      ctx,
+    )
+    const types = edges.map((e) => e.edge_type).sort()
+    expect(types).toEqual(['belongs_to_hotel', 'created_by'])
+    expect(edges[0].source_type).toBe('location')
+  })
+
+  it('UPDATE_REMOVAL_REASON emits modified_by sourced from the removal_reason node', () => {
+    const edges = edgesForAction(
+      { type: 'UPDATE_REMOVAL_REASON', reasonId: 'rsn-1', hotelId: HOTEL, name: 'Renamed' },
+      {},
+      ctx,
+    )
+    expect(edges).toHaveLength(1)
+    expect(edges[0]).toMatchObject({
+      edge_type: 'modified_by', source_type: 'removal_reason', source_id: 'rsn-1',
+    })
+  })
+
+  it('DELETE_CATEGORY emits no new edges', () => {
+    const edges = edgesForAction(
+      { type: 'DELETE_CATEGORY', categoryId: 'cat-1', hotelId: HOTEL },
+      {},
+      ctx,
+    )
+    expect(edges).toEqual([])
+  })
+
   it('CREATE_PO fans out one linked_to_po edge per line', () => {
     const edges = edgesForAction(
       {
