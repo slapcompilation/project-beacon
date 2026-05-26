@@ -4,12 +4,11 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Callout, Card, Dialog, DialogBody, DialogFooter, HTMLSelect,
+  Button, Callout, Card, HTMLSelect,
   Icon, Intent, NonIdealState, Spinner, Tag, TextArea,
 } from '@blueprintjs/core'
-import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
-import { actionDescriptors, validateAction, type BeaconAction } from '@beacon/reality-graph'
+import { actionDescriptors, type BeaconAction } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import {
@@ -21,6 +20,7 @@ import {
   useUpdateScenarioNotes,
 } from '@/features/scenarios/hooks'
 import { AuditRail } from '@/components/AuditRail'
+import { ActionFormModal } from '@/features/actions/ActionFormModal'
 
 const PICKABLE_ACTIONS = Object.keys(actionDescriptors).map((type) => ({
   type: type as BeaconAction['type'],
@@ -217,18 +217,19 @@ export default function ScenarioObjectPage() {
        <AuditRail nodeType="scenario" nodeId={row.id} />
       </div>
 
-      {/* Add-action modal: JSON paste editor. v1 keeps the sandbox truly
-          side-effect-free by skipping the auto-rendered form (which would
-          dispatch on submit). Phase 18.b ships a proper sandboxed picker. */}
+      {/* Add-action modal: ActionFormModal in capture mode. The same
+          renderer the Review Queue + copilot proposal cards use, except
+          onCapture (instead of dispatchContext) routes the built action
+          into simulated_actions without touching the Action Registry. */}
       {isDraft && hotelId && userId && (
-        <AddSimulatedActionDialog
+        <ActionFormModal
           open={addOpen}
           onClose={() => { setAddOpen(false) }}
           actionType={actionType}
-          hotelId={hotelId}
-          userId={userId}
-          appendPending={append.isPending}
-          onAdd={(action) => {
+          context={{ hotelId, userId, requestorId: userId, fromHotelId: hotelId }}
+          titleOverride={`Add to scenario · ${actionDescriptors[actionType].title}`}
+          submitLabelOverride="Add to scenario"
+          onCapture={(action) => {
             append.mutate(
               { scenarioId: row.id, action },
               { onSuccess: () => { setAddOpen(false) } },
@@ -237,102 +238,6 @@ export default function ScenarioObjectPage() {
         />
       )}
     </div>
-  )
-}
-
-// ─── Add-action JSON editor ──────────────────────────────────────────────────
-
-function AddSimulatedActionDialog({
-  open, onClose, actionType, hotelId, userId, appendPending, onAdd,
-}: {
-  open: boolean
-  onClose: () => void
-  actionType: BeaconAction['type']
-  hotelId: string
-  userId: string
-  appendPending: boolean
-  onAdd: (action: BeaconAction) => void
-}) {
-  // Seed with the context fields the dispatcher will inject + a stub for the
-  // visible fields. Operator edits, we validate via validateAction, then
-  // append to simulated_actions. Zero dispatcher side effects.
-  const descriptor = actionDescriptors[actionType]
-  const initial = useState(() => {
-    const seed: Record<string, unknown> = { type: actionType }
-    for (const cf of descriptor.contextFields) {
-      if (cf === 'hotelId' || cf === 'fromHotelId' || cf === 'toHotelId') seed[cf] = hotelId
-      else if (cf === 'userId' || cf === 'requestorId') seed[cf] = userId
-    }
-    for (const f of descriptor.fields) {
-      seed[f.name] = f.kind === 'number' || f.kind === 'quantity' || f.kind === 'currency' ? 0 : ''
-    }
-    return JSON.stringify(seed, null, 2)
-  })[0]
-
-  const [text, setText] = useState(initial)
-  const [err, setErr]   = useState<string | null>(null)
-
-  const handleAdd = () => {
-    setErr(null)
-    let parsed: unknown
-    try {
-      parsed = JSON.parse(text)
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Invalid JSON')
-      return
-    }
-    const action = parsed as BeaconAction
-    const validation = validateAction(action)
-    if (!validation.valid) {
-      setErr(validation.errors.map((v) => `${v.field}: ${v.message}`).join('; '))
-      return
-    }
-    onAdd(action)
-    setText(initial)
-  }
-
-  return (
-    <Dialog
-      isOpen={open}
-      onClose={onClose}
-      title={`Add to scenario · ${actionType}`}
-      className="!w-[36rem]"
-    >
-      <DialogBody>
-        <p className="text-xs text-muted-foreground mb-2">
-          Edit the BeaconAction payload directly. The scenario stores it as-is and replays through the regular Action Registry on commit. Nothing dispatches until then.
-        </p>
-        <TextArea
-          fill
-          rows={14}
-          value={text}
-          onChange={(e) => { setText(e.target.value) }}
-          className="font-mono text-xs"
-        />
-        {err && (
-          <Callout intent={Intent.DANGER} icon="error" className="mt-2">
-            {err}
-          </Callout>
-        )}
-      </DialogBody>
-      <DialogFooter
-        actions={
-          <>
-            <Button variant="minimal" disabled={appendPending} onClick={onClose}>Cancel</Button>
-            <Button
-              intent={Intent.PRIMARY}
-              icon="add"
-              loading={appendPending}
-              onClick={() => {
-                try { handleAdd() } catch (e) { toast.error(e instanceof Error ? e.message : 'Failed') }
-              }}
-            >
-              Add to scenario
-            </Button>
-          </>
-        }
-      />
-    </Dialog>
   )
 }
 
