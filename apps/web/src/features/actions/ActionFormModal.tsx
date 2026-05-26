@@ -31,15 +31,25 @@ export interface ActionFormModalProps {
   context: Record<string, unknown>
   /** Optional preset values for visible fields (e.g. proposal payload when editing). */
   initialValues?: Record<string, unknown>
-  dispatchContext: DispatchContext
+  /** Required when in dispatch mode (default). Ignored in capture mode. */
+  dispatchContext?: DispatchContext
   /** Triggered after a successful dispatch. */
   onSuccess?: (result: unknown) => void
+  /** When provided, the modal captures the built BeaconAction instead of
+   *  dispatching it. Used by Scenarios for sandbox-safe action building —
+   *  the operator's form input becomes a row in simulated_actions; nothing
+   *  hits the Action Registry until the scenario commits. */
+  onCapture?: (action: BeaconAction) => void
   /** Custom modal title; defaults to descriptor.title. */
   titleOverride?: string
+  /** Custom submit button label; defaults to descriptor.submitLabel or 'Submit'. */
+  submitLabelOverride?: string
 }
 
 export function ActionFormModal({
-  open, onClose, actionType, context, initialValues, dispatchContext, onSuccess, titleOverride,
+  open, onClose, actionType, context, initialValues,
+  dispatchContext, onSuccess, onCapture,
+  titleOverride, submitLabelOverride,
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
   const [values, setValues]   = useState<Record<string, FormValue | undefined>>(() =>
@@ -66,6 +76,26 @@ export function ActionFormModal({
     const validation = validateAction(action)
     if (!validation.valid) {
       setFieldErrors(asFieldErrorMap(validation))
+      setSubmitting(false)
+      return
+    }
+
+    // Capture mode (sandbox): emit the typed action; never touch the
+    // dispatcher. Used by Scenarios.
+    if (onCapture) {
+      try {
+        onCapture(action)
+        onClose()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Capture failed')
+      } finally {
+        setSubmitting(false)
+      }
+      return
+    }
+
+    if (!dispatchContext) {
+      setError('Internal: ActionFormModal needs either dispatchContext or onCapture')
       setSubmitting(false)
       return
     }
@@ -125,7 +155,7 @@ export function ActionFormModal({
               loading={submitting}
               onClick={handleSubmit}
             >
-              {descriptor.submitLabel ?? 'Submit'}
+              {submitLabelOverride ?? descriptor.submitLabel ?? 'Submit'}
             </Button>
           </>
         }
