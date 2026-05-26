@@ -512,6 +512,28 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'messages array is required' }, 400)
     }
 
+    // ── Per-hotel tool allowlist (Phase 10.b) ────────────────────────────────
+    // Resolve the caller's hotel + look up the copilot_tool_configs row.
+    // Absence of a row = every TOOL enabled; rows list tools that should be
+    // hidden from the LLM. Filter once and reuse everywhere TOOLS appears.
+    const { data: callerProfile } = await supabase
+      .from('profiles')
+      .select('hotel_id')
+      .eq('id', user.id)
+      .single() as unknown as { data: { hotel_id: string } | null }
+    let disabledTools: string[] = []
+    if (callerProfile?.hotel_id) {
+      const { data: config } = await supabase
+        .from('copilot_tool_configs')
+        .select('disabled_tools')
+        .eq('hotel_id', callerProfile.hotel_id)
+        .maybeSingle() as unknown as { data: { disabled_tools: string[] | null } | null }
+      disabledTools = config?.disabled_tools ?? []
+    }
+    const allowedTools = disabledTools.length === 0
+      ? TOOLS
+      : TOOLS.filter((t) => !disabledTools.includes(t.name))
+
     // ── Conversation persistence (Phase B1) ──────────────────────────────
     // Resolve / create the conversation row up front so subsequent inserts
     // have a valid foreign key. RLS scopes both reads and writes to the
@@ -625,7 +647,7 @@ Deno.serve(async (req: Request) => {
                 model:      'claude-haiku-4-5-20251001',
                 max_tokens: 1024,
                 system:     SYSTEM_PROMPT,
-                tools:      TOOLS,
+                tools:      allowedTools,
                 messages:   anthropicMessages,
               })
 
@@ -754,7 +776,7 @@ Deno.serve(async (req: Request) => {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       system: SYSTEM_PROMPT,
-      tools: TOOLS,
+      tools: allowedTools,
       messages: anthropicMessages,
     })
 
@@ -801,7 +823,7 @@ Deno.serve(async (req: Request) => {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
         system: SYSTEM_PROMPT,
-        tools: TOOLS,
+        tools: allowedTools,
         messages: anthropicMessages,
       })
     }

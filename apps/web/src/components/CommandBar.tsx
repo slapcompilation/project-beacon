@@ -61,6 +61,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Mind',  icon: 'folder-open',         label: 'Mind · Cases',               path: '/cases',               shortcut: 'G C' },
   { group: 'Mind',  icon: 'document',            label: 'Mind · Documents',           path: '/documents',           shortcut: 'G D' },
   { group: 'Mind',  icon: 'lab-test',            label: 'Mind · Scenarios',           path: '/scenarios',           shortcut: 'G N' },
+  { group: 'Mind',  icon: 'chat',                label: 'Mind · Copilot Config',      path: '/copilot-config',      shortcut: 'G O' },
   { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Triage',      path: '/mind?panel=triage' },
   { group: 'Mind',  icon: 'truck',           label: 'Mind · Suppliers',   path: '/mind?panel=suppliers' },
   { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Builder',  path: '/mind?panel=procurement' },
