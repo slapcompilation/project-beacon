@@ -19,6 +19,12 @@ import {
 } from '@/features/documents/hooks'
 import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
+import {
+  useApproveSuggestion,
+  useAutoExtractEntityLinks,
+  useRejectSuggestion,
+  useSuggestionsForDocument,
+} from '@/features/entityLinks/hooks'
 
 export default function DocumentObjectPage() {
   const { documentId = '' } = useParams<{ documentId: string }>()
@@ -30,7 +36,13 @@ export default function DocumentObjectPage() {
   const ingest  = useIngestDocument(documentId)
   const link    = useLinkDocumentToEntity(documentId)
   const unlink  = useUnlinkDocumentFromEntity(documentId)
+  const autoExtract = useAutoExtractEntityLinks(documentId)
+  const { data: suggestions = [] } = useSuggestionsForDocument(documentId)
+  const approve = useApproveSuggestion()
+  const reject  = useRejectSuggestion()
   const [linkOpen, setLinkOpen] = useState(false)
+
+  const pendingSuggestions = suggestions.filter((s) => s.status === 'pending')
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center"><Spinner intent={Intent.PRIMARY} /></div>
@@ -93,6 +105,16 @@ export default function DocumentObjectPage() {
             onClick={() => { ingest.mutate() }}
           >
             Re-ingest
+          </Button>
+        )}
+        {row.chunks && row.chunks.length > 0 && (
+          <Button
+            variant="minimal"
+            icon="search-template"
+            loading={autoExtract.isPending}
+            onClick={() => { autoExtract.mutate() }}
+          >
+            Suggest entity links
           </Button>
         )}
         {signedUrl && (
@@ -176,6 +198,59 @@ export default function DocumentObjectPage() {
             </div>
           )}
         </Section>
+
+        {pendingSuggestions.length > 0 && (
+          <Section title={`Suggestions (${String(pendingSuggestions.length)})`} icon="search-template">
+            <div className="space-y-1.5">
+              {pendingSuggestions.map((s) => {
+                const borderClass =
+                  s.confidence >= 0.85 ? 'border-l-emerald-500' :
+                  s.confidence >= 0.65 ? 'border-l-amber-400'   :
+                  'border-l-red-500'
+                const busy = approve.isPending || reject.isPending
+                return (
+                  <Card key={s.id} className={`text-xs space-y-2 border-l-2 ${borderClass}`}>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Tag minimal intent={Intent.PRIMARY} className="font-mono">{s.entity_type}</Tag>
+                      <Tag minimal>{Math.round(s.confidence * 100)}%</Tag>
+                      {s.chunk_key && <Tag minimal icon="layers">{s.chunk_key}</Tag>}
+                      <Link to={objectPathFor(s.entity_type, s.entity_id)} className="font-mono hover:underline truncate">
+                        {s.entity_id}
+                      </Link>
+                    </div>
+                    <p>{s.reasoning}</p>
+                    {s.evidence_snippet && (
+                      <blockquote className="italic text-muted-foreground border-l-2 border-border/40 pl-3 leading-relaxed">
+                        "{s.evidence_snippet}"
+                      </blockquote>
+                    )}
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="minimal"
+                        size="small"
+                        intent={Intent.DANGER}
+                        icon="cross"
+                        disabled={busy}
+                        onClick={() => { reject.mutate(s) }}
+                      >
+                        Reject
+                      </Button>
+                      <Button
+                        intent={Intent.PRIMARY}
+                        size="small"
+                        icon="tick"
+                        loading={busy}
+                        onClick={() => { approve.mutate(s) }}
+                      >
+                        Approve &amp; link
+                      </Button>
+                    </div>
+                  </Card>
+                )
+              })}
+            </div>
+          </Section>
+        )}
 
         <Section title="Linked entities" icon="link">
           {entityLinks.length === 0 ? (
@@ -306,7 +381,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Section({ title, icon, children }: { title: string; icon: 'document' | 'eye-open' | 'layers' | 'time' | 'link'; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon: 'document' | 'eye-open' | 'layers' | 'time' | 'link' | 'search-template'; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
