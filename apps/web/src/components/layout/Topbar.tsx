@@ -9,9 +9,7 @@ import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
-import { usePendingProposals } from '@/features/agents/useReviewQueue'
-import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
-import { usePendingEntityLinkSuggestions } from '@/features/entityLinks/hooks'
+import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { ScopeSwitcher } from './ScopeSwitcher'
 
 export const Topbar = memo(function Topbar() {
@@ -102,16 +100,16 @@ export const Topbar = memo(function Topbar() {
 })
 
 // AIP signal counters. One pill per queue with a live count. Click to jump
-// into Mind's AIP shell on the matching tab.
+// into Mind's AIP shell on the matching tab. Single RPC round-trip behind
+// useAipSignalCounts.
 function AipSignalStrip() {
-  const queue       = usePendingProposals()
-  const approvals   = usePendingApprovals()
-  const entityLinks = usePendingEntityLinkSuggestions()
+  const { data } = useAipSignalCounts()
+  const counts = data ?? { queue: 0, approvals: 0, entityLinks: 0 }
 
   const items: { tab: string; label: string; icon: IconName; count: number; tone: string }[] = [
-    { tab: 'queue',        label: 'Queue',     icon: 'predictive-analysis', count: queue.data?.length       ?? 0, tone: 'text-violet-500' },
-    { tab: 'approvals',    label: 'Approvals', icon: 'warning-sign',        count: approvals.data?.length   ?? 0, tone: 'text-amber-500'  },
-    { tab: 'entity-links', label: 'Links',     icon: 'search-template',     count: entityLinks.data?.length ?? 0, tone: 'text-blue-500'   },
+    { tab: 'queue',        label: 'Queue',     icon: 'predictive-analysis', count: counts.queue,       tone: 'text-violet-500' },
+    { tab: 'approvals',    label: 'Approvals', icon: 'warning-sign',        count: counts.approvals,   tone: 'text-amber-500'  },
+    { tab: 'entity-links', label: 'Links',     icon: 'search-template',     count: counts.entityLinks, tone: 'text-blue-500'   },
   ]
 
   return (
