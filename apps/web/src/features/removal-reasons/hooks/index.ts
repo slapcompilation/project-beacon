@@ -2,12 +2,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-import {
-  fetchCustomRemovalReasons,
-  createCustomRemovalReason,
-  updateCustomRemovalReason,
-  deleteCustomRemovalReason,
-} from '../api'
+import { useAuthStore } from '@/stores/auth.store'
+import { dispatchAction } from '@/lib/actions/dispatch'
+import { fetchCustomRemovalReasons } from '../api'
 
 export const removalReasonKeys = {
   all: (hotelId: string) => ['removal-reasons', hotelId] as const,
@@ -26,9 +23,16 @@ export function useCustomRemovalReasons() {
 export function useCreateCustomRemovalReason() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: ({ name, sortOrder }: { name: string; sortOrder?: number }) =>
-      createCustomRemovalReason(hotelId ?? '', name, sortOrder),
+    mutationFn: async ({ name, sortOrder }: { name: string; sortOrder?: number }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'CREATE_REMOVAL_REASON', hotelId, name, sortOrder: sortOrder ?? 0 },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: removalReasonKeys.all(hotelId ?? '') })
     },
@@ -39,9 +43,16 @@ export function useCreateCustomRemovalReason() {
 export function useUpdateCustomRemovalReason() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: { name?: string; sort_order?: number } }) =>
-      updateCustomRemovalReason(id, patch),
+    mutationFn: async ({ id, patch }: { id: string; patch: { name?: string; sort_order?: number } }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'UPDATE_REMOVAL_REASON', reasonId: id, hotelId, name: patch.name, sortOrder: patch.sort_order },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: removalReasonKeys.all(hotelId ?? '') })
     },
@@ -52,8 +63,16 @@ export function useUpdateCustomRemovalReason() {
 export function useDeleteCustomRemovalReason() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: (id: string) => deleteCustomRemovalReason(id),
+    mutationFn: async (id: string) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'DELETE_REMOVAL_REASON', reasonId: id, hotelId },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: removalReasonKeys.all(hotelId ?? '') })
     },

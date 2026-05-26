@@ -37,6 +37,8 @@ export interface InvoiceSubmitResult    { invoiceId: string }
 export interface TransferCreateResult   { transferId: string }
 export interface TransferApproveResult  { fromLogId: string; toLogId: string; fromBalance: number; toBalance: number }
 export interface DeliveryLogResult      { deliveryId: string }
+/** Shared result shape for create-row taxonomy ops (location/category/reason). */
+export interface TaxonomyCreateResult   { nodeId: string }
 /** Returned when an action hit a SOFT constraint violation and was routed to
  *  the pending_action_approvals queue instead of executing. */
 export interface PendingApprovalResult  { pendingApprovalId: string }
@@ -53,6 +55,7 @@ export type MutationResult =
   | TransferApproveResult
   | PendingApprovalResult
   | DeliveryLogResult
+  | TaxonomyCreateResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────
@@ -247,6 +250,46 @@ export function edgesForAction(
       }
       break
     }
+
+    // ── Taxonomy CRUD ───────────────────────────────────────────────────────
+    case 'CREATE_LOCATION': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'location', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'location', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_LOCATION': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'location', source_id: action.locationId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'DELETE_LOCATION': break
+
+    case 'CREATE_CATEGORY': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'category', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'category', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_CATEGORY': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'category', source_id: action.categoryId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'DELETE_CATEGORY': break
+
+    case 'CREATE_REMOVAL_REASON': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'removal_reason', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'removal_reason', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_REMOVAL_REASON': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'removal_reason', source_id: action.reasonId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'DELETE_REMOVAL_REASON': break
   }
 
   return edges

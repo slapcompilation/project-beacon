@@ -59,6 +59,17 @@ describe('validateAction — happy paths', () => {
     type: 'TRANSFER_STOCK', fromHotelId: HOTEL, toHotelId: HOTEL2, variantId: VAR, quantity: 5, reason: 'rebalance',
   }))
   it('APPROVE_TRANSFER', () => expectValid({ type: 'APPROVE_TRANSFER', transferId: 'xfer-1', hotelId: HOTEL }))
+
+  // ── Taxonomy ──────────────────────────────────────────────────────────────
+  it('CREATE_LOCATION',        () => expectValid({ type: 'CREATE_LOCATION',        hotelId: HOTEL, name: 'Walk-in' }))
+  it('UPDATE_LOCATION',        () => expectValid({ type: 'UPDATE_LOCATION',        locationId: 'loc-1', hotelId: HOTEL, name: 'Walk-in fridge' }))
+  it('DELETE_LOCATION',        () => expectValid({ type: 'DELETE_LOCATION',        locationId: 'loc-1', hotelId: HOTEL }))
+  it('CREATE_CATEGORY',        () => expectValid({ type: 'CREATE_CATEGORY',        hotelId: HOTEL, name: 'Dairy' }))
+  it('UPDATE_CATEGORY',        () => expectValid({ type: 'UPDATE_CATEGORY',        categoryId: 'cat-1', hotelId: HOTEL, name: 'Dairy & eggs' }))
+  it('DELETE_CATEGORY',        () => expectValid({ type: 'DELETE_CATEGORY',        categoryId: 'cat-1', hotelId: HOTEL }))
+  it('CREATE_REMOVAL_REASON',  () => expectValid({ type: 'CREATE_REMOVAL_REASON',  hotelId: HOTEL, name: 'Pest contamination' }))
+  it('UPDATE_REMOVAL_REASON',  () => expectValid({ type: 'UPDATE_REMOVAL_REASON',  reasonId: 'rsn-1', hotelId: HOTEL, sortOrder: 3 }))
+  it('DELETE_REMOVAL_REASON',  () => expectValid({ type: 'DELETE_REMOVAL_REASON',  reasonId: 'rsn-1', hotelId: HOTEL }))
 })
 
 describe('validateAction — canonical failures', () => {

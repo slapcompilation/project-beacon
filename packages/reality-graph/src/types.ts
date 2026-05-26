@@ -33,6 +33,10 @@ export type NodeType =
   | 'scenario'
   // Supplier delivery telemetry (powers reliability scoring)
   | 'delivery_event'
+  // Hotel taxonomy + reference data
+  | 'location'
+  | 'category'
+  | 'removal_reason'
 
 export type EdgeType =
   | 'belongs_to_hotel'

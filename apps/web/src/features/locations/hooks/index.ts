@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
+import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchLocations,
-  createLocation,
-  updateLocation,
-  deleteLocation,
   fetchLowStockByLocation,
   fetchInventoryByLocation,
   reassignVariantLocation,
@@ -30,9 +29,16 @@ export function useLocations() {
 export function useCreateLocation() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: (input: { name: string; parent_id?: string | null }) =>
-      createLocation(hotelId ?? '', input),
+    mutationFn: async (input: { name: string; parent_id?: string | null }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'CREATE_LOCATION', hotelId, name: input.name, parentId: input.parent_id ?? null },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: locKeys.all(hotelId ?? '') })
       toast.success('Location added')
@@ -44,9 +50,16 @@ export function useCreateLocation() {
 export function useUpdateLocation() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: { name?: string; parent_id?: string | null } }) =>
-      updateLocation(id, input),
+    mutationFn: async ({ id, input }: { id: string; input: { name?: string; parent_id?: string | null } }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'UPDATE_LOCATION', locationId: id, hotelId, name: input.name, parentId: input.parent_id },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: locKeys.all(hotelId ?? '') })
       toast.success('Location updated')
@@ -58,8 +71,16 @@ export function useUpdateLocation() {
 export function useDeleteLocation() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
   return useMutation({
-    mutationFn: (id: string) => deleteLocation(id),
+    mutationFn: async (id: string) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'DELETE_LOCATION', locationId: id, hotelId },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: locKeys.all(hotelId ?? '') })
       toast.success('Location removed')

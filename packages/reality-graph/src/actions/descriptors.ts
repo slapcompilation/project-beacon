@@ -273,6 +273,101 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     contextFields:  ['transferId', 'hotelId'],
     approvalTier:   'hotel-admin',
   },
+
+  // ── Taxonomy CRUD ─────────────────────────────────────────────────────────
+  CREATE_LOCATION: {
+    invocationMode: 'open-form',
+    title:          'Add location',
+    description:    'Adds a physical location to the hotel.',
+    fields: [
+      { name: 'name',     kind: 'string', label: 'Name',      required: true },
+      { name: 'parentId', kind: 'string', label: 'Parent id' },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_LOCATION: {
+    invocationMode: 'open-form',
+    title:          'Edit location',
+    description:    'Updates a location. Emits modified_by audit edge.',
+    fields: [
+      { name: 'name',     kind: 'string', label: 'Name' },
+      { name: 'parentId', kind: 'string', label: 'Parent id' },
+    ],
+    contextFields: ['locationId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  DELETE_LOCATION: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove location',
+    description:    'Removes a location from the hotel.',
+    fields:         [],
+    contextFields:  ['locationId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
+
+  CREATE_CATEGORY: {
+    invocationMode: 'open-form',
+    title:          'Add category',
+    description:    'Adds a product category to the hotel.',
+    fields: [
+      { name: 'name',     kind: 'string', label: 'Name',      required: true },
+      { name: 'parentId', kind: 'string', label: 'Parent id' },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_CATEGORY: {
+    invocationMode: 'open-form',
+    title:          'Edit category',
+    description:    'Updates a category. Emits modified_by audit edge.',
+    fields: [
+      { name: 'name',             kind: 'string', label: 'Name' },
+      { name: 'parentId',         kind: 'string', label: 'Parent id' },
+      { name: 'requirePhotoOver', kind: 'number', label: 'Require photo when removing more than', min: 0 },
+    ],
+    contextFields: ['categoryId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  DELETE_CATEGORY: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove category',
+    description:    'Removes a category. Fails if products still reference it.',
+    fields:         [],
+    contextFields:  ['categoryId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
+
+  CREATE_REMOVAL_REASON: {
+    invocationMode: 'open-form',
+    title:          'Add removal reason',
+    description:    'Adds a custom removal reason to the hotel taxonomy.',
+    fields: [
+      { name: 'name',      kind: 'string', label: 'Name', required: true },
+      { name: 'sortOrder', kind: 'number', label: 'Sort order', min: 0 },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_REMOVAL_REASON: {
+    invocationMode: 'open-form',
+    title:          'Edit removal reason',
+    description:    'Updates a removal reason. Emits modified_by audit edge.',
+    fields: [
+      { name: 'name',      kind: 'string', label: 'Name' },
+      { name: 'sortOrder', kind: 'number', label: 'Sort order', min: 0 },
+    ],
+    contextFields: ['reasonId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  DELETE_REMOVAL_REASON: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove removal reason',
+    description:    'Removes a custom removal reason.',
+    fields:         [],
+    contextFields:  ['reasonId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
 }
 
 /** Returns the descriptor for an action type, or throws if unregistered. */

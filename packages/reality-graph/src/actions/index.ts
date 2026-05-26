@@ -32,5 +32,6 @@ export type {
   TransferApproveResult,
   PendingApprovalResult,
   DeliveryLogResult,
+  TaxonomyCreateResult,
 } from './edges'
 export { edgesForAction } from './edges'

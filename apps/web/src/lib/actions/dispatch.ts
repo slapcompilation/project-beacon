@@ -61,6 +61,21 @@ import {
   logDeliveryEvent,
 } from '@/features/suppliers/api'
 import {
+  createLocation,
+  updateLocation,
+  deleteLocation,
+} from '@/features/locations/api'
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from '@/features/categories/api'
+import {
+  createCustomRemovalReason,
+  updateCustomRemovalReason,
+  deleteCustomRemovalReason,
+} from '@/features/removal-reasons/api'
+import {
   createStockTransfer,
   approveStockTransfer,
 } from '@/features/agents/transfersApi'
@@ -369,6 +384,57 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
           fromBalance: res.fromBalance,
           toBalance:   res.toBalance,
         } satisfies TransferApproveResult
+        break
+      }
+
+      // ── Taxonomy CRUD ─────────────────────────────────────────────────────
+      case 'CREATE_LOCATION': {
+        const loc = await createLocation(action.hotelId, { name: action.name, parent_id: action.parentId ?? null })
+        mutationResult = { nodeId: loc.id }
+        break
+      }
+      case 'UPDATE_LOCATION': {
+        await updateLocation(action.locationId, { name: action.name, parent_id: action.parentId })
+        break
+      }
+      case 'DELETE_LOCATION': {
+        await deleteLocation(action.locationId)
+        break
+      }
+
+      case 'CREATE_CATEGORY': {
+        const cat = await createCategory(action.hotelId, action.name, action.parentId ?? null)
+        mutationResult = { nodeId: cat.id }
+        break
+      }
+      case 'UPDATE_CATEGORY': {
+        await updateCategory(
+          action.categoryId,
+          action.name ?? '',
+          action.parentId ?? null,
+          action.requirePhotoOver ?? null,
+        )
+        break
+      }
+      case 'DELETE_CATEGORY': {
+        await deleteCategory(action.categoryId)
+        break
+      }
+
+      case 'CREATE_REMOVAL_REASON': {
+        const r = await createCustomRemovalReason(action.hotelId, action.name, action.sortOrder ?? 0)
+        mutationResult = { nodeId: r.id }
+        break
+      }
+      case 'UPDATE_REMOVAL_REASON': {
+        await updateCustomRemovalReason(action.reasonId, {
+          name:       action.name,
+          sort_order: action.sortOrder,
+        })
+        break
+      }
+      case 'DELETE_REMOVAL_REASON': {
+        await deleteCustomRemovalReason(action.reasonId)
         break
       }
     }
