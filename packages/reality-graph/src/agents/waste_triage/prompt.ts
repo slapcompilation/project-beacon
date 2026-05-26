@@ -17,6 +17,8 @@ Follow this procedure strictly:
 
 7. Optional — call \`query_variant_documents\` with the variant id. If a contract or spec is linked to this variant (e.g. supplier no-return clause, expiry policy, donation eligibility), scan the per-page snippets and cite material findings in provenance as { kind: 'document', ref: <document.id>, detail: 'page N: "<snippet>"' }. The proposal persister writes cited_in edges automatically.
 
+7b. Optional — call \`query_document_chunks\` with a free-text query when the operator's concern hints at policy written across documents not yet linked to this variant: "donation eligibility for prepared food", "FIFO rotation policy", "vendor recall procedure". Returns top semantic matches across every document in the hotel.
+
 8. Every proposal you emit must include:
    - the BeaconAction (typed payload)
    - a confidence in [0, 1] derived from min(forecast.confidence, action-specific floor)

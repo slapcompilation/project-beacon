@@ -3,6 +3,7 @@
 
 import { supabase } from '@/lib/supabase/client'
 import type {
+  DocumentChunkMatch,
   DocumentRow,
   GraphReader,
   HotelRow,
@@ -148,6 +149,32 @@ export function makeSupabaseGraphReader(): GraphReader {
         .in('id', docIds)
       if (docError) throw new Error(docError.message)
       return (docs ?? []) as DocumentRow[]
+    },
+
+    async searchDocumentChunks(hotelId, query, opts): Promise<DocumentChunkMatch[]> {
+      // Two-step: embed the query via edge function, then call the
+      // match_document_chunks pgvector RPC. Failure at either step
+      // returns [] so the agent's reasoning can continue without
+      // hard-erroring when the embedding pipeline is down.
+      try {
+        const embedResp = await supabase.functions.invoke<{ embeddings: number[][] }>('embed-text', {
+          body: { texts: [query] },
+        })
+        const vec = embedResp.data?.embeddings[0]
+        if (!vec || vec.length === 0) return []
+
+        const rpcResult = await supabase.rpc('match_document_chunks', {
+          p_hotel_id:  hotelId,
+          p_query:     `[${vec.join(',')}]`,
+          p_threshold: opts?.threshold ?? 0.70,
+          p_limit:     opts?.limit ?? 8,
+        }) as { data: DocumentChunkMatch[] | null; error: { message: string } | null }
+        if (rpcResult.error) throw new Error(rpcResult.error.message)
+        return rpcResult.data ?? []
+      } catch (err) {
+        console.warn('[graphReader] searchDocumentChunks failed:', err)
+        return []
+      }
     },
   }
 }

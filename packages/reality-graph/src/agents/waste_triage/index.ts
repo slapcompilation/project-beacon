@@ -10,6 +10,7 @@ import { makeForecastConsumptionTool } from '../../tools/logic/forecast_consumpt
 import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sister_property_inventory'
 import { makeQueryRecentWasteLogsTool } from '../../tools/data/query_recent_waste_logs'
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
+import { makeQueryDocumentChunksTool } from '../../tools/data/query_document_chunks'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
 import type { LLMClient } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
@@ -43,6 +44,7 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
     makeForecastConsumptionTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
     makeQuerySisterPropertyInventoryTool(deps.reader) as LogicTool,
     makeQueryVariantDocumentsTool(deps.reader)        as LogicTool,
+    makeQueryDocumentChunksTool(deps.reader)          as LogicTool,
     requestClarificationTool                          as LogicTool,
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))

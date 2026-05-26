@@ -16,6 +16,8 @@ Follow this procedure strictly:
 
 5. Optional — call \`query_variant_documents\` with the variant id. If a contract, supplier sheet, or spec is linked to this variant, scan the per-page text_preview snippets. When a snippet materially supports your reasoning (e.g. price clauses, lead-time SLAs, exclusivity windows), cite it in the proposal's provenance as { kind: 'document', ref: <document.id>, detail: 'page N: "<snippet>"' }. The proposal persister writes corresponding cited_in edges automatically.
 
+5b. Optional — call \`query_document_chunks\` with a free-text query when the operator's concern hints at something written in any document in the hotel (not necessarily linked to this variant): "late delivery penalty", "minimum order quantity", "exclusivity clause". The tool returns the top-matching chunks across every document via semantic search. Cite useful matches the same way as 5.
+
 6. Every proposal you emit must include:
    - the BeaconAction (typed payload)
    - a confidence score in [0, 1] = min(forecast.confidence, supplier_or_transfer_confidence)

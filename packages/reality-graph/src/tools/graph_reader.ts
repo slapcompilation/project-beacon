@@ -61,6 +61,18 @@ export interface DocumentRow {
   created_at:      string
 }
 
+/** One match returned by searchDocumentChunks. Mirrors the
+ *  match_document_chunks RPC shape declared in migration 139. */
+export interface DocumentChunkMatch {
+  id:           string
+  document_id:  string
+  chunk_key:    string
+  page:         number
+  text_preview: string
+  /** Cosine similarity in [0, 1]; higher is closer. */
+  similarity:   number
+}
+
 /** Read-only abstraction used by all data/logic tools. */
 export interface GraphReader {
   getVariant(variantId: string): Promise<VariantRow | null>
@@ -72,4 +84,12 @@ export interface GraphReader {
   /** Documents linked to a node via a `describes_entity` edge.
    *  Used by query_variant_documents and any future entity-document tool. */
   getDocumentsForEntity(entityType: string, entityId: string): Promise<DocumentRow[]>
+  /** Semantic search across every document_chunks row in a hotel via
+   *  the match_document_chunks pgvector RPC. Used by query_document_chunks.
+   *  Implementations are expected to embed `query` before calling the RPC. */
+  searchDocumentChunks(
+    hotelId: string,
+    query:   string,
+    opts?:   { threshold?: number; limit?: number },
+  ): Promise<DocumentChunkMatch[]>
 }
