@@ -42,14 +42,38 @@ interface IngestResponse {
 }
 
 const MODEL = 'claude-haiku-4-5-20251001'
+const WHISPER_MODEL = 'whisper-1'
 
-// Anthropic vision accepts pdf + a handful of image MIMEs directly. For
-// other types (audio, csv, docx) we'd need a different pipeline — defer to
-// Phase 16.c. The function fails fast on unsupported MIMEs with a clear msg.
-const SUPPORTED_MIMES = new Set([
+// PDF + images go through Anthropic vision; audio routes to OpenAI Whisper.
+// DOCX/XLSX/CSV land in 16.e (mammoth + sheetjs in Deno). Fail fast on the
+// rest with a clear message.
+const VISION_MIMES = new Set([
   'application/pdf',
   'image/jpeg', 'image/png', 'image/webp', 'image/gif',
 ])
+const AUDIO_MIMES = new Set([
+  'audio/mpeg', 'audio/wav', 'audio/webm', 'audio/mp4',
+  'audio/x-m4a', 'audio/ogg',
+])
+const SUPPORTED_MIMES = new Set([...VISION_MIMES, ...AUDIO_MIMES])
+
+interface WhisperSegment {
+  id:    number
+  start: number
+  end:   number
+  text:  string
+}
+
+interface WhisperResponse {
+  text:     string
+  segments: WhisperSegment[]
+}
+
+function formatTimestamp(seconds: number): string {
+  const mm = Math.floor(seconds / 60)
+  const ss = Math.floor(seconds % 60)
+  return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -59,8 +83,9 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) return json({ error: 'Unauthorized' }, 401)
 
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-    if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
+    const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
+    const openaiKey    = Deno.env.get('OPENAI_API_KEY')
+    if (!anthropicKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -83,8 +108,14 @@ Deno.serve(async (req: Request) => {
 
     if (!SUPPORTED_MIMES.has(doc.mime_type)) {
       return json({
-        error: `Unsupported mime_type ${doc.mime_type}. v1 supports pdf + jpeg/png/webp/gif. Audio + docx land in 16.c.`,
+        error: `Unsupported mime_type ${doc.mime_type}. v1 supports pdf + jpeg/png/webp/gif (Anthropic vision) and mpeg/wav/webm/mp4/m4a/ogg (OpenAI Whisper). DOCX/XLSX land in 16.e.`,
       }, 400)
+    }
+
+    if (AUDIO_MIMES.has(doc.mime_type) && !openaiKey) {
+      return json({
+        error: 'OPENAI_API_KEY secret not set on this project. Required for audio ingestion (Whisper). PDF and image ingestion still work via Anthropic.',
+      }, 500)
     }
 
     // 2. Download the bytes.
@@ -93,62 +124,21 @@ Deno.serve(async (req: Request) => {
       .download(doc.storage_path)
     if (dlErr || !blob) return json({ error: `Download failed: ${dlErr?.message ?? 'unknown'}` }, 502)
 
-    const bytes  = new Uint8Array(await blob.arrayBuffer())
-    const base64 = btoa(String.fromCharCode(...bytes))
+    // 3. Branch on MIME: vision vs. whisper.
+    let chunks:     ChunkOut[]
+    let tokensUsed: number
 
-    // 3. Call Anthropic vision.
-    const anthropic = new Anthropic({ apiKey })
-    const contentBlock = doc.mime_type === 'application/pdf'
-      ? {
-          type:   'document' as const,
-          source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64 },
-        }
-      : {
-          type:   'image' as const,
-          source: { type: 'base64' as const, media_type: doc.mime_type as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif', data: base64 },
-        }
-
-    const prompt = doc.mime_type === 'application/pdf'
-      ? 'Extract the text content from this PDF. Return a JSON array where each element is one page: { "page": <1-based number>, "text_preview": <first 240 chars of page text, plain text, no markdown> }. Return ONLY the JSON array.'
-      : 'Extract any visible text from this image. Return a JSON array with one element: [{ "page": 1, "text_preview": <first 240 chars of extracted text> }]. Return ONLY the JSON array.'
-
-    const completion = await anthropic.messages.create({
-      model:      MODEL,
-      max_tokens: 4096,
-      messages:   [
-        {
-          role:    'user',
-          content: [
-            contentBlock,
-            { type: 'text', text: prompt },
-          ],
-        },
-      ],
-    })
-
-    const textBlock = completion.content.find((b) => b.type === 'text')
-    if (!textBlock || textBlock.type !== 'text') {
-      return json({ error: 'no text in model response' }, 502)
+    if (AUDIO_MIMES.has(doc.mime_type)) {
+      const result = await ingestAudio(blob, body.document_id, doc.mime_type, doc.title, openaiKey!)
+      chunks     = result.chunks
+      tokensUsed = result.tokensUsed
+    } else {
+      const result = await ingestVision(blob, body.document_id, doc.mime_type, anthropicKey)
+      chunks     = result.chunks
+      tokensUsed = result.tokensUsed
     }
 
-    // 4. Parse + persist.
-    let parsed: Array<{ page: number; text_preview: string }>
-    try {
-      parsed = JSON.parse(textBlock.text.trim().replace(/^```(?:json)?\s*|\s*```$/g, '')) as Array<{ page: number; text_preview: string }>
-      if (!Array.isArray(parsed)) throw new Error('expected JSON array')
-    } catch (e) {
-      return json({
-        error: `Model returned non-JSON output: ${e instanceof Error ? e.message : 'unknown'}`,
-        raw:   textBlock.text.slice(0, 1000),
-      }, 502)
-    }
-
-    const chunks: ChunkOut[] = parsed.map((p, i) => ({
-      chunk_id:     `${body.document_id}-chunk-${String(i + 1)}`,
-      page:         typeof p.page === 'number' ? p.page : i + 1,
-      text_preview: typeof p.text_preview === 'string' ? p.text_preview.slice(0, 240) : '',
-    }))
-
+    // 4. Persist.
     const { error: updateErr } = await supabase
       .from('documents')
       .update({
@@ -164,7 +154,7 @@ Deno.serve(async (req: Request) => {
       document_id: body.document_id,
       chunks,
       page_count:  chunks.length,
-      tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),
+      tokens_used: tokensUsed,
       stage:       'ocr',
     }
     return json(response)
@@ -173,3 +163,137 @@ Deno.serve(async (req: Request) => {
     return json({ error: message }, 500)
   }
 })
+
+// ─── Vision pipeline (Anthropic) ────────────────────────────────────────────
+
+async function ingestVision(
+  blob:     Blob,
+  docId:    string,
+  mimeType: string,
+  apiKey:   string,
+): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  const bytes  = new Uint8Array(await blob.arrayBuffer())
+  const base64 = btoa(String.fromCharCode(...bytes))
+
+  const anthropic = new Anthropic({ apiKey })
+  const contentBlock = mimeType === 'application/pdf'
+    ? {
+        type:   'document' as const,
+        source: { type: 'base64' as const, media_type: 'application/pdf' as const, data: base64 },
+      }
+    : {
+        type:   'image' as const,
+        source: { type: 'base64' as const, media_type: mimeType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif', data: base64 },
+      }
+
+  const prompt = mimeType === 'application/pdf'
+    ? 'Extract the text content from this PDF. Return a JSON array where each element is one page: { "page": <1-based number>, "text_preview": <first 240 chars of page text, plain text, no markdown> }. Return ONLY the JSON array.'
+    : 'Extract any visible text from this image. Return a JSON array with one element: [{ "page": 1, "text_preview": <first 240 chars of extracted text> }]. Return ONLY the JSON array.'
+
+  const completion = await anthropic.messages.create({
+    model:      MODEL,
+    max_tokens: 4096,
+    messages:   [
+      {
+        role:    'user',
+        content: [contentBlock, { type: 'text', text: prompt }],
+      },
+    ],
+  })
+
+  const textBlock = completion.content.find((b) => b.type === 'text')
+  if (!textBlock || textBlock.type !== 'text') {
+    throw new Error('no text in model response')
+  }
+
+  let parsed: Array<{ page: number; text_preview: string }>
+  try {
+    parsed = JSON.parse(textBlock.text.trim().replace(/^```(?:json)?\s*|\s*```$/g, '')) as Array<{ page: number; text_preview: string }>
+    if (!Array.isArray(parsed)) throw new Error('expected JSON array')
+  } catch (e) {
+    throw new Error(`Model returned non-JSON output: ${e instanceof Error ? e.message : 'unknown'}`)
+  }
+
+  const chunks: ChunkOut[] = parsed.map((p, i) => ({
+    chunk_id:     `${docId}-chunk-${String(i + 1)}`,
+    page:         typeof p.page === 'number' ? p.page : i + 1,
+    text_preview: typeof p.text_preview === 'string' ? p.text_preview.slice(0, 240) : '',
+  }))
+
+  return {
+    chunks,
+    tokensUsed: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),
+  }
+}
+
+// ─── Audio pipeline (OpenAI Whisper) ────────────────────────────────────────
+//
+// Whisper API accepts multipart/form-data with the audio blob + model name.
+// `response_format=verbose_json` gives us per-segment timestamps so we can
+// map each segment to a chunk row. The `page` field is reused for segment
+// ordering; text_preview carries the timestamp prefix so operators
+// scanning the chunk list can locate the moment in the recording.
+
+async function ingestAudio(
+  blob:     Blob,
+  docId:    string,
+  mimeType: string,
+  title:    string,
+  apiKey:   string,
+): Promise<{ chunks: ChunkOut[]; tokensUsed: number }> {
+  const formData = new FormData()
+  // Whisper infers MIME from filename extension; supply a stable name.
+  const ext  = extForMime(mimeType)
+  const file = new File([blob], `${title.replace(/[^\w.-]/g, '_')}.${ext}`, { type: mimeType })
+  formData.set('file',  file)
+  formData.set('model', WHISPER_MODEL)
+  formData.set('response_format', 'verbose_json')
+  formData.set('timestamp_granularities[]', 'segment')
+
+  const resp = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method:  'POST',
+    headers: { Authorization: `Bearer ${apiKey}` },
+    body:    formData,
+  })
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '')
+    throw new Error(`Whisper API ${String(resp.status)}: ${errText.slice(0, 300)}`)
+  }
+
+  const result = await resp.json() as WhisperResponse
+
+  // One chunk per Whisper segment so the operator can cite specific moments.
+  // Single-segment fallback for tiny clips where Whisper didn't split.
+  const segments = Array.isArray(result.segments) && result.segments.length > 0
+    ? result.segments
+    : [{ id: 0, start: 0, end: 0, text: result.text ?? '' }]
+
+  const chunks: ChunkOut[] = segments.map((s, i) => {
+    const timestamp = formatTimestamp(s.start)
+    const text      = (s.text ?? '').trim()
+    const preview   = `[${timestamp}] ${text}`.slice(0, 240)
+    return {
+      chunk_id:     `${docId}-segment-${String(i + 1)}`,
+      page:         i + 1,
+      text_preview: preview,
+    }
+  })
+
+  // Whisper pricing is per-second of audio, not tokens. Surface seconds in
+  // tokens_used so the UI's "N tokens" hint still gives the operator a
+  // useful signal about cost.
+  const totalSeconds = segments.length > 0 ? Math.round(segments[segments.length - 1]?.end ?? 0) : 0
+  return { chunks, tokensUsed: totalSeconds }
+}
+
+function extForMime(mimeType: string): string {
+  switch (mimeType) {
+    case 'audio/mpeg': return 'mp3'
+    case 'audio/wav':  return 'wav'
+    case 'audio/webm': return 'webm'
+    case 'audio/mp4':  return 'mp4'
+    case 'audio/x-m4a': return 'm4a'
+    case 'audio/ogg':  return 'ogg'
+    default:           return 'bin'
+  }
+}
