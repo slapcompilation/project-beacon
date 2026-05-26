@@ -90,7 +90,7 @@ export default function ProductObjectPage() {
         title="Product not found"
         description="Product not found or access denied."
         action={
-          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { navigate(-1) }}>
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { void navigate(-1) }}>
             ← Go back
           </Button>
         }

@@ -78,7 +78,7 @@ export function DetailTabContent() {
 
         {error && (
           <div className="px-4 py-6 text-xs text-red-400">
-            Failed to load: {(error as Error).message}
+            Failed to load: {(error).message}
           </div>
         )}
 

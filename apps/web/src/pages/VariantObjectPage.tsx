@@ -226,7 +226,7 @@ export default function VariantObjectPage() {
         title="Variant not found"
         description="Variant not found or you don&apos;t have access."
         action={
-          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { navigate(-1) }}>
+          <Button variant="minimal" intent={Intent.PRIMARY} onClick={() => { void navigate(-1) }}>
             ← Go back
           </Button>
         }
@@ -268,7 +268,7 @@ export default function VariantObjectPage() {
           icon="arrow-left"
           variant="minimal"
           size="small"
-          onClick={() => { navigate(-1) }}
+          onClick={() => { void navigate(-1) }}
         >
           Back
         </Button>
