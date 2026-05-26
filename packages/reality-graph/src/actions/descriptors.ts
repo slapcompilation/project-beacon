@@ -162,6 +162,48 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     approvalTier:  'self',
   },
 
+  UPDATE_SUPPLIER: {
+    invocationMode: 'open-form',
+    title:          'Edit supplier',
+    description:    'Updates supplier directory entry; emits modified_by audit edge.',
+    fields: [
+      { name: 'name',         kind: 'string',    label: 'Name' },
+      { name: 'contactName',  kind: 'string',    label: 'Contact name' },
+      { name: 'email',        kind: 'string',    label: 'Email' },
+      { name: 'phone',        kind: 'string',    label: 'Phone' },
+      { name: 'leadTimeDays', kind: 'number',    label: 'Lead time (days)', min: 0 },
+      { name: 'notes',        kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['supplierId', 'hotelId'],
+    approvalTier:  'self',
+  },
+
+  DELETE_SUPPLIER: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove supplier',
+    description:    'Removes a supplier from the hotel directory. Existing edges referencing this supplier remain as historical context.',
+    fields:         [],
+    contextFields:  ['supplierId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
+
+  LOG_DELIVERY: {
+    invocationMode: 'open-form',
+    title:          'Log delivery',
+    description:    'Records a received delivery against a supplier. Powers reliability scoring + cost-variance tracking.',
+    fields: [
+      { name: 'orderedQty',       kind: 'quantity', label: 'Ordered qty',       required: true, min: 1 },
+      { name: 'receivedQty',      kind: 'quantity', label: 'Received qty',      required: true, min: 0 },
+      { name: 'expectedDate',     kind: 'string',   label: 'Expected date',     required: true },
+      { name: 'actualDate',       kind: 'string',   label: 'Actual date' },
+      { name: 'unitCostExpected', kind: 'number',   label: 'Unit cost (expected)', min: 0 },
+      { name: 'unitCostActual',   kind: 'number',   label: 'Unit cost (actual)',   min: 0 },
+      { name: 'notes',            kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['hotelId', 'supplierId', 'restockRequestId'],
+    approvalTier:  'self',
+  },
+
   // ── Procurement ───────────────────────────────────────────────────────────
   CREATE_PO: {
     // Multi-line PO modal stays hand-rolled — line editor is bespoke.

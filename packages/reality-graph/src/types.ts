@@ -31,6 +31,8 @@ export type NodeType =
   | 'stock_transfer'
   // Exploratory sandbox branches (Phase 18.a)
   | 'scenario'
+  // Supplier delivery telemetry (powers reliability scoring)
+  | 'delivery_event'
 
 export type EdgeType =
   | 'belongs_to_hotel'
@@ -44,6 +46,7 @@ export type EdgeType =
   // Sprint 1 — Reality Graph Core
   | 'approved_by'
   | 'rejected_by'
+  | 'modified_by'
   | 'fulfills'
   | 'sourced_from'
   | 'batch_of'

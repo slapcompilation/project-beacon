@@ -36,6 +36,7 @@ export interface POCreateResult         { poId: string }
 export interface InvoiceSubmitResult    { invoiceId: string }
 export interface TransferCreateResult   { transferId: string }
 export interface TransferApproveResult  { fromLogId: string; toLogId: string; fromBalance: number; toBalance: number }
+export interface DeliveryLogResult      { deliveryId: string }
 /** Returned when an action hit a SOFT constraint violation and was routed to
  *  the pending_action_approvals queue instead of executing. */
 export interface PendingApprovalResult  { pendingApprovalId: string }
@@ -51,6 +52,7 @@ export type MutationResult =
   | TransferCreateResult
   | TransferApproveResult
   | PendingApprovalResult
+  | DeliveryLogResult
   | Record<string, never>  // actions that return no IDs
 
 // ─── Context threaded from the hook into the dispatcher ──────────────────────
@@ -86,6 +88,25 @@ export function edgesForAction(
       if (!supplierId) break
       push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'supplier', source_id: supplierId, target_type: 'hotel', target_id: hotelId })
       if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'supplier', source_id: supplierId, target_type: 'user', target_id: actorId })
+      break
+    }
+
+    case 'UPDATE_SUPPLIER': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'supplier', source_id: action.supplierId, target_type: 'user', target_id: actorId })
+      break
+    }
+
+    case 'DELETE_SUPPLIER':
+      // Row removal — no new edges. Existing edges referencing this supplier
+      // remain in relationship_edges as historical context.
+      break
+
+    case 'LOG_DELIVERY': {
+      const { deliveryId } = result as DeliveryLogResult
+      if (!deliveryId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'delivery_event', source_id: deliveryId, target_type: 'hotel', target_id: hotelId })
+      push({ ...base, edge_type: 'sourced_from',     source_type: 'delivery_event', source_id: deliveryId, target_type: 'supplier', target_id: action.supplierId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'delivery_event', source_id: deliveryId, target_type: 'user', target_id: actorId })
       break
     }
 

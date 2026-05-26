@@ -105,6 +105,35 @@ export type BeaconAction =
       notes?:       string | null
       leadTimeDays?: number | null
     }
+  | {
+      type: 'UPDATE_SUPPLIER'
+      supplierId:    string
+      hotelId:       string
+      name?:         string
+      contactName?:  string | null
+      email?:        string | null
+      phone?:        string | null
+      notes?:        string | null
+      leadTimeDays?: number | null
+    }
+  | {
+      type: 'DELETE_SUPPLIER'
+      supplierId: string
+      hotelId:    string
+    }
+  | {
+      type: 'LOG_DELIVERY'
+      hotelId:           string
+      supplierId:        string
+      restockRequestId?: string | null
+      orderedQty:        number
+      receivedQty:       number
+      expectedDate:      string
+      actualDate?:       string | null
+      unitCostExpected?: number | null
+      unitCostActual?:   number | null
+      notes?:            string | null
+    }
 
   // ── Mind Layer: Procurement ───────────────────────────────────────────────
   | {

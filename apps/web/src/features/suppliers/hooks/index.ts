@@ -5,12 +5,9 @@ import { useAuthStore } from '@/stores/auth.store'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchSuppliers,
-  updateSupplier,
-  deleteSupplier,
   fetchSupplierScorecard,
   fetchSupplierLeverage,
   fetchSupplierPriceHistory,
-  logDeliveryEvent,
   type SupplierInput,
 } from '../api'
 import type { DeliveryEventInput } from '@beacon/types'
@@ -67,10 +64,26 @@ export function useCreateSupplier() {
 export function useUpdateSupplier() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
 
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: Partial<SupplierInput> }) =>
-      updateSupplier(id, input),
+    mutationFn: async ({ id, input }: { id: string; input: Partial<SupplierInput> }) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        {
+          type:         'UPDATE_SUPPLIER',
+          supplierId:   id,
+          hotelId,
+          name:         input.name,
+          contactName:  input.contact_name,
+          email:        input.email,
+          phone:        input.phone,
+          notes:        input.notes,
+        },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: supplierKeys.all(hotelId ?? '') })
       toast.success('Supplier updated')
@@ -82,9 +95,17 @@ export function useUpdateSupplier() {
 export function useDeleteSupplier() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
 
   return useMutation({
-    mutationFn: (id: string) => deleteSupplier(id),
+    mutationFn: async (id: string) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        { type: 'DELETE_SUPPLIER', supplierId: id, hotelId },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: supplierKeys.all(hotelId ?? '') })
       toast.success('Supplier removed')
@@ -126,9 +147,29 @@ export function useSupplierPriceHistory(supplierId: string | null, days = 90) {
 export function useLogDelivery() {
   const queryClient = useQueryClient()
   const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.session?.user.id ?? '')
 
   return useMutation({
-    mutationFn: (input: DeliveryEventInput) => logDeliveryEvent(hotelId ?? '', input),
+    mutationFn: async (input: DeliveryEventInput) => {
+      if (!hotelId) throw new Error('No active hotel')
+      const result = await dispatchAction(
+        {
+          type:              'LOG_DELIVERY',
+          hotelId,
+          supplierId:        input.supplier_id,
+          restockRequestId:  input.restock_request_id ?? null,
+          orderedQty:        input.ordered_qty,
+          receivedQty:       input.received_qty,
+          expectedDate:      input.expected_date,
+          actualDate:        input.actual_date ?? null,
+          unitCostExpected:  input.unit_cost_expected ?? null,
+          unitCostActual:    input.unit_cost_actual ?? null,
+          notes:             input.notes ?? null,
+        },
+        { hotelId, actorId: userId, triggeredBy: 'user' },
+      )
+      if (!result.success) throw new Error(result.error.message)
+    },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: supplierKeys.scorecard(hotelId ?? '') })
       void queryClient.invalidateQueries({ queryKey: supplierKeys.deliveries(hotelId ?? '') })

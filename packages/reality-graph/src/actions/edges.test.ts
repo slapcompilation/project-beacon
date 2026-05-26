@@ -79,6 +79,43 @@ describe('edgesForAction', () => {
     expect(edges).toEqual([])
   })
 
+  it('UPDATE_SUPPLIER emits a single modified_by edge', () => {
+    const edges = edgesForAction(
+      { type: 'UPDATE_SUPPLIER', supplierId: 's-1', hotelId: HOTEL, name: 'Renamed' },
+      {},
+      ctx,
+    )
+    expect(edges).toHaveLength(1)
+    expect(edges[0]).toMatchObject({
+      edge_type: 'modified_by', source_type: 'supplier', source_id: 's-1',
+      target_type: 'user', target_id: USER,
+    })
+  })
+
+  it('DELETE_SUPPLIER emits no new edges (audit-only)', () => {
+    const edges = edgesForAction(
+      { type: 'DELETE_SUPPLIER', supplierId: 's-1', hotelId: HOTEL },
+      {},
+      ctx,
+    )
+    expect(edges).toEqual([])
+  })
+
+  it('LOG_DELIVERY fans out belongs_to_hotel + sourced_from + created_by', () => {
+    const edges = edgesForAction(
+      {
+        type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: 's-1',
+        orderedQty: 5, receivedQty: 5, expectedDate: '2026-05-27',
+      },
+      { deliveryId: 'd-1' },
+      ctx,
+    )
+    const types = edges.map((e) => e.edge_type).sort()
+    expect(types).toEqual(['belongs_to_hotel', 'created_by', 'sourced_from'])
+    const sourcedFrom = edges.find((e) => e.edge_type === 'sourced_from')
+    expect(sourcedFrom).toMatchObject({ source_type: 'delivery_event', source_id: 'd-1', target_type: 'supplier', target_id: 's-1' })
+  })
+
   it('CREATE_PO fans out one linked_to_po edge per line', () => {
     const edges = edgesForAction(
       {

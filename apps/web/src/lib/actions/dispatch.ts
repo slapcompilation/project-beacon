@@ -56,6 +56,9 @@ import {
 } from '@/features/mind/api'
 import {
   createSupplier,
+  updateSupplier,
+  deleteSupplier,
+  logDeliveryEvent,
 } from '@/features/suppliers/api'
 import {
   createStockTransfer,
@@ -258,6 +261,38 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
           notes:        action.notes ?? null,
         })
         mutationResult = { supplierId: supplier.id } satisfies SupplierCreateResult
+        break
+      }
+
+      case 'UPDATE_SUPPLIER': {
+        await updateSupplier(action.supplierId, {
+          name:         action.name,
+          contact_name: action.contactName,
+          email:        action.email,
+          phone:        action.phone,
+          notes:        action.notes,
+        })
+        break
+      }
+
+      case 'DELETE_SUPPLIER': {
+        await deleteSupplier(action.supplierId)
+        break
+      }
+
+      case 'LOG_DELIVERY': {
+        const delivery = await logDeliveryEvent(action.hotelId, {
+          supplier_id:         action.supplierId,
+          restock_request_id:  action.restockRequestId ?? null,
+          ordered_qty:         action.orderedQty,
+          received_qty:        action.receivedQty,
+          expected_date:       action.expectedDate,
+          actual_date:         action.actualDate ?? null,
+          unit_cost_expected:  action.unitCostExpected ?? null,
+          unit_cost_actual:    action.unitCostActual ?? null,
+          notes:               action.notes ?? null,
+        })
+        mutationResult = { deliveryId: delivery.id }
         break
       }
 

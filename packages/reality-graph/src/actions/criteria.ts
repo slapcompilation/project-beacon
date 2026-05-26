@@ -87,6 +87,29 @@ export function validateAction(action: BeaconAction): ValidationResult {
       break
     }
 
+    case 'UPDATE_SUPPLIER': {
+      if (!action.supplierId)            e('supplierId', 'supplierId is required')
+      if (!action.hotelId)               e('hotelId',    'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+
+    case 'DELETE_SUPPLIER': {
+      if (!action.supplierId) e('supplierId', 'supplierId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
+
+    case 'LOG_DELIVERY': {
+      if (!action.hotelId)        e('hotelId',      'hotelId is required')
+      if (!action.supplierId)     e('supplierId',   'supplierId is required')
+      if (!action.expectedDate)   e('expectedDate', 'expectedDate is required')
+      if (action.orderedQty <= 0) e('orderedQty',   'orderedQty must be > 0')
+      if (action.receivedQty < 0) e('receivedQty',  'receivedQty cannot be negative')
+      break
+    }
+
     case 'CREATE_PO': {
       if (!action.hotelId)             e('hotelId',      'hotelId is required')
       if (!action.supplierName.trim()) e('supplierName', 'supplierName is required')
