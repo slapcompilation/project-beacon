@@ -1,12 +1,17 @@
-// Top nav bar. Logo, scope switcher, notifications, command palette, settings, copilot toggle.
+// Top nav bar. Logo, scope switcher, AIP signal counters, notifications, command palette, settings, copilot toggle.
 
 import { memo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { Icon } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
+import { usePendingProposals } from '@/features/agents/useReviewQueue'
+import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
+import { usePendingEntityLinkSuggestions } from '@/features/entityLinks/hooks'
 import { ScopeSwitcher } from './ScopeSwitcher'
 
 export const Topbar = memo(function Topbar() {
@@ -15,6 +20,7 @@ export const Topbar = memo(function Topbar() {
   const toggleCommandBar  = useAppStore((s) => s.toggleCommandBar)
   const contextPanelOpen  = useAppStore((s) => s.contextPanelOpen)
   const contextPanelTab   = useAppStore((s) => s.contextPanelTab)
+  const role              = useAuthStore((s) => s.role)
 
   const alertCount       = useAlertCount()
   const unreadNotifCount = useUnreadNotificationCount()
@@ -23,11 +29,14 @@ export const Topbar = memo(function Topbar() {
   const copilotActive = contextPanelOpen && contextPanelTab === 'copilot'
   const location      = useLocation()
   const settingsActive = location.pathname.startsWith('/settings')
+  const aipVisible     = role === 'admin' || role === 'owner'
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-3">
       <span className="text-sm font-bold tracking-tight text-foreground mr-1">Beacon</span>
       <ScopeSwitcher />
+
+      {aipVisible && <AipSignalStrip />}
 
       <div className="flex-1" />
 
@@ -91,3 +100,39 @@ export const Topbar = memo(function Topbar() {
     </header>
   )
 })
+
+// AIP signal counters. One pill per queue with a live count. Click to jump
+// into Mind's AIP shell on the matching tab.
+function AipSignalStrip() {
+  const queue       = usePendingProposals()
+  const approvals   = usePendingApprovals()
+  const entityLinks = usePendingEntityLinkSuggestions()
+
+  const items: { tab: string; label: string; icon: IconName; count: number; tone: string }[] = [
+    { tab: 'queue',        label: 'Queue',     icon: 'predictive-analysis', count: queue.data?.length       ?? 0, tone: 'text-violet-500' },
+    { tab: 'approvals',    label: 'Approvals', icon: 'warning-sign',        count: approvals.data?.length   ?? 0, tone: 'text-amber-500'  },
+    { tab: 'entity-links', label: 'Links',     icon: 'search-template',     count: entityLinks.data?.length ?? 0, tone: 'text-blue-500'   },
+  ]
+
+  return (
+    <div className="hidden md:flex items-center gap-1 ml-2 pl-2 border-l border-border/60">
+      {items.map((i) => (
+        <Link
+          key={i.tab}
+          to={`/mind?panel=aip&aip=${i.tab}`}
+          title={`${i.label}: ${String(i.count)} pending`}
+          className={cn(
+            'flex items-center gap-1 rounded px-1.5 py-1 text-[11px] font-medium transition-colors',
+            i.count > 0
+              ? 'text-foreground hover:bg-surface-2'
+              : 'text-muted-foreground/60 hover:bg-surface-2 hover:text-foreground',
+          )}
+        >
+          <Icon icon={i.icon} size={12} className={i.count > 0 ? i.tone : undefined} />
+          <span className="hidden lg:inline">{i.label}</span>
+          <span className={cn('tabular-nums', i.count > 0 && 'font-semibold')}>{String(i.count)}</span>
+        </Link>
+      ))}
+    </div>
+  )
+}

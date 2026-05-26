@@ -457,6 +457,8 @@ function StrategyTab({ role }: { role: string }) {
 // Old panel IDs (contracts, procurement, leverage, etc.) redirect to their parent domain
 // so existing deep-links from object pages and briefing actions continue to work.
 
+import AIPShell, { isAipTab, type AipTab } from '@/features/mind/AIPShell'
+
 const SupplierBrowserPage      = lazy(() => import('./SupplierBrowserPage'))
 const SupplierReliabilityPage  = lazy(() => import('./SupplierReliabilityPage'))
 const ContractsPage            = lazy(() => import('./ContractsPage'))
@@ -467,10 +469,10 @@ const SupplierQuoteParserPage  = lazy(() => import('./SupplierQuoteParserPage'))
 const ProcurementLeveragePage  = lazy(() => import('./ProcurementLeveragePage'))
 const SmartProposalsPage       = lazy(() => import('./SmartProposalsPage'))
 
-type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
+type PanelId = 'aip' | 'triage' | 'suppliers' | 'finance' | 'strategy'
 
 // Backward-compat redirect map: old panel IDs → new panel
-const PANEL_REDIRECT: Record<string, PanelId> = {
+const PANEL_REDIRECT: Partial<Record<string, PanelId>> = {
   'operations':   'triage',
   'procurement':  'suppliers',   // + SUPPLIERS_SUB_SEED maps it → po-builder
   'contracts':    'suppliers',
@@ -594,21 +596,25 @@ function TriageTab({ initialSub }: { initialSub: 'operations' | 'categories' | '
 }
 
 const PANELS: { id: PanelId; label: string }[] = [
-  { id: 'triage',    label: 'Mind · Triage'    },
-  { id: 'suppliers', label: 'Mind · Suppliers' },
-  { id: 'finance',   label: 'Mind · Finance'   },
-  { id: 'strategy',  label: 'Mind · Strategy'  },
+  { id: 'aip',       label: 'AIP'              },
+  { id: 'triage',    label: 'Triage'           },
+  { id: 'suppliers', label: 'Suppliers'        },
+  { id: 'finance',   label: 'Finance'          },
+  { id: 'strategy',  label: 'Strategy'         },
 ]
 
 export default function MindWorkspace() {
   const role = useAuthStore((s) => s.role ?? 'limited_access')
   const [params, setParams] = useSearchParams()
-  const raw = params.get('panel') ?? 'triage'
+  const raw = params.get('panel') ?? 'aip'
 
-  // Resolve old panel IDs to new ones for backward compat
   const resolved: PanelId =
     (PANELS.some((p) => p.id === raw) ? raw as PanelId : null)
     ?? PANEL_REDIRECT[raw]
+    ?? 'aip'
+
+  const aipParam = params.get('aip')
+  const aipTab: AipTab = isAipTab(aipParam) ? aipParam : 'queue'
 
   if (role !== 'admin' && role !== 'owner') {
     return (
@@ -621,7 +627,6 @@ export default function MindWorkspace() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Top-level panel selector */}
       <div className="flex border-b shrink-0 bg-background">
         {PANELS.map((p) => (
           <button
@@ -643,6 +648,7 @@ export default function MindWorkspace() {
       <PanelErrorBoundary name={`Mind · ${resolved}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
+            {resolved === 'aip'       && <AIPShell tab={aipTab} onTabChange={(t) => { setParams({ panel: 'aip', aip: t }, { replace: true }) }} />}
             {resolved === 'triage'    && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}
             {resolved === 'suppliers' && <SuppliersTab initialSub={SUPPLIERS_SUB_SEED[raw] ?? 'browser'} />}
             {resolved === 'finance'   && <FinancialTab />}

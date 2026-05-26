@@ -34,9 +34,11 @@ export default function AgentDetailPage() {
     )
   }
 
+  const lastRun = recent.length > 0 ? recent[0] : null
+
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <Header agent={agent} />
+      <Header agent={agent} lastRunAt={lastRun ? lastRun.created_at : null} lastRunStatus={lastRun ? lastRun.status : null} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <BlocksSection agent={agent} />
@@ -49,11 +51,18 @@ export default function AgentDetailPage() {
   )
 }
 
-function Header({ agent }: { agent: AgentDescriptor }) {
+function Header({ agent, lastRunAt, lastRunStatus }: { agent: AgentDescriptor; lastRunAt: string | null; lastRunStatus: string | null }) {
   const stageIntent =
     agent.releaseStage === 'production' ? Intent.SUCCESS :
     agent.releaseStage === 'staging'    ? Intent.WARNING :
     Intent.NONE
+
+  const dot =
+    !lastRunStatus              ? 'bg-muted-foreground/40' :
+    lastRunStatus === 'approved' ? 'bg-emerald-500' :
+    lastRunStatus === 'pending'  ? 'bg-amber-500'   :
+    lastRunStatus === 'rejected' ? 'bg-red-500'     :
+    'bg-muted-foreground/40'
 
   return (
     <header className="px-6 py-4 border-b shrink-0">
@@ -69,10 +78,16 @@ function Header({ agent }: { agent: AgentDescriptor }) {
         <Tag minimal icon="confirm">{agent.approvalBoundary}</Tag>
       </div>
       <p className="text-xs text-muted-foreground leading-relaxed">{agent.purpose}</p>
-      <p className="text-[11px] text-muted-foreground mt-1">
-        <Icon icon="cube" size={10} className="mr-1" />
-        Invoked from: <span className="font-medium">{agent.invokeFrom}</span>
-      </p>
+      <div className="flex items-center gap-4 mt-1 text-[11px] text-muted-foreground">
+        <span>
+          <Icon icon="cube" size={10} className="mr-1" />
+          Invoked from: <span className="font-medium">{agent.invokeFrom}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+          Last run {lastRunAt ? formatDistanceToNow(new Date(lastRunAt), { addSuffix: true }) : 'no runs yet'}
+        </span>
+      </div>
     </header>
   )
 }

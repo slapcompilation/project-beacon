@@ -5,6 +5,7 @@
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Tag } from '@blueprintjs/core'
+import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { agentDescriptors, type AgentDescriptor } from '@/features/agentStudio/registry'
 import { useAgentRunSummaries, type AgentRecentRunsSummary } from '@/features/agentStudio/hooks'
@@ -78,12 +79,36 @@ function AgentCard({ agent, summary }: { agent: AgentDescriptor; summary?: Agent
           <Stat label="Avg conf." value={summary && summary.totalRuns > 0 ? `${String(Math.round(summary.avgConfidence * 100))}%` : '—'} />
         </div>
 
+        <CycleStrip agent={agent} summary={summary} />
+
         <footer className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
           <Icon icon="cube" size={10} />
           <span>Invoked from: {agent.invokeFrom}</span>
         </footer>
       </Card>
     </Link>
+  )
+}
+
+function CycleStrip({ agent, summary }: { agent: AgentDescriptor; summary?: AgentRecentRunsSummary }) {
+  const lastRun = summary?.lastRunAt
+    ? formatDistanceToNow(new Date(summary.lastRunAt), { addSuffix: true })
+    : 'no runs yet'
+  const dot =
+    !summary?.lastRunStatus     ? 'bg-muted-foreground/40' :
+    summary.lastRunStatus === 'approved'  ? 'bg-emerald-500' :
+    summary.lastRunStatus === 'pending'   ? 'bg-amber-500'   :
+    summary.lastRunStatus === 'rejected'  ? 'bg-red-500'     :
+    'bg-muted-foreground/40'
+  return (
+    <div className="flex items-center gap-2 text-[11px] border-y border-border/40 py-1.5">
+      <Icon icon="time" size={11} className="text-muted-foreground" />
+      <span className="text-muted-foreground">Cadence</span>
+      <Tag minimal className="font-mono">{agent.cadence}</Tag>
+      <span className="flex-1" />
+      <span className={cn('h-1.5 w-1.5 rounded-full', dot)} />
+      <span className="text-muted-foreground">Last run {lastRun}</span>
+    </div>
   )
 }
 
