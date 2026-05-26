@@ -51,9 +51,9 @@ export interface ParsedLine {
 
 const QTY_PRICE_RE = new RegExp(
   [
-    /(?:(?<qtyA>\d+(?:\.\d+)?)\s*[x×]\s*(?<descA>[^@$\n\t]+?)\s*[@\-]\s*\$?(?<priceA>\d+(?:\.\d{2})?))/,
-    /(?:(?<descB>[^:,\n\t]+?)\s*:?\s*(?:qty|quantity)?\s*(?<qtyB>\d+)\s*[@\-@]\s*\$?(?<priceB>\d+(?:\.\d{2})?)\s*(?:each|\/\w+)?)/,
-    /(?:(?<qtyC>\d+(?:\.\d+)?)\s+(?<descC>[^$@\n\t]+?)\s*[@\-]\s*\$?(?<priceC>\d+(?:\.\d{2})?))/,
+    /(?:(?<qtyA>\d+(?:\.\d+)?)\s*[x×]\s*(?<descA>[^@$\n\t]+?)\s*[@-]\s*\$?(?<priceA>\d+(?:\.\d{2})?))/,
+    /(?:(?<descB>[^:,\n\t]+?)\s*:?\s*(?:qty|quantity)?\s*(?<qtyB>\d+)\s*[@-]\s*\$?(?<priceB>\d+(?:\.\d{2})?)\s*(?:each|\/\w+)?)/,
+    /(?:(?<qtyC>\d+(?:\.\d+)?)\s+(?<descC>[^$@\n\t]+?)\s*[@-]\s*\$?(?<priceC>\d+(?:\.\d{2})?))/,
     /(?:(?<descD>[^\t\n]+?)\t(?<qtyD>\d+(?:\.\d+)?)\t\$?(?<priceD>\d+(?:\.\d{2})?))/,
     /(?:(?<descE>[^@$\n\t0-9][^@$\n\t]*?)\s+(?<qtyE>\d+(?:\.\d+)?)\s*[@]\s*\$?(?<priceE>\d+(?:\.\d{2})?))/,
   ].map((r) => r.source).join('|'),
@@ -63,10 +63,12 @@ const QTY_PRICE_RE = new RegExp(
 function parseLine(raw: string): Omit<ParsedLine, 'variantId'> | null {
   const m = QTY_PRICE_RE.exec(raw.trim())
   if (!m) return null
-  const g   = m.groups ?? {}
-  const desc  = (g['descA'] ?? g['descB'] ?? g['descC'] ?? g['descD'] ?? g['descE'] ?? '').trim()
-  const qtyS  = g['qtyA'] ?? g['qtyB'] ?? g['qtyC'] ?? g['qtyD'] ?? g['qtyE'] ?? ''
-  const priceS = g['priceA'] ?? g['priceB'] ?? g['priceC'] ?? g['priceD'] ?? g['priceE'] ?? ''
+  // RegExpExecArray.groups defaults to `{ [k: string]: string }`, but alternative
+  // branches really do leave their named groups undefined at runtime.
+  const g    = (m.groups ?? {}) as Record<string, string | undefined>
+  const desc   = (g['descA']  ?? g['descB']  ?? g['descC']  ?? g['descD']  ?? g['descE']  ?? '').trim()
+  const qtyS   =  g['qtyA']   ?? g['qtyB']   ?? g['qtyC']   ?? g['qtyD']   ?? g['qtyE']   ?? ''
+  const priceS =  g['priceA'] ?? g['priceB'] ?? g['priceC'] ?? g['priceD'] ?? g['priceE'] ?? ''
   const qty   = parseFloat(qtyS)
   const price = parseFloat(priceS)
   if (!desc || isNaN(qty) || isNaN(price) || qty <= 0 || price <= 0) return null
@@ -198,7 +200,9 @@ export default function SupplierQuoteParserPage() {
 
   async function createPO() {
     if (!hotelId) return
-    const matchedLines = lines.filter((l) => l.variantId && l.qty > 0 && l.unitPrice > 0)
+    const matchedLines = lines.filter((l): l is ParsedLine & { variantId: string } =>
+      l.variantId != null && l.qty > 0 && l.unitPrice > 0,
+    )
     if (matchedLines.length === 0) { toast.error('At least one line must match a variant'); return }
     if (!poNumber.trim()) { toast.error('PO number is required'); return }
 
@@ -215,7 +219,7 @@ export default function SupplierQuoteParserPage() {
         expectedDeliveryDate: deliveryDate || undefined,
         notes:                `Created from quote parser · ${lines.length - matchedLines.length} unmatched line${lines.length - matchedLines.length !== 1 ? 's' : ''} excluded`,
         lines: matchedLines.map((l) => ({
-          variantId: l.variantId!,
+          variantId: l.variantId,
           requestId: undefined,
           orderedQty: Math.round(l.qty),
           unitCost:   l.unitPrice,
@@ -226,7 +230,7 @@ export default function SupplierQuoteParserPage() {
     )
     setSubmitting(false)
 
-    if (result.success && result.data) {
+    if (result.success) {
       const poId = (result.data as { poId: string }).poId
       toast.success(`PO created · ${result.edgesWritten} edges written`)
       void navigate(`/po/${poId}`)

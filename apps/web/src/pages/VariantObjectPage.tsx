@@ -178,7 +178,7 @@ function RestockStatusBadge({ status }: { status: string }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function VariantObjectPage() {
-  const { variantId } = useParams<{ variantId: string }>()
+  const { variantId = '' } = useParams<{ variantId: string }>()
   const navigate      = useNavigate()
   const [adviceOpen, setAdviceOpen] = useState(false)
   const [wasteOpen, setWasteOpen]   = useState(false)
@@ -186,21 +186,21 @@ export default function VariantObjectPage() {
 
   const { data: variant, isLoading: loadingVariant, error: variantError } = useQuery({
     queryKey:  ['variant-object', variantId],
-    queryFn:   () => fetchVariantContext(variantId!),
+    queryFn:   () => fetchVariantContext(variantId),
     enabled:   !!variantId,
     staleTime: 60_000,
   })
 
   const { data: logs = [], isLoading: loadingLogs } = useQuery({
     queryKey:  ['variant-logs', variantId],
-    queryFn:   () => fetchVariantLogs(variantId!),
+    queryFn:   () => fetchVariantLogs(variantId),
     enabled:   !!variantId,
     staleTime: 30_000,
   })
 
   const { data: restocks = [], isLoading: loadingRestocks } = useQuery({
     queryKey:  ['variant-restocks', variantId],
-    queryFn:   () => fetchVariantRestocks(variantId!),
+    queryFn:   () => fetchVariantRestocks(variantId),
     enabled:   !!variantId,
     staleTime: 30_000,
   })
@@ -209,7 +209,7 @@ export default function VariantObjectPage() {
   const { data: forecastRows = [] } = useConsumptionForecast(30)
 
   const wasteAnomaly  = wasteRows.find((r) => r.variant_id === variantId) ?? null
-  const forecast      = forecastForVariant(variantId!, forecastRows)
+  const forecast      = forecastForVariant(variantId, forecastRows)
 
   if (loadingVariant) {
     return (
@@ -252,7 +252,7 @@ export default function VariantObjectPage() {
     stockStatus === 'critical' ? 'red' :
     stockStatus === 'low'      ? 'amber' : 'green'
 
-  const costAtRisk = (variant.cost ?? 0) * (variant.current_stock ?? 0)
+  const costAtRisk = variant.cost * variant.current_stock
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -352,7 +352,7 @@ export default function VariantObjectPage() {
             <StatCard
               label="Stock Value"
               value={`€${costAtRisk.toFixed(2)}`}
-              sub={`@ €${(variant.cost ?? 0).toFixed(2)} / unit`}
+              sub={`@ €${variant.cost.toFixed(2)} / unit`}
             />
           </div>
 
@@ -489,15 +489,15 @@ export default function VariantObjectPage() {
           <Card>
             <ObjectActions
               nodeType="variant"
-              variantId={variantId!}
-              currentStock={variant.current_stock ?? 0}
+              variantId={variantId}
+              currentStock={variant.current_stock}
               hasOpenRequest={forecast?.has_open_request ?? false}
             />
           </Card>
 
           {/* ── Graph connections ── */}
           <Card>
-            <GraphConnections nodeType="variant" nodeId={variantId!} />
+            <GraphConnections nodeType="variant" nodeId={variantId} />
           </Card>
 
         </div>
@@ -506,14 +506,14 @@ export default function VariantObjectPage() {
       <AdviceSlideOver
         open={adviceOpen}
         onClose={() => { setAdviceOpen(false) }}
-        variantId={variantId!}
+        variantId={variantId}
         variantName={variant.name}
       />
 
       <WasteAdviceSlideOver
         open={wasteOpen}
         onClose={() => { setWasteOpen(false) }}
-        variantId={variantId!}
+        variantId={variantId}
         variantName={variant.name}
       />
     </div>

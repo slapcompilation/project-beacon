@@ -12,62 +12,76 @@ export function FieldRow({ label, value, accent }: { label: string; value: React
   )
 }
 
+// Narrowing helpers — entity payloads come back from Supabase as Record<string, unknown>.
+// Returning `T | undefined` lets `?? fallback` mean something to both eslint and the reader.
+function str(v: unknown): string | undefined {
+  return typeof v === 'string' ? v : undefined
+}
+function num(v: unknown): number | undefined {
+  return typeof v === 'number' ? v : undefined
+}
+function obj(v: unknown): Record<string, unknown> | undefined {
+  return v != null && typeof v === 'object' ? v as Record<string, unknown> : undefined
+}
+
 export function EntitySummary({ entityType, data }: { entityType: ObjectPanelEntity; data: Record<string, unknown> }) {
   switch (entityType) {
     case 'variant': {
-      const d = data
-      const products = d.products as Record<string, unknown> | null
-      const stock = (d.current_stock as number) ?? 0
-      const par = (d.par_level as number) ?? 0
-      const urgency = par > 0 && stock <= par * 0.5 ? 'text-red-400' : par > 0 && stock <= par ? 'text-amber-400' : 'text-emerald-400'
+      const products = obj(data.products)
+      const stock    = num(data.current_stock) ?? 0
+      const par      = num(data.par_level) ?? 0
+      const urgency  =
+        par > 0 && stock <= par * 0.5 ? 'text-red-400' :
+        par > 0 && stock <= par       ? 'text-amber-400' :
+        'text-emerald-400'
       return (
         <>
-          <FieldRow label="Product" value={products?.name as string ?? '—'} />
-          <FieldRow label="Variant" value={d.name as string ?? '—'} />
-          <FieldRow label="Stock" value={stock} accent={urgency} />
-          <FieldRow label="PAR Level" value={par || '—'} />
-          <FieldRow label="Unit" value={d.unit as string ?? '—'} />
-          <FieldRow label="Location" value={(d.locations as Record<string, unknown> | null)?.name as string ?? '—'} />
+          <FieldRow label="Product"   value={str(products?.name)            ?? '—'} />
+          <FieldRow label="Variant"   value={str(data.name)                 ?? '—'} />
+          <FieldRow label="Stock"     value={stock} accent={urgency} />
+          <FieldRow label="PAR Level" value={par > 0 ? par : '—'} />
+          <FieldRow label="Unit"      value={str(data.unit)                 ?? '—'} />
+          <FieldRow label="Location"  value={str(obj(data.locations)?.name) ?? '—'} />
         </>
       )
     }
     case 'supplier': {
-      const d = data
+      const lead = num(data.lead_time_days)
       return (
         <>
-          <FieldRow label="Name" value={d.name as string ?? '—'} />
-          <FieldRow label="Contact" value={d.contact_name as string ?? '—'} />
-          <FieldRow label="Email" value={d.email as string ?? '—'} />
-          <FieldRow label="Phone" value={d.phone as string ?? '—'} />
-          <FieldRow label="Lead Time" value={d.lead_time_days ? `${String(d.lead_time_days)}d` : '—'} />
+          <FieldRow label="Name"      value={str(data.name)         ?? '—'} />
+          <FieldRow label="Contact"   value={str(data.contact_name) ?? '—'} />
+          <FieldRow label="Email"     value={str(data.email)        ?? '—'} />
+          <FieldRow label="Phone"     value={str(data.phone)        ?? '—'} />
+          <FieldRow label="Lead Time" value={lead != null ? `${lead}d` : '—'} />
         </>
       )
     }
     case 'restock_request': {
-      const d = data
-      const pv = d.product_variants as Record<string, unknown> | null
+      const pv   = obj(data.product_variants)
+      const date = str(data.date)
       return (
         <>
-          <FieldRow label="Variant" value={pv?.name as string ?? '—'} />
-          <FieldRow label="Quantity" value={d.quantity as number ?? 0} />
-          <FieldRow label="Status" value={
-            <Tag minimal className="!text-[10px] !px-1.5 !py-0">{d.status as string}</Tag>
+          <FieldRow label="Variant"   value={str(pv?.name)      ?? '—'} />
+          <FieldRow label="Quantity"  value={num(data.quantity) ?? 0} />
+          <FieldRow label="Status"    value={
+            <Tag minimal className="!text-[10px] !px-1.5 !py-0">{str(data.status) ?? '—'}</Tag>
           } />
-          <FieldRow label="Urgency" value={d.urgency as string ?? '—'} />
-          <FieldRow label="Requested" value={d.date ? formatDistanceToNow(new Date(d.date as string), { addSuffix: true }) : '—'} />
+          <FieldRow label="Urgency"   value={str(data.urgency)  ?? '—'} />
+          <FieldRow label="Requested" value={date ? formatDistanceToNow(new Date(date), { addSuffix: true }) : '—'} />
         </>
       )
     }
     case 'stock_log': {
-      const d = data
-      const delta = d.delta as number ?? 0
+      const delta     = num(data.delta) ?? 0
+      const timestamp = str(data.timestamp)
       return (
         <>
-          <FieldRow label="Variant" value={(d.product_variants as Record<string, unknown> | null)?.name as string ?? '—'} />
-          <FieldRow label="Delta" value={delta > 0 ? `+${String(delta)}` : delta} accent={delta > 0 ? 'text-emerald-400' : 'text-red-400'} />
-          <FieldRow label="Reason" value={d.reason as string ?? '—'} />
-          <FieldRow label="Triggered By" value={d.triggered_by as string ?? '—'} />
-          <FieldRow label="When" value={d.timestamp ? formatDistanceToNow(new Date(d.timestamp as string), { addSuffix: true }) : '—'} />
+          <FieldRow label="Variant"      value={str(obj(data.product_variants)?.name) ?? '—'} />
+          <FieldRow label="Delta"        value={delta > 0 ? `+${delta}` : delta} accent={delta > 0 ? 'text-emerald-400' : 'text-red-400'} />
+          <FieldRow label="Reason"       value={str(data.reason)        ?? '—'} />
+          <FieldRow label="Triggered By" value={str(data.triggered_by)  ?? '—'} />
+          <FieldRow label="When"         value={timestamp ? formatDistanceToNow(new Date(timestamp), { addSuffix: true }) : '—'} />
         </>
       )
     }
@@ -78,7 +92,7 @@ export function EntitySummary({ entityType, data }: { entityType: ObjectPanelEnt
       return (
         <>
           {entries.map(([k, v]) => (
-            <FieldRow key={k} label={k.replace(/_/g, ' ')} value={String(v ?? '—')} />
+            <FieldRow key={k} label={k.replace(/_/g, ' ')} value={str(v) ?? num(v)?.toString() ?? '—'} />
           ))}
         </>
       )
