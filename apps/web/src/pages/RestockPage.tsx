@@ -56,10 +56,9 @@ function consolidateByVariant(rows: RestockRequestRow[]): ConsolidatedRequest[] 
     const existing = map.get(r.variant_id) ?? []
     map.set(r.variant_id, [...existing, r])
   }
-  return [...map.values()].flatMap((group) => {
+  return [...map.values()].map((group) => {
     const primary = group[0]
-    if (!primary) return []
-    return [{ req: primary, allIds: group.map((r) => r.id), totalQty: group.reduce((s, r) => s + r.quantity_needed, 0) }]
+    return { req: primary, allIds: group.map((r) => r.id), totalQty: group.reduce((s, r) => s + r.quantity_needed, 0) }
   })
 }
 
@@ -306,7 +305,7 @@ function KanbanCard({
     for (const id of allIds) onReject?.(id, reason)
   }
 
-  const estimatedCost = req.estimated_cost != null ? fmtCost(Number(req.estimated_cost)) : null
+  const estimatedCost = req.estimated_cost != null ? fmtCost(req.estimated_cost) : null
 
   return (
     <>
@@ -417,7 +416,7 @@ function KanbanCard({
               <ApprovalCopilotPanel
                 variantId={req.variant_id}
                 requestedQty={totalQty}
-                estimatedCost={req.estimated_cost != null ? Number(req.estimated_cost) : null}
+                estimatedCost={req.estimated_cost}
               />
             )}
           </>
@@ -592,8 +591,8 @@ export default function RestockPage() {
   const filterReq = useCallback((r: RestockRequestRow) => {
     if (!search.trim()) return true
     const q = search.toLowerCase()
-    const name = r.product_variants?.products?.name?.toLowerCase() ?? ''
-    const sku  = r.product_variants?.sku?.toLowerCase() ?? ''
+    const name = r.product_variants?.products?.name.toLowerCase() ?? ''
+    const sku  = r.product_variants?.sku.toLowerCase() ?? ''
     const sup  = r.supplier?.toLowerCase() ?? ''
     return name.includes(q) || sku.includes(q) || sup.includes(q)
   }, [search])
@@ -889,7 +888,7 @@ export default function RestockPage() {
                     currencyCode={currency}
                     onReceive={setReceivingReq}
                     onDraftPO={() => {
-                      navigate('/purchase-orders', {
+                      void navigate('/purchase-orders', {
                         state: {
                           fromRestock: [{
                             variantId:   c.req.variant_id,

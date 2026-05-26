@@ -117,18 +117,20 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
     confirmed: 'Close PO',
   }
 
+  const next = nextStatus[po.status]
+
   return (
     <div className="border-t bg-muted/10 px-4 py-4 space-y-4">
       {/* Actions bar */}
       {canApprove && (
         <div className="flex items-center gap-2 flex-wrap">
-          {nextStatus[po.status] && (
+          {next && (
             <Button
               size="small"
               variant="outlined"
               icon="send-message"
               loading={updateStatus.isPending}
-              onClick={() => { updateStatus.mutate({ poId: po.id, status: nextStatus[po.status]! }) }}
+              onClick={() => { updateStatus.mutate({ poId: po.id, status: next }) }}
             >
               {nextLabel[po.status]}
             </Button>
@@ -231,7 +233,7 @@ function PODetail({ po, currency, canApprove }: { po: POSummaryRow; currency: st
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Invoices</p>
           {invoices.map((inv) => {
             const cfg = INV_STATUS_CFG[inv.status]
-            const discrepancy = Number(inv.discrepancy_amount)
+            const discrepancy = inv.discrepancy_amount
             const isOver  = discrepancy > 0.01
             const isUnder = discrepancy < -0.01
 
@@ -350,9 +352,9 @@ function PORow({ po, currency, canApprove }: { po: POSummaryRow; currency: strin
               ETA {format(new Date(po.expected_delivery_date), 'dd MMM')}
             </span>
           )}
-          {po.invoice_discrepancy != null && Math.abs(Number(po.invoice_discrepancy)) > 0.01 && (
-            <span className={cn('text-[10px] font-semibold tabular-nums', Number(po.invoice_discrepancy) > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400')}>
-              {Number(po.invoice_discrepancy) > 0 ? '+' : ''}{formatCurrency(Number(po.invoice_discrepancy), currency)}
+          {po.invoice_discrepancy != null && Math.abs(po.invoice_discrepancy) > 0.01 && (
+            <span className={cn('text-[10px] font-semibold tabular-nums', po.invoice_discrepancy > 0 ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400')}>
+              {po.invoice_discrepancy > 0 ? '+' : ''}{formatCurrency(po.invoice_discrepancy, currency)}
             </span>
           )}
         </div>
@@ -367,10 +369,10 @@ function PORow({ po, currency, canApprove }: { po: POSummaryRow; currency: strin
 
 function KpiStrip({ pos, currency }: { pos: POSummaryRow[]; currency: string }) {
   const open       = pos.filter((p) => !['closed', 'cancelled'].includes(p.status))
-  const totalOpen  = open.reduce((s, p) => s + Number(p.total_amount), 0)
+  const totalOpen  = open.reduce((s, p) => s + p.total_amount, 0)
   const pending    = pos.filter((p) => p.invoice_status === 'pending').length
   const disputed   = pos.filter((p) => p.invoice_status === 'disputed').length
-  const totalDiscrepancy = pos.reduce((s, p) => s + Math.abs(Number(p.invoice_discrepancy ?? 0)), 0)
+  const totalDiscrepancy = pos.reduce((s, p) => s + Math.abs(p.invoice_discrepancy ?? 0), 0)
 
   return (
     <div className="grid grid-cols-4 gap-px border-b bg-border flex-shrink-0">

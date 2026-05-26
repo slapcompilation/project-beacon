@@ -65,7 +65,7 @@ export async function fetchConversations(
     .order('last_message_at', { ascending: false })
     .limit(limit)
   if (error) throw new Error(error.message)
-  return (data ?? []) as CopilotConversationRow[]
+  return data as CopilotConversationRow[]
 }
 
 export async function fetchMessages(
@@ -77,7 +77,7 @@ export async function fetchMessages(
     .eq('conversation_id', conversationId)
     .order('created_at', { ascending: true })
   if (error) throw new Error(error.message)
-  return (data ?? []) as CopilotMessageRow[]
+  return data as CopilotMessageRow[]
 }
 
 // ─── Send (calls the copilot-chat edge function) ────────────────────────────
@@ -104,7 +104,7 @@ export interface SendMessageResponse {
 export async function sendCopilotMessage(
   input: SendMessageInput,
 ): Promise<SendMessageResponse> {
-  const { data, error } = await supabase.functions.invoke<SendMessageResponse>(
+  const result = await supabase.functions.invoke<SendMessageResponse>(
     'copilot-chat',
     {
       body: {
@@ -112,10 +112,10 @@ export async function sendCopilotMessage(
         messages:        [{ role: 'user', content: input.content }],
       },
     },
-  )
-  if (error) throw new Error(error.message)
-  if (!data)  throw new Error('copilot-chat returned no data')
-  return data
+  ) as { data: SendMessageResponse | null; error: { message: string } | null }
+  if (result.error) throw new Error(result.error.message)
+  if (!result.data) throw new Error('copilot-chat returned no data')
+  return result.data
 }
 
 // ─── Streaming send ──────────────────────────────────────────────────────────
@@ -175,7 +175,7 @@ export async function* streamCopilotMessage(
   let buffer    = ''
 
   try {
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read()
       if (done) break
       buffer += decoder.decode(value, { stream: true })
