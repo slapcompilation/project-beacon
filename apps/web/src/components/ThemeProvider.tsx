@@ -22,7 +22,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
       apply(mq.matches)
-      const handler = (e: MediaQueryListEvent) => apply(e.matches)
+      const handler = (e: MediaQueryListEvent) => { apply(e.matches); }
       mq.addEventListener('change', handler)
       return () => { mq.removeEventListener('change', handler); }
     }

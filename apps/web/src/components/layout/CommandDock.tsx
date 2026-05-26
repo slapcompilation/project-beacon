@@ -162,7 +162,7 @@ export const CommandDock = memo(function CommandDock() {
 
       <div className="flex items-center gap-0.5 shrink-0">
         {quickActions.map((qa) => (
-          <QuickButton key={qa.path} icon={qa.icon} label={qa.label} onClick={() => { navigate(qa.path) }} />
+          <QuickButton key={qa.path} icon={qa.icon} label={qa.label} onClick={() => { void navigate(qa.path) }} />
         ))}
       </div>
     </nav>

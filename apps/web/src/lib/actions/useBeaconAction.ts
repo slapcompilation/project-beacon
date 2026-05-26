@@ -211,7 +211,7 @@ export function useBeaconAction<
       if (opts.invalidate) {
         const keys = opts.invalidate(input, data)
         for (const queryKey of keys) {
-          void queryClient.invalidateQueries({ queryKey: queryKey as readonly unknown[] })
+          void queryClient.invalidateQueries({ queryKey: queryKey })
         }
       }
       if (opts.successMessage) {

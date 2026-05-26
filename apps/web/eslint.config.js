@@ -25,6 +25,19 @@ export default tseslint.config(
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
+      // Allow `${number}` in template literals — coercion is well-defined
+      // and the wrapping String() noise added nothing.
+      '@typescript-eslint/restrict-template-expressions': ['error', {
+        allowNumber:  true,
+        allowBoolean: true,
+        allowNullish: true,
+      }],
+      // Conventional: `_var` signals intentionally-unused param/binding.
+      '@typescript-eslint/no-unused-vars': ['error', {
+        argsIgnorePattern:        '^_',
+        varsIgnorePattern:        '^_',
+        caughtErrorsIgnorePattern:'^_',
+      }],
     },
   }
 )

@@ -851,7 +851,7 @@ export default function RestockPage() {
                   intent={Intent.PRIMARY}
                   icon="shopping-cart"
                   onClick={() => {
-                    navigate('/purchase-orders', {
+                    void navigate('/purchase-orders', {
                       state: {
                         fromRestock: approved.map((c) => ({
                           variantId:   c.req.variant_id,
