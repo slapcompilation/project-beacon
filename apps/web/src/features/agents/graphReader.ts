@@ -76,7 +76,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .eq('variant_id', variantId)
         .in('status', ['pending', 'approved'])
       if (error) throw new Error(error.message)
-      return (data ?? []).map(toRestockRow)
+      return data.map(toRestockRow)
     },
 
     async getStockLogs(variantId, sinceDays) {
@@ -89,7 +89,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .eq('variant_id', variantId)
         .gte('timestamp', cutoff)
       if (error) throw new Error(error.message)
-      return (data ?? []) as unknown as StockLogRow[]
+      return data as unknown as StockLogRow[]
     },
 
     async getSisterHotels(hotelId) {
@@ -107,7 +107,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .eq('organization_id', self.organization_id)
         .neq('id', hotelId)
       if (error) throw new Error(error.message)
-      return (data ?? []) as HotelRow[]
+      return data as HotelRow[]
     },
 
     async getVariantsByName(name, hotelIds) {
@@ -118,7 +118,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .eq('name', name)
         .in('hotel_id', hotelIds)
       if (error) throw new Error(error.message)
-      return (data ?? []).map(toVariantRow)
+      return data.map(toVariantRow)
     },
 
     async getSuppliersForVariant(_variantId) {
@@ -126,7 +126,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .from('suppliers')
         .select('id, hotel_id, organization_id, name, lead_time_days, on_time_pct, cost_variance_pct')
       if (error) throw new Error(error.message)
-      return (data ?? []).map(toSupplierRow)
+      return data.map(toSupplierRow)
     },
 
     async getDocumentsForEntity(entityType, entityId): Promise<DocumentRow[]> {
@@ -140,7 +140,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .eq('target_type', entityType)
         .eq('target_id', entityId)
       if (edgeError) throw new Error(edgeError.message)
-      const docIds = (edges ?? []).map((e) => (e as { source_id: string }).source_id)
+      const docIds = edges.map((e) => (e as { source_id: string }).source_id)
       if (docIds.length === 0) return []
 
       const { data: docs, error: docError } = await supabase
@@ -148,7 +148,7 @@ export function makeSupabaseGraphReader(): GraphReader {
         .select('id, title, mime_type, ingestion_stage, chunks, created_at')
         .in('id', docIds)
       if (docError) throw new Error(docError.message)
-      return (docs ?? []) as DocumentRow[]
+      return docs as DocumentRow[]
     },
 
     async searchDocumentChunks(hotelId, query, opts): Promise<DocumentChunkMatch[]> {
