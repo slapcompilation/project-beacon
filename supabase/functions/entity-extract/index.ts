@@ -1,0 +1,199 @@
+// entity-extract — Phase 16.g auto entity-link suggestion pipeline.
+//
+// Given a document_id, this function:
+//   1. Loads the document + its chunks
+//   2. Loads the hotel's variants + suppliers (the candidate entity pool)
+//   3. Asks Anthropic, in one structured call, which chunks reference which
+//      entities and at what confidence
+//   4. Persists each high-confidence guess to entity_link_suggestions
+//      (status='pending'), with the exact evidence snippet
+//   5. Returns the count of new suggestions for the UI
+//
+// Re-uses the existing ANTHROPIC_API_KEY. Hotel-scoped via the user-bound
+// client; RLS ensures the caller can only run this against documents in
+// their scope.
+
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin':  '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  })
+}
+
+interface ExtractRequest {
+  document_id: string
+  /** Minimum confidence (0..1) for a suggestion to be persisted. Default 0.65. */
+  threshold?: number
+}
+
+interface DocumentChunk {
+  chunk_id:     string
+  page:         number
+  text_preview: string
+}
+
+interface VariantRow  { id: string; name: string }
+interface SupplierRow { id: string; name: string }
+
+interface LLMSuggestion {
+  chunk_id:         string
+  entity_type:      'variant' | 'supplier'
+  entity_id:        string
+  confidence:       number
+  reasoning:        string
+  evidence_snippet: string
+}
+
+const MODEL = 'claude-haiku-4-5-20251001'
+
+Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST')    return json({ error: 'POST only' }, 405)
+
+  try {
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
+
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    )
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return json({ error: 'Unauthorized' }, 401)
+
+    const body = await req.json() as ExtractRequest
+    if (!body.document_id) return json({ error: 'document_id required' }, 400)
+    const threshold = body.threshold ?? 0.65
+
+    // 1. Load document + chunks.
+    const { data: doc, error: docErr } = await supabase
+      .from('documents')
+      .select('id, hotel_id, title, chunks')
+      .eq('id', body.document_id)
+      .single() as unknown as {
+        data: { id: string; hotel_id: string; title: string; chunks: DocumentChunk[] | null } | null
+        error: { message: string } | null
+      }
+    if (docErr || !doc) return json({ error: 'Document not found or access denied' }, 404)
+    if (!doc.chunks || doc.chunks.length === 0) {
+      return json({ error: 'Document has no chunks. Run ingestion first.' }, 400)
+    }
+
+    // 2. Load the hotel's candidate variants + suppliers. Cap to keep the
+    //    prompt size manageable; large hotels need a smarter retrieval step
+    //    (vector match on chunk text → top-K names) in a future iteration.
+    const { data: variantRows } = await supabase
+      .from('product_variants')
+      .select('id, name, products!inner(hotel_id)')
+      .eq('products.hotel_id', doc.hotel_id)
+      .limit(500) as unknown as { data: Array<{ id: string; name: string }> | null }
+
+    const { data: supplierRows } = await supabase
+      .from('suppliers')
+      .select('id, name, hotel_id')
+      .eq('hotel_id', doc.hotel_id)
+      .limit(500) as unknown as { data: Array<{ id: string; name: string }> | null }
+
+    const variants:  VariantRow[]  = (variantRows  ?? []).map((v) => ({ id: v.id, name: v.name }))
+    const suppliers: SupplierRow[] = (supplierRows ?? []).map((s) => ({ id: s.id, name: s.name }))
+
+    if (variants.length === 0 && suppliers.length === 0) {
+      return json({ inserted: 0, message: 'No variants or suppliers in this hotel to match against.' })
+    }
+
+    // 3. Ask the LLM. Tight system prompt + JSON-shaped output.
+    const anthropic = new Anthropic({ apiKey })
+    const systemPrompt =
+      'You are linking document chunks to entities in a hotel inventory graph. For each chunk that clearly references one of the listed entities, return a suggestion. ' +
+      'Be conservative — only suggest a link when the chunk explicitly names the entity or describes its attributes unambiguously. ' +
+      'Confidence rules: 0.95+ exact name match in the chunk, 0.80-0.94 strong paraphrase or unambiguous attribute, 0.65-0.79 plausible inference, < 0.65 do not return. ' +
+      'Return ONLY a JSON object {"suggestions": [...]}. No prose, no markdown.'
+
+    const userPrompt =
+      `Document: ${doc.title}\n\n` +
+      `Chunks (chunk_id → text):\n` +
+      doc.chunks.map((c) => `${c.chunk_id}: ${c.text_preview}`).join('\n') +
+      '\n\nCandidate variants (id → name):\n' +
+      variants.map((v) => `${v.id}: ${v.name}`).join('\n') +
+      '\n\nCandidate suppliers (id → name):\n' +
+      suppliers.map((s) => `${s.id}: ${s.name}`).join('\n') +
+      '\n\nReturn JSON: { "suggestions": [{ "chunk_id": "...", "entity_type": "variant"|"supplier", "entity_id": "<uuid>", "confidence": <0..1>, "reasoning": "<one sentence>", "evidence_snippet": "<exact text from the chunk>" }, ...] }'
+
+    const completion = await anthropic.messages.create({
+      model:      MODEL,
+      max_tokens: 4096,
+      system:     systemPrompt,
+      messages:   [{ role: 'user', content: userPrompt }],
+    })
+
+    const textBlock = completion.content.find((b) => b.type === 'text')
+    if (!textBlock || textBlock.type !== 'text') {
+      return json({ error: 'no text in model response' }, 502)
+    }
+
+    let parsed: { suggestions: LLMSuggestion[] }
+    try {
+      parsed = JSON.parse(textBlock.text.trim().replace(/^```(?:json)?\s*|\s*```$/g, '')) as { suggestions: LLMSuggestion[] }
+    } catch (e) {
+      return json({ error: `Model returned non-JSON: ${e instanceof Error ? e.message : 'unknown'}`, raw: textBlock.text.slice(0, 600) }, 502)
+    }
+
+    // 4. Validate + persist.
+    const variantIds  = new Set(variants.map((v) => v.id))
+    const supplierIds = new Set(suppliers.map((s) => s.id))
+    const chunkIds    = new Set(doc.chunks.map((c) => c.chunk_id))
+
+    const rowsToInsert = parsed.suggestions
+      .filter((s) => typeof s.confidence === 'number' && s.confidence >= threshold)
+      .filter((s) => chunkIds.has(s.chunk_id))
+      .filter((s) => (s.entity_type === 'variant' && variantIds.has(s.entity_id))
+                  || (s.entity_type === 'supplier' && supplierIds.has(s.entity_id)))
+      .map((s) => ({
+        hotel_id:         doc.hotel_id,
+        document_id:      doc.id,
+        chunk_key:        s.chunk_id,
+        entity_type:      s.entity_type,
+        entity_id:        s.entity_id,
+        confidence:       Math.min(1, Math.max(0, s.confidence)),
+        reasoning:        s.reasoning?.slice(0, 1000) ?? '',
+        evidence_snippet: s.evidence_snippet?.slice(0, 500) ?? null,
+      }))
+
+    if (rowsToInsert.length === 0) {
+      return json({ inserted: 0, message: 'No suggestions above threshold.' })
+    }
+
+    // Upsert against the partial unique index so re-runs don't double-insert
+    // still-pending suggestions for the same (doc, chunk, entity) triple.
+    const { error: insertError, count } = await supabase
+      .from('entity_link_suggestions')
+      .upsert(rowsToInsert, {
+        onConflict: 'document_id,chunk_key,entity_type,entity_id',
+        ignoreDuplicates: true,
+        count: 'exact',
+      })
+    if (insertError) return json({ error: insertError.message }, 502)
+
+    return json({
+      inserted:    count ?? rowsToInsert.length,
+      considered:  parsed.suggestions.length,
+      threshold,
+      tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'unknown error'
+    return json({ error: message }, 500)
+  }
+})

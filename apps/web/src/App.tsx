@@ -63,6 +63,7 @@ const CasesPage                   = lazy(() => import('@/pages/CasesPage'))
 const CaseObjectPage              = lazy(() => import('@/pages/CaseObjectPage'))
 const DocumentsPage               = lazy(() => import('@/pages/DocumentsPage'))
 const DocumentObjectPage          = lazy(() => import('@/pages/DocumentObjectPage'))
+const EntityLinkSuggestionsPage   = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const ScenariosPage               = lazy(() => import('@/pages/ScenariosPage'))
 const ScenarioObjectPage          = lazy(() => import('@/pages/ScenarioObjectPage'))
 const CopilotConfigPage           = lazy(() => import('@/pages/CopilotConfigPage'))
@@ -130,6 +131,7 @@ function AppRoutes() {
             <Route path="/cases/:caseId"                        element={<CaseObjectPage />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
             <Route path="/documents/:documentId"                element={<DocumentObjectPage />} />
+            <Route path="/entity-link-suggestions"              element={<EntityLinkSuggestionsPage />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioObjectPage />} />
             <Route path="/copilot-config"                       element={<CopilotConfigPage />} />
