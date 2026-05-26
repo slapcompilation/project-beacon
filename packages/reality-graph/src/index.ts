@@ -150,9 +150,10 @@ export {
   makeForecastConsumptionTool,
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
+  makeQueryDocumentChunksTool,
   requestClarificationTool,
 } from './tools/index'
-export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow } from './tools/index'
+export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch } from './tools/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
 // Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.

@@ -20,6 +20,7 @@ import {
   makeRankAlternativeSuppliersTool,
   makeQueryRecentWasteLogsTool,
   makeQueryVariantDocumentsTool,
+  makeQueryDocumentChunksTool,
   requestClarificationTool,
   // types
   type BlockDef,
@@ -41,6 +42,7 @@ const noopReader: GraphReader = {
   getVariantsByName:       () => Promise.resolve([]),
   getSuppliersForVariant:  () => Promise.resolve([]),
   getDocumentsForEntity:   () => Promise.resolve([]),
+  searchDocumentChunks:    () => Promise.resolve([]),
 }
 
 // ─── Tool descriptors ────────────────────────────────────────────────────────
@@ -52,6 +54,7 @@ const tools: LogicTool[] = [
   makeRankAlternativeSuppliersTool(noopReader) as LogicTool,
   makeQueryRecentWasteLogsTool(noopReader) as LogicTool,
   makeQueryVariantDocumentsTool(noopReader) as LogicTool,
+  makeQueryDocumentChunksTool(noopReader) as LogicTool,
   requestClarificationTool as LogicTool,
 ]
 
@@ -97,6 +100,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'query_sister_property_inventory',
       'rank_alternative_suppliers',
       'query_variant_documents',
+      'query_document_chunks',
       'request_clarification',
     ],
     emits: ['TRANSFER_STOCK', 'REQUEST_RESTOCK'],
@@ -122,6 +126,7 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
       'forecast_consumption',
       'query_sister_property_inventory',
       'query_variant_documents',
+      'query_document_chunks',
       'request_clarification',
     ],
     emits: ['TRANSFER_STOCK', 'WRITE_OFF'],
