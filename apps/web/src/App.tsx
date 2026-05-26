@@ -65,6 +65,7 @@ const DocumentsPage               = lazy(() => import('@/pages/DocumentsPage'))
 const DocumentObjectPage          = lazy(() => import('@/pages/DocumentObjectPage'))
 const ScenariosPage               = lazy(() => import('@/pages/ScenariosPage'))
 const ScenarioObjectPage          = lazy(() => import('@/pages/ScenarioObjectPage'))
+const CopilotConfigPage           = lazy(() => import('@/pages/CopilotConfigPage'))
 
 function PageLoader() {
   return (
@@ -131,6 +132,7 @@ function AppRoutes() {
             <Route path="/documents/:documentId"                element={<DocumentObjectPage />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioObjectPage />} />
+            <Route path="/copilot-config"                       element={<CopilotConfigPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/audit"         element={<AuditPage />} />
