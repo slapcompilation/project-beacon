@@ -40,6 +40,11 @@ export type NodeType =
   // Pick lists (Flow layer batch workflow)
   | 'pick_list'
   | 'pick_list_item'
+  // F&B menu engineering
+  | 'menu_item'
+  | 'menu_item_ingredient'
+  // Demand-planner events
+  | 'event'
 
 export type EdgeType =
   | 'belongs_to_hotel'

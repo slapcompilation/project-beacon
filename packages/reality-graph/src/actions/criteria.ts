@@ -256,6 +256,68 @@ export function validateAction(action: BeaconAction): ValidationResult {
       if (!action.hotelId) e('hotelId', 'hotelId is required')
       break
     }
+
+    case 'CREATE_MENU_ITEM': {
+      if (!action.hotelId)     e('hotelId', 'hotelId is required')
+      if (!action.name.trim()) e('name',    'name is required')
+      break
+    }
+    case 'UPDATE_MENU_ITEM': {
+      if (!action.menuItemId)            e('menuItemId', 'menuItemId is required')
+      if (!action.hotelId)               e('hotelId',    'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+    case 'ARCHIVE_MENU_ITEM': {
+      if (!action.menuItemId) e('menuItemId', 'menuItemId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
+    case 'ADD_MENU_INGREDIENT': {
+      if (!action.hotelId)            e('hotelId',     'hotelId is required')
+      if (!action.menuItemId)         e('menuItemId',  'menuItemId is required')
+      if (!action.variantId)          e('variantId',   'variantId is required')
+      if (action.qtyPerServe <= 0)    e('qtyPerServe', 'qtyPerServe must be > 0')
+      break
+    }
+    case 'UPDATE_MENU_INGREDIENT': {
+      if (!action.ingredientId) e('ingredientId', 'ingredientId is required')
+      if (!action.hotelId)      e('hotelId',      'hotelId is required')
+      if (action.qtyPerServe != null && action.qtyPerServe <= 0)
+        e('qtyPerServe', 'qtyPerServe must be > 0')
+      break
+    }
+    case 'REMOVE_MENU_INGREDIENT': {
+      if (!action.ingredientId) e('ingredientId', 'ingredientId is required')
+      if (!action.hotelId)      e('hotelId',      'hotelId is required')
+      break
+    }
+
+    case 'CREATE_EVENT': {
+      if (!action.hotelId)         e('hotelId',      'hotelId is required')
+      if (!action.name.trim())     e('name',         'name is required')
+      if (!action.eventDate)       e('eventDate',    'eventDate is required')
+      if (action.guestCount < 0)   e('guestCount',   'guestCount cannot be negative')
+      if (action.demandFactor <= 0) e('demandFactor', 'demandFactor must be > 0')
+      break
+    }
+    case 'UPDATE_EVENT': {
+      if (!action.eventId) e('eventId', 'eventId is required')
+      if (!action.hotelId) e('hotelId', 'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      if (action.guestCount   != null && action.guestCount   < 0)
+        e('guestCount', 'guestCount cannot be negative')
+      if (action.demandFactor != null && action.demandFactor <= 0)
+        e('demandFactor', 'demandFactor must be > 0')
+      break
+    }
+    case 'DELETE_EVENT': {
+      if (!action.eventId) e('eventId', 'eventId is required')
+      if (!action.hotelId) e('hotelId', 'hotelId is required')
+      break
+    }
   }
 
   return { valid: errors.length === 0, errors }
