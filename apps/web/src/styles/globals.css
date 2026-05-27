@@ -10,82 +10,101 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Blueprint design tokens, exposed as HSL channels so `hsl(var(--x) / opacity)` works.
- * Source: palantir/blueprint _colors.scss + _color-aliases.scss. Hex shown beside each var.
- * Don't introduce ad-hoc colors here — extend through Blueprint tokens. */
+/* Design tokens. Exposed as HSL channels so `hsl(var(--x) / opacity)` works.
+ * Source: palantir/blueprint palette, tuned for Beacon's hierarchy needs.
+ * Don't introduce ad-hoc colors — extend through these tokens. */
 
 @layer base {
   :root {
-    /* Page + elevated surfaces — light mode */
-    --background:        220 20% 97%;   /* #f6f7f9  light-gray5 (page) */
-    --foreground:        213 16% 13%;   /* #1c2127  dark-gray1 (text) */
-    --card:              0 0% 100%;     /* #ffffff  white  (elevated) */
-    --card-foreground:   213 16% 13%;   /* #1c2127 */
-    --popover:           0 0% 100%;     /* #ffffff */
-    --popover-foreground:213 16% 13%;   /* #1c2127 */
+    /* ── Light mode ─────────────────────────────────────────────────────────
+     * Slight cool undertone on the page so white cards sit visibly elevated.
+     * Borders are sharper than Blueprint default so panels read at a glance. */
+    --background:        216 22% 96%;   /* #f1f3f7  page (slightly cooler than default) */
+    --foreground:        213 18% 12%;   /* #1a1f25  text */
+    --card:              0 0% 100%;     /* #ffffff  elevated */
+    --card-foreground:   213 18% 12%;
+    --popover:           0 0% 100%;
+    --popover-foreground:213 18% 12%;
 
-    /* Surface hierarchy — used by .surface-N utilities */
-    --surface-0:         220 20% 97%;   /* #f6f7f9  page */
-    --surface-1:         0 0% 100%;     /* #ffffff  card */
-    --surface-2:         210 14% 95%;   /* #ebeef2  light-gray4 */
-    --surface-3:         213 11% 88%;   /* #d3d8de  light-gray1 */
+    /* Surface hierarchy — each step is a meaningful depth, not noise. */
+    --surface-0:         216 22% 96%;   /* page */
+    --surface-1:         0 0% 100%;     /* cards / app chrome */
+    --surface-2:         214 18% 93%;   /* nested / hover */
+    --surface-3:         214 14% 87%;   /* pressed / heavier panels */
 
-    /* Intent palette — verbatim Blueprint hex values */
-    --primary:           212 65% 50%;   /* #2d72d2  blue3 */
-    --primary-foreground:0 0% 100%;     /* white */
-    --destructive:       358 57% 53%;   /* #cd4246  red3 */
+    /* Intent palette. Primary stays Blueprint blue3; semantic intents added. */
+    --primary:           212 67% 47%;   /* #285aaf  blue3-deep, AAA on white */
+    --primary-foreground:0 0% 100%;
+    --destructive:       358 60% 49%;   /* #c3373b  red3-deep */
     --destructive-foreground: 0 0% 100%;
-    --ring:              212 65% 50%;   /* same as primary */
+    --success:           150 56% 35%;   /* #277b5a  green3-deep */
+    --success-foreground:0 0% 100%;
+    --warning:           34 88% 42%;    /* #c97509  orange3-deep */
+    --warning-foreground:0 0% 100%;
+    --ring:              212 67% 47%;
 
-    /* Neutral families — derived from Blueprint's gray ramp */
-    --secondary:         210 14% 95%;   /* #ebeef2  light-gray4 */
-    --secondary-foreground: 213 16% 13%;
-    --muted:             210 14% 95%;
-    --muted-foreground:  214 11% 47%;   /* #5f6b7c  gray1 (muted text) */
-    --accent:            210 14% 95%;
-    --accent-foreground: 213 16% 13%;
-    --border:            213 13% 88%;   /* #dce0e5  light-gray2 */
-    --input:             213 13% 88%;
+    --secondary:         214 18% 93%;
+    --secondary-foreground: 213 18% 12%;
+    --muted:             214 18% 93%;
+    --muted-foreground:  214 12% 42%;   /* #5d6776  AAA on white */
+    --accent:            214 18% 93%;
+    --accent-foreground: 213 18% 12%;
+    --border:            213 14% 84%;   /* #d0d5dc  one step sharper than Blueprint default */
+    --input:             213 14% 84%;
 
     /* Blueprint rule: 4px everywhere, never rounder. */
     --radius: 0.25rem;
+
+    /* Elevation — used by `.elevated` and any card needing soft depth. */
+    --shadow-sm: 0 1px 1px hsl(213 18% 12% / 0.04), 0 1px 2px hsl(213 18% 12% / 0.06);
+    --shadow-md: 0 1px 2px hsl(213 18% 12% / 0.06), 0 2px 6px hsl(213 18% 12% / 0.08);
+    --shadow-lg: 0 4px 12px hsl(213 18% 12% / 0.10), 0 2px 4px hsl(213 18% 12% / 0.06);
   }
 
   .dark {
-    /* Page + elevated surfaces — dark mode (cool slate, blue undertone) */
-    --background:        213 16% 13%;   /* #1c2127  dark-gray1 (page) */
-    --foreground:        220 17% 97%;   /* #f6f7f9  light-gray5 (text) */
-    --card:              217 12% 21%;   /* #2f343c  dark-gray3 (elevated) */
-    --card-foreground:   220 17% 97%;
-    --popover:           217 12% 21%;   /* #2f343c — popovers same as card */
-    --popover-foreground:220 17% 97%;
+    /* ── Dark mode ──────────────────────────────────────────────────────────
+     * Page deepens past Blueprint's dark-gray1; surface ramp opens up so
+     * cards/nav/modals each read as a distinct elevation level. */
+    --background:        215 18% 9%;    /* #13171c  deeper than dark-gray1 for clearer hierarchy */
+    --foreground:        220 17% 96%;   /* #f4f6f9 */
+    --card:              215 14% 16%;   /* #232830  cards/modals — clear lift off page */
+    --card-foreground:   220 17% 96%;
+    --popover:           215 14% 18%;   /* #272d35  popovers a half-step above cards */
+    --popover-foreground:220 17% 96%;
 
-    /* Surface hierarchy — Blueprint's dark-gray ramp */
-    --surface-0:         213 16% 13%;   /* #1c2127  dark-gray1  page */
-    --surface-1:         215 12% 17%;   /* #252a31  dark-gray2  secondary */
-    --surface-2:         217 12% 21%;   /* #2f343c  dark-gray3  cards/modals */
-    --surface-3:         215 11% 25%;   /* #383e47  dark-gray4  hover/active */
+    /* Surface ramp — each level is visibly distinct under low ambient light. */
+    --surface-0:         215 18% 9%;    /* #13171c  page */
+    --surface-1:         215 16% 13%;   /* #1c2127  app chrome (topbar, dock) */
+    --surface-2:         215 14% 16%;   /* #232830  cards */
+    --surface-3:         215 12% 22%;   /* #2f353e  hover / active */
 
-    /* Intent palette — Blueprint dark-mode focus values where applicable */
-    --primary:           213 100% 77%;  /* #8abbff  blue5 — brighter for dark */
-    --primary-foreground:213 16% 13%;   /* #1c2127  for legible contrast */
-    --destructive:       358 89% 79%;   /* #fa999c  red5 — dark-mode danger */
-    --destructive-foreground: 213 16% 13%;
-    --ring:              213 100% 77%;
+    /* Intents — Blueprint dark-mode focus values, slightly tuned. */
+    --primary:           213 100% 78%;  /* #91beff  blue5, brighter for dark */
+    --primary-foreground:215 18% 9%;
+    --destructive:       358 89% 80%;   /* #faa1a4  red5 */
+    --destructive-foreground: 215 18% 9%;
+    --success:           150 60% 65%;   /* #6fd5a3  green5 */
+    --success-foreground:215 18% 9%;
+    --warning:           34 100% 70%;   /* #ffb866  orange5 */
+    --warning-foreground:215 18% 9%;
+    --ring:              213 100% 78%;
 
-    /* Neutrals on dark */
-    --secondary:         215 11% 25%;   /* #383e47  dark-gray4 */
-    --secondary-foreground: 220 17% 97%;
-    --muted:             215 12% 17%;   /* #252a31  dark-gray2 */
-    --muted-foreground:  214 14% 71%;   /* #abb3bf  gray4 (muted text) */
-    --accent:            215 11% 25%;   /* #383e47 */
-    --accent-foreground: 220 17% 97%;
-    --border:            215 11% 25%;   /* #383e47  dark-gray4 */
-    --input:             215 11% 25%;
+    --secondary:         215 12% 22%;
+    --secondary-foreground: 220 17% 96%;
+    --muted:             215 16% 13%;
+    --muted-foreground:  214 14% 68%;   /* #a4adbb  AA on dark cards */
+    --accent:            215 12% 22%;
+    --accent-foreground: 220 17% 96%;
+    --border:            215 12% 26%;   /* #383f4a  sharper border for panels */
+    --input:             215 12% 26%;
+
+    --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 2px 6px hsl(0 0% 0% / 0.4), 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 8px 16px hsl(0 0% 0% / 0.5), 0 4px 6px hsl(0 0% 0% / 0.3);
   }
 }
 
-/* Body defaults: 14px / 1.286 / tabular numerals. text-sm = 0.875rem when html is at 16px. */
+/* Body defaults: 14px / 1.286 / tabular numerals. */
 
 @layer base {
   * {
@@ -96,16 +115,40 @@
     line-height: 1.286;
     font-feature-settings: 'rlig' 1, 'calt' 1, 'tnum' 1;
     font-variant-numeric: tabular-nums;
+    /* Sharper edges under both themes — esp. helpful on Windows ClearType. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  /* Headings opt back into a slightly looser line-height for readability */
   h1, h2, h3, h4, h5, h6 {
     line-height: 1.4;
   }
+
+  /* Smooth theme transitions for surfaces. Doesn't animate text colour to
+     avoid jank during page navigations. */
+  body, .bp5-card, .bp5-dialog, .bp5-popover, .bp5-menu, .bp5-input,
+  .bp5-html-select select, .bp5-tag {
+    transition: background-color 120ms ease, border-color 120ms ease;
+  }
 }
 
+/* ── Blueprint card lift — light mode has subtle shadow; dark relies on
+     surface contrast since shadows on near-black look muddy. ───────────── */
 @layer base {
-  .dark .card {
-    @apply shadow-none;
+  .bp5-card {
+    box-shadow: var(--shadow-sm);
+    border: 1px solid hsl(var(--border));
+  }
+  .dark .bp5-card {
+    box-shadow: none;
+  }
+
+  /* Pop heavier elevations on dialogs/popovers for clear focal stacking. */
+  .bp5-dialog {
+    box-shadow: var(--shadow-lg);
+  }
+  .bp5-popover .bp5-popover-content,
+  .bp5-menu {
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -118,12 +161,16 @@
   .page-body {
     @apply flex-1 overflow-y-auto px-5 py-4;
   }
+  /* Shadow utilities tied to the design-token elevation scale. */
+  .elevated   { box-shadow: var(--shadow-sm); }
+  .elevated-md{ box-shadow: var(--shadow-md); }
+  .elevated-lg{ box-shadow: var(--shadow-lg); }
 }
 
 /* ── Scrollbar — thin and unobtrusive ───────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
@@ -133,7 +180,7 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+  background: hsl(var(--muted-foreground) / 0.45);
 }
 * {
   scrollbar-width: thin;
