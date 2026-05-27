@@ -12,7 +12,6 @@ import {
   Drawer,
   HTMLSelect,
   HTMLTable,
-  Icon,
   InputGroup,
   Intent,
   Menu,
@@ -26,7 +25,6 @@ import {
 import { toast } from 'sonner'
 import { ParOptimizerContent } from '@/pages/ParOptimizerPage'
 import { cn } from '@/lib/utils'
-import { addDays, format } from 'date-fns'
 import { StockBadge } from '@/features/inventory/components/StockBadge'
 import { ProductFormModal } from '@/features/inventory/components/ProductFormModal'
 import { StockAdjustModal } from '@/features/inventory/components/StockAdjustModal'
@@ -35,29 +33,28 @@ import { TransferModal } from '@/features/inventory/components/TransferModal'
 import { VoiceAdjustButton } from '@/components/VoiceAdjustButton'
 import { ImportModal } from '@/features/inventory/components/CsvImportModal'
 import { VariantManagerDrawer } from '@/features/inventory/components/VariantManagerDrawer'
+import { DaysLeft } from '@/features/inventory/components/DaysLeft'
+import { RowIntelStrip } from '@/features/inventory/components/RowIntelStrip'
+import { InlineStockCell } from '@/features/inventory/components/InlineStockCell'
+import { InventorySummaryStrip } from '@/features/inventory/components/InventorySummaryStrip'
 import {
   useProducts,
   useDeleteProduct,
   useForecast,
   useUpdateProduct,
-  useAdjustStock,
   useLookupBarcode,
 } from '@/features/inventory/hooks'
 import { useCreateRestockRequest, useRestockRequests } from '@/features/restock/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
-import { WhyButton } from '@/components/WhySheet'
-import type { Supplier } from '@beacon/types'
 import { useCategories } from '@/features/categories/hooks'
 import { useLocations } from '@/features/locations/hooks'
 import { useWasteRadar, useInventoryIntelligence } from '@/features/eye/hooks'
-import type { InventoryIntelligenceRow } from '@/features/eye/api'
 import { useCurrency } from '@/hooks/useCurrency'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EntityLink } from '@/components/EntityLink'
 import { printVariantLabels } from '@/lib/labels'
 import { exportToCsv } from '@/lib/csv'
 import { formatCurrency } from '@/lib/currency'
-import { getTotalStock } from '@beacon/types'
 import type { ProductWithVariants, ProductVariant } from '@beacon/types'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -69,414 +66,6 @@ type Modal =
   | { type: 'history'; product: ProductWithVariants }
   | { type: 'variants'; product: ProductWithVariants }
   | null
-
-// ─── Days-left indicator (Principle 3: intelligence everywhere) ───────────────
-// Shows: ~6d left · ↑12% vs last week · 30d avg · last recv 18d ago
-
-function DaysLeft({ variantIds, currentStocks, forecastMap, intelligenceMap }: {
-  variantIds: string[]
-  currentStocks: number[]
-  forecastMap: Map<string, number>
-  intelligenceMap: Map<string, InventoryIntelligenceRow>
-}) {
-  if (variantIds.length === 0) return <span className="text-muted-foreground">—</span>
-  let minDays = Infinity
-  let anyData = false
-  let primaryAvg: number | undefined
-  let primaryVariantId: string | undefined
-  for (let i = 0; i < variantIds.length; i++) {
-    const stock = currentStocks[i] ?? 0
-    if (stock === 0) return <span className="text-red-600 font-medium text-xs">Out</span>
-    const avgDaily = forecastMap.get(variantIds[i] ?? '')
-    if (avgDaily && avgDaily > 0) {
-      anyData = true
-      const days = stock / avgDaily
-      if (days < minDays) { minDays = days; primaryAvg = avgDaily; primaryVariantId = variantIds[i] }
-    }
-  }
-  if (!anyData) return null
-  const d = Math.round(minDays)
-  const intel = primaryVariantId ? intelligenceMap.get(primaryVariantId) : undefined
-  const trendPct = intel?.trend_pct ?? null
-  const lastRecvDays = intel?.last_received_days_ago ?? null
-
-  return (
-    <div className="text-xs leading-tight space-y-0.5">
-      <div className="flex items-center gap-1.5 flex-wrap">
-        <span className={cn('font-medium', d <= 7 ? 'text-red-600' : d <= 14 ? 'text-yellow-600' : 'text-muted-foreground')}>
-          ~{d}d
-        </span>
-        {trendPct !== null && (
-          <span className={cn(
-            'inline-flex items-center gap-0.5 tabular-nums',
-            trendPct > 5  ? 'text-rose-600 dark:text-rose-400' :
-            trendPct < -5 ? 'text-emerald-600 dark:text-emerald-400' :
-            'text-muted-foreground',
-          )}>
-            <Icon
-              icon={trendPct > 5 ? 'trending-up' : trendPct < -5 ? 'trending-down' : 'minus'}
-              size={10}
-            />
-            {Math.abs(Math.round(trendPct))}%
-          </span>
-        )}
-      </div>
-      <div className="flex items-center gap-1 text-[10px] text-muted-foreground flex-wrap">
-        {primaryAvg != null && <span>~{primaryAvg.toFixed(1)}/d · 30d avg</span>}
-        {lastRecvDays != null && <span>· recv {lastRecvDays}d ago</span>}
-      </div>
-    </div>
-  )
-}
-
-// ─── Row intelligence strip ────────────────────────────────────────────────────
-// Eye Layer — surfaces forecast + waste + par context inline on every row.
-// Principle 3: intelligence everywhere. Turns a data row into a decision surface.
-// Format: 47 units · par 60 · ↓12% · ~6d left · [Request Restock]
-
-function RowIntelStrip({
-  product,
-  forecastMap,
-  intelligenceMap,
-  wasteRadarIds,
-  openRestockIds,
-  suppliersMap,
-  onRequestRestock,
-}: {
-  product: ProductWithVariants
-  forecastMap: Map<string, number>
-  intelligenceMap: Map<string, InventoryIntelligenceRow>
-  wasteRadarIds: Set<string>
-  openRestockIds: Set<string>
-  suppliersMap: Map<string, Supplier>
-  onRequestRestock: (variantId: string, qty: number) => void
-}) {
-  const variants = product.product_variants
-  if (variants.length === 0) return null
-
-  const totalStock = getTotalStock(variants)
-  const primaryVariant = variants.reduce((worst, v) => {
-    const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
-    const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
-    return dv < dw ? v : worst
-  }, variants[0])
-
-  const par       = primaryVariant.low_stock_threshold
-  const avgDaily  = forecastMap.get(primaryVariant.id)
-  const days      = avgDaily && avgDaily > 0 ? Math.round(totalStock / avgDaily) : null
-  const intel     = intelligenceMap.get(primaryVariant.id)
-  const trendPct  = intel?.trend_pct ?? null
-  const hasWaste  = variants.some((v) => wasteRadarIds.has(v.id))
-  const hasOpen   = variants.some((v) => openRestockIds.has(v.id))
-  const showCta   = days !== null && days <= 14 && !hasOpen && totalStock > 0
-
-  const supplierEntry = (primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id
-    ? suppliersMap.get((primaryVariant as ProductVariant & { default_supplier_id?: string }).default_supplier_id)
-    : undefined
-  const leadTimeDays = (supplierEntry as (Supplier & { lead_time_days?: number | null }) | undefined)?.lead_time_days ?? null
-  const supplyGap = days !== null && leadTimeDays !== null ? days - leadTimeDays : null
-
-  const hasAnySig = days !== null || (trendPct !== null && Math.abs(trendPct) > 3) || hasWaste || (par > 0)
-  if (!hasAnySig) return null
-
-  return (
-    <div className="flex items-center gap-1.5 mt-1 flex-wrap min-w-0">
-      {/* Par vs current */}
-      {par > 0 && (
-        <span className={cn(
-          'text-[10px] tabular-nums',
-          totalStock <= par ? 'text-yellow-600 dark:text-yellow-500 font-medium' : 'text-muted-foreground',
-        )}>
-          par {par}
-        </span>
-      )}
-
-      {/* Burn-rate trend */}
-      {trendPct !== null && Math.abs(trendPct) > 3 && (
-        <span className={cn(
-          'inline-flex items-center gap-0.5 text-[10px] tabular-nums',
-          trendPct > 5  ? 'text-rose-600 dark:text-rose-400' :
-          trendPct < -5 ? 'text-emerald-600 dark:text-emerald-400' :
-          'text-muted-foreground',
-        )}>
-          <Icon icon={trendPct > 3 ? 'trending-up' : 'trending-down'} size={10} />
-          {Math.abs(Math.round(trendPct))}%
-        </span>
-      )}
-
-      {/* Days until zero */}
-      {days !== null && (
-        <span className={cn(
-          'text-[10px] font-medium tabular-nums',
-          days === 0   ? 'text-red-600' :
-          days <= 7   ? 'text-red-600' :
-          days <= 14  ? 'text-yellow-600 dark:text-yellow-500' :
-          'text-muted-foreground',
-        )}>
-          ~{days}d
-        </span>
-      )}
-
-      {/* Waste spike */}
-      {hasWaste && (
-        <span className="text-[10px] text-orange-600 dark:text-orange-400">waste↑</span>
-      )}
-
-      {/* Inline restock CTA */}
-      {showCta && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            const reorderQty = (() => {
-              if (par > 0 && avgDaily && avgDaily > 0 && leadTimeDays !== null) {
-                return Math.max(Math.ceil(par - totalStock + avgDaily * leadTimeDays), par)
-              }
-              if (par > 0) return Math.max(par * 2 - totalStock, par)
-              return Math.max(primaryVariant.current_stock * 2, 10)
-            })()
-            onRequestRestock(primaryVariant.id, reorderQty)
-          }}
-          className={cn(
-            'inline-flex items-center gap-0.5 rounded border px-1.5 py-px text-[10px] font-medium transition-colors',
-            supplyGap !== null && supplyGap <= 0
-              ? 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/50'
-              : 'border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400 dark:hover:bg-blue-950/50',
-          )}
-        >
-          {supplyGap !== null && supplyGap <= 0 ? '⚠ Order Now' : '↗ Restock'}
-        </button>
-      )}
-
-      {/* Already requested */}
-      {hasOpen && days !== null && days <= 14 && (
-        <span className="text-[10px] text-muted-foreground italic">restock pending</span>
-      )}
-
-      {/* Lead-time gap → date-based order deadline */}
-      {supplyGap !== null && days !== null && (
-        supplyGap <= 0 ? (
-          <span className="inline-flex items-center gap-0.5 rounded border border-red-200 bg-red-50 px-1.5 py-px text-[10px] font-semibold text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
-            ⚠ order now · stockout {format(addDays(new Date(), days), 'MMM d')}
-          </span>
-        ) : supplyGap <= 7 ? (
-          <span className={cn(
-            'text-[10px] font-medium',
-            supplyGap <= 3 ? 'text-yellow-600 dark:text-yellow-500' : 'text-muted-foreground',
-          )}>
-            order by {format(addDays(new Date(), supplyGap), 'MMM d')} · {String(days)}d left
-          </span>
-        ) : (
-          <span className="text-[10px] text-muted-foreground">
-            lead {String(leadTimeDays)}d
-          </span>
-        )
-      )}
-
-      {/* Causal history — surfaces the graph inline for critical items */}
-      {days !== null && days <= 14 && (
-        <WhyButton
-          variantId={primaryVariant.id}
-          variantName={variants.length > 1 ? `${product.name} — ${primaryVariant.name}` : product.name}
-          currentStock={totalStock}
-        />
-      )}
-    </div>
-  )
-}
-
-// ─── Inline stock cell ────────────────────────────────────────────────────────
-// Flow Layer — physical count correction with auto-delta calculation
-
-function InlineStockCell({
-  product,
-  forecastMap,
-  intelligenceMap,
-  onOpenModal,
-}: {
-  product: ProductWithVariants
-  forecastMap: Map<string, number>
-  intelligenceMap: Map<string, InventoryIntelligenceRow>
-  onOpenModal: () => void
-}) {
-  const adjustStock = useAdjustStock()
-  const [editing, setEditing] = useState(false)
-  const [value, setValue] = useState('')
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const variants = product.product_variants
-  const isSingle = variants.length === 1
-  const variant = isSingle ? variants[0] : null
-  const totalStock = getTotalStock(variants)
-  const threshold = variant?.low_stock_threshold ?? 0
-
-  const parRatio = variant && threshold > 0
-    ? Math.min(variant.current_stock / threshold, 2)
-    : null
-
-  const primaryV = variants.length > 0
-    ? variants.reduce((worst, v) => {
-        const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
-        const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
-        return dv < dw ? v : worst
-      }, variants[0])
-    : null
-  const avgDailyCell = primaryV ? (forecastMap.get(primaryV.id) ?? null) : null
-  const daysCell = avgDailyCell && avgDailyCell > 0 ? Math.round(totalStock / avgDailyCell) : null
-  const trendPctCell = primaryV ? (intelligenceMap.get(primaryV.id)?.trend_pct ?? null) : null
-
-  const startEdit = () => {
-    if (!isSingle || !variant) { onOpenModal(); return }
-    setValue(String(variant.current_stock))
-    setEditing(true)
-    setTimeout(() => { inputRef.current?.select() }, 0)
-  }
-
-  const commit = async () => {
-    if (!variant) { setEditing(false); return }
-    const parsed = parseInt(value, 10)
-    if (isNaN(parsed) || parsed < 0) { setEditing(false); return }
-    const delta = parsed - variant.current_stock
-    if (delta === 0) { setEditing(false); return }
-    try {
-      await adjustStock.mutateAsync({ variantId: variant.id, delta, reason: 'Physical count' })
-      toast.success(`Stock corrected: ${delta > 0 ? '+' : ''}${String(delta)}`)
-    } catch {
-      toast.error('Failed to update stock')
-    }
-    setEditing(false)
-  }
-
-  return (
-    <div className="flex flex-col items-end gap-0.5">
-      {editing ? (
-        <input
-          ref={inputRef}
-          type="number"
-          min="0"
-          step="1"
-          value={value}
-          onChange={(e) => { setValue(e.target.value) }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') void commit()
-            if (e.key === 'Escape') setEditing(false)
-          }}
-          onBlur={() => { void commit() }}
-          className="h-7 w-20 rounded border border-primary bg-background px-2 text-right text-sm font-semibold tabular-nums focus:outline-none focus:ring-2 focus:ring-primary/50"
-          autoFocus
-        />
-      ) : (
-        <button
-          onClick={startEdit}
-          className={cn(
-            'rounded px-1 py-0.5 text-sm font-semibold tabular-nums transition-colors -mr-1',
-            isSingle ? 'hover:bg-muted cursor-pointer' : 'cursor-default',
-            totalStock === 0 && 'text-red-600',
-          )}
-          title={isSingle ? 'Click to enter physical count' : 'Open Adjust Stock to edit multi-variant'}
-        >
-          {totalStock}{isSingle && variant?.unit_of_measure ? ` ${variant.unit_of_measure}` : ''}
-        </button>
-      )}
-      {/* Intelligence sub-line: trend · ~days left · rate basis */}
-      {!editing && (daysCell !== null || trendPctCell !== null) && (
-        <div className="flex items-center gap-1 text-[10px] tabular-nums">
-          {trendPctCell !== null && Math.abs(trendPctCell) > 1 && (
-            <span className={cn(
-              'inline-flex items-center gap-0.5',
-              trendPctCell > 5  ? 'text-rose-600 dark:text-rose-400' :
-              trendPctCell < -5 ? 'text-emerald-600 dark:text-emerald-400' :
-              'text-muted-foreground',
-            )}>
-              <Icon icon={trendPctCell > 1 ? 'trending-up' : 'trending-down'} size={10} />
-              {Math.abs(Math.round(trendPctCell))}%
-            </span>
-          )}
-          {daysCell !== null && (
-            <span className={cn(
-              'font-medium',
-              daysCell <= 7  ? 'text-red-600' :
-              daysCell <= 14 ? 'text-yellow-600 dark:text-yellow-500' :
-              'text-muted-foreground',
-            )}>
-              ~{daysCell}d
-            </span>
-          )}
-          {avgDailyCell !== null && avgDailyCell > 0 && (
-            <span className="text-muted-foreground/70" title="Based on 30-day avg consumption">
-              · {avgDailyCell.toFixed(1)}/day
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Par health bar */}
-      {parRatio !== null && !editing && (
-        <div className="w-14 h-1 rounded-full bg-muted overflow-hidden">
-          <div
-            className={cn(
-              'h-full rounded-full transition-all duration-300',
-              parRatio === 0 ? 'bg-red-500' :
-              parRatio <= 1 ? 'bg-yellow-500' :
-              parRatio <= 1.5 ? 'bg-green-500' : 'bg-blue-400'
-            )}
-            style={{ width: `${String(Math.min(parRatio / 2, 1) * 100)}%` }}
-          />
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ─── Inventory summary strip ──────────────────────────────────────────────────
-
-function InventorySummaryStrip({
-  products,
-  currency,
-}: {
-  products: ProductWithVariants[]
-  currency: string
-}) {
-  const { totalValue, outOfStock, lowStock } = useMemo(() => {
-    let total = 0
-    let oos = 0
-    let low = 0
-    for (const p of products) {
-      let allZero = true
-      let anyLow = false
-      for (const v of p.product_variants) {
-        total += v.current_stock * v.cost
-        if (v.current_stock > 0) allZero = false
-        if (v.low_stock_threshold > 0 && v.current_stock > 0 && v.current_stock <= v.low_stock_threshold) anyLow = true
-      }
-      if (allZero && p.product_variants.length > 0) oos++
-      if (anyLow) low++
-    }
-    return { totalValue: total, outOfStock: oos, lowStock: low }
-  }, [products])
-
-  return (
-    <div className="flex flex-wrap items-center gap-6 border-b px-8 py-2.5 bg-muted/30 text-sm">
-      <span className="text-muted-foreground">
-        <span className="font-semibold text-foreground tabular-nums">{products.length}</span> products
-        {' · '}
-        <span className="font-semibold text-foreground">{formatCurrency(totalValue, currency)}</span> total value
-      </span>
-      {outOfStock > 0 && (
-        <span className="flex items-center gap-1.5 text-red-700 dark:text-red-400">
-          <span className="h-2 w-2 rounded-full bg-red-500" />
-          <span className="font-semibold tabular-nums">{outOfStock}</span> out of stock
-        </span>
-      )}
-      {lowStock > 0 && (
-        <span className="flex items-center gap-1.5 text-yellow-700 dark:text-yellow-600">
-          <span className="h-2 w-2 rounded-full bg-yellow-500" />
-          <span className="font-semibold tabular-nums">{lowStock}</span> low stock
-        </span>
-      )}
-    </div>
-  )
-}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
