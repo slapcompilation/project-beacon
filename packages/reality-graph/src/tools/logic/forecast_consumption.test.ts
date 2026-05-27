@@ -44,6 +44,10 @@ describe('forecast_consumption — adapter delegation', () => {
     const tool = makeForecastConsumptionTool({
       reader:  fakeReader(),
       adapter: {
+        name:         'prophet-v1',
+        version:      '1.0.0',
+        inputSchema:  {},
+        outputSchema: {},
         runInference: () => Promise.resolve({
           projectedUnits: 999, basis: 'prophet-v1', confidence: 0.97, sampleSize: 90,
         }),
