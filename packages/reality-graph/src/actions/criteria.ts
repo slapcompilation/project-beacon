@@ -217,6 +217,45 @@ export function validateAction(action: BeaconAction): ValidationResult {
       if (!action.hotelId)  e('hotelId',  'hotelId is required')
       break
     }
+
+    case 'CREATE_PICK_LIST': {
+      if (!action.hotelId)     e('hotelId', 'hotelId is required')
+      if (!action.name.trim()) e('name',    'name is required')
+      break
+    }
+    case 'UPDATE_PICK_LIST': {
+      if (!action.pickListId)            e('pickListId', 'pickListId is required')
+      if (!action.hotelId)               e('hotelId',    'hotelId is required')
+      if (action.name != null && !action.name.trim())
+        e('name', 'name cannot be blank')
+      break
+    }
+    case 'DELETE_PICK_LIST': {
+      if (!action.pickListId) e('pickListId', 'pickListId is required')
+      if (!action.hotelId)    e('hotelId',    'hotelId is required')
+      break
+    }
+    case 'ADD_PICK_LIST_ITEM': {
+      if (!action.pickListId)         e('pickListId',      'pickListId is required')
+      if (!action.hotelId)            e('hotelId',         'hotelId is required')
+      if (!action.variantId)          e('variantId',       'variantId is required')
+      if (action.quantityPlanned <= 0) e('quantityPlanned', 'quantityPlanned must be > 0')
+      break
+    }
+    case 'UPDATE_PICK_LIST_ITEM': {
+      if (!action.itemId)  e('itemId',  'itemId is required')
+      if (!action.hotelId) e('hotelId', 'hotelId is required')
+      if (action.quantityPicked  != null && action.quantityPicked  < 0)
+        e('quantityPicked', 'quantityPicked cannot be negative')
+      if (action.quantityPlanned != null && action.quantityPlanned <= 0)
+        e('quantityPlanned', 'quantityPlanned must be > 0')
+      break
+    }
+    case 'REMOVE_PICK_LIST_ITEM': {
+      if (!action.itemId)  e('itemId',  'itemId is required')
+      if (!action.hotelId) e('hotelId', 'hotelId is required')
+      break
+    }
   }
 
   return { valid: errors.length === 0, errors }

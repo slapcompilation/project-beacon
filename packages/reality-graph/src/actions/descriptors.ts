@@ -368,6 +368,74 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     contextFields:  ['reasonId', 'hotelId'],
     approvalTier:   'hotel-admin',
   },
+
+  // ── Pick lists ────────────────────────────────────────────────────────────
+  CREATE_PICK_LIST: {
+    invocationMode: 'open-form',
+    title:          'New pick list',
+    description:    'Creates a batch pick list (open). Items added separately, then committed to deduct inventory.',
+    fields: [
+      { name: 'name',       kind: 'string',    label: 'Name',        required: true },
+      { name: 'notes',      kind: 'multiline', label: 'Notes' },
+      { name: 'dueDate',    kind: 'string',    label: 'Due date' },
+      { name: 'assignedTo', kind: 'string',    label: 'Assigned to (user id)' },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_PICK_LIST: {
+    invocationMode: 'open-form',
+    title:          'Edit pick list',
+    description:    'Renames, reassigns, or status-transitions a pick list.',
+    fields: [
+      { name: 'name',       kind: 'string',    label: 'Name' },
+      { name: 'notes',      kind: 'multiline', label: 'Notes' },
+      { name: 'status',     kind: 'enum',      label: 'Status', options: ['draft', 'in_progress', 'completed', 'cancelled'] },
+      { name: 'dueDate',    kind: 'string',    label: 'Due date' },
+      { name: 'assignedTo', kind: 'string',    label: 'Assigned to (user id)' },
+    ],
+    contextFields: ['pickListId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  DELETE_PICK_LIST: {
+    invocationMode: 'apply-immediately',
+    title:          'Delete pick list',
+    description:    'Removes an uncommitted pick list and its items.',
+    fields:         [],
+    contextFields:  ['pickListId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
+  ADD_PICK_LIST_ITEM: {
+    invocationMode: 'open-form',
+    title:          'Add item to pick list',
+    description:    'Plans a quantity of a variant for the next pick.',
+    fields: [
+      { name: 'quantityPlanned', kind: 'quantity', label: 'Quantity planned', required: true, min: 1 },
+      { name: 'notes',           kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['pickListId', 'hotelId', 'variantId'],
+    approvalTier:  'self',
+  },
+  UPDATE_PICK_LIST_ITEM: {
+    invocationMode: 'open-form',
+    title:          'Edit pick list item',
+    description:    'Updates planned/picked quantities or notes.',
+    fields: [
+      { name: 'quantityPicked',  kind: 'quantity',  label: 'Quantity picked',  min: 0 },
+      { name: 'quantityPlanned', kind: 'quantity',  label: 'Quantity planned', min: 1 },
+      { name: 'notes',           kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['itemId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  REMOVE_PICK_LIST_ITEM: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove item',
+    description:    'Removes one line from the pick list.',
+    fields:         [],
+    contextFields:  ['itemId', 'hotelId'],
+    approvalTier:   'self',
+  },
 }
 
 /** Returns the descriptor for an action type, or throws if unregistered. */

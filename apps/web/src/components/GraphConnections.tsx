@@ -108,6 +108,8 @@ const NODE_LABELS: Record<NodeType, string> = {
   location:          'Location',
   category:          'Category',
   removal_reason:    'Reason',
+  pick_list:         'Pick List',
+  pick_list_item:    'Pick Item',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────

@@ -13,33 +13,25 @@ export async function fetchPickLists(): Promise<PickList[]> {
   return data as PickList[]
 }
 
-export async function createPickList(input: {
-  name: string
-  notes?: string
-  due_date?: string | null
-  assigned_to?: string | null
-}): Promise<PickList> {
-  const { data: session } = await supabase.auth.getSession()
-  const userId = session.session?.user.id
-  if (!userId) throw new Error('Not authenticated')
-
-  const hotelResult = await supabase
-    .from('profiles')
-    .select('hotel_id')
-    .eq('id', userId)
-    .single()
-  if (!hotelResult.data) throw new Error('Hotel not found')
-  const hotelId = (hotelResult.data as { hotel_id: string }).hotel_id
-
+export async function createPickList(
+  hotelId: string,
+  userId: string,
+  input: {
+    name: string
+    notes?: string | null
+    due_date?: string | null
+    assigned_to?: string | null
+  },
+): Promise<PickList> {
   const insertResult = await supabase
     .from('pick_lists')
     .insert({
-      name: input.name,
-      notes: input.notes ?? null,
-      due_date: input.due_date ?? null,
+      name:        input.name,
+      notes:       input.notes ?? null,
+      due_date:    input.due_date ?? null,
       assigned_to: input.assigned_to ?? null,
-      hotel_id: hotelId,
-      created_by: userId,
+      hotel_id:    hotelId,
+      created_by:  userId,
     })
     .select()
     .single()

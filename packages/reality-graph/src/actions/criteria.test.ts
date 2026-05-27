@@ -70,6 +70,14 @@ describe('validateAction — happy paths', () => {
   it('CREATE_REMOVAL_REASON',  () => expectValid({ type: 'CREATE_REMOVAL_REASON',  hotelId: HOTEL, name: 'Pest contamination' }))
   it('UPDATE_REMOVAL_REASON',  () => expectValid({ type: 'UPDATE_REMOVAL_REASON',  reasonId: 'rsn-1', hotelId: HOTEL, sortOrder: 3 }))
   it('DELETE_REMOVAL_REASON',  () => expectValid({ type: 'DELETE_REMOVAL_REASON',  reasonId: 'rsn-1', hotelId: HOTEL }))
+
+  // ── Pick lists ─────────────────────────────────────────────────────────────
+  it('CREATE_PICK_LIST',        () => expectValid({ type: 'CREATE_PICK_LIST',       hotelId: HOTEL, name: 'Sunday prep' }))
+  it('UPDATE_PICK_LIST',        () => expectValid({ type: 'UPDATE_PICK_LIST',       pickListId: 'pl-1', hotelId: HOTEL, status: 'in_progress' }))
+  it('DELETE_PICK_LIST',        () => expectValid({ type: 'DELETE_PICK_LIST',       pickListId: 'pl-1', hotelId: HOTEL }))
+  it('ADD_PICK_LIST_ITEM',      () => expectValid({ type: 'ADD_PICK_LIST_ITEM',     pickListId: 'pl-1', hotelId: HOTEL, variantId: VAR, quantityPlanned: 6 }))
+  it('UPDATE_PICK_LIST_ITEM',   () => expectValid({ type: 'UPDATE_PICK_LIST_ITEM',  itemId: 'pli-1', hotelId: HOTEL, quantityPicked: 6 }))
+  it('REMOVE_PICK_LIST_ITEM',   () => expectValid({ type: 'REMOVE_PICK_LIST_ITEM',  itemId: 'pli-1', hotelId: HOTEL }))
 })
 
 describe('validateAction — canonical failures', () => {
