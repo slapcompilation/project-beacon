@@ -560,10 +560,9 @@ export function ImportModal({ open, onClose }: Props) {
                               <Tag
                                 minimal
                                 intent={
-                                  row.action === 'set'      ? Intent.PRIMARY :
-                                  row.action === 'add'      ? Intent.SUCCESS :
-                                  row.action === 'subtract' ? Intent.DANGER  :
-                                  Intent.NONE
+                                  row.action === 'set' ? Intent.PRIMARY :
+                                  row.action === 'add' ? Intent.SUCCESS :
+                                  Intent.DANGER
                                 }
                                 className="!text-[10px]"
                               >

@@ -506,18 +506,18 @@ function StatusActions({ po }: { po: PurchaseOrder }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function POObjectPage() {
-  const { poId } = useParams<{ poId: string }>()
+  const { poId = '' } = useParams<{ poId: string }>()
   const navigate  = useNavigate()
   const currency  = useCurrency()
   useActiveHotelId()  // ensures RLS context
 
   const { data: po,       isLoading: loadingPO    } = useQuery({
     queryKey: ['po', poId],
-    queryFn:  () => fetchPOById(poId!),
+    queryFn:  () => fetchPOById(poId),
     enabled:  !!poId,
     staleTime: 30 * 1000,
   })
-  const { data: lines     = [], isLoading: loadingLines   } = usePOLines(poId ?? null)
+  const { data: lines     = [], isLoading: loadingLines   } = usePOLines(poId)
   const { data: contracts = [], isLoading: loadingContracts } = useSupplierContracts()
 
   const isLoading = loadingPO || loadingLines || loadingContracts

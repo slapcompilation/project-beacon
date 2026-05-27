@@ -61,7 +61,6 @@ export default function VoiceModePage() {
     setTranscript([])
 
     try {
-      // @ts-ignore — @11labs/client is an optional runtime dep
       const { Conversation } = await import('@11labs/client') as unknown as {
         Conversation: {
           startSession: (opts: {
@@ -89,7 +88,7 @@ export default function VoiceModePage() {
             { hotelId, actorId: userId, triggeredBy: 'user' },
           )
           setLastAction(result.success ? `Adjusted · ${result.edgesWritten} edges` : `Error: ${result.error.message}`)
-          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `Stock adjusted by ${args['delta']}` : result.error.message, action: 'ADJUST_STOCK', success: result.success }])
+          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `Stock adjusted by ${String(args['delta'])}` : result.error.message, action: 'ADJUST_STOCK', success: result.success }])
           return result.success ? 'done' : result.error.message
         },
 
@@ -121,7 +120,7 @@ export default function VoiceModePage() {
             },
             { hotelId, actorId: userId, triggeredBy: 'user' },
           )
-          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `${args['quantity']} written off` : result.error.message, action: 'WRITE_OFF', success: result.success }])
+          setTranscript((prev) => [...prev, { role: 'agent', text: result.success ? `${String(args['quantity'])} written off` : result.error.message, action: 'WRITE_OFF', success: result.success }])
           return result.success ? 'done' : result.error.message
         },
       }
@@ -147,7 +146,7 @@ export default function VoiceModePage() {
   }, [agentId, hotelId, userId])
 
   function disconnect() {
-    const end = (window as unknown as Record<string, () => void>).__beaconVoiceEnd
+    const end = (window as unknown as Record<string, (() => void) | undefined>).__beaconVoiceEnd
     if (end) end()
     setSession('idle')
   }

@@ -82,10 +82,12 @@ function buildSignalFeed(
   const map = new Map<string, UnifiedSignal>()
 
   const upsert = (key: string, name: string, url: string, type: UnifiedSignal['objectType']): UnifiedSignal => {
-    if (!map.has(key)) {
-      map.set(key, { key, objectType: type, objectName: name, objectUrl: url, badges: [], topUrgency: 0, context: '' })
+    let entry = map.get(key)
+    if (!entry) {
+      entry = { key, objectType: type, objectName: name, objectUrl: url, badges: [], topUrgency: 0, context: '' }
+      map.set(key, entry)
     }
-    return map.get(key)!
+    return entry
   }
 
   // Incidents — always highest urgency because they're correlated cross-domain

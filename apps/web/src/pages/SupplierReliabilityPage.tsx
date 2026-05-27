@@ -193,7 +193,7 @@ function SupplierCard({
               variant="minimal"
               size="small"
               intent={Intent.PRIMARY}
-              onClick={() => navigate('/mind?panel=contracts')}
+              onClick={() => { void navigate('/mind?panel=contracts') }}
             >
               Renegotiate →
             </Button>

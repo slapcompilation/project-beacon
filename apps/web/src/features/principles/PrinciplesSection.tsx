@@ -125,7 +125,7 @@ function PrincipleRowCard({ row, onToggle, toggleDisabled }: RowCardProps) {
         disabled={toggleDisabled}
         onChange={(e) => { onToggle(e.currentTarget.checked) }}
         labelElement={<span className="text-xs">{row.active ? 'Active' : 'Off'}</span>}
-        large
+        size="large"
       />
     </Card>
   )

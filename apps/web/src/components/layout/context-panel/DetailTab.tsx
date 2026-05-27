@@ -18,10 +18,11 @@ function useObjectData(entityType: ObjectPanelEntity | null, entityId: string | 
   return useQuery({
     queryKey: ['object-panel', entityType, entityId],
     queryFn: async () => {
+      if (!meta || !entityId) throw new Error('useObjectData called without context')
       const { data, error } = await supabase
-        .from(meta!.table)
-        .select(meta!.select)
-        .eq('id', entityId!)
+        .from(meta.table)
+        .select(meta.select)
+        .eq('id', entityId)
         .single()
       if (error) throw new Error(error.message)
       return data as unknown as Record<string, unknown>
@@ -97,7 +98,7 @@ export function DetailTabContent() {
                   <Suspense fallback={<Spinner size={SpinnerSize.SMALL} />}>
                     <GraphConnections
                       nodeType={GRAPH_NODE_TYPE[entityType] as 'variant'}
-                      nodeId={entityId!}
+                      nodeId={entityId ?? ''}
                     />
                   </Suspense>
                 </PanelErrorBoundary>

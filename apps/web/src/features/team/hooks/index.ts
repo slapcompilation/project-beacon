@@ -16,7 +16,7 @@ export function useTeamMembers() {
   const hotelId = useAuthStore((s) => s.hotelId)
   return useQuery({
     queryKey: teamKeys.all(hotelId),
-    queryFn: () => fetchTeamMembers(hotelId!),
+    queryFn: () => fetchTeamMembers(hotelId ?? ''),
     enabled: !!hotelId,
     staleTime: 5 * 60 * 1000,  // team data changes infrequently
   })

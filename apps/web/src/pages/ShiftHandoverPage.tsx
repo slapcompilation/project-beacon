@@ -75,8 +75,11 @@ function buildDigest(logs: AuditLogRow[]): KindGroup[] {
   const groups = new Map<EventKind, { count: number; byVariant: Map<string, { name: string; qty: number }> }>()
   for (const log of logs) {
     const kind = classifyLog(log)
-    if (!groups.has(kind)) groups.set(kind, { count: 0, byVariant: new Map() })
-    const g = groups.get(kind)!
+    let g = groups.get(kind)
+    if (!g) {
+      g = { count: 0, byVariant: new Map() }
+      groups.set(kind, g)
+    }
     g.count++
     const vname = log.variant_name !== 'Standard' ? `${log.product_name} — ${log.variant_name}` : log.product_name
     const existing = g.byVariant.get(log.variant_id) ?? { name: vname, qty: 0 }
@@ -283,8 +286,8 @@ function PreviousHandovers() {
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Flagged items</p>
                     {h.flagged_items.map((fi, i) => (
                       <div key={i} className="flex items-start gap-2">
-                        <Tag intent={PRIORITY_INTENT[fi.priority] ?? Intent.PRIMARY} minimal className="mt-0.5 shrink-0">
-                          {PRIORITY_LABEL[fi.priority] ?? fi.priority}
+                        <Tag intent={PRIORITY_INTENT[fi.priority]} minimal className="mt-0.5 shrink-0">
+                          {PRIORITY_LABEL[fi.priority]}
                         </Tag>
                         <div className="min-w-0">
                           <p className="text-xs font-medium truncate">{fi.product_name}</p>

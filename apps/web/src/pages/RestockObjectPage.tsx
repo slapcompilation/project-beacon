@@ -375,7 +375,7 @@ function ApprovalActions({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function RestockObjectPage() {
-  const { restockId } = useParams<{ restockId: string }>()
+  const { restockId = '' } = useParams<{ restockId: string }>()
   const navigate      = useNavigate()
   const currency      = useCurrency()
   const role          = useAuthStore((s) => s.role ?? 'limited_access')
@@ -383,11 +383,11 @@ export default function RestockObjectPage() {
 
   const { data: req,      isLoading: loadingReq  } = useQuery({
     queryKey: ['restock-object', restockId],
-    queryFn:  () => fetchRestockById(restockId!),
+    queryFn:  () => fetchRestockById(restockId),
     enabled:  !!restockId,
     staleTime: 30_000,
   })
-  const { data: receives = [],  isLoading: loadingRecv } = useReceives(restockId ?? null)
+  const { data: receives = [],  isLoading: loadingRecv } = useReceives(restockId)
   const { data: forecastRows = [] }                     = useConsumptionForecast(30)
   const { data: members  = [] }                         = useTeamMembers()
 

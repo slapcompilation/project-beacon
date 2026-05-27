@@ -31,10 +31,10 @@ export class HeuristicLLMClient implements LLMClient {
   }
 
   call<T>(_input: LLMCallInput<T>): Promise<LLMResponse<T>> {
-    const next = this.responses[this.cursor]
-    if (!next) {
+    if (this.cursor >= this.responses.length) {
       throw new Error('HeuristicLLMClient exhausted — Phase 2 only handles 2 scripted calls')
     }
+    const next = this.responses[this.cursor]
     this.cursor++
     return Promise.resolve(next as LLMResponse<T>)
   }

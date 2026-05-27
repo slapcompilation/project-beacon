@@ -515,7 +515,7 @@ export function PurchaseOrderContent() {
     const forecastItems: POLineItem[] = proposals
       .filter((r) => !restockVariantIds.has(r.variant_id))
       .map((r) => {
-        const sid = supplierAssignments[r.variant_id] ?? r.preferred_supplier_id ?? ''
+        const sid = supplierAssignments[r.variant_id] || r.preferred_supplier_id || ''
         const contractPrice = sid ? contractPriceMap.get(`${r.variant_id}|${sid}`) : undefined
         return {
           variantId: r.variant_id,
@@ -590,13 +590,11 @@ export function PurchaseOrderContent() {
 
   const handleQtyChange = useCallback((variantId: string, qty: number | null) => {
     setQtyOverrides((prev) => {
-      const next = { ...prev }
       if (qty === null) {
-        delete next[variantId]
-      } else {
-        next[variantId] = qty
+        const { [variantId]: _omit, ...next } = prev
+        return next
       }
-      return next
+      return { ...prev, [variantId]: qty }
     })
   }, [])
 

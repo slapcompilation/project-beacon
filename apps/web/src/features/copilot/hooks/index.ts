@@ -195,7 +195,7 @@ function applyEvent(
     case 'done':
       setState((s) => ({
         ...s,
-        actionProposals: event.action_proposals ?? [],
+        actionProposals: event.action_proposals,
         iterations:      event.iterations,
         toolTrace:       event.tool_trace,         // server-authoritative trace replaces our incremental one
       }))

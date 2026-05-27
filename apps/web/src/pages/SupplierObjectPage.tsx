@@ -235,34 +235,34 @@ function ContractRow({ contract }: { contract: SupplierContract }) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function SupplierObjectPage() {
-  const { supplierId } = useParams<{ supplierId: string }>()
+  const { supplierId = '' } = useParams<{ supplierId: string }>()
   const navigate       = useNavigate()
   useActiveHotelId() // ensures hotel context is ready for RLS
 
   const { data: supplier, isLoading: loadingSupplier, error: supplierError } = useQuery({
     queryKey:  ['supplier-object', supplierId],
-    queryFn:   () => fetchSupplierById(supplierId!),
+    queryFn:   () => fetchSupplierById(supplierId),
     enabled:   !!supplierId,
     staleTime: 60_000,
   })
 
   const { data: contracts = [], isLoading: loadingContracts } = useQuery({
     queryKey:  ['supplier-contracts', supplierId],
-    queryFn:   () => fetchContractsForSupplier(supplierId!),
+    queryFn:   () => fetchContractsForSupplier(supplierId),
     enabled:   !!supplierId,
     staleTime: 120_000,
   })
 
   const { data: deliveries = [], isLoading: loadingDeliveries } = useQuery({
     queryKey:  ['supplier-deliveries', supplierId],
-    queryFn:   () => fetchDeliveriesForSupplier(supplierId!),
+    queryFn:   () => fetchDeliveriesForSupplier(supplierId),
     enabled:   !!supplierId,
     staleTime: 60_000,
   })
 
   const { data: variantsSupplied = [] } = useQuery({
     queryKey:  ['supplier-variants', supplierId],
-    queryFn:   () => fetchVariantsForSupplier(supplierId!),
+    queryFn:   () => fetchVariantsForSupplier(supplierId),
     enabled:   !!supplierId,
     staleTime: 120_000,
   })
@@ -562,7 +562,7 @@ export default function SupplierObjectPage() {
 
           {/* ── Graph connections ── */}
           <Card>
-            <GraphConnections nodeType="supplier" nodeId={supplierId!} />
+            <GraphConnections nodeType="supplier" nodeId={supplierId} />
           </Card>
 
         </div>

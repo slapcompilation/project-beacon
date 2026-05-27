@@ -68,7 +68,7 @@ export default function PhotoStocktakePage() {
         throw new Error(err.includes('not found') ? 'parse-shelf-photo edge function not deployed yet' : err)
       }
       const result = await res.json() as { items: RecognizedItem[] }
-      setItems(result.items ?? [])
+      setItems(result.items)
       if (result.items.length === 0) toast.info('No recognizable items found in photo')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Photo scan failed')

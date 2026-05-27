@@ -411,7 +411,7 @@ export default function StocktakeIntelligencePage() {
   const { data: sessions = [], isLoading: sessionsLoading } = useStocktakeSessions(15)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const activeId = selectedId ?? sessions[0]?.session_id ?? null
+  const activeId = selectedId ?? (sessions.length > 0 ? sessions[0].session_id : null)
   const activeSession = sessions.find((s) => s.session_id === activeId) ?? null
 
   const { data: varianceRows = [], isLoading: varianceLoading } = useStocktakeVariance(activeId)

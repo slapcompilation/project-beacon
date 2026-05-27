@@ -423,7 +423,7 @@ function PMSHealthBadge({ rows }: { rows: PMSHealthRow[] }) {
   const worst = rows.reduce<PMSHealthRow | null>((acc, r) => {
     const order = { connected: 0, warning: 1, disconnected: 2, never_connected: 3 }
     if (!acc) return r
-    return (order[r.status] ?? 0) > (order[acc.status] ?? 0) ? r : acc
+    return order[r.status] > order[acc.status] ? r : acc
   }, null)
 
   if (!worst) return null

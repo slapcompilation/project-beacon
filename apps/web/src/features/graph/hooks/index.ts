@@ -38,9 +38,10 @@ export function useCausalTrace(
   return useQuery({
     queryKey: key,
     queryFn: async () => {
-      const steps = await fetchCausalTrace(rootType!, rootId!, maxDepth)
+      if (!rootType || !rootId) throw new Error('useCausalTrace called without root')
+      const steps = await fetchCausalTrace(rootType, rootId, maxDepth)
       // Fire-and-forget log — do not await
-      void logCausalTrace(rootType!, rootId!).catch(() => { /* best-effort */ })
+      void logCausalTrace(rootType, rootId).catch(() => { /* best-effort */ })
       return steps
     },
     enabled: !!rootType && !!rootId,

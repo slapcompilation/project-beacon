@@ -64,10 +64,10 @@ function StepHotel({ onNext, onSkip }: { onNext: () => void; onSkip: () => void 
   useEffect(() => {
     if (!hotel) return
     form.reset({
-      name:     hotel.name     ?? '',
-      timezone: hotel.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-      currency: hotel.currency ?? 'USD',
-      address:  hotel.address  ?? '',
+      name:     hotel.name,
+      timezone: hotel.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      currency: hotel.currency || 'USD',
+      address:  hotel.address,
     })
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hotel?.id])

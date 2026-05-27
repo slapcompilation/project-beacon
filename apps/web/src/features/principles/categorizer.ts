@@ -38,7 +38,7 @@ export async function categorizePrinciple(body: string): Promise<PrincipleCatego
   if (!text) return 'other'
 
   try {
-    const { data, error } = await supabase.functions.invoke<EdgeFunctionResponse>('agent-llm', {
+    const result = await supabase.functions.invoke<EdgeFunctionResponse>('agent-llm', {
       body: {
         systemPrompt:
           'You categorize an operator-authored business principle into exactly one bucket. ' +
@@ -47,7 +47,8 @@ export async function categorizePrinciple(body: string): Promise<PrincipleCatego
         outputSchema: { category: `one of ${CATEGORY_OPTIONS.join(' | ')}` },
         maxTokens: 64,
       },
-    })
+    }) as { data: EdgeFunctionResponse | null; error: { message: string } | null }
+    const { data, error } = result
     if (!error && data?.output) {
       const parsed = categorizationSchema.safeParse(data.output)
       if (parsed.success) return parsed.data.category
