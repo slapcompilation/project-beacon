@@ -37,6 +37,9 @@ export type NodeType =
   | 'location'
   | 'category'
   | 'removal_reason'
+  // Pick lists (Flow layer batch workflow)
+  | 'pick_list'
+  | 'pick_list_item'
 
 export type EdgeType =
   | 'belongs_to_hotel'

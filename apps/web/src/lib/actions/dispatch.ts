@@ -76,6 +76,14 @@ import {
   deleteCustomRemovalReason,
 } from '@/features/removal-reasons/api'
 import {
+  createPickList,
+  updatePickList,
+  deletePickList,
+  addPickListItem,
+  updatePickListItem,
+  removePickListItem,
+} from '@/features/pick-lists/api'
+import {
   createStockTransfer,
   approveStockTransfer,
 } from '@/features/agents/transfersApi'
@@ -435,6 +443,55 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       }
       case 'DELETE_REMOVAL_REASON': {
         await deleteCustomRemovalReason(action.reasonId)
+        break
+      }
+
+      // ── Pick lists ────────────────────────────────────────────────────────
+      case 'CREATE_PICK_LIST': {
+        if (!ctx.actorId) throw new Error('CREATE_PICK_LIST requires actorId')
+        const pl = await createPickList(action.hotelId, ctx.actorId, {
+          name:        action.name,
+          notes:       action.notes ?? null,
+          due_date:    action.dueDate ?? null,
+          assigned_to: action.assignedTo ?? null,
+        })
+        mutationResult = { nodeId: pl.id }
+        break
+      }
+      case 'UPDATE_PICK_LIST': {
+        await updatePickList(action.pickListId, {
+          name:        action.name,
+          notes:       action.notes,
+          status:      action.status,
+          due_date:    action.dueDate,
+          assigned_to: action.assignedTo,
+        })
+        break
+      }
+      case 'DELETE_PICK_LIST': {
+        await deletePickList(action.pickListId)
+        break
+      }
+      case 'ADD_PICK_LIST_ITEM': {
+        const item = await addPickListItem({
+          pick_list_id:     action.pickListId,
+          variant_id:       action.variantId,
+          quantity_planned: action.quantityPlanned,
+          notes:            action.notes ?? undefined,
+        })
+        mutationResult = { nodeId: item.id }
+        break
+      }
+      case 'UPDATE_PICK_LIST_ITEM': {
+        await updatePickListItem(action.itemId, {
+          quantity_picked:  action.quantityPicked,
+          quantity_planned: action.quantityPlanned,
+          notes:            action.notes,
+        })
+        break
+      }
+      case 'REMOVE_PICK_LIST_ITEM': {
+        await removePickListItem(action.itemId)
         break
       }
     }

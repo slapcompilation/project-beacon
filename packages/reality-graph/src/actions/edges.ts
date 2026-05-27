@@ -290,6 +290,38 @@ export function edgesForAction(
       break
     }
     case 'DELETE_REMOVAL_REASON': break
+
+    // ── Pick lists ──────────────────────────────────────────────────────────
+    case 'CREATE_PICK_LIST': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'pick_list', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'pick_list', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_PICK_LIST': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'pick_list', source_id: action.pickListId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'DELETE_PICK_LIST': break
+
+    case 'ADD_PICK_LIST_ITEM': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      // pick_list_item --belongs_to_session--> pick_list (re-using the
+      // belongs_to_session edge type; semantically: line item belongs to
+      // its parent batch). variant --consumes--> pick_list_item ties the
+      // item to the inventory it'll deduct on commit.
+      push({ ...base, edge_type: 'belongs_to_session', source_type: 'pick_list_item', source_id: nodeId, target_type: 'pick_list', target_id: action.pickListId })
+      push({ ...base, edge_type: 'consumes', source_type: 'pick_list_item', source_id: nodeId, target_type: 'variant', target_id: action.variantId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'pick_list_item', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_PICK_LIST_ITEM': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'pick_list_item', source_id: action.itemId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'REMOVE_PICK_LIST_ITEM': break
   }
 
   return edges

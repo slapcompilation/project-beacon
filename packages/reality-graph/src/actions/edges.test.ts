@@ -148,6 +148,18 @@ describe('edgesForAction', () => {
     expect(edges).toEqual([])
   })
 
+  it('ADD_PICK_LIST_ITEM links the item to both pick_list and variant', () => {
+    const edges = edgesForAction(
+      { type: 'ADD_PICK_LIST_ITEM', pickListId: 'pl-1', hotelId: HOTEL, variantId: 'v-1', quantityPlanned: 4 },
+      { nodeId: 'pli-1' },
+      ctx,
+    )
+    const session = edges.find((e) => e.edge_type === 'belongs_to_session')
+    const consumes = edges.find((e) => e.edge_type === 'consumes')
+    expect(session).toMatchObject({ source_type: 'pick_list_item', source_id: 'pli-1', target_type: 'pick_list', target_id: 'pl-1' })
+    expect(consumes).toMatchObject({ source_type: 'pick_list_item', source_id: 'pli-1', target_type: 'variant', target_id: 'v-1' })
+  })
+
   it('CREATE_PO fans out one linked_to_po edge per line', () => {
     const edges = edgesForAction(
       {

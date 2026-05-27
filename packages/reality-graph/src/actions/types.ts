@@ -247,6 +247,52 @@ export type BeaconAction =
       hotelId:  string
     }
 
+  // ── Flow: pick lists ──────────────────────────────────────────────────────
+  | {
+      type: 'CREATE_PICK_LIST'
+      hotelId:     string
+      name:        string
+      notes?:      string | null
+      dueDate?:    string | null
+      assignedTo?: string | null
+    }
+  | {
+      type: 'UPDATE_PICK_LIST'
+      pickListId:  string
+      hotelId:     string
+      name?:       string
+      notes?:      string | null
+      status?:     'draft' | 'in_progress' | 'completed' | 'cancelled'
+      dueDate?:    string | null
+      assignedTo?: string | null
+    }
+  | {
+      type: 'DELETE_PICK_LIST'
+      pickListId: string
+      hotelId:    string
+    }
+  | {
+      type: 'ADD_PICK_LIST_ITEM'
+      pickListId:      string
+      hotelId:         string
+      variantId:       string
+      quantityPlanned: number
+      notes?:          string | null
+    }
+  | {
+      type: 'UPDATE_PICK_LIST_ITEM'
+      itemId:           string
+      hotelId:          string
+      quantityPicked?:  number
+      quantityPlanned?: number
+      notes?:           string | null
+    }
+  | {
+      type: 'REMOVE_PICK_LIST_ITEM'
+      itemId:  string
+      hotelId: string
+    }
+
 // ─── Result types ─────────────────────────────────────────────────────────────
 //
 // `ActionFailure.error` is now a tagged `BeaconError` (per the osdk-ts audit
