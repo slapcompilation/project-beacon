@@ -436,6 +436,111 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     contextFields:  ['itemId', 'hotelId'],
     approvalTier:   'self',
   },
+
+  // ── F&B menu items + ingredients ─────────────────────────────────────────
+  CREATE_MENU_ITEM: {
+    invocationMode: 'open-form',
+    title:          'Add menu item',
+    description:    'Adds a new dish to the F&B menu. Recipe is built separately by adding ingredients.',
+    fields: [
+      { name: 'name',      kind: 'string', label: 'Name',      required: true },
+      { name: 'category',  kind: 'string', label: 'Category' },
+      { name: 'sellPrice', kind: 'number', label: 'Sell price', min: 0 },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_MENU_ITEM: {
+    invocationMode: 'open-form',
+    title:          'Edit menu item',
+    description:    'Updates the dish header (name / category / price / active flag).',
+    fields: [
+      { name: 'name',      kind: 'string',  label: 'Name' },
+      { name: 'category',  kind: 'string',  label: 'Category' },
+      { name: 'sellPrice', kind: 'number',  label: 'Sell price', min: 0 },
+      { name: 'isActive',  kind: 'enum',    label: 'Active', options: ['true', 'false'] },
+    ],
+    contextFields: ['menuItemId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  ARCHIVE_MENU_ITEM: {
+    invocationMode: 'apply-immediately',
+    title:          'Archive menu item',
+    description:    'Soft-deactivates the dish. POS sales history is preserved.',
+    fields:         [],
+    contextFields:  ['menuItemId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
+  ADD_MENU_INGREDIENT: {
+    invocationMode: 'open-form',
+    title:          'Add ingredient',
+    description:    'Adds a variant to the menu item recipe with its per-serve quantity.',
+    fields: [
+      { name: 'qtyPerServe', kind: 'number', label: 'Qty per serve', required: true, min: 0 },
+      { name: 'unit',        kind: 'string', label: 'Unit' },
+    ],
+    contextFields: ['menuItemId', 'hotelId', 'variantId'],
+    approvalTier:  'self',
+  },
+  UPDATE_MENU_INGREDIENT: {
+    invocationMode: 'open-form',
+    title:          'Edit ingredient',
+    description:    'Updates the per-serve quantity or unit of an ingredient on the recipe.',
+    fields: [
+      { name: 'qtyPerServe', kind: 'number', label: 'Qty per serve', min: 0 },
+      { name: 'unit',        kind: 'string', label: 'Unit' },
+    ],
+    contextFields: ['ingredientId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  REMOVE_MENU_INGREDIENT: {
+    invocationMode: 'apply-immediately',
+    title:          'Remove ingredient',
+    description:    'Removes one ingredient from the recipe.',
+    fields:         [],
+    contextFields:  ['ingredientId', 'hotelId'],
+    approvalTier:   'self',
+  },
+
+  // ── Demand-planner events ────────────────────────────────────────────────
+  CREATE_EVENT: {
+    invocationMode: 'open-form',
+    title:          'Add event',
+    description:    'Adds a hotel event used by the demand planner to scale forecasts.',
+    fields: [
+      { name: 'name',         kind: 'string', label: 'Name',          required: true },
+      { name: 'eventDate',    kind: 'string', label: 'Date',          required: true },
+      { name: 'guestCount',   kind: 'number', label: 'Guest count',   min: 0 },
+      { name: 'eventType',    kind: 'string', label: 'Event type' },
+      { name: 'demandFactor', kind: 'number', label: 'Demand factor', min: 0.01 },
+      { name: 'notes',        kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['hotelId'],
+    approvalTier:  'self',
+  },
+  UPDATE_EVENT: {
+    invocationMode: 'open-form',
+    title:          'Edit event',
+    description:    'Updates date, headcount, or demand factor of a planned event.',
+    fields: [
+      { name: 'name',         kind: 'string', label: 'Name' },
+      { name: 'eventDate',    kind: 'string', label: 'Date' },
+      { name: 'guestCount',   kind: 'number', label: 'Guest count',   min: 0 },
+      { name: 'eventType',    kind: 'string', label: 'Event type' },
+      { name: 'demandFactor', kind: 'number', label: 'Demand factor', min: 0.01 },
+      { name: 'notes',        kind: 'multiline', label: 'Notes' },
+    ],
+    contextFields: ['eventId', 'hotelId'],
+    approvalTier:  'self',
+  },
+  DELETE_EVENT: {
+    invocationMode: 'apply-immediately',
+    title:          'Delete event',
+    description:    'Removes the event. Future forecasts will no longer factor it in.',
+    fields:         [],
+    contextFields:  ['eventId', 'hotelId'],
+    approvalTier:   'hotel-admin',
+  },
 }
 
 /** Returns the descriptor for an action type, or throws if unregistered. */

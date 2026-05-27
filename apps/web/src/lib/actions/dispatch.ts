@@ -84,6 +84,19 @@ import {
   removePickListItem,
 } from '@/features/pick-lists/api'
 import {
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  addIngredient,
+  updateIngredient,
+  removeIngredient,
+} from '@/features/fb/api'
+import {
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from '@/features/events/api'
+import {
   createStockTransfer,
   approveStockTransfer,
 } from '@/features/agents/transfersApi'
@@ -492,6 +505,82 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       }
       case 'REMOVE_PICK_LIST_ITEM': {
         await removePickListItem(action.itemId)
+        break
+      }
+
+      // ── F&B menu items + ingredients ─────────────────────────────────────
+      case 'CREATE_MENU_ITEM': {
+        const id = await createMenuItem({
+          name:       action.name,
+          category:   action.category ?? null,
+          sell_price: action.sellPrice ?? null,
+        })
+        mutationResult = { nodeId: id }
+        break
+      }
+      case 'UPDATE_MENU_ITEM': {
+        await updateMenuItem(action.menuItemId, {
+          name:       action.name,
+          category:   action.category,
+          sell_price: action.sellPrice,
+          is_active:  action.isActive,
+        })
+        break
+      }
+      case 'ARCHIVE_MENU_ITEM': {
+        await deleteMenuItem(action.menuItemId)
+        break
+      }
+      case 'ADD_MENU_INGREDIENT': {
+        await addIngredient({
+          menu_item_id:  action.menuItemId,
+          variant_id:    action.variantId,
+          qty_per_serve: action.qtyPerServe,
+          unit:          action.unit ?? null,
+        })
+        // addIngredient doesn't return the new row id today; without nodeId
+        // edges.ts won't fan out the per-ingredient edges. Acceptable: we
+        // still get the modified_by trail on UPDATE_MENU_INGREDIENT.
+        break
+      }
+      case 'UPDATE_MENU_INGREDIENT': {
+        await updateIngredient(action.ingredientId, {
+          qty_per_serve: action.qtyPerServe,
+          unit:          action.unit,
+        })
+        break
+      }
+      case 'REMOVE_MENU_INGREDIENT': {
+        await removeIngredient(action.ingredientId)
+        break
+      }
+
+      // ── Demand-planner events ────────────────────────────────────────────
+      case 'CREATE_EVENT': {
+        const ev = await createEvent(action.hotelId, {
+          name:          action.name,
+          event_date:    action.eventDate,
+          guest_count:   action.guestCount,
+          event_type:    action.eventType,
+          demand_factor: action.demandFactor,
+          notes:         action.notes ?? null,
+        })
+        mutationResult = { nodeId: ev.id }
+        break
+      }
+      case 'UPDATE_EVENT': {
+        await updateEvent(action.eventId, {
+          name:          action.name,
+          event_date:    action.eventDate,
+          guest_count:   action.guestCount,
+          event_type:    action.eventType,
+          demand_factor: action.demandFactor,
+          notes:         action.notes,
+        })
+        break
+      }
+      case 'DELETE_EVENT': {
+        await deleteEvent(action.eventId)
         break
       }
     }

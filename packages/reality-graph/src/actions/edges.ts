@@ -322,6 +322,50 @@ export function edgesForAction(
       break
     }
     case 'REMOVE_PICK_LIST_ITEM': break
+
+    // ── F&B menu items + ingredients ────────────────────────────────────────
+    case 'CREATE_MENU_ITEM': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'menu_item', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'menu_item', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_MENU_ITEM':
+    case 'ARCHIVE_MENU_ITEM': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'menu_item', source_id: action.menuItemId, target_type: 'user', target_id: actorId })
+      break
+    }
+
+    case 'ADD_MENU_INGREDIENT': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      // ingredient --belongs_to_session--> parent menu_item (the recipe row),
+      // variant --consumes--> ingredient ties the menu item to its inventory cost.
+      push({ ...base, edge_type: 'belongs_to_session', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'menu_item', target_id: action.menuItemId })
+      push({ ...base, edge_type: 'consumes',           source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'variant',   target_id: action.variantId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_MENU_INGREDIENT': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'menu_item_ingredient', source_id: action.ingredientId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'REMOVE_MENU_INGREDIENT': break
+
+    // ── Demand-planner events ───────────────────────────────────────────────
+    case 'CREATE_EVENT': {
+      const { nodeId } = result as Partial<TaxonomyCreateResult>
+      if (!nodeId) break
+      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'event', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
+      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'event', source_id: nodeId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'UPDATE_EVENT': {
+      if (actorId) push({ ...base, edge_type: 'modified_by', source_type: 'event', source_id: action.eventId, target_type: 'user', target_id: actorId })
+      break
+    }
+    case 'DELETE_EVENT': break
   }
 
   return edges

@@ -148,6 +148,31 @@ describe('edgesForAction', () => {
     expect(edges).toEqual([])
   })
 
+  it('ADD_MENU_INGREDIENT links the ingredient to both menu_item and variant', () => {
+    const edges = edgesForAction(
+      { type: 'ADD_MENU_INGREDIENT', hotelId: HOTEL, menuItemId: 'mi-1', variantId: 'v-1', qtyPerServe: 0.05 },
+      { nodeId: 'mii-1' },
+      ctx,
+    )
+    const session = edges.find((e) => e.edge_type === 'belongs_to_session')
+    const consumes = edges.find((e) => e.edge_type === 'consumes')
+    expect(session).toMatchObject({ source_type: 'menu_item_ingredient', target_type: 'menu_item', target_id: 'mi-1' })
+    expect(consumes).toMatchObject({ source_type: 'menu_item_ingredient', target_type: 'variant', target_id: 'v-1' })
+  })
+
+  it('CREATE_EVENT fans out belongs_to_hotel + created_by, scoped to an event node', () => {
+    const edges = edgesForAction(
+      {
+        type: 'CREATE_EVENT', hotelId: HOTEL, name: 'NY Gala',
+        eventDate: '2026-12-31', guestCount: 220, eventType: 'banquet', demandFactor: 1.8,
+      },
+      { nodeId: 'ev-1' },
+      ctx,
+    )
+    expect(edges.map((e) => e.edge_type).sort()).toEqual(['belongs_to_hotel', 'created_by'])
+    expect(edges[0].source_type).toBe('event')
+  })
+
   it('ADD_PICK_LIST_ITEM links the item to both pick_list and variant', () => {
     const edges = edgesForAction(
       { type: 'ADD_PICK_LIST_ITEM', pickListId: 'pl-1', hotelId: HOTEL, variantId: 'v-1', quantityPlanned: 4 },

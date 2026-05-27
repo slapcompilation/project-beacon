@@ -293,6 +293,77 @@ export type BeaconAction =
       hotelId: string
     }
 
+  // ── F&B: menu items + ingredients ─────────────────────────────────────────
+  | {
+      type: 'CREATE_MENU_ITEM'
+      hotelId:    string
+      name:       string
+      category?:  string | null
+      sellPrice?: number | null
+    }
+  | {
+      type: 'UPDATE_MENU_ITEM'
+      menuItemId: string
+      hotelId:    string
+      name?:      string
+      category?:  string | null
+      sellPrice?: number | null
+      isActive?:  boolean
+    }
+  | {
+      type: 'ARCHIVE_MENU_ITEM'
+      menuItemId: string
+      hotelId:    string
+    }
+  | {
+      type: 'ADD_MENU_INGREDIENT'
+      hotelId:      string
+      menuItemId:   string
+      variantId:    string
+      qtyPerServe:  number
+      unit?:        string | null
+    }
+  | {
+      type: 'UPDATE_MENU_INGREDIENT'
+      ingredientId: string
+      hotelId:      string
+      qtyPerServe?: number
+      unit?:        string | null
+    }
+  | {
+      type: 'REMOVE_MENU_INGREDIENT'
+      ingredientId: string
+      hotelId:      string
+    }
+
+  // ── Mind: demand-planner events ───────────────────────────────────────────
+  | {
+      type: 'CREATE_EVENT'
+      hotelId:      string
+      name:         string
+      eventDate:    string
+      guestCount:   number
+      eventType:    string
+      demandFactor: number
+      notes?:       string | null
+    }
+  | {
+      type: 'UPDATE_EVENT'
+      eventId:       string
+      hotelId:       string
+      name?:         string
+      eventDate?:    string
+      guestCount?:   number
+      eventType?:    string
+      demandFactor?: number
+      notes?:        string | null
+    }
+  | {
+      type: 'DELETE_EVENT'
+      eventId: string
+      hotelId: string
+    }
+
 // ─── Result types ─────────────────────────────────────────────────────────────
 //
 // `ActionFailure.error` is now a tagged `BeaconError` (per the osdk-ts audit

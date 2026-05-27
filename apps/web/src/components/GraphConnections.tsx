@@ -110,6 +110,9 @@ const NODE_LABELS: Record<NodeType, string> = {
   removal_reason:    'Reason',
   pick_list:         'Pick List',
   pick_list_item:    'Pick Item',
+  menu_item:         'Menu Item',
+  menu_item_ingredient: 'Ingredient',
+  event:             'Event',
 }
 
 // ─── Single chip ──────────────────────────────────────────────────────────────

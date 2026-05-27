@@ -78,6 +78,20 @@ describe('validateAction — happy paths', () => {
   it('ADD_PICK_LIST_ITEM',      () => expectValid({ type: 'ADD_PICK_LIST_ITEM',     pickListId: 'pl-1', hotelId: HOTEL, variantId: VAR, quantityPlanned: 6 }))
   it('UPDATE_PICK_LIST_ITEM',   () => expectValid({ type: 'UPDATE_PICK_LIST_ITEM',  itemId: 'pli-1', hotelId: HOTEL, quantityPicked: 6 }))
   it('REMOVE_PICK_LIST_ITEM',   () => expectValid({ type: 'REMOVE_PICK_LIST_ITEM',  itemId: 'pli-1', hotelId: HOTEL }))
+
+  // ── F&B + events ───────────────────────────────────────────────────────────
+  it('CREATE_MENU_ITEM',        () => expectValid({ type: 'CREATE_MENU_ITEM',       hotelId: HOTEL, name: 'Caesar Salad' }))
+  it('UPDATE_MENU_ITEM',        () => expectValid({ type: 'UPDATE_MENU_ITEM',       menuItemId: 'mi-1', hotelId: HOTEL, sellPrice: 12.5 }))
+  it('ARCHIVE_MENU_ITEM',       () => expectValid({ type: 'ARCHIVE_MENU_ITEM',      menuItemId: 'mi-1', hotelId: HOTEL }))
+  it('ADD_MENU_INGREDIENT',     () => expectValid({ type: 'ADD_MENU_INGREDIENT',    hotelId: HOTEL, menuItemId: 'mi-1', variantId: VAR, qtyPerServe: 0.05 }))
+  it('UPDATE_MENU_INGREDIENT',  () => expectValid({ type: 'UPDATE_MENU_INGREDIENT', ingredientId: 'mii-1', hotelId: HOTEL, qtyPerServe: 0.07 }))
+  it('REMOVE_MENU_INGREDIENT',  () => expectValid({ type: 'REMOVE_MENU_INGREDIENT', ingredientId: 'mii-1', hotelId: HOTEL }))
+  it('CREATE_EVENT',            () => expectValid({
+    type: 'CREATE_EVENT', hotelId: HOTEL, name: 'New Year Gala',
+    eventDate: '2026-12-31', guestCount: 220, eventType: 'banquet', demandFactor: 1.8,
+  }))
+  it('UPDATE_EVENT',            () => expectValid({ type: 'UPDATE_EVENT', eventId: 'ev-1', hotelId: HOTEL, guestCount: 250 }))
+  it('DELETE_EVENT',            () => expectValid({ type: 'DELETE_EVENT', eventId: 'ev-1', hotelId: HOTEL }))
 })
 
 describe('validateAction — canonical failures', () => {
@@ -112,5 +126,15 @@ describe('validateAction — canonical failures', () => {
   ))
   it('LOG_DELIVERY rejects non-positive orderedQty', () => expectInvalid(
     { type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: SUP, orderedQty: 0, receivedQty: 0, expectedDate: '2026-05-27' }, 'orderedQty',
+  ))
+  it('ADD_MENU_INGREDIENT rejects non-positive qty', () => expectInvalid(
+    { type: 'ADD_MENU_INGREDIENT', hotelId: HOTEL, menuItemId: 'mi-1', variantId: VAR, qtyPerServe: 0 }, 'qtyPerServe',
+  ))
+  it('CREATE_EVENT rejects non-positive demandFactor', () => expectInvalid(
+    {
+      type: 'CREATE_EVENT', hotelId: HOTEL, name: 'x',
+      eventDate: '2026-01-01', guestCount: 50, eventType: 'banquet', demandFactor: 0,
+    },
+    'demandFactor',
   ))
 })
