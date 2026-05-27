@@ -131,6 +131,122 @@
   }
 }
 
+/* ── Intent-color dark-mode safety net ────────────────────────────────────────
+ * Many badges, callouts, and notification cards use `bg-{color}-50` /
+ * `bg-{color}-100` with `text-{color}-700/800` and `border-{color}-200` —
+ * patterns that render readable in light mode but glare-white in dark.
+ *
+ * Rather than chase every utility-class string with a `dark:` variant
+ * (high maintenance, easy to miss), we auto-flip them at the CSS layer.
+ * Specificity matches Tailwind's flat class selectors; the .dark scope
+ * gates the override.
+ *
+ * Pattern: bg-<C>-50/100 -> deep <C>-950/30 ish, text-<C>-700/800 ->
+ * light <C>-200/300, border-<C>-200/300 -> dim <C>-800/40. Preserves
+ * the semantic color (danger still red, success still green) at a
+ * legibility level that fits the dark surface ramp.
+ */
+
+.dark {
+  /* red */
+  .bg-red-50    { background-color: rgb(127 29 29 / 0.25) !important; }
+  .bg-red-100   { background-color: rgb(127 29 29 / 0.35) !important; }
+  .text-red-700, .text-red-800 { color: rgb(252 165 165) !important; }
+  .border-red-200, .border-red-300 { border-color: rgb(127 29 29 / 0.5) !important; }
+
+  /* orange */
+  .bg-orange-50  { background-color: rgb(124 45 18 / 0.25) !important; }
+  .bg-orange-100 { background-color: rgb(124 45 18 / 0.35) !important; }
+  .text-orange-700, .text-orange-800 { color: rgb(253 186 116) !important; }
+  .border-orange-200, .border-orange-300 { border-color: rgb(124 45 18 / 0.5) !important; }
+
+  /* amber */
+  .bg-amber-50  { background-color: rgb(120 53 15 / 0.25) !important; }
+  .bg-amber-100 { background-color: rgb(120 53 15 / 0.35) !important; }
+  .text-amber-700, .text-amber-800 { color: rgb(252 211 77) !important; }
+  .border-amber-200, .border-amber-300 { border-color: rgb(120 53 15 / 0.5) !important; }
+
+  /* yellow */
+  .bg-yellow-50  { background-color: rgb(120 53 15 / 0.25) !important; }
+  .bg-yellow-100 { background-color: rgb(120 53 15 / 0.35) !important; }
+  .text-yellow-700, .text-yellow-800 { color: rgb(253 224 71) !important; }
+  .border-yellow-200, .border-yellow-300 { border-color: rgb(120 53 15 / 0.5) !important; }
+
+  /* green */
+  .bg-green-50  { background-color: rgb(20 83 45 / 0.25) !important; }
+  .bg-green-100 { background-color: rgb(20 83 45 / 0.35) !important; }
+  .text-green-700, .text-green-800 { color: rgb(134 239 172) !important; }
+  .border-green-200, .border-green-300 { border-color: rgb(20 83 45 / 0.5) !important; }
+
+  /* emerald */
+  .bg-emerald-50  { background-color: rgb(6 78 59 / 0.25) !important; }
+  .bg-emerald-100 { background-color: rgb(6 78 59 / 0.35) !important; }
+  .text-emerald-700, .text-emerald-800 { color: rgb(110 231 183) !important; }
+  .border-emerald-200, .border-emerald-300 { border-color: rgb(6 78 59 / 0.5) !important; }
+
+  /* blue */
+  .bg-blue-50  { background-color: rgb(30 58 138 / 0.25) !important; }
+  .bg-blue-100 { background-color: rgb(30 58 138 / 0.35) !important; }
+  .text-blue-700, .text-blue-800 { color: rgb(147 197 253) !important; }
+  .border-blue-200, .border-blue-300 { border-color: rgb(30 58 138 / 0.5) !important; }
+
+  /* indigo */
+  .bg-indigo-50  { background-color: rgb(30 27 75 / 0.35) !important; }
+  .bg-indigo-100 { background-color: rgb(30 27 75 / 0.45) !important; }
+  .text-indigo-700, .text-indigo-800 { color: rgb(165 180 252) !important; }
+  .border-indigo-200, .border-indigo-300 { border-color: rgb(30 27 75 / 0.6) !important; }
+
+  /* purple / violet */
+  .bg-purple-50, .bg-violet-50  { background-color: rgb(59 7 100 / 0.25) !important; }
+  .bg-purple-100, .bg-violet-100 { background-color: rgb(59 7 100 / 0.35) !important; }
+  .text-purple-700, .text-purple-800, .text-violet-700, .text-violet-800 { color: rgb(196 181 253) !important; }
+  .border-purple-200, .border-purple-300, .border-violet-200, .border-violet-300 { border-color: rgb(59 7 100 / 0.5) !important; }
+
+  /* slate / gray — these tend to render as washed-out white in dark mode */
+  .bg-slate-50  { background-color: hsl(var(--surface-2)) !important; }
+  .bg-slate-100 { background-color: hsl(var(--surface-3)) !important; }
+  .text-slate-500, .text-slate-600, .text-slate-700, .text-slate-800 { color: hsl(var(--muted-foreground)) !important; }
+  .border-slate-200, .border-slate-300 { border-color: hsl(var(--border)) !important; }
+
+  .bg-gray-50  { background-color: hsl(var(--surface-2)) !important; }
+  .bg-gray-100 { background-color: hsl(var(--surface-3)) !important; }
+  .text-gray-500, .text-gray-600, .text-gray-700, .text-gray-800 { color: hsl(var(--muted-foreground)) !important; }
+  .border-gray-200, .border-gray-300 { border-color: hsl(var(--border)) !important; }
+}
+
+/* ── Blueprint dark-mode safety net ───────────────────────────────────────────
+ * Belt-and-braces for Blueprint widgets that sometimes don't inherit
+ * `bp5-dark` correctly (e.g. inputs inside non-Blueprint wrappers).
+ * Forces the dark surface on the elements operators see most.
+ */
+
+.dark .bp5-input,
+.dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
+.dark select,
+.dark textarea {
+  background-color: hsl(var(--surface-2));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+.dark .bp5-input::placeholder,
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(var(--muted-foreground));
+  opacity: 0.7;
+}
+
+.dark .bp5-input-group .bp5-icon {
+  color: hsl(var(--muted-foreground));
+}
+
+/* Blueprint Tag with Intent.NONE in dark mode reads as a dull gray —
+   bump it to a slightly elevated surface so it stays visible on dark cards. */
+.dark .bp5-tag:not([class*='bp5-intent-']) {
+  background-color: hsl(var(--surface-3));
+  color: hsl(var(--foreground));
+}
+
 /* ── Blueprint card lift — light mode has subtle shadow; dark relies on
      surface contrast since shadows on near-black look muddy. ───────────── */
 @layer base {
