@@ -258,8 +258,7 @@ export default function SupplierBrowserPage() {
     if (filter === 'critical') return rows.filter((r) => r.riskTier === 'critical')
     if (filter === 'high')     return rows.filter((r) => r.riskTier === 'high')
     if (filter === 'watch')    return rows.filter((r) => r.riskTier === 'medium')
-    if (filter === 'reliable') return rows.filter((r) => r.riskTier === 'low')
-    return rows
+    /* filter === 'reliable' */ return rows.filter((r) => r.riskTier === 'low')
   }, [rows, filter])
 
   return (

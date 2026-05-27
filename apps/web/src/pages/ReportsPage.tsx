@@ -327,10 +327,10 @@ function ConsumptionReport({
     }
     return [...map.entries()]
       .map(([key, v]) => {
-        const [product, variant] = key.split('||')
+        const [product = '', variant = ''] = key.split('||')
         return {
-          product: product ?? '',
-          variant: variant ?? '',
+          product,
+          variant,
           ...v,
           daily_units: v.units / periodDays,
           daily_cost:  v.cost  / periodDays,

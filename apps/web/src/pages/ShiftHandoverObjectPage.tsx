@@ -47,12 +47,12 @@ const PRIORITY_META: Record<'urgent' | 'watch' | 'info', { intent: Intent; icon:
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ShiftHandoverObjectPage() {
-  const { handoverId } = useParams<{ handoverId: string }>()
+  const { handoverId = '' } = useParams<{ handoverId: string }>()
   const navigate       = useNavigate()
 
   const { data: handover, isLoading, error } = useQuery({
     queryKey:  ['handover-object', handoverId],
-    queryFn:   () => fetchHandover(handoverId!),
+    queryFn:   () => fetchHandover(handoverId),
     enabled:   !!handoverId,
     staleTime: 120_000,
   })
@@ -80,7 +80,7 @@ export default function ShiftHandoverObjectPage() {
     )
   }
 
-  const flagged  = handover.flagged_items ?? []
+  const flagged  = handover.flagged_items
   const urgentCount = flagged.filter((i) => i.priority === 'urgent').length
   const watchCount  = flagged.filter((i) => i.priority === 'watch').length
 

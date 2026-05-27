@@ -16,7 +16,7 @@ import type { ProductWithVariants, StockLog } from '@beacon/types'
 const CHART_MARGIN = { top: 4, right: 4, left: -20, bottom: 0 }
 const AXIS_TICK    = { fontSize: 10 }
 const TOOLTIP_STYLE = { fontSize: 12, borderRadius: 6 }
-const tooltipFormatter = (v: unknown) => [String(v ?? ''), 'Balance']
+const tooltipFormatter = (v: unknown) => [typeof v === 'number' || typeof v === 'string' ? String(v) : '', 'Balance']
 
 interface Props {
   open: boolean

@@ -69,7 +69,7 @@ export function RestockRequestModal({ open, onClose }: Props) {
               control={control}
               render={({ field }) => (
                 <HTMLSelect
-                  value={field.value ?? ''}
+                  value={field.value || ''}
                   onChange={(e) => { field.onChange(e.target.value) }}
                   options={[
                     { value: '', label: 'Select a product…' },

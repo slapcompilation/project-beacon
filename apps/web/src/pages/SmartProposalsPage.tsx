@@ -471,11 +471,12 @@ export default function SmartProposalsPage() {
     const critical = rows.filter((r) => r.signal_type === 'critical' && !!r.preferred_supplier_id)
     setApprovingAll(true)
     for (const row of critical) {
+      if (!row.preferred_supplier_id) continue
       try {
         await approveWithPO.mutateAsync({
           variantId:    row.variant_id,
           qty:          row.proposed_qty,
-          supplierId:   row.preferred_supplier_id!,
+          supplierId:   row.preferred_supplier_id,
           supplierName: row.preferred_supplier_name ?? '',
           unitCost:     row.contracted_price ?? row.unit_cost,
           leadDays:     row.lead_time_days ?? 7,

@@ -20,7 +20,8 @@ import { useUserOrgMemberships } from '@/features/organizations/hooks'
 export function useActiveOrgId(): string | null {
   const explicit = useAppStore((s) => s.activeOrgId)
   const { data: memberships = [] } = useUserOrgMemberships()
-  return explicit ?? memberships[0]?.organization_id ?? null
+  if (explicit) return explicit
+  return memberships.length > 0 ? memberships[0].organization_id : null
 }
 
 /** Current scope mode — 'hotel' (one property) or 'organization' (portfolio). */

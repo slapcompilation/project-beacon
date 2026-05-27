@@ -18,7 +18,7 @@ export async function fetchAccessibleOrganizations(): Promise<Organization[]> {
     .select('*')
     .order('name')
   if (error) throw new Error(error.message)
-  return (data ?? []) as Organization[]
+  return data as Organization[]
 }
 
 /**
@@ -34,5 +34,5 @@ export async function fetchUserOrgMemberships(): Promise<UserOrgMembership[]> {
     .select('*')
     .eq('user_id', user.id)
   if (error) throw new Error(error.message)
-  return (data ?? []) as UserOrgMembership[]
+  return data as UserOrgMembership[]
 }

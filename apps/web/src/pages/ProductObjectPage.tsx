@@ -65,12 +65,12 @@ const URGENCY_LABEL: Record<ReturnType<typeof stockUrgency>, string> = {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function ProductObjectPage() {
-  const { productId } = useParams<{ productId: string }>()
+  const { productId = '' } = useParams<{ productId: string }>()
   const navigate      = useNavigate()
 
   const { data: product, isLoading, error } = useQuery({
     queryKey:  ['product-object', productId],
-    queryFn:   () => fetchProductWithVariants(productId!),
+    queryFn:   () => fetchProductWithVariants(productId),
     enabled:   !!productId,
     staleTime: 60_000,
   })
@@ -98,10 +98,10 @@ export default function ProductObjectPage() {
     )
   }
 
-  const variants     = product.product_variants ?? []
+  const variants     = product.product_variants
   const totalStock   = getTotalStock(variants)
   const stockStatus  = getStockStatus(variants)
-  const totalValue   = variants.reduce((s, v) => s + v.current_stock * (v.cost ?? 0), 0)
+  const totalValue   = variants.reduce((s, v) => s + v.current_stock * v.cost, 0)
   const criticalCount = variants.filter((v) => stockUrgency(v) === 'critical').length
   const lowCount      = variants.filter((v) => stockUrgency(v) === 'low').length
 
@@ -172,7 +172,7 @@ export default function ProductObjectPage() {
           <Card compact>
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stock Value</div>
             <div className="text-xl font-bold font-mono tabular-nums">€{totalValue.toFixed(2)}</div>
-            <div className="text-[10px] text-muted-foreground">@ €{(product.cost ?? 0).toFixed(2)} / unit</div>
+            <div className="text-[10px] text-muted-foreground">@ €{product.cost.toFixed(2)} / unit</div>
           </Card>
           <Card compact>
             <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Attention</div>
@@ -205,7 +205,7 @@ export default function ProductObjectPage() {
         )}
 
         {/* Tags */}
-        {product.tags && product.tags.length > 0 && (
+        {product.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {product.tags.map((tag) => (
               <Tag key={tag} icon="tag" minimal>{tag}</Tag>

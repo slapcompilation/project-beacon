@@ -34,7 +34,7 @@ export function GraphTabContent() {
             <Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} />
           </div>
         }>
-          <GraphConnections nodeType={nodeType as 'variant'} nodeId={entityId!} />
+          <GraphConnections nodeType={nodeType as 'variant'} nodeId={entityId ?? ''} />
         </Suspense>
       </PanelErrorBoundary>
     </div>

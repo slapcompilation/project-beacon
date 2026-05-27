@@ -157,7 +157,7 @@ function QuickAdjustForm({
     onSuccess(match.variant.current_stock + delta, delta)
   }
 
-  const costImpact = (qty ?? 0) * match.variant.cost
+  const costImpact = qty * match.variant.cost
 
   return (
     <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-4">
@@ -623,7 +623,7 @@ export default function ScanPage() {
 
   const handleLogPending = (code: string) => {
     void recordPending.mutateAsync({ scannedCode: code, locationId: selectedLocationId })
-    void (navigator.vibrate?.(50))
+    if (typeof navigator.vibrate === 'function') navigator.vibrate(50)
     reset()
   }
 

@@ -358,8 +358,7 @@ function VariantRow({
                   variant.status === 'in_use'      ? Intent.PRIMARY :
                   variant.status === 'maintenance' ? Intent.WARNING :
                   variant.status === 'retired'     ? Intent.NONE :
-                  variant.status === 'ordered'     ? Intent.PRIMARY :
-                  Intent.NONE
+                  Intent.PRIMARY  // 'ordered'
                 }
                 className="!text-[10px] !px-1 !py-0"
               >
