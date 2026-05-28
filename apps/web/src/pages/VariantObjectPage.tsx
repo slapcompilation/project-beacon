@@ -29,6 +29,7 @@ import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
+import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -182,6 +183,7 @@ export default function VariantObjectPage() {
   const navigate      = useNavigate()
   const [adviceOpen, setAdviceOpen] = useState(false)
   const [wasteOpen, setWasteOpen]   = useState(false)
+  const [overstockOpen, setOverstockOpen] = useState(false)
   useActiveHotelId() // ensures hotel context is ready for RLS
 
   const { data: variant, isLoading: loadingVariant, error: variantError } = useQuery({
@@ -312,6 +314,13 @@ export default function VariantObjectPage() {
                   Waste anomaly
                 </Tag>
               )}
+              <Button
+                icon="swap-horizontal"
+                size="small"
+                onClick={() => { setOverstockOpen(true) }}
+              >
+                Rebalance overstock
+              </Button>
               <Button
                 icon="trash"
                 size="small"
@@ -513,6 +522,13 @@ export default function VariantObjectPage() {
       <WasteAdviceSlideOver
         open={wasteOpen}
         onClose={() => { setWasteOpen(false) }}
+        variantId={variantId}
+        variantName={variant.name}
+      />
+
+      <OverstockAdviceSlideOver
+        open={overstockOpen}
+        onClose={() => { setOverstockOpen(false) }}
         variantId={variantId}
         variantName={variant.name}
       />
