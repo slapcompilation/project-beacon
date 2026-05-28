@@ -1,9 +1,18 @@
 import { z } from 'zod'
 import { createBlock } from '../../runtime'
+import { principleProvenance, principleReasoningSuffix } from '../../principles'
+import type { PrincipleRecord } from '../../../tools/graph_reader'
 import type { QueryOpenRestockRequestsOutput } from '../../../tools/data/query_open_restock_requests'
 import type { ForecastConsumptionOutput } from '../../../tools/logic/forecast_consumption'
 import type { QuerySisterPropertyInventoryOutput } from '../../../tools/data/query_sister_property_inventory'
 import type { RankAlternativeSuppliersOutput } from '../../../tools/logic/rank_alternative_suppliers'
+
+const principleSchema = z.object({
+  id:               z.string(),
+  body:             z.string(),
+  category:         z.string(),
+  appliesToNodeIds: z.array(z.string()).optional(),
+})
 
 const inputSchema = z.object({
   variantId: z.string().uuid(),
@@ -14,6 +23,9 @@ const inputSchema = z.object({
   /** Optional supplier name from extract_supplier; not all proposals use it. */
   preferredSupplierName: z.string().nullable(),
   confidenceThreshold: z.number().min(0).max(1).default(0.6),
+  /** Active operator Principles applicable to this variant — soft constraints
+   *  the agent honors and records in provenance. Defaults to none. */
+  principles: z.array(principleSchema).default([]),
 })
 
 const proposalSchema = z.object({
@@ -41,7 +53,7 @@ const proposalSchema = z.object({
   reasoning: z.string().min(1),
   provenance: z.array(
     z.object({
-      kind: z.enum(['tool', 'document']),
+      kind: z.enum(['tool', 'document', 'principle']),
       ref: z.string().min(1),
       detail: z.string().optional(),
     }),
@@ -185,6 +197,19 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
             { kind: 'tool', ref: 'rank_alternative_suppliers', detail: `top=${top.name}, score=${String(top.score)}` },
           ],
         })
+      }
+    }
+
+    // Apply operator Principles as soft constraints: annotate every proposal
+    // with the principles that shaped it (provenance) and surface them in the
+    // reasoning so the operator sees their feedback was honored.
+    const principles = input.principles as PrincipleRecord[]
+    if (principles.length > 0) {
+      const provEntries = principleProvenance(principles)
+      const suffix = principleReasoningSuffix(principles)
+      for (const p of proposals) {
+        p.reasoning += suffix
+        p.provenance = [...p.provenance, ...provEntries]
       }
     }
 

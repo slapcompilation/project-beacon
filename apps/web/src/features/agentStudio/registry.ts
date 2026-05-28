@@ -43,6 +43,7 @@ const noopReader: GraphReader = {
   getSuppliersForVariant:  () => Promise.resolve([]),
   getDocumentsForEntity:   () => Promise.resolve([]),
   searchDocumentChunks:    () => Promise.resolve([]),
+  getActivePrinciples:     () => Promise.resolve([]),
 }
 
 // ─── Tool descriptors ────────────────────────────────────────────────────────

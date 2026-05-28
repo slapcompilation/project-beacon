@@ -86,7 +86,11 @@ export interface AgentProposal {
   action: BeaconAction
   confidence: number
   reasoning: string
-  provenance: ReadonlyArray<{ kind: 'tool' | 'document'; ref: string; detail?: string }>
+  /** Why the agent proposed this: which tools it called, which documents it
+   *  cited, and which operator Principles shaped the result. `principle`
+   *  entries close the learning flywheel — the operator sees their feedback
+   *  was honored, and createProposal writes influenced_by edges from them. */
+  provenance: ReadonlyArray<{ kind: 'tool' | 'document' | 'principle'; ref: string; detail?: string }>
 }
 
 export interface AgentRunResult {

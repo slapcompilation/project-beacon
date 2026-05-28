@@ -101,9 +101,19 @@ export function ProposalCard({ persisted, trace, onApprove, onRefine, parentActi
           <ul className="space-y-0.5">
             {proposal.provenance.map((p, i) => (
               <li key={`${p.ref}-${String(i)}`} className="flex items-baseline gap-1.5 text-xs text-muted-foreground">
-                <Icon icon={p.kind === 'tool' ? 'function' : 'document'} size={10} className="mt-0.5" />
-                <span className="font-mono">{p.ref}</span>
-                {p.detail && <span className="opacity-70">— {p.detail}</span>}
+                <Icon
+                  icon={p.kind === 'tool' ? 'function' : p.kind === 'principle' ? 'learning' : 'document'}
+                  size={10}
+                  className={cn('mt-0.5', p.kind === 'principle' && 'text-violet-500')}
+                />
+                {p.kind === 'principle' ? (
+                  <span className="italic">{p.detail ?? p.ref}</span>
+                ) : (
+                  <>
+                    <span className="font-mono">{p.ref}</span>
+                    {p.detail && <span className="opacity-70">— {p.detail}</span>}
+                  </>
+                )}
               </li>
             ))}
           </ul>

@@ -73,6 +73,17 @@ export interface DocumentChunkMatch {
   similarity:   number
 }
 
+/** An active operator Principle the agent weighs as a soft constraint.
+ *  Mirrors PrinciplePayload from nodes/aip.ts with the row id attached. */
+export interface PrincipleRecord {
+  id:       string
+  body:     string
+  category: string
+  /** When set, the principle applies only to these node ids (variants,
+   *  suppliers, agents). Empty/undefined = applies hotel-wide. */
+  appliesToNodeIds?: string[]
+}
+
 /** Read-only abstraction used by all data/logic tools. */
 export interface GraphReader {
   getVariant(variantId: string): Promise<VariantRow | null>
@@ -92,4 +103,8 @@ export interface GraphReader {
     query:   string,
     opts?:   { threshold?: number; limit?: number },
   ): Promise<DocumentChunkMatch[]>
+  /** Active operator Principles for the hotel (optionally org-wide too).
+   *  Agents fetch these and weigh applicable ones as soft constraints,
+   *  recording honored principles in proposal provenance. */
+  getActivePrinciples(hotelId: string, organizationId?: string): Promise<PrincipleRecord[]>
 }

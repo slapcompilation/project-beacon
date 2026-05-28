@@ -19,6 +19,7 @@ import type {
   ConsumptionForecastOutput,
 } from '../../objectives/consumption_forecast/types'
 import { buildRunner } from '../runtime'
+import { selectApplicablePrinciples } from '../principles'
 import { extractVariantBlock } from './blocks/extract_variant'
 import { proposeWasteActionsBlock } from './blocks/propose_waste_actions'
 import { WASTE_TRIAGE_TASK_PROMPT } from './prompt'
@@ -95,6 +96,12 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
         }
       }
 
+      const allPrinciples = await deps.reader.getActivePrinciples(
+        input.scope.hotelId,
+        input.scope.organizationId,
+      )
+      const principles = selectApplicablePrinciples(allPrinciples, variant.variantId)
+
       const result = await runner.runBlock(proposeWasteActionsBlock, {
         variantId:           variant.variantId,
         variantName:         variant.variantName,
@@ -103,6 +110,7 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
         currentStock:        variantRow.current_stock,
         safeWindowDays:      7,
         confidenceThreshold: 0.6,
+        principles,
       })
 
       return {

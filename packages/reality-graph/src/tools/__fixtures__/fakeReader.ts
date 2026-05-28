@@ -6,6 +6,7 @@ import type {
   DocumentRow,
   GraphReader,
   HotelRow,
+  PrincipleRecord,
   RestockRequestRow,
   StockLogRow,
   SupplierRow,
@@ -20,6 +21,7 @@ export interface FakeReaderSeed {
   suppliersByVariant?: Record<string, SupplierRow[]>
   documentsByEntity?:  Record<string, DocumentRow[]>
   chunkMatches?:       DocumentChunkMatch[]
+  principles?:         PrincipleRecord[]
 }
 
 export function fakeReader(seed: FakeReaderSeed = {}): GraphReader {
@@ -49,6 +51,9 @@ export function fakeReader(seed: FakeReaderSeed = {}): GraphReader {
 
     searchDocumentChunks: () =>
       Promise.resolve(seed.chunkMatches ?? []),
+
+    getActivePrinciples: () =>
+      Promise.resolve(seed.principles ?? []),
   }
 }
 

@@ -153,7 +153,7 @@ export {
   makeQueryDocumentChunksTool,
   requestClarificationTool,
 } from './tools/index'
-export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch } from './tools/index'
+export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
 // Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.
@@ -183,6 +183,13 @@ export type { LLMClient, LLMCallInput, LLMResponse, LLMMessage, LLMToolCall, LLM
 export { StubLLMClient } from './agents/llm'
 export type { BlockDef, BlockContext, RunAgentArgs, AgentRunner } from './agents/runtime'
 export { createBlock, buildRunner, llmCallWithSchema } from './agents/runtime'
+
+// ── Principle injection — operator-feedback half of the learning flywheel ───
+export {
+  selectApplicablePrinciples,
+  principleProvenance,
+  principleReasoningSuffix,
+} from './agents/principles'
 
 // ── First concrete agent: restock_advisor v1 ────────────────────────────────
 export {

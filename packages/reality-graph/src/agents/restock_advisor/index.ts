@@ -20,6 +20,7 @@ import type {
   ConsumptionForecastOutput,
 } from '../../objectives/consumption_forecast/types'
 import { buildRunner } from '../runtime'
+import { selectApplicablePrinciples } from '../principles'
 import { extractVariantBlock } from './blocks/extract_variant'
 import { extractSupplierBlock } from './blocks/extract_supplier'
 import { reasonAndProposeBlock } from './blocks/reason_and_propose'
@@ -101,6 +102,15 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
         }
       }
 
+      // Operator Principles → soft constraints. Fetch the active set, narrow
+      // to those applicable to this variant, and hand them to the reasoning
+      // block so every proposal records which feedback it honored.
+      const allPrinciples = await deps.reader.getActivePrinciples(
+        input.scope.hotelId,
+        input.scope.organizationId,
+      )
+      const principles = selectApplicablePrinciples(allPrinciples, variant.variantId)
+
       const result = await runner.runBlock(reasonAndProposeBlock, {
         variantId: variant.variantId,
         variantName: variant.variantName,
@@ -109,6 +119,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
         currentStock: variantRow.current_stock,
         preferredSupplierName: supplier.supplierName,
         confidenceThreshold: 0.6,
+        principles,
       })
 
       return {
