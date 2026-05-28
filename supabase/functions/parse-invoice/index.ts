@@ -8,11 +8,8 @@
 // Required env vars: OPENAI_API_KEY
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-
-const CORS = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { corsHeaders as CORS, preflight } from '../_shared/http.ts'
+import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 
 interface ParsedInvoice {
   invoiceNumber: string | null
@@ -30,9 +27,14 @@ interface ParsedInvoice {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS })
+  const pre = preflight(req)
+  if (pre) return pre
 
   try {
+    // Gate behind auth so anonymous callers can't burn the OpenAI quota.
+    const auth = await verifyAuth(req)
+    if (isAuthError(auth)) return auth
+
     const apiKey = Deno.env.get('OPENAI_API_KEY')
     if (!apiKey) {
       return new Response(

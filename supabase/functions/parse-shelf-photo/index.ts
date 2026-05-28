@@ -9,7 +9,8 @@
 // Palantir Principle #4: decision support, not autonomous action.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { preflight } from '../_shared/http.ts'
+import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 
 interface RecognizedItem {
   productName:  string
@@ -43,27 +44,12 @@ Return a JSON object: { "items": [...] }
 Only return the JSON — no markdown, no explanation.`
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, content-type',
-      },
-    })
-  }
+  const pre = preflight(req)
+  if (pre) return pre
 
   try {
-    // Auth check
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return new Response('Unauthorized', { status: 401 })
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } },
-    )
-    const { data: { user }, error: authErr } = await supabase.auth.getUser()
-    if (authErr || !user) return new Response('Unauthorized', { status: 401 })
+    const auth = await verifyAuth(req)
+    if (isAuthError(auth)) return auth
 
     // Parse form
     const form = await req.formData()

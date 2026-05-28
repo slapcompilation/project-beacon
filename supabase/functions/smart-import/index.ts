@@ -1,40 +1,20 @@
 // Layer: Eye — AI-powered natural language import parser
 // Parses free-form text into structured product create/update operations via Claude.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
+import { json, preflight } from '../_shared/http.ts'
+import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  const pre = preflight(req)
+  if (pre) return pre
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
     const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
     if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    )
-
-    // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) return json({ error: 'Unauthorized' }, 401)
+    const auth = await verifyAuth(req)
+    if (isAuthError(auth)) return auth
 
     const body = await req.json() as {
       mode: 'create' | 'update'

@@ -5,13 +5,8 @@
 //   Auth: x-beacon-secret header matched against WEBHOOK_SIGNING_SECRET env var.
 //   Normalised payload → ingest_occupancy_webhook() RPC → occupancy_logs + pms_connections.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, apikey, content-type, x-beacon-secret',
-}
+import { json, preflight } from '../_shared/http.ts'
+import { isAuthError, verifySharedSecret } from '../_shared/auth.ts'
 
 // ─── Payload types ────────────────────────────────────────────────────────────
 
@@ -38,25 +33,17 @@ interface IngestPayload {
 // ─── Handler ─────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') {
-    return json('ok', 200)
-  }
+  const pre = preflight(req)
+  if (pre) return pre
 
   if (req.method !== 'POST') {
     return json({ error: 'Method not allowed' }, 405)
   }
 
-  // ── Auth: shared webhook signing secret ──────────────────────────────────
-  const signingSecret = Deno.env.get('WEBHOOK_SIGNING_SECRET')
-  if (!signingSecret) {
-    console.error('WEBHOOK_SIGNING_SECRET env var not set')
-    return json({ error: 'Server misconfiguration' }, 500)
-  }
-
-  const providedSecret = req.headers.get('x-beacon-secret')
-  if (!providedSecret || providedSecret !== signingSecret) {
-    return json({ error: 'Unauthorized' }, 401)
-  }
+  // ── Auth: shared webhook signing secret → service-role client ─────────────
+  const auth = verifySharedSecret(req)
+  if (isAuthError(auth)) return auth
+  const { supabase: adminClient } = auth
 
   // ── Parse & validate payload ──────────────────────────────────────────────
   let body: IngestPayload
@@ -78,12 +65,7 @@ Deno.serve(async (req: Request) => {
     return json({ error: 'events[] must be a non-empty array' }, 400)
   }
 
-  // ── Persist via service role ──────────────────────────────────────────────
-  const adminClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  )
+  // ── Persist via service role (from verifySharedSecret) ────────────────────
 
   let inserted = 0
   const errors: string[] = []
@@ -122,10 +104,3 @@ Deno.serve(async (req: Request) => {
     status,
   )
 })
-
-function json(body: unknown, status: number) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
