@@ -8,11 +8,14 @@ import {
   // agent metadata + blocks
   RESTOCK_ADVISOR_TASK_PROMPT,
   WASTE_TRIAGE_TASK_PROMPT,
+  OVERSTOCK_REBALANCER_TASK_PROMPT,
   restockExtractVariantBlock,
   restockExtractSupplierBlock,
   restockReasonAndProposeBlock,
   wasteExtractVariantBlock,
   wasteProposeActionsBlock,
+  overstockExtractVariantBlock,
+  overstockReasonAndRebalanceBlock,
   // tool factories
   makeQueryOpenRestockRequestsTool,
   makeQuerySisterPropertyInventoryTool,
@@ -138,6 +141,29 @@ export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
     taskPrompt:  WASTE_TRIAGE_TASK_PROMPT,
     invokeFrom:  'Variant page · "Waste triage"',
     evalFile:    'packages/reality-graph/src/agents/waste_triage/eval/waste_triage.eval.ts',
+  },
+  {
+    name:             'overstock_rebalancer',
+    version:          '1.0.0',
+    purpose:          'Frees working capital tied up in excess stock by proposing TRANSFER_STOCK to a sister property below par.',
+    scope:            'hotel',
+    cadence:          'on-event',
+    approvalBoundary: 'operator',
+    releaseStage:     'sandbox',
+    toolset: [
+      'forecast_consumption',
+      'query_sister_property_inventory',
+      'query_variant_documents',
+      'request_clarification',
+    ],
+    emits: ['TRANSFER_STOCK'],
+    blocks: [
+      overstockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
+      overstockReasonAndRebalanceBlock as unknown as BlockDef<unknown, unknown>,
+    ],
+    taskPrompt:  OVERSTOCK_REBALANCER_TASK_PROMPT,
+    invokeFrom:  'Variant page · "Rebalance overstock"',
+    evalFile:    'packages/reality-graph/src/agents/overstock_rebalancer/eval/overstock_rebalancer.eval.ts',
   },
 ]
 

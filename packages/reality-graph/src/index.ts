@@ -210,6 +210,15 @@ export {
   type WasteTriageDeps,
 } from './agents/waste_triage/index'
 
+// ── Third concrete agent: overstock_rebalancer v1 ───────────────────────────
+export {
+  buildOverstockRebalancerAgent,
+  OVERSTOCK_REBALANCER_TASK_PROMPT,
+  overstockExtractVariantBlock,
+  overstockReasonAndRebalanceBlock,
+  type OverstockRebalancerDeps,
+} from './agents/overstock_rebalancer/index'
+
 // ── Tool factories (re-exported for descriptor introspection) ──────────────
 export { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
 
