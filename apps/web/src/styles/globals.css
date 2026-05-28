@@ -125,8 +125,8 @@
 
   /* Smooth theme transitions for surfaces. Doesn't animate text colour to
      avoid jank during page navigations. */
-  body, .bp5-card, .bp5-dialog, .bp5-popover, .bp5-menu, .bp5-input,
-  .bp5-html-select select, .bp5-tag {
+  body, .bp6-card, .bp6-dialog, .bp6-popover, .bp6-menu, .bp6-input,
+  .bp6-html-select select, .bp6-tag {
     transition: background-color 120ms ease, border-color 120ms ease;
   }
 }
@@ -220,7 +220,7 @@
  * Forces the dark surface on the elements operators see most.
  */
 
-.dark .bp5-input,
+.dark .bp6-input,
 .dark input:not([type='checkbox']):not([type='radio']):not([type='range']),
 .dark select,
 .dark textarea {
@@ -229,41 +229,127 @@
   border-color: hsl(var(--border));
 }
 
-.dark .bp5-input::placeholder,
+.dark .bp6-input::placeholder,
 .dark input::placeholder,
 .dark textarea::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 0.7;
 }
 
-.dark .bp5-input-group .bp5-icon {
+.dark .bp6-input-group .bp6-icon {
   color: hsl(var(--muted-foreground));
 }
 
 /* Blueprint Tag with Intent.NONE in dark mode reads as a dull gray —
    bump it to a slightly elevated surface so it stays visible on dark cards. */
-.dark .bp5-tag:not([class*='bp5-intent-']) {
+.dark .bp6-tag:not([class*='bp6-intent-']) {
   background-color: hsl(var(--surface-3));
   color: hsl(var(--foreground));
+}
+
+/* ── SegmentedControl: selected pill should not be white in dark mode ───────
+ * Blueprint's default selected segment uses a white "raised" background
+ * that pops against light surfaces. In dark mode that single pill flashes
+ * white. Override to a surface-3 lift so the selection still reads as
+ * elevated without being blinding. */
+.dark .bp6-segmented-control > .bp6-button:not(.bp6-minimal):not(.bp6-intent-primary) {
+  background-color: hsl(var(--surface-3));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 1px hsl(var(--border)) inset, var(--shadow-sm);
+}
+.dark .bp6-segmented-control > .bp6-button:not(.bp6-minimal):not(.bp6-intent-primary):hover {
+  background-color: hsl(var(--surface-3));
+  filter: brightness(1.1);
+}
+
+/* Active tab indicator in dark mode — Blueprint's white "underline" pill */
+.dark .bp6-tabs .bp6-tab[aria-selected='true'] {
+  color: hsl(var(--primary));
+}
+.dark .bp6-tab-indicator {
+  background-color: hsl(var(--primary));
+}
+
+/* Switch / Checkbox / Radio: visible track + handle in dark mode */
+.dark .bp6-control:not(.bp6-disabled) .bp6-control-indicator {
+  background-color: hsl(var(--surface-3));
+  background-image: none;
+  box-shadow: 0 0 0 1px hsl(var(--border)) inset;
+}
+.dark .bp6-control input:checked ~ .bp6-control-indicator {
+  background-color: hsl(var(--primary));
+  background-image: none;
+}
+
+/* Slider — handle is white-ish by default. Lift it onto the dark surface. */
+.dark .bp6-slider-handle {
+  background: hsl(var(--surface-3));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 1px hsl(var(--border)) inset, var(--shadow-sm);
+}
+.dark .bp6-slider-handle:hover {
+  background: hsl(var(--surface-3));
+  filter: brightness(1.15);
+}
+
+/* Numeric input + Datepicker increment buttons — Blueprint defaults to a
+   white-ish nested button. Match the surface. */
+.dark .bp6-numeric-input .bp6-button-group .bp6-button:not(.bp6-intent-primary) {
+  background-color: hsl(var(--surface-2));
+  color: hsl(var(--foreground));
+}
+
+/* Menu items — Blueprint hover defaults to a tinted background; in dark
+   it can render almost white. Pin it to surface-3. */
+.dark .bp6-menu-item:not(.bp6-disabled):hover {
+  background-color: hsl(var(--surface-3));
+}
+.dark .bp6-menu-item.bp6-active,
+.dark .bp6-menu-item.bp6-intent-primary {
+  background-color: hsl(var(--primary) / 0.18);
+  color: hsl(var(--primary));
+}
+
+/* Buttons (non-primary) — minimal and outlined buttons can read white when
+   hovered in dark mode. Settle them on surface-3. */
+.dark .bp6-button:not(.bp6-intent-primary):not(.bp6-intent-success):not(.bp6-intent-warning):not(.bp6-intent-danger):not(.bp6-minimal):hover {
+  background-color: hsl(var(--surface-3));
+  color: hsl(var(--foreground));
+}
+
+/* Dialog header — small white bar on top in dark mode. Force surface-1. */
+.dark .bp6-dialog-header {
+  background-color: hsl(var(--surface-1));
+  box-shadow: 0 1px 0 0 hsl(var(--border)) inset;
+}
+
+/* Drawer header + body should match surface tokens, not Blueprint's lights. */
+.dark .bp6-drawer {
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.dark .bp6-drawer-header {
+  background-color: hsl(var(--surface-1));
+  box-shadow: 0 1px 0 0 hsl(var(--border)) inset;
 }
 
 /* ── Blueprint card lift — light mode has subtle shadow; dark relies on
      surface contrast since shadows on near-black look muddy. ───────────── */
 @layer base {
-  .bp5-card {
+  .bp6-card {
     box-shadow: var(--shadow-sm);
     border: 1px solid hsl(var(--border));
   }
-  .dark .bp5-card {
+  .dark .bp6-card {
     box-shadow: none;
   }
 
   /* Pop heavier elevations on dialogs/popovers for clear focal stacking. */
-  .bp5-dialog {
+  .bp6-dialog {
     box-shadow: var(--shadow-lg);
   }
-  .bp5-popover .bp5-popover-content,
-  .bp5-menu {
+  .bp6-popover .bp6-popover-content,
+  .bp6-menu {
     box-shadow: var(--shadow-md);
   }
 }

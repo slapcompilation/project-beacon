@@ -11,6 +11,7 @@ import { WhyButton } from '@/components/WhySheet'
 import { getTotalStock } from '@beacon/types'
 import type { ProductWithVariants, ProductVariant, Supplier } from '@beacon/types'
 import type { InventoryIntelligenceRow } from '@/features/eye/api'
+import { pickWorstVariant } from './forecastUtils'
 
 export function RowIntelStrip({
   product,
@@ -33,11 +34,7 @@ export function RowIntelStrip({
   if (variants.length === 0) return null
 
   const totalStock = getTotalStock(variants)
-  const primaryVariant = variants.reduce((worst, v) => {
-    const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
-    const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
-    return dv < dw ? v : worst
-  }, variants[0])
+  const primaryVariant = pickWorstVariant(variants, forecastMap) ?? variants[0]
 
   const par       = primaryVariant.low_stock_threshold
   const avgDaily  = forecastMap.get(primaryVariant.id)

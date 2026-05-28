@@ -9,6 +9,7 @@ import { getTotalStock } from '@beacon/types'
 import type { ProductWithVariants } from '@beacon/types'
 import type { InventoryIntelligenceRow } from '@/features/eye/api'
 import { useAdjustStock } from '@/features/inventory/hooks'
+import { pickWorstVariant } from './forecastUtils'
 
 export function InlineStockCell({
   product,
@@ -36,13 +37,7 @@ export function InlineStockCell({
     ? Math.min(variant.current_stock / threshold, 2)
     : null
 
-  const primaryV = variants.length > 0
-    ? variants.reduce((worst, v) => {
-        const dw = (forecastMap.get(worst.id) ?? 0) > 0 ? worst.current_stock / (forecastMap.get(worst.id) ?? 1) : Infinity
-        const dv = (forecastMap.get(v.id)    ?? 0) > 0 ? v.current_stock    / (forecastMap.get(v.id)    ?? 1) : Infinity
-        return dv < dw ? v : worst
-      }, variants[0])
-    : null
+  const primaryV = pickWorstVariant(variants, forecastMap)
   const avgDailyCell = primaryV ? (forecastMap.get(primaryV.id) ?? null) : null
   const daysCell = avgDailyCell && avgDailyCell > 0 ? Math.round(totalStock / avgDailyCell) : null
   const trendPctCell = primaryV ? (intelligenceMap.get(primaryV.id)?.trend_pct ?? null) : null
