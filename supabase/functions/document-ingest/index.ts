@@ -8,22 +8,11 @@
 // Re-using the same ANTHROPIC_API_KEY the agent-llm function already uses;
 // no separate provider key needed.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import mammoth from 'https://esm.sh/mammoth@1.8.0'
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin':  '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  })
-}
+import { json, preflight } from '../_shared/http.ts'
+import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 
 interface IngestRequest {
   document_id: string
@@ -87,24 +76,21 @@ function formatTimestamp(seconds: number): string {
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
-  if (req.method !== 'POST')    return json({ error: 'POST only' }, 405)
+  const pre = preflight(req)
+  if (pre) return pre
+  if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
 
   try {
-    const authHeader = req.headers.get('Authorization')
-    if (!authHeader) return json({ error: 'Unauthorized' }, 401)
-
     const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY')
     const openaiKey    = Deno.env.get('OPENAI_API_KEY')
     if (!anthropicKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } },
-    )
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) return json({ error: 'Unauthorized' }, 401)
+    const auth = await verifyAuth(req)
+    if (isAuthError(auth)) return auth
+    const { supabase } = auth
+    // verifyAuth confirmed the header is present + valid; reuse it to call
+    // the embed-text function as the same authenticated user (step 5).
+    const authHeader = req.headers.get('Authorization') ?? ''
 
     const body = await req.json() as IngestRequest
     if (!body.document_id) return json({ error: 'document_id required' }, 400)
