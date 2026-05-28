@@ -239,4 +239,58 @@ describe('restock_advisor v1.0.0', () => {
       expect(r.toolName).toBeDefined()
     }
   })
+
+  it('injects active operator Principles into proposal provenance + reasoning', async () => {
+    const world = baseWorld()
+    world.variants = [
+      { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 100 },
+    ]
+    world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
+    world.suppliers = [
+      { id: IDS.supplierFast, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'Sysco', lead_time_days: 2, on_time_pct: 95, cost_variance_pct: 3 },
+    ]
+    world.principles = [
+      { id: 'pr-hotelwide', body: 'Prefer lateral transfers before external orders', category: 'inventory-policy' },
+      { id: 'pr-scoped', body: 'Never over-order tomatoes past par x1.5', category: 'inventory-policy', appliesToNodeIds: [IDS.varTomatoesA] },
+      { id: 'pr-other', body: 'Dairy: Sysco only', category: 'supplier-preference', appliesToNodeIds: ['some-other-variant'] },
+    ]
+
+    const agent = buildRestockAdvisorAgent({
+      llm: scriptedLLM({ variantId: IDS.varTomatoesA, variantName: 'tomatoes' }),
+      reader: makeReader(world),
+    })
+    const result = await agent.run(baseInput)
+    expect(result.proposals.length).toBeGreaterThanOrEqual(1)
+
+    for (const p of result.proposals) {
+      const principleRefs = p.provenance.filter((x) => x.kind === 'principle').map((x) => x.ref)
+      // hotel-wide + variant-scoped apply; the other-variant principle does not.
+      expect(principleRefs).toContain('pr-hotelwide')
+      expect(principleRefs).toContain('pr-scoped')
+      expect(principleRefs).not.toContain('pr-other')
+      expect(p.reasoning).toContain('Honored operator principle')
+    }
+  })
+
+  it('omits principle provenance when none are active (unchanged behavior)', async () => {
+    const world = baseWorld()
+    world.variants = [
+      { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 100 },
+    ]
+    world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
+    world.suppliers = [
+      { id: IDS.supplierFast, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'Sysco', lead_time_days: 2, on_time_pct: 95, cost_variance_pct: 3 },
+    ]
+    // world.principles left empty
+
+    const agent = buildRestockAdvisorAgent({
+      llm: scriptedLLM({ variantId: IDS.varTomatoesA, variantName: 'tomatoes' }),
+      reader: makeReader(world),
+    })
+    const result = await agent.run(baseInput)
+    for (const p of result.proposals) {
+      expect(p.provenance.some((x) => x.kind === 'principle')).toBe(false)
+      expect(p.reasoning).not.toContain('Honored operator principle')
+    }
+  })
 })

@@ -7,6 +7,7 @@ import type {
   DocumentRow,
   GraphReader,
   HotelRow,
+  PrincipleRecord,
   RestockRequestRow,
   StockLogRow,
   SupplierRow,
@@ -175,6 +176,23 @@ export function makeSupabaseGraphReader(): GraphReader {
         console.warn('[graphReader] searchDocumentChunks failed:', err)
         return []
       }
+    },
+
+    async getActivePrinciples(hotelId, _organizationId): Promise<PrincipleRecord[]> {
+      const { data, error } = await supabase
+        .from('principles')
+        .select('id, body, category, applies_to_node_ids')
+        .eq('hotel_id', hotelId)
+        .eq('active', true)
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      const rows = data as Array<{ id: string; body: string; category: string; applies_to_node_ids: string[] | null }>
+      return rows.map((r) => ({
+        id:               r.id,
+        body:             r.body,
+        category:         r.category,
+        appliesToNodeIds: r.applies_to_node_ids ?? [],
+      }))
     },
   }
 }

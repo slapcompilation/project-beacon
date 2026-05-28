@@ -4,6 +4,7 @@
 import type {
   GraphReader,
   HotelRow,
+  PrincipleRecord,
   RestockRequestRow,
   StockLogRow,
   SupplierRow,
@@ -31,10 +32,11 @@ export interface FixtureWorld {
   stockLogs: StockLogRow[]
   hotels: HotelRow[]
   suppliers: SupplierRow[]
+  principles?: PrincipleRecord[]
 }
 
 export function emptyWorld(): FixtureWorld {
-  return { variants: [], restockRequests: [], stockLogs: [], hotels: [], suppliers: [] }
+  return { variants: [], restockRequests: [], stockLogs: [], hotels: [], suppliers: [], principles: [] }
 }
 
 export function makeReader(world: FixtureWorld): GraphReader {
@@ -66,6 +68,7 @@ export function makeReader(world: FixtureWorld): GraphReader {
     getSuppliersForVariant: (_variantId) => Promise.resolve(world.suppliers),
     getDocumentsForEntity:  (_entityType, _entityId) => Promise.resolve([]),
     searchDocumentChunks:   (_hotelId, _query, _opts) => Promise.resolve([]),
+    getActivePrinciples:    (_hotelId, _orgId) => Promise.resolve(world.principles ?? []),
   }
 }
 

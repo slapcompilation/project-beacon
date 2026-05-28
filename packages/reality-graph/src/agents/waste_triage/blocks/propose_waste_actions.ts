@@ -1,8 +1,17 @@
 import { z } from 'zod'
 import { createBlock } from '../../runtime'
+import { principleProvenance, principleReasoningSuffix } from '../../principles'
+import type { PrincipleRecord } from '../../../tools/graph_reader'
 import type { ForecastConsumptionOutput } from '../../../tools/logic/forecast_consumption'
 import type { QueryRecentWasteLogsOutput } from '../../../tools/data/query_recent_waste_logs'
 import type { QuerySisterPropertyInventoryOutput } from '../../../tools/data/query_sister_property_inventory'
+
+const principleSchema = z.object({
+  id:               z.string(),
+  body:             z.string(),
+  category:         z.string(),
+  appliesToNodeIds: z.array(z.string()).optional(),
+})
 
 const inputSchema = z.object({
   variantId:           z.string().uuid(),
@@ -12,6 +21,8 @@ const inputSchema = z.object({
   currentStock:        z.number().nonnegative(),
   safeWindowDays:      z.number().int().min(1).max(60).default(7),
   confidenceThreshold: z.number().min(0).max(1).default(0.6),
+  /** Active operator Principles applicable to this variant. */
+  principles:          z.array(principleSchema).default([]),
 })
 
 const proposalSchema = z.object({
@@ -37,7 +48,7 @@ const proposalSchema = z.object({
   reasoning:  z.string().min(1),
   provenance: z.array(
     z.object({
-      kind:   z.enum(['tool', 'document']),
+      kind:   z.enum(['tool', 'document', 'principle']),
       ref:    z.string().min(1),
       detail: z.string().optional(),
     }),
@@ -173,6 +184,18 @@ export const proposeWasteActionsBlock = createBlock<ProposeWasteActionsInput, Pr
           { kind: 'tool', ref: 'query_recent_waste_logs', detail: `${String(waste.totalWasteUnits)}u over ${String(waste.daysWithWaste)}/14d` },
         ],
       })
+    }
+
+    // Apply operator Principles as soft constraints — annotate each proposal
+    // with the principles that shaped it and surface them in the reasoning.
+    const principles = input.principles as PrincipleRecord[]
+    if (principles.length > 0) {
+      const provEntries = principleProvenance(principles)
+      const suffix = principleReasoningSuffix(principles)
+      for (const p of proposals) {
+        p.reasoning += suffix
+        p.provenance = [...p.provenance, ...provEntries]
+      }
     }
 
     return { proposals, paused: null }

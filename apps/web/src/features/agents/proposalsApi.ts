@@ -14,7 +14,7 @@ export interface ProposalRow {
   action_payload: Record<string, unknown>
   confidence: number
   reasoning: string
-  provenance: ReadonlyArray<{ kind: 'tool' | 'document'; ref: string; detail?: string }>
+  provenance: ReadonlyArray<{ kind: 'tool' | 'document' | 'principle'; ref: string; detail?: string }>
   status: ProposalStatus
   parent_version_id: string | null
   refinement_note: string | null
@@ -83,6 +83,32 @@ export async function createProposal(input: CreateProposalInput): Promise<Propos
       .insert(edges)
     if (edgeError) {
       console.warn('[beacon:proposals] cited_in edge write failed:', edgeError.message)
+    }
+  }
+
+  // Scan provenance for { kind: 'principle', ref: '<principle_id>' } entries and
+  // write proposal --influenced_by--> principle edges. Closes the learning
+  // flywheel in the graph: an operator can trace which proposals their feedback
+  // shaped. Best-effort, same as cited_in.
+  const principleRefs = input.proposal.provenance
+    .filter((p) => p.kind === 'principle' && isUuid(p.ref))
+    .map((p) => p.ref)
+  if (principleRefs.length > 0) {
+    const edges = principleRefs.map((principleId) => ({
+      hotel_id:     input.hotelId,
+      edge_type:    'influenced_by' as const,
+      source_type:  'proposal',
+      source_id:    data.id,
+      target_type:  'principle',
+      target_id:    principleId,
+      triggered_by: 'ai_proposal_accepted',
+      actor_id:     input.createdByUserId,
+    }))
+    const { error: edgeError } = await supabase
+      .from('relationship_edges')
+      .insert(edges)
+    if (edgeError) {
+      console.warn('[beacon:proposals] influenced_by edge write failed:', edgeError.message)
     }
   }
 
