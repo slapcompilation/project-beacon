@@ -1,0 +1,191 @@
+// Unattended intelligence cycle — the cron-driven twin of the operator's
+// "Run cycle" button. For each hotel it scans at-risk stock, runs the typed
+// restock_advisor agent per variant, and routes each proposal through the
+// SAME gate the web path uses (decideAutoExecution, in the reality-graph
+// bundle): confident + uncontested REQUEST_RESTOCKs auto-execute as
+// ai_auto_approved; everything else is queued for the operator.
+//
+// Auth: x-beacon-secret (verifySharedSecret) — only pg_cron (via pg_net) calls
+// this; there is no end-user JWT, so it runs under the service role.
+//
+// The agent runs with a deterministic LLM stub: the variant is already known
+// from the scan, so no extraction LLM call is needed and the reasoning block
+// is purely tool-driven — zero LLM spend per variant.
+
+// runIntelligenceCycle applies the decideAutoExecution gate + evaluateConstraints
+// internally (both live in the bundle); the handler only needs these two.
+import {
+  runIntelligenceCycle,
+  buildRestockAdvisorAgent,
+} from '../_shared/reality-graph.bundle.mjs'
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { json, preflight } from '../_shared/http.ts'
+import { verifySharedSecret, isAuthError } from '../_shared/auth.ts'
+import { makeServiceRoleGraphReader } from './reader.ts'
+
+const MAX_VARIANTS_PER_CYCLE = 25
+// Recorded on the agent's trace; persistence attributes rows to no user
+// (created_by_user_id / requestor_id are NULL for system-authored rows).
+const SYSTEM_ACTOR = '00000000-0000-0000-0000-000000000000'
+
+// Deterministic LLM: scripts the two extract blocks against the known variant;
+// the reason+propose block never calls the LLM. Mirrors apps/web HeuristicLLMClient.
+function makeDeterministicLLM(variant: { id: string; name: string }) {
+  const responses = [
+    { output: { variantId: variant.id, variantName: variant.name, confidence: 0.95 }, toolCalls: [], tokensUsed: 0 },
+    { output: { supplierName: null, confidence: 0.8 }, toolCalls: [], tokensUsed: 0 },
+  ]
+  let cursor = 0
+  return {
+    call() {
+      if (cursor >= responses.length) throw new Error('Deterministic LLM exhausted')
+      return Promise.resolve(responses[cursor++])
+    },
+  }
+}
+
+interface HotelRow { id: string; organization_id: string | null }
+
+Deno.serve(async (req: Request) => {
+  const pre = preflight(req)
+  if (pre) return pre
+  if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
+
+  const auth = verifySharedSecret(req)
+  if (isAuthError(auth)) return auth
+  const { supabase } = auth
+
+  // Built once only to read name/version (both constant); the dummy llm is
+  // never invoked here.
+  const agentMeta = buildRestockAdvisorAgent({
+    reader: makeServiceRoleGraphReader(supabase, ''),
+    llm: makeDeterministicLLM({ id: '', name: '' }),
+  })
+
+  const { data: hotels, error: hotelsErr } = await supabase
+    .from('hotels')
+    .select('id, organization_id')
+  if (hotelsErr) return json({ error: `hotels query failed: ${hotelsErr.message}` }, 500)
+
+  const perHotel: Array<Record<string, unknown>> = []
+  let totalAuto = 0
+  let totalQueued = 0
+
+  for (const hotel of (hotels ?? []) as HotelRow[]) {
+    try {
+      const result = await runHotelCycle(supabase, hotel, agentMeta)
+      totalAuto += result.autoExecuted
+      totalQueued += result.queued
+      perHotel.push({ hotelId: hotel.id, scanned: result.scanned, autoExecuted: result.autoExecuted, queued: result.queued })
+    } catch (err) {
+      perHotel.push({ hotelId: hotel.id, error: err instanceof Error ? err.message : String(err) })
+    }
+  }
+
+  // Observability: the agent cron's work is recorded next to the SQL cycle's
+  // (system_health_events), so a "ran but did nothing" cycle is visible.
+  await supabase.from('system_health_events').insert({
+    event_type: 'intelligence_cycle_agent_run',
+    severity: 'info',
+    source: 'intelligence-cycle',
+    summary: `Agent cycle: ${String(totalAuto)} auto-executed, ${String(totalQueued)} queued across ${String(perHotel.length)} hotel(s)`,
+    details: { auto_executed: totalAuto, queued: totalQueued, hotels: perHotel },
+    confidence_basis: 'restock_advisor per at-risk variant; decideAutoExecution gate (REQUEST_RESTOCK >= 0.9, no hard violation)',
+  })
+
+  return json({ ok: true, autoExecuted: totalAuto, queued: totalQueued, hotels: perHotel })
+})
+
+async function runHotelCycle(
+  supabase: SupabaseClient,
+  hotel: HotelRow,
+  agentMeta: { name: string; version: string },
+) {
+  // At-risk = enabled, has a reorder point, at/below it.
+  const { data: variantRows, error: scanErr } = await supabase
+    .from('product_variants')
+    .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name)')
+    .eq('products.hotel_id', hotel.id)
+    .eq('enabled', true)
+    .gt('low_stock_threshold', 0)
+  if (scanErr) throw new Error(scanErr.message)
+
+  const variants = (variantRows ?? [])
+    .filter((v: Record<string, unknown>) => (v.current_stock as number) <= (v.low_stock_threshold as number))
+    .map((v: Record<string, unknown>) => {
+      const p = v.products as { name: string } | { name: string }[] | null
+      const product = Array.isArray(p) ? p[0] : p
+      const productName = product?.name ?? 'item'
+      return { id: v.id as string, name: v.name !== 'Standard' ? `${productName} — ${String(v.name)}` : productName }
+    })
+
+  const { data: constraintRows } = await supabase
+    .from('constraints')
+    .select('id, body, bucket, typed_rule, severity, applies_to_action_types, active')
+    .eq('hotel_id', hotel.id)
+    .eq('active', true)
+  const constraints = (constraintRows ?? []).map((c: Record<string, unknown>) => ({
+    id: c.id as string,
+    body: c.body as string,
+    bucket: c.bucket as string,
+    typedRule: c.typed_rule,
+    severity: c.severity as string,
+    appliesToActionTypes: (c.applies_to_action_types as string[] | null) ?? [],
+    active: c.active as boolean,
+  }))
+
+  const reader = makeServiceRoleGraphReader(supabase, hotel.id)
+
+  return await runIntelligenceCycle({
+    variants,
+    constraints,
+    maxVariants: MAX_VARIANTS_PER_CYCLE,
+    runAgent: async (variant: { id: string; name: string }) => {
+      const agent = buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(variant) })
+      const run = await agent.run({ prompt: `restock ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
+      return run.proposals
+    },
+    persistProposal: async (_variant: unknown, proposal: { action: { type: string }; confidence: number; reasoning: string; provenance: unknown }) => {
+      const { data, error } = await supabase
+        .from('proposals')
+        .insert({
+          hotel_id: hotel.id,
+          organization_id: hotel.organization_id,
+          agent_name: agentMeta.name,
+          agent_version: agentMeta.version,
+          action_type: proposal.action.type,
+          action_payload: proposal.action,
+          confidence: proposal.confidence,
+          reasoning: proposal.reasoning,
+          provenance: proposal.provenance,
+          status: 'pending',
+          created_by_user_id: null,
+        })
+        .select('id')
+        .single()
+      if (error) throw new Error(`proposal insert failed: ${error.message}`)
+      return data.id as string
+    },
+    dispatch: async (action: { type: string; variantId?: string; quantityNeeded?: number }) => {
+      // Auto-execution = the proposal is accepted without operator review, which
+      // creates the restock request. The request itself enters the normal
+      // (pending) procurement flow — we don't skip that approval here.
+      if (action.type !== 'REQUEST_RESTOCK') return false
+      const { error } = await supabase.from('restock_requests').insert({
+        hotel_id: hotel.id,
+        variant_id: action.variantId,
+        quantity_needed: action.quantityNeeded,
+        requestor_id: null,
+        is_auto_proposed: true,
+        notes: 'Auto-executed by restock_advisor (ai_auto_approved)',
+      })
+      return !error
+    },
+    markApproved: async (proposalId: string) => {
+      await supabase
+        .from('proposals')
+        .update({ status: 'approved', decided_at: new Date().toISOString() })
+        .eq('id', proposalId)
+    },
+  })
+}
