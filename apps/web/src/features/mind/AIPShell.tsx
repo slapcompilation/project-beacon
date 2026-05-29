@@ -1,5 +1,7 @@
-// AIP shell — left-rail tabbed surface that bundles every AIP page under one roof.
-// Lives inside Mind workspace as the default panel; deep-linkable via ?aip=<tab>.
+// AIP shell — the spine of the Mind module. A left-rail workspace organized
+// by the operator's decision loop (Act → Observe → Know → Shape), fronted by
+// a Command landing and backed by the demoted hospitality Operations panel.
+// Deep-linkable via ?aip=<tab>; legacy ?panel=<x> resolves to Operations.
 
 import { lazy, Suspense } from 'react'
 import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
@@ -10,6 +12,11 @@ import { usePendingProposals } from '@/features/agents/useReviewQueue'
 import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
 import { useCases } from '@/features/cases/hooks'
 import { usePendingEntityLinkSuggestions } from '@/features/entityLinks/hooks'
+import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
+import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
+import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
+import { CommandHome } from './CommandHome'
+import { OperationsPanel } from './OperationsPanel'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
 const PendingApprovalsPage      = lazy(() => import('@/pages/PendingApprovalsPage'))
@@ -25,36 +32,50 @@ const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 
 export type AipTab =
+  | 'command'
   | 'queue' | 'approvals' | 'cases'
-  | 'agents' | 'tools' | 'objectives'
-  | 'documents' | 'entity-links' | 'answers'
-  | 'scenarios' | 'system-map'
-  | 'copilot'
+  | 'agents' | 'system-map'
+  | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
+  | 'tools' | 'objectives' | 'scenarios' | 'copilot'
+  | 'operations'
 
+// Rail organized by the AIP decision loop, not by artifact type.
 const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
-  { id: 'queue',        label: 'Review Queue',        icon: 'predictive-analysis', group: 'Decide' },
-  { id: 'approvals',    label: 'Pending Approvals',   icon: 'warning-sign',        group: 'Decide' },
-  { id: 'cases',        label: 'Cases',               icon: 'folder-open',         group: 'Decide' },
+  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', group: 'Act' },
+  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        group: 'Act' },
+  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         group: 'Act' },
 
-  { id: 'agents',       label: 'Agents',              icon: 'predictive-analysis', group: 'Build' },
-  { id: 'tools',        label: 'Logic Tools',         icon: 'function',            group: 'Build' },
-  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',               group: 'Build' },
+  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', group: 'Observe' },
+  { id: 'system-map',   label: 'System Map',        icon: 'graph',               group: 'Observe' },
 
-  { id: 'documents',    label: 'Documents',           icon: 'document',            group: 'Knowledge' },
-  { id: 'entity-links', label: 'Entity Link Suggestions', icon: 'search-template', group: 'Knowledge' },
-  { id: 'answers',      label: 'Approved Answers',    icon: 'bookmark',            group: 'Knowledge' },
+  { id: 'documents',    label: 'Documents',         icon: 'document',            group: 'Know' },
+  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     group: 'Know' },
+  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            group: 'Know' },
+  { id: 'principles',   label: 'Principles',        icon: 'learning',            group: 'Know' },
+  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              group: 'Know' },
 
-  { id: 'scenarios',    label: 'Scenarios',           icon: 'lab-test',            group: 'Plan' },
-  { id: 'system-map',   label: 'System Map',          icon: 'graph',               group: 'Plan' },
+  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            group: 'Shape' },
+  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             group: 'Shape' },
+  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            group: 'Shape' },
+  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                group: 'Shape' },
 
-  { id: 'copilot',      label: 'Copilot Config',      icon: 'chat',                group: 'Configure' },
+  { id: 'operations',   label: 'Operations',        icon: 'shop',                group: 'Operations' },
 ]
 
 export function isAipTab(v: string | null | undefined): v is AipTab {
-  return !!v && TABS.some((t) => t.id === v)
+  return !!v && (v === 'command' || TABS.some((t) => t.id === v))
 }
 
-export default function AIPShell({ tab, onTabChange }: { tab: AipTab; onTabChange: (t: AipTab) => void }) {
+export default function AIPShell({
+  tab,
+  onTabChange,
+  operationsInitialPanel,
+}: {
+  tab: AipTab
+  onTabChange: (t: AipTab) => void
+  /** Legacy ?panel= value forwarded to OperationsPanel for sub-tab seeding. */
+  operationsInitialPanel?: string
+}) {
   const counts = useAipCounts()
   const groups = groupTabs(TABS)
 
@@ -62,6 +83,26 @@ export default function AIPShell({ tab, onTabChange }: { tab: AipTab; onTabChang
     <div className="flex h-full overflow-hidden">
       <aside className="w-52 border-r shrink-0 overflow-y-auto bg-surface-1/30">
         <nav className="py-2">
+          {/* Command — the home, above the loop groups */}
+          <button
+            type="button"
+            onClick={() => { onTabChange('command') }}
+            className={cn(
+              'flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors text-left mb-1',
+              tab === 'command'
+                ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
+                : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
+            )}
+          >
+            <Icon icon="dashboard" size={13} />
+            <span className="flex-1">Command</span>
+            {counts.command != null && counts.command > 0 && (
+              <Tag minimal intent={Intent.PRIMARY} className="!text-[10px] !min-h-0 !py-0">
+                {counts.command > 99 ? '99+' : String(counts.command)}
+              </Tag>
+            )}
+          </button>
+
           {groups.map((g) => (
             <div key={g.label} className="mb-2">
               <p className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -98,9 +139,9 @@ export default function AIPShell({ tab, onTabChange }: { tab: AipTab; onTabChang
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        <PanelErrorBoundary name={`Mind · AIP · ${tab}`}>
+        <PanelErrorBoundary name={`Mind · ${tab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(tab)}
+            {renderTab(tab, onTabChange, operationsInitialPanel)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
@@ -108,20 +149,30 @@ export default function AIPShell({ tab, onTabChange }: { tab: AipTab; onTabChang
   )
 }
 
-function renderTab(t: AipTab) {
+// Section components (Principles/Constraints) are built for the Settings
+// two-column layout; wrap them in a scrollable padded container here.
+function SectionFrame({ children }: { children: React.ReactNode }) {
+  return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
+}
+
+function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsInitialPanel?: string) {
   switch (t) {
+    case 'command':      return <CommandHome onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
-    case 'tools':        return <ToolsPage />
-    case 'objectives':   return <ModelingObjectivesPage />
+    case 'system-map':   return <SystemMapPage />
     case 'documents':    return <DocumentsPage />
     case 'entity-links': return <EntityLinkSuggestionsPage />
     case 'answers':      return <ApprovedAnswersPage />
+    case 'principles':   return <SectionFrame><PrinciplesSection /></SectionFrame>
+    case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
+    case 'tools':        return <ToolsPage />
+    case 'objectives':   return <ModelingObjectivesPage />
     case 'scenarios':    return <ScenariosPage />
-    case 'system-map':   return <SystemMapPage />
     case 'copilot':      return <CopilotConfigPage />
+    case 'operations':   return <OperationsPanel initialPanel={operationsInitialPanel} />
   }
 }
 
@@ -146,16 +197,25 @@ function badgeIntent(t: AipTab): Intent {
   return Intent.NONE
 }
 
-/** Pending counts for the tabs that have a queue semantic. */
+/** Live counts that make the rail itself intelligent — pending work per tab. */
 function useAipCounts(): Partial<Record<AipTab, number>> {
   const queue       = usePendingProposals()
   const approvals   = usePendingApprovals()
   const cases       = useCases('open')
   const entityLinks = usePendingEntityLinkSuggestions()
+  const summaries   = useAgentRunSummaries()
+
+  const q = queue.data?.length ?? 0
+  const a = approvals.data?.length ?? 0
+  const c = cases.data?.length ?? 0
+  const agentsPending = (summaries.data ?? []).reduce((s, r) => s + r.pending, 0)
+
   return {
-    queue:          queue.data?.length,
-    approvals:      approvals.data?.length,
-    cases:          cases.data?.length,
+    command:        q + a + c,        // Command badge = total open decisions
+    queue:          q,
+    approvals:      a,
+    cases:          c,
     'entity-links': entityLinks.data?.length,
+    agents:         agentsPending > 0 ? agentsPending : undefined,
   }
 }
