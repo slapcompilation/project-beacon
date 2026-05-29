@@ -16,12 +16,19 @@ import type {
 
 interface VariantQueryRow {
   id: string
-  hotel_id: string
   name: string
   current_stock: number
-  par_level: number | null
-  preferred_supplier_id: string | null
+  // The live schema keeps the reorder point as low_stock_threshold and the
+  // preferred supplier as default_supplier_id; reality-graph's VariantRow calls
+  // them par_level + preferred_supplier_id. hotel_id lives on products, reached
+  // via the embedded join (product_variants has no hotel_id column).
+  low_stock_threshold: number | null
+  default_supplier_id: string | null
+  products: { hotel_id: string } | { hotel_id: string }[] | null
 }
+
+const VARIANT_SELECT =
+  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id)'
 
 interface RestockRequestQueryRow {
   id: string
@@ -63,7 +70,7 @@ export function makeSupabaseGraphReader(): GraphReader {
     async getVariant(variantId) {
       const { data, error } = await supabase
         .from('product_variants')
-        .select('id, hotel_id, name, current_stock, par_level, preferred_supplier_id')
+        .select(VARIANT_SELECT)
         .eq('id', variantId)
         .maybeSingle<VariantQueryRow>()
       if (error) throw new Error(error.message)
@@ -115,9 +122,10 @@ export function makeSupabaseGraphReader(): GraphReader {
       if (hotelIds.length === 0) return []
       const { data, error } = await supabase
         .from('product_variants')
-        .select('id, hotel_id, name, current_stock, par_level, preferred_supplier_id')
+        .select(VARIANT_SELECT)
         .eq('name', name)
-        .in('hotel_id', hotelIds)
+        .in('products.hotel_id', hotelIds)
+        .overrideTypes<VariantQueryRow[], { merge: false }>()
       if (error) throw new Error(error.message)
       return data.map(toVariantRow)
     },
@@ -198,13 +206,14 @@ export function makeSupabaseGraphReader(): GraphReader {
 }
 
 function toVariantRow(row: VariantQueryRow): VariantRow {
+  const product = Array.isArray(row.products) ? row.products[0] : row.products
   return {
     id: row.id,
-    hotel_id: row.hotel_id,
+    hotel_id: product?.hotel_id ?? '',
     name: row.name,
     current_stock: row.current_stock,
-    par_level: row.par_level,
-    preferred_supplier_id: row.preferred_supplier_id,
+    par_level: row.low_stock_threshold,
+    preferred_supplier_id: row.default_supplier_id,
   }
 }
 
