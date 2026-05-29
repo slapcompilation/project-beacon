@@ -4,15 +4,17 @@
 // doing, and live agent health. Every card jumps to the relevant rail tab.
 
 import { useMemo } from 'react'
-import { Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import { Button, Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { usePendingProposals, bandByConfidence } from '@/features/agents/useReviewQueue'
 import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
 import { useCases } from '@/features/cases/hooks'
 import { useCronHealthSummary } from '@/features/monitor/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
+import { useRestockCycle, type CycleResult } from '@/features/agents/useRestockCycle'
 import type { AipTab } from './AIPShell'
 
 export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
@@ -49,17 +51,40 @@ export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void 
 
   const totalOpen = decisionCards.reduce((s, c) => s + c.count, 0)
 
+  const cycle = useRestockCycle()
+  const runCycle = () => {
+    cycle.mutate(undefined, {
+      onSuccess: (r) => {
+        toast.success(`Cycle: ${String(r.scanned)} scanned · ${String(r.autoExecuted)} auto-executed · ${String(r.queued)} queued`)
+      },
+      onError: (e) => toast.error(e.message),
+    })
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-8 py-6 max-w-4xl space-y-6">
-        <header>
-          <h1 className="text-xl font-semibold">Command</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {totalOpen === 0
-              ? 'All clear — no open decisions. The autonomous loop is running below.'
-              : `${String(totalOpen)} item${totalOpen === 1 ? '' : 's'} need your attention.`}
-          </p>
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-xl font-semibold">Command</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {totalOpen === 0
+                ? 'All clear — no open decisions. The autonomous loop is running below.'
+                : `${String(totalOpen)} item${totalOpen === 1 ? '' : 's'} need your attention.`}
+            </p>
+          </div>
+          <Button
+            icon="play"
+            intent={Intent.PRIMARY}
+            loading={cycle.isPending}
+            onClick={runCycle}
+            title="Scan at-risk stock, run the restock advisor on each, auto-execute confident proposals, queue the rest"
+          >
+            Run cycle
+          </Button>
         </header>
+
+        {cycle.data && <CycleSummary result={cycle.data} onNavigate={onNavigate} />}
 
         {/* What needs you now */}
         <section className="space-y-2">
@@ -214,6 +239,55 @@ function AgentHealth({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
           ))
         )}
       </div>
+    </Card>
+  )
+}
+
+function CycleSummary({ result, onNavigate }: { result: CycleResult; onNavigate: (tab: AipTab) => void }) {
+  const acted = result.items.filter((i) => i.outcome === 'auto-executed' || i.outcome === 'queued')
+  return (
+    <Card compact className="!p-0 overflow-hidden border-l-2 border-l-primary">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Icon icon="pulse" size={14} className="text-primary" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Last cycle · {formatDistanceToNow(new Date(result.ranAt), { addSuffix: true })}
+          </span>
+        </div>
+        <span className="text-[11px] text-muted-foreground tabular-nums">
+          {result.scanned} scanned · <span className="text-emerald-600 dark:text-emerald-400">{result.autoExecuted} auto</span> · <span className="text-amber-600 dark:text-amber-400">{result.queued} queued</span>
+        </span>
+      </div>
+      {acted.length === 0 ? (
+        <p className="px-4 py-3 text-xs text-muted-foreground">
+          No action needed — every scanned variant is adequately covered.
+        </p>
+      ) : (
+        <div className="divide-y max-h-56 overflow-y-auto">
+          {acted.map((i) => (
+            <div key={`${i.variantId}-${i.proposalId ?? ''}`} className="flex items-center gap-2 px-4 py-2 text-xs">
+              <Tag
+                minimal
+                intent={i.outcome === 'auto-executed' ? Intent.SUCCESS : Intent.WARNING}
+                className="!text-[10px]"
+              >
+                {i.outcome === 'auto-executed' ? 'auto' : 'queued'}
+              </Tag>
+              <span className="flex-1 truncate">{i.variantName}</span>
+              {i.actionType && <span className="font-mono text-[10px] text-muted-foreground">{i.actionType}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {result.queued > 0 && (
+        <button
+          type="button"
+          onClick={() => { onNavigate('queue') }}
+          className="w-full text-left px-4 py-2 text-[11px] text-primary hover:bg-muted/30 transition-colors border-t"
+        >
+          Review {result.queued} queued proposal{result.queued === 1 ? '' : 's'} →
+        </button>
+      )}
     </Card>
   )
 }

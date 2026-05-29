@@ -172,3 +172,53 @@ export function isAutoExecutable(args: {
   if (args.violations.some((v) => v.severity === 'hard')) return false
   return true
 }
+
+// ── Auto-execution policy ─────────────────────────────────────────────────────
+//
+// The single safety-critical decision behind unattended execution: should this
+// proposal apply itself (triggered_by 'ai_auto_approved') or wait in the review
+// queue? Centralized here so the operator-invoked path and the unattended cycle
+// use identical rules — and so it's unit-tested in one place.
+
+/** Per-action-type confidence floors. An action type absent from the map is
+ *  NEVER auto-executable — it always routes to operator review. */
+export interface AutoExecutionPolicy {
+  thresholds: Partial<Record<BeaconAction['type'], number>>
+}
+
+/** Conservative V1 default: only REQUEST_RESTOCK auto-executes, at ≥0.9. */
+export const DEFAULT_AUTO_EXEC_POLICY: AutoExecutionPolicy = {
+  thresholds: { REQUEST_RESTOCK: 0.9 },
+}
+
+export interface AutoExecutionDecision {
+  autoExecute: boolean
+  /** Human-readable rationale, surfaced in the audit trail + cycle summary. */
+  reason: string
+}
+
+/**
+ * Decides whether an agent proposal may auto-execute. Composes the per-type
+ * threshold policy with the constraint-violation set: an action auto-executes
+ * only when its type is eligible, no hard constraint is violated, and its
+ * confidence clears the type's floor.
+ */
+export function decideAutoExecution(args: {
+  action: BeaconAction
+  confidence: number
+  violations: ReadonlyArray<ConstraintViolation>
+  policy: AutoExecutionPolicy
+}): AutoExecutionDecision {
+  const threshold = args.policy.thresholds[args.action.type]
+  if (threshold == null) {
+    return { autoExecute: false, reason: `${args.action.type} is not eligible for auto-execution` }
+  }
+  const hard = args.violations.filter((v) => v.severity === 'hard')
+  if (hard.length > 0) {
+    return { autoExecute: false, reason: `blocked by ${String(hard.length)} hard constraint(s)` }
+  }
+  if (args.confidence < threshold) {
+    return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${threshold.toFixed(2)} floor` }
+  }
+  return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} ≥ ${threshold.toFixed(2)}, no hard violations` }
+}

@@ -269,6 +269,8 @@ export {
 export {
   evaluateConstraints,
   isAutoExecutable,
+  decideAutoExecution,
+  DEFAULT_AUTO_EXEC_POLICY,
 } from './constraints/index'
 export type {
   ConstraintRecord,
@@ -279,4 +281,6 @@ export type {
   ActorRoleRule,
   ConstraintViolation,
   EvaluationContext,
+  AutoExecutionPolicy,
+  AutoExecutionDecision,
 } from './constraints/index'

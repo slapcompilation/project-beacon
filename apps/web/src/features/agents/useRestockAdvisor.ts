@@ -2,7 +2,8 @@ import { useMutation } from '@tanstack/react-query'
 import {
   buildRestockAdvisorAgent,
   evaluateConstraints,
-  isAutoExecutable,
+  decideAutoExecution,
+  DEFAULT_AUTO_EXEC_POLICY,
   type AgentProposal,
   type AgentRunResult,
   type BeaconAction,
@@ -17,15 +18,6 @@ import { AnthropicLLMClient } from './anthropicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
 import { useActivePrinciples } from '@/features/principles/hooks'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
-
-/**
- * Per-action-type auto-execution thresholds. Conservative defaults: only
- * REQUEST_RESTOCK is eligible in V1. Org-level overrides land in a follow-up;
- * for now the map is the source of truth.
- */
-const AUTO_EXEC_THRESHOLDS: Partial<Record<BeaconAction['type'], number>> = {
-  REQUEST_RESTOCK: 0.9,
-}
 
 export interface RunRestockAdvisorInput {
   variantId: string
@@ -121,10 +113,14 @@ export function useRestockAdvisor() {
         const constraintRecords = constraintRows.map(rowToConstraintRecord)
         for (let i = 0; i < persisted.length; i++) {
           const p = persisted[i]
-          const threshold = AUTO_EXEC_THRESHOLDS[p.proposal.action.type]
-          if (threshold == null) continue
           const violations = evaluateConstraints(p.proposal.action, constraintRecords, { now: new Date() })
-          if (!isAutoExecutable({ confidence: p.proposal.confidence, threshold, violations })) continue
+          const decision = decideAutoExecution({
+            action: p.proposal.action,
+            confidence: p.proposal.confidence,
+            violations,
+            policy: DEFAULT_AUTO_EXEC_POLICY,
+          })
+          if (!decision.autoExecute) continue
 
           try {
             const result = await dispatchAction(
