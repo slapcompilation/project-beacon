@@ -1,21 +1,20 @@
-// Phase 1 — the unattended intelligence cycle (operator-triggered for now,
-// cron-callable later). Instead of one variant at a time, it scans the hotel
-// for at-risk stock, runs restock_advisor on each, and routes every proposal
-// through the shared auto-execution gate: confident + uncontested ones apply
-// themselves (triggered_by 'ai_auto_approved'); everything else lands in the
-// review queue. Returns a structured summary the Command home renders.
+// Browser adapter for the unattended intelligence cycle. The loop itself —
+// scan → run agent → gate → dispatch-or-queue — lives in @beacon/reality-graph
+// (runIntelligenceCycle), tested in isolation. Here we just inject the browser
+// implementations of its dependencies: the Supabase reader, proposal
+// persistence, and the dispatchAction write path. A cron edge function injects
+// service-role versions of the same seams.
 //
-// Runs the agent with the heuristic LLM client — the variant is already known
+// Runs each agent with the heuristic LLM client — the variant is already known
 // from the scan, so no extraction call (and no LLM spend) is needed; the
 // reasoning block's tool calls are deterministic.
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   buildRestockAdvisorAgent,
-  evaluateConstraints,
-  decideAutoExecution,
-  DEFAULT_AUTO_EXEC_POLICY,
+  runIntelligenceCycle,
   type BeaconAction,
+  type CycleVariant,
 } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
@@ -27,28 +26,7 @@ import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal, decideProposal } from './proposalsApi'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 
-/** Cap per cycle so a large catalogue can't trigger a request storm in V1. */
-const MAX_VARIANTS_PER_CYCLE = 25
-
-export type CycleOutcome = 'auto-executed' | 'queued' | 'no-proposal' | 'error'
-
-export interface CycleItem {
-  variantId:   string
-  variantName: string
-  outcome:     CycleOutcome
-  actionType?: BeaconAction['type']
-  proposalId?: string
-  reason?:     string
-}
-
-export interface CycleResult {
-  scanned:      number
-  proposed:     number
-  autoExecuted: number
-  queued:       number
-  ranAt:        string
-  items:        CycleItem[]
-}
+export type { CycleOutcome, CycleItem, CycleResult } from '@beacon/reality-graph'
 
 export function useRestockCycle() {
   const hotelId = useActiveHotelId()
@@ -57,97 +35,67 @@ export function useRestockCycle() {
   const forecastAdapter = useActiveForecastAdapter()
   const queryClient = useQueryClient()
 
-  return useMutation<CycleResult>({
+  return useMutation({
     mutationFn: async () => {
       if (!hotelId) throw new Error('No active hotel selected')
       if (!userId)  throw new Error('Not signed in')
 
       // At-risk = at or below par. Deterministic scan over the loaded catalogue.
-      const atRisk: { id: string; name: string }[] = []
+      const variants: CycleVariant[] = []
       for (const p of products) {
         for (const v of p.product_variants) {
           if (v.low_stock_threshold > 0 && v.current_stock <= v.low_stock_threshold) {
-            atRisk.push({ id: v.id, name: v.name !== 'Standard' ? `${p.name} — ${v.name}` : p.name })
+            variants.push({ id: v.id, name: v.name !== 'Standard' ? `${p.name} — ${v.name}` : p.name })
           }
         }
       }
-      const scope = atRisk.slice(0, MAX_VARIANTS_PER_CYCLE)
 
       const reader = makeSupabaseGraphReader()
-      const constraintRecords = (await safeFetchConstraints(hotelId)).map(rowToConstraintRecord)
+      const constraints = (await safeFetchConstraints(hotelId)).map(rowToConstraintRecord)
 
-      const items: CycleItem[] = []
-      let proposed = 0, autoExecuted = 0, queued = 0
+      const buildAgent = (variant: CycleVariant) =>
+        buildRestockAdvisorAgent({
+          reader,
+          llm: new HeuristicLLMClient({ variantId: variant.id, variantName: variant.name }),
+          forecastAdapter,
+        })
+      const meta = buildAgent(variants[0] ?? { id: '', name: '' })
 
-      for (const variant of scope) {
-        try {
-          const agent = buildRestockAdvisorAgent({
-            reader,
-            llm: new HeuristicLLMClient({ variantId: variant.id, variantName: variant.name }),
-            forecastAdapter,
+      const result = await runIntelligenceCycle({
+        variants,
+        constraints,
+        runAgent: async (variant) => {
+          const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
+          return run.proposals
+        },
+        persistProposal: async (_variant, proposal) => {
+          const row = await createProposal({
+            hotelId,
+            agentName: meta.name,
+            agentVersion: meta.version,
+            proposal,
+            createdByUserId: userId,
           })
-          const run = await agent.run({
-            prompt: `restock ${variant.name}`,
-            userId,
-            scope: { hotelId },
-          })
-
-          if (run.proposals.length === 0) {
-            items.push({ variantId: variant.id, variantName: variant.name, outcome: 'no-proposal' })
-            continue
-          }
-
-          for (const p of run.proposals) {
-            const row = await createProposal({
-              hotelId,
-              agentName: agent.name,
-              agentVersion: agent.version,
-              proposal: p,
-              createdByUserId: userId,
-            })
-            proposed++
-
-            const violations = evaluateConstraints(p.action, constraintRecords, { now: new Date() })
-            const decision = decideAutoExecution({
-              action: p.action,
-              confidence: p.confidence,
-              violations,
-              policy: DEFAULT_AUTO_EXEC_POLICY,
-            })
-
-            if (decision.autoExecute) {
-              const result = await dispatchAction(
-                { ...p.action, triggeredBy: 'ai_auto_approved' } as BeaconAction,
-                { hotelId, actorId: userId, triggeredBy: 'ai_auto_approved' },
-              )
-              if (result.success) {
-                await decideProposal({ proposalId: row.id, status: 'approved', decidedByUserId: userId })
-                autoExecuted++
-                items.push({ variantId: variant.id, variantName: variant.name, outcome: 'auto-executed', actionType: p.action.type, proposalId: row.id, reason: decision.reason })
-                continue
-              }
-            }
-            queued++
-            items.push({ variantId: variant.id, variantName: variant.name, outcome: 'queued', actionType: p.action.type, proposalId: row.id, reason: decision.reason })
-          }
-        } catch {
-          items.push({ variantId: variant.id, variantName: variant.name, outcome: 'error' })
-        }
-      }
+          return row.id
+        },
+        dispatch: async (action) => {
+          const res = await dispatchAction(
+            { ...action, triggeredBy: 'ai_auto_approved' } as BeaconAction,
+            { hotelId, actorId: userId, triggeredBy: 'ai_auto_approved' },
+          )
+          return res.success
+        },
+        markApproved: async (proposalId) => {
+          await decideProposal({ proposalId, status: 'approved', decidedByUserId: userId })
+        },
+      })
 
       // Refresh the surfaces the cycle just changed.
       void queryClient.invalidateQueries({ queryKey: ['proposals'] })
       void queryClient.invalidateQueries({ queryKey: ['inventory'] })
       void queryClient.invalidateQueries({ queryKey: ['products'] })
 
-      return {
-        scanned: scope.length,
-        proposed,
-        autoExecuted,
-        queued,
-        ranAt: new Date().toISOString(),
-        items,
-      }
+      return result
     },
   })
 }

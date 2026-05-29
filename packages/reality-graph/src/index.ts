@@ -284,3 +284,12 @@ export type {
   AutoExecutionPolicy,
   AutoExecutionDecision,
 } from './constraints/index'
+
+export { runIntelligenceCycle } from './cycles/intelligenceCycle'
+export type {
+  IntelligenceCycleDeps,
+  CycleVariant,
+  CycleOutcome,
+  CycleItem,
+  CycleResult,
+} from './cycles/intelligenceCycle'
