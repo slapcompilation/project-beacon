@@ -333,6 +333,19 @@ Operators author constraints in natural language. The LLM categorizes each into 
 
 The threshold is per-action-type, configurable per organization. Auto-executed actions still emit a full trace and are visible in the operator review feed, marked for retroactive sampling.
 
+### How the cycle runs unattended
+
+One core loop, two callers:
+
+| Caller | Lives in | Purpose |
+|---|---|---|
+| Operator-triggered | `apps/web/.../useRestockCycle.ts` ("Run cycle" on Command home) | On-demand sweep with the same gate |
+| **Unattended (cron)** | edge fn `intelligence-cycle` + pg_cron `beacon-agent-intelligence-cycle` (daily 07:00 UTC) | Scheduled sweep across every hotel |
+
+Both call **the same** `runIntelligenceCycle()` (in `packages/reality-graph/src/cycles/`), which composes `decideAutoExecution` with the constraint set. Runtime-specific seams (reader, persistence, dispatch) are injected — the web injects a browser Supabase client, the edge fn injects a service-role client. **There is no second gate; if you're tempted to add one, extend `decideAutoExecution` instead.**
+
+The legacy SQL detectors (`auto_propose_restocks`, `auto_create_alerts`, `generate_preemptive_restocks`) read `auth_hotel_id()` — NULL under pg_cron — so they're no-ops on the cron path and were removed from `run_intelligence_cycle()` in migration 144. They remain in-app callable for authenticated users (the web uses two of them). Don't re-wire them into cron.
+
 ---
 
 ## Multi-tenant, multi-echelon
