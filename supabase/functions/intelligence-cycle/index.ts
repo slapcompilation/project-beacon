@@ -67,13 +67,27 @@ Deno.serve(async (req: Request) => {
     .select('id, organization_id')
   if (hotelsErr) return json({ error: `hotels query failed: ${hotelsErr.message}` }, 500)
 
+  // Release gate (Phase C step 2b): the runtime gate in decideAutoExecution
+  // refuses to auto-execute unless the agent has a production release. Query
+  // the global-default (NULL-org) production rows once per cron run; service
+  // role bypasses RLS, so we filter explicitly.
+  const { data: releaseRows } = await supabase
+    .from('agent_releases')
+    .select('agent_name, version')
+    .is('organization_id', null)
+    .eq('stage', 'production')
+  const productionReleases = (releaseRows ?? []).map((r: Record<string, unknown>) => ({
+    agentName: r.agent_name as string,
+    version:   r.version as string,
+  }))
+
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
   let totalQueued = 0
 
   for (const hotel of (hotels ?? []) as HotelRow[]) {
     try {
-      const result = await runHotelCycle(supabase, hotel, agentMeta)
+      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases)
       totalAuto += result.autoExecuted
       totalQueued += result.queued
       perHotel.push({ hotelId: hotel.id, scanned: result.scanned, autoExecuted: result.autoExecuted, queued: result.queued })
@@ -100,6 +114,7 @@ async function runHotelCycle(
   supabase: SupabaseClient,
   hotel: HotelRow,
   agentMeta: { name: string; version: string },
+  productionReleases: ReadonlyArray<{ agentName: string; version: string }>,
 ) {
   // At-risk = enabled, has a reorder point, at/below it.
   const { data: variantRows, error: scanErr } = await supabase
@@ -140,6 +155,8 @@ async function runHotelCycle(
     variants,
     constraints,
     maxVariants: MAX_VARIANTS_PER_CYCLE,
+    agent:    { agentName: agentMeta.name, agentVersion: agentMeta.version },
+    releases: { production: productionReleases },
     runAgent: async (variant: { id: string; name: string }) => {
       const agent = buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(variant) })
       const run = await agent.run({ prompt: `restock ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })

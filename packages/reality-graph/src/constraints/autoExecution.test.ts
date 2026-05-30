@@ -57,4 +57,51 @@ describe('decideAutoExecution', () => {
     const d = decideAutoExecution({ action: restock, confidence: 0.9, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY })
     expect(d.autoExecute).toBe(true)
   })
+
+  describe('release gate (Phase C step 2b)', () => {
+    const agent = { agentName: 'restock_advisor', agentVersion: '1.0.0' }
+
+    it('skipped when release context omitted (backward compat)', () => {
+      const d = decideAutoExecution({ action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('refuses to auto-execute when agent has no production release in scope', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, releases: { production: [] },
+      })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('no production release')
+      expect(d.reason).toContain('restock_advisor')
+    })
+
+    it('auto-executes when the agent has a production release', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, releases: { production: [{ agentName: 'restock_advisor', version: '1.0.0' }] },
+      })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('matches by agent name only — version mismatch still allows auto-exec', () => {
+      // V1 is permissive on version (operator can upgrade in-place); a stricter
+      // version gate would belong on the promotion step, not the runtime gate.
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, releases: { production: [{ agentName: 'restock_advisor', version: '0.9.5' }] },
+      })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('release gate is independent — other gates still fire first', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.5, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, releases: { production: [] },
+      })
+      // Below floor wins (no point checking release if confidence already kills it).
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('below')
+    })
+  })
 })

@@ -25,6 +25,7 @@ import { makeSupabaseGraphReader } from './graphReader'
 import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal, decideProposal } from './proposalsApi'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
+import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
 
 export type { CycleOutcome, CycleItem, CycleResult } from '@beacon/reality-graph'
 
@@ -33,6 +34,7 @@ export function useRestockCycle() {
   const userId  = useAuthStore((s) => s.userId)
   const { data: products = [] } = useProducts()
   const forecastAdapter = useActiveForecastAdapter()
+  const { data: releases = [] } = useCurrentAgentReleases()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -61,9 +63,15 @@ export function useRestockCycle() {
         })
       const meta = buildAgent(variants[0] ?? { id: '', name: '' })
 
+      const productionReleases = releases
+        .filter((r) => r.stage === 'production')
+        .map((r) => ({ agentName: r.agent_name, version: r.version }))
+
       const result = await runIntelligenceCycle({
         variants,
         constraints,
+        agent:    { agentName: meta.name, agentVersion: meta.version },
+        releases: { production: productionReleases },
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals

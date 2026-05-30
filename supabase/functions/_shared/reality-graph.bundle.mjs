@@ -17155,6 +17155,12 @@ function decideAutoExecution(args) {
   if (args.confidence < threshold) {
     return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${threshold.toFixed(2)} floor` };
   }
+  if (args.agent != null && args.releases != null) {
+    const prod = args.releases.production.find((r) => r.agentName === args.agent.agentName);
+    if (prod == null) {
+      return { autoExecute: false, reason: `${args.agent.agentName} has no production release in scope` };
+    }
+  }
   return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} \u2265 ${threshold.toFixed(2)}, no hard violations` };
 }
 
@@ -17184,7 +17190,9 @@ async function runIntelligenceCycle(deps) {
           action: proposal.action,
           confidence: proposal.confidence,
           violations,
-          policy
+          policy,
+          agent: deps.agent,
+          releases: deps.releases
         });
         if (decision.autoExecute && await deps.dispatch(proposal.action)) {
           await deps.markApproved(proposalId);
