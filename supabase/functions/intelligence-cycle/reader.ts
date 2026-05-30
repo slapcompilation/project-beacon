@@ -102,12 +102,14 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
     },
 
     async getSuppliersForVariant(_variantId: string) {
-      // Browser reader relied on RLS to scope to the hotel; under service role
-      // we filter explicitly. suppliers has only lead_time_days — no org or
-      // reliability columns — so those map to null (ranking falls back to lead time).
+      // Service role bypasses RLS, so scope by hotel explicitly. on_time_pct +
+      // cost_variance_pct are populated by compute_supplier_reliability()
+      // weekly (NULL until PO/invoice data lands; rank_alternative_suppliers
+      // uses its conservative defaults then). organization_id isn't on this
+      // table — suppliers are hotel-scoped.
       const { data, error } = await supabase
         .from('suppliers')
-        .select('id, hotel_id, name, lead_time_days')
+        .select('id, hotel_id, name, lead_time_days, on_time_pct, cost_variance_pct')
         .eq('hotel_id', hotelId)
       if (error) throw new Error(error.message)
       return (data ?? []).map((s: Record<string, unknown>) => ({
@@ -116,8 +118,8 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
         organization_id: null,
         name: s.name as string,
         lead_time_days: (s.lead_time_days as number | null) ?? null,
-        on_time_pct: null,
-        cost_variance_pct: null,
+        on_time_pct: (s.on_time_pct as number | null) ?? null,
+        cost_variance_pct: (s.cost_variance_pct as number | null) ?? null,
       }))
     },
 
