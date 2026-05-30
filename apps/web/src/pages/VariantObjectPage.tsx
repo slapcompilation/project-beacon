@@ -90,6 +90,34 @@ async function fetchVariantRestocks(variantId: string): Promise<OpenRestockRow[]
   return data ?? []
 }
 
+interface VariantProposalRow {
+  id:             string
+  agent_name:     string
+  agent_version:  string
+  action_type:    string
+  confidence:     number
+  reasoning:      string
+  status:         'pending' | 'approved' | 'rejected' | 'superseded' | 'expired'
+  decided_at:     string | null
+  created_at:     string
+}
+
+async function fetchVariantProposals(variantId: string): Promise<VariantProposalRow[]> {
+  // Filter on the JSONB action_payload — BeaconActions targeting a variant
+  // (REQUEST_RESTOCK, TRANSFER_STOCK, WRITE_OFF, …) all carry variantId there.
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('id, agent_name, agent_version, action_type, confidence, reasoning, status, decided_at, created_at')
+    .eq('action_payload->>variantId', variantId)
+    .order('created_at', { ascending: false })
+    .limit(5) as unknown as {
+      data: VariantProposalRow[] | null
+      error: { message: string } | null
+    }
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function StatCard({
@@ -176,6 +204,36 @@ function RestockStatusBadge({ status }: { status: string }) {
   return <Tag intent={s.intent} minimal>{s.label}</Tag>
 }
 
+function AgentDecisionRow({ p }: { p: VariantProposalRow }) {
+  const dot =
+    p.confidence >= 0.85 ? 'bg-emerald-500' :
+    p.confidence >= 0.6  ? 'bg-amber-400'   : 'bg-red-500'
+  const statusIntent: Record<VariantProposalRow['status'], Intent> = {
+    pending:    Intent.WARNING,
+    approved:   Intent.SUCCESS,
+    rejected:   Intent.DANGER,
+    superseded: Intent.NONE,
+    expired:    Intent.NONE,
+  }
+  return (
+    <div className="px-3 py-2 text-xs">
+      <div className="flex items-center gap-2">
+        <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', dot)} />
+        <Tag minimal className="font-mono !text-[10px]">{p.action_type}</Tag>
+        <span className="text-muted-foreground flex-1 truncate">{p.agent_name}</span>
+        <span className="tabular-nums text-muted-foreground shrink-0">{Math.round(p.confidence * 100)}%</span>
+        <Tag minimal intent={statusIntent[p.status]} className="!text-[10px]">{p.status}</Tag>
+        <span className="text-[10px] text-muted-foreground/70 shrink-0">
+          {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
+        </span>
+      </div>
+      {p.reasoning && (
+        <div className="mt-1 ml-3.5 text-[11px] text-muted-foreground/80 line-clamp-2">{p.reasoning}</div>
+      )}
+    </div>
+  )
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function VariantObjectPage() {
@@ -203,6 +261,13 @@ export default function VariantObjectPage() {
   const { data: restocks = [], isLoading: loadingRestocks } = useQuery({
     queryKey:  ['variant-restocks', variantId],
     queryFn:   () => fetchVariantRestocks(variantId),
+    enabled:   !!variantId,
+    staleTime: 30_000,
+  })
+
+  const { data: proposals = [], isLoading: loadingProposals } = useQuery({
+    queryKey:  ['variant-proposals', variantId],
+    queryFn:   () => fetchVariantProposals(variantId),
     enabled:   !!variantId,
     staleTime: 30_000,
   })
@@ -415,6 +480,29 @@ export default function VariantObjectPage() {
                       <RestockStatusBadge status={r.status} />
                     </Link>
                   ))}
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* ── Recent agent decisions ── */}
+          {!loadingProposals && (
+            <Card compact className="!p-0">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Recent Agent Decisions ({proposals.length})
+                </span>
+                <Link to="/mind?aip=queue" className="text-xs text-primary hover:underline">
+                  Review queue →
+                </Link>
+              </div>
+              {proposals.length === 0 ? (
+                <div className="px-3 py-3 text-xs text-muted-foreground">
+                  No agent decisions on this variant yet. Once the reorder point is set and stock drops below it, the agent will propose here.
+                </div>
+              ) : (
+                <div className="divide-y divide-border/50">
+                  {proposals.map((p) => <AgentDecisionRow key={p.id} p={p} />)}
                 </div>
               )}
             </Card>
