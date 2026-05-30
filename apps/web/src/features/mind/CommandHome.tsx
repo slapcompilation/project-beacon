@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { usePendingProposals, bandByConfidence } from '@/features/agents/useReviewQueue'
 import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
 import { useCases } from '@/features/cases/hooks'
-import { useCronHealthSummary } from '@/features/monitor/hooks'
+import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { useRestockCycle, type CycleResult } from '@/features/agents/useRestockCycle'
 import type { AipTab } from './AIPShell'
@@ -149,6 +149,9 @@ export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void 
           <AutonomousPulse />
           <AgentHealth onNavigate={onNavigate} />
         </section>
+
+        {/* Agent cycle history — what the cron did overnight */}
+        <AgentCycleHistory onNavigate={onNavigate} />
       </div>
     </div>
   )
@@ -205,6 +208,86 @@ function AutonomousPulse() {
         )}
       </div>
     </Card>
+  )
+}
+
+function AgentCycleHistory({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
+  const { data, isLoading, isError } = useAgentCycleHistory(5)
+
+  if (isLoading) {
+    return (
+      <Card compact className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Spinner size={SpinnerSize.SMALL} />Loading agent cycle history…
+      </Card>
+    )
+  }
+  if (isError || !data) {
+    return (
+      <Card compact className="text-xs text-muted-foreground">
+        Agent cycle history unavailable for this role.
+      </Card>
+    )
+  }
+
+  const runs = data.runs
+  const queuedTotal = runs.reduce((s, r) => s + r.queued, 0)
+
+  return (
+    <Card compact className="!p-0 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Icon icon="history" size={14} className="text-muted-foreground" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Agent cycles · last {String(runs.length || 5)}
+          </span>
+        </div>
+        {queuedTotal > 0 ? (
+          <button type="button" onClick={() => { onNavigate('queue') }} className="text-[11px] text-primary hover:underline">
+            Review {queuedTotal} queued →
+          </button>
+        ) : (
+          <Tag minimal>Daily · 07:00 UTC</Tag>
+        )}
+      </div>
+      {runs.length === 0 ? (
+        <div className="px-4 py-4 text-xs text-muted-foreground space-y-1">
+          <p>No agent cycles recorded yet.</p>
+          <p>The <code className="text-[10px]">beacon-agent-intelligence-cycle</code> cron runs daily at 07:00 UTC, scanning every hotel for at-risk stock and routing each proposal through <code className="text-[10px]">decideAutoExecution</code>.</p>
+        </div>
+      ) : (
+        <ul className="divide-y">
+          {runs.map((r) => (
+            <li key={r.ran_at} className="px-4 py-2.5 text-xs flex items-center gap-3">
+              <span className="text-muted-foreground tabular-nums shrink-0 w-32">
+                {formatDistanceToNow(new Date(r.ran_at), { addSuffix: true })}
+              </span>
+              <span className="flex-1 flex items-center gap-3">
+                <CycleStat icon="tick-circle" label="auto" value={r.auto_executed} intent={r.auto_executed > 0 ? 'success' : 'muted'} />
+                <CycleStat icon="time" label="queued" value={r.queued} intent={r.queued > 0 ? 'warning' : 'muted'} />
+                <span className="text-muted-foreground/70">
+                  across {r.hotels.length} hotel{r.hotels.length === 1 ? '' : 's'}
+                </span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
+function CycleStat({ icon, label, value, intent }: { icon: IconName; label: string; value: number; intent: 'success' | 'warning' | 'muted' }) {
+  return (
+    <span className={cn(
+      'inline-flex items-center gap-1 tabular-nums',
+      intent === 'success' && 'text-emerald-600 dark:text-emerald-400',
+      intent === 'warning' && 'text-amber-600 dark:text-amber-400',
+      intent === 'muted'   && 'text-muted-foreground',
+    )}>
+      <Icon icon={icon} size={11} />
+      <span className="font-semibold">{value}</span>
+      <span className="text-[10px] uppercase tracking-wide">{label}</span>
+    </span>
   )
 }
 

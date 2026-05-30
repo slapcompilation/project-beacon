@@ -29,3 +29,32 @@ export async function fetchCronHealthSummary(): Promise<CronHealthSummary> {
   if (!result.data) throw new Error('Empty health summary')
   return result.data
 }
+
+export interface AgentCycleHotelOutcome {
+  hotelId:      string
+  scanned:      number
+  autoExecuted: number
+  queued:       number
+}
+
+export interface AgentCycleRun {
+  ran_at:        string
+  auto_executed: number
+  queued:        number
+  hotels:        AgentCycleHotelOutcome[]
+}
+
+export interface AgentCycleHistory {
+  evaluated_at: string
+  runs:         AgentCycleRun[]
+}
+
+export async function fetchAgentCycleHistory(limit = 5): Promise<AgentCycleHistory> {
+  const result = await supabase.rpc('get_agent_cycle_history', { p_limit: limit }) as unknown as {
+    data: AgentCycleHistory | null
+    error: { message: string; code?: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  if (!result.data) throw new Error('Empty agent cycle history')
+  return result.data
+}
