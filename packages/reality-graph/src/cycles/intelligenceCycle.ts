@@ -13,6 +13,7 @@ import {
   DEFAULT_AUTO_EXEC_POLICY,
   type ConstraintRecord,
   type AutoExecutionPolicy,
+  type ActiveAgentReleases,
 } from '../constraints/index'
 
 export interface CycleVariant {
@@ -55,6 +56,12 @@ export interface IntelligenceCycleDeps {
   markApproved: (proposalId: string) => Promise<void>
   /** Per-action-type confidence floors. Defaults to the conservative V1 policy. */
   policy?: AutoExecutionPolicy
+  /** The agent producing the proposals. When set together with `releases`,
+   *  the release gate in decideAutoExecution enforces a production release. */
+  agent?: { agentName: string; agentVersion: string }
+  /** Releases visible in scope (typically from get_current_agent_releases()).
+   *  Enables the release gate when set together with `agent`. */
+  releases?: ActiveAgentReleases
   /** Cap per cycle so a large catalogue can't trigger a request storm. */
   maxVariants?: number
   /** Injected for deterministic constraint evaluation + timestamps in tests. */
@@ -92,6 +99,8 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           confidence: proposal.confidence,
           violations,
           policy,
+          agent: deps.agent,
+          releases: deps.releases,
         })
 
         if (decision.autoExecute && (await deps.dispatch(proposal.action))) {

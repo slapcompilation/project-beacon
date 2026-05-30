@@ -18,6 +18,7 @@ import { AnthropicLLMClient } from './anthropicLLM'
 import { createProposal, decideProposal, type ProposalRow } from './proposalsApi'
 import { useActivePrinciples } from '@/features/principles/hooks'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
+import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
 
 export interface RunRestockAdvisorInput {
   variantId: string
@@ -54,6 +55,7 @@ export function useRestockAdvisor() {
   const userId  = useAuthStore((s) => s.userId)
   const { data: principles = [] } = useActivePrinciples()
   const forecastAdapter = useActiveForecastAdapter()
+  const { data: releases = [] } = useCurrentAgentReleases()
 
   return useMutation<RunRestockAdvisorResult, Error, RunRestockAdvisorInput>({
     mutationFn: async (input) => {
@@ -114,11 +116,16 @@ export function useRestockAdvisor() {
         for (let i = 0; i < persisted.length; i++) {
           const p = persisted[i]
           const violations = evaluateConstraints(p.proposal.action, constraintRecords, { now: new Date() })
+          const productionReleases = releases
+            .filter((r) => r.stage === 'production')
+            .map((r) => ({ agentName: r.agent_name, version: r.version }))
           const decision = decideAutoExecution({
             action: p.proposal.action,
             confidence: p.proposal.confidence,
             violations,
             policy: DEFAULT_AUTO_EXEC_POLICY,
+            agent: { agentName: agent.name, agentVersion: agent.version },
+            releases: { production: productionReleases },
           })
           if (!decision.autoExecute) continue
 

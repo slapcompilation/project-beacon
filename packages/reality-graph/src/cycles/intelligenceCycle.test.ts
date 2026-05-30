@@ -49,6 +49,8 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     variants: over.variants ?? [VAR_A],
     constraints: over.constraints ?? [],
     policy: over.policy,
+    agent: over.agent,
+    releases: over.releases,
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     runAgent,
@@ -140,5 +142,34 @@ describe('runIntelligenceCycle', () => {
     const deps = makeDeps({ now: () => new Date('2026-01-02T03:04:05Z') })
     const result = await runIntelligenceCycle(deps)
     expect(result.ranAt).toBe('2026-01-02T03:04:05.000Z')
+  })
+
+  describe('release gate plumbing (Phase C step 2b)', () => {
+    const agent = { agentName: 'restock_advisor', agentVersion: '1.0.0' }
+
+    it('queues (does not dispatch) when agent has no production release', async () => {
+      const deps = makeDeps({
+        proposals: [proposal(0.95)],
+        agent,
+        releases: { production: [] },
+      })
+      const result = await runIntelligenceCycle(deps)
+
+      expect(deps.dispatch).not.toHaveBeenCalled()
+      expect(result).toMatchObject({ autoExecuted: 0, queued: 1 })
+      expect(result.items[0].reason).toContain('no production release')
+    })
+
+    it('auto-executes when the agent has a production release', async () => {
+      const deps = makeDeps({
+        proposals: [proposal(0.95)],
+        agent,
+        releases: { production: [{ agentName: 'restock_advisor', version: '1.0.0' }] },
+      })
+      const result = await runIntelligenceCycle(deps)
+
+      expect(deps.dispatch).toHaveBeenCalledTimes(1)
+      expect(result).toMatchObject({ autoExecuted: 1, queued: 0 })
+    })
   })
 })

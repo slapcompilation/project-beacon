@@ -283,6 +283,8 @@ export type {
   EvaluationContext,
   AutoExecutionPolicy,
   AutoExecutionDecision,
+  AgentReleaseContext,
+  ActiveAgentReleases,
 } from './constraints/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'

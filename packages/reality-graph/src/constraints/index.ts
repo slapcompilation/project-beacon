@@ -197,17 +197,33 @@ export interface AutoExecutionDecision {
   reason: string
 }
 
+/** Phase C step 2b: the proposing agent + which releases are visible. When
+ *  both are supplied to decideAutoExecution, the gate refuses to auto-execute
+ *  unless the agent has a production release in scope. Omit either to skip
+ *  the release check (callers that don't track releases yet still work). */
+export interface AgentReleaseContext {
+  agentName:    string
+  agentVersion: string
+}
+
+export interface ActiveAgentReleases {
+  production: ReadonlyArray<{ agentName: string; version: string }>
+}
+
 /**
  * Decides whether an agent proposal may auto-execute. Composes the per-type
  * threshold policy with the constraint-violation set: an action auto-executes
- * only when its type is eligible, no hard constraint is violated, and its
- * confidence clears the type's floor.
+ * only when its type is eligible, no hard constraint is violated, its
+ * confidence clears the type's floor, and (when release context is supplied)
+ * the proposing agent is in production.
  */
 export function decideAutoExecution(args: {
   action: BeaconAction
   confidence: number
   violations: ReadonlyArray<ConstraintViolation>
   policy: AutoExecutionPolicy
+  agent?: AgentReleaseContext
+  releases?: ActiveAgentReleases
 }): AutoExecutionDecision {
   const threshold = args.policy.thresholds[args.action.type]
   if (threshold == null) {
@@ -219,6 +235,14 @@ export function decideAutoExecution(args: {
   }
   if (args.confidence < threshold) {
     return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${threshold.toFixed(2)} floor` }
+  }
+  // Release gate: enforced only when the caller supplied BOTH the proposing
+  // agent and the release set. Lets older callers / tests opt out cleanly.
+  if (args.agent != null && args.releases != null) {
+    const prod = args.releases.production.find((r) => r.agentName === args.agent!.agentName)
+    if (prod == null) {
+      return { autoExecute: false, reason: `${args.agent.agentName} has no production release in scope` }
+    }
   }
   return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} ≥ ${threshold.toFixed(2)}, no hard violations` }
 }
