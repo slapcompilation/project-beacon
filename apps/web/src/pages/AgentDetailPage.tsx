@@ -14,7 +14,7 @@ import {
   type AgentDescriptor,
   type SchemaField,
 } from '@/features/agentStudio/registry'
-import { useRecentProposalsForAgent } from '@/features/agentStudio/hooks'
+import { useRecentProposalsForAgent, useCurrentAgentReleases, highestStageFor, type CurrentAgentRelease } from '@/features/agentStudio/hooks'
 import type { BlockDef } from '@beacon/reality-graph'
 
 export default function AgentDetailPage() {
@@ -22,6 +22,7 @@ export default function AgentDetailPage() {
   const navigate = useNavigate()
   const agent    = getAgentDescriptor(agentName)
   const { data: recent = [] } = useRecentProposalsForAgent(agentName, 10)
+  const { data: releases = [] } = useCurrentAgentReleases()
 
   if (!agent) {
     return (
@@ -35,10 +36,11 @@ export default function AgentDetailPage() {
   }
 
   const lastRun = recent.length > 0 ? recent[0] : null
+  const dbRelease = highestStageFor(releases, agentName)
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <Header agent={agent} lastRunAt={lastRun ? lastRun.created_at : null} lastRunStatus={lastRun ? lastRun.status : null} />
+      <Header agent={agent} dbRelease={dbRelease} lastRunAt={lastRun ? lastRun.created_at : null} lastRunStatus={lastRun ? lastRun.status : null} />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <BlocksSection agent={agent} />
@@ -51,11 +53,15 @@ export default function AgentDetailPage() {
   )
 }
 
-function Header({ agent, lastRunAt, lastRunStatus }: { agent: AgentDescriptor; lastRunAt: string | null; lastRunStatus: string | null }) {
+function Header({ agent, dbRelease, lastRunAt, lastRunStatus }: { agent: AgentDescriptor; dbRelease: CurrentAgentRelease | undefined; lastRunAt: string | null; lastRunStatus: string | null }) {
+  // DB ledger is the source of truth; the registry's static value is a default.
+  const stage = dbRelease?.stage ?? agent.releaseStage
+  const version = dbRelease?.version ?? agent.version
   const stageIntent =
-    agent.releaseStage === 'production' ? Intent.SUCCESS :
-    agent.releaseStage === 'staging'    ? Intent.WARNING :
+    stage === 'production' ? Intent.SUCCESS :
+    stage === 'staging'    ? Intent.WARNING :
     Intent.NONE
+  const versionDrift = dbRelease != null && dbRelease.version !== agent.version
 
   const dot =
     !lastRunStatus              ? 'bg-muted-foreground/40' :
@@ -71,8 +77,13 @@ function Header({ agent, lastRunAt, lastRunStatus }: { agent: AgentDescriptor; l
         <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
         <Icon icon="predictive-analysis" intent={Intent.PRIMARY} size={14} />
         <h1 className="text-sm font-semibold">{agent.name}</h1>
-        <Tag minimal className="font-mono text-xs">@ {agent.version}</Tag>
-        <Tag minimal intent={stageIntent} icon="flag">{agent.releaseStage}</Tag>
+        <Tag minimal className="font-mono text-xs">@ {version}</Tag>
+        <Tag minimal intent={stageIntent} icon="flag">{stage}</Tag>
+        {versionDrift && (
+          <Tag minimal intent={Intent.WARNING} icon="warning-sign" title={`Registry has v${agent.version} but the production release is v${dbRelease.version}`}>
+            registry drift
+          </Tag>
+        )}
         <Tag minimal icon="people">{agent.scope}</Tag>
         <Tag minimal icon="time">{agent.cadence}</Tag>
         <Tag minimal icon="confirm">{agent.approvalBoundary}</Tag>

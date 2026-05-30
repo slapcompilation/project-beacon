@@ -13,7 +13,7 @@ import { usePendingProposals, bandByConfidence } from '@/features/agents/useRevi
 import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
 import { useCases } from '@/features/cases/hooks'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
-import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
+import { useAgentRunSummaries, useCurrentAgentReleases, highestStageFor } from '@/features/agentStudio/hooks'
 import { useRestockCycle, type CycleResult } from '@/features/agents/useRestockCycle'
 import type { AipTab } from './AIPShell'
 
@@ -293,6 +293,7 @@ function CycleStat({ icon, label, value, intent }: { icon: IconName; label: stri
 
 function AgentHealth({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
   const { data: summaries = [], isLoading } = useAgentRunSummaries()
+  const { data: releases = [] } = useCurrentAgentReleases()
 
   return (
     <Card compact className="!p-0 overflow-hidden">
@@ -313,13 +314,21 @@ function AgentHealth({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
         ) : summaries.length === 0 ? (
           <p className="text-muted-foreground">No agent runs yet. Invoke one from a Variant page.</p>
         ) : (
-          summaries.map((s) => (
-            <div key={s.agentName} className="flex items-center gap-2">
-              <span className="font-mono text-muted-foreground flex-1 truncate">{s.agentName}</span>
-              {s.pending > 0 && <Tag minimal intent={Intent.WARNING} className="!text-[10px]">{s.pending} pending</Tag>}
-              <span className="tabular-nums text-muted-foreground/70">{s.totalRuns} run{s.totalRuns === 1 ? '' : 's'}</span>
-            </div>
-          ))
+          summaries.map((s) => {
+            const release = highestStageFor(releases, s.agentName)
+            const stageIntent =
+              release?.stage === 'production' ? Intent.SUCCESS :
+              release?.stage === 'staging'    ? Intent.WARNING :
+              Intent.NONE
+            return (
+              <div key={s.agentName} className="flex items-center gap-2">
+                <span className="font-mono text-muted-foreground flex-1 truncate">{s.agentName}</span>
+                {release && <Tag minimal intent={stageIntent} className="!text-[10px]">{release.stage}</Tag>}
+                {s.pending > 0 && <Tag minimal intent={Intent.WARNING} className="!text-[10px]">{s.pending} pending</Tag>}
+                <span className="tabular-nums text-muted-foreground/70">{s.totalRuns} run{s.totalRuns === 1 ? '' : 's'}</span>
+              </div>
+            )
+          })
         )}
       </div>
     </Card>

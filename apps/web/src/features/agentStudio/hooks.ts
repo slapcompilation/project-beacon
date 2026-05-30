@@ -59,6 +59,59 @@ export function useAgentRunSummaries() {
   })
 }
 
+export type AgentReleaseStage = 'sandbox' | 'staging' | 'production'
+
+export interface CurrentAgentRelease {
+  agent_name:      string
+  stage:           AgentReleaseStage
+  version:         string
+  tag:             string | null
+  eval_pass_rate:  number | null
+  eval_case_count: number | null
+  released_at:     string
+  notes:           string | null
+}
+
+/**
+ * Current active release per (agent, stage), scoped to caller's org with the
+ * NULL-org rows as a global fallback. Backed by `get_current_agent_releases()`.
+ * The DB ledger is the source of truth; the static `releaseStage` in the agent
+ * registry is a default only.
+ */
+export function useCurrentAgentReleases() {
+  return useQuery({
+    queryKey: ['agent-studio', 'current-releases'] as const,
+    queryFn:  async (): Promise<CurrentAgentRelease[]> => {
+      const result = await supabase.rpc('get_current_agent_releases') as unknown as {
+        data: CurrentAgentRelease[] | null
+        error: { message: string } | null
+      }
+      if (result.error) throw new Error(result.error.message)
+      return result.data ?? []
+    },
+    staleTime: 5 * 60_000,  // releases change infrequently
+  })
+}
+
+/**
+ * Find the production-stage release for an agent if any. Lets the UI prefer
+ * the DB-backed stage over the registry's static value.
+ */
+export function pickProductionRelease(releases: CurrentAgentRelease[], agentName: string): CurrentAgentRelease | undefined {
+  return releases.find((r) => r.agent_name === agentName && r.stage === 'production')
+}
+
+/**
+ * The highest stage an agent has been promoted to ('production' > 'staging' > 'sandbox').
+ * Returns undefined if the agent has no DB releases at all (caller falls back to the registry static).
+ */
+export function highestStageFor(releases: CurrentAgentRelease[], agentName: string): CurrentAgentRelease | undefined {
+  const rows = releases.filter((r) => r.agent_name === agentName)
+  if (rows.length === 0) return undefined
+  const order: Record<AgentReleaseStage, number> = { production: 3, staging: 2, sandbox: 1 }
+  return rows.slice().sort((a, b) => order[b.stage] - order[a.stage])[0]
+}
+
 /** Last N proposals for one agent. */
 export function useRecentProposalsForAgent(agentName: string, limit = 10) {
   const hotelId = useActiveHotelId()
