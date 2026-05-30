@@ -54,6 +54,8 @@ interface SupplierQueryRow {
   hotel_id: string
   name: string
   lead_time_days: number | null
+  on_time_pct: number | null
+  cost_variance_pct: number | null
 }
 
 interface HotelQueryRow {
@@ -128,13 +130,14 @@ export function makeSupabaseGraphReader(): GraphReader {
     },
 
     async getSuppliersForVariant(_variantId) {
-      // suppliers has no organization_id / on_time_pct / cost_variance_pct in the
-      // live schema — only lead_time_days. The reliability fields the supplier
-      // ranking would prefer don't exist yet, so they map to null and ranking
-      // falls back to lead time. RLS scopes the rows to the caller's hotel.
+      // organization_id isn't a column on suppliers (they're hotel-scoped); the
+      // reliability metrics on_time_pct / cost_variance_pct ARE — populated by
+      // compute_supplier_reliability() weekly. NULL when no PO/invoice history
+      // yet; rank_alternative_suppliers uses its conservative defaults then.
+      // RLS scopes the rows to the caller's hotel.
       const { data, error } = await supabase
         .from('suppliers')
-        .select('id, hotel_id, name, lead_time_days')
+        .select('id, hotel_id, name, lead_time_days, on_time_pct, cost_variance_pct')
       if (error) throw new Error(error.message)
       return data.map(toSupplierRow)
     },
@@ -236,8 +239,8 @@ function toSupplierRow(row: SupplierQueryRow): SupplierRow {
     organization_id: null,
     name: row.name,
     lead_time_days: row.lead_time_days,
-    on_time_pct: null,
-    cost_variance_pct: null,
+    on_time_pct: row.on_time_pct,
+    cost_variance_pct: row.cost_variance_pct,
   }
 }
 
