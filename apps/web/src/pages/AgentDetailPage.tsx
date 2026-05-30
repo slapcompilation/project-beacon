@@ -1,6 +1,8 @@
 // Agent detail — blocks (with system prompts + I/O schema), declared toolset,
-// numbered task prompt, recent run history. Read-only inspection surface.
+// numbered task prompt, recent run history. Read-only inspection surface
+// plus the admin-only "Promote" action (Phase C step 2a).
 
+import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   Button, Callout, Card, Icon, Intent, NonIdealState, Tag,
@@ -14,7 +16,9 @@ import {
   type AgentDescriptor,
   type SchemaField,
 } from '@/features/agentStudio/registry'
-import { useRecentProposalsForAgent, useCurrentAgentReleases, highestStageFor, type CurrentAgentRelease } from '@/features/agentStudio/hooks'
+import { useRecentProposalsForAgent, useCurrentAgentReleases, highestStageFor, type CurrentAgentRelease, type AgentReleaseStage } from '@/features/agentStudio/hooks'
+import { useAuthStore } from '@/stores/auth.store'
+import { PromoteAgentDialog } from '@/features/agentStudio/PromoteAgentDialog'
 import type { BlockDef } from '@beacon/reality-graph'
 
 export default function AgentDetailPage() {
@@ -23,6 +27,8 @@ export default function AgentDetailPage() {
   const agent    = getAgentDescriptor(agentName)
   const { data: recent = [] } = useRecentProposalsForAgent(agentName, 10)
   const { data: releases = [] } = useCurrentAgentReleases()
+  const role = useAuthStore((s) => s.role)
+  const [promoteOpen, setPromoteOpen] = useState(false)
 
   if (!agent) {
     return (
@@ -37,10 +43,29 @@ export default function AgentDetailPage() {
 
   const lastRun = recent.length > 0 ? recent[0] : null
   const dbRelease = highestStageFor(releases, agentName)
+  const canPromote = role === 'admin' || role === 'owner'
+  const currentStage: AgentReleaseStage = dbRelease?.stage ?? agent.releaseStage
+  const currentVersion = dbRelease?.version ?? agent.version
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <Header agent={agent} dbRelease={dbRelease} lastRunAt={lastRun ? lastRun.created_at : null} lastRunStatus={lastRun ? lastRun.status : null} />
+      <Header
+        agent={agent}
+        dbRelease={dbRelease}
+        lastRunAt={lastRun ? lastRun.created_at : null}
+        lastRunStatus={lastRun ? lastRun.status : null}
+        canPromote={canPromote}
+        onPromoteClick={() => { setPromoteOpen(true) }}
+      />
+      {canPromote && (
+        <PromoteAgentDialog
+          open={promoteOpen}
+          agentName={agentName}
+          currentVersion={currentVersion}
+          currentStage={currentStage}
+          onClose={() => { setPromoteOpen(false) }}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <BlocksSection agent={agent} />
@@ -53,7 +78,14 @@ export default function AgentDetailPage() {
   )
 }
 
-function Header({ agent, dbRelease, lastRunAt, lastRunStatus }: { agent: AgentDescriptor; dbRelease: CurrentAgentRelease | undefined; lastRunAt: string | null; lastRunStatus: string | null }) {
+function Header({ agent, dbRelease, lastRunAt, lastRunStatus, canPromote, onPromoteClick }: {
+  agent: AgentDescriptor
+  dbRelease: CurrentAgentRelease | undefined
+  lastRunAt: string | null
+  lastRunStatus: string | null
+  canPromote: boolean
+  onPromoteClick: () => void
+}) {
   // DB ledger is the source of truth; the registry's static value is a default.
   const stage = dbRelease?.stage ?? agent.releaseStage
   const version = dbRelease?.version ?? agent.version
@@ -83,6 +115,11 @@ function Header({ agent, dbRelease, lastRunAt, lastRunStatus }: { agent: AgentDe
           <Tag minimal intent={Intent.WARNING} icon="warning-sign" title={`Registry has v${agent.version} but the production release is v${dbRelease.version}`}>
             registry drift
           </Tag>
+        )}
+        {canPromote && (
+          <Button size="small" variant="minimal" icon="flag" onClick={onPromoteClick} className="ml-auto">
+            Promote
+          </Button>
         )}
         <Tag minimal icon="people">{agent.scope}</Tag>
         <Tag minimal icon="time">{agent.cadence}</Tag>

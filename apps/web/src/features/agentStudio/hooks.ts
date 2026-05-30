@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
@@ -99,6 +99,42 @@ export function useCurrentAgentReleases() {
  */
 export function pickProductionRelease(releases: CurrentAgentRelease[], agentName: string): CurrentAgentRelease | undefined {
   return releases.find((r) => r.agent_name === agentName && r.stage === 'production')
+}
+
+export interface PromoteAgentInput {
+  agentName:     string
+  version:       string
+  targetStage:   AgentReleaseStage
+  evalPassRate?: number    // required when targetStage === 'production' (DB enforces >= 0.7)
+  evalCaseCount?: number
+  notes?:        string
+}
+
+/**
+ * Promote (or demote) an agent to a target stage. Admin/owner only — the
+ * RPC raises 42501 for other roles. The mutation invalidates the releases
+ * query on success so every surface re-fetches.
+ */
+export function usePromoteAgent() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (input: PromoteAgentInput): Promise<CurrentAgentRelease> => {
+      const result = await supabase.rpc('promote_agent', {
+        p_agent_name:      input.agentName,
+        p_version:         input.version,
+        p_target_stage:    input.targetStage,
+        p_eval_pass_rate:  input.evalPassRate ?? null,
+        p_eval_case_count: input.evalCaseCount ?? null,
+        p_notes:           input.notes ?? null,
+      }) as unknown as { data: CurrentAgentRelease | null; error: { message: string; code?: string } | null }
+      if (result.error) throw new Error(result.error.message)
+      if (!result.data) throw new Error('Empty promote_agent response')
+      return result.data
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['agent-studio', 'current-releases'] })
+    },
+  })
 }
 
 /**
