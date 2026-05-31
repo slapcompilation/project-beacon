@@ -3,16 +3,31 @@
 // into a single signal strip + reuses the already-org-wide AutonomousPulse
 // and AgentCycleHistory.
 
-import { Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import { useState } from 'react'
+import { Button, Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { usePortfolioSignals, type PortfolioHotelSignal } from './portfolio'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
+import { useOrgOverstockSweep, type OrgSweepResult } from '@/features/agents/useOrgOverstockSweep'
 import type { AipTab } from './AIPShell'
 
 export function PortfolioCommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
   const { data: hotels = [], isLoading } = usePortfolioSignals()
+  const sweep = useOrgOverstockSweep()
+  const [lastSweep, setLastSweep] = useState<OrgSweepResult | null>(null)
+
+  const runSweep = () => {
+    sweep.mutate(undefined, {
+      onSuccess: (r) => {
+        setLastSweep(r)
+        toast.success(`Sweep: ${String(r.proposalsCreated)} proposals across ${String(r.hotelsScanned)} hotel${r.hotelsScanned === 1 ? '' : 's'}`)
+      },
+      onError: (err: Error) => { toast.error(err.message) },
+    })
+  }
 
   const totals = hotels.reduce(
     (acc, h) => ({
@@ -35,7 +50,18 @@ export function PortfolioCommandHome({ onNavigate }: { onNavigate: (tab: AipTab)
               Org-wide rollup across {String(hotels.length)} hotel{hotels.length === 1 ? '' : 's'}.
             </p>
           </div>
+          <Button
+            icon="exchange"
+            intent={Intent.PRIMARY}
+            onClick={runSweep}
+            loading={sweep.isPending}
+            disabled={hotels.length === 0}
+          >
+            Sweep overstock
+          </Button>
         </header>
+
+        {lastSweep && <OrgSweepSummary result={lastSweep} onNavigate={onNavigate} />}
 
         {/* Aggregated signal strip */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -132,6 +158,46 @@ function PortfolioHotelRow({ h, onNavigate }: { h: PortfolioHotelSignal; onNavig
           : 'no cycle yet'}
       </span>
     </li>
+  )
+}
+
+function OrgSweepSummary({ result, onNavigate }: { result: OrgSweepResult; onNavigate: (tab: AipTab) => void }) {
+  const proposed = result.items.filter((i) => i.outcome === 'proposed')
+  return (
+    <Card compact className="!p-0 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b bg-muted/20">
+        <div className="flex items-center gap-2">
+          <Icon icon="exchange" size={14} className="text-muted-foreground" />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Last sweep · org_overstock_balancer · {formatDistanceToNow(new Date(result.ranAt), { addSuffix: true })}
+          </span>
+        </div>
+        {result.proposalsCreated > 0 && (
+          <button type="button" onClick={() => { onNavigate('queue') }} className="text-[11px] text-primary hover:underline">
+            Review {result.proposalsCreated} in queue →
+          </button>
+        )}
+      </div>
+      <div className="px-4 py-2 text-xs text-muted-foreground flex items-center gap-3">
+        <span>{result.hotelsScanned} hotel{result.hotelsScanned === 1 ? '' : 's'} scanned</span>
+        <span>·</span>
+        <span>{result.variantsScanned} overstocked variants</span>
+        <span>·</span>
+        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{result.proposalsCreated} proposals</span>
+      </div>
+      {proposed.length > 0 && (
+        <ul className="divide-y max-h-48 overflow-y-auto">
+          {proposed.slice(0, 10).map((i) => (
+            <li key={i.proposalId ?? `${i.hotelId}-${i.variantId}`} className="px-4 py-1.5 text-xs flex items-center gap-2">
+              <Tag minimal className="font-mono !text-[10px]">{i.actionType}</Tag>
+              <span className="text-muted-foreground/80 flex-1 truncate">{i.variantName}</span>
+              <span className="text-[10px] text-muted-foreground/60 shrink-0">{i.hotelName}</span>
+              {i.confidence != null && <span className="tabular-nums text-muted-foreground/70 shrink-0">{Math.round(i.confidence * 100)}%</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   )
 }
 
