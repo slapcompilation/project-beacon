@@ -287,6 +287,9 @@ export type {
   ActiveAgentReleases,
 } from './constraints/index'
 
+export { DEFAULT_ORG_POLICY, mergeOrgPolicy } from './policy/index'
+export type { OrgPolicy } from './policy/index'
+
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {
   IntelligenceCycleDeps,

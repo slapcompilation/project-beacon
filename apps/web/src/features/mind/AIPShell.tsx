@@ -17,6 +17,7 @@ import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { CommandHome } from './CommandHome'
 import { PortfolioCommandHome } from './PortfolioCommandHome'
+import { PolicyTab } from './PolicyTab'
 import { OperationsPanel } from './OperationsPanel'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
@@ -37,7 +38,7 @@ export type AipTab =
   | 'queue' | 'approvals' | 'cases'
   | 'agents' | 'system-map'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
-  | 'tools' | 'objectives' | 'scenarios' | 'copilot'
+  | 'tools' | 'objectives' | 'scenarios' | 'copilot' | 'policy'
   | 'operations'
 
 // Rail organized by the AIP decision loop, not by artifact type.
@@ -60,6 +61,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             group: 'Shape' },
   { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            group: 'Shape' },
   { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                group: 'Shape' },
+  { id: 'policy',       label: 'Policy',            icon: 'cog',                 group: 'Shape' },
 
   { id: 'operations',   label: 'Operations',        icon: 'shop',                group: 'Operations' },
 ]
@@ -175,6 +177,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsIniti
     case 'objectives':   return <ModelingObjectivesPage />
     case 'scenarios':    return <ScenariosPage />
     case 'copilot':      return <CopilotConfigPage />
+    case 'policy':       return <PolicyTab />
     case 'operations':   return <OperationsPanel initialPanel={operationsInitialPanel} />
   }
 }
