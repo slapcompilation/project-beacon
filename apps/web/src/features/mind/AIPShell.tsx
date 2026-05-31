@@ -16,6 +16,7 @@ import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { CommandHome } from './CommandHome'
+import { PortfolioCommandHome } from './PortfolioCommandHome'
 import { OperationsPanel } from './OperationsPanel'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
@@ -32,7 +33,7 @@ const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 
 export type AipTab =
-  | 'command'
+  | 'command' | 'portfolio'
   | 'queue' | 'approvals' | 'cases'
   | 'agents' | 'system-map'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
@@ -41,6 +42,7 @@ export type AipTab =
 
 // Rail organized by the AIP decision loop, not by artifact type.
 const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
+  { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              group: 'Observe' },
   { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', group: 'Act' },
   { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        group: 'Act' },
   { id: 'cases',        label: 'Cases',             icon: 'folder-open',         group: 'Act' },
@@ -158,6 +160,7 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
 function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsInitialPanel?: string) {
   switch (t) {
     case 'command':      return <CommandHome onNavigate={onNavigate} />
+    case 'portfolio':    return <PortfolioCommandHome onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
