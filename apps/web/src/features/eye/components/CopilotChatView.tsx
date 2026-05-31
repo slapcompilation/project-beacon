@@ -7,6 +7,7 @@ import { useCopilotChat } from '@/features/eye/hooks'
 import type { ChatMessage } from '@/features/eye/hooks'
 import { CopilotProposalCard } from './CopilotProposalCard'
 import { useCurateAnswer } from '@/features/approvedAnswers/hooks'
+import { useCurrentSelection } from '@/features/copilot/hooks'
 
 const CHAT_PRESETS = [
   { label: "What needs my attention?",           query: "What needs my attention right now?" },
@@ -132,6 +133,7 @@ interface CopilotChatViewProps {
 
 export function CopilotChatView({ compact }: CopilotChatViewProps) {
   const { messages, isLoading, error, send, clear } = useCopilotChat()
+  const selection = useCurrentSelection()
   const [chatInput, setChatInput] = useState('')
   const chatBottomRef = useRef<HTMLDivElement>(null)
 
@@ -148,6 +150,15 @@ export function CopilotChatView({ compact }: CopilotChatViewProps) {
 
   return (
     <div className="flex flex-col h-full">
+      {selection && (
+        <div className={cn('flex items-center gap-1.5 border-b border-border bg-muted/20 text-[11px] text-muted-foreground', compact ? 'px-3 py-1.5' : 'px-6 py-2')}>
+          <Icon icon="locate" size={11} />
+          <span>Viewing</span>
+          <Tag minimal className="!text-[10px] font-mono">{selection.kind}</Tag>
+          <span className="font-mono text-muted-foreground/60 truncate">{selection.id.slice(0, 8)}</span>
+          <span className="text-muted-foreground/60 ml-auto italic">copilot defaults to this id</span>
+        </div>
+      )}
       <div className={cn('flex-1 overflow-y-auto py-5 space-y-4', compact ? 'px-3' : 'px-6')}>
         {messages.length === 0 && !isLoading && (
           <div className="space-y-5">

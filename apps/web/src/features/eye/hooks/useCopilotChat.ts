@@ -7,6 +7,7 @@ import { useApprovedAnswers, recordApprovedAnswerHit } from '@/features/approved
 import { matchApprovedAnswers } from '@/features/approvedAnswers/api'
 import { bestMatch } from '@/features/approvedAnswers/similarity'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useCurrentSelection } from '@/features/copilot/hooks'
 
 export interface ChatMessage {
   id: string
@@ -43,6 +44,7 @@ export function useCopilotChat() {
   const idCounter = useRef(0)
   const { data: approvedAnswers = [] } = useApprovedAnswers()
   const hotelId = useActiveHotelId()
+  const selection = useCurrentSelection()
 
   const nextId = () => {
     idCounter.current += 1
@@ -113,7 +115,7 @@ export function useCopilotChat() {
 
       const res = await supabase.functions.invoke('copilot-chat', {
         headers: { Authorization: `Bearer ${session.access_token}` },
-        body: { messages: history },
+        body: { messages: history, selection: selection ?? undefined },
       }) as {
         data: {
           response: string
@@ -148,7 +150,7 @@ export function useCopilotChat() {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, approvedAnswers, hotelId])
+  }, [messages, approvedAnswers, hotelId, selection])
 
   const clear = useCallback(() => {
     setMessages([])

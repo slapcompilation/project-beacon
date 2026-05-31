@@ -411,6 +411,12 @@ interface ChatMessage {
   content: string
 }
 
+interface SelectionContext {
+  kind:   string
+  id:     string
+  label?: string
+}
+
 interface RequestBody {
   /** New user turn (and optionally any client-side override of prior turns).
    *  When `conversation_id` is provided, history is loaded server-side; the
@@ -418,6 +424,18 @@ interface RequestBody {
   messages: ChatMessage[]
   /** Existing conversation to continue. Omit to start a new conversation. */
   conversation_id?: string
+  /** Selection-aware copilot (Phase D). What the operator is currently
+   *  looking at — appended to the system prompt so tool defaults / action
+   *  proposals fall back to this id when no override is given. */
+  selection?: SelectionContext
+}
+
+function buildSystemPrompt(selection?: SelectionContext): string {
+  if (!selection) return SYSTEM_PROMPT
+  return SYSTEM_PROMPT + `
+
+CURRENT VIEW:
+The operator is currently looking at a ${selection.kind} (id: \`${selection.id}\`)${selection.label ? ` — "${selection.label}"` : ''}. When a tool input or proposal field needs a ${selection.kind} id and the operator hasn't named a different one, default to this id. When the operator's question is vague ("forecast this?", "is this OK?"), assume it refers to the current ${selection.kind} unless they say otherwise.`
 }
 
 /** First-message → derived conversation title. Trimmed to 60 chars,
@@ -628,7 +646,7 @@ Deno.serve(async (req: Request) => {
               const llmStream = anthropic.messages.stream({
                 model:      'claude-haiku-4-5-20251001',
                 max_tokens: 1024,
-                system:     SYSTEM_PROMPT,
+                system:     buildSystemPrompt(body.selection),
                 tools:      allowedTools,
                 messages:   anthropicMessages,
               })
@@ -757,7 +775,7 @@ Deno.serve(async (req: Request) => {
     let response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
+      system: buildSystemPrompt(body.selection),
       tools: allowedTools,
       messages: anthropicMessages,
     })
@@ -804,7 +822,7 @@ Deno.serve(async (req: Request) => {
       response = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
-        system: SYSTEM_PROMPT,
+        system: buildSystemPrompt(body.selection),
         tools: allowedTools,
         messages: anthropicMessages,
       })
