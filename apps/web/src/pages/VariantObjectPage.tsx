@@ -5,8 +5,8 @@
 //
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
-import { useState } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
 import {
@@ -239,10 +239,27 @@ function AgentDecisionRow({ p }: { p: VariantProposalRow }) {
 export default function VariantObjectPage() {
   const { variantId = '' } = useParams<{ variantId: string }>()
   const navigate      = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const refineProposalId = searchParams.get('refine')
   const [adviceOpen, setAdviceOpen] = useState(false)
   const [wasteOpen, setWasteOpen]   = useState(false)
   const [overstockOpen, setOverstockOpen] = useState(false)
   useActiveHotelId() // ensures hotel context is ready for RLS
+
+  // Queue → Refine deep-link: /variant/<id>?refine=<proposalId> auto-opens the
+  // restock_advisor slide-over with the parent proposal pre-loaded for inline
+  // NL refinement. Clearing the query param on close keeps the URL clean.
+  useEffect(() => {
+    if (refineProposalId) setAdviceOpen(true)
+  }, [refineProposalId])
+  const closeAdvice = () => {
+    setAdviceOpen(false)
+    if (refineProposalId) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('refine')
+      setSearchParams(next, { replace: true })
+    }
+  }
 
   const { data: variant, isLoading: loadingVariant, error: variantError } = useQuery({
     queryKey:  ['variant-object', variantId],
@@ -602,9 +619,10 @@ export default function VariantObjectPage() {
 
       <AdviceSlideOver
         open={adviceOpen}
-        onClose={() => { setAdviceOpen(false) }}
+        onClose={closeAdvice}
         variantId={variantId}
         variantName={variant.name}
+        refineFromProposalId={refineProposalId}
       />
 
       <WasteAdviceSlideOver

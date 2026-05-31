@@ -15,7 +15,7 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import type { BeaconAction } from '@beacon/reality-graph'
 import { useRestockAdvisor, type PersistedProposal, type RunRestockAdvisorResult } from './useRestockAdvisor'
-import { decideProposal } from './proposalsApi'
+import { decideProposal, fetchProposal, rowToAgentProposal } from './proposalsApi'
 import { ProposalCard } from './ProposalCard'
 
 interface Props {
@@ -23,9 +23,12 @@ interface Props {
   onClose: () => void
   variantId: string
   variantName: string
+  /** When set (e.g. /variant/<id>?refine=<proposalId>), the slide-over opens
+   *  with that proposal pre-loaded so the operator can refine it inline. */
+  refineFromProposalId?: string | null
 }
 
-export function AdviceSlideOver({ open, onClose, variantId, variantName }: Props) {
+export function AdviceSlideOver({ open, onClose, variantId, variantName, refineFromProposalId }: Props) {
   const advisor    = useRestockAdvisor()
   const hotelId    = useActiveHotelId()
   const userId     = useAuthStore((s) => s.userId)
@@ -40,6 +43,22 @@ export function AdviceSlideOver({ open, onClose, variantId, variantName }: Props
     setHistory([])
     setTrace(null)
   }, [variantName])
+
+  // When opened with ?refine=<id>, load that parent proposal so ProposalCard
+  // renders it + the operator can type a NL refinement note inline. The new
+  // (refined) proposal will land in history via useRestockAdvisor's refinement
+  // path and supersede this one — same flow as in-session refinement.
+  useEffect(() => {
+    if (!open || !refineFromProposalId) return
+    let cancelled = false
+    void fetchProposal(refineFromProposalId).then((row) => {
+      if (cancelled || !row) return
+      setHistory([{ row, proposal: rowToAgentProposal(row) }])
+    }).catch((err: unknown) => {
+      toast.error(err instanceof Error ? err.message : 'Failed to load proposal for refinement')
+    })
+    return () => { cancelled = true }
+  }, [open, refineFromProposalId])
 
   const applyRun = (result: RunRestockAdvisorResult, refinedFromId?: string) => {
     setTrace(result.trace)
