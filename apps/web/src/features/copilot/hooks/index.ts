@@ -4,9 +4,11 @@
 // CopilotChatView slide-over (rendered in ContextPanel).
 
 import { useCallback, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAppStore } from '@/stores/app.store'
 import {
   archiveConversation,
   fetchConversations,
@@ -16,10 +18,46 @@ import {
   streamCopilotMessage,
   type ActionProposal,
   type CopilotStreamEvent,
+  type SelectionContext,
   type SendMessageInput,
   type SendMessageResponse,
   type ToolTraceEntry,
 } from '../api'
+
+// ─── Selection-aware copilot (Phase D) ───────────────────────────────────────
+// Derives "what is the operator currently looking at" from the route (primary)
+// and the context-panel's open entity (fallback). The copilot's send hooks
+// auto-attach this to every message so the edge fn can inject it into the
+// system prompt and bias tool defaults / action proposals toward it.
+
+const ROUTE_SELECTIONS: ReadonlyArray<{ kind: string; re: RegExp }> = [
+  { kind: 'variant',         re: /^\/variant\/([^/?#]+)/ },
+  { kind: 'product',         re: /^\/product\/([^/?#]+)/ },
+  { kind: 'supplier',        re: /^\/supplier\/([^/?#]+)/ },
+  { kind: 'restock_request', re: /^\/restock\/([^/?#]+)/ },
+  { kind: 'purchase_order',  re: /^\/po\/([^/?#]+)/ },
+  { kind: 'alert',           re: /^\/alert\/([^/?#]+)/ },
+  { kind: 'principle',       re: /^\/principles\/([^/?#]+)/ },
+  { kind: 'constraint',      re: /^\/constraints\/([^/?#]+)/ },
+  { kind: 'case',            re: /^\/cases\/([^/?#]+)/ },
+  { kind: 'document',        re: /^\/documents\/([^/?#]+)/ },
+  { kind: 'scenario',        re: /^\/scenarios\/([^/?#]+)/ },
+  { kind: 'objective',       re: /^\/modeling-objectives\/([^/?#]+)/ },
+  { kind: 'agent',           re: /^\/agents\/([^/?#]+)/ },
+]
+
+export function useCurrentSelection(): SelectionContext | null {
+  const { pathname } = useLocation()
+  const contextEntity = useAppStore((s) => s.contextEntity)
+
+  for (const pat of ROUTE_SELECTIONS) {
+    const m = pat.re.exec(pathname)
+    if (m) return { kind: pat.kind, id: m[1] }
+  }
+  // Fallback: whatever entity the operator has opened in the context panel.
+  if (contextEntity) return { kind: contextEntity.type, id: contextEntity.id }
+  return null
+}
 
 export const copilotKeys = {
   conversations: (userId: string)            => ['copilot', 'conversations', userId] as const,
@@ -51,9 +89,10 @@ export function useCopilotMessages(conversationId: string | null) {
 export function useSendCopilotMessage() {
   const queryClient = useQueryClient()
   const userId      = useAuthStore((s) => s.userId)
+  const selection   = useCurrentSelection()
 
   return useMutation<SendMessageResponse, Error, SendMessageInput>({
-    mutationFn: (input) => sendCopilotMessage(input),
+    mutationFn: (input) => sendCopilotMessage({ selection, ...input }),
     onSuccess: (data, vars) => {
       void queryClient.invalidateQueries({
         queryKey: copilotKeys.messages(vars.conversationId ?? data.conversation_id),
@@ -131,6 +170,7 @@ const INITIAL_STATE: StreamingState = {
 export function useStreamingCopilotMessage() {
   const queryClient = useQueryClient()
   const userId      = useAuthStore((s) => s.userId)
+  const selection   = useCurrentSelection()
   const [state, setState] = useState<StreamingState>(INITIAL_STATE)
 
   const reset = useCallback(() => { setState(INITIAL_STATE) }, [])
@@ -143,7 +183,7 @@ export function useStreamingCopilotMessage() {
     })
 
     try {
-      for await (const event of streamCopilotMessage(input)) {
+      for await (const event of streamCopilotMessage({ selection, ...input })) {
         applyEvent(event, setState)
         if (event.type === 'done') {
           // Persisted rows are now authoritative — refresh the lists.
@@ -166,9 +206,9 @@ export function useStreamingCopilotMessage() {
     }
 
     setState((s) => ({ ...s, isStreaming: false }))
-  }, [queryClient, userId])
+  }, [queryClient, userId, selection])
 
-  return { ...state, send, reset }
+  return { ...state, send, reset, selection }
 }
 
 function applyEvent(

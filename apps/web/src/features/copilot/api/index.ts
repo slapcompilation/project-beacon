@@ -82,11 +82,24 @@ export async function fetchMessages(
 
 // ─── Send (calls the copilot-chat edge function) ────────────────────────────
 
+/** Phase D — selection-aware copilot. When set, the operator is currently
+ *  looking at this entity; the edge fn injects it into the system prompt so
+ *  tool defaults / proposal fields fall back to it. */
+export interface SelectionContext {
+  kind:   string
+  id:     string
+  /** Optional friendly label (e.g. variant name) for log/trace clarity. */
+  label?: string
+}
+
 export interface SendMessageInput {
   /** Plain text from the operator. */
   content:        string
   /** Continue an existing conversation; omit to start a new one. */
   conversationId?: string | null
+  /** Current Object View, when on one. The copilot prefers it as default
+   *  context for tool calls + action proposals. */
+  selection?:     SelectionContext | null
 }
 
 export interface SendMessageResponse {
@@ -110,6 +123,7 @@ export async function sendCopilotMessage(
       body: {
         conversation_id: input.conversationId ?? undefined,
         messages:        [{ role: 'user', content: input.content }],
+        selection:       input.selection ?? undefined,
       },
     },
   ) as { data: SendMessageResponse | null; error: { message: string } | null }
@@ -161,6 +175,7 @@ export async function* streamCopilotMessage(
     body: JSON.stringify({
       conversation_id: input.conversationId ?? undefined,
       messages:        [{ role: 'user', content: input.content }],
+      selection:       input.selection ?? undefined,
     }),
   })
 
