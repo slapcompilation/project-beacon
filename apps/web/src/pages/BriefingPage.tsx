@@ -26,6 +26,7 @@ import { PressureSection } from '@/features/briefing/components/PressureSection'
 import { ProposalQualitySection } from '@/features/briefing/components/ProposalQualitySection'
 import { OccupancyInsightSection } from '@/features/briefing/components/OccupancyInsightSection'
 import { ShiftActivity } from '@/features/briefing/components/ShiftActivity'
+import { HotelMap } from '@/features/canvas/HotelMap'
 
 export default function BriefingPage() {
   const [windowHours, setWindowHours] = useState<8 | 12 | 24 | 48>(8)
@@ -110,6 +111,7 @@ export default function BriefingPage() {
           <SituationBanner />
           <SituationTimeline />
           <ProposalsPanel currency={currency} />
+          <HotelMap />
           <DecisionFeed currency={currency} />
           <PressureSection />
           <ProposalQualitySection />
