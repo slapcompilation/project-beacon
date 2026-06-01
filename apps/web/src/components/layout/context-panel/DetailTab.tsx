@@ -8,6 +8,7 @@ import { useAppStore, type ObjectPanelEntity } from '@/stores/app.store'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { ENTITY_META, GRAPH_NODE_TYPE } from './EntityMeta'
 import { EntitySummary } from './EntitySummary'
+import { LocationAipPanel } from '@/features/canvas/LocationAipPanel'
 
 const GraphConnections = lazy(() =>
   import('@/components/GraphConnections').then((m) => ({ default: m.GraphConnections }))
@@ -88,6 +89,14 @@ export function DetailTabContent() {
             <div className="px-4 py-3">
               <EntitySummary entityType={entityType} data={data} />
             </div>
+
+            {/* Phase F5 — Zone-shaped AIP detail when an operator clicks a
+                zone tile on Canvas. Variants + pending proposals (with inline
+                Refine) + unread alerts; reuses the /variant/<id>?refine=<id>
+                deep link the queue's Refine button already uses. */}
+            {entityType === 'location' && entityId && (
+              <LocationAipPanel locationId={entityId} />
+            )}
 
             {GRAPH_NODE_TYPE[entityType] && (
               <div className="px-4 py-3">

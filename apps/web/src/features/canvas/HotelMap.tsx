@@ -15,9 +15,12 @@ export function HotelMap() {
   const setContextPanelTab = useAppStore((s) => s.setContextPanelTab)
   const contextEntity = useAppStore((s) => s.contextEntity)
 
+  // F5: focus → Detail tab (the LocationAipPanel lives there). Copilot stays
+  // one tab over, still selection-aware via useCurrentSelection's
+  // contextEntity fallback.
   const focusZone = (zoneId: string) => {
     openEntityContext('location', zoneId)
-    setContextPanelTab('copilot')
+    setContextPanelTab('detail')
   }
 
   if (isLoading) {
