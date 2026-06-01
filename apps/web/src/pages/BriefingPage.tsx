@@ -14,6 +14,7 @@ import {
 } from '@/features/briefing/hooks'
 import { useActiveHotel } from '@/features/hotel/hooks'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAppStore } from '@/stores/app.store'
 import { useCurrency } from '@/hooks/useCurrency'
 
 import { SituationBanner } from '@/features/briefing/components/SituationBanner'
@@ -43,6 +44,17 @@ export default function BriefingPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeHotel?.id])
+
+  // Phase F1 — Canvas surfaces the Copilot as a first-class pane. On first
+  // entry we open the right panel + select the Copilot tab. Subsequent user
+  // toggles win (we only run this once per BriefingPage mount).
+  const setContextPanelOpen = useAppStore((s) => s.setContextPanelOpen)
+  const setContextPanelTab  = useAppStore((s) => s.setContextPanelTab)
+  useEffect(() => {
+    setContextPanelOpen(true)
+    setContextPanelTab('copilot')
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const now = new Date()
   const greeting =

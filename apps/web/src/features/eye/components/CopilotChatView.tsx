@@ -152,11 +152,22 @@ export function CopilotChatView({ compact }: CopilotChatViewProps) {
     <div className="flex flex-col h-full">
       {selection && (
         <div className={cn('flex items-center gap-1.5 border-b border-border bg-muted/20 text-[11px] text-muted-foreground', compact ? 'px-3 py-1.5' : 'px-6 py-2')}>
-          <Icon icon="locate" size={11} />
-          <span>Viewing</span>
-          <Tag minimal className="!text-[10px] font-mono">{selection.kind}</Tag>
-          <span className="font-mono text-muted-foreground/60 truncate">{selection.id.slice(0, 8)}</span>
-          <span className="text-muted-foreground/60 ml-auto italic">copilot defaults to this id</span>
+          <Icon icon={selection.kind === 'briefing' ? 'book' : 'locate'} size={11} />
+          {selection.kind === 'briefing' ? (
+            <>
+              <span>Viewing</span>
+              <Tag minimal className="!text-[10px]">Canvas</Tag>
+              <span className="text-muted-foreground/60">briefing</span>
+              <span className="text-muted-foreground/60 ml-auto italic">copilot uses the current briefing context</span>
+            </>
+          ) : (
+            <>
+              <span>Viewing</span>
+              <Tag minimal className="!text-[10px] font-mono">{selection.kind}</Tag>
+              <span className="font-mono text-muted-foreground/60 truncate">{selection.id.slice(0, 8)}</span>
+              <span className="text-muted-foreground/60 ml-auto italic">copilot defaults to this id</span>
+            </>
+          )}
         </div>
       )}
       <div className={cn('flex-1 overflow-y-auto py-5 space-y-4', compact ? 'px-3' : 'px-6')}>

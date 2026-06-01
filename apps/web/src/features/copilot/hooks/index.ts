@@ -30,7 +30,7 @@ import {
 // auto-attach this to every message so the edge fn can inject it into the
 // system prompt and bias tool defaults / action proposals toward it.
 
-const ROUTE_SELECTIONS: ReadonlyArray<{ kind: string; re: RegExp }> = [
+const ROUTE_SELECTIONS: ReadonlyArray<{ kind: string; re: RegExp; idGroup?: number; constantId?: string }> = [
   { kind: 'variant',         re: /^\/variant\/([^/?#]+)/ },
   { kind: 'product',         re: /^\/product\/([^/?#]+)/ },
   { kind: 'supplier',        re: /^\/supplier\/([^/?#]+)/ },
@@ -44,6 +44,10 @@ const ROUTE_SELECTIONS: ReadonlyArray<{ kind: string; re: RegExp }> = [
   { kind: 'scenario',        re: /^\/scenarios\/([^/?#]+)/ },
   { kind: 'objective',       re: /^\/modeling-objectives\/([^/?#]+)/ },
   { kind: 'agent',           re: /^\/agents\/([^/?#]+)/ },
+  // Phase F1 — Canvas: the briefing page IS the selection. No entity id; the
+  // edge fn's system prompt treats this as "the operator is on the Canvas
+  // briefing" so tool defaults are chosen accordingly.
+  { kind: 'briefing',        re: /^\/briefing\/?$/, constantId: 'current' },
 ]
 
 export function useCurrentSelection(): SelectionContext | null {
@@ -52,7 +56,7 @@ export function useCurrentSelection(): SelectionContext | null {
 
   for (const pat of ROUTE_SELECTIONS) {
     const m = pat.re.exec(pathname)
-    if (m) return { kind: pat.kind, id: m[1] }
+    if (m) return { kind: pat.kind, id: pat.constantId ?? m[1] }
   }
   // Fallback: whatever entity the operator has opened in the context panel.
   if (contextEntity) return { kind: contextEntity.type, id: contextEntity.id }
