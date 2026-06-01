@@ -13,6 +13,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   buildRestockAdvisorAgent,
   runIntelligenceCycle,
+  orgPolicyToAutoExecPolicy,
   type BeaconAction,
   type CycleVariant,
 } from '@beacon/reality-graph'
@@ -26,6 +27,7 @@ import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal, decideProposal } from './proposalsApi'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
+import { useOrgPolicy } from '@/features/mind/policy'
 
 export type { CycleOutcome, CycleItem, CycleResult } from '@beacon/reality-graph'
 
@@ -35,6 +37,7 @@ export function useRestockCycle() {
   const { data: products = [] } = useProducts()
   const forecastAdapter = useActiveForecastAdapter()
   const { data: releases = [] } = useCurrentAgentReleases()
+  const { data: policyData } = useOrgPolicy()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -67,11 +70,19 @@ export function useRestockCycle() {
         .filter((r) => r.stage === 'production')
         .map((r) => ({ agentName: r.agent_name, version: r.version }))
 
+      // Phase E2: operator-tunable policy. Falls back to DEFAULT_ORG_POLICY
+      // until the operator saves overrides via Mind → Policy.
+      const orgPolicy = policyData?.merged
+      const autoExecPolicy = orgPolicy ? orgPolicyToAutoExecPolicy(orgPolicy) : undefined
+      const maxVariants    = orgPolicy?.caps.max_variants_per_cycle
+
       const result = await runIntelligenceCycle({
         variants,
         constraints,
         agent:    { agentName: meta.name, agentVersion: meta.version },
         releases: { production: productionReleases },
+        policy:   autoExecPolicy,
+        maxVariants,
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals

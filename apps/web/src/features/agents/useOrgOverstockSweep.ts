@@ -20,9 +20,7 @@ import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal } from './proposalsApi'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 import { usePortfolioSignals } from '@/features/mind/portfolio'
-
-const OVERSTOCK_FACTOR = 2     // current_stock > par × this counts as overstock
-const MAX_PROPOSALS_PER_SWEEP = 25
+import { useOrgPolicy } from '@/features/mind/policy'
 
 export interface OrgSweepItem {
   hotelId:       string
@@ -52,7 +50,7 @@ interface OverstockedVariant {
   productName: string
 }
 
-async function scanOverstocked(hotelId: string, hotelName: string): Promise<OverstockedVariant[]> {
+async function scanOverstocked(hotelId: string, hotelName: string, factor: number): Promise<OverstockedVariant[]> {
   const { data, error } = await supabase
     .from('product_variants')
     .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name)')
@@ -62,7 +60,7 @@ async function scanOverstocked(hotelId: string, hotelName: string): Promise<Over
   if (error) throw new Error(error.message)
 
   return data
-    .filter((v) => (v.current_stock as number) > (v.low_stock_threshold as number) * OVERSTOCK_FACTOR)
+    .filter((v) => (v.current_stock as number) > (v.low_stock_threshold as number) * factor)
     .map((v) => {
       const p = v.products as { name: string } | { name: string }[] | null
       const product = Array.isArray(p) ? p[0] : p
@@ -81,11 +79,17 @@ export function useOrgOverstockSweep() {
   const userId = useAuthStore((s) => s.userId)
   const forecastAdapter = useActiveForecastAdapter()
   const { data: portfolioHotels = [] } = usePortfolioSignals()
+  const { data: policyData } = useOrgPolicy()
 
   return useMutation<OrgSweepResult>({
     mutationFn: async () => {
       if (!userId) throw new Error('Not signed in')
       if (portfolioHotels.length === 0) throw new Error('No hotels in scope (admin/owner required)')
+
+      // Phase E2: operator-tunable factor + cap. Fallback to bundled defaults.
+      const policy = policyData?.merged
+      const factor = policy?.overstock.factor              ?? 2
+      const cap    = policy?.caps.max_proposals_per_sweep  ?? 25
 
       const reader = makeSupabaseGraphReader()
       const items: OrgSweepItem[] = []
@@ -93,11 +97,11 @@ export function useOrgOverstockSweep() {
       let proposalsCreated = 0
 
       for (const h of portfolioHotels) {
-        const overstocked = await scanOverstocked(h.hotel_id, h.hotel_name)
+        const overstocked = await scanOverstocked(h.hotel_id, h.hotel_name, factor)
         variantsScanned += overstocked.length
 
         for (const v of overstocked) {
-          if (proposalsCreated >= MAX_PROPOSALS_PER_SWEEP) break
+          if (proposalsCreated >= cap) break
           try {
             const agent = buildOverstockRebalancerAgent({
               reader,
@@ -136,7 +140,7 @@ export function useOrgOverstockSweep() {
             items.push({ ...rowOf(v), outcome: 'error', reason: err instanceof Error ? err.message : String(err) })
           }
         }
-        if (proposalsCreated >= MAX_PROPOSALS_PER_SWEEP) break
+        if (proposalsCreated >= cap) break
       }
 
       return {
