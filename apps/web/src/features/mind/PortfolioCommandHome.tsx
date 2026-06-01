@@ -12,12 +12,19 @@ import { cn } from '@/lib/utils'
 import { usePortfolioSignals, type PortfolioHotelSignal } from './portfolio'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
 import { useOrgOverstockSweep, type OrgSweepResult } from '@/features/agents/useOrgOverstockSweep'
+import { useAppStore } from '@/stores/app.store'
 import type { AipTab } from './AIPShell'
 
 export function PortfolioCommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
   const { data: hotels = [], isLoading } = usePortfolioSignals()
   const sweep = useOrgOverstockSweep()
   const [lastSweep, setLastSweep] = useState<OrgSweepResult | null>(null)
+  const enterHotelScope = useAppStore((s) => s.enterHotelScope)
+
+  const hopToHotel = (hotelId: string) => {
+    enterHotelScope(hotelId)
+    onNavigate('command')
+  }
 
   const runSweep = () => {
     sweep.mutate(undefined, {
@@ -74,21 +81,26 @@ export function PortfolioCommandHome({ onNavigate }: { onNavigate: (tab: AipTab)
         {/* Hotels at a glance */}
         <section className="space-y-2">
           <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Hotels</h2>
-          <Card compact className="!p-0 overflow-hidden">
-            {isLoading ? (
-              <div className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground">
-                <Spinner size={SpinnerSize.SMALL} />Loading portfolio…
-              </div>
-            ) : hotels.length === 0 ? (
-              <div className="px-4 py-4 text-xs text-muted-foreground">
-                No hotels in scope. (Portfolio is admin/owner only; the underlying RPC also requires org scope.)
-              </div>
-            ) : (
-              <ul className="divide-y">
-                {hotels.map((h) => <PortfolioHotelRow key={h.hotel_id} h={h} onNavigate={onNavigate} />)}
-              </ul>
-            )}
-          </Card>
+          {isLoading ? (
+            <Card compact className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Spinner size={SpinnerSize.SMALL} />Loading portfolio…
+            </Card>
+          ) : hotels.length === 0 ? (
+            <Card compact className="text-xs text-muted-foreground">
+              No hotels in scope. (Portfolio is admin/owner only; the underlying RPC also requires org scope.)
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {hotels.map((h) => (
+                <OrgHotelTile
+                  key={h.hotel_id}
+                  h={h}
+                  onHop={() => { hopToHotel(h.hotel_id) }}
+                  onNavigate={onNavigate}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Already org-wide — reuse without re-aggregating */}
@@ -130,34 +142,65 @@ function PortfolioTotal({ label, value, icon, intent, sub, onClick }: {
   )
 }
 
-function PortfolioHotelRow({ h, onNavigate }: { h: PortfolioHotelSignal; onNavigate: (tab: AipTab) => void }) {
+function OrgHotelTile({ h, onHop, onNavigate }: {
+  h: PortfolioHotelSignal
+  onHop: () => void
+  onNavigate: (tab: AipTab) => void
+}) {
   const lastCycle = h.last_cycle_at ? new Date(h.last_cycle_at) : null
+  const totalSignals = h.queue_pending + h.approvals_pending + h.cases_open
+  const accent =
+    h.approvals_pending > 0 ? 'border-l-2 border-l-amber-400' :
+    h.queue_pending     > 0 ? 'border-l-2 border-l-primary'   :
+    'border-l-2 border-l-emerald-500'
   return (
-    <li className="flex items-center gap-3 px-4 py-2.5 text-xs hover:bg-muted/30 transition-colors">
-      <span className="flex-1 truncate font-medium">{h.hotel_name}</span>
-
-      {h.queue_pending > 0 && (
-        <button type="button" onClick={() => { onNavigate('queue') }} className="hover:underline">
-          <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">{h.queue_pending} queued</Tag>
-        </button>
-      )}
-      {h.approvals_pending > 0 && (
-        <button type="button" onClick={() => { onNavigate('approvals') }} className="hover:underline">
-          <Tag minimal intent={Intent.WARNING} className="!text-[10px]">{h.approvals_pending} approvals</Tag>
-        </button>
-      )}
-      {h.cases_open > 0 && (
-        <button type="button" onClick={() => { onNavigate('cases') }} className="hover:underline">
-          <Tag minimal className="!text-[10px]">{h.cases_open} cases</Tag>
-        </button>
-      )}
-
-      <span className="text-muted-foreground/70 tabular-nums shrink-0 w-44 text-right">
-        {lastCycle
-          ? `cycle ${formatDistanceToNow(lastCycle, { addSuffix: true })} · ${String(h.last_cycle_auto)} auto · ${String(h.last_cycle_queued)} queued`
-          : 'no cycle yet'}
-      </span>
-    </li>
+    <Card compact className={cn('!p-0 overflow-hidden', accent)}>
+      <button
+        type="button"
+        onClick={onHop}
+        className="flex w-full items-center justify-between px-3 py-2 border-b bg-muted/20 hover:bg-muted/40 transition-colors text-left"
+        title="Open this hotel's Command home"
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <Icon icon="home" size={13} className="text-muted-foreground shrink-0" />
+          <span className="text-sm font-medium truncate">{h.hotel_name}</span>
+        </span>
+        <Icon icon="arrow-right" size={12} className="text-muted-foreground/70 shrink-0" />
+      </button>
+      <div className="px-3 py-2.5 space-y-2">
+        {totalSignals === 0 ? (
+          <p className="text-[11px] text-muted-foreground">No open signals.</p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {h.queue_pending > 0 && (
+              <button type="button" onClick={() => { onNavigate('queue') }} className="hover:underline">
+                <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">{h.queue_pending} queued</Tag>
+              </button>
+            )}
+            {h.approvals_pending > 0 && (
+              <button type="button" onClick={() => { onNavigate('approvals') }} className="hover:underline">
+                <Tag minimal intent={Intent.WARNING} className="!text-[10px]">{h.approvals_pending} approvals</Tag>
+              </button>
+            )}
+            {h.cases_open > 0 && (
+              <button type="button" onClick={() => { onNavigate('cases') }} className="hover:underline">
+                <Tag minimal className="!text-[10px]">{h.cases_open} cases</Tag>
+              </button>
+            )}
+          </div>
+        )}
+        <div className="flex items-center justify-between text-[11px] text-muted-foreground/80">
+          <span>
+            {lastCycle ? `cycle ${formatDistanceToNow(lastCycle, { addSuffix: true })}` : 'no cycle yet'}
+          </span>
+          {lastCycle && (
+            <span className="tabular-nums">
+              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{h.last_cycle_auto}</span> auto · <span className="text-amber-600 dark:text-amber-400 font-semibold">{h.last_cycle_queued}</span> queued
+            </span>
+          )}
+        </div>
+      </div>
+    </Card>
   )
 }
 
