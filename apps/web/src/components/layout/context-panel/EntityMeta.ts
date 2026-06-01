@@ -16,6 +16,7 @@ export const ENTITY_META: Record<ObjectPanelEntity, {
   alert:           { icon: 'warning-sign',  label: 'Alert',           route: '/alert/',    table: 'notifications',    select: '*' },
   purchase_order:  { icon: 'document',      label: 'Purchase Order',  route: '/po/',       table: 'purchase_orders',  select: '*, suppliers(name)' },
   shift_handover:  { icon: 'clipboard',     label: 'Shift Handover',  route: '/handover/', table: 'shift_handovers',  select: '*' },
+  location:        { icon: 'map-marker',    label: 'Zone',            route: '/location/', table: 'locations',        select: '*' },
 }
 
 export const GRAPH_NODE_TYPE: Partial<Record<ObjectPanelEntity, string>> = {
