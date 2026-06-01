@@ -13,6 +13,7 @@ export type ObjectPanelEntity =
   | 'alert'
   | 'purchase_order'
   | 'shift_handover'
+  | 'location'
 
 export type ContextPanelTab = 'detail' | 'copilot' | 'graph'
 
