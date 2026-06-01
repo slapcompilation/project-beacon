@@ -17,13 +17,13 @@
 import {
   runIntelligenceCycle,
   buildRestockAdvisorAgent,
+  mergeOrgPolicy,
+  orgPolicyToAutoExecPolicy,
 } from '../_shared/reality-graph.bundle.mjs'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { json, preflight } from '../_shared/http.ts'
 import { verifySharedSecret, isAuthError } from '../_shared/auth.ts'
 import { makeServiceRoleGraphReader } from './reader.ts'
-
-const MAX_VARIANTS_PER_CYCLE = 25
 // Recorded on the agent's trace; persistence attributes rows to no user
 // (created_by_user_id / requestor_id are NULL for system-authored rows).
 const SYSTEM_ACTOR = '00000000-0000-0000-0000-000000000000'
@@ -81,13 +81,25 @@ Deno.serve(async (req: Request) => {
     version:   r.version as string,
   }))
 
+  // Phase E2: operator-tunable policy. Cron is currently global (no per-org
+  // schedule), so we read the NULL-org default row. When per-org cron lands
+  // this becomes a per-hotel lookup.
+  const { data: policyRow } = await supabase
+    .from('org_policy')
+    .select('policy')
+    .is('organization_id', null)
+    .maybeSingle()
+  const policy = mergeOrgPolicy(policyRow?.policy)
+  const autoExecPolicy = orgPolicyToAutoExecPolicy(policy)
+  const maxVariants    = policy.caps.max_variants_per_cycle
+
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
   let totalQueued = 0
 
   for (const hotel of (hotels ?? []) as HotelRow[]) {
     try {
-      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases)
+      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases, autoExecPolicy, maxVariants)
       totalAuto += result.autoExecuted
       totalQueued += result.queued
       perHotel.push({ hotelId: hotel.id, scanned: result.scanned, autoExecuted: result.autoExecuted, queued: result.queued })
@@ -115,6 +127,8 @@ async function runHotelCycle(
   hotel: HotelRow,
   agentMeta: { name: string; version: string },
   productionReleases: ReadonlyArray<{ agentName: string; version: string }>,
+  autoExecPolicy: { thresholds: Record<string, number> },
+  maxVariants: number,
 ) {
   // At-risk = enabled, has a reorder point, at/below it.
   const { data: variantRows, error: scanErr } = await supabase
@@ -154,7 +168,8 @@ async function runHotelCycle(
   return await runIntelligenceCycle({
     variants,
     constraints,
-    maxVariants: MAX_VARIANTS_PER_CYCLE,
+    maxVariants,
+    policy:   autoExecPolicy,
     agent:    { agentName: agentMeta.name, agentVersion: agentMeta.version },
     releases: { production: productionReleases },
     runAgent: async (variant: { id: string; name: string }) => {

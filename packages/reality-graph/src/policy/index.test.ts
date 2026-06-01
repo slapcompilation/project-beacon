@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_ORG_POLICY, mergeOrgPolicy } from './index'
+import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy } from './index'
 
 describe('mergeOrgPolicy', () => {
   it('returns defaults when override is null / undefined / non-object', () => {
@@ -47,5 +47,23 @@ describe('mergeOrgPolicy', () => {
       overstock: { factor: 'two' },  // wrong type → default kept
     })
     expect(merged.overstock.factor).toBe(DEFAULT_ORG_POLICY.overstock.factor)
+  })
+})
+
+describe('orgPolicyToAutoExecPolicy', () => {
+  it('extracts the per-action-type thresholds map', () => {
+    const policy = mergeOrgPolicy({
+      auto_execution: { thresholds: { REQUEST_RESTOCK: 0.85, TRANSFER_STOCK: 0.95 } },
+    })
+    const exec = orgPolicyToAutoExecPolicy(policy)
+    expect(exec.thresholds.REQUEST_RESTOCK).toBe(0.85)
+    expect(exec.thresholds.TRANSFER_STOCK).toBe(0.95)
+  })
+
+  it('copies the thresholds map — mutating the result does not affect the source', () => {
+    const policy = mergeOrgPolicy({})
+    const exec = orgPolicyToAutoExecPolicy(policy)
+    exec.thresholds.WRITE_OFF = 0.99
+    expect(policy.auto_execution.thresholds.WRITE_OFF).toBeUndefined()
   })
 })

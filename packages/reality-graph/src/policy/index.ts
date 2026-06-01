@@ -9,6 +9,7 @@
 // promote_agent, compute_supplier_reliability) get plumbed in Phase E2.
 
 import type { BeaconAction } from '../actions/index'
+import type { AutoExecutionPolicy } from '../constraints/index'
 
 export interface OrgPolicy {
   auto_execution: {
@@ -117,4 +118,11 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
 
 function isObj(x: unknown): x is Record<string, unknown> {
   return x != null && typeof x === 'object' && !Array.isArray(x)
+}
+
+/** Adapter — pulls the per-action-type confidence floors out of an OrgPolicy
+ *  into the shape decideAutoExecution expects. Phase E2 callers use this
+ *  instead of the hardcoded DEFAULT_AUTO_EXEC_POLICY. */
+export function orgPolicyToAutoExecPolicy(p: OrgPolicy): AutoExecutionPolicy {
+  return { thresholds: { ...p.auto_execution.thresholds } }
 }

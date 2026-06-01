@@ -17164,6 +17164,80 @@ function decideAutoExecution(args) {
   return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} \u2265 ${threshold.toFixed(2)}, no hard violations` };
 }
 
+// packages/reality-graph/src/policy/index.ts
+var DEFAULT_ORG_POLICY = {
+  auto_execution: {
+    thresholds: { REQUEST_RESTOCK: 0.9 }
+  },
+  promotion: {
+    production_pass_rate_floor: 0.7
+  },
+  overstock: {
+    factor: 2
+  },
+  par: {
+    service_level: 0.95,
+    window_days: 90
+  },
+  supplier_reliability: {
+    window_days: 90
+  },
+  caps: {
+    max_variants_per_cycle: 25,
+    max_proposals_per_sweep: 25
+  }
+};
+function mergeOrgPolicy(override) {
+  if (override == null || typeof override !== "object") return DEFAULT_ORG_POLICY;
+  const o = override;
+  const merged = {
+    auto_execution: { thresholds: { ...DEFAULT_ORG_POLICY.auto_execution.thresholds } },
+    promotion: { ...DEFAULT_ORG_POLICY.promotion },
+    overstock: { ...DEFAULT_ORG_POLICY.overstock },
+    par: { ...DEFAULT_ORG_POLICY.par },
+    supplier_reliability: { ...DEFAULT_ORG_POLICY.supplier_reliability },
+    caps: { ...DEFAULT_ORG_POLICY.caps }
+  };
+  if (isObj(o.auto_execution)) {
+    const ae = o.auto_execution;
+    if (isObj(ae.thresholds)) {
+      const thresholds = ae.thresholds;
+      for (const [k, v] of Object.entries(thresholds)) {
+        if (typeof v === "number" && v >= 0 && v <= 1) {
+          merged.auto_execution.thresholds[k] = v;
+        }
+      }
+    }
+  }
+  if (isObj(o.promotion) && typeof o.promotion.production_pass_rate_floor === "number") {
+    merged.promotion.production_pass_rate_floor = o.promotion.production_pass_rate_floor;
+  }
+  if (isObj(o.overstock) && typeof o.overstock.factor === "number") {
+    merged.overstock.factor = o.overstock.factor;
+  }
+  if (isObj(o.par)) {
+    const p = o.par;
+    if (typeof p.service_level === "number") merged.par.service_level = p.service_level;
+    if (typeof p.window_days === "number") merged.par.window_days = Math.round(p.window_days);
+  }
+  if (isObj(o.supplier_reliability)) {
+    const sr = o.supplier_reliability;
+    if (typeof sr.window_days === "number") merged.supplier_reliability.window_days = Math.round(sr.window_days);
+  }
+  if (isObj(o.caps)) {
+    const c = o.caps;
+    if (typeof c.max_variants_per_cycle === "number") merged.caps.max_variants_per_cycle = Math.round(c.max_variants_per_cycle);
+    if (typeof c.max_proposals_per_sweep === "number") merged.caps.max_proposals_per_sweep = Math.round(c.max_proposals_per_sweep);
+  }
+  return merged;
+}
+function isObj(x) {
+  return x != null && typeof x === "object" && !Array.isArray(x);
+}
+function orgPolicyToAutoExecPolicy(p) {
+  return { thresholds: { ...p.auto_execution.thresholds } };
+}
+
 // packages/reality-graph/src/cycles/intelligenceCycle.ts
 var DEFAULT_MAX_VARIANTS = 25;
 async function runIntelligenceCycle(deps) {
@@ -17233,6 +17307,7 @@ async function runIntelligenceCycle(deps) {
 export {
   CONSUMPTION_FORECAST_OBJECTIVE_NAME,
   DEFAULT_AUTO_EXEC_POLICY,
+  DEFAULT_ORG_POLICY,
   ECHELON_RANK,
   LAYERS,
   NodeSetBuilder,
@@ -17310,11 +17385,13 @@ export {
   makeRankAlternativeSuppliersTool,
   mapPostgrestError,
   mapResult,
+  mergeOrgPolicy,
   nodeSet,
   notFound,
   objectiveRegistry,
   ok,
   onTimePctLabel,
+  orgPolicyToAutoExecPolicy,
   orgRoleFor,
   organizationNode,
   otherSide,

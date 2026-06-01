@@ -4,6 +4,7 @@ import {
   evaluateConstraints,
   decideAutoExecution,
   DEFAULT_AUTO_EXEC_POLICY,
+  orgPolicyToAutoExecPolicy,
   type AgentProposal,
   type AgentRunResult,
   type BeaconAction,
@@ -19,6 +20,7 @@ import { createProposal, decideProposal, type ProposalRow } from './proposalsApi
 import { useActivePrinciples } from '@/features/principles/hooks'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
+import { useOrgPolicy } from '@/features/mind/policy'
 
 export interface RunRestockAdvisorInput {
   variantId: string
@@ -56,6 +58,7 @@ export function useRestockAdvisor() {
   const { data: principles = [] } = useActivePrinciples()
   const forecastAdapter = useActiveForecastAdapter()
   const { data: releases = [] } = useCurrentAgentReleases()
+  const { data: policyData } = useOrgPolicy()
 
   return useMutation<RunRestockAdvisorResult, Error, RunRestockAdvisorInput>({
     mutationFn: async (input) => {
@@ -119,11 +122,15 @@ export function useRestockAdvisor() {
           const productionReleases = releases
             .filter((r) => r.stage === 'production')
             .map((r) => ({ agentName: r.agent_name, version: r.version }))
+          // Phase E2: honour the operator's saved policy; fall back to code default.
+          const autoExecPolicy = policyData?.merged
+            ? orgPolicyToAutoExecPolicy(policyData.merged)
+            : DEFAULT_AUTO_EXEC_POLICY
           const decision = decideAutoExecution({
             action: p.proposal.action,
             confidence: p.proposal.confidence,
             violations,
-            policy: DEFAULT_AUTO_EXEC_POLICY,
+            policy: autoExecPolicy,
             agent: { agentName: agent.name, agentVersion: agent.version },
             releases: { production: productionReleases },
           })
