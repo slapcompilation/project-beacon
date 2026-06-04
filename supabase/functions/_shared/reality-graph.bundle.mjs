@@ -1,5 +1,8 @@
 // GENERATED — do not edit. Bundled from @beacon/reality-graph for the Deno edge runtime.
-// Regenerate after changing reality-graph: pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --banner:js="..." --outfile=supabase/functions/_shared/reality-graph.bundle.mjs
+// Regenerate after changing reality-graph:
+//   NODE_OPTIONS=--use-system-ca pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts \
+//     --bundle --format=esm --platform=neutral --target=es2022 \
+//     --outfile=supabase/functions/_shared/reality-graph.bundle.mjs
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
   for (var name in all)
@@ -17144,16 +17147,19 @@ var DEFAULT_AUTO_EXEC_POLICY = {
   thresholds: { REQUEST_RESTOCK: 0.9 }
 };
 function decideAutoExecution(args) {
-  const threshold = args.policy.thresholds[args.action.type];
-  if (threshold == null) {
+  const typeThreshold = args.policy.thresholds[args.action.type];
+  if (typeThreshold == null) {
     return { autoExecute: false, reason: `${args.action.type} is not eligible for auto-execution` };
   }
+  const agentOverride = args.agent != null ? args.agentOverrides?.[args.agent.agentName] : void 0;
+  const threshold = agentOverride ?? typeThreshold;
   const hard = args.violations.filter((v) => v.severity === "hard");
   if (hard.length > 0) {
     return { autoExecute: false, reason: `blocked by ${String(hard.length)} hard constraint(s)` };
   }
   if (args.confidence < threshold) {
-    return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${threshold.toFixed(2)} floor` };
+    const why = agentOverride != null ? `agent floor ${threshold.toFixed(2)} (override)` : `floor ${threshold.toFixed(2)}`;
+    return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${why}` };
   }
   if (args.agent != null && args.releases != null) {
     const prod = args.releases.production.find((r) => r.agentName === args.agent.agentName);
@@ -17167,7 +17173,8 @@ function decideAutoExecution(args) {
 // packages/reality-graph/src/policy/index.ts
 var DEFAULT_ORG_POLICY = {
   auto_execution: {
-    thresholds: { REQUEST_RESTOCK: 0.9 }
+    thresholds: { REQUEST_RESTOCK: 0.9 },
+    agent_overrides: {}
   },
   promotion: {
     production_pass_rate_floor: 0.7
@@ -17191,7 +17198,10 @@ function mergeOrgPolicy(override) {
   if (override == null || typeof override !== "object") return DEFAULT_ORG_POLICY;
   const o = override;
   const merged = {
-    auto_execution: { thresholds: { ...DEFAULT_ORG_POLICY.auto_execution.thresholds } },
+    auto_execution: {
+      thresholds: { ...DEFAULT_ORG_POLICY.auto_execution.thresholds },
+      agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides }
+    },
     promotion: { ...DEFAULT_ORG_POLICY.promotion },
     overstock: { ...DEFAULT_ORG_POLICY.overstock },
     par: { ...DEFAULT_ORG_POLICY.par },
@@ -17205,6 +17215,14 @@ function mergeOrgPolicy(override) {
       for (const [k, v] of Object.entries(thresholds)) {
         if (typeof v === "number" && v >= 0 && v <= 1) {
           merged.auto_execution.thresholds[k] = v;
+        }
+      }
+    }
+    if (isObj(ae.agent_overrides)) {
+      const overrides = ae.agent_overrides;
+      for (const [k, v] of Object.entries(overrides)) {
+        if (typeof v === "number" && v >= 0 && v <= 1) {
+          merged.auto_execution.agent_overrides[k] = v;
         }
       }
     }
@@ -17266,7 +17284,8 @@ async function runIntelligenceCycle(deps) {
           violations,
           policy,
           agent: deps.agent,
-          releases: deps.releases
+          releases: deps.releases,
+          agentOverrides: deps.agentOverrides
         });
         if (decision.autoExecute && await deps.dispatch(proposal.action)) {
           await deps.markApproved(proposalId);

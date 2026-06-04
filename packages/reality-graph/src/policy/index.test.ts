@@ -67,3 +67,27 @@ describe('orgPolicyToAutoExecPolicy', () => {
     expect(policy.auto_execution.thresholds.WRITE_OFF).toBeUndefined()
   })
 })
+
+describe('agent_overrides (Phase E3)', () => {
+  it('starts empty when override is missing', () => {
+    expect(mergeOrgPolicy({}).auto_execution.agent_overrides).toEqual({})
+  })
+
+  it('accepts in-range floats per agent', () => {
+    const merged = mergeOrgPolicy({
+      auto_execution: { agent_overrides: { restock_advisor: 0.85, waste_triage: 0.95 } },
+    })
+    expect(merged.auto_execution.agent_overrides.restock_advisor).toBe(0.85)
+    expect(merged.auto_execution.agent_overrides.waste_triage).toBe(0.95)
+  })
+
+  it('drops out-of-range + non-numeric override values', () => {
+    const merged = mergeOrgPolicy({
+      auto_execution: { agent_overrides: { good: 0.5, too_high: 1.5, too_low: -0.1, wrong_type: 'string' } },
+    })
+    expect(merged.auto_execution.agent_overrides.good).toBe(0.5)
+    expect(merged.auto_execution.agent_overrides.too_high).toBeUndefined()
+    expect(merged.auto_execution.agent_overrides.too_low).toBeUndefined()
+    expect(merged.auto_execution.agent_overrides.wrong_type).toBeUndefined()
+  })
+})
