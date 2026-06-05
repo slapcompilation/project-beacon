@@ -222,6 +222,55 @@ export function useRecentEvalRuns(objectiveName: string, limit = 25) {
   })
 }
 
+/** Latest model_eval_runs row for (objective, version), or null if none.
+ *  Powers the PromoteDialog auto-fill + production submit gate (G2). */
+export function useLatestEvalRun(objectiveName: string, adapterVersion: string) {
+  return useQuery({
+    queryKey: ['agent-studio', 'latest-eval-run', objectiveName, adapterVersion] as const,
+    queryFn:  async (): Promise<EvalRunRow | null> => {
+      const { data, error } = await supabase
+        .from('model_eval_runs')
+        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at')
+        .eq('objective_name',  objectiveName)
+        .eq('adapter_version', adapterVersion)
+        .order('run_at', { ascending: false })
+        .limit(1)
+        .overrideTypes<EvalRunRow[], { merge: false }>()
+      if (error) throw new Error(error.message)
+      return data[0] ?? null
+    },
+    enabled:   objectiveName.length > 0 && adapterVersion.length > 0,
+    staleTime: 30_000,
+  })
+}
+
+/** Distinct adapter_versions seen for an objective, newest run first.
+ *  Powers the diff-view version pickers. */
+export function useEvalRunVersions(objectiveName: string) {
+  return useQuery({
+    queryKey: ['agent-studio', 'eval-versions', objectiveName] as const,
+    queryFn:  async (): Promise<string[]> => {
+      const { data, error } = await supabase
+        .from('model_eval_runs')
+        .select('adapter_version, run_at')
+        .eq('objective_name', objectiveName)
+        .order('run_at', { ascending: false })
+        .limit(200)
+      if (error) throw new Error(error.message)
+      const seen = new Set<string>()
+      const out: string[] = []
+      for (const row of data as { adapter_version: string }[]) {
+        if (seen.has(row.adapter_version)) continue
+        seen.add(row.adapter_version)
+        out.push(row.adapter_version)
+      }
+      return out
+    },
+    enabled:   objectiveName.length > 0,
+    staleTime: 60_000,
+  })
+}
+
 /** Last N proposals for one agent. */
 export function useRecentProposalsForAgent(agentName: string, limit = 10) {
   const hotelId = useActiveHotelId()

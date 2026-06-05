@@ -21,6 +21,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { PromoteAgentDialog } from '@/features/agentStudio/PromoteAgentDialog'
 import { ReleaseTimeline } from '@/features/agentStudio/ReleaseTimeline'
 import { EvalRunStrip } from '@/features/agentStudio/EvalRunStrip'
+import { EvalDiffView } from '@/features/agentStudio/EvalDiffView'
 import type { BlockDef } from '@beacon/reality-graph'
 
 export default function AgentDetailPage() {
@@ -256,9 +257,13 @@ function RecentRunsSection({ agentName, rows }: { agentName: string; rows: Retur
 function EvalSection({ agent, agentName }: { agent: AgentDescriptor; agentName: string }) {
   return (
     <Section title="Evaluation" icon="confirm" subtitle="Live eval pass-rate history from model_eval_runs (CI-recorded)">
-      <div className="space-y-2">
+      <div className="space-y-3">
         <div className="text-[11px] text-muted-foreground font-mono">{agent.evalFile}</div>
         <EvalRunStrip objectiveName={agentName} />
+        <div>
+          <h3 className="text-xs font-semibold mb-1.5">Compare versions</h3>
+          <EvalDiffView objectiveName={agentName} />
+        </div>
       </div>
     </Section>
   )
