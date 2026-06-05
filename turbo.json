@@ -17,7 +17,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "env": ["EVAL_PERSIST_URL", "EVAL_PERSIST_TOKEN", "GITHUB_SHA", "GIT_COMMIT"]
     }
   }
 }
