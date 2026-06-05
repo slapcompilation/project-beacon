@@ -54,7 +54,7 @@ interface ReporterTask {
  */
 export function evalAutoPersistReporter(): {
   onInit: () => void
-  onFinished: (files?: ReporterTask[]) => void
+  onFinished: (files?: ReporterTask[]) => Promise<void>
 } {
   const url    = process.env.EVAL_PERSIST_URL
   const token  = process.env.EVAL_PERSIST_TOKEN
@@ -71,7 +71,7 @@ export function evalAutoPersistReporter(): {
       }
     },
 
-    onFinished(files = []) {
+    async onFinished(files = []) {
       if (!enabled) return
 
       const records: EvalRunRecord[] = []
@@ -98,27 +98,29 @@ export function evalAutoPersistReporter(): {
 
       if (records.length === 0) return
 
-      // Fire-and-forget POST. We deliberately don't await — the runner exits
-      // after this hook and we don't want CI hangs if the endpoint is slow.
-      void fetch(url, {
-        method:  'POST',
-        headers: {
-          'Content-Type':   'application/json',
-          'X-Eval-Token':   token,
-        },
-        body: JSON.stringify({ records }),
-      }).then((res) => {
+      // Vitest awaits onFinished, so the POST has to complete before the
+      // runner exits. Capped at 10s so a slow endpoint can't hang CI.
+      const timeoutMs = 10_000
+      try {
+        const res = await Promise.race<{ ok: boolean; status: number }>([
+          fetch(url, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Eval-Token': token },
+            body:    JSON.stringify({ records }),
+          }),
+          new Promise((resolve) => setTimeout(() => resolve({ ok: false, status: 0 }), timeoutMs)),
+        ])
         if (!res.ok) {
           // eslint-disable-next-line no-console
-          console.warn(`[eval-persist] POST returned ${String(res.status)}`)
+          console.warn(`[eval-persist] POST returned ${String(res.status)} (timeout or HTTP error)`)
         } else {
           // eslint-disable-next-line no-console
           console.log(`[eval-persist] uploaded ${String(records.length)} run(s)`)
         }
-      }).catch((err: unknown) => {
+      } catch (err: unknown) {
         // eslint-disable-next-line no-console
         console.warn('[eval-persist] POST failed:', err)
-      })
+      }
     },
   }
 }
