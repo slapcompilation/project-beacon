@@ -36,13 +36,17 @@ interface FileTally {
   passed: number
 }
 
-/** Loose Vitest task shape — the public Reporter type changes between
- *  versions; we structural-type on just the fields we read. */
-interface ReporterTask {
-  type:      string
-  filepath?: string
-  result?:   { state?: string }
-  tasks?:    ReporterTask[]
+/** Loose Vitest 4 TestModule shape — we structural-type on just the fields
+ *  we read so the reporter stays decoupled from Vitest's full reporter typings. */
+interface ReporterTestCase {
+  result: () => { state: 'passed' | 'failed' | 'skipped' | 'pending' }
+}
+interface ReporterTestCollection {
+  allTests: () => Iterable<ReporterTestCase>
+}
+interface ReporterTestModule {
+  moduleId: string
+  children: ReporterTestCollection
 }
 
 /**
@@ -55,7 +59,7 @@ interface ReporterTask {
  */
 export function evalAutoPersistReporter(): {
   onInit: () => void
-  onFinished: (files?: ReporterTask[]) => Promise<void>
+  onTestRunEnd: (testModules: ReadonlyArray<ReporterTestModule>) => Promise<void>
 } {
   const url    = process.env.EVAL_PERSIST_URL
   const token  = process.env.EVAL_PERSIST_TOKEN
@@ -72,35 +76,48 @@ export function evalAutoPersistReporter(): {
       }
     },
 
-    async onFinished(files = []) {
+    async onTestRunEnd(testModules) {
       if (!enabled) return
 
       const records: EvalRunRecord[] = []
-      for (const file of files) {
-        const filepath = file.filepath
-        if (!filepath || !filepath.endsWith('.eval.ts')) continue
-        const tally: FileTally = { total: 0, passed: 0 }
-        countTests(file, tally)
-        if (tally.total === 0) continue
+      try {
+        for (const mod of testModules) {
+          const filepath = mod.moduleId
+          if (!filepath.endsWith('.eval.ts')) continue
+          const tally: FileTally = { total: 0, passed: 0 }
+          for (const tc of mod.children.allTests()) {
+            tally.total += 1
+            if (tc.result().state === 'passed') tally.passed += 1
+          }
+          if (tally.total === 0) continue
 
-        const meta = inferEvalMeta(filepath)
-        records.push({
-          objective_name:  meta.objectiveName,
-          adapter_name:    meta.adapterName,
-          adapter_version: meta.adapterVersion,
-          dataset:         meta.dataset,
-          metric:          'pass_rate',
-          value:           Number((tally.passed / tally.total).toFixed(4)),
-          case_count:      tally.total,
-          subset:          'overall',
-          commit_sha:      sha,
-        })
+          const meta = inferEvalMeta(filepath)
+          records.push({
+            objective_name:  meta.objectiveName,
+            adapter_name:    meta.adapterName,
+            adapter_version: meta.adapterVersion,
+            dataset:         meta.dataset,
+            metric:          'pass_rate',
+            value:           Number((tally.passed / tally.total).toFixed(4)),
+            case_count:      tally.total,
+            subset:          'overall',
+            commit_sha:      sha,
+          })
+        }
+      } catch (err: unknown) {
+        // eslint-disable-next-line no-console
+        console.warn('[eval-persist] error walking modules:', err)
+        return
       }
 
-      if (records.length === 0) return
+      if (records.length === 0) {
+        // eslint-disable-next-line no-console
+        console.log('[eval-persist] no *.eval.ts files in this run — nothing to upload')
+        return
+      }
 
-      // Vitest awaits onFinished, so the POST has to complete before the
-      // runner exits. Capped at 10s so a slow endpoint can't hang CI.
+      // Vitest 4 awaits onTestRunEnd. Cap the POST at 10s so a slow endpoint
+      // can't hang CI.
       const timeoutMs = 10_000
       try {
         const res = await Promise.race<{ ok: boolean; status: number }>([
@@ -123,17 +140,6 @@ export function evalAutoPersistReporter(): {
         console.warn('[eval-persist] POST failed:', err)
       }
     },
-  }
-}
-
-function countTests(node: ReporterTask, tally: FileTally): void {
-  if (node.type === 'test') {
-    tally.total += 1
-    if (node.result?.state === 'pass') tally.passed += 1
-    return
-  }
-  if (node.tasks && Array.isArray(node.tasks)) {
-    for (const child of node.tasks) countTests(child, tally)
   }
 }
 
