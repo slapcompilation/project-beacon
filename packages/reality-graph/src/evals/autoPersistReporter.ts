@@ -16,6 +16,7 @@ declare const fetch: (url: string, init?: {
   headers?: Record<string, string>
   body?:    string
 }) => Promise<{ ok: boolean; status: number }>
+declare const setTimeout: (cb: () => void, ms: number) => unknown
 
 export interface EvalRunRecord {
   objective_name:  string
