@@ -27,4 +27,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Eval persistence: when both secrets are set, the Vitest
+      # autoPersistReporter posts one row per *.eval.ts to model_eval_runs
+      # via the eval-record edge fn. Missing either var = silent no-op
+      # (the suite still passes), so this is safe pre-secret-setup too.
       - run: pnpm turbo lint type-check test
+        env:
+          EVAL_PERSIST_URL:   ${{ secrets.EVAL_PERSIST_URL }}
+          EVAL_PERSIST_TOKEN: ${{ secrets.EVAL_PERSIST_TOKEN }}
