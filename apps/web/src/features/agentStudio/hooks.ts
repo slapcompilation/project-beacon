@@ -148,6 +148,80 @@ export function highestStageFor(releases: CurrentAgentRelease[], agentName: stri
   return rows.slice().sort((a, b) => order[b.stage] - order[a.stage])[0]
 }
 
+// ── Release history (Phase G1) ───────────────────────────────────────────────
+
+export interface AgentReleaseHistoryRow {
+  id:                  string
+  organization_id:     string | null
+  agent_name:          string
+  version:             string
+  stage:               AgentReleaseStage
+  tag:                 string | null
+  eval_pass_rate:      number | null
+  eval_case_count:     number | null
+  notes:               string | null
+  released_by_user_id: string | null
+  released_at:         string
+  superseded_at:       string | null
+  is_current:          boolean
+}
+
+/** Full chronological release timeline for one agent (oldest → newest).
+ *  Backed by get_agent_release_history(). Migration 153 made promote_agent
+ *  insert-only, so older rows accumulate with superseded_at set. */
+export function useAgentReleaseHistory(agentName: string) {
+  return useQuery({
+    queryKey: ['agent-studio', 'release-history', agentName] as const,
+    queryFn:  async (): Promise<AgentReleaseHistoryRow[]> => {
+      const result = await supabase.rpc('get_agent_release_history', { p_agent_name: agentName }) as unknown as {
+        data: AgentReleaseHistoryRow[] | null
+        error: { message: string } | null
+      }
+      if (result.error) throw new Error(result.error.message)
+      return result.data ?? []
+    },
+    enabled:   agentName.length > 0,
+    staleTime: 60_000,
+  })
+}
+
+// ── Eval runs (Phase G1) ─────────────────────────────────────────────────────
+
+export interface EvalRunRow {
+  id:               string
+  objective_name:   string
+  adapter_name:     string
+  adapter_version:  string
+  dataset:          string
+  metric:           string
+  value:            number
+  case_count:       number
+  subset:           string
+  run_at:           string
+}
+
+/** Recent rows from model_eval_runs for one objective (the agent's name when
+ *  the suite is co-located with an agent). The autoPersistReporter posts here
+ *  from CI; missing data shows up as an empty state. */
+export function useRecentEvalRuns(objectiveName: string, limit = 25) {
+  return useQuery({
+    queryKey: ['agent-studio', 'eval-runs', objectiveName, limit] as const,
+    queryFn:  async (): Promise<EvalRunRow[]> => {
+      const { data, error } = await supabase
+        .from('model_eval_runs')
+        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at')
+        .eq('objective_name', objectiveName)
+        .order('run_at', { ascending: false })
+        .limit(limit)
+        .overrideTypes<EvalRunRow[], { merge: false }>()
+      if (error) throw new Error(error.message)
+      return data
+    },
+    enabled:   objectiveName.length > 0,
+    staleTime: 60_000,
+  })
+}
+
 /** Last N proposals for one agent. */
 export function useRecentProposalsForAgent(agentName: string, limit = 10) {
   const hotelId = useActiveHotelId()
