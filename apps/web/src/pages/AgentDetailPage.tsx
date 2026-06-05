@@ -19,6 +19,8 @@ import {
 import { useRecentProposalsForAgent, useCurrentAgentReleases, highestStageFor, type CurrentAgentRelease, type AgentReleaseStage } from '@/features/agentStudio/hooks'
 import { useAuthStore } from '@/stores/auth.store'
 import { PromoteAgentDialog } from '@/features/agentStudio/PromoteAgentDialog'
+import { ReleaseTimeline } from '@/features/agentStudio/ReleaseTimeline'
+import { EvalRunStrip } from '@/features/agentStudio/EvalRunStrip'
 import type { BlockDef } from '@beacon/reality-graph'
 
 export default function AgentDetailPage() {
@@ -68,11 +70,12 @@ export default function AgentDetailPage() {
       )}
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <ReleaseTimelineSection agentName={agentName} />
+        <EvalSection agent={agent} agentName={agentName} />
         <BlocksSection agent={agent} />
         <ToolsetSection agent={agent} />
         <TaskPromptSection prompt={agent.taskPrompt} />
         <RecentRunsSection agentName={agentName} rows={recent} />
-        <EvalSection agent={agent} />
       </div>
     </div>
   )
@@ -250,23 +253,28 @@ function RecentRunsSection({ agentName, rows }: { agentName: string; rows: Retur
   )
 }
 
-function EvalSection({ agent }: { agent: AgentDescriptor }) {
+function EvalSection({ agent, agentName }: { agent: AgentDescriptor; agentName: string }) {
   return (
-    <Section title="Evaluation" icon="confirm" subtitle="Vitest case file colocated with the agent">
-      <Card className="text-xs space-y-2">
-        <div className="font-mono text-[11px] text-muted-foreground">{agent.evalFile}</div>
-        <div className="text-muted-foreground">
-          Run locally with <code className="bg-surface-2 px-1 py-0.5 rounded">pnpm --filter @beacon/reality-graph test</code>.
-          The promotion gate (block <span className="font-mono">production</span> stage on red eval) lands with the Modeling Objectives Studio.
-        </div>
-      </Card>
+    <Section title="Evaluation" icon="confirm" subtitle="Live eval pass-rate history from model_eval_runs (CI-recorded)">
+      <div className="space-y-2">
+        <div className="text-[11px] text-muted-foreground font-mono">{agent.evalFile}</div>
+        <EvalRunStrip objectiveName={agentName} />
+      </div>
+    </Section>
+  )
+}
+
+function ReleaseTimelineSection({ agentName }: { agentName: string }) {
+  return (
+    <Section title="Release timeline" icon="flag" subtitle="Every promotion event, oldest superseded last">
+      <ReleaseTimeline agentName={agentName} />
     </Section>
   )
 }
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'function' | 'manual' | 'history' | 'confirm'; subtitle: string; children: React.ReactNode }) {
+function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'function' | 'manual' | 'history' | 'confirm' | 'flag'; subtitle: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
