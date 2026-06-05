@@ -15,6 +15,10 @@ export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
     thresholds: Partial<Record<BeaconAction['type'], number>>
+    /** Per-agent floor that supersedes the action-type threshold when the
+     *  proposal came from this agent. Lets the operator tighten or loosen
+     *  one agent without touching the rest. 0..1. */
+    agent_overrides: Record<string, number>
   }
   promotion: {
     /** Minimum eval pass rate required to promote an agent to production, 0..1. */
@@ -44,7 +48,8 @@ export interface OrgPolicy {
 
 export const DEFAULT_ORG_POLICY: OrgPolicy = {
   auto_execution: {
-    thresholds: { REQUEST_RESTOCK: 0.9 },
+    thresholds:      { REQUEST_RESTOCK: 0.9 },
+    agent_overrides: {},
   },
   promotion: {
     production_pass_rate_floor: 0.7,
@@ -73,7 +78,10 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
   const o = override as Record<string, unknown>
 
   const merged: OrgPolicy = {
-    auto_execution: { thresholds: { ...DEFAULT_ORG_POLICY.auto_execution.thresholds } },
+    auto_execution: {
+      thresholds:      { ...DEFAULT_ORG_POLICY.auto_execution.thresholds },
+      agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides },
+    },
     promotion:            { ...DEFAULT_ORG_POLICY.promotion },
     overstock:            { ...DEFAULT_ORG_POLICY.overstock },
     par:                  { ...DEFAULT_ORG_POLICY.par },
@@ -88,6 +96,14 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       for (const [k, v] of Object.entries(thresholds)) {
         if (typeof v === 'number' && v >= 0 && v <= 1) {
           merged.auto_execution.thresholds[k as BeaconAction['type']] = v
+        }
+      }
+    }
+    if (isObj(ae.agent_overrides)) {
+      const overrides = ae.agent_overrides as Record<string, unknown>
+      for (const [k, v] of Object.entries(overrides)) {
+        if (typeof v === 'number' && v >= 0 && v <= 1) {
+          merged.auto_execution.agent_overrides[k] = v
         }
       }
     }

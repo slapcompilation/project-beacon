@@ -224,17 +224,27 @@ export function decideAutoExecution(args: {
   policy: AutoExecutionPolicy
   agent?: AgentReleaseContext
   releases?: ActiveAgentReleases
+  /** Phase E3 — per-agent floor overrides. When the proposing agent's name
+   *  appears here, this value supersedes the per-action-type threshold (it
+   *  does not bypass the action-type eligibility check). */
+  agentOverrides?: Record<string, number>
 }): AutoExecutionDecision {
-  const threshold = args.policy.thresholds[args.action.type]
-  if (threshold == null) {
+  const typeThreshold = args.policy.thresholds[args.action.type]
+  if (typeThreshold == null) {
     return { autoExecute: false, reason: `${args.action.type} is not eligible for auto-execution` }
   }
+  const agentOverride = args.agent != null ? args.agentOverrides?.[args.agent.agentName] : undefined
+  const threshold = agentOverride ?? typeThreshold
+
   const hard = args.violations.filter((v) => v.severity === 'hard')
   if (hard.length > 0) {
     return { autoExecute: false, reason: `blocked by ${String(hard.length)} hard constraint(s)` }
   }
   if (args.confidence < threshold) {
-    return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${threshold.toFixed(2)} floor` }
+    const why = agentOverride != null
+      ? `agent floor ${threshold.toFixed(2)} (override)`
+      : `floor ${threshold.toFixed(2)}`
+    return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${why}` }
   }
   // Release gate: enforced only when the caller supplied BOTH the proposing
   // agent and the release set. Lets older callers / tests opt out cleanly.

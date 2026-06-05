@@ -75,6 +75,7 @@ export function useRestockCycle() {
       const orgPolicy = policyData?.merged
       const autoExecPolicy = orgPolicy ? orgPolicyToAutoExecPolicy(orgPolicy) : undefined
       const maxVariants    = orgPolicy?.caps.max_variants_per_cycle
+      const agentOverrides = orgPolicy?.auto_execution.agent_overrides
 
       const result = await runIntelligenceCycle({
         variants,
@@ -82,6 +83,7 @@ export function useRestockCycle() {
         agent:    { agentName: meta.name, agentVersion: meta.version },
         releases: { production: productionReleases },
         policy:   autoExecPolicy,
+        agentOverrides,
         maxVariants,
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })

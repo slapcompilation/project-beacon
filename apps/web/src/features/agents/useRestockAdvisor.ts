@@ -133,6 +133,7 @@ export function useRestockAdvisor() {
             policy: autoExecPolicy,
             agent: { agentName: agent.name, agentVersion: agent.version },
             releases: { production: productionReleases },
+            agentOverrides: policyData?.merged.auto_execution.agent_overrides,
           })
           if (!decision.autoExecute) continue
 

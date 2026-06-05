@@ -62,6 +62,10 @@ export interface IntelligenceCycleDeps {
   /** Releases visible in scope (typically from get_current_agent_releases()).
    *  Enables the release gate when set together with `agent`. */
   releases?: ActiveAgentReleases
+  /** Phase E3 — per-agent confidence floor overrides. Threaded into the
+   *  auto-execution gate; supersedes the per-action-type threshold when the
+   *  proposing agent's name appears here. */
+  agentOverrides?: Record<string, number>
   /** Cap per cycle so a large catalogue can't trigger a request storm. */
   maxVariants?: number
   /** Injected for deterministic constraint evaluation + timestamps in tests. */
@@ -101,6 +105,7 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           policy,
           agent: deps.agent,
           releases: deps.releases,
+          agentOverrides: deps.agentOverrides,
         })
 
         if (decision.autoExecute && (await deps.dispatch(proposal.action))) {

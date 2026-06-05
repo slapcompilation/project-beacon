@@ -104,4 +104,46 @@ describe('decideAutoExecution', () => {
       expect(d.reason).toContain('below')
     })
   })
+
+  describe('per-agent overrides (Phase E3)', () => {
+    const agent = { agentName: 'restock_advisor', agentVersion: '1.0.0' }
+
+    it('agent override tightens the floor for that agent only', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.91, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, agentOverrides: { restock_advisor: 0.95 },
+      })
+      // 0.91 clears the 0.9 type floor but not the 0.95 agent override.
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('agent floor 0.95')
+    })
+
+    it('agent override loosens the floor below the type threshold', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.82, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, agentOverrides: { restock_advisor: 0.8 },
+      })
+      // 0.82 would fail the 0.9 type floor but the 0.8 override lets it through.
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('agent override does not bypass action-type eligibility', () => {
+      const d = decideAutoExecution({
+        action: transfer, confidence: 0.99, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, agentOverrides: { restock_advisor: 0.5 },
+      })
+      // TRANSFER_STOCK still not in thresholds → ineligible regardless of override.
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('not eligible')
+    })
+
+    it('an override for a different agent does not affect this run', () => {
+      const d = decideAutoExecution({
+        action: restock, confidence: 0.91, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        agent, agentOverrides: { waste_triage: 0.95 },
+      })
+      // Override applies only to waste_triage; restock_advisor uses type floor 0.9.
+      expect(d.autoExecute).toBe(true)
+    })
+  })
 })

@@ -16,6 +16,13 @@ const KNOWN_ACTION_TYPES: ReadonlyArray<{ type: string; label: string; hint: str
   { type: 'ADJUST_STOCK',    label: 'ADJUST_STOCK',    hint: 'Manual quantity correction. Off by default.' },
 ]
 
+const KNOWN_AGENTS: ReadonlyArray<{ name: string; hint: string }> = [
+  { name: 'restock_advisor',       hint: 'Per-hotel restock proposer. Overrides the REQUEST_RESTOCK floor for this agent.' },
+  { name: 'waste_triage',          hint: 'Tags variants for write-off. Tighten to require very high confidence.' },
+  { name: 'overstock_rebalancer',  hint: 'Per-hotel lateral move proposer.' },
+  { name: 'org_overstock_balancer', hint: 'Org-level overstock sweep. Always queued in V1; override applies once auto-exec lands.' },
+]
+
 export function PolicyTab() {
   const { data, isLoading, isError } = useOrgPolicy()
   const setPolicy = useSetOrgPolicy()
@@ -72,9 +79,9 @@ export function PolicyTab() {
           </div>
         </header>
 
-        <Callout intent={Intent.NONE} icon="info-sign" title="Phase E1 — values save but aren't honoured yet">
-          Phase E2 plumbs <code>decideAutoExecution</code>, the org sweep, <code>promote_agent</code> and the
-          reliability/par engines to read from here. Until then, saved values are stored but the system uses code defaults.
+        <Callout intent={Intent.SUCCESS} icon="endorsed" title="Live — saved values govern the autonomous loop">
+          The operator-triggered cycle, per-variant advisor, org overstock sweep, promotion gate and reliability
+          windows all read from this document. Edge cron picks changes up after redeploy.
         </Callout>
 
         {/* ── Auto-execution thresholds ─────────────────────────────────────── */}
@@ -106,9 +113,47 @@ export function PolicyTab() {
                         Object.entries(draft.auto_execution.thresholds).filter(([key]) => key !== k),
                       ) as typeof draft.auto_execution.thresholds
                       if (valid) next[k] = n
-                      setDraft({ ...draft, auto_execution: { thresholds: next } })
+                      setDraft({ ...draft, auto_execution: { ...draft.auto_execution, thresholds: next } })
                     }}
                     placeholder="off"
+                    className="w-24"
+                  />
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+
+        {/* ── Per-agent floor overrides ─────────────────────────────────────── */}
+        <Card compact>
+          <SectionHeader icon="user" title="Per-agent floor overrides" subtitle="Override the per-action-type floor for one specific agent. Leave blank to inherit the action-type floor." />
+          <div className="space-y-3">
+            {KNOWN_AGENTS.map((a) => {
+              const overrides = draft.auto_execution.agent_overrides
+              const current = a.name in overrides ? overrides[a.name] : undefined
+              return (
+                <div key={a.name} className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Tag minimal className="font-mono !text-[10px]">{a.name}</Tag>
+                      {current != null
+                        ? <Tag minimal intent={Intent.PRIMARY}>floor {current.toFixed(2)}</Tag>
+                        : <Tag minimal>inherits</Tag>}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-1">{a.hint}</p>
+                  </div>
+                  <NumericInput
+                    min={0} max={1} stepSize={0.05} minorStepSize={0.01}
+                    value={current ?? ''}
+                    onValueChange={(n) => {
+                      const valid = Number.isFinite(n) && n >= 0 && n <= 1
+                      const next = Object.fromEntries(
+                        Object.entries(draft.auto_execution.agent_overrides).filter(([k]) => k !== a.name),
+                      ) as Record<string, number>
+                      if (valid) next[a.name] = n
+                      setDraft({ ...draft, auto_execution: { ...draft.auto_execution, agent_overrides: next } })
+                    }}
+                    placeholder="inherit"
                     className="w-24"
                   />
                 </div>
@@ -201,7 +246,7 @@ export function PolicyTab() {
   )
 }
 
-function SectionHeader({ icon, title, subtitle }: { icon: 'flag' | 'confirm' | 'time' | 'filter'; title: string; subtitle: string }) {
+function SectionHeader({ icon, title, subtitle }: { icon: 'flag' | 'confirm' | 'time' | 'filter' | 'user'; title: string; subtitle: string }) {
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">

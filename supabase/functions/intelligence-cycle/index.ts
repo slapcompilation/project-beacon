@@ -92,6 +92,7 @@ Deno.serve(async (req: Request) => {
   const policy = mergeOrgPolicy(policyRow?.policy)
   const autoExecPolicy = orgPolicyToAutoExecPolicy(policy)
   const maxVariants    = policy.caps.max_variants_per_cycle
+  const agentOverrides = policy.auto_execution.agent_overrides
 
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
@@ -99,7 +100,7 @@ Deno.serve(async (req: Request) => {
 
   for (const hotel of (hotels ?? []) as HotelRow[]) {
     try {
-      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases, autoExecPolicy, maxVariants)
+      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases, autoExecPolicy, maxVariants, agentOverrides)
       totalAuto += result.autoExecuted
       totalQueued += result.queued
       perHotel.push({ hotelId: hotel.id, scanned: result.scanned, autoExecuted: result.autoExecuted, queued: result.queued })
@@ -129,6 +130,7 @@ async function runHotelCycle(
   productionReleases: ReadonlyArray<{ agentName: string; version: string }>,
   autoExecPolicy: { thresholds: Record<string, number> },
   maxVariants: number,
+  agentOverrides: Record<string, number>,
 ) {
   // At-risk = enabled, has a reorder point, at/below it.
   const { data: variantRows, error: scanErr } = await supabase
@@ -170,6 +172,7 @@ async function runHotelCycle(
     constraints,
     maxVariants,
     policy:   autoExecPolicy,
+    agentOverrides,
     agent:    { agentName: agentMeta.name, agentVersion: agentMeta.version },
     releases: { production: productionReleases },
     runAgent: async (variant: { id: string; name: string }) => {
