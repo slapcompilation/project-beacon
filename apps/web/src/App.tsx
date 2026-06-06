@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { BlueprintProvider, FocusStyleManager, Spinner, SpinnerSize, Intent } from '@blueprintjs/core'
 import { Toaster } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
@@ -64,8 +64,8 @@ const CaseObjectPage              = lazy(() => import('@/pages/CaseObjectPage'))
 const DocumentsPage               = lazy(() => import('@/pages/DocumentsPage'))
 const DocumentObjectPage          = lazy(() => import('@/pages/DocumentObjectPage'))
 const EntityLinkSuggestionsPage   = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
-const ScenariosPage               = lazy(() => import('@/pages/ScenariosPage'))
-const ScenarioObjectPage          = lazy(() => import('@/pages/ScenarioObjectPage'))
+const ActionChainsPage            = lazy(() => import('@/pages/ActionChainsPage'))
+const ActionChainObjectPage       = lazy(() => import('@/pages/ActionChainObjectPage'))
 const CopilotConfigPage           = lazy(() => import('@/pages/CopilotConfigPage'))
 
 function PageLoader() {
@@ -83,6 +83,12 @@ function RootRedirect() {
     role === 'team_member'    ? '/floor' :
     '/briefing'
   return <Navigate to={home} replace />
+}
+
+// H1 — legacy /scenarios/:scenarioId → /action-chains/:chainId redirect.
+function ScenarioRedirect() {
+  const { scenarioId = '' } = useParams<{ scenarioId: string }>()
+  return <Navigate to={`/action-chains/${scenarioId}`} replace />
 }
 
 function AppRoutes() {
@@ -132,8 +138,11 @@ function AppRoutes() {
             <Route path="/documents"                            element={<DocumentsPage />} />
             <Route path="/documents/:documentId"                element={<DocumentObjectPage />} />
             <Route path="/entity-link-suggestions"              element={<EntityLinkSuggestionsPage />} />
-            <Route path="/scenarios"                            element={<ScenariosPage />} />
-            <Route path="/scenarios/:scenarioId"                element={<ScenarioObjectPage />} />
+            <Route path="/action-chains"                        element={<ActionChainsPage />} />
+            <Route path="/action-chains/:chainId"               element={<ActionChainObjectPage />} />
+            {/* Legacy redirects (H1 rename) — keep for one release. */}
+            <Route path="/scenarios"                            element={<Navigate to="/action-chains" replace />} />
+            <Route path="/scenarios/:scenarioId"                element={<ScenarioRedirect />} />
             <Route path="/copilot-config"                       element={<CopilotConfigPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />

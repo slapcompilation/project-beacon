@@ -41,7 +41,11 @@ const ROUTE_SELECTIONS: ReadonlyArray<{ kind: string; re: RegExp; idGroup?: numb
   { kind: 'constraint',      re: /^\/constraints\/([^/?#]+)/ },
   { kind: 'case',            re: /^\/cases\/([^/?#]+)/ },
   { kind: 'document',        re: /^\/documents\/([^/?#]+)/ },
-  { kind: 'scenario',        re: /^\/scenarios\/([^/?#]+)/ },
+  // H1: action chains. Legacy /scenarios/<id> still resolves so old bookmarks
+  // keep working until the redirect is removed (the new Scenarios kind for
+  // graph-overlay sandboxes lands in H2/H3 under a separate kind).
+  { kind: 'action_chain',    re: /^\/action-chains\/([^/?#]+)/ },
+  { kind: 'action_chain',    re: /^\/scenarios\/([^/?#]+)/ },
   { kind: 'objective',       re: /^\/modeling-objectives\/([^/?#]+)/ },
   { kind: 'agent',           re: /^\/agents\/([^/?#]+)/ },
   // Phase F1 — Canvas: the briefing page IS the selection. No entity id; the

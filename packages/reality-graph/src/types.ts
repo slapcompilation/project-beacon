@@ -29,8 +29,8 @@ export type NodeType =
   | 'constraint'
   // Network — lateral inter-property moves
   | 'stock_transfer'
-  // Exploratory sandbox branches (Phase 18.a)
-  | 'scenario'
+  // Multi-step BeaconAction sequences batched into one commit (Phase 18.a, renamed H1)
+  | 'action_chain'
   // Supplier delivery telemetry (powers reliability scoring)
   | 'delivery_event'
   // Hotel taxonomy + reference data

@@ -29,7 +29,7 @@ const ModelingObjectivesPage    = lazy(() => import('@/pages/ModelingObjectivesP
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
-const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
+const ActionChainsPage          = lazy(() => import('@/pages/ActionChainsPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 
@@ -38,7 +38,7 @@ export type AipTab =
   | 'queue' | 'approvals' | 'cases'
   | 'agents' | 'system-map'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
-  | 'tools' | 'objectives' | 'scenarios' | 'copilot' | 'policy'
+  | 'tools' | 'objectives' | 'action-chains' | 'copilot' | 'policy'
   | 'operations'
 
 // Rail organized by the AIP decision loop, not by artifact type.
@@ -59,7 +59,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
 
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            group: 'Shape' },
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             group: 'Shape' },
-  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            group: 'Shape' },
+  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                group: 'Shape' },
   { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                group: 'Shape' },
   { id: 'policy',       label: 'Policy',            icon: 'cog',                 group: 'Shape' },
 
@@ -175,7 +175,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsIniti
     case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
     case 'objectives':   return <ModelingObjectivesPage />
-    case 'scenarios':    return <ScenariosPage />
+    case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />
     case 'policy':       return <PolicyTab />
     case 'operations':   return <OperationsPanel initialPanel={operationsInitialPanel} />

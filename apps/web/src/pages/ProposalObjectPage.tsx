@@ -25,7 +25,7 @@ import {
   useCasesForProposal,
   useCreateCase,
 } from '@/features/cases/hooks'
-import { useCreateScenario } from '@/features/scenarios/hooks'
+import { useCreateActionChain } from '@/features/actionChains/hooks'
 
 export default function ProposalObjectPage() {
   const { proposalId = '' } = useParams<{ proposalId: string }>()
@@ -257,29 +257,29 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s)
 }
 
-// ─── Try-in-scenario button ─────────────────────────────────────────────────
+// ─── Try-in-chain button ────────────────────────────────────────────────────
 
 function TryInScenarioButton({ proposalId, action, agentName }: { proposalId: string; action: BeaconAction; agentName: string }) {
   const navigate = useNavigate()
-  const create   = useCreateScenario()
+  const create   = useCreateActionChain()
   return (
     <Button
       variant="minimal"
-      icon="lab-test"
+      icon="link"
       loading={create.isPending}
       onClick={() => {
         create.mutate(
           {
-            title:           `What-if · ${action.type} · ${agentName}`,
-            description:     `Forked from proposal ${proposalId}. Use this sandbox to tweak the action payload + try variations without committing.`,
+            title:           `Chain · ${action.type} · ${agentName}`,
+            description:     `Forked from proposal ${proposalId}. Tweak the action payload + add follow-up steps before committing the chain.`,
             baseProposalId:  proposalId,
             simulatedActions: [action],
           },
-          { onSuccess: (sc) => { void navigate(`/scenarios/${sc.id}`) } },
+          { onSuccess: (sc) => { void navigate(`/action-chains/${sc.id}`) } },
         )
       }}
     >
-      Try in scenario
+      Try in chain
     </Button>
   )
 }

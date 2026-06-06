@@ -36,9 +36,9 @@ export interface ActionFormModalProps {
   /** Triggered after a successful dispatch. */
   onSuccess?: (result: unknown) => void
   /** When provided, the modal captures the built BeaconAction instead of
-   *  dispatching it. Used by Scenarios for sandbox-safe action building —
-   *  the operator's form input becomes a row in simulated_actions; nothing
-   *  hits the Action Registry until the scenario commits. */
+   *  dispatching it. Used by Action Chains for draft-safe step building —
+   *  the operator's form input becomes a step in simulated_actions; nothing
+   *  hits the Action Registry until the chain commits. */
   onCapture?: (action: BeaconAction) => void
   /** Custom modal title; defaults to descriptor.title. */
   titleOverride?: string
@@ -80,8 +80,8 @@ export function ActionFormModal({
       return
     }
 
-    // Capture mode (sandbox): emit the typed action; never touch the
-    // dispatcher. Used by Scenarios.
+    // Capture mode (draft): emit the typed action; never touch the
+    // dispatcher. Used by Action Chains.
     if (onCapture) {
       try {
         onCapture(action)

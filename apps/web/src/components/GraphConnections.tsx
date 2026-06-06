@@ -103,7 +103,7 @@ const NODE_LABELS: Record<NodeType, string> = {
   case:              'Case',
   constraint:        'Constraint',
   stock_transfer:    'Transfer',
-  scenario:          'Scenario',
+  action_chain:      'Action Chain',
   delivery_event:    'Delivery',
   location:          'Location',
   category:          'Category',
