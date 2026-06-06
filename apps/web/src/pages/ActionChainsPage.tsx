@@ -1,5 +1,7 @@
-// Scenarios index. Exploratory branches the operator hasn't committed to
-// real state yet. Default filter: draft (the only ones still actionable).
+// Action Chains index. Multi-step BeaconAction sequences batched into a
+// single commit. Default filter: draft (the only ones still actionable).
+// Renamed from "Scenarios" in H1 — the namespace is now reserved for the
+// AIP-shaped graph-overlay sandbox.
 
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -8,10 +10,10 @@ import {
   SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
-import { useCreateScenario, useScenarios } from '@/features/scenarios/hooks'
-import type { ScenarioRow, ScenarioStatus } from '@/features/scenarios/api'
+import { useActionChains, useCreateActionChain } from '@/features/actionChains/hooks'
+import type { ActionChainRow, ActionChainStatus } from '@/features/actionChains/api'
 
-type Filter = 'all' | ScenarioStatus
+type Filter = 'all' | ActionChainStatus
 
 const FILTER_LABELS: Record<Filter, string> = {
   all:        'All',
@@ -20,10 +22,10 @@ const FILTER_LABELS: Record<Filter, string> = {
   discarded:  'Discarded',
 }
 
-export default function ScenariosPage() {
+export default function ActionChainsPage() {
   const [filter, setFilter] = useState<Filter>('draft')
-  const { data: rows = [], isLoading, isError, refetch, isFetching } = useScenarios(filter === 'all' ? null : filter)
-  const create = useCreateScenario()
+  const { data: rows = [], isLoading, isError, refetch, isFetching } = useActionChains(filter === 'all' ? null : filter)
+  const create = useCreateActionChain()
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
@@ -32,7 +34,7 @@ export default function ScenariosPage() {
     return (
       <NonIdealState
         icon="warning-sign"
-        title="Failed to load scenarios"
+        title="Failed to load action chains"
         action={<Button intent={Intent.PRIMARY} icon="refresh" onClick={() => { void refetch() }}>Retry</Button>}
       />
     )
@@ -43,11 +45,11 @@ export default function ScenariosPage() {
       <header className="flex items-center justify-between px-6 py-4 border-b shrink-0">
         <div>
           <h1 className="text-sm font-semibold flex items-center gap-2">
-            Scenarios
+            Action Chains
             {rows.length > 0 && <Tag minimal>{String(rows.length)}</Tag>}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Exploratory branches: try BeaconActions in a sandbox, see the delta vs. the base state, commit when you're sure or discard.
+            Multi-step BeaconAction sequences batched into one commit. Build a chain in draft, then dispatch every step or discard the lot.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -57,11 +59,11 @@ export default function ScenariosPage() {
             icon="add"
             loading={create.isPending}
             onClick={() => {
-              const title = `Untitled scenario — ${new Date().toLocaleString()}`
+              const title = `Untitled chain — ${new Date().toLocaleString()}`
               create.mutate({ title })
             }}
           >
-            New scenario
+            New action chain
           </Button>
         </div>
       </header>
@@ -80,29 +82,29 @@ export default function ScenariosPage() {
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {rows.length === 0 ? (
           <NonIdealState
-            icon={<Icon icon="lab-test" size={32} className="text-muted-foreground/40" />}
-            title="No scenarios here"
+            icon={<Icon icon="link" size={32} className="text-muted-foreground/40" />}
+            title="No action chains here"
             description={filter === 'all'
-              ? 'Open one above, or click "Try in scenario" on any proposal.'
-              : `No ${FILTER_LABELS[filter].toLowerCase()} scenarios.`}
+              ? 'Open one above, or click "Try in chain" on any proposal.'
+              : `No ${FILTER_LABELS[filter].toLowerCase()} chains.`}
           />
         ) : (
-          rows.map((row) => <ScenarioRowCard key={row.id} row={row} />)
+          rows.map((row) => <ActionChainRowCard key={row.id} row={row} />)
         )}
       </div>
     </div>
   )
 }
 
-function ScenarioRowCard({ row }: { row: ScenarioRow }) {
+function ActionChainRowCard({ row }: { row: ActionChainRow }) {
   return (
-    <Link to={`/scenarios/${row.id}`}>
+    <Link to={`/action-chains/${row.id}`}>
       <Card interactive className="flex items-start gap-3 hover:bg-surface-2">
-        <Tag minimal intent={statusIntent(row.status)} icon="lab-test">{row.status}</Tag>
+        <Tag minimal intent={statusIntent(row.status)} icon="link">{row.status}</Tag>
         <div className="flex-1 min-w-0">
           <div className="text-sm font-semibold truncate">{row.title}</div>
           <div className="text-[11px] text-muted-foreground mt-0.5">
-            {row.simulated_actions.length} action{row.simulated_actions.length === 1 ? '' : 's'}
+            {row.simulated_actions.length} step{row.simulated_actions.length === 1 ? '' : 's'}
             {row.base_proposal_id && ' · forked from proposal'}
             {' · opened '}{formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
             {row.committed_at && ` · committed ${formatDistanceToNow(new Date(row.committed_at), { addSuffix: true })}`}
@@ -113,7 +115,7 @@ function ScenarioRowCard({ row }: { row: ScenarioRow }) {
   )
 }
 
-function statusIntent(status: ScenarioStatus): Intent {
+function statusIntent(status: ActionChainStatus): Intent {
   switch (status) {
     case 'draft':     return Intent.WARNING
     case 'committed': return Intent.SUCCESS

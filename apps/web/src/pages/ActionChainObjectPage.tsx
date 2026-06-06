@@ -1,4 +1,4 @@
-// Scenario Object View — list of simulated actions + add/remove + commit/discard.
+// Action Chain Object View — list of steps + add/remove + commit/discard.
 // Uniform anatomy: header → metric strip → action bar → body sections → audit rail.
 
 import { useState } from 'react'
@@ -12,13 +12,13 @@ import { actionDescriptors, type BeaconAction } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import {
-  useAppendSimulatedAction,
-  useCommitScenario,
-  useDiscardScenario,
-  useRemoveSimulatedAction,
-  useScenario,
-  useUpdateScenarioNotes,
-} from '@/features/scenarios/hooks'
+  useActionChain,
+  useAppendActionChainStep,
+  useCommitActionChain,
+  useDiscardActionChain,
+  useRemoveActionChainStep,
+  useUpdateActionChainNotes,
+} from '@/features/actionChains/hooks'
 import { AuditRail } from '@/components/AuditRail'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 
@@ -27,18 +27,18 @@ const PICKABLE_ACTIONS = Object.keys(actionDescriptors).map((type) => ({
   title: actionDescriptors[type as BeaconAction['type']].title,
 }))
 
-export default function ScenarioObjectPage() {
-  const { scenarioId = '' } = useParams<{ scenarioId: string }>()
+export default function ActionChainObjectPage() {
+  const { chainId = '' } = useParams<{ chainId: string }>()
   const navigate    = useNavigate()
   const hotelId     = useActiveHotelId()
   const userId      = useAuthStore((s) => s.userId)
-  const { data: row, isLoading } = useScenario(scenarioId)
+  const { data: row, isLoading } = useActionChain(chainId)
 
-  const append     = useAppendSimulatedAction()
-  const remove     = useRemoveSimulatedAction()
-  const commit     = useCommitScenario()
-  const discard    = useDiscardScenario()
-  const updateNotes = useUpdateScenarioNotes()
+  const append     = useAppendActionChainStep()
+  const remove     = useRemoveActionChainStep()
+  const commit     = useCommitActionChain()
+  const discard    = useDiscardActionChain()
+  const updateNotes = useUpdateActionChainNotes()
 
   const [actionType, setActionType] = useState<BeaconAction['type']>(PICKABLE_ACTIONS[0]?.type ?? 'REQUEST_RESTOCK')
   const [addOpen, setAddOpen]       = useState(false)
@@ -52,7 +52,7 @@ export default function ScenarioObjectPage() {
       <NonIdealState
         icon="search-template"
         title="Scenario not found"
-        action={<Button onClick={() => { void navigate('/scenarios') }}>Back to Scenarios</Button>}
+        action={<Button onClick={() => { void navigate('/action-chains') }}>Back to Action Chains</Button>}
       />
     )
   }
@@ -66,9 +66,9 @@ export default function ScenarioObjectPage() {
       {/* Header */}
       <header className="px-6 py-4 border-b shrink-0">
         <div className="flex items-center gap-2 flex-wrap mb-1">
-          <Link to="/scenarios" className="text-xs text-muted-foreground hover:text-foreground">Scenarios</Link>
+          <Link to="/action-chains" className="text-xs text-muted-foreground hover:text-foreground">Action Chains</Link>
           <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
-          <Icon icon="lab-test" size={14} className="text-violet-500" />
+          <Icon icon="link" size={14} className="text-violet-500" />
           <h1 className="text-sm font-semibold">{row.title}</h1>
           <Tag minimal intent={statusIntent(row.status)}>{row.status}</Tag>
           {isFork && <Tag minimal icon="git-branch">forked</Tag>}
@@ -78,10 +78,10 @@ export default function ScenarioObjectPage() {
 
       {/* Metric strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-        <Metric label="Status"  value={row.status} />
-        <Metric label="Actions" value={String(row.simulated_actions.length)} />
-        <Metric label="Source"  value={isFork ? 'forked' : 'clean slate'} />
-        <Metric label="Age"     value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
+        <Metric label="Status" value={row.status} />
+        <Metric label="Steps"  value={String(row.simulated_actions.length)} />
+        <Metric label="Source" value={isFork ? 'forked' : 'clean slate'} />
+        <Metric label="Age"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
       </div>
 
       {/* Action bar */}
@@ -137,14 +137,14 @@ export default function ScenarioObjectPage() {
             Forked from{' '}
             <Link to={`/proposals/${row.base_proposal_id}`} className="font-mono underline">
               proposal {row.base_proposal_id.slice(0, 8)}
-            </Link>. Commit dispatches every simulated action below as if the operator had run them by hand; the base proposal stays unchanged.
+            </Link>. Commit dispatches every step below as if the operator had run them by hand; the base proposal stays unchanged.
           </Callout>
         )}
 
-        <Section title="Simulated actions" icon="cog" subtitle={isDraft ? 'Sandbox — nothing is dispatched until you click Commit.' : 'Snapshot at commit time.'}>
+        <Section title="Steps" icon="cog" subtitle={isDraft ? 'Draft — nothing is dispatched until you click Commit.' : 'Snapshot at commit time.'}>
           {row.simulated_actions.length === 0 ? (
             <Card className="text-xs italic text-muted-foreground">
-              No actions in the sandbox yet. Pick an action type above and click Try {actionType} to add one.
+              No steps yet. Pick an action type above and click Try {actionType} to add one.
             </Card>
           ) : (
             <div className="space-y-1.5">
@@ -175,7 +175,7 @@ export default function ScenarioObjectPage() {
                         icon="cross"
                         intent={Intent.DANGER}
                         disabled={remove.isPending}
-                        onClick={() => { remove.mutate({ scenarioId: row.id, index: idx }) }}
+                        onClick={() => { remove.mutate({ chainId: row.id, index: idx }) }}
                       />
                     )}
                   </Card>
@@ -214,24 +214,24 @@ export default function ScenarioObjectPage() {
           </Card>
         </Section>
        </div>
-       <AuditRail nodeType="scenario" nodeId={row.id} />
+       <AuditRail nodeType="action_chain" nodeId={row.id} />
       </div>
 
-      {/* Add-action modal: ActionFormModal in capture mode. The same
-          renderer the Review Queue + copilot proposal cards use, except
-          onCapture (instead of dispatchContext) routes the built action
-          into simulated_actions without touching the Action Registry. */}
+      {/* Add-step modal: ActionFormModal in capture mode. The same renderer
+          the Review Queue + copilot proposal cards use, except onCapture
+          (instead of dispatchContext) routes the built action into the chain
+          without touching the Action Registry. */}
       {isDraft && hotelId && userId && (
         <ActionFormModal
           open={addOpen}
           onClose={() => { setAddOpen(false) }}
           actionType={actionType}
           context={{ hotelId, userId, requestorId: userId, fromHotelId: hotelId }}
-          titleOverride={`Add to scenario · ${actionDescriptors[actionType].title}`}
-          submitLabelOverride="Add to scenario"
+          titleOverride={`Add to chain · ${actionDescriptors[actionType].title}`}
+          submitLabelOverride="Add to chain"
           onCapture={(action) => {
             append.mutate(
-              { scenarioId: row.id, action },
+              { chainId: row.id, action },
               { onSuccess: () => { setAddOpen(false) } },
             )
           }}
