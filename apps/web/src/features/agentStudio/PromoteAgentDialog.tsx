@@ -1,12 +1,17 @@
 // Admin-only modal for promoting (or demoting) an agent to a target stage.
-// The DB enforces auth_role IN ('admin','owner') and eval_pass_rate >= 0.7 for
-// production promotions; this form mirrors those rules client-side so the
+// G2: the eval pass rate + case count auto-fill from the latest model_eval_runs
+// row for the requested (objective, version). Production submit is blocked when
+// no row exists — the operator has to land a CI run first.
+//
+// The DB still enforces auth_role IN ('admin','owner') and the policy-driven
+// production_pass_rate_floor; this form mirrors those rules client-side so the
 // affordance is honest before the round-trip.
 
-import { useState } from 'react'
-import { Button, Dialog, DialogBody, DialogFooter, FormGroup, HTMLSelect, InputGroup, Intent, NumericInput, TextArea } from '@blueprintjs/core'
+import { useEffect, useState } from 'react'
+import { Button, Callout, Dialog, DialogBody, DialogFooter, FormGroup, HTMLSelect, InputGroup, Intent, NumericInput, Tag, TextArea } from '@blueprintjs/core'
+import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
-import { usePromoteAgent, type AgentReleaseStage, type CurrentAgentRelease } from './hooks'
+import { usePromoteAgent, useLatestEvalRun, type AgentReleaseStage, type CurrentAgentRelease } from './hooks'
 
 interface PromoteAgentDialogProps {
   open:           boolean
@@ -24,13 +29,32 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
   const [version, setVersion]             = useState<string>(currentVersion)
   const [evalPassRate, setEvalPassRate]   = useState<number | null>(null)
   const [evalCaseCount, setEvalCaseCount] = useState<number | null>(null)
+  const [overrideEvals, setOverrideEvals] = useState<boolean>(false)
   const [notes, setNotes]                 = useState<string>('')
   const promote = usePromoteAgent()
 
+  const latestRun = useLatestEvalRun(agentName, version.trim())
+
+  // Auto-fill pass rate + case count from the latest persisted run. Operator
+  // can flip overrideEvals to type their own numbers (e.g. for a sandbox
+  // promotion of a version that hasn't run CI yet).
+  useEffect(() => {
+    if (overrideEvals) return
+    if (latestRun.data) {
+      setEvalPassRate(latestRun.data.value)
+      setEvalCaseCount(latestRun.data.case_count)
+    } else {
+      setEvalPassRate(null)
+      setEvalCaseCount(null)
+    }
+  }, [latestRun.data, overrideEvals])
+
   const productionRequiresPass =
     targetStage === 'production' && (evalPassRate == null || evalPassRate < PRODUCTION_MIN_PASS)
+  const productionRequiresRun =
+    targetStage === 'production' && !overrideEvals && !latestRun.isLoading && latestRun.data == null
 
-  const disabled = promote.isPending || version.trim().length === 0 || productionRequiresPass
+  const disabled = promote.isPending || version.trim().length === 0 || productionRequiresPass || productionRequiresRun
 
   function submit() {
     promote.mutate(
@@ -75,6 +99,25 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
           />
         </FormGroup>
 
+        <FormGroup label="Eval suite (from model_eval_runs)">
+          <LatestRunBanner
+            objectiveName={agentName}
+            version={version.trim()}
+            isLoading={latestRun.isLoading}
+            run={latestRun.data ?? null}
+            overrideEvals={overrideEvals}
+            onToggleOverride={() => { setOverrideEvals(!overrideEvals) }}
+          />
+        </FormGroup>
+
+        {productionRequiresRun && (
+          <Callout intent={Intent.WARNING} icon="warning-sign" title="No eval run recorded for this version">
+            Production promotion is blocked until a CI run posts a result for <code>@ {version.trim() || '?'}</code>.
+            Land any PR to record one, or toggle <em>Override</em> above to type the numbers manually (audit-only — the
+            server still enforces the floor against what you type).
+          </Callout>
+        )}
+
         <FormGroup
           label={`Eval pass rate (0–1)${targetStage === 'production' ? ' — required, ≥ 0.7' : ' — optional'}`}
           labelFor="promote-pass-rate"
@@ -82,11 +125,14 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
           helperText={
             productionRequiresPass
               ? `Production needs ≥ ${String(PRODUCTION_MIN_PASS)} (server enforces this).`
-              : 'Snapshot of the eval suite at the moment of release.'
+              : overrideEvals
+                ? 'Override mode: typing supersedes the auto-filled value from model_eval_runs.'
+                : 'Auto-filled from the latest model_eval_runs row for this version.'
           }
         >
           <NumericInput
             id="promote-pass-rate"
+            disabled={!overrideEvals && latestRun.data != null}
             min={0}
             max={1}
             stepSize={0.05}
@@ -97,9 +143,10 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
           />
         </FormGroup>
 
-        <FormGroup label="Eval case count (optional)" labelFor="promote-case-count">
+        <FormGroup label="Eval case count" labelFor="promote-case-count">
           <NumericInput
             id="promote-case-count"
+            disabled={!overrideEvals && latestRun.data != null}
             min={0}
             value={evalCaseCount ?? ''}
             onValueChange={(n) => { setEvalCaseCount(Number.isFinite(n) ? Math.round(n) : null) }}
@@ -128,5 +175,48 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
         }
       />
     </Dialog>
+  )
+}
+
+function LatestRunBanner({
+  objectiveName, version, isLoading, run, overrideEvals, onToggleOverride,
+}: {
+  objectiveName: string
+  version:       string
+  isLoading:     boolean
+  run:           import('./hooks').EvalRunRow | null
+  overrideEvals: boolean
+  onToggleOverride: () => void
+}) {
+  return (
+    <div className="flex items-center gap-2 flex-wrap text-xs">
+      {isLoading
+        ? <Tag minimal>looking up @ {version || '?'}</Tag>
+        : run != null
+          ? <>
+              <Tag minimal intent={Intent.SUCCESS} icon="confirm">
+                {Math.round(run.value * 100)}% pass
+              </Tag>
+              <span className="text-muted-foreground">{run.case_count} cases</span>
+              <span className="text-muted-foreground">·</span>
+              <span className="text-muted-foreground">
+                {formatDistanceToNow(new Date(run.run_at), { addSuffix: true })}
+              </span>
+            </>
+          : <Tag minimal intent={Intent.WARNING} icon="warning-sign">no run for @ {version || '?'}</Tag>}
+      <Button
+        size="small" variant="minimal"
+        intent={overrideEvals ? Intent.PRIMARY : Intent.NONE}
+        icon={overrideEvals ? 'tick-circle' : 'edit'}
+        onClick={onToggleOverride}
+        className="ml-auto"
+      >
+        {overrideEvals ? 'Using override' : 'Override'}
+      </Button>
+      <span className="basis-full text-[11px] text-muted-foreground">
+        Auto-filled from <code>model_eval_runs</code> for{' '}
+        <code>{objectiveName}</code> @ <code>{version || '—'}</code>.
+      </span>
+    </div>
   )
 }
