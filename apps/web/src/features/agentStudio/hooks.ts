@@ -271,6 +271,36 @@ export function useEvalRunVersions(objectiveName: string) {
   })
 }
 
+// ── Per-case eval results (Phase G3) ─────────────────────────────────────────
+
+export interface EvalCaseRow {
+  case_id:       string
+  case_label:    string
+  state:         'passed' | 'failed' | 'skipped' | 'pending'
+  duration_ms:   number | null
+  error_message: string | null
+  recorded_at:   string
+}
+
+/** Per-case results for the most recent run of (objective, version). Backed
+ *  by get_eval_case_runs(). Returns [] when the version has never been run
+ *  or pre-G3 (no per-case rows yet). */
+export function useEvalCaseRuns(objectiveName: string, adapterVersion: string) {
+  return useQuery({
+    queryKey: ['agent-studio', 'eval-case-runs', objectiveName, adapterVersion] as const,
+    queryFn:  async (): Promise<EvalCaseRow[]> => {
+      const result = await supabase.rpc('get_eval_case_runs', {
+        p_objective_name:  objectiveName,
+        p_adapter_version: adapterVersion,
+      }) as unknown as { data: EvalCaseRow[] | null; error: { message: string } | null }
+      if (result.error) throw new Error(result.error.message)
+      return result.data ?? []
+    },
+    enabled:   objectiveName.length > 0 && adapterVersion.length > 0,
+    staleTime: 30_000,
+  })
+}
+
 /** Last N proposals for one agent. */
 export function useRecentProposalsForAgent(agentName: string, limit = 10) {
   const hotelId = useActiveHotelId()

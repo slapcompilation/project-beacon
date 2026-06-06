@@ -18,6 +18,14 @@ declare const fetch: (url: string, init?: {
 }) => Promise<{ ok: boolean; status: number }>
 declare const setTimeout: (cb: () => void, ms: number) => unknown
 
+export interface EvalCaseRecord {
+  case_id:        string
+  case_label:     string
+  state:          'passed' | 'failed' | 'skipped' | 'pending'
+  duration_ms?:   number
+  error_message?: string
+}
+
 export interface EvalRunRecord {
   objective_name:  string
   adapter_name:    string
@@ -29,6 +37,9 @@ export interface EvalRunRecord {
   subset:          string
   /** git sha of the commit under test; populated from env when available. */
   commit_sha?:     string
+  /** Phase G3 — per-case rows for this run; written to agent_eval_case_runs
+   *  by the edge fn after the parent aggregate is inserted. */
+  cases?:          EvalCaseRecord[]
 }
 
 interface FileTally {
@@ -39,7 +50,13 @@ interface FileTally {
 /** Loose Vitest 4 TestModule shape — we structural-type on just the fields
  *  we read so the reporter stays decoupled from Vitest's full reporter typings. */
 interface ReporterTestCase {
-  result: () => { state: 'passed' | 'failed' | 'skipped' | 'pending' }
+  name:     string
+  fullName: string
+  result: () => {
+    state:     'passed' | 'failed' | 'skipped' | 'pending'
+    duration?: number
+    errors?:   ReadonlyArray<{ message?: string }>
+  }
 }
 interface ReporterTestCollection {
   allTests: () => Iterable<ReporterTestCase>
@@ -85,9 +102,20 @@ export function evalAutoPersistReporter(): {
           const filepath = mod.moduleId
           if (!filepath.endsWith('.eval.ts')) continue
           const tally: FileTally = { total: 0, passed: 0 }
+          const cases: EvalCaseRecord[] = []
           for (const tc of mod.children.allTests()) {
+            const r = tc.result()
             tally.total += 1
-            if (tc.result().state === 'passed') tally.passed += 1
+            if (r.state === 'passed') tally.passed += 1
+            cases.push({
+              case_id:       tc.fullName,
+              case_label:    tc.name,
+              state:         r.state,
+              duration_ms:   typeof r.duration === 'number' ? Math.round(r.duration) : undefined,
+              error_message: r.state === 'failed' && r.errors && r.errors.length > 0
+                ? (r.errors[0].message ?? 'failed').slice(0, 500)
+                : undefined,
+            })
           }
           if (tally.total === 0) continue
 
@@ -102,6 +130,7 @@ export function evalAutoPersistReporter(): {
             case_count:      tally.total,
             subset:          'overall',
             commit_sha:      sha,
+            cases,
           })
         }
       } catch (err: unknown) {

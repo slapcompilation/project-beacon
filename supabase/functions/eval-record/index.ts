@@ -33,6 +33,15 @@ interface EvalRunRecord {
   case_count:       number
   subset?:          string
   commit_sha?:      string
+  /** Phase G3 — per-case rows for this run. The handler inserts the
+   *  aggregate first, then attaches these via the returned id. */
+  cases?: Array<{
+    case_id:        string
+    case_label:     string
+    state:          'passed' | 'failed' | 'skipped' | 'pending'
+    duration_ms?:   number
+    error_message?: string
+  }>
 }
 
 interface RecordRequest {
@@ -78,13 +87,46 @@ Deno.serve(async (req: Request) => {
       triggered_by_user_id:  null,
     }))
 
-    const { error: insertError, count } = await supabase
+    // Insert the aggregate rows first; capture ids so we can attach per-case
+    // rows to the correct parent run.
+    const { data: inserted, error: insertError } = await supabase
       .from('model_eval_runs')
-      .insert(rows, { count: 'exact' })
+      .insert(rows)
+      .select('id')
 
     if (insertError) return json({ error: insertError.message }, 502)
+    const insertedIds = (inserted ?? []) as Array<{ id: string }>
 
-    return json({ inserted: count ?? rows.length })
+    // Phase G3 — flatten cases[] onto the inserted run ids in the same order.
+    const caseRows: Array<Record<string, unknown>> = []
+    for (let i = 0; i < body.records.length; i++) {
+      const r  = body.records[i]
+      const id = insertedIds[i]?.id
+      if (!id || !r.cases || r.cases.length === 0) continue
+      for (const c of r.cases) {
+        caseRows.push({
+          eval_run_id:     id,
+          objective_name:  r.objective_name,
+          adapter_version: r.adapter_version,
+          case_id:         c.case_id,
+          case_label:      c.case_label,
+          state:           c.state,
+          duration_ms:     c.duration_ms ?? null,
+          error_message:   c.error_message ?? null,
+        })
+      }
+    }
+
+    let caseCount = 0
+    if (caseRows.length > 0) {
+      const { error: caseErr, count } = await supabase
+        .from('agent_eval_case_runs')
+        .insert(caseRows, { count: 'exact' })
+      if (caseErr) return json({ error: `case insert failed: ${caseErr.message}` }, 502)
+      caseCount = count ?? caseRows.length
+    }
+
+    return json({ inserted: insertedIds.length, cases: caseCount })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error'
     return json({ error: message }, 500)
