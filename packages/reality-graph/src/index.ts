@@ -298,3 +298,40 @@ export type {
   CycleItem,
   CycleResult,
 } from './cycles/intelligenceCycle'
+
+// ── Scenarios — graph-overlay sandbox + non-persistent runner (H2) ──────────
+export {
+  mergePolicyOverlay,
+  mergeConstraintOverlay,
+  applyVariantOverlay,
+} from './scenarios/index'
+export type {
+  ScenarioGraphOverlay,
+  ScenarioSimulationCache,
+} from './scenarios/index'
+export {
+  simulateCycleWithOverlay,
+  diffSimulations,
+} from './scenarios/simulate'
+export type { SimulationDeps } from './scenarios/simulate'
+export type {
+  ScenarioGateway,
+  ScenarioRow,
+  ScenarioSimulationResult,
+} from './scenarios/gateway'
+
+export {
+  makeApplyOverlayEditTool,
+  type ApplyOverlayEditInput,
+  type ApplyOverlayEditOutput,
+} from './tools/scenarios/apply_overlay_edit'
+export {
+  makeSimulateCycleWithOverlayTool,
+  type SimulateCycleWithOverlayInput,
+  type SimulateCycleWithOverlayOutput,
+} from './tools/scenarios/simulate_cycle_with_overlay'
+export {
+  makeQuerySimulationResultTool,
+  type QuerySimulationResultInput,
+  type QuerySimulationResultOutput,
+} from './tools/scenarios/query_simulation_result'

@@ -16142,7 +16142,7 @@ function buildRestockAdvisorAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema16 = external_exports.object({
+      const inputSchema19 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16151,7 +16151,7 @@ function buildRestockAdvisorAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema16.parse(rawInput);
+      const input = inputSchema19.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME,
         agentVersion: AGENT_VERSION,
@@ -16494,7 +16494,7 @@ function buildWasteTriageAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema16 = external_exports.object({
+      const inputSchema19 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16503,7 +16503,7 @@ function buildWasteTriageAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema16.parse(rawInput);
+      const input = inputSchema19.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME2,
         agentVersion: AGENT_VERSION2,
@@ -16746,7 +16746,7 @@ function buildOverstockRebalancerAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema16 = external_exports.object({
+      const inputSchema19 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16755,7 +16755,7 @@ function buildOverstockRebalancerAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema16.parse(rawInput);
+      const input = inputSchema19.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME3,
         agentVersion: AGENT_VERSION3,
@@ -17008,57 +17008,60 @@ function evalAutoPersistReporter() {
         console.log("[eval-persist] disabled (EVAL_PERSIST_URL / EVAL_PERSIST_TOKEN not set)");
       }
     },
-    onFinished(files = []) {
+    async onTestRunEnd(testModules) {
       if (!enabled) return;
       const records = [];
-      for (const file2 of files) {
-        const filepath = file2.filepath;
-        if (!filepath || !filepath.endsWith(".eval.ts")) continue;
-        const tally = { total: 0, passed: 0 };
-        countTests(file2, tally);
-        if (tally.total === 0) continue;
-        const meta3 = inferEvalMeta(filepath);
-        records.push({
-          objective_name: meta3.objectiveName,
-          adapter_name: meta3.adapterName,
-          adapter_version: meta3.adapterVersion,
-          dataset: meta3.dataset,
-          metric: "pass_rate",
-          value: Number((tally.passed / tally.total).toFixed(4)),
-          case_count: tally.total,
-          subset: "overall",
-          commit_sha: sha
-        });
+      try {
+        for (const mod of testModules) {
+          const filepath = mod.moduleId;
+          if (!filepath.endsWith(".eval.ts")) continue;
+          const tally = { total: 0, passed: 0 };
+          for (const tc of mod.children.allTests()) {
+            tally.total += 1;
+            if (tc.result().state === "passed") tally.passed += 1;
+          }
+          if (tally.total === 0) continue;
+          const meta3 = inferEvalMeta(filepath);
+          records.push({
+            objective_name: meta3.objectiveName,
+            adapter_name: meta3.adapterName,
+            adapter_version: meta3.adapterVersion,
+            dataset: meta3.dataset,
+            metric: "pass_rate",
+            value: Number((tally.passed / tally.total).toFixed(4)),
+            case_count: tally.total,
+            subset: "overall",
+            commit_sha: sha
+          });
+        }
+      } catch (err2) {
+        console.warn("[eval-persist] error walking modules:", err2);
+        return;
       }
-      if (records.length === 0) return;
-      void fetch(url2, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Eval-Token": token
-        },
-        body: JSON.stringify({ records })
-      }).then((res) => {
+      if (records.length === 0) {
+        console.log("[eval-persist] no *.eval.ts files in this run \u2014 nothing to upload");
+        return;
+      }
+      const timeoutMs = 1e4;
+      try {
+        const res = await Promise.race([
+          fetch(url2, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Eval-Token": token },
+            body: JSON.stringify({ records })
+          }),
+          new Promise((resolve) => setTimeout(() => resolve({ ok: false, status: 0 }), timeoutMs))
+        ]);
         if (!res.ok) {
-          console.warn(`[eval-persist] POST returned ${String(res.status)}`);
+          console.warn(`[eval-persist] POST returned ${String(res.status)} (timeout or HTTP error)`);
         } else {
           console.log(`[eval-persist] uploaded ${String(records.length)} run(s)`);
         }
-      }).catch((err2) => {
+      } catch (err2) {
         console.warn("[eval-persist] POST failed:", err2);
-      });
+      }
     }
   };
-}
-function countTests(node, tally) {
-  if (node.type === "test") {
-    tally.total += 1;
-    if (node.result?.state === "pass") tally.passed += 1;
-    return;
-  }
-  if (node.tasks && Array.isArray(node.tasks)) {
-    for (const child of node.tasks) countTests(child, tally);
-  }
 }
 function inferEvalMeta(filepath) {
   const normalized = filepath.replace(/\\/g, "/");
@@ -17323,6 +17326,339 @@ async function runIntelligenceCycle(deps) {
     items
   };
 }
+
+// packages/reality-graph/src/scenarios/index.ts
+function mergePolicyOverlay(base, overlay) {
+  if (!overlay) return base;
+  return {
+    auto_execution: {
+      thresholds: {
+        ...base.auto_execution.thresholds,
+        ...overlay.auto_execution?.thresholds ?? {}
+      },
+      agent_overrides: mergeNumericMap(
+        base.auto_execution.agent_overrides,
+        overlay.auto_execution?.agent_overrides
+      )
+    },
+    promotion: {
+      production_pass_rate_floor: overlay.promotion?.production_pass_rate_floor ?? base.promotion.production_pass_rate_floor
+    },
+    overstock: {
+      factor: overlay.overstock?.factor ?? base.overstock.factor
+    },
+    par: {
+      service_level: overlay.par?.service_level ?? base.par.service_level,
+      window_days: overlay.par?.window_days ?? base.par.window_days
+    },
+    supplier_reliability: {
+      window_days: overlay.supplier_reliability?.window_days ?? base.supplier_reliability.window_days
+    },
+    caps: {
+      max_variants_per_cycle: overlay.caps?.max_variants_per_cycle ?? base.caps.max_variants_per_cycle,
+      max_proposals_per_sweep: overlay.caps?.max_proposals_per_sweep ?? base.caps.max_proposals_per_sweep
+    }
+  };
+}
+function mergeConstraintOverlay(base, overlay) {
+  if (!overlay) return base.slice();
+  const disabled = new Set(overlay.disabled ?? []);
+  const kept = base.filter((c) => !disabled.has(c.id));
+  return [...kept, ...overlay.added ?? []];
+}
+function applyVariantOverlay(v, overlay) {
+  if (!overlay) return v;
+  const ov = overlay[v.id];
+  if (!ov) return v;
+  return {
+    ...v,
+    current_stock: ov.current_stock ?? v.current_stock,
+    par_level: ov.par_level ?? v.par_level
+  };
+}
+function mergeNumericMap(base, overlay) {
+  const out = { ...base };
+  if (overlay) {
+    for (const [k, v] of Object.entries(overlay)) {
+      if (typeof v === "number") out[k] = v;
+    }
+  }
+  return out;
+}
+
+// packages/reality-graph/src/scenarios/simulate.ts
+async function simulateCycleWithOverlay(deps) {
+  let counter = 0;
+  return runIntelligenceCycle({
+    variants: deps.variants,
+    runAgent: deps.runAgent,
+    constraints: deps.constraints,
+    policy: deps.policy,
+    agentOverrides: deps.agentOverrides,
+    agent: deps.agent,
+    releases: deps.releases,
+    maxVariants: deps.maxVariants,
+    now: deps.now,
+    persistProposal: () => Promise.resolve(`sim:${String(counter++)}`),
+    dispatch: (_action) => Promise.resolve(true),
+    markApproved: () => Promise.resolve()
+  });
+}
+function diffSimulations(baseline, overlay) {
+  const baselineByVariant = /* @__PURE__ */ new Map();
+  for (const item of baseline.items) baselineByVariant.set(item.variantId, item.outcome);
+  const flips = [];
+  for (const item of overlay.items) {
+    const baseOutcome = baselineByVariant.get(item.variantId);
+    if (baseOutcome != null && baseOutcome !== item.outcome) {
+      flips.push({
+        variantId: item.variantId,
+        variantName: item.variantName,
+        baseline: baseOutcome,
+        overlay: item.outcome
+      });
+    }
+  }
+  return {
+    autoExecutedDelta: overlay.autoExecuted - baseline.autoExecuted,
+    queuedDelta: overlay.queued - baseline.queued,
+    flips
+  };
+}
+
+// packages/reality-graph/src/tools/scenarios/apply_overlay_edit.ts
+var inputSchema16 = external_exports.object({
+  scenarioId: external_exports.string().uuid(),
+  /** JSON path into graph_overlay, e.g.
+   *  ['policy','auto_execution','thresholds','REQUEST_RESTOCK']. */
+  path: external_exports.array(external_exports.string()).min(1),
+  /** New value at the path. Pass null to remove the key entirely. */
+  value: external_exports.unknown(),
+  /** Where this edit came from. The LLM passes 'llm'; the UI passes 'operator'. */
+  source: external_exports.enum(["llm", "operator"]).default("llm")
+});
+var outputSchema16 = external_exports.object({
+  scenarioId: external_exports.string().uuid(),
+  appliedPath: external_exports.array(external_exports.string()),
+  /** Echoes the new overlay so the next tool call can reason about it. */
+  graphOverlay: external_exports.unknown(),
+  updatedAt: external_exports.string()
+});
+function makeApplyOverlayEditTool(gateway) {
+  return {
+    name: "apply_overlay_edit",
+    category: "mutation",
+    kind: "inproc",
+    version: "1.0.0",
+    description: "Edit a single value inside a scenario's graph_overlay. The path is a list of keys into the typed overlay (variants / policy / constraints / actions). Passing value=null removes the key. Writes are atomic \u2014 the DB simultaneously updates graph_overlay AND records a provenance row in scenario_overlay_edits. Use to apply hypothetical changes the operator wants to explore in the sandbox.",
+    inputSchema: inputSchema16,
+    outputSchema: outputSchema16,
+    examples: [
+      {
+        input: {
+          scenarioId: "00000000-0000-0000-0000-000000000000",
+          path: ["policy", "auto_execution", "thresholds", "REQUEST_RESTOCK"],
+          value: 0.95,
+          source: "llm"
+        },
+        output: {
+          scenarioId: "00000000-0000-0000-0000-000000000000",
+          appliedPath: ["policy", "auto_execution", "thresholds", "REQUEST_RESTOCK"],
+          graphOverlay: { policy: { auto_execution: { thresholds: { REQUEST_RESTOCK: 0.95 } } } },
+          updatedAt: "2026-06-06T12:00:00Z"
+        }
+      }
+    ],
+    invoke: async (input) => {
+      const row = await gateway.applyOverlayEdit({
+        scenarioId: input.scenarioId,
+        path: input.path,
+        value: input.value === null ? void 0 : input.value,
+        source: input.source
+      });
+      return {
+        scenarioId: row.id,
+        appliedPath: input.path,
+        graphOverlay: row.graph_overlay,
+        updatedAt: row.updated_at
+      };
+    }
+  };
+}
+
+// packages/reality-graph/src/tools/scenarios/simulate_cycle_with_overlay.ts
+var inputSchema17 = external_exports.object({
+  scenarioId: external_exports.string().uuid()
+});
+var itemSchema = external_exports.object({
+  variantId: external_exports.string(),
+  variantName: external_exports.string(),
+  outcome: external_exports.string(),
+  actionType: external_exports.string().optional(),
+  reason: external_exports.string().optional()
+});
+var outputSchema17 = external_exports.object({
+  scenarioId: external_exports.string().uuid(),
+  scanned: external_exports.number().int().nonnegative(),
+  proposed: external_exports.number().int().nonnegative(),
+  autoExecuted: external_exports.number().int().nonnegative(),
+  queued: external_exports.number().int().nonnegative(),
+  ranAt: external_exports.string(),
+  items: external_exports.array(itemSchema),
+  /** Empty when no baseline was taken (the V1 web caller skips the baseline
+   *  on cycle-tool runs for speed; the H3 UI can opt in to a paired run). */
+  delta: external_exports.object({
+    autoExecutedDelta: external_exports.number(),
+    queuedDelta: external_exports.number(),
+    flips: external_exports.array(external_exports.object({
+      variantId: external_exports.string(),
+      variantName: external_exports.string(),
+      baseline: external_exports.string(),
+      overlay: external_exports.string()
+    }))
+  }).nullable(),
+  basis: external_exports.string(),
+  confidence: external_exports.number()
+});
+function makeSimulateCycleWithOverlayTool(gateway) {
+  return {
+    name: "simulate_cycle_with_overlay",
+    category: "logic",
+    kind: "inproc",
+    version: "1.0.0",
+    description: "Runs the intelligence cycle against the scenario's graph_overlay with no-op persistence \u2014 nothing is written back to real state. Returns the CycleResult (scanned/proposed/autoExecuted/queued + per-variant items) so the operator can see what WOULD have happened under the overlay. The result is also cached on the scenario row for the list view + follow-up tool calls. Use after applying overlay edits to see their effect.",
+    inputSchema: inputSchema17,
+    outputSchema: outputSchema17,
+    examples: [
+      {
+        input: { scenarioId: "00000000-0000-0000-0000-000000000000" },
+        output: {
+          scenarioId: "00000000-0000-0000-0000-000000000000",
+          scanned: 12,
+          proposed: 12,
+          autoExecuted: 8,
+          queued: 4,
+          ranAt: "2026-06-06T12:00:00Z",
+          items: [],
+          delta: null,
+          basis: "overlay-simulation:1.0.0",
+          confidence: 1
+        }
+      }
+    ],
+    invoke: async (input) => {
+      const scenario = await gateway.fetchScenario(input.scenarioId);
+      if (!scenario) throw new Error(`scenario ${input.scenarioId} not found`);
+      const deps = await gateway.buildSimulationDeps(scenario);
+      const result = await simulateCycleWithOverlay(deps);
+      await gateway.recordSimulation(scenario.id, {
+        ran_at: result.ranAt,
+        result: {
+          scanned: result.scanned,
+          proposed: result.proposed,
+          autoExecuted: result.autoExecuted,
+          queued: result.queued,
+          ranAt: result.ranAt,
+          items: result.items.map((i) => ({
+            variantId: i.variantId,
+            variantName: i.variantName,
+            outcome: i.outcome,
+            actionType: i.actionType,
+            reason: i.reason
+          }))
+        },
+        delta: null
+      });
+      return {
+        scenarioId: scenario.id,
+        scanned: result.scanned,
+        proposed: result.proposed,
+        autoExecuted: result.autoExecuted,
+        queued: result.queued,
+        ranAt: result.ranAt,
+        items: result.items.map((i) => ({
+          variantId: i.variantId,
+          variantName: i.variantName,
+          outcome: i.outcome,
+          actionType: i.actionType,
+          reason: i.reason
+        })),
+        delta: null,
+        basis: "overlay-simulation:1.0.0",
+        confidence: 1
+      };
+    }
+  };
+}
+
+// packages/reality-graph/src/tools/scenarios/query_simulation_result.ts
+var inputSchema18 = external_exports.object({
+  scenarioId: external_exports.string().uuid()
+});
+var outputSchema18 = external_exports.object({
+  scenarioId: external_exports.string().uuid(),
+  /** Empty when the scenario has never been simulated. */
+  cachedAt: external_exports.string().nullable(),
+  scanned: external_exports.number().int().nonnegative().nullable(),
+  proposed: external_exports.number().int().nonnegative().nullable(),
+  autoExecuted: external_exports.number().int().nonnegative().nullable(),
+  queued: external_exports.number().int().nonnegative().nullable(),
+  itemCount: external_exports.number().int().nonnegative(),
+  hasDelta: external_exports.boolean()
+});
+function makeQuerySimulationResultTool(gateway) {
+  return {
+    name: "query_simulation_result",
+    category: "data",
+    kind: "inproc",
+    version: "1.0.0",
+    description: 'Returns the cached most-recent simulation result for a scenario without rerunning it. Use this to summarize a scenario in conversation ("you last simulated 5 minutes ago \u2014 4 of 12 would queue") before deciding whether to rerun.',
+    inputSchema: inputSchema18,
+    outputSchema: outputSchema18,
+    examples: [
+      {
+        input: { scenarioId: "00000000-0000-0000-0000-000000000000" },
+        output: {
+          scenarioId: "00000000-0000-0000-0000-000000000000",
+          cachedAt: "2026-06-06T12:00:00Z",
+          scanned: 12,
+          proposed: 12,
+          autoExecuted: 8,
+          queued: 4,
+          itemCount: 12,
+          hasDelta: false
+        }
+      }
+    ],
+    invoke: async (input) => {
+      const row = await gateway.fetchScenario(input.scenarioId);
+      if (!row) throw new Error(`scenario ${input.scenarioId} not found`);
+      const cache = row.last_simulation;
+      if (!cache) {
+        return {
+          scenarioId: row.id,
+          cachedAt: null,
+          scanned: null,
+          proposed: null,
+          autoExecuted: null,
+          queued: null,
+          itemCount: 0,
+          hasDelta: false
+        };
+      }
+      return {
+        scenarioId: row.id,
+        cachedAt: cache.ran_at,
+        scanned: cache.result.scanned,
+        proposed: cache.result.proposed,
+        autoExecuted: cache.result.autoExecuted,
+        queued: cache.result.queued,
+        itemCount: cache.result.items.length,
+        hasDelta: cache.delta != null
+      };
+    }
+  };
+}
 export {
   CONSUMPTION_FORECAST_OBJECTIVE_NAME,
   DEFAULT_AUTO_EXEC_POLICY,
@@ -17338,6 +17674,7 @@ export {
   adapterRegistry,
   agentRegistry,
   andThen,
+  applyVariantOverlay,
   approvedAnswerNode,
   baselineRolling30dAdapter,
   buildOverstockRebalancerAgent,
@@ -17360,6 +17697,7 @@ export {
   daysUntilDelivery,
   daysUntilZero,
   decideAutoExecution,
+  diffSimulations,
   documentNode,
   echelonLabel,
   edgesForAction,
@@ -17395,16 +17733,21 @@ export {
   listTools,
   listToolsByCategory,
   llmCallWithSchema,
+  makeApplyOverlayEditTool,
   makeForecastConsumptionTool,
   makeQueryDocumentChunksTool,
   makeQueryOpenRestockRequestsTool,
   makeQueryRecentWasteLogsTool,
+  makeQuerySimulationResultTool,
   makeQuerySisterPropertyInventoryTool,
   makeQueryVariantDocumentsTool,
   makeRankAlternativeSuppliersTool,
+  makeSimulateCycleWithOverlayTool,
   mapPostgrestError,
   mapResult,
+  mergeConstraintOverlay,
   mergeOrgPolicy,
+  mergePolicyOverlay,
   nodeSet,
   notFound,
   objectiveRegistry,
@@ -17445,6 +17788,7 @@ export {
   scopeDenied,
   seasonalNaiveV1Adapter,
   selectApplicablePrinciples,
+  simulateCycleWithOverlay,
   stockUrgency,
   supplierNode,
   toolRegistry,
