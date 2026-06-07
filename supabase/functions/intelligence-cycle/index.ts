@@ -17,6 +17,7 @@
 import {
   runIntelligenceCycle,
   buildRestockAdvisorAgent,
+  buildOverstockRebalancerAgent,
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
 } from '../_shared/reality-graph.bundle.mjs'
@@ -57,10 +58,9 @@ Deno.serve(async (req: Request) => {
 
   // Built once only to read name/version (both constant); the dummy llm is
   // never invoked here.
-  const agentMeta = buildRestockAdvisorAgent({
-    reader: makeServiceRoleGraphReader(supabase, ''),
-    llm: makeDeterministicLLM({ id: '', name: '' }),
-  })
+  const dummyReader = makeServiceRoleGraphReader(supabase, '')
+  const restockMeta = buildRestockAdvisorAgent({ reader: dummyReader, llm: makeDeterministicLLM({ id: '', name: '' }) })
+  const overstockMeta = buildOverstockRebalancerAgent({ reader: dummyReader, llm: makeDeterministicLLM({ id: '', name: '' }) })
 
   const { data: hotels, error: hotelsErr } = await supabase
     .from('hotels')
@@ -93,17 +93,36 @@ Deno.serve(async (req: Request) => {
   const autoExecPolicy = orgPolicyToAutoExecPolicy(policy)
   const maxVariants    = policy.caps.max_variants_per_cycle
   const agentOverrides = policy.auto_execution.agent_overrides
+  const overstockFactor = policy.overstock.factor
 
+  const shared = { productionReleases, autoExecPolicy, maxVariants, agentOverrides }
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
   let totalQueued = 0
 
   for (const hotel of (hotels ?? []) as HotelRow[]) {
     try {
-      const result = await runHotelCycle(supabase, hotel, agentMeta, productionReleases, autoExecPolicy, maxVariants, agentOverrides)
-      totalAuto += result.autoExecuted
-      totalQueued += result.queued
-      perHotel.push({ hotelId: hotel.id, scanned: result.scanned, autoExecuted: result.autoExecuted, queued: result.queued })
+      // restock_advisor on at-risk stock, then overstock_rebalancer on surplus.
+      // Both route through the same decideAutoExecution gate; TRANSFER_STOCK
+      // isn't auto-exec-eligible so overstock proposals always queue for review.
+      const restock = await runAgentCycle(supabase, hotel, {
+        agentName: restockMeta.name, agentVersion: restockMeta.version,
+        scan: 'at-risk', buildAgent: (reader, v) => buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(v) }),
+        promptVerb: 'restock', ...shared,
+      })
+      const overstock = await runAgentCycle(supabase, hotel, {
+        agentName: overstockMeta.name, agentVersion: overstockMeta.version,
+        scan: 'overstock', overstockFactor,
+        buildAgent: (reader, v) => buildOverstockRebalancerAgent({ reader, llm: makeDeterministicLLM(v) }),
+        promptVerb: 'rebalance', ...shared,
+      })
+      totalAuto   += restock.autoExecuted + overstock.autoExecuted
+      totalQueued += restock.queued + overstock.queued
+      perHotel.push({
+        hotelId: hotel.id,
+        restock:   { scanned: restock.scanned, autoExecuted: restock.autoExecuted, queued: restock.queued },
+        overstock: { scanned: overstock.scanned, autoExecuted: overstock.autoExecuted, queued: overstock.queued },
+      })
     } catch (err) {
       perHotel.push({ hotelId: hotel.id, error: err instanceof Error ? err.message : String(err) })
     }
@@ -117,22 +136,29 @@ Deno.serve(async (req: Request) => {
     source: 'intelligence-cycle',
     summary: `Agent cycle: ${String(totalAuto)} auto-executed, ${String(totalQueued)} queued across ${String(perHotel.length)} hotel(s)`,
     details: { auto_executed: totalAuto, queued: totalQueued, hotels: perHotel },
-    confidence_basis: 'restock_advisor per at-risk variant; decideAutoExecution gate (REQUEST_RESTOCK >= 0.9, no hard violation)',
+    confidence_basis: 'restock_advisor (at-risk) + overstock_rebalancer (surplus) per variant; decideAutoExecution gate. REQUEST_RESTOCK auto-execs >= floor; TRANSFER_STOCK always queues.',
   })
 
   return json({ ok: true, autoExecuted: totalAuto, queued: totalQueued, hotels: perHotel })
 })
 
-async function runHotelCycle(
-  supabase: SupabaseClient,
-  hotel: HotelRow,
-  agentMeta: { name: string; version: string },
-  productionReleases: ReadonlyArray<{ agentName: string; version: string }>,
-  autoExecPolicy: { thresholds: Record<string, number> },
-  maxVariants: number,
-  agentOverrides: Record<string, number>,
-) {
-  // At-risk = enabled, has a reorder point, at/below it.
+interface AgentCycleOpts {
+  agentName: string
+  agentVersion: string
+  scan: 'at-risk' | 'overstock'
+  overstockFactor?: number
+  buildAgent: (reader: ReturnType<typeof makeServiceRoleGraphReader>, variant: { id: string; name: string }) => { run: (args: unknown) => Promise<{ proposals: ReadonlyArray<unknown> }> }
+  promptVerb: string
+  productionReleases: ReadonlyArray<{ agentName: string; version: string }>
+  autoExecPolicy: { thresholds: Record<string, number> }
+  maxVariants: number
+  agentOverrides: Record<string, number>
+}
+
+// Runs one agent over its scan of a hotel through the shared cycle gate.
+// scan='at-risk' → variants at/below par (restock); scan='overstock' →
+// variants above par × factor (rebalance).
+async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: AgentCycleOpts) {
   const { data: variantRows, error: scanErr } = await supabase
     .from('product_variants')
     .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name)')
@@ -141,8 +167,13 @@ async function runHotelCycle(
     .gt('low_stock_threshold', 0)
   if (scanErr) throw new Error(scanErr.message)
 
+  const factor = opts.overstockFactor ?? 2
   const variants = (variantRows ?? [])
-    .filter((v: Record<string, unknown>) => (v.current_stock as number) <= (v.low_stock_threshold as number))
+    .filter((v: Record<string, unknown>) => {
+      const stock = v.current_stock as number
+      const par   = v.low_stock_threshold as number
+      return opts.scan === 'at-risk' ? stock <= par : stock > par * factor
+    })
     .map((v: Record<string, unknown>) => {
       const p = v.products as { name: string } | { name: string }[] | null
       const product = Array.isArray(p) ? p[0] : p
@@ -170,14 +201,14 @@ async function runHotelCycle(
   return await runIntelligenceCycle({
     variants,
     constraints,
-    maxVariants,
-    policy:   autoExecPolicy,
-    agentOverrides,
-    agent:    { agentName: agentMeta.name, agentVersion: agentMeta.version },
-    releases: { production: productionReleases },
+    maxVariants: opts.maxVariants,
+    policy:   opts.autoExecPolicy,
+    agentOverrides: opts.agentOverrides,
+    agent:    { agentName: opts.agentName, agentVersion: opts.agentVersion },
+    releases: { production: opts.productionReleases },
     runAgent: async (variant: { id: string; name: string }) => {
-      const agent = buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(variant) })
-      const run = await agent.run({ prompt: `restock ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
+      const agent = opts.buildAgent(reader, variant)
+      const run = await agent.run({ prompt: `${opts.promptVerb} ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
       return run.proposals
     },
     persistProposal: async (_variant: unknown, proposal: { action: { type: string }; confidence: number; reasoning: string; provenance: unknown }) => {
@@ -186,8 +217,8 @@ async function runHotelCycle(
         .insert({
           hotel_id: hotel.id,
           organization_id: hotel.organization_id,
-          agent_name: agentMeta.name,
-          agent_version: agentMeta.version,
+          agent_name: opts.agentName,
+          agent_version: opts.agentVersion,
           action_type: proposal.action.type,
           action_payload: proposal.action,
           confidence: proposal.confidence,
@@ -202,9 +233,8 @@ async function runHotelCycle(
       return data.id as string
     },
     dispatch: async (action: { type: string; variantId?: string; quantityNeeded?: number }) => {
-      // Auto-execution = the proposal is accepted without operator review, which
-      // creates the restock request. The request itself enters the normal
-      // (pending) procurement flow — we don't skip that approval here.
+      // Only REQUEST_RESTOCK is auto-exec-eligible. TRANSFER_STOCK (overstock)
+      // never reaches dispatch — decideAutoExecution queues it — but guard anyway.
       if (action.type !== 'REQUEST_RESTOCK') return false
       const { error } = await supabase.from('restock_requests').insert({
         hotel_id: hotel.id,

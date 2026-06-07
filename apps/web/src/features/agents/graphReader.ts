@@ -28,7 +28,7 @@ interface VariantQueryRow {
 }
 
 const VARIANT_SELECT =
-  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id)'
+  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name)'
 
 interface RestockRequestQueryRow {
   id: string
@@ -119,10 +119,12 @@ export function makeSupabaseGraphReader(): GraphReader {
 
     async getVariantsByName(name, hotelIds) {
       if (hotelIds.length === 0) return []
+      // Cross-property match is on the PRODUCT name (variants are per-hotel rows
+      // named e.g. 'Standard'; "Soda Water" is the product the agent passes).
       const { data, error } = await supabase
         .from('product_variants')
         .select(VARIANT_SELECT)
-        .eq('name', name)
+        .eq('products.name', name)
         .in('products.hotel_id', hotelIds)
         .overrideTypes<VariantQueryRow[], { merge: false }>()
       if (error) throw new Error(error.message)
