@@ -1,17 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import {
-  simulateCycleWithOverlay,
-  type ScenarioSimulationCache,
-} from '@beacon/reality-graph'
-import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { supabase } from '@/lib/supabase/client'
 import { useActiveOrgId } from '@/hooks/useActiveOrgId'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
-import { useProducts } from '@/features/inventory/hooks'
-import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
-import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
-import { useOrgPolicy } from '@/features/mind/policy'
-import { makeWebScenarioGateway } from './gateway'
 import {
   applyOverlayEdit,
   createScenario,
@@ -93,47 +85,23 @@ export function useApplyOverlayEdit() {
   })
 }
 
-/** Runs the cycle against the scenario's overlay (no-op persistence) and
- *  caches the result. The web gateway materializes the simulation deps from
- *  the loaded catalogue + policy + releases. */
+/** Runs the cycle against the scenario's overlay via the scenario-simulate
+ *  edge fn — the single server-side simulation path (shared with the copilot's
+ *  simulate_scenario tool). The edge fn caches the result on the row; we just
+ *  invalidate so the detail page re-reads last_simulation. */
 export function useSimulateScenario() {
-  const hotelId = useActiveHotelId()
-  const userId  = useAuthStore((s) => s.userId)
-  const { data: products = [] } = useProducts()
-  const forecastAdapter = useActiveForecastAdapter()
-  const { data: releases = [] } = useCurrentAgentReleases()
-  const { data: policyData } = useOrgPolicy()
   const qc = useQueryClient()
-
   return useMutation({
     mutationFn: async (scenario: ScenarioRow) => {
-      if (!hotelId || !userId) throw new Error('No active hotel / user')
-      const gateway = makeWebScenarioGateway({
-        hotelId, userId, products,
-        orgPolicy: policyData?.merged,
-        releases, forecastAdapter,
-      })
-      const deps   = await gateway.buildSimulationDeps(scenario)
-      const result = await simulateCycleWithOverlay(deps)
-      const cache: ScenarioSimulationCache = {
-        ran_at: result.ranAt,
-        result: {
-          scanned:      result.scanned,
-          proposed:     result.proposed,
-          autoExecuted: result.autoExecuted,
-          queued:       result.queued,
-          ranAt:        result.ranAt,
-          items:        result.items.map((i) => ({
-            variantId: i.variantId, variantName: i.variantName,
-            outcome: i.outcome, actionType: i.actionType, reason: i.reason,
-          })),
-        },
-        delta: null,
-      }
-      await gateway.recordSimulation(scenario.id, cache)
-      return cache
+      const { data, error } = await supabase.functions.invoke<{ ok?: boolean; error?: string }>(
+        'scenario-simulate',
+        { body: { scenario_id: scenario.id } },
+      ) as { data: { ok?: boolean; error?: string } | null; error: { message: string } | null }
+      if (error) throw new Error(error.message)
+      if (!data?.ok) throw new Error(data?.error ?? 'Simulation failed')
+      return data
     },
-    onSuccess: (_cache, scenario) => {
+    onSuccess: (_res, scenario) => {
       toast.success('Simulation complete')
       void qc.invalidateQueries({ queryKey: scenarioKeys.detail(scenario.id) })
       void qc.invalidateQueries({ queryKey: ['scenarios'] })
