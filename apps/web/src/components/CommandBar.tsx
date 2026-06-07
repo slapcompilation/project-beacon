@@ -8,7 +8,7 @@ import type { IconName } from '@blueprintjs/icons'
 import { useProducts } from '@/features/inventory/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
 import { useAutoAlerts } from '@/features/notifications/hooks'
-import { useAutoPropose } from '@/features/restock/hooks'
+import { useRestockCycle } from '@/features/agents/useRestockCycle'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
 import { hasPermission } from '@beacon/types'
@@ -127,8 +127,16 @@ export function CommandBar() {
   const toggleCopilot = useAppStore((s) => s.toggleCopilot)
   const { data: products  = [] } = useProducts()
   const { data: suppliers = [] } = useSuppliers()
-  const autoAlerts  = useAutoAlerts()
-  const autoPropose = useAutoPropose()
+  const autoAlerts   = useAutoAlerts()
+  const restockCycle = useRestockCycle()
+  const runRestockCycle = useCallback(() => {
+    restockCycle.mutate(undefined, {
+      onSuccess: (r) => {
+        toast.success(`Restock cycle: ${String(r.autoExecuted)} auto-executed, ${String(r.queued)} queued (${String(r.scanned)} scanned)`)
+      },
+      onError: (err: Error) => { toast.error(err.message) },
+    })
+  }, [restockCycle])
 
   const go = useCallback((path: string) => {
     setOpen(false)
@@ -363,15 +371,15 @@ export function CommandBar() {
           <Group heading="Admin Actions">
             {(() => {
               const idx1 = action(() => { setOpen(false); autoAlerts.mutate({}) })
-              const idx2 = action(() => { setOpen(false); autoPropose.mutate({}) })
+              const idx2 = action(() => { setOpen(false); runRestockCycle() })
               const idx3 = action(() => { go('/floor?panel=stocktake'); toast.info('Begin a new stocktake session') })
               return (
                 <>
                   <Row icon="flash" onSelect={() => { setOpen(false); autoAlerts.mutate({}) }} focused={focusIdx === idx1}>
                     Scan Alerts
                   </Row>
-                  <Row icon="predictive-analysis" onSelect={() => { setOpen(false); autoPropose.mutate({}) }} focused={focusIdx === idx2}>
-                    Run Restock Proposals
+                  <Row icon="predictive-analysis" onSelect={() => { setOpen(false); runRestockCycle() }} focused={focusIdx === idx2}>
+                    Run Restock Cycle
                   </Row>
                   <Row icon="clipboard" onSelect={() => { go('/floor?panel=stocktake'); toast.info('Begin a new stocktake session') }} focused={focusIdx === idx3}>
                     Begin Stocktake
