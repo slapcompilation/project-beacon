@@ -18,6 +18,7 @@ import {
   runIntelligenceCycle,
   buildRestockAdvisorAgent,
   buildOverstockRebalancerAgent,
+  buildWasteTriageAgent,
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
 } from '../_shared/reality-graph.bundle.mjs'
@@ -61,6 +62,7 @@ Deno.serve(async (req: Request) => {
   const dummyReader = makeServiceRoleGraphReader(supabase, '')
   const restockMeta = buildRestockAdvisorAgent({ reader: dummyReader, llm: makeDeterministicLLM({ id: '', name: '' }) })
   const overstockMeta = buildOverstockRebalancerAgent({ reader: dummyReader, llm: makeDeterministicLLM({ id: '', name: '' }) })
+  const wasteMeta = buildWasteTriageAgent({ reader: dummyReader, llm: makeDeterministicLLM({ id: '', name: '' }) })
 
   const { data: hotels, error: hotelsErr } = await supabase
     .from('hotels')
@@ -116,12 +118,21 @@ Deno.serve(async (req: Request) => {
         buildAgent: (reader, v) => buildOverstockRebalancerAgent({ reader, llm: makeDeterministicLLM(v) }),
         promptVerb: 'rebalance', ...shared,
       })
-      totalAuto   += restock.autoExecuted + overstock.autoExecuted
-      totalQueued += restock.queued + overstock.queued
+      // waste_triage on perishables (shelf_life_days set) — proposes redirecting
+      // soon-to-spoil surplus to a needy sister, else WRITE_OFF. Both queue.
+      const waste = await runAgentCycle(supabase, hotel, {
+        agentName: wasteMeta.name, agentVersion: wasteMeta.version,
+        scan: 'waste',
+        buildAgent: (reader, v) => buildWasteTriageAgent({ reader, llm: makeDeterministicLLM(v) }),
+        promptVerb: 'triage waste for', ...shared,
+      })
+      totalAuto   += restock.autoExecuted + overstock.autoExecuted + waste.autoExecuted
+      totalQueued += restock.queued + overstock.queued + waste.queued
       perHotel.push({
         hotelId: hotel.id,
         restock:   { scanned: restock.scanned, autoExecuted: restock.autoExecuted, queued: restock.queued },
         overstock: { scanned: overstock.scanned, autoExecuted: overstock.autoExecuted, queued: overstock.queued },
+        waste:     { scanned: waste.scanned, autoExecuted: waste.autoExecuted, queued: waste.queued },
       })
     } catch (err) {
       perHotel.push({ hotelId: hotel.id, error: err instanceof Error ? err.message : String(err) })
@@ -136,7 +147,7 @@ Deno.serve(async (req: Request) => {
     source: 'intelligence-cycle',
     summary: `Agent cycle: ${String(totalAuto)} auto-executed, ${String(totalQueued)} queued across ${String(perHotel.length)} hotel(s)`,
     details: { auto_executed: totalAuto, queued: totalQueued, hotels: perHotel },
-    confidence_basis: 'restock_advisor (at-risk) + overstock_rebalancer (surplus) per variant; decideAutoExecution gate. REQUEST_RESTOCK auto-execs >= floor; TRANSFER_STOCK always queues.',
+    confidence_basis: 'restock_advisor (at-risk) + overstock_rebalancer (surplus) + waste_triage (perishables) per variant; decideAutoExecution gate. REQUEST_RESTOCK auto-execs >= floor; TRANSFER_STOCK + WRITE_OFF always queue.',
   })
 
   return json({ ok: true, autoExecuted: totalAuto, queued: totalQueued, hotels: perHotel })
@@ -145,7 +156,7 @@ Deno.serve(async (req: Request) => {
 interface AgentCycleOpts {
   agentName: string
   agentVersion: string
-  scan: 'at-risk' | 'overstock'
+  scan: 'at-risk' | 'overstock' | 'waste'
   overstockFactor?: number
   buildAgent: (reader: ReturnType<typeof makeServiceRoleGraphReader>, variant: { id: string; name: string }) => { run: (args: unknown) => Promise<{ proposals: ReadonlyArray<unknown> }> }
   promptVerb: string
@@ -156,12 +167,13 @@ interface AgentCycleOpts {
 }
 
 // Runs one agent over its scan of a hotel through the shared cycle gate.
-// scan='at-risk' → variants at/below par (restock); scan='overstock' →
-// variants above par × factor (rebalance).
+// scan='at-risk' → at/below par (restock); 'overstock' → above par × factor
+// (rebalance); 'waste' → perishable products (shelf_life_days set), the agent
+// decides what's at-risk of spoiling internally.
 async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: AgentCycleOpts) {
   const { data: variantRows, error: scanErr } = await supabase
     .from('product_variants')
-    .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name)')
+    .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name, shelf_life_days)')
     .eq('products.hotel_id', hotel.id)
     .eq('enabled', true)
     .gt('low_stock_threshold', 0)
@@ -172,7 +184,10 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
     .filter((v: Record<string, unknown>) => {
       const stock = v.current_stock as number
       const par   = v.low_stock_threshold as number
-      return opts.scan === 'at-risk' ? stock <= par : stock > par * factor
+      const prod  = (Array.isArray(v.products) ? v.products[0] : v.products) as { shelf_life_days: number | null } | null
+      if (opts.scan === 'at-risk')   return stock <= par
+      if (opts.scan === 'overstock') return stock > par * factor
+      return prod?.shelf_life_days != null   // waste: perishables only
     })
     .map((v: Record<string, unknown>) => {
       const p = v.products as { name: string } | { name: string }[] | null
