@@ -201,8 +201,9 @@ export function AutonomousSection() {
         <CronHealthPanel />
 
         <Callout intent={Intent.NONE} icon="info-sign" compact title="What's running">
-          <p>Intelligence cycle (every 15 min): anomaly alerts, restock proposals, preemptive restocks, stale escalations, discrepancy detection, and the auto-approvals configured above.</p>
-          <p>Event-driven triggers (real-time): critical stockouts, PO auto-close on full receipt, consumption-spike detection.</p>
+          <p>Typed agent cycle (daily 07:00 UTC, edge fn <code className="font-mono">intelligence-cycle</code>): the <code className="font-mono">restock_advisor</code> agent scans at-risk stock, reasons per variant, and routes each proposal through the confidence + constraint gate — auto-executing the confident ones, queuing the rest. The single restock proposer.</p>
+          <p>SQL cycle (every 15 min): anomaly alerts, stale escalations, discrepancy detection, and the auto-approvals configured above.</p>
+          <p>Event-driven triggers (real-time): critical stockout alerts, PO auto-close on full receipt, consumption-spike detection.</p>
           <p>Weekly: PAR optimization, supplier lead-time learning (Sun 4am UTC), per-variant alert threshold learning (Sun 4:30am UTC), price drift (Mon 6am UTC). Daily: POS variance (5am UTC), proposal-outcomes feedback flywheel (3am UTC).</p>
           <p>Health monitor (every 5 min): scans <code className="font-mono">cron.job_run_details</code>, opens <code className="font-mono">system_health_events</code> rows on failure streaks.</p>
         </Callout>

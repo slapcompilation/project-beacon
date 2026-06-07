@@ -154,15 +154,6 @@ export async function receiveRestock(
   return { logId: row.log_id, newBalance: row.new_balance, fulfilled: row.fulfilled }
 }
 
-export async function autoPropose(thresholdDays = 7, restockDays = 14): Promise<number> {
-  const result = await supabase.rpc('auto_propose_restocks', {
-    p_threshold_days: thresholdDays,
-    p_restock_days:   restockDays,
-  }) as unknown as { data: number | null; error: { message: string } | null }
-  if (result.error) throw new Error(result.error.message)
-  return result.data ?? 0
-}
-
 export async function fetchReceives(requestId: string): Promise<RestockReceive[]> {
   const { data, error } = await supabase
     .from('restock_receives')

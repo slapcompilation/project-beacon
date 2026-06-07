@@ -31,9 +31,11 @@ import { RestockRequestModal } from '@/features/restock/components/RestockReques
 import { ReceiveModal } from '@/features/restock/components/ReceiveModal'
 import { ApprovalCopilotPanel } from '@/features/restock/components/ApprovalCopilotPanel'
 import {
-  useRestockRequests, useUpdateRestockStatus, useAutoPropose,
+  useRestockRequests, useUpdateRestockStatus,
   useApproveRestock, useRejectRestock,
 } from '@/features/restock/hooks'
+import { useRestockCycle } from '@/features/agents/useRestockCycle'
+import { toast } from 'sonner'
 import { useTeamMembers } from '@/features/team/hooks'
 import { useAuthStore } from '@/stores/auth.store'
 import { useDateFormat } from '@/features/user/hooks'
@@ -565,7 +567,7 @@ export default function RestockPage() {
   const canCreate          = !!role && hasPermission(role, 'can_create_restocks')
   const emailMap    = useMemo(() => new Map(members.map((m) => [m.id, m.email])), [members])
 
-  const autoProposeMutation = useAutoPropose()
+  const restockCycle        = useRestockCycle()
   const approve             = useApproveRestock()
   const reject              = useRejectRestock()
   const update              = useUpdateRestockStatus()
@@ -703,10 +705,15 @@ export default function RestockPage() {
               size="small"
               variant="outlined"
               icon="predictive-analysis"
-              loading={autoProposeMutation.isPending}
-              onClick={() => { autoProposeMutation.mutate({}) }}
+              loading={restockCycle.isPending}
+              onClick={() => {
+                restockCycle.mutate(undefined, {
+                  onSuccess: (r) => { toast.success(`Restock cycle: ${String(r.autoExecuted)} auto-executed, ${String(r.queued)} queued (${String(r.scanned)} scanned)`) },
+                  onError: (err: Error) => { toast.error(err.message) },
+                })
+              }}
             >
-              Run Proposals
+              Run Cycle
             </Button>
           )}
           {canCreate && (

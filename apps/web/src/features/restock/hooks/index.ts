@@ -7,7 +7,6 @@ import { useBeaconAction } from '@/lib/actions/useBeaconAction'
 import {
   fetchRestockRequests,
   updateRestockStatus,
-  autoPropose,
   fetchApprovalThresholds,
   updateApprovalThresholds,
   fetchReceives,
@@ -166,24 +165,10 @@ export function useReceives(requestId: string | null) {
   })
 }
 
-export function useAutoPropose() {
-  const queryClient = useQueryClient()
-  const hotelId = useActiveHotelId()
-
-  return useMutation({
-    mutationFn: ({ thresholdDays, restockDays }: { thresholdDays?: number; restockDays?: number }) =>
-      autoPropose(thresholdDays, restockDays),
-    onSuccess: (count) => {
-      void queryClient.invalidateQueries({ queryKey: restockKeys.all(hotelId ?? '') })
-      if (count === 0) {
-        toast.info('No new proposals — all at-risk variants already have open requests')
-      } else {
-        toast.success(`${String(count)} restock proposal${count !== 1 ? 's' : ''} created`)
-      }
-    },
-    onError: (err: Error) => toast.error(err.message),
-  })
-}
+// Restock proposing converged onto the typed restock_advisor agent (H/J
+// convergence). The operator-facing "Run Restock Cycle" actions now call
+// useRestockCycle (features/agents); the legacy auto_propose_restocks SQL
+// detector is no longer invoked from the app.
 
 export function useUpdateRestockStatus() {
   const queryClient = useQueryClient()
