@@ -25,7 +25,7 @@ interface VariantRow {
 // low_stock_threshold, the supplier is default_supplier_id. Mirrors the fix in
 // apps/web/src/features/agents/graphReader.ts.
 const VARIANT_SELECT =
-  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id)'
+  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name)'
 
 export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: string) {
   const toVariant = (r: Record<string, unknown>): VariantRow => {
@@ -92,10 +92,13 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
 
     async getVariantsByName(name: string, hotelIds: string[]) {
       if (hotelIds.length === 0) return []
+      // Cross-property match is on the PRODUCT name, not the variant name —
+      // variants are per-hotel rows named e.g. 'Standard'; "Soda Water" is the
+      // product. The agent passes the product display name here.
       const { data, error } = await supabase
         .from('product_variants')
         .select(VARIANT_SELECT)
-        .eq('name', name)
+        .eq('products.name', name)
         .in('products.hotel_id', hotelIds)
       if (error) throw new Error(error.message)
       return (data ?? []).map(toVariant)
