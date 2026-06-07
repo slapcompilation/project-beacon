@@ -1,14 +1,19 @@
 # AIP Workflows — how Beacon runs, end to end
 
 This walks the core Palantir-AIP workflows as they actually run in Beacon, grounded in
-the live demo hotel (`Valinor`, F&B bar). It is not aspirational — every number below
-is real seeded data flowing through production code paths (`seed_demo_world`, migration 159):
-90 days of POS-derived consumption, recipe ontology, supplier reliability.
+the live demo org (`My Hotel`, two F&B properties). It is not aspirational — every number
+below is real seeded data flowing through production code paths (`seed_demo_world`,
+migration 159): 90 days of POS-derived consumption, recipe ontology, supplier reliability.
 
 ## The world the AIP reasons over
 
-One F&B venue, 10 stocked items, 2 suppliers, ~16 cocktails/day across 6 recipes. As of
-the last cycle:
+**Two F&B properties in one org** — `Valinor` and `Rivendell` — each with the same
+10-item catalogue, ~16 cocktails/day across 6 recipes, 90 days of POS history. They are
+stocked **complementarily**: Rivendell holds surplus of exactly what Valinor is short on,
+which is what makes the network workflows (transfers, lateral-before-external,
+benchmarking) live rather than theoretical.
+
+Valinor, as of the last cycle:
 
 | Item | On hand | Par | ~Daily use | Supplier | Supplier on-time |
 |---|--:|--:|--:|---|--:|
@@ -26,6 +31,11 @@ the last cycle:
 Two things the AIP should *notice on its own*: Soda Water and Cola are hours from stockout,
 and **Premium Spirits Co delivers on time only 25%** of the time — it supplies the four
 core spirits.
+
+And the network angle: **Rivendell holds the surplus** — Soda Water 70, Cola 95, Orange
+Juice 45, White Rum 55 — exactly what Valinor is starved of. Conversely Rivendell is short
+on Bourbon (2) and Tonic (1) where Valinor has cover. So the right first move for several of
+Valinor's gaps is a **transfer from Rivendell**, not a purchase order — and vice versa.
 
 The four AIP layers each appear in every workflow below:
 
@@ -48,8 +58,8 @@ The four AIP layers each appear in every workflow below:
 2. **Run the agent (agent).** `restock_advisor` runs per variant. Its numbered prompt:
    - `query_open_restock_requests` — is a request already covering the gap? (no)
    - `forecast_consumption(7d)` — rolling-30d avg = 3.3/day → ~23 units needed for a week
-   - `query_sister_property_inventory` — any sister hotel with ≥40% of the gap to transfer? (single-property here, so no)
-   - `rank_alternative_suppliers` — Bar Essentials (50% on-time, 7-day lead) is the only source
+   - `query_sister_property_inventory` — any sister hotel with ≥40% of the gap to transfer? **Rivendell holds 70 Soda Water → covers the whole gap.** The agent prefers `TRANSFER_STOCK` over a purchase.
+   - `rank_alternative_suppliers` — only consulted for the remainder; Bar Essentials (50% on-time, 7-day lead) is the external source
    - emits a typed `REQUEST_RESTOCK` proposal with **confidence + basis + provenance**
 3. **Gate (mutation + constraints).** `decideAutoExecution` composes:
    - the per-action floor (`REQUEST_RESTOCK ≥ 0.9`, operator-tunable in Mind → Policy)
@@ -104,18 +114,23 @@ and delivers on time **25%** of the time (computed by `compute_supplier_reliabil
 8 closed POs + invoices).
 
 **Workflow:**
-1. `rank_alternative_suppliers` (Logic Tool) ranks by reliability × lead-time-fit, every
-   result carrying `basis` + `confidence`.
-2. **Lateral before external** — `query_sister_property_inventory` runs first; if a sister
-   property has ≥40% of the gap, the agent proposes `TRANSFER_STOCK` instead of buying.
-3. When external is the only option, the agent picks the highest-reliability supplier whose
-   lead time covers the gap, and **cites the reliability number in its rationale** — so the
-   operator sees *why* Premium Spirits was flagged, not just that it was chosen.
-4. The reliability signal also surfaces on the Supplier Object View, where the operator can
+1. **Lateral before external** — `query_sister_property_inventory` runs first. For Valinor's
+   short spirits, **Rivendell's surplus** (Rum 55, etc.) covers the gap, so the agent proposes
+   `TRANSFER_STOCK` Rivendell → Valinor instead of a purchase order. Cheaper, faster, and it
+   draws down the sister's overstock at the same time.
+2. Only the *remainder* (or items no sister can cover) goes external. `rank_alternative_suppliers`
+   ranks by reliability × lead-time-fit, every result carrying `basis` + `confidence`.
+3. The agent picks the highest-reliability supplier whose lead time covers the gap, and
+   **cites the reliability number in its rationale** — so the operator sees *why* Premium
+   Spirits (25% on-time) was flagged, not just that it was chosen.
+4. The org overstock sweep runs the mirror image from Rivendell's side: it sees Soda/Cola/OJ/Rum
+   overstocked there and a sister (Valinor) short → proposes the same transfers proactively.
+5. The reliability signal also surfaces on the Supplier Object View, where the operator can
    author a constraint ("never auto-approve Premium Spirits POs over $500") in NL.
 
-**Why it's AIP:** benchmarking against the network is a property of the system, not a report
-the operator runs; the unreliable supplier is *surfaced by the data*, not discovered by hand.
+**Why it's AIP:** benchmarking + lateral sourcing are properties of the network, not reports
+the operator runs; the surplus-to-shortfall match across Valinor and Rivendell is *surfaced by
+the data*, and the unreliable supplier is flagged automatically rather than discovered by hand.
 
 ---
 
