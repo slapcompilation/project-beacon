@@ -9,6 +9,10 @@ export interface VariantRow {
   current_stock: number
   par_level: number | null
   preferred_supplier_id?: string | null
+  /** Days before the product spoils once on hand; NULL = non-perishable.
+   *  waste_triage uses it as the spoilage safe-window (falls back to a default
+   *  when absent). */
+  shelf_life_days?: number | null
 }
 
 export interface RestockRequestRow {

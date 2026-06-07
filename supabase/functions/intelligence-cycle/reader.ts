@@ -18,6 +18,7 @@ interface VariantRow {
   current_stock: number
   par_level: number | null
   preferred_supplier_id: string | null
+  shelf_life_days: number | null
 }
 
 // product_variants has no hotel_id/par_level/preferred_supplier_id columns —
@@ -25,11 +26,11 @@ interface VariantRow {
 // low_stock_threshold, the supplier is default_supplier_id. Mirrors the fix in
 // apps/web/src/features/agents/graphReader.ts.
 const VARIANT_SELECT =
-  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name)'
+  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name, shelf_life_days)'
 
 export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: string) {
   const toVariant = (r: Record<string, unknown>): VariantRow => {
-    const p = r.products as { hotel_id: string } | { hotel_id: string }[] | null
+    const p = r.products as { hotel_id: string; shelf_life_days?: number | null } | { hotel_id: string; shelf_life_days?: number | null }[] | null
     const product = Array.isArray(p) ? p[0] : p
     return {
       id: r.id as string,
@@ -38,6 +39,7 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
       current_stock: r.current_stock as number,
       par_level: (r.low_stock_threshold as number | null) ?? null,
       preferred_supplier_id: (r.default_supplier_id as string | null) ?? null,
+      shelf_life_days: product?.shelf_life_days ?? null,
     }
   }
 
