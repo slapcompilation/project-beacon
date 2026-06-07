@@ -207,6 +207,43 @@ const TOOLS: Anthropic.Tool[] = [
   },
 ]
 
+// ─── Scenario tools (H4) ──────────────────────────────────────────────────────
+// Only sent to the model when the operator is looking at a scenario
+// (selection.kind === 'scenario'). They edit + read the sandbox graph_overlay;
+// they never touch real state. Running a fresh simulation stays the operator's
+// "Simulate" button this release (server-side LLM-run sim is H5).
+const SCENARIO_TOOLS: Anthropic.Tool[] = [
+  {
+    name: 'apply_overlay_edit',
+    description:
+      'Edit one value in the current scenario\'s graph_overlay (a sandbox — nothing touches real state). ' +
+      'path is the list of keys into the overlay; common paths: ' +
+      '["policy","auto_execution","thresholds","REQUEST_RESTOCK"] (0-1 confidence floor), ' +
+      '["policy","overstock","factor"], ["policy","par","service_level"] (0-1), ' +
+      '["policy","caps","max_variants_per_cycle"]. Pass value=null to clear an override (inherit org policy). ' +
+      'After editing, tell the operator to click Simulate to see the effect, or ask if they want more changes first.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path:  { type: 'array', items: { type: 'string' }, description: 'Keys into graph_overlay, e.g. ["policy","overstock","factor"]' },
+        value: { description: 'New value at the path. Number for policy knobs; null to clear the override.' },
+      },
+      required: ['path'],
+    },
+  },
+  {
+    name: 'query_simulation_result',
+    description:
+      'Read the cached most-recent simulation for the current scenario (scanned / proposed / auto-executed / queued). ' +
+      'Use to summarize what the overlay would do before suggesting more edits. Returns nulls if it has never been simulated.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+  },
+]
+
 // ─── System prompt ──────────────────────────────────────────────────────────────
 
 const SYSTEM_PROMPT = `You are Beacon Copilot, the AI operations assistant for a hotel inventory management system. You help hotel managers, owners, bartenders, maids, and warehouse workers understand their inventory, make decisions, and take actions.
@@ -255,15 +292,59 @@ interface ToolInput {
   reason?: string
   max_cost?: number
   supplier_id?: string
+  // Scenario tools (H4)
+  path?: string[]
+  value?: unknown
+  scenario_id?: string
 }
 
 async function executeTool(
   supabase: SupabaseClient,
   toolName: string,
   input: ToolInput,
+  selection?: SelectionContext,
 ): Promise<string> {
   try {
     switch (toolName) {
+      case 'apply_overlay_edit': {
+        const scenarioId = input.scenario_id ?? selection?.id
+        if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
+        if (!Array.isArray(input.path) || input.path.length === 0) {
+          return JSON.stringify({ error: 'path (array of keys) is required' })
+        }
+        const { data, error } = await supabase.rpc('apply_overlay_edit', {
+          p_scenario_id: scenarioId,
+          p_path:        input.path,
+          p_value:       input.value ?? null,
+          p_source:      'llm',
+        })
+        if (error) return JSON.stringify({ error: error.message })
+        const row = data as { graph_overlay?: unknown } | null
+        return JSON.stringify({ ok: true, appliedPath: input.path, graphOverlay: row?.graph_overlay ?? {} })
+      }
+      case 'query_simulation_result': {
+        const scenarioId = input.scenario_id ?? selection?.id
+        if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
+        const { data, error } = await supabase
+          .from('scenarios')
+          .select('last_simulation, last_simulated_at')
+          .eq('id', scenarioId)
+          .maybeSingle() as unknown as {
+            data: { last_simulation: { result?: Record<string, number> } | null; last_simulated_at: string | null } | null
+            error: { message: string } | null
+          }
+        if (error) return JSON.stringify({ error: error.message })
+        const sim = data?.last_simulation
+        if (!sim?.result) return JSON.stringify({ simulated: false, message: 'never simulated — ask the operator to click Simulate' })
+        return JSON.stringify({
+          simulated:    true,
+          ranAt:        data?.last_simulated_at,
+          scanned:      sim.result.scanned,
+          proposed:     sim.result.proposed,
+          autoExecuted: sim.result.autoExecuted,
+          queued:       sim.result.queued,
+        })
+      }
       case 'get_shift_intelligence': {
         const { data, error } = await supabase.rpc('get_shift_intelligence', { p_window_days: input.window_days ?? 30 })
         if (error) return JSON.stringify({ error: error.message })
@@ -432,10 +513,22 @@ interface RequestBody {
 
 function buildSystemPrompt(selection?: SelectionContext): string {
   if (!selection) return SYSTEM_PROMPT
-  return SYSTEM_PROMPT + `
+  let prompt = SYSTEM_PROMPT + `
 
 CURRENT VIEW:
 The operator is currently looking at a ${selection.kind} (id: \`${selection.id}\`)${selection.label ? ` — "${selection.label}"` : ''}. When a tool input or proposal field needs a ${selection.kind} id and the operator hasn't named a different one, default to this id. When the operator's question is vague ("forecast this?", "is this OK?"), assume it refers to the current ${selection.kind} unless they say otherwise.`
+
+  if (selection.kind === 'scenario') {
+    prompt += `
+
+SCENARIO SANDBOX:
+This is a what-if sandbox — a graph_overlay merged over real state at simulation time. Nothing you do here touches production.
+- Translate the operator's intent into apply_overlay_edit calls (e.g. "tighten restock to 0.95" → path ["policy","auto_execution","thresholds","REQUEST_RESTOCK"], value 0.95). The scenario id is the current selection — you don't need to ask for it.
+- To clear an override and inherit org policy, call apply_overlay_edit with value null.
+- After editing, you cannot run the simulation yourself yet — tell the operator to click "Simulate", then use query_simulation_result to read + summarize the outcome.
+- Be concrete about the delta you expect ("this should push a few of today's auto-execs into the queue") but confirm with query_simulation_result rather than guessing final numbers.`
+  }
+  return prompt
 }
 
 /** First-message → derived conversation title. Trimmed to 60 chars,
@@ -530,9 +623,14 @@ Deno.serve(async (req: Request) => {
         .maybeSingle() as unknown as { data: { disabled_tools: string[] | null } | null }
       disabledTools = config?.disabled_tools ?? []
     }
-    const allowedTools = disabledTools.length === 0
+    const baseTools = disabledTools.length === 0
       ? TOOLS
       : TOOLS.filter((t) => !disabledTools.includes(t.name))
+    // H4: surface the scenario overlay tools only when the operator is looking
+    // at a scenario — keeps the global tool list lean everywhere else.
+    const allowedTools = body.selection?.kind === 'scenario'
+      ? [...baseTools, ...SCENARIO_TOOLS]
+      : baseTools
 
     // ── Conversation persistence (Phase B1) ──────────────────────────────
     // Resolve / create the conversation row up front so subsequent inserts
@@ -679,7 +777,7 @@ Deno.serve(async (req: Request) => {
                   iteration: iterations,
                 })
                 const start    = Date.now()
-                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput)
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection)
                 const duration = Date.now() - start
                 send({
                   type:        'tool_result',
@@ -793,7 +891,7 @@ Deno.serve(async (req: Request) => {
       const toolResults: Anthropic.ToolResultBlockParam[] = []
       for (const toolUse of toolUseBlocks) {
         const start = Date.now()
-        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput)
+        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection)
         const duration = Date.now() - start
 
         toolTrace.push({
