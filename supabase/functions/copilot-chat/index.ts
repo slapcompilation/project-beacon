@@ -18,6 +18,7 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
+import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -242,6 +243,19 @@ const SCENARIO_TOOLS: Anthropic.Tool[] = [
       required: [],
     },
   },
+  {
+    name: 'simulate_scenario',
+    description:
+      'Run the intelligence cycle against the current scenario\'s overlay with no-op persistence (nothing touches ' +
+      'real state) and return the result: scanned / proposed / auto-executed / queued. Use after applying overlay ' +
+      'edits to see their effect immediately — you do NOT need the operator to click Simulate. The result is also ' +
+      'cached, so a later query_simulation_result returns the same numbers.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {},
+      required: [],
+    },
+  },
 ]
 
 // ─── System prompt ──────────────────────────────────────────────────────────────
@@ -321,6 +335,16 @@ async function executeTool(
         if (error) return JSON.stringify({ error: error.message })
         const row = data as { graph_overlay?: unknown } | null
         return JSON.stringify({ ok: true, appliedPath: input.path, graphOverlay: row?.graph_overlay ?? {} })
+      }
+      case 'simulate_scenario': {
+        const scenarioId = input.scenario_id ?? selection?.id
+        if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
+        try {
+          const summary = await runScenarioSimulation(supabase, scenarioId)
+          return JSON.stringify({ ok: true, ...summary })
+        } catch (err) {
+          return JSON.stringify({ error: err instanceof Error ? err.message : String(err) })
+        }
       }
       case 'query_simulation_result': {
         const scenarioId = input.scenario_id ?? selection?.id
@@ -525,8 +549,8 @@ SCENARIO SANDBOX:
 This is a what-if sandbox — a graph_overlay merged over real state at simulation time. Nothing you do here touches production.
 - Translate the operator's intent into apply_overlay_edit calls (e.g. "tighten restock to 0.95" → path ["policy","auto_execution","thresholds","REQUEST_RESTOCK"], value 0.95). The scenario id is the current selection — you don't need to ask for it.
 - To clear an override and inherit org policy, call apply_overlay_edit with value null.
-- After editing, you cannot run the simulation yourself yet — tell the operator to click "Simulate", then use query_simulation_result to read + summarize the outcome.
-- Be concrete about the delta you expect ("this should push a few of today's auto-execs into the queue") but confirm with query_simulation_result rather than guessing final numbers.`
+- After editing, call simulate_scenario to run the cycle against the overlay yourself (no-op persistence — nothing touches real state), then summarize the result: scanned / proposed / auto-executed / queued.
+- Don't guess the numbers — run simulate_scenario and report what it returns. Use query_simulation_result to recall the last run without re-simulating.`
   }
   return prompt
 }
