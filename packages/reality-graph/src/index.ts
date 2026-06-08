@@ -62,6 +62,9 @@ export {
   edgesForAction,
   actionDescriptors,
   getActionDescriptor,
+  SYSTEM_ACTOR,
+  isSystemActor,
+  resolveActor,
 } from './actions/index'
 
 // ── Node computed properties — logic on nodes, never in UI ────────────────────
