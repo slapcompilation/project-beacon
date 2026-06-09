@@ -6,8 +6,19 @@ import { supabase } from '@/lib/supabase/client'
 export type CaseStatus = 'open' | 'in_review' | 'resolved' | 'closed'
 
 export interface CaseInputRef {
-  kind: 'alert' | 'agent_run' | 'note' | 'proposal' | 'manual'
+  kind: 'alert' | 'agent_run' | 'note' | 'proposal' | 'manual' | 'variant'
   ref:  string
+}
+
+/** Title a per-variant Case from the action that triggered it. Shared shape
+ *  with the cron path (intelligence-cycle/index.ts keeps its own copy). */
+export function caseTitleFor(actionType: string, variantName: string): string {
+  switch (actionType) {
+    case 'REQUEST_RESTOCK': return `${variantName} — restock review`
+    case 'TRANSFER_STOCK':  return `${variantName} — rebalance review`
+    case 'WRITE_OFF':       return `${variantName} — waste review`
+    default:                return `${variantName} — review`
+  }
 }
 
 export interface CaseOutcome {
@@ -52,6 +63,23 @@ export async function fetchCase(id: string): Promise<CaseRow | null> {
     .maybeSingle<CaseRow>()
   if (error) throw new Error(error.message)
   return data
+}
+
+/** Newest still-open Case whose input_refs name this variant, if any. Lets the
+ *  cycle reuse one envelope per variant-situation across runs, and lets an
+ *  Object View show "this item has an open case". */
+export async function fetchOpenCaseForVariant(hotelId: string, variantId: string): Promise<CaseRow | null> {
+  const { data, error } = await supabase
+    .from('cases')
+    .select('*')
+    .eq('hotel_id', hotelId)
+    .in('status', ['open', 'in_review'])
+    .contains('input_refs', [{ kind: 'variant', ref: variantId }])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .overrideTypes<CaseRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data[0] ?? null
 }
 
 export async function fetchCasesForProposal(proposalId: string): Promise<CaseRow[]> {

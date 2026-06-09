@@ -25,6 +25,7 @@ import { useProducts } from '@/features/inventory/hooks'
 import { makeSupabaseGraphReader } from './graphReader'
 import { HeuristicLLMClient } from './heuristicLLM'
 import { createProposal, decideProposal } from './proposalsApi'
+import { attachProposalToCase, caseTitleFor, createCase, fetchOpenCaseForVariant } from '@/features/cases/api'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
 import { useOrgPolicy } from '@/features/mind/policy'
@@ -77,6 +78,11 @@ export function useRestockCycle() {
       const maxVariants    = orgPolicy?.caps.max_variants_per_cycle
       const agentOverrides = orgPolicy?.auto_execution.agent_overrides
 
+      // One case per variant-situation, reused within the run (an agent can
+      // emit TRANSFER + RESTOCK for one variant a few ms apart, faster than a
+      // DB read-after-write sees the first case).
+      const caseByVariant = new Map<string, string>()
+
       const result = await runIntelligenceCycle({
         variants,
         constraints,
@@ -108,6 +114,26 @@ export function useRestockCycle() {
         },
         markApproved: async (proposalId) => {
           await decideProposal({ proposalId, status: 'approved', decidedByUserId: userId })
+        },
+        openCase: async (variant, proposalId, action) => {
+          let caseId = caseByVariant.get(variant.id)
+          if (!caseId) {
+            const existing = await fetchOpenCaseForVariant(hotelId, variant.id)
+            caseId = existing?.id
+          }
+          if (caseId) {
+            caseByVariant.set(variant.id, caseId)
+            await attachProposalToCase(caseId, proposalId)
+            return
+          }
+          const created = await createCase({
+            hotelId,
+            title:       caseTitleFor(action.type, variant.name),
+            inputRefs:   [{ kind: 'variant', ref: variant.id }, { kind: 'agent_run', ref: meta.name }],
+            proposalIds: [proposalId],
+            openedByUserId: userId,
+          })
+          caseByVariant.set(variant.id, created.id)
         },
       })
 

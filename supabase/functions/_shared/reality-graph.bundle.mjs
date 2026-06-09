@@ -557,6 +557,18 @@ function validateAction(action) {
   return { valid: errors.length === 0, errors };
 }
 
+// packages/reality-graph/src/actions/actor.ts
+var SYSTEM_ACTOR = "00000000-0000-0000-0000-000000000000";
+function isSystemActor(id) {
+  return !id || id === SYSTEM_ACTOR;
+}
+function resolveActor(ctxActor, embedded) {
+  for (const id of [ctxActor, embedded]) {
+    if (!isSystemActor(id)) return id;
+  }
+  return null;
+}
+
 // packages/reality-graph/src/actions/descriptors.ts
 var actionDescriptors = {
   // ── Restock lifecycle ─────────────────────────────────────────────────────
@@ -17305,6 +17317,12 @@ async function runIntelligenceCycle(deps) {
           });
           continue;
         }
+        if (deps.openCase) {
+          try {
+            await deps.openCase(variant, proposalId, proposal.action);
+          } catch {
+          }
+        }
         queued++;
         items.push({
           variantId: variant.id,
@@ -17670,6 +17688,7 @@ export {
   NodeSetBuilder,
   OVERSTOCK_REBALANCER_TASK_PROMPT,
   RESTOCK_ADVISOR_TASK_PROMPT,
+  SYSTEM_ACTOR,
   StubLLMClient,
   WASTE_TRIAGE_TASK_PROMPT,
   actionDescriptors,
@@ -17728,6 +17747,7 @@ export {
   isOk,
   isOverdue,
   isStale,
+  isSystemActor,
   leadTimeLabel,
   leadTimeSourceLabel,
   linkedIds,
@@ -17775,6 +17795,7 @@ export {
   registerTool,
   remainingQty,
   requestClarificationTool,
+  resolveActor,
   estimatedCost as restockEstimatedCost,
   extractSupplierBlock as restockExtractSupplierBlock,
   extractVariantBlock as restockExtractVariantBlock,
