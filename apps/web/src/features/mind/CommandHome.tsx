@@ -10,46 +10,17 @@ import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { usePendingProposals, bandByConfidence } from '@/features/agents/useReviewQueue'
-import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
-import { useCases } from '@/features/cases/hooks'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
 import { useAgentRunSummaries, useCurrentAgentReleases, highestStageFor } from '@/features/agentStudio/hooks'
 import { useRestockCycle, type CycleResult } from '@/features/agents/useRestockCycle'
+import { AipDecisionSummary, useAipDecisionCards } from './AipDecisionSummary'
 import type { AipTab } from './AIPShell'
 
 export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
   const queue     = usePendingProposals()
-  const approvals = usePendingApprovals()
-  const cases     = useCases('open')
-
   const proposals = useMemo(() => queue.data ?? [], [queue.data])
-  const bands = useMemo(() => bandByConfidence(proposals), [proposals])
-
-  const decisionCards: {
-    tab: AipTab; label: string; icon: IconName; count: number; sub: string; intent: Intent
-  }[] = [
-    {
-      tab: 'queue', label: 'Review Queue', icon: 'predictive-analysis',
-      count: proposals.length,
-      sub: proposals.length === 0 ? 'No pending proposals'
-        : `${String(bands.red.length)} red · ${String(bands.yellow.length)} yellow · ${String(bands.green.length)} green`,
-      intent: bands.red.length > 0 ? Intent.DANGER : proposals.length > 0 ? Intent.PRIMARY : Intent.NONE,
-    },
-    {
-      tab: 'approvals', label: 'Pending Approvals', icon: 'warning-sign',
-      count: approvals.data?.length ?? 0,
-      sub: (approvals.data?.length ?? 0) === 0 ? 'Nothing awaiting sign-off' : 'Awaiting your approval',
-      intent: (approvals.data?.length ?? 0) > 0 ? Intent.WARNING : Intent.NONE,
-    },
-    {
-      tab: 'cases', label: 'Open Cases', icon: 'folder-open',
-      count: cases.data?.length ?? 0,
-      sub: (cases.data?.length ?? 0) === 0 ? 'No open investigations' : 'In progress',
-      intent: (cases.data?.length ?? 0) > 0 ? Intent.PRIMARY : Intent.NONE,
-    },
-  ]
-
-  const totalOpen = decisionCards.reduce((s, c) => s + c.count, 0)
+  const bands     = useMemo(() => bandByConfidence(proposals), [proposals])
+  const { totalOpen } = useAipDecisionCards()
 
   const cycle = useRestockCycle()
   const runCycle = () => {
@@ -86,32 +57,8 @@ export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void 
 
         {cycle.data && <CycleSummary result={cycle.data} onNavigate={onNavigate} />}
 
-        {/* What needs you now */}
-        <section className="space-y-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Needs you now</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {decisionCards.map((c) => (
-              <button
-                key={c.tab}
-                type="button"
-                onClick={() => { onNavigate(c.tab) }}
-                className={cn(
-                  'text-left rounded-md border p-4 transition-all hover:border-muted-foreground/40 hover:bg-muted/40',
-                  c.count > 0 && c.intent === Intent.DANGER  && 'border-l-2 border-l-red-500',
-                  c.count > 0 && c.intent === Intent.WARNING && 'border-l-2 border-l-amber-400',
-                  c.count > 0 && c.intent === Intent.PRIMARY && 'border-l-2 border-l-primary',
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <Icon icon={c.icon} size={14} className="text-muted-foreground" />
-                  <span className="text-xs font-medium">{c.label}</span>
-                </div>
-                <p className="text-2xl font-bold tabular-nums mt-1">{c.count}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">{c.sub}</p>
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* What needs you now — shared with Canvas (AipDecisionSummary) */}
+        <AipDecisionSummary onNavigate={onNavigate} />
 
         {/* Top of the queue — the highest-leverage open decisions */}
         {proposals.length > 0 && (
