@@ -27,6 +27,7 @@ import { ProposalQualitySection } from '@/features/briefing/components/ProposalQ
 import { OccupancyInsightSection } from '@/features/briefing/components/OccupancyInsightSection'
 import { ShiftActivity } from '@/features/briefing/components/ShiftActivity'
 import { HotelMap } from '@/features/canvas/HotelMap'
+import { AipDecisionSummary } from '@/features/mind/AipDecisionSummary'
 
 export default function BriefingPage() {
   const [windowHours, setWindowHours] = useState<8 | 12 | 24 | 48>(8)
@@ -107,6 +108,9 @@ export default function BriefingPage() {
       {/* Scrollable body */}
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-2xl mx-auto px-6 py-6 space-y-6">
+          {/* Owner cockpit: the single "what the autonomous loop left for me"
+              glance. Canvas is the one home; this deep-links into Mind. */}
+          {isAdminOrOwner && <AipDecisionSummary />}
           {isAdminOrOwner && <GetStartedBanner />}
           <SituationBanner />
           <SituationTimeline />
