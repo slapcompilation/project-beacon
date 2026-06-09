@@ -8,7 +8,7 @@
 // Empty state explains what was scanned and when the next agent run is so the
 // page is never a silent dead-end.
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Button, Card, Icon, Intent, NonIdealState,
@@ -25,12 +25,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { decideProposal } from '@/features/agents/proposalsApi'
 import { toast } from 'sonner'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
+import { TeachRuleDialog, actionQuantity } from '@/features/agents/TeachRuleDialog'
 import {
   bandByConfidence,
   reviewQueueKeys,
   usePendingProposals,
   useApproveProposalFromQueue,
   useRejectProposalFromQueue,
+  useRejectManyFromQueue,
   useUniqueFilters,
 } from '@/features/agents/useReviewQueue'
 
@@ -38,12 +40,16 @@ type Band = 'all' | 'red' | 'yellow' | 'green'
 
 export default function ReviewQueuePage() {
   const { data: rows = [], isLoading, isError, refetch, isFetching, dataUpdatedAt } = usePendingProposals()
-  const approve = useApproveProposalFromQueue()
-  const reject  = useRejectProposalFromQueue()
+  const approve    = useApproveProposalFromQueue()
+  const reject     = useRejectProposalFromQueue()
+  const rejectMany = useRejectManyFromQueue()
 
   const [band, setBand]               = useState<Band>('all')
   const [agentFilter, setAgentFilter] = useState<string | null>(null)
   const [typeFilter, setTypeFilter]   = useState<string | null>(null)
+  const [armBulk, setArmBulk]         = useState(false)
+  // The "confirm" arming is set-specific — drop it whenever the filter changes.
+  useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter])
 
   const { agentNames, actionTypes } = useUniqueFilters(rows)
   const bands = useMemo(() => bandByConfidence(rows), [rows])
@@ -141,6 +147,23 @@ export default function ReviewQueuePage() {
               onChange={setTypeFilter}
             />
           )}
+
+          {filtered.length > 1 && (
+            <Button
+              size="small"
+              variant="minimal"
+              intent={Intent.DANGER}
+              icon="trash"
+              className="ml-auto"
+              loading={rejectMany.isPending}
+              onClick={() => {
+                if (!armBulk) { setArmBulk(true); return }
+                rejectMany.mutate(filtered.map((r) => r.id), { onSettled: () => { setArmBulk(false) } })
+              }}
+            >
+              {armBulk ? `Confirm — reject ${String(filtered.length)}` : `Reject ${String(filtered.length)} filtered`}
+            </Button>
+          )}
         </div>
       )}
 
@@ -188,7 +211,8 @@ function QueueRow({
   const hotelId  = useActiveHotelId()
   const userId   = useAuthStore((s) => s.userId)
   const qc       = useQueryClient()
-  const [editOpen, setEditOpen] = useState(false)
+  const [editOpen, setEditOpen]   = useState(false)
+  const [teachOpen, setTeachOpen] = useState(false)
   const action   = row.action_payload as unknown as BeaconAction
   const supported = isApprovalSupported(action)
   const variantId = extractVariantId(action)
@@ -279,6 +303,15 @@ function QueueRow({
           </Button>
         )}
         <Button
+          variant="minimal"
+          icon="learning"
+          disabled={busy}
+          title="Turn this into a Principle or Constraint the agents respect"
+          onClick={() => { setTeachOpen(true) }}
+        >
+          Teach a rule
+        </Button>
+        <Button
           intent={Intent.DANGER}
           variant="minimal"
           icon="cross"
@@ -318,6 +351,16 @@ function QueueRow({
           }}
         />
       )}
+
+      <TeachRuleDialog
+        open={teachOpen}
+        onClose={() => { setTeachOpen(false) }}
+        context={{
+          actionType: action.type,
+          agentName:  row.agent_name,
+          quantity:   actionQuantity(action as { quantityNeeded?: number; quantity?: number }),
+        }}
+      />
     </Card>
   )
 }
