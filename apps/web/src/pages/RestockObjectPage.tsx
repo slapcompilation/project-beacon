@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils'
 import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
+import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { hasPermission } from '@beacon/types'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -379,7 +380,7 @@ export default function RestockObjectPage() {
   const navigate      = useNavigate()
   const currency      = useCurrency()
   const role          = useAuthStore((s) => s.role ?? 'limited_access')
-  useActiveHotelId()
+  const hotelId       = useActiveHotelId()
 
   const { data: req,      isLoading: loadingReq  } = useQuery({
     queryKey: ['restock-object', restockId],
@@ -560,6 +561,16 @@ export default function RestockObjectPage() {
             Receive stock for this request
           </Button>
         )}
+
+        {/* Agent activity — why this item is moving + the case wrapping it */}
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Agent Activity</h2>
+          <ObjectAgentActivity
+            variantId={req.variant_id}
+            hotelId={hotelId ?? undefined}
+            emptyHint="No agent decisions on this item. This request may have been created manually."
+          />
+        </div>
 
         {/* Linked PO */}
         {linkedPoId && (
