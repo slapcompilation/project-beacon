@@ -27,6 +27,7 @@ import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
+import { fetchOpenCaseForVariant } from '@/features/cases/api'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
@@ -244,7 +245,7 @@ export default function VariantObjectPage() {
   const [adviceOpen, setAdviceOpen] = useState(false)
   const [wasteOpen, setWasteOpen]   = useState(false)
   const [overstockOpen, setOverstockOpen] = useState(false)
-  useActiveHotelId() // ensures hotel context is ready for RLS
+  const hotelId = useActiveHotelId() // also gates the open-case lookup below
 
   // Queue → Refine deep-link: /variant/<id>?refine=<proposalId> auto-opens the
   // restock_advisor slide-over with the parent proposal pre-loaded for inline
@@ -286,6 +287,13 @@ export default function VariantObjectPage() {
     queryKey:  ['variant-proposals', variantId],
     queryFn:   () => fetchVariantProposals(variantId),
     enabled:   !!variantId,
+    staleTime: 30_000,
+  })
+
+  const { data: openCase } = useQuery({
+    queryKey:  ['variant-open-case', variantId, hotelId],
+    queryFn:   () => fetchOpenCaseForVariant(hotelId ?? '', variantId),
+    enabled:   !!variantId && !!hotelId,
     staleTime: 30_000,
   })
 
@@ -509,9 +517,20 @@ export default function VariantObjectPage() {
                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Recent Agent Decisions ({proposals.length})
                 </span>
-                <Link to="/mind?aip=queue" className="text-xs text-primary hover:underline">
-                  Review queue →
-                </Link>
+                <div className="flex items-center gap-3">
+                  {openCase && (
+                    <Link
+                      to={`/cases/${openCase.id}`}
+                      className="text-xs text-violet-500 hover:underline inline-flex items-center gap-1"
+                      title={openCase.title}
+                    >
+                      <Icon icon="folder-open" size={11} /> Open case →
+                    </Link>
+                  )}
+                  <Link to="/mind?aip=queue" className="text-xs text-primary hover:underline">
+                    Review queue →
+                  </Link>
+                </div>
               </div>
               {proposals.length === 0 ? (
                 <div className="px-3 py-3 text-xs text-muted-foreground">

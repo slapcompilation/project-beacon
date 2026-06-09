@@ -138,6 +138,24 @@ describe('runIntelligenceCycle', () => {
     expect(result.scanned).toBe(2)
   })
 
+  it('opens a case for a queued proposal but not an auto-executed one', async () => {
+    const queuedCase = vi.fn(() => Promise.resolve())
+    await runIntelligenceCycle({ ...makeDeps({ proposals: [proposal(0.7)] }), openCase: queuedCase })
+    expect(queuedCase).toHaveBeenCalledTimes(1)
+    expect(queuedCase).toHaveBeenCalledWith(VAR_A, 'p1', expect.objectContaining({ type: 'REQUEST_RESTOCK' }))
+
+    const autoCase = vi.fn(() => Promise.resolve())
+    await runIntelligenceCycle({ ...makeDeps({ proposals: [proposal(0.95)] }), openCase: autoCase })
+    expect(autoCase).not.toHaveBeenCalled()
+  })
+
+  it('a failing openCase never drops the queued proposal', async () => {
+    const openCase = vi.fn(() => Promise.reject(new Error('case write boom')))
+    const result = await runIntelligenceCycle({ ...makeDeps({ proposals: [proposal(0.7)] }), openCase })
+    expect(result).toMatchObject({ proposed: 1, queued: 1 })
+    expect(result.items[0].outcome).toBe('queued')
+  })
+
   it('stamps ranAt from the injected clock', async () => {
     const deps = makeDeps({ now: () => new Date('2026-01-02T03:04:05Z') })
     const result = await runIntelligenceCycle(deps)

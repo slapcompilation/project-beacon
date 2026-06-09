@@ -30,6 +30,17 @@ import { makeServiceRoleGraphReader } from './reader.ts'
 // (created_by_user_id / requestor_id are NULL for system-authored rows).
 const SYSTEM_ACTOR = '00000000-0000-0000-0000-000000000000'
 
+// Mirror of caseTitleFor in apps/web/src/features/cases/api.ts (the web bundle
+// can't be imported here). Keep the two in sync.
+function caseTitle(actionType: string, variantName: string): string {
+  switch (actionType) {
+    case 'REQUEST_RESTOCK': return `${variantName} — restock review`
+    case 'TRANSFER_STOCK':  return `${variantName} — rebalance review`
+    case 'WRITE_OFF':       return `${variantName} — waste review`
+    default:                return `${variantName} — review`
+  }
+}
+
 // Deterministic LLM: scripts the two extract blocks against the known variant;
 // the reason+propose block never calls the LLM. Mirrors apps/web HeuristicLLMClient.
 function makeDeterministicLLM(variant: { id: string; name: string }) {
@@ -213,6 +224,13 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
 
   const reader = makeServiceRoleGraphReader(supabase, hotel.id)
 
+  // Cache cases opened within this run. An agent can emit two proposals for one
+  // variant (e.g. TRANSFER + RESTOCK) microseconds apart; a DB select won't yet
+  // see the case inserted on the previous pooled connection, so it would create
+  // a duplicate. The in-run map serializes that; the DB select below still
+  // dedupes across runs.
+  const caseByVariant = new Map<string, string>()
+
   return await runIntelligenceCycle({
     variants,
     constraints,
@@ -266,6 +284,44 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
         .from('proposals')
         .update({ status: 'approved', decided_at: new Date().toISOString() })
         .eq('id', proposalId)
+    },
+    // Queued proposals get a Case home (system-authored — opened_by_user_id
+    // NULL, migration 162). Reuse one open case per variant-situation across
+    // runs. Service role bypasses RLS; raw read-modify-write keeps it self
+    // contained (no RPC dependency).
+    openCase: async (variant: { id: string; name: string }, proposalId: string, action: { type: string }) => {
+      let caseId = caseByVariant.get(variant.id)
+      if (!caseId) {
+        const { data: existing } = await supabase
+          .from('cases')
+          .select('id')
+          .eq('hotel_id', hotel.id)
+          .in('status', ['open', 'in_review'])
+          .contains('input_refs', [{ kind: 'variant', ref: variant.id }])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        caseId = existing?.id as string | undefined
+      }
+      if (caseId) {
+        caseByVariant.set(variant.id, caseId)
+        const { data } = await supabase.from('cases').select('proposal_ids').eq('id', caseId).maybeSingle()
+        const ids = (data?.proposal_ids as string[] | null) ?? []
+        if (!ids.includes(proposalId)) {
+          await supabase.from('cases').update({ proposal_ids: [...ids, proposalId] }).eq('id', caseId)
+        }
+        return
+      }
+      const { data: created } = await supabase.from('cases').insert({
+        hotel_id:        hotel.id,
+        organization_id: hotel.organization_id,
+        title:           caseTitle(action.type, variant.name),
+        status:          'open',
+        input_refs:      [{ kind: 'variant', ref: variant.id }, { kind: 'agent_run', ref: opts.agentName }],
+        proposal_ids:    [proposalId],
+        opened_by_user_id: null,
+      }).select('id').single()
+      if (created) caseByVariant.set(variant.id, created.id as string)
     },
   })
 }

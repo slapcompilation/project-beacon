@@ -54,6 +54,12 @@ export interface IntelligenceCycleDeps {
   dispatch: (action: BeaconAction) => Promise<boolean>
   /** Mark a persisted proposal approved after its action dispatched. */
   markApproved: (proposalId: string) => Promise<void>
+  /** Group a *queued* proposal under a Case envelope (open or reuse one per
+   *  variant-situation) so the operator decision has a home: trigger →
+   *  proposals → outcome. Not called for auto-executed actions — those are
+   *  audited via StockLog, not Cases. Best-effort; a failure never drops the
+   *  proposal. */
+  openCase?: (variant: CycleVariant, proposalId: string, action: BeaconAction) => Promise<void>
   /** Per-action-type confidence floors. Defaults to the conservative V1 policy. */
   policy?: AutoExecutionPolicy
   /** The agent producing the proposals. When set together with `releases`,
@@ -122,6 +128,10 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           continue
         }
 
+        // Queued for the operator → give the decision a Case home. Best-effort.
+        if (deps.openCase) {
+          try { await deps.openCase(variant, proposalId, proposal.action) } catch { /* non-fatal */ }
+        }
         queued++
         items.push({
           variantId: variant.id,
