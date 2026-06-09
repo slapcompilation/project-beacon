@@ -111,6 +111,31 @@ export function useRejectProposalFromQueue() {
   })
 }
 
+/** Bulk reject — clears a filtered batch in one action so the queue can't pile
+ *  up into noise. Stops on the first failure but reports how many cleared. */
+export function useRejectManyFromQueue() {
+  const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
+  const qc      = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (proposalIds: string[]) => {
+      if (!userId) throw new Error('Not signed in')
+      let done = 0
+      for (const id of proposalIds) {
+        await rejectProposal({ proposalId: id, decidedByUserId: userId })
+        done++
+      }
+      return done
+    },
+    onSuccess: (count) => {
+      toast.success(`${String(count)} proposal${count === 1 ? '' : 's'} rejected`)
+      void qc.invalidateQueries({ queryKey: reviewQueueKeys.pending(hotelId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
 function extractResultId(data: unknown): string | undefined {
   if (typeof data !== 'object' || data === null) return undefined
   const d = data as Record<string, unknown>
