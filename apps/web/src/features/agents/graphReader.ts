@@ -24,11 +24,11 @@ interface VariantQueryRow {
   // via the embedded join (product_variants has no hotel_id column).
   low_stock_threshold: number | null
   default_supplier_id: string | null
-  products: { hotel_id: string } | { hotel_id: string }[] | null
+  products: { hotel_id: string; shelf_life_days?: number | null } | { hotel_id: string; shelf_life_days?: number | null }[] | null
 }
 
 const VARIANT_SELECT =
-  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name)'
+  'id, name, current_stock, low_stock_threshold, default_supplier_id, products!inner(hotel_id, name, shelf_life_days)'
 
 interface RestockRequestQueryRow {
   id: string
@@ -220,6 +220,7 @@ function toVariantRow(row: VariantQueryRow): VariantRow {
     current_stock: row.current_stock,
     par_level: row.low_stock_threshold,
     preferred_supplier_id: row.default_supplier_id,
+    shelf_life_days: product?.shelf_life_days ?? null,
   }
 }
 

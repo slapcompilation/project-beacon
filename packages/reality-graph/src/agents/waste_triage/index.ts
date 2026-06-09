@@ -102,13 +102,18 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
       )
       const principles = selectApplicablePrinciples(allPrinciples, variant.variantId)
 
+      // Spoilage window = the product's shelf life when known; else a 7-day
+      // default. Clamped to the block's 1..60 bound.
+      const shelfLife = variantRow.shelf_life_days
+      const safeWindowDays = shelfLife != null ? Math.min(60, Math.max(1, shelfLife)) : 7
+
       const result = await runner.runBlock(proposeWasteActionsBlock, {
         variantId:           variant.variantId,
         variantName:         variant.variantName,
         hotelId:             input.scope.hotelId,
         userId:              input.userId,
         currentStock:        variantRow.current_stock,
-        safeWindowDays:      7,
+        safeWindowDays,
         confidenceThreshold: 0.6,
         principles,
       })

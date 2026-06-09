@@ -16527,13 +16527,15 @@ function buildWasteTriageAgent(deps) {
         input.scope.organizationId
       );
       const principles = selectApplicablePrinciples(allPrinciples, variant.variantId);
+      const shelfLife = variantRow.shelf_life_days;
+      const safeWindowDays = shelfLife != null ? Math.min(60, Math.max(1, shelfLife)) : 7;
       const result = await runner.runBlock(proposeWasteActionsBlock, {
         variantId: variant.variantId,
         variantName: variant.variantName,
         hotelId: input.scope.hotelId,
         userId: input.userId,
         currentStock: variantRow.current_stock,
-        safeWindowDays: 7,
+        safeWindowDays,
         confidenceThreshold: 0.6,
         principles
       });

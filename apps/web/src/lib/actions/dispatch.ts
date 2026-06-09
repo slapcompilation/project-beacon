@@ -20,6 +20,7 @@ import {
   validationFailed,
   constraintRejected,
   mapPostgrestError,
+  resolveActor,
 } from '@beacon/reality-graph'
 import { fetchActiveConstraints, rowToConstraintRecord } from '@/features/constraints/api'
 import type {
@@ -208,9 +209,14 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       // ── Restock lifecycle ─────────────────────────────────────────────────
 
       case 'REQUEST_RESTOCK': {
+        // The requestor is whoever dispatches this — the approving operator for
+        // an agent proposal, or the operator themselves for a manual restock.
+        // Never the agent's SYSTEM_ACTOR sentinel (not a real users row).
+        const requestor = resolveActor(ctx.actorId, action.requestorId)
+        if (!requestor) throw new Error('REQUEST_RESTOCK requires a real requestor (no actorId in context)')
         const req = await createRestockRequest(
           action.hotelId,
-          action.requestorId,
+          requestor,
           action.variantId,
           action.quantityNeeded,
           action.supplier,

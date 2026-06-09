@@ -9,6 +9,8 @@ export type {
 
 export { validateAction } from './criteria'
 
+export { SYSTEM_ACTOR, isSystemActor, resolveActor } from './actor'
+
 export type {
   ActionField,
   ActionFieldKind,
