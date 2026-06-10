@@ -40,28 +40,33 @@ export type AipTab =
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
-// Rail organized by the AIP decision loop, not by artifact type.
-const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
-  { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              group: 'Observe' },
-  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', group: 'Act' },
-  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        group: 'Act' },
-  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         group: 'Act' },
+// Two intents, not one interleaved loop: Decisions is the daily operator inbox;
+// Studio is where you build/configure the fabric (touched far less often). The
+// `group` is a light sub-header inside Studio.
+type Section = 'Decisions' | 'Studio'
+const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string }[] = [
+  // Decisions — the daily driver
+  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '' },
+  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '' },
+  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '' },
+  { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              section: 'Decisions', group: '' },
 
-  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', group: 'Observe' },
-  { id: 'system-map',   label: 'System Map',        icon: 'graph',               group: 'Observe' },
+  // Studio — build & configure the fabric
+  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute' },
+  { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute' },
+  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute' },
+  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute' },
 
-  { id: 'documents',    label: 'Documents',         icon: 'document',            group: 'Know' },
-  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     group: 'Know' },
-  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            group: 'Know' },
-  { id: 'principles',   label: 'Principles',        icon: 'learning',            group: 'Know' },
-  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              group: 'Know' },
+  { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge' },
+  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge' },
+  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', group: 'Knowledge' },
+  { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', group: 'Knowledge' },
+  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', group: 'Knowledge' },
 
-  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            group: 'Shape' },
-  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             group: 'Shape' },
-  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            group: 'Shape' },
-  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                group: 'Shape' },
-  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                group: 'Shape' },
-  { id: 'policy',       label: 'Policy',            icon: 'cog',                 group: 'Shape' },
+  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy' },
+  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy' },
+  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy' },
+  { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', group: 'Sandbox & policy' },
 ]
 
 export function isAipTab(v: string | null | undefined): v is AipTab {
@@ -75,8 +80,8 @@ export default function AIPShell({
   tab: AipTab
   onTabChange: (t: AipTab) => void
 }) {
-  const counts = useAipCounts()
-  const groups = groupTabs(TABS)
+  const counts   = useAipCounts()
+  const sections = sectionize(TABS)
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -102,36 +107,45 @@ export default function AIPShell({
             )}
           </button>
 
-          {groups.map((g) => (
-            <div key={g.label} className="mb-2">
-              <p className="px-4 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                {g.label}
+          {sections.map((sec) => (
+            <div key={sec.section} className="mb-3">
+              <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
+                {sec.section}
               </p>
-              {g.tabs.map((t) => {
-                const active = t.id === tab
-                const badge  = counts[t.id]
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => { onTabChange(t.id) }}
-                    className={cn(
-                      'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',
-                      active
-                        ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
-                        : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
-                    )}
-                  >
-                    <Icon icon={t.icon} size={12} />
-                    <span className="flex-1 truncate">{t.label}</span>
-                    {badge != null && badge > 0 && (
-                      <Tag minimal intent={badgeIntent(t.id)} className="!text-[10px] !min-h-0 !py-0">
-                        {badge > 99 ? '99+' : String(badge)}
-                      </Tag>
-                    )}
-                  </button>
-                )
-              })}
+              {sec.groups.map((g) => (
+                <div key={g.label || sec.section} className="mb-1">
+                  {g.label && (
+                    <p className="px-4 pt-1.5 pb-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">
+                      {g.label}
+                    </p>
+                  )}
+                  {g.tabs.map((t) => {
+                    const active = t.id === tab
+                    const badge  = counts[t.id]
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => { onTabChange(t.id) }}
+                        className={cn(
+                          'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',
+                          active
+                            ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
+                            : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
+                        )}
+                      >
+                        <Icon icon={t.icon} size={12} />
+                        <span className="flex-1 truncate">{t.label}</span>
+                        {badge != null && badge > 0 && (
+                          <Tag minimal intent={badgeIntent(t.id)} className="!text-[10px] !min-h-0 !py-0">
+                            {badge > 99 ? '99+' : String(badge)}
+                          </Tag>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           ))}
         </nav>
@@ -190,6 +204,14 @@ function groupTabs(tabs: typeof TABS) {
     bucket.push(t)
   }
   return order.map((label) => ({ label, tabs: map.get(label) ?? [] }))
+}
+
+function sectionize(tabs: typeof TABS) {
+  const order: Section[] = ['Decisions', 'Studio']
+  return order.map((section) => ({
+    section,
+    groups: groupTabs(tabs.filter((t) => t.section === section)),
+  }))
 }
 
 function badgeIntent(t: AipTab): Intent {
