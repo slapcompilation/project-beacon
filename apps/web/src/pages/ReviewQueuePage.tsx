@@ -25,7 +25,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { decideProposal } from '@/features/agents/proposalsApi'
 import { toast } from 'sonner'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
-import { TeachRuleDialog, actionQuantity } from '@/features/agents/TeachRuleDialog'
+import { TeachRuleDialog, actionQuantity, type TeachRuleContext } from '@/features/agents/TeachRuleDialog'
 import {
   bandByConfidence,
   reviewQueueKeys,
@@ -48,8 +48,15 @@ export default function ReviewQueuePage() {
   const [agentFilter, setAgentFilter] = useState<string | null>(null)
   const [typeFilter, setTypeFilter]   = useState<string | null>(null)
   const [armBulk, setArmBulk]         = useState(false)
+  // O2: a rejection is a teaching moment. The dialog lives at the page level so
+  // it survives the row unmounting when the queue refreshes after the reject.
+  const [teachCtx, setTeachCtx]       = useState<TeachRuleContext | null>(null)
   // The "confirm" arming is set-specific — drop it whenever the filter changes.
   useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter])
+
+  const handleReject = (row: ProposalRow) => {
+    reject.mutate(row.id, { onSuccess: () => { setTeachCtx(teachCtxFor(row)) } })
+  }
 
   const { agentNames, actionTypes } = useUniqueFilters(rows)
   const bands = useMemo(() => bandByConfidence(rows), [rows])
@@ -185,13 +192,30 @@ export default function ReviewQueuePage() {
               row={row}
               busy={approve.isPending || reject.isPending}
               onApprove={() => { approve.mutate(row) }}
-              onReject={() => { reject.mutate(row.id) }}
+              onReject={() => { handleReject(row) }}
+              onTeach={() => { setTeachCtx(teachCtxFor(row)) }}
             />
           ))
         )}
       </div>
+
+      {/* Page-level so it outlives the row that triggered it (O2). */}
+      <TeachRuleDialog
+        open={teachCtx !== null}
+        onClose={() => { setTeachCtx(null) }}
+        context={teachCtx ?? { actionType: '', agentName: '' }}
+      />
     </div>
   )
+}
+
+function teachCtxFor(row: ProposalRow): TeachRuleContext {
+  const action = row.action_payload as unknown as BeaconAction
+  return {
+    actionType: action.type,
+    agentName:  row.agent_name,
+    quantity:   actionQuantity(action as { quantityNeeded?: number; quantity?: number }),
+  }
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
@@ -201,19 +225,22 @@ function QueueRow({
   busy,
   onApprove,
   onReject,
+  onTeach,
 }: {
   row: ProposalRow
   busy: boolean
   onApprove: () => void
   onReject:  () => void
+  onTeach:   () => void
 }) {
   const navigate = useNavigate()
   const hotelId  = useActiveHotelId()
   const userId   = useAuthStore((s) => s.userId)
   const qc       = useQueryClient()
   const [editOpen, setEditOpen]   = useState(false)
-  const [teachOpen, setTeachOpen] = useState(false)
   const action   = row.action_payload as unknown as BeaconAction
+  const principles = row.provenance.filter((p) => p.kind === 'principle')
+  const otherProvenance = row.provenance.filter((p) => p.kind !== 'principle')
   const supported = isApprovalSupported(action)
   const variantId = extractVariantId(action)
   const descriptor = actionDescriptors[action.type]
@@ -259,13 +286,28 @@ function QueueRow({
         <p className="text-xs text-muted-foreground leading-relaxed">{row.reasoning}</p>
       </section>
 
-      {row.provenance.length > 0 && (
+      {/* O1 — make the operator feel the system learned from them. */}
+      {principles.length > 0 && (
+        <section className="rounded border border-violet-500/30 bg-violet-500/5 px-3 py-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-violet-500">
+            <Icon icon="learning" size={11} />
+            Followed your {principles.length === 1 ? 'principle' : 'principles'}
+          </div>
+          {principles.map((p, i) => (
+            <p key={`${p.ref}-${String(i)}`} className="text-xs text-foreground/90 mt-1 italic">
+              “{p.detail ?? p.ref}”
+            </p>
+          ))}
+        </section>
+      )}
+
+      {otherProvenance.length > 0 && (
         <section className="space-y-1">
           <h4 className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/60">
             Provenance
           </h4>
           <ul className="space-y-0.5">
-            {row.provenance.map((p, i) => (
+            {otherProvenance.map((p, i) => (
               <li key={`${p.ref}-${String(i)}`} className="flex items-baseline gap-1.5 text-xs text-muted-foreground">
                 <Icon icon={p.kind === 'tool' ? 'function' : 'document'} size={10} className="mt-0.5" />
                 <span className="font-mono">{p.ref}</span>
@@ -307,7 +349,7 @@ function QueueRow({
           icon="learning"
           disabled={busy}
           title="Turn this into a Principle or Constraint the agents respect"
-          onClick={() => { setTeachOpen(true) }}
+          onClick={onTeach}
         >
           Teach a rule
         </Button>
@@ -351,16 +393,6 @@ function QueueRow({
           }}
         />
       )}
-
-      <TeachRuleDialog
-        open={teachOpen}
-        onClose={() => { setTeachOpen(false) }}
-        context={{
-          actionType: action.type,
-          agentName:  row.agent_name,
-          quantity:   actionQuantity(action as { quantityNeeded?: number; quantity?: number }),
-        }}
-      />
     </Card>
   )
 }
