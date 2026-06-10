@@ -1,5 +1,15 @@
-// Documents index — every uploaded file with its source + ingestion stage.
-// OCR / chunk extraction land in Phase 16.b; for now every row is in 'raw'.
+// Documents index — every uploaded source with its ingestion stage. Uploads
+// store raw; a source becomes citable provenance as it moves raw → ocr →
+// embedded → contextualized → linked. Text sources can be linked today via
+// "Suggest entity links" on the document page; automated OCR is on the roadmap.
+
+const STAGES: { stage: IngestionStage; desc: string }[] = [
+  { stage: 'raw',            desc: 'Stored as uploaded — private, signed-URL access only.' },
+  { stage: 'ocr',            desc: 'Text extracted from scanned PDFs & images (text files are readable today; automated OCR is on the roadmap).' },
+  { stage: 'embedded',       desc: 'Chunks embedded for semantic search.' },
+  { stage: 'contextualized', desc: 'Each chunk summarized and tagged to the ontology.' },
+  { stage: 'linked',         desc: 'describes_entity & cited_in edges written — agents cite it by page.' },
+]
 
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
@@ -45,7 +55,7 @@ export default function DocumentsPage() {
             {rows.length > 0 && <Tag minimal>{String(rows.length)}</Tag>}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Source files for the ontology. Phase 16.a stores raw uploads; OCR + chunk extraction + cited_in edges arrive in Phase 16.b.
+            Source files for the ontology — contracts, invoices, specs. Stored privately; agents cite them by page once linked to entities.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -72,11 +82,44 @@ export default function DocumentsPage() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
         {rows.length === 0 ? (
-          <NonIdealState
-            icon={<Icon icon="document" size={32} className="text-muted-foreground/40" />}
-            title="No documents yet"
-            description="Upload a PDF, image, audio file, or text document above. Operators and agents will be able to cite it from page-level chunks once Phase 16.b lands."
-          />
+          <div className="mx-auto max-w-lg py-10 text-center">
+            <Icon icon="document" size={32} className="text-muted-foreground/40" />
+            <h2 className="text-sm font-semibold mt-3">No sources yet</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Upload a contract, invoice, or spec. From its page, run{' '}
+              <span className="font-medium text-foreground">Suggest entity links</span> to connect it to the
+              ontology, so agents can cite it by page in their reasoning.
+            </p>
+
+            <div className="mt-5 text-left rounded-md border bg-surface-1/30 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                How a source becomes provenance
+              </p>
+              <ol className="space-y-1.5">
+                {STAGES.map((s, i) => (
+                  <li key={s.stage} className="flex items-start gap-2 text-[11px]">
+                    <span className="mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <Tag minimal intent={stageIntent(s.stage)} className="!text-[10px] mr-1">{s.stage}</Tag>
+                      <span className="text-muted-foreground">{s.desc}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <Button
+              intent={Intent.PRIMARY}
+              icon="upload"
+              className="mt-4"
+              loading={upload.isPending}
+              onClick={() => { fileRef.current?.click() }}
+            >
+              Upload a source
+            </Button>
+          </div>
         ) : (
           rows.map((row) => <DocumentRowCard key={row.id} row={row} />)
         )}
