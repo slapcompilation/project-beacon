@@ -1,7 +1,8 @@
-// AIP shell — the spine of the Mind module. A left-rail workspace organized
-// by the operator's decision loop (Act → Observe → Know → Shape), fronted by
-// a Command landing and backed by the demoted hospitality Operations panel.
-// Deep-linkable via ?aip=<tab>; legacy ?panel=<x> resolves to Operations.
+// AIP shell — the spine of the Mind module. A left-rail workspace split into
+// Decisions (the daily inbox: queue / approvals / cases / portfolio) and a
+// single Studio entry that opens a cards landing for the 13 builder surfaces,
+// so config you touch monthly doesn't crowd the daily queue. Fronted by a
+// Command landing. Deep-linkable via ?aip=<tab>.
 
 import { lazy, Suspense } from 'react'
 import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
@@ -36,15 +37,17 @@ const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage')
 export type AipTab =
   | 'command' | 'portfolio'
   | 'queue' | 'approvals' | 'cases'
+  | 'studio'
   | 'agents' | 'system-map'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
-// Two intents, not one interleaved loop: Decisions is the daily operator inbox;
-// Studio is where you build/configure the fabric (touched far less often). The
-// `group` is a light sub-header inside Studio.
+// Two intents, not one interleaved loop: Decisions is the daily operator inbox,
+// each a rail entry; Studio is where you build/configure the fabric (touched far
+// less often), collapsed behind one rail entry + a cards landing so 13 builder
+// surfaces don't crowd the daily ones. `desc` shows on the Studio landing cards.
 type Section = 'Decisions' | 'Studio'
-const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string }[] = [
+const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string }[] = [
   // Decisions — the daily driver
   { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '' },
   { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '' },
@@ -52,25 +55,32 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              section: 'Decisions', group: '' },
 
   // Studio — build & configure the fabric
-  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute' },
-  { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute' },
-  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute' },
-  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute' },
+  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
+  { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute', desc: 'How nodes, tools & actions connect' },
+  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
+  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
 
-  { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge' },
-  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge' },
-  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', group: 'Knowledge' },
-  { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', group: 'Knowledge' },
-  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', group: 'Knowledge' },
+  { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge', desc: 'Ingested sources with page provenance' },
+  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge', desc: 'Review suggested links to entities' },
+  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', group: 'Knowledge', desc: 'Curated Q&A served before the LLM' },
+  { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', group: 'Knowledge', desc: 'Soft NL guidance injected into agents' },
+  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', group: 'Knowledge', desc: 'Hard gates at action submission' },
 
-  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy' },
-  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy' },
-  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy' },
-  { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', group: 'Sandbox & policy' },
+  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy', desc: 'Explore graph overlays, uncommitted' },
+  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy', desc: 'Batch actions with a commit boundary' },
+  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy', desc: 'Tune the operator copilot' },
+  { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', group: 'Sandbox & policy', desc: 'Auto-execution thresholds & overrides' },
 ]
 
+const DECISIONS_TABS = TABS.filter((t) => t.section === 'Decisions')
+const STUDIO_TABS     = TABS.filter((t) => t.section === 'Studio')
+
+function isStudioTab(t: AipTab): boolean {
+  return STUDIO_TABS.some((s) => s.id === t)
+}
+
 export function isAipTab(v: string | null | undefined): v is AipTab {
-  return !!v && (v === 'command' || TABS.some((t) => t.id === v))
+  return !!v && (v === 'command' || v === 'studio' || TABS.some((t) => t.id === v))
 }
 
 export default function AIPShell({
@@ -80,8 +90,9 @@ export default function AIPShell({
   tab: AipTab
   onTabChange: (t: AipTab) => void
 }) {
-  const counts   = useAipCounts()
-  const sections = sectionize(TABS)
+  const counts       = useAipCounts()
+  const studioBadge  = STUDIO_TABS.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
+  const studioActive = tab === 'studio' || isStudioTab(tab)
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -107,51 +118,55 @@ export default function AIPShell({
             )}
           </button>
 
-          {sections.map((sec) => (
-            <div key={sec.section} className="mb-3">
-              <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
-                {sec.section}
-              </p>
-              {sec.groups.map((g) => (
-                <div key={g.label || sec.section} className="mb-1">
-                  {g.label && (
-                    <p className="px-4 pt-1.5 pb-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">
-                      {g.label}
-                    </p>
-                  )}
-                  {g.tabs.map((t) => {
-                    const active = t.id === tab
-                    const badge  = counts[t.id]
-                    return (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => { onTabChange(t.id) }}
-                        className={cn(
-                          'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',
-                          active
-                            ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
-                            : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
-                        )}
-                      >
-                        <Icon icon={t.icon} size={12} />
-                        <span className="flex-1 truncate">{t.label}</span>
-                        {badge != null && badge > 0 && (
-                          <Tag minimal intent={badgeIntent(t.id)} className="!text-[10px] !min-h-0 !py-0">
-                            {badge > 99 ? '99+' : String(badge)}
-                          </Tag>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
-          ))}
+          {/* Decisions — the daily inbox, each its own rail entry */}
+          <div className="mb-3">
+            <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
+              Decisions
+            </p>
+            {DECISIONS_TABS.map((t) => (
+              <RailButton
+                key={t.id}
+                icon={t.icon}
+                label={t.label}
+                active={t.id === tab}
+                badge={counts[t.id]}
+                badgeIntent={badgeIntent(t.id)}
+                onClick={() => { onTabChange(t.id) }}
+              />
+            ))}
+          </div>
+
+          {/* Studio — one entry into the builder landing */}
+          <div className="mb-3">
+            <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
+              Studio
+            </p>
+            <RailButton
+              icon="build"
+              label="Studio"
+              active={studioActive}
+              badge={studioBadge}
+              badgeIntent={Intent.NONE}
+              onClick={() => { onTabChange('studio') }}
+            />
+          </div>
         </nav>
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
+        {isStudioTab(tab) && (
+          <div className="flex items-center gap-1.5 px-4 py-2 border-b shrink-0 text-xs bg-surface-1/30">
+            <button
+              type="button"
+              onClick={() => { onTabChange('studio') }}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            >
+              <Icon icon="chevron-left" size={12} /> Studio
+            </button>
+            <Icon icon="chevron-right" size={10} className="text-muted-foreground/40" />
+            <span className="font-medium">{TABS.find((t) => t.id === tab)?.label ?? tab}</span>
+          </div>
+        )}
         <PanelErrorBoundary name={`Mind · ${tab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
             {renderTab(tab, onTabChange)}
@@ -172,6 +187,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
   switch (t) {
     case 'command':      return <CommandHome onNavigate={onNavigate} />
     case 'portfolio':    return <PortfolioCommandHome onNavigate={onNavigate} />
+    case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
@@ -206,12 +222,81 @@ function groupTabs(tabs: typeof TABS) {
   return order.map((label) => ({ label, tabs: map.get(label) ?? [] }))
 }
 
-function sectionize(tabs: typeof TABS) {
-  const order: Section[] = ['Decisions', 'Studio']
-  return order.map((section) => ({
-    section,
-    groups: groupTabs(tabs.filter((t) => t.section === section)),
-  }))
+function RailButton({
+  icon, label, active, badge, badgeIntent, onClick,
+}: {
+  icon: IconName
+  label: string
+  active: boolean
+  badge?: number
+  badgeIntent: Intent
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',
+        active
+          ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
+          : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
+      )}
+    >
+      <Icon icon={icon} size={12} />
+      <span className="flex-1 truncate">{label}</span>
+      {badge != null && badge > 0 && (
+        <Tag minimal intent={badgeIntent} className="!text-[10px] !min-h-0 !py-0">
+          {badge > 99 ? '99+' : String(badge)}
+        </Tag>
+      )}
+    </button>
+  )
+}
+
+// The Studio landing: cards for every builder surface, grouped, so the 13
+// infrequent tabs live one click in instead of crowding the daily rail.
+function StudioLanding({ onNavigate }: { onNavigate: (t: AipTab) => void }) {
+  const counts = useAipCounts()
+  const groups = groupTabs(STUDIO_TABS)
+  return (
+    <div className="flex-1 overflow-y-auto px-8 py-6">
+      <h1 className="text-lg font-semibold">Studio</h1>
+      <p className="text-sm text-muted-foreground mt-0.5 mb-5 max-w-2xl">
+        Build and configure the fabric — the agents, compute, knowledge, sandbox and
+        policy behind every decision. Touched far less often than the daily queue.
+      </p>
+      {groups.map((g) => (
+        <div key={g.label} className="mb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{g.label}</p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {g.tabs.map((t) => {
+              const badge = counts[t.id]
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => { onNavigate(t.id) }}
+                  className="text-left rounded-md border p-4 transition-all hover:border-muted-foreground/40 hover:bg-muted/40"
+                >
+                  <div className="flex items-center gap-2">
+                    <Icon icon={t.icon} size={14} className="text-muted-foreground" />
+                    <span className="text-sm font-medium">{t.label}</span>
+                    {badge != null && badge > 0 && (
+                      <Tag minimal intent={badgeIntent(t.id)} className="!text-[10px] ml-auto">
+                        {badge > 99 ? '99+' : String(badge)}
+                      </Tag>
+                    )}
+                  </div>
+                  {t.desc && <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t.desc}</p>}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function badgeIntent(t: AipTab): Intent {
