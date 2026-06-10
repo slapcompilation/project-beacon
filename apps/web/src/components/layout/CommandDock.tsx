@@ -125,7 +125,8 @@ export const CommandDock = memo(function CommandDock() {
       eye: actNow.filter((a) =>
         a.action_type === 'waste_spike_low_occupancy' || a.action_type === 'expiry_soon'
       ).length,
-      mind: actNow.filter((a) =>
+      // Procurement/finance concerns belong to Operations, not the AI tab.
+      ops: actNow.filter((a) =>
         a.action_type === 'invoice_discrepancy' ||
         a.action_type === 'supplier_risk' ||
         a.action_type === 'gl_unmapped'
@@ -154,7 +155,10 @@ export const CommandDock = memo(function CommandDock() {
           <DockLink to="/eye" label="Eye" icon="eye-open" color="text-amber-500" badge={badges.eye || undefined} />
         )}
         {isOwnerOrAdmin && (
-          <DockLink to="/mind" label="Mind" icon="lightbulb" color="text-purple-500" badge={badges.mind || undefined} />
+          <DockLink to="/operations" label="Ops" icon="shop" color="text-cyan-500" badge={badges.ops || undefined} />
+        )}
+        {isOwnerOrAdmin && (
+          <DockLink to="/mind" label="Mind" icon="lightbulb" color="text-purple-500" />
         )}
       </div>
 

@@ -18,7 +18,6 @@ import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { CommandHome } from './CommandHome'
 import { PortfolioCommandHome } from './PortfolioCommandHome'
 import { PolicyTab } from './PolicyTab'
-import { OperationsPanel } from './OperationsPanel'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
 const PendingApprovalsPage      = lazy(() => import('@/pages/PendingApprovalsPage'))
@@ -40,7 +39,6 @@ export type AipTab =
   | 'agents' | 'system-map'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
-  | 'operations'
 
 // Rail organized by the AIP decision loop, not by artifact type.
 const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
@@ -64,8 +62,6 @@ const TABS: { id: AipTab; label: string; icon: IconName; group: string }[] = [
   { id: 'action-chains', label: 'Action Chains',    icon: 'link',                group: 'Shape' },
   { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                group: 'Shape' },
   { id: 'policy',       label: 'Policy',            icon: 'cog',                 group: 'Shape' },
-
-  { id: 'operations',   label: 'Operations',        icon: 'shop',                group: 'Operations' },
 ]
 
 export function isAipTab(v: string | null | undefined): v is AipTab {
@@ -75,12 +71,9 @@ export function isAipTab(v: string | null | undefined): v is AipTab {
 export default function AIPShell({
   tab,
   onTabChange,
-  operationsInitialPanel,
 }: {
   tab: AipTab
   onTabChange: (t: AipTab) => void
-  /** Legacy ?panel= value forwarded to OperationsPanel for sub-tab seeding. */
-  operationsInitialPanel?: string
 }) {
   const counts = useAipCounts()
   const groups = groupTabs(TABS)
@@ -147,7 +140,7 @@ export default function AIPShell({
       <main className="flex-1 overflow-hidden flex flex-col">
         <PanelErrorBoundary name={`Mind · ${tab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(tab, onTabChange, operationsInitialPanel)}
+            {renderTab(tab, onTabChange)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
@@ -161,7 +154,7 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
   return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
 }
 
-function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsInitialPanel?: string) {
+function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
   switch (t) {
     case 'command':      return <CommandHome onNavigate={onNavigate} />
     case 'portfolio':    return <PortfolioCommandHome onNavigate={onNavigate} />
@@ -181,7 +174,6 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, operationsIniti
     case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />
     case 'policy':       return <PolicyTab />
-    case 'operations':   return <OperationsPanel initialPanel={operationsInitialPanel} />
   }
 }
 
