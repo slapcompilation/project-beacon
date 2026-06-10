@@ -277,7 +277,7 @@ function OpenPOPipeline({ currency }: { currency: string }) {
             size="small"
             intent={Intent.PRIMARY}
             endIcon="chevron-right"
-            onClick={() => { void navigate('/mind?panel=procurement') }}
+            onClick={() => { void navigate('/operations?panel=procurement') }}
           >
             All POs
           </Button>
@@ -322,7 +322,7 @@ function OpenPOPipeline({ currency }: { currency: string }) {
       })}
       {sorted.length > 5 && (
         <p className="px-4 py-2 text-xs text-muted-foreground">
-          +{sorted.length - 5} more → <button type="button" onClick={() => { void navigate('/mind?panel=procurement') }} className="text-primary hover:underline">Procurement tab</button>
+          +{sorted.length - 5} more → <button type="button" onClick={() => { void navigate('/operations?panel=procurement') }} className="text-primary hover:underline">Procurement tab</button>
         </p>
       )}
     </Card>
