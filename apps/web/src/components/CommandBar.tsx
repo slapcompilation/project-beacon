@@ -15,7 +15,7 @@ import { hasPermission } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 
-type NavGroup = 'Floor' | 'Flow' | 'Eye' | 'Mind'
+type NavGroup = 'Floor' | 'Flow' | 'Eye' | 'Mind' | 'Operations'
 
 interface NavItem {
   group: NavGroup
@@ -63,14 +63,14 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Mind',  icon: 'search-template',     label: 'Mind · Entity Link Suggestions', path: '/entity-link-suggestions', shortcut: 'G E' },
   { group: 'Mind',  icon: 'link',                label: 'Mind · Action Chains',       path: '/action-chains',       shortcut: 'G N' },
   { group: 'Mind',  icon: 'chat',                label: 'Mind · Copilot Config',      path: '/copilot-config',      shortcut: 'G O' },
-  { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Triage',      path: '/mind?panel=triage' },
-  { group: 'Mind',  icon: 'truck',           label: 'Mind · Suppliers',   path: '/mind?panel=suppliers' },
-  { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Builder',  path: '/mind?panel=procurement' },
-  { group: 'Mind',  icon: 'shopping-cart',   label: 'Mind · PO Dispatch', path: '/mind?panel=dispatch' },
-  { group: 'Mind',  icon: 'document',        label: 'Mind · Contracts',   path: '/mind?panel=contracts' },
-  { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · Finance',     path: '/mind?panel=finance' },
-  { group: 'Mind',  icon: 'lightbulb',       label: 'Mind · GL Export',   path: '/mind?panel=gl' },
-  { group: 'Mind',  icon: 'chart',           label: 'Mind · Strategy',    path: '/mind?panel=strategy' },
+  { group: 'Operations', icon: 'shop',           label: 'Operations · Triage',      path: '/operations?panel=triage' },
+  { group: 'Operations', icon: 'truck',          label: 'Operations · Suppliers',   path: '/operations?panel=suppliers' },
+  { group: 'Operations', icon: 'shopping-cart',  label: 'Operations · PO Builder',  path: '/operations?panel=procurement' },
+  { group: 'Operations', icon: 'shopping-cart',  label: 'Operations · PO Dispatch', path: '/operations?panel=dispatch' },
+  { group: 'Operations', icon: 'document',       label: 'Operations · Contracts',   path: '/operations?panel=contracts' },
+  { group: 'Operations', icon: 'bank-account',   label: 'Operations · Finance',     path: '/operations?panel=finance' },
+  { group: 'Operations', icon: 'th',             label: 'Operations · GL Export',   path: '/operations?panel=gl' },
+  { group: 'Operations', icon: 'chart',          label: 'Operations · Strategy',    path: '/operations?panel=strategy' },
   { group: 'Mind',  icon: 'time',            label: 'Event Planner',      path: '/events' },
   { group: 'Mind',  icon: 'people',          label: 'Team',               path: '/settings?section=team' },
   { group: 'Mind',  icon: 'cog',             label: 'Settings',           path: '/settings' },

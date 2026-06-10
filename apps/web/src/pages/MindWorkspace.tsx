@@ -1,15 +1,15 @@
 // Mind — the AIP module. The shell IS the AIP workspace (AIPShell): a
-// decision-loop rail fronted by a Command landing. Hospitality procurement /
-// finance / strategy is demoted to the "Operations" rail entry.
+// decision-loop rail fronted by a Command landing.
 //
-// URL: ?aip=<tab> drives the rail. Legacy ?panel=<x> deep links (procurement,
-// contracts, suppliers, …) resolve to the Operations tab, seeded to the right
-// sub-tab so old links from object pages + briefing actions keep working.
+// URL: ?aip=<tab> drives the rail. Hospitality procurement / finance / strategy
+// is now its own dock surface (/operations), so a legacy ?panel=<x> deep link
+// (procurement, contracts, suppliers, …) redirects there — old links from
+// object pages + briefing actions keep working.
 
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { NonIdealState } from '@blueprintjs/core'
 import { useAuthStore } from '@/stores/auth.store'
-import AIPShell, { isAipTab, type AipTab } from '@/features/mind/AIPShell'
+import AIPShell, { isAipTab } from '@/features/mind/AIPShell'
 
 export default function MindWorkspace() {
   const role = useAuthStore((s) => s.role ?? 'limited_access')
@@ -27,24 +27,16 @@ export default function MindWorkspace() {
   const aipParam   = params.get('aip')
   const panelParam = params.get('panel')
 
-  // Resolve the active rail tab. A legacy hospitality ?panel= (anything other
-  // than the old 'aip' top-level) lands on Operations with the value forwarded
-  // for sub-tab seeding.
-  let tab: AipTab
-  let operationsInitialPanel: string | undefined
-  if (isAipTab(aipParam)) {
-    tab = aipParam
-  } else if (panelParam && panelParam !== 'aip') {
-    tab = 'operations'
-    operationsInitialPanel = panelParam
-  } else {
-    tab = 'command'
+  // Legacy hospitality ?panel= now lives at /operations — forward it.
+  if (!isAipTab(aipParam) && panelParam && panelParam !== 'aip') {
+    return <Navigate to={`/operations?panel=${panelParam}`} replace />
   }
+
+  const tab = isAipTab(aipParam) ? aipParam : 'command'
 
   return (
     <AIPShell
       tab={tab}
-      operationsInitialPanel={operationsInitialPanel}
       onTabChange={(t) => { setParams({ aip: t }, { replace: true }) }}
     />
   )

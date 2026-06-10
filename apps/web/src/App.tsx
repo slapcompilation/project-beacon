@@ -35,6 +35,7 @@ const FloorWorkspace = lazy(() => import('@/pages/FloorWorkspace'))
 const FlowWorkspace  = lazy(() => import('@/pages/FlowWorkspace'))
 const EyeWorkspace   = lazy(() => import('@/pages/EyeWorkspace'))
 const MindWorkspace  = lazy(() => import('@/pages/MindWorkspace'))
+const OperationsWorkspace = lazy(() => import('@/pages/OperationsWorkspace'))
 
 const VariantObjectPage       = lazy(() => import('@/pages/VariantObjectPage'))
 const SupplierObjectPage      = lazy(() => import('@/pages/SupplierObjectPage'))
@@ -106,6 +107,7 @@ function AppRoutes() {
             <Route path="/flow"     element={<FlowWorkspace />} />
             <Route path="/eye"      element={<EyeWorkspace />} />
             <Route path="/mind"     element={<MindWorkspace />} />
+            <Route path="/operations" element={<OperationsWorkspace />} />
 
             <Route path="/variant/:variantId"      element={<VariantObjectPage />} />
             <Route path="/supplier/:supplierId"    element={<SupplierObjectPage />} />
@@ -168,14 +170,14 @@ function AppRoutes() {
             <Route path="/occupancy"        element={<Navigate to="/eye?panel=occupancy"       replace />} />
             <Route path="/reports"          element={<Navigate to="/eye?panel=performance"     replace />} />
             <Route path="/finance"          element={<Navigate to="/eye?panel=performance"     replace />} />
-            <Route path="/procurement"      element={<Navigate to="/mind?panel=procurement"    replace />} />
-            <Route path="/invoicing"        element={<Navigate to="/mind?panel=intelligence"   replace />} />
-            <Route path="/negotiation-prep" element={<Navigate to="/mind?panel=intelligence"   replace />} />
-            <Route path="/gl-export"        element={<Navigate to="/mind?panel=gl"             replace />} />
-            <Route path="/purchase-orders"  element={<Navigate to="/mind?panel=procurement"    replace />} />
+            <Route path="/procurement"      element={<Navigate to="/operations?panel=procurement"  replace />} />
+            <Route path="/invoicing"        element={<Navigate to="/operations?panel=intelligence" replace />} />
+            <Route path="/negotiation-prep" element={<Navigate to="/operations?panel=intelligence" replace />} />
+            <Route path="/gl-export"        element={<Navigate to="/operations?panel=gl"           replace />} />
+            <Route path="/purchase-orders"  element={<Navigate to="/operations?panel=procurement"  replace />} />
             <Route path="/optimize-pars"    element={<Navigate to="/floor?panel=par"           replace />} />
-            <Route path="/leverage"         element={<Navigate to="/mind?panel=leverage"       replace />} />
-            <Route path="/suppliers"        element={<Navigate to="/mind?panel=procurement"    replace />} />
+            <Route path="/leverage"         element={<Navigate to="/operations?panel=leverage"     replace />} />
+            <Route path="/suppliers"        element={<Navigate to="/operations?panel=procurement"  replace />} />
             <Route path="/team"             element={<Navigate to="/settings?section=team"     replace />} />
 
             <Route element={<ScanLayout />}>
