@@ -1,5 +1,6 @@
-// LLM-proposed entity links queue (Phase 16.g).
-// Operator approves → describes_entity edge writes; reject → row closes.
+// LLM-proposed entity links queue. Suggestions are produced by running
+// "Suggest entity links" on a Document (the entity-extract edge fn). Operator
+// approves → describes_entity edge writes into the graph; reject → row closes.
 
 import { Link } from 'react-router-dom'
 import { Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
@@ -57,9 +58,14 @@ export default function EntityLinkSuggestionsPage() {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {rows.length === 0 ? (
           <NonIdealState
-            icon={<Icon icon="tick-circle" size={32} className="text-emerald-500/70" />}
-            title="No pending suggestions"
-            description="Open any Document page and click Suggest entity links to populate the queue."
+            icon={<Icon icon="search-template" size={32} className="text-muted-foreground/40" />}
+            title="No entity links to review"
+            description="Suggestions appear here after you open a Document and run “Suggest entity links”. Each is an LLM-proposed describes_entity edge with its evidence — approve to write it into the graph, reject to dismiss."
+            action={
+              <Link to="/documents">
+                <Button intent={Intent.PRIMARY} icon="document">Go to Documents</Button>
+              </Link>
+            }
           />
         ) : (
           rows.map((row) => (
