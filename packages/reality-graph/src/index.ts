@@ -154,9 +154,29 @@ export {
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
+  makeComputeDecisionCalibrationTool,
   requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
+export type {
+  ComputeDecisionCalibrationInput,
+  ComputeDecisionCalibrationOutput,
+  CalibrationReader,
+  CalibrationProposalRef,
+} from './tools/index'
+
+// ── Decision calibration — reliability math behind trustworthy autonomy ──────
+export {
+  computeCalibration,
+  outcomeLabel,
+} from './calibration/index'
+export type {
+  CalibrationSample,
+  CalibrationBin,
+  CalibrationReport,
+  CalibrationVerdict,
+  CalibrationOptions,
+} from './calibration/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
 // Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.
