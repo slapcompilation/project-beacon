@@ -15712,6 +15712,183 @@ function makeQueryDocumentChunksTool(reader) {
   };
 }
 
+// packages/reality-graph/src/calibration/index.ts
+function outcomeLabel(status) {
+  switch (status) {
+    case "approved":
+      return 1;
+    case "rejected":
+      return 0;
+    case "superseded":
+      return 0;
+    case "pending":
+      return null;
+    case "expired":
+      return null;
+  }
+}
+function computeCalibration(samples, opts = {}) {
+  const binCount = Math.max(1, Math.floor(opts.bins ?? 10));
+  const minSamples = opts.minSamples ?? 20;
+  const tolerance = opts.tolerance ?? 0.05;
+  const excluded = { pending: 0, expired: 0 };
+  const scoreable = [];
+  for (const s of samples) {
+    const label = outcomeLabel(s.status);
+    if (label == null) {
+      if (s.status === "pending") excluded.pending++;
+      else excluded.expired++;
+      continue;
+    }
+    const c = clamp01(s.confidence);
+    scoreable.push({ confidence: c, label });
+  }
+  if (scoreable.length === 0) {
+    return {
+      bins: [],
+      resolved: 0,
+      excluded,
+      meanConfidence: 0,
+      accuracy: 0,
+      ece: 0,
+      brier: 0,
+      verdict: "insufficient-data",
+      sufficientData: false,
+      confidence: 0
+    };
+  }
+  const acc = Array.from({ length: binCount }, () => ({ n: 0, conf: 0, hits: 0 }));
+  let confSum = 0;
+  let hitSum = 0;
+  let brierSum = 0;
+  for (const { confidence: confidence2, label } of scoreable) {
+    const idx = Math.min(binCount - 1, Math.floor(confidence2 * binCount));
+    const b = acc[idx];
+    b.n++;
+    b.conf += confidence2;
+    b.hits += label;
+    confSum += confidence2;
+    hitSum += label;
+    brierSum += (confidence2 - label) ** 2;
+  }
+  const n = scoreable.length;
+  const bins = [];
+  let ece = 0;
+  for (let i = 0; i < binCount; i++) {
+    const b = acc[i];
+    if (b.n === 0) continue;
+    const meanConfidence2 = b.conf / b.n;
+    const accuracy2 = b.hits / b.n;
+    ece += b.n / n * Math.abs(accuracy2 - meanConfidence2);
+    bins.push({
+      lower: i / binCount,
+      upper: (i + 1) / binCount,
+      count: b.n,
+      meanConfidence: meanConfidence2,
+      accuracy: accuracy2,
+      gap: accuracy2 - meanConfidence2
+    });
+  }
+  const meanConfidence = confSum / n;
+  const accuracy = hitSum / n;
+  const brier = brierSum / n;
+  const bothClasses = hitSum > 0 && hitSum < n;
+  const sufficientData = n >= minSamples && bothClasses;
+  const gap = accuracy - meanConfidence;
+  let verdict;
+  if (!sufficientData) verdict = "insufficient-data";
+  else if (Math.abs(gap) <= tolerance) verdict = "well-calibrated";
+  else if (gap < 0) verdict = "overconfident";
+  else verdict = "underconfident";
+  const confidence = Math.min(1, n / (minSamples * 2)) * (bothClasses ? 1 : 0.3);
+  return {
+    bins,
+    resolved: n,
+    excluded,
+    meanConfidence,
+    accuracy,
+    ece,
+    brier,
+    verdict,
+    sufficientData,
+    confidence
+  };
+}
+function clamp01(x) {
+  if (Number.isNaN(x)) return 0;
+  return x < 0 ? 0 : x > 1 ? 1 : x;
+}
+
+// packages/reality-graph/src/tools/logic/compute_decision_calibration.ts
+var inputSchema8 = external_exports.object({
+  hotelId: external_exports.string().uuid(),
+  agentName: external_exports.string().optional(),
+  actionType: external_exports.string().optional(),
+  windowDays: external_exports.number().int().min(1).max(365).optional(),
+  bins: external_exports.number().int().min(2).max(20).optional(),
+  minSamples: external_exports.number().int().min(1).max(1e3).optional()
+});
+var binSchema = external_exports.object({
+  lower: external_exports.number(),
+  upper: external_exports.number(),
+  count: external_exports.number().int().nonnegative(),
+  meanConfidence: external_exports.number(),
+  accuracy: external_exports.number(),
+  gap: external_exports.number()
+});
+var outputSchema8 = external_exports.object({
+  bins: external_exports.array(binSchema),
+  resolved: external_exports.number().int().nonnegative(),
+  excluded: external_exports.object({ pending: external_exports.number().int(), expired: external_exports.number().int() }),
+  meanConfidence: external_exports.number(),
+  accuracy: external_exports.number(),
+  ece: external_exports.number(),
+  brier: external_exports.number(),
+  verdict: external_exports.enum(["well-calibrated", "overconfident", "underconfident", "insufficient-data"]),
+  sufficientData: external_exports.boolean(),
+  basis: external_exports.string(),
+  confidence: external_exports.number().min(0).max(1)
+});
+function makeComputeDecisionCalibrationTool(reader) {
+  return {
+    name: "compute_decision_calibration",
+    category: "logic",
+    kind: "inproc",
+    version: "1.0.0",
+    description: "Returns a reliability report for past proposals in a scope: per-confidence-band hit rate, Expected Calibration Error, Brier score, and a verdict (well-calibrated / over / under / insufficient-data). Operator disposition is the label \u2014 approved = hit, rejected or refined = miss. Use to judge whether an agent's stated confidence can be trusted before raising its auto-execution floor.",
+    inputSchema: inputSchema8,
+    outputSchema: outputSchema8,
+    examples: [
+      {
+        input: { hotelId: "00000000-0000-0000-0000-000000000000", agentName: "restock_advisor" },
+        output: {
+          bins: [{ lower: 0.8, upper: 0.9, count: 40, meanConfidence: 0.85, accuracy: 0.6, gap: -0.25 }],
+          resolved: 40,
+          excluded: { pending: 0, expired: 3 },
+          meanConfidence: 0.85,
+          accuracy: 0.6,
+          ece: 0.25,
+          brier: 0.28,
+          verdict: "overconfident",
+          sufficientData: true,
+          basis: "reliability-bins-v1",
+          confidence: 1
+        }
+      }
+    ],
+    invoke: async (input) => {
+      const samples = await reader.getResolvedProposals({
+        hotelId: input.hotelId,
+        agentName: input.agentName,
+        actionType: input.actionType,
+        windowDays: input.windowDays
+      });
+      const report = computeCalibration(samples, { bins: input.bins, minSamples: input.minSamples });
+      return { ...report, basis: "reliability-bins-v1" };
+    }
+  };
+}
+
 // packages/reality-graph/src/tools/index.ts
 var toolRegistry = /* @__PURE__ */ new Map();
 function registerTool(tool) {
@@ -15889,11 +16066,11 @@ function principleReasoningSuffix(principles) {
 }
 
 // packages/reality-graph/src/agents/restock_advisor/blocks/extract_variant.ts
-var inputSchema8 = external_exports.object({
+var inputSchema9 = external_exports.object({
   prompt: external_exports.string().min(1),
   hotelId: external_exports.string().uuid()
 });
-var outputSchema8 = external_exports.object({
+var outputSchema9 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   /** Confidence in the resolution; below 0.6 should trigger clarification at the caller. */
@@ -15901,8 +16078,8 @@ var outputSchema8 = external_exports.object({
 });
 var extractVariantBlock = createBlock({
   name: "extract_variant",
-  inputSchema: inputSchema8,
-  outputSchema: outputSchema8,
+  inputSchema: inputSchema9,
+  outputSchema: outputSchema9,
   systemPrompt: "You resolve a free-text operator stockout concern to exactly one inventory variant. Return the variant id, the variant name as written, and a confidence in [0, 1]. If the prompt mentions multiple candidate variants or is ambiguous, set confidence below 0.6.",
   run: async (input, ctx) => {
     const { output } = await llmCallWithSchema(ctx.llm, {
@@ -15910,31 +16087,31 @@ var extractVariantBlock = createBlock({
       userPrompt: `Hotel: ${input.hotelId}
 Operator concern: "${input.prompt}"
 Resolve to one variant.`,
-      schema: outputSchema8
+      schema: outputSchema9
     });
     return output;
   }
 });
 
 // packages/reality-graph/src/agents/restock_advisor/blocks/extract_supplier.ts
-var inputSchema9 = external_exports.object({
+var inputSchema10 = external_exports.object({
   prompt: external_exports.string().min(1)
 });
-var outputSchema9 = external_exports.object({
+var outputSchema10 = external_exports.object({
   supplierName: external_exports.string().nullable(),
   /** Confidence in the resolution. null supplier with high confidence = "none mentioned". */
   confidence: external_exports.number().min(0).max(1)
 });
 var extractSupplierBlock = createBlock({
   name: "extract_supplier",
-  inputSchema: inputSchema9,
-  outputSchema: outputSchema9,
+  inputSchema: inputSchema10,
+  outputSchema: outputSchema10,
   systemPrompt: "You identify whether the operator named a specific supplier in their concern. Return the supplier name verbatim if present, or null if not. Confidence reflects how unambiguous the mention is.",
   run: async (input, ctx) => {
     const { output } = await llmCallWithSchema(ctx.llm, {
       systemPrompt: "You identify whether the operator named a specific supplier in their concern. Return the name verbatim or null.",
       userPrompt: `Operator concern: "${input.prompt}"`,
-      schema: outputSchema9
+      schema: outputSchema10
     });
     return output;
   }
@@ -15947,7 +16124,7 @@ var principleSchema = external_exports.object({
   category: external_exports.string(),
   appliesToNodeIds: external_exports.array(external_exports.string()).optional()
 });
-var inputSchema10 = external_exports.object({
+var inputSchema11 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   hotelId: external_exports.string().uuid(),
@@ -15991,7 +16168,7 @@ var proposalSchema = external_exports.object({
     })
   )
 });
-var outputSchema10 = external_exports.object({
+var outputSchema11 = external_exports.object({
   proposals: external_exports.array(proposalSchema),
   /** When agent paused for clarification. Mutually exclusive with non-empty proposals. */
   paused: external_exports.object({
@@ -16002,8 +16179,8 @@ var outputSchema10 = external_exports.object({
 });
 var reasonAndProposeBlock = createBlock({
   name: "reason_and_propose",
-  inputSchema: inputSchema10,
-  outputSchema: outputSchema10,
+  inputSchema: inputSchema11,
+  outputSchema: outputSchema11,
   systemPrompt: "You are the main reasoning step of the restock_advisor agent. Follow the numbered procedure in the task prompt exactly. Every proposal must include the typed BeaconAction, a confidence score, a reasoning string that cites each tool result, and full provenance. If confidence drops below the threshold, call request_clarification instead.",
   run: async (input, ctx) => {
     const open = await ctx.invokeTool(
@@ -16154,7 +16331,7 @@ function buildRestockAdvisorAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema19 = external_exports.object({
+      const inputSchema20 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16163,7 +16340,7 @@ function buildRestockAdvisorAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema19.parse(rawInput);
+      const input = inputSchema20.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME,
         agentVersion: AGENT_VERSION,
@@ -16215,7 +16392,7 @@ function buildRestockAdvisorAgent(deps) {
 }
 
 // packages/reality-graph/src/tools/data/query_recent_waste_logs.ts
-var inputSchema11 = external_exports.object({
+var inputSchema12 = external_exports.object({
   variantId: external_exports.string().uuid(),
   sinceDays: external_exports.number().int().min(1).max(90).default(14)
 });
@@ -16225,7 +16402,7 @@ var wasteEventSchema = external_exports.object({
   reason: external_exports.string(),
   ageDays: external_exports.number().int().nonnegative()
 });
-var outputSchema11 = external_exports.object({
+var outputSchema12 = external_exports.object({
   events: external_exports.array(wasteEventSchema),
   totalWasteUnits: external_exports.number().int().nonnegative(),
   /** How many of the last `sinceDays` days had at least one waste event. */
@@ -16248,8 +16425,8 @@ function makeQueryRecentWasteLogsTool(reader) {
     kind: "inproc",
     version: "1.0.0",
     description: "Returns recent waste/spoilage stock-log events for a variant within the given window. Use to assess whether a variant has a pattern of waste before sizing a write-off proposal.",
-    inputSchema: inputSchema11,
-    outputSchema: outputSchema11,
+    inputSchema: inputSchema12,
+    outputSchema: outputSchema12,
     traversableLinks: ["consumes"],
     examples: [
       {
@@ -16280,19 +16457,19 @@ function makeQueryRecentWasteLogsTool(reader) {
 }
 
 // packages/reality-graph/src/agents/waste_triage/blocks/extract_variant.ts
-var inputSchema12 = external_exports.object({
+var inputSchema13 = external_exports.object({
   prompt: external_exports.string().min(1),
   hotelId: external_exports.string().uuid()
 });
-var outputSchema12 = external_exports.object({
+var outputSchema13 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   confidence: external_exports.number().min(0).max(1)
 });
 var extractVariantBlock2 = createBlock({
   name: "extract_variant",
-  inputSchema: inputSchema12,
-  outputSchema: outputSchema12,
+  inputSchema: inputSchema13,
+  outputSchema: outputSchema13,
   systemPrompt: "You resolve a free-text operator waste/spoilage concern to exactly one inventory variant. Return the variant id, the variant name as written, and a confidence in [0, 1]. If the prompt mentions multiple candidate variants or is ambiguous, set confidence below 0.6.",
   run: async (input, ctx) => {
     const { output } = await llmCallWithSchema(ctx.llm, {
@@ -16300,7 +16477,7 @@ var extractVariantBlock2 = createBlock({
       userPrompt: `Hotel: ${input.hotelId}
 Operator concern: "${input.prompt}"
 Resolve to one variant.`,
-      schema: outputSchema12
+      schema: outputSchema13
     });
     return output;
   }
@@ -16313,7 +16490,7 @@ var principleSchema2 = external_exports.object({
   category: external_exports.string(),
   appliesToNodeIds: external_exports.array(external_exports.string()).optional()
 });
-var inputSchema13 = external_exports.object({
+var inputSchema14 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   hotelId: external_exports.string().uuid(),
@@ -16353,7 +16530,7 @@ var proposalSchema2 = external_exports.object({
     })
   )
 });
-var outputSchema13 = external_exports.object({
+var outputSchema14 = external_exports.object({
   proposals: external_exports.array(proposalSchema2),
   paused: external_exports.object({
     question: external_exports.string(),
@@ -16363,8 +16540,8 @@ var outputSchema13 = external_exports.object({
 });
 var proposeWasteActionsBlock = createBlock({
   name: "propose_waste_actions",
-  inputSchema: inputSchema13,
-  outputSchema: outputSchema13,
+  inputSchema: inputSchema14,
+  outputSchema: outputSchema14,
   systemPrompt: "You are the main reasoning step of waste_triage. Follow the numbered procedure in the task prompt exactly. Every proposal must include the typed BeaconAction, a confidence score, a reasoning string that cites each tool result, and full provenance. If confidence drops below the threshold, call request_clarification instead.",
   run: async (input, ctx) => {
     const waste = await ctx.invokeTool(
@@ -16506,7 +16683,7 @@ function buildWasteTriageAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema19 = external_exports.object({
+      const inputSchema20 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16515,7 +16692,7 @@ function buildWasteTriageAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema19.parse(rawInput);
+      const input = inputSchema20.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME2,
         agentVersion: AGENT_VERSION2,
@@ -16566,11 +16743,11 @@ function buildWasteTriageAgent(deps) {
 }
 
 // packages/reality-graph/src/agents/overstock_rebalancer/blocks/extract_variant.ts
-var inputSchema14 = external_exports.object({
+var inputSchema15 = external_exports.object({
   prompt: external_exports.string().min(1),
   hotelId: external_exports.string().uuid()
 });
-var outputSchema14 = external_exports.object({
+var outputSchema15 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   /** Confidence in the resolution; below 0.6 should trigger clarification at the caller. */
@@ -16578,8 +16755,8 @@ var outputSchema14 = external_exports.object({
 });
 var extractVariantBlock3 = createBlock({
   name: "extract_variant",
-  inputSchema: inputSchema14,
-  outputSchema: outputSchema14,
+  inputSchema: inputSchema15,
+  outputSchema: outputSchema15,
   systemPrompt: "You resolve a free-text operator overstock concern to exactly one inventory variant. Return the variant id, the variant name as written, and a confidence in [0, 1]. If the prompt mentions multiple candidate variants or is ambiguous, set confidence below 0.6.",
   run: async (input, ctx) => {
     const { output } = await llmCallWithSchema(ctx.llm, {
@@ -16587,7 +16764,7 @@ var extractVariantBlock3 = createBlock({
       userPrompt: `Hotel: ${input.hotelId}
 Operator concern: "${input.prompt}"
 Resolve to one variant.`,
-      schema: outputSchema14
+      schema: outputSchema15
     });
     return output;
   }
@@ -16600,7 +16777,7 @@ var principleSchema3 = external_exports.object({
   category: external_exports.string(),
   appliesToNodeIds: external_exports.array(external_exports.string()).optional()
 });
-var inputSchema15 = external_exports.object({
+var inputSchema16 = external_exports.object({
   variantId: external_exports.string().uuid(),
   variantName: external_exports.string().min(1),
   hotelId: external_exports.string().uuid(),
@@ -16631,7 +16808,7 @@ var proposalSchema3 = external_exports.object({
     })
   )
 });
-var outputSchema15 = external_exports.object({
+var outputSchema16 = external_exports.object({
   proposals: external_exports.array(proposalSchema3),
   paused: external_exports.object({
     question: external_exports.string(),
@@ -16641,8 +16818,8 @@ var outputSchema15 = external_exports.object({
 });
 var reasonAndRebalanceBlock = createBlock({
   name: "reason_and_rebalance",
-  inputSchema: inputSchema15,
-  outputSchema: outputSchema15,
+  inputSchema: inputSchema16,
+  outputSchema: outputSchema16,
   systemPrompt: "You are the main reasoning step of the overstock_rebalancer agent. Follow the numbered procedure exactly. Only propose TRANSFER_STOCK, and only when genuine surplus can fill a sister property below par without dropping the source below its own projected need. If confidence is below threshold, call request_clarification.",
   run: async (input, ctx) => {
     const forecast = await ctx.invokeTool(
@@ -16760,7 +16937,7 @@ function buildOverstockRebalancerAgent(deps) {
     approvalBoundary: "operator",
     releaseStage: "sandbox",
     run: async (rawInput) => {
-      const inputSchema19 = external_exports.object({
+      const inputSchema20 = external_exports.object({
         prompt: external_exports.string().min(1),
         userId: external_exports.string().uuid(),
         scope: external_exports.object({
@@ -16769,7 +16946,7 @@ function buildOverstockRebalancerAgent(deps) {
         }),
         context: external_exports.record(external_exports.string(), external_exports.unknown()).optional()
       });
-      const input = inputSchema19.parse(rawInput);
+      const input = inputSchema20.parse(rawInput);
       const runner = buildRunner({
         agentName: AGENT_NAME3,
         agentVersion: AGENT_VERSION3,
@@ -17447,7 +17624,7 @@ function diffSimulations(baseline, overlay) {
 }
 
 // packages/reality-graph/src/tools/scenarios/apply_overlay_edit.ts
-var inputSchema16 = external_exports.object({
+var inputSchema17 = external_exports.object({
   scenarioId: external_exports.string().uuid(),
   /** JSON path into graph_overlay, e.g.
    *  ['policy','auto_execution','thresholds','REQUEST_RESTOCK']. */
@@ -17457,7 +17634,7 @@ var inputSchema16 = external_exports.object({
   /** Where this edit came from. The LLM passes 'llm'; the UI passes 'operator'. */
   source: external_exports.enum(["llm", "operator"]).default("llm")
 });
-var outputSchema16 = external_exports.object({
+var outputSchema17 = external_exports.object({
   scenarioId: external_exports.string().uuid(),
   appliedPath: external_exports.array(external_exports.string()),
   /** Echoes the new overlay so the next tool call can reason about it. */
@@ -17471,8 +17648,8 @@ function makeApplyOverlayEditTool(gateway) {
     kind: "inproc",
     version: "1.0.0",
     description: "Edit a single value inside a scenario's graph_overlay. The path is a list of keys into the typed overlay (variants / policy / constraints / actions). Passing value=null removes the key. Writes are atomic \u2014 the DB simultaneously updates graph_overlay AND records a provenance row in scenario_overlay_edits. Use to apply hypothetical changes the operator wants to explore in the sandbox.",
-    inputSchema: inputSchema16,
-    outputSchema: outputSchema16,
+    inputSchema: inputSchema17,
+    outputSchema: outputSchema17,
     examples: [
       {
         input: {
@@ -17507,7 +17684,7 @@ function makeApplyOverlayEditTool(gateway) {
 }
 
 // packages/reality-graph/src/tools/scenarios/simulate_cycle_with_overlay.ts
-var inputSchema17 = external_exports.object({
+var inputSchema18 = external_exports.object({
   scenarioId: external_exports.string().uuid()
 });
 var itemSchema = external_exports.object({
@@ -17517,7 +17694,7 @@ var itemSchema = external_exports.object({
   actionType: external_exports.string().optional(),
   reason: external_exports.string().optional()
 });
-var outputSchema17 = external_exports.object({
+var outputSchema18 = external_exports.object({
   scenarioId: external_exports.string().uuid(),
   scanned: external_exports.number().int().nonnegative(),
   proposed: external_exports.number().int().nonnegative(),
@@ -17547,8 +17724,8 @@ function makeSimulateCycleWithOverlayTool(gateway) {
     kind: "inproc",
     version: "1.0.0",
     description: "Runs the intelligence cycle against the scenario's graph_overlay with no-op persistence \u2014 nothing is written back to real state. Returns the CycleResult (scanned/proposed/autoExecuted/queued + per-variant items) so the operator can see what WOULD have happened under the overlay. The result is also cached on the scenario row for the list view + follow-up tool calls. Use after applying overlay edits to see their effect.",
-    inputSchema: inputSchema17,
-    outputSchema: outputSchema17,
+    inputSchema: inputSchema18,
+    outputSchema: outputSchema18,
     examples: [
       {
         input: { scenarioId: "00000000-0000-0000-0000-000000000000" },
@@ -17612,10 +17789,10 @@ function makeSimulateCycleWithOverlayTool(gateway) {
 }
 
 // packages/reality-graph/src/tools/scenarios/query_simulation_result.ts
-var inputSchema18 = external_exports.object({
+var inputSchema19 = external_exports.object({
   scenarioId: external_exports.string().uuid()
 });
-var outputSchema18 = external_exports.object({
+var outputSchema19 = external_exports.object({
   scenarioId: external_exports.string().uuid(),
   /** Empty when the scenario has never been simulated. */
   cachedAt: external_exports.string().nullable(),
@@ -17633,8 +17810,8 @@ function makeQuerySimulationResultTool(gateway) {
     kind: "inproc",
     version: "1.0.0",
     description: 'Returns the cached most-recent simulation result for a scenario without rerunning it. Use this to summarize a scenario in conversation ("you last simulated 5 minutes ago \u2014 4 of 12 would queue") before deciding whether to rerun.',
-    inputSchema: inputSchema18,
-    outputSchema: outputSchema18,
+    inputSchema: inputSchema19,
+    outputSchema: outputSchema19,
     examples: [
       {
         input: { scenarioId: "00000000-0000-0000-0000-000000000000" },
@@ -17704,6 +17881,7 @@ export {
   buildWasteTriageAgent,
   canActAtOrgScope,
   caseNode,
+  computeCalibration,
   constraintNode,
   constraintRejected,
   consumptionForecastEvalSuite,
@@ -17756,6 +17934,7 @@ export {
   listToolsByCategory,
   llmCallWithSchema,
   makeApplyOverlayEditTool,
+  makeComputeDecisionCalibrationTool,
   makeForecastConsumptionTool,
   makeQueryDocumentChunksTool,
   makeQueryOpenRestockRequestsTool,
@@ -17780,6 +17959,7 @@ export {
   organizationNode,
   otherSide,
   outEdges,
+  outcomeLabel,
   extractVariantBlock3 as overstockExtractVariantBlock,
   reasonAndRebalanceBlock as overstockReasonAndRebalanceBlock,
   fulfillmentPct2 as poFulfillmentPct,
