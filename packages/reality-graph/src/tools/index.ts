@@ -129,3 +129,9 @@ export {
   type QueryDocumentChunksInput,
   type QueryDocumentChunksOutput,
 } from './data/query_document_chunks'
+export {
+  makeDetectOntologyGapsTool,
+  type DetectOntologyGapsInput,
+  type DetectOntologyGapsOutput,
+  type OntologyReader,
+} from './logic/detect_ontology_gaps'

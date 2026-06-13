@@ -154,9 +154,27 @@ export {
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
+  makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
+export type {
+  DetectOntologyGapsInput,
+  DetectOntologyGapsOutput,
+  OntologyReader,
+} from './tools/index'
+
+// ── Self-evolving ontology — gap detection (Pillar 2, Phase Q1) ──────────────
+export {
+  detectRemovalCategoryGaps,
+} from './ontology/index'
+export type {
+  OntologyGap,
+  OntologyGapKind,
+  OntologyGapEvidence,
+  RemovalReasonRow,
+  DetectRemovalCategoryOptions,
+} from './ontology/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
 // Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.
