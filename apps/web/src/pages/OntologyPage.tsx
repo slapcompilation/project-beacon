@@ -1,19 +1,24 @@
-// Ontology — the self-evolving graph, step 1. Beacon scans your data for typed
-// concepts the ontology doesn't capture yet (a removal_category sitting in free
-// text today) and proposes typed extensions with evidence + confidence. The
-// graph grows under your review, never on its own; detection runs in
+// Ontology — the self-evolving graph. Beacon scans your data for typed concepts
+// the ontology doesn't capture yet (a removal_category sitting in free text) and
+// proposes typed extensions. Approving one grows the ontology — auditably, under
+// your review: the decision persists in ontology_proposals and the value becomes
+// a recognized type the detector stops re-proposing. Detection runs live in
 // reality-graph's detect_ontology_gaps Logic Tool.
 
 import {
-  Button, Callout, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag, Tooltip,
+  Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
+import { formatDistanceToNow } from 'date-fns'
 import type { DetectOntologyGapsOutput } from '@beacon/reality-graph'
-import { useOntologyGaps } from '@/features/ontology/hooks'
+import { useApprovedExtensions, useDecideOntologyGap, useOntologyGaps } from '@/features/ontology/hooks'
+import type { OntologyProposalRow } from '@/features/ontology/api'
 
 type Gap = DetectOntologyGapsOutput['gaps'][number]
 
 export default function OntologyPage() {
   const { data, isLoading, isError, refetch, isFetching } = useOntologyGaps()
+  const { data: extensions = [] } = useApprovedExtensions()
+  const decide = useDecideOntologyGap()
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
@@ -29,6 +34,8 @@ export default function OntologyPage() {
   }
 
   const { gaps, scanned } = data
+  const pendingFor = (proposed: string, status: 'approved' | 'rejected') =>
+    decide.isPending && decide.variables.gap.proposed === proposed && decide.variables.status === status
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -36,8 +43,8 @@ export default function OntologyPage() {
         <div>
           <h1 className="text-sm font-semibold">Ontology</h1>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
-            Beacon watches your data for typed concepts the ontology doesn't capture yet, and proposes
-            extensions. The graph grows under your review — never on its own.
+            Beacon watches your data for typed concepts the ontology doesn't capture yet. Approving a
+            proposal grows the ontology — under your review, never on its own.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -50,28 +57,47 @@ export default function OntologyPage() {
         {gaps.length === 0 ? (
           <NonIdealState
             icon={<Icon icon="graph" size={32} className="text-muted-foreground/40" />}
-            title="No ontology gaps right now"
+            title="No open ontology gaps"
             description={
-              `Scanned ${scanned.toLocaleString()} stock removals — every recurring pattern is either already typed ` +
-              `or there isn't enough free-text signal yet. New patterns surface here as they accumulate.`
+              `Scanned ${scanned.toLocaleString()} stock removals — every recurring pattern is either already typed, ` +
+              `approved below, or dismissed. New patterns surface here as they accumulate.`
             }
           />
         ) : (
           <>
-            <Callout intent={Intent.PRIMARY} icon="lightbulb" title="Proposed typed extensions">
-              These patterns recur in your free-text data but aren't typed concepts yet. Detection runs today;
-              approving a proposal to grow the typed ontology — and recording that decision in the audit log —
-              lands in the next step.
-            </Callout>
-            {gaps.map((g) => <GapCard key={`${g.targetField}:${g.proposed}`} gap={g} />)}
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Proposed typed extensions
+            </p>
+            {gaps.map((g) => (
+              <GapCard
+                key={`${g.targetField}:${g.proposed}`}
+                gap={g}
+                busy={decide.isPending}
+                approving={pendingFor(g.proposed, 'approved')}
+                dismissing={pendingFor(g.proposed, 'rejected')}
+                onApprove={() => { decide.mutate({ gap: g, status: 'approved' }) }}
+                onDismiss={() => { decide.mutate({ gap: g, status: 'rejected' }) }}
+              />
+            ))}
           </>
         )}
+
+        {extensions.length > 0 && <GrownOntology rows={extensions} />}
       </div>
     </div>
   )
 }
 
-function GapCard({ gap }: { gap: Gap }) {
+function GapCard({
+  gap, busy, approving, dismissing, onApprove, onDismiss,
+}: {
+  gap: Gap
+  busy: boolean
+  approving: boolean
+  dismissing: boolean
+  onApprove: () => void
+  onDismiss: () => void
+}) {
   const border =
     gap.confidence >= 0.85 ? 'border-l-emerald-500' :
     gap.confidence >= 0.6  ? 'border-l-amber-400'   :
@@ -114,13 +140,40 @@ function GapCard({ gap }: { gap: Gap }) {
       )}
 
       <footer className="flex items-center justify-end gap-2 border-t border-border/40 pt-2">
-        <Tooltip content="Persisting + applying approved extensions lands in the next step" compact>
-          <Button variant="minimal" size="small" icon="cross" disabled>Dismiss</Button>
-        </Tooltip>
-        <Tooltip content="Persisting + applying approved extensions lands in the next step" compact>
-          <Button intent={Intent.PRIMARY} size="small" icon="tick" disabled>Approve &amp; type</Button>
-        </Tooltip>
+        <Button variant="minimal" size="small" icon="cross" disabled={busy} loading={dismissing} onClick={onDismiss}>
+          Dismiss
+        </Button>
+        <Button intent={Intent.PRIMARY} size="small" icon="tick" disabled={busy} loading={approving} onClick={onApprove}>
+          Approve &amp; type
+        </Button>
       </footer>
+    </Card>
+  )
+}
+
+function GrownOntology({ rows }: { rows: OntologyProposalRow[] }) {
+  return (
+    <Card className="flex flex-col gap-2 mt-2">
+      <div className="flex items-center gap-2">
+        <Icon icon="confirm" size={13} className="text-emerald-500" />
+        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Recognized extensions — the ontology you've grown
+        </p>
+      </div>
+      <div className="divide-y divide-border/40">
+        {rows.map((r) => (
+          <div key={r.id} className="flex items-center justify-between gap-3 py-1.5 text-xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono font-semibold">{r.proposed}</span>
+              <Icon icon="arrow-right" size={10} className="text-muted-foreground" />
+              <Tag minimal className="font-mono !text-[10px]">{r.target_type}.{r.target_field}</Tag>
+            </div>
+            <span className="text-[11px] text-muted-foreground shrink-0">
+              approved {formatDistanceToNow(new Date(r.decided_at), { addSuffix: true })}
+            </span>
+          </div>
+        ))}
+      </div>
     </Card>
   )
 }
