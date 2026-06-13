@@ -4,7 +4,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Button, Callout, Card, FormGroup, Icon, Intent, NumericInput, Spinner, SpinnerSize, Tag,
+  Button, Callout, Card, FormGroup, Icon, Intent, NumericInput, Spinner, SpinnerSize, Switch, Tag,
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
 import { useOrgPolicy, useSetOrgPolicy, DEFAULT_ORG_POLICY, type OrgPolicy } from './policy'
@@ -162,6 +162,28 @@ export function PolicyTab() {
           </div>
         </Card>
 
+        {/* ── Calibration trust budget (Phase P2) ───────────────────────────── */}
+        <Card compact>
+          <SectionHeader icon="timeline-line-chart" title="Calibration trust budget" subtitle="Make auto-execution earn trust: an agent auto-executes only where its stated confidence has proven honest against your past decisions." />
+          <Switch
+            checked={draft.auto_execution.require_calibration}
+            label="Require proven calibration before auto-executing"
+            onChange={(e) => { setDraft({ ...draft, auto_execution: { ...draft.auto_execution, require_calibration: e.currentTarget.checked } }) }}
+          />
+          <p className="text-[11px] text-muted-foreground -mt-1 mb-3">
+            Off — a <span className="font-medium text-foreground">proven-overconfident</span> agent is still vetoed (safety net), but agents
+            without enough history fall back to the static floor. On — no auto-execution until the agent's confidence is proven calibrated.
+          </p>
+          <FormGroup label="min_calibration_samples" helperText="Resolved decisions (approvals + rejections) needed before calibration counts as proven." inline>
+            <NumericInput
+              min={1} stepSize={5}
+              value={draft.auto_execution.min_calibration_samples}
+              onValueChange={(n) => { if (Number.isFinite(n) && n >= 1) setDraft({ ...draft, auto_execution: { ...draft.auto_execution, min_calibration_samples: Math.round(n) } }) }}
+              className="w-24"
+            />
+          </FormGroup>
+        </Card>
+
         {/* ── Promotion gate ────────────────────────────────────────────────── */}
         <Card compact>
           <SectionHeader icon="confirm" title="Promotion gate" subtitle="Minimum eval pass rate required to promote an agent to production." />
@@ -246,7 +268,7 @@ export function PolicyTab() {
   )
 }
 
-function SectionHeader({ icon, title, subtitle }: { icon: 'flag' | 'confirm' | 'time' | 'filter' | 'user'; title: string; subtitle: string }) {
+function SectionHeader({ icon, title, subtitle }: { icon: 'flag' | 'confirm' | 'time' | 'filter' | 'user' | 'timeline-line-chart'; title: string; subtitle: string }) {
   return (
     <div className="mb-3">
       <div className="flex items-center gap-2">

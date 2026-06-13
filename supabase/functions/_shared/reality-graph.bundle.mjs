@@ -15814,6 +15814,14 @@ function computeCalibration(samples, opts = {}) {
     confidence
   };
 }
+function calibratedConfidence(report, stated) {
+  const c = clamp01(stated);
+  for (const bin of report.bins) {
+    const inUpper = bin.upper >= 1 ? c <= bin.upper : c < bin.upper;
+    if (c >= bin.lower && inUpper) return bin.accuracy;
+  }
+  return null;
+}
 function clamp01(x) {
   if (Number.isNaN(x)) return 0;
   return x < 0 ? 0 : x > 1 ? 1 : x;
@@ -17361,6 +17369,22 @@ function decideAutoExecution(args) {
       return { autoExecute: false, reason: `${args.agent.agentName} has no production release in scope` };
     }
   }
+  const minSamples = args.minCalibrationSamples ?? 20;
+  const cal = args.calibration;
+  const proven = cal != null && cal.sufficientData && cal.resolved >= minSamples;
+  if (args.requireCalibration && !proven) {
+    const why = cal == null ? "no calibration evidence yet" : !cal.sufficientData ? "calibration not yet conclusive (need both approvals and rejections)" : `only ${String(cal.resolved)} resolved sample(s), need ${String(minSamples)}`;
+    return { autoExecute: false, reason: `auto-execution requires proven calibration \u2014 ${why}` };
+  }
+  if (proven) {
+    const observed = calibratedConfidence(cal, args.confidence);
+    if (observed != null && observed < threshold) {
+      return {
+        autoExecute: false,
+        reason: `observed hit-rate ${observed.toFixed(2)} at confidence ~${args.confidence.toFixed(2)} below floor ${threshold.toFixed(2)} \u2014 agent is overconfident here`
+      };
+    }
+  }
   return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} \u2265 ${threshold.toFixed(2)}, no hard violations` };
 }
 
@@ -17368,7 +17392,9 @@ function decideAutoExecution(args) {
 var DEFAULT_ORG_POLICY = {
   auto_execution: {
     thresholds: { REQUEST_RESTOCK: 0.9 },
-    agent_overrides: {}
+    agent_overrides: {},
+    require_calibration: false,
+    min_calibration_samples: 20
   },
   promotion: {
     production_pass_rate_floor: 0.7
@@ -17394,7 +17420,9 @@ function mergeOrgPolicy(override) {
   const merged = {
     auto_execution: {
       thresholds: { ...DEFAULT_ORG_POLICY.auto_execution.thresholds },
-      agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides }
+      agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides },
+      require_calibration: DEFAULT_ORG_POLICY.auto_execution.require_calibration,
+      min_calibration_samples: DEFAULT_ORG_POLICY.auto_execution.min_calibration_samples
     },
     promotion: { ...DEFAULT_ORG_POLICY.promotion },
     overstock: { ...DEFAULT_ORG_POLICY.overstock },
@@ -17419,6 +17447,12 @@ function mergeOrgPolicy(override) {
           merged.auto_execution.agent_overrides[k] = v;
         }
       }
+    }
+    if (typeof ae.require_calibration === "boolean") {
+      merged.auto_execution.require_calibration = ae.require_calibration;
+    }
+    if (typeof ae.min_calibration_samples === "number" && ae.min_calibration_samples >= 1) {
+      merged.auto_execution.min_calibration_samples = Math.round(ae.min_calibration_samples);
     }
   }
   if (isObj(o.promotion) && typeof o.promotion.production_pass_rate_floor === "number") {
@@ -17479,7 +17513,10 @@ async function runIntelligenceCycle(deps) {
           policy,
           agent: deps.agent,
           releases: deps.releases,
-          agentOverrides: deps.agentOverrides
+          agentOverrides: deps.agentOverrides,
+          calibration: deps.calibration,
+          requireCalibration: deps.requireCalibration,
+          minCalibrationSamples: deps.minCalibrationSamples
         });
         if (decision.autoExecute && await deps.dispatch(proposal.action)) {
           await deps.markApproved(proposalId);
@@ -17536,7 +17573,9 @@ function mergePolicyOverlay(base, overlay) {
       agent_overrides: mergeNumericMap(
         base.auto_execution.agent_overrides,
         overlay.auto_execution?.agent_overrides
-      )
+      ),
+      require_calibration: overlay.auto_execution?.require_calibration ?? base.auto_execution.require_calibration,
+      min_calibration_samples: overlay.auto_execution?.min_calibration_samples ?? base.auto_execution.min_calibration_samples
     },
     promotion: {
       production_pass_rate_floor: overlay.promotion?.production_pass_rate_floor ?? base.promotion.production_pass_rate_floor
@@ -17879,6 +17918,7 @@ export {
   buildRestockAdvisorAgent,
   buildRunner,
   buildWasteTriageAgent,
+  calibratedConfidence,
   canActAtOrgScope,
   caseNode,
   computeCalibration,

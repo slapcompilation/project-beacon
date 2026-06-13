@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { decideAutoExecution, DEFAULT_AUTO_EXEC_POLICY, type AutoExecutionPolicy } from './index'
+import { computeCalibration } from '../calibration/index'
 import type { BeaconAction } from '../actions/types'
 import type { ConstraintViolation } from './index'
 
@@ -144,6 +145,54 @@ describe('decideAutoExecution', () => {
       })
       // Override applies only to waste_triage; restock_advisor uses type floor 0.9.
       expect(d.autoExecute).toBe(true)
+    })
+  })
+
+  describe('calibration trust budget (Phase P2)', () => {
+    // A resolved population at one confidence level → a reliability report.
+    const pop = (confidence: number, hits: number, misses: number) =>
+      computeCalibration([
+        ...Array.from({ length: hits },   () => ({ confidence, status: 'approved' as const })),
+        ...Array.from({ length: misses }, () => ({ confidence, status: 'rejected' as const })),
+      ], { minSamples: 20 })
+
+    it('vetoes a proven-overconfident agent even above the static floor', () => {
+      // Claims ~0.9 but its 0.9-band hit-rate is 0.5 → queued despite clearing 0.9.
+      const calibration = pop(0.92, 20, 20)
+      const d = decideAutoExecution({ action: restock, confidence: 0.92, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, calibration })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('overconfident')
+    })
+
+    it('lets a proven well-calibrated agent auto-execute', () => {
+      const calibration = pop(0.92, 38, 2)  // 0.9-band hit-rate 0.95 ≥ floor
+      const d = decideAutoExecution({ action: restock, confidence: 0.92, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, calibration })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('ignores calibration when not proven (permissive default falls back to floor)', () => {
+      const calibration = pop(0.92, 5, 0)  // one class, few samples → not proven
+      const d = decideAutoExecution({ action: restock, confidence: 0.92, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, calibration })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('requireCalibration queues when there is no proven calibration', () => {
+      const d = decideAutoExecution({ action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, requireCalibration: true })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('requires proven calibration')
+    })
+
+    it('requireCalibration allows a proven, well-calibrated agent', () => {
+      const calibration = pop(0.92, 38, 2)
+      const d = decideAutoExecution({ action: restock, confidence: 0.92, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, requireCalibration: true, calibration })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('static gates still fire before the calibration veto', () => {
+      const calibration = pop(0.92, 20, 20)  // would veto, but confidence is already below floor
+      const d = decideAutoExecution({ action: restock, confidence: 0.5, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY, calibration })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('below')
     })
   })
 })

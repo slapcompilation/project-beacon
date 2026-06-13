@@ -169,6 +169,7 @@ export type {
 export {
   computeCalibration,
   outcomeLabel,
+  calibratedConfidence,
 } from './calibration/index'
 export type {
   CalibrationSample,

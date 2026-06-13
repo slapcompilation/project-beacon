@@ -21,6 +21,7 @@ import {
   buildWasteTriageAgent,
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
+  computeCalibration,
 } from '../_shared/reality-graph.bundle.mjs'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { json, preflight } from '../_shared/http.ts'
@@ -107,8 +108,13 @@ Deno.serve(async (req: Request) => {
   const maxVariants    = policy.caps.max_variants_per_cycle
   const agentOverrides = policy.auto_execution.agent_overrides
   const overstockFactor = policy.overstock.factor
+  const requireCalibration    = policy.auto_execution.require_calibration
+  const minCalibrationSamples = policy.auto_execution.min_calibration_samples
 
-  const shared = { productionReleases, autoExecPolicy, maxVariants, agentOverrides }
+  // Calibration trust budget applies to the only auto-exec-eligible agent here
+  // (restock_advisor → REQUEST_RESTOCK). Overstock/waste always queue, so their
+  // gate short-circuits on eligibility before calibration is ever consulted.
+  const shared = { productionReleases, autoExecPolicy, maxVariants, agentOverrides, requireCalibration, minCalibrationSamples }
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
   let totalQueued = 0
@@ -118,10 +124,11 @@ Deno.serve(async (req: Request) => {
       // restock_advisor on at-risk stock, then overstock_rebalancer on surplus.
       // Both route through the same decideAutoExecution gate; TRANSFER_STOCK
       // isn't auto-exec-eligible so overstock proposals always queue for review.
+      const restockCalibration = await agentCalibration(supabase, hotel.id, restockMeta.name, minCalibrationSamples)
       const restock = await runAgentCycle(supabase, hotel, {
         agentName: restockMeta.name, agentVersion: restockMeta.version,
         scan: 'at-risk', buildAgent: (reader, v) => buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(v) }),
-        promptVerb: 'restock', ...shared,
+        promptVerb: 'restock', ...shared, calibration: restockCalibration,
       })
       const overstock = await runAgentCycle(supabase, hotel, {
         agentName: overstockMeta.name, agentVersion: overstockMeta.version,
@@ -175,6 +182,24 @@ interface AgentCycleOpts {
   autoExecPolicy: { thresholds: Record<string, number> }
   maxVariants: number
   agentOverrides: Record<string, number>
+  requireCalibration?: boolean
+  minCalibrationSamples?: number
+  calibration?: unknown
+}
+
+// This agent's reliability report from its own resolved proposals in this hotel.
+// Best-effort: a query failure leaves calibration undefined → static-floor gate.
+async function agentCalibration(supabase: SupabaseClient, hotelId: string, agentName: string, minSamples: number) {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('confidence, status')
+    .eq('hotel_id', hotelId)
+    .eq('agent_name', agentName)
+    .neq('status', 'pending')
+    .limit(5000)
+  if (error || !data) return undefined
+  const samples = (data as { confidence: number; status: string }[]).map((r) => ({ confidence: Number(r.confidence), status: r.status }))
+  return computeCalibration(samples, { minSamples })
 }
 
 // Runs one agent over its scan of a hotel through the shared cycle gate.
@@ -239,6 +264,9 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
     agentOverrides: opts.agentOverrides,
     agent:    { agentName: opts.agentName, agentVersion: opts.agentVersion },
     releases: { production: opts.productionReleases },
+    calibration: opts.calibration,
+    requireCalibration: opts.requireCalibration,
+    minCalibrationSamples: opts.minCalibrationSamples,
     runAgent: async (variant: { id: string; name: string }) => {
       const agent = opts.buildAgent(reader, variant)
       const run = await agent.run({ prompt: `${opts.promptVerb} ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })

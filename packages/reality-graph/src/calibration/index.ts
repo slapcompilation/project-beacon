@@ -178,6 +178,23 @@ export function computeCalibration(
   }
 }
 
+/**
+ * The observed hit-rate for the confidence band a stated confidence falls in —
+ * the empirically-calibrated probability the call is right when the agent claims
+ * roughly this much. Returns null when no resolved samples sit in that band (no
+ * evidence at this confidence level). The auto-execution trust budget uses this
+ * to compare what an agent *achieves* at a confidence level against the floor,
+ * rather than trusting what it *claims*.
+ */
+export function calibratedConfidence(report: CalibrationReport, stated: number): number | null {
+  const c = clamp01(stated)
+  for (const bin of report.bins) {
+    const inUpper = bin.upper >= 1 ? c <= bin.upper : c < bin.upper
+    if (c >= bin.lower && inUpper) return bin.accuracy
+  }
+  return null
+}
+
 function clamp01(x: number): number {
   if (Number.isNaN(x)) return 0
   return x < 0 ? 0 : x > 1 ? 1 : x

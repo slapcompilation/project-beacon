@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeCalibration, outcomeLabel, type CalibrationSample } from './index'
+import { calibratedConfidence, computeCalibration, outcomeLabel, type CalibrationSample } from './index'
 
 // Builds n samples at a fixed confidence with a given hit count.
 function band(confidence: number, hits: number, misses: number): CalibrationSample[] {
@@ -94,5 +94,23 @@ describe('computeCalibration', () => {
       { confidence: -0.2, status: 'rejected' },
     ], { minSamples: 1 })
     expect(r.meanConfidence).toBeCloseTo(0.5, 5)  // (1 + 0) / 2
+  })
+})
+
+describe('calibratedConfidence', () => {
+  it('returns the observed hit-rate for the band a confidence falls in', () => {
+    // 0.9 band: 20 hits / 40 → accuracy 0.5. Asking about a 0.9 claim returns 0.5.
+    const r = computeCalibration(band(0.9, 20, 20), { minSamples: 20 })
+    expect(calibratedConfidence(r, 0.9)).toBeCloseTo(0.5, 5)
+  })
+
+  it('returns null when no resolved samples sit in the band', () => {
+    const r = computeCalibration(band(0.3, 5, 5), { bins: 10, minSamples: 1 })
+    expect(calibratedConfidence(r, 0.95)).toBeNull()  // nothing in the 0.9 band
+  })
+
+  it('maps a confidence of exactly 1 into the top populated band', () => {
+    const r = computeCalibration(band(0.95, 8, 2), { bins: 10, minSamples: 1 })
+    expect(calibratedConfidence(r, 1)).toBeCloseTo(0.8, 5)
   })
 })
