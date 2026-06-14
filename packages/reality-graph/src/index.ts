@@ -154,15 +154,34 @@ export {
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
+  makeComputeDecisionCalibrationTool,
   makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
 export type {
+  ComputeDecisionCalibrationInput,
+  ComputeDecisionCalibrationOutput,
+  CalibrationReader,
+  CalibrationProposalRef,
   DetectOntologyGapsInput,
   DetectOntologyGapsOutput,
   OntologyReader,
 } from './tools/index'
+
+// ── Decision calibration — reliability math behind trustworthy autonomy ──────
+export {
+  computeCalibration,
+  outcomeLabel,
+  calibratedConfidence,
+} from './calibration/index'
+export type {
+  CalibrationSample,
+  CalibrationBin,
+  CalibrationReport,
+  CalibrationVerdict,
+  CalibrationOptions,
+} from './calibration/index'
 
 // ── Self-evolving ontology — gap detection (Pillar 2, Phase Q1) ──────────────
 export {

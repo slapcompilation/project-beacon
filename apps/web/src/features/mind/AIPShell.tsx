@@ -26,6 +26,7 @@ const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
 const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
 const ModelingObjectivesPage    = lazy(() => import('@/pages/ModelingObjectivesPage'))
+const DecisionCalibrationPage   = lazy(() => import('@/pages/DecisionCalibrationPage'))
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
@@ -41,7 +42,7 @@ export type AipTab =
   | 'studio'
   | 'agents' | 'system-map' | 'ontology'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
-  | 'tools' | 'objectives' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
+  | 'tools' | 'objectives' | 'calibration' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
 // Two intents, not one interleaved loop: Decisions is the daily operator inbox,
 // each a rail entry; Studio is where you build/configure the fabric (touched far
@@ -61,6 +62,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
+  { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
 
   { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge', desc: 'Ingested sources with page provenance' },
   { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge', desc: 'Review suggested links to entities' },
@@ -203,6 +205,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
     case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
     case 'objectives':   return <ModelingObjectivesPage />
+    case 'calibration':  return <DecisionCalibrationPage />
     case 'scenarios':     return <ScenariosPage />
     case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />

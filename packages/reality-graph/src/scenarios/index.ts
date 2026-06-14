@@ -90,6 +90,10 @@ export function mergePolicyOverlay(base: OrgPolicy, overlay: DeepPartial<OrgPoli
         base.auto_execution.agent_overrides,
         overlay.auto_execution?.agent_overrides,
       ),
+      require_calibration:
+        overlay.auto_execution?.require_calibration ?? base.auto_execution.require_calibration,
+      min_calibration_samples:
+        overlay.auto_execution?.min_calibration_samples ?? base.auto_execution.min_calibration_samples,
     },
     promotion: {
       production_pass_rate_floor:

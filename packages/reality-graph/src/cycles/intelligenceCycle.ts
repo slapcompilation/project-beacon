@@ -15,6 +15,7 @@ import {
   type AutoExecutionPolicy,
   type ActiveAgentReleases,
 } from '../constraints/index'
+import type { CalibrationReport } from '../calibration/index'
 
 export interface CycleVariant {
   id: string
@@ -72,6 +73,13 @@ export interface IntelligenceCycleDeps {
    *  auto-execution gate; supersedes the per-action-type threshold when the
    *  proposing agent's name appears here. */
   agentOverrides?: Record<string, number>
+  /** Phase P2 — calibration trust budget. The proposing agent's reliability
+   *  report, computed once by the caller from its resolved proposals. Passed to
+   *  every auto-execution decision: a proven-overconfident agent is queued, and
+   *  (with requireCalibration) auto-execution needs proven calibration at all. */
+  calibration?: CalibrationReport
+  requireCalibration?: boolean
+  minCalibrationSamples?: number
   /** Cap per cycle so a large catalogue can't trigger a request storm. */
   maxVariants?: number
   /** Injected for deterministic constraint evaluation + timestamps in tests. */
@@ -112,6 +120,9 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           agent: deps.agent,
           releases: deps.releases,
           agentOverrides: deps.agentOverrides,
+          calibration: deps.calibration,
+          requireCalibration: deps.requireCalibration,
+          minCalibrationSamples: deps.minCalibrationSamples,
         })
 
         if (decision.autoExecute && (await deps.dispatch(proposal.action))) {
