@@ -129,3 +129,10 @@ export {
   type QueryDocumentChunksInput,
   type QueryDocumentChunksOutput,
 } from './data/query_document_chunks'
+export {
+  makeComputeDecisionCalibrationTool,
+  type ComputeDecisionCalibrationInput,
+  type ComputeDecisionCalibrationOutput,
+  type CalibrationReader,
+  type CalibrationProposalRef,
+} from './logic/compute_decision_calibration'

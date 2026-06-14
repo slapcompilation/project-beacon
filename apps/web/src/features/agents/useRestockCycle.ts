@@ -14,9 +14,12 @@ import {
   buildRestockAdvisorAgent,
   runIntelligenceCycle,
   orgPolicyToAutoExecPolicy,
+  computeCalibration,
   type BeaconAction,
+  type CalibrationReport,
   type CycleVariant,
 } from '@beacon/reality-graph'
+import { fetchResolvedSamples } from '@/features/calibration/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import { dispatchAction } from '@/lib/actions/dispatch'
@@ -77,6 +80,11 @@ export function useRestockCycle() {
       const autoExecPolicy = orgPolicy ? orgPolicyToAutoExecPolicy(orgPolicy) : undefined
       const maxVariants    = orgPolicy?.caps.max_variants_per_cycle
       const agentOverrides = orgPolicy?.auto_execution.agent_overrides
+      const minCalSamples  = orgPolicy?.auto_execution.min_calibration_samples ?? 20
+
+      // Trust budget: score this agent's stated confidence against its own
+      // resolved history. A proven-overconfident agent gets vetoed at the gate.
+      const calibration = await safeAgentCalibration(hotelId, meta.name, minCalSamples)
 
       // One case per variant-situation, reused within the run (an agent can
       // emit TRANSFER + RESTOCK for one variant a few ms apart, faster than a
@@ -91,6 +99,9 @@ export function useRestockCycle() {
         policy:   autoExecPolicy,
         agentOverrides,
         maxVariants,
+        calibration,
+        requireCalibration:    orgPolicy?.auto_execution.require_calibration,
+        minCalibrationSamples: minCalSamples,
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals
@@ -152,5 +163,22 @@ async function safeFetchConstraints(hotelId: string) {
     return await fetchActiveConstraints(hotelId)
   } catch {
     return []
+  }
+}
+
+/** This agent's reliability report from its own resolved proposals. Best-effort
+ *  — a failure leaves calibration undefined, so the gate falls back to the
+ *  static floor (permissive). minSamples matches the policy so the report's
+ *  `sufficientData` lines up with the gate's "proven" check. */
+async function safeAgentCalibration(
+  hotelId: string,
+  agentName: string,
+  minSamples: number,
+): Promise<CalibrationReport | undefined> {
+  try {
+    const samples = await fetchResolvedSamples(hotelId)
+    return computeCalibration(samples.filter((s) => s.agent_name === agentName), { minSamples })
+  } catch {
+    return undefined
   }
 }

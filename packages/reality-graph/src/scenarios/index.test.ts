@@ -19,7 +19,7 @@ describe('mergePolicyOverlay', () => {
 
   it('merges agent_overrides additively', () => {
     const merged = mergePolicyOverlay(
-      { ...DEFAULT_ORG_POLICY, auto_execution: { thresholds: { REQUEST_RESTOCK: 0.9 }, agent_overrides: { existing_agent: 0.8 } } },
+      { ...DEFAULT_ORG_POLICY, auto_execution: { ...DEFAULT_ORG_POLICY.auto_execution, thresholds: { REQUEST_RESTOCK: 0.9 }, agent_overrides: { existing_agent: 0.8 } } },
       { auto_execution: { agent_overrides: { restock_advisor: 0.95 } } },
     )
     expect(merged.auto_execution.agent_overrides.existing_agent).toBe(0.8)

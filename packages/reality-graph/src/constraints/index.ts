@@ -4,6 +4,7 @@
 
 import type { BeaconAction } from '../actions/index'
 import type { ConstraintBucket, ConstraintSeverity } from '../nodes/aip'
+import { calibratedConfidence, type CalibrationReport } from '../calibration/index'
 
 // ── Typed-rule shapes per bucket ──────────────────────────────────────────────
 
@@ -228,6 +229,17 @@ export function decideAutoExecution(args: {
    *  appears here, this value supersedes the per-action-type threshold (it
    *  does not bypass the action-type eligibility check). */
   agentOverrides?: Record<string, number>
+  /** Phase P2 — calibration trust budget. The proposing agent's reliability
+   *  report (from computeCalibration over its resolved proposals). When present
+   *  and proven, it can VETO an otherwise-eligible auto-execution: a proven
+   *  agent whose observed hit-rate at this confidence is below the floor is
+   *  queued instead. Omit to keep static-floor behaviour. */
+  calibration?: CalibrationReport
+  /** When true, auto-execution additionally REQUIRES proven calibration —
+   *  no evidence means queue. Default false. */
+  requireCalibration?: boolean
+  /** Minimum resolved samples before calibration counts as proven. Default 20. */
+  minCalibrationSamples?: number
 }): AutoExecutionDecision {
   const typeThreshold = args.policy.thresholds[args.action.type]
   if (typeThreshold == null) {
@@ -252,6 +264,31 @@ export function decideAutoExecution(args: {
     const prod = args.releases.production.find((r) => r.agentName === args.agent!.agentName)
     if (prod == null) {
       return { autoExecute: false, reason: `${args.agent.agentName} has no production release in scope` }
+    }
+  }
+
+  // Calibration trust budget: an agent earns unattended execution by proving
+  // its stated confidence is honest. This only ever BLOCKS — a proven agent
+  // whose observed hit-rate at this confidence is below the floor is queued
+  // even though it cleared the static floor; require_calibration additionally
+  // demands the evidence exist. No calibration supplied → unchanged behaviour.
+  const minSamples = args.minCalibrationSamples ?? 20
+  const cal = args.calibration
+  const proven = cal != null && cal.sufficientData && cal.resolved >= minSamples
+
+  if (args.requireCalibration && !proven) {
+    const why = cal == null ? 'no calibration evidence yet'
+      : !cal.sufficientData ? 'calibration not yet conclusive (need both approvals and rejections)'
+      : `only ${String(cal.resolved)} resolved sample(s), need ${String(minSamples)}`
+    return { autoExecute: false, reason: `auto-execution requires proven calibration — ${why}` }
+  }
+  if (proven) {
+    const observed = calibratedConfidence(cal, args.confidence)
+    if (observed != null && observed < threshold) {
+      return {
+        autoExecute: false,
+        reason: `observed hit-rate ${observed.toFixed(2)} at confidence ~${args.confidence.toFixed(2)} below floor ${threshold.toFixed(2)} — agent is overconfident here`,
+      }
     }
   }
   return { autoExecute: true, reason: `confidence ${args.confidence.toFixed(2)} ≥ ${threshold.toFixed(2)}, no hard violations` }

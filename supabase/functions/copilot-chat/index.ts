@@ -19,6 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
+import { computeCalibration } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -165,6 +166,18 @@ const TOOLS: Anthropic.Tool[] = [
       required: [],
     },
   },
+  {
+    name: 'get_decision_calibration',
+    description: 'Get a reliability report on whether an agent\'s stated confidence matches its real hit rate, using the operator\'s past decisions as ground truth (approved = the call was right, rejected or refined = it missed). Returns per-confidence-band accuracy, ECE, Brier score, and a verdict (well-calibrated / overconfident / underconfident / insufficient-data). Use for "is the restock advisor reliable", "can we trust the agent\'s confidence", "how calibrated are the agents", "should we raise the auto-approve threshold".',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        agent_name:  { type: 'string', description: 'Optional — restrict to one agent (e.g. "restock_advisor"). Omit for all agents.' },
+        window_days: { type: 'number', description: 'Optional lookback in days. Omit for all-time.' },
+      },
+      required: [],
+    },
+  },
   // ─── Action tools (propose, don't auto-execute) ─────────────────────────────
   {
     name: 'propose_restock',
@@ -299,6 +312,7 @@ interface ToolInput {
   idle_days?: number
   query?: string
   status?: string
+  agent_name?: string
   quantity?: number
   urgency?: string
   notes?: string
@@ -317,9 +331,32 @@ async function executeTool(
   toolName: string,
   input: ToolInput,
   selection?: SelectionContext,
+  hotelId?: string,
 ): Promise<string> {
   try {
     switch (toolName) {
+      case 'get_decision_calibration': {
+        // Reliability of an agent's confidence, scored against the operator's
+        // own resolved proposals. RLS already scopes rows to the caller; we
+        // also pin the hotel so org users get their property, not the network.
+        let q = supabase
+          .from('proposals')
+          .select('confidence, status')
+          .neq('status', 'pending')
+          .limit(5000)
+        if (hotelId) q = q.eq('hotel_id', hotelId)
+        if (input.agent_name) q = q.eq('agent_name', input.agent_name)
+        if (typeof input.window_days === 'number') {
+          q = q.gte('created_at', new Date(Date.now() - input.window_days * 86_400_000).toISOString())
+        }
+        const { data, error } = await q as unknown as {
+          data: { confidence: number; status: string }[] | null
+          error: { message: string } | null
+        }
+        if (error) return JSON.stringify({ error: error.message })
+        const samples = (data ?? []).map((r) => ({ confidence: Number(r.confidence), status: r.status }))
+        return JSON.stringify(computeCalibration(samples))
+      }
       case 'apply_overlay_edit': {
         const scenarioId = input.scenario_id ?? selection?.id
         if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
@@ -535,9 +572,54 @@ interface RequestBody {
   selection?: SelectionContext
 }
 
-function buildSystemPrompt(selection?: SelectionContext): string {
-  if (!selection) return SYSTEM_PROMPT
-  let prompt = SYSTEM_PROMPT + `
+/** Fetches the active Principles + Constraints for the hotel and renders them
+ *  as a prompt section. Principles are soft guidance the copilot weighs and
+ *  cites; Constraints are hard rules it must never propose around — the same
+ *  rules the agents obey and the Action Registry enforces at submission.
+ *  Returns '' when there are none (no section added). */
+async function fetchHouseRules(supabase: SupabaseClient, hotelId: string): Promise<string> {
+  const [principlesRes, constraintsRes] = await Promise.all([
+    supabase.from('principles')
+      .select('body, category')
+      .eq('hotel_id', hotelId).eq('active', true)
+      .order('created_at', { ascending: true }).limit(40),
+    supabase.from('constraints')
+      .select('body, bucket, severity')
+      .eq('hotel_id', hotelId).eq('active', true)
+      .order('created_at', { ascending: true }).limit(40),
+  ]) as unknown as [
+    { data: { body: string; category: string }[] | null },
+    { data: { body: string; bucket: string; severity: string }[] | null },
+  ]
+
+  const principles  = principlesRes.data ?? []
+  const constraints = constraintsRes.data ?? []
+  if (principles.length === 0 && constraints.length === 0) return ''
+
+  let section = `
+
+HOUSE RULES (the operator's standing instructions — they bind you exactly as they bind the automated agents):`
+
+  if (principles.length > 0) {
+    section += `
+
+Principles (soft guidance — weigh these in every answer and proposal; when you follow one, say so):
+${principles.map((p) => `- ${p.body}${p.category ? `  [${p.category}]` : ''}`).join('\n')}`
+  }
+  if (constraints.length > 0) {
+    section += `
+
+Constraints (HARD rules — never propose an action that would violate one. If the operator asks for something that would, refuse, name the constraint that blocks it, and offer a compliant alternative):
+${constraints.map((c) => `- ${c.body}  (${c.bucket}${c.severity ? `/${c.severity}` : ''})`).join('\n')}`
+  }
+  return section
+}
+
+function buildSystemPrompt(selection?: SelectionContext, houseRules?: string): string {
+  let prompt = SYSTEM_PROMPT
+  if (houseRules) prompt += houseRules
+  if (!selection) return prompt
+  prompt += `
 
 CURRENT VIEW:
 The operator is currently looking at a ${selection.kind} (id: \`${selection.id}\`)${selection.label ? ` — "${selection.label}"` : ''}. When a tool input or proposal field needs a ${selection.kind} id and the operator hasn't named a different one, default to this id. When the operator's question is vague ("forecast this?", "is this OK?"), assume it refers to the current ${selection.kind} unless they say otherwise.`
@@ -638,15 +720,22 @@ Deno.serve(async (req: Request) => {
       .select('hotel_id')
       .eq('id', user.id)
       .single() as unknown as { data: { hotel_id: string } | null }
+    const callerHotelId = callerProfile?.hotel_id ?? undefined
     let disabledTools: string[] = []
-    if (callerProfile?.hotel_id) {
+    if (callerHotelId) {
       const { data: config } = await supabase
         .from('copilot_tool_configs')
         .select('disabled_tools')
-        .eq('hotel_id', callerProfile.hotel_id)
+        .eq('hotel_id', callerHotelId)
         .maybeSingle() as unknown as { data: { disabled_tools: string[] | null } | null }
       disabledTools = config?.disabled_tools ?? []
     }
+
+    // ── House rules (Mind flywheel) ──────────────────────────────────────────
+    // The same Principles + Constraints the automated agents obey, injected so
+    // the copilot advises and proposes within them — instead of suggesting an
+    // action the Action Registry would later reject at submission.
+    const houseRules = callerHotelId ? await fetchHouseRules(supabase, callerHotelId) : ''
     const baseTools = disabledTools.length === 0
       ? TOOLS
       : TOOLS.filter((t) => !disabledTools.includes(t.name))
@@ -768,7 +857,7 @@ Deno.serve(async (req: Request) => {
               const llmStream = anthropic.messages.stream({
                 model:      'claude-haiku-4-5-20251001',
                 max_tokens: 1024,
-                system:     buildSystemPrompt(body.selection),
+                system:     buildSystemPrompt(body.selection, houseRules),
                 tools:      allowedTools,
                 messages:   anthropicMessages,
               })
@@ -801,7 +890,7 @@ Deno.serve(async (req: Request) => {
                   iteration: iterations,
                 })
                 const start    = Date.now()
-                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection)
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId)
                 const duration = Date.now() - start
                 send({
                   type:        'tool_result',
@@ -897,7 +986,7 @@ Deno.serve(async (req: Request) => {
     let response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
-      system: buildSystemPrompt(body.selection),
+      system: buildSystemPrompt(body.selection, houseRules),
       tools: allowedTools,
       messages: anthropicMessages,
     })
@@ -915,7 +1004,7 @@ Deno.serve(async (req: Request) => {
       const toolResults: Anthropic.ToolResultBlockParam[] = []
       for (const toolUse of toolUseBlocks) {
         const start = Date.now()
-        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection)
+        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId)
         const duration = Date.now() - start
 
         toolTrace.push({
@@ -944,7 +1033,7 @@ Deno.serve(async (req: Request) => {
       response = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 1024,
-        system: buildSystemPrompt(body.selection),
+        system: buildSystemPrompt(body.selection, houseRules),
         tools: allowedTools,
         messages: anthropicMessages,
       })

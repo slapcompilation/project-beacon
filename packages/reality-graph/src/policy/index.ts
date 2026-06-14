@@ -19,6 +19,13 @@ export interface OrgPolicy {
      *  proposal came from this agent. Lets the operator tighten or loosen
      *  one agent without touching the rest. 0..1. */
     agent_overrides: Record<string, number>
+    /** Trust budget: when true, an action auto-executes only if the proposing
+     *  agent has *proven* calibration — enough resolved samples, both outcome
+     *  classes, and an observed hit-rate at the proposal's confidence that
+     *  meets the floor. Default false (static floors govern alone). */
+    require_calibration: boolean
+    /** Minimum resolved samples before calibration counts as proven. */
+    min_calibration_samples: number
   }
   promotion: {
     /** Minimum eval pass rate required to promote an agent to production, 0..1. */
@@ -50,6 +57,8 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
   auto_execution: {
     thresholds:      { REQUEST_RESTOCK: 0.9 },
     agent_overrides: {},
+    require_calibration:     false,
+    min_calibration_samples: 20,
   },
   promotion: {
     production_pass_rate_floor: 0.7,
@@ -81,6 +90,8 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     auto_execution: {
       thresholds:      { ...DEFAULT_ORG_POLICY.auto_execution.thresholds },
       agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides },
+      require_calibration:     DEFAULT_ORG_POLICY.auto_execution.require_calibration,
+      min_calibration_samples: DEFAULT_ORG_POLICY.auto_execution.min_calibration_samples,
     },
     promotion:            { ...DEFAULT_ORG_POLICY.promotion },
     overstock:            { ...DEFAULT_ORG_POLICY.overstock },
@@ -106,6 +117,12 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
           merged.auto_execution.agent_overrides[k] = v
         }
       }
+    }
+    if (typeof ae.require_calibration === 'boolean') {
+      merged.auto_execution.require_calibration = ae.require_calibration
+    }
+    if (typeof ae.min_calibration_samples === 'number' && ae.min_calibration_samples >= 1) {
+      merged.auto_execution.min_calibration_samples = Math.round(ae.min_calibration_samples)
     }
   }
   if (isObj(o.promotion) && typeof (o.promotion as Record<string, unknown>).production_pass_rate_floor === 'number') {
