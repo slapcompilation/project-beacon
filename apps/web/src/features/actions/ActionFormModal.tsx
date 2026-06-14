@@ -20,6 +20,7 @@ import {
   type ValidationResult,
 } from '@beacon/reality-graph'
 import { dispatchAction, type DispatchContext } from '@/lib/actions/dispatch'
+import { useApprovedRemovalCategories } from '@/features/ontology/hooks'
 
 type FormValue = string | number | boolean | null
 
@@ -52,6 +53,16 @@ export function ActionFormModal({
   titleOverride, submitLabelOverride,
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
+
+  // Dynamic field options from the grown ontology (approved removal categories),
+  // resolved at open time. Only fetched when a field actually asks for them.
+  const needsRemovalCategories = useMemo(
+    () => descriptor.fields.some((f) => f.optionsSource === 'approved_removal_categories'),
+    [descriptor],
+  )
+  const hotelId = (context.hotelId as string | undefined) ?? dispatchContext?.hotelId
+  const { data: removalCategories = [] } = useApprovedRemovalCategories(hotelId, needsRemovalCategories && open)
+
   const [values, setValues]   = useState<Record<string, FormValue | undefined>>(() =>
     deriveInitial(descriptor, initialValues),
   )
@@ -136,6 +147,7 @@ export function ActionFormModal({
               field={field}
               value={values[field.name]}
               error={fieldErrors[field.name]}
+              suggestions={field.optionsSource === 'approved_removal_categories' ? removalCategories : undefined}
               onChange={(v) => { setValues((prev) => ({ ...prev, [field.name]: v })) }}
             />
           ))}
@@ -167,11 +179,13 @@ export function ActionFormModal({
 // ─── Field renderer ──────────────────────────────────────────────────────────
 
 function FieldRenderer({
-  field, value, error, onChange,
+  field, value, error, suggestions, onChange,
 }: {
   field: ActionField
   value: FormValue | undefined
   error: string | undefined
+  /** Dynamic type-or-pick options (e.g. approved removal categories). */
+  suggestions?: ReadonlyArray<string>
   onChange: (v: FormValue | undefined) => void
 }) {
   const labelInfo = field.required ? `${field.label} *` : field.label
@@ -232,16 +246,28 @@ function FieldRenderer({
         </FormGroup>
       )
     case 'string':
-    default:
+    default: {
+      // type-or-pick when the field carries dynamic suggestions (the grown
+      // ontology) — picking reuses a typed category, typing keeps the flywheel
+      // open (new free text → detected → approved → suggested next time).
+      const opts = suggestions ?? []
+      const listId = opts.length > 0 ? `opts-${field.name}` : undefined
       return (
         <FormGroup label={labelInfo} helperText={error ?? field.helper} intent={intent}>
           <InputGroup
             value={(value as string | undefined) ?? ''}
             onChange={(e) => { onChange(e.target.value) }}
             placeholder={field.placeholder}
+            list={listId}
           />
+          {listId && (
+            <datalist id={listId}>
+              {opts.map((opt) => <option key={opt} value={opt} />)}
+            </datalist>
+          )}
         </FormGroup>
       )
+    }
   }
 }
 

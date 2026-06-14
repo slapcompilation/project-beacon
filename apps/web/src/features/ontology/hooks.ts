@@ -3,7 +3,19 @@ import { toast } from 'sonner'
 import type { OntologyGap } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
-import { decideOntologyGap, fetchApprovedExtensions, fetchOntologyGaps } from './api'
+import { decideOntologyGap, fetchApprovedExtensions, fetchApprovedRemovalCategories, fetchOntologyGaps } from './api'
+
+/** Approved removal categories for a hotel — the grown ontology, consumed by the
+ *  write-off / adjust-stock forms. Explicit hotelId so the action modal can pass
+ *  the one bound to the form; gated by `enabled` so other actions don't fetch. */
+export function useApprovedRemovalCategories(hotelId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['ontology-extensions', 'removal-categories', hotelId ?? ''],
+    queryFn:  () => fetchApprovedRemovalCategories(hotelId ?? ''),
+    enabled:  enabled && !!hotelId,
+    staleTime: 60_000,
+  })
+}
 
 export function useOntologyGaps() {
   const hotelId = useActiveHotelId()

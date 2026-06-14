@@ -274,13 +274,15 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       }
 
       case 'WRITE_OFF': {
-        // WRITE_OFF is a negative adjust_stock with a waste removal category
+        // WRITE_OFF is a negative adjust_stock. The typed removal category is the
+        // operator's pick from the grown ontology when given; else the generic 'waste'.
+        const category = action.removalCategory?.trim() ? action.removalCategory.trim() : 'waste'
         const res = await adjustStock(
           action.variantId,
           -action.quantity,
           action.wasteReason,
           null,
-          'waste',
+          category,
         )
         mutationResult = { logId: res.logId } satisfies StockLogResult
         break

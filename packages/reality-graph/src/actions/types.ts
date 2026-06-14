@@ -84,6 +84,8 @@ export type BeaconAction =
       wasteReason: string
       hotelId: string
       userId: string
+      /** Optional typed category from the grown ontology; falls back to 'waste'. */
+      removalCategory?: string | null
     }
   | {
       type: 'REVERT_ACTION'

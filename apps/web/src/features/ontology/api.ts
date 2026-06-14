@@ -115,6 +115,20 @@ export async function decideOntologyGap(input: {
   if (error) throw new Error(error.message)
 }
 
+/** Approved removal_category values — the typed vocabulary the write-off /
+ *  adjust-stock forms suggest. Consuming the grown ontology. */
+export async function fetchApprovedRemovalCategories(hotelId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('ontology_proposals')
+    .select('proposed')
+    .eq('hotel_id', hotelId)
+    .eq('status', 'approved')
+    .eq('target_field', 'removal_category')
+    .order('proposed', { ascending: true })
+  if (error) throw new Error(error.message)
+  return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]
+}
+
 /** The grown ontology: approved typed extensions, newest first. */
 export async function fetchApprovedExtensions(hotelId: string): Promise<OntologyProposalRow[]> {
   const { data, error } = await supabase
