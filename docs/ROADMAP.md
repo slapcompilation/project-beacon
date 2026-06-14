@@ -92,3 +92,84 @@ spine the current UI is missing.
 
 L1 + L2 first (they dissolve "disconnected" and Cases is the missing spine),
 then M (reorganize once the loop is visible), then N + O as cleanup.
+
+---
+
+# Beyond AIP parity — the durable moats
+
+L–O made the AIP legible. The next arc is what makes Beacon *defensible for years*:
+the model is a commodity; the moat is the **learned ontology + the compounding
+outcome flywheel + the network**. Framed as three pillars. The reframe:
+Beacon isn't "AI for hospitality" — it's the **system of record for operational
+decisions** a business can safely delegate to and that gets measurably better.
+
+## Pillar 1 — Calibrated autonomy (the trust budget)
+Autonomy you can *prove* is safe to delegate. *(PR #166)*
+- **P1 · Decision calibration** — does a stated confidence match reality?
+  Per-band hit-rate, ECE, Brier, verdict; honest about thin / single-class data.
+  Surfaced under Studio → Calibration. *(done)*
+- **Copilot honors the Mind rules** — the Canvas copilot now injects active
+  Principles + Constraints and has a calibration tool, so it advises within the
+  same rules the agents obey. *(done — needs edge-fn deploy)*
+- **P2 · Trust budget** — `decideAutoExecution` extended (no second gate): a
+  proven-overconfident agent is queued even above the static floor;
+  `require_calibration` demands proven calibration. Policy toggle + Run-cycle +
+  cron wired. *(done — cron needs edge-fn deploy)*
+
+## Pillar 2 — Self-evolving ontology
+The graph proposes its own growth, under review — never a runtime schema mutation. *(PR #167)*
+- **Q1 · Gap detection** — `detect_ontology_gaps` finds typed concepts the data
+  carries but the ontology doesn't (free-text `removal_category`), with evidence
+  + confidence. *(done)*
+- **Q2 · Approve → grow** — operator approval persists in `ontology_proposals`
+  (migration 163, audited, hotel-scoped RLS); approved values become recognized
+  types the detector stops re-proposing. *(done)*
+- **Q3 (next)** — consume approved categories in the WRITE_OFF action (typed
+  dropdown); add detectors for untyped *edges* and missing *computed properties*.
+
+## Pillar 3 — Federated network *(not started)*
+Benchmarking is a property of the network, not a feature.
+- **R1** — intra-org cross-property benchmarks (topology already exists).
+- **R2** — privacy-preserving cross-customer signal (supplier reliability,
+  demand patterns, price) via differential privacy / federation. The compounding
+  data-network moat. *Design the privacy boundary before the first cross-tenant read.*
+
+---
+
+# Optimization backlog (harden what shipped)
+
+Ranked by leverage.
+
+| # | Item | Why |
+|---|---|---|
+| A1 | **CI auto-deploy of edge functions** — regen bundle from source + `supabase functions deploy` on merge to main | Kills the recurring manual deploy + stale-bundle pain. *(in progress)* |
+| A2 | **Bundle as a build step** — `pnpm build:edge-bundle` + a PR drift check | No hand-typed esbuild; no silent source↔deployed drift |
+| A3 | **Consume the grown ontology** — wire approved `removal_category` into WRITE_OFF | Closes Pillar 2's value loop (growth isn't read yet) |
+| A4 | **Calibration label fidelity** — partial credit for edited-then-approved; time-decay | approve=1 overstates accuracy; the trust budget is only as honest as its labels |
+| A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | A determined LLM can still draft a violating proposal |
+| A6 | **Flywheel observability** — ECE trend, ontology-growth, copilot rule-citation events + a dashboard | Can't manage (or sell the proof of) what you can't see |
+| A7 | **Behavior evals** — calibration-veto agent eval; rubric that the copilot refuses a violating ask | Unit tests exist; behavior evals are the AIP "production" bar |
+
+---
+
+# Directional bets (trigger-gated — watch, don't grind)
+
+Recommendation: keep these on the roadmap but **gate each behind a trigger**, not a
+date. Build the moat work (Pillars) + the optimization backlog on a schedule;
+pull a bet forward only when its trigger fires. Re-rank quarterly using the
+product's own outcome data — let the flywheel tell you which bet to fund.
+
+| Bet | Build when (trigger) | Note |
+|---|---|---|
+| **Provable / auditable autonomy** (export audit, "explain this action", compliance attestations) | A regulated or enterprise prospect asks "prove why it acted" | You're already 80% here (decision ledger + calibration). Formalize on first ask. **Commit-leaning.** |
+| **Outcome-based pricing / ROI accounting** (waste prevented, stockouts avoided, hours saved) | Before the next pricing conversation | Both a feature and a GTM wedge; the ledger already has the data. **Commit-leaning.** |
+| **Federated network (Pillar 3 R2)** | ≥ ~3 paying multi-property customers | Premature before density; design privacy now, build later |
+| **Decision digital-twin / simulation** | Operators trust the core loop + ask "what if" | Scenarios are the seed; extend once autonomy is trusted |
+| **Multimodal ingestion → ontology** (invoices, contracts, shelf-cam, cold-storage IoT) | A customer's value hinges on a non-text source | The gap-detector is the on-ramp for auto-typing the flood |
+
+**How to follow it:** treat *Pillars + Optimization backlog* as the committed plan
+(sequence: finish Pillar 1 deploy → A1/A3 → Q3 → Pillar 3 when its trigger fires).
+Treat *Directional bets* as a watchlist reviewed each quarter. The two
+commit-leaning bets (auditable autonomy, ROI accounting) are cheap given what's
+built and double as sales leverage — promote them the moment a customer
+conversation calls for either.
