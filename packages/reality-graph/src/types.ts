@@ -77,6 +77,23 @@ export type EdgeType =
   | 'cited_in'
   | 'applies_to'
 
+/** Runtime list of every typed edge. The ontology drift detector compares the
+ *  edge types present in the graph against this set; anything in the data but
+ *  not here is an untyped-edge gap. Kept exhaustive against EdgeType by the
+ *  compile-time check below (and `satisfies` guards against typos / stale entries). */
+export const EDGE_TYPES = [
+  'belongs_to_hotel', 'created_by', 'causes', 'consumes', 'restocks', 'reverts',
+  'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
+  'fulfills', 'sourced_from', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
+  'influenced_by', 'similar_to', 'belongs_to_org', 'transfers', 'proposed_by', 'benchmarks',
+  'harmonized_to', 'describes_entity', 'cited_in', 'applies_to',
+] as const satisfies readonly EdgeType[]
+
+// Compile error if EDGE_TYPES omits any EdgeType member.
+type _MissingEdgeTypes = Exclude<EdgeType, (typeof EDGE_TYPES)[number]>
+const _edgeTypesExhaustive: [_MissingEdgeTypes] extends [never] ? true : ['EDGE_TYPES missing', _MissingEdgeTypes] = true
+void _edgeTypesExhaustive
+
 export interface GraphNode {
   id: string
   type: NodeType
