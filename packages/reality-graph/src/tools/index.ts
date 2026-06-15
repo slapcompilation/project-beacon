@@ -136,3 +136,9 @@ export {
   type CalibrationReader,
   type CalibrationProposalRef,
 } from './logic/compute_decision_calibration'
+export {
+  makeDetectOntologyGapsTool,
+  type DetectOntologyGapsInput,
+  type DetectOntologyGapsOutput,
+  type OntologyReader,
+} from './logic/detect_ontology_gaps'

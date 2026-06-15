@@ -34,12 +34,13 @@ const ActionChainsPage          = lazy(() => import('@/pages/ActionChainsPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
+const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 
 export type AipTab =
   | 'command' | 'portfolio'
   | 'queue' | 'approvals' | 'cases'
   | 'studio'
-  | 'agents' | 'system-map'
+  | 'agents' | 'system-map' | 'ontology'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'calibration' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
@@ -58,6 +59,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   // Studio — build & configure the fabric
   { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
   { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute', desc: 'How nodes, tools & actions connect' },
+  { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
   { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
@@ -195,6 +197,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
     case 'system-map':   return <SystemMapPage />
+    case 'ontology':     return <OntologyPage />
     case 'documents':    return <DocumentsPage />
     case 'entity-links': return <EntityLinkSuggestionsPage />
     case 'answers':      return <ApprovedAnswersPage />

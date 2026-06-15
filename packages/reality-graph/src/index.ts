@@ -155,6 +155,7 @@ export {
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
   makeComputeDecisionCalibrationTool,
+  makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
@@ -163,6 +164,9 @@ export type {
   ComputeDecisionCalibrationOutput,
   CalibrationReader,
   CalibrationProposalRef,
+  DetectOntologyGapsInput,
+  DetectOntologyGapsOutput,
+  OntologyReader,
 } from './tools/index'
 
 // ── Decision calibration — reliability math behind trustworthy autonomy ──────
@@ -178,6 +182,18 @@ export type {
   CalibrationVerdict,
   CalibrationOptions,
 } from './calibration/index'
+
+// ── Self-evolving ontology — gap detection (Pillar 2, Phase Q1) ──────────────
+export {
+  detectRemovalCategoryGaps,
+} from './ontology/index'
+export type {
+  OntologyGap,
+  OntologyGapKind,
+  OntologyGapEvidence,
+  RemovalReasonRow,
+  DetectRemovalCategoryOptions,
+} from './ontology/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─
 // Phase B stub: contracts only. Agents land in src/agents/<agent_name>/.

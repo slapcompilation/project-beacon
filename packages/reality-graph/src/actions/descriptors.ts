@@ -30,6 +30,10 @@ export interface ActionField {
   max?:      number
   /** Required when kind === 'enum'. */
   options?:  ReadonlyArray<string>
+  /** Dynamic option source resolved by the UI at form-open time (e.g.
+   *  'approved_removal_categories' → the hotel's grown ontology). Rendered as
+   *  type-or-pick suggestions, so free entry still works when the set is empty. */
+  optionsSource?: 'approved_removal_categories'
   placeholder?: string
 }
 
@@ -118,7 +122,7 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     fields: [
       { name: 'delta',           kind: 'number',   label: 'Delta',  required: true, helper: 'Use negative for removals' },
       { name: 'reason',          kind: 'string',   label: 'Reason', required: true },
-      { name: 'removalCategory', kind: 'string',   label: 'Removal category', helper: 'Optional — e.g. damaged, expired, sample' },
+      { name: 'removalCategory', kind: 'string',   label: 'Removal category', optionsSource: 'approved_removal_categories', helper: 'Pick an approved category or type a new one' },
     ],
     contextFields: ['variantId', 'hotelId', 'userId'],
     approvalTier:  'self',
@@ -129,8 +133,9 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     title:          'Write off',
     description:    'Removes units due to waste, breakage, or spoilage. Routed to the waste cycle for analytics.',
     fields: [
-      { name: 'quantity',    kind: 'quantity',  label: 'Quantity', required: true, min: 1 },
-      { name: 'wasteReason', kind: 'multiline', label: 'Reason',   required: true },
+      { name: 'quantity',        kind: 'quantity',  label: 'Quantity', required: true, min: 1 },
+      { name: 'wasteReason',     kind: 'multiline', label: 'Reason',   required: true },
+      { name: 'removalCategory', kind: 'string',    label: 'Category', optionsSource: 'approved_removal_categories', helper: 'Optional — pick an approved category or type a new one' },
     ],
     contextFields: ['variantId', 'hotelId', 'userId'],
     approvalTier:  'self',
