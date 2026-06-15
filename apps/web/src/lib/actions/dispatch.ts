@@ -268,6 +268,7 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
           action.reason,
           extras?.photoFile ?? null,
           action.removalCategory,
+          action.movementCategory,
         )
         mutationResult = { logId: res.logId } satisfies StockLogResult
         break

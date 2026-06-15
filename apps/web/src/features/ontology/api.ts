@@ -83,7 +83,7 @@ function makeSupabaseOntologyReader(): OntologyReader {
     async getAdditionReasons(hotelId, sinceDays) {
       let q = supabase
         .from('stock_logs')
-        .select('reason')
+        .select('reason, movement_category')
         .eq('hotel_id', hotelId)
         .gt('quantity_change', 0)
         .not('reason', 'is', null)
@@ -93,19 +93,34 @@ function makeSupabaseOntologyReader(): OntologyReader {
       }
       const { data, error } = await q
       if (error) throw new Error(error.message)
-      return data as { reason: string | null }[]
+      return data as { reason: string | null; movement_category: string | null }[]
     },
 
-    // movement_category has no column yet, so "known" = decided proposals only.
+    // "Known" = decided proposals + categories already stamped on additions.
     async getKnownMovementCategories(hotelId) {
-      const { data, error } = await supabase
-        .from('ontology_proposals')
-        .select('proposed')
-        .eq('hotel_id', hotelId)
-        .eq('target_field', 'movement_category')
-        .in('status', ['approved', 'rejected'])
-      if (error) throw new Error(error.message)
-      return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]
+      const [logs, decided] = await Promise.all([
+        supabase
+          .from('stock_logs')
+          .select('movement_category')
+          .eq('hotel_id', hotelId)
+          .not('movement_category', 'is', null)
+          .limit(1000),
+        supabase
+          .from('ontology_proposals')
+          .select('proposed')
+          .eq('hotel_id', hotelId)
+          .eq('target_field', 'movement_category')
+          .in('status', ['approved', 'rejected']),
+      ])
+      if (logs.error) throw new Error(logs.error.message)
+      if (decided.error) throw new Error(decided.error.message)
+      const set = new Set<string>()
+      for (const r of logs.data) {
+        const c = (r as { movement_category: string | null }).movement_category
+        if (c) set.add(c)
+      }
+      for (const r of decided.data) set.add((r as { proposed: string }).proposed)
+      return [...set]
     },
 
     // Tally edge types client-side (PostgREST has no group-by without an RPC).
@@ -168,6 +183,19 @@ export async function fetchApprovedRemovalCategories(hotelId: string): Promise<s
     .eq('hotel_id', hotelId)
     .eq('status', 'approved')
     .eq('target_field', 'removal_category')
+    .order('proposed', { ascending: true })
+  if (error) throw new Error(error.message)
+  return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]
+}
+
+/** Approved movement_category values — suggested on stock additions. */
+export async function fetchApprovedMovementCategories(hotelId: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('ontology_proposals')
+    .select('proposed')
+    .eq('hotel_id', hotelId)
+    .eq('status', 'approved')
+    .eq('target_field', 'movement_category')
     .order('proposed', { ascending: true })
   if (error) throw new Error(error.message)
   return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]

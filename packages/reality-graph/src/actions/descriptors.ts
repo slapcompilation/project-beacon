@@ -30,10 +30,10 @@ export interface ActionField {
   max?:      number
   /** Required when kind === 'enum'. */
   options?:  ReadonlyArray<string>
-  /** Dynamic option source resolved by the UI at form-open time (e.g.
-   *  'approved_removal_categories' → the hotel's grown ontology). Rendered as
-   *  type-or-pick suggestions, so free entry still works when the set is empty. */
-  optionsSource?: 'approved_removal_categories'
+  /** Dynamic option source resolved by the UI at form-open time (the hotel's
+   *  grown ontology). Rendered as type-or-pick suggestions, so free entry still
+   *  works when the set is empty. */
+  optionsSource?: 'approved_removal_categories' | 'approved_movement_categories'
   placeholder?: string
 }
 
@@ -120,9 +120,10 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     title:          'Adjust stock',
     description:    'Manual count correction. Positive deltas add; negative deltas remove. Use Write-off for waste.',
     fields: [
-      { name: 'delta',           kind: 'number',   label: 'Delta',  required: true, helper: 'Use negative for removals' },
-      { name: 'reason',          kind: 'string',   label: 'Reason', required: true },
-      { name: 'removalCategory', kind: 'string',   label: 'Removal category', optionsSource: 'approved_removal_categories', helper: 'Pick an approved category or type a new one' },
+      { name: 'delta',            kind: 'number',  label: 'Delta',  required: true, helper: 'Use negative for removals' },
+      { name: 'reason',           kind: 'string',  label: 'Reason', required: true },
+      { name: 'removalCategory',  kind: 'string',  label: 'Removal category',  optionsSource: 'approved_removal_categories',  helper: 'For removals (negative delta) — pick an approved category or type a new one' },
+      { name: 'movementCategory', kind: 'string',  label: 'Movement category', optionsSource: 'approved_movement_categories', helper: 'For additions (positive delta) — pick an approved category or type a new one' },
     ],
     contextFields: ['variantId', 'hotelId', 'userId'],
     approvalTier:  'self',
