@@ -1,18 +1,18 @@
-// Self-evolving ontology — step 1: detect what the data already contains that
-// the typed ontology can't yet express, and propose typed extensions for the
-// operator to approve.
+// Self-evolving ontology — detect what the data already contains that the typed
+// ontology can't yet express, and propose typed extensions for the operator to
+// approve.
 //
 // 1. Layer: compute. Pure, deterministic detection over a data source; no I/O.
 // 2. Ontology fit: reads existing nodes/fields, proposes typed extensions to
-//    them (a new category value today; new edge types / computed properties as
-//    later detectors register). Output is a reviewable proposal, never a runtime
-//    schema mutation — the ontology stays typed code, grown under operator review.
+//    them. Output is a reviewable proposal, never a runtime schema mutation —
+//    the ontology stays typed code, grown under operator review.
 // 3. Scope: caller supplies the rows to scan (hotel or org); the math is
 //    scope-agnostic.
 //
-// First detector: stock-removal reasons. Operators (and POS imports) describe
-// every removal in free text while the typed `removal_category` sits unused —
-// a concept the data carries but the ontology doesn't capture.
+// Detection is a registry of small detectors over one shared core
+// (detectReasonCategoryGaps): map free-text to a canonical category via a
+// keyword lexicon, then aggregate. Today: stock-removal reasons (removal_category)
+// and stock-addition reasons (movement_category). New gap kinds plug in here.
 
 export type OntologyGapKind =
   | 'new_category'   // a recurring free-text value that should be a typed enum member
@@ -33,7 +33,7 @@ export interface OntologyGap {
   kind: OntologyGapKind
   /** Existing node type the extension attaches to (e.g. 'StockLog'). */
   targetType: string
-  /** Existing field the extension refines (e.g. 'removal_category'). */
+  /** Field the extension refines (e.g. 'removal_category'). */
   targetField: string
   /** The proposed typed value / name (e.g. 'spoilage'). */
   proposed: string
@@ -44,9 +44,11 @@ export interface OntologyGap {
   confidence: number
 }
 
-/** Keyword → canonical removal category. First entry whose any keyword is a
- *  substring of the normalized reason wins, so order = priority. */
-const REMOVAL_LEXICON: ReadonlyArray<{ category: string; keywords: ReadonlyArray<string> }> = [
+interface LexiconEntry { category: string; keywords: ReadonlyArray<string> }
+
+/** Keyword → canonical category for stock REMOVALS. First entry whose any
+ *  keyword is a substring of the normalized reason wins, so order = priority. */
+const REMOVAL_LEXICON: ReadonlyArray<LexiconEntry> = [
   { category: 'spoilage',      keywords: ['spoil', 'expire', 'expired', 'perish', 'out of date', 'past date', 'rotten', 'mould', 'mold'] },
   { category: 'damage',        keywords: ['damage', 'broke', 'broken', 'breakage', 'spill', 'spilt', 'dropped', 'crack'] },
   { category: 'theft',         keywords: ['theft', 'stolen', 'steal', 'shrink', 'pilfer', 'missing'] },
@@ -56,13 +58,32 @@ const REMOVAL_LEXICON: ReadonlyArray<{ category: string; keywords: ReadonlyArray
   { category: 'consumption',   keywords: ['consum', 'pos', 'sale', 'sold', 'usage', 'used', 'depletion', 'served'] },
 ]
 
-export interface RemovalReasonRow {
+/** Keyword → canonical category for stock ADDITIONS. */
+const ADDITION_LEXICON: ReadonlyArray<LexiconEntry> = [
+  { category: 'receipt',     keywords: ['receiv', 'deliver', 'restock', 'purchase', ' po ', 'arriv', 'inbound', 'goods in'] },
+  { category: 'return',      keywords: ['return', 'refund', 'sent back', 'put back'] },
+  { category: 'transfer',    keywords: ['transfer', 'moved in', 'from sister', 'inter-property', 'inbound transfer'] },
+  { category: 'correction',  keywords: ['correct', 'recount', 'found', 'cycle count', 'audit', 'reconcil', 'stocktake', 'adjust'] },
+  { category: 'production',  keywords: ['made', 'produced', 'prepped', 'batch', 'in-house', 'in house'] },
+]
+
+/** Generic row the category detectors scan: a free-text reason + the typed
+ *  category already on the row (null when not yet typed, or when the concept
+ *  has no column at all). */
+export interface ReasonRow {
   reason: string | null
-  removal_category: string | null
+  category: string | null
 }
 
-export interface DetectRemovalCategoryOptions {
-  /** Categories already recognized by the ontology — never re-proposed. */
+export interface DetectReasonCategoryConfig {
+  lexicon: ReadonlyArray<LexiconEntry>
+  /** Node type the extension attaches to (e.g. 'StockLog'). */
+  targetType: string
+  /** Field the typed category would live on (e.g. 'removal_category'). */
+  targetField: string
+  /** Plural noun for the rationale (e.g. 'removals', 'stock additions'). */
+  noun: string
+  /** Categories already recognized — never re-proposed. */
   knownCategories?: ReadonlyArray<string>
   /** Minimum supporting rows before a category is proposed. Default 3. */
   minSupport?: number
@@ -71,30 +92,30 @@ export interface DetectRemovalCategoryOptions {
 }
 
 /**
- * Scans removal stock-logs and proposes typed `removal_category` values for the
- * recurring free-text reasons that aren't categorized yet. Deterministic: maps
- * each reason to a canonical category via a keyword lexicon, then aggregates.
- * Returns proposals descending by support.
+ * The shared detector core. Scans rows whose typed `category` isn't set yet,
+ * maps each free-text `reason` to a canonical category via the config's lexicon,
+ * aggregates, and proposes the recurring ones. Deterministic; returns proposals
+ * descending by support.
  */
-export function detectRemovalCategoryGaps(
-  rows: ReadonlyArray<RemovalReasonRow>,
-  opts: DetectRemovalCategoryOptions = {},
+export function detectReasonCategoryGaps(
+  rows: ReadonlyArray<ReasonRow>,
+  config: DetectReasonCategoryConfig,
 ): OntologyGap[] {
-  const minSupport  = opts.minSupport ?? 3
-  const maxExamples = opts.maxExamples ?? 3
-  const known = new Set((opts.knownCategories ?? []).map((c) => c.toLowerCase()))
+  const minSupport  = config.minSupport ?? 3
+  const maxExamples = config.maxExamples ?? 3
+  const known = new Set((config.knownCategories ?? []).map((c) => c.toLowerCase()))
 
-  // Only uncategorized removals carry signal — a row already typed is no gap.
-  const uncategorized = rows.filter(
-    (r) => (r.removal_category == null || r.removal_category.trim() === '')
+  // Only untyped rows carry signal — a row already typed is no gap.
+  const untyped = rows.filter(
+    (r) => (r.category == null || r.category.trim() === '')
       && r.reason != null && r.reason.trim() !== '',
   )
-  const totalConsidered = uncategorized.length
+  const totalConsidered = untyped.length
   if (totalConsidered === 0) return []
 
   const buckets = new Map<string, { count: number; examples: Set<string> }>()
-  for (const r of uncategorized) {
-    const category = classifyReason(r.reason!)
+  for (const r of untyped) {
+    const category = classify(r.reason!, config.lexicon)
     if (category == null || known.has(category)) continue
     let b = buckets.get(category)
     if (!b) { b = { count: 0, examples: new Set() }; buckets.set(category, b) }
@@ -108,20 +129,15 @@ export function detectRemovalCategoryGaps(
     const coverage = b.count / totalConsidered
     gaps.push({
       kind: 'new_category',
-      targetType: 'StockLog',
-      targetField: 'removal_category',
+      targetType: config.targetType,
+      targetField: config.targetField,
       proposed: category,
       rationale:
-        `${String(b.count)} of ${String(totalConsidered)} uncategorized removals ` +
+        `${String(b.count)} of ${String(totalConsidered)} untyped ${config.noun} ` +
         `(${pct(coverage)}) read as "${category}" but are stored only as free text — ` +
-        `promote it to a typed removal_category.`,
-      evidence: {
-        occurrences: b.count,
-        totalConsidered,
-        coverage,
-        examples: [...b.examples],
-      },
-      // Recurrence drives confidence: a category covering most removals is an
+        `promote it to a typed ${config.targetField}.`,
+      evidence: { occurrences: b.count, totalConsidered, coverage, examples: [...b.examples] },
+      // Recurrence drives confidence: a category covering most rows is an
       // unmistakable gap; a long-tail one is a weaker suggestion.
       confidence: round2(0.55 + 0.42 * coverage),
     })
@@ -130,9 +146,50 @@ export function detectRemovalCategoryGaps(
   return gaps.sort((a, b) => b.evidence.occurrences - a.evidence.occurrences)
 }
 
-function classifyReason(reason: string): string | null {
+// ── Concrete detectors ────────────────────────────────────────────────────────
+
+export interface RemovalReasonRow {
+  reason: string | null
+  removal_category: string | null
+}
+
+export interface DetectRemovalCategoryOptions {
+  knownCategories?: ReadonlyArray<string>
+  minSupport?: number
+  maxExamples?: number
+}
+
+/** Stock removals → typed removal_category. */
+export function detectRemovalCategoryGaps(
+  rows: ReadonlyArray<RemovalReasonRow>,
+  opts: DetectRemovalCategoryOptions = {},
+): OntologyGap[] {
+  return detectReasonCategoryGaps(
+    rows.map((r) => ({ reason: r.reason, category: r.removal_category })),
+    { lexicon: REMOVAL_LEXICON, targetType: 'StockLog', targetField: 'removal_category', noun: 'removals', ...opts },
+  )
+}
+
+/** Free-text reason on a stock addition. Additions have no typed category column
+ *  yet, so every one is untyped — the gap is the missing typed concept itself. */
+export interface AdditionReasonRow {
+  reason: string | null
+}
+
+/** Stock additions → typed movement_category (a concept not captured at all today). */
+export function detectAdditionCategoryGaps(
+  rows: ReadonlyArray<AdditionReasonRow>,
+  opts: DetectRemovalCategoryOptions = {},
+): OntologyGap[] {
+  return detectReasonCategoryGaps(
+    rows.map((r) => ({ reason: r.reason, category: null })),
+    { lexicon: ADDITION_LEXICON, targetType: 'StockLog', targetField: 'movement_category', noun: 'stock additions', ...opts },
+  )
+}
+
+function classify(reason: string, lexicon: ReadonlyArray<LexiconEntry>): string | null {
   const norm = reason.toLowerCase()
-  for (const entry of REMOVAL_LEXICON) {
+  for (const entry of lexicon) {
     if (entry.keywords.some((k) => norm.includes(k))) return entry.category
   }
   return null

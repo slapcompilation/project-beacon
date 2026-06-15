@@ -79,6 +79,34 @@ function makeSupabaseOntologyReader(): OntologyReader {
       for (const r of decided.data) set.add((r as { proposed: string }).proposed)
       return [...set]
     },
+
+    async getAdditionReasons(hotelId, sinceDays) {
+      let q = supabase
+        .from('stock_logs')
+        .select('reason')
+        .eq('hotel_id', hotelId)
+        .gt('quantity_change', 0)
+        .not('reason', 'is', null)
+        .limit(5000)
+      if (typeof sinceDays === 'number') {
+        q = q.gte('timestamp', new Date(Date.now() - sinceDays * 86_400_000).toISOString())
+      }
+      const { data, error } = await q
+      if (error) throw new Error(error.message)
+      return data as { reason: string | null }[]
+    },
+
+    // movement_category has no column yet, so "known" = decided proposals only.
+    async getKnownMovementCategories(hotelId) {
+      const { data, error } = await supabase
+        .from('ontology_proposals')
+        .select('proposed')
+        .eq('hotel_id', hotelId)
+        .eq('target_field', 'movement_category')
+        .in('status', ['approved', 'rejected'])
+      if (error) throw new Error(error.message)
+      return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]
+    },
   }
 }
 
