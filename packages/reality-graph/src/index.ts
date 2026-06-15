@@ -24,6 +24,7 @@ export {
 export type { Layer, LayerMeta } from './layers'
 export { LAYERS } from './layers'
 export type { NodeType, EdgeType, GraphNode, GraphEdge, LayerDeclaration } from './types'
+export { EDGE_TYPES } from './types'
 export type { EdgeRecord, TraversalNode, TraverseOptions } from './engine'
 export { edgesForNode, outEdges, inEdges, walkRevertChain, hasEdge, groupByEdgeType, traverseGraph, otherSide } from './engine'
 
@@ -188,6 +189,7 @@ export {
   detectReasonCategoryGaps,
   detectRemovalCategoryGaps,
   detectAdditionCategoryGaps,
+  detectUntypedEdgeGaps,
 } from './ontology/index'
 export type {
   OntologyGap,
@@ -198,6 +200,8 @@ export type {
   RemovalReasonRow,
   AdditionReasonRow,
   DetectRemovalCategoryOptions,
+  EdgeTypeCount,
+  DetectUntypedEdgeOptions,
 } from './ontology/index'
 
 // ── AIP-Style Agents — LLM-orchestrated workflows that propose BeaconActions ─

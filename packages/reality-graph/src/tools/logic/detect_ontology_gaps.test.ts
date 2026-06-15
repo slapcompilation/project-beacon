@@ -3,7 +3,7 @@ import {
   makeDetectOntologyGapsTool,
   type OntologyReader,
 } from './detect_ontology_gaps'
-import type { AdditionReasonRow, RemovalReasonRow } from '../../ontology/index'
+import type { AdditionReasonRow, EdgeTypeCount, RemovalReasonRow } from '../../ontology/index'
 
 const HOTEL = '00000000-0000-0000-0000-000000000000'
 
@@ -12,12 +12,14 @@ function readerOf(
   known: string[] = [],
   additions: AdditionReasonRow[] = [],
   knownMovement: string[] = [],
+  edges: EdgeTypeCount[] = [],
 ): OntologyReader {
   return {
     getRemovalReasons: async () => rows,
     getKnownRemovalCategories: async () => known,
     getAdditionReasons: async () => additions,
     getKnownMovementCategories: async () => knownMovement,
+    getEdgeTypeCounts: async () => edges,
   }
 }
 
@@ -63,5 +65,16 @@ describe('detect_ontology_gaps tool', () => {
     expect(fields).toContain('movement_category:receipt')
     // additions (30) outrank removals (20) by support
     expect(out.gaps[0].targetField).toBe('movement_category')
+  })
+
+  it('flags an untyped edge type but not a declared one', async () => {
+    const edges: EdgeTypeCount[] = [
+      { edge_type: 'consumes', count: 2000 },          // declared in EdgeType → no gap
+      { edge_type: 'haunted_by', count: 7 },           // not declared → gap
+    ]
+    const out = await makeDetectOntologyGapsTool(readerOf([], [], [], [], edges)).invoke({ hotelId: HOTEL })
+    const edgeGaps = out.gaps.filter((g) => g.kind === 'new_edge_type')
+    expect(edgeGaps).toHaveLength(1)
+    expect(edgeGaps[0]).toMatchObject({ proposed: 'haunted_by', targetType: 'RelationshipEdge', targetField: 'edge_type' })
   })
 })
