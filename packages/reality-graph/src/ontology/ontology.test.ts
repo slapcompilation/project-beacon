@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectRemovalCategoryGaps, type RemovalReasonRow } from './index'
+import { detectAdditionCategoryGaps, detectRemovalCategoryGaps, type RemovalReasonRow } from './index'
 
 function reasons(...pairs: [string | null, number][]): RemovalReasonRow[] {
   const rows: RemovalReasonRow[] = []
@@ -75,5 +75,43 @@ describe('detectRemovalCategoryGaps', () => {
       { maxExamples: 2 },
     )
     expect(gaps[0].evidence.examples).toHaveLength(2)
+  })
+})
+
+describe('detectAdditionCategoryGaps', () => {
+  const adds = (...pairs: [string, number][]) =>
+    pairs.flatMap(([reason, n]) => Array.from({ length: n }, () => ({ reason })))
+
+  it('proposes movement_category for the dominant addition reason (real data shape)', () => {
+    // Mirrors the live data: every addition is "restock received", untyped.
+    const gaps = detectAdditionCategoryGaps(adds(['restock received', 249]))
+    expect(gaps).toHaveLength(1)
+    expect(gaps[0]).toMatchObject({
+      kind: 'new_category',
+      targetType: 'StockLog',
+      targetField: 'movement_category',
+      proposed: 'receipt',
+    })
+    expect(gaps[0].evidence.occurrences).toBe(249)
+    expect(gaps[0].evidence.coverage).toBe(1)
+  })
+
+  it('maps addition phrasings to canonical categories and ranks by support', () => {
+    const gaps = detectAdditionCategoryGaps(adds(
+      ['delivery from supplier', 8],
+      ['goods in', 4],            // → receipt too
+      ['customer return', 5],
+      ['cycle count found extra', 3],
+    ))
+    const byCat = Object.fromEntries(gaps.map((g) => [g.proposed, g.evidence.occurrences]))
+    expect(byCat.receipt).toBe(12)   // delivery + goods in
+    expect(byCat.return).toBe(5)
+    expect(byCat.correction).toBe(3)
+    expect(gaps[0].proposed).toBe('receipt')
+  })
+
+  it('never re-proposes an already-known movement category', () => {
+    const gaps = detectAdditionCategoryGaps(adds(['restock received', 10]), { knownCategories: ['receipt'] })
+    expect(gaps).toEqual([])
   })
 })

@@ -48,7 +48,7 @@ export default function OntologyPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-muted-foreground tabular-nums">{scanned.toLocaleString()} removals scanned</span>
+          <span className="text-[11px] text-muted-foreground tabular-nums">{scanned.toLocaleString()} stock movements scanned</span>
           <Button variant="minimal" size="small" icon="refresh" loading={isFetching} onClick={() => { void refetch() }}>Refresh</Button>
         </div>
       </header>
@@ -59,7 +59,7 @@ export default function OntologyPage() {
             icon={<Icon icon="graph" size={32} className="text-muted-foreground/40" />}
             title="No open ontology gaps"
             description={
-              `Scanned ${scanned.toLocaleString()} stock removals — every recurring pattern is either already typed, ` +
+              `Scanned ${scanned.toLocaleString()} stock movements — every recurring pattern is either already typed, ` +
               `approved below, or dismissed. New patterns surface here as they accumulate.`
             }
           />

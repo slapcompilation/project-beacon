@@ -183,15 +183,20 @@ export type {
   CalibrationOptions,
 } from './calibration/index'
 
-// ── Self-evolving ontology — gap detection (Pillar 2, Phase Q1) ──────────────
+// ── Self-evolving ontology — gap detection (Pillar 2) ────────────────────────
 export {
+  detectReasonCategoryGaps,
   detectRemovalCategoryGaps,
+  detectAdditionCategoryGaps,
 } from './ontology/index'
 export type {
   OntologyGap,
   OntologyGapKind,
   OntologyGapEvidence,
+  ReasonRow,
+  DetectReasonCategoryConfig,
   RemovalReasonRow,
+  AdditionReasonRow,
   DetectRemovalCategoryOptions,
 } from './ontology/index'
 

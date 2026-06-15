@@ -3,14 +3,21 @@ import {
   makeDetectOntologyGapsTool,
   type OntologyReader,
 } from './detect_ontology_gaps'
-import type { RemovalReasonRow } from '../../ontology/index'
+import type { AdditionReasonRow, RemovalReasonRow } from '../../ontology/index'
 
 const HOTEL = '00000000-0000-0000-0000-000000000000'
 
-function readerOf(rows: RemovalReasonRow[], known: string[] = []): OntologyReader {
+function readerOf(
+  rows: RemovalReasonRow[],
+  known: string[] = [],
+  additions: AdditionReasonRow[] = [],
+  knownMovement: string[] = [],
+): OntologyReader {
   return {
     getRemovalReasons: async () => rows,
     getKnownRemovalCategories: async () => known,
+    getAdditionReasons: async () => additions,
+    getKnownMovementCategories: async () => knownMovement,
   }
 }
 
@@ -44,5 +51,17 @@ describe('detect_ontology_gaps tool', () => {
     expect(out.gaps).toEqual([])
     expect(out.scanned).toBe(0)
     expect(out.confidence).toBe(0)
+  })
+
+  it('runs both detectors and ranks gaps across removals + additions', async () => {
+    const removals  = Array.from({ length: 20 }, () => ({ reason: 'pos: daily consumption', removal_category: null }))
+    const additions = Array.from({ length: 30 }, () => ({ reason: 'restock received' }))
+    const out = await makeDetectOntologyGapsTool(readerOf(removals, [], additions, [])).invoke({ hotelId: HOTEL })
+    expect(out.scanned).toBe(50)
+    const fields = out.gaps.map((g) => `${g.targetField}:${g.proposed}`)
+    expect(fields).toContain('removal_category:consumption')
+    expect(fields).toContain('movement_category:receipt')
+    // additions (30) outrank removals (20) by support
+    expect(out.gaps[0].targetField).toBe('movement_category')
   })
 })
