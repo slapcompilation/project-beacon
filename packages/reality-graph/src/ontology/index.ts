@@ -171,19 +171,20 @@ export function detectRemovalCategoryGaps(
   )
 }
 
-/** Free-text reason on a stock addition. Additions have no typed category column
- *  yet, so every one is untyped — the gap is the missing typed concept itself. */
+/** Free-text reason on a stock addition + the typed movement_category once set. */
 export interface AdditionReasonRow {
   reason: string | null
+  movement_category?: string | null
 }
 
-/** Stock additions → typed movement_category (a concept not captured at all today). */
+/** Stock additions → typed movement_category. Once a movement is typed it drops
+ *  out of the gaps (same as removals), so detection narrows as the ontology grows. */
 export function detectAdditionCategoryGaps(
   rows: ReadonlyArray<AdditionReasonRow>,
   opts: DetectRemovalCategoryOptions = {},
 ): OntologyGap[] {
   return detectReasonCategoryGaps(
-    rows.map((r) => ({ reason: r.reason, category: null })),
+    rows.map((r) => ({ reason: r.reason, category: r.movement_category ?? null })),
     { lexicon: ADDITION_LEXICON, targetType: 'StockLog', targetField: 'movement_category', noun: 'stock additions', ...opts },
   )
 }

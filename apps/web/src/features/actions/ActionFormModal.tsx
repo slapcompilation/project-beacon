@@ -20,7 +20,7 @@ import {
   type ValidationResult,
 } from '@beacon/reality-graph'
 import { dispatchAction, type DispatchContext } from '@/lib/actions/dispatch'
-import { useApprovedRemovalCategories } from '@/features/ontology/hooks'
+import { useApprovedMovementCategories, useApprovedRemovalCategories } from '@/features/ontology/hooks'
 
 type FormValue = string | number | boolean | null
 
@@ -54,14 +54,13 @@ export function ActionFormModal({
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
 
-  // Dynamic field options from the grown ontology (approved removal categories),
-  // resolved at open time. Only fetched when a field actually asks for them.
-  const needsRemovalCategories = useMemo(
-    () => descriptor.fields.some((f) => f.optionsSource === 'approved_removal_categories'),
-    [descriptor],
-  )
+  // Dynamic field options from the grown ontology, resolved at open time. Only
+  // fetched when a field actually asks for that source.
+  const needsRemoval  = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_removal_categories'),  [descriptor])
+  const needsMovement = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_movement_categories'), [descriptor])
   const hotelId = (context.hotelId as string | undefined) ?? dispatchContext?.hotelId
-  const { data: removalCategories = [] } = useApprovedRemovalCategories(hotelId, needsRemovalCategories && open)
+  const { data: removalCategories  = [] } = useApprovedRemovalCategories(hotelId,  needsRemoval  && open)
+  const { data: movementCategories = [] } = useApprovedMovementCategories(hotelId, needsMovement && open)
 
   const [values, setValues]   = useState<Record<string, FormValue | undefined>>(() =>
     deriveInitial(descriptor, initialValues),
@@ -147,7 +146,11 @@ export function ActionFormModal({
               field={field}
               value={values[field.name]}
               error={fieldErrors[field.name]}
-              suggestions={field.optionsSource === 'approved_removal_categories' ? removalCategories : undefined}
+              suggestions={
+                field.optionsSource === 'approved_removal_categories' ? removalCategories
+                : field.optionsSource === 'approved_movement_categories' ? movementCategories
+                : undefined
+              }
               onChange={(v) => { setValues((prev) => ({ ...prev, [field.name]: v })) }}
             />
           ))}

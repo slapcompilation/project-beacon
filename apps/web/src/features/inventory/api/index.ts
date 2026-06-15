@@ -208,7 +208,8 @@ export async function adjustStock(
   delta: number,
   reason: string,
   photoFile?: File | null,
-  removalCategory?: string | null
+  removalCategory?: string | null,
+  movementCategory?: string | null
 ): Promise<{ logId: string; newBalance: number }> {
   // Upload photo first (before RPC, since stock_logs are immutable after insert)
   let photoUrl: string | null = null
@@ -236,6 +237,7 @@ export async function adjustStock(
     p_reason: reason,
     p_photo_url: photoUrl,
     p_removal_category: removalCategory ?? null,
+    p_movement_category: movementCategory ?? null,
   })) as unknown as { data: Array<{ log_id: string; new_balance: number }> | null; error: { message: string } | null }
 
   if (error) throw new Error(error.message)
