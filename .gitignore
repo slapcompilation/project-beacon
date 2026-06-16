@@ -10,6 +10,11 @@ build
 out
 .turbo
 
+# Generated edge bundle — built from @beacon/reality-graph by `pnpm build:edge-bundle`
+# (and by the deploy-edge-functions workflow). Never hand-edited; not committed so
+# it can't drift from source.
+supabase/functions/_shared/reality-graph.bundle.mjs
+
 # Environment
 .env
 .env.local
