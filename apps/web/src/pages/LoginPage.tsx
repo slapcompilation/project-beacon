@@ -16,6 +16,7 @@ import {
   Intent,
 } from '@blueprintjs/core'
 import { services } from '@/lib/services'
+import { bpRegister } from '@/lib/forms'
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -73,7 +74,7 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
           autoFocus
           placeholder="you@hotel.com"
           intent={errors.email ? Intent.DANGER : Intent.NONE}
-          {...register('email')}
+          {...bpRegister(register('email'))}
         />
       </FormGroup>
 
@@ -93,7 +94,7 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
           type="password"
           autoComplete="current-password"
           intent={errors.password ? Intent.DANGER : Intent.NONE}
-          {...register('password')}
+          {...bpRegister(register('password'))}
         />
       </FormGroup>
 
@@ -151,7 +152,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           autoFocus
           placeholder="you@hotel.com"
           intent={errors.email ? Intent.DANGER : Intent.NONE}
-          {...register('email')}
+          {...bpRegister(register('email'))}
         />
       </FormGroup>
 

@@ -38,6 +38,11 @@ export class SupabaseAuthService implements IAuthService {
     if (error) throw new Error(error.message)
   }
 
+  async updatePassword(newPassword: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
+  }
+
   private mapSession(session: Session): AuthSession {
     const appMeta = session.user.app_metadata as {
       hotel_id?: string
