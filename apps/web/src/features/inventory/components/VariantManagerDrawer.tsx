@@ -19,6 +19,7 @@ import { useSuppliers } from '@/features/suppliers/hooks'
 import { useCustomFieldDefs, useUpdateVariantCustomValues } from '@/features/custom-fields/hooks'
 import type { ProductWithVariants, ProductVariant, CustomFieldDef, VariantStatus } from '@beacon/types'
 import { VARIANT_STATUS_LABELS } from '@beacon/types'
+import { bpRegister } from '@/lib/forms'
 
 const variantSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -172,13 +173,13 @@ function VariantForm({
       <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} className="space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <FormGroup label="Name" intent={errors.name ? Intent.DANGER : Intent.NONE} helperText={errors.name?.message}>
-            <InputGroup size="small" placeholder="e.g. 500ml" {...register('name')} />
+            <InputGroup size="small" placeholder="e.g. 500ml" {...bpRegister(register('name'))} />
           </FormGroup>
           <FormGroup label="SKU" intent={errors.sku ? Intent.DANGER : Intent.NONE} helperText={errors.sku?.message}>
-            <InputGroup size="small" placeholder="e.g. WATER-500" {...register('sku')} />
+            <InputGroup size="small" placeholder="e.g. WATER-500" {...bpRegister(register('sku'))} />
           </FormGroup>
           <FormGroup label="Barcode (EAN / UPC)" helperText="Leave blank to use SKU">
-            <InputGroup size="small" className="!font-mono" placeholder="Leave blank to use SKU" {...register('barcode')} />
+            <InputGroup size="small" className="!font-mono" placeholder="Leave blank to use SKU" {...bpRegister(register('barcode'))} />
           </FormGroup>
           {locations.length > 0 && (
             <FormGroup label="Storage Location" className="col-span-2">
@@ -227,11 +228,11 @@ function VariantForm({
               type="number"
               step="0.01"
               min="0"
-              {...register('cost', { valueAsNumber: true })}
+              {...bpRegister(register('cost', { valueAsNumber: true }))}
             />
           </FormGroup>
           <FormGroup label="Unit of Measure" helperText='Shown next to stock counts — "47 bottles"'>
-            <InputGroup size="small" placeholder="e.g. bottles, kg, cases" {...register('unit_of_measure')} />
+            <InputGroup size="small" placeholder="e.g. bottles, kg, cases" {...bpRegister(register('unit_of_measure'))} />
           </FormGroup>
           <FormGroup label="Low Stock Threshold">
             <InputGroup
@@ -239,7 +240,7 @@ function VariantForm({
               type="number"
               min="0"
               step="1"
-              {...register('low_stock_threshold', { valueAsNumber: true })}
+              {...bpRegister(register('low_stock_threshold', { valueAsNumber: true }))}
             />
           </FormGroup>
           <FormGroup label="Status">
@@ -266,10 +267,10 @@ function VariantForm({
           >
             <div className="flex gap-2">
               <div className="w-40">
-                <InputGroup size="small" type="date" {...register('reminder_date')} />
+                <InputGroup size="small" type="date" {...bpRegister(register('reminder_date'))} />
               </div>
               <div className="flex-1">
-                <InputGroup size="small" placeholder="Label, e.g. Boiler service due" {...register('reminder_label')} />
+                <InputGroup size="small" placeholder="Label, e.g. Boiler service due" {...bpRegister(register('reminder_label'))} />
               </div>
             </div>
           </FormGroup>

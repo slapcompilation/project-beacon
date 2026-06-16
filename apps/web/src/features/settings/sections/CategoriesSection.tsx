@@ -14,6 +14,7 @@ import {
 } from '@/features/categories/hooks'
 import type { Category } from '@beacon/types'
 import { SectionHeader } from './_shared'
+import { bpRegister } from '@/lib/forms'
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -73,7 +74,7 @@ function CategoryModal({
               id="cat-name"
               placeholder="e.g. Beverages"
               intent={errors.name ? Intent.DANGER : Intent.NONE}
-              {...register('name')}
+              {...bpRegister(register('name'))}
             />
           </FormGroup>
           <FormGroup label="Parent category" labelFor="cat-parent">
@@ -106,7 +107,7 @@ function CategoryModal({
                 min={0}
                 step={1}
                 placeholder="Leave blank to disable"
-                {...register('requirePhotoOver', { valueAsNumber: true })}
+                {...bpRegister(register('requirePhotoOver', { valueAsNumber: true }))}
               />
             </FormGroup>
           )}

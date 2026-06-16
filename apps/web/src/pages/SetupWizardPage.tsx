@@ -25,6 +25,7 @@ import { useActiveHotel, useUpdateHotel } from '@/features/hotel/hooks'
 import { useCategories, useCreateCategory } from '@/features/categories/hooks'
 import { useLocations, useCreateLocation } from '@/features/locations/hooks'
 import { useTeamMembers, useInviteTeamMember } from '@/features/team/hooks'
+import { bpRegister } from '@/lib/forms'
 
 // ─── Step definitions ─────────────────────────────────────────────────────────
 
@@ -86,7 +87,7 @@ function StepHotel({ onNext, onSkip }: { onNext: () => void; onSkip: () => void 
         helperText={errors.name?.message}
       >
         <InputGroup
-          {...register('name')}
+          {...bpRegister(register('name'))}
           placeholder="Grand Beacon Hotel"
           intent={errors.name ? Intent.DANGER : Intent.NONE}
         />
@@ -98,7 +99,7 @@ function StepHotel({ onNext, onSkip }: { onNext: () => void; onSkip: () => void 
           helperText={errors.currency?.message}
         >
           <InputGroup
-            {...register('currency')}
+            {...bpRegister(register('currency'))}
             placeholder="USD"
             maxLength={3}
             className="uppercase"
@@ -111,14 +112,14 @@ function StepHotel({ onNext, onSkip }: { onNext: () => void; onSkip: () => void 
           helperText={errors.timezone?.message}
         >
           <InputGroup
-            {...register('timezone')}
+            {...bpRegister(register('timezone'))}
             placeholder="America/New_York"
             intent={errors.timezone ? Intent.DANGER : Intent.NONE}
           />
         </FormGroup>
       </div>
       <FormGroup label="Address" labelInfo="(optional)">
-        <InputGroup {...register('address')} placeholder="123 Main St, City" />
+        <InputGroup {...bpRegister(register('address'))} placeholder="123 Main St, City" />
       </FormGroup>
       <WizardActions isSubmitting={isSubmitting} onSkip={onSkip} submitLabel="Save & continue" />
     </form>
@@ -301,7 +302,7 @@ function StepTeam({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <InputGroup
             type="email"
-            {...register('email')}
+            {...bpRegister(register('email'))}
             placeholder="colleague@hotel.com"
             intent={errors.email ? Intent.DANGER : Intent.NONE}
           />

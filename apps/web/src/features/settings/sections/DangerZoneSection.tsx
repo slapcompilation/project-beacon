@@ -10,6 +10,7 @@ import {
 } from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
 import { SectionHeader } from './_shared'
+import { bpRegister } from '@/lib/forms'
 
 const gdprSchema = z.object({ email: z.email('Enter a valid email') })
 type GdprFields = z.infer<typeof gdprSchema>
@@ -60,7 +61,7 @@ export function DangerZoneSection() {
             type="email"
             placeholder="user@example.com"
             intent={errors.email ? Intent.DANGER : Intent.NONE}
-            {...register('email')}
+            {...bpRegister(register('email'))}
           />
         </FormGroup>
         {result && (

@@ -11,6 +11,7 @@ import { useUpdateVariant } from '@/features/inventory/hooks'
 import { format } from 'date-fns'
 import { useDateFormat } from '@/features/user/hooks'
 import type { RestockRequestRow } from '../api'
+import { bpRegister } from '@/lib/forms'
 
 const schema = z.object({
   quantity_received: z.number().int().min(1, 'Must receive at least 1'),
@@ -123,16 +124,16 @@ export function ReceiveModal({ open, onClose, request }: Props) {
                 type="number"
                 min="1"
                 step="1"
-                {...register('quantity_received', { valueAsNumber: true })}
+                {...bpRegister(register('quantity_received', { valueAsNumber: true }))}
               />
             </FormGroup>
 
             <div className="grid grid-cols-2 gap-3">
               <FormGroup label="Lot / Batch number">
-                <InputGroup id="lot" placeholder="e.g. LOT-2024-001" {...register('lot_number')} />
+                <InputGroup id="lot" placeholder="e.g. LOT-2024-001" {...bpRegister(register('lot_number'))} />
               </FormGroup>
               <FormGroup label="Expiry date">
-                <InputGroup id="expiry" type="date" {...register('expiry_date')} />
+                <InputGroup id="expiry" type="date" {...bpRegister(register('expiry_date'))} />
               </FormGroup>
             </div>
 
@@ -147,7 +148,7 @@ export function ReceiveModal({ open, onClose, request }: Props) {
                   min="0"
                   placeholder="e.g. 4.50"
                   size="small"
-                  {...register('received_unit_cost', { valueAsNumber: true })}
+                  {...bpRegister(register('received_unit_cost', { valueAsNumber: true }))}
                 />
               </FormGroup>
               {receivedCost != null && !isNaN(receivedCost) && receivedCost > 0 && (
@@ -161,7 +162,7 @@ export function ReceiveModal({ open, onClose, request }: Props) {
             </div>
 
             <FormGroup label="Notes (optional)">
-              <TextArea id="notes" rows={2} placeholder="Delivery condition, discrepancies…" fill {...register('notes')} />
+              <TextArea id="notes" rows={2} placeholder="Delivery condition, discrepancies…" fill {...bpRegister(register('notes'))} />
             </FormGroup>
           </form>
 
