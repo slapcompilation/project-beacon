@@ -14,6 +14,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 FocusStyleManager.onlyShowFocusOnTabs()
 
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
+const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'))
 const BriefingPage = lazy(() => import('@/pages/BriefingPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const AuditPage = lazy(() => import('@/pages/AuditPage'))
@@ -99,6 +100,7 @@ function AppRoutes() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route element={<AuthGuard />}>
             <Route path="/" element={<RootRedirect />} />
 
