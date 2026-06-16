@@ -11,6 +11,7 @@ import { useCreateProduct, useUpdateProduct } from '../hooks'
 import { useCategories } from '@/features/categories/hooks'
 import { uploadProductImage } from '../api'
 import type { ProductWithVariants } from '@beacon/types'
+import { bpRegister } from '@/lib/forms'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -180,20 +181,20 @@ export function ProductFormModal({ open, onClose, product }: Props) {
             )}
 
             <FormGroup label="Name" intent={errors.name ? Intent.DANGER : Intent.NONE} helperText={errors.name?.message}>
-              <InputGroup id="name" placeholder="e.g. Sparkling Water" {...register('name')} />
+              <InputGroup id="name" placeholder="e.g. Sparkling Water" {...bpRegister(register('name'))} />
             </FormGroup>
 
             <FormGroup label="SKU" intent={errors.sku ? Intent.DANGER : Intent.NONE} helperText={errors.sku?.message}>
-              <InputGroup id="sku" placeholder="e.g. WATER-SPARK-500" {...register('sku')} />
+              <InputGroup id="sku" placeholder="e.g. WATER-SPARK-500" {...bpRegister(register('sku'))} />
             </FormGroup>
 
             <FormGroup label="Description">
-              <TextArea id="description" rows={2} placeholder="Optional" fill {...register('description')} />
+              <TextArea id="description" rows={2} placeholder="Optional" fill {...bpRegister(register('description'))} />
             </FormGroup>
 
             <div className="grid grid-cols-2 gap-3">
               <FormGroup label="Unit Cost" intent={errors.cost ? Intent.DANGER : Intent.NONE} helperText={errors.cost?.message}>
-                <InputGroup id="cost" type="number" step="0.01" min="0" {...register('cost', { valueAsNumber: true })} />
+                <InputGroup id="cost" type="number" step="0.01" min="0" {...bpRegister(register('cost', { valueAsNumber: true }))} />
               </FormGroup>
               {!isEdit && (
                 <FormGroup
@@ -207,7 +208,7 @@ export function ProductFormModal({ open, onClose, product }: Props) {
                     step="1"
                     min="0"
                     placeholder="0"
-                    {...register('initial_stock', { valueAsNumber: true })}
+                    {...bpRegister(register('initial_stock', { valueAsNumber: true }))}
                   />
                 </FormGroup>
               )}

@@ -33,6 +33,7 @@ import { useConsumptionForecast, useWasteRadar } from '@/features/eye/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
 import type { ProductWithVariants, ProductVariant } from '@beacon/types'
+import { bpRegister } from '@/lib/forms'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -247,7 +248,7 @@ function QuickAdjustForm({
             step={1}
             className="flex-1"
             intent={errors.quantity ? Intent.DANGER : Intent.NONE}
-            {...register('quantity', { valueAsNumber: true })}
+            {...bpRegister(register('quantity', { valueAsNumber: true }))}
           />
         </div>
       </FormGroup>
@@ -265,7 +266,7 @@ function QuickAdjustForm({
           fill
           placeholder="e.g. Morning delivery…"
           intent={errors.reason ? Intent.DANGER : Intent.NONE}
-          {...register('reason')}
+          {...bpRegister(register('reason'))}
         />
       </FormGroup>
 

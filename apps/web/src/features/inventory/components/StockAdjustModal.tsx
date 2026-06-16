@@ -14,6 +14,7 @@ import { REMOVAL_CATEGORIES } from '@beacon/types'
 import type { ProductWithVariants, ProductVariant } from '@beacon/types'
 import { useCustomRemovalReasons } from '@/features/removal-reasons/hooks'
 import { useActiveHotel } from '@/features/hotel/hooks'
+import { bpRegister } from '@/lib/forms'
 
 const schema = z.object({
   quantity: z.number().int().min(1, 'Quantity must be at least 1'),
@@ -169,7 +170,7 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
                 min="1"
                 step="1"
                 placeholder="0"
-                {...register('quantity', { valueAsNumber: true })}
+                {...bpRegister(register('quantity', { valueAsNumber: true }))}
               />
             </FormGroup>
 
@@ -179,7 +180,7 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
                 rows={2}
                 placeholder="e.g. Morning delivery, consumed at event…"
                 fill
-                {...register('reason')}
+                {...bpRegister(register('reason'))}
               />
             </FormGroup>
 

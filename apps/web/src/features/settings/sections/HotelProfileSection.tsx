@@ -12,6 +12,7 @@ import { getCurrencySymbol } from '@/lib/currency'
 import { useActiveHotel, useUpdateHotel } from '@/features/hotel/hooks'
 import { useOrganizations } from '@/features/organizations/hooks'
 import { SectionHeader } from './_shared'
+import { bpRegister } from '@/lib/forms'
 
 const CURRENCY_GROUPS = [
   {
@@ -165,7 +166,7 @@ export function HotelProfileSection() {
             intent={errors.name ? Intent.DANGER : Intent.NONE}
             helperText={errors.name?.message}
           >
-            <InputGroup id="hotel-name" intent={errors.name ? Intent.DANGER : Intent.NONE} {...register('name')} />
+            <InputGroup id="hotel-name" intent={errors.name ? Intent.DANGER : Intent.NONE} {...bpRegister(register('name'))} />
           </FormGroup>
           <FormGroup
             label="Address"
@@ -173,7 +174,7 @@ export function HotelProfileSection() {
             intent={errors.address ? Intent.DANGER : Intent.NONE}
             helperText={errors.address?.message}
           >
-            <InputGroup id="hotel-address" intent={errors.address ? Intent.DANGER : Intent.NONE} {...register('address')} />
+            <InputGroup id="hotel-address" intent={errors.address ? Intent.DANGER : Intent.NONE} {...bpRegister(register('address'))} />
           </FormGroup>
           <div className="grid grid-cols-2 gap-3">
             <FormGroup
@@ -182,7 +183,7 @@ export function HotelProfileSection() {
               intent={errors.timezone ? Intent.DANGER : Intent.NONE}
               helperText={errors.timezone?.message}
             >
-              <InputGroup id="hotel-timezone" placeholder="Europe/Athens" intent={errors.timezone ? Intent.DANGER : Intent.NONE} {...register('timezone')} />
+              <InputGroup id="hotel-timezone" placeholder="Europe/Athens" intent={errors.timezone ? Intent.DANGER : Intent.NONE} {...bpRegister(register('timezone'))} />
             </FormGroup>
             <FormGroup
               label="Display currency"

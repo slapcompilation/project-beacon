@@ -40,6 +40,7 @@ import {
 import { useDateFormat } from '@/features/user/hooks'
 import type { UserRole } from '@beacon/types'
 import type { TeamMember } from '@/features/team/api'
+import { bpRegister } from '@/lib/forms'
 
 // ─── Role config ──────────────────────────────────────────────────────────────
 
@@ -225,7 +226,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
       <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }}>
         <DialogBody className="space-y-4">
           <FormGroup label="Email address" labelFor="inv-email" intent={errors.email ? Intent.DANGER : Intent.NONE} helperText={errors.email?.message}>
-            <InputGroup id="inv-email" type="email" placeholder="colleague@hotel.com" {...register('email')} intent={errors.email ? Intent.DANGER : Intent.NONE} />
+            <InputGroup id="inv-email" type="email" placeholder="colleague@hotel.com" {...bpRegister(register('email'))} intent={errors.email ? Intent.DANGER : Intent.NONE} />
           </FormGroup>
 
           <FormGroup label="Role">

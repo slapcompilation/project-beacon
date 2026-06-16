@@ -48,6 +48,7 @@ import {
   useRemoveTeamMember,
 } from '@/features/team/hooks'
 import { useDateFormat } from '@/features/user/hooks'
+import { bpRegister } from '@/lib/forms'
 
 // ── Role config ────────────────────────────────────────────────────────────
 // Blueprint Intent drives badge colors. `icon` is a Blueprint icon name so it
@@ -236,7 +237,7 @@ function InviteModal({ open, onClose }: { open: boolean; onClose: () => void }) 
               type="email"
               placeholder="colleague@hotel.com"
               intent={errors.email ? Intent.DANGER : Intent.NONE}
-              {...register('email')}
+              {...bpRegister(register('email'))}
             />
           </FormGroup>
 
