@@ -7,7 +7,9 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt', // show install prompt; don't auto-update without user consent
+      // autoUpdate so a new deploy activates on next load instead of stranding
+      // users on a stale precached bundle (the cause of "fixes never reach me").
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       manifest: {
         name: 'Beacon — Hotel Inventory',
@@ -26,6 +28,11 @@ export default defineConfig({
       workbox: {
         // Cache-first for compiled assets (they have content-hash filenames)
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Activate a new SW immediately + drop old precaches, so a deploy takes
+        // effect on the next load rather than waiting for every tab to close.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         // Network-first for Supabase API and auth — we never want stale data
         runtimeCaching: [
           {
