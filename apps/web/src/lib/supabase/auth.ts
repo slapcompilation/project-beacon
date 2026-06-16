@@ -1,5 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
-import type { IAuthService } from '@beacon/services'
+import type { AalStatus, IAuthService, MfaEnrollment, MfaFactor } from '@beacon/services'
 import type { AuthSession, UserRole } from '@beacon/types'
 import { supabase } from './client'
 
@@ -40,6 +40,38 @@ export class SupabaseAuthService implements IAuthService {
 
   async updatePassword(newPassword: string): Promise<void> {
     const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
+  }
+
+  async getAal(): Promise<AalStatus> {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (error) throw new Error(error.message)
+    return { currentLevel: data.currentLevel, nextLevel: data.nextLevel }
+  }
+
+  async listMfaFactors(): Promise<MfaFactor[]> {
+    const { data, error } = await supabase.auth.mfa.listFactors()
+    if (error) throw new Error(error.message)
+    return data.totp.map((f) => ({
+      id: f.id,
+      friendlyName: f.friendly_name,
+      status: f.status,
+    }))
+  }
+
+  async enrollTotp(): Promise<MfaEnrollment> {
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp' })
+    if (error) throw new Error(error.message)
+    return { factorId: data.id, qrCode: data.totp.qr_code, secret: data.totp.secret }
+  }
+
+  async verifyTotp(factorId: string, code: string): Promise<void> {
+    const { error } = await supabase.auth.mfa.challengeAndVerify({ factorId, code })
+    if (error) throw new Error(error.message)
+  }
+
+  async unenrollMfa(factorId: string): Promise<void> {
+    const { error } = await supabase.auth.mfa.unenroll({ factorId })
     if (error) throw new Error(error.message)
   }
 
