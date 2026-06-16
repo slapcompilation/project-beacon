@@ -42,13 +42,10 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Rebuild the edge bundle from reality-graph source — single source of
-      # truth, never a stale committed copy.
-      - name: Regenerate reality-graph bundle
-        run: |
-          pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts \
-            --bundle --format=esm --platform=neutral --target=es2022 \
-            --outfile=supabase/functions/_shared/reality-graph.bundle.mjs
+      # Rebuild the edge bundle from reality-graph source — the single source of
+      # truth. It's git-ignored (generated, never committed) so it can't drift.
+      - name: Build reality-graph edge bundle
+        run: pnpm build:edge-bundle
 
       - uses: supabase/setup-cli@v1
         with:

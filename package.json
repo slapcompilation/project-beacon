@@ -6,7 +6,8 @@
     "dev": "turbo dev",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore"
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
+    "build:edge-bundle": "pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/_shared/reality-graph.bundle.mjs"
   },
   "devDependencies": {
     "prettier": "^3.8.3",
