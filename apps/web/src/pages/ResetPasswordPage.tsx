@@ -15,6 +15,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button, Card, FormGroup, InputGroup, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { services } from '@/lib/services'
+import { bpRegister } from '@/lib/forms'
 
 const schema = z
   .object({
@@ -103,7 +104,7 @@ export default function ResetPasswordPage() {
                     autoComplete="new-password"
                     autoFocus
                     intent={errors.password ? Intent.DANGER : Intent.NONE}
-                    {...register('password')}
+                    {...bpRegister(register('password'))}
                   />
                 </FormGroup>
 
@@ -118,7 +119,7 @@ export default function ResetPasswordPage() {
                     type="password"
                     autoComplete="new-password"
                     intent={errors.confirm ? Intent.DANGER : Intent.NONE}
-                    {...register('confirm')}
+                    {...bpRegister(register('confirm'))}
                   />
                 </FormGroup>
 
