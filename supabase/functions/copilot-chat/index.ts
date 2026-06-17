@@ -326,12 +326,46 @@ interface ToolInput {
   scenario_id?: string
 }
 
+/** Hard constraint violations a proposed action would incur, evaluated server-side
+ *  with the same engine + { now } context as dispatch. Empty when compliant. */
+function hardViolationsFor(
+  actionType: string,
+  params: Record<string, unknown>,
+  hotelId: string | undefined,
+  constraints: ConstraintRecordLite[],
+): ConstraintViolationLite[] {
+  if (!hotelId || constraints.length === 0) return []
+  const action = copilotProposalToAction(actionType, params, hotelId)
+  if (!action) return []
+  const violations = evaluateConstraints(action, constraints, { now: new Date() }) as ConstraintViolationLite[]
+  return violations.filter((v) => v.severity === 'hard')
+}
+
+/** A propose_* tool result that the model should NOT surface as-is. Returning the
+ *  violation in the tool result makes the model self-correct within its normal
+ *  loop — propose a compliant alternative or explain the limit (corrections #7,
+ *  the corrective-turn half). The final annotateProposals stays as the UI backstop. */
+function blockedProposalResult(actionType: string, params: Record<string, unknown>, hard: ConstraintViolationLite[]): string {
+  return JSON.stringify({
+    type: 'action_proposal',
+    action: actionType,
+    params,
+    blocked: true,
+    violations: hard,
+    message:
+      `This action is BLOCKED by a hard house rule (${hard.map((v) => v.body).join('; ')}: ` +
+      `${hard.map((v) => v.message).join('; ')}). Do NOT propose it as-is. Propose a compliant ` +
+      `alternative (e.g. within the limit / allowed window) or tell the operator why it can't be done.`,
+  })
+}
+
 async function executeTool(
   supabase: SupabaseClient,
   toolName: string,
   input: ToolInput,
-  selection?: SelectionContext,
-  hotelId?: string,
+  selection: SelectionContext | undefined,
+  hotelId: string | undefined,
+  constraints: ConstraintRecordLite[],
 ): Promise<string> {
   try {
     switch (toolName) {
@@ -490,29 +524,36 @@ async function executeTool(
         return JSON.stringify(data)
       }
       case 'propose_restock': {
-        // Don't execute — return a structured proposal for the UI to render
+        // Don't execute — return a structured proposal for the UI to render.
+        const params = {
+          variant_id: input.variant_id,
+          quantity: input.quantity,
+          urgency: input.urgency ?? 'medium',
+          notes: input.notes ?? '',
+        }
+        const hard = hardViolationsFor('REQUEST_RESTOCK', params, hotelId, constraints)
+        if (hard.length > 0) return blockedProposalResult('REQUEST_RESTOCK', params, hard)
         return JSON.stringify({
           type: 'action_proposal',
           action: 'REQUEST_RESTOCK',
-          params: {
-            variant_id: input.variant_id,
-            quantity: input.quantity,
-            urgency: input.urgency ?? 'medium',
-            notes: input.notes ?? '',
-          },
+          params,
           message: 'Restock proposal ready for confirmation.',
         })
       }
       case 'propose_stock_adjustment': {
+        const actionType = input.action === 'subtract' ? 'WRITE_OFF' : 'ADJUST_STOCK'
+        const params = {
+          variant_id: input.variant_id,
+          action: input.action,
+          quantity: input.quantity,
+          reason: input.reason,
+        }
+        const hard = hardViolationsFor(actionType, params, hotelId, constraints)
+        if (hard.length > 0) return blockedProposalResult(actionType, params, hard)
         return JSON.stringify({
           type: 'action_proposal',
-          action: input.action === 'subtract' ? 'WRITE_OFF' : 'ADJUST_STOCK',
-          params: {
-            variant_id: input.variant_id,
-            action: input.action,
-            quantity: input.quantity,
-            reason: input.reason,
-          },
+          action: actionType,
+          params,
           message: 'Stock adjustment proposal ready for confirmation.',
         })
       }
@@ -959,7 +1000,7 @@ Deno.serve(async (req: Request) => {
                   iteration: iterations,
                 })
                 const start    = Date.now()
-                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId)
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId, constraintRecords)
                 const duration = Date.now() - start
                 send({
                   type:        'tool_result',
@@ -1073,7 +1114,7 @@ Deno.serve(async (req: Request) => {
       const toolResults: Anthropic.ToolResultBlockParam[] = []
       for (const toolUse of toolUseBlocks) {
         const start = Date.now()
-        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId)
+        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId, constraintRecords)
         const duration = Date.now() - start
 
         toolTrace.push({
