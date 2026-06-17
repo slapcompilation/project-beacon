@@ -2,6 +2,7 @@
 // Imperative hook (not TanStack Query — user-triggered conversations, not background fetches).
 
 import { useState, useCallback, useRef } from 'react'
+import type { ConstraintViolation } from '@beacon/reality-graph'
 import { supabase } from '@/lib/supabase/client'
 import { useApprovedAnswers, recordApprovedAnswerHit } from '@/features/approvedAnswers/hooks'
 import { matchApprovedAnswers } from '@/features/approvedAnswers/api'
@@ -35,6 +36,8 @@ export interface ActionProposal {
   params: Record<string, unknown>
   message: string
   requests?: unknown[]
+  /** Suggest-time constraint check from the edge fn (#7). Hard → blocked. */
+  violations?: ConstraintViolation[]
 }
 
 export function useCopilotChat() {
