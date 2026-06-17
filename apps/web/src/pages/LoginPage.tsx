@@ -12,6 +12,7 @@ import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button, Card, FormGroup, InputGroup, Intent } from '@blueprintjs/core'
 import { services } from '@/lib/services'
+import { formString, zodFieldErrors } from '@/lib/forms'
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -24,20 +25,6 @@ const resetSchema = z.object({
   email: z.email('Enter a valid email address'),
 })
 
-function fieldErrors(err: z.ZodError): Partial<Record<string, string>> {
-  const out: Partial<Record<string, string>> = {}
-  for (const issue of err.issues) {
-    const key = String(issue.path[0] ?? '')
-    if (key && !(key in out)) out[key] = issue.message
-  }
-  return out
-}
-
-/** FormData text value as a string (entries can also be File). */
-function str(v: FormDataEntryValue | null): string {
-  return typeof v === 'string' ? v : ''
-}
-
 // ─── Login form ───────────────────────────────────────────────────────────────
 
 function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
@@ -49,11 +36,11 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
     const parsed = loginSchema.safeParse({
-      email: str(fd.get('email')).trim(),
-      password: str(fd.get('password')),
+      email: formString(fd.get('email')).trim(),
+      password: formString(fd.get('password')),
     })
     if (!parsed.success) {
-      setErrors(fieldErrors(parsed.error))
+      setErrors(zodFieldErrors(parsed.error))
       return
     }
     setErrors({})
@@ -82,7 +69,7 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
         intent={errors.email ? Intent.DANGER : Intent.NONE}
         helperText={errors.email}
       >
-        <InputGroup id="email" name="email" type="email" autoComplete="email" autoFocus placeholder="you@hotel.com"
+        <InputGroup id="email" name="email" type="email" autoComplete="username" autoFocus placeholder="you@hotel.com"
           intent={errors.email ? Intent.DANGER : Intent.NONE} />
       </FormGroup>
 
@@ -116,9 +103,9 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const fd = new FormData(e.currentTarget)
-    const parsed = resetSchema.safeParse({ email: str(fd.get('email')).trim() })
+    const parsed = resetSchema.safeParse({ email: formString(fd.get('email')).trim() })
     if (!parsed.success) {
-      setError(fieldErrors(parsed.error).email ?? 'Enter a valid email address')
+      setError(zodFieldErrors(parsed.error).email ?? 'Enter a valid email address')
       return
     }
     setError(null)

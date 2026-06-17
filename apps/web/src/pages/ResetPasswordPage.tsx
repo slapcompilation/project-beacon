@@ -2,20 +2,19 @@
 //
 // The "forgot password" email links here. Supabase parses the recovery token
 // from the URL and establishes a temporary session; we wait for that session,
-// then let the user set a new password via updateUser. Without this page the
-// reset link dead-ends (the bug this fixes).
+// then let the user set a new password via updateUser. Values are read from the
+// DOM via FormData on submit (same as the sign-in form) so password-manager
+// autofill/generation is captured reliably.
 //
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button, Card, FormGroup, InputGroup, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { services } from '@/lib/services'
-import { bpRegister } from '@/lib/forms'
+import { formString, zodFieldErrors } from '@/lib/forms'
 
 const schema = z
   .object({
@@ -24,13 +23,13 @@ const schema = z
   })
   .refine((d) => d.password === d.confirm, { message: 'Passwords do not match', path: ['confirm'] })
 
-type Fields = z.infer<typeof schema>
-
 type Status = 'checking' | 'ready' | 'invalid'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
   const [status, setStatus] = useState<Status>('checking')
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
+  const [submitting, setSubmitting] = useState(false)
 
   // The recovery link drops a temporary session in via Supabase's URL parsing.
   // It may land before or after mount, so check now AND subscribe; if neither
@@ -46,19 +45,26 @@ export default function ResetPasswordPage() {
     return () => { unsubscribe(); clearTimeout(timer) }
   }, [])
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<Fields>({ resolver: zodResolver(schema) })
-
-  const onSubmit = async (data: Fields) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const fd = new FormData(e.currentTarget)
+    const parsed = schema.safeParse({
+      password: formString(fd.get('password')),
+      confirm: formString(fd.get('confirm')),
+    })
+    if (!parsed.success) {
+      setErrors(zodFieldErrors(parsed.error))
+      return
+    }
+    setErrors({})
+    setSubmitting(true)
     try {
-      await services.auth.updatePassword(data.password)
+      await services.auth.updatePassword(parsed.data.password)
       toast.success('Password updated')
       void navigate('/floor', { replace: true })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not update password')
+      setSubmitting(false)
     }
   }
 
@@ -91,41 +97,28 @@ export default function ResetPasswordPage() {
           {status === 'ready' && (
             <>
               <p className="text-sm text-muted-foreground mt-1 mb-4">Choose a new password for your account.</p>
-              <form onSubmit={(e) => { void handleSubmit(onSubmit)(e) }} noValidate>
+              <form onSubmit={(e) => { void onSubmit(e) }} noValidate>
                 <FormGroup
                   label="New password"
                   labelFor="password"
                   intent={errors.password ? Intent.DANGER : Intent.NONE}
-                  helperText={errors.password?.message}
+                  helperText={errors.password}
                 >
-                  <InputGroup
-                    id="password"
-                    type="password"
-                    autoComplete="new-password"
-                    autoFocus
-                    intent={errors.password ? Intent.DANGER : Intent.NONE}
-                    {...bpRegister(register('password'))}
-                  />
+                  <InputGroup id="password" name="password" type="password" autoComplete="new-password" autoFocus
+                    intent={errors.password ? Intent.DANGER : Intent.NONE} />
                 </FormGroup>
 
                 <FormGroup
                   label="Confirm password"
                   labelFor="confirm"
                   intent={errors.confirm ? Intent.DANGER : Intent.NONE}
-                  helperText={errors.confirm?.message}
+                  helperText={errors.confirm}
                 >
-                  <InputGroup
-                    id="confirm"
-                    type="password"
-                    autoComplete="new-password"
-                    intent={errors.confirm ? Intent.DANGER : Intent.NONE}
-                    {...bpRegister(register('confirm'))}
-                  />
+                  <InputGroup id="confirm" name="confirm" type="password" autoComplete="new-password"
+                    intent={errors.confirm ? Intent.DANGER : Intent.NONE} />
                 </FormGroup>
 
-                <Button type="submit" fill intent={Intent.PRIMARY} loading={isSubmitting}>
-                  Update password
-                </Button>
+                <Button type="submit" fill intent={Intent.PRIMARY} loading={submitting}>Update password</Button>
               </form>
             </>
           )}
