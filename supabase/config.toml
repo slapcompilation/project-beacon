@@ -1,0 +1,21 @@
+# Minimal Supabase config — the source of truth for per-function JWT policy.
+#
+# `supabase functions deploy <slug>` reads verify_jwt from here, so deploys (CI
+# and manual) can't drift or hand-pass the wrong `--no-verify-jwt` flag. This is
+# what makes the edge-deploy workflow robust: a new function gets the secure
+# default (verify_jwt = true) unless it's deliberately declared public below.
+#
+# Only the deliberately PUBLIC functions are listed — anything omitted requires a
+# user JWT. Keep this in sync when a function must be reachable without one.
+# (Intentionally minimal: this declares JWT policy only, not local-dev settings.)
+
+project_id = "nohsofkkuypwlvdsfbnw"
+
+# Cron-only intelligence sweep — authenticated by x-beacon-secret in the request,
+# never a user JWT. Must stay false or pg_cron's call is rejected.
+[functions.intelligence-cycle]
+verify_jwt = false
+
+# CI eval reporter — posts model_eval_runs from the GitHub runner (no user JWT).
+[functions.eval-record]
+verify_jwt = false
