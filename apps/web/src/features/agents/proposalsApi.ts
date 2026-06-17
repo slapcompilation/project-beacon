@@ -21,6 +21,7 @@ export interface ProposalRow {
   created_by_user_id: string
   decided_by_user_id: string | null
   decided_at: string | null
+  edited_before_approval: boolean
   resulting_node_id: string | null
   resulting_node_type: string | null
   created_at: string
@@ -123,6 +124,9 @@ export interface DecideProposalInput {
   proposalId: string
   status: 'approved' | 'rejected' | 'superseded'
   decidedByUserId: string
+  /** True when the operator edited the proposal's action before approving — the
+   *  calibration label discounts it from a full hit (corrections #6). */
+  edited?: boolean
   resultingNodeId?: string | null
   resultingNodeType?: string | null
 }
@@ -131,11 +135,12 @@ export async function decideProposal(input: DecideProposalInput): Promise<void> 
   const { error } = await supabase
     .from('proposals')
     .update({
-      status:              input.status,
-      decided_by_user_id:  input.decidedByUserId,
-      decided_at:          new Date().toISOString(),
-      resulting_node_id:   input.resultingNodeId ?? null,
-      resulting_node_type: input.resultingNodeType ?? null,
+      status:                 input.status,
+      decided_by_user_id:     input.decidedByUserId,
+      decided_at:             new Date().toISOString(),
+      edited_before_approval: input.edited ?? false,
+      resulting_node_id:      input.resultingNodeId ?? null,
+      resulting_node_type:    input.resultingNodeType ?? null,
     })
     .eq('id', input.proposalId)
   if (error) throw new Error(error.message)

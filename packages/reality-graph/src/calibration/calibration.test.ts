@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   calibratedConfidence, computeCalibration, outcomeLabel,
-  DEFAULT_CALIBRATION_HALF_LIFE_DAYS, type CalibrationSample,
+  DEFAULT_CALIBRATION_HALF_LIFE_DAYS, DEFAULT_CALIBRATION_EDIT_PENALTY,
+  type CalibrationSample,
 } from './index'
 
 // Builds n samples at a fixed confidence with a given hit count.
@@ -141,6 +142,45 @@ describe('time-decay (recency weighting)', () => {
     ]
     const r = computeCalibration(future, { minSamples: 1, halfLifeDays: 30, now: NOW })
     expect(r.accuracy).toBeCloseTo(0.5, 5)  // both clamped to weight 1
+  })
+})
+
+describe('edit penalty (edited-then-approved is a partial hit)', () => {
+  it('exports a 0.5 default edit penalty', () => {
+    expect(DEFAULT_CALIBRATION_EDIT_PENALTY).toBe(0.5)
+  })
+
+  // 10 approvals at 0.8 — half of them edited before approval.
+  const mixed: CalibrationSample[] = [
+    ...Array.from({ length: 5 }, () => ({ confidence: 0.8, status: 'approved' as const, edited: true })),
+    ...Array.from({ length: 5 }, () => ({ confidence: 0.8, status: 'approved' as const })),
+    ...Array.from({ length: 5 }, () => ({ confidence: 0.8, status: 'rejected' as const })),
+  ]
+
+  it('counts edited approvals as full hits when no penalty is set (default off)', () => {
+    const r = computeCalibration(mixed, { minSamples: 1 })
+    expect(r.accuracy).toBeCloseTo(10 / 15, 5)  // all 10 approvals = full hits
+  })
+
+  it('discounts edited approvals when a penalty is set', () => {
+    const r = computeCalibration(mixed, { minSamples: 1, editPenalty: 0.5 })
+    // 5 clean hits (1.0) + 5 edited (0.5) + 5 misses (0) = 7.5 / 15
+    expect(r.accuracy).toBeCloseTo(7.5 / 15, 5)
+  })
+
+  it('ignores the penalty for samples that were not edited', () => {
+    const clean: CalibrationSample[] = [
+      ...Array.from({ length: 8 }, () => ({ confidence: 0.8, status: 'approved' as const })),
+      ...Array.from({ length: 2 }, () => ({ confidence: 0.8, status: 'rejected' as const })),
+    ]
+    const r = computeCalibration(clean, { minSamples: 1, editPenalty: 0.5 })
+    expect(r.accuracy).toBeCloseTo(0.8, 5)  // unchanged — nothing edited
+  })
+
+  it('a population of only edited approvals is not assessable (no outcome spread)', () => {
+    const allEdited = Array.from({ length: 30 }, () => ({ confidence: 0.8, status: 'approved' as const, edited: true }))
+    const r = computeCalibration(allEdited, { minSamples: 20, editPenalty: 0.5 })
+    expect(r.sufficientData).toBe(false)  // every label is 0.5 → no spread
   })
 })
 

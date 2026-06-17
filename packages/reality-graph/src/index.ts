@@ -177,6 +177,7 @@ export {
   outcomeLabel,
   calibratedConfidence,
   DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
+  DEFAULT_CALIBRATION_EDIT_PENALTY,
 } from './calibration/index'
 export type {
   CalibrationSample,
