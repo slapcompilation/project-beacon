@@ -17,7 +17,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
-import { actionDescriptors, type BeaconAction } from '@beacon/reality-graph'
+import { actionDescriptors, type ActionDescriptor, type BeaconAction } from '@beacon/reality-graph'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
@@ -381,13 +381,17 @@ function QueueRow({
           initialValues={action as unknown as Record<string, unknown>}
           dispatchContext={{ hotelId, actorId: userId, triggeredBy: 'ai_proposal_accepted' }}
           titleOverride={`Edit &amp; approve · ${descriptor.title}`}
-          onSuccess={() => {
+          onSuccess={(_result, editedAction) => {
+            // Only count it as edited if a field actually changed — opening the
+            // form and approving unchanged is still a clean approval (#6).
+            const edited = actionFieldsChanged(action, editedAction, descriptor)
             void decideProposal({
               proposalId:      row.id,
               status:          'approved',
               decidedByUserId: userId,
+              edited,
             }).then(() => {
-              toast.success('Edited proposal approved')
+              toast.success(edited ? 'Edited proposal approved' : 'Proposal approved')
               void qc.invalidateQueries({ queryKey: reviewQueueKeys.pending(hotelId) })
             })
           }}
@@ -437,6 +441,20 @@ function FilterChips<T extends string>({
 
 function isApprovalSupported(action: BeaconAction): boolean {
   return action.type === 'REQUEST_RESTOCK' || action.type === 'TRANSFER_STOCK'
+}
+
+/** True when any of the descriptor's editable fields differs between the original
+ *  proposal and the operator's edited action. Treats null/undefined/'' as equal. */
+function actionFieldsChanged(original: BeaconAction, edited: BeaconAction, descriptor: ActionDescriptor): boolean {
+  const o = original as unknown as Record<string, unknown>
+  const e = edited as unknown as Record<string, unknown>
+  const norm = (v: unknown): string => {
+    if (v == null) return ''
+    if (typeof v === 'string') return v
+    if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+    return JSON.stringify(v)
+  }
+  return descriptor.fields.some((f) => norm(o[f.name]) !== norm(e[f.name]))
 }
 
 function extractVariantId(action: BeaconAction): string | undefined {

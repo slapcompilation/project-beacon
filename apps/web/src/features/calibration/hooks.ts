@@ -1,6 +1,9 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { computeCalibration, DEFAULT_CALIBRATION_HALF_LIFE_DAYS, type CalibrationReport } from '@beacon/reality-graph'
+import {
+  computeCalibration, DEFAULT_CALIBRATION_HALF_LIFE_DAYS, DEFAULT_CALIBRATION_EDIT_PENALTY,
+  type CalibrationReport,
+} from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { fetchResolvedSamples, type ResolvedSample } from './api'
 
@@ -35,13 +38,17 @@ export function useDecisionCalibration(windowDays: CalibrationWindow) {
   return { ...query, calibration: derived }
 }
 
-// Operator display weights recent outcomes more (decided_at + half-life), so the
-// reliability picture tracks how the agent behaves now, not a year ago. The
-// auto-execution trust budget is intentionally left undecayed for now.
-const DECAY = { halfLifeDays: DEFAULT_CALIBRATION_HALF_LIFE_DAYS }
+// Operator display weights recent outcomes more (decided_at + half-life) and
+// discounts edited-then-approved calls to partial hits, so the reliability
+// picture is honest about how the agent behaves now. The auto-execution trust
+// budget is intentionally left on the raw labels for now.
+const DISPLAY_OPTS = {
+  halfLifeDays: DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
+  editPenalty:  DEFAULT_CALIBRATION_EDIT_PENALTY,
+}
 
 function deriveCalibration(samples: ResolvedSample[]): DecisionCalibration {
-  const overall = computeCalibration(samples, DECAY)
+  const overall = computeCalibration(samples, DISPLAY_OPTS)
   return {
     overall,
     byAgent:      sliceBy(samples, (s) => s.agent_name),
@@ -59,6 +66,6 @@ function sliceBy(samples: ResolvedSample[], keyOf: (s: ResolvedSample) => string
     else groups.set(k, [s])
   }
   return [...groups.entries()]
-    .map(([key, rows]) => ({ key, report: computeCalibration(rows, DECAY) }))
+    .map(([key, rows]) => ({ key, report: computeCalibration(rows, DISPLAY_OPTS) }))
     .sort((a, b) => b.report.resolved - a.report.resolved)
 }

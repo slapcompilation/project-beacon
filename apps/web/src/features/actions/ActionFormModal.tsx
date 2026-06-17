@@ -34,8 +34,9 @@ export interface ActionFormModalProps {
   initialValues?: Record<string, unknown>
   /** Required when in dispatch mode (default). Ignored in capture mode. */
   dispatchContext?: DispatchContext
-  /** Triggered after a successful dispatch. */
-  onSuccess?: (result: unknown) => void
+  /** Triggered after a successful dispatch. Receives the dispatch result and the
+   *  built action, so callers can tell whether the operator edited it. */
+  onSuccess?: (result: unknown, action: BeaconAction) => void
   /** When provided, the modal captures the built BeaconAction instead of
    *  dispatching it. Used by Action Chains for draft-safe step building —
    *  the operator's form input becomes a step in simulated_actions; nothing
@@ -117,7 +118,7 @@ export function ActionFormModal({
           setError(result.error.message)
           return
         }
-        onSuccess?.(result.data)
+        onSuccess?.(result.data, action)
         onClose()
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Dispatch failed')

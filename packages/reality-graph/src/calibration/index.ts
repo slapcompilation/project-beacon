@@ -21,11 +21,20 @@ export interface CalibrationSample {
   /** When the proposal was resolved (ISO string or epoch ms). Only used when
    *  `halfLifeDays` is set — otherwise every sample weighs the same. */
   decidedAt?: string | number | null
+  /** True when the operator edited the proposal's action before approving it.
+   *  With `editPenalty` set, an edited approval scores a partial hit, not a full
+   *  one — the agent's call needed correcting. Only meaningful for `approved`. */
+  edited?: boolean
 }
 
 /** Sensible default half-life when time-decay is turned on: a 3-month-old
  *  outcome counts half as much as a fresh one. */
 export const DEFAULT_CALIBRATION_HALF_LIFE_DAYS = 90
+
+/** Default partial-credit discount for an edited-then-approved proposal: half a
+ *  hit. An operator who had to fix the agent's call before accepting it didn't
+ *  get a clean prediction. */
+export const DEFAULT_CALIBRATION_EDIT_PENALTY = 0.5
 
 /**
  * Maps a resolved proposal status to a binary outcome, or null when the status
@@ -99,6 +108,10 @@ export interface CalibrationOptions {
   halfLifeDays?: number
   /** Clock for decay, epoch ms. Defaults to Date.now(); injectable for tests. */
   now?: number
+  /** Discount applied to an edited-then-approved sample's hit (0..1). 0 / omitted
+   *  → edited approvals still count as full hits (callers that don't track edits
+   *  are unaffected). Needs `edited` on the samples to take effect. */
+  editPenalty?: number
 }
 
 /** Recency weight for one sample. 1 when decay is off, no timestamp, or the
@@ -128,16 +141,19 @@ export function computeCalibration(
   const minSamples = opts.minSamples ?? 20
   const tolerance  = opts.tolerance ?? 0.05
   const now = opts.now ?? Date.now()
+  const editPenalty = clamp01(opts.editPenalty ?? 0)
 
   const excluded = { pending: 0, expired: 0 }
-  const scoreable: { confidence: number; label: 0 | 1; weight: number }[] = []
+  const scoreable: { confidence: number; label: number; weight: number }[] = []
   for (const s of samples) {
-    const label = outcomeLabel(s.status)
-    if (label == null) {
+    const base = outcomeLabel(s.status)
+    if (base == null) {
       if (s.status === 'pending') excluded.pending++
       else excluded.expired++
       continue
     }
+    // An edited-then-approved call is a partial hit, not a clean one.
+    const label = base === 1 && s.edited ? 1 - editPenalty : base
     const c = clamp01(s.confidence)
     scoreable.push({ confidence: c, label, weight: sampleWeight(s.decidedAt, opts.halfLifeDays, now) })
   }
@@ -161,7 +177,8 @@ export function computeCalibration(
   let confSum = 0
   let hitSum  = 0
   let brierSum = 0
-  let rawHits = 0
+  let minLabel = Infinity
+  let maxLabel = -Infinity
   for (const { confidence, label, weight } of scoreable) {
     const idx = Math.min(binCount - 1, Math.floor(confidence * binCount))
     const b = acc[idx]
@@ -169,7 +186,8 @@ export function computeCalibration(
     confSum += weight * confidence
     hitSum  += weight * label
     brierSum += weight * (confidence - label) ** 2
-    rawHits += label
+    if (label < minLabel) minLabel = label
+    if (label > maxLabel) maxLabel = label
   }
 
   const bins: CalibrationBin[] = []
@@ -193,8 +211,10 @@ export function computeCalibration(
   const meanConfidence = confSum / weightSum
   const accuracy = hitSum / weightSum
   const brier = brierSum / weightSum
-  // Class balance is about whether both outcomes actually occurred — raw, not weighted.
-  const bothClasses = rawHits > 0 && rawHits < n
+  // Calibration needs outcome variety to assess — all-identical labels (every
+  // hit, every miss, or every same-partial) carry no signal. Spread, not a raw
+  // hit count, so this stays correct once edited approvals make labels fractional.
+  const bothClasses = maxLabel > minLabel
   const sufficientData = n >= minSamples && bothClasses
 
   const gap = accuracy - meanConfidence
