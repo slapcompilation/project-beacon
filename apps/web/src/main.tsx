@@ -7,9 +7,9 @@ import { queryClient } from '@/lib/queryClient'
 import { App } from '@/App'
 import '@/styles/globals.css'
 
-// Register service worker — updateSW is unused in prompt mode;
-// vite-pwa handles the reload prompt via the ReloadPrompt component if needed.
-registerSW({ immediate: false })
+// autoUpdate mode: register immediately so a new deploy's service worker takes
+// over on the next load. cleanupOutdatedCaches drops the stale precache.
+registerSW({ immediate: true })
 
 const root = document.getElementById('root')
 if (!root) throw new Error('Root element not found')
