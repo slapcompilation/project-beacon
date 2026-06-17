@@ -11,8 +11,20 @@ import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { Button, Card, FormGroup, InputGroup, Intent } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
+import type { OAuthProvider } from '@beacon/services'
 import { services } from '@/lib/services'
 import { formString, zodFieldErrors } from '@/lib/forms'
+
+// Only render OAuth buttons for providers the operator has configured (and
+// enabled in Supabase). Unset → none, so we never show a button that errors.
+const OAUTH_PROVIDERS = (import.meta.env.VITE_OAUTH_PROVIDERS ?? '')
+  .split(',').map((s) => s.trim().toLowerCase()).filter(Boolean)
+
+const PROVIDER_META: Record<OAuthProvider, { label: string; icon: IconName }> = {
+  google: { label: 'Continue with Google', icon: 'globe' },
+  azure:  { label: 'Continue with Microsoft', icon: 'cloud' },
+}
 
 // ─── Schemas ─────────────────────────────────────────────────────────────────
 
@@ -148,6 +160,36 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   )
 }
 
+// ─── OAuth ──────────────────────────────────────────────────────────────────────
+
+function OAuthButtons() {
+  const providers = OAUTH_PROVIDERS.filter((p): p is OAuthProvider => p in PROVIDER_META)
+  if (providers.length === 0) return null
+
+  const onClick = async (provider: OAuthProvider) => {
+    try {
+      await services.auth.signInWithOAuth(provider)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'That sign-in option is unavailable')
+    }
+  }
+
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-2 my-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      </div>
+      <div className="space-y-2">
+        {providers.map((p) => (
+          <Button key={p} fill icon={PROVIDER_META[p].icon} onClick={() => { void onClick(p) }}>
+            {PROVIDER_META[p].label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
@@ -169,7 +211,7 @@ export default function LoginPage() {
               : "Enter your email and we'll send a reset link."}
           </p>
           {view === 'login'
-            ? <LoginForm onForgotPassword={() => { setView('forgot') }} />
+            ? <><LoginForm onForgotPassword={() => { setView('forgot') }} /><OAuthButtons /></>
             : <ForgotPasswordForm onBack={() => { setView('login') }} />}
         </Card>
       </div>

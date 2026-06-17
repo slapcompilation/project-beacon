@@ -15,6 +15,7 @@ FocusStyleManager.onlyShowFocusOnTabs()
 
 const LoginPage = lazy(() => import('@/pages/LoginPage'))
 const ResetPasswordPage = lazy(() => import('@/pages/ResetPasswordPage'))
+const AuthCallbackPage = lazy(() => import('@/pages/AuthCallbackPage'))
 const BriefingPage = lazy(() => import('@/pages/BriefingPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const AuditPage = lazy(() => import('@/pages/AuditPage'))
@@ -101,6 +102,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route element={<AuthGuard />}>
             <Route path="/" element={<RootRedirect />} />
 

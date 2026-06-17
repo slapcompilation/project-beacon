@@ -1,5 +1,5 @@
 import type { Session } from '@supabase/supabase-js'
-import type { IAuthService } from '@beacon/services'
+import type { IAuthService, OAuthProvider } from '@beacon/services'
 import type { AuthSession, UserRole } from '@beacon/types'
 import { supabase } from './client'
 
@@ -40,6 +40,16 @@ export class SupabaseAuthService implements IAuthService {
 
   async updatePassword(newPassword: string): Promise<void> {
     const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw new Error(error.message)
+  }
+
+  async signInWithOAuth(provider: OAuthProvider): Promise<void> {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    })
+    // On success the browser is redirected to the provider; an error means the
+    // provider isn't configured/enabled in Supabase.
     if (error) throw new Error(error.message)
   }
 
