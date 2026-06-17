@@ -423,7 +423,7 @@ export default function AlertsPage() {
   const { mutate: doMarkRead }      = markRead
 
   const handleWriteOff = useCallback((variantId: string, currentStock: number) => {
-    doWriteOff({ variantId, delta: -currentStock, reason: 'Expired — written off', removalCategory: 'Spoilage' })
+    doWriteOff({ variantId, delta: -currentStock, reason: 'Expired — written off', category: 'Spoilage' })
   }, [doWriteOff])
 
   const handleRestock = useCallback((variantId: string, quantityNeeded: number) => {

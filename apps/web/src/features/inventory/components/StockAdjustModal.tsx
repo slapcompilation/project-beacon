@@ -80,7 +80,7 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
       delta,
       reason: data.reason,
       photoFile: null,
-      removalCategory: direction === 'remove' ? (data.removal_category ?? null) : null,
+      category: direction === 'remove' ? (data.removal_category ?? null) : null,
     })
     handleClose()
   }

@@ -262,13 +262,16 @@ export async function dispatchAction<T extends MutationResult = MutationResult>(
       // ── Stock adjustments ─────────────────────────────────────────────────
 
       case 'ADJUST_STOCK': {
+        // One typed category, routed by sign: removals → removal_category,
+        // additions → movement_category.
+        const cat = action.category?.trim() ? action.category.trim() : null
         const res = await adjustStock(
           action.variantId,
           action.delta,
           action.reason,
           extras?.photoFile ?? null,
-          action.removalCategory,
-          action.movementCategory,
+          action.delta < 0 ? cat : null,
+          action.delta > 0 ? cat : null,
         )
         mutationResult = { logId: res.logId } satisfies StockLogResult
         break

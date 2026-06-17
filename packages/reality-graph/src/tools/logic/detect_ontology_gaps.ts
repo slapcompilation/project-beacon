@@ -90,8 +90,8 @@ export function makeDetectOntologyGapsTool(
         output: {
           gaps: [{
             kind: 'new_category', targetType: 'StockLog', targetField: 'removal_category',
-            proposed: 'consumption',
-            rationale: '1820 of 1820 uncategorized removals (100%) read as "consumption" but are stored only as free text — promote it to a typed removal_category.',
+            proposed: 'Consumed',
+            rationale: '1820 of 1820 uncategorized removals (100%) read as "Consumed" but are stored only as free text — promote it to a typed removal_category.',
             evidence: { occurrences: 1820, totalConsidered: 1820, coverage: 1, examples: ['pos: daily consumption'] },
             confidence: 0.97,
           }],

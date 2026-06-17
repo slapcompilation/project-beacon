@@ -121,7 +121,7 @@ export function useAdjustStock() {
     delta: number
     reason: string
     photoFile?: File | null
-    removalCategory?: string | null
+    category?: string | null
   }
 
   return useMutation({
@@ -130,7 +130,7 @@ export function useAdjustStock() {
       delta,
       reason,
       photoFile,
-      removalCategory,
+      category,
     }: AdjustVars): Promise<{ queued: boolean }> => {
       if (!isOnline) {
         const mutation: OfflineMutation = {
@@ -149,7 +149,7 @@ export function useAdjustStock() {
         return { queued: true }
       }
       const actionResult = await dispatchAction(
-        { type: 'ADJUST_STOCK', variantId, delta, reason, hotelId: hotelId ?? '', userId, removalCategory },
+        { type: 'ADJUST_STOCK', variantId, delta, reason, hotelId: hotelId ?? '', userId, category },
         { hotelId: hotelId ?? '', actorId: userId, triggeredBy: 'user' },
         { photoFile },
       )
@@ -195,7 +195,7 @@ export function useAdjustStock() {
       void queryClient.invalidateQueries({ queryKey: ['eye', hotelId] })
       void queryClient.invalidateQueries({ queryKey: ['mind', hotelId] })
       // If this was a categorised removal (waste), offer a direct link to the waste report
-      if (vars.removalCategory && vars.delta < 0) {
+      if (vars.category && vars.delta < 0) {
         toast.success('Stock updated', {
           action: {
             label: 'View waste report →',

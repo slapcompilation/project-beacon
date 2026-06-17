@@ -36,7 +36,7 @@ export interface OntologyGap {
   targetType: string
   /** Field the extension refines (e.g. 'removal_category'). */
   targetField: string
-  /** The proposed typed value / name (e.g. 'spoilage'). */
+  /** The proposed typed value / name (e.g. 'Spoilage'). */
   proposed: string
   /** One line the operator reads to decide. */
   rationale: string
@@ -47,25 +47,31 @@ export interface OntologyGap {
 
 interface LexiconEntry { category: string; keywords: ReadonlyArray<string> }
 
+// Canonical category values are Title-Case to match the rest of the system —
+// the RemovalCategory union (@beacon/types), the StockAdjust modal, and the
+// reporting/security SQL (theft trigger, waste radar, GL export) all filter on
+// 'Theft' / 'Breakage' / 'Spoilage'. Emitting lowercase here meant an approved
+// gap was written in a vocabulary nothing downstream recognized.
+
 /** Keyword → canonical category for stock REMOVALS. First entry whose any
  *  keyword is a substring of the normalized reason wins, so order = priority. */
 const REMOVAL_LEXICON: ReadonlyArray<LexiconEntry> = [
-  { category: 'spoilage',      keywords: ['spoil', 'expire', 'expired', 'perish', 'out of date', 'past date', 'rotten', 'mould', 'mold'] },
-  { category: 'damage',        keywords: ['damage', 'broke', 'broken', 'breakage', 'spill', 'spilt', 'dropped', 'crack'] },
-  { category: 'theft',         keywords: ['theft', 'stolen', 'steal', 'shrink', 'pilfer', 'missing'] },
-  { category: 'transfer',      keywords: ['transfer', 'moved to', 'sent to', 'relocat'] },
-  { category: 'correction',    keywords: ['correct', 'recount', 'cycle count', 'count adjust', 'audit', 'reconcil', 'stocktake'] },
-  { category: 'complimentary', keywords: ['comp ', 'complimentary', 'gratis', 'on the house', 'tasting', 'sample'] },
-  { category: 'consumption',   keywords: ['consum', 'pos', 'sale', 'sold', 'usage', 'used', 'depletion', 'served'] },
+  { category: 'Spoilage',      keywords: ['spoil', 'expire', 'expired', 'perish', 'out of date', 'past date', 'rotten', 'mould', 'mold'] },
+  { category: 'Breakage',      keywords: ['damage', 'broke', 'broken', 'breakage', 'spill', 'spilt', 'dropped', 'crack'] },
+  { category: 'Theft',         keywords: ['theft', 'stolen', 'steal', 'shrink', 'pilfer', 'missing'] },
+  { category: 'Transfer',      keywords: ['transfer', 'moved to', 'sent to', 'relocat'] },
+  { category: 'Correction',    keywords: ['correct', 'recount', 'cycle count', 'count adjust', 'audit', 'reconcil', 'stocktake'] },
+  { category: 'Complimentary', keywords: ['comp ', 'complimentary', 'gratis', 'on the house', 'tasting', 'sample'] },
+  { category: 'Consumed',      keywords: ['consum', 'pos', 'sale', 'sold', 'usage', 'used', 'depletion', 'served'] },
 ]
 
 /** Keyword → canonical category for stock ADDITIONS. */
 const ADDITION_LEXICON: ReadonlyArray<LexiconEntry> = [
-  { category: 'receipt',     keywords: ['receiv', 'deliver', 'restock', 'purchase', ' po ', 'arriv', 'inbound', 'goods in'] },
-  { category: 'return',      keywords: ['return', 'refund', 'sent back', 'put back'] },
-  { category: 'transfer',    keywords: ['transfer', 'moved in', 'from sister', 'inter-property', 'inbound transfer'] },
-  { category: 'correction',  keywords: ['correct', 'recount', 'found', 'cycle count', 'audit', 'reconcil', 'stocktake', 'adjust'] },
-  { category: 'production',  keywords: ['made', 'produced', 'prepped', 'batch', 'in-house', 'in house'] },
+  { category: 'Receipt',     keywords: ['receiv', 'deliver', 'restock', 'purchase', ' po ', 'arriv', 'inbound', 'goods in'] },
+  { category: 'Return',      keywords: ['return', 'refund', 'sent back', 'put back'] },
+  { category: 'Transfer',    keywords: ['transfer', 'moved in', 'from sister', 'inter-property', 'inbound transfer'] },
+  { category: 'Correction',  keywords: ['correct', 'recount', 'found', 'cycle count', 'audit', 'reconcil', 'stocktake', 'adjust'] },
+  { category: 'Production',  keywords: ['made', 'produced', 'prepped', 'batch', 'in-house', 'in house'] },
 ]
 
 /** Generic row the category detectors scan: a free-text reason + the typed
@@ -117,7 +123,8 @@ export function detectReasonCategoryGaps(
   const buckets = new Map<string, { count: number; examples: Set<string> }>()
   for (const r of untyped) {
     const category = classify(r.reason!, config.lexicon)
-    if (category == null || known.has(category)) continue
+    // known is lowercased; canonical categories are Title-Case — compare folded.
+    if (category == null || known.has(category.toLowerCase())) continue
     let b = buckets.get(category)
     if (!b) { b = { count: 0, examples: new Set() }; buckets.set(category, b) }
     b.count++

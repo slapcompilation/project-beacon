@@ -74,9 +74,9 @@ export type BeaconAction =
       reason: string
       hotelId: string
       userId: string
-      removalCategory?: string | null
-      /** Typed movement category for additions (positive delta), from the grown ontology. */
-      movementCategory?: string | null
+      /** Typed category from the grown ontology. Dispatch routes it by delta sign:
+       *  negative → removal_category, positive → movement_category. */
+      category?: string | null
       // photoFile is browser-only — pass via DispatchExtras in dispatchAction()
     }
   | {

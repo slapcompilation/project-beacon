@@ -408,7 +408,7 @@ export default function DashboardPage() {
           {
             label: 'Write Off',
             variant: 'destructive',
-            onClick: () => { adjustStock.mutate({ variantId: v.id, delta: -v.current_stock, reason: 'Expired — written off', removalCategory: 'Spoilage' }) },
+            onClick: () => { adjustStock.mutate({ variantId: v.id, delta: -v.current_stock, reason: 'Expired — written off', category: 'Spoilage' }) },
           },
         ],
       })

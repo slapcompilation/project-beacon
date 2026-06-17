@@ -18,7 +18,7 @@ describe('detectRemovalCategoryGaps', () => {
       kind: 'new_category',
       targetType: 'StockLog',
       targetField: 'removal_category',
-      proposed: 'consumption',
+      proposed: 'Consumed',
     })
     expect(gaps[0].evidence.occurrences).toBe(1820)
     expect(gaps[0].evidence.coverage).toBe(1)
@@ -33,10 +33,10 @@ describe('detectRemovalCategoryGaps', () => {
       ['stolen from bar', 3],
     ))
     const byCat = Object.fromEntries(gaps.map((g) => [g.proposed, g.evidence.occurrences]))
-    expect(byCat.spoilage).toBe(14)  // expired + mould
-    expect(byCat.damage).toBe(6)
-    expect(byCat.theft).toBe(3)
-    expect(gaps[0].proposed).toBe('spoilage')  // highest support first
+    expect(byCat.Spoilage).toBe(14)  // expired + mould
+    expect(byCat.Breakage).toBe(6)
+    expect(byCat.Theft).toBe(3)
+    expect(gaps[0].proposed).toBe('Spoilage')  // highest support first
   })
 
   it('skips categories below the support floor', () => {
@@ -44,12 +44,12 @@ describe('detectRemovalCategoryGaps', () => {
     expect(gaps).toHaveLength(0)
   })
 
-  it('never re-proposes a category the ontology already recognizes', () => {
+  it('never re-proposes a category the ontology already recognizes (case-folded)', () => {
     const gaps = detectRemovalCategoryGaps(
       reasons(['expired', 10], ['broken', 5]),
-      { knownCategories: ['spoilage'] },
+      { knownCategories: ['spoilage'] },  // lowercase known still matches Title-Case canonical
     )
-    expect(gaps.map((g) => g.proposed)).toEqual(['damage'])
+    expect(gaps.map((g) => g.proposed)).toEqual(['Breakage'])
   })
 
   it('ignores rows already categorized + rows with no reason', () => {
@@ -90,7 +90,7 @@ describe('detectAdditionCategoryGaps', () => {
       kind: 'new_category',
       targetType: 'StockLog',
       targetField: 'movement_category',
-      proposed: 'receipt',
+      proposed: 'Receipt',
     })
     expect(gaps[0].evidence.occurrences).toBe(249)
     expect(gaps[0].evidence.coverage).toBe(1)
@@ -104,10 +104,10 @@ describe('detectAdditionCategoryGaps', () => {
       ['cycle count found extra', 3],
     ))
     const byCat = Object.fromEntries(gaps.map((g) => [g.proposed, g.evidence.occurrences]))
-    expect(byCat.receipt).toBe(12)   // delivery + goods in
-    expect(byCat.return).toBe(5)
-    expect(byCat.correction).toBe(3)
-    expect(gaps[0].proposed).toBe('receipt')
+    expect(byCat.Receipt).toBe(12)   // delivery + goods in
+    expect(byCat.Return).toBe(5)
+    expect(byCat.Correction).toBe(3)
+    expect(gaps[0].proposed).toBe('Receipt')
   })
 
   it('never re-proposes an already-known movement category', () => {
