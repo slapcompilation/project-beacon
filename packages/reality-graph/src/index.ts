@@ -175,6 +175,7 @@ export {
   computeCalibration,
   outcomeLabel,
   calibratedConfidence,
+  DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
 } from './calibration/index'
 export type {
   CalibrationSample,
