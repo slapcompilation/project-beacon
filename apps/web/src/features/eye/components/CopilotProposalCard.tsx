@@ -30,8 +30,15 @@ export function CopilotProposalCard({ proposal }: Props) {
   const actionType = proposal.action as BeaconAction['type']
   const descriptor = recognized ? actionDescriptors[actionType] : null
 
+  // Suggest-time constraint check (#7). A hard violation blocks Apply outright —
+  // the same rule would reject it at dispatch, surfaced here so the operator
+  // doesn't click Apply only to be turned away. Soft violations just warn.
+  const violations = proposal.violations ?? []
+  const hardViolations = violations.filter((v) => v.severity === 'hard')
+  const blocked = hardViolations.length > 0
+
   const handleApply = () => {
-    if (!recognized || !hotelId || !userId) return
+    if (!recognized || !hotelId || !userId || blocked) return
     setApplying(true)
     void (async () => {
       try {
@@ -64,9 +71,29 @@ export function CopilotProposalCard({ proposal }: Props) {
         <Icon icon="cog" size={12} className="text-violet-500" />
         <Tag minimal intent={Intent.PRIMARY} className="font-mono text-[10px]">{actionType}</Tag>
         {!recognized && <Tag minimal intent={Intent.WARNING}>unrecognized action</Tag>}
+        {blocked && <Tag minimal intent={Intent.DANGER} icon="ban-circle">blocked by constraint</Tag>}
+        {!blocked && violations.length > 0 && <Tag minimal intent={Intent.WARNING} icon="warning-sign">needs approval</Tag>}
         {done === 'applied' && <Tag minimal intent={Intent.SUCCESS} icon="tick">Applied</Tag>}
         <span className="text-[10px] text-muted-foreground ml-auto">copilot proposal</span>
       </header>
+
+      {violations.length > 0 && (
+        <ul className="space-y-1 rounded bg-muted/50 px-2 py-1.5">
+          {violations.map((v) => (
+            <li key={v.constraintId} className="flex items-start gap-1.5 text-[11px] leading-snug">
+              <Icon
+                icon={v.severity === 'hard' ? 'ban-circle' : 'warning-sign'}
+                size={11}
+                className={v.severity === 'hard' ? 'text-red-600 mt-0.5' : 'text-amber-600 mt-0.5'}
+              />
+              <span>
+                <span className="font-medium">{v.body}</span>
+                <span className="text-muted-foreground"> — {v.message}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
 
       {proposal.message && (
         <p className="text-xs text-muted-foreground leading-relaxed">{proposal.message}</p>
@@ -85,12 +112,15 @@ export function CopilotProposalCard({ proposal }: Props) {
       )}
 
       <footer className="flex items-center justify-end gap-2 flex-wrap">
+        {blocked && (
+          <span className="mr-auto text-[10px] text-red-600">Blocked — resolve the constraint or adjust the request.</span>
+        )}
         {recognized && hotelId && userId && (
           <Button
             variant="minimal"
             size="small"
             icon="edit"
-            disabled={applying || done === 'applied'}
+            disabled={applying || done === 'applied' || blocked}
             onClick={() => { setEditOpen(true) }}
           >
             Edit &amp; apply
@@ -101,7 +131,7 @@ export function CopilotProposalCard({ proposal }: Props) {
           size="small"
           icon="tick"
           loading={applying}
-          disabled={!recognized || !hotelId || !userId || done === 'applied'}
+          disabled={!recognized || !hotelId || !userId || done === 'applied' || blocked}
           onClick={handleApply}
         >
           {done === 'applied' ? 'Applied' : 'Apply'}
