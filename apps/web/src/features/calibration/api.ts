@@ -17,7 +17,7 @@ export async function fetchResolvedSamples(
 ): Promise<ResolvedSample[]> {
   let q = supabase
     .from('proposals')
-    .select('confidence, status, agent_name, action_type')
+    .select('confidence, status, agent_name, action_type, decided_at')
     .eq('hotel_id', hotelId)
     .neq('status', 'pending')
     .limit(5000)
@@ -32,6 +32,7 @@ export async function fetchResolvedSamples(
   return data.map((r) => ({
     confidence: Number(r.confidence),
     status: r.status as CalibrationSample['status'],
+    decidedAt: r.decided_at as string | null,
     agent_name: r.agent_name as string,
     action_type: r.action_type as string,
   }))

@@ -18,7 +18,14 @@ export interface CalibrationSample {
   confidence: number
   /** Resolved disposition — operator judgment is the label. */
   status: ProposalStatus
+  /** When the proposal was resolved (ISO string or epoch ms). Only used when
+   *  `halfLifeDays` is set — otherwise every sample weighs the same. */
+  decidedAt?: string | number | null
 }
+
+/** Sensible default half-life when time-decay is turned on: a 3-month-old
+ *  outcome counts half as much as a fresh one. */
+export const DEFAULT_CALIBRATION_HALF_LIFE_DAYS = 90
 
 /**
  * Maps a resolved proposal status to a binary outcome, or null when the status
@@ -86,6 +93,27 @@ export interface CalibrationOptions {
   minSamples?: number
   /** |overall gap| at or below this counts as well-calibrated. Default 0.05. */
   tolerance?: number
+  /** Exponential recency weighting: a sample `halfLifeDays` old counts half as
+   *  much. Omitted → no decay (every sample weighs 1), so callers that don't opt
+   *  in are unaffected. Needs `decidedAt` on the samples to take effect. */
+  halfLifeDays?: number
+  /** Clock for decay, epoch ms. Defaults to Date.now(); injectable for tests. */
+  now?: number
+}
+
+/** Recency weight for one sample. 1 when decay is off, no timestamp, or the
+ *  outcome is in the future/now; otherwise 0.5^(ageDays / halfLifeDays). */
+function sampleWeight(
+  decidedAt: string | number | null | undefined,
+  halfLifeDays: number | undefined,
+  now: number,
+): number {
+  if (halfLifeDays == null || halfLifeDays <= 0 || decidedAt == null) return 1
+  const t = typeof decidedAt === 'number' ? decidedAt : Date.parse(decidedAt)
+  if (!Number.isFinite(t)) return 1
+  const ageDays = (now - t) / 86_400_000
+  if (ageDays <= 0) return 1
+  return 0.5 ** (ageDays / halfLifeDays)
 }
 
 /**
@@ -99,9 +127,10 @@ export function computeCalibration(
   const binCount  = Math.max(1, Math.floor(opts.bins ?? 10))
   const minSamples = opts.minSamples ?? 20
   const tolerance  = opts.tolerance ?? 0.05
+  const now = opts.now ?? Date.now()
 
   const excluded = { pending: 0, expired: 0 }
-  const scoreable: { confidence: number; label: 0 | 1 }[] = []
+  const scoreable: { confidence: number; label: 0 | 1; weight: number }[] = []
   for (const s of samples) {
     const label = outcomeLabel(s.status)
     if (label == null) {
@@ -110,10 +139,15 @@ export function computeCalibration(
       continue
     }
     const c = clamp01(s.confidence)
-    scoreable.push({ confidence: c, label })
+    scoreable.push({ confidence: c, label, weight: sampleWeight(s.decidedAt, opts.halfLifeDays, now) })
   }
 
-  if (scoreable.length === 0) {
+  const n = scoreable.length
+  // n is the raw sample count (thresholds + class-balance use it); rate stats use
+  // the recency weight. With decay off every weight is 1, so this is identical.
+  let weightSum = 0
+  for (const s of scoreable) weightSum += s.weight
+  if (n === 0 || weightSum <= 0) {
     return {
       bins: [], resolved: 0, excluded,
       meanConfidence: 0, accuracy: 0, ece: 0, brier: 0,
@@ -121,29 +155,31 @@ export function computeCalibration(
     }
   }
 
-  // Accumulate per-bin and global sums in one pass.
-  const acc = Array.from({ length: binCount }, () => ({ n: 0, conf: 0, hits: 0 }))
+  // Accumulate per-bin and global sums in one pass (raw n for display, weighted
+  // sums for the rate stats).
+  const acc = Array.from({ length: binCount }, () => ({ n: 0, w: 0, conf: 0, hits: 0 }))
   let confSum = 0
   let hitSum  = 0
   let brierSum = 0
-  for (const { confidence, label } of scoreable) {
+  let rawHits = 0
+  for (const { confidence, label, weight } of scoreable) {
     const idx = Math.min(binCount - 1, Math.floor(confidence * binCount))
     const b = acc[idx]
-    b.n++; b.conf += confidence; b.hits += label
-    confSum += confidence
-    hitSum  += label
-    brierSum += (confidence - label) ** 2
+    b.n++; b.w += weight; b.conf += weight * confidence; b.hits += weight * label
+    confSum += weight * confidence
+    hitSum  += weight * label
+    brierSum += weight * (confidence - label) ** 2
+    rawHits += label
   }
 
-  const n = scoreable.length
   const bins: CalibrationBin[] = []
   let ece = 0
   for (let i = 0; i < binCount; i++) {
     const b = acc[i]
     if (b.n === 0) continue
-    const meanConfidence = b.conf / b.n
-    const accuracy = b.hits / b.n
-    ece += (b.n / n) * Math.abs(accuracy - meanConfidence)
+    const meanConfidence = b.conf / b.w
+    const accuracy = b.hits / b.w
+    ece += (b.w / weightSum) * Math.abs(accuracy - meanConfidence)
     bins.push({
       lower: i / binCount,
       upper: (i + 1) / binCount,
@@ -154,10 +190,11 @@ export function computeCalibration(
     })
   }
 
-  const meanConfidence = confSum / n
-  const accuracy = hitSum / n
-  const brier = brierSum / n
-  const bothClasses = hitSum > 0 && hitSum < n
+  const meanConfidence = confSum / weightSum
+  const accuracy = hitSum / weightSum
+  const brier = brierSum / weightSum
+  // Class balance is about whether both outcomes actually occurred — raw, not weighted.
+  const bothClasses = rawHits > 0 && rawHits < n
   const sufficientData = n >= minSamples && bothClasses
 
   const gap = accuracy - meanConfidence

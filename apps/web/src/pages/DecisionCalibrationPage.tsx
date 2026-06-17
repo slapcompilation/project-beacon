@@ -48,7 +48,8 @@ export default function DecisionCalibrationPage() {
           <h1 className="text-sm font-semibold">Decision Calibration</h1>
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
             When an agent says it's 85% sure, is it right 85% of the time? Your decisions are the
-            ground truth — approved counts as a hit, rejected or refined as a miss.
+            ground truth — approved counts as a hit, rejected or refined as a miss. Recent
+            outcomes are weighted more heavily (90-day half-life).
           </p>
         </div>
         <div className="flex items-center gap-2">

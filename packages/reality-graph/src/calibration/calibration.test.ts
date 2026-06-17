@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { calibratedConfidence, computeCalibration, outcomeLabel, type CalibrationSample } from './index'
+import {
+  calibratedConfidence, computeCalibration, outcomeLabel,
+  DEFAULT_CALIBRATION_HALF_LIFE_DAYS, type CalibrationSample,
+} from './index'
 
 // Builds n samples at a fixed confidence with a given hit count.
 function band(confidence: number, hits: number, misses: number): CalibrationSample[] {
@@ -94,6 +97,50 @@ describe('computeCalibration', () => {
       { confidence: -0.2, status: 'rejected' },
     ], { minSamples: 1 })
     expect(r.meanConfidence).toBeCloseTo(0.5, 5)  // (1 + 0) / 2
+  })
+})
+
+describe('time-decay (recency weighting)', () => {
+  const NOW = Date.parse('2026-06-17T00:00:00Z')
+  const daysAgo = (d: number) => new Date(NOW - d * 86_400_000).toISOString()
+
+  it('exports a 90-day default half-life', () => {
+    expect(DEFAULT_CALIBRATION_HALF_LIFE_DAYS).toBe(90)
+  })
+
+  // 10 old hits (90d → weight 0.125 each) + 10 fresh misses (weight 1 each).
+  const mixed: CalibrationSample[] = [
+    ...Array.from({ length: 10 }, () => ({ confidence: 0.8, status: 'approved' as const, decidedAt: daysAgo(90) })),
+    ...Array.from({ length: 10 }, () => ({ confidence: 0.8, status: 'rejected' as const, decidedAt: daysAgo(0) })),
+  ]
+
+  it('is unchanged when halfLifeDays is omitted (decay off by default)', () => {
+    const r = computeCalibration(mixed, { minSamples: 1, now: NOW })
+    expect(r.accuracy).toBeCloseTo(0.5, 5)  // 10/20, every sample weighs 1
+  })
+
+  it('pulls accuracy toward recent outcomes when decay is on', () => {
+    const r = computeCalibration(mixed, { minSamples: 1, halfLifeDays: 30, now: NOW })
+    // weighted = (1.25·hit + 10·miss)/(1.25+10) = 1.25/11.25
+    expect(r.accuracy).toBeCloseTo(0.1111, 3)
+    expect(r.meanConfidence).toBeCloseTo(0.8, 5)  // weighting doesn't move a constant
+    expect(r.resolved).toBe(20)                   // raw count, not weighted
+    expect(r.bins[0].count).toBe(20)
+  })
+
+  it('ignores decay for samples without a decidedAt', () => {
+    const noDates = mixed.map(({ decidedAt: _d, ...s }) => s)
+    const r = computeCalibration(noDates, { minSamples: 1, halfLifeDays: 30, now: NOW })
+    expect(r.accuracy).toBeCloseTo(0.5, 5)
+  })
+
+  it('does not over-weight future-dated outcomes', () => {
+    const future: CalibrationSample[] = [
+      { confidence: 0.8, status: 'approved', decidedAt: daysAgo(-10) },
+      { confidence: 0.8, status: 'rejected', decidedAt: daysAgo(-10) },
+    ]
+    const r = computeCalibration(future, { minSamples: 1, halfLifeDays: 30, now: NOW })
+    expect(r.accuracy).toBeCloseTo(0.5, 5)  // both clamped to weight 1
   })
 })
 
