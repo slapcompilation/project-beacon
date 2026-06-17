@@ -491,7 +491,7 @@ export default function ExpiryPage() {
         variantId: v.id,
         delta: -v.current_stock,
         reason: 'Expired — written off',
-        removalCategory: 'Spoilage',
+        category: 'Spoilage',
       })
     } finally {
       setDiscarding((prev) => {
@@ -520,7 +520,7 @@ export default function ExpiryPage() {
             variantId: v.id,
             delta: -v.current_stock,
             reason: 'Batch expiry write-off',
-            removalCategory: 'Spoilage',
+            category: 'Spoilage',
           })
         )
       )

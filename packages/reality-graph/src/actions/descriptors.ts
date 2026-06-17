@@ -120,10 +120,9 @@ export const actionDescriptors: Record<ActionType, ActionDescriptor> = {
     title:          'Adjust stock',
     description:    'Manual count correction. Positive deltas add; negative deltas remove. Use Write-off for waste.',
     fields: [
-      { name: 'delta',            kind: 'number',  label: 'Delta',  required: true, helper: 'Use negative for removals' },
-      { name: 'reason',           kind: 'string',  label: 'Reason', required: true },
-      { name: 'removalCategory',  kind: 'string',  label: 'Removal category',  optionsSource: 'approved_removal_categories',  helper: 'For removals (negative delta) — pick an approved category or type a new one' },
-      { name: 'movementCategory', kind: 'string',  label: 'Movement category', optionsSource: 'approved_movement_categories', helper: 'For additions (positive delta) — pick an approved category or type a new one' },
+      { name: 'delta',    kind: 'number', label: 'Delta',  required: true, helper: 'Use negative for removals' },
+      { name: 'reason',   kind: 'string', label: 'Reason', required: true },
+      { name: 'category', kind: 'string', label: 'Category', optionsSource: 'approved_removal_categories', helper: 'Optional — routed by sign (removal vs addition). Pick an approved category or type a new one.' },
     ],
     contextFields: ['variantId', 'hotelId', 'userId'],
     approvalTier:  'self',
