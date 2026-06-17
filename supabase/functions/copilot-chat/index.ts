@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, evaluateConstraints } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, evaluateConstraints, copilotProposalToAction } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -741,31 +741,10 @@ async function loadConstraintRecords(supabase: SupabaseClient, hotelId: string):
   }))
 }
 
-/** Maps a copilot proposal (snake_case params) to the BeaconAction shape the
- *  constraint engine reads (type + the typed fields rules compare). Returns null
- *  for proposals with no typed action to evaluate (e.g. BATCH_APPROVE). */
-function proposalToAction(p: ParsedActionProposal, hotelId: string): Record<string, unknown> | null {
-  const params = p.params
-  const variantId = typeof params.variant_id === 'string' ? params.variant_id
-    : typeof params.variantId === 'string' ? params.variantId : undefined
-  const qty = typeof params.quantity === 'number' ? params.quantity : undefined
-  switch (p.action) {
-    case 'REQUEST_RESTOCK':
-      return { type: 'REQUEST_RESTOCK', variantId, quantityNeeded: qty, urgency: params.urgency, hotelId }
-    case 'WRITE_OFF':
-      return { type: 'WRITE_OFF', variantId, quantity: qty, wasteReason: params.reason, hotelId }
-    case 'ADJUST_STOCK': {
-      const delta = params.action === 'subtract' ? -(qty ?? 0) : (qty ?? 0)
-      return { type: 'ADJUST_STOCK', variantId, delta, reason: params.reason, hotelId }
-    }
-    default:
-      return null
-  }
-}
-
-/** Attaches constraint violations to each proposal. Mirrors dispatchAction's
- *  evaluation ({ now } only, like the Action Registry) so suggest-time and
- *  dispatch-time verdicts agree. */
+/** Attaches constraint violations to each proposal. Maps the proposal to a typed
+ *  action via the shared reality-graph mapper, then evaluates with the same engine
+ *  + { now }-only context as dispatchAction so suggest-time and dispatch verdicts
+ *  agree. */
 function annotateProposals(
   proposals: ParsedActionProposal[],
   records: ConstraintRecordLite[],
@@ -774,7 +753,7 @@ function annotateProposals(
   if (records.length === 0 || !hotelId) return proposals
   const now = new Date()
   return proposals.map((p) => {
-    const action = proposalToAction(p, hotelId)
+    const action = copilotProposalToAction(p.action, p.params, hotelId)
     if (!action) return p
     const violations = evaluateConstraints(action, records, { now }) as ConstraintViolationLite[]
     return violations.length > 0 ? { ...p, violations } : p

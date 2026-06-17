@@ -63,6 +63,7 @@ export {
   edgesForAction,
   actionDescriptors,
   getActionDescriptor,
+  copilotProposalToAction,
   SYSTEM_ACTOR,
   isSystemActor,
   resolveActor,
