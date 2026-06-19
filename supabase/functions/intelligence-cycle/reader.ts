@@ -68,7 +68,7 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
       const cutoff = new Date(Date.now() - sinceDays * 86_400_000).toISOString()
       const { data, error } = await supabase
         .from('stock_logs')
-        .select('id, variant_id, hotel_id, delta:quantity_change, created_at:timestamp, reason, removal_category')
+        .select('id, variant_id, hotel_id, delta:quantity_change, created_at:timestamp, reason, removal_category:category')
         .eq('variant_id', variantId)
         .gte('timestamp', cutoff)
       if (error) throw new Error(error.message)

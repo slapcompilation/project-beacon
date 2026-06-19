@@ -150,8 +150,8 @@ function LogRow({ log }: { log: StockLog }) {
           <span className="text-xs text-muted-foreground">→ {log.balance_after} remaining</span>
         </div>
         <div className="text-xs text-muted-foreground truncate">{log.reason}</div>
-        {log.removal_category && (
-          <div className="text-xs text-amber-500/80">{log.removal_category}</div>
+        {log.category && (
+          <div className="text-xs text-amber-500/80">{log.category}</div>
         )}
       </div>
       <div className="shrink-0 text-right">

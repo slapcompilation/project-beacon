@@ -41,7 +41,7 @@ type EventType = 'receive' | 'consume' | 'writeoff' | 'revert'
 function classifyEvent(row: TimelineRow): EventType {
   if (row.is_revert)          return 'revert'
   if (row.quantity_change > 0) return 'receive'
-  if (row.removal_category)   return 'writeoff'
+  if (row.category)   return 'writeoff'
   return 'consume'
 }
 
@@ -346,8 +346,8 @@ function EventCard({
           {row.reason && (
             <span className="italic truncate max-w-[200px]">{row.reason}</span>
           )}
-          {row.removal_category && (
-            <span className="font-medium text-rose-600 dark:text-rose-400">{row.removal_category}</span>
+          {row.category && (
+            <span className="font-medium text-rose-600 dark:text-rose-400">{row.category}</span>
           )}
           {row.actor_email && (
             <span className="ml-auto truncate max-w-[160px]">{row.actor_email}</span>
@@ -381,8 +381,8 @@ function SummaryPanel({ rows, currency, days }: { rows: TimelineRow[]; currency:
   const stats = useMemo(() => {
     const nonRevert = rows.filter((r) => !r.is_revert)
     const received  = nonRevert.filter((r) => r.quantity_change > 0)
-    const consumed  = nonRevert.filter((r) => r.quantity_change < 0 && !r.removal_category)
-    const writtenOff = nonRevert.filter((r) => r.removal_category)
+    const consumed  = nonRevert.filter((r) => r.quantity_change < 0 && !r.category)
+    const writtenOff = nonRevert.filter((r) => r.category)
     const corrections = rows.filter((r) => r.is_revert)
 
     const totalReceived   = received.reduce((s, r) => s + r.quantity_change, 0)

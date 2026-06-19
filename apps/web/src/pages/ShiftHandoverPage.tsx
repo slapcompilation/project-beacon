@@ -44,7 +44,7 @@ type EventKind = 'receive' | 'consume' | 'writeoff' | 'revert'
 function classifyLog(row: AuditLogRow): EventKind {
   if (row.is_revert)            return 'revert'
   if (row.quantity_change > 0)  return 'receive'
-  if (row.removal_category)     return 'writeoff'
+  if (row.category)     return 'writeoff'
   return 'consume'
 }
 

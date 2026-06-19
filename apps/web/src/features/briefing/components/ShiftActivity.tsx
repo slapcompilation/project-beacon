@@ -39,7 +39,7 @@ export function ShiftActivity({
 
   const nonReverts  = logs.filter((l) => !l.is_revert)
   const additions   = nonReverts.filter((l) => l.quantity_change > 0)
-  const writeOffs   = nonReverts.filter((l) => l.quantity_change < 0 && l.removal_category)
+  const writeOffs   = nonReverts.filter((l) => l.quantity_change < 0 && l.category)
   const corrections = logs.filter((l) => l.is_revert)
 
   const staffBreakdown = useMemo(() => {
@@ -150,7 +150,7 @@ export function ShiftActivity({
                     >
                       {name}
                     </button>
-                    <Tag minimal className="!text-[10px] !h-4">{l.removal_category}</Tag>
+                    <Tag minimal className="!text-[10px] !h-4">{l.category}</Tag>
                     {costImpact != null && (
                       <span className="text-[11px] text-red-600 dark:text-red-400 tabular-nums">
                         -{formatCurrency(costImpact * Math.abs(l.quantity_change), currency)}

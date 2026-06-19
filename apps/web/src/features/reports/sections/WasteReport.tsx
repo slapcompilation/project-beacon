@@ -48,7 +48,7 @@ export function WasteReport({
   const costMap = useMemo(() => buildCostMap(products), [products])
 
   const wasteRows  = wasteEvents
-  const priorWaste = useMemo(() => priorRows.filter((r) => !r.is_revert && r.quantity_change < 0 && r.removal_category), [priorRows])
+  const priorWaste = useMemo(() => priorRows.filter((r) => !r.is_revert && r.quantity_change < 0 && r.category), [priorRows])
 
   const totalWasteCost  = wasteRows.reduce((s, r) => s + rowCost(r, costMap), 0)
   const priorWasteCost  = priorWaste.reduce((s, r) => s + rowCost(r, costMap), 0)
@@ -57,7 +57,7 @@ export function WasteReport({
   const byCategory = useMemo(() => {
     const map = new Map<string, { count: number; units: number; cost: number }>()
     for (const r of wasteRows) {
-      const cat  = r.removal_category ?? 'Unknown'
+      const cat  = r.category ?? 'Unknown'
       const prev = map.get(cat) ?? { count: 0, units: 0, cost: 0 }
       map.set(cat, { count: prev.count + 1, units: prev.units + Math.abs(r.quantity_change), cost: prev.cost + rowCost(r, costMap) })
     }
@@ -181,7 +181,7 @@ export function WasteReport({
                 size="small"
                 variant="outlined"
                 icon="download"
-                onClick={() => { exportToCsv(`waste-${dateFrom}-to-${dateTo}`, wasteRows.map((r) => ({ date: format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm'), product: r.product_name, variant: r.variant_name, units: Math.abs(r.quantity_change), cost: rowCost(r, costMap).toFixed(2), category: r.removal_category }))) }}
+                onClick={() => { exportToCsv(`waste-${dateFrom}-to-${dateTo}`, wasteRows.map((r) => ({ date: format(new Date(r.timestamp), 'yyyy-MM-dd HH:mm'), product: r.product_name, variant: r.variant_name, units: Math.abs(r.quantity_change), cost: rowCost(r, costMap).toFixed(2), category: r.category }))) }}
               >
                 CSV
               </Button>
@@ -209,7 +209,7 @@ export function WasteReport({
                     <td className="text-right tabular-nums text-sm font-medium">
                       {formatCurrency(rowCost(r, costMap), currency)}
                     </td>
-                    <td className="text-xs">{r.removal_category}</td>
+                    <td className="text-xs">{r.category}</td>
                   </tr>
                 ))}
               </tbody>

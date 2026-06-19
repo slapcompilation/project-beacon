@@ -146,7 +146,7 @@ function EventCard({
               {isRemove && <Tag minimal intent={Intent.DANGER}>Removal</Tag>}
               {isRevert && <Tag minimal icon="undo">Undo</Tag>}
               {isReverted && <Tag minimal>Reverted</Tag>}
-              {row.removal_category && <Tag minimal>{row.removal_category}</Tag>}
+              {row.category && <Tag minimal>{row.category}</Tag>}
               {userLabel && (
                 <span className="text-[10px] text-muted-foreground">{userLabel}</span>
               )}
@@ -302,8 +302,8 @@ export default function AuditPage() {
     () => allRows.filter((r) => {
       if (userFilter !== '__all__' && r.user_id !== userFilter) return false
       if (categoryFilter !== '__all__') {
-        if (categoryFilter === '__none__') return !r.removal_category
-        if (r.removal_category !== categoryFilter) return false
+        if (categoryFilter === '__none__') return !r.category
+        if (r.category !== categoryFilter) return false
       }
       return true
     }),
@@ -324,7 +324,7 @@ export default function AuditPage() {
     balance_after:r.balance_after,
     reason:       r.reason,
     type:         r.is_revert ? 'Revert' : r.quantity_change > 0 ? 'Addition' : 'Removal',
-    category:     r.removal_category ?? '',
+    category:     r.category ?? '',
     offline:      r.was_offline ? 'Yes' : 'No',
     photo:        r.photo_url ?? '',
   }))
