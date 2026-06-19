@@ -36,7 +36,7 @@ type MovementKind = 'consumed' | 'restocked' | 'waste' | 'revert' | 'other'
 function classifyRow(row: StockMovementRow): MovementKind {
   if (row.is_revert) return 'revert'
   if (row.quantity_change > 0) return 'restocked'
-  const cat = row.removal_category?.toLowerCase() ?? ''
+  const cat = row.category?.toLowerCase() ?? ''
   const reason = row.reason.toLowerCase()
   if (cat === 'spoilage' || cat === 'breakage' || cat === 'theft' || reason.includes('waste') || reason.includes('expired') || reason.includes('damaged')) return 'waste'
   if (cat === 'consumed' || reason.includes('consume') || reason.includes('used') || reason.includes('adjustment') || reason.includes('scan') || reason.includes('stock')) return 'consumed'
@@ -209,7 +209,7 @@ export default function FinancePage() {
   const wasteByCat = useMemo(() => {
     const m = new Map<string, { cost: number; count: number }>()
     for (const r of waste) {
-      const cat = r.removal_category ?? 'Unspecified'
+      const cat = r.category ?? 'Unspecified'
       const ex = m.get(cat) ?? { cost: 0, count: 0 }
       ex.cost += r.cost
       ex.count++
@@ -253,7 +253,7 @@ export default function FinancePage() {
           r.unitCost.toFixed(2),
           r.cost.toFixed(2),
           r.reason,
-          r.removal_category ?? '',
+          r.category ?? '',
         ]),
     ]
     const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')

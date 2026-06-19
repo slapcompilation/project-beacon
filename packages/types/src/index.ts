@@ -312,7 +312,10 @@ export interface StockLog {
   sync_batch_id: string | null
   was_offline: boolean
   photo_url: string | null
-  removal_category: RemovalCategory | null
+  // Sign-agnostic movement category (removals + additions share one column).
+  // Free-text: the RemovalCategory union seeds the removal vocab, but custom +
+  // grown-ontology values also land here, so the field is typed open.
+  category: string | null
 }
 
 export interface RestockReceive {

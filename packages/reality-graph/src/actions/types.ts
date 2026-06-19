@@ -74,8 +74,8 @@ export type BeaconAction =
       reason: string
       hotelId: string
       userId: string
-      /** Typed category from the grown ontology. Dispatch routes it by delta sign:
-       *  negative → removal_category, positive → movement_category. */
+      /** Typed category from the grown ontology, written to stock_logs.category
+       *  (one sign-agnostic column for both removals and additions). */
       category?: string | null
       // photoFile is browser-only — pass via DispatchExtras in dispatchAction()
     }

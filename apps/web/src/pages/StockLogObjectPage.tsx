@@ -228,9 +228,9 @@ export default function StockLogObjectPage() {
         <Card compact className="!bg-muted/20">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Reason</p>
           <p className="text-sm text-foreground leading-relaxed">{log.reason || '—'}</p>
-          {log.removal_category && (
-            <p className={cn('text-xs font-medium mt-1', CATEGORY_COLORS[log.removal_category] ?? 'text-muted-foreground')}>
-              Category: {log.removal_category}
+          {log.category && (
+            <p className={cn('text-xs font-medium mt-1', CATEGORY_COLORS[log.category] ?? 'text-muted-foreground')}>
+              Category: {log.category}
             </p>
           )}
         </Card>

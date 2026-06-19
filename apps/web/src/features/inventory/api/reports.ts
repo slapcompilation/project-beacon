@@ -12,7 +12,7 @@ export interface StockMovementRow {
   reason: string
   timestamp: string
   is_revert: boolean
-  removal_category: string | null
+  category: string | null
 }
 
 export interface AuditLogRow extends StockMovementRow {
@@ -30,7 +30,7 @@ interface StockLogQueryRow {
   reason: string
   timestamp: string
   is_revert: boolean
-  removal_category: string | null
+  category: string | null
   product_variants: {
     name: string
     sku: string
@@ -58,12 +58,12 @@ function mapRow(row: StockLogQueryRow): StockMovementRow {
     reason: row.reason,
     timestamp: row.timestamp,
     is_revert: row.is_revert,
-    removal_category: row.removal_category,
+    category: row.category,
   }
 }
 
 const MOVEMENT_SELECT = `
-  id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert, removal_category,
+  id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert, category,
   product_variants!inner(
     name, sku,
     products!inner(name, categories(name))
@@ -72,7 +72,7 @@ const MOVEMENT_SELECT = `
 
 // Waste-specific select includes user_id for operator correlation
 const WASTE_SELECT = `
-  id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert, removal_category, user_id,
+  id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert, category, user_id,
   product_variants!inner(
     name, sku,
     products!inner(name, categories(name))
@@ -103,7 +103,7 @@ export async function fetchWasteReport(
   let query = supabase
     .from('stock_logs')
     .select(WASTE_SELECT)
-    .not('removal_category', 'is', null)
+    .not('category', 'is', null)
     .lt('quantity_change', 0)
     .eq('is_revert', false)
     .order('timestamp', { ascending: false })
@@ -144,7 +144,7 @@ export async function fetchShiftActivity(
 ): Promise<AuditLogRow[]> {
   const AUDIT_SELECT = `
     id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert,
-    user_id, photo_url, was_offline, revert_of, removal_category,
+    user_id, photo_url, was_offline, revert_of, category,
     product_variants!inner(
       name, sku,
       products!inner(name, hotel_id, categories(name))
@@ -174,7 +174,7 @@ export async function fetchAuditLog(
 ): Promise<AuditLogRow[]> {
   const AUDIT_SELECT = `
     id, variant_id, quantity_change, balance_after, reason, timestamp, is_revert,
-    user_id, photo_url, was_offline, revert_of, removal_category,
+    user_id, photo_url, was_offline, revert_of, category,
     product_variants!inner(
       name, sku,
       products!inner(name, hotel_id, categories(name))

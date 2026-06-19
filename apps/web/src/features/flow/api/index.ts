@@ -17,7 +17,7 @@ export interface TimelineRow {
   quantity_change:  number
   balance_after:    number
   reason:           string
-  removal_category: string | null
+  category:         string | null
   is_revert:        boolean
   revert_of:        string | null
   was_offline:      boolean

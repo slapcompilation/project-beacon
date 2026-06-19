@@ -420,7 +420,7 @@ export default function GLExportPage() {
       {/* Methodology note */}
       <div className="px-8 py-2 border-b flex-shrink-0">
         <Callout intent={Intent.NONE} icon="info-sign" compact>
-          Procurement expenses from <code className="font-mono">restock_receives</code> · Write-offs from <code className="font-mono">stock_logs</code> WHERE removal_category IN (Breakage, Theft, Spoilage) · POS auto-decrements and corrections excluded · is_mapped = false flags rows that need a GL code before posting
+          Procurement expenses from <code className="font-mono">restock_receives</code> · Write-offs from <code className="font-mono">stock_logs</code> WHERE category IN (Breakage, Theft, Spoilage) · POS auto-decrements and corrections excluded · is_mapped = false flags rows that need a GL code before posting
         </Callout>
       </div>
 

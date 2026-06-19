@@ -37,9 +37,11 @@ export interface OntologyProposalRow {
 function makeSupabaseOntologyReader(): OntologyReader {
   return {
     async getRemovalReasons(hotelId, sinceDays) {
+      // Physical column is `category` now (one sign-agnostic column); alias it
+      // back to the removal-direction logical field the detector reads.
       let q = supabase
         .from('stock_logs')
-        .select('reason, removal_category')
+        .select('reason, removal_category:category')
         .eq('hotel_id', hotelId)
         .lt('quantity_change', 0)
         .not('reason', 'is', null)
@@ -58,9 +60,10 @@ function makeSupabaseOntologyReader(): OntologyReader {
       const [logs, decided] = await Promise.all([
         supabase
           .from('stock_logs')
-          .select('removal_category')
+          .select('removal_category:category')
           .eq('hotel_id', hotelId)
-          .not('removal_category', 'is', null)
+          .lt('quantity_change', 0)
+          .not('category', 'is', null)
           .limit(1000),
         supabase
           .from('ontology_proposals')
@@ -83,7 +86,7 @@ function makeSupabaseOntologyReader(): OntologyReader {
     async getAdditionReasons(hotelId, sinceDays) {
       let q = supabase
         .from('stock_logs')
-        .select('reason, movement_category')
+        .select('reason, movement_category:category')
         .eq('hotel_id', hotelId)
         .gt('quantity_change', 0)
         .not('reason', 'is', null)
@@ -101,9 +104,10 @@ function makeSupabaseOntologyReader(): OntologyReader {
       const [logs, decided] = await Promise.all([
         supabase
           .from('stock_logs')
-          .select('movement_category')
+          .select('movement_category:category')
           .eq('hotel_id', hotelId)
-          .not('movement_category', 'is', null)
+          .gt('quantity_change', 0)
+          .not('category', 'is', null)
           .limit(1000),
         supabase
           .from('ontology_proposals')

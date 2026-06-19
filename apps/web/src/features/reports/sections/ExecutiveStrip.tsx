@@ -31,7 +31,7 @@ export function ExecutiveStrip({
   const lowStock   = products.filter((p) => p.product_variants.some((v) => v.low_stock_threshold > 0 && v.current_stock > 0 && v.current_stock <= v.low_stock_threshold)).length
 
   const wasteCost = (rows: StockMovementRow[]) =>
-    rows.filter((r) => !r.is_revert && r.quantity_change < 0 && r.removal_category)
+    rows.filter((r) => !r.is_revert && r.quantity_change < 0 && r.category)
         .reduce((s, r) => s + rowCost(r, costMap), 0)
 
   const mtdWaste   = wasteCost(mtdMovements)

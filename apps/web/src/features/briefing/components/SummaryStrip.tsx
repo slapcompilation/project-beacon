@@ -6,7 +6,7 @@ export function SummaryStrip({ logs, currency, costMap }: { logs: AuditLogRow[];
   const nonReverts  = logs.filter((l) => !l.is_revert)
   const additions   = nonReverts.filter((l) => l.quantity_change > 0)
   const removals    = nonReverts.filter((l) => l.quantity_change < 0)
-  const writeOffs   = nonReverts.filter((l) => l.quantity_change < 0 && l.removal_category)
+  const writeOffs   = nonReverts.filter((l) => l.quantity_change < 0 && l.category)
   const corrections = logs.filter((l) => l.is_revert)
 
   const totalConsumedCost = removals.reduce((s, l) => s + (costMap.get(l.variant_id) ?? 0) * Math.abs(l.quantity_change), 0)

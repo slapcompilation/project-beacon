@@ -155,7 +155,7 @@ export async function createProduct(
       p_delta: input.initial_stock,
       p_reason: 'Initial stock',
       p_photo_url: null,
-      p_removal_category: null,
+      p_category: null,
     })
   }
 
@@ -208,8 +208,7 @@ export async function adjustStock(
   delta: number,
   reason: string,
   photoFile?: File | null,
-  removalCategory?: string | null,
-  movementCategory?: string | null
+  category?: string | null,
 ): Promise<{ logId: string; newBalance: number }> {
   // Upload photo first (before RPC, since stock_logs are immutable after insert)
   let photoUrl: string | null = null
@@ -236,8 +235,7 @@ export async function adjustStock(
     p_delta: delta,
     p_reason: reason,
     p_photo_url: photoUrl,
-    p_removal_category: removalCategory ?? null,
-    p_movement_category: movementCategory ?? null,
+    p_category: category ?? null,
   })) as unknown as { data: Array<{ log_id: string; new_balance: number }> | null; error: { message: string } | null }
 
   if (error) throw new Error(error.message)
@@ -537,7 +535,7 @@ export async function bulkUpdateBySku(
           p_delta: item.stock_delta,
           p_reason: 'Smart import adjustment',
           p_photo_url: null,
-          p_removal_category: null,
+          p_category: null,
         })).then(({ error }) => { if (error) throw new Error(error.message) }))
       } else if (item.current_stock != null) {
         ops.push(setVariantStock(variant.id, item.current_stock, 'Bulk import cycle count').then(() => {}))

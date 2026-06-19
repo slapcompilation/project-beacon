@@ -92,7 +92,7 @@ export function makeSupabaseGraphReader(): GraphReader {
       // shape uses delta + created_at so reality-graph stays schema-agnostic.
       const { data, error } = await supabase
         .from('stock_logs')
-        .select('id, variant_id, hotel_id, delta:quantity_change, created_at:timestamp, reason, removal_category')
+        .select('id, variant_id, hotel_id, delta:quantity_change, created_at:timestamp, reason, removal_category:category')
         .eq('variant_id', variantId)
         .gte('timestamp', cutoff)
       if (error) throw new Error(error.message)
