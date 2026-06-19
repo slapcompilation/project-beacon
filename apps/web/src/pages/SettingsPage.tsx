@@ -26,11 +26,13 @@ import { HotelProfileSection }       from '@/features/settings/sections/HotelPro
 import { WebhooksSection }           from '@/features/settings/sections/WebhooksSection'
 import { DangerZoneSection }         from '@/features/settings/sections/DangerZoneSection'
 import { AppearanceSection }         from '@/features/settings/sections/AppearanceSection'
+import { SecuritySection }           from '@/features/settings/sections/SecuritySection'
 
 // ─── Nav config ────────────────────────────────────────────────────────────────
 
 type SectionId =
   | 'appearance'
+  | 'security'
   | 'notifications'
   | 'alert-thresholds'
   | 'approval-thresholds'
@@ -57,6 +59,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { id: 'appearance',          label: 'Appearance',         icon: 'media',                   layerDot: 'bg-violet-500' },
+  { id: 'security',            label: 'Security',           icon: 'lock',                    layerDot: 'bg-violet-500' },
   { id: 'notifications',       label: 'Notifications',      icon: 'notifications',           layerDot: 'bg-slate-400' },
   { id: 'alert-thresholds',    label: 'Alert Thresholds',   icon: 'dashboard',               layerDot: 'bg-orange-500' },
   { id: 'approval-thresholds', label: 'Approval Thresholds',icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
@@ -74,7 +77,7 @@ const NAV: NavItem[] = [
 ]
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
-  { dot: 'bg-violet-500',  label: 'Personal',    ids: ['appearance'] },
+  { dot: 'bg-violet-500',  label: 'Personal',    ids: ['appearance', 'security'] },
   { dot: 'bg-slate-400',   label: 'Eye',         ids: ['notifications', 'alert-thresholds'] },
   { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous', 'constraints', 'principles'] },
   { dot: 'bg-blue-500',    label: 'Inventory',   ids: ['categories', 'locations', 'custom-fields', 'move-reasons'] },
@@ -85,6 +88,7 @@ const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
 function renderSection(id: SectionId) {
   switch (id) {
     case 'appearance':          return <AppearanceSection />
+    case 'security':            return <SecuritySection />
     case 'notifications':       return <NotificationsSection />
     case 'alert-thresholds':    return <AlertThresholdsSection />
     case 'approval-thresholds': return <ApprovalThresholdsSection />
