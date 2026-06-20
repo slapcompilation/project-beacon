@@ -26,7 +26,7 @@ const TABS = [
   { id: 'alerts',          label: 'Alerts'       },
   { id: 'expiry',          label: 'Expiry'       },
   { id: 'stocktake',       label: 'Stocktake'    },
-  { id: 'stocktake-intel', label: 'Intelligence' },
+  { id: 'stocktake-intel', label: 'Variance'     },
   { id: 'handover',        label: 'Handover'     },
   { id: 'photo-stocktake', label: 'Vision Scan'  },
   { id: 'voice',           label: 'Voice Mode'   },
@@ -35,9 +35,11 @@ const TABS = [
 type TabId = typeof TABS[number]['id']
 
 const GROUPS = [
-  { id: 'stock',   label: 'Stock',      tabs: ['stock', 'locations', 'par', 'scans']                          as TabId[] },
-  { id: 'quality', label: 'Quality',    tabs: ['alerts', 'expiry', 'stocktake', 'stocktake-intel', 'handover'] as TabId[] },
-  { id: 'capture', label: 'AI Capture', tabs: ['photo-stocktake', 'voice']                                    as TabId[] },
+  { id: 'stock',   label: 'Stock',   tabs: ['stock', 'locations', 'par', 'scans'] as TabId[] },
+  { id: 'signals', label: 'Signals', tabs: ['alerts', 'expiry']                   as TabId[] },
+  { id: 'counts',  label: 'Counts',  tabs: ['stocktake', 'stocktake-intel']       as TabId[] },
+  { id: 'shift',   label: 'Shift',   tabs: ['handover']                           as TabId[] },
+  { id: 'capture', label: 'Capture', tabs: ['photo-stocktake', 'voice']           as TabId[] },
 ]
 
 export default function FloorWorkspace() {
