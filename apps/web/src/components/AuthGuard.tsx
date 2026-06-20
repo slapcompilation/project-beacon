@@ -3,7 +3,7 @@ import { Spinner } from '@blueprintjs/core'
 import { useAuthStore } from '@/stores/auth.store'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useMfaStatus } from '@/features/auth/useMfaStatus'
-import { MfaChallengeGate, MfaEnrollGate } from '@/features/auth/MfaGate'
+import { MfaChallengeGate } from '@/features/auth/MfaGate'
 import { services } from '@/lib/services'
 
 // Routes restricted to owner or admin only (not team_member or limited_access)
@@ -31,17 +31,12 @@ export function AuthGuard() {
 
   const signOut = () => { void services.auth.signOut() }
 
-  // Safety-net: a verified factor but an aal1 session must complete the challenge
-  // before anything renders (covers OAuth / restored sessions that bypassed the
-  // login-page challenge).
+  // MFA is opt-in (enroll under Settings → Security). For users who DID enroll,
+  // this enforces the challenge even on sessions that bypass the login-page one
+  // (OAuth callback, restored session): a verified factor on an aal1 session must
+  // complete the TOTP challenge before anything renders.
   if (mfa.data?.challengeOwed) {
     return <MfaChallengeGate onDone={() => { void mfa.refetch() }} onCancel={signOut} />
-  }
-
-  // Mandatory 2FA for privileged roles: a system that auto-executes POs and
-  // write-offs can't let an owner/admin in on a password alone.
-  if ((role === 'owner' || role === 'admin') && mfa.data && !mfa.data.hasVerifiedFactor) {
-    return <MfaEnrollGate onDone={() => { void mfa.refetch() }} onCancel={signOut} />
   }
 
   // limited_access: redirect everything except /scan back to /scan
