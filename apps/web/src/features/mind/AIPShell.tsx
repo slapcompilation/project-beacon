@@ -21,6 +21,7 @@ import { PortfolioCommandHome } from './PortfolioCommandHome'
 import { PolicyTab } from './PolicyTab'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
+const RestockPage               = lazy(() => import('@/pages/RestockPage'))
 const PendingApprovalsPage      = lazy(() => import('@/pages/PendingApprovalsPage'))
 const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
@@ -38,7 +39,7 @@ const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 
 export type AipTab =
   | 'command' | 'portfolio'
-  | 'queue' | 'approvals' | 'cases'
+  | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
   | 'studio'
   | 'agents' | 'system-map' | 'ontology'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
@@ -52,6 +53,7 @@ type Section = 'Decisions' | 'Studio'
 const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string }[] = [
   // Decisions — the daily driver
   { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '' },
+  { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '' },
   { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '' },
   { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '' },
   { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              section: 'Decisions', group: '' },
@@ -208,6 +210,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
     case 'portfolio':    return <PortfolioCommandHome onNavigate={onNavigate} />
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
+    case 'restock-approvals': return <RestockPage />
     case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
