@@ -24,6 +24,7 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import {
   riskLevelFromRow,
   leadTimeLabel,
@@ -460,6 +461,13 @@ export default function SupplierObjectPage() {
               </div>
             )}
           </Card>
+
+          {/* ── Agent decisions across this supplier's items ── */}
+          <ObjectAgentActivity
+            variantIds={variantsSupplied.map((v) => v.id)}
+            title="Agent decisions · supplier's items"
+            emptyHint="No agent decisions on this supplier's items yet. Restock and waste proposals for the variants it supplies surface here."
+          />
 
           {/* ── Variants this supplier supplies ── */}
           {variantsSupplied.length > 0 && (

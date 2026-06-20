@@ -29,6 +29,7 @@ import { supabase } from '@/lib/supabase/client'
 import { usePOLines, usePOInvoices, useUpdatePOStatus, useSupplierContracts } from '@/features/mind/hooks'
 import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poIsOverdue, daysUntilDelivery } from '@beacon/reality-graph'
 import { GraphConnections } from '@/components/GraphConnections'
+import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -691,6 +692,14 @@ export default function POObjectPage() {
             currentStatus={po.status}
           />
         </Card>
+
+        {/* ── Agent decisions across this order's lines ── */}
+        <ObjectAgentActivity
+          variantIds={lines.map((l) => l.variant_id)}
+          hotelId={po.hotel_id}
+          title="Agent decisions · order's items"
+          emptyHint="No agent decisions on this order's items yet. Restock and discrepancy proposals for its line items surface here."
+        />
 
         {/* ── Graph connections ── */}
         <Card>

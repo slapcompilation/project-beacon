@@ -440,7 +440,7 @@ export default function VariantObjectPage() {
 
           {/* ── Recent agent decisions + open case ── */}
           <ObjectAgentActivity
-            variantId={variantId}
+            variantIds={[variantId]}
             hotelId={hotelId ?? undefined}
             emptyHint="No agent decisions on this variant yet. Once the reorder point is set and stock drops below it, the agent will propose here."
           />

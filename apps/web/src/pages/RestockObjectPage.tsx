@@ -566,7 +566,7 @@ export default function RestockObjectPage() {
         <div>
           <h2 className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">Agent Activity</h2>
           <ObjectAgentActivity
-            variantId={req.variant_id}
+            variantIds={[req.variant_id]}
             hotelId={hotelId ?? undefined}
             emptyHint="No agent decisions on this item. This request may have been created manually."
           />

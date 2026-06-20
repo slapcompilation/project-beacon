@@ -1,10 +1,12 @@
 // The AIP intelligence panel for an Object View: the agent's recent decisions
-// on this variant + the open Case wrapping them. Same component on every object
-// that resolves to a variant (Variant page, Restock page, …) so intelligence is
-// a uniform property of the ontology, not a bespoke per-page block.
+// on this object + (for a single variant) the open Case wrapping them. Same
+// component on every object so intelligence is a uniform property of the
+// ontology, not a bespoke per-page block.
 //
-// Keyed by variant because every BeaconAction carries variantId — the one link
-// that always has data (supplier/PO links are sparse; see ROADMAP L1).
+// Keyed by variantId(s) because every BeaconAction carries variantId — the one
+// link that always has data (supplier/PO payload links are 0% populated, see
+// ROADMAP L1). So a Supplier/PO surfaces decisions across *its variants* (the
+// items it supplies / the order's lines), which is the link that resolves.
 
 import { Card, Icon, Intent, Tag } from '@blueprintjs/core'
 import { Link } from 'react-router-dom'
@@ -24,37 +26,45 @@ interface VariantProposalRow {
   created_at:  string
 }
 
-async function fetchVariantProposals(variantId: string): Promise<VariantProposalRow[]> {
+async function fetchProposalsForVariants(variantIds: string[]): Promise<VariantProposalRow[]> {
+  if (variantIds.length === 0) return []
   // Every BeaconAction targeting a variant carries variantId in action_payload.
   const { data, error } = await supabase
     .from('proposals')
     .select('id, agent_name, action_type, confidence, reasoning, status, created_at')
-    .eq('action_payload->>variantId', variantId)
+    .in('action_payload->>variantId', variantIds)
     .order('created_at', { ascending: false })
-    .limit(5) as unknown as { data: VariantProposalRow[] | null; error: { message: string } | null }
+    .limit(8) as unknown as { data: VariantProposalRow[] | null; error: { message: string } | null }
   if (error) throw new Error(error.message)
   return data ?? []
 }
 
 export function ObjectAgentActivity({
-  variantId, hotelId, emptyHint,
+  variantIds, hotelId, emptyHint, title,
 }: {
-  variantId: string
+  /** One id (Variant/Restock) or many (a Supplier's items / a PO's lines). */
+  variantIds: string[]
   hotelId?: string
   /** Shown when no proposals exist yet — tailor the nudge to the host object. */
   emptyHint?: string
+  /** Header override; defaults to "Agent Decisions". */
+  title?: string
 }) {
+  const ids = variantIds.filter(Boolean)
+  // The open-Case link only makes sense for a single variant.
+  const single = ids.length === 1 ? ids[0] : null
+
   const { data: proposals = [], isLoading } = useQuery({
-    queryKey:  ['variant-proposals', variantId],
-    queryFn:   () => fetchVariantProposals(variantId),
-    enabled:   !!variantId,
+    queryKey:  ['object-proposals', ids],
+    queryFn:   () => fetchProposalsForVariants(ids),
+    enabled:   ids.length > 0,
     staleTime: 30_000,
   })
 
   const { data: openCase } = useQuery({
-    queryKey:  ['variant-open-case', variantId, hotelId],
-    queryFn:   () => fetchOpenCaseForVariant(hotelId ?? '', variantId),
-    enabled:   !!variantId && !!hotelId,
+    queryKey:  ['variant-open-case', single, hotelId],
+    queryFn:   () => fetchOpenCaseForVariant(hotelId ?? '', single ?? ''),
+    enabled:   !!single && !!hotelId,
     staleTime: 30_000,
   })
 
@@ -64,7 +74,7 @@ export function ObjectAgentActivity({
     <Card compact className="!p-0">
       <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Agent Decisions ({proposals.length})
+          {title ?? 'Agent Decisions'} ({proposals.length})
         </span>
         <div className="flex items-center gap-3">
           {openCase && (
