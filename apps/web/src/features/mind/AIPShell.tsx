@@ -16,6 +16,7 @@ import { usePendingEntityLinkSuggestions } from '@/features/entityLinks/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
+import { useAppStore } from '@/stores/app.store'
 import { CommandHome } from './CommandHome'
 import { PortfolioCommandHome } from './PortfolioCommandHome'
 import { PolicyTab } from './PolicyTab'
@@ -38,7 +39,7 @@ const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage')
 const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 
 export type AipTab =
-  | 'command' | 'portfolio'
+  | 'command'
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
   | 'studio'
   | 'agents' | 'system-map' | 'ontology'
@@ -56,7 +57,6 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '' },
   { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '' },
   { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '' },
-  { id: 'portfolio',    label: 'Portfolio',         icon: 'office',              section: 'Decisions', group: '' },
 
   // Studio — build & configure the fabric
   { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
@@ -104,13 +104,12 @@ export default function AIPShell({
 }) {
   const counts       = useAipCounts()
   const studioBadge  = STUDIO_TABS.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
-  // Role-scope: a manager who lands on a Studio/Portfolio tab (e.g. a stale URL)
-  // falls back to the Decisions command home.
+  // Role-scope: a manager who lands on a Studio tab (e.g. a stale URL) falls back
+  // to the Decisions command home.
   const effTab: AipTab =
     (!allowStudio && (tab === 'studio' || isStudioTab(tab))) ? 'command'
-    : (!allowOrg && tab === 'portfolio') ? 'command'
     : tab
-  const decisionsTabs = allowOrg ? DECISIONS_TABS : DECISIONS_TABS.filter((t) => t.id !== 'portfolio')
+  const decisionsTabs = DECISIONS_TABS
   const studioActive = allowStudio && (effTab === 'studio' || isStudioTab(effTab))
 
   return (
@@ -190,7 +189,7 @@ export default function AIPShell({
         )}
         <PanelErrorBoundary name={`Mind · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(effTab, onTabChange)}
+            {renderTab(effTab, onTabChange, allowOrg)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
@@ -204,10 +203,17 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
   return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
 }
 
-function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void) {
+// The Decisions landing is scope-aware: org scope (owner/admin) shows the portfolio
+// rollup, hotel scope the single-property command home — one entry, not two.
+function DecisionsHome({ onNavigate, allowOrg }: { onNavigate: (t: AipTab) => void; allowOrg: boolean }) {
+  const scopeMode = useAppStore((s) => s.scopeMode)
+  if (allowOrg && scopeMode === 'organization') return <PortfolioCommandHome onNavigate={onNavigate} />
+  return <CommandHome onNavigate={onNavigate} />
+}
+
+function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, allowOrg: boolean) {
   switch (t) {
-    case 'command':      return <CommandHome onNavigate={onNavigate} />
-    case 'portfolio':    return <PortfolioCommandHome onNavigate={onNavigate} />
+    case 'command':      return <DecisionsHome onNavigate={onNavigate} allowOrg={allowOrg} />
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'restock-approvals': return <RestockPage />

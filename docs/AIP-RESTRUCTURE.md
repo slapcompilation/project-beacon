@@ -147,7 +147,8 @@ reduction test; renames last; burn-down metric = **bespoke pages remaining**.
 - `recommend_par_level` Logic Tool emitting proposals; delete Adaptive PAR / Optimize-PARs tabs.
 
 **Slice 5 — Insights + Home consolidation.**
-- One **Insights** surface (Eye analytics + Operations finance/strategy); collapse the three homes into one scope-aware **Home**.
+- 5a (done): collapse **Portfolio → a scope-aware Command** (org scope shows the portfolio rollup, hotel scope the single-property home) and drop the redundant Portfolio rail entry. 3 homes → 2.
+- Correction from verification: the homes aren't pure dupes — **CommandHome** (decisions + cycle + agent health) and **Briefing** (broad operational feed) overlap but serve different jobs; a forced merge would regress. The Briefing↔Command merge is deferred (real design call). Likewise Eye analytics vs Operations finance/strategy are distinct audiences/scopes — the **Insights** fold is deferred (cross-links, not a destructive merge).
 
 **Slice 6 — Replenishment as a Case + Zones/map.**
 - Lateral-before-external replenishment Case + Action-Chain pick-list/PO; Locations → Zones feeding `HotelMap`.
