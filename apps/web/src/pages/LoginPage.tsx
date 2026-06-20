@@ -39,7 +39,7 @@ const resetSchema = z.object({
 
 // ─── Login form ───────────────────────────────────────────────────────────────
 
-function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
+function LoginForm({ onForgotPassword, onMfaRequired }: { onForgotPassword: () => void; onMfaRequired: () => void }) {
   const navigate = useNavigate()
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -59,6 +59,13 @@ function LoginForm({ onForgotPassword }: { onForgotPassword: () => void }) {
     setSubmitting(true)
     try {
       await services.auth.signIn(parsed.data.email, parsed.data.password)
+      // If the account has a verified factor, password alone is aal1 — require
+      // the TOTP challenge before entering the app.
+      const aal = await services.auth.getAal()
+      if (aal.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+        onMfaRequired()
+        return
+      }
       void navigate('/floor', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign in failed'
@@ -190,10 +197,60 @@ function OAuthButtons() {
   )
 }
 
+// ─── MFA challenge ──────────────────────────────────────────────────────────────
+
+function MfaChallengeForm({ onCancel }: { onCancel: () => void }) {
+  const navigate = useNavigate()
+  const [code, setCode] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  const submit = async () => {
+    setSubmitting(true)
+    try {
+      const totp = (await services.auth.listMfaFactors()).find((f) => f.status === 'verified')
+      if (!totp) throw new Error('No authenticator enrolled')
+      await services.auth.verifyTotp(totp.id, code.trim())
+      void navigate('/floor', { replace: true })
+    } catch {
+      toast.error('That code didn’t match — try again')
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <InputGroup
+        value={code}
+        onValueChange={setCode}
+        placeholder="123456"
+        autoFocus
+        autoComplete="one-time-code"
+        inputMode="numeric"
+        maxLength={6}
+      />
+      <Button fill intent={Intent.PRIMARY} loading={submitting} disabled={code.trim().length < 6} onClick={() => { void submit() }}>
+        Verify
+      </Button>
+      <Button fill variant="minimal" disabled={submitting} onClick={onCancel}>Cancel</Button>
+    </div>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function LoginPage() {
-  const [view, setView] = useState<'login' | 'forgot'>('login')
+  const [view, setView] = useState<'login' | 'forgot' | 'mfa'>('login')
+
+  const title = view === 'login' ? 'Sign in' : view === 'forgot' ? 'Reset password' : 'Two-factor authentication'
+  const subtitle =
+    view === 'login' ? 'Enter your work email and password to continue.'
+    : view === 'forgot' ? "Enter your email and we'll send a reset link."
+    : 'Enter the 6-digit code from your authenticator app.'
+
+  const cancelMfa = async () => {
+    try { await services.auth.signOut() } catch { /* ignore */ }
+    setView('login')
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
@@ -204,15 +261,16 @@ export default function LoginPage() {
         </div>
 
         <Card>
-          <h2 className="text-xl font-semibold">{view === 'login' ? 'Sign in' : 'Reset password'}</h2>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
-            {view === 'login'
-              ? 'Enter your work email and password to continue.'
-              : "Enter your email and we'll send a reset link."}
-          </p>
-          {view === 'login'
-            ? <><LoginForm onForgotPassword={() => { setView('forgot') }} /><OAuthButtons /></>
-            : <ForgotPasswordForm onBack={() => { setView('login') }} />}
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">{subtitle}</p>
+          {view === 'login' && (
+            <>
+              <LoginForm onForgotPassword={() => { setView('forgot') }} onMfaRequired={() => { setView('mfa') }} />
+              <OAuthButtons />
+            </>
+          )}
+          {view === 'forgot' && <ForgotPasswordForm onBack={() => { setView('login') }} />}
+          {view === 'mfa' && <MfaChallengeForm onCancel={() => { void cancelMfa() }} />}
         </Card>
       </div>
     </div>

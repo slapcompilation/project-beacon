@@ -5,8 +5,8 @@ import { MemoryRouter } from 'react-router-dom'
 
 // Mock the service so signIn doesn't hit Supabase; we only assert it receives
 // the captured values. vi.hoisted lets the mock factory reference the spy safely.
-const { signIn } = vi.hoisted(() => ({ signIn: vi.fn() }))
-vi.mock('@/lib/services', () => ({ services: { auth: { signIn } } }))
+const { signIn, getAal } = vi.hoisted(() => ({ signIn: vi.fn(), getAal: vi.fn() }))
+vi.mock('@/lib/services', () => ({ services: { auth: { signIn, getAal } } }))
 
 import LoginPage from './LoginPage'
 
@@ -23,7 +23,11 @@ function renderPage() {
 }
 
 describe('LoginPage value capture', () => {
-  beforeEach(() => { signIn.mockReset(); signIn.mockResolvedValue(undefined) })
+  beforeEach(() => {
+    signIn.mockReset(); signIn.mockResolvedValue(undefined)
+    // No MFA factor → password alone reaches full assurance, login proceeds.
+    getAal.mockReset(); getAal.mockResolvedValue({ currentLevel: 'aal1', nextLevel: 'aal1' })
+  })
   afterEach(() => { cleanup() })
 
   it('captures TYPED credentials (onChange path)', async () => {
