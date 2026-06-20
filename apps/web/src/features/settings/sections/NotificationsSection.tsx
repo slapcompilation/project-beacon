@@ -1,7 +1,9 @@
-// Eye: Notification config + Alert Intelligence Loop feedback aggregation.
-//
-// Principle 8: aggregate dismissed_reason by alert type to surface
-// model quality (incorrect_data rate) and operator habits.
+// Split surface:
+//  - NotificationPrefsSection: per-user notification prefs (browser push + quiet
+//    hours). Personal → lives on the Account page.
+//  - AlertFeedbackPanel: the Alert Intelligence Loop — org-wide dismissed-reason
+//    aggregation (model quality). Not a personal pref → rendered under Alert
+//    Thresholds in Settings, where threshold calibration lives.
 
 import { useMemo, useState } from 'react'
 import {
@@ -36,7 +38,8 @@ const TYPE_LABELS: Record<string, string> = {
   system:                'System',
 }
 
-function FeedbackLoopPanel() {
+/** Org-wide alert-quality feedback. Rendered under Alert Thresholds. */
+export function AlertFeedbackPanel() {
   const { data: feedback = [], isLoading } = useNotificationFeedback()
 
   const totalDismissed = useMemo(() => feedback.reduce((s, r) => s + r.total, 0), [feedback])
@@ -127,7 +130,8 @@ function FeedbackLoopPanel() {
   )
 }
 
-export function NotificationsSection() {
+/** Per-user notification preferences. Personal → lives on the Account page. */
+export function NotificationPrefsSection() {
   const { data: prefs } = useUserPrefs()
   const update = useUpdateUserPrefs()
   const [permission, setPermission] = useState<NotificationPermission>(
@@ -198,16 +202,6 @@ export function NotificationsSection() {
           Silenced from {prefs.quiet_hours_start} to {prefs.quiet_hours_end}.
         </p>
       )}
-
-      <div className="mt-8">
-        <div className="mb-3">
-          <p className="text-sm font-semibold">Alert Intelligence Loop</p>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Why operators dismissed alerts in the last 90 days. High incorrect-data rate signals threshold miscalibration.
-          </p>
-        </div>
-        <FeedbackLoopPanel />
-      </div>
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { Slider } from '@blueprintjs/core'
 import { useAlertPreferences, useUpdateAlertPreferences } from '@/features/notifications/hooks'
 import { SectionHeader } from './_shared'
+import { AlertFeedbackPanel } from './NotificationsSection'
 
 export function AlertThresholdsSection() {
   const { data: prefs } = useAlertPreferences()
@@ -71,6 +72,16 @@ export function AlertThresholdsSection() {
             <span className="text-[10px] text-muted-foreground">500 (tolerant)</span>
           </div>
         </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="mb-3">
+          <p className="text-sm font-semibold">Alert Intelligence Loop</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Why operators dismissed alerts in the last 90 days. A high incorrect-data rate signals these thresholds need tuning.
+          </p>
+        </div>
+        <AlertFeedbackPanel />
       </div>
     </div>
   )
