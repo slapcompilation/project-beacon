@@ -8,7 +8,7 @@
 // Every panel answers "what should the operator do right now?"
 
 import { lazy, Suspense, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { WorkspaceTabs, PanelLoader } from '@/components/WorkspaceTabs'
 import { useAppStore } from '@/stores/app.store'
@@ -16,7 +16,6 @@ import { useAppStore } from '@/stores/app.store'
 const UnifiedSignalsPage      = lazy(() => import('./UnifiedSignalsPage'))
 const IncidentCorrelationPage = lazy(() => import('./IncidentCorrelationPage'))
 const WasteRadarPage          = lazy(() => import('./WasteRadarPage'))
-const PredictiveRestockPage   = lazy(() => import('./PredictiveRestockPage'))
 const ProductPerformancePage  = lazy(() => import('./ProductPerformancePage'))
 const OccupancyForecastPage   = lazy(() => import('./OccupancyForecastPage'))
 const StockRiskMatrixPage     = lazy(() => import('./StockRiskMatrixPage'))
@@ -25,7 +24,6 @@ const TABS = [
   { id: 'signals',     label: 'Signals'     },
   { id: 'incidents',   label: 'Incidents'   },
   { id: 'waste',       label: 'Waste Radar' },
-  { id: 'restock',     label: 'Restock'     },
   { id: 'risk',        label: 'Risk Matrix' },
   { id: 'performance', label: 'Performance' },
   { id: 'occupancy',   label: 'Occupancy'   },
@@ -35,7 +33,7 @@ type TabId = typeof TABS[number]['id']
 
 const GROUPS = [
   { id: 'intelligence', label: 'Intelligence', tabs: ['signals', 'incidents']                                   as TabId[] },
-  { id: 'analytics',    label: 'Analytics',    tabs: ['waste', 'restock', 'risk', 'performance', 'occupancy']  as TabId[] },
+  { id: 'analytics',    label: 'Analytics',    tabs: ['waste', 'risk', 'performance', 'occupancy']             as TabId[] },
 ]
 
 export default function EyeWorkspace() {
@@ -50,6 +48,10 @@ export default function EyeWorkspace() {
       setParams({ panel: 'signals' }, { replace: true })
     }
   }, [raw, toggleCopilot, setParams])
+
+  // Predictive Restock retired — the restock_advisor agent now emits these as
+  // proposals in the Review Queue (docs/AIP-RESTRUCTURE.md, slice 4).
+  if (raw === 'restock') return <Navigate to="/mind?aip=queue" replace />
 
   const panel = (TABS.some((t) => t.id === raw) ? raw : 'signals') as TabId
 
@@ -68,7 +70,6 @@ export default function EyeWorkspace() {
             {panel === 'signals'     && <UnifiedSignalsPage />}
             {panel === 'incidents'   && <IncidentCorrelationPage />}
             {panel === 'waste'       && <WasteRadarPage />}
-            {panel === 'restock'     && <PredictiveRestockPage />}
             {panel === 'risk'        && <StockRiskMatrixPage />}
             {panel === 'performance' && <ProductPerformancePage />}
             {panel === 'occupancy'   && <OccupancyForecastPage />}
