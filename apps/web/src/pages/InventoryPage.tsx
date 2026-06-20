@@ -334,15 +334,19 @@ export default function InventoryPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outlined" icon="download" onClick={handleExportInventory} disabled={products.length === 0}>
-            Export CSV
-          </Button>
-          <Button variant="outlined" icon="upload" onClick={() => { setImportOpen(true); }}>
-            Import CSV
-          </Button>
-          <Button variant="outlined" icon="tag" onClick={() => { void navigate('/labels') }}>
-            Print Labels
-          </Button>
+          <Popover
+            placement="bottom-end"
+            content={
+              <Menu>
+                <MenuItem icon="upload" text="Import CSV" onClick={() => { setImportOpen(true); }} />
+                <MenuItem icon="download" text="Export CSV" disabled={products.length === 0} onClick={handleExportInventory} />
+                <MenuDivider />
+                <MenuItem icon="tag" text="Print labels" onClick={() => { void navigate('/labels') }} />
+              </Menu>
+            }
+          >
+            <Button variant="outlined" icon="database">Data</Button>
+          </Popover>
           <Button variant="outlined" icon="settings" onClick={() => { setParOptimizerOpen(true); }}>
             Optimize Pars
           </Button>
