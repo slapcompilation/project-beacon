@@ -15,11 +15,17 @@ export default function MindWorkspace() {
   const role = useAuthStore((s) => s.role ?? 'limited_access')
   const [params, setParams] = useSearchParams()
 
-  if (role !== 'admin' && role !== 'owner') {
+  const isOwnerOrAdmin = role === 'owner' || role === 'admin'
+  // The Decisions inbox is the daily driver for anyone with approval authority —
+  // gating it to owner/admin is what forced the parallel approval UIs elsewhere.
+  // Studio (build/configure) stays owner/admin; floor staff use the Floor layer.
+  const canDecide = role !== 'limited_access' && role !== 'team_member'
+
+  if (!canDecide) {
     return (
       <NonIdealState
-        icon="lightbulb"
-        title="Mind layer is available to admin and owner roles only"
+        icon="inbox"
+        title="Decisions is available to managers and above"
       />
     )
   }
@@ -38,6 +44,8 @@ export default function MindWorkspace() {
     <AIPShell
       tab={tab}
       onTabChange={(t) => { setParams({ aip: t }, { replace: true }) }}
+      allowStudio={isOwnerOrAdmin}
+      allowOrg={isOwnerOrAdmin}
     />
   )
 }

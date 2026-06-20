@@ -157,6 +157,10 @@ export const CommandDock = memo(function CommandDock() {
         {isOwnerOrAdmin && (
           <DockLink to="/operations" label="Ops" icon="shop" color="text-cyan-500" badge={badges.ops || undefined} />
         )}
+        {/* Decisions inbox — open to approval-authority managers; owner/admin get the full Mind (incl. Studio). */}
+        {isManager && !isOwnerOrAdmin && (
+          <DockLink to="/mind?aip=command" label="Decisions" icon="inbox" color="text-purple-500" />
+        )}
         {isOwnerOrAdmin && (
           <DockLink to="/mind" label="Mind" icon="lightbulb" color="text-purple-500" />
         )}

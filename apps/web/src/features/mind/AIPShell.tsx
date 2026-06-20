@@ -90,13 +90,26 @@ export function isAipTab(v: string | null | undefined): v is AipTab {
 export default function AIPShell({
   tab,
   onTabChange,
+  allowStudio = true,
+  allowOrg = true,
 }: {
   tab: AipTab
   onTabChange: (t: AipTab) => void
+  /** Studio (build/configure) — owner/admin only. */
+  allowStudio?: boolean
+  /** Org-scope surfaces (Portfolio) — owner/admin / org roles only. */
+  allowOrg?: boolean
 }) {
   const counts       = useAipCounts()
   const studioBadge  = STUDIO_TABS.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
-  const studioActive = tab === 'studio' || isStudioTab(tab)
+  // Role-scope: a manager who lands on a Studio/Portfolio tab (e.g. a stale URL)
+  // falls back to the Decisions command home.
+  const effTab: AipTab =
+    (!allowStudio && (tab === 'studio' || isStudioTab(tab))) ? 'command'
+    : (!allowOrg && tab === 'portfolio') ? 'command'
+    : tab
+  const decisionsTabs = allowOrg ? DECISIONS_TABS : DECISIONS_TABS.filter((t) => t.id !== 'portfolio')
+  const studioActive = allowStudio && (effTab === 'studio' || isStudioTab(effTab))
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -108,7 +121,7 @@ export default function AIPShell({
             onClick={() => { onTabChange('command') }}
             className={cn(
               'flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors text-left mb-1',
-              tab === 'command'
+              effTab === 'command'
                 ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
                 : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
             )}
@@ -127,12 +140,12 @@ export default function AIPShell({
             <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
               Decisions
             </p>
-            {DECISIONS_TABS.map((t) => (
+            {decisionsTabs.map((t) => (
               <RailButton
                 key={t.id}
                 icon={t.icon}
                 label={t.label}
-                active={t.id === tab}
+                active={t.id === effTab}
                 badge={counts[t.id]}
                 badgeIntent={badgeIntent(t.id)}
                 onClick={() => { onTabChange(t.id) }}
@@ -140,25 +153,27 @@ export default function AIPShell({
             ))}
           </div>
 
-          {/* Studio — one entry into the builder landing */}
-          <div className="mb-3">
-            <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
-              Studio
-            </p>
-            <RailButton
-              icon="build"
-              label="Studio"
-              active={studioActive}
-              badge={studioBadge}
-              badgeIntent={Intent.NONE}
-              onClick={() => { onTabChange('studio') }}
-            />
-          </div>
+          {/* Studio — one entry into the builder landing (owner/admin only) */}
+          {allowStudio && (
+            <div className="mb-3">
+              <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
+                Studio
+              </p>
+              <RailButton
+                icon="build"
+                label="Studio"
+                active={studioActive}
+                badge={studioBadge}
+                badgeIntent={Intent.NONE}
+                onClick={() => { onTabChange('studio') }}
+              />
+            </div>
+          )}
         </nav>
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        {isStudioTab(tab) && (
+        {isStudioTab(effTab) && (
           <div className="flex items-center gap-1.5 px-4 py-2 border-b shrink-0 text-xs bg-surface-1/30">
             <button
               type="button"
@@ -168,12 +183,12 @@ export default function AIPShell({
               <Icon icon="chevron-left" size={12} /> Studio
             </button>
             <Icon icon="chevron-right" size={10} className="text-muted-foreground/40" />
-            <span className="font-medium">{TABS.find((t) => t.id === tab)?.label ?? tab}</span>
+            <span className="font-medium">{TABS.find((t) => t.id === effTab)?.label ?? effTab}</span>
           </div>
         )}
-        <PanelErrorBoundary name={`Mind · ${tab}`}>
+        <PanelErrorBoundary name={`Mind · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(tab, onTabChange)}
+            {renderTab(effTab, onTabChange)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
