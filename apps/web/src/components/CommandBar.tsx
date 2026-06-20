@@ -42,7 +42,6 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Signals',      path: '/eye?panel=signals' },
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Incidents',    path: '/eye?panel=incidents' },
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Waste Radar',  path: '/eye?panel=waste' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Restock Queue',path: '/eye?panel=restock' },
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Risk Matrix',  path: '/eye?panel=risk' },
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Performance',  path: '/eye?panel=performance' },
   { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Occupancy',    path: '/eye?panel=occupancy' },

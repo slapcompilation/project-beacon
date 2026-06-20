@@ -62,7 +62,7 @@ const TYPE_META: Record<NotifType, {
     bg: 'bg-yellow-50/60 dark:bg-yellow-950/20',
     label: 'Consumption Spike',
     badge: 'border-yellow-400 bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300',
-    fallbackPath: '/eye?panel=restock',
+    fallbackPath: '/mind?aip=queue',
   },
   price_drift: {
     icon: 'warning-sign',
