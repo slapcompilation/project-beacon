@@ -36,6 +36,7 @@ import {
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
 import type { StocktakeLine } from '@beacon/types'
+import StocktakeIntelligencePage from './StocktakeIntelligencePage'
 
 // ─── Variance helpers ─────────────────────────────────────────────────────────
 
@@ -891,6 +892,7 @@ export default function StocktakePage() {
   const currency    = useCurrency()
 
   const [postCommitLines, setPostCommitLines] = useState<EnrichedLine[] | null>(null)
+  const [view, setView] = useState<'count' | 'variance'>('count')
 
   if (isLoading) {
     return (
@@ -913,14 +915,27 @@ export default function StocktakePage() {
 
   return (
     <div className="flex flex-col h-full">
-      {!session
-        ? <NoSessionScreen />
-        : (
-          <ActiveSession
-            sessionId={session.id}
-            onCommitSuccess={(lines) => { setPostCommitLines(lines) }}
-          />
-        )}
+      <div className="flex items-center gap-3 border-b px-6 py-3 shrink-0">
+        <h1 className="text-sm font-semibold">Stocktake</h1>
+        <SegmentedControl
+          size="small"
+          options={[{ label: 'Count', value: 'count' }, { label: 'Variance', value: 'variance' }]}
+          value={view}
+          onValueChange={(v) => { setView(v as 'count' | 'variance') }}
+        />
+      </div>
+      <div className="flex-1 overflow-hidden">
+        {view === 'variance'
+          ? <StocktakeIntelligencePage />
+          : !session
+            ? <NoSessionScreen />
+            : (
+              <ActiveSession
+                sessionId={session.id}
+                onCommitSuccess={(lines) => { setPostCommitLines(lines) }}
+              />
+            )}
+      </div>
     </div>
   )
 }

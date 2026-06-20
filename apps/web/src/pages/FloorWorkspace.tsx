@@ -2,7 +2,7 @@
 // Note: scan/barcode workflow stays in ScanLayout (/scan) for floor staff
 
 import { lazy, Suspense } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { WorkspaceTabs, PanelLoader } from '@/components/WorkspaceTabs'
 
@@ -12,8 +12,6 @@ const AdaptivePARPage        = lazy(() => import('./AdaptivePARPage'))
 const PendingScansPage       = lazy(() => import('./PendingScansPage'))
 const AlertsPage             = lazy(() => import('./AlertsPage'))
 const ExpiryPage             = lazy(() => import('./ExpiryPage'))
-const StocktakePage          = lazy(() => import('./StocktakePage'))
-const StocktakeIntelligencePage = lazy(() => import('./StocktakeIntelligencePage'))
 const ShiftHandoverPage      = lazy(() => import('./ShiftHandoverPage'))
 const PhotoStocktakePage     = lazy(() => import('./PhotoStocktakePage'))
 const VoiceModePage          = lazy(() => import('./VoiceModePage'))
@@ -25,8 +23,6 @@ const TABS = [
   { id: 'scans',           label: 'Ghost Scans'  },
   { id: 'alerts',          label: 'Alerts'       },
   { id: 'expiry',          label: 'Expiry'       },
-  { id: 'stocktake',       label: 'Stocktake'    },
-  { id: 'stocktake-intel', label: 'Variance'     },
   { id: 'handover',        label: 'Handover'     },
   { id: 'photo-stocktake', label: 'Vision Scan'  },
   { id: 'voice',           label: 'Voice Mode'   },
@@ -37,7 +33,6 @@ type TabId = typeof TABS[number]['id']
 const GROUPS = [
   { id: 'stock',   label: 'Stock',   tabs: ['stock', 'locations', 'par', 'scans'] as TabId[] },
   { id: 'signals', label: 'Signals', tabs: ['alerts', 'expiry']                   as TabId[] },
-  { id: 'counts',  label: 'Counts',  tabs: ['stocktake', 'stocktake-intel']       as TabId[] },
   { id: 'shift',   label: 'Shift',   tabs: ['handover']                           as TabId[] },
   { id: 'capture', label: 'Capture', tabs: ['photo-stocktake', 'voice']           as TabId[] },
 ]
@@ -45,6 +40,11 @@ const GROUPS = [
 export default function FloorWorkspace() {
   const [params, setParams] = useSearchParams()
   const raw   = params.get('panel') ?? 'stock'
+
+  // Stocktake (+ its variance view) is deferred from the primary Floor tabs; it
+  // lives at /stocktake now (variance folded in there). Keep old links working.
+  if (raw === 'stocktake' || raw === 'stocktake-intel') return <Navigate to="/stocktake" replace />
+
   const panel = (TABS.some((t) => t.id === raw) ? raw : 'stock') as TabId
 
   // Realtime handled globally by useRealtimeSync in AppLayout
@@ -67,8 +67,6 @@ export default function FloorWorkspace() {
             {panel === 'scans'           && <PendingScansPage />}
             {panel === 'alerts'          && <AlertsPage />}
             {panel === 'expiry'          && <ExpiryPage />}
-            {panel === 'stocktake'       && <StocktakePage />}
-            {panel === 'stocktake-intel' && <StocktakeIntelligencePage />}
             {panel === 'handover'        && <ShiftHandoverPage />}
             {panel === 'photo-stocktake' && <PhotoStocktakePage />}
             {panel === 'voice'           && <VoiceModePage />}
