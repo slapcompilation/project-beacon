@@ -129,6 +129,7 @@ function UserMenu() {
             {role && <div className="text-[11px] capitalize text-muted-foreground">{role.replace(/_/g, ' ')}</div>}
           </li>
           <MenuDivider />
+          <MenuItem icon="cog" text="Account settings" onClick={() => { void navigate('/account') }} />
           <MenuItem icon="log-out" text="Sign out" onClick={() => { void signOut() }} />
         </Menu>
       }

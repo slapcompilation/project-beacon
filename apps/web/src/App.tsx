@@ -19,6 +19,7 @@ const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const BriefingPage = lazyWithRetry(() => import('@/pages/BriefingPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
+const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const AuditPage = lazyWithRetry(() => import('@/pages/AuditPage'))
 const StocktakePage = lazyWithRetry(() => import('@/pages/StocktakePage'))
 const ScanPage = lazyWithRetry(() => import('@/pages/ScanPage'))
@@ -149,6 +150,7 @@ function AppRoutes() {
             <Route path="/copilot-config"                       element={<CopilotConfigPage />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
+            <Route path="/account"       element={<AccountPage />} />
             <Route path="/audit"         element={<AuditPage />} />
             <Route path="/stocktake"     element={<StocktakePage />} />
             <Route path="/labels"        element={<LabelsPage />} />
