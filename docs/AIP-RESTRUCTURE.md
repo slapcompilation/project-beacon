@@ -61,7 +61,7 @@ If a surface reduces to none of these, it's a **bespoke-page anti-pattern** and 
 | Locations | Lens → spatial | Rename **Zones**; feed the existing `features/canvas/HotelMap` (interactive map = Canvas add-on, later) |
 | Adaptive PAR / Optimize PARs | **Compute** | Logic Tool `recommend_par_level` → emits a **proposal into Decisions**, surfaced on Variant. Delete both tabs |
 | Ghost Scans | Decision/lens | Reconciliation Case + a "needs reconciliation" lens on stock |
-| Alerts, Expiry | Lens | Fold into Live Stock as lenses (low / expiring / waste) |
+| Alerts, Expiry | **Signals/Workflow — keep** | Verified rich, NOT filtered lists: Alerts aggregates Eye-Expiry/Stock/Anomalies/Notifications with bulk-restock + causal-trace + alert-prefs; Expiry has FEFO bands + batch discard + supplier-waste. They stay. Real dedup = Floor **Alerts ↔ Eye Signals** (`UnifiedSignalsPage`) merge (separate, careful). Live Stock may *gain* convenience lens chips (low/waste) additively. |
 | Stocktake | — | Defer (hide from primary tabs) |
 | Intelligence | mislabeled | It's the stocktake-variance report → fold into Stocktake |
 | Handover | artifact | Single home + copilot "Generate handover" |
@@ -138,8 +138,10 @@ reduction test; renames last; burn-down metric = **bespoke pages remaining**.
 **Slice 2 — objects absorb analytics (L1).**
 - Inline intelligence on Supplier / PO / Restock object views (the Variant pattern). Then delete Eye/Operations analytics tabs whose content now lives on the object.
 
-**Slice 3 — Floor → lenses.**
-- Fold alerts/expiry/waste/ghost-scans into Live Stock lenses; Intelligence→Stocktake (defer Stocktake); condense CSV; demote labels.
+**Slice 3 — Floor cleanup.**
+- 3a (done, #197): regroup Floor (kill "Quality"/"AI Capture"); "Intelligence"→"Variance"; condense CSV + demote labels into a Data menu.
+- 3b (done): defer Stocktake from primary tabs (→ /stocktake) and fold Variance into it via a Count/Variance toggle.
+- Correction from verification: Alerts + Expiry are rich Signals/Workflow surfaces, NOT foldable into lens chips — kept. Remaining Floor work: optional Live-Stock convenience lens chips (low/waste, additive), the Alerts↔Eye-Signals merge, Locations→Zones, PAR→tool.
 
 **Slice 4 — compute → tools.**
 - `recommend_par_level` Logic Tool emitting proposals; delete Adaptive PAR / Optimize-PARs tabs.
