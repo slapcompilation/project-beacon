@@ -1,10 +1,12 @@
 // Top nav bar. Logo, scope switcher, AIP signal counters, notifications, command palette, settings, copilot toggle.
 
 import { memo } from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Icon } from '@blueprintjs/core'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Icon, Menu, MenuDivider, MenuItem, Popover } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { services } from '@/lib/services'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
@@ -94,10 +96,54 @@ export const Topbar = memo(function Topbar() {
         >
           <Icon icon={copilotActive ? 'cross' : 'predictive-analysis'} size={14} />
         </button>
+
+        <UserMenu />
       </div>
     </header>
   )
 })
+
+// Account menu: who you're signed in as + sign out. The only sign-out entry for
+// every non-scan role (ScanLayout has its own).
+function UserMenu() {
+  const navigate = useNavigate()
+  const email = useAuthStore((s) => s.session?.user.email ?? '')
+  const role  = useAuthStore((s) => s.role)
+
+  const signOut = async () => {
+    try {
+      await services.auth.signOut()
+      void navigate('/login', { replace: true })
+    } catch {
+      toast.error('Failed to sign out')
+    }
+  }
+
+  return (
+    <Popover
+      placement="bottom-end"
+      content={
+        <Menu>
+          <li className="px-2 py-1.5">
+            <div className="max-w-[12rem] truncate text-xs font-medium text-foreground">{email || 'Signed in'}</div>
+            {role && <div className="text-[11px] capitalize text-muted-foreground">{role.replace(/_/g, ' ')}</div>}
+          </li>
+          <MenuDivider />
+          <MenuItem icon="log-out" text="Sign out" onClick={() => { void signOut() }} />
+        </Menu>
+      }
+    >
+      <button
+        type="button"
+        title="Account"
+        aria-label="Account menu"
+        className="rounded p-1.5 text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground transition-colors"
+      >
+        <Icon icon="user" size={14} />
+      </button>
+    </Popover>
+  )
+}
 
 // AIP signal counters. One pill per queue with a live count. Click to jump
 // into Mind's AIP shell on the matching tab. Single RPC round-trip behind

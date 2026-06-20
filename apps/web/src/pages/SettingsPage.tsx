@@ -4,7 +4,7 @@
 // Each section lives in features/settings/sections/. SettingsPage itself is
 // nav + dispatch — the heavy lifting is in the section files.
 
-import { useCallback } from 'react'
+import { useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Icon } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
@@ -108,7 +108,7 @@ export default function SettingsPage() {
   const role = useAuthStore((s) => s.role)
   const [searchParams, setSearchParams] = useSearchParams()
 
-  const visibleIds = useCallback((): Set<SectionId> => {
+  const visibleIds = useMemo((): Set<SectionId> => {
     const s = new Set<SectionId>()
     for (const item of NAV) {
       if (!item.requirePermission || (role && hasPermission(role, item.requirePermission))) {
@@ -116,7 +116,7 @@ export default function SettingsPage() {
       }
     }
     return s
-  }, [role])()
+  }, [role])
 
   const urlSection = searchParams.get('section') as SectionId | null
   const safeActive: SectionId = (urlSection && visibleIds.has(urlSection))
