@@ -145,24 +145,24 @@ export const CommandDock = memo(function CommandDock() {
 
       <div className="flex items-center gap-0.5 flex-1">
         {isManager && (
-          <DockLink to="/briefing" label="Canvas" icon="book" color="text-foreground" badge={badges.total || undefined} />
+          <DockLink to="/briefing" label="Home" icon="book" color="text-foreground" badge={badges.total || undefined} />
         )}
-        <DockLink to="/floor" label="Floor" icon="barcode" color="text-emerald-500" />
+        <DockLink to="/floor" label="Stock" icon="barcode" color="text-emerald-500" />
         {isManager && (
-          <DockLink to="/flow" label="Flow" icon="swap-horizontal" color="text-blue-500" badge={badges.flow || undefined} />
+          <DockLink to="/flow" label="Replenish" icon="swap-horizontal" color="text-blue-500" badge={badges.flow || undefined} />
         )}
         {isManager && (
-          <DockLink to="/eye" label="Eye" icon="eye-open" color="text-amber-500" badge={badges.eye || undefined} />
+          <DockLink to="/eye" label="Insights" icon="eye-open" color="text-amber-500" badge={badges.eye || undefined} />
         )}
         {isOwnerOrAdmin && (
-          <DockLink to="/operations" label="Ops" icon="shop" color="text-cyan-500" badge={badges.ops || undefined} />
+          <DockLink to="/operations" label="Procurement" icon="shop" color="text-cyan-500" badge={badges.ops || undefined} />
         )}
-        {/* Decisions inbox — open to approval-authority managers; owner/admin get the full Mind (incl. Studio). */}
+        {/* The Decisions inbox — approval-authority managers reach it here; owner/admin get the full shell (Decisions + Studio) at /mind. */}
         {isManager && !isOwnerOrAdmin && (
           <DockLink to="/mind?aip=command" label="Decisions" icon="inbox" color="text-purple-500" />
         )}
         {isOwnerOrAdmin && (
-          <DockLink to="/mind" label="Mind" icon="lightbulb" color="text-purple-500" />
+          <DockLink to="/mind" label="Decisions" icon="lightbulb" color="text-purple-500" />
         )}
       </div>
 
