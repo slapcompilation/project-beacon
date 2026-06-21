@@ -28,6 +28,8 @@ import {
 import { fetchExpiryBatches } from '@/features/inventory/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useHotelEdges } from '@/hooks/useHotelEdges'
+import { useMonitorPolicy } from '@/features/monitors/hooks'
+import { selectExpiryTriggers, DEFAULT_ORG_POLICY, type ExpiryBatch, type ExpiryMonitorConfig } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import type {
   WasteRadarRow, ConsumptionForecastRow, ActiveIncidentRow,
@@ -78,6 +80,7 @@ function buildSignalFeed(
   forecast:    ConsumptionForecastRow[],
   reliability: SupplierReliabilityRow[],
   expiry:      ExpiryBatchRow[],
+  expiryRule:  ExpiryMonitorConfig,
 ): UnifiedSignal[] {
   const map = new Map<string, UnifiedSignal>()
 
@@ -119,22 +122,24 @@ function buildSignalFeed(
     if (!obj.context) obj.context = `${row.current_stock} in stock · ${dtz}d remaining`
   }
 
-  // Expiry risk — only within 30 days
-  // Deduplicate by variant_id (multiple batches may exist)
-  const expiryByVariant = new Map<string, { row: ExpiryBatchRow; urgency: number }>()
-  for (const row of expiry) {
-    if (row.days_until_expiry > 30) continue
-    const urgency = row.days_until_expiry <= 0 ? 10 : row.days_until_expiry <= 3 ? 8 : row.days_until_expiry <= 7 ? 6 : 3
-    const existing = expiryByVariant.get(row.variant_id)
-    if (!existing || urgency > existing.urgency) {
-      expiryByVariant.set(row.variant_id, { row, urgency })
-    }
-  }
-  for (const [variantId, { row, urgency }] of expiryByVariant) {
-    const name = `${row.product_name} · ${row.variant_name}`
-    const obj = upsert(variantId, name, `/variant/${variantId}`, 'variant')
-    obj.badges.push({ type: 'expiry', urgency, detail: `${row.days_until_expiry}d · ${row.quantity} units · €${row.cost_at_risk.toFixed(0)} at risk` })
-    if (!obj.context) obj.context = `Expires in ${row.days_until_expiry}d`
+  // Expiry risk — the window + urgency bands come from the operator's tunable
+  // monitor rule, not a hardcoded 30/7/3-day ladder. Same evaluator the sweep
+  // and the cycle use. Deduplicate by variant (most-urgent batch leads).
+  const expiryBatches: ExpiryBatch[] = expiry.map((row) => ({
+    variantId:       row.variant_id,
+    variantLabel:    `${row.product_name} · ${row.variant_name}`,
+    quantity:        row.quantity,
+    daysUntilExpiry: row.days_until_expiry,
+    costAtRisk:      row.cost_at_risk,
+    hotelId:         '',
+  }))
+  const seenExpiry = new Set<string>()
+  for (const hit of selectExpiryTriggers(expiryBatches, expiryRule)) {
+    if (seenExpiry.has(hit.variantId)) continue
+    seenExpiry.add(hit.variantId)
+    const obj = upsert(hit.variantId, hit.variantLabel, `/variant/${hit.variantId}`, 'variant')
+    obj.badges.push({ type: 'expiry', urgency: hit.urgency, detail: `${String(hit.daysUntilExpiry)}d · ${String(hit.quantity)} units · €${hit.costAtRisk.toFixed(0)} at risk` })
+    if (!obj.context) obj.context = `Expires in ${String(hit.daysUntilExpiry)}d`
   }
 
   // Supplier risk — critical and high only
@@ -253,13 +258,17 @@ export default function UnifiedSignalsPage() {
   const hotelId = useActiveHotelId()
   const [filter, setFilter] = useState<FilterMode>('all')
 
+  const { data: monitorPolicy } = useMonitorPolicy()
+  const expiryRule = monitorPolicy?.merged.monitors.expiry ?? DEFAULT_ORG_POLICY.monitors.expiry
+
   const { data: incidents   = [], isLoading: l1 } = useActiveIncidents(7)
   const { data: waste       = [], isLoading: l2 } = useWasteRadar()
   const { data: forecast    = [], isLoading: l3 } = useConsumptionForecast(30)
   const { data: reliability = [], isLoading: l4 } = useSupplierReliability(90)
   const { data: expiry      = [], isLoading: l5 } = useQuery({
-    queryKey:  ['eye', 'expiry-batches', hotelId],
-    queryFn:   () => fetchExpiryBatches(30),
+    // Metric pull: a wide window; the tunable trigger decides what surfaces.
+    queryKey:  ['eye', 'expiry-batches', hotelId, expiryRule.threshold_days],
+    queryFn:   () => fetchExpiryBatches(Math.max(expiryRule.threshold_days, 30)),
     enabled:   !!hotelId,
     staleTime: 5 * 60 * 1000,
   })
@@ -280,8 +289,8 @@ export default function UnifiedSignalsPage() {
   const isLoading = l1 || l2 || l3 || l4 || l5
 
   const allSignals = useMemo(
-    () => buildSignalFeed(incidents, waste, forecast, reliability, expiry),
-    [incidents, waste, forecast, reliability, expiry],
+    () => buildSignalFeed(incidents, waste, forecast, reliability, expiry, expiryRule),
+    [incidents, waste, forecast, reliability, expiry, expiryRule],
   )
 
   const counts: Record<FilterMode, number> = useMemo(() => ({

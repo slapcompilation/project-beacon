@@ -113,6 +113,9 @@ export function mergePolicyOverlay(base: OrgPolicy, overlay: DeepPartial<OrgPoli
       max_variants_per_cycle:  overlay.caps?.max_variants_per_cycle  ?? base.caps.max_variants_per_cycle,
       max_proposals_per_sweep: overlay.caps?.max_proposals_per_sweep ?? base.caps.max_proposals_per_sweep,
     },
+    monitors: {
+      expiry: { ...base.monitors.expiry, ...(overlay.monitors?.expiry ?? {}) },
+    },
   }
 }
 

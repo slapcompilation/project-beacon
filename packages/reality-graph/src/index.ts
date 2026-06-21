@@ -340,7 +340,15 @@ export type {
 } from './constraints/index'
 
 export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy } from './policy/index'
-export type { OrgPolicy } from './policy/index'
+export type { OrgPolicy, ExpiryMonitorConfig } from './policy/index'
+
+export {
+  selectExpiryTriggers,
+  expiryUrgency,
+  expiryHitToWriteOff,
+  parseExpiryTuning,
+} from './monitors/index'
+export type { ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult } from './monitors/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {

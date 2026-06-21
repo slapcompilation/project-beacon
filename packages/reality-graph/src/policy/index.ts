@@ -11,6 +11,21 @@
 import type { BeaconAction } from '../actions/index'
 import type { AutoExecutionPolicy } from '../constraints/index'
 
+/** A monitor's trigger is data, not code: the operator tunes the threshold,
+ *  the deterministic metric (days_until_expiry, cost_at_risk) stays in a tool.
+ *  Stored inside the org policy doc so it's editable with no redeploy. */
+export interface ExpiryMonitorConfig {
+  /** Master switch. When false the detector emits nothing. */
+  enabled: boolean
+  /** Fire when a batch's days_until_expiry ≤ this. The tunable trigger. */
+  threshold_days: number
+  /** Ignore batches whose cost_at_risk is below this (€). Filters noise. */
+  min_cost_at_risk: number
+  /** When true, fired batches emit WRITE_OFF proposals into Decisions. They
+   *  still queue for review — WRITE_OFF is never in the auto-exec policy. */
+  auto_propose: boolean
+}
+
 export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
@@ -51,6 +66,10 @@ export interface OrgPolicy {
     /** Hard cap on proposals an org-sweep emits per invocation. */
     max_proposals_per_sweep: number
   }
+  monitors: {
+    /** Expiry detection — the first monitor whose condition is tunable data. */
+    expiry: ExpiryMonitorConfig
+  }
 }
 
 export const DEFAULT_ORG_POLICY: OrgPolicy = {
@@ -77,6 +96,9 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     max_variants_per_cycle: 25,
     max_proposals_per_sweep: 25,
   },
+  monitors: {
+    expiry: { enabled: true, threshold_days: 7, min_cost_at_risk: 0, auto_propose: false },
+  },
 }
 
 /** Deep-merges operator overrides over the defaults. Missing sections fall
@@ -98,6 +120,7 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     par:                  { ...DEFAULT_ORG_POLICY.par },
     supplier_reliability: { ...DEFAULT_ORG_POLICY.supplier_reliability },
     caps:                 { ...DEFAULT_ORG_POLICY.caps },
+    monitors:             { expiry: { ...DEFAULT_ORG_POLICY.monitors.expiry } },
   }
 
   if (isObj(o.auto_execution)) {
@@ -145,8 +168,20 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     if (typeof c.max_variants_per_cycle  === 'number') merged.caps.max_variants_per_cycle  = Math.round(c.max_variants_per_cycle)
     if (typeof c.max_proposals_per_sweep === 'number') merged.caps.max_proposals_per_sweep = Math.round(c.max_proposals_per_sweep)
   }
+  if (isObj(o.monitors) && isObj((o.monitors as Record<string, unknown>).expiry)) {
+    const e = (o.monitors as Record<string, Record<string, unknown>>).expiry
+    const m = merged.monitors.expiry
+    if (typeof e.enabled          === 'boolean') m.enabled          = e.enabled
+    if (typeof e.auto_propose     === 'boolean') m.auto_propose     = e.auto_propose
+    if (typeof e.threshold_days   === 'number')  m.threshold_days   = clamp(Math.round(e.threshold_days), 0, 365)
+    if (typeof e.min_cost_at_risk === 'number')  m.min_cost_at_risk = Math.max(0, e.min_cost_at_risk)
+  }
 
   return merged
+}
+
+function clamp(n: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, n))
 }
 
 function isObj(x: unknown): x is Record<string, unknown> {
