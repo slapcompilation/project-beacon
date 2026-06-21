@@ -256,3 +256,84 @@ function clamp01(x: number): number {
   if (Number.isNaN(x)) return 0
   return x < 0 ? 0 : x > 1 ? 1 : x
 }
+
+// ── Calibration → Policy: agents earn autonomy automatically ─────────────────
+//
+// The flywheel actually turning: observed calibration proposes edits to the
+// per-agent auto-execution floor. A well-calibrated agent with enough resolved
+// decisions earns a *lower* floor (more unattended execution); a proven
+// overconfident one gets a *higher* floor. These are recommendations — a human
+// applies them, so autonomy is earned AND audited, never silently widened.
+
+export interface AutonomyConfig {
+  /** Minimum resolved samples before a recommendation is made. */
+  minSamples: number
+  /** Hard lower bound on any floor — autonomy never goes below this. */
+  floorMin: number
+  /** Upper bound on any floor. */
+  floorMax: number
+  /** Adjustment increment per recommendation. */
+  step: number
+  /** Floor assumed for an agent with no explicit override yet. */
+  baselineFloor: number
+}
+
+export const DEFAULT_AUTONOMY_CONFIG: AutonomyConfig = {
+  minSamples: 20,
+  floorMin: 0.7,
+  floorMax: 0.98,
+  step: 0.05,
+  baselineFloor: 0.9,
+}
+
+export interface AutonomyRecommendation {
+  agentName: string
+  kind: 'loosen' | 'tighten'
+  currentFloor: number
+  proposedFloor: number
+  resolved: number
+  ece: number
+  verdict: CalibrationVerdict
+  rationale: string
+}
+
+/** Proposes per-agent floor adjustments from observed calibration. Pure: callers
+ *  apply the result (via set_org_policy) with a human in the loop. Underconfident
+ *  and insufficient-data agents get no recommendation — we only ever loosen on
+ *  proven good calibration, and tighten on proven overconfidence. */
+export function recommendAutonomy(
+  reports: ReadonlyArray<{ key: string; report: CalibrationReport }>,
+  currentOverrides: Readonly<Record<string, number>>,
+  cfg: Partial<AutonomyConfig> = {},
+): AutonomyRecommendation[] {
+  const c = { ...DEFAULT_AUTONOMY_CONFIG, ...cfg }
+  const out: AutonomyRecommendation[] = []
+  for (const { key, report } of reports) {
+    if (!report.sufficientData || report.resolved < c.minSamples) continue
+    const current = currentOverrides[key] ?? c.baselineFloor
+
+    if (report.verdict === 'well-calibrated') {
+      const proposed = round2(Math.max(c.floorMin, current - c.step))
+      if (proposed < current) {
+        out.push({
+          agentName: key, kind: 'loosen', currentFloor: current, proposedFloor: proposed,
+          resolved: report.resolved, ece: report.ece, verdict: report.verdict,
+          rationale: `Well-calibrated over ${String(report.resolved)} decisions (ECE ${pct(report.ece)}, hit-rate ${pct(report.accuracy)} vs ${pct(report.meanConfidence)} claimed). Safe to widen autonomy.`,
+        })
+      }
+    } else if (report.verdict === 'overconfident') {
+      const proposed = round2(Math.min(c.floorMax, current + c.step))
+      if (proposed > current) {
+        out.push({
+          agentName: key, kind: 'tighten', currentFloor: current, proposedFloor: proposed,
+          resolved: report.resolved, ece: report.ece, verdict: report.verdict,
+          rationale: `Overconfident over ${String(report.resolved)} decisions (hit-rate ${pct(report.accuracy)} below ${pct(report.meanConfidence)} claimed). Tighten the floor.`,
+        })
+      }
+    }
+  }
+  return out
+}
+
+function round2(x: number): number { return Math.round(x * 100) / 100 }
+function pct(x: number): string { return `${String(Math.round(x * 100))}%` }

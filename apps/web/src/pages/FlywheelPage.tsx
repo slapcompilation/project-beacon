@@ -3,13 +3,15 @@
 // reality), the autonomous loop's recent runs, and per-agent reliability. No new
 // backend — it reuses the calibration + monitor hooks and links to the deep pages.
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { format, formatDistanceToNow } from 'date-fns'
+import { recommendAutonomy, type AutonomyRecommendation } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import { useDecisionCalibration, type CalibrationWindow } from '@/features/calibration/hooks'
 import { useAgentCycleHistory, useCronHealthSummary } from '@/features/monitor/hooks'
+import { useOrgPolicy, useSetOrgPolicy } from '@/features/mind/policy'
 
 const VERDICT: Record<string, { label: string; intent: Intent }> = {
   'well-calibrated':   { label: 'Well-calibrated', intent: Intent.SUCCESS },
@@ -34,10 +36,36 @@ export default function FlywheelPage() {
   const cycles = useAgentCycleHistory(8)
   const cron   = useCronHealthSummary()
 
+  const { data: policyData } = useOrgPolicy()
+  const setPolicy = useSetOrgPolicy()
+  const [applying, setApplying] = useState<string | null>(null)
+
   const overall = calibration?.overall
   const verdict = overall ? (VERDICT[overall.verdict] ?? VERDICT['insufficient-data']) : null
   const runs    = cycles.data?.runs ?? []
   const openCritical = cron.data?.open_critical ?? 0
+
+  // Calibration → policy: observed reliability proposes per-agent floor edits.
+  // Recommendations only; applying one is the human sign-off (set_org_policy is
+  // admin/owner, and records who/when — autonomy is earned AND audited).
+  const recs = useMemo(() => {
+    const overrides = policyData?.merged.auto_execution.agent_overrides ?? {}
+    return calibration ? recommendAutonomy(calibration.byAgent, overrides) : []
+  }, [calibration, policyData])
+
+  const applyRec = (rec: AutonomyRecommendation) => {
+    if (!policyData) return
+    setApplying(rec.agentName)
+    const p = policyData.merged
+    const next = {
+      ...p,
+      auto_execution: {
+        ...p.auto_execution,
+        agent_overrides: { ...p.auto_execution.agent_overrides, [rec.agentName]: rec.proposedFloor },
+      },
+    }
+    setPolicy.mutate(next, { onSettled: () => { setApplying(null) } })
+  }
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -139,6 +167,44 @@ export default function FlywheelPage() {
               })}
             </div>
           )}
+        </Card>
+
+        {/* ── Calibration → autonomy ── */}
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <Icon icon="endorsed" size={14} /> Suggested autonomy changes
+            </h2>
+            <Link to="/mind?aip=policy" className="text-xs text-primary hover:underline">Policy →</Link>
+          </div>
+          {recs.length === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              No changes suggested — agents are within tolerance, or need more resolved decisions. Well-calibrated agents earn a lower auto-execution floor here; proven-overconfident ones get tightened.
+            </p>
+          ) : (
+            <div className="divide-y divide-border/50">
+              {recs.map((rec) => (
+                <div key={rec.agentName} className="flex items-start justify-between gap-3 py-2">
+                  <div className="min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">{rec.agentName}</span>
+                      <Tag minimal intent={rec.kind === 'loosen' ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">
+                        {rec.kind === 'loosen' ? 'widen autonomy' : 'tighten'}
+                      </Tag>
+                      <span className="text-[11px] tabular-nums text-muted-foreground">
+                        floor {rec.currentFloor.toFixed(2)} → {rec.proposedFloor.toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-snug">{rec.rationale}</p>
+                  </div>
+                  <Button size="small" intent={Intent.PRIMARY} text="Apply"
+                    loading={applying === rec.agentName} disabled={setPolicy.isPending}
+                    onClick={() => { applyRec(rec) }} />
+                </div>
+              ))}
+            </div>
+          )}
+          {setPolicy.isError && <p className="text-xs text-red-500">{setPolicy.error.message}</p>}
         </Card>
 
         {cron.data && (
