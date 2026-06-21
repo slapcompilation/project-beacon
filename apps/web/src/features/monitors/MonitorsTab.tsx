@@ -12,6 +12,7 @@ import type { IconName } from '@blueprintjs/icons'
 import { parseExpiryTuning, type OrgPolicy } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useMonitorPolicy, useSetMonitors } from './hooks'
+import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
 
 type Monitors = OrgPolicy['monitors']
@@ -58,6 +59,7 @@ export default function MonitorsTab() {
   const [draft, setDraft] = useState<Monitors | null>(null)
   const [nl, setNl] = useState('')
   const [nlNote, setNlNote] = useState<string | null>(null)
+  const [nlBusy, setNlBusy] = useState(false)
   const [scan, setScan] = useState<ExpiryScanResult | null>(null)
 
   useEffect(() => { if (saved && !draft) setDraft(saved) }, [saved, draft])
@@ -71,10 +73,20 @@ export default function MonitorsTab() {
     setDraft({ ...draft, [key]: { ...draft[key], ...p } }); setScan(null)
   }
 
-  const applyNl = () => {
-    const r = parseExpiryTuning(nl, draft.expiry)
-    if (r.understood) { setDraft({ ...draft, expiry: r.rule }); setNlNote(`Applied to expiry: ${r.changed.join(', ')}. Review and Save.`); setNl(''); setScan(null) }
-    else setNlNote("Didn't catch a change. Try: “set expiry to 10 days”, “ignore under €50”, “disable”.")
+  // Heuristic first (instant, offline, expiry shapes); fall back to the LLM for
+  // anything else and for the other monitors. Same signature either way.
+  const applyNl = async () => {
+    const fast = parseExpiryTuning(nl, draft.expiry)
+    if (fast.understood) {
+      setDraft({ ...draft, expiry: fast.rule }); setNlNote(`Applied: ${fast.changed.join(', ')}. Review and Save.`); setNl(''); setScan(null); return
+    }
+    setNlBusy(true); setNlNote(null)
+    try {
+      const r = await aiTuneMonitors(nl, draft)
+      setDraft(r.monitors); setNlNote(`${r.summary} Review and Save.`); setNl(''); setScan(null)
+    } catch (e) {
+      setNlNote(`Couldn't interpret that (${e instanceof Error ? e.message : 'error'}). Try simpler phrasing.`)
+    } finally { setNlBusy(false) }
   }
 
   return (
@@ -87,6 +99,22 @@ export default function MonitorsTab() {
             Bands feed Signals and Decisions through the same gate as every agent.
           </p>
         </header>
+
+        {/* Plain-English tuning across every monitor — heuristic-instant for
+            common expiry phrasings, the LLM for anything else. */}
+        <Card className="space-y-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+            <Icon icon="chat" size={12} /> Tune any monitor in plain English
+          </span>
+          <div className="flex gap-2">
+            <InputGroup fill value={nl} disabled={!canEdit || nlBusy}
+              placeholder="e.g. alert 10 days before expiry · only surface suppliers below 4 · disable waste alerts"
+              onChange={(e) => { setNl(e.currentTarget.value) }}
+              onKeyDown={(e) => { if (e.key === 'Enter') void applyNl() }} />
+            <Button text="Apply" loading={nlBusy} disabled={!canEdit || nlBusy || nl.trim().length === 0} onClick={() => { void applyNl() }} />
+          </div>
+          {nlNote && <p className="text-xs text-muted-foreground">{nlNote}</p>}
+        </Card>
 
         {/* Expiry — full monitor with a typed effect */}
         <MonitorShell icon="time" title="Expiry monitor" enabled={draft.expiry.enabled} canEdit={canEdit}
@@ -101,15 +129,6 @@ export default function MonitorsTab() {
           </div>
           <Switch checked={draft.expiry.auto_propose} disabled={!canEdit} label="Auto-propose write-offs each cycle" className="!mb-0"
             onChange={(e) => { patch('expiry', { auto_propose: e.currentTarget.checked }) }} />
-          <div className="pt-1 space-y-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Adjust in plain English</span>
-            <div className="flex gap-2">
-              <InputGroup fill value={nl} disabled={!canEdit} placeholder="e.g. alert 10 days before expiry, ignore under €50"
-                onChange={(e) => { setNl(e.currentTarget.value) }} onKeyDown={(e) => { if (e.key === 'Enter') applyNl() }} />
-              <Button text="Apply" disabled={!canEdit || nl.trim().length === 0} onClick={applyNl} />
-            </div>
-            {nlNote && <p className="text-xs text-muted-foreground">{nlNote}</p>}
-          </div>
         </MonitorShell>
 
         {/* Stockout — surfacing band; proposal path is restock_advisor */}
