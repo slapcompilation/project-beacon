@@ -22,6 +22,8 @@ import {
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
+  selectExpiryTriggers,
+  expiryHitToWriteOff,
 } from '../_shared/reality-graph.bundle.mjs'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { json, preflight } from '../_shared/http.ts'
@@ -144,13 +146,18 @@ Deno.serve(async (req: Request) => {
         buildAgent: (reader, v) => buildWasteTriageAgent({ reader, llm: makeDeterministicLLM(v) }),
         promptVerb: 'triage waste for', ...shared,
       })
-      totalAuto   += restock.autoExecuted + overstock.autoExecuted + waste.autoExecuted
-      totalQueued += restock.queued + overstock.queued + waste.queued
+      // Expiry monitor: a batch-expiry-date detector (distinct from waste_triage's
+      // shelf_life heuristic). Only runs when the operator has enabled auto-propose
+      // on the expiry monitor — default off, so this is a no-op until opted in.
+      const expiry = await runExpiryMonitorCycle(supabase, hotel, { rule: policy.monitors.expiry, ...shared })
+      totalAuto   += restock.autoExecuted + overstock.autoExecuted + waste.autoExecuted + expiry.autoExecuted
+      totalQueued += restock.queued + overstock.queued + waste.queued + expiry.queued
       perHotel.push({
         hotelId: hotel.id,
         restock:   { scanned: restock.scanned, autoExecuted: restock.autoExecuted, queued: restock.queued },
         overstock: { scanned: overstock.scanned, autoExecuted: overstock.autoExecuted, queued: overstock.queued },
         waste:     { scanned: waste.scanned, autoExecuted: waste.autoExecuted, queued: waste.queued },
+        expiry:    { scanned: expiry.scanned, autoExecuted: expiry.autoExecuted, queued: expiry.queued },
       })
     } catch (err) {
       perHotel.push({ hotelId: hotel.id, error: err instanceof Error ? err.message : String(err) })
@@ -352,4 +359,113 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
       if (created) caseByVariant.set(variant.id, created.id as string)
     },
   })
+}
+
+interface ExpiryRule { enabled: boolean; threshold_days: number; min_cost_at_risk: number; auto_propose: boolean }
+
+// The expiry monitor as an unattended sweep. Reads the deterministic metric
+// (get_expiring_batches, now hotel-param-aware under the service role), applies
+// the operator's tunable trigger, and routes one WRITE_OFF proposal per fired
+// variant through the SAME gate — WRITE_OFF is never auto-exec-eligible, so each
+// queues. Gated on auto_propose so it only runs when the operator opted in.
+async function runExpiryMonitorCycle(
+  supabase: SupabaseClient,
+  hotel: HotelRow,
+  opts: { rule: ExpiryRule } & Omit<AgentCycleOpts, 'agentName' | 'agentVersion' | 'scan' | 'buildAgent' | 'promptVerb'>,
+) {
+  const rule = opts.rule
+  if (!rule?.enabled || !rule.auto_propose) return { scanned: 0, autoExecuted: 0, queued: 0 }
+
+  const { data: batchRows, error } = await supabase.rpc('get_expiring_batches', {
+    p_days_ahead: Math.max(rule.threshold_days, 1),
+    p_hotel_id:   hotel.id,
+  })
+  if (error) throw new Error(`expiry batches query failed: ${error.message}`)
+
+  const batches = ((batchRows ?? []) as Record<string, unknown>[]).map((r) => ({
+    variantId:    r.variant_id as string,
+    variantLabel: r.variant_name && r.variant_name !== 'Standard' ? `${String(r.product_name)} · ${String(r.variant_name)}` : String(r.product_name),
+    quantity:     r.quantity as number,
+    daysUntilExpiry: r.days_until_expiry as number,
+    costAtRisk:   Number(r.cost_at_risk),
+    hotelId:      hotel.id,
+  }))
+
+  const byVariant = new Map<string, ReturnType<typeof selectExpiryTriggers>[number]>()
+  for (const hit of selectExpiryTriggers(batches, rule)) {
+    if (!byVariant.has(hit.variantId)) byVariant.set(hit.variantId, hit)
+  }
+  const variants = [...byVariant.values()].map((h) => ({ id: h.variantId, name: h.variantLabel }))
+  if (variants.length === 0) return { scanned: batches.length, autoExecuted: 0, queued: 0 }
+
+  const { data: constraintRows } = await supabase
+    .from('constraints')
+    .select('id, body, bucket, typed_rule, severity, applies_to_action_types, active')
+    .eq('hotel_id', hotel.id)
+    .eq('active', true)
+  const constraints = (constraintRows ?? []).map((c: Record<string, unknown>) => ({
+    id: c.id as string, body: c.body as string, bucket: c.bucket as string,
+    typedRule: c.typed_rule, severity: c.severity as string,
+    appliesToActionTypes: (c.applies_to_action_types as string[] | null) ?? [], active: c.active as boolean,
+  }))
+
+  const caseByVariant = new Map<string, string>()
+  const result = await runIntelligenceCycle({
+    variants,
+    constraints,
+    maxVariants: opts.maxVariants,
+    policy:   opts.autoExecPolicy,          // WRITE_OFF absent → always queues
+    agentOverrides: opts.agentOverrides,
+    agent:    { agentName: 'expiry_monitor', agentVersion: '1.0.0' },
+    releases: { production: opts.productionReleases },
+    runAgent: (variant: { id: string; name: string }) => {
+      const hit = byVariant.get(variant.id)
+      if (!hit) return Promise.resolve([])
+      const when = hit.daysUntilExpiry <= 0 ? 'has expired' : `expires in ${String(hit.daysUntilExpiry)}d`
+      return Promise.resolve([{
+        action: expiryHitToWriteOff(hit, SYSTEM_ACTOR),
+        confidence: Math.min(0.95, 0.5 + hit.urgency / 20),
+        reasoning: `Expiry monitor fired: ${hit.variantLabel} ${when}, €${hit.costAtRisk.toFixed(0)} at risk. Trigger: days_until_expiry <= ${String(rule.threshold_days)}.`,
+        provenance: [{ kind: 'tool', ref: 'expiry_monitor', detail: `days_until_expiry=${String(hit.daysUntilExpiry)} <= ${String(rule.threshold_days)}` }],
+      }])
+    },
+    persistProposal: async (_v: unknown, proposal: { action: { type: string }; confidence: number; reasoning: string; provenance: unknown }) => {
+      const { data, error: insErr } = await supabase.from('proposals').insert({
+        hotel_id: hotel.id, organization_id: hotel.organization_id,
+        agent_name: 'expiry_monitor', agent_version: '1.0.0',
+        action_type: proposal.action.type, action_payload: proposal.action,
+        confidence: proposal.confidence, reasoning: proposal.reasoning, provenance: proposal.provenance,
+        status: 'pending', created_by_user_id: null,
+      }).select('id').single()
+      if (insErr) throw new Error(`proposal insert failed: ${insErr.message}`)
+      return data.id as string
+    },
+    dispatch: () => Promise.resolve(false),   // WRITE_OFF never auto-executes
+    markApproved: () => Promise.resolve(),
+    openCase: async (variant: { id: string; name: string }, proposalId: string, action: { type: string }) => {
+      let caseId = caseByVariant.get(variant.id)
+      if (!caseId) {
+        const { data: existing } = await supabase.from('cases').select('id')
+          .eq('hotel_id', hotel.id).in('status', ['open', 'in_review'])
+          .contains('input_refs', [{ kind: 'variant', ref: variant.id }])
+          .order('created_at', { ascending: false }).limit(1).maybeSingle()
+        caseId = existing?.id as string | undefined
+      }
+      if (caseId) {
+        caseByVariant.set(variant.id, caseId)
+        const { data } = await supabase.from('cases').select('proposal_ids').eq('id', caseId).maybeSingle()
+        const ids = (data?.proposal_ids as string[] | null) ?? []
+        if (!ids.includes(proposalId)) await supabase.from('cases').update({ proposal_ids: [...ids, proposalId] }).eq('id', caseId)
+        return
+      }
+      const { data: created } = await supabase.from('cases').insert({
+        hotel_id: hotel.id, organization_id: hotel.organization_id,
+        title: caseTitle(action.type, variant.name), status: 'open',
+        input_refs: [{ kind: 'variant', ref: variant.id }, { kind: 'agent_run', ref: 'expiry_monitor' }],
+        proposal_ids: [proposalId], opened_by_user_id: null,
+      }).select('id').single()
+      if (created) caseByVariant.set(variant.id, created.id as string)
+    },
+  })
+  return { scanned: batches.length, autoExecuted: result.autoExecuted, queued: result.queued }
 }
