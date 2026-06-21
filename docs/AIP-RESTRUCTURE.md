@@ -154,7 +154,8 @@ reduction test; renames last; burn-down metric = **bespoke pages remaining**.
 - Lateral-before-external replenishment Case + Action-Chain pick-list/PO; Locations → Zones feeding `HotelMap`.
 
 **Slice 7 — renames.**
-- Apply the vocabulary mapping across the dock + routes (redirects retained).
+- 7a (done): dock labels — Canvas→Home, Floor→Stock, Flow→Replenish, Eye→Insights, Operations→Procurement, Mind→Decisions. **Display labels only**; URLs (/floor, /eye, …) + internal codenames unchanged, so nothing breaks. Internal name is now a codename ≠ display name.
+- Deferred: CommandBar palette entry labels/groups (cosmetic, ~30 entries) and any URL-path renames (broad, redirect-gated) — separate sweeps if wanted.
 
 ---
 
