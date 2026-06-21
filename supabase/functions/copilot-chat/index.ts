@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, evaluateConstraints, copilotProposalToAction } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, evaluateConstraints, copilotProposalToAction, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -178,6 +178,28 @@ const TOOLS: Anthropic.Tool[] = [
       required: [],
     },
   },
+  {
+    name: 'get_monitor_config',
+    description: 'Get the current detection monitors and their tunable triggers: expiry (days-before-expiry, min € at risk, auto-propose write-offs), stockout (days-until-zero surfacing band), waste (min anomaly score), supplier (max reliability score). Use for "what are my alert thresholds", "which monitors are on", "how is expiry detection configured".',
+    input_schema: { type: 'object' as const, properties: {}, required: [] },
+  },
+  {
+    name: 'tune_monitor',
+    description: 'Change a detection monitor\'s tunable trigger — the operator owns these as data, no redeploy. Use for "alert me 10 days before expiry", "ignore expiring stock under €50", "surface stockouts 21 days out", "only flag suppliers below 4", "turn off waste alerts", "auto-propose write-offs". Requires admin/owner; the change is applied and audited. Only set the fields the operator mentions.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        monitor:               { type: 'string', enum: ['expiry', 'stockout', 'waste', 'supplier'], description: 'Which monitor to tune' },
+        enabled:               { type: 'boolean', description: 'Turn the monitor on/off' },
+        threshold_days:        { type: 'number', description: 'expiry: fire within N days of expiry. stockout: surface within N days of zero stock.' },
+        min_cost_at_risk:      { type: 'number', description: 'expiry only: ignore batches under this € at risk' },
+        auto_propose:          { type: 'boolean', description: 'expiry only: auto-propose write-offs each unattended cycle' },
+        min_anomaly_score:     { type: 'number', description: 'waste only: surface anomalies at/above this score (0–10)' },
+        max_reliability_score: { type: 'number', description: 'supplier only: surface suppliers at/below this reliability score (0–10, lower is worse)' },
+      },
+      required: ['monitor'],
+    },
+  },
   // ─── Action tools (propose, don't auto-execute) ─────────────────────────────
   {
     name: 'propose_restock',
@@ -320,6 +342,14 @@ interface ToolInput {
   reason?: string
   max_cost?: number
   supplier_id?: string
+  // Monitor tuning (#5)
+  monitor?: 'expiry' | 'stockout' | 'waste' | 'supplier'
+  enabled?: boolean
+  threshold_days?: number
+  min_cost_at_risk?: number
+  auto_propose?: boolean
+  min_anomaly_score?: number
+  max_reliability_score?: number
   // Scenario tools (H4)
   path?: string[]
   value?: unknown
@@ -439,6 +469,36 @@ async function executeTool(
           autoExecuted: sim.result.autoExecuted,
           queued:       sim.result.queued,
         })
+      }
+      case 'get_monitor_config': {
+        const { data, error } = await supabase.rpc('get_org_policy')
+        if (error) return JSON.stringify({ error: error.message })
+        return JSON.stringify(mergeOrgPolicy(data).monitors)
+      }
+      case 'tune_monitor': {
+        const monitor = input.monitor
+        if (!monitor) return JSON.stringify({ error: 'monitor is required (expiry | stockout | waste | supplier)' })
+        const { data: polData, error: getErr } = await supabase.rpc('get_org_policy')
+        if (getErr) return JSON.stringify({ error: getErr.message })
+        const policy = mergeOrgPolicy(polData)
+        const m = policy.monitors[monitor] as Record<string, unknown>
+        if (typeof input.enabled === 'boolean') m.enabled = input.enabled
+        if (monitor === 'expiry') {
+          if (typeof input.threshold_days   === 'number') m.threshold_days   = input.threshold_days
+          if (typeof input.min_cost_at_risk === 'number') m.min_cost_at_risk = input.min_cost_at_risk
+          if (typeof input.auto_propose     === 'boolean') m.auto_propose    = input.auto_propose
+        } else if (monitor === 'stockout') {
+          if (typeof input.threshold_days === 'number') m.threshold_days = input.threshold_days
+        } else if (monitor === 'waste') {
+          if (typeof input.min_anomaly_score === 'number') m.min_anomaly_score = input.min_anomaly_score
+        } else if (monitor === 'supplier') {
+          if (typeof input.max_reliability_score === 'number') m.max_reliability_score = input.max_reliability_score
+        }
+        // Re-merge to clamp the operator's values into range before persisting.
+        const clamped = mergeOrgPolicy(policy)
+        const { error: setErr } = await supabase.rpc('set_org_policy', { p_policy: clamped })
+        if (setErr) return JSON.stringify({ error: setErr.message, hint: 'tuning a monitor requires admin or owner' })
+        return JSON.stringify({ ok: true, monitor, config: clamped.monitors[monitor] })
       }
       case 'get_shift_intelligence': {
         const { data, error } = await supabase.rpc('get_shift_intelligence', { p_window_days: input.window_days ?? 30 })
