@@ -53,10 +53,10 @@ export type AipTab =
 type Section = 'Decisions' | 'Studio'
 const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string }[] = [
   // Decisions — the daily driver
-  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '' },
-  { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '' },
-  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '' },
-  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '' },
+  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '', desc: 'Agent proposals awaiting your decision' },
+  { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '', desc: 'Approve, edit or reject restock requests' },
+  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '', desc: 'Actions a soft constraint paused for sign-off' },
+  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '', desc: 'The trigger → trace → outcome envelope' },
 
   // Studio — build & configure the fabric
   { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
@@ -128,7 +128,7 @@ export default function AIPShell({
             )}
           >
             <Icon icon="dashboard" size={13} />
-            <span className="flex-1">Command</span>
+            <span className="flex-1">Overview</span>
             {counts.command != null && counts.command > 0 && (
               <Tag minimal intent={Intent.PRIMARY} className="!text-[10px] !min-h-0 !py-0">
                 {counts.command > 99 ? '99+' : String(counts.command)}
@@ -146,6 +146,7 @@ export default function AIPShell({
                 key={t.id}
                 icon={t.icon}
                 label={t.label}
+                title={t.desc}
                 active={t.id === effTab}
                 badge={counts[t.id]}
                 badgeIntent={badgeIntent(t.id)}
@@ -253,10 +254,11 @@ function groupTabs(tabs: typeof TABS) {
 }
 
 function RailButton({
-  icon, label, active, badge, badgeIntent, onClick,
+  icon, label, title, active, badge, badgeIntent, onClick,
 }: {
   icon: IconName
   label: string
+  title?: string
   active: boolean
   badge?: number
   badgeIntent: Intent
@@ -265,6 +267,7 @@ function RailButton({
   return (
     <button
       type="button"
+      title={title}
       onClick={onClick}
       className={cn(
         'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',

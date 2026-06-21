@@ -11,7 +11,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Button, Card, Icon, Intent, NonIdealState,
+  Button, Card, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
   SegmentedControl, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
@@ -37,6 +37,7 @@ import {
 } from '@/features/agents/useReviewQueue'
 
 type Band = 'all' | 'red' | 'yellow' | 'green'
+type SortKey = 'confidence-asc' | 'confidence-desc' | 'newest' | 'oldest'
 
 export default function ReviewQueuePage() {
   const { data: rows = [], isLoading, isError, refetch, isFetching, dataUpdatedAt } = usePendingProposals()
@@ -51,8 +52,10 @@ export default function ReviewQueuePage() {
   // O2: a rejection is a teaching moment. The dialog lives at the page level so
   // it survives the row unmounting when the queue refreshes after the reject.
   const [teachCtx, setTeachCtx]       = useState<TeachRuleContext | null>(null)
-  // The "confirm" arming is set-specific — drop it whenever the filter changes.
-  useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter])
+  const [search, setSearch]           = useState('')
+  const [sortBy, setSortBy]           = useState<SortKey>('confidence-asc')
+  // The "confirm" arming is set-specific — drop it whenever the visible set changes.
+  useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter, search])
 
   const handleReject = (row: ProposalRow) => {
     reject.mutate(row.id, { onSuccess: () => { setTeachCtx(teachCtxFor(row)) } })
@@ -75,6 +78,22 @@ export default function ReviewQueuePage() {
     if (agentFilter && r.agent_name !== agentFilter) return false
     if (typeFilter  && r.action_type !== typeFilter) return false
     return true
+  })
+
+  // Free-text search + operator-chosen sort over the band/agent/type result.
+  const q = search.trim().toLowerCase()
+  const visible = [...(q
+    ? filtered.filter((r) =>
+        r.agent_name.toLowerCase().includes(q) ||
+        r.action_type.toLowerCase().includes(q) ||
+        r.reasoning.toLowerCase().includes(q))
+    : filtered)].sort((a, b) => {
+    switch (sortBy) {
+      case 'confidence-desc': return b.confidence - a.confidence
+      case 'newest':          return +new Date(b.created_at) - +new Date(a.created_at)
+      case 'oldest':          return +new Date(a.created_at) - +new Date(b.created_at)
+      default:                return a.confidence - b.confidence
+    }
   })
 
   if (isLoading) {
@@ -110,7 +129,7 @@ export default function ReviewQueuePage() {
             )}
           </h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Agent proposals awaiting your decision · ordered by lowest confidence first
+            Agent proposals awaiting your decision · search, filter and sort to triage
           </p>
         </div>
         <Button
@@ -155,7 +174,27 @@ export default function ReviewQueuePage() {
             />
           )}
 
-          {filtered.length > 1 && (
+          <InputGroup
+            size="small"
+            leftIcon="search"
+            placeholder="Search reasoning, agent, action…"
+            value={search}
+            onValueChange={setSearch}
+            className="max-w-[220px]"
+          />
+          <HTMLSelect
+            minimal
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.currentTarget.value as SortKey) }}
+            options={[
+              { value: 'confidence-asc',  label: 'Lowest confidence' },
+              { value: 'confidence-desc', label: 'Highest confidence' },
+              { value: 'newest',          label: 'Newest' },
+              { value: 'oldest',          label: 'Oldest' },
+            ]}
+          />
+
+          {visible.length > 1 && (
             <Button
               size="small"
               variant="minimal"
@@ -165,10 +204,10 @@ export default function ReviewQueuePage() {
               loading={rejectMany.isPending}
               onClick={() => {
                 if (!armBulk) { setArmBulk(true); return }
-                rejectMany.mutate(filtered.map((r) => r.id), { onSettled: () => { setArmBulk(false) } })
+                rejectMany.mutate(visible.map((r) => r.id), { onSettled: () => { setArmBulk(false) } })
               }}
             >
-              {armBulk ? `Confirm — reject ${String(filtered.length)}` : `Reject ${String(filtered.length)} filtered`}
+              {armBulk ? `Confirm — reject ${String(visible.length)}` : `Reject ${String(visible.length)} shown`}
             </Button>
           )}
         </div>
@@ -181,12 +220,12 @@ export default function ReviewQueuePage() {
             title="Queue is empty"
             description={`No pending proposals. Agents run on operator request (e.g. from a variant page) or on a schedule. Last checked ${formatDistanceToNow(new Date(dataUpdatedAt), { addSuffix: true })}.`}
           />
-        ) : filtered.length === 0 ? (
+        ) : visible.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-xs text-muted-foreground">
             No proposals match these filters
           </div>
         ) : (
-          filtered.map((row) => (
+          visible.map((row) => (
             <QueueRow
               key={row.id}
               row={row}
