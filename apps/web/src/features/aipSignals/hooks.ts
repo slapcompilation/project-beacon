@@ -11,15 +11,17 @@ export interface AipSignalCounts {
   queue:        number
   approvals:    number
   entityLinks:  number
+  casesOpen:    number
 }
 
 interface RpcRow {
   queue_pending:        number
   approvals_pending:    number
   entity_links_pending: number
+  cases_open:           number
 }
 
-const EMPTY: AipSignalCounts = { queue: 0, approvals: 0, entityLinks: 0 }
+const EMPTY: AipSignalCounts = { queue: 0, approvals: 0, entityLinks: 0, casesOpen: 0 }
 
 export function useAipSignalCounts() {
   const hotelId = useActiveHotelId()
@@ -37,6 +39,7 @@ export function useAipSignalCounts() {
         queue:       row.queue_pending,
         approvals:   row.approvals_pending,
         entityLinks: row.entity_links_pending,
+        casesOpen:   row.cases_open,
       }
     },
     enabled:         !!hotelId,
