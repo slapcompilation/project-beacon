@@ -347,8 +347,18 @@ export {
   expiryUrgency,
   expiryHitToWriteOff,
   parseExpiryTuning,
+  selectStockoutTriggers,
+  stockoutUrgency,
+  selectWasteTriggers,
+  selectSupplierTriggers,
+  supplierUrgency,
 } from './monitors/index'
-export type { ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult } from './monitors/index'
+export type {
+  ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult,
+  StockoutReading, StockoutHit,
+  WasteReading, WasteHit,
+  SupplierReading, SupplierHit,
+} from './monitors/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {

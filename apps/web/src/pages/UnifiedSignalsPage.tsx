@@ -29,7 +29,11 @@ import { fetchExpiryBatches } from '@/features/inventory/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useHotelEdges } from '@/hooks/useHotelEdges'
 import { useMonitorPolicy } from '@/features/monitors/hooks'
-import { selectExpiryTriggers, DEFAULT_ORG_POLICY, type ExpiryBatch, type ExpiryMonitorConfig } from '@beacon/reality-graph'
+import {
+  selectExpiryTriggers, selectStockoutTriggers, selectWasteTriggers, selectSupplierTriggers,
+  DEFAULT_ORG_POLICY,
+  type ExpiryBatch, type StockoutReading, type WasteReading, type SupplierReading, type OrgPolicy,
+} from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import type {
   WasteRadarRow, ConsumptionForecastRow, ActiveIncidentRow,
@@ -80,7 +84,7 @@ function buildSignalFeed(
   forecast:    ConsumptionForecastRow[],
   reliability: SupplierReliabilityRow[],
   expiry:      ExpiryBatchRow[],
-  expiryRule:  ExpiryMonitorConfig,
+  monitors:    OrgPolicy['monitors'],
 ): UnifiedSignal[] {
   const map = new Map<string, UnifiedSignal>()
 
@@ -101,25 +105,34 @@ function buildSignalFeed(
     if (!obj.context) obj.context = row.primary_signal
   }
 
-  // Waste anomalies
-  for (const row of waste) {
-    const obj = upsert(row.variant_id, row.variant_label, `/variant/${row.variant_id}`, 'variant')
-    const urgency = row.anomaly_score          // already 1–10
-    obj.badges.push({ type: 'waste', urgency, detail: `${row.pct_above_baseline.toFixed(0)}% above baseline · score ${row.anomaly_score.toFixed(1)}` })
-    if (!obj.context) obj.context = `${row.qty_7d} units written off this week`
+  // Waste anomalies — surfacing floor is the tunable rule, not "show everything"
+  const wasteReadings: WasteReading[] = waste.map((row) => ({
+    variantId:        row.variant_id,
+    variantLabel:     row.variant_label,
+    anomalyScore:     row.anomaly_score,
+    pctAboveBaseline: row.pct_above_baseline,
+    qty7d:            row.qty_7d,
+  }))
+  for (const hit of selectWasteTriggers(wasteReadings, monitors.waste)) {
+    const obj = upsert(hit.variantId, hit.variantLabel, `/variant/${hit.variantId}`, 'variant')
+    obj.badges.push({ type: 'waste', urgency: hit.urgency, detail: `${hit.pctAboveBaseline.toFixed(0)}% above baseline · score ${hit.anomalyScore.toFixed(1)}` })
+    if (!obj.context) obj.context = `${String(hit.qty7d)} units written off this week`
   }
 
-  // Stockout risk — only variants within 14 days
-  for (const row of forecast) {
-    if (row.days_until_zero === null || row.days_until_zero > 14) continue
-    const dtz = Math.round(row.days_until_zero)
-    const urgency = dtz <= 0 ? 10 : dtz <= 3 ? 9 : dtz <= 7 ? 7 : 4
-    const name = row.variant_name !== 'Standard'
-      ? `${row.product_name} · ${row.variant_name}`
-      : row.product_name
-    const obj = upsert(row.variant_id, name, `/variant/${row.variant_id}`, 'variant')
-    obj.badges.push({ type: 'stockout', urgency, detail: `${dtz}d until zero · avg ${row.avg_daily.toFixed(1)}/day` })
-    if (!obj.context) obj.context = `${row.current_stock} in stock · ${dtz}d remaining`
+  // Stockout risk — surfacing band from the tunable rule (the proposal path is
+  // restock_advisor, unchanged). No hardcoded 14/7/3-day ladder.
+  const stockoutReadings: StockoutReading[] = forecast.map((row) => ({
+    variantId:     row.variant_id,
+    variantLabel:  row.variant_name !== 'Standard' ? `${row.product_name} · ${row.variant_name}` : row.product_name,
+    daysUntilZero: row.days_until_zero,
+    currentStock:  row.current_stock,
+    avgDaily:      row.avg_daily,
+  }))
+  for (const hit of selectStockoutTriggers(stockoutReadings, monitors.stockout)) {
+    const dtz = Math.round(hit.daysUntilZero)
+    const obj = upsert(hit.variantId, hit.variantLabel, `/variant/${hit.variantId}`, 'variant')
+    obj.badges.push({ type: 'stockout', urgency: hit.urgency, detail: `${String(dtz)}d until zero · avg ${hit.avgDaily.toFixed(1)}/day` })
+    if (!obj.context) obj.context = `${String(hit.currentStock)} in stock · ${String(dtz)}d remaining`
   }
 
   // Expiry risk — the window + urgency bands come from the operator's tunable
@@ -134,7 +147,7 @@ function buildSignalFeed(
     hotelId:         '',
   }))
   const seenExpiry = new Set<string>()
-  for (const hit of selectExpiryTriggers(expiryBatches, expiryRule)) {
+  for (const hit of selectExpiryTriggers(expiryBatches, monitors.expiry)) {
     if (seenExpiry.has(hit.variantId)) continue
     seenExpiry.add(hit.variantId)
     const obj = upsert(hit.variantId, hit.variantLabel, `/variant/${hit.variantId}`, 'variant')
@@ -142,18 +155,24 @@ function buildSignalFeed(
     if (!obj.context) obj.context = `Expires in ${String(hit.daysUntilExpiry)}d`
   }
 
-  // Supplier risk — critical and high only
-  for (const row of reliability) {
-    if (row.risk_tier === 'low' || row.risk_tier === 'medium') continue
-    const urgency = row.risk_tier === 'critical' ? 9 : 6
-    const key = row.supplier_id ?? `supplier-name-${row.supplier_name}`
-    const url = row.supplier_id ? `/supplier/${row.supplier_id}` : '/mind?panel=suppliers'
-    const obj = upsert(key, row.supplier_name, url, 'supplier')
+  // Supplier risk — surfacing band from the tunable reliability-score cutoff
+  const supplierReadings: SupplierReading[] = reliability.map((row) => ({
+    supplierId:       row.supplier_id,
+    supplierName:     row.supplier_name,
+    reliabilityScore: row.reliability_score,
+    onTimePct:        row.on_time_pct,
+    avgDelayDays:     row.avg_delay_days,
+    riskTier:         row.risk_tier,
+  }))
+  for (const hit of selectSupplierTriggers(supplierReadings, monitors.supplier)) {
+    const key = hit.supplierId ?? `supplier-name-${hit.supplierName}`
+    const url = hit.supplierId ? `/supplier/${hit.supplierId}` : '/mind?panel=suppliers'
+    const obj = upsert(key, hit.supplierName, url, 'supplier')
     obj.badges.push({
-      type: 'supplier', urgency,
-      detail: `Score ${row.reliability_score.toFixed(1)}/10 · ${row.on_time_pct.toFixed(0)}% on-time · avg ${row.avg_delay_days.toFixed(1)}d late`,
+      type: 'supplier', urgency: hit.urgency,
+      detail: `Score ${hit.reliabilityScore.toFixed(1)}/10 · ${hit.onTimePct.toFixed(0)}% on-time · avg ${hit.avgDelayDays.toFixed(1)}d late`,
     })
-    if (!obj.context) obj.context = `${row.total_orders} orders · ${row.active_contracts} contracts · ${row.risk_tier.toUpperCase()} risk`
+    if (!obj.context) obj.context = `${hit.riskTier.toUpperCase()} risk · reliability ${hit.reliabilityScore.toFixed(1)}/10`
   }
 
   // Compute topUrgency and sort
@@ -259,7 +278,7 @@ export default function UnifiedSignalsPage() {
   const [filter, setFilter] = useState<FilterMode>('all')
 
   const { data: monitorPolicy } = useMonitorPolicy()
-  const expiryRule = monitorPolicy?.merged.monitors.expiry ?? DEFAULT_ORG_POLICY.monitors.expiry
+  const monitors = monitorPolicy?.merged.monitors ?? DEFAULT_ORG_POLICY.monitors
 
   const { data: incidents   = [], isLoading: l1 } = useActiveIncidents(7)
   const { data: waste       = [], isLoading: l2 } = useWasteRadar()
@@ -267,8 +286,8 @@ export default function UnifiedSignalsPage() {
   const { data: reliability = [], isLoading: l4 } = useSupplierReliability(90)
   const { data: expiry      = [], isLoading: l5 } = useQuery({
     // Metric pull: a wide window; the tunable trigger decides what surfaces.
-    queryKey:  ['eye', 'expiry-batches', hotelId, expiryRule.threshold_days],
-    queryFn:   () => fetchExpiryBatches(Math.max(expiryRule.threshold_days, 30)),
+    queryKey:  ['eye', 'expiry-batches', hotelId, monitors.expiry.threshold_days],
+    queryFn:   () => fetchExpiryBatches(Math.max(monitors.expiry.threshold_days, 30)),
     enabled:   !!hotelId,
     staleTime: 5 * 60 * 1000,
   })
@@ -289,8 +308,8 @@ export default function UnifiedSignalsPage() {
   const isLoading = l1 || l2 || l3 || l4 || l5
 
   const allSignals = useMemo(
-    () => buildSignalFeed(incidents, waste, forecast, reliability, expiry, expiryRule),
-    [incidents, waste, forecast, reliability, expiry, expiryRule],
+    () => buildSignalFeed(incidents, waste, forecast, reliability, expiry, monitors),
+    [incidents, waste, forecast, reliability, expiry, monitors],
   )
 
   const counts: Record<FilterMode, number> = useMemo(() => ({

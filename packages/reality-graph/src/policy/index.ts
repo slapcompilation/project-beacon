@@ -26,6 +26,28 @@ export interface ExpiryMonitorConfig {
   auto_propose: boolean
 }
 
+/** Stockout surfacing band — the proposal path (restock_advisor) is unchanged;
+ *  this only tunes when a variant *surfaces* as a stockout signal. */
+export interface StockoutMonitorConfig {
+  enabled: boolean
+  /** Surface when days_until_zero ≤ this. */
+  threshold_days: number
+}
+
+/** Waste anomaly band. */
+export interface WasteMonitorConfig {
+  enabled: boolean
+  /** Surface when anomaly_score ≥ this (scores run 1–10). */
+  min_anomaly_score: number
+}
+
+/** Supplier-risk band — score runs 0–10, lower is worse. */
+export interface SupplierMonitorConfig {
+  enabled: boolean
+  /** Surface when reliability_score ≤ this. */
+  max_reliability_score: number
+}
+
 export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
@@ -69,6 +91,9 @@ export interface OrgPolicy {
   monitors: {
     /** Expiry detection — the first monitor whose condition is tunable data. */
     expiry: ExpiryMonitorConfig
+    stockout: StockoutMonitorConfig
+    waste: WasteMonitorConfig
+    supplier: SupplierMonitorConfig
   }
 }
 
@@ -97,7 +122,10 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     max_proposals_per_sweep: 25,
   },
   monitors: {
-    expiry: { enabled: true, threshold_days: 7, min_cost_at_risk: 0, auto_propose: false },
+    expiry:   { enabled: true, threshold_days: 7, min_cost_at_risk: 0, auto_propose: false },
+    stockout: { enabled: true, threshold_days: 14 },
+    waste:    { enabled: true, min_anomaly_score: 1 },
+    supplier: { enabled: true, max_reliability_score: 6 },
   },
 }
 
@@ -120,7 +148,12 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     par:                  { ...DEFAULT_ORG_POLICY.par },
     supplier_reliability: { ...DEFAULT_ORG_POLICY.supplier_reliability },
     caps:                 { ...DEFAULT_ORG_POLICY.caps },
-    monitors:             { expiry: { ...DEFAULT_ORG_POLICY.monitors.expiry } },
+    monitors: {
+      expiry:   { ...DEFAULT_ORG_POLICY.monitors.expiry },
+      stockout: { ...DEFAULT_ORG_POLICY.monitors.stockout },
+      waste:    { ...DEFAULT_ORG_POLICY.monitors.waste },
+      supplier: { ...DEFAULT_ORG_POLICY.monitors.supplier },
+    },
   }
 
   if (isObj(o.auto_execution)) {
@@ -168,13 +201,34 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     if (typeof c.max_variants_per_cycle  === 'number') merged.caps.max_variants_per_cycle  = Math.round(c.max_variants_per_cycle)
     if (typeof c.max_proposals_per_sweep === 'number') merged.caps.max_proposals_per_sweep = Math.round(c.max_proposals_per_sweep)
   }
-  if (isObj(o.monitors) && isObj((o.monitors as Record<string, unknown>).expiry)) {
-    const e = (o.monitors as Record<string, Record<string, unknown>>).expiry
-    const m = merged.monitors.expiry
-    if (typeof e.enabled          === 'boolean') m.enabled          = e.enabled
-    if (typeof e.auto_propose     === 'boolean') m.auto_propose     = e.auto_propose
-    if (typeof e.threshold_days   === 'number')  m.threshold_days   = clamp(Math.round(e.threshold_days), 0, 365)
-    if (typeof e.min_cost_at_risk === 'number')  m.min_cost_at_risk = Math.max(0, e.min_cost_at_risk)
+  if (isObj(o.monitors)) {
+    const mo = o.monitors as Record<string, unknown>
+    if (isObj(mo.expiry)) {
+      const e = mo.expiry as Record<string, unknown>
+      const m = merged.monitors.expiry
+      if (typeof e.enabled          === 'boolean') m.enabled          = e.enabled
+      if (typeof e.auto_propose     === 'boolean') m.auto_propose     = e.auto_propose
+      if (typeof e.threshold_days   === 'number')  m.threshold_days   = clamp(Math.round(e.threshold_days), 0, 365)
+      if (typeof e.min_cost_at_risk === 'number')  m.min_cost_at_risk = Math.max(0, e.min_cost_at_risk)
+    }
+    if (isObj(mo.stockout)) {
+      const s = mo.stockout as Record<string, unknown>
+      const m = merged.monitors.stockout
+      if (typeof s.enabled        === 'boolean') m.enabled        = s.enabled
+      if (typeof s.threshold_days === 'number')  m.threshold_days = clamp(Math.round(s.threshold_days), 0, 365)
+    }
+    if (isObj(mo.waste)) {
+      const w = mo.waste as Record<string, unknown>
+      const m = merged.monitors.waste
+      if (typeof w.enabled           === 'boolean') m.enabled           = w.enabled
+      if (typeof w.min_anomaly_score === 'number')  m.min_anomaly_score = clamp(w.min_anomaly_score, 0, 10)
+    }
+    if (isObj(mo.supplier)) {
+      const sup = mo.supplier as Record<string, unknown>
+      const m = merged.monitors.supplier
+      if (typeof sup.enabled               === 'boolean') m.enabled               = sup.enabled
+      if (typeof sup.max_reliability_score === 'number')  m.max_reliability_score = clamp(sup.max_reliability_score, 0, 10)
+    }
   }
 
   return merged
