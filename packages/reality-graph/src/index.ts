@@ -176,8 +176,10 @@ export {
   computeCalibration,
   outcomeLabel,
   calibratedConfidence,
+  recommendAutonomy,
   DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
   DEFAULT_CALIBRATION_EDIT_PENALTY,
+  DEFAULT_AUTONOMY_CONFIG,
 } from './calibration/index'
 export type {
   CalibrationSample,
@@ -185,6 +187,8 @@ export type {
   CalibrationReport,
   CalibrationVerdict,
   CalibrationOptions,
+  AutonomyConfig,
+  AutonomyRecommendation,
 } from './calibration/index'
 
 // ── Self-evolving ontology — gap detection (Pillar 2) ────────────────────────
