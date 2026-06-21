@@ -37,7 +37,7 @@ export function CommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void 
       <div className="px-8 py-6 max-w-4xl space-y-6">
         <header className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-xl font-semibold">Command</h1>
+            <h1 className="text-xl font-semibold">Overview</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {totalOpen === 0
                 ? 'All clear — no open decisions. The autonomous loop is running below.'
