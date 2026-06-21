@@ -38,12 +38,13 @@ const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
+const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
 
 export type AipTab =
   | 'command'
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
   | 'studio'
-  | 'agents' | 'system-map' | 'ontology'
+  | 'agents' | 'system-map' | 'ontology' | 'monitors'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
@@ -67,6 +68,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
   { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
   { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', group: 'Agents & compute', desc: 'Is the system getting better — calibration + loop health' },
+  { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', group: 'Agents & compute', desc: 'Tunable triggers that fire proposals into Decisions' },
 
   { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge', desc: 'Ingested sources with page provenance' },
   { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge', desc: 'Review suggested links to entities' },
@@ -234,6 +236,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, allowOrg: boole
     case 'objectives':   return <ModelingObjectivesPage />
     case 'calibration':  return <DecisionCalibrationPage />
     case 'flywheel':     return <FlywheelPage />
+    case 'monitors':     return <MonitorsTab />
     case 'scenarios':     return <ScenariosPage />
     case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />
