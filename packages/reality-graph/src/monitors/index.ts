@@ -8,7 +8,9 @@
 // every band is derived from the rule the operator owns.
 
 import type { BeaconAction } from '../actions/index'
-import type { ExpiryMonitorConfig } from '../policy/index'
+import type {
+  ExpiryMonitorConfig, StockoutMonitorConfig, WasteMonitorConfig, SupplierMonitorConfig,
+} from '../policy/index'
 
 export interface ExpiryBatch {
   variantId: string
@@ -115,6 +117,101 @@ export function parseExpiryTuning(text: string, current: ExpiryMonitorConfig): E
   }
 
   return { rule: next, changed, understood: changed.length > 0 }
+}
+
+// ── Stockout band ───────────────────────────────────────────────────────────
+// The proposal path (restock_advisor) is untouched. This only governs *when a
+// variant surfaces* as a stockout signal — the band that used to be a hardcoded
+// 14/7/3-day ladder in the UI.
+
+export interface StockoutReading {
+  variantId: string
+  variantLabel: string
+  daysUntilZero: number | null
+  currentStock: number
+  avgDaily: number
+}
+
+export interface StockoutHit extends StockoutReading {
+  daysUntilZero: number
+  urgency: number
+}
+
+export function stockoutUrgency(daysUntilZero: number, thresholdDays: number): number {
+  if (daysUntilZero <= 0 || thresholdDays <= 0) return 10
+  return clamp(Math.round((1 - daysUntilZero / thresholdDays) * 10) + 1, 1, 10)
+}
+
+export function selectStockoutTriggers(
+  readings: ReadonlyArray<StockoutReading>,
+  rule: StockoutMonitorConfig,
+): StockoutHit[] {
+  if (!rule.enabled) return []
+  const hits: StockoutHit[] = []
+  for (const r of readings) {
+    if (r.daysUntilZero == null || r.daysUntilZero > rule.threshold_days) continue
+    hits.push({ ...r, daysUntilZero: r.daysUntilZero, urgency: stockoutUrgency(r.daysUntilZero, rule.threshold_days) })
+  }
+  return hits.sort((a, b) => b.urgency - a.urgency)
+}
+
+// ── Waste anomaly band ──────────────────────────────────────────────────────
+
+export interface WasteReading {
+  variantId: string
+  variantLabel: string
+  anomalyScore: number
+  pctAboveBaseline: number
+  qty7d: number
+}
+
+export interface WasteHit extends WasteReading {
+  urgency: number
+}
+
+export function selectWasteTriggers(
+  readings: ReadonlyArray<WasteReading>,
+  rule: WasteMonitorConfig,
+): WasteHit[] {
+  if (!rule.enabled) return []
+  const hits: WasteHit[] = []
+  for (const r of readings) {
+    if (r.anomalyScore < rule.min_anomaly_score) continue
+    hits.push({ ...r, urgency: clamp(Math.round(r.anomalyScore), 1, 10) })
+  }
+  return hits.sort((a, b) => b.urgency - a.urgency)
+}
+
+// ── Supplier-risk band ──────────────────────────────────────────────────────
+
+export interface SupplierReading {
+  supplierId: string | null
+  supplierName: string
+  reliabilityScore: number
+  onTimePct: number
+  avgDelayDays: number
+  riskTier: string
+}
+
+export interface SupplierHit extends SupplierReading {
+  urgency: number
+}
+
+export function supplierUrgency(reliabilityScore: number): number {
+  return clamp(Math.round(10 - reliabilityScore), 1, 10)
+}
+
+export function selectSupplierTriggers(
+  readings: ReadonlyArray<SupplierReading>,
+  rule: SupplierMonitorConfig,
+): SupplierHit[] {
+  if (!rule.enabled) return []
+  const hits: SupplierHit[] = []
+  for (const r of readings) {
+    if (r.reliabilityScore > rule.max_reliability_score) continue
+    hits.push({ ...r, urgency: supplierUrgency(r.reliabilityScore) })
+  }
+  return hits.sort((a, b) => b.urgency - a.urgency)
 }
 
 function clamp(n: number, lo: number, hi: number): number {

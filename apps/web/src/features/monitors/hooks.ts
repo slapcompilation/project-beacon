@@ -5,7 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase/client'
-import { mergeOrgPolicy, type OrgPolicy, type ExpiryMonitorConfig } from '@beacon/reality-graph'
+import { mergeOrgPolicy, type OrgPolicy } from '@beacon/reality-graph'
 
 const MONITORS_KEY = ['monitors', 'org-policy'] as const
 
@@ -21,14 +21,14 @@ export function useMonitorPolicy() {
   return useQuery({ queryKey: MONITORS_KEY, queryFn: fetchPolicy, staleTime: 60_000 })
 }
 
-export function useSetExpiryMonitor() {
+export function useSetMonitors() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (expiry: ExpiryMonitorConfig) => {
+    mutationFn: async (monitors: OrgPolicy['monitors']) => {
       // set_org_policy replaces the whole doc — read current, swap the monitor
       // section, write back the full merged document (last-writer-wins).
       const current = await fetchPolicy()
-      const next: OrgPolicy = { ...current.merged, monitors: { expiry } }
+      const next: OrgPolicy = { ...current.merged, monitors }
       const result = await supabase.rpc('set_org_policy', { p_policy: next }) as unknown as {
         data: unknown; error: { message: string } | null
       }
