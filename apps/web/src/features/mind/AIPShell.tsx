@@ -9,10 +9,7 @@ import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import { usePendingProposals } from '@/features/agents/useReviewQueue'
-import { usePendingApprovals } from '@/features/pendingApprovals/hooks'
-import { useCases } from '@/features/cases/hooks'
-import { usePendingEntityLinkSuggestions } from '@/features/entityLinks/hooks'
+import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
@@ -344,17 +341,16 @@ function badgeIntent(t: AipTab): Intent {
   return Intent.NONE
 }
 
-/** Live counts that make the rail itself intelligent — pending work per tab. */
+/** Live counts that make the rail itself intelligent — pending work per tab.
+ *  The four decision counts come from one server-aggregated RPC (shared with the
+ *  topbar) instead of fetching four full datasets just to take their length. */
 function useAipCounts(): Partial<Record<AipTab, number>> {
-  const queue       = usePendingProposals()
-  const approvals   = usePendingApprovals()
-  const cases       = useCases('open')
-  const entityLinks = usePendingEntityLinkSuggestions()
-  const summaries   = useAgentRunSummaries()
+  const signals   = useAipSignalCounts()
+  const summaries = useAgentRunSummaries()
 
-  const q = queue.data?.length ?? 0
-  const a = approvals.data?.length ?? 0
-  const c = cases.data?.length ?? 0
+  const q = signals.data?.queue ?? 0
+  const a = signals.data?.approvals ?? 0
+  const c = signals.data?.casesOpen ?? 0
   const agentsPending = (summaries.data ?? []).reduce((s, r) => s + r.pending, 0)
 
   return {
@@ -362,7 +358,7 @@ function useAipCounts(): Partial<Record<AipTab, number>> {
     queue:          q,
     approvals:      a,
     cases:          c,
-    'entity-links': entityLinks.data?.length,
+    'entity-links': signals.data?.entityLinks,
     agents:         agentsPending > 0 ? agentsPending : undefined,
   }
 }
