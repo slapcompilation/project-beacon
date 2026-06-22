@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useMonitorPolicy, useSetMonitors } from './hooks'
 import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
+import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
 
 type Monitors = OrgPolicy['monitors']
 
@@ -48,6 +49,22 @@ function MonitorShell({ icon, title, enabled, effect, onToggle, canEdit, childre
   )
 }
 
+function CaseScanRow({ kind, enabled, running, result, onRun }: {
+  kind: MonitorKind; enabled: boolean; running: MonitorKind | null; result: CaseSweepResult | null; onRun: (k: MonitorKind) => void
+}) {
+  return (
+    <div className="flex items-center gap-2 pt-1">
+      <Button size="small" icon="play" text="Run scan now" disabled={!enabled || running !== null} loading={running === kind}
+        onClick={() => { onRun(kind) }} />
+      {result?.kind === kind && (
+        <span className="text-xs text-muted-foreground">
+          {result.fired} fired · {result.opened} case{result.opened === 1 ? '' : 's'} opened{result.reused > 0 ? ` · ${result.reused} existing` : ''}
+        </span>
+      )}
+    </div>
+  )
+}
+
 export default function MonitorsTab() {
   const role = useAuthStore((s) => s.role)
   const canEdit = role === 'admin' || role === 'owner'
@@ -55,12 +72,19 @@ export default function MonitorsTab() {
   const saved = data?.merged.monitors
   const setMonitors = useSetMonitors()
   const sweep = useExpiryMonitorSweep()
+  const caseSweep = useMonitorCaseSweep()
 
   const [draft, setDraft] = useState<Monitors | null>(null)
   const [nl, setNl] = useState('')
   const [nlNote, setNlNote] = useState<string | null>(null)
   const [nlBusy, setNlBusy] = useState(false)
   const [scan, setScan] = useState<ExpiryScanResult | null>(null)
+  const [caseRunning, setCaseRunning] = useState<MonitorKind | null>(null)
+  const [caseResult, setCaseResult] = useState<CaseSweepResult | null>(null)
+  const runCaseScan = (kind: MonitorKind) => {
+    setCaseRunning(kind); setCaseResult(null)
+    caseSweep.mutate(kind, { onSuccess: (r) => { setCaseResult(r) }, onSettled: () => { setCaseRunning(null) } })
+  }
 
   useEffect(() => { if (saved && !draft) setDraft(saved) }, [saved, draft])
 
@@ -142,20 +166,22 @@ export default function MonitorsTab() {
 
         {/* Waste anomaly */}
         <MonitorShell icon="flame" title="Waste monitor" enabled={draft.waste.enabled} canEdit={canEdit}
-          effect="Effect — surfaces anomalies in Signals (investigate / PAR-adjust proposal coming)."
+          effect="Effect — opens a waste-investigation Case in Decisions when an anomaly fires."
           onToggle={(b) => { patch('waste', { enabled: b }) }}>
           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Metric — anomaly score (1–10)</div>
           <NumField label="Surface at score ≥" value={draft.waste.min_anomaly_score} max={10} disabled={!canEdit}
             onChange={(n) => { patch('waste', { min_anomaly_score: n }) }} />
+          <CaseScanRow kind="waste" enabled={draft.waste.enabled} running={caseRunning} result={caseResult} onRun={runCaseScan} />
         </MonitorShell>
 
         {/* Supplier risk */}
         <MonitorShell icon="shield" title="Supplier monitor" enabled={draft.supplier.enabled} canEdit={canEdit}
-          effect="Effect — surfaces at-risk suppliers in Signals (re-rank / switch proposal coming)."
+          effect="Effect — opens a supplier-risk review Case in Decisions (typed supplier link)."
           onToggle={(b) => { patch('supplier', { enabled: b }) }}>
           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Metric — reliability score (0–10, lower is worse)</div>
           <NumField label="Surface at score ≤" value={draft.supplier.max_reliability_score} max={10} disabled={!canEdit}
             onChange={(n) => { patch('supplier', { max_reliability_score: n }) }} />
+          <CaseScanRow kind="supplier" enabled={draft.supplier.enabled} running={caseRunning} result={caseResult} onRun={runCaseScan} />
         </MonitorShell>
 
         {!canEdit && <Callout intent={Intent.NONE} icon="lock">Read-only — an admin or owner can tune these monitors.</Callout>}
