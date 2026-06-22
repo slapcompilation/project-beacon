@@ -11,6 +11,7 @@ import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAllConstraints, useCreateConstraint, useSetConstraintActive } from './hooks'
 import { categorizeConstraint } from './categorizer'
+import { resolveConstraintCategory } from './aiCategorizer'
 import type { ConstraintRow } from './api'
 
 const ACTION_TYPE_OPTIONS = [
@@ -35,27 +36,36 @@ export function ConstraintsSection() {
   const [body, setBody] = useState('')
   const [appliesTo, setAppliesTo] = useState('')
   const [severity, setSeverity] = useState<'hard' | 'soft'>('hard')
+  const [resolving, setResolving] = useState(false)
 
   const preview = body.trim().length > 0 ? categorizeConstraint(body.trim()) : null
 
   const handleCreate = () => {
     if (!preview || !body.trim()) return
-    create.mutate(
-      {
-        body: body.trim(),
-        bucket: preview.bucket,
-        typedRule: preview.typedRule,
-        severity,
-        appliesToActionTypes: appliesTo ? [appliesTo] : preview.appliesToActionTypes,
-      },
-      {
-        onSuccess: () => {
-          setBody('')
-          setAppliesTo('')
-          setSeverity('hard')
-        },
-      },
-    )
+    const text = body.trim()
+    setResolving(true)
+    // Heuristic preview is instant; if it's unsure, resolveConstraintCategory
+    // upgrades it via the LLM before we persist a gate.
+    void resolveConstraintCategory(text)
+      .then((cat) => {
+        create.mutate(
+          {
+            body: text,
+            bucket: cat.bucket,
+            typedRule: cat.typedRule,
+            severity,
+            appliesToActionTypes: appliesTo ? [appliesTo] : cat.appliesToActionTypes,
+          },
+          {
+            onSuccess: () => {
+              setBody('')
+              setAppliesTo('')
+              setSeverity('hard')
+            },
+          },
+        )
+      })
+      .finally(() => { setResolving(false) })
   }
 
   return (
@@ -120,8 +130,8 @@ export function ConstraintsSection() {
           <Button
             intent={Intent.PRIMARY}
             icon="add"
-            disabled={!preview || !body.trim() || create.isPending}
-            loading={create.isPending}
+            disabled={!preview || !body.trim() || create.isPending || resolving}
+            loading={create.isPending || resolving}
             onClick={handleCreate}
           >
             Save constraint

@@ -16,6 +16,7 @@ import {
 import { useCreatePrinciple } from '@/features/principles/hooks'
 import { useCreateConstraint } from '@/features/constraints/hooks'
 import { categorizeConstraint } from '@/features/constraints/categorizer'
+import { resolveConstraintCategory } from '@/features/constraints/aiCategorizer'
 
 export interface TeachRuleContext {
   actionType: string
@@ -52,26 +53,32 @@ export function TeachRuleDialog({
     ? categorizeConstraint(body.trim())
     : null
 
+  const [resolving, setResolving] = useState(false)
   const pending  = createPrinciple.isPending || createConstraint.isPending
-  const disabled = pending || body.trim().length === 0
+  const disabled = pending || resolving || body.trim().length === 0
 
   const submit = () => {
     const text = body.trim()
     if (mode === 'principle') {
       createPrinciple.mutate(text, { onSuccess: () => { onClose() } })
-    } else if (preview) {
-      createConstraint.mutate(
-        {
-          body: text,
-          bucket: preview.bucket,
-          typedRule: preview.typedRule,
-          appliesToActionTypes: preview.appliesToActionTypes.length > 0
-            ? preview.appliesToActionTypes
-            : [context.actionType],
-        },
-        { onSuccess: () => { onClose() } },
-      )
+      return
     }
+    if (!preview) return
+    setResolving(true)
+    // Heuristic preview is instant; LLM upgrades it at save when unsure.
+    void resolveConstraintCategory(text)
+      .then((cat) => {
+        createConstraint.mutate(
+          {
+            body: text,
+            bucket: cat.bucket,
+            typedRule: cat.typedRule,
+            appliesToActionTypes: cat.appliesToActionTypes.length > 0 ? cat.appliesToActionTypes : [context.actionType],
+          },
+          { onSuccess: () => { onClose() } },
+        )
+      })
+      .finally(() => { setResolving(false) })
   }
 
   return (
