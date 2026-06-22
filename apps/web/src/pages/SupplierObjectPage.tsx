@@ -20,6 +20,7 @@ import {
 } from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
 import { useSupplierReliability } from '@/features/eye/hooks'
+import { fetchOpenCasesForSupplier } from '@/features/cases/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
@@ -238,7 +239,14 @@ function ContractRow({ contract }: { contract: SupplierContract }) {
 export default function SupplierObjectPage() {
   const { supplierId = '' } = useParams<{ supplierId: string }>()
   const navigate       = useNavigate()
-  useActiveHotelId() // ensures hotel context is ready for RLS
+  const hotelId        = useActiveHotelId() // also scopes the open-cases lookup
+
+  const { data: openCases = [] } = useQuery({
+    queryKey:  ['supplier-open-cases', hotelId, supplierId],
+    queryFn:   () => fetchOpenCasesForSupplier(hotelId ?? '', supplierId),
+    enabled:   !!hotelId && !!supplierId,
+    staleTime: 30_000,
+  })
 
   const { data: supplier, isLoading: loadingSupplier, error: supplierError } = useQuery({
     queryKey:  ['supplier-object', supplierId],
@@ -461,6 +469,26 @@ export default function SupplierObjectPage() {
               </div>
             )}
           </Card>
+
+          {/* ── Open cases on this supplier (supplier-monitor effect) ── */}
+          {openCases.length > 0 && (
+            <Card compact className="!p-0">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Open Cases ({openCases.length})
+                </span>
+                <Link to="/mind?aip=cases" className="text-xs text-primary hover:underline">All cases →</Link>
+              </div>
+              <div className="divide-y divide-border/50">
+                {openCases.map((c) => (
+                  <Link key={c.id} to={`/cases/${c.id}`} className="flex items-center justify-between px-3 py-2 text-xs hover:bg-surface-2 transition-colors">
+                    <span className="truncate">{c.title}</span>
+                    <Tag minimal intent={c.status === 'in_review' ? Intent.WARNING : Intent.PRIMARY} className="!text-[10px] shrink-0 ml-2">{c.status}</Tag>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+          )}
 
           {/* ── Agent decisions across this supplier's items ── */}
           <ObjectAgentActivity
