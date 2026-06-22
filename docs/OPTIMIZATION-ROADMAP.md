@@ -17,6 +17,27 @@ the pure tech-debt backlog in memory (`project_corrections_needed`).
 
 ---
 
+## Progress (2026-06-22)
+
+**Shipped — all of P0 + the tractable P1:**
+- #1 real LLM behind the NL tuner (PR #207) · #2 calibration→policy autonomy (PR #209) ·
+  #3 stockout/waste/supplier tunable bands (PR #206) · #4 expiry monitor unattended in cron (PR #208)
+- #5 copilot monitor tools — tune from anywhere (PR #211) · #8 decision-counts shared RPC (PR #210)
+- #7 signals convergence — Alerts expiry band reads the monitor rule + cross-links (PR #212).
+  *Finding: Alerts and Signals are not duplicates (action workbench vs ranked read feed; variant- vs
+  batch-level expiry); a destructive merge would regress. Converged on the shared rule instead.*
+
+**The deliberate tail (NOT quick wins — each needs design or data; verified, not punted):**
+- **Waste/supplier effects** is the keystone — close the loop for waste (→ investigation Case) and
+  supplier (→ re-rank / switch proposal) the way expiry does. Needs new typed actions/agent design.
+- **#10 provenance enrichment is coupled to it** — `ObjectAgentActivity` shows supplier/PO links are
+  "0% populated" because no supplier/PO-targeting proposals exist *yet*. Enriching edges now populates
+  nothing; do it alongside the effects above.
+- **#6 forecasting adapter** needs real training + eval data and a promotion gate — an ML effort.
+- **#9 eval cohorts + diff** is the parked PR #142 — substantial eval UI/infra.
+
+---
+
 ## Priorities at a glance
 
 | # | Capability | Optimization | Lens | Effort | Priority |
