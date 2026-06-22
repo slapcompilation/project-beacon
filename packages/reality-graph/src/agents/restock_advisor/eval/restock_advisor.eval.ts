@@ -55,7 +55,7 @@ describe('restock_advisor v1.0.0', () => {
     world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
     world.restockRequests = [
       {
-        id: 'req-cover', variant_id: IDS.varTomatoesA, hotel_id: IDS.hotelA,
+        id: '61111111-1111-4111-8111-111111111111', variant_id: IDS.varTomatoesA, hotel_id: IDS.hotelA,
         quantity_needed: 500, status: 'pending',
         created_at: new Date().toISOString(),
       },

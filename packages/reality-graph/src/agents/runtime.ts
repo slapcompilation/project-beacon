@@ -39,6 +39,28 @@ export function createBlock<I, O>(def: BlockDef<I, O>): BlockDef<I, O> {
   return def
 }
 
+// ── Tool I/O validation ───────────────────────────────────────────────────────
+// AIP blocks are typed: every block "takes an input, returns an output". Logic
+// Tools declare zod input/output schemas, so the runtime enforces them at the
+// invoke boundary — a hallucinated/malformed tool call fails fast with a clear
+// error recorded in the trace, instead of feeding garbage into tool logic.
+// Tools whose schema isn't zod (plain-object placeholders) pass through.
+
+function isZodSchema(s: unknown): s is { safeParse: (v: unknown) => { success: boolean; error?: { issues: { path: (string | number)[]; message: string }[] } } } {
+  return !!s && typeof (s as { safeParse?: unknown }).safeParse === 'function'
+}
+
+/** Throws when `value` violates `schema` (when schema is zod); otherwise no-op.
+ *  Validate-only — never transforms the value, so tool output shapes are untouched. */
+export function validateToolIO(schema: unknown, value: unknown, label: string): void {
+  if (!isZodSchema(schema)) return
+  const res = schema.safeParse(value)
+  if (!res.success) {
+    const issues = (res.error?.issues ?? []).map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`).join('; ')
+    throw new Error(`${label} failed schema validation: ${issues}`)
+  }
+}
+
 // ── Orchestrator ─────────────────────────────────────────────────────────────
 
 export interface RunAgentArgs {
@@ -97,6 +119,7 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
         if (!tool) {
           throw new Error(`Tool '${toolName}' not found in registry`)
         }
+        validateToolIO(tool.inputSchema, toolInput, `tool '${toolName}' input`)
         appendStep({
           blockName: block.name,
           type: 'llm_tool_use',
@@ -104,7 +127,9 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
           input: toolInput,
         })
         const started = Date.now()
-        const result = (await tool.invoke(toolInput)) as BO
+        const rawResult = await tool.invoke(toolInput)
+        validateToolIO(tool.outputSchema, rawResult, `tool '${toolName}' output`)
+        const result = rawResult as BO
         appendStep({
           blockName: block.name,
           type: 'tool_response',
