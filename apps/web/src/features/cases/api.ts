@@ -98,6 +98,22 @@ export async function fetchOpenCaseForSupplier(hotelId: string, supplierId: stri
   return data[0] ?? null
 }
 
+/** All still-open Cases naming this supplier — for the Supplier object view's
+ *  "open cases" section (the provenance payoff of typed supplier input_refs). */
+export async function fetchOpenCasesForSupplier(hotelId: string, supplierId: string): Promise<CaseRow[]> {
+  const { data, error } = await supabase
+    .from('cases')
+    .select('*')
+    .eq('hotel_id', hotelId)
+    .in('status', ['open', 'in_review'])
+    .contains('input_refs', [{ kind: 'supplier', ref: supplierId }])
+    .order('created_at', { ascending: false })
+    .limit(10)
+    .overrideTypes<CaseRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export async function fetchCasesForProposal(proposalId: string): Promise<CaseRow[]> {
   const { data, error } = await supabase
     .from('cases')
