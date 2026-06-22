@@ -11,6 +11,11 @@ import type { ConsumptionForecastInput, ConsumptionForecastOutput } from './type
 
 export { baselineRolling30dAdapter, seasonalNaiveV1Adapter }
 export type { ConsumptionForecastInput, ConsumptionForecastOutput }
+export { backtestForecastAdapters } from './backtest'
+export type {
+  BacktestCase, BacktestConfig, BacktestResult,
+  AdapterScore, CohortScore, CasePrediction,
+} from './backtest'
 
 export const CONSUMPTION_FORECAST_OBJECTIVE_NAME = 'consumption_forecast'
 

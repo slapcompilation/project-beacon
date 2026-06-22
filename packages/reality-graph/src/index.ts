@@ -307,8 +307,14 @@ export {
   baselineRolling30dAdapter,
   seasonalNaiveV1Adapter,
   registerConsumptionForecast,
+  backtestForecastAdapters,
   type ConsumptionForecastInput,
   type ConsumptionForecastOutput,
+  type BacktestCase,
+  type BacktestResult,
+  type AdapterScore,
+  type CohortScore,
+  type CasePrediction,
 } from './objectives/consumption_forecast/index'
 
 // ── Eval primitives — rubric grader (LLM-as-judge) + CI auto-persist ───────

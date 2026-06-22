@@ -36,6 +36,7 @@ const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
+const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 
 export type AipTab =
   | 'command'
@@ -43,7 +44,7 @@ export type AipTab =
   | 'studio'
   | 'agents' | 'system-map' | 'ontology' | 'monitors'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
-  | 'tools' | 'objectives' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
+  | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
 // Two intents, not one interleaved loop: Decisions is the daily operator inbox,
 // each a rail entry; Studio is where you build/configure the fabric (touched far
@@ -63,6 +64,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
+  { id: 'forecast-lab', label: 'Forecast Lab',      icon: 'lab-test',            section: 'Studio', group: 'Agents & compute', desc: 'Backtest + run the forecast adapters by cohort' },
   { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
   { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', group: 'Agents & compute', desc: 'Is the system getting better — calibration + loop health' },
   { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', group: 'Agents & compute', desc: 'Tunable triggers that fire proposals into Decisions' },
@@ -231,6 +233,7 @@ function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, allowOrg: boole
     case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
     case 'objectives':   return <ModelingObjectivesPage />
+    case 'forecast-lab': return <ForecastLabPage />
     case 'calibration':  return <DecisionCalibrationPage />
     case 'flywheel':     return <FlywheelPage />
     case 'monitors':     return <MonitorsTab />
