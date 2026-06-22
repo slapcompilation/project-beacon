@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase/client'
 export type CaseStatus = 'open' | 'in_review' | 'resolved' | 'closed'
 
 export interface CaseInputRef {
-  kind: 'alert' | 'agent_run' | 'note' | 'proposal' | 'manual' | 'variant'
+  kind: 'alert' | 'agent_run' | 'note' | 'proposal' | 'manual' | 'variant' | 'supplier'
   ref:  string
 }
 
@@ -75,6 +75,22 @@ export async function fetchOpenCaseForVariant(hotelId: string, variantId: string
     .eq('hotel_id', hotelId)
     .in('status', ['open', 'in_review'])
     .contains('input_refs', [{ kind: 'variant', ref: variantId }])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .overrideTypes<CaseRow[], { merge: false }>()
+  if (error) throw new Error(error.message)
+  return data[0] ?? null
+}
+
+/** Newest still-open Case whose input_refs name this supplier — lets a monitor
+ *  sweep reuse one envelope per supplier across runs (the variant analogue). */
+export async function fetchOpenCaseForSupplier(hotelId: string, supplierId: string): Promise<CaseRow | null> {
+  const { data, error } = await supabase
+    .from('cases')
+    .select('*')
+    .eq('hotel_id', hotelId)
+    .in('status', ['open', 'in_review'])
+    .contains('input_refs', [{ kind: 'supplier', ref: supplierId }])
     .order('created_at', { ascending: false })
     .limit(1)
     .overrideTypes<CaseRow[], { merge: false }>()
