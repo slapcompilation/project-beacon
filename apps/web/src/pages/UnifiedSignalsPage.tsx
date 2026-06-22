@@ -339,9 +339,9 @@ export default function UnifiedSignalsPage() {
             label: counts[f.mode] > 0 ? `${f.label} (${String(counts[f.mode])})` : f.label,
           }))}
         />
-        <div className="ml-auto shrink-0 text-xs text-muted-foreground/60 pr-1">
-          Sorted by urgency · live data
-        </div>
+        <Link to="/floor?panel=alerts" className="ml-auto shrink-0 text-xs text-primary hover:underline pr-1 inline-flex items-center gap-1">
+          <Icon icon="th-list" size={11} /> Act in Alerts workbench →
+        </Link>
       </div>
 
       {/* Feed */}

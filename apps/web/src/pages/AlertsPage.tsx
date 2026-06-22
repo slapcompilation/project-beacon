@@ -29,6 +29,8 @@ import {
   useAlertPreferences, useUpdateAlertPreferences,
 } from '@/features/notifications/hooks'
 import { useConsumptionForecast, useWasteRadar } from '@/features/eye/hooks'
+import { useMonitorPolicy } from '@/features/monitors/hooks'
+import { DEFAULT_ORG_POLICY } from '@beacon/reality-graph'
 import { useCreateRestockRequest } from '@/features/restock/hooks'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatCurrency } from '@/lib/currency'
@@ -406,6 +408,10 @@ export default function AlertsPage() {
   const { data: notifications = [], isLoading: notifLoading } = useNotifications()
   const { data: forecast = [] }   = useConsumptionForecast(30)
   const { data: wasteRadar = [] } = useWasteRadar()
+  // Single source of truth for "what counts as expiry-at-risk" — the same expiry
+  // monitor the ranked Signals feed reads. Default (7d) reproduces the prior band.
+  const { data: monitorPolicy } = useMonitorPolicy()
+  const expiryRule = monitorPolicy?.merged.monitors.expiry ?? DEFAULT_ORG_POLICY.monitors.expiry
 
   const adjustStock  = useAdjustStock()
   const createRestock = useCreateRestockRequest()
@@ -453,7 +459,7 @@ export default function AlertsPage() {
     for (const v of expiring) {
       if (!v.expiry_date) continue
       const days = daysUntil(v.expiry_date)
-      const band: Band = days <= 7 ? 'critical' : days <= 30 ? 'warning' : 'info'
+      const band: Band = days <= expiryRule.threshold_days ? 'critical' : days <= 30 ? 'warning' : 'info'
       const productName  = v.products?.name ?? 'Unknown product'
       const variantLabel = v.name !== 'Standard' ? `${productName} — ${v.name}` : productName
       const daysLabel    = days < 0 ? `Expired ${String(Math.abs(days))}d ago`
@@ -635,7 +641,7 @@ export default function AlertsPage() {
     })
   }, [
     expiring, products, notifications, forecastMap, wasteRadarIds,
-    navigate, handleWriteOff, handleRestock, handleDismiss, fmtDate,
+    navigate, handleWriteOff, handleRestock, handleDismiss, fmtDate, expiryRule,
   ])
 
   const criticalItems = alerts.filter((a) => a.band === 'critical')
@@ -688,6 +694,9 @@ export default function AlertsPage() {
               ? `All clear — checked ${String(variantCount)} variants · ${String(expiring.length)} expiry dates · ${String(notifications.length)} notifications`
               : `${String(alerts.length)} item${alerts.length !== 1 ? 's' : ''} need${alerts.length === 1 ? 's' : ''} attention`}
           </p>
+          <Link to="/eye?panel=signals" className="text-xs text-primary hover:underline mt-0.5 inline-flex items-center gap-1">
+            <Icon icon="sort" size={11} /> Ranked signal feed (incidents, suppliers, all objects) →
+          </Link>
         </div>
         <div className="flex items-center gap-2">
           {unreadNotifCount > 0 && (
