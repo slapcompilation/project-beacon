@@ -49,10 +49,13 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
     }
   }, [latestRun.data, overrideEvals])
 
-  const productionRequiresPass =
-    targetStage === 'production' && (evalPassRate == null || evalPassRate < PRODUCTION_MIN_PASS)
+  // Production is verified SERVER-side against the latest recorded eval run
+  // (migration 175) — the typed/override value is ignored for production, so the
+  // affordance gates on the recorded run, and override can't bypass it.
   const productionRequiresRun =
-    targetStage === 'production' && !overrideEvals && !latestRun.isLoading && latestRun.data == null
+    targetStage === 'production' && !latestRun.isLoading && latestRun.data == null
+  const productionRequiresPass =
+    targetStage === 'production' && latestRun.data != null && latestRun.data.value < PRODUCTION_MIN_PASS
 
   const disabled = promote.isPending || version.trim().length === 0 || productionRequiresPass || productionRequiresRun
 
@@ -112,9 +115,8 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
 
         {productionRequiresRun && (
           <Callout intent={Intent.WARNING} icon="warning-sign" title="No eval run recorded for this version">
-            Production promotion is blocked until a CI run posts a result for <code>@ {version.trim() || '?'}</code>.
-            Land any PR to record one, or toggle <em>Override</em> above to type the numbers manually (audit-only — the
-            server still enforces the floor against what you type).
+            Production promotion is blocked until a CI eval posts a result for <code>@ {version.trim() || '?'}</code>.
+            The server verifies production against the recorded run — <em>override can't bypass it</em>. Land a PR to record one.
           </Callout>
         )}
 
@@ -123,11 +125,13 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
           labelFor="promote-pass-rate"
           intent={productionRequiresPass ? Intent.WARNING : Intent.NONE}
           helperText={
-            productionRequiresPass
-              ? `Production needs ≥ ${String(PRODUCTION_MIN_PASS)} (server enforces this).`
-              : overrideEvals
-                ? 'Override mode: typing supersedes the auto-filled value from model_eval_runs.'
-                : 'Auto-filled from the latest model_eval_runs row for this version.'
+            targetStage === 'production'
+              ? 'Production is verified server-side against the latest recorded eval run — this value is informational; override does not apply.'
+              : productionRequiresPass
+                ? `Production needs ≥ ${String(PRODUCTION_MIN_PASS)} (server enforces this).`
+                : overrideEvals
+                  ? 'Override mode: typing supersedes the auto-filled value from model_eval_runs.'
+                  : 'Auto-filled from the latest model_eval_runs row for this version.'
           }
         >
           <NumericInput
