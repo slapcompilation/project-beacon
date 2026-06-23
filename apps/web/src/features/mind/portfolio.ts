@@ -16,6 +16,9 @@ export interface PortfolioHotelSignal {
   last_cycle_at:        string | null
   last_cycle_auto:      number
   last_cycle_queued:    number
+  /** Geographic coordinates from hotels.config; null when unset. */
+  lat:                  number | null
+  lng:                  number | null
 }
 
 async function fetchPortfolioSignals(): Promise<PortfolioHotelSignal[]> {
