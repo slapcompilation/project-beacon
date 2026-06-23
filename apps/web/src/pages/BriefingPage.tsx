@@ -6,6 +6,7 @@
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { format, formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { Button } from '@blueprintjs/core'
@@ -15,7 +16,11 @@ import {
 import { useActiveHotel } from '@/features/hotel/hooks'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
+import { useScopeMode } from '@/hooks/useActiveOrgId'
+import { useHasOrgScope } from '@/features/organizations/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
+import { PortfolioCommandHome } from '@/features/mind/PortfolioCommandHome'
+import type { AipTab } from '@/features/mind/AIPShell'
 
 import { SituationBanner } from '@/features/briefing/components/SituationBanner'
 import { SituationTimeline } from '@/features/briefing/components/SituationTimeline'
@@ -29,7 +34,29 @@ import { ShiftActivity } from '@/features/briefing/components/ShiftActivity'
 import { HotelMap } from '@/features/canvas/HotelMap'
 import { AipDecisionSummary } from '@/features/mind/AipDecisionSummary'
 
+// Home is scope-aware: a chain owner in portfolio scope gets the org rollup
+// (every property's signals + drill-in); a single property gets the briefing.
+// One Home, two scopes — mirrors Mind's DecisionsHome.
 export default function BriefingPage() {
+  const scopeMode = useScopeMode()
+  const hasOrgScope = useHasOrgScope()
+  const navigate = useNavigate()
+  const enterHotelScope = useAppStore((s) => s.enterHotelScope)
+
+  if (hasOrgScope && scopeMode === 'organization') {
+    return (
+      <div className="flex flex-col h-full overflow-hidden">
+        <PortfolioCommandHome
+          onNavigate={(tab: AipTab) => { void navigate(`/mind?aip=${tab}`) }}
+          onHopToHotel={(hotelId) => { enterHotelScope(hotelId) }}  // stay on Home → that property's briefing
+        />
+      </div>
+    )
+  }
+  return <HotelBriefing />
+}
+
+function HotelBriefing() {
   const [windowHours, setWindowHours] = useState<8 | 12 | 24 | 48>(8)
   const [copied, setCopied]           = useState(false)
 
