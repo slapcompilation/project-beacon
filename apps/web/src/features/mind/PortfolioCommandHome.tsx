@@ -15,13 +15,19 @@ import { useOrgOverstockSweep, type OrgSweepResult } from '@/features/agents/use
 import { useAppStore } from '@/stores/app.store'
 import type { AipTab } from './AIPShell'
 
-export function PortfolioCommandHome({ onNavigate }: { onNavigate: (tab: AipTab) => void }) {
+export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
+  onNavigate: (tab: AipTab) => void
+  /** Override the drill-in. Default (Mind): switch scope + open the hotel's
+   *  Command. Home passes its own so drilling stays on Home as that property. */
+  onHopToHotel?: (hotelId: string) => void
+}) {
   const { data: hotels = [], isLoading } = usePortfolioSignals()
   const sweep = useOrgOverstockSweep()
   const [lastSweep, setLastSweep] = useState<OrgSweepResult | null>(null)
   const enterHotelScope = useAppStore((s) => s.enterHotelScope)
 
   const hopToHotel = (hotelId: string) => {
+    if (onHopToHotel) { onHopToHotel(hotelId); return }
     enterHotelScope(hotelId)
     onNavigate('command')
   }
