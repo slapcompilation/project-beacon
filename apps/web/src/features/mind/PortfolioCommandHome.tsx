@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { usePortfolioSignals, type PortfolioHotelSignal } from './portfolio'
+import { PortfolioMap } from './PortfolioMap'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
 import { useOrgOverstockSweep, type OrgSweepResult } from '@/features/agents/useOrgOverstockSweep'
 import { useAppStore } from '@/stores/app.store'
@@ -83,6 +84,9 @@ export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
           <PortfolioTotal label="Open cases"        value={totals.cases}    icon="folder-open"         intent={totals.cases   > 0 ? Intent.PRIMARY : Intent.NONE} onClick={() => { onNavigate('cases') }} />
           <PortfolioTotal label="Auto-exec last cycle" value={totals.auto24} icon="tick-circle"        intent={totals.auto24  > 0 ? Intent.SUCCESS : Intent.NONE} sub={`+ ${String(totals.queued24)} queued`} />
         </section>
+
+        {/* Portfolio map — pin per property, click to drill in */}
+        {!isLoading && hotels.length > 0 && <PortfolioMap hotels={hotels} onHop={hopToHotel} />}
 
         {/* Hotels at a glance */}
         <section className="space-y-2">
