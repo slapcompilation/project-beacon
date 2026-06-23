@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
-import { Button } from '@blueprintjs/core'
+import { Button, Collapse } from '@blueprintjs/core'
 import {
   useCaptureSnapshot, snapshotCapturedToday, useIntelligenceHistory,
 } from '@/features/briefing/hooks'
@@ -59,6 +59,7 @@ export default function BriefingPage() {
 function HotelBriefing() {
   const [windowHours, setWindowHours] = useState<8 | 12 | 24 | 48>(8)
   const [copied, setCopied]           = useState(false)
+  const [trendsOpen, setTrendsOpen]   = useState(false)
 
   const activeHotel   = useActiveHotel()
   const currency      = useCurrency()
@@ -144,14 +145,31 @@ function HotelBriefing() {
           <ProposalsPanel currency={currency} />
           <HotelMap />
           <DecisionFeed currency={currency} />
-          <PressureSection />
-          <ProposalQualitySection />
-          <OccupancyInsightSection />
           <ShiftActivity
             windowHours={windowHours}
             setWindowHours={setWindowHours}
             currency={currency}
           />
+
+          {/* Trends — secondary analytics, collapsed so Home opens decisions-first */}
+          <div>
+            <Button
+              variant="minimal"
+              size="small"
+              icon="chart"
+              endIcon={trendsOpen ? 'chevron-up' : 'chevron-down'}
+              onClick={() => { setTrendsOpen((v) => !v) }}
+            >
+              Trends
+            </Button>
+            <Collapse isOpen={trendsOpen}>
+              <div className="space-y-6 pt-3">
+                <PressureSection />
+                <ProposalQualitySection />
+                <OccupancyInsightSection />
+              </div>
+            </Collapse>
+          </div>
         </div>
       </div>
     </div>
