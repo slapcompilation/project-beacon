@@ -51,6 +51,9 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     policy: over.policy,
     agent: over.agent,
     releases: over.releases,
+    // These suites exercise the threshold/constraint/dispatch paths, not the
+    // release gate, so they opt out by default; the release-gate block overrides.
+    allowUnreleased: over.allowUnreleased ?? true,
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     runAgent,
@@ -170,6 +173,7 @@ describe('runIntelligenceCycle', () => {
         proposals: [proposal(0.95)],
         agent,
         releases: { production: [] },
+        allowUnreleased: false,
       })
       const result = await runIntelligenceCycle(deps)
 
@@ -183,6 +187,7 @@ describe('runIntelligenceCycle', () => {
         proposals: [proposal(0.95)],
         agent,
         releases: { production: [{ agentName: 'restock_advisor', version: '1.0.0' }] },
+        allowUnreleased: false,
       })
       const result = await runIntelligenceCycle(deps)
 

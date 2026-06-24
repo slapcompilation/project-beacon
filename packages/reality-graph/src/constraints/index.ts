@@ -198,10 +198,10 @@ export interface AutoExecutionDecision {
   reason: string
 }
 
-/** Phase C step 2b: the proposing agent + which releases are visible. When
- *  both are supplied to decideAutoExecution, the gate refuses to auto-execute
- *  unless the agent has a production release in scope. Omit either to skip
- *  the release check (callers that don't track releases yet still work). */
+/** Phase C step 2b: the proposing agent + which releases are visible. The
+ *  release gate is fail-closed (Gap C): decideAutoExecution refuses to
+ *  auto-execute unless the agent has a production release in scope. A caller
+ *  that legitimately doesn't gate on releases opts out with allowUnreleased. */
 export interface AgentReleaseContext {
   agentName:    string
   agentVersion: string
@@ -215,8 +215,9 @@ export interface ActiveAgentReleases {
  * Decides whether an agent proposal may auto-execute. Composes the per-type
  * threshold policy with the constraint-violation set: an action auto-executes
  * only when its type is eligible, no hard constraint is violated, its
- * confidence clears the type's floor, and (when release context is supplied)
- * the proposing agent is in production.
+ * confidence clears the type's floor, and the proposing agent has a production
+ * release. The release gate is fail-closed — omitting release context queues
+ * the action unless the caller opts out with allowUnreleased.
  */
 export function decideAutoExecution(args: {
   action: BeaconAction
@@ -225,6 +226,12 @@ export function decideAutoExecution(args: {
   policy: AutoExecutionPolicy
   agent?: AgentReleaseContext
   releases?: ActiveAgentReleases
+  /** Gap C — opt out of the fail-closed release gate. Default false: auto-exec
+   *  REQUIRES a production release, so a caller that omits release context is
+   *  queued, not silently executed. Set true only where the release gate isn't
+   *  the concern (unit tests of other gates, the no-write scenario sandbox).
+   *  Production cycle callers never set it. */
+  allowUnreleased?: boolean
   /** Phase E3 — per-agent floor overrides. When the proposing agent's name
    *  appears here, this value supersedes the per-action-type threshold (it
    *  does not bypass the action-type eligibility check). */
@@ -258,9 +265,16 @@ export function decideAutoExecution(args: {
       : `floor ${threshold.toFixed(2)}`
     return { autoExecute: false, reason: `confidence ${args.confidence.toFixed(2)} below ${why}` }
   }
-  // Release gate: enforced only when the caller supplied BOTH the proposing
-  // agent and the release set. Lets older callers / tests opt out cleanly.
-  if (args.agent != null && args.releases != null) {
+  // Release gate (fail-closed, Gap C): auto-execution requires a production
+  // release for the proposing agent. A caller that simply forgets to wire
+  // release context is DENIED (queued), never silently auto-executed. Callers
+  // that legitimately don't gate on releases — unit tests of the other gates,
+  // the no-write scenario sandbox — opt out loudly with allowUnreleased. The
+  // safety logic lives only here; there is no second gate (see CLAUDE.md).
+  if (!args.allowUnreleased) {
+    if (args.agent == null || args.releases == null) {
+      return { autoExecute: false, reason: 'auto-execution requires release context (no agent/releases supplied)' }
+    }
     const prod = args.releases.production.find((r) => r.agentName === args.agent!.agentName)
     if (prod == null) {
       return { autoExecute: false, reason: `${args.agent.agentName} has no production release in scope` }
