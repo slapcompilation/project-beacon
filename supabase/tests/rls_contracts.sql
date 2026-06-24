@@ -24,13 +24,14 @@
 --       a direct RLS read.
 --   C3  anon cannot EXECUTE the scoped definer read (revoked in 176/177).
 --   C4  a non-admin cannot promote_agent (role gate; deny-path only, no write).
+--   C5  production promotion requires a prior staging release (Gap D; deny-path).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
 DECLARE
   v_a uuid; v_org uuid; v_b uuid;
   v_b_pending int; v_expected int;
-  v_log_a uuid; n int; qp int; leaked boolean; raised boolean;
+  v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text;
 BEGIN
   -- Resolve two distinct populated hotels (skip gracefully if the env lacks them).
@@ -89,6 +90,18 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege OR raise_exception THEN raised := true; END;
   IF NOT raised THEN RAISE EXCEPTION 'C4: non-admin was allowed to promote_agent (expected permission denied)'; END IF;
 
+  -- ── C5: production promotion requires a prior staging release (Gap D) ──
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate', v_b_pending;
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub','00000000-0000-0000-0000-000000000003',
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN PERFORM promote_agent('__contract_probe__','9.9.9','production', 1.0, 1, 'contract test', NULL);
+  EXCEPTION WHEN others THEN raised := true; v_msg := SQLERRM; END;
+  IF NOT raised THEN RAISE EXCEPTION 'C5: production promotion allowed for an un-staged version (Gap D)'; END IF;
+  IF position('staging' in v_msg) = 0 THEN RAISE EXCEPTION 'C5: prod blocked, but not by the staging gate: %', v_msg; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod', v_b_pending;
 END $$;
