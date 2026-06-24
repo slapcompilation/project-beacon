@@ -339,6 +339,7 @@ export function CommandBar() {
 
         <Group heading="Quick Actions">
           {(() => {
+            const idxApps = action(() => { go('/applications') })
             const idx1 = action(() => { setOpen(false); toggleCopilot() })
             const idx2 = action(() => { go('/flow?panel=receive') })
             const idx3 = action(() => { go('/flow?panel=approvals') })
@@ -346,6 +347,9 @@ export function CommandBar() {
             const idx5 = action(() => { go('/eye?panel=waste') })
             return (
               <>
+                <Row icon="grid-view" onSelect={() => { go('/applications') }} focused={focusIdx === idxApps}>
+                  Open Applications
+                </Row>
                 <Row icon="predictive-analysis" onSelect={() => { setOpen(false); toggleCopilot() }} shortcut="Ctrl+J" focused={focusIdx === idx1}>
                   Toggle Copilot
                 </Row>

@@ -29,6 +29,7 @@ export const Topbar = memo(function Topbar() {
   const copilotActive = contextPanelOpen && contextPanelTab === 'copilot'
   const location      = useLocation()
   const settingsActive = location.pathname.startsWith('/settings')
+  const appsActive     = location.pathname.startsWith('/applications')
   const aipVisible     = role === 'admin' || role === 'owner'
 
   return (
@@ -55,6 +56,21 @@ export const Topbar = memo(function Topbar() {
             </span>
           )}
         </button>
+
+        <Link
+          to="/applications"
+          title="Applications — every surface"
+          aria-label="Applications"
+          aria-current={appsActive ? 'page' : undefined}
+          className={cn(
+            'rounded p-1.5 transition-colors',
+            appsActive
+              ? 'bg-surface-2 text-foreground'
+              : 'text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground',
+          )}
+        >
+          <Icon icon="grid-view" size={14} />
+        </Link>
 
         <button
           type="button"
