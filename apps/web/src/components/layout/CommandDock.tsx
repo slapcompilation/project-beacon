@@ -159,7 +159,7 @@ export const CommandDock = memo(function CommandDock() {
         )}
         {/* The Decisions inbox — approval-authority managers reach it here; owner/admin get the full shell (Decisions + Studio) at /mind. */}
         {isManager && !isOwnerOrAdmin && (
-          <DockLink to="/mind?aip=command" label="Decisions" icon="inbox" color="text-purple-500" />
+          <DockLink to="/mind?aip=queue" label="Decisions" icon="inbox" color="text-purple-500" />
         )}
         {isOwnerOrAdmin && (
           <DockLink to="/mind" label="Decisions" icon="lightbulb" color="text-purple-500" />

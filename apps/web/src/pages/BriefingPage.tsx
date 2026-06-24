@@ -36,7 +36,7 @@ import { AipDecisionSummary } from '@/features/mind/AipDecisionSummary'
 
 // Home is scope-aware: a chain owner in portfolio scope gets the org rollup
 // (every property's signals + drill-in); a single property gets the briefing.
-// One Home, two scopes — mirrors Mind's DecisionsHome.
+// This is the single "what the loop left me" landing — Mind opens on its queue.
 export default function BriefingPage() {
   const scopeMode = useScopeMode()
   const hasOrgScope = useHasOrgScope()
