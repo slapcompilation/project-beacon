@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react'
 import { Button, Callout, Dialog, DialogBody, DialogFooter, FormGroup, HTMLSelect, InputGroup, Intent, NumericInput, Tag, TextArea } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
-import { usePromoteAgent, useLatestEvalRun, type AgentReleaseStage, type CurrentAgentRelease } from './hooks'
+import { usePromoteAgent, useLatestEvalRun, useCurrentAgentReleases, type AgentReleaseStage, type CurrentAgentRelease } from './hooks'
 
 interface PromoteAgentDialogProps {
   open:           boolean
@@ -34,6 +34,7 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
   const promote = usePromoteAgent()
 
   const latestRun = useLatestEvalRun(agentName, version.trim())
+  const currentReleases = useCurrentAgentReleases()
 
   // Auto-fill pass rate + case count from the latest persisted run. Operator
   // can flip overrideEvals to type their own numbers (e.g. for a sandbox
@@ -56,8 +57,15 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
     targetStage === 'production' && !latestRun.isLoading && latestRun.data == null
   const productionRequiresPass =
     targetStage === 'production' && latestRun.data != null && latestRun.data.value < PRODUCTION_MIN_PASS
+  // Gap D: production requires the exact version to have passed through staging.
+  const hasStagingForVersion = (currentReleases.data ?? []).some(
+    (r) => r.agent_name === agentName && r.stage === 'staging' && r.version === version.trim(),
+  )
+  const productionRequiresStaging =
+    targetStage === 'production' && !currentReleases.isLoading && !hasStagingForVersion
 
-  const disabled = promote.isPending || version.trim().length === 0 || productionRequiresPass || productionRequiresRun
+  const disabled = promote.isPending || version.trim().length === 0
+    || productionRequiresPass || productionRequiresRun || productionRequiresStaging
 
   function submit() {
     promote.mutate(
@@ -117,6 +125,13 @@ export function PromoteAgentDialog({ open, agentName, currentVersion, currentSta
           <Callout intent={Intent.WARNING} icon="warning-sign" title="No eval run recorded for this version">
             Production promotion is blocked until a CI eval posts a result for <code>@ {version.trim() || '?'}</code>.
             The server verifies production against the recorded run — <em>override can't bypass it</em>. Land a PR to record one.
+          </Callout>
+        )}
+
+        {productionRequiresStaging && (
+          <Callout intent={Intent.WARNING} icon="warning-sign" title="No staging release for this version">
+            Production requires <code>{agentName}</code> @ <code>{version.trim() || '?'}</code> to pass through staging first.
+            Promote it to <strong>staging</strong>, then to production. The server enforces this.
           </Callout>
         )}
 
