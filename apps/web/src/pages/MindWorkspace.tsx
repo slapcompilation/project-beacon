@@ -38,14 +38,13 @@ export default function MindWorkspace() {
     return <Navigate to={`/operations?panel=${panelParam}`} replace />
   }
 
-  const tab = isAipTab(aipParam) ? aipParam : 'command'
+  const tab = isAipTab(aipParam) ? aipParam : 'queue'
 
   return (
     <AIPShell
       tab={tab}
       onTabChange={(t) => { setParams({ aip: t }, { replace: true }) }}
       allowStudio={isOwnerOrAdmin}
-      allowOrg={isOwnerOrAdmin}
     />
   )
 }

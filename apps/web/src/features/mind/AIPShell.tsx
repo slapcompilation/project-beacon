@@ -1,10 +1,11 @@
 // AIP shell — the spine of the Mind module. A left-rail workspace split into
-// Decisions (the daily inbox: queue / approvals / cases / portfolio) and a
-// single Studio entry that opens a cards landing for the 13 builder surfaces,
-// so config you touch monthly doesn't crowd the daily queue. Fronted by a
-// Command landing. Deep-linkable via ?aip=<tab>.
+// Decisions (the daily inbox: queue / approvals / cases) and Studio (build &
+// configure the fabric), with Studio's three groups shown as collapsible
+// sections in the rail so the structure is visible without crowding the daily
+// items. Mind opens on the Review Queue; Home (/briefing) is the single landing.
+// Deep-linkable via ?aip=<tab>.
 
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
@@ -13,9 +14,6 @@ import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
-import { useAppStore } from '@/stores/app.store'
-import { CommandHome } from './CommandHome'
-import { PortfolioCommandHome } from './PortfolioCommandHome'
 import { PolicyTab } from './PolicyTab'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
@@ -39,17 +37,14 @@ const MonitorsTab               = lazy(() => import('@/features/monitors/Monitor
 const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 
 export type AipTab =
-  | 'command'
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
-  | 'studio'
   | 'agents' | 'system-map' | 'ontology' | 'monitors'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
 
-// Two intents, not one interleaved loop: Decisions is the daily operator inbox,
-// each a rail entry; Studio is where you build/configure the fabric (touched far
-// less often), collapsed behind one rail entry + a cards landing so 13 builder
-// surfaces don't crowd the daily ones. `desc` shows on the Studio landing cards.
+// Two intents: Decisions is the daily operator inbox (each its own rail entry);
+// Studio is where you build/configure the fabric, surfaced as three collapsible
+// groups so the structure is discoverable without crowding the daily items.
 type Section = 'Decisions' | 'Studio'
 const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string }[] = [
   // Decisions — the daily driver
@@ -83,68 +78,56 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
 
 const DECISIONS_TABS = TABS.filter((t) => t.section === 'Decisions')
 const STUDIO_TABS     = TABS.filter((t) => t.section === 'Studio')
+const STUDIO_GROUPS   = groupTabs(STUDIO_TABS)
 
 function isStudioTab(t: AipTab): boolean {
   return STUDIO_TABS.some((s) => s.id === t)
 }
 
 export function isAipTab(v: string | null | undefined): v is AipTab {
-  return !!v && (v === 'command' || v === 'studio' || TABS.some((t) => t.id === v))
+  return !!v && TABS.some((t) => t.id === v)
 }
 
 export default function AIPShell({
   tab,
   onTabChange,
   allowStudio = true,
-  allowOrg = true,
 }: {
   tab: AipTab
   onTabChange: (t: AipTab) => void
   /** Studio (build/configure) — owner/admin only. */
   allowStudio?: boolean
-  /** Org-scope surfaces (Portfolio) — owner/admin / org roles only. */
-  allowOrg?: boolean
 }) {
-  const counts       = useAipCounts()
-  const studioBadge  = STUDIO_TABS.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
-  // Role-scope: a manager who lands on a Studio tab (e.g. a stale URL) falls back
-  // to the Decisions command home.
-  const effTab: AipTab =
-    (!allowStudio && (tab === 'studio' || isStudioTab(tab))) ? 'command'
-    : tab
-  const decisionsTabs = DECISIONS_TABS
-  const studioActive = allowStudio && (effTab === 'studio' || isStudioTab(effTab))
+  const counts = useAipCounts()
+  // A manager who lands on a Studio tab (e.g. a stale URL) falls back to the queue.
+  const effTab: AipTab = (!allowStudio && isStudioTab(tab)) ? 'queue' : tab
+
+  // Auto-open the group containing the active Studio tab (deep links land expanded);
+  // the operator can toggle the others. Collapsed by default keeps the rail short.
+  const activeGroup = STUDIO_TABS.find((t) => t.id === effTab)?.group ?? null
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(activeGroup ? [activeGroup] : []))
+  useEffect(() => {
+    if (activeGroup) setOpenGroups((prev) => (prev.has(activeGroup) ? prev : new Set(prev).add(activeGroup)))
+  }, [activeGroup])
+  const toggleGroup = (label: string) => {
+    setOpenGroups((prev) => {
+      const next = new Set(prev)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
+  }
 
   return (
     <div className="flex h-full overflow-hidden">
       <aside className="w-52 border-r shrink-0 overflow-y-auto bg-surface-1/30">
         <nav className="py-2">
-          {/* Command — the home, above the loop groups */}
-          <button
-            type="button"
-            onClick={() => { onTabChange('command') }}
-            className={cn(
-              'flex w-full items-center gap-2 px-4 py-2 text-sm transition-colors text-left mb-1',
-              effTab === 'command'
-                ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
-                : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
-            )}
-          >
-            <Icon icon="dashboard" size={13} />
-            <span className="flex-1">Overview</span>
-            {counts.command != null && counts.command > 0 && (
-              <Tag minimal intent={Intent.PRIMARY} className="!text-[10px] !min-h-0 !py-0">
-                {counts.command > 99 ? '99+' : String(counts.command)}
-              </Tag>
-            )}
-          </button>
-
           {/* Decisions — the daily inbox, each its own rail entry */}
           <div className="mb-3">
             <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
               Decisions
             </p>
-            {decisionsTabs.map((t) => (
+            {DECISIONS_TABS.map((t) => (
               <RailButton
                 key={t.id}
                 icon={t.icon}
@@ -158,42 +141,55 @@ export default function AIPShell({
             ))}
           </div>
 
-          {/* Studio — one entry into the builder landing (owner/admin only) */}
+          {/* Studio — collapsible groups, surfaces inline (owner/admin only) */}
           {allowStudio && (
             <div className="mb-3">
               <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
                 Studio
               </p>
-              <RailButton
-                icon="build"
-                label="Studio"
-                active={studioActive}
-                badge={studioBadge}
-                badgeIntent={Intent.NONE}
-                onClick={() => { onTabChange('studio') }}
-              />
+              {STUDIO_GROUPS.map((g) => {
+                const open = openGroups.has(g.label)
+                const groupBadge = g.tabs.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
+                return (
+                  <div key={g.label}>
+                    <button
+                      type="button"
+                      onClick={() => { toggleGroup(g.label) }}
+                      className="flex w-full items-center gap-2 px-4 py-1.5 text-xs text-left text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent transition-colors"
+                    >
+                      <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={12} />
+                      <span className="flex-1 truncate font-medium">{g.label}</span>
+                      {groupBadge > 0 && (
+                        <Tag minimal className="!text-[10px] !min-h-0 !py-0">
+                          {groupBadge > 99 ? '99+' : String(groupBadge)}
+                        </Tag>
+                      )}
+                    </button>
+                    {open && g.tabs.map((t) => (
+                      <RailButton
+                        key={t.id}
+                        icon={t.icon}
+                        label={t.label}
+                        title={t.desc}
+                        active={t.id === effTab}
+                        badge={counts[t.id]}
+                        badgeIntent={badgeIntent(t.id)}
+                        onClick={() => { onTabChange(t.id) }}
+                        indent
+                      />
+                    ))}
+                  </div>
+                )
+              })}
             </div>
           )}
         </nav>
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        {isStudioTab(effTab) && (
-          <div className="flex items-center gap-1.5 px-4 py-2 border-b shrink-0 text-xs bg-surface-1/30">
-            <button
-              type="button"
-              onClick={() => { onTabChange('studio') }}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-            >
-              <Icon icon="chevron-left" size={12} /> Studio
-            </button>
-            <Icon icon="chevron-right" size={10} className="text-muted-foreground/40" />
-            <span className="font-medium">{TABS.find((t) => t.id === effTab)?.label ?? effTab}</span>
-          </div>
-        )}
         <PanelErrorBoundary name={`Mind · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(effTab, onTabChange, allowOrg)}
+            {renderTab(effTab)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
@@ -207,18 +203,8 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
   return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
 }
 
-// The Decisions landing is scope-aware: org scope (owner/admin) shows the portfolio
-// rollup, hotel scope the single-property command home — one entry, not two.
-function DecisionsHome({ onNavigate, allowOrg }: { onNavigate: (t: AipTab) => void; allowOrg: boolean }) {
-  const scopeMode = useAppStore((s) => s.scopeMode)
-  if (allowOrg && scopeMode === 'organization') return <PortfolioCommandHome onNavigate={onNavigate} />
-  return <CommandHome onNavigate={onNavigate} />
-}
-
-function renderTab(t: AipTab, onNavigate: (tab: AipTab) => void, allowOrg: boolean) {
+function renderTab(t: AipTab) {
   switch (t) {
-    case 'command':      return <DecisionsHome onNavigate={onNavigate} allowOrg={allowOrg} />
-    case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'restock-approvals': return <RestockPage />
     case 'approvals':    return <PendingApprovalsPage />
@@ -260,7 +246,7 @@ function groupTabs(tabs: typeof TABS) {
 }
 
 function RailButton({
-  icon, label, title, active, badge, badgeIntent, onClick,
+  icon, label, title, active, badge, badgeIntent, onClick, indent,
 }: {
   icon: IconName
   label: string
@@ -269,6 +255,7 @@ function RailButton({
   badge?: number
   badgeIntent: Intent
   onClick: () => void
+  indent?: boolean
 }) {
   return (
     <button
@@ -276,7 +263,8 @@ function RailButton({
       title={title}
       onClick={onClick}
       className={cn(
-        'flex w-full items-center gap-2 px-4 py-1.5 text-xs transition-colors text-left',
+        'flex w-full items-center gap-2 py-1.5 text-xs transition-colors text-left',
+        indent ? 'pl-9 pr-4' : 'px-4',
         active
           ? 'bg-surface-2 text-foreground font-semibold border-l-2 border-primary'
           : 'text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent',
@@ -293,51 +281,6 @@ function RailButton({
   )
 }
 
-// The Studio landing: cards for every builder surface, grouped, so the 13
-// infrequent tabs live one click in instead of crowding the daily rail.
-function StudioLanding({ onNavigate }: { onNavigate: (t: AipTab) => void }) {
-  const counts = useAipCounts()
-  const groups = groupTabs(STUDIO_TABS)
-  return (
-    <div className="flex-1 overflow-y-auto px-8 py-6">
-      <h1 className="text-lg font-semibold">Studio</h1>
-      <p className="text-sm text-muted-foreground mt-0.5 mb-5 max-w-2xl">
-        Build and configure the fabric — the agents, compute, knowledge, sandbox and
-        policy behind every decision. Touched far less often than the daily queue.
-      </p>
-      {groups.map((g) => (
-        <div key={g.label} className="mb-6">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">{g.label}</p>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {g.tabs.map((t) => {
-              const badge = counts[t.id]
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => { onNavigate(t.id) }}
-                  className="text-left rounded-md border p-4 transition-all hover:border-muted-foreground/40 hover:bg-muted/40"
-                >
-                  <div className="flex items-center gap-2">
-                    <Icon icon={t.icon} size={14} className="text-muted-foreground" />
-                    <span className="text-sm font-medium">{t.label}</span>
-                    {badge != null && badge > 0 && (
-                      <Tag minimal intent={badgeIntent(t.id)} className="!text-[10px] ml-auto">
-                        {badge > 99 ? '99+' : String(badge)}
-                      </Tag>
-                    )}
-                  </div>
-                  {t.desc && <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t.desc}</p>}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
 function badgeIntent(t: AipTab): Intent {
   if (t === 'approvals' || t === 'entity-links') return Intent.WARNING
   if (t === 'queue') return Intent.PRIMARY
@@ -345,8 +288,8 @@ function badgeIntent(t: AipTab): Intent {
 }
 
 /** Live counts that make the rail itself intelligent — pending work per tab.
- *  The four decision counts come from one server-aggregated RPC (shared with the
- *  topbar) instead of fetching four full datasets just to take their length. */
+ *  The decision counts come from one server-aggregated RPC (shared with the
+ *  topbar) instead of fetching full datasets just to take their length. */
 function useAipCounts(): Partial<Record<AipTab, number>> {
   const signals   = useAipSignalCounts()
   const summaries = useAgentRunSummaries()
@@ -357,7 +300,6 @@ function useAipCounts(): Partial<Record<AipTab, number>> {
   const agentsPending = (summaries.data ?? []).reduce((s, r) => s + r.pending, 0)
 
   return {
-    command:        q + a + c,        // Command badge = total open decisions
     queue:          q,
     approvals:      a,
     cases:          c,

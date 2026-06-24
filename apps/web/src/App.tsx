@@ -170,7 +170,7 @@ function AppRoutes() {
             <Route path="/alerts"           element={<Navigate to="/floor?panel=alerts"        replace />} />
             <Route path="/expiry"           element={<Navigate to="/floor?panel=expiry"        replace />} />
             <Route path="/timeline"         element={<Navigate to="/flow?panel=timeline"       replace />} />
-            <Route path="/flow-dashboard"   element={<Navigate to="/mind?aip=command"          replace />} />
+            <Route path="/flow-dashboard"   element={<Navigate to="/mind?aip=queue"            replace />} />
             <Route path="/receive"          element={<Navigate to="/flow?panel=receive"        replace />} />
             <Route path="/restocks"         element={<Navigate to="/mind?aip=restock-approvals" replace />} />
             <Route path="/waste-radar"      element={<Navigate to="/eye?panel=waste"           replace />} />

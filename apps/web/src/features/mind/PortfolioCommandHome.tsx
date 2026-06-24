@@ -1,5 +1,5 @@
-// Mind Portfolio — the org-director / owner equivalent of CommandHome.
-// Answers "what needs the org now?" by rolling up every hotel in the org
+// Portfolio rollup — the org-director / owner home (rendered by /briefing in org
+// scope). Answers "what needs the org now?" by rolling up every hotel in the org
 // into a single signal strip + reuses the already-org-wide AutonomousPulse
 // and AgentCycleHistory.
 
@@ -30,7 +30,7 @@ export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
   const hopToHotel = (hotelId: string) => {
     if (onHopToHotel) { onHopToHotel(hotelId); return }
     enterHotelScope(hotelId)
-    onNavigate('command')
+    onNavigate('queue')
   }
 
   const runSweep = () => {

@@ -32,7 +32,7 @@ const GROUPS = [
 // Approvals + the approvals dashboard now live in the Decisions inbox.
 const DECISIONS_REDIRECT: Record<string, string> = {
   approvals: '/mind?aip=restock-approvals',
-  dashboard: '/mind?aip=command',
+  dashboard: '/mind?aip=queue',
 }
 
 export default function FlowWorkspace() {
