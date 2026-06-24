@@ -52,6 +52,10 @@ export async function simulateCycleWithOverlay(deps: SimulationDeps): Promise<Cy
     agentOverrides: deps.agentOverrides,
     agent:          deps.agent,
     releases:       deps.releases,
+    // A scenario is a no-write what-if — its preview reflects threshold,
+    // constraint, and calibration logic, not production-release readiness, so it
+    // opts out of the fail-closed release gate.
+    allowUnreleased: true,
     maxVariants:    deps.maxVariants,
     now:            deps.now,
 

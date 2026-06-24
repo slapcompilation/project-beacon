@@ -41,6 +41,8 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> = {}) {
     dispatch,
     markApproved,
     now: () => new Date('2026-05-29T12:00:00Z'),
+    // This suite proves the calibration veto, not the release gate.
+    allowUnreleased: true,
     ...over,
   }
   return { deps, dispatch, markApproved }

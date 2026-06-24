@@ -67,8 +67,12 @@ export interface IntelligenceCycleDeps {
    *  the release gate in decideAutoExecution enforces a production release. */
   agent?: { agentName: string; agentVersion: string }
   /** Releases visible in scope (typically from get_current_agent_releases()).
-   *  Enables the release gate when set together with `agent`. */
+   *  Required for auto-execution — the gate is fail-closed (Gap C). */
   releases?: ActiveAgentReleases
+  /** Opt out of the fail-closed release gate. Default false: without a
+   *  production release every proposal queues. Only the no-write scenario
+   *  sandbox + gate-agnostic tests set this; production callers never do. */
+  allowUnreleased?: boolean
   /** Phase E3 — per-agent confidence floor overrides. Threaded into the
    *  auto-execution gate; supersedes the per-action-type threshold when the
    *  proposing agent's name appears here. */
@@ -119,6 +123,7 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           policy,
           agent: deps.agent,
           releases: deps.releases,
+          allowUnreleased: deps.allowUnreleased,
           agentOverrides: deps.agentOverrides,
           calibration: deps.calibration,
           requireCalibration: deps.requireCalibration,
