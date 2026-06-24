@@ -1,0 +1,48 @@
+name: DB contract tests
+
+# Runs the data-layer self-apply guards (supabase/tests/*.sql) against the linked
+# project whenever the DB layer changes. Mirrors deploy-edge-functions.yml: it's
+# dormant until SUPABASE_DB_URL is set as a repo secret — the step no-ops with a
+# warning when it's absent, so it never blocks a merge.
+#
+# SUPABASE_DB_URL must connect as a role that can SET ROLE anon/authenticated
+# (the project's `postgres` connection string, e.g. the Session-pooler URI), so
+# rls_contracts.sql can simulate tenants. psql ships on the ubuntu-latest runner.
+# A RAISE EXCEPTION in any guard aborts under -v ON_ERROR_STOP=1 → the job fails.
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/db-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/db-contracts.yml'
+
+concurrency:
+  group: db-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: security invariants + RLS contracts
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run data-layer contract guards
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::warning::SUPABASE_DB_URL not set — skipping DB contract tests. Add the repo secret (the project's postgres connection string) to enable."
+            exit 0
+          fi
+          for f in supabase/tests/security_invariants.sql supabase/tests/rls_contracts.sql; do
+            echo "── running $f"
+            psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done

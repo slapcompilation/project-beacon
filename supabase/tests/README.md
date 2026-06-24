@@ -26,7 +26,12 @@ contract id (e.g. `C2a CROSS-HOTEL LEAK …`).
 
 ## CI
 
-Not yet wired into GitHub Actions — that needs a job with DB access (a Supabase
-local stack via `supabase db reset`, or the linked project's connection string as
-a secret). Until then these run on demand / post-migration. Wiring this is the
-next self-apply step.
+Wired via `.github/workflows/db-contracts.yml`, which runs both guards with `psql`
+whenever `supabase/migrations/**` or `supabase/tests/**` changes. Like the
+edge-deploy workflow it's **dormant until the `SUPABASE_DB_URL` repo secret is
+set** — the step no-ops with a warning when it's absent, so it never blocks a
+merge. Set the secret to the project's `postgres` connection string (a role that
+can `SET ROLE anon/authenticated`, e.g. the Session-pooler URI) to activate it.
+
+A RAISE EXCEPTION in either guard aborts under `psql -v ON_ERROR_STOP=1`, failing
+the job. Until the secret is set, keep running them on demand / post-migration.
