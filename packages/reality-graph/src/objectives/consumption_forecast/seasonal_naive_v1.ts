@@ -33,9 +33,10 @@ export const seasonalNaiveV1Adapter: ModelAdapter<ConsumptionForecastInput, Cons
     const dowMeans = buckets.map((b) => (b.days.size > 0 ? b.total / b.days.size : 0))
     const overallMean = dowMeans.reduce((s, v) => s + v, 0) / 7
 
-    // Project: start from today, walk forward horizonDays, sum the DOW mean.
+    // Project: start from the reference point (now live; the holdout cutoff in
+    // backtest — never the wall clock), walk forward horizonDays, sum the DOW mean.
     let projected = 0
-    const start = new Date()
+    const start = new Date(input.asOf ?? Date.now())
     for (let i = 1; i <= input.horizonDays; i++) {
       const future = new Date(start.getTime() + i * 24 * 60 * 60 * 1000)
       const m = dowMeans[future.getUTCDay()]

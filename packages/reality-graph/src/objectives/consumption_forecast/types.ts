@@ -10,6 +10,10 @@ export interface ConsumptionForecastInput {
   logs: ReadonlyArray<StockLogRow>
   /** How far ahead to project. */
   horizonDays: number
+  /** Reference "now" (epoch ms) the rolling window ends at. Defaults to the
+   *  current time; the backtest passes its holdout cutoff so an adapter never
+   *  reads the wall clock during evaluation. */
+  asOf?: number
 }
 
 export interface ConsumptionForecastOutput {
