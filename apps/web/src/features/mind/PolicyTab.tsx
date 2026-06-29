@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { useOrgPolicy, useSetOrgPolicy, DEFAULT_ORG_POLICY, type OrgPolicy } from './policy'
 import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
 import { useDecisionCalibration } from '@/features/calibration/hooks'
+import { ACTION_AGENT } from './agentActions'
 
 const KNOWN_ACTION_TYPES: ReadonlyArray<{ type: string; label: string; hint: string }> = [
   { type: 'REQUEST_RESTOCK', label: 'REQUEST_RESTOCK', hint: 'Auto-creates a pending restock request. V1 default 0.9.' },
@@ -24,15 +25,6 @@ const KNOWN_AGENTS: ReadonlyArray<{ name: string; hint: string }> = [
   { name: 'overstock_rebalancer',  hint: 'Per-hotel lateral move proposer.' },
   { name: 'org_overstock_balancer', hint: 'Org-level overstock sweep. Always queued in V1; override applies once auto-exec lands.' },
 ]
-
-// Which agent proposes each action type — lets us show its earned trust
-// (production release + calibration verdict) right where you set the floor.
-const ACTION_AGENT: Record<string, string | null> = {
-  REQUEST_RESTOCK: 'restock_advisor',
-  TRANSFER_STOCK:  'overstock_rebalancer',
-  WRITE_OFF:       'waste_triage',
-  ADJUST_STOCK:    null,
-}
 
 const VERDICT_LABEL: Record<string, { label: string; intent: Intent }> = {
   'well-calibrated':   { label: 'calibrated',        intent: Intent.SUCCESS },
