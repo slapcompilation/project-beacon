@@ -54,6 +54,7 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     // These suites exercise the threshold/constraint/dispatch paths, not the
     // release gate, so they opt out by default; the release-gate block overrides.
     allowUnreleased: over.allowUnreleased ?? true,
+    openProposalKeys: over.openProposalKeys,
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     runAgent,
@@ -72,6 +73,19 @@ describe('runIntelligenceCycle', () => {
     expect(deps.markApproved).toHaveBeenCalledWith('p1')
     expect(result).toMatchObject({ scanned: 1, proposed: 1, autoExecuted: 1, queued: 0 })
     expect(result.items[0]).toMatchObject({ outcome: 'auto-executed', actionType: 'REQUEST_RESTOCK', proposalId: 'p1' })
+  })
+
+  it('dedups a proposal whose variant+action is already open (no re-persist)', async () => {
+    const deps = makeDeps({
+      proposals: [proposal(0.95)],
+      openProposalKeys: new Set([`REQUEST_RESTOCK:${VAR_A.id}`]),
+    })
+    const result = await runIntelligenceCycle(deps)
+
+    expect(deps.persistProposal).not.toHaveBeenCalled()
+    expect(deps.dispatch).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ proposed: 0, autoExecuted: 0, queued: 0, deduped: 1 })
+    expect(result.items[0].outcome).toBe('duplicate')
   })
 
   it('queues a proposal below the confidence floor without dispatching', async () => {
