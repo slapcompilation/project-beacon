@@ -214,30 +214,46 @@ async function agentCalibration(supabase: SupabaseClient, hotelId: string, agent
 // (rebalance); 'waste' → perishable products (shelf_life_days set), the agent
 // decides what's at-risk of spoiling internally.
 async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: AgentCycleOpts) {
-  const { data: variantRows, error: scanErr } = await supabase
-    .from('product_variants')
-    .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name, shelf_life_days)')
-    .eq('products.hotel_id', hotel.id)
-    .eq('enabled', true)
-    .gt('low_stock_threshold', 0)
-  if (scanErr) throw new Error(scanErr.message)
+  let variants: { id: string; name: string }[]
 
-  const factor = opts.overstockFactor ?? 2
-  const variants = (variantRows ?? [])
-    .filter((v: Record<string, unknown>) => {
-      const stock = v.current_stock as number
-      const par   = v.low_stock_threshold as number
-      const prod  = (Array.isArray(v.products) ? v.products[0] : v.products) as { shelf_life_days: number | null } | null
-      if (opts.scan === 'at-risk')   return stock <= par
-      if (opts.scan === 'overstock') return stock > par * factor
-      return prod?.shelf_life_days != null   // waste: perishables only
+  if (opts.scan === 'overstock') {
+    // Forecast-aware scan: variants holding >= factor x their trailing-30-day
+    // burn (get_overstock_candidates), aligned with the agent's own overstock
+    // test. The old `stock > par x factor` proxy both over-selected (invisible
+    // no-ops) and under-selected (missed genuine overstock when par != burn).
+    const { data, error } = await supabase.rpc('get_overstock_candidates', {
+      p_hotel_id: hotel.id,
+      p_factor:   opts.overstockFactor ?? 2,
     })
-    .map((v: Record<string, unknown>) => {
-      const p = v.products as { name: string } | { name: string }[] | null
-      const product = Array.isArray(p) ? p[0] : p
-      const productName = product?.name ?? 'item'
-      return { id: v.id as string, name: v.name !== 'Standard' ? `${productName} — ${String(v.name)}` : productName }
-    })
+    if (error) throw new Error(error.message)
+    variants = (data ?? []).map((r: Record<string, unknown>) => ({
+      id:   r.variant_id as string,
+      name: r.display_name as string,
+    }))
+  } else {
+    const { data: variantRows, error: scanErr } = await supabase
+      .from('product_variants')
+      .select('id, name, current_stock, low_stock_threshold, products!inner(hotel_id, name, shelf_life_days)')
+      .eq('products.hotel_id', hotel.id)
+      .eq('enabled', true)
+      .gt('low_stock_threshold', 0)
+    if (scanErr) throw new Error(scanErr.message)
+
+    variants = (variantRows ?? [])
+      .filter((v: Record<string, unknown>) => {
+        const stock = v.current_stock as number
+        const par   = v.low_stock_threshold as number
+        const prod  = (Array.isArray(v.products) ? v.products[0] : v.products) as { shelf_life_days: number | null } | null
+        if (opts.scan === 'at-risk') return stock <= par
+        return prod?.shelf_life_days != null   // waste: perishables only
+      })
+      .map((v: Record<string, unknown>) => {
+        const p = v.products as { name: string } | { name: string }[] | null
+        const product = Array.isArray(p) ? p[0] : p
+        const productName = product?.name ?? 'item'
+        return { id: v.id as string, name: v.name !== 'Standard' ? `${productName} — ${String(v.name)}` : productName }
+      })
+  }
 
   const { data: constraintRows } = await supabase
     .from('constraints')
