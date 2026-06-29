@@ -25,7 +25,17 @@ export const baselineRolling30dAdapter: ModelAdapter<ConsumptionForecastInput, C
       return t >= windowStart && t <= asOf
     })
     const consumption = inWindow.filter((l) => l.delta < 0).reduce((sum, l) => sum + Math.abs(l.delta), 0)
-    const dailyAvg = consumption / LOOKBACK_DAYS
+    // Average over the OBSERVED window — earliest in-window log up to asOf, capped
+    // at the lookback. Full history → /30; a variant only days old → /(its age),
+    // so a new fast-mover isn't under-forecast; a burst that ended weeks ago still
+    // divides by ~30 (its earliest log is ~30d back) so idle days hold the rate
+    // down. A flat /30 silently under-orders short-history variants.
+    const earliestTs = inWindow.length
+      ? Math.min(...inWindow.map((l) => new Date(l.created_at).getTime()))
+      : asOf
+    // Inclusive calendar-day count (30 daily logs span 29 intervals = 30 days).
+    const observedDays = Math.min(LOOKBACK_DAYS, Math.floor((asOf - earliestTs) / 86_400_000) + 1)
+    const dailyAvg = consumption / observedDays
     const projected = Math.round(dailyAvg * input.horizonDays)
 
     // Confidence tracks how many distinct days actually carried signal — sparse
