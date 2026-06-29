@@ -25,6 +25,8 @@
 --   C3  anon cannot EXECUTE the scoped definer read (revoked in 176/177).
 --   C4  a non-admin cannot promote_agent (role gate; deny-path only, no write).
 --   C5  production promotion requires a prior staging release (Gap D; deny-path).
+--   C6  get_overstock_candidates is service-role only — authenticated can't read
+--       another hotel's stock through this SECURITY DEFINER fn (#235 leak fix).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -102,6 +104,15 @@ BEGIN
   IF NOT raised THEN RAISE EXCEPTION 'C5: production promotion allowed for an un-staged version (Gap D)'; END IF;
   IF position('staging' in v_msg) = 0 THEN RAISE EXCEPTION 'C5: prod blocked, but not by the staging gate: %', v_msg; END IF;
 
+  -- ── C6: get_overstock_candidates is service-role only (no cross-tenant read) ──
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod', v_b_pending;
+  PERFORM set_config('request.jwt.claims', claims_a, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN PERFORM count(*) FROM get_overstock_candidates(v_b, 2);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
+  IF NOT raised THEN RAISE EXCEPTION 'C6: authenticated read overstock candidates for another hotel (cross-tenant leak)'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock service-role-only', v_b_pending;
 END $$;
