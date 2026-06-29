@@ -7,11 +7,13 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { format, formatDistanceToNow } from 'date-fns'
-import { recommendAutonomy, type AutonomyRecommendation } from '@beacon/reality-graph'
+import { recommendAutonomy, type AutonomyRecommendation, type AgentActionContext } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import { useDecisionCalibration, type CalibrationWindow } from '@/features/calibration/hooks'
 import { useAgentCycleHistory, useCronHealthSummary } from '@/features/monitor/hooks'
 import { useOrgPolicy, useSetOrgPolicy } from '@/features/mind/policy'
+import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
+import { AGENT_ACTION } from '@/features/mind/agentActions'
 
 const VERDICT: Record<string, { label: string; intent: Intent }> = {
   'well-calibrated':   { label: 'Well-calibrated', intent: Intent.SUCCESS },
@@ -38,6 +40,7 @@ export default function FlywheelPage() {
 
   const { data: policyData } = useOrgPolicy()
   const setPolicy = useSetOrgPolicy()
+  const releases = useCurrentAgentReleases()
   const [applying, setApplying] = useState<string | null>(null)
 
   const overall = calibration?.overall
@@ -49,22 +52,36 @@ export default function FlywheelPage() {
   // Recommendations only; applying one is the human sign-off (set_org_policy is
   // admin/owner, and records who/when — autonomy is earned AND audited).
   const recs = useMemo(() => {
-    const overrides = policyData?.merged.auto_execution.agent_overrides ?? {}
-    return calibration ? recommendAutonomy(calibration.byAgent, overrides) : []
-  }, [calibration, policyData])
+    if (!calibration) return []
+    const ae = policyData?.merged.auto_execution
+    const overrides = ae?.agent_overrides ?? {}
+    const thresholds = (ae?.thresholds ?? {}) as Record<string, number | undefined>
+    // Earned-trust context: action type, whether it's enabled, and production
+    // release. Unlocks 'enable' recs for a proven agent whose type is queue-only.
+    const ctx: Record<string, AgentActionContext> = {}
+    for (const slice of calibration.byAgent) {
+      const actionType = AGENT_ACTION[slice.key]
+      if (!actionType) continue
+      ctx[slice.key] = {
+        actionType,
+        enabled: thresholds[actionType] != null,
+        hasProductionRelease: !!pickProductionRelease(releases.data ?? [], slice.key),
+      }
+    }
+    return recommendAutonomy(calibration.byAgent, overrides, {}, ctx)
+  }, [calibration, policyData, releases.data])
 
   const applyRec = (rec: AutonomyRecommendation) => {
     if (!policyData) return
     setApplying(rec.agentName)
     const p = policyData.merged
-    const next = {
-      ...p,
-      auto_execution: {
-        ...p.auto_execution,
-        agent_overrides: { ...p.auto_execution.agent_overrides, [rec.agentName]: rec.proposedFloor },
-      },
+    const ae = { ...p.auto_execution }
+    if (rec.kind === 'enable' && rec.actionType) {
+      ae.thresholds = { ...ae.thresholds, [rec.actionType]: rec.proposedFloor }
+    } else {
+      ae.agent_overrides = { ...ae.agent_overrides, [rec.agentName]: rec.proposedFloor }
     }
-    setPolicy.mutate(next, { onSettled: () => { setApplying(null) } })
+    setPolicy.mutate({ ...p, auto_execution: ae }, { onSettled: () => { setApplying(null) } })
   }
 
   return (
@@ -186,13 +203,15 @@ export default function FlywheelPage() {
               {recs.map((rec) => (
                 <div key={rec.agentName} className="flex items-start justify-between gap-3 py-2">
                   <div className="min-w-0 space-y-0.5">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs font-medium">{rec.agentName}</span>
-                      <Tag minimal intent={rec.kind === 'loosen' ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">
-                        {rec.kind === 'loosen' ? 'widen autonomy' : 'tighten'}
+                      <Tag minimal intent={rec.kind === 'tighten' ? Intent.WARNING : Intent.SUCCESS} icon={rec.kind === 'enable' ? 'unlock' : undefined} className="!text-[10px]">
+                        {rec.kind === 'enable' ? `enable ${rec.actionType ?? ''}` : rec.kind === 'loosen' ? 'widen autonomy' : 'tighten'}
                       </Tag>
                       <span className="text-[11px] tabular-nums text-muted-foreground">
-                        floor {rec.currentFloor.toFixed(2)} → {rec.proposedFloor.toFixed(2)}
+                        {rec.kind === 'enable'
+                          ? `off → floor ${rec.proposedFloor.toFixed(2)}`
+                          : `floor ${rec.currentFloor.toFixed(2)} → ${rec.proposedFloor.toFixed(2)}`}
                       </span>
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-snug">{rec.rationale}</p>

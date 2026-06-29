@@ -67,4 +67,42 @@ describe('recommendAutonomy', () => {
     expect(rec.resolved).toBe(50)
     expect(rec.rationale).toContain('Well-calibrated')
   })
+
+  describe('enabling a queue-only action type (agentContext)', () => {
+    it('recommends ENABLE for a proven agent whose type is off but is in production', () => {
+      const recs = recommendAutonomy(
+        [{ key: 'waste_triage', report: report() }], {}, {},
+        { waste_triage: { actionType: 'WRITE_OFF', enabled: false, hasProductionRelease: true } },
+      )
+      expect(recs).toHaveLength(1)
+      expect(recs[0].kind).toBe('enable')
+      expect(recs[0].actionType).toBe('WRITE_OFF')
+      expect(recs[0].proposedFloor).toBe(C.baselineFloor)   // 0.9
+      expect(recs[0].rationale).toContain('WRITE_OFF')
+    })
+
+    it('makes no recommendation to enable without a production release', () => {
+      const recs = recommendAutonomy(
+        [{ key: 'waste_triage', report: report() }], {}, {},
+        { waste_triage: { actionType: 'WRITE_OFF', enabled: false, hasProductionRelease: false } },
+      )
+      expect(recs).toHaveLength(0)
+    })
+
+    it('loosens (not enables) once the type is already enabled', () => {
+      const recs = recommendAutonomy(
+        [{ key: 'waste_triage', report: report() }], {}, {},
+        { waste_triage: { actionType: 'WRITE_OFF', enabled: true, hasProductionRelease: true } },
+      )
+      expect(recs[0].kind).toBe('loosen')
+    })
+
+    it('does not tighten a queue-only type even if overconfident', () => {
+      const recs = recommendAutonomy(
+        [{ key: 'waste_triage', report: report({ verdict: 'overconfident' }) }], { waste_triage: 0.9 }, {},
+        { waste_triage: { actionType: 'WRITE_OFF', enabled: false, hasProductionRelease: true } },
+      )
+      expect(recs).toHaveLength(0)
+    })
+  })
 })

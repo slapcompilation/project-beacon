@@ -189,6 +189,7 @@ export type {
   CalibrationOptions,
   AutonomyConfig,
   AutonomyRecommendation,
+  AgentActionContext,
 } from './calibration/index'
 
 // ── Self-evolving ontology — gap detection (Pillar 2) ────────────────────────

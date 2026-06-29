@@ -286,9 +286,21 @@ export const DEFAULT_AUTONOMY_CONFIG: AutonomyConfig = {
   baselineFloor: 0.9,
 }
 
+/** Per-agent context the recommender needs to reason about action types, not just
+ *  floors: which action type the agent proposes, whether that type is already
+ *  auto-exec-enabled, and whether the agent has a production release. Supply it to
+ *  unlock 'enable' recommendations (a queue-only type that has earned auto-exec). */
+export interface AgentActionContext {
+  actionType: string
+  enabled: boolean
+  hasProductionRelease: boolean
+}
+
 export interface AutonomyRecommendation {
   agentName: string
-  kind: 'loosen' | 'tighten'
+  kind: 'loosen' | 'tighten' | 'enable'
+  /** Present for 'enable' — the action type to switch on in the thresholds map. */
+  actionType?: string
   currentFloor: number
   proposedFloor: number
   resolved: number
@@ -297,22 +309,41 @@ export interface AutonomyRecommendation {
   rationale: string
 }
 
-/** Proposes per-agent floor adjustments from observed calibration. Pure: callers
- *  apply the result (via set_org_policy) with a human in the loop. Underconfident
- *  and insufficient-data agents get no recommendation — we only ever loosen on
- *  proven good calibration, and tighten on proven overconfidence. */
+/** Proposes autonomy changes from observed calibration. Pure: callers apply the
+ *  result (via set_org_policy) with a human in the loop. Underconfident and
+ *  insufficient-data agents get no recommendation. With `agentContext`, a
+ *  proven-well-calibrated agent whose action type is still queue-only AND has a
+ *  production release earns an 'enable' recommendation; otherwise we loosen the
+ *  floor of an already-enabled type, and tighten on proven overconfidence. */
 export function recommendAutonomy(
   reports: ReadonlyArray<{ key: string; report: CalibrationReport }>,
   currentOverrides: Readonly<Record<string, number>>,
   cfg: Partial<AutonomyConfig> = {},
+  agentContext: Readonly<Record<string, AgentActionContext>> = {},
 ): AutonomyRecommendation[] {
   const c = { ...DEFAULT_AUTONOMY_CONFIG, ...cfg }
   const out: AutonomyRecommendation[] = []
   for (const { key, report } of reports) {
     if (!report.sufficientData || report.resolved < c.minSamples) continue
+    const ctx = agentContext[key]
     const current = currentOverrides[key] ?? c.baselineFloor
 
     if (report.verdict === 'well-calibrated') {
+      // A queue-only action type whose agent has now proven calibrated AND is in
+      // production has earned unattended execution — recommend ENABLING it. No
+      // production release → no recommendation (the fail-closed gate queues it
+      // anyway). Not-yet-enabled types have no floor to loosen.
+      if (ctx && !ctx.enabled) {
+        if (ctx.hasProductionRelease) {
+          out.push({
+            agentName: key, kind: 'enable', actionType: ctx.actionType,
+            currentFloor: c.baselineFloor, proposedFloor: c.baselineFloor,
+            resolved: report.resolved, ece: report.ece, verdict: report.verdict,
+            rationale: `Well-calibrated over ${String(report.resolved)} decisions (ECE ${pct(report.ece)}, hit-rate ${pct(report.accuracy)} vs ${pct(report.meanConfidence)} claimed) and in production. Safe to enable ${ctx.actionType} auto-execution at floor ${c.baselineFloor.toFixed(2)}.`,
+          })
+        }
+        continue
+      }
       const proposed = round2(Math.max(c.floorMin, current - c.step))
       if (proposed < current) {
         out.push({
@@ -322,6 +353,8 @@ export function recommendAutonomy(
         })
       }
     } else if (report.verdict === 'overconfident') {
+      // Only meaningful if the type is actually auto-executing.
+      if (ctx && !ctx.enabled) continue
       const proposed = round2(Math.min(c.floorMax, current + c.step))
       if (proposed > current) {
         out.push({
