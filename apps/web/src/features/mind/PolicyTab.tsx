@@ -8,6 +8,8 @@ import {
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
 import { useOrgPolicy, useSetOrgPolicy, DEFAULT_ORG_POLICY, type OrgPolicy } from './policy'
+import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
+import { useDecisionCalibration } from '@/features/calibration/hooks'
 
 const KNOWN_ACTION_TYPES: ReadonlyArray<{ type: string; label: string; hint: string }> = [
   { type: 'REQUEST_RESTOCK', label: 'REQUEST_RESTOCK', hint: 'Auto-creates a pending restock request. V1 default 0.9.' },
@@ -23,9 +25,27 @@ const KNOWN_AGENTS: ReadonlyArray<{ name: string; hint: string }> = [
   { name: 'org_overstock_balancer', hint: 'Org-level overstock sweep. Always queued in V1; override applies once auto-exec lands.' },
 ]
 
+// Which agent proposes each action type — lets us show its earned trust
+// (production release + calibration verdict) right where you set the floor.
+const ACTION_AGENT: Record<string, string | null> = {
+  REQUEST_RESTOCK: 'restock_advisor',
+  TRANSFER_STOCK:  'overstock_rebalancer',
+  WRITE_OFF:       'waste_triage',
+  ADJUST_STOCK:    null,
+}
+
+const VERDICT_LABEL: Record<string, { label: string; intent: Intent }> = {
+  'well-calibrated':   { label: 'calibrated',        intent: Intent.SUCCESS },
+  'overconfident':     { label: 'overconfident',     intent: Intent.WARNING },
+  'underconfident':    { label: 'underconfident',    intent: Intent.PRIMARY },
+  'insufficient-data': { label: 'insufficient data', intent: Intent.NONE },
+}
+
 export function PolicyTab() {
   const { data, isLoading, isError } = useOrgPolicy()
   const setPolicy = useSetOrgPolicy()
+  const releases = useCurrentAgentReleases()
+  const { calibration } = useDecisionCalibration(0)  // all-time → the most resolved samples
   const [draft, setDraft] = useState<OrgPolicy>(DEFAULT_ORG_POLICY)
 
   useEffect(() => {
@@ -60,6 +80,23 @@ export function PolicyTab() {
 
   const reset = () => { setDraft(DEFAULT_ORG_POLICY) }
 
+  // The earned-trust picture for an action type's proposing agent: is it in
+  // production, and has its stated confidence proven calibrated? Runtime is the
+  // real enforcement (fail-closed release gate + calibration veto) — this just
+  // makes the evidence visible where the operator sets the floor.
+  const minSamples = draft.auto_execution.min_calibration_samples
+  const requireCal = draft.auto_execution.require_calibration
+  const trustFor = (actionType: string) => {
+    const agent = ACTION_AGENT[actionType]
+    if (!agent) return null
+    const hasProd = !!pickProductionRelease(releases.data ?? [], agent)
+    const slice = calibration?.byAgent.find((s) => s.key === agent)
+    const resolved = slice?.report.resolved ?? 0
+    const verdict = slice?.report.verdict ?? 'insufficient-data'
+    const proven = !!slice && slice.report.sufficientData && resolved >= minSamples && verdict !== 'overconfident'
+    return { agent, hasProd, verdict, resolved, proven }
+  }
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto p-4 space-y-4">
@@ -86,38 +123,74 @@ export function PolicyTab() {
 
         {/* ── Auto-execution thresholds ─────────────────────────────────────── */}
         <Card compact>
-          <SectionHeader icon="flag" title="Auto-execution thresholds" subtitle="Per-action-type confidence floor (0–1). Action types not listed never auto-execute." />
+          <SectionHeader icon="flag" title="Auto-execution thresholds" subtitle="Per-action-type confidence floor (0–1). Each shows the proposing agent's earned trust — release + calibration. Action types not listed never auto-execute." />
           <div className="space-y-3">
             {KNOWN_ACTION_TYPES.map((a) => {
               const current = draft.auto_execution.thresholds[a.type as keyof typeof draft.auto_execution.thresholds]
               const enabled = current != null
+              const trust = trustFor(a.type)
+
+              // Honest guidance only — decideAutoExecution is the real enforcement.
+              let warn: string | null = null
+              let warnIntent: Intent = Intent.WARNING
+              if (enabled && trust) {
+                if (!trust.hasProd) {
+                  warn = `${trust.agent} has no production release — the fail-closed gate queues these anyway. Promote it to production first.`
+                } else if (!trust.proven) {
+                  warn = requireCal
+                    ? `${trust.agent} isn't calibrated yet (${String(trust.resolved)} resolved) — auto-exec stays queued until it proves out.`
+                    : `${trust.agent} isn't calibrated yet (${String(trust.resolved)} resolved). With "require calibration" off, this auto-executes on the floor alone — turn it on or gather more decisions.`
+                  warnIntent = requireCal ? Intent.PRIMARY : Intent.WARNING
+                }
+              }
+
               return (
-                <div key={a.type} className="flex items-start gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <Tag minimal className="font-mono !text-[10px]">{a.label}</Tag>
-                      {enabled
-                        ? <Tag minimal intent={Intent.SUCCESS}>auto-exec eligible</Tag>
-                        : <Tag minimal>queue only</Tag>}
+                <div key={a.type}>
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Tag minimal className="font-mono !text-[10px]">{a.label}</Tag>
+                        {enabled
+                          ? <Tag minimal intent={Intent.SUCCESS}>auto-exec eligible</Tag>
+                          : <Tag minimal>queue only</Tag>}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1">{a.hint}</p>
+                      {trust ? (
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                          <span className="text-[11px] text-muted-foreground">{trust.agent}</span>
+                          <Tag minimal intent={trust.hasProd ? Intent.SUCCESS : Intent.NONE} icon={trust.hasProd ? 'tick' : 'cross'} className="!text-[10px]">
+                            {trust.hasProd ? 'production' : 'not in production'}
+                          </Tag>
+                          <Tag minimal intent={VERDICT_LABEL[trust.verdict].intent} className="!text-[10px]">
+                            {VERDICT_LABEL[trust.verdict].label}{trust.resolved > 0 ? ` · ${String(trust.resolved)} resolved` : ''}
+                          </Tag>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-muted-foreground/70 italic mt-1.5">No single proposing agent — manual / heuristic only.</p>
+                      )}
                     </div>
-                    <p className="text-[11px] text-muted-foreground mt-1">{a.hint}</p>
+                    <NumericInput
+                      min={0} max={1} stepSize={0.05} minorStepSize={0.01}
+                      value={current ?? ''}
+                      onValueChange={(n) => {
+                        const k = a.type as keyof typeof draft.auto_execution.thresholds
+                        const valid = Number.isFinite(n) && n >= 0 && n <= 1
+                        // Reset to default if blanked, else set the override.
+                        const next = Object.fromEntries(
+                          Object.entries(draft.auto_execution.thresholds).filter(([key]) => key !== k),
+                        ) as typeof draft.auto_execution.thresholds
+                        if (valid) next[k] = n
+                        setDraft({ ...draft, auto_execution: { ...draft.auto_execution, thresholds: next } })
+                      }}
+                      placeholder="off"
+                      className="w-24"
+                    />
                   </div>
-                  <NumericInput
-                    min={0} max={1} stepSize={0.05} minorStepSize={0.01}
-                    value={current ?? ''}
-                    onValueChange={(n) => {
-                      const k = a.type as keyof typeof draft.auto_execution.thresholds
-                      const valid = Number.isFinite(n) && n >= 0 && n <= 1
-                      // Reset to default if blanked, else set the override.
-                      const next = Object.fromEntries(
-                        Object.entries(draft.auto_execution.thresholds).filter(([key]) => key !== k),
-                      ) as typeof draft.auto_execution.thresholds
-                      if (valid) next[k] = n
-                      setDraft({ ...draft, auto_execution: { ...draft.auto_execution, thresholds: next } })
-                    }}
-                    placeholder="off"
-                    className="w-24"
-                  />
+                  {warn && (
+                    <Callout intent={warnIntent} icon={warnIntent === Intent.WARNING ? 'warning-sign' : 'info-sign'} compact className="mt-2">
+                      <span className="text-[11px]">{warn}</span>
+                    </Callout>
+                  )}
                 </div>
               )
             })}
