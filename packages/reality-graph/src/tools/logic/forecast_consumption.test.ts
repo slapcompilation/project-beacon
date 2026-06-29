@@ -27,6 +27,22 @@ describe('forecast_consumption — baseline (no adapter)', () => {
     expect(r.confidence).toBeGreaterThanOrEqual(0.85)
   })
 
+  it('averages over the window span, not active days (intermittent history)', async () => {
+    // 33 units consumed across 9 events spread over the 30-day window. The honest
+    // daily rate is ~33/30 ≈ 1.1 → ~33 over 30 days. Dividing by active days
+    // (9) would project ~110 (3x) and drop confidence below 0.6 — which is what
+    // silently starved the overstock detector on real (intermittent) data.
+    const eventDays = [1, 4, 8, 12, 15, 19, 23, 27, 30]
+    const stockLogs = eventDays.map((d, i) => ({
+      id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
+      delta: i === 0 ? -1 : -4, created_at: days(d),   // sums to -33
+    }))
+    const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
+    const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 30 })
+    expect(r.projectedUnits).toBeLessThanOrEqual(40)   // ~33, not ~110
+    expect(r.confidence).toBeGreaterThanOrEqual(0.6)   // window well-covered
+  })
+
   it('ignores positive-delta (receive) logs', async () => {
     const tool = makeForecastConsumptionTool(fakeReader({
       stockLogs: [

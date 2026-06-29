@@ -86,7 +86,7 @@ export function makeForecastConsumptionTool(
       // baseline-rolling-30d-avg adapter; kept here so the tool is usable
       // without injecting an adapter — required by evals and fixtures).
       const consumption = logs.filter((l) => l.delta < 0).reduce((sum, l) => sum + Math.abs(l.delta), 0)
-      const days = Math.max(1, distinctDays(logs))
+      const days = observedWindowDays(logs, 30)
       const dailyAvg = consumption / days
       const projected = dailyAvg * input.horizonDays
       const confidence = Math.min(0.95, 0.35 + (days / 30) * 0.5)
@@ -102,7 +102,13 @@ export function makeForecastConsumptionTool(
   }
 }
 
-function distinctDays(logs: ReadonlyArray<{ created_at: string }>): number {
-  const set = new Set(logs.map((l) => l.created_at.slice(0, 10)))
-  return set.size
+// Average consumption over the observed window SPAN (inclusive calendar days from
+// the first to the last log), not the count of days that happen to have a log.
+// Dividing by active days over-projects intermittent items ~Nx and starves the
+// overstock detector; the span is the honest denominator for a daily rate.
+function observedWindowDays(logs: ReadonlyArray<{ created_at: string }>, lookback: number): number {
+  if (logs.length === 0) return 1
+  const times = logs.map((l) => new Date(l.created_at).getTime())
+  const spanDays = Math.floor((Math.max(...times) - Math.min(...times)) / 86_400_000) + 1
+  return Math.min(lookback, Math.max(1, spanDays))
 }
