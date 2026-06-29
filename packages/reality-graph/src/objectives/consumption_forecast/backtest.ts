@@ -72,7 +72,9 @@ export async function backtestForecastAdapters(
     const scored = trainDays >= minTrainDays && actual > 0
 
     for (const a of adapters) {
-      const out = await a.runInference({ logs: train, horizonDays: cfg.holdoutDays })
+      // asOf = the holdout cutoff so the rolling window ends there, never at the
+      // wall clock — keeps the backtest deterministic + faithful to that point.
+      const out = await a.runInference({ logs: train, horizonDays: cfg.holdoutDays, asOf: cutoff.getTime() })
       const predicted = out.projectedUnits
       predictions.push({
         variantId: c.variantId, label: c.label, cohort: c.cohort, adapter: a.name,

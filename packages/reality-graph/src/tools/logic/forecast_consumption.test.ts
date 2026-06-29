@@ -16,10 +16,11 @@ describe('forecast_consumption — baseline (no adapter)', () => {
   })
 
   it('projects rolling-30d daily average over the horizon', async () => {
-    // 60 units consumed across 30 distinct days → 2/day → 14 over a 7-day horizon
+    // 60 units consumed across 30 distinct days in the window → 60/30 = 2/day →
+    // 14 over a 7-day horizon. Full coverage → high confidence.
     const stockLogs = Array.from({ length: 30 }, (_, i) => ({
       id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
-      delta: -2, created_at: days(i + 1),
+      delta: -2, created_at: days(i),
     }))
     const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
@@ -27,12 +28,12 @@ describe('forecast_consumption — baseline (no adapter)', () => {
     expect(r.confidence).toBeGreaterThanOrEqual(0.85)
   })
 
-  it('averages over the window span, not active days (intermittent history)', async () => {
-    // 33 units consumed across 9 events spread over the 30-day window. The honest
-    // daily rate is ~33/30 ≈ 1.1 → ~33 over 30 days. Dividing by active days
-    // (9) would project ~110 (3x) and drop confidence below 0.6 — which is what
-    // silently starved the overstock detector on real (intermittent) data.
-    const eventDays = [1, 4, 8, 12, 15, 19, 23, 27, 30]
+  it('averages over the window, not active days — honestly less sure on sparse history', async () => {
+    // 33 units across 9 events spread over the window → ~33/30 ≈ 1.1/day → ~33
+    // over 30 days. Dividing by active days (9) would project ~110 (3x) and
+    // silently starve the overstock detector. Sparse coverage → moderate
+    // confidence, NOT the false 0.85 the old span-based math gave.
+    const eventDays = [0, 3, 7, 11, 14, 18, 22, 26, 29]
     const stockLogs = eventDays.map((d, i) => ({
       id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
       delta: i === 0 ? -1 : -4, created_at: days(d),   // sums to -33
@@ -40,18 +41,21 @@ describe('forecast_consumption — baseline (no adapter)', () => {
     const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 30 })
     expect(r.projectedUnits).toBeLessThanOrEqual(40)   // ~33, not ~110
-    expect(r.confidence).toBeGreaterThanOrEqual(0.6)   // window well-covered
+    expect(r.confidence).toBeLessThan(0.6)             // 9 active days → honest, lower
+    expect(r.confidence).toBeGreaterThan(0.4)
   })
 
   it('ignores positive-delta (receive) logs', async () => {
-    const tool = makeForecastConsumptionTool(fakeReader({
-      stockLogs: [
-        { id: 'l-1', variant_id: ids.variant1, hotel_id: ids.hotelA, delta:  100, created_at: days(1) },
-        { id: 'l-2', variant_id: ids.variant1, hotel_id: ids.hotelA, delta:   -2, created_at: days(1) },
-      ],
-    }))
+    // A big receive (+100) plus steady consumption — only the negatives count.
+    const stockLogs = [
+      { id: 'r', variant_id: ids.variant1, hotel_id: ids.hotelA, delta: 100, created_at: days(2) },
+      ...Array.from({ length: 30 }, (_, i) => ({
+        id: `c-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA, delta: -2, created_at: days(i),
+      })),
+    ]
+    const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
-    expect(r.projectedUnits).toBe(14)
+    expect(r.projectedUnits).toBe(14)   // 60 consumed / 30 × 7; the +100 ignored
   })
 })
 
