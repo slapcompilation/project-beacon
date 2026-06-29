@@ -22,6 +22,12 @@ on:
       - 'supabase/migrations/**'
       - 'supabase/tests/**'
       - '.github/workflows/db-contracts.yml'
+  # Daily sweep catches drift introduced outside a PR — e.g. a migration applied
+  # directly via the Supabase MCP (which is how the #235 leak landed). Runs after
+  # the 07:00 UTC intelligence cron.
+  schedule:
+    - cron: '0 8 * * *'
+  workflow_dispatch:
 
 concurrency:
   group: db-contracts-${{ github.ref }}
