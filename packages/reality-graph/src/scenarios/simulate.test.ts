@@ -55,14 +55,14 @@ describe('simulateCycleWithOverlay', () => {
 describe('diffSimulations', () => {
   const ranAt = '2026-06-06T00:00:00Z'
   const baseline = {
-    scanned: 2, proposed: 2, autoExecuted: 2, queued: 0, ranAt,
+    scanned: 2, proposed: 2, autoExecuted: 2, queued: 0, deduped: 0, ranAt,
     items: [
       { variantId: 'v1', variantName: 'tomatoes', outcome: 'auto-executed' as const },
       { variantId: 'v2', variantName: 'onions',   outcome: 'auto-executed' as const },
     ],
   }
   const overlay = {
-    scanned: 2, proposed: 2, autoExecuted: 1, queued: 1, ranAt,
+    scanned: 2, proposed: 2, autoExecuted: 1, queued: 1, deduped: 0, ranAt,
     items: [
       { variantId: 'v1', variantName: 'tomatoes', outcome: 'auto-executed' as const },
       { variantId: 'v2', variantName: 'onions',   outcome: 'queued' as const },

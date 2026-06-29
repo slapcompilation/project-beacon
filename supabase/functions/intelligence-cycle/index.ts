@@ -123,6 +123,11 @@ Deno.serve(async (req: Request) => {
 
   for (const hotel of (hotels ?? []) as HotelRow[]) {
     try {
+      // Dedup: skip re-proposing what an open proposal already covers — without
+      // it every daily run re-creates the same proposals and the queue fills up.
+      const openProposalKeys = await openProposalKeysFor(supabase, hotel.id)
+      const hotelShared = { ...shared, openProposalKeys }
+
       // restock_advisor on at-risk stock, then overstock_rebalancer on surplus.
       // Both route through the same decideAutoExecution gate; TRANSFER_STOCK
       // isn't auto-exec-eligible so overstock proposals always queue for review.
@@ -130,13 +135,13 @@ Deno.serve(async (req: Request) => {
       const restock = await runAgentCycle(supabase, hotel, {
         agentName: restockMeta.name, agentVersion: restockMeta.version,
         scan: 'at-risk', buildAgent: (reader, v) => buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(v) }),
-        promptVerb: 'restock', ...shared, calibration: restockCalibration,
+        promptVerb: 'restock', ...hotelShared, calibration: restockCalibration,
       })
       const overstock = await runAgentCycle(supabase, hotel, {
         agentName: overstockMeta.name, agentVersion: overstockMeta.version,
         scan: 'overstock', overstockFactor,
         buildAgent: (reader, v) => buildOverstockRebalancerAgent({ reader, llm: makeDeterministicLLM(v) }),
-        promptVerb: 'rebalance', ...shared,
+        promptVerb: 'rebalance', ...hotelShared,
       })
       // waste_triage on perishables (shelf_life_days set) — proposes redirecting
       // soon-to-spoil surplus to a needy sister, else WRITE_OFF. Both queue.
@@ -144,12 +149,12 @@ Deno.serve(async (req: Request) => {
         agentName: wasteMeta.name, agentVersion: wasteMeta.version,
         scan: 'waste',
         buildAgent: (reader, v) => buildWasteTriageAgent({ reader, llm: makeDeterministicLLM(v) }),
-        promptVerb: 'triage waste for', ...shared,
+        promptVerb: 'triage waste for', ...hotelShared,
       })
       // Expiry monitor: a batch-expiry-date detector (distinct from waste_triage's
       // shelf_life heuristic). Only runs when the operator has enabled auto-propose
       // on the expiry monitor — default off, so this is a no-op until opted in.
-      const expiry = await runExpiryMonitorCycle(supabase, hotel, { rule: policy.monitors.expiry, ...shared })
+      const expiry = await runExpiryMonitorCycle(supabase, hotel, { rule: policy.monitors.expiry, ...hotelShared })
       totalAuto   += restock.autoExecuted + overstock.autoExecuted + waste.autoExecuted + expiry.autoExecuted
       totalQueued += restock.queued + overstock.queued + waste.queued + expiry.queued
       perHotel.push({
@@ -192,6 +197,25 @@ interface AgentCycleOpts {
   requireCalibration?: boolean
   minCalibrationSamples?: number
   calibration?: unknown
+  openProposalKeys?: ReadonlySet<string>
+}
+
+// Keys (`${actionType}:${variantId}`) of this hotel's still-open proposals, so a
+// cron run doesn't re-create what's already awaiting review.
+async function openProposalKeysFor(supabase: SupabaseClient, hotelId: string): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from('proposals')
+    .select('action_type, action_payload')
+    .eq('hotel_id', hotelId)
+    .eq('status', 'pending')
+    .limit(5000)
+  if (error || !data) return new Set()
+  const keys = new Set<string>()
+  for (const r of data as { action_type: string; action_payload: { variantId?: string } | null }[]) {
+    const vid = r.action_payload?.variantId
+    if (vid) keys.add(`${r.action_type}:${vid}`)
+  }
+  return keys
 }
 
 // This agent's reliability report from its own resolved proposals in this hotel.
@@ -290,6 +314,7 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
     calibration: opts.calibration,
     requireCalibration: opts.requireCalibration,
     minCalibrationSamples: opts.minCalibrationSamples,
+    openProposalKeys: opts.openProposalKeys,
     runAgent: async (variant: { id: string; name: string }) => {
       const agent = opts.buildAgent(reader, variant)
       const run = await agent.run({ prompt: `${opts.promptVerb} ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
@@ -434,6 +459,7 @@ async function runExpiryMonitorCycle(
     agentOverrides: opts.agentOverrides,
     agent:    { agentName: 'expiry_monitor', agentVersion: '1.0.0' },
     releases: { production: opts.productionReleases },
+    openProposalKeys: opts.openProposalKeys,
     runAgent: (variant: { id: string; name: string }) => {
       const hit = byVariant.get(variant.id)
       if (!hit) return Promise.resolve([])

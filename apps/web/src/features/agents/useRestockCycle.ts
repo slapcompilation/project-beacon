@@ -27,7 +27,7 @@ import { fetchActiveConstraints, rowToConstraintRecord } from '@/features/constr
 import { useProducts } from '@/features/inventory/hooks'
 import { makeSupabaseGraphReader } from './graphReader'
 import { HeuristicLLMClient } from './heuristicLLM'
-import { createProposal, decideProposal } from './proposalsApi'
+import { createProposal, decideProposal, fetchPendingProposals } from './proposalsApi'
 import { attachProposalToCase, caseTitleFor, createCase, fetchOpenCaseForVariant } from '@/features/cases/api'
 import { useActiveForecastAdapter } from '@/features/modelingObjectives/activeAdapter'
 import { useCurrentAgentReleases } from '@/features/agentStudio/hooks'
@@ -91,6 +91,15 @@ export function useRestockCycle() {
       // DB read-after-write sees the first case).
       const caseByVariant = new Map<string, string>()
 
+      // Dedup: don't re-create a proposal that's already pending for the operator.
+      const pending = await fetchPendingProposals({ hotelId }).catch(() => [])
+      const openProposalKeys = new Set(
+        pending.flatMap((p) => {
+          const vid = p.action_payload.variantId
+          return typeof vid === 'string' ? [`${p.action_type}:${vid}`] : []
+        }),
+      )
+
       const result = await runIntelligenceCycle({
         variants,
         constraints,
@@ -102,6 +111,7 @@ export function useRestockCycle() {
         calibration,
         requireCalibration:    orgPolicy?.auto_execution.require_calibration,
         minCalibrationSamples: minCalSamples,
+        openProposalKeys,
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals

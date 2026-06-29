@@ -22,7 +22,7 @@ export interface CycleVariant {
   name: string
 }
 
-export type CycleOutcome = 'auto-executed' | 'queued' | 'no-proposal' | 'error'
+export type CycleOutcome = 'auto-executed' | 'queued' | 'duplicate' | 'no-proposal' | 'error'
 
 export interface CycleItem {
   variantId: string
@@ -38,6 +38,8 @@ export interface CycleResult {
   proposed: number
   autoExecuted: number
   queued: number
+  /** Proposals skipped because an open proposal already covered the variant+action. */
+  deduped: number
   ranAt: string
   items: CycleItem[]
 }
@@ -73,6 +75,10 @@ export interface IntelligenceCycleDeps {
    *  production release every proposal queues. Only the no-write scenario
    *  sandbox + gate-agnostic tests set this; production callers never do. */
   allowUnreleased?: boolean
+  /** Keys (`${actionType}:${variantId}`) of proposals already open/pending in
+   *  scope. The cycle skips re-proposing any of these — without it every run
+   *  re-creates the same proposals and the review queue fills with duplicates. */
+  openProposalKeys?: ReadonlySet<string>
   /** Phase E3 — per-agent confidence floor overrides. Threaded into the
    *  auto-execution gate; supersedes the per-action-type threshold when the
    *  proposing agent's name appears here. */
@@ -102,6 +108,10 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
   let proposed = 0
   let autoExecuted = 0
   let queued = 0
+  let deduped = 0
+  // Open proposals already covering a variant+action — seeded from the caller,
+  // then grown within the run so an agent can't emit the same proposal twice.
+  const seen = new Set<string>(deps.openProposalKeys ?? [])
 
   for (const variant of scope) {
     try {
@@ -112,6 +122,17 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
       }
 
       for (const proposal of proposals) {
+        const dedupKey = proposalDedupKey(proposal.action)
+        if (dedupKey && seen.has(dedupKey)) {
+          deduped++
+          items.push({
+            variantId: variant.id, variantName: variant.name, outcome: 'duplicate',
+            actionType: proposal.action.type,
+            reason: 'an open proposal already covers this variant + action',
+          })
+          continue
+        }
+        if (dedupKey) seen.add(dedupKey)
         const proposalId = await deps.persistProposal(variant, proposal)
         proposed++
 
@@ -168,7 +189,15 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
     proposed,
     autoExecuted,
     queued,
+    deduped,
     ranAt: now().toISOString(),
     items,
   }
+}
+
+/** Dedup key for a proposing action — actionType + the variant it targets. Lets
+ *  the cycle skip re-proposing what an open proposal already covers. */
+function proposalDedupKey(action: BeaconAction): string | null {
+  const variantId = (action as { variantId?: string }).variantId
+  return variantId ? `${action.type}:${variantId}` : null
 }
