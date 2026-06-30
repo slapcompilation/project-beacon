@@ -14,7 +14,7 @@ const principleSchema = z.object({
   appliesToNodeIds: z.array(z.string()).optional(),
 })
 
-const inputSchema = z.object({
+export const inputSchema = z.object({
   variantId: z.string().uuid(),
   variantName: z.string().min(1),
   hotelId: z.string().uuid(),
@@ -60,7 +60,7 @@ const proposalSchema = z.object({
   ),
 })
 
-const outputSchema = z.object({
+export const outputSchema = z.object({
   proposals: z.array(proposalSchema),
   /** When agent paused for clarification. Mutually exclusive with non-empty proposals. */
   paused: z.object({

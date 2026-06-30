@@ -4,7 +4,7 @@
 
 import type { z } from 'zod'
 import type { LogicTool } from '../tools/index'
-import type { LLMClient, LLMResponse, LLMToolSpec } from './llm'
+import type { LLMClient, LLMMessage, LLMResponse, LLMToolSpec } from './llm'
 import type {
   AgentRunStep,
   AgentRunTrace,
@@ -13,8 +13,9 @@ import type {
 // ── Block primitives ─────────────────────────────────────────────────────────
 
 export interface BlockContext {
-  /** Calls a Logic Tool by name and records the call in the trace. */
-  invokeTool: <I, O>(toolName: string, input: I) => Promise<O>
+  /** Calls a Logic Tool by name and records the call in the trace. The optional
+   *  `thought` is the LLM's reasoning before the call (surfaced in the trace). */
+  invokeTool: <I, O>(toolName: string, input: I, opts?: { thought?: string }) => Promise<O>
   /** Pushes a typed step into the trace. */
   appendStep: (step: Omit<AgentRunStep, 'index'>) => void
   /** Bounded LLM client. */
@@ -111,7 +112,7 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
     })
 
     const blockCtx: BlockContext = {
-      invokeTool: async <BI, BO>(toolName: string, toolInput: BI): Promise<BO> => {
+      invokeTool: async <BI, BO>(toolName: string, toolInput: BI, opts?: { thought?: string }): Promise<BO> => {
         if (!allowed.has(toolName)) {
           throw new Error(`Tool '${toolName}' not allowed for agent '${args.agentName}'`)
         }
@@ -125,6 +126,7 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
           type: 'llm_tool_use',
           toolName,
           input: toolInput,
+          thought: opts?.thought,
         })
         const started = Date.now()
         const rawResult = await tool.invoke(toolInput)
@@ -185,6 +187,98 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
   args.llm = trackedLlm
 
   return { runBlock, snapshotTrace }
+}
+
+// ── LLM tool loop — the model orchestrates the reasoning ──────────────────────
+// The LLM, given the bounded tool specs + the numbered task prompt, decides which
+// tool to call, reads the result, and loops until it emits a typed proposal (or
+// calls request_clarification). Safety is inherited, not re-implemented:
+//   • every tool call goes through ctx.invokeTool → tool whitelist + zod I/O +
+//     trace. A call to an unregistered tool is rejected, recorded, and fed back
+//     as an error so the model can correct — it never executes.
+//   • the final output is validated against the proposal schema (zod) — never raw
+//     text to a writer.
+//   • hard iteration + token ceilings; on any breach the loop throws ToolLoopError
+//     so the caller can fall back to the deterministic procedure.
+// The decideAutoExecution gate sits AFTER the agent, unchanged — an LLM-authored
+// proposal still cannot auto-execute without a production release + clean
+// constraints + calibration.
+
+export class ToolLoopError extends Error {
+  constructor(message: string, public readonly meta?: Record<string, unknown>) {
+    super(message)
+    this.name = 'ToolLoopError'
+  }
+}
+
+export interface ToolLoopArgs<O> {
+  ctx: BlockContext
+  systemPrompt: string
+  taskPrompt: string
+  /** Tools the model may call (a subset of the agent's allowed set). */
+  toolSpecs: ReadonlyArray<LLMToolSpec>
+  /** Schema the final proposal must satisfy. */
+  finalSchema: z.ZodType<O>
+  /** Max model turns before giving up (→ fallback). Default 8. */
+  maxIterations?: number
+  /** Token budget across the loop before giving up (→ fallback). Default 24k. */
+  maxTokens?: number
+}
+
+export async function runToolLoop<O>(args: ToolLoopArgs<O>): Promise<O> {
+  const maxIterations = args.maxIterations ?? 8
+  const maxTokens = args.maxTokens ?? 24_000
+  const messages: LLMMessage[] = [{ role: 'user', content: args.taskPrompt }]
+  let tokens = 0
+
+  for (let iter = 1; iter <= maxIterations; iter++) {
+    const resp = await args.ctx.llm.call<O>({
+      systemPrompt: args.systemPrompt,
+      messages,
+      tools: args.toolSpecs,
+      outputSchema: args.finalSchema,
+    })
+    tokens += resp.tokensUsed
+    if (tokens > maxTokens) {
+      args.ctx.appendStep({ blockName: '', type: 'llm_output', output: { loopFailed: 'token budget exceeded', tokens } })
+      throw new ToolLoopError('token budget exceeded', { tokens })
+    }
+
+    // No tool calls → the model is done. Validate the final proposal.
+    if (resp.toolCalls.length === 0) {
+      if (resp.output === undefined) {
+        throw new ToolLoopError('model returned neither a tool call nor a final proposal')
+      }
+      const parsed = args.finalSchema.safeParse(resp.output)
+      if (!parsed.success) {
+        args.ctx.appendStep({ blockName: '', type: 'llm_output', output: { loopFailed: 'final output failed schema validation' } })
+        throw new ToolLoopError('final output failed schema validation', { issues: parsed.error.issues })
+      }
+      return parsed.data
+    }
+
+    // Execute each requested tool call through the guarded invoke path.
+    for (const call of resp.toolCalls) {
+      let resultText: string
+      try {
+        const out = await args.ctx.invokeTool(call.toolName, call.input, { thought: call.thought })
+        resultText = JSON.stringify(out)
+      } catch (err) {
+        // Containment: rejected call is recorded + fed back; the tool never ran.
+        const msg = err instanceof Error ? err.message : String(err)
+        args.ctx.appendStep({
+          blockName: '', type: 'tool_response', toolName: call.toolName,
+          thought: call.thought, output: { rejected: msg },
+        })
+        resultText = `ERROR: ${msg}`
+      }
+      messages.push({ role: 'assistant', content: `${call.thought ? `Thought: ${call.thought}\n` : ''}Call: ${call.toolName}` })
+      messages.push({ role: 'user', content: `Result of ${call.toolName}: ${resultText}` })
+    }
+  }
+
+  args.ctx.appendStep({ blockName: '', type: 'llm_output', output: { loopFailed: `max iterations (${maxIterations}) reached` } })
+  throw new ToolLoopError(`max iterations (${maxIterations}) reached without a final proposal`)
 }
 
 /** Convenience helper for blocks that just need to call the LLM and validate output. */
