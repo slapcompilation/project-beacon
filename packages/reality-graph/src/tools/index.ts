@@ -116,6 +116,11 @@ export {
   type ScoreForecastAccuracyDeps,
 } from './logic/score_forecast_accuracy'
 export {
+  makeComputeReorderPointTool,
+  type ComputeReorderPointInput,
+  type ComputeReorderPointOutput,
+} from './logic/compute_reorder_point'
+export {
   makeRankAlternativeSuppliersTool,
   type RankAlternativeSuppliersInput,
   type RankAlternativeSuppliersOutput,

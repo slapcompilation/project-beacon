@@ -22,6 +22,7 @@ import {
 import { supabase } from '@/lib/supabase/client'
 import { useWasteRadar, useConsumptionForecast } from '@/features/eye/hooks'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useReorderPoint } from '@/features/inventory/hooks/useReorderPoint'
 import { cn } from '@/lib/utils'
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
@@ -178,6 +179,52 @@ function RestockStatusBadge({ status }: { status: string }) {
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
+
+function ReorderPointCard({ variantId, par }: { variantId: string; par: number }) {
+  const { data, isLoading } = useReorderPoint(variantId)
+  if (isLoading || !data || data.dailyMean <= 0) return null
+
+  // Contrast the statistical reorder point with the operator's hand-set PAR.
+  const delta = par > 0 ? (par - data.reorderPoint) / data.reorderPoint : null
+  const parVerdict =
+    delta === null ? null
+    : delta < -0.2 ? { intent: Intent.WARNING, text: `PAR ${par} is well below — stockout risk` }
+    : delta > 0.2  ? { intent: Intent.WARNING, text: `PAR ${par} is well above — overstock risk` }
+    : { intent: Intent.SUCCESS, text: `PAR ${par} is in line` }
+
+  return (
+    <Card compact className="!p-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Reorder Point · {(data.serviceLevel * 100).toFixed(0)}% service
+        </span>
+        {parVerdict && <Tag minimal intent={parVerdict.intent}>{parVerdict.text}</Tag>}
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 text-sm">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Reorder at</div>
+          <div className="text-lg font-semibold tabular-nums">{data.reorderPoint}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Safety stock</div>
+          <div className="text-lg font-semibold tabular-nums">{data.safetyStock}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Daily demand</div>
+          <div className="tabular-nums">{data.dailyMean} ± {data.dailySigma}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Lead time</div>
+          <div className="tabular-nums">{data.leadTimeDays}d</div>
+        </div>
+      </div>
+      <div className="px-3 pb-2 text-[11px] text-muted-foreground">
+        Cover {data.demandOverLeadTime}u expected demand over the {data.leadTimeDays}-day lead + {data.safetyStock}u buffer
+        for demand swings (z={data.z}).
+      </div>
+    </Card>
+  )
+}
 
 export default function VariantObjectPage() {
   const { variantId = '' } = useParams<{ variantId: string }>()
@@ -382,6 +429,9 @@ export default function VariantObjectPage() {
               sub={`@ €${variant.cost.toFixed(2)} / unit`}
             />
           </div>
+
+          {/* ── Reorder point (statistical, vs the hand-set PAR) ── */}
+          <ReorderPointCard variantId={variant.id} par={variant.low_stock_threshold} />
 
           {/* ── Waste anomaly callout ── */}
           {wasteAnomaly && (

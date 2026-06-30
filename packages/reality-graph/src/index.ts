@@ -154,6 +154,7 @@ export {
   makeQuerySisterPropertyInventoryTool,
   makeForecastConsumptionTool,
   makeScoreForecastAccuracyTool,
+  makeComputeReorderPointTool,
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
@@ -170,6 +171,10 @@ export type {
   DetectOntologyGapsInput,
   DetectOntologyGapsOutput,
   OntologyReader,
+  ComputeReorderPointInput,
+  ComputeReorderPointOutput,
+  ScoreForecastAccuracyInput,
+  ScoreForecastAccuracyOutput,
 } from './tools/index'
 
 // ── Decision calibration — reliability math behind trustworthy autonomy ──────
