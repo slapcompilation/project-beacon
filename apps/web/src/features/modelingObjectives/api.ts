@@ -47,7 +47,29 @@ export interface DeploymentRow {
   last_health_check: string
 }
 
+/** One row of the live forecast-accuracy summary (forecast_accuracy_summary RPC):
+ *  the baseline's recent forecasts for a variant scored against realized
+ *  consumption. mape = mean abs % error; bias_pct < 0 = systematic under-forecast. */
+export interface ForecastAccuracyRow {
+  variant_id:   string
+  variant_name: string
+  n:            number
+  mape:         number
+  bias_pct:     number
+  n_censored:   number
+}
+
 // ─── Reads ──────────────────────────────────────────────────────────────────
+
+export async function fetchForecastAccuracy(
+  hotelId: string, horizon = 7, windows = 4,
+): Promise<ForecastAccuracyRow[]> {
+  const { data, error } = await supabase.rpc('forecast_accuracy_summary', {
+    p_hotel_id: hotelId, p_horizon: horizon, p_windows: windows,
+  }) as unknown as { data: ForecastAccuracyRow[] | null; error: { message: string } | null }
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
 
 export async function fetchEvalRuns(objectiveName: string, organizationId: string | null): Promise<EvalRunRow[]> {
   let q = supabase

@@ -8,6 +8,7 @@ import {
   fetchDeployment,
   fetchDeployments,
   fetchEvalRuns,
+  fetchForecastAccuracy,
   fetchRelease,
   fetchReleases,
   stopDeployment,
@@ -40,6 +41,15 @@ export function useReleases(objectiveName: string) {
     queryFn:  () => fetchReleases(objectiveName, orgId),
     enabled:  true,
     staleTime: 30_000,
+  })
+}
+
+export function useForecastAccuracy(hotelId: string | null, horizon = 7, windows = 4) {
+  return useQuery({
+    queryKey: ['mo', 'forecastAccuracy', hotelId ?? '', horizon, windows],
+    queryFn:  () => (hotelId ? fetchForecastAccuracy(hotelId, horizon, windows) : Promise.resolve([])),
+    enabled:  !!hotelId,
+    staleTime: 60_000,
   })
 }
 
