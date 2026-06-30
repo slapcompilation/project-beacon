@@ -12,7 +12,7 @@ import { makeForecastConsumptionTool } from '../../tools/logic/forecast_consumpt
 import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sister_property_inventory'
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
-import type { LLMClient } from '../llm'
+import type { LLMClient, LLMToolSpec } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
 import type {
   ConsumptionForecastInput,
@@ -21,7 +21,8 @@ import type {
 import { buildRunner } from '../runtime'
 import { selectApplicablePrinciples } from '../principles'
 import { extractVariantBlock } from './blocks/extract_variant'
-import { reasonAndRebalanceBlock } from './blocks/reason_and_rebalance'
+import { reasonAndRebalanceBlock, type ReasonAndRebalanceOutput } from './blocks/reason_and_rebalance'
+import { makeReasonAndRebalanceLlmBlock } from './blocks/reason_and_rebalance_llm'
 import { OVERSTOCK_REBALANCER_TASK_PROMPT } from './prompt'
 
 export { OVERSTOCK_REBALANCER_TASK_PROMPT }
@@ -36,6 +37,10 @@ export interface OverstockRebalancerDeps {
   reader: GraphReader
   /** Adapter the forecast_consumption tool delegates to. Omit for baseline. */
   forecastAdapter?: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>
+  /** Reasoning mode. 'deterministic' (default) runs the hardcoded procedure —
+   *  zero LLM spend, the eval baseline + cron path. 'llm' lets the model
+   *  orchestrate the tool loop, falling back to deterministic on any failure. */
+  reasoning?: 'llm' | 'deterministic'
 }
 
 export function buildOverstockRebalancerAgent(deps: OverstockRebalancerDeps): AgentSpec {
@@ -47,6 +52,9 @@ export function buildOverstockRebalancerAgent(deps: OverstockRebalancerDeps): Ag
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))
   const toolset = tools.map((t) => t.name)
+  // Tool specs the LLM sees when it orchestrates the loop (reasoning: 'llm').
+  const toolSpecs: LLMToolSpec[] = tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))
+  const reasonLlmBlock = makeReasonAndRebalanceLlmBlock(toolSpecs)
 
   return {
     name: AGENT_NAME,
@@ -94,7 +102,7 @@ export function buildOverstockRebalancerAgent(deps: OverstockRebalancerDeps): Ag
       )
       const principles = selectApplicablePrinciples(allPrinciples, variant.variantId)
 
-      const result = await runner.runBlock(reasonAndRebalanceBlock, {
+      const reasoningInput = {
         variantId: variant.variantId,
         variantName: variant.variantName,
         hotelId: input.scope.hotelId,
@@ -104,7 +112,21 @@ export function buildOverstockRebalancerAgent(deps: OverstockRebalancerDeps): Ag
         overstockMultiple: 2,
         confidenceThreshold: 0.6,
         principles,
-      })
+      }
+
+      // 'llm' mode: the model orchestrates the tool loop; on any failure (LLM
+      // error, blown budget/iterations, invalid output) fall back to the
+      // deterministic procedure so the agent always returns a typed result.
+      let result: ReasonAndRebalanceOutput
+      if (deps.reasoning === 'llm') {
+        try {
+          result = await runner.runBlock(reasonLlmBlock, reasoningInput)
+        } catch {
+          result = await runner.runBlock(reasonAndRebalanceBlock, reasoningInput)
+        }
+      } else {
+        result = await runner.runBlock(reasonAndRebalanceBlock, reasoningInput)
+      }
 
       return {
         proposals: result.proposals.map((p) => ({

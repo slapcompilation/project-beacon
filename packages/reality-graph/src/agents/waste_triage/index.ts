@@ -12,7 +12,7 @@ import { makeQueryRecentWasteLogsTool } from '../../tools/data/query_recent_wast
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
 import { makeQueryDocumentChunksTool } from '../../tools/data/query_document_chunks'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
-import type { LLMClient } from '../llm'
+import type { LLMClient, LLMToolSpec } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
 import type {
   ConsumptionForecastInput,
@@ -21,7 +21,8 @@ import type {
 import { buildRunner } from '../runtime'
 import { selectApplicablePrinciples } from '../principles'
 import { extractVariantBlock } from './blocks/extract_variant'
-import { proposeWasteActionsBlock } from './blocks/propose_waste_actions'
+import { proposeWasteActionsBlock, type ProposeWasteActionsOutput } from './blocks/propose_waste_actions'
+import { makeProposeWasteActionsLlmBlock } from './blocks/propose_waste_actions_llm'
 import { WASTE_TRIAGE_TASK_PROMPT } from './prompt'
 
 export { WASTE_TRIAGE_TASK_PROMPT }
@@ -37,6 +38,10 @@ export interface WasteTriageDeps {
   /** Adapter the forecast_consumption tool delegates to. When omitted, the
    *  tool falls back to its inline baseline. */
   forecastAdapter?: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>
+  /** Reasoning mode. 'deterministic' (default) runs the hardcoded procedure —
+   *  zero LLM spend, the eval baseline + cron path. 'llm' lets the model
+   *  orchestrate the tool loop, falling back to deterministic on any failure. */
+  reasoning?: 'llm' | 'deterministic'
 }
 
 export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
@@ -50,6 +55,9 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))
   const toolset  = tools.map((t) => t.name)
+  // Tool specs the LLM sees when it orchestrates the loop (reasoning: 'llm').
+  const toolSpecs: LLMToolSpec[] = tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))
+  const proposeLlmBlock = makeProposeWasteActionsLlmBlock(toolSpecs)
 
   return {
     name: AGENT_NAME,
@@ -107,7 +115,7 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
       const shelfLife = variantRow.shelf_life_days
       const safeWindowDays = shelfLife != null ? Math.min(60, Math.max(1, shelfLife)) : 7
 
-      const result = await runner.runBlock(proposeWasteActionsBlock, {
+      const reasoningInput = {
         variantId:           variant.variantId,
         variantName:         variant.variantName,
         hotelId:             input.scope.hotelId,
@@ -116,7 +124,21 @@ export function buildWasteTriageAgent(deps: WasteTriageDeps): AgentSpec {
         safeWindowDays,
         confidenceThreshold: 0.6,
         principles,
-      })
+      }
+
+      // 'llm' mode: the model orchestrates the tool loop; on any failure (LLM
+      // error, blown budget/iterations, invalid output) fall back to the
+      // deterministic procedure so the agent always returns a typed result.
+      let result: ProposeWasteActionsOutput
+      if (deps.reasoning === 'llm') {
+        try {
+          result = await runner.runBlock(proposeLlmBlock, reasoningInput)
+        } catch {
+          result = await runner.runBlock(proposeWasteActionsBlock, reasoningInput)
+        }
+      } else {
+        result = await runner.runBlock(proposeWasteActionsBlock, reasoningInput)
+      }
 
       return {
         proposals: result.proposals.map((p) => ({
