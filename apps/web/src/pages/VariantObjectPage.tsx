@@ -23,6 +23,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useWasteRadar, useConsumptionForecast } from '@/features/eye/hooks'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useReorderPoint } from '@/features/inventory/hooks/useReorderPoint'
+import { useOccupancyAdjustedForecast } from '@/features/inventory/hooks/useOccupancyAdjustedForecast'
 import { cn } from '@/lib/utils'
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
@@ -221,6 +222,49 @@ function ReorderPointCard({ variantId, par }: { variantId: string; par: number }
       <div className="px-3 pb-2 text-[11px] text-muted-foreground">
         Cover {data.demandOverLeadTime}u expected demand over the {data.leadTimeDays}-day lead + {data.safetyStock}u buffer
         for demand swings (z={data.z}).
+      </div>
+    </Card>
+  )
+}
+
+function OccupancyForecastCard({ variantId, hotelId }: { variantId: string; hotelId: string | null }) {
+  // 14-day outlook: long enough to capture upcoming high-occupancy / event days
+  // that a 7-day window would miss.
+  const { data, isLoading } = useOccupancyAdjustedForecast(variantId, hotelId, 14)
+  if (isLoading || !data) return null
+  // Only meaningful when expected occupancy actually shifts demand.
+  if (data.adjustedProjected === data.baselineProjected) return null
+  const up = data.upliftPct > 0
+  return (
+    <Card compact className="!p-0">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          Occupancy-Adjusted Demand · next 14d
+        </span>
+        <Tag minimal intent={up ? Intent.WARNING : Intent.SUCCESS}>
+          {up ? '+' : ''}{(data.upliftPct * 100).toFixed(0)}% vs baseline
+        </Tag>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 text-sm">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Baseline</div>
+          <div className="tabular-nums">{data.baselineProjected}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Occupancy-adjusted</div>
+          <div className="text-lg font-semibold tabular-nums">{data.adjustedProjected}</div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Expected occ</div>
+          <div className="tabular-nums">{data.avgForwardOccupancy}% <span className="text-muted-foreground">vs {data.histMeanOccupancy}%</span></div>
+        </div>
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Sensitivity</div>
+          <div className="tabular-nums">{data.sensitivity}</div>
+        </div>
+      </div>
+      <div className="px-3 pb-2 text-[11px] text-muted-foreground">
+        Forward bookings put occupancy {up ? 'above' : 'below'} the historical norm → demand {up ? 'lifted' : 'eased'} ahead of the window.
       </div>
     </Card>
   )
@@ -432,6 +476,9 @@ export default function VariantObjectPage() {
 
           {/* ── Reorder point (statistical, vs the hand-set PAR) ── */}
           <ReorderPointCard variantId={variant.id} par={variant.low_stock_threshold} />
+
+          {/* ── Occupancy-adjusted demand (forward bookings × category elasticity) ── */}
+          <OccupancyForecastCard variantId={variant.id} hotelId={hotelId} />
 
           {/* ── Waste anomaly callout ── */}
           {wasteAnomaly && (

@@ -155,6 +155,7 @@ export {
   makeForecastConsumptionTool,
   makeScoreForecastAccuracyTool,
   makeComputeReorderPointTool,
+  makeOccupancyAdjustedForecastTool,
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
@@ -175,6 +176,10 @@ export type {
   ComputeReorderPointOutput,
   ScoreForecastAccuracyInput,
   ScoreForecastAccuracyOutput,
+  OccupancyAdjustedForecastInput,
+  OccupancyAdjustedForecastOutput,
+  OccupancyContext,
+  OccupancyForecastReader,
 } from './tools/index'
 
 // ── Decision calibration — reliability math behind trustworthy autonomy ──────

@@ -121,6 +121,13 @@ export {
   type ComputeReorderPointOutput,
 } from './logic/compute_reorder_point'
 export {
+  makeOccupancyAdjustedForecastTool,
+  type OccupancyAdjustedForecastInput,
+  type OccupancyAdjustedForecastOutput,
+  type OccupancyContext,
+  type OccupancyForecastReader,
+} from './logic/occupancy_adjusted_forecast'
+export {
   makeRankAlternativeSuppliersTool,
   type RankAlternativeSuppliersInput,
   type RankAlternativeSuppliersOutput,
