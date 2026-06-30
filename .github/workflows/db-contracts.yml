@@ -52,3 +52,26 @@ jobs:
             echo "── running $f"
             psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$f"
           done
+
+      # get_advisors gate — fails only on ERROR-level security lints (WARN/INFO
+      # are advisory). The SQL guards above are the precise instrument for the
+      # tenant-param leak class; this catches the broader catalog (RLS-disabled
+      # tables, definer views) the linter sees. Dormant until both secrets are set.
+      - name: Security advisors gate (ERROR-level)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF:  ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ] || [ -z "$SUPABASE_PROJECT_REF" ]; then
+            echo "::warning::SUPABASE_ACCESS_TOKEN / SUPABASE_PROJECT_REF not set — skipping get_advisors gate. The SQL guards already cover the leak class (anon-exec, search_path, unscoped tenant params)."
+            exit 0
+          fi
+          resp=$(curl -sS -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/advisors/security")
+          n=$(echo "$resp" | jq '[.lints[]? | select(.level=="ERROR")] | length')
+          echo "ERROR-level security advisors: ${n:-?}"
+          if [ "${n:-0}" -gt 0 ]; then
+            echo "$resp" | jq -r '.lints[]? | select(.level=="ERROR") | "::error::advisor [" + .name + "] " + .title + " — " + (.detail // "")'
+            exit 1
+          fi
+          echo "No ERROR-level security advisors."

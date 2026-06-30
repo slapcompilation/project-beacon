@@ -27,6 +27,12 @@
 --   C5  production promotion requires a prior staging release (Gap D; deny-path).
 --   C6  get_overstock_candidates is service-role only — authenticated can't read
 --       another hotel's stock through this SECURITY DEFINER fn (#235 leak fix).
+--   C7  get_hotel_graph (SECURITY DEFINER, p_hotel_id) — a hotel-scoped user reads
+--       its own graph but gets nothing for another hotel (migration 181).
+--   C8  create_relationship_edge — an authenticated user can't write an edge into
+--       another hotel's graph (migration 181 scope gate; deny-path, rolled back).
+--   C9  ingest_pos_sale is service-role only — authenticated can't inject POS
+--       sales / decrement another hotel's stock (migration 181).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -113,6 +119,28 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
   IF NOT raised THEN RAISE EXCEPTION 'C6: authenticated read overstock candidates for another hotel (cross-tenant leak)'; END IF;
 
+  -- ── C7: get_hotel_graph — own-hotel reads, cross-hotel is empty ──
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock service-role-only', v_b_pending;
+  PERFORM set_config('request.jwt.claims', claims_a, true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM get_hotel_graph(v_a, 5000, 0, now() - interval '3650 days');
+  IF n = 0 THEN RAISE EXCEPTION 'C7a: hotel A sees 0 of its own graph edges (expected >0)'; END IF;
+  SELECT count(*) INTO n FROM get_hotel_graph(v_b, 5000, 0, now() - interval '3650 days');
+  IF n <> 0 THEN RAISE EXCEPTION 'C7b CROSS-HOTEL LEAK: hotel A read % of hotel B''s graph edges via get_hotel_graph', n; END IF;
+
+  -- ── C8: create_relationship_edge — cross-hotel write denied (rolled back) ──
+  raised := false;
+  BEGIN
+    PERFORM create_relationship_edge(v_b, 'variant', gen_random_uuid(), 'similar_to', 'variant', gen_random_uuid(), NULL);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
+  IF NOT raised THEN RAISE EXCEPTION 'C8 CROSS-HOTEL WRITE: authenticated wrote an edge into hotel B''s graph'; END IF;
+
+  -- ── C9: ingest_pos_sale is service-role only ──
+  raised := false;
+  BEGIN PERFORM ingest_pos_sale(v_a, gen_random_uuid(), 1, now(), 'contract-test', NULL);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
+  IF NOT raised THEN RAISE EXCEPTION 'C9: authenticated could EXECUTE ingest_pos_sale (expected service-role only)'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated', v_b_pending;
 END $$;
