@@ -33,6 +33,8 @@
 --       another hotel's graph (migration 181 scope gate; deny-path, rolled back).
 --   C9  ingest_pos_sale is service-role only — authenticated can't inject POS
 --       sales / decrement another hotel's stock (migration 181).
+--   C10 forecast_observations — a hotel only sees its own rows (RLS), and an
+--       authenticated user can't record forecasts for another hotel (migration 183).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -141,6 +143,17 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
   IF NOT raised THEN RAISE EXCEPTION 'C9: authenticated could EXECUTE ingest_pos_sale (expected service-role only)'; END IF;
 
+  -- ── C10: forecast_observations — RLS isolation + scoped write ──
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated', v_b_pending;
+  PERFORM set_config('request.jwt.claims', claims_a, true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM forecast_observations WHERE hotel_id = v_b;
+  IF n <> 0 THEN RAISE EXCEPTION 'C10a CROSS-HOTEL LEAK: hotel A sees % of hotel B forecast_observations', n; END IF;
+  raised := false;
+  BEGIN PERFORM record_current_forecasts(v_b, 7);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
+  IF NOT raised THEN RAISE EXCEPTION 'C10b: authenticated recorded forecasts for another hotel'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped', v_b_pending;
 END $$;
