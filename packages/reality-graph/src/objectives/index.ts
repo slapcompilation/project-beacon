@@ -153,3 +153,6 @@ export function getAdapter(
 ): ModelAdapter | undefined {
   return adapterRegistry.get(`${name}@${version}`)
 }
+
+export { recommendAdapterPromotion } from './promotion'
+export type { AdapterEval, PromotionRecommendation } from './promotion'

@@ -299,7 +299,9 @@ export {
   registerAdapter,
   getObjective,
   getAdapter,
+  recommendAdapterPromotion,
 } from './objectives/index'
+export type { AdapterEval, PromotionRecommendation } from './objectives/index'
 
 // ── First concrete modeling objective: consumption_forecast ────────────────
 export {
