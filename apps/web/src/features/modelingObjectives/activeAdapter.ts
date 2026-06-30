@@ -15,6 +15,7 @@ import {
   seasonalNaiveV1Adapter,
   ewmaV1Adapter,
   holtLinearV1Adapter,
+  autoSelectV1Adapter,
   type ConsumptionForecastInput,
   type ConsumptionForecastOutput,
   type ModelAdapter,
@@ -27,6 +28,7 @@ const ADAPTERS_BY_NAME: Record<string, ModelAdapter<ConsumptionForecastInput, Co
   [seasonalNaiveV1Adapter.name]:    seasonalNaiveV1Adapter,
   [ewmaV1Adapter.name]:             ewmaV1Adapter,
   [holtLinearV1Adapter.name]:       holtLinearV1Adapter,
+  [autoSelectV1Adapter.name]:       autoSelectV1Adapter,
 }
 
 export function useActiveForecastAdapter(): ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined {

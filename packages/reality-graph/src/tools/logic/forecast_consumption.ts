@@ -6,7 +6,7 @@ import type {
   ConsumptionForecastInput,
   ConsumptionForecastOutput,
 } from '../../objectives/consumption_forecast/types'
-import { ewmaV1Adapter } from '../../objectives/consumption_forecast/ewma_v1'
+import { autoSelectV1Adapter } from '../../objectives/consumption_forecast/auto_select_v1'
 
 const inputSchema = z.object({
   variantId: z.string().uuid(),
@@ -62,7 +62,7 @@ export function makeForecastConsumptionTool(
         output: {
           variantId: '00000000-0000-0000-0000-000000000000',
           projectedUnits: 162,
-          basis: 'ewma-v1',
+          basis: 'auto:ewma-v1',
           confidence: 0.85,
           sampleSize: 30,
         },
@@ -84,10 +84,10 @@ export function makeForecastConsumptionTool(
       }
 
       // Fallback: the default adapter when none is injected (evals + the cron).
-      // EWMA-v1 — recency-weighted; it measurably beat the rolling-30d baseline on
-      // live data (MAPE 18.5%→13.9%, bias −15.2%→−9.7%), so it's the default the
-      // whole stack grades against. asOf = now (this is the live path).
-      const fallback = await ewmaV1Adapter.runInference({
+      // auto-select-v1 — picks the best candidate per variant from its own history
+      // (EWMA incumbent, switches only on a clear win). Reduces to EWMA on flat
+      // demand. asOf = now (this is the live path).
+      const fallback = await autoSelectV1Adapter.runInference({
         logs, horizonDays: input.horizonDays, asOf: Date.now(),
       })
       return { variantId: input.variantId, ...fallback }

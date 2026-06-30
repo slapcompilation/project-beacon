@@ -14,6 +14,7 @@ export function buildDailySeries(
   const windowStart = asOf - lookbackDays * DAY
   const byDay = new Map<string, number>()
   let earliest = Infinity
+  let latest   = -Infinity
   for (const l of logs) {
     if (l.delta >= 0) continue
     const t = new Date(l.created_at).getTime()
@@ -21,12 +22,17 @@ export function buildDailySeries(
     const key = l.created_at.slice(0, 10)
     byDay.set(key, (byDay.get(key) ?? 0) + Math.abs(l.delta))
     if (t < earliest) earliest = t
+    if (t > latest)   latest = t
   }
-  if (!isFinite(earliest)) return []
-  const n = Math.min(lookbackDays, Math.floor((asOf - earliest) / DAY) + 1)
+  if (!isFinite(latest)) return []
+  // Anchor the series at the LAST day with data, not asOf: the current/asOf day
+  // is usually empty (no logs yet, or excluded by a strict cutoff) and a trailing
+  // zero would drag a recency-weighted model down into a false under-forecast.
+  // Interior gaps stay 0 — those are genuine zero-demand days.
+  const n = Math.min(lookbackDays, Math.floor((latest - earliest) / DAY) + 1)
   const series: number[] = []
   for (let i = n - 1; i >= 0; i--) {
-    series.push(byDay.get(new Date(asOf - i * DAY).toISOString().slice(0, 10)) ?? 0)
+    series.push(byDay.get(new Date(latest - i * DAY).toISOString().slice(0, 10)) ?? 0)
   }
   return series
 }

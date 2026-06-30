@@ -9,9 +9,10 @@ import { baselineRolling30dAdapter } from './baseline_rolling_30d'
 import { seasonalNaiveV1Adapter } from './seasonal_naive_v1'
 import { ewmaV1Adapter } from './ewma_v1'
 import { holtLinearV1Adapter } from './holt_linear_v1'
+import { autoSelectV1Adapter } from './auto_select_v1'
 import type { ConsumptionForecastInput, ConsumptionForecastOutput } from './types'
 
-export { baselineRolling30dAdapter, seasonalNaiveV1Adapter, ewmaV1Adapter, holtLinearV1Adapter }
+export { baselineRolling30dAdapter, seasonalNaiveV1Adapter, ewmaV1Adapter, holtLinearV1Adapter, autoSelectV1Adapter }
 export type { ConsumptionForecastInput, ConsumptionForecastOutput }
 export { backtestForecastAdapters } from './backtest'
 export type {
@@ -28,8 +29,8 @@ export const CONSUMPTION_FORECAST_OBJECTIVE_NAME = 'consumption_forecast'
 export const consumptionForecastObjective: ModelingObjective = {
   name:        CONSUMPTION_FORECAST_OBJECTIVE_NAME,
   description: 'Projects expected unit consumption for a variant over an N-day horizon. Used by restock_advisor + waste_triage to size gaps and at-risk inventory.',
-  defaultAdapter: ewmaV1Adapter.name,
-  candidates: [baselineRolling30dAdapter.name, seasonalNaiveV1Adapter.name, ewmaV1Adapter.name, holtLinearV1Adapter.name],
+  defaultAdapter: autoSelectV1Adapter.name,
+  candidates: [autoSelectV1Adapter.name, ewmaV1Adapter.name, holtLinearV1Adapter.name, seasonalNaiveV1Adapter.name, baselineRolling30dAdapter.name],
 }
 
 /** Synthetic eval cases — held-out historical windows where the actual
@@ -111,5 +112,6 @@ export function registerConsumptionForecast(): void {
   registerAdapter(seasonalNaiveV1Adapter)
   registerAdapter(ewmaV1Adapter)
   registerAdapter(holtLinearV1Adapter)
+  registerAdapter(autoSelectV1Adapter)
   registerObjective(consumptionForecastObjective)
 }
