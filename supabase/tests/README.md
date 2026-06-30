@@ -7,8 +7,8 @@ run against any environment.
 
 | File | Guards | Needs |
 |---|---|---|
-| `security_invariants.sql` | No public `SECURITY DEFINER` function is anon-executable or missing a pinned `search_path` (the leak class behind migrations 175–177). | any connection |
-| `rls_contracts.sql` | Behavioral scope: a tenant only reads its own hotel; an explicit `p_hotel_id` can't beat RLS; anon can't call scoped reads; non-admins can't `promote_agent`. | a role that can `SET ROLE anon/authenticated` (service role / local superuser) |
+| `security_invariants.sql` | Catalog invariants over every public `SECURITY DEFINER` function: (1) not anon-executable, (2) pins `search_path`, (3) **no tenant-key arg (`hotel_id`/`org_id`) without a scope gate** — the cross-tenant leak class behind migrations 180–181. | any connection |
+| `rls_contracts.sql` | Behavioral scope (C1–C9): a tenant only reads its own hotel; an explicit `p_hotel_id` can't beat RLS; anon can't call scoped reads; non-admins can't `promote_agent`; prod promotion needs staging; `get_overstock_candidates` + `ingest_pos_sale` are service-role-only; `get_hotel_graph` reads/`create_relationship_edge` writes are scope-gated. | a role that can `SET ROLE anon/authenticated` (service role / local superuser) |
 
 ## Run
 
@@ -35,3 +35,9 @@ can `SET ROLE anon/authenticated`, e.g. the Session-pooler URI) to activate it.
 
 A RAISE EXCEPTION in either guard aborts under `psql -v ON_ERROR_STOP=1`, failing
 the job. Until the secret is set, keep running them on demand / post-migration.
+
+The workflow also runs a **`get_advisors` gate** that fails on any ERROR-level
+security lint (WARN/INFO are advisory — the live project's findings are all WARN).
+It's independently dormant until `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`
+are set. The SQL guards remain the precise instrument for the tenant-param leak
+class; the advisor catches the broader catalog (RLS-disabled tables, definer views).

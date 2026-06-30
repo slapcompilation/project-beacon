@@ -17,12 +17,23 @@
 --   ours are public — anon EXECUTE on a definer-rights function is always a leak.
 -- Invariant 2: every public SECURITY DEFINER function pins search_path (else a
 --   caller-controlled search_path can hijack unqualified references).
+-- Invariant 3: no public SECURITY DEFINER function that an authenticated/anon
+--   caller can EXECUTE takes a tenant-key argument (hotel_id / org_id) without a
+--   scope gate in its body. A definer fn bypasses RLS, so a trusted tenant arg
+--   is a cross-tenant hole — the exact class behind migrations 180 + 181
+--   (get_overstock_candidates, get_hotel_graph, ingest_pos_sale, …). "Scope
+--   gate" = the body references auth_hotel_id / auth_org_id / hotel_is_in_user_scope.
+--   Service-role-only fns are exempt (not authed-executable). A function that
+--   legitimately role-gates an org arg without a scope reference must be added to
+--   v_inv3_allow with a documented reason — empty by design; keep it that way.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
 DECLARE
   v_anon   text;
   v_nopath text;
+  v_leak   text;
+  v_inv3_allow text[] := ARRAY[]::text[];  -- documented exceptions; none today
 BEGIN
   SELECT string_agg(format('%s.%s', n.nspname, p.proname), ', ' ORDER BY p.proname)
     INTO v_anon
@@ -43,6 +54,18 @@ BEGIN
       OR NOT EXISTS (SELECT 1 FROM unnest(p.proconfig) c WHERE c LIKE 'search_path=%')
     );
 
+  SELECT string_agg(format('%s.%s', n.nspname, p.proname), ', ' ORDER BY p.proname)
+    INTO v_leak
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public'
+    AND p.prosecdef
+    AND (has_function_privilege('authenticated', p.oid, 'EXECUTE')
+      OR has_function_privilege('anon', p.oid, 'EXECUTE'))
+    AND pg_get_function_identity_arguments(p.oid) ~* '(hotel_id|org_id|organization_id)'
+    AND p.prosrc !~* '(auth_hotel_id|auth_org_id|hotel_is_in_user_scope)'
+    AND NOT (p.proname = ANY (v_inv3_allow));
+
   IF v_anon IS NOT NULL THEN
     RAISE EXCEPTION
       'SECURITY INVARIANT 1 VIOLATED — anon can EXECUTE SECURITY DEFINER function(s): %. Revoke anon (see migration 176).',
@@ -55,5 +78,11 @@ BEGIN
       v_nopath;
   END IF;
 
-  RAISE NOTICE 'Security invariants OK — no anon-executable or unpinned SECURITY DEFINER functions in public.';
+  IF v_leak IS NOT NULL THEN
+    RAISE EXCEPTION
+      'SECURITY INVARIANT 3 VIOLATED — definer function(s) take a tenant-key arg with no scope gate (cross-tenant leak class): %. Scope-gate the arg (hotel_is_in_user_scope) or make it service-role-only (see migration 181).',
+      v_leak;
+  END IF;
+
+  RAISE NOTICE 'Security invariants OK — no anon-executable, unpinned, or unscoped-tenant-param SECURITY DEFINER functions in public.';
 END $$;
