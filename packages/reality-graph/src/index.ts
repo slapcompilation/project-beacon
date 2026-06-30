@@ -153,6 +153,7 @@ export {
   makeQueryOpenRestockRequestsTool,
   makeQuerySisterPropertyInventoryTool,
   makeForecastConsumptionTool,
+  makeScoreForecastAccuracyTool,
   makeRankAlternativeSuppliersTool,
   makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,

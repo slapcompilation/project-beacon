@@ -12,7 +12,7 @@ import type { LogicTool } from '../index'
 import type { GraphReader } from '../graph_reader'
 import type { ModelAdapter } from '../../objectives/index'
 import type { ConsumptionForecastInput, ConsumptionForecastOutput } from '../../objectives/consumption_forecast/types'
-import { baselineRolling30dAdapter } from '../../objectives/consumption_forecast/baseline_rolling_30d'
+import { autoSelectV1Adapter } from '../../objectives/consumption_forecast/auto_select_v1'
 import { reconstructObservations, scoreForecastAccuracy, rollingCutoffs } from '../../objectives/consumption_forecast/accuracy'
 
 const LOOKBACK_DAYS = 30
@@ -48,7 +48,7 @@ export function makeScoreForecastAccuracyTool(
 ): LogicTool<ScoreForecastAccuracyInput, ScoreForecastAccuracyOutput> {
   const deps: ScoreForecastAccuracyDeps =
     'reader' in depsOrReader ? depsOrReader : { reader: depsOrReader }
-  const adapter = deps.adapter ?? baselineRolling30dAdapter
+  const adapter = deps.adapter ?? autoSelectV1Adapter
 
   return {
     name: 'score_forecast_accuracy',
