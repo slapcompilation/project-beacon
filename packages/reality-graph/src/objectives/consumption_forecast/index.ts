@@ -16,6 +16,10 @@ export type {
   BacktestCase, BacktestConfig, BacktestResult,
   AdapterScore, CohortScore, CasePrediction,
 } from './backtest'
+export { reconstructObservations, scoreForecastAccuracy, rollingCutoffs } from './accuracy'
+export type {
+  ForecastObservation, ForecastAccuracyScore, BasisScore, ReconstructOpts,
+} from './accuracy'
 
 export const CONSUMPTION_FORECAST_OBJECTIVE_NAME = 'consumption_forecast'
 

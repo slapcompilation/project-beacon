@@ -110,6 +110,12 @@ export {
   type ForecastConsumptionOutput,
 } from './logic/forecast_consumption'
 export {
+  makeScoreForecastAccuracyTool,
+  type ScoreForecastAccuracyInput,
+  type ScoreForecastAccuracyOutput,
+  type ScoreForecastAccuracyDeps,
+} from './logic/score_forecast_accuracy'
+export {
   makeRankAlternativeSuppliersTool,
   type RankAlternativeSuppliersInput,
   type RankAlternativeSuppliersOutput,

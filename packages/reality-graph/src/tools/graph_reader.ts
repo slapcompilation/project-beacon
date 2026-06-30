@@ -34,6 +34,9 @@ export interface StockLogRow {
   reason?: string | null
   /** Tags like 'waste', 'spoilage', 'damaged'. Set on intentional removals. */
   removal_category?: string | null
+  /** On-hand balance after this log. When present, lets the accuracy instrument
+   *  flag a realized window where stock hit zero (demand was censored). */
+  balance_after?: number | null
 }
 
 export interface SupplierRow {
