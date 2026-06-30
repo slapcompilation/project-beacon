@@ -8,6 +8,8 @@ import {
   consumptionForecastEvalSuite,
   baselineRolling30dAdapter,
   seasonalNaiveV1Adapter,
+  ewmaV1Adapter,
+  holtLinearV1Adapter,
   registerConsumptionForecast,
   type EvalSuite,
   type ModelAdapter,
@@ -29,6 +31,8 @@ export const objectiveDescriptors: ReadonlyArray<ObjectiveDescriptor> = [
     adapters:   [
       baselineRolling30dAdapter as unknown as ModelAdapter,
       seasonalNaiveV1Adapter    as unknown as ModelAdapter,
+      ewmaV1Adapter             as unknown as ModelAdapter,
+      holtLinearV1Adapter       as unknown as ModelAdapter,
     ],
     evalSuite:  consumptionForecastEvalSuite,
   },

@@ -307,6 +307,8 @@ export {
   consumptionForecastEvalSuite,
   baselineRolling30dAdapter,
   seasonalNaiveV1Adapter,
+  ewmaV1Adapter,
+  holtLinearV1Adapter,
   registerConsumptionForecast,
   backtestForecastAdapters,
   type ConsumptionForecastInput,
