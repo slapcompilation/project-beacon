@@ -5,19 +5,18 @@ import { fakeReader, ids } from '../__fixtures__/fakeReader'
 const NOW = Date.now()
 const days = (n: number) => new Date(NOW - n * 24 * 60 * 60 * 1000).toISOString()
 
-describe('forecast_consumption — default adapter (none injected → EWMA-v1)', () => {
+describe('forecast_consumption — default adapter (none injected → auto-select)', () => {
   it('returns zero projection with low confidence on no history', async () => {
     const tool = makeForecastConsumptionTool(fakeReader())
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
     expect(r.projectedUnits).toBe(0)
-    expect(r.basis).toBe('ewma-v1')
+    expect(r.basis).toBe('auto:ewma-v1')   // no history → incumbent EWMA, no switch
     expect(r.confidence).toBeLessThan(0.5)
     expect(r.sampleSize).toBe(0)
   })
 
-  it('projects the daily rate over the horizon (flat demand → same as the average)', async () => {
-    // 2/day for 30 days → EWMA level settles at 2 → 14 over a 7-day horizon.
-    // A clean flat fit → high (measured) confidence.
+  it('projects the daily rate over the horizon (flat demand → EWMA incumbent)', async () => {
+    // 2/day for 30 days → auto-select keeps EWMA (no challenger beats it) → 14.
     const stockLogs = Array.from({ length: 30 }, (_, i) => ({
       id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
       delta: -2, created_at: days(i),
@@ -25,7 +24,7 @@ describe('forecast_consumption — default adapter (none injected → EWMA-v1)',
     const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
     expect(r.projectedUnits).toBe(14)
-    expect(r.basis).toBe('ewma-v1')
+    expect(r.basis).toBe('auto:ewma-v1')
     expect(r.confidence).toBeGreaterThanOrEqual(0.85)
   })
 

@@ -309,6 +309,7 @@ export {
   seasonalNaiveV1Adapter,
   ewmaV1Adapter,
   holtLinearV1Adapter,
+  autoSelectV1Adapter,
   registerConsumptionForecast,
   backtestForecastAdapters,
   type ConsumptionForecastInput,
