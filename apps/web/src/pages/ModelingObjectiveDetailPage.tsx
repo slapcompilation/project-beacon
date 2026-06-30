@@ -22,6 +22,7 @@ import {
 } from '@/features/modelingObjectives/hooks'
 import type { ReleaseStage, ReleaseRow, EvalRunRow } from '@/features/modelingObjectives/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { recommendAdapterPromotion, type PromotionRecommendation } from '@beacon/reality-graph'
 import type { EvalSuite, ModelAdapter } from '@beacon/reality-graph'
 import { useState } from 'react'
 
@@ -46,6 +47,20 @@ export default function ModelingObjectiveDetailPage() {
     }
     return m
   }, [releases])
+
+  const recommendation = useMemo<PromotionRecommendation>(() => {
+    // Latest MAE per adapter@version → the eval winner vs the production release.
+    const latestMae = new Map<string, EvalRunRow>()
+    for (const r of evalRuns) {
+      if (r.metric !== 'mae') continue
+      const key = `${r.adapter_name}@${r.adapter_version}`
+      const ex = latestMae.get(key)
+      if (!ex || new Date(r.run_at).getTime() > new Date(ex.run_at).getTime()) latestMae.set(key, r)
+    }
+    const evals = [...latestMae.values()].map((r) => ({ name: r.adapter_name, version: r.adapter_version, value: r.value }))
+    const prod = releaseByStage.get('production')
+    return recommendAdapterPromotion(evals, prod ? { name: prod.adapter_name, version: prod.adapter_version } : null)
+  }, [evalRuns, releaseByStage])
 
   const evalByAdapter = useMemo(() => {
     const m = new Map<string, EvalRunRow[]>()
@@ -90,6 +105,8 @@ export default function ModelingObjectiveDetailPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <PromotionBanner objectiveName={objectiveName} rec={recommendation} />
+
         <SubmissionsSection
           objectiveName={objectiveName}
           adapters={descriptor.adapters}
@@ -121,6 +138,33 @@ export default function ModelingObjectiveDetailPage() {
         />
       </div>
     </div>
+  )
+}
+
+// ─── Promotion recommendation (closes the modeling loop) ─────────────────────
+
+function PromotionBanner({ objectiveName, rec }: { objectiveName: string; rec: PromotionRecommendation }) {
+  const promote = usePromoteRelease(objectiveName)
+  if (rec.action !== 'promote' || !rec.winner) return null
+  const winner = rec.winner
+  return (
+    <Card className="flex items-center gap-3 border border-primary/40 bg-primary/5">
+      <Icon icon="lightbulb" intent={Intent.PRIMARY} size={16} />
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold">
+          Recommended: promote <span className="font-mono">{winner.name}</span> to production
+        </div>
+        <div className="text-[11px] text-muted-foreground">{rec.reason}</div>
+      </div>
+      <Button
+        intent={Intent.PRIMARY}
+        icon="flag"
+        loading={promote.isPending}
+        onClick={() => { promote.mutate({ adapterName: winner.name, adapterVersion: winner.version, stage: 'production' }) }}
+      >
+        Promote to production
+      </Button>
+    </Card>
   )
 }
 
