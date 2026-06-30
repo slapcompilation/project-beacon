@@ -48,7 +48,13 @@ export function useOverstockRebalancer() {
       const llm    = USE_REAL_LLM
         ? new AnthropicLLMClient()
         : new HeuristicLLMClient({ variantId: input.variantId, variantName: input.variantName })
-      const agent  = buildOverstockRebalancerAgent({ reader, llm, forecastAdapter })
+      // With the real model, let it orchestrate the tool loop (falls back to the
+      // deterministic procedure on any failure). The heuristic stub can't drive
+      // the loop, so it stays deterministic.
+      const agent  = buildOverstockRebalancerAgent({
+        reader, llm, forecastAdapter,
+        reasoning: USE_REAL_LLM ? 'llm' : 'deterministic',
+      })
 
       const principleBlock = principles.length > 0
         ? `\n\n[Active operator principles to respect]:\n${principles.map((p) => `- ${p.body}`).join('\n')}`
