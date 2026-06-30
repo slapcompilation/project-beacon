@@ -131,16 +131,21 @@ const mean = (xs: number[]): number => (xs.length ? xs.reduce((s, x) => s + x, 0
 
 export function scoreForecastAccuracy(obs: ReadonlyArray<ForecastObservation>): ForecastAccuracyScore {
   const signedPct = (o: ForecastObservation) => o.signedError / Math.max(o.realizedUnits, 1)
-  const bases = [...new Set(obs.map((o) => o.basis))].sort()
   const censored = obs.filter((o) => o.censored === true)
+  // Grade only where the ground truth is valid: realized sales on a stock-out
+  // window are themselves capped, so scoring against them would wrongly penalise
+  // the (correct) uncensored uplift. Fall back to all obs if every one is censored.
+  const valid = obs.filter((o) => o.censored !== true)
+  const graded = valid.length ? valid : obs
+  const bases = [...new Set(graded.map((o) => o.basis))].sort()
   return {
-    n:               obs.length,
-    mape:            mean(obs.map((o) => o.absPctError)),
-    meanSignedError: mean(obs.map((o) => o.signedError)),
-    biasPct:         mean(obs.map(signedPct)),
+    n:               graded.length,
+    mape:            mean(graded.map((o) => o.absPctError)),
+    meanSignedError: mean(graded.map((o) => o.signedError)),
+    biasPct:         mean(graded.map(signedPct)),
     censoredBiasPct: censored.length ? mean(censored.map(signedPct)) : null,
     byBasis: bases.map((b) => {
-      const bs = obs.filter((o) => o.basis === b)
+      const bs = graded.filter((o) => o.basis === b)
       return { basis: b, n: bs.length, mape: mean(bs.map((o) => o.absPctError)), biasPct: mean(bs.map(signedPct)) }
     }),
   }
