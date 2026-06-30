@@ -3,7 +3,7 @@ import { createBlock } from '../../runtime'
 import { principleProvenance, principleReasoningSuffix } from '../../principles'
 import type { PrincipleRecord } from '../../../tools/graph_reader'
 import type { QueryOpenRestockRequestsOutput } from '../../../tools/data/query_open_restock_requests'
-import type { ForecastConsumptionOutput } from '../../../tools/logic/forecast_consumption'
+import type { ComputeReorderPointOutput } from '../../../tools/logic/compute_reorder_point'
 import type { QuerySisterPropertyInventoryOutput } from '../../../tools/data/query_sister_property_inventory'
 import type { RankAlternativeSuppliersOutput } from '../../../tools/logic/rank_alternative_suppliers'
 
@@ -88,38 +88,43 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
       { variantId: input.variantId },
     )
 
-    // 2. Size the gap via forecast.
-    const forecast = await ctx.invokeTool<{ variantId: string; horizonDays: number }, ForecastConsumptionOutput>(
-      'forecast_consumption',
-      { variantId: input.variantId, horizonDays: 7 },
+    // 2. Size via the reorder point (s, S): act only when the inventory position
+    // has fallen to/below the reorder point, then order up to cover demand over
+    // the lead time + safety stock + the review period.
+    const REVIEW_DAYS = 7
+    const rp = await ctx.invokeTool<{ variantId: string; serviceLevel: number }, ComputeReorderPointOutput>(
+      'compute_reorder_point',
+      { variantId: input.variantId, serviceLevel: 0.95 },
     )
-    const projectedGap = Math.max(0, forecast.projectedUnits - input.currentStock - open.totalOpenQuantity)
+    const position = input.currentStock + open.totalOpenQuantity
 
-    if (projectedGap === 0) {
-      return {
-        proposals: [],
-        paused: null,
-      }
+    // Above the reorder point → on-hand + open already cover the risk window.
+    if (position > rp.reorderPoint) {
+      return { proposals: [], paused: null }
     }
 
-    // Clarification check on forecast confidence.
-    if (forecast.confidence < input.confidenceThreshold) {
+    // Clarification check on the sizing confidence (sparse demand history).
+    if (rp.confidence < input.confidenceThreshold) {
+      const q = `Reorder sizing confidence is ${String(rp.confidence)} — proceed toward reorder point ${String(rp.reorderPoint)}, or wait for more demand history?`
       await ctx.invokeTool<
         { question: string; contextSummary: string; currentConfidence: number },
         { paused: true; question: string; contextSummary: string; currentConfidence: number }
       >('request_clarification', {
-        question: `Forecast confidence is ${String(forecast.confidence)} — should I proceed with a proposal sized to ${String(projectedGap)} units, or wait for more data?`,
-        contextSummary: `${input.variantName}: ${String(input.currentStock)} on hand, ${String(open.totalOpenQuantity)} on open requests, ${String(forecast.projectedUnits)} projected over 7d (sample size ${String(forecast.sampleSize)}).`,
-        currentConfidence: forecast.confidence,
+        question: q,
+        contextSummary: `${input.variantName}: ${String(input.currentStock)} on hand + ${String(open.totalOpenQuantity)} open = position ${String(position)} vs reorder point ${String(rp.reorderPoint)} (daily ${String(rp.dailyMean)}±${String(rp.dailySigma)}, lead ${String(rp.leadTimeDays)}d).`,
+        currentConfidence: rp.confidence,
       })
       return {
         proposals: [],
-        paused: {
-          question: `Forecast confidence is ${String(forecast.confidence)} — should I proceed with a proposal sized to ${String(projectedGap)} units, or wait for more data?`,
-          contextSummary: `${input.variantName}: ${String(input.currentStock)} on hand, ${String(open.totalOpenQuantity)} on open requests.`,
-          currentConfidence: forecast.confidence,
-        },
+        paused: { question: q, contextSummary: `${input.variantName}: position ${String(position)} vs reorder point ${String(rp.reorderPoint)}.`, currentConfidence: rp.confidence },
       }
+    }
+
+    // Order-up-to S = reorder point + the review period's expected demand.
+    const orderUpTo = rp.reorderPoint + Math.round(rp.dailyMean * REVIEW_DAYS)
+    const projectedGap = Math.max(0, orderUpTo - position)
+    if (projectedGap === 0) {
+      return { proposals: [], paused: null }
     }
 
     // 3. Check sister properties — lateral before external.
@@ -148,16 +153,16 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
           toHotelId: input.hotelId,
           variantId: input.variantId,
           quantity: transferQty,
-        reason: `Lateral transfer from ${bestSister.hotelName} (${String(bestSister.currentStock)} on hand) closes ${String(transferQty)} of ${String(projectedGap)}-unit projected gap.`,
+        reason: `Lateral transfer from ${bestSister.hotelName} (${String(bestSister.currentStock)} on hand) closes ${String(transferQty)} of the ${String(projectedGap)}-unit order toward reorder point ${String(rp.reorderPoint)}.`,
         },
-        confidence: Math.min(forecast.confidence, 0.85),
+        confidence: Math.min(rp.confidence, 0.85),
         reasoning:
-          `forecast_consumption: projected ${String(forecast.projectedUnits)}u over 7d (basis ${forecast.basis}, conf ${String(forecast.confidence)}). ` +
-          `Current stock ${String(input.currentStock)} + open ${String(open.totalOpenQuantity)} = gap ${String(projectedGap)}. ` +
+          `compute_reorder_point: reorder point ${String(rp.reorderPoint)} (demand-over-lead ${String(rp.demandOverLeadTime)} + safety ${String(rp.safetyStock)}; daily ${String(rp.dailyMean)}±${String(rp.dailySigma)}, lead ${String(rp.leadTimeDays)}d, ${String(rp.serviceLevel * 100)}% service). ` +
+          `Position ${String(input.currentStock)} on hand + ${String(open.totalOpenQuantity)} open = ${String(position)} ≤ reorder point → order up to ${String(orderUpTo)}, gap ${String(projectedGap)}. ` +
           `query_sister_property_inventory: ${bestSister.hotelName} has ${String(bestSister.currentStock)} → transfer ${String(transferQty)}.`,
         provenance: [
           { kind: 'tool', ref: 'query_open_restock_requests', detail: `totalOpen=${String(open.totalOpenQuantity)}` },
-          { kind: 'tool', ref: 'forecast_consumption', detail: `${String(forecast.projectedUnits)}u, basis=${forecast.basis}` },
+          { kind: 'tool', ref: 'compute_reorder_point', detail: `reorderPoint=${String(rp.reorderPoint)}, safety=${String(rp.safetyStock)}` },
           { kind: 'tool', ref: 'query_sister_property_inventory', detail: `${String(sisters.sisters.length)} sisters scanned` },
         ],
       })
@@ -173,9 +178,11 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
 
       const top = ranked.ranked[0]
       if (top) {
+        // Urgency from how depleted the position is vs the risk buffers: below
+        // safety stock = high, below demand-over-lead = medium, else low.
         const urgency: 'low' | 'medium' | 'high' =
-          remainingGap > forecast.projectedUnits * 0.6 ? 'high' :
-          remainingGap > forecast.projectedUnits * 0.3 ? 'medium' : 'low'
+          position <= rp.safetyStock        ? 'high' :
+          position <= rp.demandOverLeadTime ? 'medium' : 'low'
 
         proposals.push({
           action: {
@@ -184,16 +191,17 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
             quantityNeeded: remainingGap,
             urgency,
             supplier:       top.name,
-            notes:          `Closes ${String(remainingGap)} of ${String(projectedGap)}-unit gap via ${top.name}.`,
+            notes:          `Closes ${String(remainingGap)} of ${String(projectedGap)}-unit order toward reorder point ${String(rp.reorderPoint)} via ${top.name}.`,
             hotelId:        input.hotelId,
             requestorId:    input.requestorId,
           },
-          confidence: Math.min(forecast.confidence, ranked.confidence, 0.85),
+          confidence: Math.min(rp.confidence, ranked.confidence, 0.85),
           reasoning:
-            `Remaining gap after sister transfer: ${String(remainingGap)} units. ` +
+            `Remaining after sister transfer: ${String(remainingGap)} units (order-up-to ${String(orderUpTo)}, position ${String(position)} vs reorder point ${String(rp.reorderPoint)}). ` +
             `rank_alternative_suppliers: top=${top.name} (score ${String(top.score)}, lead ${String(top.leadTimeDays ?? '?')}d, on-time ${String(top.onTimePct ?? '?')}%). ` +
-            `urgency=${urgency} based on gap-vs-projected ratio.`,
+            `urgency=${urgency} from position vs safety stock ${String(rp.safetyStock)}.`,
           provenance: [
+            { kind: 'tool', ref: 'compute_reorder_point', detail: `reorderPoint=${String(rp.reorderPoint)}` },
             { kind: 'tool', ref: 'rank_alternative_suppliers', detail: `top=${top.name}, score=${String(top.score)}` },
           ],
         })

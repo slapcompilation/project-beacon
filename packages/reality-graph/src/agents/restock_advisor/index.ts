@@ -8,6 +8,7 @@ import type { LogicTool } from '../../tools/index'
 import type { GraphReader } from '../../tools/graph_reader'
 import { makeQueryOpenRestockRequestsTool } from '../../tools/data/query_open_restock_requests'
 import { makeForecastConsumptionTool } from '../../tools/logic/forecast_consumption'
+import { makeComputeReorderPointTool } from '../../tools/logic/compute_reorder_point'
 import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sister_property_inventory'
 import { makeRankAlternativeSuppliersTool } from '../../tools/logic/rank_alternative_suppliers'
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
@@ -46,6 +47,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
   const tools: LogicTool[] = [
     makeQueryOpenRestockRequestsTool(deps.reader) as LogicTool,
     makeForecastConsumptionTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
+    makeComputeReorderPointTool(deps.reader) as LogicTool,
     makeQuerySisterPropertyInventoryTool(deps.reader) as LogicTool,
     makeRankAlternativeSuppliersTool(deps.reader) as LogicTool,
     makeQueryVariantDocumentsTool(deps.reader) as LogicTool,
