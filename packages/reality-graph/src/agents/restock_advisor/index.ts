@@ -14,7 +14,7 @@ import { makeRankAlternativeSuppliersTool } from '../../tools/logic/rank_alterna
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
 import { makeQueryDocumentChunksTool } from '../../tools/data/query_document_chunks'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
-import type { LLMClient } from '../llm'
+import type { LLMClient, LLMToolSpec } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
 import type {
   ConsumptionForecastInput,
@@ -24,7 +24,8 @@ import { buildRunner } from '../runtime'
 import { selectApplicablePrinciples } from '../principles'
 import { extractVariantBlock } from './blocks/extract_variant'
 import { extractSupplierBlock } from './blocks/extract_supplier'
-import { reasonAndProposeBlock } from './blocks/reason_and_propose'
+import { reasonAndProposeBlock, type ReasonAndProposeOutput } from './blocks/reason_and_propose'
+import { makeReasonAndProposeLlmBlock } from './blocks/reason_and_propose_llm'
 import { RESTOCK_ADVISOR_TASK_PROMPT } from './prompt'
 
 export { RESTOCK_ADVISOR_TASK_PROMPT }
@@ -41,6 +42,10 @@ export interface RestockAdvisorDeps {
   /** Adapter the forecast_consumption tool delegates to. When omitted, the
    *  tool falls back to its inline baseline. */
   forecastAdapter?: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>
+  /** Reasoning mode. 'deterministic' (default) runs the hardcoded procedure —
+   *  zero LLM spend, the eval baseline + cron path. 'llm' lets the model
+   *  orchestrate the tool loop, falling back to deterministic on any failure. */
+  reasoning?: 'llm' | 'deterministic'
 }
 
 export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
@@ -56,6 +61,9 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))
   const toolset = tools.map((t) => t.name)
+  // Tool specs the LLM sees when it orchestrates the loop (reasoning: 'llm').
+  const toolSpecs: LLMToolSpec[] = tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))
+  const reasonLlmBlock = makeReasonAndProposeLlmBlock(toolSpecs)
 
   return {
     name: AGENT_NAME,
@@ -113,7 +121,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
       )
       const principles = selectApplicablePrinciples(allPrinciples, variant.variantId)
 
-      const result = await runner.runBlock(reasonAndProposeBlock, {
+      const reasoningInput = {
         variantId: variant.variantId,
         variantName: variant.variantName,
         hotelId: input.scope.hotelId,
@@ -122,7 +130,21 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
         preferredSupplierName: supplier.supplierName,
         confidenceThreshold: 0.6,
         principles,
-      })
+      }
+
+      // 'llm' mode: the model orchestrates the tool loop; on any failure (LLM
+      // error, blown budget/iterations, invalid output) fall back to the
+      // deterministic procedure so the agent always returns a typed result.
+      let result: ReasonAndProposeOutput
+      if (deps.reasoning === 'llm') {
+        try {
+          result = await runner.runBlock(reasonLlmBlock, reasoningInput)
+        } catch {
+          result = await runner.runBlock(reasonAndProposeBlock, reasoningInput)
+        }
+      } else {
+        result = await runner.runBlock(reasonAndProposeBlock, reasoningInput)
+      }
 
       return {
         proposals: result.proposals.map((p) => ({
