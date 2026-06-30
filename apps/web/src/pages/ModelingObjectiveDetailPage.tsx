@@ -14,12 +14,14 @@ import {
   useDeployments,
   useEvalRuns,
   useReleases,
+  useForecastAccuracy,
   usePromoteRelease,
   useCreateDeployment,
   useStopDeployment,
   useRunEvalForAdapter,
 } from '@/features/modelingObjectives/hooks'
 import type { ReleaseStage, ReleaseRow, EvalRunRow } from '@/features/modelingObjectives/api'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import type { EvalSuite, ModelAdapter } from '@beacon/reality-graph'
 import { useState } from 'react'
 
@@ -95,6 +97,8 @@ export default function ModelingObjectiveDetailPage() {
           evalByAdapter={evalByAdapter}
           evalSuite={descriptor.evalSuite}
         />
+
+        {objectiveName === 'consumption_forecast' && <AccuracySection />}
 
         <EvaluationSection
           evalRuns={evalRuns}
@@ -230,6 +234,105 @@ function AdapterCard({
       )}
     </Card>
   )
+}
+
+// ─── Accuracy (live) ─────────────────────────────────────────────────────────
+
+function AccuracySection() {
+  const hotelId = useActiveHotelId()
+  const { data: rows = [], isLoading } = useForecastAccuracy(hotelId)
+
+  const summary = useMemo(() => {
+    if (rows.length === 0) return null
+    const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length
+    return {
+      variants: rows.length,
+      mape:     mean(rows.map((r) => r.mape)),
+      bias:     mean(rows.map((r) => r.bias_pct)),
+      censored: rows.reduce((s, r) => s + r.n_censored, 0),
+    }
+  }, [rows])
+
+  return (
+    <Section
+      title="Accuracy (live)"
+      icon="pulse"
+      subtitle="The active baseline's recent forecasts scored against what actually got consumed — 4 rolling 7-day windows per variant. Distinct from the eval suite below (synthetic cases)."
+    >
+      {!hotelId ? (
+        <Card className="text-xs italic text-muted-foreground">Select a hotel to score its forecasts.</Card>
+      ) : isLoading ? (
+        <div className="flex items-center justify-center py-6"><Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /></div>
+      ) : !summary ? (
+        <Card className="text-xs italic text-muted-foreground">
+          No variant has enough history to score yet (needs ≥7 training days and consumption in a closed 7-day window).
+          Scoring runs over the last ~10 weeks of stock logs and fills in as consumption accrues.
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <MetricTag label="Avg MAPE" value={pct(summary.mape)} intent={mapeIntent(summary.mape)} hint="mean absolute % error across scored variants — lower is better" />
+            <MetricTag
+              label={summary.bias < 0 ? 'Under-forecast' : 'Over-forecast'}
+              value={pct(Math.abs(summary.bias))}
+              intent={biasIntent(summary.bias)}
+              hint={summary.bias < 0
+                ? 'projects less than gets consumed → stockout risk'
+                : 'projects more than gets consumed → overstock / waste risk'}
+            />
+            <Tag minimal icon="cube">{summary.variants} variants scored</Tag>
+            {summary.censored > 0 && <Tag minimal icon="warning-sign" intent={Intent.WARNING}>{summary.censored} censored windows</Tag>}
+          </div>
+
+          <div className="space-y-1">
+            {rows.map((r) => (
+              <div key={r.variant_id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
+                <span className="font-medium truncate max-w-[180px]" title={r.variant_name}>{r.variant_name}</span>
+                <span className="flex-1" />
+                <Tag minimal className="tabular-nums">MAPE {pct(r.mape)}</Tag>
+                <Tag minimal intent={biasIntent(r.bias_pct)} className="tabular-nums">
+                  {r.bias_pct < 0 ? '−' : '+'}{pct(Math.abs(r.bias_pct))}
+                </Tag>
+                <span className="text-[10px] text-muted-foreground tabular-nums">{r.n} win</span>
+                {r.n_censored > 0 && <Icon icon="warning-sign" size={10} className="text-amber-500" title={`${String(r.n_censored)} censored window(s)`} />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+function MetricTag({ label, value, intent, hint }: { label: string; value: string; intent: Intent; hint: string }) {
+  return (
+    <div className="flex flex-col px-2.5 py-1.5 rounded border border-border/50 min-w-[110px]" title={hint}>
+      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</span>
+      <span className={cn('text-sm font-semibold tabular-nums', intentText(intent))}>{value}</span>
+    </div>
+  )
+}
+
+const pct = (x: number) => `${(x * 100).toFixed(0)}%`
+
+function mapeIntent(mape: number): Intent {
+  if (mape <= 0.2) return Intent.SUCCESS
+  if (mape <= 0.5) return Intent.WARNING
+  return Intent.DANGER
+}
+function biasIntent(bias: number): Intent {
+  const a = Math.abs(bias)
+  if (a <= 0.15) return Intent.SUCCESS
+  if (a <= 0.4)  return Intent.WARNING
+  return Intent.DANGER
+}
+function intentText(i: Intent): string {
+  switch (i) {
+    case Intent.SUCCESS: return 'text-emerald-600 dark:text-emerald-400'
+    case Intent.WARNING: return 'text-amber-600 dark:text-amber-400'
+    case Intent.DANGER:  return 'text-red-600 dark:text-red-400'
+    default:             return ''
+  }
 }
 
 // ─── Evaluation ──────────────────────────────────────────────────────────────
@@ -566,7 +669,7 @@ function DeploymentsSection({
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'confirm' | 'flag' | 'cloud'; subtitle: string; children: React.ReactNode }) {
+function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'confirm' | 'flag' | 'cloud' | 'pulse'; subtitle: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
