@@ -113,7 +113,8 @@ describe('restock_advisor v1.0.0', () => {
     const world = baseWorld()
     world.variants = [
       { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 200 },
-      { id: IDS.varTomatoesB, hotel_id: IDS.hotelB, name: 'tomatoes', current_stock: 40, par_level: 200 },
+      // Sister covers ≥40% of the order-up-to gap but not all → transfer + request.
+      { id: IDS.varTomatoesB, hotel_id: IDS.hotelB, name: 'tomatoes', current_stock: 60, par_level: 200 },
     ]
     world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 14 })
     world.suppliers = [

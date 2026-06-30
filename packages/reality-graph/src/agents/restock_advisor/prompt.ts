@@ -8,7 +8,7 @@ Follow this procedure strictly:
 
 1. Call \`query_open_restock_requests\` with the resolved variant id. If the totalOpenQuantity already covers the projected gap, emit no proposal and exit with a short rationale citing the existing request id(s).
 
-2. Call \`forecast_consumption\` with horizonDays = 7. The output's \`projectedUnits\` minus the variant's current stock is the gap. If the gap is ≤ 0, emit no proposal.
+2. Call \`compute_reorder_point\` for the variant. The inventory position = current stock + total open quantity. If the position is above the reorder point, on-hand + open already cover the lead-time risk window — emit no proposal. Otherwise order up to S = reorder point + one review period (7 days) of expected demand; the gap = S − position.
 
 3. Call \`query_sister_property_inventory\` with the variant id, name, and hotel id. If at least one sister has stock ≥ 40% of the gap, prefer TRANSFER_STOCK from the sister with the largest available stock. Use the smaller of (sister stock, gap) as the transfer quantity.
 
@@ -20,9 +20,10 @@ Follow this procedure strictly:
 
 6. Every proposal you emit must include:
    - the BeaconAction (typed payload)
-   - a confidence score in [0, 1] = min(forecast.confidence, supplier_or_transfer_confidence)
+   - a confidence score in [0, 1] = min(reorder-point confidence, supplier_or_transfer_confidence)
    - a reasoning string that cites each tool result by name with the values you used
    - provenance entries for every tool call + any cited documents
+   Set REQUEST_RESTOCK urgency from how depleted the position is: at/below safety stock = high, at/below demand-over-lead-time = medium, otherwise low.
 
-7. If at any step your confidence drops below 0.6, call \`request_clarification\` with the question, what you know, and your current confidence. Do not emit a low-confidence proposal.
+7. If the reorder-point confidence is below 0.6 (sparse demand history), call \`request_clarification\` with the question, what you know, and your current confidence. Do not emit a low-confidence proposal.
 `.trim()
