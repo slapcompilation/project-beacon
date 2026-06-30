@@ -13,6 +13,8 @@ import { fetchReleases, type ReleaseStage } from './api'
 import {
   baselineRolling30dAdapter,
   seasonalNaiveV1Adapter,
+  ewmaV1Adapter,
+  holtLinearV1Adapter,
   type ConsumptionForecastInput,
   type ConsumptionForecastOutput,
   type ModelAdapter,
@@ -23,6 +25,8 @@ const STAGE_PRIORITY: ReleaseStage[] = ['production', 'staging', 'sandbox']
 const ADAPTERS_BY_NAME: Record<string, ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined> = {
   [baselineRolling30dAdapter.name]: baselineRolling30dAdapter,
   [seasonalNaiveV1Adapter.name]:    seasonalNaiveV1Adapter,
+  [ewmaV1Adapter.name]:             ewmaV1Adapter,
+  [holtLinearV1Adapter.name]:       holtLinearV1Adapter,
 }
 
 export function useActiveForecastAdapter(): ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined {

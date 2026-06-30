@@ -5,19 +5,19 @@ import { fakeReader, ids } from '../__fixtures__/fakeReader'
 const NOW = Date.now()
 const days = (n: number) => new Date(NOW - n * 24 * 60 * 60 * 1000).toISOString()
 
-describe('forecast_consumption — baseline (no adapter)', () => {
+describe('forecast_consumption — default adapter (none injected → EWMA-v1)', () => {
   it('returns zero projection with low confidence on no history', async () => {
     const tool = makeForecastConsumptionTool(fakeReader())
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
     expect(r.projectedUnits).toBe(0)
-    expect(r.basis).toBe('baseline-rolling-30d-avg')
+    expect(r.basis).toBe('ewma-v1')
     expect(r.confidence).toBeLessThan(0.5)
     expect(r.sampleSize).toBe(0)
   })
 
-  it('projects rolling-30d daily average over the horizon', async () => {
-    // 60 units consumed across 30 distinct days in the window → 60/30 = 2/day →
-    // 14 over a 7-day horizon. Full coverage → high confidence.
+  it('projects the daily rate over the horizon (flat demand → same as the average)', async () => {
+    // 2/day for 30 days → EWMA level settles at 2 → 14 over a 7-day horizon.
+    // A clean flat fit → high (measured) confidence.
     const stockLogs = Array.from({ length: 30 }, (_, i) => ({
       id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
       delta: -2, created_at: days(i),
@@ -25,14 +25,14 @@ describe('forecast_consumption — baseline (no adapter)', () => {
     const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 7 })
     expect(r.projectedUnits).toBe(14)
+    expect(r.basis).toBe('ewma-v1')
     expect(r.confidence).toBeGreaterThanOrEqual(0.85)
   })
 
-  it('averages over the window, not active days — honestly less sure on sparse history', async () => {
-    // 33 units across 9 events spread over the window → ~33/30 ≈ 1.1/day → ~33
-    // over 30 days. Dividing by active days (9) would project ~110 (3x) and
-    // silently starve the overstock detector. Sparse coverage → moderate
-    // confidence, NOT the false 0.85 the old span-based math gave.
+  it('is honestly low-confidence on sparse/intermittent history', async () => {
+    // 33 units across 9 events spread over the window. EWMA over a mostly-zero
+    // daily series stays modest (not the ~110 that dividing by active days gives)
+    // and — the point — reports LOW confidence because the fit is poor.
     const eventDays = [0, 3, 7, 11, 14, 18, 22, 26, 29]
     const stockLogs = eventDays.map((d, i) => ({
       id: `l-${i}`, variant_id: ids.variant1, hotel_id: ids.hotelA,
@@ -40,9 +40,8 @@ describe('forecast_consumption — baseline (no adapter)', () => {
     }))
     const tool = makeForecastConsumptionTool(fakeReader({ stockLogs }))
     const r = await tool.invoke({ variantId: ids.variant1, horizonDays: 30 })
-    expect(r.projectedUnits).toBeLessThanOrEqual(40)   // ~33, not ~110
-    expect(r.confidence).toBeLessThan(0.6)             // 9 active days → honest, lower
-    expect(r.confidence).toBeGreaterThan(0.4)
+    expect(r.projectedUnits).toBeLessThanOrEqual(60)   // not ~110
+    expect(r.confidence).toBeLessThan(0.6)             // poor fit → honestly unsure
   })
 
   it('ignores positive-delta (receive) logs', async () => {
