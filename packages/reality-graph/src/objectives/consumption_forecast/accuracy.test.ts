@@ -55,17 +55,18 @@ describe('reconstructObservations + scoreForecastAccuracy', () => {
     expect(score.censoredBiasPct).toBeLessThan(0)    // and it's the censored cohort
   })
 
-  it('aggregates MAPE / bias / per-basis exactly', () => {
-    const obs: ForecastObservation[] = [
-      { asOf: 0, horizonDays: 7, projectedUnits: 10, realizedUnits: 10, basis: 'b1', confidence: 0.8, sampleSize: 5, signedError: 0,  absPctError: 0,   censored: false },
-      { asOf: 0, horizonDays: 7, projectedUnits: 8,  realizedUnits: 10, basis: 'b1', confidence: 0.8, sampleSize: 5, signedError: -2, absPctError: 0.2, censored: true },
-    ]
-    const s = scoreForecastAccuracy(obs)
-    expect(s.n).toBe(2)
-    expect(s.mape).toBeCloseTo(0.1, 10)
+  it('aggregates MAPE / bias over valid windows, excluding censored ones', () => {
+    const o = (projected: number, realized: number, censored: boolean): ForecastObservation => ({
+      asOf: 0, horizonDays: 7, projectedUnits: projected, realizedUnits: realized, basis: 'b1',
+      confidence: 0.8, sampleSize: 5, signedError: projected - realized,
+      absPctError: Math.abs(projected - realized) / realized, censored,
+    })
+    const s = scoreForecastAccuracy([o(10, 10, false), o(8, 10, false), o(5, 20, true)])
+    expect(s.n).toBe(2)                              // censored window excluded from the headline
+    expect(s.mape).toBeCloseTo(0.1, 10)              // (0 + 0.2) / 2
     expect(s.meanSignedError).toBeCloseTo(-1, 10)
-    expect(s.biasPct).toBeCloseTo(-0.1, 10)          // (0/10 + -2/10) / 2
-    expect(s.censoredBiasPct).toBeCloseTo(-0.2, 10)  // censored obs only
+    expect(s.biasPct).toBeCloseTo(-0.1, 10)
+    expect(s.censoredBiasPct).toBeCloseTo(-0.75, 10) // the censored obs: -15/20
     expect(s.byBasis).toEqual([{ basis: 'b1', n: 2, mape: 0.1, biasPct: -0.1 }])
   })
 

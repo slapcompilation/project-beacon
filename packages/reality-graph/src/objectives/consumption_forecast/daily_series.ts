@@ -13,16 +13,19 @@ export function buildDailySeries(
 ): number[] {
   const windowStart = asOf - lookbackDays * DAY
   const byDay = new Map<string, number>()
+  const zeroDay = new Set<string>()   // days stock hit ≤0 → demand was censored
   let earliest = Infinity
   let latest   = -Infinity
   for (const l of logs) {
-    if (l.delta >= 0) continue
     const t = new Date(l.created_at).getTime()
     if (t < windowStart || t > asOf) continue
     const key = l.created_at.slice(0, 10)
-    byDay.set(key, (byDay.get(key) ?? 0) + Math.abs(l.delta))
-    if (t < earliest) earliest = t
-    if (t > latest)   latest = t
+    if (l.delta < 0) {
+      byDay.set(key, (byDay.get(key) ?? 0) + Math.abs(l.delta))
+      if (t < earliest) earliest = t
+      if (t > latest)   latest = t
+    }
+    if (l.balance_after != null && l.balance_after <= 0) zeroDay.add(key)
   }
   if (!isFinite(latest)) return []
   // Anchor the series at the LAST day with data, not asOf: the current/asOf day
@@ -30,11 +33,20 @@ export function buildDailySeries(
   // zero would drag a recency-weighted model down into a false under-forecast.
   // Interior gaps stay 0 — those are genuine zero-demand days.
   const n = Math.min(lookbackDays, Math.floor((latest - earliest) / DAY) + 1)
-  const series: number[] = []
-  for (let i = n - 1; i >= 0; i--) {
-    series.push(byDay.get(new Date(latest - i * DAY).toISOString().slice(0, 10)) ?? 0)
-  }
-  return series
+  const keys: string[] = []
+  for (let i = n - 1; i >= 0; i--) keys.push(new Date(latest - i * DAY).toISOString().slice(0, 10))
+  const raw = keys.map((k) => byDay.get(k) ?? 0)
+  if (zeroDay.size === 0) return raw
+
+  // Uncensor: a day that ran the stock to zero had its demand TRUNCATED — observed
+  // sales are a lower bound, not true demand. Lift those days to at least the mean
+  // of the uncensored days (never lower an observation). Stops the model training
+  // on capped sales and systematically under-ordering stockout-prone variants.
+  const uncensoredVals = keys.filter((k) => !zeroDay.has(k)).map((k) => byDay.get(k) ?? 0)
+  const uncMean = uncensoredVals.length
+    ? Math.round(uncensoredVals.reduce((s, v) => s + v, 0) / uncensoredVals.length)
+    : 0
+  return keys.map((k, i) => (zeroDay.has(k) ? Math.max(raw[i], uncMean) : raw[i]))
 }
 
 /** Measured confidence in [0.3, 0.95] from one-step in-sample fit. `oneStep[i]`
