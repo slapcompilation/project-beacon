@@ -249,7 +249,6 @@ function AccuracySection() {
       variants: rows.length,
       mape:     mean(rows.map((r) => r.mape)),
       bias:     mean(rows.map((r) => r.bias_pct)),
-      censored: rows.reduce((s, r) => s + r.n_censored, 0),
     }
   }, [rows])
 
@@ -257,7 +256,7 @@ function AccuracySection() {
     <Section
       title="Accuracy (live)"
       icon="pulse"
-      subtitle="The active baseline's recent forecasts scored against what actually got consumed — 4 rolling 7-day windows per variant. Distinct from the eval suite below (synthetic cases)."
+      subtitle="Each variant's recent forecasts — from the model auto-select actually chose for it — scored against what got consumed, over 4 rolling 7-day windows. Distinct from the eval suite below (synthetic cases)."
     >
       {!hotelId ? (
         <Card className="text-xs italic text-muted-foreground">Select a hotel to score its forecasts.</Card>
@@ -281,20 +280,19 @@ function AccuracySection() {
                 : 'projects more than gets consumed → overstock / waste risk'}
             />
             <Tag minimal icon="cube">{summary.variants} variants scored</Tag>
-            {summary.censored > 0 && <Tag minimal icon="warning-sign" intent={Intent.WARNING}>{summary.censored} censored windows</Tag>}
           </div>
 
           <div className="space-y-1">
             {rows.map((r) => (
               <div key={r.variant_id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
                 <span className="font-medium truncate max-w-[180px]" title={r.variant_name}>{r.variant_name}</span>
+                <Tag minimal icon="predictive-analysis" className="text-[10px]" title="model auto-select chose for this variant">{adapterLabel(r.basis)}</Tag>
                 <span className="flex-1" />
                 <Tag minimal className="tabular-nums">MAPE {pct(r.mape)}</Tag>
                 <Tag minimal intent={biasIntent(r.bias_pct)} className="tabular-nums">
                   {r.bias_pct < 0 ? '−' : '+'}{pct(Math.abs(r.bias_pct))}
                 </Tag>
                 <span className="text-[10px] text-muted-foreground tabular-nums">{r.n} win</span>
-                {r.n_censored > 0 && <Icon icon="warning-sign" size={10} className="text-amber-500" title={`${String(r.n_censored)} censored window(s)`} />}
               </div>
             ))}
           </div>
@@ -314,6 +312,16 @@ function MetricTag({ label, value, intent, hint }: { label: string; value: strin
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(0)}%`
+
+/** 'auto:holt-linear-v1' → 'Holt' — the model auto-select picked for the variant. */
+function adapterLabel(basis: string): string {
+  const b = basis.replace(/^auto:/, '')
+  if (b.startsWith('holt')) return 'Holt'
+  if (b.startsWith('ewma')) return 'EWMA'
+  if (b.startsWith('seasonal')) return 'Seasonal'
+  if (b.startsWith('baseline')) return 'Baseline'
+  return b
+}
 
 function mapeIntent(mape: number): Intent {
   if (mape <= 0.2) return Intent.SUCCESS

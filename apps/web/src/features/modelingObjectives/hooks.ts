@@ -8,15 +8,17 @@ import {
   fetchDeployment,
   fetchDeployments,
   fetchEvalRuns,
-  fetchForecastAccuracy,
+  fetchGradeableVariants,
   fetchRelease,
   fetchReleases,
   stopDeployment,
   type DeploymentKind,
+  type ForecastAccuracyRow,
   type ReleaseStage,
 } from './api'
 import { runEvalSuite } from './runEval'
-import type { EvalSuite, ModelAdapter } from '@beacon/reality-graph'
+import { makeScoreForecastAccuracyTool, type EvalSuite, type ModelAdapter } from '@beacon/reality-graph'
+import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 
 export const moKeys = {
   evalRuns:    (objective: string, orgId: string) => ['mo', 'evalRuns',    objective, orgId] as const,
@@ -47,7 +49,21 @@ export function useReleases(objectiveName: string) {
 export function useForecastAccuracy(hotelId: string | null, horizon = 7, windows = 4) {
   return useQuery({
     queryKey: ['mo', 'forecastAccuracy', hotelId ?? '', horizon, windows],
-    queryFn:  () => (hotelId ? fetchForecastAccuracy(hotelId, horizon, windows) : Promise.resolve([])),
+    queryFn:  async (): Promise<ForecastAccuracyRow[]> => {
+      if (!hotelId) return []
+      const variants = await fetchGradeableVariants(hotelId)
+      const tool = makeScoreForecastAccuracyTool(makeSupabaseGraphReader())
+      // Score each variant through the actual production model (auto-select, the
+      // tool's default). Per-variant so the surface can show which adapter won.
+      const graded = await Promise.all(variants.map(async (v) => {
+        const r = await tool.invoke({ variantId: v.variant_id, horizonDays: horizon, windows })
+        return {
+          variant_id: v.variant_id, variant_name: v.variant_name,
+          n: r.n, mape: r.mape, bias_pct: r.biasPct, basis: r.basis,
+        }
+      }))
+      return graded.filter((r) => r.n > 0).sort((a, b) => b.mape - a.mape)
+    },
     enabled:  !!hotelId,
     staleTime: 60_000,
   })

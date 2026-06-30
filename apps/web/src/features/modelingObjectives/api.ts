@@ -47,26 +47,29 @@ export interface DeploymentRow {
   last_health_check: string
 }
 
-/** One row of the live forecast-accuracy summary (forecast_accuracy_summary RPC):
- *  the baseline's recent forecasts for a variant scored against realized
- *  consumption. mape = mean abs % error; bias_pct < 0 = systematic under-forecast. */
+/** A graded variant on the accuracy surface. mape = mean abs % error;
+ *  bias_pct < 0 = systematic under-forecast; basis = the adapter auto-select
+ *  actually chose for this variant (e.g. 'auto:holt-linear-v1'). */
 export interface ForecastAccuracyRow {
   variant_id:   string
   variant_name: string
   n:            number
   mape:         number
   bias_pct:     number
-  n_censored:   number
+  basis:        string
 }
 
 // ─── Reads ──────────────────────────────────────────────────────────────────
 
-export async function fetchForecastAccuracy(
-  hotelId: string, horizon = 7, windows = 4,
-): Promise<ForecastAccuracyRow[]> {
-  const { data, error } = await supabase.rpc('forecast_accuracy_summary', {
-    p_hotel_id: hotelId, p_horizon: horizon, p_windows: windows,
-  }) as unknown as { data: ForecastAccuracyRow[] | null; error: { message: string } | null }
+/** Variants worth grading for a hotel (enough recent consumption), top-N by
+ *  volume. The per-variant accuracy is then scored client-side through the
+ *  score_forecast_accuracy Logic Tool — the exact production model. */
+export async function fetchGradeableVariants(
+  hotelId: string, limit = 24,
+): Promise<Array<{ variant_id: string; variant_name: string }>> {
+  const { data, error } = await supabase.rpc('forecast_gradeable_variants', {
+    p_hotel_id: hotelId, p_limit: limit,
+  }) as unknown as { data: Array<{ variant_id: string; variant_name: string }> | null; error: { message: string } | null }
   if (error) throw new Error(error.message)
   return data ?? []
 }
