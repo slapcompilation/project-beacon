@@ -19,6 +19,9 @@ import type { AgentSpec, AgentInput, AgentRunResult } from '../agents/index'
 import { StubLLMClient, type LLMClient } from '../agents/llm'
 import { gradeWithRubric, type RubricCheck, type RubricResult } from './rubricGrader'
 
+// This package ships without @types/node; declare the one global we read.
+declare const process: { env: Record<string, string | undefined> }
+
 export interface JudgmentCase {
   name: string
   input: AgentInput
