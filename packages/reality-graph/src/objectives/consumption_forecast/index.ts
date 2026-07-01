@@ -4,7 +4,7 @@
 // existing forecast_consumption tool still runs its inline baseline (the two
 // implementations are equivalent for the baseline case).
 
-import { registerAdapter, registerObjective, type EvalSuite, type ModelingObjective } from '../index'
+import { registerAdapter, registerObjective, registerEvalSuite, type EvalSuite, type ModelingObjective } from '../index'
 import { baselineRolling30dAdapter } from './baseline_rolling_30d'
 import { seasonalNaiveV1Adapter } from './seasonal_naive_v1'
 import { ewmaV1Adapter } from './ewma_v1'
@@ -114,4 +114,5 @@ export function registerConsumptionForecast(): void {
   registerAdapter(holtLinearV1Adapter)
   registerAdapter(autoSelectV1Adapter)
   registerObjective(consumptionForecastObjective)
+  registerEvalSuite(consumptionForecastEvalSuite)
 }

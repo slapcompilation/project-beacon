@@ -3,7 +3,7 @@
 // builds (this is the drift that hid compute_reorder_point from the Studio).
 
 import { describe, expect, it } from 'vitest'
-import { listAllToolDescriptors, listAllAgentSpecs } from './catalog'
+import { listAllToolDescriptors, listAllAgentSpecs, listAllObjectiveDescriptors } from './catalog'
 
 describe('Studio catalog', () => {
   it('lists every shipped Logic Tool with unique names + real metadata', () => {
@@ -36,5 +36,15 @@ describe('Studio catalog', () => {
         expect(toolNames.has(name), `${agent.name} declares unknown tool ${name}`).toBe(true)
       }
     }
+  })
+
+  it('lists objectives with all candidate adapters resolved + an eval suite', () => {
+    const objectives = listAllObjectiveDescriptors()
+    const forecast = objectives.find((o) => o.objective.name === 'consumption_forecast')
+    expect(forecast).toBeDefined()
+    // Every candidate name resolves to a real adapter object (drift-free).
+    expect(forecast?.adapters.map((a) => a.name)).toEqual([...(forecast?.objective.candidates ?? [])])
+    expect(forecast?.adapters.length).toBe(5)
+    expect(forecast?.evalSuite?.cases.length).toBeGreaterThanOrEqual(10)
   })
 })

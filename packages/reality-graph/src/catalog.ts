@@ -27,6 +27,15 @@ import { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_lo
 import { buildRestockAdvisorAgent } from './agents/restock_advisor/index'
 import { buildWasteTriageAgent } from './agents/waste_triage/index'
 import { buildOverstockRebalancerAgent } from './agents/overstock_rebalancer/index'
+import {
+  objectiveRegistry,
+  adapterRegistry,
+  getEvalSuite,
+  type ModelingObjective,
+  type ModelAdapter,
+  type EvalSuite,
+} from './objectives/index'
+import { registerConsumptionForecast } from './objectives/consumption_forecast/index'
 
 const noopGraphReader: GraphReader = {
   getVariant:              () => Promise.resolve(null),
@@ -78,4 +87,26 @@ export function listAllAgentSpecs(): ReadonlyArray<AgentSpec> {
     buildWasteTriageAgent({ llm, reader: noopGraphReader }),
     buildOverstockRebalancerAgent({ llm, reader: noopGraphReader }),
   ]
+}
+
+export interface ObjectiveDescriptor {
+  objective: ModelingObjective
+  /** The objective's candidate adapters, resolved from the registry (drift-free). */
+  adapters:  ReadonlyArray<ModelAdapter>
+  evalSuite: EvalSuite | undefined
+}
+
+/** Every Modeling Objective that ships, with its candidate adapters + eval suite
+ *  resolved from the registries — so the Studio can't freeze a stale adapter list. */
+export function listAllObjectiveDescriptors(): ReadonlyArray<ObjectiveDescriptor> {
+  registerConsumptionForecast()   // idempotent — populates the registries
+  const byName = new Map<string, ModelAdapter>()
+  for (const a of adapterRegistry.values()) byName.set(a.name, a)
+  return [...objectiveRegistry.values()].map((objective) => ({
+    objective,
+    adapters: objective.candidates
+      .map((n) => byName.get(n))
+      .filter((a): a is ModelAdapter => !!a),
+    evalSuite: getEvalSuite(objective.name),
+  }))
 }

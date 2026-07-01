@@ -143,8 +143,8 @@ export type {
 // ── Logic Tool Registry — typed functions, dual-callable by humans + LLMs ────
 // Phase A stub: contracts only. Tool implementations land in src/tools/<name>.ts
 // See CLAUDE.md → "The Logic Tool Registry (Compute Layer)".
-// Canonical Studio catalog — single source of truth for the Studio's tool/agent views.
-export { listAllToolDescriptors, listAllAgentSpecs } from './catalog'
+// Canonical Studio catalog — single source of truth for the Studio's tool/agent/objective views.
+export { listAllToolDescriptors, listAllAgentSpecs, listAllObjectiveDescriptors, type ObjectiveDescriptor as CatalogObjectiveDescriptor } from './catalog'
 
 export type { LogicTool, ToolResultMeta, ToolScope, ToolCategory, ToolKind } from './tools/index'
 export {

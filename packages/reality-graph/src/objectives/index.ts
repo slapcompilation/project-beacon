@@ -125,12 +125,22 @@ export interface Deployment {
 
 export const objectiveRegistry: Map<string, ModelingObjective> = new Map()
 export const adapterRegistry: Map<string, ModelAdapter> = new Map()
+/** Eval suite per objective (bound to the objective, not the adapter). */
+export const evalSuiteRegistry: Map<string, EvalSuite> = new Map()
 
 export function registerObjective(objective: ModelingObjective): void {
   if (objectiveRegistry.has(objective.name)) {
     throw new Error(`Objective '${objective.name}' already registered`)
   }
   objectiveRegistry.set(objective.name, objective)
+}
+
+export function registerEvalSuite(suite: EvalSuite): void {
+  evalSuiteRegistry.set(suite.objective, suite)
+}
+
+export function getEvalSuite(objective: string): EvalSuite | undefined {
+  return evalSuiteRegistry.get(objective)
 }
 
 export function registerAdapter<TInput, TOutput>(
