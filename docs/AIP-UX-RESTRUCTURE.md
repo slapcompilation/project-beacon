@@ -110,8 +110,36 @@ system, and uniform **Object Views**. Mapping to Beacon's target surfaces
 - [x] Roadmap + parity rubric written (this doc).
 - [x] Token baseline audited; confirmed AIP-aligned; gap tokens listed.
 - [x] Foundry→Beacon parity board drafted from the orientation/nav docs.
-- [ ] Reference screenshots dropped into `docs/aip-reference/` and linked per board row (**needs the images**).
-- [ ] Gap tokens (0.1) added once the rail spec (Phase 1) is drawn.
+- [x] Reference received (Foundry orientation screenshots + getting-started text) → the sidebar spec below (0.4) is transcribed from them.
+- [ ] Gap tokens (0.1) added as the sidebar component (Phase 1) is built.
+
+## 0.4 Sidebar spec — image-grounded (the Phase 1 build target)
+
+Foundry's expanded sidebar is a **dark, ~240px, vertically-stacked, 5-section**
+rail. Top: the product orb (left) + a collapse toggle (right, `Cmd/Ctrl+O`).
+Row height ~36–40px (comfortable, not ultra-dense); outline icons ~16–18px;
+white item text; small-caps letter-spaced grey section headers, each with a
+right-aligned muted **View all**; right-aligned muted keyboard-shortcut hints
+(`⌘J`, `⌘⇧U`). Active item = a lighter full-width band. Collapsed = a ~48px
+icon-only rail.
+
+| # | Section | Foundry items | Beacon mapping |
+|---|---|---|---|
+| 1 | Top controls | Home · Search… (`⌘J`) · Notifications (bell + badge) · What's New (gift + dot) | Home · Search (`⌘J`, the copilot palette) · Notifications · What's New |
+| 2 | Recent & files | Recent · Files · Applications (portal) | Recent · Objects (graph) · Applications (Studio portal) |
+| 3 | Favorited **Applications** (`APPLICATIONS · View all`) | pinned apps w/ colour icon + name + optional `Beta` | Beacon "apps": Decisions · Insights · Studio (pin/star-able) |
+| 4 | Favorited **Files** (`FILES`) | starred files/objects w/ icon + name | starred objects (variants/hotels) + saved lenses |
+| 5 | Bottom tools | AIP Assist (`⌘⇧U`) · Support · Account (avatar) | Copilot (`⌘⇧U`) · Support · Account (avatar w/ initials) |
+
+Star/favorite is cross-cutting (apps, files, objects; a "Manage favorites"
+modal with Apps/Files columns + activity suggestions). Empty favorites →
+"Your favorited apps will appear here." Object views carry a star next to the
+title + a breadcrumb header (trail → **bold current** ★, then a chrome row:
+`File ▾ · Help ▾ · branch chip · version chip · catalog chip`).
+
+> Current Beacon nav is a **bottom horizontal dock** (`CommandDock`) — Phase 1
+> flips it to this left sidebar. Build it presentational + previewable first,
+> calibrate against the screenshots, then wire it in and retire the dock.
 
 ---
 
