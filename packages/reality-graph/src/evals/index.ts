@@ -24,3 +24,12 @@ export {
   type JudgmentCase,
   type JudgmentOutcome,
 } from './judgmentEval'
+
+export {
+  runVersionDiff,
+  type AgentVersion,
+  type VersionDiff,
+  type VersionSummary,
+  type VersionDelta,
+  type DiffRow,
+} from './versionDiff'
