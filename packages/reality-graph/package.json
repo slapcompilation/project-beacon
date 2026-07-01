@@ -8,7 +8,8 @@
     "type-check": "tsc --noEmit",
     "lint": "echo 'reality-graph package — no lint needed'",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "eval:live": "vitest run src/evals/live/liveJudgment.eval.ts"
   },
   "dependencies": {
     "@beacon/types": "workspace:*",
