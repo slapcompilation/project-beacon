@@ -34,6 +34,10 @@ export interface OntologyProposalRow {
   created_at: string
 }
 
+// null hotelId = portfolio scope: drop the hotel filter and let RLS scope the
+// rows to every property the caller can read (see useActiveHotelId). Applied
+// inline (a generic helper trips tsc's deep-instantiation limit on Postgrest).
+
 function makeSupabaseOntologyReader(): OntologyReader {
   return {
     async getRemovalReasons(hotelId, sinceDays) {
@@ -42,10 +46,10 @@ function makeSupabaseOntologyReader(): OntologyReader {
       let q = supabase
         .from('stock_logs')
         .select('reason, removal_category:category')
-        .eq('hotel_id', hotelId)
         .lt('quantity_change', 0)
         .not('reason', 'is', null)
         .limit(5000)
+      if (hotelId) q = q.eq('hotel_id', hotelId)
       if (typeof sinceDays === 'number') {
         q = q.gte('timestamp', new Date(Date.now() - sinceDays * 86_400_000).toISOString())
       }
@@ -57,21 +61,12 @@ function makeSupabaseOntologyReader(): OntologyReader {
     // "Known" = anything the operator has already decided (approved OR rejected),
     // plus categories already present on the data. Both suppress re-proposal.
     async getKnownRemovalCategories(hotelId) {
-      const [logs, decided] = await Promise.all([
-        supabase
-          .from('stock_logs')
-          .select('removal_category:category')
-          .eq('hotel_id', hotelId)
-          .lt('quantity_change', 0)
-          .not('category', 'is', null)
-          .limit(1000),
-        supabase
-          .from('ontology_proposals')
-          .select('proposed')
-          .eq('hotel_id', hotelId)
-          .eq('target_field', 'removal_category')
-          .in('status', ['approved', 'rejected']),
-      ])
+      let logsQ = supabase.from('stock_logs').select('removal_category:category')
+        .lt('quantity_change', 0).not('category', 'is', null).limit(1000)
+      let decidedQ = supabase.from('ontology_proposals').select('proposed')
+        .eq('target_field', 'removal_category').in('status', ['approved', 'rejected'])
+      if (hotelId) { logsQ = logsQ.eq('hotel_id', hotelId); decidedQ = decidedQ.eq('hotel_id', hotelId) }
+      const [logs, decided] = await Promise.all([logsQ, decidedQ])
       if (logs.error) throw new Error(logs.error.message)
       if (decided.error) throw new Error(decided.error.message)
       const set = new Set<string>()
@@ -87,10 +82,10 @@ function makeSupabaseOntologyReader(): OntologyReader {
       let q = supabase
         .from('stock_logs')
         .select('reason, movement_category:category')
-        .eq('hotel_id', hotelId)
         .gt('quantity_change', 0)
         .not('reason', 'is', null)
         .limit(5000)
+      if (hotelId) q = q.eq('hotel_id', hotelId)
       if (typeof sinceDays === 'number') {
         q = q.gte('timestamp', new Date(Date.now() - sinceDays * 86_400_000).toISOString())
       }
@@ -101,21 +96,12 @@ function makeSupabaseOntologyReader(): OntologyReader {
 
     // "Known" = decided proposals + categories already stamped on additions.
     async getKnownMovementCategories(hotelId) {
-      const [logs, decided] = await Promise.all([
-        supabase
-          .from('stock_logs')
-          .select('movement_category:category')
-          .eq('hotel_id', hotelId)
-          .gt('quantity_change', 0)
-          .not('category', 'is', null)
-          .limit(1000),
-        supabase
-          .from('ontology_proposals')
-          .select('proposed')
-          .eq('hotel_id', hotelId)
-          .eq('target_field', 'movement_category')
-          .in('status', ['approved', 'rejected']),
-      ])
+      let logsQ = supabase.from('stock_logs').select('movement_category:category')
+        .gt('quantity_change', 0).not('category', 'is', null).limit(1000)
+      let decidedQ = supabase.from('ontology_proposals').select('proposed')
+        .eq('target_field', 'movement_category').in('status', ['approved', 'rejected'])
+      if (hotelId) { logsQ = logsQ.eq('hotel_id', hotelId); decidedQ = decidedQ.eq('hotel_id', hotelId) }
+      const [logs, decided] = await Promise.all([logsQ, decidedQ])
       if (logs.error) throw new Error(logs.error.message)
       if (decided.error) throw new Error(decided.error.message)
       const set = new Set<string>()
@@ -129,11 +115,9 @@ function makeSupabaseOntologyReader(): OntologyReader {
 
     // Tally edge types client-side (PostgREST has no group-by without an RPC).
     async getEdgeTypeCounts(hotelId) {
-      const { data, error } = await supabase
-        .from('relationship_edges')
-        .select('edge_type')
-        .eq('hotel_id', hotelId)
-        .limit(20000)
+      let q = supabase.from('relationship_edges').select('edge_type').limit(20000)
+      if (hotelId) q = q.eq('hotel_id', hotelId)
+      const { data, error } = await q
       if (error) throw new Error(error.message)
       const tally = new Map<string, number>()
       for (const r of data) {
@@ -145,36 +129,48 @@ function makeSupabaseOntologyReader(): OntologyReader {
   }
 }
 
-export async function fetchOntologyGaps(hotelId: string): Promise<DetectOntologyGapsOutput> {
+export async function fetchOntologyGaps(hotelId: string | null): Promise<DetectOntologyGapsOutput> {
   const tool = makeDetectOntologyGapsTool(makeSupabaseOntologyReader())
   return tool.invoke({ hotelId })
 }
 
-/** Records an operator decision on a detected gap. Upsert keyed on the concept,
- *  so re-deciding flips the status in place. Approving makes the value a
- *  recognized typed extension; both states stop the detector re-surfacing it. */
+/** Readable hotel ids (RLS-scoped). In portfolio scope, an ontology decision
+ *  fans out to each of these so per-hotel suppression holds chain-wide. */
+export async function fetchScopedHotelIds(): Promise<string[]> {
+  const { data, error } = await supabase.from('hotels').select('id')
+  if (error) throw new Error(error.message)
+  return data.map((r) => (r as { id: string }).id)
+}
+
+/** Records an operator decision on a detected gap for each target hotel. Upsert
+ *  keyed on the concept, so re-deciding flips the status in place. Approving
+ *  makes the value a recognized typed extension; both states stop the detector
+ *  re-surfacing it. `hotel_id` is NOT NULL, so a portfolio decision writes one
+ *  row per readable hotel. */
 export async function decideOntologyGap(input: {
-  hotelId: string
+  hotelIds: string[]
   userId: string
   gap: OntologyGap
   status: 'approved' | 'rejected'
 }): Promise<void> {
   const { gap } = input
+  const rows = input.hotelIds.map((hotel_id) => ({
+    hotel_id,
+    kind:               gap.kind,
+    target_type:        gap.targetType,
+    target_field:       gap.targetField,
+    proposed:           gap.proposed,
+    rationale:          gap.rationale,
+    evidence:           gap.evidence,
+    confidence:         gap.confidence,
+    status:             input.status,
+    decided_by_user_id: input.userId,
+    decided_at:         new Date().toISOString(),
+  }))
+  if (rows.length === 0) throw new Error('No hotel in scope to record the decision against')
   const { error } = await supabase
     .from('ontology_proposals')
-    .upsert({
-      hotel_id:           input.hotelId,
-      kind:               gap.kind,
-      target_type:        gap.targetType,
-      target_field:       gap.targetField,
-      proposed:           gap.proposed,
-      rationale:          gap.rationale,
-      evidence:           gap.evidence,
-      confidence:         gap.confidence,
-      status:             input.status,
-      decided_by_user_id: input.userId,
-      decided_at:         new Date().toISOString(),
-    }, { onConflict: 'hotel_id,target_field,proposed' })
+    .upsert(rows, { onConflict: 'hotel_id,target_field,proposed' })
   if (error) throw new Error(error.message)
 }
 
@@ -205,14 +201,21 @@ export async function fetchApprovedMovementCategories(hotelId: string): Promise<
   return [...new Set(data.map((r) => (r as { proposed: string }).proposed))]
 }
 
-/** The grown ontology: approved typed extensions, newest first. */
-export async function fetchApprovedExtensions(hotelId: string): Promise<OntologyProposalRow[]> {
-  const { data, error } = await supabase
-    .from('ontology_proposals')
-    .select('*')
-    .eq('hotel_id', hotelId)
-    .eq('status', 'approved')
-    .order('decided_at', { ascending: false })
+/** The grown ontology: approved typed extensions, newest first. null hotelId =
+ *  portfolio (RLS-scoped). Portfolio fan-out means one row per hotel per
+ *  concept, so de-dupe by the concept for display. */
+export async function fetchApprovedExtensions(hotelId: string | null): Promise<OntologyProposalRow[]> {
+  let q = supabase.from('ontology_proposals').select('*').eq('status', 'approved')
+  if (hotelId) q = q.eq('hotel_id', hotelId)
+  const { data, error } = await q.order('decided_at', { ascending: false })
   if (error) throw new Error(error.message)
-  return data as OntologyProposalRow[]
+  const rows = data as OntologyProposalRow[]
+  if (hotelId) return rows
+  const seen = new Set<string>()
+  return rows.filter((r) => {
+    const key = `${r.target_field}:${r.proposed}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
 }
