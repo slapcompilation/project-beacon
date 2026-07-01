@@ -148,7 +148,7 @@ export function FoundrySidebar({
           type="button"
           onClick={pick('account')}
           className={cn(
-            'flex w-full items-center gap-3 px-4 py-1.5 text-sm transition-colors hover:bg-white/5',
+            'flex w-full items-center gap-3 px-4 py-2 text-[13px] transition-colors hover:bg-white/5',
             collapsed && 'justify-center px-0',
           )}
         >
@@ -176,7 +176,7 @@ function RailRow({
       onClick={onClick}
       title={item.label}
       className={cn(
-        'flex w-full items-center gap-3 px-4 py-1.5 text-sm transition-colors',
+        'flex w-full items-center gap-3 px-4 py-2 text-[13px] transition-colors',
         collapsed && 'justify-center px-0',
         active ? 'bg-white/10 text-white' : 'text-[#cfd4dd] hover:bg-white/5 hover:text-white',
       )}
