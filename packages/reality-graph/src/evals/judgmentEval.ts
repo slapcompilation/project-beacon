@@ -27,6 +27,8 @@ export interface JudgmentCase {
   input: AgentInput
   /** The judgment criteria the LLM-as-judge grades the run against. */
   rubric: ReadonlyArray<RubricCheck>
+  /** Optional cohort tag (e.g. a hotel or region) for per-slice diffing. */
+  cohort?: string
   /** Which slice of the run to grade. Default: { proposals, paused }. */
   select?: (r: AgentRunResult) => unknown
 }
