@@ -16,3 +16,11 @@ export {
   evalAutoPersistReporter,
   type EvalRunRecord,
 } from './autoPersistReporter'
+
+export {
+  runJudgmentCase,
+  stubRubricJudge,
+  LIVE_JUDGMENT,
+  type JudgmentCase,
+  type JudgmentOutcome,
+} from './judgmentEval'
