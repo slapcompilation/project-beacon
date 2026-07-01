@@ -89,4 +89,24 @@ describe('runVersionDiff', () => {
       runVersionDiff({ versions: [{ label: 'only', agent: idleAgent('only') }], cases: [lateralCase], judge: new StubLLMClient([]) }),
     ).rejects.toThrow(/at least two versions/)
   })
+
+  it('slices the diff by cohort, pinning a regression to the property it hit', async () => {
+    const single: RubricCheck[] = [{ id: 'ok', question: 'ok?', required: true }]
+    const caseA: JudgmentCase = { name: 'case A', cohort: 'valinor',   input: lateralCase.input, rubric: single }
+    const caseB: JudgmentCase = { name: 'case B', cohort: 'rivendell', input: lateralCase.input, rubric: single }
+    const pass: LLMResponse = { output: { checks: [{ id: 'ok', passed: true,  rationale: 'ok' }] }, toolCalls: [], tokensUsed: 0 }
+    const fail: LLMResponse = { output: { checks: [{ id: 'ok', passed: false, rationale: 'no' }] }, toolCalls: [], tokensUsed: 0 }
+    const versions: AgentVersion[] = [
+      { label: 'deterministic', agent: idleAgent('deterministic') },
+      { label: 'llm',           agent: idleAgent('llm') },
+    ]
+    // case-outer, version-inner → [A-det, A-llm, B-det, B-llm]; llm fails only case B.
+    const judge = new StubLLMClient([pass, pass, pass, fail])
+    const diff = await runVersionDiff({ versions, cases: [caseA, caseB], judge })
+
+    expect(diff.cohorts).toHaveLength(2)
+    expect(diff.cohorts.find((c) => c.cohort === 'rivendell')?.deltas[0]).toMatchObject({ version: 'llm', regressions: ['case B'] })
+    expect(diff.cohorts.find((c) => c.cohort === 'valinor')?.deltas[0]).toMatchObject({ version: 'llm', regressions: [] })
+    expect(diff.summary.find((s) => s.version === 'llm')?.passRate).toBe(0.5)
+  })
 })

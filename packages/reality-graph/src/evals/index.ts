@@ -31,5 +31,12 @@ export {
   type VersionDiff,
   type VersionSummary,
   type VersionDelta,
+  type CohortDiff,
   type DiffRow,
 } from './versionDiff'
+
+export {
+  evaluatePromotion,
+  type PromotionPolicy,
+  type PromotionDecision,
+} from './promotionGate'

@@ -11,7 +11,7 @@
 //   BEACON_EVAL_LIVE=1 ANTHROPIC_API_KEY=sk-... pnpm --filter @beacon/reality-graph run eval:live
 
 import { describe, expect, it } from 'vitest'
-import { LIVE_JUDGMENT, runVersionDiff, type AgentVersion } from '../index'
+import { LIVE_JUDGMENT, runVersionDiff, evaluatePromotion, type AgentVersion } from '../index'
 import { AnthropicNodeLLMClient } from './anthropicNodeClient'
 import { buildRestockAdvisorAgent } from '../../agents/restock_advisor/index'
 import { makeReader } from '../../agents/restock_advisor/eval/fixtures'
@@ -27,9 +27,11 @@ describe.skipIf(!LIVE_JUDGMENT)('LIVE judgment diff — restock_advisor determin
     ]
 
     const diff = await runVersionDiff({ versions, cases: [lateralCase], judge: model })
-    console.log('\n=== LIVE version diff (restock_advisor) ===\n' + JSON.stringify(diff, null, 2) + '\n')
+    const decision = evaluatePromotion(diff, undefined, 'llm')
+    console.log('\n=== LIVE version diff (restock_advisor) ===\n' + JSON.stringify(diff, null, 2))
+    console.log('\n=== promotion decision ===\n' + JSON.stringify(decision, null, 2) + '\n')
 
-    // The 'llm' version must not regress the deterministic baseline on this case.
-    expect(diff.deltas[0]?.regressions ?? []).toHaveLength(0)
+    // Green ⟺ the LLM version earns promotion: meets the floor + regresses nothing.
+    expect(decision.promotable).toBe(true)
   }, 120_000)
 })
