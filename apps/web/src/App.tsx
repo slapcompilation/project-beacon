@@ -18,6 +18,7 @@ const LoginPage = lazyWithRetry(() => import('@/pages/LoginPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'))
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const BriefingPage = lazyWithRetry(() => import('@/pages/BriefingPage'))
+const FoundryShellPreview = lazyWithRetry(() => import('@/pages/FoundryShellPreview'))
 const ApplicationsPage = lazyWithRetry(() => import('@/pages/ApplicationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
@@ -110,6 +111,7 @@ function AppRoutes() {
             <Route path="/" element={<RootRedirect />} />
 
             <Route path="/briefing" element={<BriefingPage />} />
+            <Route path="/ux/sidebar" element={<FoundryShellPreview />} />
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/floor"    element={<FloorWorkspace />} />
             <Route path="/flow"     element={<FlowWorkspace />} />
