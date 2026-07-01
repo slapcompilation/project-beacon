@@ -1,11 +1,15 @@
 // Agent Studio descriptor registry (read-only).
 //
-// Pulls the AgentSpec metadata + block info + tool definitions from
-// @beacon/reality-graph using a no-op GraphReader. The `invoke` paths are
-// never called from the studio — we only render schemas, prompts, and shape.
+// Tool + agent metadata is derived from @beacon/reality-graph's canonical
+// catalog (listAllToolDescriptors / listAllAgentSpecs) — the single source of
+// truth — so the Studio can't drift from what actually ships. Only
+// presentation-only metadata (emitted action types, block list, task prompt,
+// launch surface, eval path) that isn't on the AgentSpec is kept here, keyed by
+// agent name. The `invoke` paths are never called from the studio.
 
 import {
-  // agent metadata + blocks
+  listAllToolDescriptors,
+  listAllAgentSpecs,
   RESTOCK_ADVISOR_TASK_PROMPT,
   WASTE_TRIAGE_TASK_PROMPT,
   OVERSTOCK_REBALANCER_TASK_PROMPT,
@@ -16,56 +20,20 @@ import {
   wasteProposeActionsBlock,
   overstockExtractVariantBlock,
   overstockReasonAndRebalanceBlock,
-  // tool factories
-  makeQueryOpenRestockRequestsTool,
-  makeQuerySisterPropertyInventoryTool,
-  makeForecastConsumptionTool,
-  makeRankAlternativeSuppliersTool,
-  makeQueryRecentWasteLogsTool,
-  makeQueryVariantDocumentsTool,
-  makeQueryDocumentChunksTool,
-  requestClarificationTool,
-  // types
   type BlockDef,
   type LogicTool,
-  type GraphReader,
   type AgentCadence,
   type AgentScope,
   type AgentApprovalBoundary,
   type AgentReleaseStage,
 } from '@beacon/reality-graph'
 
-// ─── NoOp reader for metadata-only tool instantiation ────────────────────────
+// ─── Tool descriptors (from the canonical catalog) ───────────────────────────
 
-const noopReader: GraphReader = {
-  getVariant:              () => Promise.resolve(null),
-  getOpenRestockRequests:  () => Promise.resolve([]),
-  getStockLogs:            () => Promise.resolve([]),
-  getSisterHotels:         () => Promise.resolve([]),
-  getVariantsByName:       () => Promise.resolve([]),
-  getSuppliersForVariant:  () => Promise.resolve([]),
-  getDocumentsForEntity:   () => Promise.resolve([]),
-  searchDocumentChunks:    () => Promise.resolve([]),
-  getActivePrinciples:     () => Promise.resolve([]),
-}
-
-// ─── Tool descriptors ────────────────────────────────────────────────────────
-
-const tools: LogicTool[] = [
-  makeQueryOpenRestockRequestsTool(noopReader) as LogicTool,
-  makeQuerySisterPropertyInventoryTool(noopReader) as LogicTool,
-  makeForecastConsumptionTool(noopReader) as LogicTool,
-  makeRankAlternativeSuppliersTool(noopReader) as LogicTool,
-  makeQueryRecentWasteLogsTool(noopReader) as LogicTool,
-  makeQueryVariantDocumentsTool(noopReader) as LogicTool,
-  makeQueryDocumentChunksTool(noopReader) as LogicTool,
-  requestClarificationTool as LogicTool,
-]
-
-export const toolDescriptors: ReadonlyArray<LogicTool> = tools
+export const toolDescriptors: ReadonlyArray<LogicTool> = listAllToolDescriptors()
 
 export function getToolDescriptor(name: string): LogicTool | undefined {
-  return tools.find((t) => t.name === name)
+  return toolDescriptors.find((t) => t.name === name)
 }
 
 // ─── Agent descriptors ───────────────────────────────────────────────────────
@@ -89,83 +57,68 @@ export interface AgentDescriptor {
   evalFile:         string
 }
 
-export const agentDescriptors: ReadonlyArray<AgentDescriptor> = [
-  {
-    name:             'restock_advisor',
-    version:          '1.0.0',
-    purpose:          'Resolves operator stockout concerns into typed TRANSFER_STOCK and/or REQUEST_RESTOCK proposals.',
-    scope:            'hotel',
-    cadence:          'on-event',
-    approvalBoundary: 'operator',
-    releaseStage:     'sandbox',
-    toolset: [
-      'query_open_restock_requests',
-      'forecast_consumption',
-      'query_sister_property_inventory',
-      'rank_alternative_suppliers',
-      'query_variant_documents',
-      'query_document_chunks',
-      'request_clarification',
-    ],
+// Presentation-only metadata, keyed by agent name. Everything else is read from
+// the live AgentSpec so toolset/version/stage can't go stale.
+interface AgentPresentation {
+  emits:      ReadonlyArray<string>
+  blocks:     ReadonlyArray<BlockDef<unknown, unknown>>
+  taskPrompt: string
+  invokeFrom: string
+  evalFile:   string
+}
+
+const AGENT_PRESENTATION = new Map<string, AgentPresentation>([
+  ['restock_advisor', {
     emits: ['TRANSFER_STOCK', 'REQUEST_RESTOCK'],
     blocks: [
       restockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
       restockExtractSupplierBlock as unknown as BlockDef<unknown, unknown>,
       restockReasonAndProposeBlock as unknown as BlockDef<unknown, unknown>,
     ],
-    taskPrompt:  RESTOCK_ADVISOR_TASK_PROMPT,
-    invokeFrom:  'Variant page · "Get restock advice"',
-    evalFile:    'packages/reality-graph/src/agents/restock_advisor/eval/restock_advisor.eval.ts',
-  },
-  {
-    name:             'waste_triage',
-    version:          '1.0.0',
-    purpose:          'Resolves spoilage/waste concerns into typed TRANSFER_STOCK (redirect to a needy sister) and/or WRITE_OFF proposals.',
-    scope:            'hotel',
-    cadence:          'on-event',
-    approvalBoundary: 'operator',
-    releaseStage:     'sandbox',
-    toolset: [
-      'query_recent_waste_logs',
-      'forecast_consumption',
-      'query_sister_property_inventory',
-      'query_variant_documents',
-      'query_document_chunks',
-      'request_clarification',
-    ],
+    taskPrompt: RESTOCK_ADVISOR_TASK_PROMPT,
+    invokeFrom: 'Variant page · "Get restock advice"',
+    evalFile:   'packages/reality-graph/src/agents/restock_advisor/eval/restock_advisor.eval.ts',
+  }],
+  ['waste_triage', {
     emits: ['TRANSFER_STOCK', 'WRITE_OFF'],
     blocks: [
       wasteExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
       wasteProposeActionsBlock as unknown as BlockDef<unknown, unknown>,
     ],
-    taskPrompt:  WASTE_TRIAGE_TASK_PROMPT,
-    invokeFrom:  'Variant page · "Waste triage"',
-    evalFile:    'packages/reality-graph/src/agents/waste_triage/eval/waste_triage.eval.ts',
-  },
-  {
-    name:             'overstock_rebalancer',
-    version:          '1.0.0',
-    purpose:          'Frees working capital tied up in excess stock by proposing TRANSFER_STOCK to a sister property below par.',
-    scope:            'hotel',
-    cadence:          'on-event',
-    approvalBoundary: 'operator',
-    releaseStage:     'sandbox',
-    toolset: [
-      'forecast_consumption',
-      'query_sister_property_inventory',
-      'query_variant_documents',
-      'request_clarification',
-    ],
+    taskPrompt: WASTE_TRIAGE_TASK_PROMPT,
+    invokeFrom: 'Variant page · "Waste triage"',
+    evalFile:   'packages/reality-graph/src/agents/waste_triage/eval/waste_triage.eval.ts',
+  }],
+  ['overstock_rebalancer', {
     emits: ['TRANSFER_STOCK'],
     blocks: [
       overstockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
       overstockReasonAndRebalanceBlock as unknown as BlockDef<unknown, unknown>,
     ],
-    taskPrompt:  OVERSTOCK_REBALANCER_TASK_PROMPT,
-    invokeFrom:  'Variant page · "Rebalance overstock"',
-    evalFile:    'packages/reality-graph/src/agents/overstock_rebalancer/eval/overstock_rebalancer.eval.ts',
-  },
-]
+    taskPrompt: OVERSTOCK_REBALANCER_TASK_PROMPT,
+    invokeFrom: 'Variant page · "Rebalance overstock"',
+    evalFile:   'packages/reality-graph/src/agents/overstock_rebalancer/eval/overstock_rebalancer.eval.ts',
+  }],
+])
+
+export const agentDescriptors: ReadonlyArray<AgentDescriptor> = listAllAgentSpecs().map((spec) => {
+  const p = AGENT_PRESENTATION.get(spec.name)
+  return {
+    name:             spec.name,
+    version:          spec.version,
+    purpose:          spec.purpose,
+    scope:            spec.scope,
+    cadence:          spec.cadence,
+    approvalBoundary: spec.approvalBoundary,
+    releaseStage:     spec.releaseStage,
+    toolset:          spec.toolset,
+    emits:            p?.emits ?? [],
+    blocks:           p?.blocks ?? [],
+    taskPrompt:       p?.taskPrompt ?? '',
+    invokeFrom:       p?.invokeFrom ?? '',
+    evalFile:         p?.evalFile ?? '',
+  }
+})
 
 export function getAgentDescriptor(name: string): AgentDescriptor | undefined {
   return agentDescriptors.find((a) => a.name === name)
