@@ -24,21 +24,24 @@ import {
 
 /** Narrow reader for the ontology detectors. apps/web supplies a Supabase impl;
  *  evals/tests supply in-memory. Kept separate from GraphReader (variant-centric). */
+// A null hotelId means "every property the caller can read" — org/chain scope.
+// The reader impl drops the hotel filter and lets RLS scope the rows.
 export interface OntologyReader {
-  /** Removal stock-logs (delta < 0) for the hotel within the window. */
-  getRemovalReasons(hotelId: string, sinceDays?: number): Promise<RemovalReasonRow[]>
+  /** Removal stock-logs (delta < 0) within the window. null hotelId = portfolio. */
+  getRemovalReasons(hotelId: string | null, sinceDays?: number): Promise<RemovalReasonRow[]>
   /** removal_category values the ontology already recognizes (distinct, non-null). */
-  getKnownRemovalCategories(hotelId: string): Promise<string[]>
-  /** Addition stock-logs (delta > 0) for the hotel within the window. */
-  getAdditionReasons(hotelId: string, sinceDays?: number): Promise<AdditionReasonRow[]>
+  getKnownRemovalCategories(hotelId: string | null): Promise<string[]>
+  /** Addition stock-logs (delta > 0) within the window. null hotelId = portfolio. */
+  getAdditionReasons(hotelId: string | null, sinceDays?: number): Promise<AdditionReasonRow[]>
   /** movement_category values already decided (approved/rejected). */
-  getKnownMovementCategories(hotelId: string): Promise<string[]>
-  /** Distinct relationship edge types + counts for the hotel. */
-  getEdgeTypeCounts(hotelId: string): Promise<EdgeTypeCount[]>
+  getKnownMovementCategories(hotelId: string | null): Promise<string[]>
+  /** Distinct relationship edge types + counts. null hotelId = portfolio. */
+  getEdgeTypeCounts(hotelId: string | null): Promise<EdgeTypeCount[]>
 }
 
 const inputSchema = z.object({
-  hotelId: z.string().uuid(),
+  /** Property to scan, or null to scan the whole portfolio (RLS-scoped). */
+  hotelId: z.string().uuid().nullable(),
   sinceDays: z.number().int().min(1).max(365).optional(),
   minSupport: z.number().int().min(1).max(10000).optional(),
 })
@@ -77,11 +80,11 @@ export function makeDetectOntologyGapsTool(
     kind: 'inproc',
     version: '1.0.0',
     description:
-      'Scans the hotel\'s stock-removal history for recurring free-text reasons that should be ' +
-      'typed (a removal_category the ontology doesn\'t capture yet) and returns proposed typed ' +
-      'extensions with evidence + confidence. Use for "what is the ontology missing", "should we ' +
-      'add a category", "untyped patterns in our data". Proposals are advice — they never change ' +
-      'the schema on their own.',
+      'Scans stock-removal history (one property, or the whole portfolio when hotelId is null) for ' +
+      'recurring free-text reasons that should be typed (a removal_category the ontology doesn\'t ' +
+      'capture yet) and returns proposed typed extensions with evidence + confidence. Use for "what ' +
+      'is the ontology missing", "should we add a category", "untyped patterns in our data". ' +
+      'Proposals are advice — they never change the schema on their own.',
     inputSchema,
     outputSchema,
     examples: [

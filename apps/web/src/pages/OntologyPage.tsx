@@ -16,21 +16,24 @@ import type { OntologyProposalRow } from '@/features/ontology/api'
 type Gap = DetectOntologyGapsOutput['gaps'][number]
 
 export default function OntologyPage() {
-  const { data, isLoading, isError, refetch, isFetching } = useOntologyGaps()
+  const { data, isLoading, isError, error, refetch, isFetching } = useOntologyGaps()
   const { data: extensions = [] } = useApprovedExtensions()
   const decide = useDecideOntologyGap()
 
-  if (isLoading) {
-    return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
-  }
-  if (isError || !data) {
+  // A real error gets the retry state; "no data yet" (loading or scope resolving)
+  // just shows the spinner — not a scary "failed to scan".
+  if (isError) {
     return (
       <NonIdealState
         icon="warning-sign"
         title="Failed to scan the ontology"
+        description={error instanceof Error ? error.message : undefined}
         action={<Button intent={Intent.PRIMARY} icon="refresh" onClick={() => { void refetch() }}>Retry</Button>}
       />
     )
+  }
+  if (isLoading || !data) {
+    return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
   }
 
   const { gaps, scanned } = data
