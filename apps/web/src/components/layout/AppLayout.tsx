@@ -1,6 +1,6 @@
 import { Outlet } from 'react-router-dom'
 import { Topbar } from './Topbar'
-import { CommandDock } from './CommandDock'
+import { GlobalNav } from '@/features/foundryShell/GlobalNav'
 import { ContextPanel } from './ContextPanel'
 import { OfflineBanner } from '@/components/OfflineBanner'
 import { CommandBar } from '@/components/CommandBar'
@@ -33,7 +33,8 @@ export function AppLayout() {
       <Topbar />
 
       <div className="flex flex-1 overflow-hidden">
-        <main className="flex-1 overflow-y-auto pb-12">
+        <GlobalNav />
+        <main className="flex-1 overflow-y-auto">
           <PanelErrorBoundary name="Page" className="h-full">
             <div className="page-fade h-full">
               <Outlet />
@@ -43,7 +44,6 @@ export function AppLayout() {
         <ContextPanel />
       </div>
 
-      <CommandDock />
       <CommandBar />
       <NotificationsPanel />
       <ServiceWorkerUpdatePrompt />
