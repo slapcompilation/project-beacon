@@ -1,24 +1,14 @@
-// Modeling Objectives descriptor registry — pulls objectives + adapters from
-// @beacon/reality-graph. Registration happens at module load so the Studio
-// always renders a populated registry.
+// Modeling Objectives descriptor registry — derived from reality-graph's
+// canonical catalog (listAllObjectiveDescriptors), the single source of truth,
+// so the Studio's adapter list can't freeze while the objective grows.
 
 import {
+  listAllObjectiveDescriptors,
   CONSUMPTION_FORECAST_OBJECTIVE_NAME,
-  consumptionForecastObjective,
-  consumptionForecastEvalSuite,
-  baselineRolling30dAdapter,
-  seasonalNaiveV1Adapter,
-  ewmaV1Adapter,
-  holtLinearV1Adapter,
-  autoSelectV1Adapter,
-  registerConsumptionForecast,
   type EvalSuite,
   type ModelAdapter,
   type ModelingObjective,
 } from '@beacon/reality-graph'
-
-// Idempotent — safe to import from multiple places.
-registerConsumptionForecast()
 
 export interface ObjectiveDescriptor {
   objective:  ModelingObjective
@@ -26,19 +16,11 @@ export interface ObjectiveDescriptor {
   evalSuite:  EvalSuite
 }
 
-export const objectiveDescriptors: ReadonlyArray<ObjectiveDescriptor> = [
-  {
-    objective:  consumptionForecastObjective,
-    adapters:   [
-      autoSelectV1Adapter       as unknown as ModelAdapter,
-      ewmaV1Adapter             as unknown as ModelAdapter,
-      holtLinearV1Adapter       as unknown as ModelAdapter,
-      seasonalNaiveV1Adapter    as unknown as ModelAdapter,
-      baselineRolling30dAdapter as unknown as ModelAdapter,
-    ],
-    evalSuite:  consumptionForecastEvalSuite,
-  },
-]
+// Every registered objective ships an eval suite (bound to the objective); the
+// flatMap narrows evalSuite from `EvalSuite | undefined` and drops any objective
+// that somehow lacks one rather than rendering a broken card.
+export const objectiveDescriptors: ReadonlyArray<ObjectiveDescriptor> = listAllObjectiveDescriptors()
+  .flatMap((d) => (d.evalSuite ? [{ objective: d.objective, adapters: d.adapters, evalSuite: d.evalSuite }] : []))
 
 export function getObjectiveDescriptor(name: string): ObjectiveDescriptor | undefined {
   return objectiveDescriptors.find((d) => d.objective.name === name)
