@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import {
   Button, Callout, Card, FormGroup, Icon, InputGroup,
   Intent, NonIdealState, Spinner, Tag,
@@ -82,6 +83,7 @@ export default function CaseObjectPage() {
           <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
           <Icon icon="folder-open" size={14} className="text-violet-500" />
           <h1 className="text-sm font-semibold">{row.title}</h1>
+          <FavoriteStar item={{ id: `case:${caseId}`, label: row.title, path: `/cases/${caseId}`, icon: 'folder-open' }} />
           <Tag minimal intent={statusIntent(row.status)}>{row.status.replace('_', ' ')}</Tag>
         </div>
         <p className="text-[11px] text-muted-foreground font-mono">{row.id}</p>
