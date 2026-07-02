@@ -165,3 +165,35 @@ envelope, read-only reports.
 
 **Phase 5 — interaction polish.** Slide-overs, motion, keyboard, empty-states
 that explain the cycle, the copilot slide-over anatomy.
+
+---
+
+# Parity snapshot — Foundry ↔ Beacon (2026-07)
+
+Re-read of the Foundry orientation/nav docs vs Beacon's current shell (left
+sidebar + breadcrumb top bar + favorites + Recent panel + IBM Plex Sans).
+✅ match · 🟡 partial · ❌ missing.
+
+| Foundry surface | Beacon now | Status |
+|---|---|---|
+| Sidebar §1 — Home · Search (⌘J) · Notifications · What's New | Same 4, same order + shortcut | ✅ (badge is a placeholder 🟡; What's New → /notifications 🟡) |
+| Sidebar §2 — Recent · Files · Applications | Recent (real popover) · **Objects** (→/graph) · Applications (→portal) | ✅ ("Files"→"Objects" rename; fine) |
+| Sidebar §3 — Favorited **Applications** | Fixed core apps: Decisions · Insights · Studio | 🟡 (ours is the core-app set, not star-driven favorites) |
+| Sidebar §4 — Favorited **Files** | Live from the star store; empty state otherwise | ✅ |
+| Sidebar §5 — AIP Assist (⌘⇧U) · Support · Account | Copilot (⌘⇧U) · Support · Account avatar | ✅ |
+| Collapse toggle (⌘O) + collapsed rail | Toggle + icon rail + hover-label tooltips + Recent popover | ✅ (⌘O binding not wired 🟡) |
+| Home / landing | `/briefing`, scope-aware | ✅ |
+| **Quicksearch — two modes** (jump-to / full-results) | Single-mode command bar (⌘J) | 🟡 |
+| Notifications panel (chronological, badge, inline actions) | `NotificationsPanel` + live badge (top bar) | ✅ |
+| Applications portal (suggested/promoted) | `/applications` index | 🟡 (grid fidelity + promotion) |
+| **Favorites/star** (star toggle, Manage Favorites modal, promoted apps) | Star store + `FavoriteStar` (on Variant) → sidebar Files | 🟡 (localStorage; only Variant has the star; no Manage-Favorites modal / promoted-apps) |
+| Account menu (id, groups, settings, sign-out) | `UserMenu` (email, role, settings, sign-out) | ✅ |
+| Top bar | Location breadcrumb + scope + AIP strip + notif + account | ✅ (Foundry's is thinner; ours adds scope + AIP — Beacon-specific, fine) |
+| Product font | IBM Plex Sans (Inter tried) | ✅ (exact Foundry font may be proprietary) |
+| **Object-view chrome** (breadcrumb trail + File/Help/version/catalog row + title star) | Object pages have title + star (Variant); no chrome row | 🟡 → Phase 2 |
+
+**Net:** the shell structure now closely tracks Foundry. Remaining gaps, by
+leverage: (1) star on more object types + a Manage-Favorites modal; (2) live
+notification badge on the sidebar; (3) Quicksearch two-mode; (4) the object-view
+chrome row (Phase 2); (5) ⌘O collapse binding + promoted-apps. None are
+structural — they're fills within the established frame.
