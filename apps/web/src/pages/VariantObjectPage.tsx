@@ -34,6 +34,7 @@ import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -404,7 +405,8 @@ export default function VariantObjectPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+          <main className="flex-1 min-w-0 space-y-4">
 
           {/* ── Object header (canonical) ── */}
           <ObjectViewHeader
@@ -608,6 +610,8 @@ export default function VariantObjectPage() {
             <GraphConnections nodeType="variant" nodeId={variantId} />
           </Card>
 
+          </main>
+          <AuditRail nodeType="variant" nodeId={variantId} />
         </div>
       </div>
 

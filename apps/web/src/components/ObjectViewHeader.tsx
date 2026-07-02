@@ -15,6 +15,8 @@ export interface ObjectMetaChip {
   icon?: IconName
   label: string
   mono?: boolean
+  /** When set, the chip renders as a link (mailto:/tel:/route). */
+  href?: string
 }
 
 export function ObjectViewHeader({
@@ -39,18 +41,17 @@ export function ObjectViewHeader({
         </div>
         {meta && meta.length > 0 && (
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {meta.map((m) => (
-              <span
-                key={m.label}
-                className={cn(
-                  'inline-flex items-center gap-1 rounded border border-border/60 bg-surface-2/50 px-1.5 py-0.5 text-[11px] text-muted-foreground',
-                  m.mono && 'font-mono',
-                )}
-              >
-                {m.icon && <Icon icon={m.icon} size={11} />}
-                {m.label}
-              </span>
-            ))}
+            {meta.map((m) => {
+              const className = cn(
+                'inline-flex items-center gap-1 rounded border border-border/60 bg-surface-2/50 px-1.5 py-0.5 text-[11px] text-muted-foreground',
+                m.mono && 'font-mono',
+                m.href && 'hover:text-foreground hover:border-border transition-colors',
+              )
+              const inner = <>{m.icon && <Icon icon={m.icon} size={11} />}{m.label}</>
+              return m.href
+                ? <a key={m.label} href={m.href} className={className}>{inner}</a>
+                : <span key={m.label} className={className}>{inner}</span>
+            })}
           </div>
         )}
       </div>

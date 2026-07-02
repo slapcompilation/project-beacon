@@ -9,8 +9,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
-import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
-import { format, isPast, isToday, formatDistanceToNow, parseISO } from 'date-fns'
+import { format, formatDistanceToNow, parseISO } from 'date-fns'
 import { toast } from 'sonner'
 import {
   Button,
@@ -32,6 +31,8 @@ import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poI
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
+import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { AuditRail } from '@/components/AuditRail'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
@@ -78,18 +79,6 @@ const STATUS_CFG: Record<POStatus, { label: string; intent: Intent; icon: IconNa
   partially_received:  { label: 'Partially Received', intent: Intent.WARNING, icon: 'box' },
   closed:              { label: 'Closed',           intent: Intent.SUCCESS, icon: 'tick-circle' },
   cancelled:           { label: 'Cancelled',        intent: Intent.NONE,    icon: 'cross-circle' },
-}
-
-// ─── ETA label ────────────────────────────────────────────────────────────────
-
-function EtaLabel({ dateStr }: { dateStr: string | null }) {
-  if (!dateStr) return <span className="text-xs text-muted-foreground">No ETA set</span>
-  const d = parseISO(dateStr)
-  if (isPast(d) && !isToday(d)) {
-    return <span className="text-xs font-semibold text-red-600 dark:text-red-400">Overdue · {format(d, 'MMM d, yyyy')}</span>
-  }
-  if (isToday(d)) return <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Arriving today</span>
-  return <span className="text-xs text-muted-foreground">{format(d, 'MMM d, yyyy')}</span>
 }
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
@@ -553,62 +542,43 @@ export default function POObjectPage() {
   const isOverdue    = poIsOverdue(po)
   const daysUntil    = daysUntilDelivery(po)
 
+  const poChips: ObjectMetaChip[] = [{ icon: 'truck', label: po.supplier_name }]
+  poChips.push({ icon: 'time', label: po.expected_delivery_date ? `ETA ${format(parseISO(po.expected_delivery_date), 'MMM d, yyyy')}` : 'No ETA set' })
+  poChips.push({ icon: 'history', label: formatDistanceToNow(parseISO(po.created_at), { addSuffix: true }) })
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-blue-100 dark:bg-blue-950/40 shrink-0">
-                <Icon icon="truck" size={20} className="text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-bold leading-none">{po.po_number}</h1>
-                  <FavoriteStar item={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }} />
-                  <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
-                  {isOverdue && (
-                    <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  {po.supplier_id
-                    ? <Link to={`/supplier/${po.supplier_id}`} className="flex items-center gap-1 hover:text-foreground hover:underline">
-                        <Icon icon="truck" size={12} />{po.supplier_name}
-                      </Link>
-                    : <span className="flex items-center gap-1"><Icon icon="truck" size={12} />{po.supplier_name}</span>
-                  }
-                  <span>·</span>
-                  <span className="flex items-center gap-1">
-                    <Icon icon="time" size={12} />
-                    <EtaLabel dateStr={po.expected_delivery_date} />
-                  </span>
-                  <span>·</span>
-                  <span>{formatDistanceToNow(parseISO(po.created_at), { addSuffix: true })}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Status timeline */}
-            <div className="mt-3 overflow-x-auto">
-              <StatusTimeline po={po} />
-            </div>
-          </div>
-        </div>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
+        <Button icon="arrow-left" variant="minimal" size="small" onClick={() => { void navigate(-1) }}>Back</Button>
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+        {po.supplier_id
+          ? <Link to={`/supplier/${po.supplier_id}`} className="text-sm text-muted-foreground hover:text-foreground">{po.supplier_name}</Link>
+          : <span className="text-sm text-muted-foreground">{po.supplier_name}</span>}
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+        <span className="text-sm font-medium text-foreground">{po.po_number}</span>
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-5xl">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+          <main className="flex-1 min-w-0 space-y-4">
+
+        <ObjectViewHeader
+          icon="truck"
+          title={po.po_number}
+          star={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }}
+          meta={poChips}
+          actions={
+            <>
+              <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
+              {isOverdue && <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>}
+            </>
+          }
+        />
+
+        <div className="overflow-x-auto"><StatusTimeline po={po} /></div>
+
         {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <StatCard
@@ -707,6 +677,9 @@ export default function POObjectPage() {
         <Card>
           <GraphConnections nodeType="purchase_order" nodeId={po.id} />
         </Card>
+          </main>
+          <AuditRail nodeType="purchase_order" nodeId={po.id} />
+        </div>
       </div>
     </div>
   )

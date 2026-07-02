@@ -7,7 +7,6 @@
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import { formatDistanceToNow } from 'date-fns'
 import {
   Button,
@@ -22,6 +21,8 @@ import { cn } from '@/lib/utils'
 import type { Product, ProductVariant, Category } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { getTotalStock, getStockStatus } from '@beacon/types'
+import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -111,56 +112,48 @@ export default function ProductObjectPage() {
     stockStatus === 'low_stock'    ? Intent.WARNING :
                                      Intent.SUCCESS
 
+  const metaChips: ObjectMetaChip[] = [
+    { label: 'Product' },
+    { icon: 'barcode', label: product.sku, mono: true },
+  ]
+  if (product.categories) metaChips.push({ icon: 'tag', label: product.categories.name })
+  metaChips.push({ icon: 'time', label: formatDistanceToNow(new Date(product.created_at), { addSuffix: true }) })
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
-
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-slate-100 dark:bg-slate-900/40 shrink-0">
-                <Icon icon="box" size={20} className="text-slate-600 dark:text-slate-400" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg font-bold leading-none">{product.name}</h1>
-                  <FavoriteStar item={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }} />
-
-                  <Tag intent={stockTagIntent} minimal>
-                    {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
-                     stockStatus === 'low_stock'    ? 'LOW STOCK' : 'IN STOCK'}
-                  </Tag>
-                  {!product.enabled && (
-                    <Tag minimal>DISABLED</Tag>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground flex-wrap">
-                  <span className="font-mono">{product.sku}</span>
-                  {product.categories && (
-                    <span className="flex items-center gap-1">
-                      <Icon icon="tag" size={12} />
-                      {product.categories.name}
-                    </span>
-                  )}
-                  <span>{formatDistanceToNow(new Date(product.created_at), { addSuffix: true })}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
+        <Button icon="arrow-left" variant="minimal" size="small" onClick={() => { void navigate(-1) }}>Back</Button>
+        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+        {product.categories && (
+          <>
+            <span className="text-sm text-muted-foreground">{product.categories.name}</span>
+            <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+          </>
+        )}
+        <span className="text-sm font-medium text-foreground">{product.name}</span>
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-5xl">
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+          <main className="flex-1 min-w-0 space-y-4">
+
+        <ObjectViewHeader
+          icon="box"
+          title={product.name}
+          star={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }}
+          meta={metaChips}
+          actions={
+            <>
+              <Tag intent={stockTagIntent} minimal>
+                {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
+                 stockStatus === 'low_stock'    ? 'LOW STOCK' : 'IN STOCK'}
+              </Tag>
+              {!product.enabled && <Tag minimal>DISABLED</Tag>}
+            </>
+          }
+        />
 
         {/* Stat cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -293,6 +286,9 @@ export default function ProductObjectPage() {
             <span>{formatDistanceToNow(new Date(product.created_at), { addSuffix: true })}</span>
           </div>
         </Card>
+          </main>
+          <AuditRail nodeType="product" nodeId={productId} />
+        </div>
       </div>
     </div>
   )
