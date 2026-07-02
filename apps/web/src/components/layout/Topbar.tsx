@@ -14,29 +14,39 @@ import { useUnreadNotificationCount } from '@/features/notifications/hooks'
 import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { ScopeSwitcher } from './ScopeSwitcher'
 
+// Foundry-style top bar: a location breadcrumb (where you are) + scope + the AIP
+// signal strip. Primary nav (search, applications, copilot, account, settings)
+// now lives in the left sidebar, so the bar is a context strip, not an icon
+// cluster. The live-badge notifications bell stays until the sidebar gets a live
+// badge of its own.
 export const Topbar = memo(function Topbar() {
   const setNotifPanelOpen = useAppStore((s) => s.setNotifPanelOpen)
-  const toggleCopilot     = useAppStore((s) => s.toggleCopilot)
-  const toggleCommandBar  = useAppStore((s) => s.toggleCommandBar)
-  const contextPanelOpen  = useAppStore((s) => s.contextPanelOpen)
-  const contextPanelTab   = useAppStore((s) => s.contextPanelTab)
   const role              = useAuthStore((s) => s.role)
 
   const alertCount       = useAlertCount()
   const unreadNotifCount = useUnreadNotificationCount()
   const totalBadge       = alertCount + unreadNotifCount
 
-  const copilotActive = contextPanelOpen && contextPanelTab === 'copilot'
-  const location      = useLocation()
-  const settingsActive = location.pathname.startsWith('/settings')
-  const appsActive     = location.pathname.startsWith('/applications')
-  const aipVisible     = role === 'admin' || role === 'owner'
+  const { pathname, search } = useLocation()
+  const aipVisible = role === 'admin' || role === 'owner'
+  const crumbs = crumbsFor(pathname, search)
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-3">
-      <span className="text-sm font-bold tracking-tight text-foreground mr-1">Beacon</span>
-      <ScopeSwitcher />
+      <nav className="flex items-center gap-1 text-[13px]" aria-label="Breadcrumb">
+        <Link to="/briefing" title="Home" className="flex items-center text-muted-foreground hover:text-foreground">
+          <Icon icon="home" size={13} />
+        </Link>
+        {crumbs.map((c, i) => (
+          <span key={c} className="flex items-center gap-1">
+            <Icon icon="chevron-right" size={11} className="text-muted-foreground/50" />
+            <span className={cn(i === crumbs.length - 1 ? 'font-semibold text-foreground' : 'text-muted-foreground')}>{c}</span>
+          </span>
+        ))}
+      </nav>
 
+      <div className="mx-1 h-4 w-px bg-border/60" />
+      <ScopeSwitcher />
       {aipVisible && <AipSignalStrip />}
 
       <div className="flex-1" />
@@ -56,68 +66,44 @@ export const Topbar = memo(function Topbar() {
             </span>
           )}
         </button>
-
-        <Link
-          to="/applications"
-          title="Applications — every surface"
-          aria-label="Applications"
-          aria-current={appsActive ? 'page' : undefined}
-          className={cn(
-            'rounded p-1.5 transition-colors',
-            appsActive
-              ? 'bg-surface-2 text-foreground'
-              : 'text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground',
-          )}
-        >
-          <Icon icon="grid-view" size={14} />
-        </Link>
-
-        <button
-          type="button"
-          onClick={toggleCommandBar}
-          title="Command bar (Ctrl+K)"
-          aria-label="Open command bar"
-          className="rounded p-1.5 text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground transition-colors"
-        >
-          <Icon icon="key-command" size={14} />
-        </button>
-
-        <Link
-          to="/settings"
-          title="Settings"
-          aria-label="Settings"
-          aria-current={settingsActive ? 'page' : undefined}
-          className={cn(
-            'rounded p-1.5 transition-colors',
-            settingsActive
-              ? 'bg-surface-2 text-foreground'
-              : 'text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground',
-          )}
-        >
-          <Icon icon="cog" size={14} />
-        </Link>
-
-        <button
-          type="button"
-          onClick={toggleCopilot}
-          title="Toggle Copilot (Ctrl+J)"
-          aria-label={copilotActive ? 'Close Copilot' : 'Open Copilot'}
-          aria-expanded={copilotActive}
-          className={cn(
-            'rounded p-1.5 transition-colors',
-            copilotActive
-              ? 'bg-violet-100 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400'
-              : 'text-muted-foreground/70 hover:bg-surface-2 hover:text-foreground',
-          )}
-        >
-          <Icon icon={copilotActive ? 'cross' : 'predictive-analysis'} size={14} />
-        </button>
-
         <UserMenu />
       </div>
     </header>
   )
 })
+
+const STUDIO_TABS = new Set([
+  'agents', 'system-map', 'ontology', 'tools', 'objectives', 'forecast-lab',
+  'calibration', 'flywheel', 'monitors', 'documents', 'entity-links', 'answers',
+  'principles', 'constraints', 'scenarios', 'action-chains', 'copilot', 'policy',
+])
+const OBJECT_LABEL: Record<string, string> = {
+  variant: 'Variant', supplier: 'Supplier', po: 'Purchase Order', restock: 'Restock',
+  product: 'Product', log: 'Stock Log', alert: 'Alert', proposals: 'Proposal',
+  principles: 'Principle', constraints: 'Constraint', cases: 'Case',
+  documents: 'Document', scenarios: 'Scenario', deployments: 'Deployment', handover: 'Handover',
+}
+
+function titleCase(s: string): string {
+  return s.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+}
+
+/** Where-am-I breadcrumb from the route (surface level; object pages add their
+ *  own title). Mirrors the sidebar's surface mapping. */
+function crumbsFor(pathname: string, search: string): string[] {
+  const seg = pathname.split('/').filter(Boolean)
+  const first = seg[0] ?? ''
+  if (!first || first === 'briefing') return ['Home']
+  if (first === 'applications') return ['Applications']
+  if (first === 'graph') return ['Objects']
+  if (first === 'eye') return ['Insights']
+  if (first === 'mind') {
+    const aip = new URLSearchParams(search).get('aip')
+    return aip && STUDIO_TABS.has(aip) ? ['Studio', titleCase(aip)] : ['Decisions']
+  }
+  if (OBJECT_LABEL[first] && seg.length > 1) return ['Objects', OBJECT_LABEL[first]]
+  return [titleCase(first)]
+}
 
 // Account menu: who you're signed in as + sign out. The only sign-out entry for
 // every non-scan role (ScanLayout has its own).
