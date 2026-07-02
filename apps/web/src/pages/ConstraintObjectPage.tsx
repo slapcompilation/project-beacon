@@ -1,6 +1,6 @@
 // Constraint Object View — operator NL rule the dispatcher gates actions on.
 
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   Button, Card, Icon, Intent, NonIdealState, Spinner, Tag,
 } from '@blueprintjs/core'
@@ -9,6 +9,7 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchConstraint, setConstraintActive } from '@/features/constraints/api'
 import { AuditRail } from '@/components/AuditRail'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
 
 const BUCKET_INTENT: Record<string, Intent> = {
   'scope':       Intent.PRIMARY,
@@ -52,19 +53,20 @@ export default function ConstraintObjectPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <header className="px-6 py-4 border-b shrink-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <Link to="/settings?section=constraints" className="text-xs text-muted-foreground hover:text-foreground">Constraints</Link>
-          <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
-          <Icon icon="shield" size={14} className="text-violet-500" />
-          <h1 className="text-sm font-semibold">Constraint</h1>
-          <Tag minimal intent={BUCKET_INTENT[row.bucket] ?? Intent.NONE}>{row.bucket}</Tag>
-          <Tag minimal intent={row.severity === 'hard' ? Intent.DANGER : Intent.WARNING}>{row.severity}</Tag>
-          <Tag minimal intent={row.active ? Intent.SUCCESS : Intent.NONE}>{row.active ? 'active' : 'retired'}</Tag>
-        </div>
-        <p className="text-[11px] text-muted-foreground font-mono">{row.id}</p>
-      </header>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Constraints', to: '/settings?section=constraints' }}
+        icon="shield"
+        title="Constraint"
+        star={{ id: `constraint:${row.id}`, label: row.body, subtitle: `Constraint · ${row.bucket}`, path: `/constraints/${constraintId}`, icon: 'shield' }}
+        tags={
+          <>
+            <Tag minimal intent={BUCKET_INTENT[row.bucket] ?? Intent.NONE}>{row.bucket}</Tag>
+            <Tag minimal intent={row.severity === 'hard' ? Intent.DANGER : Intent.WARNING}>{row.severity}</Tag>
+            <Tag minimal intent={row.active ? Intent.SUCCESS : Intent.NONE}>{row.active ? 'active' : 'retired'}</Tag>
+          </>
+        }
+        id={row.id}
+      />
 
       {/* Metric strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">

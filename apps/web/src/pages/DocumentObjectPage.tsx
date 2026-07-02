@@ -19,6 +19,7 @@ import {
 } from '@/features/documents/hooks'
 import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
 import {
   useApproveSuggestion,
   useAutoExtractEntityLinks,
@@ -59,17 +60,19 @@ export default function DocumentObjectPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="px-6 py-4 border-b shrink-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <Link to="/documents" className="text-xs text-muted-foreground hover:text-foreground">Documents</Link>
-          <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
-          <Icon icon="document" size={14} className="text-violet-500" />
-          <h1 className="text-sm font-semibold truncate">{row.title}</h1>
-          <Tag minimal>{row.source}</Tag>
-          <Tag minimal intent={stageIntent(row.ingestion_stage)}>{row.ingestion_stage}</Tag>
-        </div>
-        <p className="text-[11px] text-muted-foreground font-mono">{row.id}</p>
-      </header>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Documents', to: '/documents' }}
+        icon="document"
+        title={row.title}
+        star={{ id: `document:${row.id}`, label: row.title, subtitle: 'Document', path: `/documents/${documentId}`, icon: 'document' }}
+        tags={
+          <>
+            <Tag minimal>{row.source}</Tag>
+            <Tag minimal intent={stageIntent(row.ingestion_stage)}>{row.ingestion_stage}</Tag>
+          </>
+        }
+        id={row.id}
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
         <Metric label="Source"   value={row.source} />
