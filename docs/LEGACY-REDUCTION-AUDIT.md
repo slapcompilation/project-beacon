@@ -46,6 +46,17 @@ safe (deep links keep working).
 
 ## C. Pre-AIP bespoke pages — verify, then reduce or retire
 
+**Partly done.** Link/reachability check ran; the three **orphaned** routes (no
+in-app links) are retired — routes redirect rather than 404:
+- `/causal-chain` → `/system-map` (component deleted)
+- `/menu-mapping` → `/briefing` (component deleted)
+- `/pending-scans` → `/floor?panel=scans` (**route** redirected; the
+  `PendingScansPage` component is KEPT — `FloorWorkspace` renders it as the
+  `scans` panel; verify-before-delete caught this).
+
+The **live/wired** ones are left as-is pending a product-relevance call:
+`/graph` (overlaps `/system-map`), `/chain`, `/events`, `/fb-intelligence`.
+
 Built before the ontology / occupancy-forecast / agent model. Each **needs a
 live-data + usage check** before action.
 
@@ -79,7 +90,7 @@ Actions rather than top-level destinations.
 
 1. ✅ **Delete `CommandDock`** — done (sidebar is the global nav).
 2. ✅ **Collapse the Section-B duplicates** into redirects — done (`/system-map` kept as the Objects entry).
-3. **Triage Section C** with live-data checks; reduce/retire per findings. ← next
-4. **Section E** — retire the SQL detectors after the agents' evals cover the gap.
+3. ~~**Triage Section C**~~ — orphaned routes retired; live/wired ones await a relevance call.
+4. **Section E** — retire the SQL detectors after the agents' evals cover the gap. ← next
 
-A + B done; C + E are verify-first.
+A + B + C-orphans done; the rest of C + E are verify-first / product calls.
