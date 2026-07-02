@@ -26,7 +26,8 @@ import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
-import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import {
   riskLevelFromRow,
@@ -103,28 +104,6 @@ async function fetchVariantsForSupplier(supplierId: string): Promise<VariantSupp
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StatCard({
-  label, value, sub, accent,
-}: {
-  label: string; value: string; sub?: string; accent?: 'green' | 'amber' | 'red' | 'muted'
-}) {
-  const colors: Record<string, string> = {
-    green: 'text-emerald-500',
-    amber: 'text-amber-500',
-    red:   'text-red-500',
-    muted: 'text-muted-foreground',
-  }
-  return (
-    <Card compact>
-      <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className={cn('text-2xl font-mono font-semibold tabular-nums', accent ? colors[accent] : 'text-foreground')}>
-        {value}
-      </div>
-      {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-    </Card>
-  )
-}
 
 function RiskTierBadge({ tier }: { tier: 'low' | 'medium' | 'high' | 'critical' }) {
   const intentMap: Record<typeof tier, Intent> = {
@@ -306,84 +285,67 @@ export default function SupplierObjectPage() {
   const contractExpirySoon = hasContractExpiringSoon(activeContracts)
   const daysToExpiry = daysUntilContractExpiry(activeContracts)
 
-  const supplierChips: ObjectMetaChip[] = [{ label: 'Supplier' }]
-  if (supplier.contact_name) supplierChips.push({ icon: 'person', label: supplier.contact_name })
-  if (supplier.email)        supplierChips.push({ icon: 'envelope', label: supplier.email, href: `mailto:${supplier.email}` })
-  if (supplier.phone)        supplierChips.push({ icon: 'phone', label: supplier.phone, href: `tel:${supplier.phone}` })
-  if (supplier.lead_time_days != null) supplierChips.push({ icon: 'time', label: `${ltLabel} lead · ${leadTimeSourceLabel(supplier.lead_time_source)}` })
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <Button
-          icon="arrow-left"
-          variant="minimal"
-          size="small"
-          onClick={() => { void navigate(-1) }}
-        >
-          Back
-        </Button>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        <span className="text-sm text-muted-foreground">Suppliers</span>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        <span className="text-sm font-medium text-foreground">{supplier.name}</span>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Suppliers', to: '/mind?panel=suppliers' }}
+        icon="shop"
+        title={supplier.name}
+        star={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }}
+        tags={reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined}
+        id={supplier.id}
+      />
+
+      <MetricStrip>
+        <Metric
+          label="Reliability Score"
+          value={score !== null ? score.toFixed(1) : '—'}
+          sub={reliability ? `${reliability.total_orders} orders in 90d` : 'No delivery data'}
+          accent={score !== null ? scoreAccent : 'muted'}
+        />
+        <Metric
+          label="On-Time %"
+          value={reliability ? onTimePctLabel(reliability) : '—'}
+          sub={reliability ? `${reliability.late_orders} late of ${reliability.total_orders}` : undefined}
+          accent={reliability?.on_time_pct == null ? 'muted' : reliability.on_time_pct >= 85 ? 'green' : reliability.on_time_pct >= 65 ? 'amber' : 'red'}
+        />
+        <Metric
+          label="Avg Delay"
+          value={reliability ? `${reliability.avg_delay_days.toFixed(1)}d` : '—'}
+          sub={reliability ? `max ${reliability.max_delay_days}d` : undefined}
+          accent={reliability?.avg_delay_days == null ? 'muted' : reliability.avg_delay_days <= 1 ? 'green' : reliability.avg_delay_days <= 3 ? 'amber' : 'red'}
+        />
+        <Metric
+          label="Cost Variance"
+          value={reliability ? costVarianceLabel(reliability) : '—'}
+          sub={reliability ? `€${reliability.total_value.toFixed(0)} total value` : 'No contracts'}
+          accent={reliability?.avg_cost_variance_pct == null ? 'muted' : reliability.avg_cost_variance_pct > 5 ? 'red' : reliability.avg_cost_variance_pct > 2 ? 'amber' : 'green'}
+        />
+      </MetricStrip>
+
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        <AnchorButton href="/mind?panel=contracts" icon="document" variant="minimal" size="small">View Contracts</AnchorButton>
+        <AnchorButton href="/mind?panel=procurement" icon="box" variant="minimal" size="small">Procurement</AnchorButton>
+        <AnchorButton href="/mind?panel=suppliers" icon="star" variant="minimal" size="small">Reliability Scorecard</AnchorButton>
+        {(tier === 'critical' || tier === 'high') && (
+          <AnchorButton href="/mind?panel=leverage" icon="warning-sign" intent={Intent.DANGER} variant="minimal" size="small">Negotiate Leverage</AnchorButton>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
           <main className="flex-1 min-w-0 space-y-4">
 
-          <ObjectViewHeader
-            icon="shop"
-            title={supplier.name}
-            star={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }}
-            meta={supplierChips}
-            actions={reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined}
-          />
+          {(supplier.contact_name || supplier.email || supplier.phone || supplier.lead_time_days != null) && (
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {supplier.contact_name && <span className="flex items-center gap-1"><Icon icon="person" size={12} />{supplier.contact_name}</span>}
+              {supplier.email && <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 hover:text-foreground"><Icon icon="envelope" size={12} />{supplier.email}</a>}
+              {supplier.phone && <a href={`tel:${supplier.phone}`} className="flex items-center gap-1 hover:text-foreground"><Icon icon="phone" size={12} />{supplier.phone}</a>}
+              {supplier.lead_time_days != null && <span className="flex items-center gap-1"><Icon icon="time" size={12} />{ltLabel} lead · {leadTimeSourceLabel(supplier.lead_time_source)}</span>}
+            </div>
+          )}
           {supplier.notes && (
             <p className="text-xs text-muted-foreground/70 italic">{supplier.notes}</p>
           )}
-
-          {/* ── 4 stat cards ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard
-              label="Reliability Score"
-              value={score !== null ? score.toFixed(1) : '—'}
-              sub={reliability ? `${reliability.total_orders} orders in 90d` : 'No delivery data'}
-              accent={score !== null ? scoreAccent : 'muted'}
-            />
-            <StatCard
-              label="On-Time %"
-              value={reliability ? onTimePctLabel(reliability) : '—'}
-              sub={reliability ? `${reliability.late_orders} late of ${reliability.total_orders}` : undefined}
-              accent={
-                reliability?.on_time_pct == null ? 'muted' :
-                reliability.on_time_pct >= 85 ? 'green' :
-                reliability.on_time_pct >= 65 ? 'amber' : 'red'
-              }
-            />
-            <StatCard
-              label="Avg Delay"
-              value={reliability ? `${reliability.avg_delay_days.toFixed(1)}d` : '—'}
-              sub={reliability ? `max ${reliability.max_delay_days}d` : undefined}
-              accent={
-                reliability?.avg_delay_days == null ? 'muted' :
-                reliability.avg_delay_days <= 1 ? 'green' :
-                reliability.avg_delay_days <= 3 ? 'amber' : 'red'
-              }
-            />
-            <StatCard
-              label="Cost Variance"
-              value={reliability ? costVarianceLabel(reliability) : '—'}
-              sub={reliability ? `€${reliability.total_value.toFixed(0)} total value` : 'No contracts'}
-              accent={
-                reliability?.avg_cost_variance_pct == null ? 'muted' :
-                reliability.avg_cost_variance_pct > 5 ? 'red' :
-                reliability.avg_cost_variance_pct > 2 ? 'amber' : 'green'
-              }
-            />
-          </div>
 
           {/* ── Active contracts ── */}
           <Card compact className="!p-0">
@@ -491,24 +453,6 @@ export default function SupplierObjectPage() {
             </Card>
           )}
 
-          {/* ── Actions ── */}
-          <div className="flex flex-wrap gap-2">
-            <AnchorButton href="/mind?panel=contracts" icon="document">
-              View Contracts
-            </AnchorButton>
-            <AnchorButton href="/mind?panel=procurement" icon="box">
-              Procurement
-            </AnchorButton>
-            <AnchorButton href="/mind?panel=suppliers" icon="star">
-              Reliability Scorecard
-            </AnchorButton>
-            {(tier === 'critical' || tier === 'high') && (
-              <AnchorButton href="/mind?panel=leverage" icon="warning-sign" intent={Intent.DANGER}>
-                Negotiate Leverage
-              </AnchorButton>
-            )}
-          </div>
-
           {/* ── Recent delivery history ── */}
           <Card compact className="!p-0">
             <div className="flex items-center justify-between px-3 py-2 border-b border-border">
@@ -556,7 +500,6 @@ export default function SupplierObjectPage() {
 
           </main>
           <AuditRail nodeType="supplier" nodeId={supplierId} />
-        </div>
       </div>
     </div>
   )
