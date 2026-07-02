@@ -10,6 +10,7 @@ import { FoundrySidebar } from './FoundrySidebar'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRecentActivity } from '@/features/inventory/hooks/reports'
+import { useFavoritesStore } from '@/stores/favorites.store'
 import { cn } from '@/lib/utils'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
@@ -39,8 +40,12 @@ export function GlobalNav() {
   const toggleCommandBar   = useAppStore((s) => s.toggleCommandBar)
   const setNotifPanelOpen  = useAppStore((s) => s.setNotifPanelOpen)
   const toggleCopilot      = useAppStore((s) => s.toggleCopilot)
+  const favorites          = useFavoritesStore((s) => s.favorites)
+  const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
 
   const onSelect = (id: string) => {
+    const fav = favorites.find((f) => f.id === id)
+    if (fav) { void navigate(fav.path); return }
     switch (id) {
       case 'home':      void navigate('/briefing'); break
       case 'search':    toggleCommandBar(); break
@@ -64,6 +69,7 @@ export function GlobalNav() {
       onSelect={onSelect}
       headerSlot={<QuickCreate />}
       popovers={{ recent: <RecentPanel /> }}
+      filesItems={filesItems}
     />
   )
 }
