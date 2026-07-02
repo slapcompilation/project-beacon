@@ -53,7 +53,6 @@ const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailP
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
 const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/ModelingObjectiveDetailPage'))
 const DeploymentDetailPage        = lazyWithRetry(() => import('@/pages/DeploymentDetailPage'))
-const SystemMapPage               = lazyWithRetry(() => import('@/pages/SystemMapPage'))
 const ProposalObjectPage          = lazyWithRetry(() => import('@/pages/ProposalObjectPage'))
 const PrincipleObjectPage         = lazyWithRetry(() => import('@/pages/PrincipleObjectPage'))
 const ConstraintObjectPage        = lazyWithRetry(() => import('@/pages/ConstraintObjectPage'))
@@ -116,7 +115,7 @@ function AppRoutes() {
             <Route path="/log/:logId"              element={<StockLogObjectPage />} />
             <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
-            <Route path="/causal-chain"            element={<Navigate to="/system-map" replace />} />
+            <Route path="/causal-chain"            element={<Navigate to="/graph" replace />} />
             <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
             <Route path="/agent-studio"            element={<Navigate to="/mind?aip=agents" replace />} />
             <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
@@ -125,7 +124,7 @@ function AppRoutes() {
             <Route path="/modeling-objectives"                  element={<Navigate to="/mind?aip=objectives" replace />} />
             <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
             <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
-            <Route path="/system-map"                           element={<SystemMapPage />} />
+            <Route path="/system-map"                           element={<Navigate to="/mind?aip=system-map" replace />} />
             <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
             <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
             <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
