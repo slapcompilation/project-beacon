@@ -7,6 +7,7 @@
 
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import { formatDistanceToNow } from 'date-fns'
 import {
   Button,
@@ -132,6 +133,8 @@ export default function ProductObjectPage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-lg font-bold leading-none">{product.name}</h1>
+                  <FavoriteStar item={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }} />
+
                   <Tag intent={stockTagIntent} minimal>
                     {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
                      stockStatus === 'low_stock'    ? 'LOW STOCK' : 'IN STOCK'}

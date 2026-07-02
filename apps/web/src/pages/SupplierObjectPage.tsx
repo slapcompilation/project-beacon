@@ -8,6 +8,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
+import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import {
   AnchorButton,
   Button,
@@ -353,7 +354,10 @@ export default function SupplierObjectPage() {
                 <ScoreGauge score={score} tier={reliability.risk_tier} />
               )}
               <div>
-                <h1 className="text-xl font-semibold">{supplier.name}</h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-semibold">{supplier.name}</h1>
+                  <FavoriteStar item={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }} />
+                </div>
                 <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   {supplier.contact_name && (
                     <span>{supplier.contact_name}</span>

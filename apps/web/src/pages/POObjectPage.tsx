@@ -9,6 +9,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
+import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import { format, isPast, isToday, formatDistanceToNow, parseISO } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -574,6 +575,7 @@ export default function POObjectPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-lg font-bold leading-none">{po.po_number}</h1>
+                  <FavoriteStar item={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }} />
                   <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
                   {isOverdue && (
                     <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>
