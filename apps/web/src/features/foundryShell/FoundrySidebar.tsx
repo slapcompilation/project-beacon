@@ -43,7 +43,7 @@ const SECTIONS: RailSection[] = [
     items: [
       { id: 'home',    label: 'Home',          icon: 'home' },
       { id: 'search',  label: 'Search…',       icon: 'search', shortcut: '⌘J' },
-      { id: 'notifs',  label: 'Notifications', icon: 'notifications', badge: 3 },
+      { id: 'notifs',  label: 'Notifications', icon: 'notifications' },
       { id: 'whatsnew',label: "What's New",    icon: 'star', dot: true },
     ],
   },
@@ -81,10 +81,13 @@ export function FoundrySidebar({
   headerSlot,
   popovers,
   filesItems,
+  badges,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
   accountInitials?: string
+  /** id → live count, overrides an item's static badge (e.g. notifications). */
+  badges?: Record<string, number>
   /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
   headerSlot?: ReactNode
   /** id → rich popover panel (e.g. Recent). When present, the row opens the
@@ -146,7 +149,7 @@ export function FoundrySidebar({
               <p className="px-4 py-1 text-[11px] leading-snug text-[#6b7482]">{section.empty}</p>
             ) : (
               items.map((item) => (
-                <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
+                <RailRow key={item.id} item={{ ...item, badge: badges?.[item.id] ?? item.badge }} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
               ))
             )}
             {i < SECTIONS.length - 1 && <div className="mx-3 mt-2 border-b border-white/5" />}
@@ -158,7 +161,7 @@ export function FoundrySidebar({
       {/* Bottom tools */}
       <div className="shrink-0 border-t border-white/5 py-1">
         {BOTTOM.map((item) => (
-          <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
+          <RailRow key={item.id} item={{ ...item, badge: badges?.[item.id] ?? item.badge }} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
         ))}
         <button
           type="button"

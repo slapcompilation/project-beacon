@@ -11,6 +11,8 @@ import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRecentActivity } from '@/features/inventory/hooks/reports'
 import { useFavoritesStore } from '@/stores/favorites.store'
+import { useAlertCount } from '@/hooks/useAlertCount'
+import { useUnreadNotificationCount } from '@/features/notifications/hooks'
 import { cn } from '@/lib/utils'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
@@ -42,6 +44,8 @@ export function GlobalNav() {
   const toggleCopilot      = useAppStore((s) => s.toggleCopilot)
   const favorites          = useFavoritesStore((s) => s.favorites)
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
+  const email              = useAuthStore((s) => s.session?.user.email ?? '')
+  const notifTotal         = useAlertCount() + useUnreadNotificationCount()
 
   const onSelect = (id: string) => {
     const fav = favorites.find((f) => f.id === id)
@@ -70,6 +74,8 @@ export function GlobalNav() {
       headerSlot={<QuickCreate />}
       popovers={{ recent: <RecentPanel /> }}
       filesItems={filesItems}
+      badges={{ notifs: notifTotal }}
+      accountInitials={initialsFromEmail(email)}
     />
   )
 }
@@ -109,6 +115,15 @@ function RecentPanel() {
       )}
     </div>
   )
+}
+
+// Account avatar initials from the email local-part (jane.doe → JD; alice → AL).
+function initialsFromEmail(email: string): string {
+  const local = email.split('@')[0] ?? ''
+  if (!local) return 'ME'
+  const parts = local.split(/[._-]+/).filter(Boolean)
+  const raw = parts.length >= 2 ? parts[0][0] + parts[1][0] : local.slice(0, 2)
+  return raw.toUpperCase() || 'ME'
 }
 
 // The retired dock's quick-actions, rehomed as a Foundry-style "+ New" menu.
