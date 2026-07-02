@@ -80,6 +80,7 @@ export function FoundrySidebar({
   accountInitials = 'CL',
   headerSlot,
   popovers,
+  filesItems,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
@@ -89,6 +90,8 @@ export function FoundrySidebar({
   /** id → rich popover panel (e.g. Recent). When present, the row opens the
    *  panel on click instead of navigating; other rows show a label tooltip. */
   popovers?: Record<string, ReactElement>
+  /** Populates the Files section with favorited objects (the star system). */
+  filesItems?: RailItem[]
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const pick = (id: string) => () => onSelect?.(id)
@@ -128,7 +131,10 @@ export function FoundrySidebar({
       {headerSlot && !collapsed && <div className="px-3 pb-2 pt-1">{headerSlot}</div>}
 
       <nav className="flex-1 overflow-y-auto py-1">
-        {SECTIONS.map((section, i) => (
+        {SECTIONS.map((section, i) => {
+          // The Files section is populated live from the favorites store.
+          const items = section.header === 'Files' && filesItems ? filesItems : section.items
+          return (
           <div key={section.header ?? `top-${String(i)}`} className="mb-2">
             {section.header && !collapsed && (
               <div className="flex items-center justify-between px-4 pt-2 pb-1">
@@ -136,16 +142,17 @@ export function FoundrySidebar({
                 {section.viewAll && <span className="text-[11px] text-[#8a93a6] hover:text-white cursor-pointer">View all</span>}
               </div>
             )}
-            {section.items.length === 0 && section.empty && !collapsed ? (
+            {items.length === 0 && section.empty && !collapsed ? (
               <p className="px-4 py-1 text-[11px] leading-snug text-[#6b7482]">{section.empty}</p>
             ) : (
-              section.items.map((item) => (
+              items.map((item) => (
                 <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
               ))
             )}
             {i < SECTIONS.length - 1 && <div className="mx-3 mt-2 border-b border-white/5" />}
           </div>
-        ))}
+          )
+        })}
       </nav>
 
       {/* Bottom tools */}

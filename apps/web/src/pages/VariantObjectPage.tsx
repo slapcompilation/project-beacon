@@ -33,6 +33,7 @@ import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
+import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -404,6 +405,7 @@ export default function VariantObjectPage() {
               <div className="flex items-center gap-2">
                 <Icon icon="box" size={20} className="text-muted-foreground" />
                 <h1 className="text-xl font-semibold">{productName} · {variant.name}</h1>
+                <FavoriteStar item={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }} />
               </div>
               <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
                 <span className="font-mono">{variant.sku}</span>
