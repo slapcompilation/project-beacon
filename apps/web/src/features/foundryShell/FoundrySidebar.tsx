@@ -8,8 +8,8 @@
 // Foundry's sidebar is always dark (even under the light theme), so this forces
 // its own dark palette rather than following the app tokens.
 
-import { useState, type ReactNode } from 'react'
-import { Icon } from '@blueprintjs/core'
+import { useState, type ReactNode, type ReactElement } from 'react'
+import { Icon, Popover, Tooltip } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 
@@ -79,12 +79,16 @@ export function FoundrySidebar({
   onSelect,
   accountInitials = 'CL',
   headerSlot,
+  popovers,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
   accountInitials?: string
   /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
   headerSlot?: ReactNode
+  /** id → rich popover panel (e.g. Recent). When present, the row opens the
+   *  panel on click instead of navigating; other rows show a label tooltip. */
+  popovers?: Record<string, ReactElement>
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const pick = (id: string) => () => onSelect?.(id)
@@ -136,7 +140,7 @@ export function FoundrySidebar({
               <p className="px-4 py-1 text-[11px] leading-snug text-[#6b7482]">{section.empty}</p>
             ) : (
               section.items.map((item) => (
-                <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} />
+                <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
               ))
             )}
             {i < SECTIONS.length - 1 && <div className="mx-3 mt-2 border-b border-white/5" />}
@@ -147,7 +151,7 @@ export function FoundrySidebar({
       {/* Bottom tools */}
       <div className="shrink-0 border-t border-white/5 py-1">
         {BOTTOM.map((item) => (
-          <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} />
+          <RailRow key={item.id} item={item} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
         ))}
         <button
           type="button"
@@ -168,18 +172,18 @@ export function FoundrySidebar({
 }
 
 function RailRow({
-  item, active, collapsed, onClick,
+  item, active, collapsed, onClick, popover,
 }: {
   item: RailItem
   active: boolean
   collapsed: boolean
   onClick: () => void
+  popover?: ReactElement
 }) {
-  return (
+  const button = (
     <button
       type="button"
-      onClick={onClick}
-      title={item.label}
+      onClick={popover ? undefined : onClick}
       className={cn(
         'flex w-full items-center gap-3 px-4 py-2 text-[13px] transition-colors',
         collapsed && 'justify-center px-0',
@@ -212,4 +216,14 @@ function RailRow({
       )}
     </button>
   )
+
+  // A rich popover (e.g. Recent) opens a panel on click; otherwise a collapsed
+  // icon gets a styled label tooltip. Expanded plain rows render as-is.
+  if (popover) {
+    return <Popover fill content={popover} placement="right-start" popoverClassName="bp5-popover-content-sizing">{button}</Popover>
+  }
+  if (collapsed) {
+    return <Tooltip fill compact content={item.label} placement="right">{button}</Tooltip>
+  }
+  return button
 }
