@@ -8,7 +8,7 @@
 // Foundry's sidebar is always dark (even under the light theme), so this forces
 // its own dark palette rather than following the app tokens.
 
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Icon } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
@@ -78,10 +78,13 @@ export function FoundrySidebar({
   activeId = 'home',
   onSelect,
   accountInitials = 'CL',
+  headerSlot,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
   accountInitials?: string
+  /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
+  headerSlot?: ReactNode
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const pick = (id: string) => () => onSelect?.(id)
@@ -117,6 +120,8 @@ export function FoundrySidebar({
           <Icon icon="menu-open" size={16} />
         </button>
       )}
+
+      {headerSlot && !collapsed && <div className="px-3 pb-2 pt-1">{headerSlot}</div>}
 
       <nav className="flex-1 overflow-y-auto py-1">
         {SECTIONS.map((section, i) => (
