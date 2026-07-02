@@ -4,10 +4,13 @@
 // replacing the bottom CommandDock (docs/AIP-UX-RESTRUCTURE.md, Phase 1).
 
 import { useLocation, useNavigate } from 'react-router-dom'
+import { formatDistanceToNow } from 'date-fns'
 import { Popover, Menu, MenuItem, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { useRecentActivity } from '@/features/inventory/hooks/reports'
+import { cn } from '@/lib/utils'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
 // ?aip= tab decides which rail item is active.
@@ -60,7 +63,45 @@ export function GlobalNav() {
       activeId={activeIdFor(pathname, search)}
       onSelect={onSelect}
       headerSlot={<QuickCreate />}
+      popovers={{ recent: <RecentPanel /> }}
     />
+  )
+}
+
+// Foundry's Recent panel — the last stock movements, each linking to its
+// variant. Opens as a white panel to the right of the "Recent" rail item.
+function RecentPanel() {
+  const navigate = useNavigate()
+  const { data = [], isLoading } = useRecentActivity(12)
+  return (
+    <div className="w-72 max-h-[26rem] overflow-y-auto py-1">
+      <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Recent</p>
+      {isLoading ? (
+        <p className="px-3 py-2 text-xs text-muted-foreground">Loading…</p>
+      ) : data.length === 0 ? (
+        <p className="px-3 py-2 text-xs text-muted-foreground">No recent activity yet.</p>
+      ) : (
+        data.map((r) => (
+          <button
+            key={r.id}
+            type="button"
+            onClick={() => { void navigate(`/variant/${r.variant_id}`) }}
+            className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-surface-2"
+          >
+            <span className="min-w-0">
+              <span className="block truncate font-medium text-foreground">{r.product_name}</span>
+              <span className="block truncate text-[11px] text-muted-foreground">{r.variant_name}</span>
+            </span>
+            <span className="shrink-0 text-right">
+              <span className={cn('block tabular-nums font-semibold', r.quantity_change < 0 ? 'text-red-500' : 'text-emerald-600')}>
+                {r.quantity_change > 0 ? '+' : ''}{r.quantity_change}
+              </span>
+              <span className="block text-[10px] text-muted-foreground">{formatDistanceToNow(new Date(r.timestamp), { addSuffix: true })}</span>
+            </span>
+          </button>
+        ))
+      )}
+    </div>
   )
 }
 
