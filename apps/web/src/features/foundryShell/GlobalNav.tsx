@@ -4,8 +4,10 @@
 // replacing the bottom CommandDock (docs/AIP-UX-RESTRUCTURE.md, Phase 1).
 
 import { useLocation, useNavigate } from 'react-router-dom'
+import { Popover, Menu, MenuItem, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
 import { useAppStore } from '@/stores/app.store'
+import { useAuthStore } from '@/stores/auth.store'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
 // ?aip= tab decides which rail item is active.
@@ -57,6 +59,36 @@ export function GlobalNav() {
     <FoundrySidebar
       activeId={activeIdFor(pathname, search)}
       onSelect={onSelect}
+      headerSlot={<QuickCreate />}
     />
+  )
+}
+
+// The retired dock's quick-actions, rehomed as a Foundry-style "+ New" menu.
+// Role-aware: everyone can scan; managers also adjust stock + receive.
+function QuickCreate() {
+  const navigate = useNavigate()
+  const role = useAuthStore((s) => s.role)
+  const isManager = role != null && role !== 'team_member' && role !== 'limited_access'
+  const go = (path: string) => () => { void navigate(path) }
+
+  return (
+    <Popover
+      placement="right-start"
+      content={
+        <Menu>
+          <MenuItem icon="barcode" text="Scan" onClick={go('/scan')} />
+          {isManager && <MenuItem icon="plus" text="Adjust stock" onClick={go('/floor?panel=stock&action=adjust')} />}
+          {isManager && <MenuItem icon="confirm" text="Receive delivery" onClick={go('/flow?panel=receive')} />}
+        </Menu>
+      }
+    >
+      <button
+        type="button"
+        className="flex w-full items-center justify-center gap-1.5 rounded bg-white/10 py-1.5 text-[13px] font-medium text-white transition-colors hover:bg-white/15"
+      >
+        <Icon icon="plus" size={14} /> New
+      </button>
+    </Popover>
   )
 }
