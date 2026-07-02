@@ -18,8 +18,9 @@ import {
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { supabase } from '@/lib/supabase/client'
-import { cn } from '@/lib/utils'
 import type { ShiftHandover } from '@beacon/types'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
 
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 
@@ -86,79 +87,28 @@ export default function ShiftHandoverObjectPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Handovers', to: '/flow' }}
+        icon="time"
+        title="Shift Handover"
+        star={{ id: `shift_handover:${handover.id}`, label: 'Shift Handover', subtitle: handover.author_email ?? 'Handover', path: `/handover/${handover.id}`, icon: 'time' }}
+        tags={
+          <>
+            {urgentCount > 0 && <Tag intent={Intent.DANGER} minimal>{urgentCount} URGENT</Tag>}
+            {handover.author_email && <Tag minimal icon="user">{handover.author_email}</Tag>}
+          </>
+        }
+        id={handover.id}
+      />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 dark:bg-indigo-950/40 shrink-0">
-                <Icon icon="time" size={20} className="text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg font-bold leading-none">Shift Handover</h1>
-                  {urgentCount > 0 && (
-                    <Tag intent={Intent.DANGER} minimal>
-                      {urgentCount} URGENT
-                    </Tag>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  {handover.author_email && (
-                    <span className="flex items-center gap-1">
-                      <Icon icon="user" size={12} />
-                      {handover.author_email}
-                    </span>
-                  )}
-                  <span className="flex items-center gap-1">
-                    <Icon icon="time" size={12} />
-                    {formatDistanceToNow(new Date(handover.started_at), { addSuffix: true })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MetricStrip>
+        <Metric label="Started" value={format(new Date(handover.started_at), 'dd MMM yyyy')} sub={format(new Date(handover.started_at), 'HH:mm')} />
+        <Metric label="Window" value={`${handover.window_hours}h`} sub="review window" />
+        <Metric label="Flagged" value={flagged.length} sub={urgentCount > 0 ? `${urgentCount} urgent` : watchCount > 0 ? `${watchCount} to watch` : 'items'} accent={urgentCount > 0 ? 'red' : undefined} />
+        <Metric label="Author" value={handover.author_email ?? '—'} />
+      </MetricStrip>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl">
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Started</div>
-            <div className="text-xs font-medium">{format(new Date(handover.started_at), 'dd MMM yyyy')}</div>
-            <div className="text-[10px] text-muted-foreground">{format(new Date(handover.started_at), 'HH:mm')}</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Window</div>
-            <div className="text-sm font-bold">{handover.window_hours}h</div>
-            <div className="text-[10px] text-muted-foreground">review window</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Flagged</div>
-            <div className={cn('text-xl font-bold font-mono tabular-nums', urgentCount > 0 ? 'text-red-600' : 'text-foreground')}>
-              {flagged.length}
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {urgentCount > 0 ? `${urgentCount} urgent` : watchCount > 0 ? `${watchCount} to watch` : 'items'}
-            </div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Author</div>
-            <div className="text-xs font-medium truncate">{handover.author_email ?? '—'}</div>
-          </Card>
-        </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
         {/* Notes */}
         {handover.notes && (

@@ -20,6 +20,9 @@ import type { IconName } from '@blueprintjs/icons'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@beacon/types'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -110,75 +113,30 @@ export default function AlertObjectPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Alerts', to: '/eye' }}
+        icon={meta.icon}
+        title={meta.label}
+        star={{ id: `alert:${alert.id}`, label: meta.label, subtitle: 'Alert', path: `/alert/${alert.id}`, icon: meta.icon }}
+        tags={<Tag minimal intent={alert.read ? Intent.NONE : Intent.PRIMARY}>{alert.read ? 'Read' : 'Unread'}</Tag>}
+        id={alert.id}
+      />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded shrink-0 bg-muted/40">
-                <Icon icon={meta.icon} size={20} intent={meta.intent} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Tag icon={meta.icon} intent={meta.intent} minimal>{meta.label}</Tag>
-                  {alert.read ? (
-                    <span className="text-[10px] text-muted-foreground">Read</span>
-                  ) : (
-                    <span className="text-[10px] font-bold text-primary">Unread</span>
-                  )}
-                </div>
-                <p className="mt-1 text-sm font-medium text-foreground leading-snug">{alert.message}</p>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  {variantId && variantLabel && (
-                    <Link to={`/variant/${variantId}`} className="flex items-center gap-1 hover:text-foreground hover:underline">
-                      <Icon icon="box" size={12} />
-                      {variantLabel}
-                    </Link>
-                  )}
-                  <span>{formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MetricStrip>
+        <Metric label="Type" value={meta.label} />
+        <Metric label="Triggered" value={format(new Date(alert.timestamp), 'dd MMM yyyy')} sub={format(new Date(alert.timestamp), 'HH:mm')} />
+        <Metric label="Age" value={formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })} />
+        <Metric label="Variant Stock" value={pv ? pv.current_stock : '—'} sub={pv?.sku ?? undefined} accent={pv && pv.current_stock === 0 ? 'red' : undefined} />
+      </MetricStrip>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+          <main className="flex-1 min-w-0 space-y-4">
 
         {/* Message card */}
         <Card compact>
           <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">{meta.label}</p>
           <p className="text-sm leading-relaxed">{alert.message}</p>
         </Card>
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</div>
-            <div className={cn('text-sm font-semibold', alert.read ? 'text-muted-foreground' : 'text-primary')}>
-              {alert.read ? 'Read' : 'Unread'}
-            </div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Triggered</div>
-            <div className="text-xs font-medium">{format(new Date(alert.timestamp), 'dd MMM yyyy')}</div>
-            <div className="text-[10px] text-muted-foreground">{format(new Date(alert.timestamp), 'HH:mm')}</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Type</div>
-            <div className="text-xs font-medium">{meta.label}</div>
-          </Card>
-        </div>
 
         {/* Variant context */}
         {pv && variantId && (
@@ -226,6 +184,8 @@ export default function AlertObjectPage() {
             <span className="font-mono text-[10px]">{alert.user_id}</span>
           </div>
         </Card>
+          </main>
+          <AuditRail nodeType="alert" nodeId={alert.id} />
       </div>
     </div>
   )
