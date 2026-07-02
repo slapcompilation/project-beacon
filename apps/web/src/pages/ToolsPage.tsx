@@ -2,8 +2,8 @@
 // Shows category coverage (which of the 7 AIP categories we've populated).
 
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { Card, Icon, Intent, Tag } from '@blueprintjs/core'
+import { Card, Intent, Tag } from '@blueprintjs/core'
+import { EntityCard } from '@/components/EntityCard'
 import { toolDescriptors } from '@/features/agentStudio/registry'
 import type { LogicTool, ToolCategory } from '@beacon/reality-graph'
 
@@ -43,19 +43,22 @@ export default function ToolsPage() {
                   No tools in <span className="font-mono">{category}</span> yet. {emptyHint(category)}
                 </Card>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3 items-start">
                   {tools.map((tool) => (
-                    <Link key={tool.name} to={`/tools/${tool.name}`}>
-                      <Card interactive className="flex flex-col gap-1 hover:bg-surface-2">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Icon icon="function" size={12} className="text-muted-foreground" />
-                          <span className="text-xs font-mono font-semibold">{tool.name}</span>
-                          <Tag minimal className="font-mono text-[10px]">@ {tool.version}</Tag>
-                          <Tag minimal className="text-[10px]">{tool.kind}</Tag>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground leading-snug">{tool.description}</p>
-                      </Card>
-                    </Link>
+                    <EntityCard
+                      key={tool.name}
+                      to={`/tools/${tool.name}`}
+                      icon="function"
+                      title={tool.name}
+                      mono
+                      titleTag={
+                        <>
+                          <Tag minimal className="font-mono !text-[10px]">@ {tool.version}</Tag>
+                          <Tag minimal className="!text-[10px]">{tool.kind}</Tag>
+                        </>
+                      }
+                      purpose={tool.description}
+                    />
                   ))}
                 </div>
               )}
