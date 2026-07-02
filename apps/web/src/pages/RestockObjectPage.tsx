@@ -39,6 +39,9 @@ import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/type
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { AuditRail } from '@/components/AuditRail'
 import { hasPermission } from '@beacon/types'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -105,18 +108,6 @@ const STATUS_CFG: Record<RestockStatus, { label: string; intent: Intent; icon: I
   fulfilled:        { label: 'Fulfilled',         intent: Intent.SUCCESS, icon: 'tick-circle' },
   cancelled:        { label: 'Cancelled',         intent: Intent.NONE,    icon: 'cross-circle' },
   rejected:         { label: 'Rejected',          intent: Intent.DANGER,  icon: 'cross-circle' },
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub?: string; color?: string }) {
-  return (
-    <Card compact>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={cn('text-2xl font-bold tabular-nums leading-none mt-1', color ?? 'text-foreground')}>{value}</p>
-      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
-    </Card>
-  )
 }
 
 // ─── Approval trail ───────────────────────────────────────────────────────────
@@ -443,79 +434,43 @@ export default function RestockObjectPage() {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
+      <ObjectHeaderBand
+        breadcrumb={pv?.id ? { label: productName, to: `/variant/${pv.id}` } : { label: 'Restock Requests', to: '/flow?panel=approvals' }}
+        icon="box"
+        title={variantLabel}
+        star={{ id: `restock_request:${req.id}`, label: `Restock · ${variantLabel}`, subtitle: 'Restock request', path: `/restock/${req.id}`, icon: 'box' }}
+        tags={
+          <>
+            <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
+            {req.is_auto_proposed && <Tag icon="predictive-analysis" intent={Intent.SUCCESS} minimal>AI proposed</Tag>}
+          </>
+        }
+        id={req.id}
+      />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 dark:bg-indigo-950/40 shrink-0">
-                <Icon icon="box" size={20} className="text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="text-lg font-bold leading-none">
-                    {pv?.id
-                      ? <Link to={`/variant/${pv.id}`} className="hover:underline">{variantLabel}</Link>
-                      : variantLabel
-                    }
-                  </h1>
-                  <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
-                  {req.is_auto_proposed && (
-                    <Tag icon="predictive-analysis" intent={Intent.SUCCESS} minimal>AI proposed</Tag>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                  {pv?.sku && <span className="font-mono">{pv.sku}</span>}
-                  {req.supplier && <span>· from {req.supplier}</span>}
-                  <span>· {formatDistanceToNow(parseISO(req.created_at), { addSuffix: true })}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MetricStrip>
+        <Metric label="Qty Requested" value={req.quantity_needed} sub={pv?.sku ?? undefined} />
+        <Metric
+          label="Qty Received"
+          value={received}
+          sub={`${pctFulfilled}% fulfilled · ${remaining} remaining`}
+          accent={pctFulfilled === 100 ? 'green' : received > 0 ? 'amber' : undefined}
+        />
+        <Metric
+          label="Est. Cost"
+          value={req.estimated_cost != null ? formatCurrency(req.estimated_cost, currency) : '—'}
+          sub={poUnitCost != null ? `PO agreed: ${formatCurrency(poUnitCost, currency)}/unit` : undefined}
+        />
+        <Metric
+          label="Stock Now"
+          value={pv?.current_stock ?? '—'}
+          sub={daysLeft !== null ? `~${Math.round(daysLeft)}d runway` : undefined}
+          accent={daysUrgency === 'critical' ? 'red' : daysUrgency === 'warning' ? 'amber' : 'green'}
+        />
+      </MetricStrip>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-4xl">
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            label="Qty Requested"
-            value={req.quantity_needed}
-            sub={pv?.sku ?? undefined}
-          />
-          <StatCard
-            label="Qty Received"
-            value={received}
-            sub={`${pctFulfilled}% fulfilled · ${remaining} remaining`}
-            color={pctFulfilled === 100 ? 'text-emerald-600' : received > 0 ? 'text-amber-600' : undefined}
-          />
-          <StatCard
-            label="Est. Cost"
-            value={req.estimated_cost != null ? formatCurrency(req.estimated_cost, currency) : '—'}
-            sub={poUnitCost != null ? `PO agreed: ${formatCurrency(poUnitCost, currency)}/unit` : undefined}
-          />
-          <StatCard
-            label="Stock Now"
-            value={pv?.current_stock ?? '—'}
-            sub={daysLeft !== null ? `~${Math.round(daysLeft)}d runway` : undefined}
-            color={
-              daysUrgency === 'critical' ? 'text-red-600' :
-              daysUrgency === 'warning'  ? 'text-amber-600' :
-              'text-emerald-600'
-            }
-          />
-        </div>
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+          <main className="flex-1 min-w-0 space-y-4">
 
         {/* Fulfillment progress bar */}
         {req.quantity_needed > 0 && (
@@ -610,6 +565,8 @@ export default function RestockObjectPage() {
         <Card>
           <GraphConnections nodeType="restock_request" nodeId={req.id} />
         </Card>
+          </main>
+          <AuditRail nodeType="restock_request" nodeId={req.id} />
       </div>
     </div>
   )

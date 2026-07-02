@@ -22,6 +22,9 @@ import { cn } from '@/lib/utils'
 import type { StockLog } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -127,102 +130,33 @@ export default function StockLogObjectPage() {
   const variantName = log.product_variants?.name ?? 'Unknown variant'
   const variantId   = log.product_variants?.id ?? null
 
-  const headerIconBg = isRevert
-    ? 'bg-purple-100 dark:bg-purple-950/40'
-    : isPositive
-    ? 'bg-emerald-100 dark:bg-emerald-950/40'
-    : 'bg-red-100 dark:bg-red-950/40'
-
   const headerIconName = isRevert ? 'undo' : isPositive ? 'trending-up' : 'trending-down'
-  const headerIconColor = isRevert
-    ? 'text-purple-600 dark:text-purple-400'
-    : isPositive
-    ? 'text-emerald-600 dark:text-emerald-400'
-    : 'text-red-600 dark:text-red-400'
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Header */}
-      <div className="border-b px-6 py-4 shrink-0 bg-background">
-        <div className="flex items-start gap-4">
-          <Button
-            icon="arrow-left"
-            variant="minimal"
-            size="small"
-            onClick={() => { void navigate(-1) }}
-          >
-            Back
-          </Button>
+      <ObjectHeaderBand
+        breadcrumb={variantId ? { label: `${productName} · ${variantName}`, to: `/variant/${variantId}` } : { label: 'Stock Log', to: '/flow' }}
+        icon={headerIconName}
+        title={`${isPositive ? '+' : ''}${log.quantity_change} → ${log.balance_after} remaining`}
+        star={{ id: `stock_log:${log.id}`, label: `${isPositive ? '+' : ''}${log.quantity_change} · ${variantName}`, subtitle: 'Stock log', path: `/log/${log.id}`, icon: headerIconName }}
+        tags={
+          <>
+            {isRevert && <Tag intent={Intent.PRIMARY} minimal icon="undo">REVERT</Tag>}
+            <Tag minimal icon="user">{log.user_profiles?.email ?? log.user_id}</Tag>
+          </>
+        }
+        id={log.id}
+      />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <div className={cn('flex h-9 w-9 items-center justify-center rounded shrink-0', headerIconBg)}>
-                <Icon icon={headerIconName} size={20} className={headerIconColor} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className={cn('text-2xl font-bold font-mono tabular-nums', headerIconColor)}>
-                    {isPositive ? '+' : ''}{log.quantity_change}
-                  </span>
-                  <span className="text-sm text-muted-foreground">→ {log.balance_after} remaining</span>
-                  {isRevert && (
-                    <Tag intent={Intent.PRIMARY} minimal icon="undo">REVERT</Tag>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground flex-wrap">
-                  {variantId ? (
-                    <Link to={`/variant/${variantId}`} className="flex items-center gap-1 hover:text-foreground hover:underline">
-                      <Icon icon="box" size={12} />
-                      {productName} · {variantName}
-                    </Link>
-                  ) : (
-                    <span className="flex items-center gap-1">
-                      <Icon icon="box" size={12} />
-                      {productName} · {variantName}
-                    </span>
-                  )}
-                  <span>·</span>
-                  <span className="flex items-center gap-1">
-                    <Icon icon="user" size={12} />
-                    {log.user_profiles?.email ?? log.user_id}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <MetricStrip>
+        <Metric label="Delta" value={`${isPositive ? '+' : ''}${log.quantity_change}`} accent={isPositive ? 'green' : 'red'} />
+        <Metric label="Balance After" value={log.balance_after} />
+        <Metric label="Timestamp" value={format(new Date(log.timestamp), 'dd MMM yyyy')} sub={format(new Date(log.timestamp), 'HH:mm:ss')} />
+        <Metric label="Source" value={log.was_offline ? 'Offline sync' : 'Live'} sub={formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })} />
+      </MetricStrip>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 max-w-3xl">
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Delta</div>
-            <div className={cn('text-xl font-bold font-mono tabular-nums', headerIconColor)}>
-              {isPositive ? '+' : ''}{log.quantity_change}
-            </div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Balance After</div>
-            <div className="text-xl font-bold font-mono tabular-nums">{log.balance_after}</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Timestamp</div>
-            <div className="text-xs font-medium">{format(new Date(log.timestamp), 'dd MMM yyyy')}</div>
-            <div className="text-[10px] text-muted-foreground">{format(new Date(log.timestamp), 'HH:mm:ss')}</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Source</div>
-            <div className="text-xs font-medium">
-              {log.was_offline ? 'Offline sync' : 'Live'}
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })}
-            </div>
-          </Card>
-        </div>
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+          <main className="flex-1 min-w-0 space-y-4">
 
         {/* Reason */}
         <Card compact className="!bg-muted/20">
@@ -324,6 +258,8 @@ export default function StockLogObjectPage() {
         <Card>
           <GraphConnections nodeType="stock_log" nodeId={log.id} />
         </Card>
+          </main>
+          <AuditRail nodeType="stock_log" nodeId={log.id} />
       </div>
     </div>
   )
