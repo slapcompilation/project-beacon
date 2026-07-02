@@ -20,6 +20,7 @@ import {
   useUpdateActionChainNotes,
 } from '@/features/actionChains/hooks'
 import { AuditRail } from '@/components/AuditRail'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 
 const PICKABLE_ACTIONS = Object.keys(actionDescriptors).map((type) => ({
@@ -63,18 +64,19 @@ export default function ActionChainObjectPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <header className="px-6 py-4 border-b shrink-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <Link to="/action-chains" className="text-xs text-muted-foreground hover:text-foreground">Action Chains</Link>
-          <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
-          <Icon icon="link" size={14} className="text-violet-500" />
-          <h1 className="text-sm font-semibold">{row.title}</h1>
-          <Tag minimal intent={statusIntent(row.status)}>{row.status}</Tag>
-          {isFork && <Tag minimal icon="git-branch">forked</Tag>}
-        </div>
-        <p className="text-[11px] text-muted-foreground font-mono">{row.id}</p>
-      </header>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Action Chains', to: '/action-chains' }}
+        icon="link"
+        title={row.title}
+        star={{ id: `action_chain:${row.id}`, label: row.title, subtitle: 'Action chain', path: `/action-chains/${chainId}`, icon: 'link' }}
+        tags={
+          <>
+            <Tag minimal intent={statusIntent(row.status)}>{row.status}</Tag>
+            {isFork && <Tag minimal icon="git-branch">forked</Tag>}
+          </>
+        }
+        id={row.id}
+      />
 
       {/* Metric strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">

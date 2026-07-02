@@ -19,6 +19,7 @@ import {
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 import { AuditRail } from '@/components/AuditRail'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
 import {
   useAttachProposalToCase,
   useCases,
@@ -98,19 +99,20 @@ export default function ProposalObjectPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
-      <header className="px-6 py-4 border-b shrink-0">
-        <div className="flex items-center gap-2 flex-wrap mb-1">
-          <Link to="/review-queue" className="text-xs text-muted-foreground hover:text-foreground">Review Queue</Link>
-          <Icon icon="chevron-right" size={10} className="text-muted-foreground" />
-          <Icon icon="annotation" size={14} className="text-violet-500" />
-          <h1 className="text-sm font-semibold">Proposal</h1>
-          <Tag minimal intent={Intent.PRIMARY} className="font-mono">{action.type}</Tag>
-          <Tag minimal intent={statusIntent}>{row.status}</Tag>
-          {row.parent_version_id && <Tag minimal icon="refresh">Refined</Tag>}
-        </div>
-        <p className="text-[11px] text-muted-foreground font-mono">{row.id}</p>
-      </header>
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Review Queue', to: '/review-queue' }}
+        icon="annotation"
+        title="Proposal"
+        star={{ id: `proposal:${row.id}`, label: `${action.type} · ${row.agent_name}`, subtitle: 'Proposal', path: `/proposals/${proposalId}`, icon: 'annotation' }}
+        tags={
+          <>
+            <Tag minimal intent={Intent.PRIMARY} className="font-mono">{action.type}</Tag>
+            <Tag minimal intent={statusIntent}>{row.status}</Tag>
+            {row.parent_version_id && <Tag minimal icon="refresh">Refined</Tag>}
+          </>
+        }
+        id={row.id}
+      />
 
       {/* Metric strip */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
