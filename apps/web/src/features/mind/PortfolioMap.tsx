@@ -1,9 +1,9 @@
 // Portfolio map — a pin per property on a real basemap (maplibre-gl), positioned
-// by lat/lng, sized + coloured by open signal load, click to drill into that
-// hotel. maplibre is dynamically imported so it's code-split out of the main
-// bundle (only fetched when the org-scope portfolio renders). Default style is
-// the keyless MapLibre demotiles; set VITE_MAP_STYLE_URL to a MapTiler/Stadia
-// style for street-level tiles.
+// by lat/lng, sized by open signal load, click to drill into that hotel. maplibre
+// is dynamically imported so it's code-split out of the main bundle (only fetched
+// when the org-scope portfolio renders). Default style is a dark, muted basemap
+// (CARTO dark-matter, keyless) for a serious ops look; set VITE_MAP_STYLE_URL to
+// a MapTiler/Stadia style to override.
 
 import { useEffect, useMemo, useRef } from 'react'
 import { Card, Icon } from '@blueprintjs/core'
@@ -13,20 +13,27 @@ import type { PortfolioHotelSignal } from './portfolio'
 
 const MAP_STYLE =
   (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
-  ?? 'https://demotiles.maplibre.org/style.json'
+  ?? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+
+// Restrained palette on the dark basemap: neutral slate for state-of-play, one
+// warm accent reserved for the thing that actually needs a person (approvals).
+const CLEAR      = '#5b6472' // muted slate — nothing open
+const OPEN_WORK  = '#94a3b8' // lighter slate — open signals
+const APPROVALS  = '#d1a054' // muted amber — needs sign-off
 
 const signalLoad = (h: PortfolioHotelSignal) => h.queue_pending + h.approvals_pending + h.cases_open
 function pinColor(h: PortfolioHotelSignal): string {
-  if (h.approvals_pending > 0) return '#f59e0b' // amber — needs sign-off
-  if (signalLoad(h) > 0)       return '#3b82f6' // blue — open work
-  return '#10b981'                               // emerald — clear
+  if (h.approvals_pending > 0) return APPROVALS
+  if (signalLoad(h) > 0)       return OPEN_WORK
+  return CLEAR
 }
 
-/** Builds the DOM element maplibre renders as a marker: a coloured badge with
- *  the open-signal count + a readable hotel-name pill. */
+/** Builds the DOM element maplibre renders as a marker: a muted badge with the
+ *  open-signal count + a dark, low-contrast hotel-name pill that sits on the
+ *  dark basemap without shouting. */
 function buildMarker(h: PortfolioHotelSignal, onClick: () => void): HTMLElement {
   const load = signalLoad(h)
-  const size = 18 + Math.min(16, load * 2)
+  const size = 16 + Math.min(14, load * 2)
   const wrap = document.createElement('div')
   wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
   wrap.title = `${h.hotel_name}: ${String(load)} open signal${load === 1 ? '' : 's'}`
@@ -36,15 +43,15 @@ function buildMarker(h: PortfolioHotelSignal, onClick: () => void): HTMLElement 
   const dot = document.createElement('div')
   dot.style.cssText =
     `width:${String(size)}px;height:${String(size)}px;border-radius:9999px;background:${pinColor(h)};` +
-    'border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);display:flex;align-items:center;' +
-    'justify-content:center;color:#fff;font-size:10px;font-weight:700;'
+    'box-shadow:0 0 0 1px rgba(2,6,23,.55),0 1px 3px rgba(0,0,0,.5);display:flex;align-items:center;' +
+    'justify-content:center;color:#0f172a;font-size:10px;font-weight:700;'
   if (load > 0) dot.textContent = String(load)
 
   const label = document.createElement('div')
   label.textContent = h.hotel_name
   label.style.cssText =
-    'margin-top:3px;font-size:11px;font-weight:600;color:#111;background:rgba(255,255,255,.85);' +
-    'padding:0 4px;border-radius:3px;white-space:nowrap;'
+    'margin-top:4px;font-size:10px;font-weight:600;color:#cbd5e1;background:rgba(15,17,22,.72);' +
+    'padding:1px 5px;border-radius:3px;white-space:nowrap;letter-spacing:.02em;'
 
   wrap.append(dot, label)
   wrap.addEventListener('click', onClick)
@@ -107,13 +114,13 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
           </span>
         </div>
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-          <Legend color="#10b981" label="clear" />
-          <Legend color="#3b82f6" label="open work" />
-          <Legend color="#f59e0b" label="approvals" />
+          <Legend color={CLEAR} label="clear" />
+          <Legend color={OPEN_WORK} label="open work" />
+          <Legend color={APPROVALS} label="approvals" />
         </div>
       </div>
 
-      <div ref={containerRef} className="h-80 w-full" />
+      <div ref={containerRef} className="h-80 w-full" style={{ background: '#0b0e14' }} />
 
       {unlocated > 0 && (
         <div className="px-4 py-1.5 text-[11px] text-muted-foreground border-t">
