@@ -3,10 +3,10 @@
 // one inline meta line, run stats only when there are runs.
 
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { Card, Icon, Intent, NonIdealState, Tag } from '@blueprintjs/core'
+import { Intent, NonIdealState, Tag } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { EntityCard, Bit, Dot } from '@/components/EntityCard'
 import { agentDescriptors, type AgentDescriptor } from '@/features/agentStudio/registry'
 import { useAgentRunSummaries, type AgentRecentRunsSummary } from '@/features/agentStudio/hooks'
 
@@ -57,19 +57,16 @@ function AgentCard({ agent, summary }: { agent: AgentDescriptor; summary?: Agent
     'bg-muted-foreground/40'
 
   return (
-    <Link to={`/agent-studio/${agent.name}`} className="block">
-      <Card interactive className="flex flex-col gap-2 p-3">
-        <div className="flex items-center gap-2">
-          <Icon icon="predictive-analysis" intent={Intent.PRIMARY} size={13} className="shrink-0" />
-          <span className="text-[13px] font-semibold truncate">{agent.name}</span>
-          <Tag minimal className="font-mono !text-[10px]">v{agent.version}</Tag>
-          <span className="flex-1" />
-          <Tag minimal intent={stageIntent} className="!text-[10px]">{agent.releaseStage}</Tag>
-        </div>
-
-        <p className="text-[11px] leading-snug text-muted-foreground line-clamp-2">{agent.purpose}</p>
-
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-muted-foreground">
+    <EntityCard
+      to={`/agent-studio/${agent.name}`}
+      icon="predictive-analysis"
+      iconIntent={Intent.PRIMARY}
+      title={agent.name}
+      titleTag={<Tag minimal className="font-mono !text-[10px]">v{agent.version}</Tag>}
+      stageTag={<Tag minimal intent={stageIntent} className="!text-[10px]">{agent.releaseStage}</Tag>}
+      purpose={agent.purpose}
+      meta={
+        <>
           <Bit n={agent.blocks.length} unit="blocks" />
           <Dot />
           <Bit n={agent.toolset.length} unit="tools" />
@@ -77,9 +74,10 @@ function AgentCard({ agent, summary }: { agent: AgentDescriptor; summary?: Agent
           <span>{agent.scope}</span>
           <Dot />
           <span>{agent.cadence}</span>
-        </div>
-
-        <div className="flex items-center justify-between gap-2 border-t border-border/40 pt-1.5 text-[11px]">
+        </>
+      }
+      stats={
+        <>
           {hasRuns ? (
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-0.5 tabular-nums">
               <span><b className="font-semibold text-foreground">{summary.totalRuns}</b> <span className="text-muted-foreground">runs</span></span>
@@ -95,17 +93,9 @@ function AgentCard({ agent, summary }: { agent: AgentDescriptor; summary?: Agent
             <span className={cn('h-1.5 w-1.5 rounded-full', dot)} />
             {lastRun}
           </span>
-        </div>
-
-        <p className="truncate text-[10px] text-muted-foreground/70">↳ {agent.invokeFrom}</p>
-      </Card>
-    </Link>
+        </>
+      }
+      footer={<>↳ {agent.invokeFrom}</>}
+    />
   )
-}
-
-function Bit({ n, unit }: { n: number; unit: string }) {
-  return <span className="tabular-nums"><b className="font-semibold text-foreground">{n}</b> {unit}</span>
-}
-function Dot() {
-  return <span className="opacity-40">·</span>
 }
