@@ -8,7 +8,6 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
-import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
 import {
   AnchorButton,
   Button,
@@ -27,6 +26,8 @@ import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
+import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { AuditRail } from '@/components/AuditRail'
 import {
   riskLevelFromRow,
   leadTimeLabel,
@@ -37,12 +38,6 @@ import {
   costVarianceLabel,
   stockUrgency,
 } from '@beacon/reality-graph'
-
-const LT_SOURCE_INTENT: Record<Supplier['lead_time_source'], Intent> = {
-  po_history:       Intent.SUCCESS,
-  delivery_history: Intent.PRIMARY,
-  manual:           Intent.NONE,
-}
 
 // ─── Local types ──────────────────────────────────────────────────────────────
 
@@ -142,21 +137,6 @@ function RiskTierBadge({ tier }: { tier: 'low' | 'medium' | 'high' | 'critical' 
     <Tag intent={intentMap[tier]} minimal className="uppercase">
       {tier}
     </Tag>
-  )
-}
-
-function ScoreGauge({ score, tier }: { score: number; tier: 'low' | 'medium' | 'high' | 'critical' }) {
-  const colors: Record<string, string> = {
-    low:      'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
-    medium:   'bg-amber-500/20   text-amber-400   border-amber-500/40',
-    high:     'bg-red-500/20     text-red-400     border-red-500/40',
-    critical: 'bg-red-600/25     text-red-300     border-red-600/50',
-  }
-  return (
-    <div className={cn('flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded border-2', colors[tier])}>
-      <span className="text-xl font-mono font-bold tabular-nums leading-none">{score.toFixed(1)}</span>
-      <span className="text-xs opacity-70">/10</span>
-    </div>
   )
 }
 
@@ -326,6 +306,12 @@ export default function SupplierObjectPage() {
   const contractExpirySoon = hasContractExpiringSoon(activeContracts)
   const daysToExpiry = daysUntilContractExpiry(activeContracts)
 
+  const supplierChips: ObjectMetaChip[] = [{ label: 'Supplier' }]
+  if (supplier.contact_name) supplierChips.push({ icon: 'person', label: supplier.contact_name })
+  if (supplier.email)        supplierChips.push({ icon: 'envelope', label: supplier.email, href: `mailto:${supplier.email}` })
+  if (supplier.phone)        supplierChips.push({ icon: 'phone', label: supplier.phone, href: `tel:${supplier.phone}` })
+  if (supplier.lead_time_days != null) supplierChips.push({ icon: 'time', label: `${ltLabel} lead · ${leadTimeSourceLabel(supplier.lead_time_source)}` })
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Header ── */}
@@ -345,56 +331,19 @@ export default function SupplierObjectPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+          <main className="flex-1 min-w-0 space-y-4">
 
-          {/* ── Identity strip ── */}
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-3">
-              {score !== null && reliability && (
-                <ScoreGauge score={score} tier={reliability.risk_tier} />
-              )}
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-semibold">{supplier.name}</h1>
-                  <FavoriteStar item={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }} />
-                </div>
-                <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                  {supplier.contact_name && (
-                    <span>{supplier.contact_name}</span>
-                  )}
-                  {supplier.email && (
-                    <a href={`mailto:${supplier.email}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Icon icon="envelope" size={12} />
-                      {supplier.email}
-                    </a>
-                  )}
-                  {supplier.phone && (
-                    <a href={`tel:${supplier.phone}`} className="flex items-center gap-1 hover:text-foreground transition-colors">
-                      <Icon icon="phone" size={12} />
-                      {supplier.phone}
-                    </a>
-                  )}
-                  {supplier.lead_time_days != null && (
-                    <span className="flex items-center gap-1">
-                      <Icon icon="time" size={12} />
-                      {ltLabel} lead time
-                      <Tag minimal intent={LT_SOURCE_INTENT[supplier.lead_time_source]}>
-                        {leadTimeSourceLabel(supplier.lead_time_source)}
-                      </Tag>
-                    </span>
-                  )}
-                </div>
-                {supplier.notes && (
-                  <div className="mt-1 text-xs text-muted-foreground/70 italic">{supplier.notes}</div>
-                )}
-              </div>
-            </div>
-            {reliability && (
-              <div className="flex items-center gap-2 shrink-0">
-                <RiskTierBadge tier={reliability.risk_tier} />
-              </div>
-            )}
-          </div>
+          <ObjectViewHeader
+            icon="shop"
+            title={supplier.name}
+            star={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }}
+            meta={supplierChips}
+            actions={reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined}
+          />
+          {supplier.notes && (
+            <p className="text-xs text-muted-foreground/70 italic">{supplier.notes}</p>
+          )}
 
           {/* ── 4 stat cards ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -605,6 +554,8 @@ export default function SupplierObjectPage() {
             <GraphConnections nodeType="supplier" nodeId={supplierId} />
           </Card>
 
+          </main>
+          <AuditRail nodeType="supplier" nodeId={supplierId} />
         </div>
       </div>
     </div>
