@@ -63,7 +63,7 @@ const SECTIONS: RailSection[] = [
     ],
   },
   {
-    header: 'Files',
+    header: 'Files', viewAll: true,
     empty: 'Your starred objects will appear here.',
     items: [],
   },
@@ -82,10 +82,13 @@ export function FoundrySidebar({
   popovers,
   filesItems,
   badges,
+  onViewAll,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
   accountInitials?: string
+  /** Clicking a section's "View all" (by header). */
+  onViewAll?: (header: string) => void
   /** id → live count, overrides an item's static badge (e.g. notifications). */
   badges?: Record<string, number>
   /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
@@ -142,7 +145,9 @@ export function FoundrySidebar({
             {section.header && !collapsed && (
               <div className="flex items-center justify-between px-4 pt-2 pb-1">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[#6b7482]">{section.header}</span>
-                {section.viewAll && <span className="text-[11px] text-[#8a93a6] hover:text-white cursor-pointer">View all</span>}
+                {section.viewAll && (
+                  <button type="button" onClick={() => onViewAll?.(section.header ?? '')} className="text-[11px] text-[#8a93a6] hover:text-white">View all</button>
+                )}
               </div>
             )}
             {items.length === 0 && section.empty && !collapsed ? (
