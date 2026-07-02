@@ -21,7 +21,8 @@ import { cn } from '@/lib/utils'
 import type { Product, ProductVariant, Category } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { getTotalStock, getStockStatus } from '@beacon/types'
-import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -112,85 +113,40 @@ export default function ProductObjectPage() {
     stockStatus === 'low_stock'    ? Intent.WARNING :
                                      Intent.SUCCESS
 
-  const metaChips: ObjectMetaChip[] = [
-    { label: 'Product' },
-    { icon: 'barcode', label: product.sku, mono: true },
-  ]
-  if (product.categories) metaChips.push({ icon: 'tag', label: product.categories.name })
-  metaChips.push({ icon: 'time', label: formatDistanceToNow(new Date(product.created_at), { addSuffix: true }) })
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <Button icon="arrow-left" variant="minimal" size="small" onClick={() => { void navigate(-1) }}>Back</Button>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        {product.categories && (
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Inventory', to: '/graph' }}
+        icon="box"
+        title={product.name}
+        star={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }}
+        tags={
           <>
-            <span className="text-sm text-muted-foreground">{product.categories.name}</span>
-            <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+            <Tag intent={stockTagIntent} minimal>
+              {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
+               stockStatus === 'low_stock'    ? 'LOW STOCK' : 'IN STOCK'}
+            </Tag>
+            {product.categories && <Tag minimal icon="tag">{product.categories.name}</Tag>}
+            {!product.enabled && <Tag minimal>DISABLED</Tag>}
           </>
-        )}
-        <span className="text-sm font-medium text-foreground">{product.name}</span>
-      </div>
+        }
+        id={product.sku}
+      />
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
-          <main className="flex-1 min-w-0 space-y-4">
-
-        <ObjectViewHeader
-          icon="box"
-          title={product.name}
-          star={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }}
-          meta={metaChips}
-          actions={
-            <>
-              <Tag intent={stockTagIntent} minimal>
-                {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
-                 stockStatus === 'low_stock'    ? 'LOW STOCK' : 'IN STOCK'}
-              </Tag>
-              {!product.enabled && <Tag minimal>DISABLED</Tag>}
-            </>
-          }
+      <MetricStrip>
+        <Metric label="Total Stock" value={totalStock} sub={`across ${variants.length} variant${variants.length !== 1 ? 's' : ''}`} accent={totalStock === 0 ? 'red' : undefined} />
+        <Metric label="Stock Value" value={`€${totalValue.toFixed(2)}`} sub={`@ €${product.cost.toFixed(2)} / unit`} />
+        <Metric
+          label="Attention"
+          value={criticalCount > 0 ? criticalCount : lowCount > 0 ? lowCount : '—'}
+          sub={criticalCount > 0 ? 'critical variant' + (criticalCount > 1 ? 's' : '') : lowCount > 0 ? 'low variant' + (lowCount > 1 ? 's' : '') : 'All variants OK'}
+          accent={criticalCount > 0 ? 'red' : lowCount > 0 ? 'amber' : 'green'}
         />
+        <Metric label="Variants" value={variants.length} sub={`${variants.filter((v) => v.enabled).length} enabled`} />
+      </MetricStrip>
 
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Total Stock</div>
-            <div className={cn(
-              'text-xl font-bold font-mono tabular-nums',
-              totalStock === 0 ? 'text-red-600' : 'text-foreground',
-            )}>{totalStock}</div>
-            <div className="text-[10px] text-muted-foreground">across {variants.length} variant{variants.length !== 1 ? 's' : ''}</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Stock Value</div>
-            <div className="text-xl font-bold font-mono tabular-nums">€{totalValue.toFixed(2)}</div>
-            <div className="text-[10px] text-muted-foreground">@ €{product.cost.toFixed(2)} / unit</div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Attention</div>
-            <div className={cn(
-              'text-xl font-bold font-mono tabular-nums',
-              criticalCount > 0 ? 'text-red-600' : lowCount > 0 ? 'text-amber-600' : 'text-emerald-600',
-            )}>
-              {criticalCount > 0 ? criticalCount : lowCount > 0 ? lowCount : '—'}
-            </div>
-            <div className="text-[10px] text-muted-foreground">
-              {criticalCount > 0 ? 'critical variant' + (criticalCount > 1 ? 's' : '') :
-               lowCount > 0 ? 'low variant' + (lowCount > 1 ? 's' : '') : 'All variants OK'}
-            </div>
-          </Card>
-          <Card compact>
-            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Variants</div>
-            <div className="text-xl font-bold font-mono tabular-nums">{variants.length}</div>
-            <div className="text-[10px] text-muted-foreground">
-              {variants.filter((v) => v.enabled).length} enabled
-            </div>
-          </Card>
-        </div>
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
+          <main className="flex-1 min-w-0 space-y-4">
 
         {/* Description */}
         {product.description && (
@@ -288,7 +244,6 @@ export default function ProductObjectPage() {
         </Card>
           </main>
           <AuditRail nodeType="product" nodeId={productId} />
-        </div>
       </div>
     </div>
   )

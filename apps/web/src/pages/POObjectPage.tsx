@@ -9,7 +9,7 @@
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useRef, useState } from 'react'
-import { format, formatDistanceToNow, parseISO } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import { toast } from 'sonner'
 import {
   Button,
@@ -31,7 +31,8 @@ import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poI
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
-import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -82,21 +83,6 @@ const STATUS_CFG: Record<POStatus, { label: string; intent: Intent; icon: IconNa
 }
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({ label, value, sub, color }: {
-  label: string
-  value: string | number
-  sub?: string
-  color?: string
-}) {
-  return (
-    <Card compact>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</p>
-      <p className={cn('text-2xl font-bold tabular-nums leading-none mt-1', color ?? 'text-foreground')}>{value}</p>
-      {sub && <p className="text-[11px] text-muted-foreground mt-1">{sub}</p>}
-    </Card>
-  )
-}
 
 // ─── Status timeline ──────────────────────────────────────────────────────────
 
@@ -542,67 +528,37 @@ export default function POObjectPage() {
   const isOverdue    = poIsOverdue(po)
   const daysUntil    = daysUntilDelivery(po)
 
-  const poChips: ObjectMetaChip[] = [{ icon: 'truck', label: po.supplier_name }]
-  poChips.push({ icon: 'time', label: po.expected_delivery_date ? `ETA ${format(parseISO(po.expected_delivery_date), 'MMM d, yyyy')}` : 'No ETA set' })
-  poChips.push({ icon: 'history', label: formatDistanceToNow(parseISO(po.created_at), { addSuffix: true }) })
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <Button icon="arrow-left" variant="minimal" size="small" onClick={() => { void navigate(-1) }}>Back</Button>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        {po.supplier_id
-          ? <Link to={`/supplier/${po.supplier_id}`} className="text-sm text-muted-foreground hover:text-foreground">{po.supplier_name}</Link>
-          : <span className="text-sm text-muted-foreground">{po.supplier_name}</span>}
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        <span className="text-sm font-medium text-foreground">{po.po_number}</span>
+      <ObjectHeaderBand
+        breadcrumb={po.supplier_id ? { label: po.supplier_name, to: `/supplier/${po.supplier_id}` } : { label: 'Purchase Orders', to: '/mind?panel=procurement' }}
+        icon="truck"
+        title={po.po_number}
+        star={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }}
+        tags={
+          <>
+            <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
+            {isOverdue && <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>}
+          </>
+        }
+        id={po.id}
+      />
+
+      <MetricStrip>
+        <Metric label="Total Value" value={formatCurrency(po.total_amount, currency)} />
+        <Metric label="Line Items" value={`${rcvdLines}/${totalLines}`} sub={`${pct}% received`} accent={pct === 100 ? 'green' : pct > 0 ? 'amber' : undefined} />
+        <Metric label="Delivery" value={po.expected_delivery_date ? format(parseISO(po.expected_delivery_date), 'MMM d') : '—'} sub={isOverdue ? 'Overdue' : daysUntil !== null ? `${daysUntil}d away` : undefined} accent={isOverdue ? 'red' : undefined} />
+        <Metric label="Status" value={cfg.label} accent={po.status === 'closed' ? 'green' : po.status === 'cancelled' ? 'muted' : undefined} />
+      </MetricStrip>
+
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        <StatusActions po={po} />
       </div>
 
-      {/* Body */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
           <main className="flex-1 min-w-0 space-y-4">
 
-        <ObjectViewHeader
-          icon="truck"
-          title={po.po_number}
-          star={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }}
-          meta={poChips}
-          actions={
-            <>
-              <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
-              {isOverdue && <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>}
-            </>
-          }
-        />
-
         <div className="overflow-x-auto"><StatusTimeline po={po} /></div>
-
-        {/* Stat cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard
-            label="Total Value"
-            value={formatCurrency(po.total_amount, currency)}
-          />
-          <StatCard
-            label="Line Items"
-            value={`${rcvdLines}/${totalLines}`}
-            sub={`${pct}% received`}
-            color={pct === 100 ? 'text-emerald-600' : pct > 0 ? 'text-amber-600' : undefined}
-          />
-          <StatCard
-            label="Delivery"
-            value={po.expected_delivery_date ? format(parseISO(po.expected_delivery_date), 'MMM d') : '—'}
-            sub={isOverdue ? 'Overdue' : daysUntil !== null ? `${daysUntil}d away` : undefined}
-            color={isOverdue ? 'text-red-600' : undefined}
-          />
-          <StatCard
-            label="Status"
-            value={cfg.label}
-            color={po.status === 'closed' ? 'text-emerald-600' : po.status === 'cancelled' ? 'text-muted-foreground' : undefined}
-          />
-        </div>
 
         {/* Delivery progress bar */}
         {totalLines > 0 && (
@@ -619,9 +575,6 @@ export default function POObjectPage() {
             </div>
           </div>
         )}
-
-        {/* Status actions */}
-        <StatusActions po={po} />
 
         {/* PO notes */}
         {po.notes && (
@@ -679,7 +632,6 @@ export default function POObjectPage() {
         </Card>
           </main>
           <AuditRail nodeType="purchase_order" nodeId={po.id} />
-        </div>
       </div>
     </div>
   )

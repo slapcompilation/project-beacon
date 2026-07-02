@@ -33,7 +33,8 @@ import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
-import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
+import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
@@ -96,28 +97,6 @@ async function fetchVariantRestocks(variantId: string): Promise<OpenRestockRow[]
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-function StatCard({
-  label, value, sub, accent,
-}: {
-  label: string; value: string; sub?: string; accent?: 'green' | 'amber' | 'red' | 'muted'
-}) {
-  const colors: Record<string, string> = {
-    green: 'text-emerald-500',
-    amber: 'text-amber-500',
-    red:   'text-red-500',
-    muted: 'text-muted-foreground',
-  }
-  return (
-    <Card compact>
-      <div className="text-xs text-muted-foreground uppercase tracking-wide">{label}</div>
-      <div className={cn('text-2xl font-mono font-semibold tabular-nums', accent ? colors[accent] : 'text-foreground')}>
-        {value}
-      </div>
-      {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
-    </Card>
-  )
-}
 
 function PARStatusBadge({ stock, par }: { stock: number; par: number }) {
   if (stock === 0) return <Tag intent={Intent.DANGER} minimal>OUT</Tag>
@@ -348,7 +327,6 @@ export default function VariantObjectPage() {
   }
 
   const productName  = variant.products?.name ?? 'Unknown product'
-  const categoryName = variant.products?.categories?.name ?? null
   const locationName = variant.locations?.name ?? null
 
   const daysUntilZero    = forecast?.days_until_zero ?? null
@@ -373,85 +351,56 @@ export default function VariantObjectPage() {
   const consumed30  = logsLast30.filter((l) => l.quantity_change < 0 && !l.is_revert).reduce((s, l) => s + Math.abs(l.quantity_change), 0)
   const received30  = logsLast30.filter((l) => l.quantity_change > 0 && !l.is_revert).reduce((s, l) => s + l.quantity_change, 0)
 
-  const metaChips: ObjectMetaChip[] = [
-    { label: 'Variant' },
-    { icon: 'barcode', label: variant.sku, mono: true },
-  ]
-  if (locationName) metaChips.push({ icon: 'map-marker', label: locationName })
-  if (categoryName) metaChips.push({ label: categoryName })
-
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* ── Header ── */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-background shrink-0">
-        <Button
-          icon="arrow-left"
-          variant="minimal"
-          size="small"
-          onClick={() => { void navigate(-1) }}
-        >
-          Back
-        </Button>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        {categoryName && (
+      <ObjectHeaderBand
+        breadcrumb={{ label: 'Inventory', to: '/graph' }}
+        icon="box"
+        title={`${productName} · ${variant.name}`}
+        star={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }}
+        tags={
           <>
-            <span className="text-sm text-muted-foreground">{categoryName}</span>
-            <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
+            <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
+            {locationName && <Tag minimal icon="map-marker">{locationName}</Tag>}
+            {wasteAnomaly && <Tag icon="warning-sign" intent={Intent.WARNING} minimal>Waste anomaly</Tag>}
           </>
-        )}
-        <span className="text-sm text-muted-foreground">{productName}</span>
-        <Icon icon="chevron-right" size={12} className="text-muted-foreground/40" />
-        <span className="text-sm font-medium text-foreground">{variant.name}</span>
+        }
+        id={variant.sku}
+      />
+
+      <MetricStrip>
+        <Metric
+          label="Current Stock"
+          value={`${variant.current_stock}${variant.unit_of_measure ? ' ' + variant.unit_of_measure : ''}`}
+          sub={`PAR: ${variant.low_stock_threshold > 0 ? variant.low_stock_threshold : '—'}`}
+          accent={stockAccent}
+        />
+        <Metric
+          label="Days Until Zero"
+          value={daysUntilZero !== null ? `${Math.round(daysUntilZero)}d` : '—'}
+          sub={avgDaily !== null ? `avg ${avgDaily.toFixed(1)}/day · 30d` : 'Insufficient data'}
+          accent={daysAccent}
+        />
+        <Metric
+          label="30d Consumed"
+          value={consumed30.toString()}
+          sub={`${received30} received · ${logsLast30.length} events`}
+        />
+        <Metric
+          label="Stock Value"
+          value={`€${costAtRisk.toFixed(2)}`}
+          sub={`@ €${variant.cost.toFixed(2)} / unit`}
+        />
+      </MetricStrip>
+
+      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        <Button icon="swap-horizontal" size="small" onClick={() => { setOverstockOpen(true) }}>Rebalance overstock</Button>
+        <Button icon="trash" size="small" onClick={() => { setWasteOpen(true) }}>Waste triage</Button>
+        <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex gap-5">
+      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
           <main className="flex-1 min-w-0 space-y-4">
-
-          {/* ── Object header (canonical) ── */}
-          <ObjectViewHeader
-            icon="box"
-            title={`${productName} · ${variant.name}`}
-            star={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }}
-            meta={metaChips}
-            actions={
-              <>
-                <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
-                {wasteAnomaly && (
-                  <Tag icon="warning-sign" intent={Intent.WARNING} minimal>Waste anomaly</Tag>
-                )}
-                <Button icon="swap-horizontal" size="small" onClick={() => { setOverstockOpen(true) }}>Rebalance overstock</Button>
-                <Button icon="trash" size="small" onClick={() => { setWasteOpen(true) }}>Waste triage</Button>
-                <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
-              </>
-            }
-          />
-
-          {/* ── 4 stat cards ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatCard
-              label="Current Stock"
-              value={`${variant.current_stock}${variant.unit_of_measure ? ' ' + variant.unit_of_measure : ''}`}
-              sub={`PAR: ${variant.low_stock_threshold > 0 ? variant.low_stock_threshold : '—'}`}
-              accent={stockAccent}
-            />
-            <StatCard
-              label="Days Until Zero"
-              value={daysUntilZero !== null ? `${Math.round(daysUntilZero)}d` : '—'}
-              sub={avgDaily !== null ? `avg ${avgDaily.toFixed(1)}/day · 30d` : 'Insufficient data'}
-              accent={daysAccent}
-            />
-            <StatCard
-              label="30d Consumed"
-              value={consumed30.toString()}
-              sub={`${received30} received · ${logsLast30.length} events`}
-            />
-            <StatCard
-              label="Stock Value"
-              value={`€${costAtRisk.toFixed(2)}`}
-              sub={`@ €${variant.cost.toFixed(2)} / unit`}
-            />
-          </div>
 
           {/* ── Reorder point (statistical, vs the hand-set PAR) ── */}
           <ReorderPointCard variantId={variant.id} par={variant.low_stock_threshold} />
@@ -612,7 +561,6 @@ export default function VariantObjectPage() {
 
           </main>
           <AuditRail nodeType="variant" nodeId={variantId} />
-        </div>
       </div>
 
       <AdviceSlideOver
