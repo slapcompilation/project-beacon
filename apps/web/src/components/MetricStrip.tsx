@@ -23,16 +23,18 @@ export function MetricStrip({ children }: { children: ReactNode }) {
   )
 }
 
-export function Metric({ label, value, sub, accent }: {
+export function Metric({ label, value, sub, accent, capitalize }: {
   label: string
   value: ReactNode
   sub?: string
   accent?: MetricAccent
+  /** Title-case the value — for lowercase enum values (status/bucket/severity). */
+  capitalize?: boolean
 }) {
   return (
     <div className="bg-background px-4 py-3">
       <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className={cn('text-sm font-semibold tabular-nums', accent && ACCENT[accent])}>{value}</div>
+      <div className={cn('text-sm font-semibold tabular-nums', capitalize && 'capitalize', accent && ACCENT[accent])}>{value}</div>
       {sub && <div className="text-[11px] font-normal text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   )

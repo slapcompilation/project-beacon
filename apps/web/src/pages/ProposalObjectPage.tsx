@@ -20,6 +20,8 @@ import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectSection } from '@/components/ObjectSection'
 import {
   useAttachProposalToCase,
   useCases,
@@ -114,13 +116,12 @@ export default function ProposalObjectPage() {
         id={row.id}
       />
 
-      {/* Metric strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
+      <MetricStrip>
         <Metric label="Confidence" value={<ConfidenceBadge confidence={row.confidence} />} />
         <Metric label="Agent"      value={`${row.agent_name} @ ${row.agent_version}`} />
         <Metric label="Created"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
         <Metric label="Status"     value={row.status} />
-      </div>
+      </MetricStrip>
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
@@ -167,18 +168,18 @@ export default function ProposalObjectPage() {
        <div className="flex-1 min-w-0 space-y-4">
         <CasesSection proposalId={row.id} proposalTitle={`${action.type} · ${row.agent_name}`} />
 
-        <Section title="Reasoning" icon="lightbulb">
+        <ObjectSection title="Reasoning" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.reasoning}</p></Card>
-        </Section>
+        </ObjectSection>
 
-        <Section title="Action payload" icon="cog">
+        <ObjectSection title="Action payload" icon="cog">
           <Card>
             <pre className="text-[11px] font-mono whitespace-pre-wrap">{JSON.stringify(row.action_payload, null, 2)}</pre>
           </Card>
-        </Section>
+        </ObjectSection>
 
         {row.provenance.length > 0 && (
-          <Section title="Provenance" icon="function">
+          <ObjectSection title="Provenance" icon="function">
             <Card>
               <ul className="space-y-1">
                 {row.provenance.map((p, i) => (
@@ -194,17 +195,17 @@ export default function ProposalObjectPage() {
                 ))}
               </ul>
             </Card>
-          </Section>
+          </ObjectSection>
         )}
 
         {row.refinement_note && (
-          <Section title="Refinement note" icon="annotation">
+          <ObjectSection title="Refinement note" icon="annotation">
             <Card><p className="text-sm leading-relaxed">{row.refinement_note}</p></Card>
-          </Section>
+          </ObjectSection>
         )}
 
         {children.length > 0 && (
-          <Section title="Refinements" icon="git-branch" subtitle={`${String(children.length)} child proposal(s) supersede this one`}>
+          <ObjectSection title="Refinements" icon="git-branch" subtitle={`${String(children.length)} child proposal(s) supersede this one`}>
             <div className="space-y-1.5">
               {children.map((c) => (
                 <Link key={c.id} to={`/proposals/${c.id}`}>
@@ -218,7 +219,7 @@ export default function ProposalObjectPage() {
                 </Link>
               ))}
             </div>
-          </Section>
+          </ObjectSection>
         )}
        </div>
        <AuditRail nodeType="proposal" nodeId={row.id} />
@@ -242,15 +243,6 @@ export default function ProposalObjectPage() {
           }}
         />
       )}
-    </div>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-semibold tabular-nums">{value}</div>
     </div>
   )
 }
@@ -286,19 +278,6 @@ function TryInScenarioButton({ proposalId, action, agentName }: { proposalId: st
   )
 }
 
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'lightbulb' | 'cog' | 'function' | 'annotation' | 'git-branch' | 'folder-open'; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon icon={icon} size={14} className="text-muted-foreground" />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {subtitle && <p className="text-[11px] text-muted-foreground -mt-1.5 ml-6">{subtitle}</p>}
-      {children}
-    </section>
-  )
-}
-
 // ─── Cases section ──────────────────────────────────────────────────────────
 //
 // Shows cases this proposal is already attached to + lets the operator open a
@@ -315,7 +294,7 @@ function CasesSection({ proposalId, proposalTitle }: { proposalId: string; propo
   const openCaseCandidates = openCases.filter((c) => !c.proposal_ids.includes(proposalId))
 
   return (
-    <Section title="Cases" icon="folder-open" subtitle="Workflow envelopes wrapping this proposal.">
+    <ObjectSection title="Cases" icon="folder-open" subtitle="Workflow envelopes wrapping this proposal.">
       {attached.length === 0 ? (
         <Card className="text-xs italic text-muted-foreground">Not attached to any case yet.</Card>
       ) : (
@@ -381,6 +360,6 @@ function CasesSection({ proposalId, proposalTitle }: { proposalId: string; propo
           ))}
         </Card>
       )}
-    </Section>
+    </ObjectSection>
   )
 }

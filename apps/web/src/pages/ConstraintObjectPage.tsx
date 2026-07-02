@@ -2,7 +2,7 @@
 
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Card, Icon, Intent, NonIdealState, Spinner, Tag,
+  Button, Card, Intent, NonIdealState, Spinner, Tag,
 } from '@blueprintjs/core'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -10,6 +10,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { fetchConstraint, setConstraintActive } from '@/features/constraints/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectSection } from '@/components/ObjectSection'
 
 const BUCKET_INTENT: Record<string, Intent> = {
   'scope':       Intent.PRIMARY,
@@ -68,13 +70,12 @@ export default function ConstraintObjectPage() {
         id={row.id}
       />
 
-      {/* Metric strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-        <Metric label="Bucket"   value={row.bucket} />
-        <Metric label="Severity" value={row.severity} />
-        <Metric label="Scope"    value={row.applies_to_action_types.length > 0 ? `${String(row.applies_to_action_types.length)} action(s)` : 'all actions'} />
-        <Metric label="Created"  value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
-      </div>
+      <MetricStrip>
+        <Metric label="Bucket"   value={row.bucket} capitalize />
+        <Metric label="Severity" value={row.severity} capitalize />
+        <Metric label="Scope"    value={row.applies_to_action_types.length > 0 ? `${String(row.applies_to_action_types.length)} action(s)` : 'all actions'} capitalize />
+        <Metric label="Created"  value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
+      </MetricStrip>
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
@@ -92,18 +93,18 @@ export default function ConstraintObjectPage() {
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-4 flex gap-4">
        <div className="flex-1 min-w-0 space-y-4">
-        <Section title="Body" icon="lightbulb">
+        <ObjectSection title="Body" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.body}</p></Card>
-        </Section>
+        </ObjectSection>
 
-        <Section title="Typed rule" icon="cog" subtitle="Categorized payload the evaluator runs against incoming actions.">
+        <ObjectSection title="Typed rule" icon="cog" subtitle="Categorized payload the evaluator runs against incoming actions.">
           <Card>
             <pre className="text-[11px] font-mono whitespace-pre-wrap">{JSON.stringify(row.typed_rule, null, 2)}</pre>
           </Card>
-        </Section>
+        </ObjectSection>
 
         {row.applies_to_action_types.length > 0 && (
-          <Section title="Applies to action types" icon="cube" subtitle="When empty, the constraint applies to every dispatched action.">
+          <ObjectSection title="Applies to action types" icon="cube" subtitle="When empty, the constraint applies to every dispatched action.">
             <Card>
               <div className="flex items-center gap-2 flex-wrap">
                 {row.applies_to_action_types.map((t) => (
@@ -111,10 +112,10 @@ export default function ConstraintObjectPage() {
                 ))}
               </div>
             </Card>
-          </Section>
+          </ObjectSection>
         )}
 
-        <Section title="Effect" icon="warning-sign">
+        <ObjectSection title="Effect" icon="warning-sign">
           <Card className="text-xs space-y-1">
             {row.severity === 'hard' ? (
               <p>
@@ -126,15 +127,15 @@ export default function ConstraintObjectPage() {
               </p>
             )}
           </Card>
-        </Section>
+        </ObjectSection>
 
-        <Section title="Audit" icon="time">
+        <ObjectSection title="Audit" icon="time">
           <Card className="text-xs space-y-1">
             <div>Authored by user <span className="font-mono">{row.authored_by_user_id}</span></div>
             <div>Created {new Date(row.created_at).toISOString()}</div>
             {row.deactivated_at && <div>Retired {new Date(row.deactivated_at).toISOString()}</div>}
           </Card>
-        </Section>
+        </ObjectSection>
        </div>
        <AuditRail nodeType="constraint" nodeId={row.id} />
       </div>
@@ -142,24 +143,3 @@ export default function ConstraintObjectPage() {
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-semibold capitalize">{value}</div>
-    </div>
-  )
-}
-
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'lightbulb' | 'cog' | 'cube' | 'warning-sign' | 'time'; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon icon={icon} size={14} className="text-muted-foreground" />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {subtitle && <p className="text-[11px] text-muted-foreground -mt-1.5 ml-6">{subtitle}</p>}
-      {children}
-    </section>
-  )
-}

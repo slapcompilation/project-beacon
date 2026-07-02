@@ -21,6 +21,8 @@ import {
 } from '@/features/actionChains/hooks'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectSection } from '@/components/ObjectSection'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 
 const PICKABLE_ACTIONS = Object.keys(actionDescriptors).map((type) => ({
@@ -78,13 +80,12 @@ export default function ActionChainObjectPage() {
         id={row.id}
       />
 
-      {/* Metric strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-        <Metric label="Status" value={row.status} />
+      <MetricStrip>
+        <Metric label="Status" value={row.status} capitalize />
         <Metric label="Steps"  value={String(row.simulated_actions.length)} />
-        <Metric label="Source" value={isFork ? 'forked' : 'clean slate'} />
-        <Metric label="Age"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
-      </div>
+        <Metric label="Source" value={isFork ? 'forked' : 'clean slate'} capitalize />
+        <Metric label="Age"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
+      </MetricStrip>
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
@@ -143,7 +144,7 @@ export default function ActionChainObjectPage() {
           </Callout>
         )}
 
-        <Section title="Steps" icon="cog" subtitle={isDraft ? 'Draft — nothing is dispatched until you click Commit.' : 'Snapshot at commit time.'}>
+        <ObjectSection title="Steps" icon="cog" subtitle={isDraft ? 'Draft — nothing is dispatched until you click Commit.' : 'Snapshot at commit time.'}>
           {row.simulated_actions.length === 0 ? (
             <Card className="text-xs italic text-muted-foreground">
               No steps yet. Pick an action type above and click Try {actionType} to add one.
@@ -185,9 +186,9 @@ export default function ActionChainObjectPage() {
               })}
             </div>
           )}
-        </Section>
+        </ObjectSection>
 
-        <Section title="Notes" icon="annotation">
+        <ObjectSection title="Notes" icon="annotation">
           <Card>
             <TextArea
               fill
@@ -204,9 +205,9 @@ export default function ActionChainObjectPage() {
               }}
             />
           </Card>
-        </Section>
+        </ObjectSection>
 
-        <Section title="Audit" icon="time">
+        <ObjectSection title="Audit" icon="time">
           <Card className="text-xs space-y-1">
             <div>Opened by user <span className="font-mono">{row.opened_by_user_id}</span></div>
             <div>Created {new Date(row.created_at).toISOString()}</div>
@@ -214,7 +215,7 @@ export default function ActionChainObjectPage() {
               <div>Committed {new Date(row.committed_at).toISOString()} by <span className="font-mono">{row.committed_by_user_id ?? '—'}</span></div>
             )}
           </Card>
-        </Section>
+        </ObjectSection>
        </div>
        <AuditRail nodeType="action_chain" nodeId={row.id} />
       </div>
@@ -245,27 +246,6 @@ export default function ActionChainObjectPage() {
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-semibold capitalize">{value}</div>
-    </div>
-  )
-}
-
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'cog' | 'annotation' | 'time'; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon icon={icon} size={14} className="text-muted-foreground" />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {subtitle && <p className="text-[11px] text-muted-foreground -mt-1.5 ml-6">{subtitle}</p>}
-      {children}
-    </section>
-  )
-}
 
 function statusIntent(status: string): Intent {
   switch (status) {

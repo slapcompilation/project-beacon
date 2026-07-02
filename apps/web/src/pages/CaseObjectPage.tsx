@@ -19,6 +19,8 @@ import type { CaseStatus } from '@/features/cases/api'
 import { fetchProposal, type ProposalRow } from '@/features/agents/proposalsApi'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { AuditRail } from '@/components/AuditRail'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectSection } from '@/components/ObjectSection'
 
 const NEXT_STATUS: Record<CaseStatus, CaseStatus[]> = {
   open:      ['in_review', 'resolved', 'closed'],
@@ -85,13 +87,12 @@ export default function CaseObjectPage() {
         id={row.id}
       />
 
-      {/* Metric strip */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-        <Metric label="Status"     value={row.status.replace('_', ' ')} />
+      <MetricStrip>
+        <Metric label="Status"     value={row.status.replace('_', ' ')} capitalize />
         <Metric label="Proposals"  value={String(row.proposal_ids.length)} />
         <Metric label="Inputs"     value={String(row.input_refs.length)} />
-        <Metric label="Age"        value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
-      </div>
+        <Metric label="Age"        value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
+      </MetricStrip>
 
       {/* Action bar */}
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
@@ -132,14 +133,14 @@ export default function CaseObjectPage() {
       <div className="flex-1 overflow-y-auto p-4 flex gap-4">
        <div className="flex-1 min-w-0 space-y-4">
         {row.outcome && (
-          <Section title="Outcome" icon="tick">
+          <ObjectSection title="Outcome" icon="tick">
             <Callout intent={Intent.SUCCESS} icon="confirm" title={row.outcome.action_type}>
               {row.outcome.summary}
             </Callout>
-          </Section>
+          </ObjectSection>
         )}
 
-        <Section title="Inputs" icon="import" subtitle="Signals that triggered the case (alerts, agent runs, operator notes).">
+        <ObjectSection title="Inputs" icon="import" subtitle="Signals that triggered the case (alerts, agent runs, operator notes).">
           {row.input_refs.length === 0 ? (
             <Card className="text-xs italic text-muted-foreground">No inputs recorded.</Card>
           ) : (
@@ -152,9 +153,9 @@ export default function CaseObjectPage() {
               ))}
             </ul>
           )}
-        </Section>
+        </ObjectSection>
 
-        <Section title="Proposals" icon="annotation" subtitle={`${String(row.proposal_ids.length)} attached`}>
+        <ObjectSection title="Proposals" icon="annotation" subtitle={`${String(row.proposal_ids.length)} attached`}>
           {row.proposal_ids.length === 0 ? (
             <Card className="text-xs italic text-muted-foreground">No proposals attached. Open one from the Review Queue and click "Add to case".</Card>
           ) : (
@@ -169,15 +170,15 @@ export default function CaseObjectPage() {
               ))}
             </div>
           )}
-        </Section>
+        </ObjectSection>
 
-        <Section title="Audit" icon="time">
+        <ObjectSection title="Audit" icon="time">
           <Card className="text-xs space-y-1">
             <div>Opened by user <span className="font-mono">{row.opened_by_user_id}</span></div>
             <div>Created {new Date(row.created_at).toISOString()}</div>
             {row.resolved_at && <div>Resolved {new Date(row.resolved_at).toISOString()} by <span className="font-mono">{row.resolved_by_user_id ?? '—'}</span></div>}
           </Card>
-        </Section>
+        </ObjectSection>
        </div>
        <AuditRail nodeType="case" nodeId={row.id} />
       </div>
@@ -224,27 +225,6 @@ function AttachedProposalRow({ proposalId, onDetach, busy }: { proposalId: strin
   )
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-semibold capitalize">{value}</div>
-    </div>
-  )
-}
-
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'tick' | 'import' | 'annotation' | 'time'; subtitle?: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon icon={icon} size={14} className="text-muted-foreground" />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {subtitle && <p className="text-[11px] text-muted-foreground -mt-1.5 ml-6">{subtitle}</p>}
-      {children}
-    </section>
-  )
-}
 
 function statusIntent(status: CaseStatus): Intent {
   switch (status) {

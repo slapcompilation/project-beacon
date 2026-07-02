@@ -20,6 +20,8 @@ import {
 import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectSection } from '@/components/ObjectSection'
 import {
   useApproveSuggestion,
   useAutoExtractEntityLinks,
@@ -74,12 +76,12 @@ export default function DocumentObjectPage() {
         id={row.id}
       />
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px border-b bg-border shrink-0">
-        <Metric label="Source"   value={row.source} />
-        <Metric label="Stage"    value={row.ingestion_stage} />
+      <MetricStrip>
+        <Metric label="Source"   value={row.source} capitalize />
+        <Metric label="Stage"    value={row.ingestion_stage} capitalize />
         <Metric label="Size"     value={formatBytes(row.size_bytes)} />
-        <Metric label="Uploaded" value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
-      </div>
+        <Metric label="Uploaded" value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
+      </MetricStrip>
 
       <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
         <Button
@@ -148,7 +150,7 @@ export default function DocumentObjectPage() {
 
       <div className="flex-1 overflow-y-auto p-4 flex gap-4">
        <div className="flex-1 min-w-0 space-y-4">
-        <Section title="File" icon="document">
+        <ObjectSection title="File" icon="document">
           <Card className="space-y-1 text-xs">
             <div className="font-mono"><span className="text-muted-foreground">MIME:</span> {row.mime_type}</div>
             <div className="font-mono break-all"><span className="text-muted-foreground">Path:</span> {row.bucket_name}/{row.storage_path}</div>
@@ -156,9 +158,9 @@ export default function DocumentObjectPage() {
               <div className="font-mono"><span className="text-muted-foreground">Pages:</span> {String(row.page_count)}</div>
             )}
           </Card>
-        </Section>
+        </ObjectSection>
 
-        <Section title="Preview" icon="eye-open">
+        <ObjectSection title="Preview" icon="eye-open">
           {!signedUrl ? (
             <Card className="text-xs italic text-muted-foreground">Generating signed URL…</Card>
           ) : row.mime_type.startsWith('image/') ? (
@@ -178,9 +180,9 @@ export default function DocumentObjectPage() {
               No inline preview for <span className="font-mono">{row.mime_type}</span>. Use Open file to download.
             </Card>
           )}
-        </Section>
+        </ObjectSection>
 
-        <Section title="Chunks" icon="layers">
+        <ObjectSection title="Chunks" icon="layers">
           {!row.chunks || row.chunks.length === 0 ? (
             <Callout intent={Intent.NONE} icon="info-sign">
               {row.ingestion_stage === 'raw'
@@ -200,10 +202,10 @@ export default function DocumentObjectPage() {
               ))}
             </div>
           )}
-        </Section>
+        </ObjectSection>
 
         {pendingSuggestions.length > 0 && (
-          <Section title={`Suggestions (${String(pendingSuggestions.length)})`} icon="search-template">
+          <ObjectSection title={`Suggestions (${String(pendingSuggestions.length)})`} icon="search-template">
             <div className="space-y-1.5">
               {pendingSuggestions.map((s) => {
                 const borderClass =
@@ -252,10 +254,10 @@ export default function DocumentObjectPage() {
                 )
               })}
             </div>
-          </Section>
+          </ObjectSection>
         )}
 
-        <Section title="Linked entities" icon="link">
+        <ObjectSection title="Linked entities" icon="link">
           {entityLinks.length === 0 ? (
             <Card className="text-xs italic text-muted-foreground">
               No entity links yet. Use Link to entity above to write a <span className="font-mono">describes_entity</span> edge from this document to a Variant / Supplier / Case / etc. Operators and agents can then cite this document as the source of truth for that node.
@@ -283,15 +285,15 @@ export default function DocumentObjectPage() {
               ))}
             </div>
           )}
-        </Section>
+        </ObjectSection>
 
-        <Section title="Audit" icon="time">
+        <ObjectSection title="Audit" icon="time">
           <Card className="text-xs space-y-1">
             <div>Uploaded by user <span className="font-mono">{row.uploaded_by_user_id}</span></div>
             <div>Created {new Date(row.created_at).toISOString()}</div>
             <div>Updated {new Date(row.updated_at).toISOString()}</div>
           </Card>
-        </Section>
+        </ObjectSection>
        </div>
        <AuditRail nodeType="document" nodeId={row.id} />
       </div>
@@ -373,27 +375,6 @@ function objectPathFor(type: EntityNodeType, id: string): string {
     case 'hotel':           return `/hotel/${id}`
     case 'organization':    return `/`
   }
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
-      <div className="text-sm font-semibold capitalize">{value}</div>
-    </div>
-  )
-}
-
-function Section({ title, icon, children }: { title: string; icon: 'document' | 'eye-open' | 'layers' | 'time' | 'link' | 'search-template'; children: React.ReactNode }) {
-  return (
-    <section className="space-y-2">
-      <div className="flex items-center gap-2">
-        <Icon icon={icon} size={14} className="text-muted-foreground" />
-        <h2 className="text-sm font-semibold">{title}</h2>
-      </div>
-      {children}
-    </section>
-  )
 }
 
 function formatBytes(bytes: number): string {
