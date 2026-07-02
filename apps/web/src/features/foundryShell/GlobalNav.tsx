@@ -3,10 +3,12 @@
 // current URL. This is the Foundry-style left sidebar as the real global nav,
 // replacing the bottom CommandDock (docs/AIP-UX-RESTRUCTURE.md, Phase 1).
 
+import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { Popover, Menu, MenuItem, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
+import { ManageFavoritesDialog } from './ManageFavoritesDialog'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRecentActivity } from '@/features/inventory/hooks/reports'
@@ -46,6 +48,7 @@ export function GlobalNav() {
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
   const email              = useAuthStore((s) => s.session?.user.email ?? '')
   const notifTotal         = useAlertCount() + useUnreadNotificationCount()
+  const [manageOpen, setManageOpen] = useState(false)
 
   const onSelect = (id: string) => {
     const fav = favorites.find((f) => f.id === id)
@@ -68,15 +71,19 @@ export function GlobalNav() {
   }
 
   return (
-    <FoundrySidebar
-      activeId={activeIdFor(pathname, search)}
-      onSelect={onSelect}
-      headerSlot={<QuickCreate />}
-      popovers={{ recent: <RecentPanel /> }}
-      filesItems={filesItems}
-      badges={{ notifs: notifTotal }}
-      accountInitials={initialsFromEmail(email)}
-    />
+    <>
+      <FoundrySidebar
+        activeId={activeIdFor(pathname, search)}
+        onSelect={onSelect}
+        headerSlot={<QuickCreate />}
+        popovers={{ recent: <RecentPanel /> }}
+        filesItems={filesItems}
+        badges={{ notifs: notifTotal }}
+        accountInitials={initialsFromEmail(email)}
+        onViewAll={(header) => { if (header === 'Files') setManageOpen(true); else void navigate('/applications') }}
+      />
+      <ManageFavoritesDialog isOpen={manageOpen} onClose={() => { setManageOpen(false) }} />
+    </>
   )
 }
 
