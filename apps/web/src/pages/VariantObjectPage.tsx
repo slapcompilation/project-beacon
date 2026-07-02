@@ -33,7 +33,7 @@ import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
-import { FavoriteStar } from '@/features/foundryShell/FavoriteStar'
+import { ObjectViewHeader, type ObjectMetaChip } from '@/components/ObjectViewHeader'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -372,6 +372,13 @@ export default function VariantObjectPage() {
   const consumed30  = logsLast30.filter((l) => l.quantity_change < 0 && !l.is_revert).reduce((s, l) => s + Math.abs(l.quantity_change), 0)
   const received30  = logsLast30.filter((l) => l.quantity_change > 0 && !l.is_revert).reduce((s, l) => s + l.quantity_change, 0)
 
+  const metaChips: ObjectMetaChip[] = [
+    { label: 'Variant' },
+    { icon: 'barcode', label: variant.sku, mono: true },
+  ]
+  if (locationName) metaChips.push({ icon: 'map-marker', label: locationName })
+  if (categoryName) metaChips.push({ label: categoryName })
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Header ── */}
@@ -399,56 +406,24 @@ export default function VariantObjectPage() {
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-5xl mx-auto px-4 py-4 space-y-4">
 
-          {/* ── Object identity strip ── */}
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <Icon icon="box" size={20} className="text-muted-foreground" />
-                <h1 className="text-xl font-semibold">{productName} · {variant.name}</h1>
-                <FavoriteStar item={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }} />
-              </div>
-              <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
-                <span className="font-mono">{variant.sku}</span>
-                {locationName && (
-                  <span className="flex items-center gap-1">
-                    <Icon icon="map-marker" size={12} />
-                    {locationName}
-                  </span>
+          {/* ── Object header (canonical) ── */}
+          <ObjectViewHeader
+            icon="box"
+            title={`${productName} · ${variant.name}`}
+            star={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }}
+            meta={metaChips}
+            actions={
+              <>
+                <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
+                {wasteAnomaly && (
+                  <Tag icon="warning-sign" intent={Intent.WARNING} minimal>Waste anomaly</Tag>
                 )}
-                {categoryName && <span>{categoryName}</span>}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
-              {wasteAnomaly && (
-                <Tag icon="warning-sign" intent={Intent.WARNING} minimal>
-                  Waste anomaly
-                </Tag>
-              )}
-              <Button
-                icon="swap-horizontal"
-                size="small"
-                onClick={() => { setOverstockOpen(true) }}
-              >
-                Rebalance overstock
-              </Button>
-              <Button
-                icon="trash"
-                size="small"
-                onClick={() => { setWasteOpen(true) }}
-              >
-                Waste triage
-              </Button>
-              <Button
-                icon="predictive-analysis"
-                intent={Intent.PRIMARY}
-                size="small"
-                onClick={() => { setAdviceOpen(true) }}
-              >
-                Get restock advice
-              </Button>
-            </div>
-          </div>
+                <Button icon="swap-horizontal" size="small" onClick={() => { setOverstockOpen(true) }}>Rebalance overstock</Button>
+                <Button icon="trash" size="small" onClick={() => { setWasteOpen(true) }}>Waste triage</Button>
+                <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
+              </>
+            }
+          />
 
           {/* ── 4 stat cards ── */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
