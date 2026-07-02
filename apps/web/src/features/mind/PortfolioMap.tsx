@@ -15,11 +15,12 @@ const MAP_STYLE =
   (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
   ?? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
 
-// Restrained palette on the dark basemap: neutral slate for state-of-play, one
-// warm accent reserved for the thing that actually needs a person (approvals).
-const CLEAR      = '#5b6472' // muted slate — nothing open
-const OPEN_WORK  = '#94a3b8' // lighter slate — open signals
-const APPROVALS  = '#d1a054' // muted amber — needs sign-off
+// Restrained Blueprint (Palantir) palette on the dark basemap: neutral gray for
+// state-of-play, the one warm intent (orange = warning) reserved for the thing
+// that actually needs a person (approvals).
+const CLEAR      = '#738091' // Blueprint GRAY2 — nothing open
+const OPEN_WORK  = '#ABB3BF' // Blueprint GRAY4 — open signals
+const APPROVALS  = '#C87619' // Blueprint ORANGE3 — needs sign-off
 
 const signalLoad = (h: PortfolioHotelSignal) => h.queue_pending + h.approvals_pending + h.cases_open
 function pinColor(h: PortfolioHotelSignal): string {
@@ -43,14 +44,14 @@ function buildMarker(h: PortfolioHotelSignal, onClick: () => void): HTMLElement 
   const dot = document.createElement('div')
   dot.style.cssText =
     `width:${String(size)}px;height:${String(size)}px;border-radius:9999px;background:${pinColor(h)};` +
-    'box-shadow:0 0 0 1px rgba(2,6,23,.55),0 1px 3px rgba(0,0,0,.5);display:flex;align-items:center;' +
-    'justify-content:center;color:#0f172a;font-size:10px;font-weight:700;'
+    'box-shadow:0 0 0 1px rgba(17,20,24,.6),0 1px 3px rgba(0,0,0,.5);display:flex;align-items:center;' +
+    'justify-content:center;color:#1C2127;font-size:10px;font-weight:700;'
   if (load > 0) dot.textContent = String(load)
 
   const label = document.createElement('div')
   label.textContent = h.hotel_name
   label.style.cssText =
-    'margin-top:4px;font-size:10px;font-weight:600;color:#cbd5e1;background:rgba(15,17,22,.72);' +
+    'margin-top:4px;font-size:10px;font-weight:600;color:#C5CBD3;background:rgba(28,33,39,.72);' +
     'padding:1px 5px;border-radius:3px;white-space:nowrap;letter-spacing:.02em;'
 
   wrap.append(dot, label)
@@ -120,7 +121,7 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
         </div>
       </div>
 
-      <div ref={containerRef} className="h-80 w-full" style={{ background: '#0b0e14' }} />
+      <div ref={containerRef} className="h-80 w-full" style={{ background: '#111418' }} />
 
       {unlocated > 0 && (
         <div className="px-4 py-1.5 text-[11px] text-muted-foreground border-t">
