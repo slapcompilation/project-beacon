@@ -16,12 +16,16 @@ point of this doc is the triage, not a demolition order.
 
 | Item | Status | Action |
 |---|---|---|
-| `components/layout/CommandDock.tsx` (bottom dock) | **Unmounted** — the Foundry `GlobalNav` sidebar replaced it | Keep the file one release for rollback, then delete. Its role-aware quick-actions (Scan, +Stock, Receive) need a new home — a "+ New" affordance in the sidebar or a floating action. |
+| `components/layout/CommandDock.tsx` (bottom dock) | **DELETED** — the Foundry `GlobalNav` sidebar replaced it | Done. Its role-aware quick-actions (Scan, +Stock, Receive) still need a new home — a "+ New" affordance in the sidebar or a floating action (open follow-up). |
 | The **6-module framing** (Floor/Flow/Eye/Operations/Mind/Briefing) | Superseded by the 4 surfaces (Home/Decisions/Insights/Studio) | Already the `AIP-RESTRUCTURE.md` plan; the sidebar makes it real. |
 
 ## B. Duplicate entry points (one surface, two routes)
 
-Every Studio surface is reachable **both** standalone **and** as a `/mind?aip=<tab>`
+**DONE** — the index routes below now redirect to their `/mind?aip=<tab>` tab
+(detail pages kept). `/system-map` is the one exception: it's the sidebar's
+"Objects" entry for all users, so it stays standalone.
+
+Every Studio surface was reachable **both** standalone **and** as a `/mind?aip=<tab>`
 tab (the `AIPShell` is the canonical container). Two doors to the same room = drift
 + confusion.
 
@@ -73,9 +77,9 @@ Actions rather than top-level destinations.
 
 ## Suggested order
 
-1. **Delete `CommandDock`** once the sidebar is confirmed in the deployment.
-2. **Collapse the Section-B duplicates** into redirects (mechanical, safe).
-3. **Triage Section C** with live-data checks; reduce/retire per findings.
+1. ✅ **Delete `CommandDock`** — done (sidebar is the global nav).
+2. ✅ **Collapse the Section-B duplicates** into redirects — done (`/system-map` kept as the Objects entry).
+3. **Triage Section C** with live-data checks; reduce/retire per findings. ← next
 4. **Section E** — retire the SQL detectors after the agents' evals cover the gap.
 
-Sections B + A are safe now; C + E are verify-first.
+A + B done; C + E are verify-first.

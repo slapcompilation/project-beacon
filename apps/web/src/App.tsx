@@ -52,30 +52,22 @@ const StockLogObjectPage      = lazyWithRetry(() => import('@/pages/StockLogObje
 const AlertObjectPage         = lazyWithRetry(() => import('@/pages/AlertObjectPage'))
 const ShiftHandoverObjectPage = lazyWithRetry(() => import('@/pages/ShiftHandoverObjectPage'))
 const CausalChainPage         = lazyWithRetry(() => import('@/pages/CausalChainPage'))
-const ReviewQueuePage         = lazyWithRetry(() => import('@/pages/ReviewQueuePage'))
-const AgentStudioPage         = lazyWithRetry(() => import('@/pages/AgentStudioPage'))
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
-const ToolsPage               = lazyWithRetry(() => import('@/pages/ToolsPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
-const ModelingObjectivesPage      = lazyWithRetry(() => import('@/pages/ModelingObjectivesPage'))
 const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/ModelingObjectiveDetailPage'))
 const DeploymentDetailPage        = lazyWithRetry(() => import('@/pages/DeploymentDetailPage'))
 const SystemMapPage               = lazyWithRetry(() => import('@/pages/SystemMapPage'))
-const PendingApprovalsPage        = lazyWithRetry(() => import('@/pages/PendingApprovalsPage'))
 const ProposalObjectPage          = lazyWithRetry(() => import('@/pages/ProposalObjectPage'))
 const PrincipleObjectPage         = lazyWithRetry(() => import('@/pages/PrincipleObjectPage'))
 const ConstraintObjectPage        = lazyWithRetry(() => import('@/pages/ConstraintObjectPage'))
-const ApprovedAnswersPage         = lazyWithRetry(() => import('@/pages/ApprovedAnswersPage'))
 const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
 const CaseObjectPage              = lazyWithRetry(() => import('@/pages/CaseObjectPage'))
 const DocumentsPage               = lazyWithRetry(() => import('@/pages/DocumentsPage'))
 const DocumentObjectPage          = lazyWithRetry(() => import('@/pages/DocumentObjectPage'))
-const EntityLinkSuggestionsPage   = lazyWithRetry(() => import('@/pages/EntityLinkSuggestionsPage'))
 const ActionChainsPage            = lazyWithRetry(() => import('@/pages/ActionChainsPage'))
 const ActionChainObjectPage       = lazyWithRetry(() => import('@/pages/ActionChainObjectPage'))
 const ScenariosPage               = lazyWithRetry(() => import('@/pages/ScenariosPage'))
 const ScenarioDetailPage          = lazyWithRetry(() => import('@/pages/ScenarioDetailPage'))
-const CopilotConfigPage           = lazyWithRetry(() => import('@/pages/CopilotConfigPage'))
 
 function PageLoader() {
   return (
@@ -128,30 +120,30 @@ function AppRoutes() {
             <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
             <Route path="/causal-chain"            element={<CausalChainPage />} />
-            <Route path="/review-queue"            element={<ReviewQueuePage />} />
-            <Route path="/agent-studio"            element={<AgentStudioPage />} />
+            <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
+            <Route path="/agent-studio"            element={<Navigate to="/mind?aip=agents" replace />} />
             <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
-            <Route path="/tools"                   element={<ToolsPage />} />
+            <Route path="/tools"                   element={<Navigate to="/mind?aip=tools" replace />} />
             <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
-            <Route path="/modeling-objectives"                  element={<ModelingObjectivesPage />} />
+            <Route path="/modeling-objectives"                  element={<Navigate to="/mind?aip=objectives" replace />} />
             <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
             <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
             <Route path="/system-map"                           element={<SystemMapPage />} />
-            <Route path="/pending-approvals"                    element={<PendingApprovalsPage />} />
+            <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
             <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
             <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
             <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
-            <Route path="/approved-answers"                     element={<ApprovedAnswersPage />} />
+            <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />
             <Route path="/cases"                                element={<CasesPage />} />
             <Route path="/cases/:caseId"                        element={<CaseObjectPage />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
             <Route path="/documents/:documentId"                element={<DocumentObjectPage />} />
-            <Route path="/entity-link-suggestions"              element={<EntityLinkSuggestionsPage />} />
+            <Route path="/entity-link-suggestions"              element={<Navigate to="/mind?aip=entity-links" replace />} />
             <Route path="/action-chains"                        element={<ActionChainsPage />} />
             <Route path="/action-chains/:chainId"               element={<ActionChainObjectPage />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioDetailPage />} />
-            <Route path="/copilot-config"                       element={<CopilotConfigPage />} />
+            <Route path="/copilot-config"                       element={<Navigate to="/mind?aip=copilot" replace />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/account"       element={<AccountPage />} />
