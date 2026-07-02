@@ -32,8 +32,6 @@ const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'
 const GraphPage = lazyWithRetry(() => import('@/pages/GraphPage'))
 const EventDemandPage = lazyWithRetry(() => import('@/pages/EventDemandPage'))
 const ChainPage = lazyWithRetry(() => import('@/pages/ChainPage'))
-const PendingScansPage = lazyWithRetry(() => import('@/pages/PendingScansPage'))
-const MenuMappingPage = lazyWithRetry(() => import('@/pages/MenuMappingPage'))
 const FBIntelligencePage = lazyWithRetry(() => import('@/pages/FBIntelligencePage'))
 const SetupWizardPage = lazyWithRetry(() => import('@/pages/SetupWizardPage'))
 
@@ -51,7 +49,6 @@ const ProductObjectPage       = lazyWithRetry(() => import('@/pages/ProductObjec
 const StockLogObjectPage      = lazyWithRetry(() => import('@/pages/StockLogObjectPage'))
 const AlertObjectPage         = lazyWithRetry(() => import('@/pages/AlertObjectPage'))
 const ShiftHandoverObjectPage = lazyWithRetry(() => import('@/pages/ShiftHandoverObjectPage'))
-const CausalChainPage         = lazyWithRetry(() => import('@/pages/CausalChainPage'))
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
 const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/ModelingObjectiveDetailPage'))
@@ -119,7 +116,7 @@ function AppRoutes() {
             <Route path="/log/:logId"              element={<StockLogObjectPage />} />
             <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
             <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
-            <Route path="/causal-chain"            element={<CausalChainPage />} />
+            <Route path="/causal-chain"            element={<Navigate to="/system-map" replace />} />
             <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
             <Route path="/agent-studio"            element={<Navigate to="/mind?aip=agents" replace />} />
             <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
@@ -156,8 +153,8 @@ function AppRoutes() {
             <Route path="/graph"         element={<GraphPage />} />
             <Route path="/events"        element={<EventDemandPage />} />
             <Route path="/chain"         element={<ChainPage />} />
-            <Route path="/pending-scans" element={<PendingScansPage />} />
-            <Route path="/menu-mapping"  element={<MenuMappingPage />} />
+            <Route path="/pending-scans" element={<Navigate to="/floor?panel=scans" replace />} />
+            <Route path="/menu-mapping"  element={<Navigate to="/briefing" replace />} />
             <Route path="/fb-intelligence" element={<FBIntelligencePage />} />
             <Route path="/setup"           element={<SetupWizardPage />} />
 
