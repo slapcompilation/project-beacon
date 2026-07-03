@@ -104,3 +104,33 @@ export function useHotelMap() {
     staleTime: 60_000,
   })
 }
+
+// Hotel-wide stock rollup — the fallback the map shows when no variants are
+// tagged to a zone yet (so it's a real breakdown, never a bare "0 variants").
+export interface HotelStockSummary { tracked: number; lowStock: number; outOfStock: number }
+
+async function fetchHotelStockSummary(hotelId: string): Promise<HotelStockSummary> {
+  const { data, error } = await supabase
+    .from('product_variants')
+    .select('current_stock, low_stock_threshold, products!inner(hotel_id)')
+    .eq('products.hotel_id', hotelId)
+    .eq('enabled', true) as unknown as {
+      data: { current_stock: number; low_stock_threshold: number | null }[] | null
+      error: { message: string } | null
+    }
+  if (error) throw new Error(error.message)
+  const rows = data ?? []
+  const lowStock = rows.filter((r) => (r.low_stock_threshold ?? 0) > 0 && r.current_stock <= (r.low_stock_threshold ?? 0)).length
+  const outOfStock = rows.filter((r) => r.current_stock <= 0).length
+  return { tracked: rows.length, lowStock, outOfStock }
+}
+
+export function useHotelStockSummary() {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey:  ['canvas', 'hotel-stock-summary', hotelId ?? ''] as const,
+    queryFn:   () => fetchHotelStockSummary(hotelId ?? ''),
+    enabled:   !!hotelId,
+    staleTime: 60_000,
+  })
+}

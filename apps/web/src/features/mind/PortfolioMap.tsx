@@ -66,7 +66,7 @@ function buildMarker(h: PortfolioHotelSignal, onClick: () => void): HTMLElement 
   return wrap
 }
 
-export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]; onHop: (hotelId: string) => void }) {
+export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelSignal[]; onHop: (hotelId: string) => void; title?: string }) {
   const located = useMemo(() => hotels.filter((h) => h.lat != null && h.lng != null), [hotels])
   const unlocated = hotels.length - located.length
   const containerRef = useRef<HTMLDivElement>(null)
@@ -149,7 +149,7 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
         <div className="flex items-center gap-2">
           <Icon icon="map" size={14} className="text-muted-foreground" />
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Portfolio map · {String(located.length)} propert{located.length === 1 ? 'y' : 'ies'}
+            {title ?? `Portfolio map · ${String(located.length)} propert${located.length === 1 ? 'y' : 'ies'}`}
           </span>
         </div>
         <div className="flex items-center gap-3 text-[10px] text-muted-foreground">

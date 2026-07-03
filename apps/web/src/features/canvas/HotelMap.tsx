@@ -7,7 +7,7 @@
 import { Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { useHotelMap, type HotelMapZone } from './useHotelMap'
+import { useHotelMap, useHotelStockSummary, type HotelMapZone } from './useHotelMap'
 
 export function HotelMap() {
   const { data: zones = [], isLoading, isError } = useHotelMap()
@@ -53,11 +53,8 @@ export function HotelMap() {
           {totalAlerts    > 0 && <Tag minimal intent={Intent.DANGER}  className="!text-[10px]">{totalAlerts} alerts</Tag>}
         </div>
       </div>
-      {zones.length === 0 ? (
-        <div className="px-4 py-4 text-xs text-muted-foreground space-y-1">
-          <p>No zones defined for this hotel yet.</p>
-          <p>Add locations (F&amp;B outlets, housekeeping carts, room-service stations) and assign variants to them — the map will populate.</p>
-        </div>
+      {zones.reduce((s, z) => s + z.variants, 0) === 0 ? (
+        <StockSummaryFallback hasZones={zones.length > 0} />
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 p-3">
           {zones.map((z) => (
@@ -71,6 +68,49 @@ export function HotelMap() {
         </div>
       )}
     </Card>
+  )
+}
+
+// Shown when no variants are tagged to a zone yet: a real hotel-wide stock
+// breakdown instead of a bare "0 variants" grid, plus a nudge to tag zones for
+// the by-area view.
+function StockSummaryFallback({ hasZones }: { hasZones: boolean }) {
+  const { data, isLoading } = useHotelStockSummary()
+
+  if (isLoading) {
+    return <div className="flex items-center gap-2 px-4 py-4 text-xs text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading stock…</div>
+  }
+  const s = data ?? { tracked: 0, lowStock: 0, outOfStock: 0 }
+  if (s.tracked === 0) {
+    return (
+      <div className="px-4 py-4 text-xs text-muted-foreground space-y-1">
+        <p>No stock tracked for this hotel yet.</p>
+        <p>Add products and variants — the map will populate.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-2 p-3">
+      <div className="grid grid-cols-3 gap-2">
+        <SummaryStat label="Tracked"      value={s.tracked} />
+        <SummaryStat label="Low stock"    value={s.lowStock}   accent={s.lowStock   > 0 ? 'text-amber-600 dark:text-amber-400' : undefined} />
+        <SummaryStat label="Out of stock" value={s.outOfStock} accent={s.outOfStock > 0 ? 'text-red-600 dark:text-red-400'     : undefined} />
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        {hasZones
+          ? 'Assign variants to your zones (F&B outlets, storerooms) to see stock pressure by area.'
+          : 'Add locations and assign variants to see stock pressure by area.'}
+      </p>
+    </div>
+  )
+}
+
+function SummaryStat({ label, value, accent }: { label: string; value: number; accent?: string }) {
+  return (
+    <div className="rounded border bg-card p-2.5">
+      <div className={cn('text-lg font-semibold tabular-nums', accent)}>{value}</div>
+      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</div>
+    </div>
   )
 }
 
