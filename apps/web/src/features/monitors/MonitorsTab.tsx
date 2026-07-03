@@ -9,12 +9,14 @@ import {
   Button, Callout, Card, Icon, InputGroup, Intent, NumericInput, Spinner, SpinnerSize, Switch, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { parseExpiryTuning, type OrgPolicy } from '@beacon/reality-graph'
+import { formatDistanceToNow } from 'date-fns'
+import { parseExpiryTuning, type OrgPolicy, type IntegrationHealthStatus } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useMonitorPolicy, useSetMonitors } from './hooks'
 import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
 import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
+import { useIntegrationHealth } from './useIntegrationHealth'
 
 type Monitors = OrgPolicy['monitors']
 
@@ -61,6 +63,57 @@ function CaseScanRow({ kind, enabled, running, result, onRun }: {
           {result.fired} fired · {result.opened} case{result.opened === 1 ? '' : 's'} opened{result.reused > 0 ? ` · ${result.reused} existing` : ''}
         </span>
       )}
+    </div>
+  )
+}
+
+const HEALTH_META: Record<IntegrationHealthStatus, { intent: Intent; icon: IconName; label: string }> = {
+  fresh: { intent: Intent.SUCCESS, icon: 'tick-circle', label: 'Fresh' },
+  stale: { intent: Intent.WARNING, icon: 'time',        label: 'Stale' },
+  down:  { intent: Intent.DANGER,  icon: 'offline',     label: 'Down' },
+  never: { intent: Intent.NONE,    icon: 'disable',     label: 'No data' },
+}
+
+// Live connector + ingestion readout, classified against the saved SLA. Worst
+// first so the operator triages at a glance; an explicit empty state explains
+// what's watched and when it populates.
+function IntegrationHealthReadout({ enabled }: { enabled: boolean }) {
+  const { hits, isLoading, isError, error } = useIntegrationHealth()
+
+  if (!enabled) return <p className="text-xs text-muted-foreground">Monitor off — connectors aren&apos;t being checked.</p>
+  if (isLoading) {
+    return <div className="flex items-center gap-2 text-xs text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Checking connectors…</div>
+  }
+  if (isError) return <p className="text-xs text-red-500">{error instanceof Error ? error.message : 'Failed to load health'}</p>
+  if (hits.length === 0) {
+    return (
+      <Callout intent={Intent.NONE} icon="feed">
+        No connectors or documents yet for this property. POS/PMS webhooks and document uploads appear here once data arrives, checked against the thresholds above.
+      </Callout>
+    )
+  }
+
+  const sorted = [...hits].sort((a, b) => b.urgency - a.urgency)
+  return (
+    <div className="divide-y divide-border rounded border">
+      {sorted.map((h) => {
+        const meta = HEALTH_META[h.status]
+        return (
+          <div key={h.sourceKey} className="flex items-center justify-between gap-3 px-3 py-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm font-medium">{h.label}</span>
+                <Tag minimal intent={meta.intent} icon={meta.icon}>{meta.label}</Tag>
+              </div>
+              <div className="text-[11px] text-muted-foreground">{h.detail}</div>
+            </div>
+            <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+              <div>{h.lastActivityAt ? formatDistanceToNow(new Date(h.lastActivityAt), { addSuffix: true }) : '—'}</div>
+              <div>{h.totalEvents.toLocaleString()} events</div>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -182,6 +235,25 @@ export default function MonitorsTab() {
           <NumField label="Surface at score ≤" value={draft.supplier.max_reliability_score} max={10} disabled={!canEdit}
             onChange={(n) => { patch('supplier', { max_reliability_score: n }) }} />
           <CaseScanRow kind="supplier" enabled={draft.supplier.enabled} running={caseRunning} result={caseResult} onRun={runCaseScan} />
+        </MonitorShell>
+
+        {/* Data integration — connector + ingestion-pipeline freshness. The
+            metric is the age of each source's last activity (and the ingest
+            backlog); the SLA below is the tunable trigger, replacing the old
+            hardcoded 2h/24h in get_pms_health / get_pos_health. */}
+        <MonitorShell icon="data-connection" title="Data integration" enabled={draft.integration.enabled} canEdit={canEdit}
+          effect="Effect — surfaces connector + ingestion health below. A stale/down feed or a stalled pipeline is where lost data hides."
+          onToggle={(b) => { patch('integration', { enabled: b }) }}>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Metric — minutes since a connector last fed us · ingestion backlog age</div>
+          <div className="flex flex-wrap items-end gap-6">
+            <NumField label="Feed stale after (min)" value={draft.integration.warn_after_minutes} max={43200} step={30} disabled={!canEdit}
+              onChange={(n) => { patch('integration', { warn_after_minutes: Math.round(n) }) }} />
+            <NumField label="Feed down after (min)" value={draft.integration.down_after_minutes} max={43200} step={60} disabled={!canEdit}
+              onChange={(n) => { patch('integration', { down_after_minutes: Math.round(n) }) }} />
+            <NumField label="Ingest stalled after (min)" value={draft.integration.stuck_ingest_after_minutes} max={43200} step={30} disabled={!canEdit}
+              onChange={(n) => { patch('integration', { stuck_ingest_after_minutes: Math.round(n) }) }} />
+          </div>
+          <IntegrationHealthReadout enabled={draft.integration.enabled} />
         </MonitorShell>
 
         {!canEdit && <Callout intent={Intent.NONE} icon="lock">Read-only — an admin or owner can tune these monitors.</Callout>}
