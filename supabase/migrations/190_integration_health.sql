@@ -2,15 +2,21 @@
 -- Layer: data (observability of the integration layer itself).
 --
 -- Foundry ships health checks over every dataset/connector — freshness, backlog,
--- failure — as a first-class surface. We already stamp per-connector heartbeats
--- (pms_connections, pos_connections) but read them through two siloed RPCs
--- (get_pms_health, get_pos_health) whose warn/down bands are HARDCODED 2h/24h,
--- and the document-ingestion pipeline has no health at all. This RPC unifies the
--- sources into one normalized readout; classification + the tunable SLA live in
--- packages/reality-graph (monitors/index.ts + policy), so the operator owns the
--- thresholds — the metric/trigger split every other monitor already follows.
+-- failure — as a first-class surface. We already stamp a per-connector heartbeat
+-- for POS (pos_connections) but read it through get_pos_health, whose warn/down
+-- bands are HARDCODED 2h/24h, and the document-ingestion pipeline has no health
+-- at all. This RPC unifies the sub-hour connectors into one normalized readout;
+-- classification + the tunable SLA live in packages/reality-graph
+-- (monitors/index.ts + policy), so the operator owns the thresholds — the
+-- metric/trigger split every other monitor already follows.
 --
--- SECURITY INVOKER (like its two siblings): the underlying RLS + auth_hotel_id()
+-- Scope note: covers POS + the document pipeline (both real, sub-hour signals).
+-- Occupancy/PMS is daily-grain — a 2h SLA would false-fire — so it's deferred
+-- until the policy carries a per-kind (daily) threshold. Deliberately reads only
+-- tables present in every lineage (pos_connections, documents); no pms_connections
+-- dependency, which isn't universal.
+--
+-- SECURITY INVOKER (like get_pos_health): the underlying RLS + auth_hotel_id()
 -- scope it. No new grants beyond authenticated read of rows already visible.
 
 BEGIN;
@@ -26,29 +32,15 @@ RETURNS TABLE (
   oldest_pending_at timestamptz   -- documents only; the stall signal
 )
 LANGUAGE sql STABLE AS $$
-  -- PMS connectors (Mews/Opera/…) — one row per registered source.
+  -- POS connectors (Square/Toast/…) — one row per registered source.
   SELECT
-    'pms:' || source_system         AS source_key,
-    source_system || ' (PMS)'       AS label,
-    'pms'                           AS kind,
+    'pos:' || source_system         AS source_key,
+    source_system || ' (POS)'       AS label,
+    'pos'                           AS kind,
     last_received_at                AS last_activity_at,
     total_events,
     NULL::bigint                    AS pending_count,
     NULL::timestamptz               AS oldest_pending_at
-  FROM  pms_connections
-  WHERE hotel_id = auth_hotel_id()
-
-  UNION ALL
-
-  -- POS connectors (Square/Toast/…).
-  SELECT
-    'pos:' || source_system,
-    source_system || ' (POS)',
-    'pos',
-    last_received_at,
-    total_events,
-    NULL::bigint,
-    NULL::timestamptz
   FROM  pos_connections
   WHERE hotel_id = auth_hotel_id()
 
@@ -76,9 +68,10 @@ $$;
 GRANT EXECUTE ON FUNCTION get_integration_health() TO authenticated;
 
 COMMENT ON FUNCTION get_integration_health() IS
-  'Unified connector + ingestion-pipeline freshness for the caller''s hotel. '
-  'Classification and the tunable SLA live in @beacon/reality-graph (the '
-  'metric/trigger split); this only gathers the raw metric. Supersedes the '
-  'hardcoded bands in get_pms_health / get_pos_health.';
+  'Unified connector + ingestion-pipeline freshness for the caller''s hotel '
+  '(POS + documents; occupancy/PMS deferred — daily-grain). Classification and '
+  'the tunable SLA live in @beacon/reality-graph (the metric/trigger split); '
+  'this only gathers the raw metric. Supersedes the hardcoded bands in '
+  'get_pos_health.';
 
 COMMIT;
