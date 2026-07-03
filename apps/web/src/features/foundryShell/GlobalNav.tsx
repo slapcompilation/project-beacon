@@ -6,15 +6,19 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
-import { Popover, Menu, MenuItem, Icon } from '@blueprintjs/core'
+import { toast } from 'sonner'
+import { Popover, Menu, MenuItem, MenuDivider, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
 import { ManageFavoritesDialog } from './ManageFavoritesDialog'
+import { ScopeSwitcher } from '@/components/layout/ScopeSwitcher'
+import { services } from '@/lib/services'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useRecentActivity } from '@/features/inventory/hooks/reports'
 import { useFavoritesStore } from '@/stores/favorites.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
+import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { cn } from '@/lib/utils'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
@@ -48,6 +52,7 @@ export function GlobalNav() {
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
   const email              = useAuthStore((s) => s.session?.user.email ?? '')
   const notifTotal         = useAlertCount() + useUnreadNotificationCount()
+  const { data: aip }      = useAipSignalCounts()
   const [manageOpen, setManageOpen] = useState(false)
 
   const onSelect = (id: string) => {
@@ -75,11 +80,21 @@ export function GlobalNav() {
       <FoundrySidebar
         activeId={activeIdFor(pathname, search)}
         onSelect={onSelect}
-        headerSlot={<QuickCreate />}
+        headerSlot={
+          <div className="space-y-1.5">
+            <ScopeSwitcher variant="sidebar" />
+            <QuickCreate />
+          </div>
+        }
         popovers={{ recent: <RecentPanel /> }}
         filesItems={filesItems}
-        badges={{ notifs: notifTotal }}
+        badges={{
+          notifs:    notifTotal,
+          decisions: (aip?.queue ?? 0) + (aip?.approvals ?? 0),
+          studio:    aip?.entityLinks ?? 0,
+        }}
         accountInitials={initialsFromEmail(email)}
+        accountMenu={<AccountMenu />}
         onViewAll={(header) => { if (header === 'Files') setManageOpen(true); else void navigate('/applications') }}
       />
       <ManageFavoritesDialog isOpen={manageOpen} onClose={() => { setManageOpen(false) }} />
@@ -131,6 +146,36 @@ function initialsFromEmail(email: string): string {
   const parts = local.split(/[._-]+/).filter(Boolean)
   const raw = parts.length >= 2 ? parts[0][0] + parts[1][0] : local.slice(0, 2)
   return raw.toUpperCase() || 'ME'
+}
+
+// Bottom-of-sidebar account menu (Foundry puts the account at the rail foot):
+// who you're signed in as + settings + sign out. This is the only sign-out entry
+// for non-scan roles now that the top bar is gone.
+function AccountMenu() {
+  const navigate = useNavigate()
+  const email = useAuthStore((s) => s.session?.user.email ?? '')
+  const role  = useAuthStore((s) => s.role)
+
+  const signOut = async () => {
+    try {
+      await services.auth.signOut()
+      void navigate('/login', { replace: true })
+    } catch {
+      toast.error('Failed to sign out')
+    }
+  }
+
+  return (
+    <Menu>
+      <li className="px-2 py-1.5">
+        <div className="max-w-[12rem] truncate text-xs font-medium text-foreground">{email || 'Signed in'}</div>
+        {role && <div className="text-[11px] capitalize text-muted-foreground">{role.replace(/_/g, ' ')}</div>}
+      </li>
+      <MenuDivider />
+      <MenuItem icon="cog" text="Account settings" onClick={() => { void navigate('/account') }} />
+      <MenuItem icon="log-out" text="Sign out" onClick={() => { void signOut() }} />
+    </Menu>
+  )
 }
 
 // The retired dock's quick-actions, rehomed as a Foundry-style "+ New" menu.

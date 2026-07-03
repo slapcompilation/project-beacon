@@ -8,7 +8,8 @@ import { useActiveOrgId, useScopeMode } from '@/hooks/useActiveOrgId'
 import { useHotels } from '@/features/hotel/hooks'
 import { useOrganizations, useHasOrgScope } from '@/features/organizations/hooks'
 
-export function ScopeSwitcher() {
+export function ScopeSwitcher({ variant }: { variant?: 'sidebar' } = {}) {
+  const onDark = variant === 'sidebar'
   const scopeMode      = useScopeMode()
   const activeHotelId  = useActiveHotelId()
   const activeOrgId    = useActiveOrgId()
@@ -24,7 +25,9 @@ export function ScopeSwitcher() {
 
   if (!hasOrgScope && hotels.length <= 1) {
     return activeHotel ? (
-      <span className="text-[10px] text-muted-foreground/50 truncate max-w-[120px]">
+      <span className={onDark
+        ? 'block truncate px-2 text-[11px] text-[#6b7482]'
+        : 'text-[10px] text-muted-foreground/50 truncate max-w-[120px]'}>
         {activeHotel.name}
       </span>
     ) : null
@@ -73,9 +76,11 @@ export function ScopeSwitcher() {
         </Menu>
       }
     >
-      <button className="flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors max-w-[180px]">
+      <button className={onDark
+        ? 'flex w-full items-center gap-1.5 rounded px-2 py-1.5 text-xs text-[#cfd4dd] transition-colors hover:bg-white/5 hover:text-white'
+        : 'flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground hover:bg-surface-2 hover:text-foreground transition-colors max-w-[180px]'}>
         <Icon icon={triggerIcon} size={12} className="shrink-0" />
-        <span className="truncate">{triggerLabel}</span>
+        <span className="flex-1 truncate text-left">{triggerLabel}</span>
         <Icon icon="chevron-down" size={10} className="shrink-0" />
       </button>
     </Popover>

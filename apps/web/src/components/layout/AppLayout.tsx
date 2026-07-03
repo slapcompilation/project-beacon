@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router-dom'
-import { Topbar } from './Topbar'
 import { GlobalNav } from '@/features/foundryShell/GlobalNav'
 import { ContextPanel } from './ContextPanel'
 import { OfflineBanner } from '@/components/OfflineBanner'
@@ -30,7 +29,6 @@ export function AppLayout() {
         onRetry={retrySync}
         onDiscardAll={clearQueue}
       />
-      <Topbar />
 
       <div className="flex flex-1 overflow-hidden">
         <GlobalNav />
