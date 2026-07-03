@@ -104,6 +104,14 @@ const TYPE_META: Record<NotifType, {
     badge: 'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
     fallbackPath: '/flow?panel=approvals',
   },
+  integration_health: {
+    icon: 'data-connection',
+    color: 'text-red-500',
+    bg: 'bg-red-50/60 dark:bg-red-950/20',
+    label: 'Data Feed',
+    badge: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
+    fallbackPath: '/mind?aip=monitors',
+  },
   system: {
     icon: 'notifications',
     color: 'text-muted-foreground',
@@ -130,6 +138,7 @@ const TYPE_PRIORITY: Record<NotifType, number> = {
   po_discrepancy:  7,
   contract_expiry: 8,
   approval:        9,
+  integration_health: 9,
   system:         10,
 }
 

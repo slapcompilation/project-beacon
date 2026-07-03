@@ -22,6 +22,7 @@ const TYPE_STYLES: Record<Notification['type'], string> = {
   pos_variance:      'border-red-200 bg-red-50 text-red-800',
   po_discrepancy:    'border-orange-200 bg-orange-50 text-orange-800',
   contract_expiry:   'border-indigo-200 bg-indigo-50 text-indigo-800',
+  integration_health:'border-red-200 bg-red-50 text-red-800',
 }
 
 export function NotificationBell() {

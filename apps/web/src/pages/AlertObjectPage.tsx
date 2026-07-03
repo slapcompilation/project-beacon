@@ -67,6 +67,7 @@ const ALERT_META: Record<AlertType, { label: string; icon: IconName; intent: Int
   pos_variance:       { label: 'POS Variance',         icon: 'document',      intent: Intent.PRIMARY },
   po_discrepancy:     { label: 'PO Discrepancy',       icon: 'truck',         intent: Intent.DANGER  },
   contract_expiry:    { label: 'Contract Expiring',    icon: 'document',      intent: Intent.PRIMARY },
+  integration_health: { label: 'Data Feed',            icon: 'data-connection', intent: Intent.DANGER },
 }
 
 // ─── Main page ────────────────────────────────────────────────────────────────
