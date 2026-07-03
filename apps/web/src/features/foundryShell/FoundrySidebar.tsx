@@ -57,9 +57,9 @@ const SECTIONS: RailSection[] = [
   {
     header: 'Applications', viewAll: true,
     items: [
-      { id: 'decisions', label: 'Decisions', icon: 'inbox',               tint: '#8b5cf6' },
-      { id: 'insights',  label: 'Insights',  icon: 'timeline-line-chart', tint: '#f59e0b' },
-      { id: 'studio',    label: 'Studio',    icon: 'build',               tint: '#3b82f6' },
+      { id: 'decisions', label: 'Decisions', icon: 'inbox' },
+      { id: 'insights',  label: 'Insights',  icon: 'timeline-line-chart' },
+      { id: 'studio',    label: 'Studio',    icon: 'build' },
     ],
   },
   {
@@ -83,12 +83,15 @@ export function FoundrySidebar({
   filesItems,
   badges,
   onViewAll,
+  accountMenu,
 }: {
   activeId?: string
   onSelect?: (id: string) => void
   accountInitials?: string
   /** Clicking a section's "View all" (by header). */
   onViewAll?: (header: string) => void
+  /** Popover menu for the bottom Account button (identity + sign out). */
+  accountMenu?: ReactElement
   /** id → live count, overrides an item's static badge (e.g. notifications). */
   badges?: Record<string, number>
   /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
@@ -102,6 +105,22 @@ export function FoundrySidebar({
   const [collapsed, setCollapsed] = useState(false)
   const pick = (id: string) => () => onSelect?.(id)
 
+  const accountBtn = (
+    <button
+      type="button"
+      onClick={accountMenu ? undefined : pick('account')}
+      className={cn(
+        'flex w-full items-center gap-3 px-4 py-2 text-[13px] transition-colors hover:bg-white/5',
+        collapsed && 'justify-center px-0',
+      )}
+    >
+      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3b5aa0] text-[10px] font-semibold text-white shrink-0">
+        {accountInitials}
+      </span>
+      {!collapsed && <span className="text-[#e7e9ee]">Account</span>}
+    </button>
+  )
+
   return (
     <aside
       className={cn(
@@ -111,7 +130,9 @@ export function FoundrySidebar({
     >
       {/* Orb + collapse toggle */}
       <div className={cn('flex items-center h-12 px-3 shrink-0', collapsed && 'justify-center px-0')}>
-        <span className="h-6 w-6 rounded-full bg-[conic-gradient(at_50%_50%,#f59e0b,#ec4899,#8b5cf6,#3b82f6,#22d3ee,#f59e0b)] shrink-0" />
+        <span className="flex h-6 w-6 items-center justify-center rounded bg-[#2d72d2] shrink-0">
+          <Icon icon="layers" size={13} color="#fff" />
+        </span>
         {!collapsed && (
           <button
             type="button"
@@ -168,19 +189,9 @@ export function FoundrySidebar({
         {BOTTOM.map((item) => (
           <RailRow key={item.id} item={{ ...item, badge: badges?.[item.id] ?? item.badge }} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
         ))}
-        <button
-          type="button"
-          onClick={pick('account')}
-          className={cn(
-            'flex w-full items-center gap-3 px-4 py-2 text-[13px] transition-colors hover:bg-white/5',
-            collapsed && 'justify-center px-0',
-          )}
-        >
-          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#3b5aa0] text-[10px] font-semibold text-white shrink-0">
-            {accountInitials}
-          </span>
-          {!collapsed && <span className="text-[#e7e9ee]">Account</span>}
-        </button>
+        {accountMenu
+          ? <Popover fill content={accountMenu} placement="right-end">{accountBtn}</Popover>
+          : accountBtn}
       </div>
     </aside>
   )
