@@ -135,6 +135,16 @@ const TYPE_CFG: Record<NotifType, {
     actionPath: '/mind?panel=contracts',
     actionLabel: 'View contracts →',
   },
+  integration_health: {
+    label: 'Data Feed',
+    layer: 'Mind',
+    icon: 'data-connection',
+    rowBg: 'bg-red-50/60 dark:bg-red-950/20',
+    iconColor: 'text-red-500',
+    tagIntent: Intent.DANGER,
+    actionPath: '/mind?aip=monitors',
+    actionLabel: 'View monitors →',
+  },
   approval: {
     label: 'Approval',
     layer: 'Flow',
@@ -160,7 +170,7 @@ const TYPE_CFG: Record<NotifType, {
 // Layer grouping for tab bar
 const LAYER_GROUPS: { layer: NotifLayer; types: NotifType[] }[] = [
   { layer: 'Eye',   types: ['predicted_outage', 'expiry', 'low_stock', 'waste_alert', 'consumption_spike', 'price_drift', 'pos_variance'] },
-  { layer: 'Mind',  types: ['po_discrepancy'] },
+  { layer: 'Mind',  types: ['po_discrepancy', 'contract_expiry', 'integration_health'] },
   { layer: 'Flow',  types: ['approval'] },
   { layer: 'Floor', types: ['system'] },
 ]
@@ -184,6 +194,7 @@ const TYPE_PRIORITY: Record<NotifType, number> = {
   po_discrepancy:    7,
   contract_expiry:   8,
   approval:          9,
+  integration_health: 9,
   system:           10,
 }
 

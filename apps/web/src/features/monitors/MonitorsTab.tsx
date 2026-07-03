@@ -17,6 +17,7 @@ import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
 import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
 import { useIntegrationHealth } from './useIntegrationHealth'
+import { useIntegrationHealthSweep } from './useIntegrationHealthSweep'
 
 type Monitors = OrgPolicy['monitors']
 
@@ -79,6 +80,7 @@ const HEALTH_META: Record<IntegrationHealthStatus, { intent: Intent; icon: IconN
 // what's watched and when it populates.
 function IntegrationHealthReadout({ enabled }: { enabled: boolean }) {
   const { hits, isLoading, isError, error } = useIntegrationHealth()
+  const sweep = useIntegrationHealthSweep()
 
   if (!enabled) return <p className="text-xs text-muted-foreground">Monitor off — connectors aren&apos;t being checked.</p>
   if (isLoading) {
@@ -94,26 +96,42 @@ function IntegrationHealthReadout({ enabled }: { enabled: boolean }) {
   }
 
   const sorted = [...hits].sort((a, b) => b.urgency - a.urgency)
+  const downCount = hits.filter((h) => h.status === 'down' || h.status === 'never').length
   return (
-    <div className="divide-y divide-border rounded border">
-      {sorted.map((h) => {
-        const meta = HEALTH_META[h.status]
-        return (
-          <div key={h.sourceKey} className="flex items-center justify-between gap-3 px-3 py-2">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="truncate text-sm font-medium">{h.label}</span>
-                <Tag minimal intent={meta.intent} icon={meta.icon}>{meta.label}</Tag>
+    <div className="space-y-2">
+      <div className="divide-y divide-border rounded border">
+        {sorted.map((h) => {
+          const meta = HEALTH_META[h.status]
+          return (
+            <div key={h.sourceKey} className="flex items-center justify-between gap-3 px-3 py-2">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium">{h.label}</span>
+                  <Tag minimal intent={meta.intent} icon={meta.icon}>{meta.label}</Tag>
+                </div>
+                <div className="text-[11px] text-muted-foreground">{h.detail}</div>
               </div>
-              <div className="text-[11px] text-muted-foreground">{h.detail}</div>
+              <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+                <div>{h.lastActivityAt ? formatDistanceToNow(new Date(h.lastActivityAt), { addSuffix: true }) : '—'}</div>
+                <div>{h.totalEvents.toLocaleString()} events</div>
+              </div>
             </div>
-            <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
-              <div>{h.lastActivityAt ? formatDistanceToNow(new Date(h.lastActivityAt), { addSuffix: true }) : '—'}</div>
-              <div>{h.totalEvents.toLocaleString()} events</div>
-            </div>
-          </div>
-        )
-      })}
+          )
+        })}
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="small" icon="notifications" loading={sweep.isPending} disabled={downCount === 0 || sweep.isPending}
+          text={downCount > 0 ? `Notify me — ${String(downCount)} feed${downCount === 1 ? '' : 's'} down` : 'All feeds reporting'}
+          onClick={() => { sweep.mutate() }} />
+        {sweep.data && (
+          <span className="text-xs text-muted-foreground">
+            {sweep.data.raised > 0
+              ? `${String(sweep.data.raised)} alert${sweep.data.raised === 1 ? '' : 's'} raised`
+              : sweep.data.actionable > 0 ? 'Already alerted' : 'Nothing to alert'}
+          </span>
+        )}
+        {sweep.isError && <span className="text-xs text-red-500">{sweep.error.message}</span>}
+      </div>
     </div>
   )
 }

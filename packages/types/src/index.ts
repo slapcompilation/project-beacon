@@ -403,7 +403,7 @@ export interface Notification {
   hotel_id: string
   user_id: string
   message: string
-  type: 'low_stock' | 'expiry' | 'approval' | 'system' | 'predicted_outage' | 'waste_alert' | 'consumption_spike' | 'price_drift' | 'pos_variance' | 'po_discrepancy' | 'contract_expiry'
+  type: 'low_stock' | 'expiry' | 'approval' | 'system' | 'predicted_outage' | 'waste_alert' | 'consumption_spike' | 'price_drift' | 'pos_variance' | 'po_discrepancy' | 'contract_expiry' | 'integration_health'
   timestamp: string
   read: boolean
   /** Operator feedback on why this was dismissed. Forms the intelligence feedback loop. */
