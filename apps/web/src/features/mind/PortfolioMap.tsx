@@ -1,9 +1,7 @@
 // Portfolio map — a pin per property on a real basemap (maplibre-gl), positioned
 // by lat/lng, sized by open signal load, click to drill into that hotel. maplibre
 // is dynamically imported so it's code-split out of the main bundle (only fetched
-// when the org-scope portfolio renders). Default style is a dark, muted basemap
-// (CARTO dark-matter, keyless) for a serious ops look; set VITE_MAP_STYLE_URL to
-// a MapTiler/Stadia style to override.
+// when the org-scope portfolio renders).
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card, Icon } from '@blueprintjs/core'
@@ -11,9 +9,18 @@ import type { Map as MaplibreMap, Marker as MaplibreMarker } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { PortfolioHotelSignal } from './portfolio'
 
-const MAP_STYLE =
-  (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
-  ?? 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+// Dark, muted basemaps for a serious ops look, tried in order until one loads.
+// CARTO dark-matter is the primary; OpenFreeMap dark is a keyless fallback on a
+// host that ad-blockers / CSPs don't commonly block — cartocdn.com sits on
+// several blocklists, so without a fallback a filtered client gets a black box.
+// The chain keeps the map active through that. VITE_MAP_STYLE_URL pins one style.
+const OVERRIDE = (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
+const MAP_STYLES = OVERRIDE
+  ? [OVERRIDE]
+  : [
+      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      'https://tiles.openfreemap.org/styles/dark',
+    ]
 
 // Restrained Blueprint (Palantir) palette on the dark basemap: neutral gray for
 // state-of-play, the one warm intent (orange = warning) reserved for the thing
@@ -76,9 +83,11 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
     const markers: MaplibreMarker[] = []
     setStatus('loading')
 
+    let styleIdx = 0
+
     void import('maplibre-gl').then(({ default: maplibregl }) => {
       if (cancelled) return
-      map = new maplibregl.Map({ container, style: MAP_STYLE, attributionControl: { compact: true } })
+      map = new maplibregl.Map({ container, style: MAP_STYLES[0], attributionControl: { compact: true } })
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
       const bounds = new maplibregl.LngLatBounds()
       for (const h of located) {
@@ -89,13 +98,21 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
             .setLngLat(lngLat).addTo(map),
         )
       }
+      // Markers are independent of the style, so they survive a setStyle swap.
       map.on('load', () => { loaded = true; setStatus('ok'); map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
       // maplibre reports style/tile failures on this event, NOT via the import
-      // promise — without it a blocked basemap CDN (ad-blocker / CSP) or offline
-      // tiles fail as a silent black box. A pre-load error is fatal to the render.
+      // promise. On a pre-load failure (blocked CDN / CSP / offline) fall through
+      // to the next style; only give up — with a visible message, not a black
+      // box — once every basemap in the chain has failed.
       map.on('error', (e) => {
         console.error('[PortfolioMap] basemap error:', (e as { error?: Error }).error?.message ?? e)
-        if (!loaded && !cancelled) setStatus('error')
+        if (loaded || cancelled) return
+        if (styleIdx < MAP_STYLES.length - 1) {
+          styleIdx += 1
+          map?.setStyle(MAP_STYLES[styleIdx])
+        } else {
+          setStatus('error')
+        }
       })
     }).catch((err: unknown) => {
       console.error('[PortfolioMap] failed to load maplibre-gl:', err)
