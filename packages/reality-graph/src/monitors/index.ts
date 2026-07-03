@@ -10,6 +10,7 @@
 import type { BeaconAction } from '../actions/index'
 import type {
   ExpiryMonitorConfig, StockoutMonitorConfig, WasteMonitorConfig, SupplierMonitorConfig,
+  IntegrationHealthConfig,
 } from '../policy/index'
 
 export interface ExpiryBatch {
@@ -212,6 +213,122 @@ export function selectSupplierTriggers(
     hits.push({ ...r, urgency: supplierUrgency(r.reliabilityScore) })
   }
   return hits.sort((a, b) => b.urgency - a.urgency)
+}
+
+// ── Data-integration health band ────────────────────────────────────────────
+// Foundry-style connector + pipeline freshness, made tunable. The METRIC is the
+// age of each source's last activity (and, for the document pipeline, how long
+// its oldest un-processed item has waited); the TRIGGER is the operator's SLA in
+// org policy. This replaces the hardcoded 2h/24h buried inside get_pms_health /
+// get_pos_health, and extends coverage to the document-ingestion pipeline, which
+// had none.
+
+export type IntegrationHealthStatus = 'fresh' | 'stale' | 'down' | 'never'
+export type IntegrationSourceKind = 'pms' | 'pos' | 'documents'
+
+export interface IntegrationSourceReading {
+  /** Stable id, e.g. 'pms:mews', 'pos:square', 'documents'. */
+  sourceKey: string
+  label: string
+  kind: IntegrationSourceKind
+  /** ISO ts of the last data this source fed us; null = never fed. Live feeds
+   *  (PMS/POS) are judged on this. */
+  lastActivityAt: string | null
+  totalEvents: number
+  /** documents: items still waiting for the pipeline's first step. */
+  pendingCount?: number
+  /** documents: ISO ts of the oldest still-waiting item — the stall signal. */
+  oldestPendingAt?: string | null
+}
+
+export interface IntegrationHealthHit extends IntegrationSourceReading {
+  status: IntegrationHealthStatus
+  /** Minutes since the signal the status is based on; null when never fed. */
+  staleMinutes: number | null
+  /** 0–10. down = 10, never = 8, stale scales toward the down edge, fresh = 0. */
+  urgency: number
+  detail: string
+}
+
+/** The metric applied to the tunable trigger for one source. Live feeds go by
+ *  last-activity age; the document pipeline goes by how long its oldest item has
+ *  waited (uploads are sporadic, so idle-age would false-fire — a backlog that
+ *  isn't draining is the real signal). */
+export function classifyIntegrationHealth(
+  reading: IntegrationSourceReading,
+  rule: IntegrationHealthConfig,
+  now: number = Date.now(),
+): IntegrationHealthHit {
+  if (reading.kind === 'documents') {
+    const pending = reading.pendingCount ?? 0
+    const waited = minutesSince(reading.oldestPendingAt ?? null, now)
+    if (pending === 0 || waited == null) {
+      return healthHit(reading, 'fresh', waited, 0, pending === 0 ? 'No backlog' : `${String(pending)} in flight`)
+    }
+    if (waited >= rule.stuck_ingest_after_minutes * 2) {
+      return healthHit(reading, 'down', waited, 10, `${String(pending)} awaiting processing, oldest ${humanAge(waited)}`)
+    }
+    if (waited >= rule.stuck_ingest_after_minutes) {
+      const u = staleUrgency(waited, rule.stuck_ingest_after_minutes, rule.stuck_ingest_after_minutes * 2)
+      return healthHit(reading, 'stale', waited, u, `${String(pending)} awaiting processing, oldest ${humanAge(waited)}`)
+    }
+    return healthHit(reading, 'fresh', waited, 0, `${String(pending)} in flight`)
+  }
+
+  const age = minutesSince(reading.lastActivityAt, now)
+  if (age == null)                        return healthHit(reading, 'never', null, 8, 'No data received yet')
+  if (age >= rule.down_after_minutes)     return healthHit(reading, 'down', age, 10, `No data for ${humanAge(age)}`)
+  if (age >= rule.warn_after_minutes) {
+    const u = staleUrgency(age, rule.warn_after_minutes, rule.down_after_minutes)
+    return healthHit(reading, 'stale', age, u, `Last data ${humanAge(age)} ago`)
+  }
+  return healthHit(reading, 'fresh', age, 0, `Last data ${humanAge(age)} ago`)
+}
+
+/** The trigger: the sources whose health has slipped, worst first. Disabled rule
+ *  → nothing. Fresh sources are dropped — this is the "what fires" list; the UI
+ *  maps classifyIntegrationHealth over every source for the full readout. */
+export function selectIntegrationHealthAlerts(
+  readings: ReadonlyArray<IntegrationSourceReading>,
+  rule: IntegrationHealthConfig,
+  now: number = Date.now(),
+): IntegrationHealthHit[] {
+  if (!rule.enabled) return []
+  return readings
+    .map((r) => classifyIntegrationHealth(r, rule, now))
+    .filter((h) => h.status !== 'fresh')
+    .sort((a, b) => b.urgency - a.urgency)
+}
+
+function healthHit(
+  reading: IntegrationSourceReading,
+  status: IntegrationHealthStatus,
+  staleMinutes: number | null,
+  urgency: number,
+  detail: string,
+): IntegrationHealthHit {
+  return { ...reading, status, staleMinutes, urgency, detail }
+}
+
+function minutesSince(iso: string | null, nowMs: number): number | null {
+  if (!iso) return null
+  const t = Date.parse(iso)
+  if (Number.isNaN(t)) return null
+  return Math.max(0, Math.round((nowMs - t) / 60000))
+}
+
+/** Linear 1→9 across the [warn, down] window; capped just below a fired 'down'. */
+function staleUrgency(minutes: number, warn: number, down: number): number {
+  if (down <= warn) return 5
+  const ratio = (minutes - warn) / (down - warn)
+  return clamp(Math.round(ratio * 8) + 1, 1, 9)
+}
+
+function humanAge(minutes: number): string {
+  if (minutes < 60) return `${String(minutes)}m`
+  const hours = minutes / 60
+  if (hours < 48) return `${String(Math.round(hours))}h`
+  return `${String(Math.round(hours / 24))}d`
 }
 
 function clamp(n: number, lo: number, hi: number): number {

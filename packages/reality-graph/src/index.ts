@@ -370,7 +370,7 @@ export type {
 } from './constraints/index'
 
 export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy } from './policy/index'
-export type { OrgPolicy, ExpiryMonitorConfig } from './policy/index'
+export type { OrgPolicy, ExpiryMonitorConfig, IntegrationHealthConfig } from './policy/index'
 
 export {
   selectExpiryTriggers,
@@ -382,12 +382,16 @@ export {
   selectWasteTriggers,
   selectSupplierTriggers,
   supplierUrgency,
+  classifyIntegrationHealth,
+  selectIntegrationHealthAlerts,
 } from './monitors/index'
 export type {
   ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult,
   StockoutReading, StockoutHit,
   WasteReading, WasteHit,
   SupplierReading, SupplierHit,
+  IntegrationSourceReading, IntegrationHealthHit,
+  IntegrationHealthStatus, IntegrationSourceKind,
 } from './monitors/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'

@@ -48,6 +48,22 @@ export interface SupplierMonitorConfig {
   max_reliability_score: number
 }
 
+/** Data-integration health SLA. The metric (minutes since a connector last fed
+ *  us; how long the document pipeline's oldest un-processed item has waited) is
+ *  deterministic; these are the tunable thresholds that used to be hardcoded as
+ *  2h/24h inside get_pms_health / get_pos_health. */
+export interface IntegrationHealthConfig {
+  enabled: boolean
+  /** A live feed (PMS/POS) is 'stale' once this many minutes pass with no new
+   *  data. Default 120 (the old hardcoded 2h). */
+  warn_after_minutes: number
+  /** …and 'down' past this many minutes. Default 1440 (the old 24h). */
+  down_after_minutes: number
+  /** A document left waiting to be processed longer than this counts the
+   *  ingestion pipeline as stalled. Default 720 (12h). */
+  stuck_ingest_after_minutes: number
+}
+
 export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
@@ -94,6 +110,8 @@ export interface OrgPolicy {
     stockout: StockoutMonitorConfig
     waste: WasteMonitorConfig
     supplier: SupplierMonitorConfig
+    /** Connector + ingestion-pipeline freshness (Foundry health-checks parity). */
+    integration: IntegrationHealthConfig
   }
 }
 
@@ -126,6 +144,7 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     stockout: { enabled: true, threshold_days: 14 },
     waste:    { enabled: true, min_anomaly_score: 1 },
     supplier: { enabled: true, max_reliability_score: 6 },
+    integration: { enabled: true, warn_after_minutes: 120, down_after_minutes: 1440, stuck_ingest_after_minutes: 720 },
   },
 }
 
@@ -149,10 +168,11 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     supplier_reliability: { ...DEFAULT_ORG_POLICY.supplier_reliability },
     caps:                 { ...DEFAULT_ORG_POLICY.caps },
     monitors: {
-      expiry:   { ...DEFAULT_ORG_POLICY.monitors.expiry },
-      stockout: { ...DEFAULT_ORG_POLICY.monitors.stockout },
-      waste:    { ...DEFAULT_ORG_POLICY.monitors.waste },
-      supplier: { ...DEFAULT_ORG_POLICY.monitors.supplier },
+      expiry:      { ...DEFAULT_ORG_POLICY.monitors.expiry },
+      stockout:    { ...DEFAULT_ORG_POLICY.monitors.stockout },
+      waste:       { ...DEFAULT_ORG_POLICY.monitors.waste },
+      supplier:    { ...DEFAULT_ORG_POLICY.monitors.supplier },
+      integration: { ...DEFAULT_ORG_POLICY.monitors.integration },
     },
   }
 
@@ -228,6 +248,14 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       const m = merged.monitors.supplier
       if (typeof sup.enabled               === 'boolean') m.enabled               = sup.enabled
       if (typeof sup.max_reliability_score === 'number')  m.max_reliability_score = clamp(sup.max_reliability_score, 0, 10)
+    }
+    if (isObj(mo.integration)) {
+      const ig = mo.integration as Record<string, unknown>
+      const m = merged.monitors.integration
+      if (typeof ig.enabled                    === 'boolean') m.enabled                    = ig.enabled
+      if (typeof ig.warn_after_minutes         === 'number')  m.warn_after_minutes         = clamp(Math.round(ig.warn_after_minutes), 1, 43200)
+      if (typeof ig.down_after_minutes         === 'number')  m.down_after_minutes         = clamp(Math.round(ig.down_after_minutes), 1, 43200)
+      if (typeof ig.stuck_ingest_after_minutes === 'number')  m.stuck_ingest_after_minutes = clamp(Math.round(ig.stuck_ingest_after_minutes), 1, 43200)
     }
   }
 
