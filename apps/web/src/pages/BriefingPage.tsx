@@ -20,6 +20,9 @@ import { useScopeMode } from '@/hooks/useActiveOrgId'
 import { useHasOrgScope } from '@/features/organizations/hooks'
 import { useCurrency } from '@/hooks/useCurrency'
 import { PortfolioCommandHome } from '@/features/mind/PortfolioCommandHome'
+import { PortfolioMap } from '@/features/mind/PortfolioMap'
+import type { PortfolioHotelSignal } from '@/features/mind/portfolio'
+import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import type { AipTab } from '@/features/mind/AIPShell'
 
 import { SituationBanner } from '@/features/briefing/components/SituationBanner'
@@ -66,6 +69,30 @@ function HotelBriefing() {
   const role          = useAuthStore((s) => s.role ?? 'limited_access')
   const captureSnap   = useCaptureSnapshot()
   const { data: history = [] } = useIntelligenceHistory(30)
+  const { data: aipCounts } = useAipSignalCounts()
+
+  // This property on the geographic map — same basemap + tile-free fallback as
+  // the org portfolio, one pin. Coords live in hotels.config ({lat,lng}); no
+  // coords → the map is skipped and the zone map below still shows.
+  const cfg  = (activeHotel?.config ?? {}) as { lat?: number | string; lng?: number | string }
+  const hLat = cfg.lat != null ? Number(cfg.lat) : NaN
+  const hLng = cfg.lng != null ? Number(cfg.lng) : NaN
+  const locationPins: PortfolioHotelSignal[] =
+    activeHotel && Number.isFinite(hLat) && Number.isFinite(hLng)
+      ? [{
+          hotel_id:             activeHotel.id,
+          hotel_name:           activeHotel.name,
+          queue_pending:        aipCounts?.queue ?? 0,
+          approvals_pending:    aipCounts?.approvals ?? 0,
+          entity_links_pending: aipCounts?.entityLinks ?? 0,
+          cases_open:           aipCounts?.casesOpen ?? 0,
+          last_cycle_at:        null,
+          last_cycle_auto:      0,
+          last_cycle_queued:    0,
+          lat: hLat,
+          lng: hLng,
+        }]
+      : []
 
   // Auto-capture snapshot once per day on mount (server is idempotent; client guards too)
   useEffect(() => {
@@ -143,6 +170,7 @@ function HotelBriefing() {
           <SituationBanner />
           <SituationTimeline />
           <ProposalsPanel currency={currency} />
+          {locationPins.length > 0 && <PortfolioMap hotels={locationPins} title="Location" onHop={() => { /* already on this property */ }} />}
           <HotelMap />
           <DecisionFeed currency={currency} />
           <ShiftActivity
