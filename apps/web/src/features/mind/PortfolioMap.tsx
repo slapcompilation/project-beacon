@@ -84,6 +84,7 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
     setStatus('loading')
 
     let styleIdx = 0
+    let loadTimer: ReturnType<typeof setTimeout> | undefined
 
     void import('maplibre-gl').then(({ default: maplibregl }) => {
       if (cancelled) return
@@ -98,12 +99,18 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
             .setLngLat(lngLat).addTo(map),
         )
       }
+      // Belt-and-suspenders: blocked tile hosts sometimes hang without emitting
+      // an `error`, which would leave a black box forever. If nothing has loaded
+      // in time, fall back to the tile-free pin map.
+      loadTimer = setTimeout(() => {
+        if (!loaded && !cancelled) { console.warn('[PortfolioMap] basemap did not load in time — using offline pin map'); setStatus('error') }
+      }, 8000)
       // Markers are independent of the style, so they survive a setStyle swap.
-      map.on('load', () => { loaded = true; setStatus('ok'); map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
+      map.on('load', () => { loaded = true; if (loadTimer) clearTimeout(loadTimer); setStatus('ok'); map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
       // maplibre reports style/tile failures on this event, NOT via the import
       // promise. On a pre-load failure (blocked CDN / CSP / offline) fall through
-      // to the next style; only give up — with a visible message, not a black
-      // box — once every basemap in the chain has failed.
+      // to the next style; once the whole chain fails, render the tile-free SVG
+      // pin map — never a black box.
       map.on('error', (e) => {
         console.error('[PortfolioMap] basemap error:', (e as { error?: Error }).error?.message ?? e)
         if (loaded || cancelled) return
@@ -121,6 +128,7 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
 
     return () => {
       cancelled = true
+      if (loadTimer) clearTimeout(loadTimer)
       markers.forEach((m) => { m.remove() })
       map?.remove()
     }
@@ -154,11 +162,14 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
       <div className="relative h-80 w-full" style={{ background: '#111418' }}>
         <div ref={containerRef} className="absolute inset-0" />
         {status === 'error' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-4 text-center">
-            <Icon icon="offline" size={16} className="text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Basemap couldn’t load — likely a blocked tile host (ad-blocker / CSP) or no network.</span>
-            <span className="text-[11px] text-muted-foreground/70">Properties are still listed below. Set <code>VITE_MAP_STYLE_URL</code> to use a different basemap.</span>
-          </div>
+          <>
+            {/* Tile hosts blocked/unreachable → the tile-free pin map so the
+                portfolio is never a black box. */}
+            <SvgPinMap hotels={located} onHop={onHop} />
+            <div className="absolute left-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] text-muted-foreground" title="Basemap tiles blocked or unreachable — showing a tile-free map. Set VITE_MAP_STYLE_URL to use a specific basemap.">
+              offline map
+            </div>
+          </>
         )}
       </div>
 
@@ -168,6 +179,45 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
         </div>
       )}
     </Card>
+  )
+}
+
+// Tile-free fallback: pins on a plain graticule, no external basemap. Keeps the
+// portfolio map usable when every tile host is blocked (corporate proxy / CSP /
+// offline). Equirectangular fit to the located properties' bounding box.
+function SvgPinMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]; onHop: (hotelId: string) => void }) {
+  const W = 1000, H = 500, PAD = 64
+  const bounds = (vals: number[]): [number, number] => {
+    const lo = Math.min(...vals), hi = Math.max(...vals)
+    return hi - lo > 0.02 ? [lo, hi] : [(lo + hi) / 2 - 1, (lo + hi) / 2 + 1]
+  }
+  const [minLng, maxLng] = bounds(hotels.map((h) => h.lng as number))
+  const [minLat, maxLat] = bounds(hotels.map((h) => h.lat as number))
+  const project = (lng: number, lat: number): [number, number] => [
+    PAD + ((lng - minLng) / (maxLng - minLng)) * (W - 2 * PAD),
+    PAD + ((maxLat - lat) / (maxLat - minLat)) * (H - 2 * PAD),
+  ]
+  return (
+    <svg viewBox={`0 0 ${String(W)} ${String(H)}`} preserveAspectRatio="xMidYMid meet" className="absolute inset-0 h-full w-full">
+      {[0.25, 0.5, 0.75].map((f) => (
+        <g key={f} stroke="#242a33" strokeWidth={1}>
+          <line x1={f * W} y1={0} x2={f * W} y2={H} />
+          <line x1={0} y1={f * H} x2={W} y2={f * H} />
+        </g>
+      ))}
+      {hotels.map((h) => {
+        const [x, y] = project(h.lng as number, h.lat as number)
+        const load = signalLoad(h)
+        const r = 9 + Math.min(9, load * 1.5)
+        return (
+          <g key={h.hotel_id} transform={`translate(${String(x)},${String(y)})`} className="cursor-pointer" onClick={() => { onHop(h.hotel_id) }}>
+            <circle r={r} fill={pinColor(h)} stroke="#111418" strokeWidth={1.5} />
+            {load > 0 && <text textAnchor="middle" dy="0.35em" fontSize={11} fontWeight={700} fill="#1C2127">{String(load)}</text>}
+            <text textAnchor="middle" y={r + 14} fontSize={12} fontWeight={600} fill="#C5CBD3">{h.hotel_name}</text>
+          </g>
+        )
+      })}
+    </svg>
   )
 }
 
