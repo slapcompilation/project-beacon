@@ -5,7 +5,7 @@
 // (CARTO dark-matter, keyless) for a serious ops look; set VITE_MAP_STYLE_URL to
 // a MapTiler/Stadia style to override.
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Card, Icon } from '@blueprintjs/core'
 import type { Map as MaplibreMap, Marker as MaplibreMarker } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -65,13 +65,16 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
   const containerRef = useRef<HTMLDivElement>(null)
   const onHopRef = useRef(onHop)
   onHopRef.current = onHop
+  const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
 
   useEffect(() => {
     const container = containerRef.current
     if (located.length === 0 || !container) return
     let cancelled = false
+    let loaded = false
     let map: MaplibreMap | undefined
     const markers: MaplibreMarker[] = []
+    setStatus('loading')
 
     void import('maplibre-gl').then(({ default: maplibregl }) => {
       if (cancelled) return
@@ -86,8 +89,18 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
             .setLngLat(lngLat).addTo(map),
         )
       }
-      map.on('load', () => { map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
-    }).catch(() => { /* lib/tiles unavailable — the container stays blank, tiles below still list hotels */ })
+      map.on('load', () => { loaded = true; setStatus('ok'); map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
+      // maplibre reports style/tile failures on this event, NOT via the import
+      // promise — without it a blocked basemap CDN (ad-blocker / CSP) or offline
+      // tiles fail as a silent black box. A pre-load error is fatal to the render.
+      map.on('error', (e) => {
+        console.error('[PortfolioMap] basemap error:', (e as { error?: Error }).error?.message ?? e)
+        if (!loaded && !cancelled) setStatus('error')
+      })
+    }).catch((err: unknown) => {
+      console.error('[PortfolioMap] failed to load maplibre-gl:', err)
+      if (!cancelled) setStatus('error')
+    })
 
     return () => {
       cancelled = true
@@ -121,7 +134,16 @@ export function PortfolioMap({ hotels, onHop }: { hotels: PortfolioHotelSignal[]
         </div>
       </div>
 
-      <div ref={containerRef} className="h-80 w-full" style={{ background: '#111418' }} />
+      <div className="relative h-80 w-full" style={{ background: '#111418' }}>
+        <div ref={containerRef} className="absolute inset-0" />
+        {status === 'error' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-4 text-center">
+            <Icon icon="offline" size={16} className="text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">Basemap couldn’t load — likely a blocked tile host (ad-blocker / CSP) or no network.</span>
+            <span className="text-[11px] text-muted-foreground/70">Properties are still listed below. Set <code>VITE_MAP_STYLE_URL</code> to use a different basemap.</span>
+          </div>
+        )}
+      </div>
 
       {unlocated > 0 && (
         <div className="px-4 py-1.5 text-[11px] text-muted-foreground border-t">
