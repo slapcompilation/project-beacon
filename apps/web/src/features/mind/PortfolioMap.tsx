@@ -85,11 +85,17 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
 
     let styleIdx = 0
     let loadTimer: ReturnType<typeof setTimeout> | undefined
+    let tileCheck: ReturnType<typeof setTimeout> | undefined
+    let tilePainted = false
 
     void import('maplibre-gl').then(({ default: maplibregl }) => {
       if (cancelled) return
       map = new maplibregl.Map({ container, style: MAP_STYLES[0], attributionControl: { compact: true } })
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+      // Any real tile that paints flips this true. An ad-blocker / proxy that
+      // blocks the tile host (but not the style) never sets it — see the
+      // post-load check below.
+      map.on('data', (e) => { if ((e as { tile?: unknown }).tile) tilePainted = true })
       const bounds = new maplibregl.LngLatBounds()
       for (const h of located) {
         const lngLat: [number, number] = [h.lng as number, h.lat as number]
@@ -106,7 +112,22 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
         if (!loaded && !cancelled) { console.warn('[PortfolioMap] basemap did not load in time — using offline pin map'); setStatus('error') }
       }, 8000)
       // Markers are independent of the style, so they survive a setStyle swap.
-      map.on('load', () => { loaded = true; if (loadTimer) clearTimeout(loadTimer); setStatus('ok'); map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 }) })
+      map.on('load', () => {
+        loaded = true
+        if (loadTimer) clearTimeout(loadTimer)
+        setStatus('ok')
+        map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 })
+        // The style loaded, but an ad-blocker can still silently block the TILE
+        // host (a different subdomain) — 'load' fires, no 'error', canvas stays
+        // black. If no tile has actually painted shortly after, fall through to
+        // the SVG pin map. This is the case that was leaving it black.
+        tileCheck = setTimeout(() => {
+          if (!cancelled && !tilePainted) {
+            console.warn('[PortfolioMap] style loaded but no tiles rendered (blocked?) — using offline pin map')
+            setStatus('error')
+          }
+        }, 5000)
+      })
       // maplibre reports style/tile failures on this event, NOT via the import
       // promise. On a pre-load failure (blocked CDN / CSP / offline) fall through
       // to the next style; once the whole chain fails, render the tile-free SVG
@@ -129,6 +150,7 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
     return () => {
       cancelled = true
       if (loadTimer) clearTimeout(loadTimer)
+      if (tileCheck) clearTimeout(tileCheck)
       markers.forEach((m) => { m.remove() })
       map?.remove()
     }
