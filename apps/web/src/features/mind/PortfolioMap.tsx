@@ -9,18 +9,16 @@ import type { Map as MaplibreMap, Marker as MaplibreMarker } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { PortfolioHotelSignal } from './portfolio'
 
-// Dark, muted basemaps for a serious ops look, tried in order until one loads.
-// CARTO dark-matter is the primary; OpenFreeMap dark is a keyless fallback on a
-// host that ad-blockers / CSPs don't commonly block — cartocdn.com sits on
-// several blocklists, so without a fallback a filtered client gets a black box.
-// The chain keeps the map active through that. VITE_MAP_STYLE_URL pins one style.
+// Real street basemaps live on external tile CDNs that corporate networks, CSPs,
+// VPNs, and every ad-blocker (Brave Shields, uBlock, AdBlock) routinely block —
+// which left the map a black box for those users. So the DEFAULT is the
+// dependency-free SVG pin map below, which needs zero network and always renders.
+// A real maplibre basemap is opt-in: set VITE_MAP_STYLE_URL to a style you trust
+// (e.g. a keyed MapTiler/Stadia dark style, or a self-hosted one) and the map
+// upgrades to it — still falling back to the SVG if that style is blocked too.
 const OVERRIDE = (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
-const MAP_STYLES = OVERRIDE
-  ? [OVERRIDE]
-  : [
-      'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-      'https://tiles.openfreemap.org/styles/dark',
-    ]
+const MAP_STYLES = OVERRIDE ? [OVERRIDE] : []
+const MAP_TILES = MAP_STYLES.length > 0
 
 // Restrained Blueprint (Palantir) palette on the dark basemap: neutral gray for
 // state-of-play, the one warm intent (orange = warning) reserved for the thing
@@ -76,7 +74,8 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
 
   useEffect(() => {
     const container = containerRef.current
-    if (located.length === 0 || !container) return
+    // No configured basemap → SVG-only mode, skip maplibre entirely.
+    if (!MAP_TILES || located.length === 0 || !container) return
     let cancelled = false
     let loaded = false
     let map: MaplibreMap | undefined
@@ -182,16 +181,15 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
       </div>
 
       <div className="relative h-80 w-full" style={{ background: '#111418' }}>
-        <div ref={containerRef} className="absolute inset-0" />
-        {status === 'error' && (
-          <>
-            {/* Tile hosts blocked/unreachable → the tile-free pin map so the
-                portfolio is never a black box. */}
-            <SvgPinMap hotels={located} onHop={onHop} />
-            <div className="absolute left-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] text-muted-foreground" title="Basemap tiles blocked or unreachable — showing a tile-free map. Set VITE_MAP_STYLE_URL to use a specific basemap.">
-              offline map
-            </div>
-          </>
+        {/* Real basemap only when one is configured; otherwise the SVG renders
+            straight away. When a configured basemap fails/gets blocked, status
+            flips to 'error' and the SVG takes over — never a black box. */}
+        {MAP_TILES && <div ref={containerRef} className="absolute inset-0" />}
+        {(!MAP_TILES || status === 'error') && <SvgPinMap hotels={located} onHop={onHop} />}
+        {MAP_TILES && status === 'error' && (
+          <div className="absolute left-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] text-muted-foreground" title="Basemap tiles blocked or unreachable — showing a tile-free map. Set VITE_MAP_STYLE_URL to a basemap you trust.">
+            offline map
+          </div>
         )}
       </div>
 
