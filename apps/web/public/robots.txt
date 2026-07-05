@@ -1,0 +1,4 @@
+# Beacon is a private, auth-gated operations app — nothing here is meant for
+# search indexing. Set Disallow to blank if a public marketing route is added.
+User-agent: *
+Disallow: /
