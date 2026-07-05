@@ -23,6 +23,14 @@ const OVERRIDE = env.VITE_MAP_STYLE_URL
 /** True when a real basemap is configured; otherwise the map runs SVG-only. */
 export const MAP_TILES = !!PMTILES_URL || !!OVERRIDE
 
+/** Deepest zoom with real data. Our hosted planet extract stops at z8 — zooming
+ *  the camera past it overzooms into a near-empty dark canvas that reads as
+ *  "map didn't load". Bump VITE_BASEMAP_MAXZOOM when deeper tiles are uploaded.
+ *  External override styles are assumed street-level. */
+export const BASEMAP_MAX_ZOOM = PMTILES_URL
+  ? Number(env.VITE_BASEMAP_MAXZOOM ?? 8)
+  : 14
+
 /** The style maplibre should load: our self-hosted Protomaps dark basemap when a
  *  PMTiles URL is set, else an explicit VITE_MAP_STYLE_URL, else null (SVG mode). */
 export async function buildMapStyle(): Promise<string | StyleSpecification | null> {

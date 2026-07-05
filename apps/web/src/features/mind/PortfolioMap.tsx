@@ -12,7 +12,7 @@ import type { PortfolioHotelSignal } from './portfolio'
 // ./basemap) so no ad-blocker / Shields / CSP / proxy can block it. With no
 // basemap configured, the map renders the dependency-free SVG pin map below —
 // zero network, always renders, never black.
-import { MAP_TILES, PMTILES_URL, buildMapStyle } from './basemap'
+import { BASEMAP_MAX_ZOOM, MAP_TILES, PMTILES_URL, buildMapStyle } from './basemap'
 
 // The pmtiles:// protocol is a global maplibre registration — do it once.
 let pmtilesRegistered = false
@@ -127,7 +127,9 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
         loaded = true
         if (loadTimer) clearTimeout(loadTimer)
         setStatus('ok')
-        map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 })
+        // Cap the camera at the data's max zoom — overzooming past it renders a
+        // near-empty dark canvas that looks like a load failure.
+        map?.fitBounds(bounds, { padding: 56, maxZoom: BASEMAP_MAX_ZOOM, duration: 0 })
         // Style loaded but the TILE host may be blocked (a different subdomain):
         // 'load' fires, no 'error', canvas stays black. If no tile actually
         // painted shortly after, fall through to the SVG pin map.
