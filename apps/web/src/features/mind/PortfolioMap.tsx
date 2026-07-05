@@ -8,17 +8,14 @@ import { Card, Icon } from '@blueprintjs/core'
 import type { Map as MaplibreMap, Marker as MaplibreMarker } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { PortfolioHotelSignal } from './portfolio'
+// A real basemap comes from OUR OWN domain (Protomaps PMTiles on Supabase, see
+// ./basemap) so no ad-blocker / Shields / CSP / proxy can block it. With no
+// basemap configured, the map renders the dependency-free SVG pin map below —
+// zero network, always renders, never black.
+import { MAP_TILES, PMTILES_URL, buildMapStyle } from './basemap'
 
-// Real street basemaps live on external tile CDNs that corporate networks, CSPs,
-// VPNs, and every ad-blocker (Brave Shields, uBlock, AdBlock) routinely block —
-// which left the map a black box for those users. So the DEFAULT is the
-// dependency-free SVG pin map below, which needs zero network and always renders.
-// A real maplibre basemap is opt-in: set VITE_MAP_STYLE_URL to a style you trust
-// (e.g. a keyed MapTiler/Stadia dark style, or a self-hosted one) and the map
-// upgrades to it — still falling back to the SVG if that style is blocked too.
-const OVERRIDE = (import.meta.env as unknown as Record<string, string | undefined>).VITE_MAP_STYLE_URL
-const MAP_STYLES = OVERRIDE ? [OVERRIDE] : []
-const MAP_TILES = MAP_STYLES.length > 0
+// The pmtiles:// protocol is a global maplibre registration — do it once.
+let pmtilesRegistered = false
 
 // Restrained Blueprint (Palantir) palette on the dark basemap: neutral gray for
 // state-of-play, the one warm intent (orange = warning) reserved for the thing
@@ -82,18 +79,26 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
     const markers: MaplibreMarker[] = []
     setStatus('loading')
 
-    let styleIdx = 0
     let loadTimer: ReturnType<typeof setTimeout> | undefined
     let tileCheck: ReturnType<typeof setTimeout> | undefined
     let tilePainted = false
 
-    void import('maplibre-gl').then(({ default: maplibregl }) => {
-      if (cancelled) return
-      map = new maplibregl.Map({ container, style: MAP_STYLES[0], attributionControl: { compact: true } })
+    void import('maplibre-gl').then(async ({ default: maplibregl }) => {
+      // Register the pmtiles:// protocol once, so the self-hosted single-file
+      // basemap resolves via HTTP range requests.
+      if (PMTILES_URL && !pmtilesRegistered) {
+        const { Protocol } = await import('pmtiles')
+        maplibregl.addProtocol('pmtiles', new Protocol().tile)
+        pmtilesRegistered = true
+      }
+      const style = await buildMapStyle()
+      // cancelled can flip during the awaits above (unmount) — guard before init.
+      if (cancelled || !style) return
+
+      map = new maplibregl.Map({ container, style, attributionControl: { compact: true } })
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
-      // Any real tile that paints flips this true. An ad-blocker / proxy that
-      // blocks the tile host (but not the style) never sets it — see the
-      // post-load check below.
+      // Any real tile that paints flips this true. If the tile host is blocked
+      // but the style loads, this stays false — see the post-load check.
       map.on('data', (e) => { if ((e as { tile?: unknown }).tile) tilePainted = true })
       const bounds = new maplibregl.LngLatBounds()
       for (const h of located) {
@@ -104,22 +109,18 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
             .setLngLat(lngLat).addTo(map),
         )
       }
-      // Belt-and-suspenders: blocked tile hosts sometimes hang without emitting
-      // an `error`, which would leave a black box forever. If nothing has loaded
-      // in time, fall back to the tile-free pin map.
+      // If nothing loads in time (host hangs without an error), fall back.
       loadTimer = setTimeout(() => {
         if (!loaded && !cancelled) { console.warn('[PortfolioMap] basemap did not load in time — using offline pin map'); setStatus('error') }
       }, 8000)
-      // Markers are independent of the style, so they survive a setStyle swap.
       map.on('load', () => {
         loaded = true
         if (loadTimer) clearTimeout(loadTimer)
         setStatus('ok')
         map?.fitBounds(bounds, { padding: 56, maxZoom: 11, duration: 0 })
-        // The style loaded, but an ad-blocker can still silently block the TILE
-        // host (a different subdomain) — 'load' fires, no 'error', canvas stays
-        // black. If no tile has actually painted shortly after, fall through to
-        // the SVG pin map. This is the case that was leaving it black.
+        // Style loaded but the TILE host may be blocked (a different subdomain):
+        // 'load' fires, no 'error', canvas stays black. If no tile actually
+        // painted shortly after, fall through to the SVG pin map.
         tileCheck = setTimeout(() => {
           if (!cancelled && !tilePainted) {
             console.warn('[PortfolioMap] style loaded but no tiles rendered (blocked?) — using offline pin map')
@@ -127,19 +128,10 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
           }
         }, 5000)
       })
-      // maplibre reports style/tile failures on this event, NOT via the import
-      // promise. On a pre-load failure (blocked CDN / CSP / offline) fall through
-      // to the next style; once the whole chain fails, render the tile-free SVG
-      // pin map — never a black box.
+      // Pre-load failure (blocked / offline / bad style) → the SVG pin map.
       map.on('error', (e) => {
         console.error('[PortfolioMap] basemap error:', (e as { error?: Error }).error?.message ?? e)
-        if (loaded || cancelled) return
-        if (styleIdx < MAP_STYLES.length - 1) {
-          styleIdx += 1
-          map?.setStyle(MAP_STYLES[styleIdx])
-        } else {
-          setStatus('error')
-        }
+        if (!loaded && !cancelled) setStatus('error')
       })
     }).catch((err: unknown) => {
       console.error('[PortfolioMap] failed to load maplibre-gl:', err)
