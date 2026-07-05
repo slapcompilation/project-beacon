@@ -67,10 +67,20 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
   const containerRef = useRef<HTMLDivElement>(null)
   const onHopRef = useRef(onHop)
   onHopRef.current = onHop
+  const locatedRef = useRef(located)
+  locatedRef.current = located
   const [status, setStatus] = useState<'loading' | 'ok' | 'error'>('loading')
+
+  // Rebuild the map only when the set of located properties or their positions
+  // change — NOT on every new array identity. Callers hand us a fresh array each
+  // render (react-query refetch, a `[{…}]` literal); keying the effect on the
+  // array reference tore the map down and rebuilt it every render, so tiles were
+  // perpetually canceled and it never painted (blank/black).
+  const locatedKey = located.map((h) => `${h.hotel_id}:${String(h.lat)}:${String(h.lng)}`).join('|')
 
   useEffect(() => {
     const container = containerRef.current
+    const located = locatedRef.current
     // No configured basemap → SVG-only mode, skip maplibre entirely.
     if (!MAP_TILES || located.length === 0 || !container) return
     let cancelled = false
@@ -145,7 +155,7 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
       markers.forEach((m) => { m.remove() })
       map?.remove()
     }
-  }, [located])
+  }, [locatedKey])
 
   if (located.length === 0) {
     return (
