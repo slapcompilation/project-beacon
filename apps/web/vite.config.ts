@@ -33,6 +33,9 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
+        // Don't let the index.html navigation fallback shadow real static files
+        // (a browser navigation to /robots.txt would otherwise return the SPA).
+        navigateFallbackDenylist: [/^\/robots\.txt$/, /^\/sitemap\.xml$/],
         // Network-first for Supabase API and auth — we never want stale data
         runtimeCaching: [
           {
