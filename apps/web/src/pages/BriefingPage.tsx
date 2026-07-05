@@ -5,7 +5,7 @@
 //
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
@@ -77,22 +77,25 @@ function HotelBriefing() {
   const cfg  = (activeHotel?.config ?? {}) as { lat?: number | string; lng?: number | string }
   const hLat = cfg.lat != null ? Number(cfg.lat) : NaN
   const hLng = cfg.lng != null ? Number(cfg.lng) : NaN
-  const locationPins: PortfolioHotelSignal[] =
-    activeHotel && Number.isFinite(hLat) && Number.isFinite(hLng)
-      ? [{
-          hotel_id:             activeHotel.id,
-          hotel_name:           activeHotel.name,
-          queue_pending:        aipCounts?.queue ?? 0,
-          approvals_pending:    aipCounts?.approvals ?? 0,
-          entity_links_pending: aipCounts?.entityLinks ?? 0,
-          cases_open:           aipCounts?.casesOpen ?? 0,
-          last_cycle_at:        null,
-          last_cycle_auto:      0,
-          last_cycle_queued:    0,
-          lat: hLat,
-          lng: hLng,
-        }]
-      : []
+  const locationPins = useMemo<PortfolioHotelSignal[]>(
+    () =>
+      activeHotel && Number.isFinite(hLat) && Number.isFinite(hLng)
+        ? [{
+            hotel_id:             activeHotel.id,
+            hotel_name:           activeHotel.name,
+            queue_pending:        aipCounts?.queue ?? 0,
+            approvals_pending:    aipCounts?.approvals ?? 0,
+            entity_links_pending: aipCounts?.entityLinks ?? 0,
+            cases_open:           aipCounts?.casesOpen ?? 0,
+            last_cycle_at:        null,
+            last_cycle_auto:      0,
+            last_cycle_queued:    0,
+            lat: hLat,
+            lng: hLng,
+          }]
+        : [],
+    [activeHotel, hLat, hLng, aipCounts?.queue, aipCounts?.approvals, aipCounts?.entityLinks, aipCounts?.casesOpen],
+  )
 
   // Auto-capture snapshot once per day on mount (server is idempotent; client guards too)
   useEffect(() => {
