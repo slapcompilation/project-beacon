@@ -187,8 +187,10 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
       <div className="relative h-80 w-full" style={{ background: '#111418' }}>
         {/* Real basemap only when one is configured; otherwise the SVG renders
             straight away. When a configured basemap fails/gets blocked, status
-            flips to 'error' and the SVG takes over — never a black box. */}
-        {MAP_TILES && <div ref={containerRef} className="absolute inset-0" />}
+            flips to 'error' and the SVG takes over — never a black box. The
+            canvas unmounts on error so the SVG never sits over a live canvas
+            eating its pointer events. */}
+        {MAP_TILES && status !== 'error' && <div ref={containerRef} className="absolute inset-0" />}
         {(!MAP_TILES || status === 'error') && <SvgPinMap hotels={located} onHop={onHop} />}
         {MAP_TILES && status === 'error' && (
           <div className="absolute left-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] text-muted-foreground" title="Basemap tiles blocked or unreachable — showing a tile-free map. Set VITE_MAP_STYLE_URL to a basemap you trust.">
