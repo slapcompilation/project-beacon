@@ -190,7 +190,11 @@ export function PortfolioMap({ hotels, onHop, title }: { hotels: PortfolioHotelS
             flips to 'error' and the SVG takes over — never a black box. The
             canvas unmounts on error so the SVG never sits over a live canvas
             eating its pointer events. */}
-        {MAP_TILES && status !== 'error' && <div ref={containerRef} className="absolute inset-0" />}
+        {/* Inline position — maplibre-gl.css ships `.maplibregl-map{position:relative}`
+            in the lazy chunk's stylesheet, which loads after ours and overrode the
+            Tailwind `absolute`, collapsing the container to 0 height (invisible,
+            uninteractive map). Inline style can't lose that fight. */}
+        {MAP_TILES && status !== 'error' && <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />}
         {(!MAP_TILES || status === 'error') && <SvgPinMap hotels={located} onHop={onHop} />}
         {MAP_TILES && status === 'error' && (
           <div className="absolute left-2 top-2 rounded bg-black/40 px-2 py-0.5 text-[10px] text-muted-foreground" title="Basemap tiles blocked or unreachable — showing a tile-free map. Set VITE_MAP_STYLE_URL to a basemap you trust.">
