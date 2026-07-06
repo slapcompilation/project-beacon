@@ -31,8 +31,8 @@ import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poI
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useCurrency } from '@/hooks/useCurrency'
@@ -529,34 +529,31 @@ export default function POObjectPage() {
   const daysUntil    = daysUntilDelivery(po)
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={po.supplier_id ? { label: po.supplier_name, to: `/supplier/${po.supplier_id}` } : { label: 'Purchase Orders', to: '/mind?panel=procurement' }}
-        icon="truck"
-        title={po.po_number}
-        star={{ id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: po.supplier_id ? { label: po.supplier_name, to: `/supplier/${po.supplier_id}` } : { label: 'Purchase Orders', to: '/mind?panel=procurement' },
+        icon: 'truck',
+        title: po.po_number,
+        star: { id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' },
+        tags: (
           <>
             <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
             {isOverdue && <Tag icon="warning-sign" intent={Intent.DANGER} minimal>OVERDUE</Tag>}
           </>
-        }
-        id={po.id}
-      />
-
-      <MetricStrip>
+        ),
+        id: po.id,
+      }}
+      metrics={
+        <>
         <Metric label="Total Value" value={formatCurrency(po.total_amount, currency)} />
         <Metric label="Line Items" value={`${rcvdLines}/${totalLines}`} sub={`${pct}% received`} accent={pct === 100 ? 'green' : pct > 0 ? 'amber' : undefined} />
         <Metric label="Delivery" value={po.expected_delivery_date ? format(parseISO(po.expected_delivery_date), 'MMM d') : '—'} sub={isOverdue ? 'Overdue' : daysUntil !== null ? `${daysUntil}d away` : undefined} accent={isOverdue ? 'red' : undefined} />
         <Metric label="Status" value={cfg.label} accent={po.status === 'closed' ? 'green' : po.status === 'cancelled' ? 'muted' : undefined} />
-      </MetricStrip>
-
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
-        <StatusActions po={po} />
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      actions={<StatusActions po={po} />}
+      rail={<AuditRail nodeType="purchase_order" nodeId={po.id} />}
+    >
 
         <div className="overflow-x-auto"><StatusTimeline po={po} /></div>
 
@@ -630,9 +627,6 @@ export default function POObjectPage() {
         <Card>
           <GraphConnections nodeType="purchase_order" nodeId={po.id} />
         </Card>
-          </main>
-          <AuditRail nodeType="purchase_order" nodeId={po.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }

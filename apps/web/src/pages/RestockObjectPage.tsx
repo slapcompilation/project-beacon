@@ -39,8 +39,8 @@ import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/type
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { hasPermission } from '@beacon/types'
 
@@ -433,22 +433,22 @@ export default function RestockObjectPage() {
   )
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={pv?.id ? { label: productName, to: `/variant/${pv.id}` } : { label: 'Restock Requests', to: '/flow?panel=approvals' }}
-        icon="box"
-        title={variantLabel}
-        star={{ id: `restock_request:${req.id}`, label: `Restock · ${variantLabel}`, subtitle: 'Restock request', path: `/restock/${req.id}`, icon: 'box' }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: pv?.id ? { label: productName, to: `/variant/${pv.id}` } : { label: 'Restock Requests', to: '/flow?panel=approvals' },
+        icon: 'box',
+        title: variantLabel,
+        star: { id: `restock_request:${req.id}`, label: `Restock · ${variantLabel}`, subtitle: 'Restock request', path: `/restock/${req.id}`, icon: 'box' },
+        tags: (
           <>
             <Tag icon={cfg.icon} intent={cfg.intent} minimal>{cfg.label}</Tag>
             {req.is_auto_proposed && <Tag icon="predictive-analysis" intent={Intent.SUCCESS} minimal>AI proposed</Tag>}
           </>
-        }
-        id={req.id}
-      />
-
-      <MetricStrip>
+        ),
+        id: req.id,
+      }}
+      metrics={
+        <>
         <Metric label="Qty Requested" value={req.quantity_needed} sub={pv?.sku ?? undefined} />
         <Metric
           label="Qty Received"
@@ -467,10 +467,10 @@ export default function RestockObjectPage() {
           sub={daysLeft !== null ? `~${Math.round(daysLeft)}d runway` : undefined}
           accent={daysUrgency === 'critical' ? 'red' : daysUrgency === 'warning' ? 'amber' : 'green'}
         />
-      </MetricStrip>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      rail={<AuditRail nodeType="restock_request" nodeId={req.id} />}
+    >
 
         {/* Fulfillment progress bar */}
         {req.quantity_needed > 0 && (
@@ -565,9 +565,6 @@ export default function RestockObjectPage() {
         <Card>
           <GraphConnections nodeType="restock_request" nodeId={req.id} />
         </Card>
-          </main>
-          <AuditRail nodeType="restock_request" nodeId={req.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }
