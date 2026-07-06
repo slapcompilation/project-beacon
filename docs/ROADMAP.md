@@ -149,6 +149,9 @@ Ranked by leverage.
 | A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | A determined LLM can still draft a violating proposal |
 | A6 | **Flywheel observability** — ECE trend, ontology-growth, copilot rule-citation events + a dashboard | Can't manage (or sell the proof of) what you can't see |
 | A7 | **Behavior evals** — calibration-veto agent eval; rubric that the copilot refuses a violating ask | Unit tests exist; behavior evals are the AIP "production" bar |
+| A8 | **Typed lifecycles** — stateful nodes declare legal transitions; action submission rejects illegal ones | Status strings today; transitions implied, not governed (ENGINEERING-HANDBOOK §1) |
+| A9 | **Surface verification in CI** — Playwright smoke on decision-critical pages + post-deploy bundle check | The map was perfect and invisible for a week; no gate looks at pixels (§2) |
+| A10 | **Ontology presentation metadata** — per-type icon/title property, per-property tooltip descriptions | Onboarding becomes a property of the graph (§3) |
 
 ---
 
