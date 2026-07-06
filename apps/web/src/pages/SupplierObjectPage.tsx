@@ -26,8 +26,8 @@ import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import {
   riskLevelFromRow,
@@ -286,17 +286,17 @@ export default function SupplierObjectPage() {
   const daysToExpiry = daysUntilContractExpiry(activeContracts)
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Suppliers', to: '/mind?panel=suppliers' }}
-        icon="shop"
-        title={supplier.name}
-        star={{ id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' }}
-        tags={reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined}
-        id={supplier.id}
-      />
-
-      <MetricStrip>
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Suppliers', to: '/mind?panel=suppliers' },
+        icon: 'shop',
+        title: supplier.name,
+        star: { id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' },
+        tags: reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined,
+        id: supplier.id,
+      }}
+      metrics={
+        <>
         <Metric
           label="Reliability Score"
           value={score !== null ? score.toFixed(1) : '—'}
@@ -321,19 +321,20 @@ export default function SupplierObjectPage() {
           sub={reliability ? `€${reliability.total_value.toFixed(0)} total value` : 'No contracts'}
           accent={reliability?.avg_cost_variance_pct == null ? 'muted' : reliability.avg_cost_variance_pct > 5 ? 'red' : reliability.avg_cost_variance_pct > 2 ? 'amber' : 'green'}
         />
-      </MetricStrip>
-
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
-        <AnchorButton href="/mind?panel=contracts" icon="document" variant="minimal" size="small">View Contracts</AnchorButton>
-        <AnchorButton href="/mind?panel=procurement" icon="box" variant="minimal" size="small">Procurement</AnchorButton>
-        <AnchorButton href="/mind?panel=suppliers" icon="star" variant="minimal" size="small">Reliability Scorecard</AnchorButton>
-        {(tier === 'critical' || tier === 'high') && (
-          <AnchorButton href="/mind?panel=leverage" icon="warning-sign" intent={Intent.DANGER} variant="minimal" size="small">Negotiate Leverage</AnchorButton>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      actions={
+        <>
+          <AnchorButton href="/mind?panel=contracts" icon="document" variant="minimal" size="small">View Contracts</AnchorButton>
+          <AnchorButton href="/mind?panel=procurement" icon="box" variant="minimal" size="small">Procurement</AnchorButton>
+          <AnchorButton href="/mind?panel=suppliers" icon="star" variant="minimal" size="small">Reliability Scorecard</AnchorButton>
+          {(tier === 'critical' || tier === 'high') && (
+            <AnchorButton href="/mind?panel=leverage" icon="warning-sign" intent={Intent.DANGER} variant="minimal" size="small">Negotiate Leverage</AnchorButton>
+          )}
+        </>
+      }
+      rail={<AuditRail nodeType="supplier" nodeId={supplierId} />}
+    >
 
           {(supplier.contact_name || supplier.email || supplier.phone || supplier.lead_time_days != null) && (
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
@@ -498,9 +499,6 @@ export default function SupplierObjectPage() {
             <GraphConnections nodeType="supplier" nodeId={supplierId} />
           </Card>
 
-          </main>
-          <AuditRail nodeType="supplier" nodeId={supplierId} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }
