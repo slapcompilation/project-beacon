@@ -88,14 +88,14 @@ system, and uniform **Object Views**. Mapping to Beacon's target surfaces
 
 | Foundry surface | Beacon target | Current state | Phase | Ref |
 |---|---|---|---|---|
-| Left sidebar — **Home / Quicksearch / Notifications** (top controls) | Global rail top controls | Dock is 6 modules (`CommandDock`); no unified quicksearch top-control | 1 | — |
+| Left sidebar — **Home / Quicksearch / Notifications** (top controls) | Global rail top controls | Dock is 6 modules (`CommandDock`); no unified quicksearch top-control | 1 | [sidebar](<./aip-reference/shell-sidebar-expanded-marketplace-install.png>) |
 | **Recent & Files** section | Recents + Object landing | partial (no recents rail) | 1 | — |
 | **Favorited apps / files** (star system) | Star/favorite across objects, lenses, apps | missing | 1 (+ cross-cutting) | — |
 | **Bottom tools** — AIP Assist, account, workspace switcher | Copilot entry + account + scope switcher | Copilot is Ctrl+J (done); scope switcher exists; not in one rail foot | 1 | [copilot prompts](<./aip-reference/Copilot - Supply Chain (demo name) Co-Pilot actionable prompts.png>) |
 | **Home / landing** (customizable, role-specific) | Home (scope-aware) | exists (`/briefing`) — reframe to Foundry home anatomy | 1 | [control tower](<./aip-reference/Control Tower.png>) |
 | **Quicksearch** (jump-to + full-results modes) | Command palette → two-mode search | palette exists; single-mode | 1 | — |
 | **Applications portal** (platform + custom apps, usage suggestions) | Studio/apps index | `ApplicationsPage` exists; reshape to portal grid | 3 | — |
-| **Object View** (star + metadata + sidebar shortcuts) | canonical Object View component | partial per-type pages | 2 | — |
+| **Object View** (star + metadata + sidebar shortcuts) | canonical Object View component | partial per-type pages | 2 | [airport OV](<./aip-reference/application-sidebar-object-view.png>) · [editor](<./aip-reference/add-application-sidebar-groups.png>) · [rail config](<./aip-reference/configuring-applications-sidebar_applications-sidebar-config.png>) — spec in §0.5 |
 | **AIP Logic** (block canvas + debugger) | Logic Tools studio | index only, no canvas/debugger | 3 | [debugger](<./aip-reference/Use LLM - Debugger with chain of thought reasoning and function output.png>) · [blocks](<./aip-reference/Use LLM - Tools, Provide Input data and Output.png>) |
 | **AIP Agent Studio** | Agents studio | descriptor view (now catalog-driven) | 3 | [widget setup](<./aip-reference/Copilot - Control tower and Widget setup (Tool name, description and Function RID).png>) |
 | **AIP Evals** (cases + version diff + cohorts) | Evals surface | data model shipped (`runVersionDiff`, `evaluatePromotion`); no UI diff | 3 | [eval dashboard](<./aip-reference/Evaluation dashboard - Build Eval + Configure evaluation buttons and model search.png>) |
@@ -143,6 +143,41 @@ title + a breadcrumb header (trail → **bold current** ★, then a chrome row:
 > Current Beacon nav is a **bottom horizontal dock** (`CommandDock`) — Phase 1
 > flips it to this left sidebar. Build it presentational + previewable first,
 > calibrate against the screenshots, then wire it in and retire the dock.
+
+## 0.5 Object View spec — image-grounded (the Phase 2 build target)
+
+From `aip-reference/application-sidebar-object-view.png` + the Foundry
+"Configure the applications sidebar" docs. Anatomy, top to bottom:
+
+- **Header row** — type icon (colored square) + object title + type label
+  beneath; right side: refresh, comment, `Open in ▾ · Actions ▾ · More ▾`.
+- **Tab row** — per-type tabs (e.g. Airport / Passengers / Flights / Security
+  Overview). Tabs are builder-configured per object type.
+- **Property highlight cards** — a few key properties promoted to large
+  value-over-label cards (Country, City, Lat, Lng).
+- **Properties panel** — two-column key/value; values can render as chips or
+  links to other objects; inline edit pencil.
+- **Linked Objects table** — search, filter, column config, checkbox rows;
+  one table per link type.
+- **Right rail: the applications sidebar** — opt-in per Object View, hidden
+  until a non-empty group is published. Groups of cards, each embedding an
+  object-scoped app (Workshop / Quiver / Slate / Action types) or a
+  parameterized URL (`{{objectId}}`, `{{objectTypeId}}`; custom params pass
+  current-object properties into the embedded module). Per-card config:
+  resource, title/icon override, thumbnail, Card vs Compact. Per-group config:
+  title, reorder, remove, **visibility by user profile**. Links open a new
+  tab; embedded apps open in-context. Cards stay visible without permission —
+  set permissions on each embedded app.
+- **The view itself is authored in-place** — an Object View editor (Tabs /
+  Sidebar / Settings) with Save & Publish, History, Preview. Config-as-data,
+  no deploy (AUTHORING-STRATEGY rung material).
+
+**Beacon mapping:** our Object View right rail currently carries the audit log
+(CLAUDE.md). Foundry's carries related apps + pinned actions. Target: the rail
+holds pinned Actions + related lenses/reports (our "applications") in groups
+with role-scoped visibility, and the audit log as the permanent last group.
+Per-profile visibility maps onto our role hierarchy; `{{objectId}}` params map
+onto the selection-aware copilot pattern (the node id flows into every tool).
 
 ---
 

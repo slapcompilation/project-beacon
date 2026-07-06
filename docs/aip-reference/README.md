@@ -56,7 +56,21 @@ them directly.
   with chain of thought on the side.png`, `Copilot - Save and publish button.png`,
   `Co-Pilot - example of a test scenario (fire at a distribution center).png`
 
-Still missing (add when captured): the 5-section left sidebar, two-mode
-Quicksearch, Applications portal, a canonical Object View, Ontology manager —
-the shell spec in `AIP-UX-RESTRUCTURE.md` §0.4 was transcribed from the
-orientation docs and needs its own captures for the pixel pass.
+**Shell & Object View** *(added 2026-07-06, second batch — → Phases 1–2)*
+- `shell-sidebar-expanded-marketplace-install.png` — the dark 5-section left
+  rail, all sections visible (top controls w/ `ctrl+J` · Recent/Files/Apps ·
+  `APPLICATIONS` · `FILES` · AIP Assist `ctrl+shift+U`/Support/Account);
+  grounds §0.4.
+- `application-sidebar-object-view.png` — the canonical Object View (BWI
+  Airport): header + `Open in ▾ / Actions ▾ / More ▾`, per-type tabs, property
+  highlight cards, Properties panel, Linked Objects table,
+  applications-sidebar right rail; grounds §0.5.
+- `add-application-sidebar-groups.png` — the in-place Object View editor
+  (Tabs / Sidebar / Settings, group management).
+- `configuring-applications-sidebar_applications-sidebar-config.png` —
+  per-card config (resource, overrides, thumbnail, Card/Compact,
+  `{{objectId}}` params) + per-group visibility by profile.
+
+Still missing (add when captured): two-mode Quicksearch, Applications portal,
+Ontology manager, data lineage, Object Explorer explorations — freeze-frames
+from the ontology deep-dive video cover the last three.
