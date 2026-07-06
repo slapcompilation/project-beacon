@@ -21,8 +21,8 @@ import { cn } from '@/lib/utils'
 import type { Product, ProductVariant, Category } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { getTotalStock, getStockStatus } from '@beacon/types'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -114,13 +114,13 @@ export default function ProductObjectPage() {
                                      Intent.SUCCESS
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Inventory', to: '/graph' }}
-        icon="box"
-        title={product.name}
-        star={{ id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Inventory', to: '/graph' },
+        icon: 'box',
+        title: product.name,
+        star: { id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' },
+        tags: (
           <>
             <Tag intent={stockTagIntent} minimal>
               {stockStatus === 'out_of_stock' ? 'OUT OF STOCK' :
@@ -129,11 +129,12 @@ export default function ProductObjectPage() {
             {product.categories && <Tag minimal icon="tag">{product.categories.name}</Tag>}
             {!product.enabled && <Tag minimal>DISABLED</Tag>}
           </>
-        }
-        id={product.sku}
-      />
+        ),
+        id: product.sku,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Total Stock" value={totalStock} sub={`across ${variants.length} variant${variants.length !== 1 ? 's' : ''}`} accent={totalStock === 0 ? 'red' : undefined} />
         <Metric label="Stock Value" value={`€${totalValue.toFixed(2)}`} sub={`@ €${product.cost.toFixed(2)} / unit`} />
         <Metric
@@ -143,10 +144,10 @@ export default function ProductObjectPage() {
           accent={criticalCount > 0 ? 'red' : lowCount > 0 ? 'amber' : 'green'}
         />
         <Metric label="Variants" value={variants.length} sub={`${variants.filter((v) => v.enabled).length} enabled`} />
-      </MetricStrip>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      rail={<AuditRail nodeType="product" nodeId={productId} />}
+    >
 
         {/* Description */}
         {product.description && (
@@ -242,9 +243,6 @@ export default function ProductObjectPage() {
             <span>{formatDistanceToNow(new Date(product.created_at), { addSuffix: true })}</span>
           </div>
         </Card>
-          </main>
-          <AuditRail nodeType="product" nodeId={productId} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }

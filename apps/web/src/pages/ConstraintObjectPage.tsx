@@ -9,8 +9,8 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchConstraint, setConstraintActive } from '@/features/constraints/api'
 import { AuditRail } from '@/components/AuditRail'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
 const BUCKET_INTENT: Record<string, Intent> = {
@@ -54,31 +54,32 @@ export default function ConstraintObjectPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Constraints', to: '/settings?section=constraints' }}
-        icon="shield"
-        title="Constraint"
-        star={{ id: `constraint:${row.id}`, label: row.body, subtitle: `Constraint · ${row.bucket}`, path: `/constraints/${constraintId}`, icon: 'shield' }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Constraints', to: '/settings?section=constraints' },
+        icon: 'shield',
+        title: 'Constraint',
+        star: { id: `constraint:${row.id}`, label: row.body, subtitle: `Constraint · ${row.bucket}`, path: `/constraints/${constraintId}`, icon: 'shield' },
+        tags: (
           <>
             <Tag minimal intent={BUCKET_INTENT[row.bucket] ?? Intent.NONE}>{row.bucket}</Tag>
             <Tag minimal intent={row.severity === 'hard' ? Intent.DANGER : Intent.WARNING}>{row.severity}</Tag>
             <Tag minimal intent={row.active ? Intent.SUCCESS : Intent.NONE}>{row.active ? 'active' : 'retired'}</Tag>
           </>
-        }
-        id={row.id}
-      />
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Bucket"   value={row.bucket} capitalize />
         <Metric label="Severity" value={row.severity} capitalize />
         <Metric label="Scope"    value={row.applies_to_action_types.length > 0 ? `${String(row.applies_to_action_types.length)} action(s)` : 'all actions'} capitalize />
         <Metric label="Created"  value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
-      </MetricStrip>
-
-      {/* Action bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
+        </>
+      }
+      actions={
+        <>
         <Button
           intent={row.active ? Intent.DANGER : Intent.PRIMARY}
           variant={row.active ? 'minimal' : undefined}
@@ -88,11 +89,12 @@ export default function ConstraintObjectPage() {
         >
           {row.active ? 'Retire' : 'Reactivate'}
         </Button>
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="constraint" nodeId={row.id} />}
+    >
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         <ObjectSection title="Body" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.body}</p></Card>
         </ObjectSection>
@@ -136,10 +138,7 @@ export default function ConstraintObjectPage() {
             {row.deactivated_at && <div>Retired {new Date(row.deactivated_at).toISOString()}</div>}
           </Card>
         </ObjectSection>
-       </div>
-       <AuditRail nodeType="constraint" nodeId={row.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }
 

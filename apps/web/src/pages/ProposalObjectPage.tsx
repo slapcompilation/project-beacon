@@ -19,8 +19,8 @@ import {
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 import { AuditRail } from '@/components/AuditRail'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import {
   useAttachProposalToCase,
@@ -100,31 +100,33 @@ export default function ProposalObjectPage() {
   const statusIntent = row.status === 'approved' ? Intent.SUCCESS : row.status === 'rejected' ? Intent.DANGER : row.status === 'superseded' ? Intent.NONE : Intent.WARNING
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Review Queue', to: '/review-queue' }}
-        icon="annotation"
-        title="Proposal"
-        star={{ id: `proposal:${row.id}`, label: `${action.type} · ${row.agent_name}`, subtitle: 'Proposal', path: `/proposals/${proposalId}`, icon: 'annotation' }}
-        tags={
+    <>
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Review Queue', to: '/review-queue' },
+        icon: 'annotation',
+        title: 'Proposal',
+        star: { id: `proposal:${row.id}`, label: `${action.type} · ${row.agent_name}`, subtitle: 'Proposal', path: `/proposals/${proposalId}`, icon: 'annotation' },
+        tags: (
           <>
             <Tag minimal intent={Intent.PRIMARY} className="font-mono">{action.type}</Tag>
             <Tag minimal intent={statusIntent}>{row.status}</Tag>
             {row.parent_version_id && <Tag minimal icon="refresh">Refined</Tag>}
           </>
-        }
-        id={row.id}
-      />
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Confidence" value={<ConfidenceBadge confidence={row.confidence} />} />
         <Metric label="Agent"      value={`${row.agent_name} @ ${row.agent_version}`} />
         <Metric label="Created"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} />
         <Metric label="Status"     value={row.status} />
-      </MetricStrip>
-
-      {/* Action bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        </>
+      }
+      actions={
+        <>
         <TryInScenarioButton proposalId={row.id} action={action} agentName={row.agent_name} />
         {canEdit && hotelId && userId && row.status === 'pending' && (
           <Button
@@ -161,11 +163,12 @@ export default function ProposalObjectPage() {
             {row.decided_at && `Decided ${formatDistanceToNow(new Date(row.decided_at), { addSuffix: true })}`}
           </span>
         )}
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="proposal" nodeId={row.id} />}
+    >
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         <CasesSection proposalId={row.id} proposalTitle={`${action.type} · ${row.agent_name}`} />
 
         <ObjectSection title="Reasoning" icon="lightbulb">
@@ -221,9 +224,7 @@ export default function ProposalObjectPage() {
             </div>
           </ObjectSection>
         )}
-       </div>
-       <AuditRail nodeType="proposal" nodeId={row.id} />
-      </div>
+    </ObjectViewFrame>
 
       {canEdit && hotelId && userId && (
         <ActionFormModal
@@ -243,7 +244,7 @@ export default function ProposalObjectPage() {
           }}
         />
       )}
-    </div>
+    </>
   )
 }
 
