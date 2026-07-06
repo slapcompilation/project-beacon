@@ -33,8 +33,8 @@ import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
@@ -352,23 +352,24 @@ export default function VariantObjectPage() {
   const received30  = logsLast30.filter((l) => l.quantity_change > 0 && !l.is_revert).reduce((s, l) => s + l.quantity_change, 0)
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Inventory', to: '/graph' }}
-        icon="box"
-        title={`${productName} · ${variant.name}`}
-        star={{ id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' }}
-        tags={
+    <>
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Inventory', to: '/graph' },
+        icon: 'box',
+        title: `${productName} · ${variant.name}`,
+        star: { id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' },
+        tags: (
           <>
             <PARStatusBadge stock={variant.current_stock} par={variant.low_stock_threshold} />
             {locationName && <Tag minimal icon="map-marker">{locationName}</Tag>}
             {wasteAnomaly && <Tag icon="warning-sign" intent={Intent.WARNING} minimal>Waste anomaly</Tag>}
           </>
-        }
-        id={variant.sku}
-      />
-
-      <MetricStrip>
+        ),
+        id: variant.sku,
+      }}
+      metrics={
+        <>
         <Metric
           label="Current Stock"
           value={`${variant.current_stock}${variant.unit_of_measure ? ' ' + variant.unit_of_measure : ''}`}
@@ -391,16 +392,17 @@ export default function VariantObjectPage() {
           value={`€${costAtRisk.toFixed(2)}`}
           sub={`@ €${variant.cost.toFixed(2)} / unit`}
         />
-      </MetricStrip>
-
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
-        <Button icon="swap-horizontal" size="small" onClick={() => { setOverstockOpen(true) }}>Rebalance overstock</Button>
-        <Button icon="trash" size="small" onClick={() => { setWasteOpen(true) }}>Waste triage</Button>
-        <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      actions={
+        <>
+          <Button icon="swap-horizontal" size="small" onClick={() => { setOverstockOpen(true) }}>Rebalance overstock</Button>
+          <Button icon="trash" size="small" onClick={() => { setWasteOpen(true) }}>Waste triage</Button>
+          <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
+        </>
+      }
+      rail={<AuditRail nodeType="variant" nodeId={variantId} />}
+    >
 
           {/* ── Reorder point (statistical, vs the hand-set PAR) ── */}
           <ReorderPointCard variantId={variant.id} par={variant.low_stock_threshold} />
@@ -559,9 +561,7 @@ export default function VariantObjectPage() {
             <GraphConnections nodeType="variant" nodeId={variantId} />
           </Card>
 
-          </main>
-          <AuditRail nodeType="variant" nodeId={variantId} />
-      </div>
+    </ObjectViewFrame>
 
       <AdviceSlideOver
         open={adviceOpen}
@@ -584,6 +584,6 @@ export default function VariantObjectPage() {
         variantId={variantId}
         variantName={variant.name}
       />
-    </div>
+    </>
   )
 }
