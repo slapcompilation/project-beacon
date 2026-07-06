@@ -1,0 +1,36 @@
+# Post-deploy verification (handbook §2): after a push to main touching app
+# code, poll production until it serves THIS commit (the build bakes the SHA
+# into <meta name="beacon-build">). Fails loudly on timeout — which is the
+# "merged but production still runs the old bundle" trap that bit twice
+# (promoted previews, unmerged PRs). A deploy isn't done until this is green.
+
+name: Deploy verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'scripts/verify-deploy.mjs'
+      - '.github/workflows/deploy-verify.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: production serves this commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Wait for production to serve ${{ github.sha }}
+        run: node scripts/verify-deploy.mjs --sha "$GITHUB_SHA" --wait 12
