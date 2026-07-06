@@ -68,10 +68,10 @@ tokens, never raw hex. What's already right (keep):
 - **Radius** `0.25rem` (4px), compact density, tabular numerals — Palantir house style.
 - **Dark mode** with a deepened page + opened surface ramp for clear hierarchy.
 
-**Calibration (deferred until screenshots land in `docs/aip-reference/`):** do
-NOT hand-invent exact hex from prose. When reference images exist, sample
-Foundry's page/panel greys + accent blue and nudge the ramp to match; until then
-the current values stand.
+**Calibration:** reference images landed 2026-07-06 (42 captures, indexed in
+[`aip-reference/README.md`](./aip-reference/README.md)) — dark-mode Foundry
+throughout. Sample page/panel greys + accent blue from `Control Tower.png` and
+the Use LLM debugger captures and nudge the ramp to match; don't hand-invent hex.
 
 **Gap tokens to add (structural, not colours):**
 - a `--rail` width + section spacing scale for the 5-section sidebar (0.2),
@@ -86,24 +86,26 @@ stacked sections + a top bar**, plus a customizable **Home**, a two-mode
 system, and uniform **Object Views**. Mapping to Beacon's target surfaces
 (Axis A) + current state:
 
-| Foundry surface | Beacon target | Current state | Phase |
-|---|---|---|---|
-| Left sidebar — **Home / Quicksearch / Notifications** (top controls) | Global rail top controls | Dock is 6 modules (`CommandDock`); no unified quicksearch top-control | 1 |
-| **Recent & Files** section | Recents + Object landing | partial (no recents rail) | 1 |
-| **Favorited apps / files** (star system) | Star/favorite across objects, lenses, apps | missing | 1 (+ cross-cutting) |
-| **Bottom tools** — AIP Assist, account, workspace switcher | Copilot entry + account + scope switcher | Copilot is Ctrl+J (done); scope switcher exists; not in one rail foot | 1 |
-| **Home / landing** (customizable, role-specific) | Home (scope-aware) | exists (`/briefing`) — reframe to Foundry home anatomy | 1 |
-| **Quicksearch** (jump-to + full-results modes) | Command palette → two-mode search | palette exists; single-mode | 1 |
-| **Applications portal** (platform + custom apps, usage suggestions) | Studio/apps index | `ApplicationsPage` exists; reshape to portal grid | 3 |
-| **Object View** (star + metadata + sidebar shortcuts) | canonical Object View component | partial per-type pages | 2 |
-| **AIP Logic** (block canvas + debugger) | Logic Tools studio | index only, no canvas/debugger | 3 |
-| **AIP Agent Studio** | Agents studio | descriptor view (now catalog-driven) | 3 |
-| **AIP Evals** (cases + version diff + cohorts) | Evals surface | data model shipped (`runVersionDiff`, `evaluatePromotion`); no UI diff | 3 |
-| **Modeling / model lifecycle** | Modeling Objectives | catalog-driven index + detail | 3 |
-| **Ontology manager** | Ontology | scan/gap surface (portfolio-aware) | 2–3 |
+| Foundry surface | Beacon target | Current state | Phase | Ref |
+|---|---|---|---|---|
+| Left sidebar — **Home / Quicksearch / Notifications** (top controls) | Global rail top controls | Dock is 6 modules (`CommandDock`); no unified quicksearch top-control | 1 | — |
+| **Recent & Files** section | Recents + Object landing | partial (no recents rail) | 1 | — |
+| **Favorited apps / files** (star system) | Star/favorite across objects, lenses, apps | missing | 1 (+ cross-cutting) | — |
+| **Bottom tools** — AIP Assist, account, workspace switcher | Copilot entry + account + scope switcher | Copilot is Ctrl+J (done); scope switcher exists; not in one rail foot | 1 | [copilot prompts](<./aip-reference/Copilot - Supply Chain (demo name) Co-Pilot actionable prompts.png>) |
+| **Home / landing** (customizable, role-specific) | Home (scope-aware) | exists (`/briefing`) — reframe to Foundry home anatomy | 1 | [control tower](<./aip-reference/Control Tower.png>) |
+| **Quicksearch** (jump-to + full-results modes) | Command palette → two-mode search | palette exists; single-mode | 1 | — |
+| **Applications portal** (platform + custom apps, usage suggestions) | Studio/apps index | `ApplicationsPage` exists; reshape to portal grid | 3 | — |
+| **Object View** (star + metadata + sidebar shortcuts) | canonical Object View component | partial per-type pages | 2 | — |
+| **AIP Logic** (block canvas + debugger) | Logic Tools studio | index only, no canvas/debugger | 3 | [debugger](<./aip-reference/Use LLM - Debugger with chain of thought reasoning and function output.png>) · [blocks](<./aip-reference/Use LLM - Tools, Provide Input data and Output.png>) |
+| **AIP Agent Studio** | Agents studio | descriptor view (now catalog-driven) | 3 | [widget setup](<./aip-reference/Copilot - Control tower and Widget setup (Tool name, description and Function RID).png>) |
+| **AIP Evals** (cases + version diff + cohorts) | Evals surface | data model shipped (`runVersionDiff`, `evaluatePromotion`); no UI diff | 3 | [eval dashboard](<./aip-reference/Evaluation dashboard - Build Eval + Configure evaluation buttons and model search.png>) |
+| **Modeling / model lifecycle** | Modeling Objectives | catalog-driven index + detail | 3 | [models](<./aip-reference/Models.png>) · [deployment](<./aip-reference/Inside the deployment model - Logs&Metrics screen.png>) |
+| **Ontology manager** | Ontology | scan/gap surface (portfolio-aware) | 2–3 | — |
 
-> When `docs/aip-reference/` screenshots exist, add a "ref" column linking each
-> row to its image; the parity gate checks against it.
+> Refs landed 2026-07-06 — full index grouped by surface in
+> [`aip-reference/README.md`](./aip-reference/README.md). Rows marked — still
+> need captures (shell/sidebar, Quicksearch, portal, Object View, Ontology
+> manager); §0.4 covers the sidebar from the orientation docs meanwhile.
 
 ## 0.3 Phase 0 exit criteria
 
@@ -111,6 +113,7 @@ system, and uniform **Object Views**. Mapping to Beacon's target surfaces
 - [x] Token baseline audited; confirmed AIP-aligned; gap tokens listed.
 - [x] Foundry→Beacon parity board drafted from the orientation/nav docs.
 - [x] Reference received (Foundry orientation screenshots + getting-started text) → the sidebar spec below (0.4) is transcribed from them.
+- [x] 42 reference captures landed in `aip-reference/` (2026-07-06) — indexed by surface; parity board now carries a Ref column.
 - [ ] Gap tokens (0.1) added as the sidebar component (Phase 1) is built.
 
 ## 0.4 Sidebar spec — image-grounded (the Phase 1 build target)
