@@ -1,11 +1,22 @@
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 
+// Bake the commit SHA into index.html so scripts/verify-deploy.mjs can prove
+// which commit production actually serves ("merged" ≠ "deployed" bit us twice).
+const buildSha = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? 'dev'
+const buildShaMeta: Plugin = {
+  name: 'build-sha-meta',
+  transformIndexHtml: () => [
+    { tag: 'meta', attrs: { name: 'beacon-build', content: buildSha }, injectTo: 'head' },
+  ],
+}
+
 export default defineConfig({
   plugins: [
     react(),
+    buildShaMeta,
     VitePWA({
       // autoUpdate so a new deploy activates on next load instead of stranding
       // users on a stale precached bundle (the cause of "fixes never reach me").

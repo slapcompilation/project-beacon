@@ -8,5 +8,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     css: false,
+    // e2e/ is Playwright's (real browser); keep it out of the unit runner
+    exclude: ['**/node_modules/**', 'e2e/**'],
   },
 })
