@@ -11,18 +11,8 @@ import { cn } from '@/lib/utils'
 import { useNodeEdges } from '@/hooks/useNodeEdges'
 import { otherSide } from '@beacon/reality-graph'
 import type { NodeType, EdgeType } from '@beacon/reality-graph'
+import { objectPath } from '@/lib/objectPresentation'
 
-// ─── Route map — NodeType → object page path prefix ───────────────────────────
-
-const NODE_ROUTES: Partial<Record<NodeType, string>> = {
-  variant:         '/variant/',
-  product:         '/product/',
-  supplier:        '/supplier/',
-  purchase_order:  '/po/',
-  restock_request: '/restock/',
-  stock_log:       '/log/',
-  alert:           '/alert/',
-}
 
 // ─── Edge type display labels ──────────────────────────────────────────────────
 
@@ -126,7 +116,7 @@ interface ChipProps {
 }
 
 function EdgeChip({ nodeId, nodeType, edgeType, createdAt, role }: ChipProps) {
-  const path = NODE_ROUTES[nodeType]
+  const path = objectPath(nodeType, nodeId)
   const nodeLabel = NODE_LABELS[nodeType]
   const colorCls = EDGE_COLOR[edgeType] ?? DEFAULT_EDGE_COLOR
   const shortId = nodeId.slice(0, 8)
@@ -147,7 +137,7 @@ function EdgeChip({ nodeId, nodeType, edgeType, createdAt, role }: ChipProps) {
   )
 
   if (path) {
-    return <Link to={`${path}${nodeId}`}>{content}</Link>
+    return <Link to={path}>{content}</Link>
   }
   return content
 }
