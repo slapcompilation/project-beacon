@@ -11,14 +11,25 @@ const PASSWORD = process.env.SMOKE_USER_PASSWORD ?? ''
 
 test.skip(!SUPABASE_URL || !EMAIL, 'SMOKE_USER_* / VITE_SUPABASE_* env not set')
 
-const MIGRATED: { table: string; route: string }[] = [
+const MIGRATED: { table: string; route: string; scopeByHotel?: boolean }[] = [
   { table: 'product_variants', route: 'variant' },
   { table: 'purchase_orders',  route: 'po' },
   { table: 'suppliers',        route: 'supplier' },
   { table: 'restock_requests', route: 'restock' },
+  { table: 'products',         route: 'product' },
+  // scoped: the page loads logs via the ACTIVE hotel, while admin RLS reads
+  // org-wide — an unscoped pick can land on a sister hotel's log and 404
+  { table: 'stock_logs',       route: 'log', scopeByHotel: true },
+  { table: 'proposals',        route: 'proposals' },
+  { table: 'cases',            route: 'cases' },
+  { table: 'documents',        route: 'documents' },
+  { table: 'constraints',      route: 'constraints' },
+  { table: 'principles',       route: 'principles' },
+  { table: 'action_chains',    route: 'action-chains' },
 ]
 
 let session: { access_token: string }
+let hotelId = ''
 test.beforeAll(async () => {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
@@ -27,12 +38,17 @@ test.beforeAll(async () => {
   })
   if (!res.ok) throw new Error(`smoke login failed: ${res.status}`)
   session = (await res.json()) as { access_token: string }
+  const prof = await fetch(`${SUPABASE_URL}/rest/v1/profiles?select=hotel_id&limit=1`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` },
+  }).then((r) => r.json() as Promise<{ hotel_id: string }[]>)
+  hotelId = prof[0]?.hotel_id ?? ''
 })
 
-for (const { table, route } of MIGRATED) {
+for (const { table, route, scopeByHotel } of MIGRATED) {
   test(`${route} object page renders the canonical frame`, async ({ page }) => {
     // any row the smoke user can see — no hardcoded ids to go stale
-    const rows = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id&limit=1`, {
+    const scope = scopeByHotel && hotelId ? `&hotel_id=eq.${hotelId}` : ''
+    const rows = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id&limit=1${scope}`, {
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` },
     }).then((r) => r.json() as Promise<{ id: string }[]>)
     test.skip(!Array.isArray(rows) || rows.length === 0, `no ${table} visible to the smoke user`)

@@ -20,8 +20,8 @@ import type { IconName } from '@blueprintjs/icons'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@beacon/types'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -113,25 +113,28 @@ export default function AlertObjectPage() {
   const variantLabel = productName && pv ? `${productName} · ${pv.name}` : pv?.name ?? null
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Alerts', to: '/eye' }}
-        icon={meta.icon}
-        title={meta.label}
-        star={{ id: `alert:${alert.id}`, label: meta.label, subtitle: 'Alert', path: `/alert/${alert.id}`, icon: meta.icon }}
-        tags={<Tag minimal intent={alert.read ? Intent.NONE : Intent.PRIMARY}>{alert.read ? 'Read' : 'Unread'}</Tag>}
-        id={alert.id}
-      />
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Alerts', to: '/eye' },
+        icon: meta.icon,
+        title: meta.label,
+        star: { id: `alert:${alert.id}`, label: meta.label, subtitle: 'Alert', path: `/alert/${alert.id}`, icon: meta.icon },
+        tags: (
+          <Tag minimal intent={alert.read ? Intent.NONE : Intent.PRIMARY}>{alert.read ? 'Read' : 'Unread'}</Tag>
+        ),
+        id: alert.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Type" value={meta.label} />
         <Metric label="Triggered" value={format(new Date(alert.timestamp), 'dd MMM yyyy')} sub={format(new Date(alert.timestamp), 'HH:mm')} />
         <Metric label="Age" value={formatDistanceToNow(new Date(alert.timestamp), { addSuffix: true })} />
         <Metric label="Variant Stock" value={pv ? pv.current_stock : '—'} sub={pv?.sku ?? undefined} accent={pv && pv.current_stock === 0 ? 'red' : undefined} />
-      </MetricStrip>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      rail={<AuditRail nodeType="alert" nodeId={alert.id} />}
+    >
 
         {/* Message card */}
         <Card compact>
@@ -185,9 +188,6 @@ export default function AlertObjectPage() {
             <span className="font-mono text-[10px]">{alert.user_id}</span>
           </div>
         </Card>
-          </main>
-          <AuditRail nodeType="alert" nodeId={alert.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }

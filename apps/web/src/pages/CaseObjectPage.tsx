@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import {
   Button, Callout, Card, FormGroup, Icon, InputGroup,
   Intent, NonIdealState, Spinner, Tag,
@@ -19,7 +19,7 @@ import type { CaseStatus } from '@/features/cases/api'
 import { fetchProposal, type ProposalRow } from '@/features/agents/proposalsApi'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { AuditRail } from '@/components/AuditRail'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
 const NEXT_STATUS: Record<CaseStatus, CaseStatus[]> = {
@@ -77,25 +77,28 @@ export default function CaseObjectPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Cases', to: '/cases' }}
-        icon="folder-open"
-        title={row.title}
-        star={{ id: `case:${caseId}`, label: row.title, path: `/cases/${caseId}`, icon: 'folder-open' }}
-        tags={<Tag minimal intent={statusIntent(row.status)}>{row.status.replace('_', ' ')}</Tag>}
-        id={row.id}
-      />
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Cases', to: '/cases' },
+        icon: 'folder-open',
+        title: row.title,
+        star: { id: `case:${caseId}`, label: row.title, path: `/cases/${caseId}`, icon: 'folder-open' },
+        tags: (
+          <Tag minimal intent={statusIntent(row.status)}>{row.status.replace('_', ' ')}</Tag>
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Status"     value={row.status.replace('_', ' ')} capitalize />
         <Metric label="Proposals"  value={String(row.proposal_ids.length)} />
         <Metric label="Inputs"     value={String(row.input_refs.length)} />
         <Metric label="Age"        value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
-      </MetricStrip>
-
-      {/* Action bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        </>
+      }
+      actions={
+        <>
         {nextOptions.map((s) => (
           <Button
             key={s}
@@ -108,7 +111,10 @@ export default function CaseObjectPage() {
             → {s.replace('_', ' ')}
           </Button>
         ))}
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="case" nodeId={row.id} />}
+    >
 
       {outcomeOpen && (
         <div className="px-6 py-3 border-b bg-muted/20 shrink-0 space-y-2">
@@ -130,8 +136,6 @@ export default function CaseObjectPage() {
       )}
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         {row.outcome && (
           <ObjectSection title="Outcome" icon="tick">
             <Callout intent={Intent.SUCCESS} icon="confirm" title={row.outcome.action_type}>
@@ -179,11 +183,7 @@ export default function CaseObjectPage() {
             {row.resolved_at && <div>Resolved {new Date(row.resolved_at).toISOString()} by <span className="font-mono">{row.resolved_by_user_id ?? '—'}</span></div>}
           </Card>
         </ObjectSection>
-       </div>
-       <AuditRail nodeType="case" nodeId={row.id} />
-      </div>
-
-    </div>
+    </ObjectViewFrame>
   )
 }
 

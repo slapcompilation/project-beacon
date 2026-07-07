@@ -22,8 +22,8 @@ import { cn } from '@/lib/utils'
 import type { StockLog } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ──────────────────────────────────────────────────────────────
@@ -42,12 +42,14 @@ interface StockLogWithContext extends StockLog {
 // ─── Data fetcher ─────────────────────────────────────────────────────────────
 
 async function fetchStockLog(logId: string): Promise<StockLogWithContext | null> {
+  // stock_logs.user_id has no FK (it points at auth.users), so PostgREST can't
+  // embed profiles — the old inline embed errored the whole query and every
+  // log page rendered "not found". Fetch the email separately instead.
   const { data, error } = await supabase
     .from('stock_logs')
     .select(`
       *,
       product_variants(id, name, sku, products(id, name)),
-      user_profiles:user_id(email),
       reverted_log:revert_of(id, quantity_change, reason, timestamp)
     `)
     .eq('id', logId)
@@ -56,6 +58,11 @@ async function fetchStockLog(logId: string): Promise<StockLogWithContext | null>
       error: { message: string } | null
     }
   if (error) throw new Error(error.message)
+  if (data?.user_id) {
+    const { data: prof } = await supabase.from('profiles').select('email').eq('id', data.user_id).maybeSingle() as unknown as
+      { data: { email: string } | null }
+    if (prof?.email) data.user_profiles = { email: prof.email }
+  }
   return data
 }
 
@@ -133,30 +140,31 @@ export default function StockLogObjectPage() {
   const headerIconName = isRevert ? 'undo' : isPositive ? 'trending-up' : 'trending-down'
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={variantId ? { label: `${productName} · ${variantName}`, to: `/variant/${variantId}` } : { label: 'Stock Log', to: '/flow' }}
-        icon={headerIconName}
-        title={`${isPositive ? '+' : ''}${log.quantity_change} → ${log.balance_after} remaining`}
-        star={{ id: `stock_log:${log.id}`, label: `${isPositive ? '+' : ''}${log.quantity_change} · ${variantName}`, subtitle: 'Stock log', path: `/log/${log.id}`, icon: headerIconName }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: variantId ? { label: `${productName} · ${variantName}`, to: `/variant/${variantId}` } : { label: 'Stock Log', to: '/flow' },
+        icon: headerIconName,
+        title: `${isPositive ? '+' : ''}${log.quantity_change} → ${log.balance_after} remaining`,
+        star: { id: `stock_log:${log.id}`, label: `${isPositive ? '+' : ''}${log.quantity_change} · ${variantName}`, subtitle: 'Stock log', path: `/log/${log.id}`, icon: headerIconName },
+        tags: (
           <>
             {isRevert && <Tag intent={Intent.PRIMARY} minimal icon="undo">REVERT</Tag>}
             <Tag minimal icon="user">{log.user_profiles?.email ?? log.user_id}</Tag>
           </>
-        }
-        id={log.id}
-      />
+        ),
+        id: log.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Delta" value={`${isPositive ? '+' : ''}${log.quantity_change}`} accent={isPositive ? 'green' : 'red'} />
         <Metric label="Balance After" value={log.balance_after} />
         <Metric label="Timestamp" value={format(new Date(log.timestamp), 'dd MMM yyyy')} sub={format(new Date(log.timestamp), 'HH:mm:ss')} />
         <Metric label="Source" value={log.was_offline ? 'Offline sync' : 'Live'} sub={formatDistanceToNow(new Date(log.timestamp), { addSuffix: true })} />
-      </MetricStrip>
-
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-          <main className="flex-1 min-w-0 space-y-4">
+        </>
+      }
+      rail={<AuditRail nodeType="stock_log" nodeId={log.id} />}
+    >
 
         {/* Reason */}
         <Card compact className="!bg-muted/20">
@@ -258,9 +266,6 @@ export default function StockLogObjectPage() {
         <Card>
           <GraphConnections nodeType="stock_log" nodeId={log.id} />
         </Card>
-          </main>
-          <AuditRail nodeType="stock_log" nodeId={log.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }

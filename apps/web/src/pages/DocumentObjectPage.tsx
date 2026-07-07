@@ -19,8 +19,8 @@ import {
 } from '@/features/documents/hooks'
 import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import {
   useApproveSuggestion,
@@ -61,29 +61,32 @@ export default function DocumentObjectPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Documents', to: '/documents' }}
-        icon="document"
-        title={row.title}
-        star={{ id: `document:${row.id}`, label: row.title, subtitle: 'Document', path: `/documents/${documentId}`, icon: 'document' }}
-        tags={
+    <>
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Documents', to: '/documents' },
+        icon: 'document',
+        title: row.title,
+        star: { id: `document:${row.id}`, label: row.title, subtitle: 'Document', path: `/documents/${documentId}`, icon: 'document' },
+        tags: (
           <>
             <Tag minimal>{row.source}</Tag>
             <Tag minimal intent={stageIntent(row.ingestion_stage)}>{row.ingestion_stage}</Tag>
           </>
-        }
-        id={row.id}
-      />
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Source"   value={row.source} capitalize />
         <Metric label="Stage"    value={row.ingestion_stage} capitalize />
         <Metric label="Size"     value={formatBytes(row.size_bytes)} />
         <Metric label="Uploaded" value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
-      </MetricStrip>
-
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        </>
+      }
+      actions={
+        <>
         <Button
           variant="minimal"
           icon="link"
@@ -146,10 +149,11 @@ export default function DocumentObjectPage() {
         >
           Delete
         </Button>
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="document" nodeId={row.id} />}
+    >
 
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         <ObjectSection title="File" icon="document">
           <Card className="space-y-1 text-xs">
             <div className="font-mono"><span className="text-muted-foreground">MIME:</span> {row.mime_type}</div>
@@ -294,9 +298,7 @@ export default function DocumentObjectPage() {
             <div>Updated {new Date(row.updated_at).toISOString()}</div>
           </Card>
         </ObjectSection>
-       </div>
-       <AuditRail nodeType="document" nodeId={row.id} />
-      </div>
+    </ObjectViewFrame>
 
       <LinkEntityDialog
         open={linkOpen}
@@ -306,7 +308,7 @@ export default function DocumentObjectPage() {
           link.mutate({ entityType, entityId }, { onSuccess: () => { setLinkOpen(false) } })
         }}
       />
-    </div>
+    </>
   )
 }
 

@@ -20,8 +20,8 @@ import {
   useUpdateActionChainNotes,
 } from '@/features/actionChains/hooks'
 import { AuditRail } from '@/components/AuditRail'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 
@@ -65,30 +65,32 @@ export default function ActionChainObjectPage() {
   const noteText = notes ?? row.notes ?? ''
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Action Chains', to: '/action-chains' }}
-        icon="link"
-        title={row.title}
-        star={{ id: `action_chain:${row.id}`, label: row.title, subtitle: 'Action chain', path: `/action-chains/${chainId}`, icon: 'link' }}
-        tags={
+    <>
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Action Chains', to: '/action-chains' },
+        icon: 'link',
+        title: row.title,
+        star: { id: `action_chain:${row.id}`, label: row.title, subtitle: 'Action chain', path: `/action-chains/${chainId}`, icon: 'link' },
+        tags: (
           <>
             <Tag minimal intent={statusIntent(row.status)}>{row.status}</Tag>
             {isFork && <Tag minimal icon="git-branch">forked</Tag>}
           </>
-        }
-        id={row.id}
-      />
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Status" value={row.status} capitalize />
         <Metric label="Steps"  value={String(row.simulated_actions.length)} />
         <Metric label="Source" value={isFork ? 'forked' : 'clean slate'} capitalize />
         <Metric label="Age"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
-      </MetricStrip>
-
-      {/* Action bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0 flex-wrap">
+        </>
+      }
+      actions={
+        <>
         {isDraft && (
           <>
             <HTMLSelect
@@ -130,11 +132,12 @@ export default function ActionChainObjectPage() {
             Committed {formatDistanceToNow(new Date(row.committed_at), { addSuffix: true })}
           </span>
         )}
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="action_chain" nodeId={row.id} />}
+    >
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         {isFork && row.base_proposal_id && (
           <Callout intent={Intent.NONE} icon="git-branch">
             Forked from{' '}
@@ -216,9 +219,7 @@ export default function ActionChainObjectPage() {
             )}
           </Card>
         </ObjectSection>
-       </div>
-       <AuditRail nodeType="action_chain" nodeId={row.id} />
-      </div>
+    </ObjectViewFrame>
 
       {/* Add-step modal: ActionFormModal in capture mode. The same renderer
           the Review Queue + copilot proposal cards use, except onCapture
@@ -240,7 +241,7 @@ export default function ActionChainObjectPage() {
           }}
         />
       )}
-    </div>
+    </>
   )
 }
 

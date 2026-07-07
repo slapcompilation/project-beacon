@@ -9,8 +9,8 @@ import { toast } from 'sonner'
 import { formatDistanceToNow } from 'date-fns'
 import { fetchPrinciple, setPrincipleActive } from '@/features/principles/api'
 import { AuditRail } from '@/components/AuditRail'
-import { ObjectHeaderBand } from '@/components/ObjectHeaderBand'
-import { MetricStrip, Metric } from '@/components/MetricStrip'
+import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
 const CATEGORY_INTENT: Record<string, Intent> = {
@@ -56,30 +56,31 @@ export default function PrincipleObjectPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
-      <ObjectHeaderBand
-        breadcrumb={{ label: 'Principles', to: '/settings?section=principles' }}
-        icon="learning"
-        title="Principle"
-        star={{ id: `principle:${row.id}`, label: row.body, subtitle: `Principle · ${row.category}`, path: `/principles/${principleId}`, icon: 'learning' }}
-        tags={
+    <ObjectViewFrame
+      header={{
+        breadcrumb: { label: 'Principles', to: '/settings?section=principles' },
+        icon: 'learning',
+        title: 'Principle',
+        star: { id: `principle:${row.id}`, label: row.body, subtitle: `Principle · ${row.category}`, path: `/principles/${principleId}`, icon: 'learning' },
+        tags: (
           <>
             <Tag minimal intent={CATEGORY_INTENT[row.category] ?? Intent.NONE}>{row.category}</Tag>
             <Tag minimal intent={row.active ? Intent.SUCCESS : Intent.NONE}>{row.active ? 'active' : 'retired'}</Tag>
           </>
-        }
-        id={row.id}
-      />
+        ),
+        id: row.id,
+      }}
 
-      <MetricStrip>
+      metrics={
+        <>
         <Metric label="Category" value={row.category} capitalize />
         <Metric label="Status"   value={row.active ? 'Active' : 'Retired'} capitalize />
         <Metric label="Created"  value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
         <Metric label="Scope"    value={row.applies_to_node_ids.length > 0 ? `${String(row.applies_to_node_ids.length)} node(s)` : 'global'} capitalize />
-      </MetricStrip>
-
-      {/* Action bar */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3 border-b shrink-0">
+        </>
+      }
+      actions={
+        <>
         <Button
           intent={row.active ? Intent.DANGER : Intent.PRIMARY}
           variant={row.active ? 'minimal' : undefined}
@@ -89,11 +90,12 @@ export default function PrincipleObjectPage() {
         >
           {row.active ? 'Retire' : 'Reactivate'}
         </Button>
-      </div>
+        </>
+      }
+      rail={<AuditRail nodeType="principle" nodeId={row.id} />}
+    >
 
       {/* Body */}
-      <div className="flex-1 overflow-y-auto p-4 flex gap-4">
-       <div className="flex-1 min-w-0 space-y-4">
         <ObjectSection title="Body" icon="lightbulb">
           <Card><p className="text-sm leading-relaxed">{row.body}</p></Card>
         </ObjectSection>
@@ -117,10 +119,7 @@ export default function PrincipleObjectPage() {
             {row.deactivated_at && <div>Retired {new Date(row.deactivated_at).toISOString()}</div>}
           </Card>
         </ObjectSection>
-       </div>
-       <AuditRail nodeType="principle" nodeId={row.id} />
-      </div>
-    </div>
+    </ObjectViewFrame>
   )
 }
 
