@@ -72,6 +72,9 @@ export interface RunAgentArgs {
   toolRegistry: Map<string, LogicTool>
   /** Subset of the registry names the orchestrator allows the blocks to call. */
   allowedTools: ReadonlyArray<string>
+  /** Token budget shown on trace steps ("1,607 of 24,000"). Matches the
+   *  tool-loop default; pass the loop's maxTokens when overriding it. */
+  tokenWindow?: number
 }
 
 export interface AgentRunner {
@@ -93,9 +96,16 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
 
   const allowed = new Set(args.allowedTools)
 
+  const tokenWindow = args.tokenWindow ?? 24_000
+
   const appendStep = (partial: Omit<AgentRunStep, 'index'>): void => {
     stepIndex += 1
-    steps.push({ index: stepIndex, ...partial })
+    // LLM-driven steps carry the running budget so the trace renders the AIP
+    // debugger's "N of M tokens used" bar per step.
+    const tokens = (partial.type === 'llm_tool_use' || partial.type === 'llm_output') && tokensUsed > 0
+      ? { used: tokensUsed, window: tokenWindow }
+      : undefined
+    steps.push({ index: stepIndex, ...(tokens ? { tokens } : {}), ...partial })
   }
 
   const runBlock = async <I, O>(block: BlockDef<I, O>, rawInput: I): Promise<O> => {
