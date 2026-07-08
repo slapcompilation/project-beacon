@@ -21,6 +21,7 @@ import {
 } from '@/features/actionChains/hooks'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
@@ -68,8 +69,8 @@ export default function ActionChainObjectPage() {
     <>
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Action Chains', to: '/action-chains' },
-        icon: 'link',
+        breadcrumb: OBJECT_PRESENTATION.action_chain.home,
+        icon: OBJECT_PRESENTATION.action_chain.icon,
         title: row.title,
         star: { id: `action_chain:${row.id}`, label: row.title, subtitle: 'Action chain', path: `/action-chains/${chainId}`, icon: 'link' },
         tags: (

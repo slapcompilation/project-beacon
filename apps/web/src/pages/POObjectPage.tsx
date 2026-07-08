@@ -32,6 +32,7 @@ import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -531,8 +532,8 @@ export default function POObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: po.supplier_id ? { label: po.supplier_name, to: `/supplier/${po.supplier_id}` } : { label: 'Purchase Orders', to: '/mind?panel=procurement' },
-        icon: 'truck',
+        breadcrumb: po.supplier_id ? { label: po.supplier_name, to: `/supplier/${po.supplier_id}` } : OBJECT_PRESENTATION.purchase_order.home,
+        icon: OBJECT_PRESENTATION.purchase_order.icon,
         title: po.po_number,
         star: { id: `po:${poId}`, label: po.po_number, path: `/po/${poId}`, icon: 'document' },
         tags: (

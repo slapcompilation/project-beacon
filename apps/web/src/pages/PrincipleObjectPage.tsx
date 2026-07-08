@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { fetchPrinciple, setPrincipleActive } from '@/features/principles/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
@@ -58,8 +59,8 @@ export default function PrincipleObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Principles', to: '/settings?section=principles' },
-        icon: 'learning',
+        breadcrumb: OBJECT_PRESENTATION.principle.home,
+        icon: OBJECT_PRESENTATION.principle.icon,
         title: 'Principle',
         star: { id: `principle:${row.id}`, label: row.body, subtitle: `Principle · ${row.category}`, path: `/principles/${principleId}`, icon: 'learning' },
         tags: (

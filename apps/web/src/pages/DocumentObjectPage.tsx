@@ -20,6 +20,7 @@ import {
 import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import {
@@ -64,8 +65,8 @@ export default function DocumentObjectPage() {
     <>
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Documents', to: '/documents' },
-        icon: 'document',
+        breadcrumb: OBJECT_PRESENTATION.document.home,
+        icon: OBJECT_PRESENTATION.document.icon,
         title: row.title,
         star: { id: `document:${row.id}`, label: row.title, subtitle: 'Document', path: `/documents/${documentId}`, icon: 'document' },
         tags: (

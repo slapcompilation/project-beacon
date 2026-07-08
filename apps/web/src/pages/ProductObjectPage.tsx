@@ -22,6 +22,7 @@ import type { Product, ProductVariant, Category } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { getTotalStock, getStockStatus } from '@beacon/types'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
@@ -116,8 +117,8 @@ export default function ProductObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Inventory', to: '/graph' },
-        icon: 'box',
+        breadcrumb: OBJECT_PRESENTATION.product.home,
+        icon: OBJECT_PRESENTATION.product.icon,
         title: product.name,
         star: { id: `product:${productId}`, label: product.name, path: `/product/${productId}`, icon: 'box' },
         tags: (

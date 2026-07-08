@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import {
   Button, Callout, Card, FormGroup, Icon, InputGroup,
   Intent, NonIdealState, Spinner, Tag,
@@ -79,8 +80,8 @@ export default function CaseObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Cases', to: '/cases' },
-        icon: 'folder-open',
+        breadcrumb: OBJECT_PRESENTATION.case.home,
+        icon: OBJECT_PRESENTATION.case.icon,
         title: row.title,
         star: { id: `case:${caseId}`, label: row.title, path: `/cases/${caseId}`, icon: 'folder-open' },
         tags: (

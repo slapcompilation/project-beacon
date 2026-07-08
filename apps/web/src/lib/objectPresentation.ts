@@ -15,7 +15,7 @@ export interface ObjectPresentation {
   route: string
 }
 
-export const OBJECT_PRESENTATION: Partial<Record<NodeType, ObjectPresentation>> = {
+export const OBJECT_PRESENTATION = {
   variant:         { icon: 'box',          label: 'Variant',         home: { label: 'Inventory', to: '/graph' },                          route: '/variant/' },
   product:         { icon: 'box',          label: 'Product',         home: { label: 'Inventory', to: '/graph' },                          route: '/product/' },
   supplier:        { icon: 'shop',         label: 'Supplier',        home: { label: 'Suppliers', to: '/mind?panel=suppliers' },           route: '/supplier/' },
@@ -29,10 +29,10 @@ export const OBJECT_PRESENTATION: Partial<Record<NodeType, ObjectPresentation>> 
   constraint:      { icon: 'shield',       label: 'Constraint',      home: { label: 'Constraints', to: '/settings?section=constraints' }, route: '/constraints/' },
   principle:       { icon: 'learning',     label: 'Principle',       home: { label: 'Principles', to: '/settings?section=principles' },   route: '/principles/' },
   action_chain:    { icon: 'link',         label: 'Action Chain',    home: { label: 'Action Chains', to: '/action-chains' },              route: '/action-chains/' },
-}
+} satisfies Partial<Record<NodeType, ObjectPresentation>>
 
 /** Object-page path for a node, or null when the type has no page. */
 export function objectPath(nodeType: NodeType, id: string): string | null {
-  const p = OBJECT_PRESENTATION[nodeType]
+  const p = (OBJECT_PRESENTATION as Partial<Record<NodeType, ObjectPresentation>>)[nodeType]
   return p ? `${p.route}${id}` : null
 }

@@ -20,6 +20,7 @@ import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import { ActionFormModal } from '@/features/actions/ActionFormModal'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 import {
@@ -103,8 +104,8 @@ export default function ProposalObjectPage() {
     <>
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Review Queue', to: '/review-queue' },
-        icon: 'annotation',
+        breadcrumb: OBJECT_PRESENTATION.proposal.home,
+        icon: OBJECT_PRESENTATION.proposal.icon,
         title: 'Proposal',
         star: { id: `proposal:${row.id}`, label: `${action.type} · ${row.agent_name}`, subtitle: 'Proposal', path: `/proposals/${proposalId}`, icon: 'annotation' },
         tags: (

@@ -10,6 +10,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { fetchConstraint, setConstraintActive } from '@/features/constraints/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
@@ -56,8 +57,8 @@ export default function ConstraintObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Constraints', to: '/settings?section=constraints' },
-        icon: 'shield',
+        breadcrumb: OBJECT_PRESENTATION.constraint.home,
+        icon: OBJECT_PRESENTATION.constraint.icon,
         title: 'Constraint',
         star: { id: `constraint:${row.id}`, label: row.body, subtitle: `Constraint · ${row.bucket}`, path: `/constraints/${constraintId}`, icon: 'shield' },
         tags: (
