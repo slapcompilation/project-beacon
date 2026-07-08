@@ -27,7 +27,7 @@ import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
-import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import {
@@ -299,25 +299,25 @@ export default function SupplierObjectPage() {
       metrics={
         <>
         <Metric
-          label="Reliability Score"
+          info={GLOSSARY.reliability} label="Reliability Score"
           value={score !== null ? score.toFixed(1) : '—'}
           sub={reliability ? `${reliability.total_orders} orders in 90d` : 'No delivery data'}
           accent={score !== null ? scoreAccent : 'muted'}
         />
         <Metric
-          label="On-Time %"
+          info={GLOSSARY.on_time_pct} label="On-Time %"
           value={reliability ? onTimePctLabel(reliability) : '—'}
           sub={reliability ? `${reliability.late_orders} late of ${reliability.total_orders}` : undefined}
           accent={reliability?.on_time_pct == null ? 'muted' : reliability.on_time_pct >= 85 ? 'green' : reliability.on_time_pct >= 65 ? 'amber' : 'red'}
         />
         <Metric
-          label="Avg Delay"
+          info={GLOSSARY.avg_delay} label="Avg Delay"
           value={reliability ? `${reliability.avg_delay_days.toFixed(1)}d` : '—'}
           sub={reliability ? `max ${reliability.max_delay_days}d` : undefined}
           accent={reliability?.avg_delay_days == null ? 'muted' : reliability.avg_delay_days <= 1 ? 'green' : reliability.avg_delay_days <= 3 ? 'amber' : 'red'}
         />
         <Metric
-          label="Cost Variance"
+          info={GLOSSARY.cost_variance} label="Cost Variance"
           value={reliability ? costVarianceLabel(reliability) : '—'}
           sub={reliability ? `€${reliability.total_value.toFixed(0)} total value` : 'No contracts'}
           accent={reliability?.avg_cost_variance_pct == null ? 'muted' : reliability.avg_cost_variance_pct > 5 ? 'red' : reliability.avg_cost_variance_pct > 2 ? 'amber' : 'green'}

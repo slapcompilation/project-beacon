@@ -4,6 +4,7 @@
 // ones (value + sub-line + color accent) so every object view reads identically.
 
 import type { ReactNode } from 'react'
+import { Tooltip } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 
 export type MetricAccent = 'green' | 'amber' | 'red' | 'muted'
@@ -23,17 +24,25 @@ export function MetricStrip({ children }: { children: ReactNode }) {
   )
 }
 
-export function Metric({ label, value, sub, accent, capitalize }: {
+export function Metric({ label, value, sub, accent, capitalize, info }: {
   label: string
   value: ReactNode
   sub?: string
   accent?: MetricAccent
   /** Title-case the value — for lowercase enum values (status/bucket/severity). */
   capitalize?: boolean
+  /** Plain-language definition (usually GLOSSARY.<term>) shown on label hover. */
+  info?: string
 }) {
+  const labelEl = (
+    <p className={cn(
+      'text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1',
+      info && 'cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2',
+    )}>{label}</p>
+  )
   return (
     <div className="bg-background px-4 py-3">
-      <p className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground mb-1">{label}</p>
+      {info ? <Tooltip content={info} placement="top" compact className="!block"><span>{labelEl}</span></Tooltip> : labelEl}
       <div className={cn('text-sm font-semibold tabular-nums', capitalize && 'capitalize', accent && ACCENT[accent])}>{value}</div>
       {sub && <div className="text-[11px] font-normal text-muted-foreground mt-0.5">{sub}</div>}
     </div>

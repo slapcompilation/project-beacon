@@ -33,10 +33,9 @@ import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
-import { ObjectViewFrame } from '@/components/ObjectViewFrame'
-import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { ObjectViewFrame, ObjectRail, RailGroup } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
-import { AuditRail } from '@/components/AuditRail'
 
 // ─── Local types ─────────────────────────────────────────────────────────────
 
@@ -372,23 +371,27 @@ export default function VariantObjectPage() {
       metrics={
         <>
         <Metric
+          info={GLOSSARY.par}
           label="Current Stock"
           value={`${variant.current_stock}${variant.unit_of_measure ? ' ' + variant.unit_of_measure : ''}`}
           sub={`PAR: ${variant.low_stock_threshold > 0 ? variant.low_stock_threshold : '—'}`}
           accent={stockAccent}
         />
         <Metric
+          info={GLOSSARY.days_until_zero}
           label="Days Until Zero"
           value={daysUntilZero !== null ? `${Math.round(daysUntilZero)}d` : '—'}
           sub={avgDaily !== null ? `avg ${avgDaily.toFixed(1)}/day · 30d` : 'Insufficient data'}
           accent={daysAccent}
         />
         <Metric
+          info={GLOSSARY.consumed_30d}
           label="30d Consumed"
           value={consumed30.toString()}
           sub={`${received30} received · ${logsLast30.length} events`}
         />
         <Metric
+          info={GLOSSARY.stock_value}
           label="Stock Value"
           value={`€${costAtRisk.toFixed(2)}`}
           sub={`@ €${variant.cost.toFixed(2)} / unit`}
@@ -402,7 +405,18 @@ export default function VariantObjectPage() {
           <Button icon="predictive-analysis" intent={Intent.PRIMARY} size="small" onClick={() => { setAdviceOpen(true) }}>Get restock advice</Button>
         </>
       }
-      rail={<AuditRail nodeType="variant" nodeId={variantId} />}
+      rail={
+        <ObjectRail nodeType="variant" nodeId={variantId}>
+          <RailGroup title="Pinned Actions" icon="take-action">
+            <ObjectActions
+              nodeType="variant"
+              variantId={variantId}
+              currentStock={variant.current_stock}
+              hasOpenRequest={forecast?.has_open_request ?? false}
+            />
+          </RailGroup>
+        </ObjectRail>
+      }
     >
 
           {/* ── Reorder point (statistical, vs the hand-set PAR) ── */}
@@ -546,16 +560,6 @@ export default function VariantObjectPage() {
               </div>
             </Card>
           )}
-
-          {/* ── Inline actions ── */}
-          <Card>
-            <ObjectActions
-              nodeType="variant"
-              variantId={variantId}
-              currentStock={variant.current_stock}
-              hasOpenRequest={forecast?.has_open_request ?? false}
-            />
-          </Card>
 
           {/* ── Graph connections ── */}
           <Card>
