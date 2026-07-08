@@ -79,12 +79,23 @@ function StepRow({ step }: { step: AgentRunStep }) {
         <Icon icon={icon} size={12} intent={intent} />
         <span className="flex-1 truncate">{label}</span>
         {step.durationMs !== undefined && (
-          <span className="text-[10px] text-muted-foreground/60">{String(step.durationMs)}ms</span>
+          <span className="text-[10px] text-muted-foreground/60">{fmtDuration(step.durationMs)}</span>
         )}
         {hasDetail && (
           <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={10} className="text-muted-foreground/50" />
         )}
       </button>
+
+      {/* AIP-debugger signature: the tool-use step shows its Thought and the
+          running token budget inline, no expansion needed. */}
+      {step.type === 'llm_tool_use' && (step.thought ?? step.tokens) && (
+        <div className="px-8 pb-1.5 space-y-1">
+          {step.thought && !open && (
+            <p className="text-[10px] text-muted-foreground line-clamp-2">Thought: {step.thought}</p>
+          )}
+          {step.tokens && <TokenBudget used={step.tokens.used} window={step.tokens.window} />}
+        </div>
+      )}
 
       {open && hasDetail && (
         <div className="space-y-1 border-t border-border/30 bg-surface-0 px-3 py-2 text-[10px]">
@@ -101,6 +112,27 @@ function StepRow({ step }: { step: AgentRunStep }) {
       )}
     </li>
   )
+}
+
+function TokenBudget({ used, window: win }: { used: number; window: number }) {
+  const pct = Math.min(100, (used / win) * 100)
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] tabular-nums text-muted-foreground/70">
+        {used.toLocaleString()} of {win.toLocaleString()} tokens
+      </span>
+      <div className="h-1 w-24 rounded-full bg-border overflow-hidden">
+        <div
+          className={cn('h-full rounded-full', pct < 70 ? 'bg-emerald-500' : pct < 90 ? 'bg-amber-500' : 'bg-red-500')}
+          style={{ width: `${String(pct)}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function fmtDuration(ms: number): string {
+  return ms >= 1000 ? `${(ms / 1000).toFixed(2)}s` : `${String(ms)}ms`
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
@@ -125,7 +157,7 @@ function describeStep(step: AgentRunStep): { icon: IconName; label: string; inte
     case 'llm_output':
       return { icon: 'comment', label: 'Block output', intent: Intent.NONE }
     case 'exited_block':
-      return { icon: 'arrow-right', label: 'Block complete', intent: Intent.NONE }
+      return { icon: 'arrow-right', label: `Exited block → ${step.blockName}`, intent: Intent.NONE }
     case 'request_clarification':
       return { icon: 'help', label: 'Clarification requested', intent: Intent.WARNING }
   }
