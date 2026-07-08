@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { Notification } from '@beacon/types'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
@@ -115,7 +116,7 @@ export default function AlertObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Alerts', to: '/eye' },
+        breadcrumb: OBJECT_PRESENTATION.alert.home,
         icon: meta.icon,
         title: meta.label,
         star: { id: `alert:${alert.id}`, label: meta.label, subtitle: 'Alert', path: `/alert/${alert.id}`, icon: meta.icon },

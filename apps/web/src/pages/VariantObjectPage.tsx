@@ -34,6 +34,7 @@ import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
@@ -355,8 +356,8 @@ export default function VariantObjectPage() {
     <>
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Inventory', to: '/graph' },
-        icon: 'box',
+        breadcrumb: OBJECT_PRESENTATION.variant.home,
+        icon: OBJECT_PRESENTATION.variant.icon,
         title: `${productName} · ${variant.name}`,
         star: { id: `variant:${variant.id}`, label: variant.name, subtitle: productName, path: `/variant/${variant.id}`, icon: 'box' },
         tags: (

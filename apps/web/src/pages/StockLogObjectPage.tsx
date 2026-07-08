@@ -23,6 +23,7 @@ import type { StockLog } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 
@@ -142,7 +143,7 @@ export default function StockLogObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: variantId ? { label: `${productName} · ${variantName}`, to: `/variant/${variantId}` } : { label: 'Stock Log', to: '/flow' },
+        breadcrumb: variantId ? { label: `${productName} · ${variantName}`, to: `/variant/${variantId}` } : OBJECT_PRESENTATION.stock_log.home,
         icon: headerIconName,
         title: `${isPositive ? '+' : ''}${log.quantity_change} → ${log.balance_after} remaining`,
         star: { id: `stock_log:${log.id}`, label: `${isPositive ? '+' : ''}${log.quantity_change} · ${variantName}`, subtitle: 'Stock log', path: `/log/${log.id}`, icon: headerIconName },

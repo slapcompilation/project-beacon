@@ -27,6 +27,7 @@ import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import {
@@ -288,8 +289,8 @@ export default function SupplierObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: { label: 'Suppliers', to: '/mind?panel=suppliers' },
-        icon: 'shop',
+        breadcrumb: OBJECT_PRESENTATION.supplier.home,
+        icon: OBJECT_PRESENTATION.supplier.icon,
         title: supplier.name,
         star: { id: `supplier:${supplierId}`, label: supplier.name, path: `/supplier/${supplierId}`, icon: 'shop' },
         tags: reliability ? <RiskTierBadge tier={reliability.risk_tier} /> : undefined,

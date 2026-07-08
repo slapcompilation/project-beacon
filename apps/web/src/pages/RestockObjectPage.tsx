@@ -40,6 +40,7 @@ import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { hasPermission } from '@beacon/types'
@@ -435,8 +436,8 @@ export default function RestockObjectPage() {
   return (
     <ObjectViewFrame
       header={{
-        breadcrumb: pv?.id ? { label: productName, to: `/variant/${pv.id}` } : { label: 'Restock Requests', to: '/flow?panel=approvals' },
-        icon: 'box',
+        breadcrumb: pv?.id ? { label: productName, to: `/variant/${pv.id}` } : OBJECT_PRESENTATION.restock_request.home,
+        icon: OBJECT_PRESENTATION.restock_request.icon,
         title: variantLabel,
         star: { id: `restock_request:${req.id}`, label: `Restock · ${variantLabel}`, subtitle: 'Restock request', path: `/restock/${req.id}`, icon: 'box' },
         tags: (
