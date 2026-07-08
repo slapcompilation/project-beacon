@@ -40,7 +40,7 @@ import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
-import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { hasPermission } from '@beacon/types'
@@ -452,7 +452,7 @@ export default function RestockObjectPage() {
         <>
         <Metric label="Qty Requested" value={req.quantity_needed} sub={pv?.sku ?? undefined} />
         <Metric
-          label="Qty Received"
+          info={GLOSSARY.qty_received} label="Qty Received"
           value={received}
           sub={`${pctFulfilled}% fulfilled · ${remaining} remaining`}
           accent={pctFulfilled === 100 ? 'green' : received > 0 ? 'amber' : undefined}

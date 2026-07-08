@@ -32,7 +32,7 @@ import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
-import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -546,8 +546,8 @@ export default function POObjectPage() {
       }}
       metrics={
         <>
-        <Metric label="Total Value" value={formatCurrency(po.total_amount, currency)} />
-        <Metric label="Line Items" value={`${rcvdLines}/${totalLines}`} sub={`${pct}% received`} accent={pct === 100 ? 'green' : pct > 0 ? 'amber' : undefined} />
+        <Metric info={GLOSSARY.total_value} label="Total Value" value={formatCurrency(po.total_amount, currency)} />
+        <Metric info={GLOSSARY.line_items} label="Line Items" value={`${rcvdLines}/${totalLines}`} sub={`${pct}% received`} accent={pct === 100 ? 'green' : pct > 0 ? 'amber' : undefined} />
         <Metric label="Delivery" value={po.expected_delivery_date ? format(parseISO(po.expected_delivery_date), 'MMM d') : '—'} sub={isOverdue ? 'Overdue' : daysUntil !== null ? `${daysUntil}d away` : undefined} accent={isOverdue ? 'red' : undefined} />
         <Metric label="Status" value={cfg.label} accent={po.status === 'closed' ? 'green' : po.status === 'cancelled' ? 'muted' : undefined} />
         </>
