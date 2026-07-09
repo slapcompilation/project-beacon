@@ -33,6 +33,7 @@ interface EvalRunRecord {
   case_count:       number
   subset?:          string
   commit_sha?:      string
+  cases?:           ReadonlyArray<{ name: string; passed: boolean }>
 }
 
 interface RecordRequest {
@@ -76,6 +77,7 @@ Deno.serve(async (req: Request) => {
       case_count:            r.case_count,
       subset:                r.subset ?? (r.commit_sha ? `commit:${r.commit_sha.slice(0, 7)}` : 'overall'),
       triggered_by_user_id:  null,
+      cases:                 r.cases ?? null,
     }))
 
     const { error: insertError, count } = await supabase
