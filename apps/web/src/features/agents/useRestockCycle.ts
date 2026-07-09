@@ -15,6 +15,7 @@ import {
   runIntelligenceCycle,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
+  HONEST_LABEL_OPTIONS,
   type BeaconAction,
   type CalibrationReport,
   type CycleVariant,
@@ -187,7 +188,7 @@ async function safeAgentCalibration(
 ): Promise<CalibrationReport | undefined> {
   try {
     const samples = await fetchResolvedSamples(hotelId)
-    return computeCalibration(samples.filter((s) => s.agent_name === agentName), { minSamples })
+    return computeCalibration(samples.filter((s) => s.agent_name === agentName), { minSamples, ...HONEST_LABEL_OPTIONS })
   } catch {
     return undefined
   }

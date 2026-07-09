@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, evaluateConstraints, copilotProposalToAction, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, HONEST_LABEL_OPTIONS, evaluateConstraints, copilotProposalToAction, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -405,7 +405,7 @@ async function executeTool(
         // also pin the hotel so org users get their property, not the network.
         let q = supabase
           .from('proposals')
-          .select('confidence, status')
+          .select('confidence, status, decided_at, edited_before_approval')
           .neq('status', 'pending')
           .limit(5000)
         if (hotelId) q = q.eq('hotel_id', hotelId)
@@ -414,12 +414,12 @@ async function executeTool(
           q = q.gte('created_at', new Date(Date.now() - input.window_days * 86_400_000).toISOString())
         }
         const { data, error } = await q as unknown as {
-          data: { confidence: number; status: string }[] | null
+          data: { confidence: number; status: string; decided_at: string | null; edited_before_approval: boolean | null }[] | null
           error: { message: string } | null
         }
         if (error) return JSON.stringify({ error: error.message })
-        const samples = (data ?? []).map((r) => ({ confidence: Number(r.confidence), status: r.status }))
-        return JSON.stringify(computeCalibration(samples))
+        const samples = (data ?? []).map((r) => ({ confidence: Number(r.confidence), status: r.status, decidedAt: r.decided_at, edited: r.edited_before_approval === true }))
+        return JSON.stringify(computeCalibration(samples, HONEST_LABEL_OPTIONS))
       }
       case 'apply_overlay_edit': {
         const scenarioId = input.scenario_id ?? selection?.id
