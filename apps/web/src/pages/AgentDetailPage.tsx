@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   Button, Callout, Card, Icon, Intent, NonIdealState, Tag,
 } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { formatDistanceToNow } from 'date-fns'
 import { ConfidenceBadge } from '@/features/agents/ConfidenceBadge'
 import {
@@ -145,14 +146,46 @@ function Header({ agent, dbRelease, lastRunAt, lastRunStatus, canPromote, onProm
 }
 
 function BlocksSection({ agent }: { agent: AgentDescriptor }) {
+  // Logic canvas (viewer, not editor — AUTHORING-STRATEGY defers editing to
+  // NL): the block pipeline rendered as connected cards, each connector
+  // showing the typed handoff the next block receives.
   return (
-    <Section title="Blocks" icon="layers" subtitle={`${String(agent.blocks.length)} sub-LLM block(s); execute in order`}>
-      <div className="space-y-3">
+    <Section title="Logic canvas" icon="layers" subtitle={`${String(agent.blocks.length)} sub-LLM block(s), executed as a pipeline`}>
+      <div className="flex flex-col items-stretch">
+        <PipelineTerminal icon="log-in" label="Operator input" />
         {agent.blocks.map((block, idx) => (
-          <BlockCard key={block.name} block={block} idx={idx + 1} />
+          <div key={block.name}>
+            <PipelineConnector fields={describeSchema(block.inputSchema)} />
+            <BlockCard block={block} idx={idx + 1} />
+          </div>
         ))}
+        <PipelineConnector fields={describeSchema(agent.blocks[agent.blocks.length - 1]?.outputSchema ?? undefined)} />
+        <PipelineTerminal icon="take-action" label="Typed proposals → Action Registry" />
       </div>
     </Section>
+  )
+}
+
+function PipelineTerminal({ icon, label }: { icon: IconName; label: string }) {
+  return (
+    <div className="flex items-center gap-2 self-center rounded-full border border-border bg-surface-1 px-3 py-1 text-[11px] text-muted-foreground">
+      <Icon icon={icon} size={11} />
+      {label}
+    </div>
+  )
+}
+
+function PipelineConnector({ fields }: { fields: SchemaField[] }) {
+  return (
+    <div className="flex flex-col items-center py-0.5">
+      <div className="h-3 w-px bg-border" />
+      {fields.length > 0 && (
+        <span className="my-0.5 rounded bg-surface-1 border border-border/60 px-2 py-0.5 font-mono text-[9px] text-muted-foreground max-w-md truncate">
+          {fields.map((f) => f.name).join(' · ')}
+        </span>
+      )}
+      <Icon icon="arrow-down" size={10} className="text-muted-foreground/50" />
+    </div>
   )
 }
 
@@ -160,7 +193,7 @@ function BlockCard({ block, idx }: { block: BlockDef<unknown, unknown>; idx: num
   const inputs:  SchemaField[] = describeSchema(block.inputSchema)
   const outputs: SchemaField[] = describeSchema(block.outputSchema)
   return (
-    <Card className="space-y-2">
+    <Card className="space-y-2 border-l-2 !border-l-violet-500">
       <div className="flex items-center gap-2">
         <Tag minimal>{String(idx)}</Tag>
         <span className="text-sm font-semibold font-mono">{block.name}</span>
