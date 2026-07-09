@@ -36,6 +36,15 @@ export const DEFAULT_CALIBRATION_HALF_LIFE_DAYS = 90
  *  get a clean prediction. */
 export const DEFAULT_CALIBRATION_EDIT_PENALTY = 0.5
 
+/** The honest-label options every consumer should pass (A4): edited approvals
+ *  score partial credit, old evidence decays. Display and GATES must read the
+ *  same reality — a page that says "overconfident" while decideAutoExecution
+ *  consumes rosy labels is the failure mode this exists to prevent. */
+export const HONEST_LABEL_OPTIONS = {
+  editPenalty:  DEFAULT_CALIBRATION_EDIT_PENALTY,
+  halfLifeDays: DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
+} as const
+
 /**
  * Maps a resolved proposal status to a binary outcome, or null when the status
  * carries no operator judgment. Approved = the prediction was accepted as-is.

@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  computeCalibration, DEFAULT_CALIBRATION_HALF_LIFE_DAYS, DEFAULT_CALIBRATION_EDIT_PENALTY,
-  type CalibrationReport,
+  computeCalibration,
+  HONEST_LABEL_OPTIONS,   type CalibrationReport,
 } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { fetchResolvedSamples, type ResolvedSample } from './api'
@@ -42,10 +42,7 @@ export function useDecisionCalibration(windowDays: CalibrationWindow) {
 // discounts edited-then-approved calls to partial hits, so the reliability
 // picture is honest about how the agent behaves now. The auto-execution trust
 // budget is intentionally left on the raw labels for now.
-const DISPLAY_OPTS = {
-  halfLifeDays: DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
-  editPenalty:  DEFAULT_CALIBRATION_EDIT_PENALTY,
-}
+const DISPLAY_OPTS = HONEST_LABEL_OPTIONS
 
 function deriveCalibration(samples: ResolvedSample[]): DecisionCalibration {
   const overall = computeCalibration(samples, DISPLAY_OPTS)

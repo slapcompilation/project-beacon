@@ -193,6 +193,7 @@ export {
   recommendAutonomy,
   DEFAULT_CALIBRATION_HALF_LIFE_DAYS,
   DEFAULT_CALIBRATION_EDIT_PENALTY,
+  HONEST_LABEL_OPTIONS,
   DEFAULT_AUTONOMY_CONFIG,
 } from './calibration/index'
 export type {

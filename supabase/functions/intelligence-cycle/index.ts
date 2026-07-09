@@ -22,6 +22,7 @@ import {
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
+  HONEST_LABEL_OPTIONS,
   selectExpiryTriggers,
   expiryHitToWriteOff,
 } from '../_shared/reality-graph.bundle.mjs'
@@ -223,14 +224,17 @@ async function openProposalKeysFor(supabase: SupabaseClient, hotelId: string): P
 async function agentCalibration(supabase: SupabaseClient, hotelId: string, agentName: string, minSamples: number) {
   const { data, error } = await supabase
     .from('proposals')
-    .select('confidence, status')
+    .select('confidence, status, decided_at, edited_before_approval')
     .eq('hotel_id', hotelId)
     .eq('agent_name', agentName)
     .neq('status', 'pending')
     .limit(5000)
   if (error || !data) return undefined
-  const samples = (data as { confidence: number; status: string }[]).map((r) => ({ confidence: Number(r.confidence), status: r.status }))
-  return computeCalibration(samples, { minSamples })
+  const samples = (data as { confidence: number; status: string; decided_at: string | null; edited_before_approval: boolean | null }[])
+    .map((r) => ({ confidence: Number(r.confidence), status: r.status, decidedAt: r.decided_at, edited: r.edited_before_approval === true }))
+  // Honest labels (A4): the unattended gate must read the same reality the
+  // Studio page shows — edited approvals score partial credit, old evidence decays.
+  return computeCalibration(samples, { minSamples, ...HONEST_LABEL_OPTIONS })
 }
 
 // Runs one agent over its scan of a hotel through the shared cycle gate.
