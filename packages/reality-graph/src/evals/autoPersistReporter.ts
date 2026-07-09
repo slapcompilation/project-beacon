@@ -29,6 +29,8 @@ export interface EvalRunRecord {
   subset:          string
   /** git sha of the commit under test; populated from env when available. */
   commit_sha?:     string
+  /** Per-test results, so the diff UI can show which exact cases regressed. */
+  cases?:          ReadonlyArray<{ name: string; passed: boolean }>
 }
 
 interface FileTally {
@@ -39,6 +41,7 @@ interface FileTally {
 /** Loose Vitest 4 TestModule shape — we structural-type on just the fields
  *  we read so the reporter stays decoupled from Vitest's full reporter typings. */
 interface ReporterTestCase {
+  name: string
   result: () => { state: 'passed' | 'failed' | 'skipped' | 'pending' }
 }
 interface ReporterTestCollection {
@@ -85,9 +88,12 @@ export function evalAutoPersistReporter(): {
           const filepath = mod.moduleId
           if (!filepath.endsWith('.eval.ts')) continue
           const tally: FileTally = { total: 0, passed: 0 }
+          const cases: { name: string; passed: boolean }[] = []
           for (const tc of mod.children.allTests()) {
             tally.total += 1
-            if (tc.result().state === 'passed') tally.passed += 1
+            const passed = tc.result().state === 'passed'
+            if (passed) tally.passed += 1
+            cases.push({ name: tc.name, passed })
           }
           if (tally.total === 0) continue
 
@@ -102,6 +108,7 @@ export function evalAutoPersistReporter(): {
             case_count:      tally.total,
             subset:          'overall',
             commit_sha:      sha,
+            cases,
           })
         }
       } catch (err: unknown) {
