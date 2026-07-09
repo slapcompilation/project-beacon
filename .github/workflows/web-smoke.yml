@@ -34,6 +34,10 @@ jobs:
   smoke:
     name: home renders the map
     runs-on: ubuntu-latest
+    # Normal run is ~2–3 min; occasional runner hangs stretched past 15 min
+    # and only died when the next push's concurrency group cancelled them
+    # (which emails a scary "all jobs cancelled"). Fail fast instead.
+    timeout-minutes: 15
     env:
       VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
       VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
