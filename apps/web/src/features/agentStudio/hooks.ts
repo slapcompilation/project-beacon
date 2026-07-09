@@ -199,7 +199,7 @@ export interface EvalRunRow {
   subset:           string
   run_at:           string
   /** Per-test results; null on aggregate-only rows recorded before migration 196. */
-  cases:            { name: string; passed: boolean }[] | null
+  cases:            { name: string; passed: boolean; group?: string }[] | null
 }
 
 /** Recent rows from model_eval_runs for one objective (the agent's name when
