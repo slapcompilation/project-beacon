@@ -31,6 +31,7 @@ import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poI
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
+import { canTransition } from '@beacon/reality-graph'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
@@ -428,11 +429,13 @@ function StatusActions({ po }: { po: PurchaseOrder }) {
   const navigate     = useNavigate()
 
   const next: Partial<Record<POStatus, { label: string; status: POStatus }>> = {
-    draft:     { label: 'Mark as Sent',      status: 'sent'     },
-    sent:      { label: 'Mark as Confirmed', status: 'confirmed'},
-    confirmed: { label: 'Mark Confirmed',    status: 'confirmed'},
+    draft: { label: 'Mark as Sent',      status: 'sent'      },
+    sent:  { label: 'Mark as Confirmed', status: 'confirmed' },
   }
-  const action = next[po.status]
+  // Guarded by the declared lifecycle so this map can't drift from what the
+  // DB trigger will accept.
+  const candidate = next[po.status]
+  const action = candidate && canTransition('purchase_order', po.status, candidate.status) ? candidate : undefined
 
   if (!action && po.status !== 'partially_received' && po.status !== 'closed') return null
 

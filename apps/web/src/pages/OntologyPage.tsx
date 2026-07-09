@@ -10,7 +10,7 @@ import {
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import type { DetectOntologyGapsOutput, NodeType } from '@beacon/reality-graph'
-import { actionDescriptors } from '@beacon/reality-graph'
+import { actionDescriptors, LIFECYCLES } from '@beacon/reality-graph'
 import { NODE_LABELS, EDGE_LABELS, OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { useApprovedExtensions, useDecideOntologyGap, useOntologyGaps } from '@/features/ontology/hooks'
 import type { OntologyProposalRow } from '@/features/ontology/api'
@@ -222,6 +222,26 @@ function VocabularySection() {
             <Tag key={name} minimal className="font-mono text-[10px]" title={label}>{name}</Tag>
           ))}
         </div>
+      </Card>
+
+      <Card compact className="!p-0">
+        <VocabHeader icon="flow-branch" title="Lifecycles" count={Object.keys(LIFECYCLES).length} hint="How stateful things move — enforced at the database boundary, illegal transitions refused." />
+        <ul className="divide-y divide-border/30">
+          {Object.entries(LIFECYCLES).map(([node, machine]) => (
+            <li key={node} className="px-3 py-2 text-xs space-y-0.5">
+              <span className="font-mono text-[10px] text-muted-foreground">{node}</span>
+              {Object.entries(machine).map(([from, next]) => (
+                <div key={from} className="flex items-baseline gap-1.5 pl-3 font-mono text-[10px]">
+                  <span>{from}</span>
+                  <Icon icon="arrow-right" size={9} className="text-muted-foreground/50 self-center" />
+                  {next.length > 0
+                    ? <span className="text-muted-foreground">{next.join(' · ')}</span>
+                    : <Tag minimal className="!text-[9px]">terminal</Tag>}
+                </div>
+              ))}
+            </li>
+          ))}
+        </ul>
       </Card>
 
       <Card compact className="!p-0">

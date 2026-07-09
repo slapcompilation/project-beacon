@@ -3,6 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { legalNext } from '@beacon/reality-graph'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import {
@@ -23,12 +24,6 @@ import { AuditRail } from '@/components/AuditRail'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
 
-const NEXT_STATUS: Record<CaseStatus, CaseStatus[]> = {
-  open:      ['in_review', 'resolved', 'closed'],
-  in_review: ['open', 'resolved', 'closed'],
-  resolved:  ['closed', 'open'],
-  closed:    ['open'],
-}
 
 export default function CaseObjectPage() {
   const { caseId = '' } = useParams<{ caseId: string }>()
@@ -54,7 +49,10 @@ export default function CaseObjectPage() {
     )
   }
 
-  const nextOptions = NEXT_STATUS[row.status]
+  // Lawful moves come from the declared lifecycle — the DB trigger enforces
+  // the same map, so the UI can never offer a button the write would refuse
+  // (the old hardcoded map offered closed→open, which is illegal).
+  const nextOptions = legalNext('case', row.status) as CaseStatus[]
 
   const handleResolve = (status: CaseStatus) => {
     if (status === 'resolved' || status === 'closed') {
