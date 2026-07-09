@@ -144,7 +144,7 @@ Ranked by leverage.
 |---|---|---|
 | A1 | **CI auto-deploy of edge functions** — regen bundle from source + `supabase functions deploy` on merge to main | Kills the recurring manual deploy + stale-bundle pain. *(in progress)* |
 | A2 | **Bundle as a build step** — `pnpm build:edge-bundle` + a PR drift check | No hand-typed esbuild; no silent source↔deployed drift |
-| A3 | **Consume the grown ontology** — wire approved `removal_category` into WRITE_OFF | Closes Pillar 2's value loop (growth isn't read yet) |
+| A3 | **Consume the grown ontology** — wire approved `removal_category` into WRITE_OFF | *(shipped 2026-07)* both write-off surfaces consume approved categories; loop exercised live + gated by `e2e/ontology-loop.spec.ts` |
 | A4 | **Calibration label fidelity** — partial credit for edited-then-approved; time-decay | approve=1 overstates accuracy; the trust budget is only as honest as its labels |
 | A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | A determined LLM can still draft a violating proposal |
 | A6 | **Flywheel observability** — ECE trend, ontology-growth, copilot rule-citation events + a dashboard | Can't manage (or sell the proof of) what you can't see |

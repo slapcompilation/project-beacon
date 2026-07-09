@@ -112,7 +112,7 @@ function GapCard({
   const isEdge = gap.kind === 'new_edge_type'
 
   return (
-    <Card className={`flex flex-col gap-3 border-l-2 ${border}`}>
+    <Card data-testid={`gap-${gap.proposed}`} className={`flex flex-col gap-3 border-l-2 ${border}`}>
       <header className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
           <Tag minimal intent={Intent.PRIMARY} icon={isEdge ? 'link' : 'plus'}>{isEdge ? 'new edge type' : 'new category'}</Tag>
