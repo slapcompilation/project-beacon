@@ -11,40 +11,11 @@ import { cn } from '@/lib/utils'
 import { useNodeEdges } from '@/hooks/useNodeEdges'
 import { otherSide } from '@beacon/reality-graph'
 import type { NodeType, EdgeType } from '@beacon/reality-graph'
-import { objectPath } from '@/lib/objectPresentation'
+import { objectPath, NODE_LABELS, EDGE_LABELS } from '@/lib/objectPresentation'
 
 
 // ─── Edge type display labels ──────────────────────────────────────────────────
 
-const EDGE_LABELS: Record<EdgeType, string> = {
-  causes:            'Causes',
-  consumes:          'Consumes',
-  restocks:          'Restocks',
-  fulfills:          'Fulfills',
-  reverts:           'Reverts',
-  triggered_alert:   'Triggered alert',
-  approved_by:       'Approved by',
-  rejected_by:       'Rejected by',
-  modified_by:       'Modified by',
-  sourced_from:      'Sourced from',
-  linked_to_po:      'Linked to PO',
-  invoiced_by:       'Invoiced by',
-  influenced_by:     'Influenced by',
-  batch_of:          'Batch of',
-  discarded_via:     'Discarded via',
-  belongs_to_hotel:  'Hotel',
-  created_by:        'Created by',
-  belongs_to_session: 'Session',
-  similar_to:        'Similar to',
-  belongs_to_org:    'Organization',
-  transfers:         'Transfers',
-  proposed_by:       'Proposed by',
-  benchmarks:        'Benchmarks',
-  harmonized_to:     'Harmonized to',
-  describes_entity:  'Describes',
-  cited_in:          'Cited in',
-  applies_to:        'Applies to',
-}
 
 // Edge types that are structural/audit noise, collapsed by default
 const AUDIT_EDGES: EdgeType[] = ['belongs_to_hotel', 'created_by', 'belongs_to_session']
@@ -69,41 +40,6 @@ const DEFAULT_EDGE_COLOR = 'border-muted bg-muted/40 text-muted-foreground'
 
 // ─── Node type label ────────────────────────────────────────────────────────
 
-const NODE_LABELS: Record<NodeType, string> = {
-  hotel:             'Hotel',
-  user:              'User',
-  product:           'Product',
-  variant:           'Variant',
-  stock_log:         'Stock Log',
-  restock_request:   'Restock',
-  stocktake_session: 'Stocktake',
-  stocktake_line:    'Stocktake Line',
-  alert:             'Alert',
-  report:            'Report',
-  supplier:          'Supplier',
-  product_batch:     'Batch',
-  restock_receive:   'Receive',
-  purchase_order:    'Purchase Order',
-  po_invoice:        'Invoice',
-  occupancy_log:     'Occupancy',
-  document:          'Document',
-  proposal:          'Proposal',
-  principle:         'Principle',
-  approved_answer:   'Answer',
-  case:              'Case',
-  constraint:        'Constraint',
-  stock_transfer:    'Transfer',
-  action_chain:      'Action Chain',
-  delivery_event:    'Delivery',
-  location:          'Location',
-  category:          'Category',
-  removal_reason:    'Reason',
-  pick_list:         'Pick List',
-  pick_list_item:    'Pick Item',
-  menu_item:         'Menu Item',
-  menu_item_ingredient: 'Ingredient',
-  event:             'Event',
-}
 
 // ─── Single chip ──────────────────────────────────────────────────────────────
 

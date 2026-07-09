@@ -9,7 +9,9 @@ import {
   Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
-import type { DetectOntologyGapsOutput } from '@beacon/reality-graph'
+import type { DetectOntologyGapsOutput, NodeType } from '@beacon/reality-graph'
+import { actionDescriptors } from '@beacon/reality-graph'
+import { NODE_LABELS, EDGE_LABELS, OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { useApprovedExtensions, useDecideOntologyGap, useOntologyGaps } from '@/features/ontology/hooks'
 import type { OntologyProposalRow } from '@/features/ontology/api'
 
@@ -86,6 +88,8 @@ export default function OntologyPage() {
         )}
 
         {extensions.length > 0 && <GrownOntology rows={extensions} />}
+
+        <VocabularySection />
       </div>
     </div>
   )
@@ -179,5 +183,73 @@ function GrownOntology({ rows }: { rows: OntologyProposalRow[] }) {
         ))}
       </div>
     </Card>
+  )
+}
+
+// The vocabulary the graph speaks TODAY, read from the live registries — the
+// exhaustive NODE/EDGE label records and the action descriptors. Nothing here
+// is hand-written; when the ontology grows, the compiler grows this page.
+function VocabularySection() {
+  const nodeTypes = Object.entries(NODE_LABELS)
+  const edgeTypes = Object.entries(EDGE_LABELS)
+  const actions = Object.entries(actionDescriptors)
+  const pres = OBJECT_PRESENTATION as Partial<Record<NodeType, { icon: import('@blueprintjs/icons').IconName }>>
+
+  return (
+    <section className="space-y-3 pt-2">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        Current vocabulary — from the live registries
+      </p>
+
+      <Card compact className="!p-0">
+        <VocabHeader icon="cube" title="Node types" count={nodeTypes.length} hint="What kinds of things exist. Types with an icon have a full Object View." />
+        <div className="flex flex-wrap gap-1.5 p-3">
+          {nodeTypes.map(([name, label]) => {
+            const p = pres[name as NodeType]
+            return (
+              <Tag key={name} minimal icon={p ? <Icon icon={p.icon} size={11} /> : undefined} title={name}>
+                {label}
+              </Tag>
+            )
+          })}
+        </div>
+      </Card>
+
+      <Card compact className="!p-0">
+        <VocabHeader icon="flow-linear" title="Edge types" count={edgeTypes.length} hint="How things connect — every relationship is named, never a bare foreign key." />
+        <div className="flex flex-wrap gap-1.5 p-3">
+          {edgeTypes.map(([name, label]) => (
+            <Tag key={name} minimal className="font-mono text-[10px]" title={label}>{name}</Tag>
+          ))}
+        </div>
+      </Card>
+
+      <Card compact className="!p-0">
+        <VocabHeader icon="take-action" title="Actions" count={actions.length} hint="What can be done — every write flows through one of these, audited." />
+        <ul className="divide-y divide-border/30">
+          {actions.map(([type, d]) => (
+            <li key={type} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+              <span className="font-mono text-[10px] text-muted-foreground w-44 shrink-0 truncate" title={type}>{type}</span>
+              <span className="flex-1 truncate">{d.title}</span>
+              <Tag minimal intent={d.invocationMode === 'apply-immediately' ? Intent.SUCCESS : Intent.NONE} className="text-[9px]">
+                {d.invocationMode}
+              </Tag>
+              <Tag minimal className="text-[9px]">{d.approvalTier}</Tag>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </section>
+  )
+}
+
+function VocabHeader({ icon, title, count, hint }: { icon: import('@blueprintjs/icons').IconName; title: string; count: number; hint: string }) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+      <Icon icon={icon} size={12} className="text-muted-foreground" />
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{title}</span>
+      <Tag minimal className="text-[10px]">{count}</Tag>
+      <span className="text-[11px] text-muted-foreground/70 ml-1 truncate">{hint}</span>
+    </div>
   )
 }
