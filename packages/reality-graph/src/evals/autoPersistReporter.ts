@@ -29,8 +29,10 @@ export interface EvalRunRecord {
   subset:          string
   /** git sha of the commit under test; populated from env when available. */
   commit_sha?:     string
-  /** Per-test results, so the diff UI can show which exact cases regressed. */
-  cases?:          ReadonlyArray<{ name: string; passed: boolean }>
+  /** Per-test results, so the diff UI can show which exact cases regressed.
+   *  `group` is the describe-block path — authors slice cohorts with it
+   *  (e.g. describe('cohort: Valinor')). */
+  cases?:          ReadonlyArray<{ name: string; passed: boolean; group?: string }>
 }
 
 interface FileTally {
@@ -42,6 +44,8 @@ interface FileTally {
  *  we read so the reporter stays decoupled from Vitest's full reporter typings. */
 interface ReporterTestCase {
   name: string
+  /** Vitest 4: "suite > nested > test name". */
+  fullName?: string
   result: () => { state: 'passed' | 'failed' | 'skipped' | 'pending' }
 }
 interface ReporterTestCollection {
@@ -88,12 +92,16 @@ export function evalAutoPersistReporter(): {
           const filepath = mod.moduleId
           if (!filepath.endsWith('.eval.ts')) continue
           const tally: FileTally = { total: 0, passed: 0 }
-          const cases: { name: string; passed: boolean }[] = []
+          const cases: { name: string; passed: boolean; group?: string }[] = []
           for (const tc of mod.children.allTests()) {
             tally.total += 1
             const passed = tc.result().state === 'passed'
             if (passed) tally.passed += 1
-            cases.push({ name: tc.name, passed })
+            const full = tc.fullName
+            const group = full && full !== tc.name && full.endsWith(tc.name)
+              ? full.slice(0, full.length - tc.name.length).replace(/ > $/, '').trim() || undefined
+              : undefined
+            cases.push({ name: tc.name, passed, ...(group ? { group } : {}) })
           }
           if (tally.total === 0) continue
 

@@ -130,20 +130,56 @@ function CaseMatrix({ a, b }: { a: EvalRunRow; b: EvalRunRow }) {
         {fixed > 0 && <Tag intent={Intent.SUCCESS} minimal icon="arrow-up">{fixed} fixed</Tag>}
         {regressed === 0 && fixed === 0 && <Tag minimal>no changes</Tag>}
       </div>
-      <ul className="divide-y divide-border/30 max-h-72 overflow-y-auto">
-        {rows.map((r) => (
-          <li key={r.name} className="flex items-center gap-2 px-3 py-1.5 text-xs">
-            <CaseMark passed={r.a} />
-            <Icon icon="arrow-right" size={10} className="text-muted-foreground/40" />
-            <CaseMark passed={r.b} />
-            <span className={r.rank === 0 ? 'text-red-600 dark:text-red-400' : r.rank === 1 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
-              {r.name}
-            </span>
-          </li>
+      <div className="max-h-72 overflow-y-auto">
+        {groupRows(rows, a, b).map(({ group, items }) => (
+          <div key={group ?? '(ungrouped)'}>
+            {group && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-surface-1 border-y border-border/30 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Icon icon="layers" size={10} />
+                {group}
+                {items.some((r) => r.rank === 0) && <Tag intent={Intent.DANGER} minimal className="text-[9px]">regression</Tag>}
+              </div>
+            )}
+            <ul className="divide-y divide-border/30">
+              {items.map((r) => (
+                <li key={r.name} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+                  <CaseMark passed={r.a} />
+                  <Icon icon="arrow-right" size={10} className="text-muted-foreground/40" />
+                  <CaseMark passed={r.b} />
+                  <span className={r.rank === 0 ? 'text-red-600 dark:text-red-400' : r.rank === 1 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+                    {r.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
     </Card>
   )
+}
+
+/** Slice the matrix by the cases' describe-group ("cohort: Valinor" etc.).
+ *  All-ungrouped runs collapse to a single flat section. Group order follows
+ *  worst-first: any group containing a regression floats to the top. */
+function groupRows(
+  rows: { name: string; a?: boolean; b?: boolean; rank: number }[],
+  a: EvalRunRow, b: EvalRunRow,
+) {
+  const groupOf = new Map<string, string | undefined>()
+  for (const run of [a, b]) for (const c of run.cases ?? []) {
+    if (c.group && !groupOf.has(c.name)) groupOf.set(c.name, c.group)
+  }
+  if (groupOf.size === 0) return [{ group: undefined, items: rows }]
+  const buckets = new Map<string | undefined, typeof rows>()
+  for (const r of rows) {
+    const g = groupOf.get(r.name)
+    const b2 = buckets.get(g) ?? []
+    b2.push(r); buckets.set(g, b2)
+  }
+  return [...buckets.entries()]
+    .map(([group, items]) => ({ group, items }))
+    .sort((x, y) => Math.min(...x.items.map((r) => r.rank)) - Math.min(...y.items.map((r) => r.rank)))
 }
 
 function CaseMark({ passed }: { passed: boolean | undefined }) {
