@@ -198,6 +198,8 @@ export interface EvalRunRow {
   case_count:       number
   subset:           string
   run_at:           string
+  /** Per-test results; null on aggregate-only rows recorded before migration 196. */
+  cases:            { name: string; passed: boolean }[] | null
 }
 
 /** Recent rows from model_eval_runs for one objective (the agent's name when
@@ -209,7 +211,7 @@ export function useRecentEvalRuns(objectiveName: string, limit = 25) {
     queryFn:  async (): Promise<EvalRunRow[]> => {
       const { data, error } = await supabase
         .from('model_eval_runs')
-        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at')
+        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at, cases')
         .eq('objective_name', objectiveName)
         .order('run_at', { ascending: false })
         .limit(limit)
@@ -230,7 +232,7 @@ export function useLatestEvalRun(objectiveName: string, adapterVersion: string) 
     queryFn:  async (): Promise<EvalRunRow | null> => {
       const { data, error } = await supabase
         .from('model_eval_runs')
-        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at')
+        .select('id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count, subset, run_at, cases')
         .eq('objective_name',  objectiveName)
         .eq('adapter_version', adapterVersion)
         .order('run_at', { ascending: false })

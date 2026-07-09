@@ -84,12 +84,73 @@ function DiffCard({ objectiveName, aVer, bVer }: { objectiveName: string; aVer: 
   }
 
   return (
-    <Card className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
-      <RunPane label="A" version={aVer} run={a.data} />
-      <DeltaPane delta={delta} sameVersion={sameVersion} />
-      <RunPane label="B" version={bVer} run={b.data} />
+    <div className="space-y-3">
+      <Card className="grid grid-cols-1 md:grid-cols-3 gap-3 items-stretch">
+        <RunPane label="A" version={aVer} run={a.data} />
+        <DeltaPane delta={delta} sameVersion={sameVersion} />
+        <RunPane label="B" version={bVer} run={b.data} />
+      </Card>
+      {!sameVersion && a.data && b.data && <CaseMatrix a={a.data} b={b.data} />}
+    </div>
+  )
+}
+
+/** Per-case A→B matrix: which exact cases regressed, got fixed, or held.
+ *  Regressions sort to the top — they're the reason not to promote. */
+function CaseMatrix({ a, b }: { a: EvalRunRow; b: EvalRunRow }) {
+  const rows = useMemo(() => {
+    if (!a.cases || !b.cases) return null
+    const aMap = new Map(a.cases.map((c) => [c.name, c.passed]))
+    const bMap = new Map(b.cases.map((c) => [c.name, c.passed]))
+    const names = [...new Set([...aMap.keys(), ...bMap.keys()])]
+    const rank = (n: string) => {
+      const pa = aMap.get(n), pb = bMap.get(n)
+      return pa === true && pb === false ? 0 : pa === false && pb === true ? 1 : pb === false ? 2 : 3
+    }
+    return names
+      .map((name) => ({ name, a: aMap.get(name), b: bMap.get(name), rank: rank(name) }))
+      .sort((x, y) => x.rank - y.rank || x.name.localeCompare(y.name))
+  }, [a.cases, b.cases])
+
+  if (!rows) {
+    return (
+      <Callout intent={Intent.NONE} icon="info-sign" compact>
+        Per-case results exist only for runs recorded after migration 196 — the next CI eval run fills this in for both versions.
+      </Callout>
+    )
+  }
+  const regressed = rows.filter((r) => r.rank === 0).length
+  const fixed = rows.filter((r) => r.rank === 1).length
+
+  return (
+    <Card compact className="!p-0">
+      <div className="flex items-center gap-3 px-3 py-2 border-b border-border text-[11px]">
+        <span className="font-semibold uppercase tracking-wider text-muted-foreground">Cases ({rows.length})</span>
+        {regressed > 0 && <Tag intent={Intent.DANGER} minimal icon="arrow-down">{regressed} regressed</Tag>}
+        {fixed > 0 && <Tag intent={Intent.SUCCESS} minimal icon="arrow-up">{fixed} fixed</Tag>}
+        {regressed === 0 && fixed === 0 && <Tag minimal>no changes</Tag>}
+      </div>
+      <ul className="divide-y divide-border/30 max-h-72 overflow-y-auto">
+        {rows.map((r) => (
+          <li key={r.name} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+            <CaseMark passed={r.a} />
+            <Icon icon="arrow-right" size={10} className="text-muted-foreground/40" />
+            <CaseMark passed={r.b} />
+            <span className={r.rank === 0 ? 'text-red-600 dark:text-red-400' : r.rank === 1 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
+              {r.name}
+            </span>
+          </li>
+        ))}
+      </ul>
     </Card>
   )
+}
+
+function CaseMark({ passed }: { passed: boolean | undefined }) {
+  if (passed === undefined) return <Icon icon="small-minus" size={12} className="text-muted-foreground/40" title="not in this run" />
+  return passed
+    ? <Icon icon="small-tick" size={12} className="text-emerald-500" />
+    : <Icon icon="small-cross" size={12} className="text-red-500" />
 }
 
 function RunPane({ label, version, run }: { label: string; version: string; run: EvalRunRow | null | undefined }) {
