@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { Button, FormGroup, HTMLSelect, Icon, InputGroup, Intent, TextArea } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
+import { useApprovedRemovalCategories } from '@/features/ontology/hooks'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -203,8 +204,12 @@ function WriteOffForm({ variantId, hotelId, userId, onClose }: {
   const qc = useQueryClient()
   const [qty, setQty] = useState('')
   const [reason, setReason] = useState('')
+  const [category, setCategory] = useState('')
   const [photo, setPhoto] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
+  // Grown-ontology categories (Pillar 2 consume): pick a typed one or type a
+  // new one — new free text keeps the detect→approve flywheel turning.
+  const { data: approvedCategories = [] } = useApprovedRemovalCategories(hotelId, true)
 
   const submit = async () => {
     const q = parseInt(qty, 10)
@@ -212,7 +217,7 @@ function WriteOffForm({ variantId, hotelId, userId, onClose }: {
     if (!reason.trim()) { toast.error('Waste reason is required'); return }
     setLoading(true)
     const result = await dispatchAction(
-      { type: 'WRITE_OFF', variantId, hotelId, userId, quantity: q, wasteReason: reason },
+      { type: 'WRITE_OFF', variantId, hotelId, userId, quantity: q, wasteReason: reason, removalCategory: category.trim() || null },
       { hotelId, actorId: userId, triggeredBy: 'user' },
       { photoFile: photo },
     )
@@ -234,6 +239,12 @@ function WriteOffForm({ variantId, hotelId, userId, onClose }: {
       </FormGroup>
       <FormGroup label="Waste reason">
         <InputGroup placeholder="Expired, spilled, damaged…" value={reason} onChange={(e) => { setReason(e.target.value) }} />
+      </FormGroup>
+      <FormGroup label="Category" helperText="Optional — pick an approved category or type a new one">
+        <InputGroup placeholder="Spoilage, Theft…" value={category} list="writeoff-approved-categories" onChange={(e) => { setCategory(e.target.value) }} />
+        <datalist id="writeoff-approved-categories">
+          {approvedCategories.map((c) => <option key={c} value={c} />)}
+        </datalist>
       </FormGroup>
       <PhotoUpload file={photo} onFile={setPhoto} />
       <div className="flex gap-2 justify-end">
