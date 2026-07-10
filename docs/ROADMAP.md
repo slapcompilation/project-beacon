@@ -84,9 +84,14 @@ spine the current UI is missing.
 
 ### Phase O — Close the flywheel loop *(polish what works)*
 - **O1** · Show principle citations in the operator slide-over ("this followed
-  your principle: …") so the operator feels the system learned.
+  your principle: …"). *(shipped — ProposalCard renders principle provenance;
+  agent emits it. 2026-07 gap closed: the CRON persistence now also writes
+  proposal--influenced_by-->principle edges — web path always did, cron didn't,
+  so the graph loop was open for the 85% of proposals cron produces; 255 edges
+  backfilled. Unblocks A6.)
 - **O2** · Auto-suggest TeachRule on reject — route rejections back as candidate
-  Principles / Approved Answers.
+  Principles / Approved Answers. *(shipped — ReviewQueuePage opens
+  TeachRuleDialog on reject; page-level so it survives the row unmount.)*
 
 ## Sequencing
 

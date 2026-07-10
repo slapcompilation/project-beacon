@@ -29,6 +29,30 @@ import {
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { json, preflight } from '../_shared/http.ts'
 import { verifySharedSecret, isAuthError } from '../_shared/auth.ts'
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** proposal --influenced_by--> principle edges from provenance. Best-effort:
+ *  an edge-write failure never fails the cycle (mirrors the web path). */
+async function writePrincipleEdges(
+  supabase: SupabaseClient, hotelId: string, proposalId: string, provenance: unknown,
+): Promise<void> {
+  if (!Array.isArray(provenance)) return
+  const refs = (provenance as { kind?: string; ref?: string }[])
+    .filter((p) => p.kind === 'principle' && typeof p.ref === 'string' && UUID_RE.test(p.ref))
+    .map((p) => p.ref as string)
+  if (refs.length === 0) return
+  const { error } = await supabase.from('relationship_edges').insert(
+    refs.map((principleId) => ({
+      hotel_id: hotelId, edge_type: 'influenced_by',
+      source_type: 'proposal', source_id: proposalId,
+      target_type: 'principle', target_id: principleId,
+      triggered_by: 'ai_proposal_accepted', actor_id: null,
+    })),
+  )
+  if (error) console.warn('[intelligence-cycle] influenced_by edge write failed:', error.message)
+}
+
 import { makeServiceRoleGraphReader } from './reader.ts'
 // Recorded on the agent's trace; persistence attributes rows to no user
 // (created_by_user_id / requestor_id are NULL for system-authored rows).
@@ -343,6 +367,12 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
         .select('id')
         .single()
       if (error) throw new Error(`proposal insert failed: ${error.message}`)
+      // Close the learning flywheel in the GRAPH (O1): write
+      // proposal --influenced_by--> principle edges from the provenance, the
+      // same as the web createProposal path. The cron produces most proposals,
+      // so without this the edges were never written (0 in prod) and
+      // "which principles shape decisions" was untraversable.
+      await writePrincipleEdges(supabase, hotel.id, data.id as string, proposal.provenance)
       return data.id as string
     },
     dispatch: async (action: { type: string; variantId?: string; quantityNeeded?: number }) => {
