@@ -628,15 +628,44 @@ async function executeTool(
         }
         const { data, error } = await query
         if (error) return JSON.stringify({ error: error.message })
+        // A5: the batch path was the one propose_* tool that skipped the
+        // constraint engine — precisely where spend/time-window rules bite.
+        // Evaluate each request as its own APPROVE_RESTOCK; hard violations
+        // drop out of the batch with the reason surfaced to the model.
+        type BatchRow = { id: string; variant_id: string | null; estimated_cost: number | null }
+        const now = new Date()
+        const evaluated = ((data ?? []) as BatchRow[]).map((r) => {
+          const action = {
+            type: 'APPROVE_RESTOCK', requestId: r.id, hotelId: hotelId ?? '',
+            variantId: r.variant_id ?? undefined, estimatedCost: r.estimated_cost ?? undefined,
+          }
+          const hard = hotelId && constraints.length > 0
+            ? (evaluateConstraints(action, constraints, { now }) as ConstraintViolationLite[]).filter((v) => v.severity === 'hard')
+            : []
+          return { row: r, hard }
+        })
+        const eligible = evaluated.filter((e) => e.hard.length === 0).map((e) => e.row)
+        const blocked  = evaluated.filter((e) => e.hard.length > 0)
+        if (eligible.length === 0 && blocked.length > 0) {
+          return JSON.stringify({
+            type: 'action_proposal', action: 'BATCH_APPROVE', params: { request_ids: [] }, blocked: true,
+            violations: blocked.flatMap((b) => b.hard),
+            message: 'Every eligible request is BLOCKED by a hard house rule. Do NOT propose the batch; explain the limit to the operator.',
+          })
+        }
         return JSON.stringify({
           type: 'action_proposal',
           action: 'BATCH_APPROVE',
           params: {
-            request_ids: (data ?? []).map((r: { id: string }) => r.id),
+            request_ids: eligible.map((r) => r.id),
             max_cost: input.max_cost,
           },
-          requests: data,
-          message: `${(data ?? []).length} requests eligible for batch approval.`,
+          requests: eligible,
+          excluded: blocked.length > 0
+            ? blocked.map((b) => ({ request_id: b.row.id, violations: b.hard.map((v) => v.message) }))
+            : undefined,
+          message: `${eligible.length} requests eligible for batch approval` +
+            (blocked.length > 0 ? ` (${blocked.length} excluded by hard house rules — tell the operator why).` : '.'),
         })
       }
       default:

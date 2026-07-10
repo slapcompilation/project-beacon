@@ -146,7 +146,7 @@ Ranked by leverage.
 | A2 | **Bundle as a build step** — `pnpm build:edge-bundle` + a PR drift check | No hand-typed esbuild; no silent source↔deployed drift |
 | A3 | **Consume the grown ontology** — wire approved `removal_category` into WRITE_OFF | *(shipped 2026-07)* both write-off surfaces consume approved categories; loop exercised live + gated by `e2e/ontology-loop.spec.ts` |
 | A4 | **Calibration label fidelity** — partial credit for edited-then-approved; time-decay | *(shipped 2026-07)* HONEST_LABEL_OPTIONS consumed by BOTH gates (web cycle + cron) + copilot tool + Studio display — one label reality everywhere |
-| A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | A determined LLM can still draft a violating proposal |
+| A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | *(shipped 2026-07)* per-item paths were already guarded (hardViolationsFor + annotateProposals backstop + guardrail eval); the batch-approval path — where spend/time rules bite — now evaluates each request and drops hard violators with reasons |
 | A6 | **Flywheel observability** — ECE trend, ontology-growth, copilot rule-citation events + a dashboard | Can't manage (or sell the proof of) what you can't see |
 | A7 | **Behavior evals** — calibration-veto agent eval; rubric that the copilot refuses a violating ask | Unit tests exist; behavior evals are the AIP "production" bar |
 | A8 | **Typed lifecycles** — stateful nodes declare legal transitions; action submission rejects illegal ones | *(shipped 2026-07)* LIFECYCLES in reality-graph + enforce_lifecycle trigger on 4 tables (migration 197/198); illegal transitions refused with derived context at the DB boundary |
