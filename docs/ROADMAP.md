@@ -142,8 +142,8 @@ Ranked by leverage.
 
 | # | Item | Why |
 |---|---|---|
-| A1 | **CI auto-deploy of edge functions** — regen bundle from source + `supabase functions deploy` on merge to main | Kills the recurring manual deploy + stale-bundle pain. *(in progress)* |
-| A2 | **Bundle as a build step** — `pnpm build:edge-bundle` + a PR drift check | No hand-typed esbuild; no silent source↔deployed drift |
+| A1 | **CI auto-deploy of edge functions** — regen bundle from source + `supabase functions deploy` on merge to main | *(shipped + verified)* deploy-edge-functions.yml, green on every merge |
+| A2 | **Bundle as a build step** — `pnpm build:edge-bundle` + a PR drift check | *(shipped 2026-06, PR #172 — stronger than spec'd)* bundle is gitignored: generated, never committed, rebuilt from source at deploy — drift impossible by construction, no check needed |
 | A3 | **Consume the grown ontology** — wire approved `removal_category` into WRITE_OFF | *(shipped 2026-07)* both write-off surfaces consume approved categories; loop exercised live + gated by `e2e/ontology-loop.spec.ts` |
 | A4 | **Calibration label fidelity** — partial credit for edited-then-approved; time-decay | *(shipped 2026-07)* HONEST_LABEL_OPTIONS consumed by BOTH gates (web cycle + cron) + copilot tool + Studio display — one label reality everywhere |
 | A5 | **Copilot: enforce, not just inform** — server-side constraint eval on copilot proposals | *(shipped 2026-07)* per-item paths were already guarded (hardViolationsFor + annotateProposals backstop + guardrail eval); the batch-approval path — where spend/time rules bite — now evaluates each request and drops hard violators with reasons |
