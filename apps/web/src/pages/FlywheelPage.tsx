@@ -4,16 +4,83 @@
 // backend — it reuses the calibration + monitor hooks and links to the deep pages.
 
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag, Tooltip } from '@blueprintjs/core'
 import { format, formatDistanceToNow } from 'date-fns'
-import { recommendAutonomy, type AutonomyRecommendation, type AgentActionContext } from '@beacon/reality-graph'
+import { computeCalibration, recommendAutonomy, DEFAULT_CALIBRATION_EDIT_PENALTY, type AutonomyRecommendation, type AgentActionContext, type CalibrationReport } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useDecisionCalibration, type CalibrationWindow } from '@/features/calibration/hooks'
 import { useAgentCycleHistory, useCronHealthSummary } from '@/features/monitor/hooks'
 import { useOrgPolicy, useSetOrgPolicy } from '@/features/mind/policy'
 import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
 import { AGENT_ACTION } from '@/features/mind/agentActions'
+
+// ── Learning loop (A6): rules taught → vocabulary grown → decisions shaped ──
+
+interface LearningRow { id: string; confidence: number; status: string; decided_at: string | null; edited_before_approval: boolean | null }
+interface LearningData {
+  principles: { id: string; body: string; active: boolean }[]
+  extensionsCount: number
+  latestExtension: string | null
+  influence: Map<string, number>
+  influencedIds: Set<string>
+  proposals: LearningRow[]
+}
+
+async function fetchLearning(hotelId: string | null): Promise<LearningData> {
+  let principlesQ = supabase.from('principles').select('id, body, active').order('created_at', { ascending: false })
+  let extensionsQ = supabase.from('ontology_proposals').select('proposed').eq('status', 'approved').order('decided_at', { ascending: false })
+  let edgesQ      = supabase.from('relationship_edges').select('source_id, target_id').eq('edge_type', 'influenced_by').eq('target_type', 'principle').limit(5000)
+  let proposalsQ  = supabase.from('proposals').select('id, confidence, status, decided_at, edited_before_approval').neq('status', 'pending').limit(5000)
+  if (hotelId) {
+    principlesQ = principlesQ.eq('hotel_id', hotelId)
+    extensionsQ = extensionsQ.eq('hotel_id', hotelId)
+    edgesQ      = edgesQ.eq('hotel_id', hotelId)
+    proposalsQ  = proposalsQ.eq('hotel_id', hotelId)
+  }
+  const [principles, extensions, edges, proposals] = await Promise.all([principlesQ, extensionsQ, edgesQ, proposalsQ])
+  for (const r of [principles, extensions, edges, proposals]) if (r.error) throw new Error(r.error.message)
+  const edgeRows = (edges.data ?? []) as { source_id: string; target_id: string }[]
+  const influence = new Map<string, number>()
+  for (const e of edgeRows) influence.set(e.target_id, (influence.get(e.target_id) ?? 0) + 1)
+  const ext = (extensions.data ?? []) as { proposed: string }[]
+  return {
+    principles: (principles.data ?? []) as LearningData['principles'],
+    extensionsCount: ext.length,
+    latestExtension: ext[0]?.proposed ?? null,
+    influence,
+    influencedIds: new Set(edgeRows.map((e) => e.source_id)),
+    proposals: (proposals.data ?? []) as LearningRow[],
+  }
+}
+
+/** Monthly ECE buckets. Edit penalty applies (honest labels); no half-life
+ *  inside a bucket — the bucket IS the time slice. */
+function monthlyCalibration(proposals: LearningRow[], months = 6): { label: string; report: CalibrationReport }[] {
+  const now = new Date()
+  const out: { label: string; report: CalibrationReport }[] = []
+  for (let i = months - 1; i >= 0; i--) {
+    const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const end   = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+    const slice = proposals.filter((p) => p.decided_at && new Date(p.decided_at) >= start && new Date(p.decided_at) < end)
+    out.push({
+      label: start.toLocaleString('en', { month: 'short' }),
+      report: computeCalibration(
+        slice.map((p) => ({ confidence: p.confidence, status: p.status as Parameters<typeof computeCalibration>[0][number]['status'], edited: p.edited_before_approval === true })),
+        { minSamples: 5, editPenalty: DEFAULT_CALIBRATION_EDIT_PENALTY },
+      ),
+    })
+  }
+  return out
+}
+
+const approvalRate = (rows: LearningRow[]) => {
+  const scored = rows.filter((p) => p.status === 'approved' || p.status === 'rejected')
+  return scored.length === 0 ? null : scored.filter((p) => p.status === 'approved').length / scored.length
+}
 
 const VERDICT: Record<string, { label: string; intent: Intent }> = {
   'well-calibrated':   { label: 'Well-calibrated', intent: Intent.SUCCESS },
@@ -37,6 +104,8 @@ export default function FlywheelPage() {
   const { calibration, isLoading: calLoading } = useDecisionCalibration(windowDays)
   const cycles = useAgentCycleHistory(8)
   const cron   = useCronHealthSummary()
+  const hotelId = useActiveHotelId()
+  const learning = useQuery({ queryKey: ['flywheel-learning', hotelId], queryFn: () => fetchLearning(hotelId), staleTime: 60_000 })
 
   const { data: policyData } = useOrgPolicy()
   const setPolicy = useSetOrgPolicy()
@@ -128,6 +197,89 @@ export default function FlywheelPage() {
               <Metric label="Claimed vs actual" value={`${String(Math.round(overall.meanConfidence * 100))}% / ${String(Math.round(overall.accuracy * 100))}%`} sub="mean confidence / hit rate" />
             </div>
           )}
+          {learning.data && (
+            <div className="pt-2 border-t border-border/40">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                Calibration error by month <span className="font-normal normal-case tracking-normal text-muted-foreground/70">— lower is better, honest labels</span>
+              </div>
+              <div className="flex items-end gap-3 h-24">
+                {monthlyCalibration(learning.data.proposals).map(({ label, report }) => {
+                  const thin = report.verdict === 'insufficient-data'
+                  const h = thin ? 4 : Math.min(64, Math.max(4, Math.round(report.ece * 260)))
+                  return (
+                    <Tooltip
+                      key={label}
+                      content={thin
+                        ? `${label}: ${String(report.resolved)} resolved — too few to score`
+                        : `${label}: ECE ${report.ece.toFixed(2)} · accuracy ${String(Math.round(report.accuracy * 100))}% · ${String(report.resolved)} resolved`}
+                      placement="top" compact
+                    >
+                      <div className="flex flex-col items-center gap-1 cursor-help">
+                        <span className={cn('text-[10px] tabular-nums', thin ? 'text-muted-foreground/40' : 'text-muted-foreground')}>
+                          {thin ? '·' : report.ece.toFixed(2)}
+                        </span>
+                        <div className={cn('w-8 rounded-t-[4px]', thin ? 'bg-border' : 'bg-violet-500/70')} style={{ height: `${String(h)}px` }} />
+                        <span className="text-[10px] text-muted-foreground">{label}</span>
+                      </div>
+                    </Tooltip>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </Card>
+
+        {/* ── Learning loop (O1/O2 payoff): taught → grown → shaping outcomes ── */}
+        <Card className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <Icon icon="learning" size={14} className="text-violet-500" /> Learning loop
+            </h2>
+            <Link to="/mind?aip=ontology" className="text-xs text-primary hover:underline">Ontology →</Link>
+          </div>
+          {!learning.data ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Loading…</div>
+          ) : (() => {
+            const d = learning.data
+            const withRules    = d.proposals.filter((p) => d.influencedIds.has(p.id))
+            const withoutRules = d.proposals.filter((p) => !d.influencedIds.has(p.id))
+            const rw = approvalRate(withRules)
+            const ro = approvalRate(withoutRules)
+            const lift = rw != null && ro != null ? Math.round((rw - ro) * 100) : null
+            const topInfluence = [...d.influence.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3)
+            const byId = new Map(d.principles.map((p) => [p.id, p]))
+            return (
+              <>
+                <div className="flex flex-wrap items-end gap-8">
+                  <Metric label="Rules taught" value={String(d.principles.length)} sub="reject → TeachRule grows this" />
+                  <Metric label="Vocabulary grown" value={String(d.extensionsCount)} sub={d.latestExtension ? `latest: ${d.latestExtension}` : 'approve ontology gaps'} />
+                  <Metric label="Decisions shaped by rules" value={String(d.influencedIds.size)} sub={`of ${String(d.proposals.length)} resolved`} />
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Approval lift from rules</div>
+                    <div className={cn('text-lg font-semibold tabular-nums',
+                      lift != null && lift > 0 && 'text-emerald-600 dark:text-emerald-400',
+                      lift != null && lift < 0 && 'text-amber-600 dark:text-amber-400')}>
+                      {lift != null ? `${lift >= 0 ? '+' : ''}${String(lift)} pts` : '—'}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      {rw != null && ro != null ? `${String(Math.round(rw * 100))}% with · ${String(Math.round(ro * 100))}% without` : 'needs decisions on both sides'}
+                    </div>
+                  </div>
+                </div>
+                {topInfluence.length > 0 && (
+                  <div className="divide-y divide-border/50 border-t border-border/40 pt-1">
+                    {topInfluence.map(([pid, count]) => (
+                      <div key={pid} className="flex items-center gap-2 py-1.5 text-xs">
+                        <Tag minimal className="tabular-nums shrink-0">{String(count)}</Tag>
+                        <span className="italic truncate text-muted-foreground">{byId.get(pid)?.body ?? pid}</span>
+                        {byId.get(pid)?.active === false && <Tag minimal intent={Intent.WARNING} className="!text-[9px]">inactive</Tag>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )
+          })()}
         </Card>
 
         {/* ── Autonomous loop ── */}

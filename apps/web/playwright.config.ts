@@ -21,6 +21,9 @@ try {
 export default defineConfig({
   testDir: './e2e',
   timeout: 90_000,
+  // One shared vite-preview + one real Supabase project: parallel workers
+  // flake under contention (rotating timeouts). Serial is ~2min and deterministic.
+  workers: 1,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['list']] : 'list',
   use: {
