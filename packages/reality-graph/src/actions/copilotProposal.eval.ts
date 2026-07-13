@@ -6,7 +6,7 @@
 // Models the live hotel constraints (REQUEST_RESTOCK ≤ 500, actions 06:00–22:00).
 
 import { describe, expect, it } from 'vitest'
-import { copilotProposalToAction } from './copilotProposal'
+import { copilotProposalToAction, evaluateBatchApprovals } from './copilotProposal'
 import { evaluateConstraints, type ConstraintRecord } from '../constraints/index'
 
 const HOTEL = '22222222-2222-4222-8222-222222222222'
@@ -89,5 +89,41 @@ describe('copilot guardrail — refuses constraint-violating asks', () => {
     const violations = evaluateConstraints(typed, soft, { now: MIDDAY })
     expect(violations).toHaveLength(1)
     expect(violations[0].severity).toBe('soft')
+  })
+})
+
+describe('copilot batch guardrail — hard violators drop out of the batch', () => {
+  const batchConstraints: ConstraintRecord[] = [
+    {
+      id: 'spend', body: 'Approvals may not exceed €300 per request',
+      bucket: 'threshold', typedRule: { bucket: 'threshold', field: 'estimatedCost', max: 300 },
+      severity: 'hard', appliesToActionTypes: ['APPROVE_RESTOCK'], active: true,
+    },
+    ...constraints,
+  ]
+  const rows = [
+    { id: 'r-cheap', variant_id: VAR, estimated_cost: 120 },
+    { id: 'r-pricey', variant_id: VAR, estimated_cost: 900 },
+    { id: 'r-uncosted', variant_id: VAR, estimated_cost: null },
+  ]
+
+  it('keeps compliant requests and drops the over-cap one, with the reason', () => {
+    const v = evaluateBatchApprovals(rows, batchConstraints, HOTEL, MIDDAY)
+    expect(v.eligible.map((r) => r.id)).toEqual(['r-cheap', 'r-uncosted'])
+    expect(v.blocked).toHaveLength(1)
+    expect(v.blocked[0].row.id).toBe('r-pricey')
+    expect(v.blocked[0].violations[0].message).toMatch(/estimatedCost.*exceeds max 300/)
+  })
+
+  it('refuses the whole batch outside the allowed hours (time-window)', () => {
+    const v = evaluateBatchApprovals(rows, batchConstraints, HOTEL, NIGHT)
+    expect(v.eligible).toHaveLength(0)
+    expect(v.blocked).toHaveLength(3)
+  })
+
+  it('passes everything through when no constraints are active', () => {
+    const v = evaluateBatchApprovals(rows, [], HOTEL, MIDDAY)
+    expect(v.eligible).toHaveLength(3)
+    expect(v.blocked).toHaveLength(0)
   })
 })
