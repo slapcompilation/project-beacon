@@ -112,7 +112,7 @@ const TYPE_CFG: Record<NotifType, {
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
     tagIntent: Intent.DANGER,
-    actionPath: '/fb-intelligence',
+    actionPath: '/eye',
     actionLabel: 'View F&B intelligence →',
   },
   po_discrepancy: {

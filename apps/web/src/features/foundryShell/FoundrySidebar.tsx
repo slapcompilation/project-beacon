@@ -55,7 +55,9 @@ const SECTIONS: RailSection[] = [
     ],
   },
   {
-    header: 'Applications', viewAll: true,
+    // The pinned core apps — distinct from the §2 "Applications" portal row.
+    // (Same-named header + a View all to the same page read as a duplicate.)
+    header: 'Pinned', viewAll: false,
     items: [
       { id: 'decisions', label: 'Decisions', icon: 'inbox' },
       { id: 'insights',  label: 'Insights',  icon: 'timeline-line-chart' },

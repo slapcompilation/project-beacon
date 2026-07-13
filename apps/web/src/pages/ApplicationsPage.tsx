@@ -131,7 +131,7 @@ const SECTIONS: Section[] = [
       { label: 'Home',          path: '/briefing',             icon: 'home',          desc: 'What the loop left you today' },
       { label: 'Notifications', path: '/notifications',        icon: 'notifications', desc: 'Alerts with inline response' },
       { label: 'Reminders',     path: '/reminders',            icon: 'time',          desc: 'Scheduled nudges' },
-      { label: 'Event Planner', path: '/events',               icon: 'calendar',      desc: 'Demand from upcoming events' },
+      { label: 'Forecast Lab', path: '/mind?aip=forecast-lab', icon: 'lab-test',      desc: 'Backtest + run the forecast adapters' },
       { label: 'Team',          path: '/settings?section=team',icon: 'people',        desc: 'Members, roles + scope' },
       { label: 'Settings',      path: '/settings',             icon: 'cog',           desc: 'Org + property configuration' },
       { label: 'Account',       path: '/account',              icon: 'user',          desc: 'Your profile + sign-out' },

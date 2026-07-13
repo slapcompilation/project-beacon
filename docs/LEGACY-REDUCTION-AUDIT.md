@@ -54,8 +54,12 @@ in-app links) are retired — routes redirect rather than 404:
   `PendingScansPage` component is KEPT — `FloorWorkspace` renders it as the
   `scans` panel; verify-before-delete caught this).
 
-The **live/wired** ones are left as-is pending a product-relevance call:
-`/graph` (overlaps `/system-map`), `/chain`, `/events`, `/fb-intelligence`.
+**2026-07-14 — product call made.** All four routes retired to redirects:
+`/graph` → `/objects` (the new registry-driven type browser; GraphPage deleted),
+`/events` → Forecast Lab, `/chain` → System Map, `/fb-intelligence` → `/eye`.
+The Event/Chain/FB **components survive as Mind → Operations panels** (the
+verify step caught live consumers again — same lesson as PendingScansPage).
+VoiceModePage checked and KEPT: FloorWorkspace renders it as the `voice` panel.
 
 Built before the ontology / occupancy-forecast / agent model. Each **needs a
 live-data + usage check** before action.

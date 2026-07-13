@@ -70,7 +70,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Operations', icon: 'bank-account',   label: 'Operations · Finance',     path: '/operations?panel=finance' },
   { group: 'Operations', icon: 'th',             label: 'Operations · GL Export',   path: '/operations?panel=gl' },
   { group: 'Operations', icon: 'chart',          label: 'Operations · Strategy',    path: '/operations?panel=strategy' },
-  { group: 'Mind',  icon: 'time',            label: 'Event Planner',      path: '/events' },
+  { group: 'Mind',  icon: 'time',            label: 'Forecast Lab',       path: '/mind?aip=forecast-lab' },
   { group: 'Mind',  icon: 'people',          label: 'Team',               path: '/settings?section=team' },
   { group: 'Mind',  icon: 'cog',             label: 'Settings',           path: '/settings' },
 ]

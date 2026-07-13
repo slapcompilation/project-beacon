@@ -6,8 +6,11 @@
 
 ## The problem this roadmap solves
 
-The engine is right but the surfacing isn't. Today the app has **five dock
-surfaces** (`apps/web/src/components/layout/CommandDock.tsx`):
+The engine is right but the surfacing isn't. *(2026-07 note: the bottom
+CommandDock described below was deleted — the Foundry sidebar is the shell now —
+but the underlying module framing this section critiques still shapes the
+routes: /floor, /flow, /eye survive as the operational workspaces.)* The
+original five dock surfaces:
 
 | Surface | Audience | Role |
 |---|---|---|
