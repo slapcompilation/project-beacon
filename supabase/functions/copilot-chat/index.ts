@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, HONEST_LABEL_OPTIONS, evaluateConstraints, copilotProposalToAction, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, HONEST_LABEL_OPTIONS, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -633,23 +633,15 @@ async function executeTool(
         // Evaluate each request as its own APPROVE_RESTOCK; hard violations
         // drop out of the batch with the reason surfaced to the model.
         type BatchRow = { id: string; variant_id: string | null; estimated_cost: number | null }
-        const now = new Date()
-        const evaluated = ((data ?? []) as BatchRow[]).map((r) => {
-          const action = {
-            type: 'APPROVE_RESTOCK', requestId: r.id, hotelId: hotelId ?? '',
-            variantId: r.variant_id ?? undefined, estimatedCost: r.estimated_cost ?? undefined,
-          }
-          const hard = hotelId && constraints.length > 0
-            ? (evaluateConstraints(action, constraints, { now }) as ConstraintViolationLite[]).filter((v) => v.severity === 'hard')
-            : []
-          return { row: r, hard }
-        })
-        const eligible = evaluated.filter((e) => e.hard.length === 0).map((e) => e.row)
-        const blocked  = evaluated.filter((e) => e.hard.length > 0)
+        // Shared, behavior-eval'd logic (reality-graph evaluateBatchApprovals) —
+        // the fn stays a thin adapter over the graded implementation.
+        const { eligible, blocked } = evaluateBatchApprovals(
+          (data ?? []) as BatchRow[], constraints, hotelId ?? '', new Date(),
+        ) as { eligible: BatchRow[]; blocked: { row: BatchRow; violations: ConstraintViolationLite[] }[] }
         if (eligible.length === 0 && blocked.length > 0) {
           return JSON.stringify({
             type: 'action_proposal', action: 'BATCH_APPROVE', params: { request_ids: [] }, blocked: true,
-            violations: blocked.flatMap((b) => b.hard),
+            violations: blocked.flatMap((b) => b.violations),
             message: 'Every eligible request is BLOCKED by a hard house rule. Do NOT propose the batch; explain the limit to the operator.',
           })
         }
@@ -662,7 +654,7 @@ async function executeTool(
           },
           requests: eligible,
           excluded: blocked.length > 0
-            ? blocked.map((b) => ({ request_id: b.row.id, violations: b.hard.map((v) => v.message) }))
+            ? blocked.map((b) => ({ request_id: b.row.id, violations: b.violations.map((v) => v.message) }))
             : undefined,
           message: `${eligible.length} requests eligible for batch approval` +
             (blocked.length > 0 ? ` (${blocked.length} excluded by hard house rules — tell the operator why).` : '.'),

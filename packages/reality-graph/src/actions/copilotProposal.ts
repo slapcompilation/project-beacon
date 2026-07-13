@@ -32,3 +32,45 @@ export function copilotProposalToAction(
       return null
   }
 }
+
+// ── Batch approvals (A5/#336) — extracted pure so the behavior eval can grade
+// it: each request is evaluated as its own APPROVE_RESTOCK (estimatedCost
+// attached for threshold rules); hard violators drop out with reasons.
+
+import { evaluateConstraints, type ConstraintRecord, type ConstraintViolation } from '../constraints/index'
+
+export interface BatchApprovalRow {
+  id: string
+  variant_id?: string | null
+  estimated_cost?: number | null
+}
+
+export interface BatchApprovalVerdict {
+  eligible: BatchApprovalRow[]
+  blocked: { row: BatchApprovalRow; violations: ConstraintViolation[] }[]
+}
+
+export function evaluateBatchApprovals(
+  rows: ReadonlyArray<BatchApprovalRow>,
+  constraints: ReadonlyArray<ConstraintRecord>,
+  hotelId: string,
+  now: Date = new Date(),
+): BatchApprovalVerdict {
+  const eligible: BatchApprovalRow[] = []
+  const blocked: BatchApprovalVerdict['blocked'] = []
+  for (const row of rows) {
+    const action = {
+      type: 'APPROVE_RESTOCK' as const,
+      requestId: row.id,
+      hotelId,
+      variantId: row.variant_id ?? undefined,
+      estimatedCost: row.estimated_cost ?? undefined,
+    }
+    const hard = hotelId && constraints.length > 0
+      ? evaluateConstraints(action, constraints, { now }).filter((v) => v.severity === 'hard')
+      : []
+    if (hard.length > 0) blocked.push({ row, violations: hard })
+    else eligible.push(row)
+  }
+  return { eligible, blocked }
+}
