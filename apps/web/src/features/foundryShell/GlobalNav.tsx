@@ -32,7 +32,7 @@ const STUDIO_AIP_TABS = new Set([
 function activeIdFor(pathname: string, search: string): string {
   if (pathname.startsWith('/briefing')) return 'home'
   if (pathname.startsWith('/applications')) return 'apps'
-  if (pathname.startsWith('/graph')) return 'objects'
+  if (pathname.startsWith('/objects')) return 'objects'
   if (pathname.startsWith('/eye')) return 'insights'
   if (pathname.startsWith('/account')) return 'account'
   if (pathname.startsWith('/mind')) {
@@ -64,7 +64,7 @@ export function GlobalNav() {
       case 'notifs':    setNotifPanelOpen(true); break
       case 'whatsnew':  void navigate('/notifications'); break
       case 'recent':    toggleCommandBar(); break
-      case 'objects':   void navigate('/graph'); break
+      case 'objects':   void navigate('/objects'); break
       case 'apps':      void navigate('/applications'); break
       case 'decisions': void navigate('/mind?aip=queue'); break
       case 'insights':  void navigate('/eye'); break

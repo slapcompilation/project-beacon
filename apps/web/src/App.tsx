@@ -29,10 +29,7 @@ const LabelsPage = lazyWithRetry(() => import('@/pages/LabelsPage'))
 const RemindersPage = lazyWithRetry(() => import('@/pages/RemindersPage'))
 const PickListsPage = lazyWithRetry(() => import('@/pages/PickListsPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
-const GraphPage = lazyWithRetry(() => import('@/pages/GraphPage'))
-const EventDemandPage = lazyWithRetry(() => import('@/pages/EventDemandPage'))
-const ChainPage = lazyWithRetry(() => import('@/pages/ChainPage'))
-const FBIntelligencePage = lazyWithRetry(() => import('@/pages/FBIntelligencePage'))
+const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const SetupWizardPage = lazyWithRetry(() => import('@/pages/SetupWizardPage'))
 
 const FloorWorkspace = lazyWithRetry(() => import('@/pages/FloorWorkspace'))
@@ -149,12 +146,14 @@ function AppRoutes() {
             <Route path="/reminders"     element={<RemindersPage />} />
             <Route path="/pick-lists"    element={<PickListsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/graph"         element={<GraphPage />} />
-            <Route path="/events"        element={<EventDemandPage />} />
-            <Route path="/chain"         element={<ChainPage />} />
+            <Route path="/objects"       element={<ObjectsPage />} />
+            {/* retired (LEGACY-REDUCTION §C): deep links live on as redirects */}
+            <Route path="/graph"         element={<Navigate to="/objects" replace />} />
+            <Route path="/events"        element={<Navigate to="/mind?aip=forecast-lab" replace />} />
+            <Route path="/chain"         element={<Navigate to="/mind?aip=system-map" replace />} />
             <Route path="/pending-scans" element={<Navigate to="/floor?panel=scans" replace />} />
             <Route path="/menu-mapping"  element={<Navigate to="/briefing" replace />} />
-            <Route path="/fb-intelligence" element={<FBIntelligencePage />} />
+            <Route path="/fb-intelligence" element={<Navigate to="/eye" replace />} />
             <Route path="/setup"           element={<SetupWizardPage />} />
 
             <Route path="/dashboard"        element={<Navigate to="/briefing"                  replace />} />
