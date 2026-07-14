@@ -68,7 +68,7 @@ export function GlobalNav() {
       case 'apps':      void navigate('/applications'); break
       case 'decisions': void navigate('/mind?aip=queue'); break
       case 'insights':  void navigate('/eye'); break
-      case 'studio':    void navigate('/mind?aip=agents'); break
+      case 'studio':    void navigate('/mind?aip=studio'); break
       case 'copilot':   toggleCopilot(); break
       case 'support':   void navigate('/settings'); break
       case 'account':   void navigate('/account'); break
