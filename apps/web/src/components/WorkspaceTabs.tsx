@@ -22,6 +22,10 @@ interface Props<T extends string> {
   groups:        WorkspaceGroup<T>[]
   activePanel:   T
   onPanelChange: (panel: T) => void
+  /** Surface identity shown at the head of the bar (Floor / Flow / Insights),
+   *  so a tabbed workspace announces where you are like the AIP surfaces do.
+   *  Panels keep their own headers — this is the workspace, not the panel. */
+  title?: string
   /** Data freshness timestamp (from useQuery's dataUpdatedAt) */
   dataUpdatedAt?: number
   /** Whether the active panel's data is being refetched */
@@ -33,6 +37,7 @@ export function WorkspaceTabs<T extends string>({
   groups,
   activePanel,
   onPanelChange,
+  title,
   dataUpdatedAt,
   isFetching,
 }: Props<T>) {
@@ -42,6 +47,11 @@ export function WorkspaceTabs<T extends string>({
     <div className="shrink-0 bg-surface-1 border-b border-border">
       {/* Group selector row */}
       <div className="flex items-center gap-1.5 px-4 pt-2 pb-1.5 overflow-x-auto">
+        {title && (
+          <span className="shrink-0 pr-1 text-[11px] font-bold uppercase tracking-widest text-foreground/70">
+            {title}
+          </span>
+        )}
         {groups.map((g) => (
           <button
             key={g.id}

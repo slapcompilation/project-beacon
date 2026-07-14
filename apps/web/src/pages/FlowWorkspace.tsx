@@ -47,6 +47,7 @@ export default function FlowWorkspace() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <WorkspaceTabs
+        title="Flow"
         tabs={TABS}
         groups={GROUPS}
         activePanel={panel}
