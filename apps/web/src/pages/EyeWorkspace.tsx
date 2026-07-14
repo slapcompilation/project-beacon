@@ -54,6 +54,7 @@ export default function EyeWorkspace() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <WorkspaceTabs
+        title="Insights"
         tabs={TABS}
         groups={GROUPS}
         activePanel={panel}
