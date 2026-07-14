@@ -25,6 +25,7 @@ const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
 const ModelingObjectivesPage    = lazy(() => import('@/pages/ModelingObjectivesPage'))
 const DecisionCalibrationPage   = lazy(() => import('@/pages/DecisionCalibrationPage'))
 const FlywheelPage              = lazy(() => import('@/pages/FlywheelPage'))
+const StudioLanding             = lazy(() => import('@/features/mind/StudioLanding'))
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
@@ -41,12 +42,13 @@ export type AipTab =
   | 'agents' | 'system-map' | 'ontology' | 'monitors'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
+  | 'studio'
 
 // Two intents: Decisions is the daily operator inbox (each its own rail entry);
 // Studio is where you build/configure the fabric, surfaced as three collapsible
 // groups so the structure is discoverable without crowding the daily items.
 type Section = 'Decisions' | 'Studio'
-const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string }[] = [
+const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string; railHidden?: boolean }[] = [
   // Decisions — the daily driver
   { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '', desc: 'Agent proposals awaiting your decision' },
   { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '', desc: 'Approve, edit or reject restock requests' },
@@ -58,7 +60,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute', desc: 'How nodes, tools & actions connect' },
   { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
-  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates' },
+  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates', railHidden: true },
   { id: 'forecast-lab', label: 'Forecast Lab',      icon: 'lab-test',            section: 'Studio', group: 'Agents & compute', desc: 'Backtest + run the forecast adapters by cohort' },
   { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
   { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', group: 'Agents & compute', desc: 'Is the system getting better — calibration + loop health' },
@@ -70,22 +72,23 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', group: 'Knowledge', desc: 'Soft NL guidance injected into agents' },
   { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', group: 'Knowledge', desc: 'Hard gates at action submission' },
 
-  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy', desc: 'Explore graph overlays, uncommitted' },
-  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy', desc: 'Batch actions with a commit boundary' },
-  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy', desc: 'Tune the operator copilot' },
+  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy', desc: 'Explore graph overlays, uncommitted', railHidden: true },
+  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy', desc: 'Batch actions with a commit boundary', railHidden: true },
+  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy', desc: 'Tune the operator copilot', railHidden: true },
   { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', group: 'Sandbox & policy', desc: 'Auto-execution thresholds & overrides' },
 ]
 
 const DECISIONS_TABS = TABS.filter((t) => t.section === 'Decisions')
-const STUDIO_TABS     = TABS.filter((t) => t.section === 'Studio')
-const STUDIO_GROUPS   = groupTabs(STUDIO_TABS)
+export const STUDIO_TABS = TABS.filter((t) => t.section === 'Studio')
+// M3: thin tabs live in the landing's cards, not the rail (deep links still work)
+const STUDIO_GROUPS   = groupTabs(STUDIO_TABS.filter((t) => !t.railHidden))
 
 function isStudioTab(t: AipTab): boolean {
-  return STUDIO_TABS.some((s) => s.id === t)
+  return t === 'studio' || STUDIO_TABS.some((s) => s.id === t)
 }
 
 export function isAipTab(v: string | null | undefined): v is AipTab {
-  return !!v && TABS.some((t) => t.id === v)
+  return v === 'studio' || (!!v && TABS.some((t) => t.id === v))
 }
 
 export default function AIPShell({
@@ -147,6 +150,14 @@ export default function AIPShell({
               <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
                 Studio
               </p>
+              <RailButton
+                icon="compass"
+                label="Overview"
+                title="What Studio is and how its surfaces feed each other"
+                active={effTab === 'studio'}
+                badgeIntent={Intent.NONE}
+                onClick={() => { onTabChange('studio') }}
+              />
               {STUDIO_GROUPS.map((g) => {
                 const open = openGroups.has(g.label)
                 const groupBadge = g.tabs.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
@@ -189,7 +200,7 @@ export default function AIPShell({
       <main className="flex-1 overflow-hidden flex flex-col">
         <PanelErrorBoundary name={`Mind · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
-            {renderTab(effTab)}
+            {renderTab(effTab, onTabChange)}
           </Suspense>
         </PanelErrorBoundary>
       </main>
@@ -203,8 +214,9 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
   return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
 }
 
-function renderTab(t: AipTab) {
+function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
   switch (t) {
+    case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
     case 'restock-approvals': return <RestockPage />
     case 'approvals':    return <PendingApprovalsPage />
