@@ -120,14 +120,23 @@ this makes the models *cowork*.
   (13.9% vs 18.5% MAPE). The Q0 decision-quality metric now measures whether it moves the *outcome*.
 - Kills the "most consequential decision runs on the least accurate estimator" break.
 
-### Q2 — Record ground truth + structured lineage
-- On every live forecast that drives a proposal, write a `forecast_observations` row (revive the
-  dormant recorder on the *decision* path, not a blanket cron): `asOf, basis, projected, horizon,
-  confidence, sampleSize, proposal_id`.
-- Persist structured forecast provenance on the proposal + a typed edge `proposal —derived_from→
-  forecast_observation`. Now prediction → decision → outcome is one queryable chain.
-- A daily job scores matured rows against realized consumption → the accuracy surface reads recorded
-  truth, and it keeps working when occupancy makes reconstruction infeasible.
+### Q2 — Record ground truth + structured lineage  ✅ SHIPPED
+- `AgentProposal` now carries the structured `forecast` that sized it (basis, projectedUnits,
+  horizonDays, confidence). Both persist paths (web `createProposal`, cron `intelligence-cycle`) call
+  the new `record_decision_forecast` RPC (migration 200) — recording the **actual** adapter forecast at
+  decision time, not a SQL re-derivation like `record_current_forecasts` — with `source='decision'`
+  and a `proposal_id` link.
+- A typed `proposal —derived_from→ forecast_observation` edge is written best-effort alongside the
+  existing `influenced_by` / `cited_in` edges. Prediction → decision → outcome is now one queryable chain.
+- The dormant `score_due_forecast_observations` scorer is rescheduled (`beacon-forecast-score`, daily) —
+  model-agnostic, it fills realized + error once each horizon closes. Recorded truth now survives
+  non-deterministic inputs (occupancy) where reconstruction can't.
+- Self-apply caught a real hole: the RPC's `REVOKE … FROM anon` left the default `PUBLIC` grant, so
+  anon (NULL `auth_hotel_id()` → passes the scope gate) could write arbitrary rows. `get_advisors`
+  flagged it; fixed to `REVOKE … FROM PUBLIC`. Verified live (anon can't execute; the row links correctly).
+- *Deferred to a Q2 follow-up:* switching the accuracy surface from reconstruction to reading the
+  recorded rows, and a proposal-view "forecast vs realized" display. The spine (record + link + score)
+  lands here; the read-surface swap is additive.
 
 ### Q3 — One trust signal governs autonomy
 - Extend `decideAutoExecution` to consume **forecast-accuracy-by-basis** alongside decision

@@ -152,6 +152,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
           confidence: p.confidence,
           reasoning: p.reasoning,
           provenance: p.provenance,
+          forecast: p.forecast,
         })),
         paused: result.paused ?? undefined,
         trace: runner.snapshotTrace(),

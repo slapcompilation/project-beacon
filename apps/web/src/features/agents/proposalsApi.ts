@@ -113,6 +113,40 @@ export async function createProposal(input: CreateProposalInput): Promise<Propos
     }
   }
 
+  // Q2 — prediction lineage: record the forecast that SIZED this proposal and
+  // link it (proposal --derived_from--> forecast_observation), so "was the
+  // forecast that drove this order right?" becomes a query once it's scored.
+  // Best-effort, same as the edges above.
+  const forecast = input.proposal.forecast
+  const variantId = (input.proposal.action as { variantId?: string }).variantId
+  if (forecast && variantId && isUuid(variantId)) {
+    const { data: foId, error: foErr } = await supabase.rpc('record_decision_forecast', {
+      p_hotel_id:    input.hotelId,
+      p_variant_id:  variantId,
+      p_proposal_id: data.id,
+      p_horizon:     forecast.horizonDays,
+      p_projected:   forecast.projectedUnits,
+      p_basis:       forecast.basis,
+      p_confidence:  forecast.confidence,
+      p_sample_size: forecast.sampleSize ?? 0,
+    }) as unknown as { data: string | null; error: { message: string } | null }
+    if (foErr) {
+      console.warn('[beacon:proposals] record_decision_forecast failed:', foErr.message)
+    } else if (foId) {
+      const { error: edgeErr } = await supabase.from('relationship_edges').insert({
+        hotel_id:     input.hotelId,
+        edge_type:    'derived_from' as const,
+        source_type:  'proposal',
+        source_id:    data.id,
+        target_type:  'forecast_observation',
+        target_id:    foId,
+        triggered_by: 'ai_proposal_accepted',
+        actor_id:     input.createdByUserId,
+      })
+      if (edgeErr) console.warn('[beacon:proposals] derived_from edge write failed:', edgeErr.message)
+    }
+  }
+
   return data
 }
 

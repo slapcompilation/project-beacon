@@ -76,6 +76,8 @@ export type EdgeType =
   | 'describes_entity'
   | 'cited_in'
   | 'applies_to'
+  // Prediction lineage (Q2): a proposal traces to the forecast that sized it.
+  | 'derived_from'
 
 /** Runtime list of every typed edge. The ontology drift detector compares the
  *  edge types present in the graph against this set; anything in the data but
@@ -86,7 +88,7 @@ export const EDGE_TYPES = [
   'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
   'fulfills', 'sourced_from', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
   'influenced_by', 'similar_to', 'belongs_to_org', 'transfers', 'proposed_by', 'benchmarks',
-  'harmonized_to', 'describes_entity', 'cited_in', 'applies_to',
+  'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
 ] as const satisfies readonly EdgeType[]
 
 // Compile error if EDGE_TYPES omits any EdgeType member.

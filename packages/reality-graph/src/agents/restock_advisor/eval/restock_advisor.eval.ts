@@ -151,6 +151,27 @@ describe('restock_advisor v1.0.0', () => {
     expect(result.proposals[0]?.action.type).toBe('REQUEST_RESTOCK')
   })
 
+  it('attaches the sizing forecast to the proposal for lineage (Q2)', async () => {
+    const world = baseWorld()
+    world.variants = [
+      { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 100 },
+    ]
+    world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
+    world.suppliers = [
+      { id: IDS.supplierFast, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'Sysco', lead_time_days: 2, on_time_pct: 95, cost_variance_pct: 3 },
+    ]
+    const agent = buildRestockAdvisorAgent({
+      llm: scriptedLLM({ variantId: IDS.varTomatoesA, variantName: 'tomatoes' }),
+      reader: makeReader(world),
+    })
+    const result = await agent.run(baseInput)
+    const forecast = result.proposals[0]?.forecast
+    expect(forecast).toBeDefined()
+    expect(forecast?.basis).toContain('reorder-point-normal-v1')   // no adapter injected → base basis
+    expect(forecast?.horizonDays).toBe(2)                          // Sysco lead time
+    expect(forecast?.projectedUnits).toBeGreaterThan(0)
+  })
+
   it('picks the highest-scoring supplier when ranking multiple', async () => {
     const world = baseWorld()
     world.variants = [

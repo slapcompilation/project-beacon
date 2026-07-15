@@ -54,6 +54,32 @@ async function writePrincipleEdges(
   if (error) console.warn('[intelligence-cycle] influenced_by edge write failed:', error.message)
 }
 
+/** Q2 — record the forecast that SIZED a proposal + link it (proposal
+ *  --derived_from--> forecast_observation). The cron makes most proposals, so
+ *  without this the decision→forecast→outcome chain is unrecorded. Best-effort:
+ *  a failure never fails the cycle. */
+async function writeDecisionForecast(
+  supabase: SupabaseClient, hotelId: string, proposalId: string,
+  variantId: string | undefined,
+  forecast: { basis: string; projectedUnits: number; horizonDays: number; confidence: number; sampleSize?: number } | undefined,
+): Promise<void> {
+  if (!forecast || !variantId || !UUID_RE.test(variantId)) return
+  const { data: foId, error } = await supabase.rpc('record_decision_forecast', {
+    p_hotel_id: hotelId, p_variant_id: variantId, p_proposal_id: proposalId,
+    p_horizon: forecast.horizonDays, p_projected: forecast.projectedUnits,
+    p_basis: forecast.basis, p_confidence: forecast.confidence, p_sample_size: forecast.sampleSize ?? 0,
+  })
+  if (error) { console.warn('[intelligence-cycle] record_decision_forecast failed:', error.message); return }
+  if (!foId) return
+  const { error: edgeErr } = await supabase.from('relationship_edges').insert({
+    hotel_id: hotelId, edge_type: 'derived_from',
+    source_type: 'proposal', source_id: proposalId,
+    target_type: 'forecast_observation', target_id: foId as string,
+    triggered_by: 'ai_proposal_accepted', actor_id: null,
+  })
+  if (edgeErr) console.warn('[intelligence-cycle] derived_from edge write failed:', edgeErr.message)
+}
+
 import { makeServiceRoleGraphReader } from './reader.ts'
 // Recorded on the agent's trace; persistence attributes rows to no user
 // (created_by_user_id / requestor_id are NULL for system-authored rows).
@@ -350,7 +376,7 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
       const run = await agent.run({ prompt: `${opts.promptVerb} ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
       return run.proposals
     },
-    persistProposal: async (_variant: unknown, proposal: { action: { type: string }; confidence: number; reasoning: string; provenance: unknown }) => {
+    persistProposal: async (_variant: unknown, proposal: { action: { type: string; variantId?: string }; confidence: number; reasoning: string; provenance: unknown; forecast?: { basis: string; projectedUnits: number; horizonDays: number; confidence: number; sampleSize?: number } }) => {
       const { data, error } = await supabase
         .from('proposals')
         .insert({
@@ -375,6 +401,8 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
       // so without this the edges were never written (0 in prod) and
       // "which principles shape decisions" was untraversable.
       await writePrincipleEdges(supabase, hotel.id, data.id as string, proposal.provenance)
+      // Q2 — record the forecast that sized it + derived_from edge.
+      await writeDecisionForecast(supabase, hotel.id, data.id as string, proposal.action.variantId, proposal.forecast)
       return data.id as string
     },
     dispatch: async (action: { type: string; variantId?: string; quantityNeeded?: number }) => {
