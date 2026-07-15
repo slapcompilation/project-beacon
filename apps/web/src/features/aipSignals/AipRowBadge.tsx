@@ -7,8 +7,13 @@
 import { Icon, Intent, Tag } from '@blueprintjs/core'
 import { useAppStore } from '@/stores/app.store'
 import type { VariantSignalMap } from './useVariantSignals'
+import { useRowSignals } from './AipSignalsProvider'
 
-export function AipRowBadge({ signalMap, variantIds }: { signalMap: VariantSignalMap; variantIds: string[] }) {
+/** signalMap may be passed explicitly (P1 threaded path) or read from the
+ *  nearest AipSignalsProvider (P2 context path). */
+export function AipRowBadge({ signalMap, variantIds }: { signalMap?: VariantSignalMap; variantIds: string[] }) {
+  const ctxMap = useRowSignals()
+  const map = signalMap ?? ctxMap
   const openEntityContext = useAppStore((s) => s.openEntityContext)
 
   let proposals = 0
@@ -16,7 +21,7 @@ export function AipRowBadge({ signalMap, variantIds }: { signalMap: VariantSigna
   let hasCase = false
   let openVid: string | null = null       // the variant to inspect on click
   for (const id of variantIds) {
-    const s = signalMap.get(id)
+    const s = map.get(id)
     if (!s?.hasSignal) continue
     proposals += s.openProposals
     approvals += s.pendingApprovals
