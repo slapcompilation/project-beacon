@@ -23,6 +23,8 @@ import {
 } from '@blueprintjs/core'
 import { format, isPast, isToday, isTomorrow, parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
 import { usePOSummary, usePOLines, useSupplierContracts } from '@/features/mind/hooks'
@@ -103,6 +105,7 @@ function POLineList({
   }
 
   return (
+    <AipSignalsProvider variantIds={lines.map((l) => l.variant_id)}>
     <div className="divide-y border-t bg-muted/5">
       {/* Column headers */}
       <div className="flex items-center gap-3 px-6 py-2 bg-muted/20">
@@ -134,6 +137,7 @@ function POLineList({
                 </Link>
               </p>
               <p className="text-[10px] text-muted-foreground">{line.sku}</p>
+              <AipRowBadge variantIds={[line.variant_id]} />
             </div>
 
             {/* Ordered */}
@@ -188,6 +192,7 @@ function POLineList({
         )
       })}
     </div>
+    </AipSignalsProvider>
   )
 }
 
