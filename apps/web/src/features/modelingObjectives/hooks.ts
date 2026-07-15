@@ -17,7 +17,12 @@ import {
   type ReleaseStage,
 } from './api'
 import { runEvalSuite } from './runEval'
-import { makeScoreForecastAccuracyTool, type EvalSuite, type ModelAdapter } from '@beacon/reality-graph'
+import {
+  makeScoreForecastAccuracyTool,
+  makeComputeDecisionQualityTool,
+  type EvalSuite,
+  type ModelAdapter,
+} from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 
 export const moKeys = {
@@ -63,6 +68,46 @@ export function useForecastAccuracy(hotelId: string | null, horizon = 7, windows
         }
       }))
       return graded.filter((r) => r.n > 0).sort((a, b) => b.mape - a.mape)
+    },
+    enabled:  !!hotelId,
+    staleTime: 60_000,
+  })
+}
+
+/** The decision-quality north-star (roadmap Q0): realized outcomes per gradeable
+ *  variant — stock-out days (under-order cost) + waste (over-order cost) — scored
+ *  through the compute_decision_quality Logic Tool, the same production math. */
+export interface DecisionQualityRow {
+  variant_id:        string
+  variant_name:      string
+  stockout_days:     number
+  availability_rate: number
+  waste_units:       number
+  consumed_units:    number
+  waste_rate:        number
+}
+
+export function useDecisionQuality(hotelId: string | null, windowDays = 30) {
+  return useQuery({
+    queryKey: ['mo', 'decisionQuality', hotelId ?? '', windowDays],
+    queryFn:  async (): Promise<DecisionQualityRow[]> => {
+      if (!hotelId) return []
+      const variants = await fetchGradeableVariants(hotelId)
+      const tool = makeComputeDecisionQualityTool(makeSupabaseGraphReader())
+      const graded = await Promise.all(variants.map(async (v) => {
+        const r = await tool.invoke({ variantId: v.variant_id, windowDays })
+        return {
+          variant_id:        v.variant_id,
+          variant_name:      v.variant_name,
+          stockout_days:     r.stockoutDays,
+          availability_rate: r.availabilityRate,
+          waste_units:       r.wasteUnits,
+          consumed_units:    r.consumedUnits,
+          waste_rate:        r.wasteRate,
+        }
+      }))
+      // Worst decisions first: most stockout-days, then most waste.
+      return graded.sort((a, b) => b.stockout_days - a.stockout_days || b.waste_units - a.waste_units)
     },
     enabled:  !!hotelId,
     staleTime: 60_000,
