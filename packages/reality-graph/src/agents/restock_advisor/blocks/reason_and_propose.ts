@@ -58,6 +58,13 @@ const proposalSchema = z.object({
       detail: z.string().optional(),
     }),
   ),
+  /** The forecast that sized this proposal (Q2 lineage) — recorded + linked at persist. */
+  forecast: z.object({
+    basis:          z.string(),
+    projectedUnits: z.number(),
+    horizonDays:    z.number().int().positive(),
+    confidence:     z.number().min(0).max(1),
+  }).optional(),
 })
 
 export const outputSchema = z.object({
@@ -127,6 +134,15 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
       return { proposals: [], paused: null }
     }
 
+    // The forecast that sized this order (demand over the lead time) — attached to
+    // every proposal so persist can record it + link it (Q2 prediction lineage).
+    const forecast = {
+      basis:          rp.basis,
+      projectedUnits: rp.demandOverLeadTime,
+      horizonDays:    rp.leadTimeDays,
+      confidence:     rp.confidence,
+    }
+
     // 3. Check sister properties — lateral before external.
     const sisters = await ctx.invokeTool<
       { variantId: string; variantName: string; hotelId: string },
@@ -165,6 +181,7 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
           { kind: 'tool', ref: 'compute_reorder_point', detail: `reorderPoint=${String(rp.reorderPoint)}, safety=${String(rp.safetyStock)}` },
           { kind: 'tool', ref: 'query_sister_property_inventory', detail: `${String(sisters.sisters.length)} sisters scanned` },
         ],
+        forecast,
       })
       remainingGap -= transferQty
     }
@@ -204,6 +221,7 @@ export const reasonAndProposeBlock = createBlock<ReasonAndProposeInput, ReasonAn
             { kind: 'tool', ref: 'compute_reorder_point', detail: `reorderPoint=${String(rp.reorderPoint)}` },
             { kind: 'tool', ref: 'rank_alternative_suppliers', detail: `top=${top.name}, score=${String(top.score)}` },
           ],
+          forecast,
         })
       }
     }

@@ -91,6 +91,19 @@ export interface AgentProposal {
    *  entries close the learning flywheel — the operator sees their feedback
    *  was honored, and createProposal writes influenced_by edges from them. */
   provenance: ReadonlyArray<{ kind: 'tool' | 'document' | 'principle'; ref: string; detail?: string }>
+  /** Structured record of the forecast that SIZED this proposal (Q2 lineage).
+   *  Persisted as a forecast_observation linked to the proposal + a derived_from
+   *  edge, so "was the forecast that drove this order right?" becomes a query.
+   *  Absent when no forecast fed the sizing. */
+  forecast?: {
+    /** How the demand level was produced, e.g. 'reorder-point-normal-v1/auto:ewma-v1'. */
+    basis: string
+    /** Projected consumption over the horizon — graded against realized later. */
+    projectedUnits: number
+    horizonDays: number
+    confidence: number
+    sampleSize?: number
+  }
 }
 
 export interface AgentRunResult {
