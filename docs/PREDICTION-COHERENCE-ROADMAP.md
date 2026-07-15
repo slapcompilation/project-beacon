@@ -107,11 +107,17 @@ this makes the models *cowork*.
   accuracy card — so "the model's error" and "the decision's outcome" sit side by side. This is the
   number Q1+ must move. *"Build the measuring stick first" — the lesson that produced the accuracy instrument.*
 
-### Q1 — One demand number reaches the decision  ⭐ highest value, smallest change
-- Route `compute_reorder_point`'s μ_d (and σ_d) through the `forecast_consumption` adapter instead of a
-  flat mean — the proven-better EWMA/auto-select estimate now sizes real restock proposals.
-- Backtest-gated: the adapter path must beat the flat mean on the eval cohorts before it becomes the
-  default (it already does on live Valinor data: 13.9% vs 18.5% MAPE).
+### Q1 — One demand number reaches the decision  ✅ SHIPPED
+- `compute_reorder_point` now takes an optional forecast **adapter**: when bound, the demand level
+  (μ_d) — and therefore demand-over-lead-time — comes from the recency-weighted auto-select adapter
+  (forecast straight over the lead time), not a flat mean. σ_d stays the empirical daily std (the
+  adapter gives a level, not a spread). `basis` becomes `reorder-point-normal-v1/auto:ewma-v1` so the
+  demand source is visible in the trace — a first taste of structured lineage (Q2).
+- Wired on **every live path**: restock_advisor passes its adapter to the reorder tool (web already
+  injects `useActiveForecastAdapter`); the cron `intelligence-cycle` injects `autoSelectV1Adapter`.
+  Evals inject none → flat-mean fallback → deterministic fixtures unchanged (20 restock-eval cases stay green).
+- Gated by the standing backtest evidence: auto-select beats the flat mean on live Valinor data
+  (13.9% vs 18.5% MAPE). The Q0 decision-quality metric now measures whether it moves the *outcome*.
 - Kills the "most consequential decision runs on the least accurate estimator" break.
 
 ### Q2 — Record ground truth + structured lineage

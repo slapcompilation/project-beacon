@@ -2,6 +2,19 @@ import { describe, expect, it } from 'vitest'
 import { makeComputeReorderPointTool } from './compute_reorder_point'
 import { fakeReader, ids } from '../__fixtures__/fakeReader'
 import type { StockLogRow, SupplierRow } from '../graph_reader'
+import type { ModelAdapter } from '../../objectives/index'
+import type { ConsumptionForecastInput, ConsumptionForecastOutput } from '../../objectives/consumption_forecast/types'
+
+// Deterministic stub so the test asserts the WIRING (adapter drives the level),
+// not a particular smoothing math.
+const stubAdapter = (
+  projectedUnits: number, basis = 'auto:ewma-v1', confidence = 0.8,
+): ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> => ({
+  name: 'stub', version: '1.0.0',
+  inputSchema:  { kind: 'consumption_forecast_input' },
+  outputSchema: { kind: 'consumption_forecast_output' },
+  runInference: () => Promise.resolve({ projectedUnits, basis, confidence, sampleSize: 30 }),
+})
 
 const DAY = 86_400_000
 const at = (k: number) => new Date(Date.now() - k * DAY).toISOString()
@@ -47,6 +60,33 @@ describe('compute_reorder_point', () => {
     const variableLead = await makeComputeReorderPointTool(reader).invoke({ variantId: ids.variant1, leadTimeDays: 7, leadTimeStddevDays: 2 })
     expect(flat.safetyStock).toBe(0)
     expect(variableLead.safetyStock).toBeGreaterThan(0)   // σ_L term: μ²·σ_L²
+  })
+
+  it('falls back to the flat mean + base basis when no adapter is injected', async () => {
+    const r = await makeComputeReorderPointTool(fakeReader({ stockLogs: steady(5) }))
+      .invoke({ variantId: ids.variant1, leadTimeDays: 7 })
+    expect(r.basis).toBe('reorder-point-normal-v1')
+    expect(r.demandOverLeadTime).toBe(35)   // 5/day flat × 7
+  })
+
+  it('Q1: sizes the demand LEVEL on the injected forecast adapter, not the flat mean', async () => {
+    // steady(5) would flat-mean to 35 over 7d; the adapter forecasts 70 over the
+    // lead time → μ_d 10, demand-over-lead-time 70. σ_d stays empirical (0 here).
+    const tool = makeComputeReorderPointTool({
+      reader: fakeReader({ stockLogs: steady(5) }), adapter: stubAdapter(70),
+    })
+    const r = await tool.invoke({ variantId: ids.variant1, leadTimeDays: 7 })
+    expect(r.dailyMean).toBeCloseTo(10, 1)
+    expect(r.demandOverLeadTime).toBe(70)
+    expect(r.basis).toBe('reorder-point-normal-v1/auto:ewma-v1')   // demand source visible for lineage
+  })
+
+  it('caps sizing confidence by the forecast confidence when the adapter drives it', async () => {
+    const tool = makeComputeReorderPointTool({
+      reader: fakeReader({ stockLogs: steady(5) }), adapter: stubAdapter(70, 'auto:ewma-v1', 0.4),
+    })
+    const r = await tool.invoke({ variantId: ids.variant1, leadTimeDays: 7 })
+    expect(r.confidence).toBeLessThanOrEqual(0.4)
   })
 
   it('uses the variant fastest supplier lead time when none is given', async () => {

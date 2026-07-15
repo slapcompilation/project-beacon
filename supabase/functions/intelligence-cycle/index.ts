@@ -19,6 +19,7 @@ import {
   buildRestockAdvisorAgent,
   buildOverstockRebalancerAgent,
   buildWasteTriageAgent,
+  autoSelectV1Adapter,
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
@@ -159,7 +160,8 @@ Deno.serve(async (req: Request) => {
       const restockCalibration = await agentCalibration(supabase, hotel.id, restockMeta.name, minCalibrationSamples)
       const restock = await runAgentCycle(supabase, hotel, {
         agentName: restockMeta.name, agentVersion: restockMeta.version,
-        scan: 'at-risk', buildAgent: (reader, v) => buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(v) }),
+        // Q1: size on the recency-weighted auto-select forecast, not a flat mean.
+        scan: 'at-risk', buildAgent: (reader, v) => buildRestockAdvisorAgent({ reader, llm: makeDeterministicLLM(v), forecastAdapter: autoSelectV1Adapter }),
         promptVerb: 'restock', ...hotelShared, calibration: restockCalibration,
       })
       const overstock = await runAgentCycle(supabase, hotel, {

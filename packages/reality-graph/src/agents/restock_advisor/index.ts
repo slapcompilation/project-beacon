@@ -52,7 +52,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
   const tools: LogicTool[] = [
     makeQueryOpenRestockRequestsTool(deps.reader) as LogicTool,
     makeForecastConsumptionTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
-    makeComputeReorderPointTool(deps.reader) as LogicTool,
+    makeComputeReorderPointTool({ reader: deps.reader, adapter: deps.forecastAdapter }) as LogicTool,
     makeQuerySisterPropertyInventoryTool(deps.reader) as LogicTool,
     makeRankAlternativeSuppliersTool(deps.reader) as LogicTool,
     makeQueryVariantDocumentsTool(deps.reader) as LogicTool,
