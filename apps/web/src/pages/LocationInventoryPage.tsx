@@ -19,6 +19,8 @@ import {
   Tag,
 } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useInventoryByLocation, useReassignVariantLocation, useLocations } from '@/features/locations/hooks'
@@ -107,6 +109,7 @@ function VariantRow({
           </Link>
           <span className="ml-1.5 text-[10px] text-muted-foreground font-normal">{row.sku}</span>
         </p>
+        <AipRowBadge variantIds={[row.variant_id]} />
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
@@ -334,6 +337,11 @@ export default function LocationInventoryPage() {
     })
   }, [filtered])
 
+  const signalVariantIds = useMemo(
+    () => groups.flatMap((g) => g.rows.map((r) => r.variant_id)),
+    [groups],
+  )
+
   const issueCount = rows.filter((r) => r.par_status !== 'ok').length
 
   if (isLoading) {
@@ -370,7 +378,7 @@ export default function LocationInventoryPage() {
             description={filter === 'issues' ? undefined : 'Add products in Floor · Live Stock.'}
           />
         ) : (
-          <div>
+          <AipSignalsProvider variantIds={signalVariantIds}>
             {groups.map((group, i) => (
               <LocationGroup
                 key={group.key}
@@ -379,7 +387,7 @@ export default function LocationInventoryPage() {
                 defaultOpen={i === 0 || group.rows.some((r) => r.par_status !== 'ok')}
               />
             ))}
-          </div>
+          </AipSignalsProvider>
         )}
       </div>
     </div>

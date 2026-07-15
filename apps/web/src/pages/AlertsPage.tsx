@@ -34,6 +34,8 @@ import { DEFAULT_ORG_POLICY } from '@beacon/reality-graph'
 import { useCreateRestockRequest } from '@/features/restock/hooks'
 import { useAuthStore } from '@/stores/auth.store'
 import { formatCurrency } from '@/lib/currency'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import { daysUntil } from '@/lib/date'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useDateFormat } from '@/features/user/hooks'
@@ -156,6 +158,7 @@ function AlertCard({
           }
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">{item.subtitle}</p>
+        {item._variantId && <div className="mt-1"><AipRowBadge variantIds={[item._variantId]} /></div>}
         {(item.costExposure ?? 0) > 0 && (
           <p className="mt-1 text-[11px] font-semibold text-red-600 dark:text-red-400">
             {formatCurrency(item.costExposure ?? 0, currency)} at risk
@@ -249,6 +252,7 @@ function LayerSection({
           )}
         </div>
       </div>
+      <AipSignalsProvider variantIds={items.map((i) => i._variantId).filter((v): v is string => !!v)}>
       <div className="space-y-2">
         {items.map((item) => (
           <AlertCard
@@ -260,6 +264,7 @@ function LayerSection({
           />
         ))}
       </div>
+      </AipSignalsProvider>
     </div>
   )
 }

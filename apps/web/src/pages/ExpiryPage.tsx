@@ -22,6 +22,8 @@ import { cn } from '@/lib/utils'
 import { useExpiringVariants, useAdjustStock, useExpiryBatches, useDiscardBatch } from '@/features/inventory/hooks'
 import { useSupplierWasteAnalytics } from '@/features/eye/hooks'
 import { formatCurrency } from '@/lib/currency'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import { daysUntil } from '@/lib/date'
 import { useCurrency } from '@/hooks/useCurrency'
 import { useDateFormat } from '@/features/user/hooks'
@@ -324,6 +326,7 @@ function GroupedExpiryTable({
   }
 
   return (
+    <AipSignalsProvider variantIds={groups.flatMap((g) => g.variants.map((v) => v.id))}>
     <div className="rounded border overflow-hidden divide-y">
       {groups.map((group) => {
         const isOpen = expanded.has(group.productName)
@@ -371,6 +374,7 @@ function GroupedExpiryTable({
                   className={cn('flex items-center gap-3 pl-10 pr-4 py-2 text-sm', vm.rowBg)}
                 >
                   <span className="flex-1 text-xs text-muted-foreground">{lotLabel}</span>
+                  <AipRowBadge variantIds={[v.id]} />
                   <span className="text-xs text-muted-foreground font-mono">{v.sku}</span>
                   <span className="text-xs tabular-nums w-16 text-right">{v.current_stock} units</span>
                   <span className={cn('text-xs font-semibold tabular-nums w-20 text-right', vm.textColor)}>
@@ -405,6 +409,7 @@ function GroupedExpiryTable({
         )
       })}
     </div>
+    </AipSignalsProvider>
   )
 }
 
