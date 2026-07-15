@@ -14,6 +14,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/stores/app.store'
 import { fetchOpenCaseForVariant } from '@/features/cases/api'
 import { useApproveProposalFromQueue, useRejectProposalFromQueue } from '@/features/agents/useReviewQueue'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
@@ -54,8 +55,9 @@ export function ObjectAgentActivity({
   title?: string
 }) {
   const ids = variantIds.filter(Boolean)
-  // The open-Case link only makes sense for a single variant.
+  // The open-Case link + scoped copilot only make sense for a single variant.
   const single = ids.length === 1 ? ids[0] : null
+  const askCopilotAbout = useAppStore((s) => s.askCopilotAbout)
 
   const { data: proposals = [], isLoading } = useQuery({
     queryKey:  ['object-proposals', ids],
@@ -80,6 +82,16 @@ export function ObjectAgentActivity({
           {title ?? 'Agent Decisions'} ({proposals.length})
         </span>
         <div className="flex items-center gap-3">
+          {single && (
+            <button
+              type="button"
+              onClick={() => { askCopilotAbout('variant', single) }}
+              className="text-xs text-violet-500 hover:underline inline-flex items-center gap-1"
+              title="Ask the copilot about this item — it opens scoped to this variant"
+            >
+              <Icon icon="chat" size={11} /> Ask copilot
+            </button>
+          )}
           {openCase && (
             <Link
               to={`/cases/${openCase.id}`}

@@ -60,6 +60,9 @@ interface AppState {
   setContextPanelTab: (tab: ContextPanelTab) => void
   /** Opens context panel with Detail tab showing the given entity */
   openEntityContext: (entityType: ObjectPanelEntity, entityId: string) => void
+  /** Opens the Copilot tab already scoped to this entity — the selection-aware
+   *  copilot reached in one click from a row/object, not a manual tab switch. */
+  askCopilotAbout: (entityType: ObjectPanelEntity, entityId: string) => void
   /** Toggles context panel with Copilot tab */
   toggleCopilot: () => void
 
@@ -94,6 +97,13 @@ export const useAppStore = create<AppState>()(
         set({
           contextPanelOpen: true,
           contextPanelTab: 'detail',
+          contextEntity: { type: entityType, id: entityId },
+          notifPanelOpen: false,
+        }),
+      askCopilotAbout: (entityType, entityId) =>
+        set({
+          contextPanelOpen: true,
+          contextPanelTab: 'copilot',
           contextEntity: { type: entityType, id: entityId },
           notifPanelOpen: false,
         }),

@@ -4,6 +4,8 @@
 //  P3  a pending proposal can be ACTED ON inline (approve button on the shared
 //      ObjectAgentActivity — tested on the variant page for determinism, since
 //      proposal-bearing rows can be virtualized off a long list)
+//  P4  "Ask copilot" opens the copilot ALREADY SCOPED to the item — the
+//      selection-aware copilot reached in one click, not a manual tab switch
 
 import { test, expect } from '@playwright/test'
 
@@ -51,6 +53,22 @@ test('a pending proposal can be acted on inline (P3)', async ({ page }) => {
   // the inline approve button — acting where the item lives, no trip to the queue
   await expect(page.getByRole('button', { name: /Approve — executes the action/i }).first())
     .toBeVisible({ timeout: 15_000 })
+})
+
+test('Ask copilot opens the copilot scoped to the item (P4)', async ({ page }) => {
+  const session = await auth(page)
+  const variants = await fetch(`${SUPABASE_URL}/rest/v1/variants?select=id&limit=1`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session.access_token}` },
+  }).then((r) => r.json() as Promise<{ id: string }[]>)
+  const variantId = variants[0]?.id
+  test.skip(!variantId, 'no variant in the smoke hotel right now')
+
+  await page.goto(`/variant/${variantId}`)
+  await expect(page.getByText(/Agent Decisions/i).first()).toBeVisible({ timeout: 45_000 })
+  // one click from the agent's take to a copilot already bound to this variant
+  await page.getByRole('button', { name: /Ask copilot/i }).first().click()
+  await expect(page.getByText(/Viewing/i).first()).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByPlaceholder(/Ask anything/i)).toBeVisible({ timeout: 15_000 })
 })
 
 test('the badge reaches a P2 surface (Locations) via the provider', async ({ page }) => {
