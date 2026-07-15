@@ -29,6 +29,8 @@ import {
 } from '@blueprintjs/core'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import {
   usePickLists, usePickListItems, useCreatePickList, useUpdatePickList,
   useDeletePickList, useAddPickListItem, useUpdatePickListItem,
@@ -371,6 +373,7 @@ function PickItemRow({
           {pv?.current_stock != null && ` · ${String(pv.current_stock)}${uom ? ` ${uom}` : ''} in stock`}
           {item.notes && ` · ${item.notes}`}
         </p>
+        {pv?.id && <AipRowBadge variantIds={[pv.id]} />}
         {fefoBatch && (
           <p className="mt-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
             Use {fefoBatch.lot_number ? `Lot ${fefoBatch.lot_number}` : 'oldest batch'}
@@ -688,6 +691,7 @@ function PickListDetail({
             ) : undefined}
           />
         ) : (
+          <AipSignalsProvider variantIds={items.map((i) => i.variant_id)}>
           <div className="rounded-none divide-y-0">
             {items.map((item) => (
               <PickItemRow
@@ -704,6 +708,7 @@ function PickListDetail({
               />
             ))}
           </div>
+          </AipSignalsProvider>
         )}
       </div>
 
