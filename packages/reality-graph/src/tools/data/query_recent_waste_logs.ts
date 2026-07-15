@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { LogicTool } from '../index'
-import type { GraphReader, StockLogRow } from '../graph_reader'
+import type { GraphReader } from '../graph_reader'
+import { isWasteLog } from '../logic/waste_classification'
 
 const inputSchema = z.object({
   variantId:  z.string().uuid(),
@@ -25,18 +26,6 @@ const outputSchema = z.object({
 
 export type QueryRecentWasteLogsInput = z.infer<typeof inputSchema>
 export type QueryRecentWasteLogsOutput = z.infer<typeof outputSchema>
-
-const WASTE_KEYWORDS = ['waste', 'spoil', 'expir', 'discard', 'damage', 'thrown', 'rot']
-
-/** Negative-delta log counts as waste when removal_category is one of the
- *  waste tags, or when its reason matches a waste keyword. */
-function isWasteLog(log: StockLogRow): boolean {
-  if (log.delta >= 0) return false
-  const cat = (log.removal_category ?? '').toLowerCase()
-  if (cat === 'waste' || cat === 'spoilage' || cat === 'damaged' || cat === 'expired') return true
-  const reason = (log.reason ?? '').toLowerCase()
-  return WASTE_KEYWORDS.some((kw) => reason.includes(kw))
-}
 
 export function makeQueryRecentWasteLogsTool(
   reader: GraphReader,

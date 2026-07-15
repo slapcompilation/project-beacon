@@ -19,6 +19,7 @@ import {
   makeQueryDocumentChunksTool,
   requestClarificationTool,
   makeScoreForecastAccuracyTool,
+  makeComputeDecisionQualityTool,
   makeComputeDecisionCalibrationTool,
   makeDetectOntologyGapsTool,
   makeOccupancyAdjustedForecastTool,
@@ -63,6 +64,7 @@ export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
     makeQueryDocumentChunksTool(noopGraphReader),
     requestClarificationTool,
     makeScoreForecastAccuracyTool(noopGraphReader),
+    makeComputeDecisionQualityTool(noopGraphReader),
     makeComputeDecisionCalibrationTool({ getResolvedProposals: () => Promise.resolve([]) }),
     makeDetectOntologyGapsTool({
       getRemovalReasons:          () => Promise.resolve([]),

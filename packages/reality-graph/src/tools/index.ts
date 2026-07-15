@@ -121,6 +121,13 @@ export {
   type ComputeReorderPointOutput,
 } from './logic/compute_reorder_point'
 export {
+  makeComputeDecisionQualityTool,
+  scoreDecisionQuality,
+  type ComputeDecisionQualityInput,
+  type ComputeDecisionQualityOutput,
+  type DecisionQualityScore,
+} from './logic/compute_decision_quality'
+export {
   makeOccupancyAdjustedForecastTool,
   type OccupancyAdjustedForecastInput,
   type OccupancyAdjustedForecastOutput,

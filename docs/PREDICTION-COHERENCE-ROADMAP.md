@@ -96,12 +96,16 @@ Sequenced by value ÷ effort. Each phase is independently shippable and eval-gat
 complementary to the model-accuracy backlog in `AIP-PARITY-ROADMAP.md` — that makes one model better;
 this makes the models *cowork*.
 
-### Q0 — See it (observability first, zero model change)
-- The **lineage diagram** (this doc's §2, as a rendered surface) + a one-screen answer to "does the
-  pipeline produce accurate predictions?": every estimator, its basis, its consumer, its accuracy hook.
-- Define the **decision-quality north-star**: stockout-days, fill-rate, waste-units — the metric a
-  forecast is ultimately judged by. Instrument it now, before changing anything, so Q1+ can prove they
-  moved it. *"Build the measuring stick first" — the same lesson that produced the accuracy instrument.*
+### Q0 — See it (observability first, zero model change)  ✅ SHIPPED
+- The **lineage diagram** (this doc's §2) names every estimator, its basis, its consumer, its accuracy hook.
+- The **decision-quality north-star is instrumented**: `compute_decision_quality` Logic Tool +
+  `scoreDecisionQuality` pure fn (`tools/logic/compute_decision_quality.ts`) — stock-out days +
+  availability (under-order cost) and waste units + rate (over-order cost), the real-world face of the
+  forecast's signed bias. Waste counts through the *one* shared `isWasteLog` classifier
+  (`waste_classification.ts`, extracted from `query_recent_waste_logs` so the two can't drift).
+  Surfaced as **"Decision quality (live)"** on the consumption-forecast objective page, above the MAPE
+  accuracy card — so "the model's error" and "the decision's outcome" sit side by side. This is the
+  number Q1+ must move. *"Build the measuring stick first" — the lesson that produced the accuracy instrument.*
 
 ### Q1 — One demand number reaches the decision  ⭐ highest value, smallest change
 - Route `compute_reorder_point`'s μ_d (and σ_d) through the `forecast_consumption` adapter instead of a

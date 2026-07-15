@@ -15,6 +15,7 @@ import {
   useEvalRuns,
   useReleases,
   useForecastAccuracy,
+  useDecisionQuality,
   usePromoteRelease,
   useCreateDeployment,
   useStopDeployment,
@@ -115,6 +116,7 @@ export default function ModelingObjectiveDetailPage() {
           evalSuite={descriptor.evalSuite}
         />
 
+        {objectiveName === 'consumption_forecast' && <DecisionQualitySection />}
         {objectiveName === 'consumption_forecast' && <AccuracySection />}
 
         <EvaluationSection
@@ -277,6 +279,70 @@ function AdapterCard({
         </p>
       )}
     </Card>
+  )
+}
+
+// ─── Decision quality (live) — the north-star (roadmap Q0) ───────────────────
+// The outcome a forecast is ultimately judged by. Under-forecast → stock-out
+// days; over-forecast → waste. Accuracy (below) is the model; this is the result.
+
+function DecisionQualitySection() {
+  const hotelId = useActiveHotelId()
+  const { data: rows = [], isLoading } = useDecisionQuality(hotelId)
+
+  const summary = useMemo(() => {
+    if (rows.length === 0) return null
+    const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / xs.length
+    return {
+      variants:     rows.length,
+      stockoutDays: rows.reduce((s, r) => s + r.stockout_days, 0),
+      availability: mean(rows.map((r) => r.availability_rate)),
+      wasteUnits:   rows.reduce((s, r) => s + r.waste_units, 0),
+      wasteRate:    mean(rows.map((r) => r.waste_rate)),
+    }
+  }, [rows])
+
+  return (
+    <Section
+      title="Decision quality (live)"
+      icon="shield"
+      subtitle="The outcome the forecast is judged by, over the last 30 days: stock-out days (the cost of under-ordering) and waste (the cost of over-ordering). This is what later phases must move — not just MAPE below."
+    >
+      {!hotelId ? (
+        <Card className="text-xs italic text-muted-foreground">Select a hotel to grade its decisions.</Card>
+      ) : isLoading ? (
+        <div className="flex items-center justify-center py-6"><Spinner size={SpinnerSize.SMALL} intent={Intent.PRIMARY} /></div>
+      ) : !summary ? (
+        <Card className="text-xs italic text-muted-foreground">
+          No variant has recorded outcomes to grade yet. Stock-out days need on-hand balances on the logs; waste is read from write-offs.
+        </Card>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <MetricTag label="Stock-out days" value={String(summary.stockoutDays)} intent={summary.stockoutDays > 0 ? Intent.WARNING : Intent.SUCCESS} hint="variant-days on-hand hit zero — the cost of forecasting low" />
+            <MetricTag label="Availability" value={pct(summary.availability)} intent={summary.availability >= 0.98 ? Intent.SUCCESS : summary.availability >= 0.9 ? Intent.WARNING : Intent.DANGER} hint="mean share of the window stock was on hand" />
+            <MetricTag label="Waste" value={pct(summary.wasteRate)} intent={summary.wasteRate <= 0.02 ? Intent.SUCCESS : summary.wasteRate <= 0.05 ? Intent.WARNING : Intent.DANGER} hint={`${String(summary.wasteUnits)} units lost to spoilage/damage — the cost of forecasting high`} />
+            <Tag minimal icon="cube">{summary.variants} variants</Tag>
+          </div>
+
+          <div className="space-y-1">
+            {rows.filter((r) => r.stockout_days > 0 || r.waste_units > 0).slice(0, 12).map((r) => (
+              <div key={r.variant_id} className="flex items-center gap-3 px-2 py-1.5 rounded border border-border/40 text-xs">
+                <span className="font-medium truncate max-w-[180px]" title={r.variant_name}>{r.variant_name}</span>
+                <span className="flex-1" />
+                {r.stockout_days > 0 && (
+                  <Tag minimal intent={Intent.WARNING} className="tabular-nums" title="days on-hand hit zero">{r.stockout_days} stockout d</Tag>
+                )}
+                {r.waste_units > 0 && (
+                  <Tag minimal intent={r.waste_rate > 0.05 ? Intent.DANGER : Intent.NONE} className="tabular-nums" title="units lost to waste">{r.waste_units}u waste</Tag>
+                )}
+                <span className="text-[10px] text-muted-foreground tabular-nums">{pct(r.availability_rate)} avail</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </Section>
   )
 }
 
@@ -721,7 +787,7 @@ function DeploymentsSection({
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
-function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'confirm' | 'flag' | 'cloud' | 'pulse'; subtitle: string; children: React.ReactNode }) {
+function Section({ title, icon, subtitle, children }: { title: string; icon: 'layers' | 'confirm' | 'flag' | 'cloud' | 'pulse' | 'shield'; subtitle: string; children: React.ReactNode }) {
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
