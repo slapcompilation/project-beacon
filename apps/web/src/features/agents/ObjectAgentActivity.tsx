@@ -8,13 +8,15 @@
 // ROADMAP L1). So a Supplier/PO surfaces decisions across *its variants* (the
 // items it supplies / the order's lines), which is the link that resolves.
 
-import { Card, Icon, Intent, Tag } from '@blueprintjs/core'
+import { Button, Card, Icon, Intent, Tag } from '@blueprintjs/core'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import { fetchOpenCaseForVariant } from '@/features/cases/api'
+import { useApproveProposalFromQueue, useRejectProposalFromQueue } from '@/features/agents/useReviewQueue'
+import type { ProposalRow } from '@/features/agents/proposalsApi'
 
 interface VariantProposalRow {
   id:          string
@@ -24,6 +26,7 @@ interface VariantProposalRow {
   reasoning:   string
   status:      'pending' | 'approved' | 'rejected' | 'superseded' | 'expired'
   created_at:  string
+  action_payload: Record<string, unknown>
 }
 
 async function fetchProposalsForVariants(variantIds: string[]): Promise<VariantProposalRow[]> {
@@ -31,7 +34,7 @@ async function fetchProposalsForVariants(variantIds: string[]): Promise<VariantP
   // Every BeaconAction targeting a variant carries variantId in action_payload.
   const { data, error } = await supabase
     .from('proposals')
-    .select('id, agent_name, action_type, confidence, reasoning, status, created_at')
+    .select('id, agent_name, action_type, confidence, reasoning, status, created_at, action_payload')
     .in('action_payload->>variantId', variantIds)
     .order('created_at', { ascending: false })
     .limit(8) as unknown as { data: VariantProposalRow[] | null; error: { message: string } | null }
@@ -105,6 +108,9 @@ export function ObjectAgentActivity({
 }
 
 function AgentDecisionRow({ p }: { p: VariantProposalRow }) {
+  const qc = useQueryClient()
+  const approve = useApproveProposalFromQueue()
+  const reject  = useRejectProposalFromQueue()
   const dot =
     p.confidence >= 0.85 ? 'bg-emerald-500' :
     p.confidence >= 0.6  ? 'bg-amber-400'   : 'bg-red-500'
@@ -115,14 +121,33 @@ function AgentDecisionRow({ p }: { p: VariantProposalRow }) {
     superseded: Intent.NONE,
     expired:    Intent.NONE,
   }
+  // Approve executes the action + records the decision; reject records it. Both
+  // reuse the Review Queue hooks, so acting here is identical to acting there —
+  // the loop closes on whatever surface the operator is already on. Refresh the
+  // inline list (the queue hooks don't know this component's key).
+  const refresh = () => { void qc.invalidateQueries({ queryKey: ['object-proposals'] }) }
+  const pending = p.status === 'pending'
+  const busy = approve.isPending || reject.isPending
+
   return (
-    <Link to={`/proposals/${p.id}`} className="block px-3 py-2 text-xs hover:bg-surface-2 transition-colors">
+    <div className="px-3 py-2 text-xs">
       <div className="flex items-center gap-2">
         <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', dot)} />
         <Tag minimal className="font-mono !text-[10px]">{p.action_type}</Tag>
-        <span className="text-muted-foreground flex-1 truncate">{p.agent_name}</span>
+        <Link to={`/proposals/${p.id}`} className="text-muted-foreground flex-1 truncate hover:underline">{p.agent_name}</Link>
         <span className="tabular-nums text-muted-foreground shrink-0">{Math.round(p.confidence * 100)}%</span>
-        <Tag minimal intent={statusIntent[p.status]} className="!text-[10px]">{p.status}</Tag>
+        {pending ? (
+          <div className="flex items-center gap-1 shrink-0">
+            <Button variant="minimal" size="small" intent={Intent.SUCCESS} icon="tick" loading={approve.isPending} disabled={busy}
+              title="Approve — executes the action"
+              onClick={() => { approve.mutate(p as unknown as ProposalRow, { onSuccess: refresh }) }} />
+            <Button variant="minimal" size="small" intent={Intent.DANGER} icon="cross" loading={reject.isPending} disabled={busy}
+              title="Reject"
+              onClick={() => { reject.mutate(p.id, { onSuccess: refresh }) }} />
+          </div>
+        ) : (
+          <Tag minimal intent={statusIntent[p.status]} className="!text-[10px]">{p.status}</Tag>
+        )}
         <span className="text-[10px] text-muted-foreground/70 shrink-0">
           {formatDistanceToNow(new Date(p.created_at), { addSuffix: true })}
         </span>
@@ -130,6 +155,6 @@ function AgentDecisionRow({ p }: { p: VariantProposalRow }) {
       {p.reasoning && (
         <div className="mt-1 ml-3.5 text-[11px] text-muted-foreground/80 line-clamp-2">{p.reasoning}</div>
       )}
-    </Link>
+    </div>
   )
 }
