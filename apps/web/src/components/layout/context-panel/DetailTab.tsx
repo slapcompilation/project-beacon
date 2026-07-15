@@ -9,6 +9,8 @@ import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { ENTITY_META, GRAPH_NODE_TYPE } from './EntityMeta'
 import { EntitySummary } from './EntitySummary'
 import { LocationAipPanel } from '@/features/canvas/LocationAipPanel'
+import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 
 const GraphConnections = lazy(() =>
   import('@/components/GraphConnections').then((m) => ({ default: m.GraphConnections }))
@@ -42,6 +44,7 @@ export function DetailTabContent() {
   const meta       = entityType ? ENTITY_META[entityType] : null
 
   const { data, isLoading, error } = useObjectData(entityType, entityId)
+  const hotelId = useActiveHotelId()
 
   if (!contextEntity) {
     return (
@@ -96,6 +99,18 @@ export function DetailTabContent() {
                 deep link the queue's Refine button already uses. */}
             {entityType === 'location' && entityId && (
               <LocationAipPanel locationId={entityId} />
+            )}
+
+            {/* AIP-native slide-over (arc P1): the agent's take on this item,
+                inline — the payoff of clicking a row's AipRowBadge. */}
+            {entityType === 'variant' && entityId && (
+              <div className="px-4 py-3">
+                <ObjectAgentActivity
+                  variantIds={[entityId]}
+                  hotelId={hotelId ?? undefined}
+                  emptyHint="No agent decisions on this item yet."
+                />
+              </div>
             )}
 
             {GRAPH_NODE_TYPE[entityType] && (

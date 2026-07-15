@@ -8,6 +8,8 @@ import { Icon } from '@blueprintjs/core'
 import { addDays, format } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { WhyButton } from '@/components/WhySheet'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
+import type { VariantSignalMap } from '@/features/aipSignals/useVariantSignals'
 import { getTotalStock } from '@beacon/types'
 import type { ProductWithVariants, ProductVariant, Supplier } from '@beacon/types'
 import type { InventoryIntelligenceRow } from '@/features/eye/api'
@@ -20,6 +22,7 @@ export function RowIntelStrip({
   wasteRadarIds,
   openRestockIds,
   suppliersMap,
+  signalMap,
   onRequestRestock,
 }: {
   product: ProductWithVariants
@@ -28,6 +31,7 @@ export function RowIntelStrip({
   wasteRadarIds: Set<string>
   openRestockIds: Set<string>
   suppliersMap: Map<string, Supplier>
+  signalMap: VariantSignalMap
   onRequestRestock: (variantId: string, qty: number) => void
 }) {
   const variants = product.product_variants
@@ -51,11 +55,14 @@ export function RowIntelStrip({
   const leadTimeDays = (supplierEntry as (Supplier & { lead_time_days?: number | null }) | undefined)?.lead_time_days ?? null
   const supplyGap = days !== null && leadTimeDays !== null ? days - leadTimeDays : null
 
-  const hasAnySig = days !== null || (trendPct !== null && Math.abs(trendPct) > 3) || hasWaste || (par > 0)
+  const variantIds = variants.map((v) => v.id)
+  const hasAipSignal = variantIds.some((id) => signalMap.get(id)?.hasSignal)
+  const hasAnySig = days !== null || (trendPct !== null && Math.abs(trendPct) > 3) || hasWaste || (par > 0) || hasAipSignal
   if (!hasAnySig) return null
 
   return (
     <div className="flex items-center gap-1.5 mt-1 flex-wrap min-w-0">
+      <AipRowBadge signalMap={signalMap} variantIds={variantIds} />
       {par > 0 && (
         <span className={cn(
           'text-[10px] tabular-nums',
