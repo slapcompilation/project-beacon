@@ -35,6 +35,7 @@ import { ImportModal } from '@/features/inventory/components/CsvImportModal'
 import { VariantManagerDrawer } from '@/features/inventory/components/VariantManagerDrawer'
 import { DaysLeft } from '@/features/inventory/components/DaysLeft'
 import { RowIntelStrip } from '@/features/inventory/components/RowIntelStrip'
+import { useVariantSignals } from '@/features/aipSignals/useVariantSignals'
 import { InlineStockCell } from '@/features/inventory/components/InlineStockCell'
 import { InventorySummaryStrip } from '@/features/inventory/components/InventorySummaryStrip'
 import {
@@ -197,6 +198,7 @@ export default function InventoryPage() {
     overscan: 8,
   })
 
+  const signalMap = useVariantSignals(filtered.flatMap((p) => p.product_variants.map((v) => v.id)))
   const isAllSelected = filtered.length > 0 && filtered.every((p) => selected.has(p.id))
   const toggleAll = () =>
     { setSelected(isAllSelected ? new Set() : new Set(filtered.map((p) => p.id))); }
@@ -625,6 +627,7 @@ export default function InventoryPage() {
                             wasteRadarIds={wasteRadarIds}
                             openRestockIds={openRestockIds}
                             suppliersMap={suppliersMap}
+                            signalMap={signalMap}
                             onRequestRestock={(variantId, qty) => {
                               createRestock.mutate({ variantId, quantityNeeded: qty })
                             }}
