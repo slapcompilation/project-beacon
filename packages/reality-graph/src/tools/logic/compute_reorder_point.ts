@@ -13,6 +13,8 @@
 import { z as zod } from 'zod'
 import type { LogicTool } from '../index'
 import type { GraphReader } from '../graph_reader'
+import type { ModelAdapter } from '../../objectives/index'
+import type { ConsumptionForecastInput, ConsumptionForecastOutput } from '../../objectives/consumption_forecast/types'
 import { buildDailySeries } from '../../objectives/consumption_forecast/daily_series'
 
 const LOOKBACK_DAYS = 30
@@ -55,34 +57,65 @@ function zForServiceLevel(sl: number): number {
   return 0.52
 }
 
-export function makeComputeReorderPointTool(reader: GraphReader): LogicTool<ComputeReorderPointInput, ComputeReorderPointOutput> {
+export interface ComputeReorderPointDeps {
+  reader: GraphReader
+  /** Forecast adapter the demand LEVEL (μ_d) delegates to — the recency-weighted
+   *  auto-select estimate the objective is graded on. When omitted, the tool uses
+   *  the flat 30-day mean (kept for eval/fixture paths that don't inject one).
+   *  Either way σ_d stays the empirical daily std — the adapter gives a level, not
+   *  a daily spread. */
+  adapter?: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>
+}
+
+export function makeComputeReorderPointTool(
+  depsOrReader: GraphReader | ComputeReorderPointDeps,
+): LogicTool<ComputeReorderPointInput, ComputeReorderPointOutput> {
+  const deps: ComputeReorderPointDeps =
+    'reader' in depsOrReader ? depsOrReader : { reader: depsOrReader }
+
   return {
     name: 'compute_reorder_point',
     category: 'logic',
     kind: 'inproc',
     version: '1.0.0',
     description:
-      'Returns the reorder point + safety stock for a variant, sized from its daily-demand mean and ' +
-      'variability over the supplier lead time at a target service level. Use to decide WHEN to reorder ' +
-      'and HOW MUCH buffer to hold — instead of a hand-tuned par level.',
+      'Returns the reorder point + safety stock for a variant, sized from its forecast daily-demand ' +
+      'level and variability over the supplier lead time at a target service level. The demand level ' +
+      'comes from the active forecast adapter (recency-weighted) when bound. Use to decide WHEN to ' +
+      'reorder and HOW MUCH buffer to hold — instead of a hand-tuned par level.',
     inputSchema,
     outputSchema,
     traversableLinks: ['consumes', 'restocks'],
     invoke: async (input) => {
-      const logs = await reader.getStockLogs(input.variantId, LOOKBACK_DAYS + 5)
+      const logs = await deps.reader.getStockLogs(input.variantId, LOOKBACK_DAYS + 5)
       const series = buildDailySeries(logs, Date.now(), LOOKBACK_DAYS)
 
       const n = series.length
-      const mean = n ? series.reduce((s, v) => s + v, 0) / n : 0
-      const variance = n ? series.reduce((s, v) => s + (v - mean) ** 2, 0) / n : 0
-      const sigmaD = Math.sqrt(variance)
+      const empiricalMean = n ? series.reduce((s, v) => s + v, 0) / n : 0
+      const variance = n ? series.reduce((s, v) => s + (v - empiricalMean) ** 2, 0) / n : 0
+      const sigmaD = Math.sqrt(variance)   // spread stays empirical; the adapter gives a level
 
       let leadTime = input.leadTimeDays
       if (leadTime == null) {
-        const suppliers = await reader.getSuppliersForVariant(input.variantId)
+        const suppliers = await deps.reader.getSuppliersForVariant(input.variantId)
         const leads = suppliers.map((s) => s.lead_time_days).filter((d): d is number => d != null && d > 0)
         leadTime = leads.length ? Math.min(...leads) : 7
       }
+
+      // Q1 — the demand level over the lead time comes from the active forecast
+      // adapter (auto-select EWMA/Holt/…) when bound, so sizing uses the SAME
+      // recency-weighted estimate the objective is graded on, not a flat mean.
+      // Forecasting straight over the lead time yields demand-over-lead-time.
+      let mean = empiricalMean
+      let demandBasis = 'reorder-point-normal-v1'
+      let demandConfidence = 1
+      if (deps.adapter) {
+        const f = await deps.adapter.runInference({ logs, horizonDays: leadTime, asOf: Date.now() })
+        mean = leadTime > 0 ? f.projectedUnits / leadTime : f.projectedUnits
+        demandBasis = `reorder-point-normal-v1/${f.basis}`
+        demandConfidence = f.confidence
+      }
+
       const sigmaL = input.leadTimeStddevDays ?? 0
       const sl = input.serviceLevel ?? 0.95
       const z = zForServiceLevel(sl)
@@ -90,10 +123,11 @@ export function makeComputeReorderPointTool(reader: GraphReader): LogicTool<Comp
       const safetyStock        = Math.round(z * Math.sqrt(leadTime * sigmaD ** 2 + mean ** 2 * sigmaL ** 2))
       const demandOverLeadTime = Math.round(mean * leadTime)
 
-      // Confidence in the sizing tracks how many distinct days carried demand —
-      // a reorder point off two data points is barely a number.
+      // Confidence tracks how many distinct days carried demand, capped by the
+      // forecast's own confidence when the adapter drove the level.
       const activeDays = series.filter((v) => v > 0).length
-      const confidence = Number(Math.max(0.3, Math.min(0.95, 0.4 + (activeDays / LOOKBACK_DAYS) * 0.5)).toFixed(2))
+      const sizingConfidence = Math.max(0.3, Math.min(0.95, 0.4 + (activeDays / LOOKBACK_DAYS) * 0.5))
+      const confidence = Number(Math.min(sizingConfidence, demandConfidence).toFixed(2))
 
       return {
         variantId:          input.variantId,
@@ -105,7 +139,7 @@ export function makeComputeReorderPointTool(reader: GraphReader): LogicTool<Comp
         leadTimeDays:       leadTime,
         serviceLevel:       sl,
         z,
-        basis:              'reorder-point-normal-v1',
+        basis:              demandBasis,
         confidence,
       }
     },
