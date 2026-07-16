@@ -17,6 +17,7 @@ import {
   type ReleaseStage,
 } from './api'
 import { runEvalSuite } from './runEval'
+import { runRealBacktestEval } from './runRealEval'
 import {
   makeScoreForecastAccuracyTool,
   makeComputeDecisionQualityTool,
@@ -24,6 +25,7 @@ import {
   type ModelAdapter,
 } from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 
 export const moKeys = {
   evalRuns:    (objective: string, orgId: string) => ['mo', 'evalRuns',    objective, orgId] as const,
@@ -203,6 +205,36 @@ export function useStopDeployment() {
     onSuccess: () => {
       toast.success('Deployment stopped')
       void qc.invalidateQueries({ queryKey: moKeys.deployments(orgId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+/** Q5 — grade every candidate adapter on REAL production demand (held-out days
+ *  scored against what actually got consumed), so the promotion loop recommends
+ *  from reality instead of the synthetic suite's "how close are you to the flat
+ *  mean" score, which would have demoted the better model. */
+export function useRunRealEval(objectiveName: string) {
+  const orgId   = useActiveOrgId()
+  const hotelId = useActiveHotelId()
+  const userId  = useAuthStore((s) => s.userId)
+  const qc      = useQueryClient()
+
+  return useMutation({
+    mutationFn: (args: { adapters: ReadonlyArray<ModelAdapter>; holdoutDays?: number }) => {
+      if (!hotelId) throw new Error('Select a hotel to grade adapters on its real demand')
+      return runRealBacktestEval({
+        adapters: args.adapters, objectiveName, hotelId,
+        organizationId: orgId, userId, holdoutDays: args.holdoutDays,
+      })
+    },
+    onSuccess: (s) => {
+      toast.success(
+        s.winner
+          ? `Real backtest on ${String(s.cases)} variants — winner: ${s.winner}`
+          : `Real backtest ran but nothing was scoreable (needs closed ${String(s.holdoutDays)}-day windows)`,
+      )
+      void qc.invalidateQueries({ queryKey: moKeys.evalRuns(objectiveName, orgId ?? '') })
     },
     onError: (err: Error) => toast.error(err.message),
   })
