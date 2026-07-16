@@ -217,4 +217,66 @@ describe('decideAutoExecution', () => {
       expect(d.reason).toContain('below')
     })
   })
+
+  describe('forecast-accuracy trust budget (Q3)', () => {
+    const basis = 'reorder-point-normal-v1/auto:ewma-v1'
+
+    it('vetoes an eligible, confident action when the sizing forecast runs hot', () => {
+      const d = decide({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        forecastAccuracy: { basis, mape: 0.55, n: 5 },   // 55% MAPE > 40% ceiling
+      })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('MAPE')
+      expect(d.reason).toContain(basis)
+    })
+
+    it('allows auto-exec when the forecast basis is accurate', () => {
+      const d = decide({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        forecastAccuracy: { basis, mape: 0.15, n: 6 },
+      })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('ignores forecast accuracy until enough scored windows (no premature veto)', () => {
+      const d = decide({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        forecastAccuracy: { basis, mape: 0.9, n: 2 },   // hot but only 2 windows < 3
+      })
+      expect(d.autoExecute).toBe(true)
+    })
+
+    it('a well-calibrated agent still queues on a bad forecast (two islands, one gate)', () => {
+      // Proven well-calibrated: claims ~0.92, hits 38/40 → the calibration gate
+      // would pass. The forecast veto must still fire.
+      const calibration = computeCalibration([
+        ...Array.from({ length: 38 }, () => ({ confidence: 0.92, status: 'approved' as const })),
+        ...Array.from({ length: 2 },  () => ({ confidence: 0.92, status: 'rejected' as const })),
+      ], { minSamples: 20 })
+      const d = decide({
+        action: restock, confidence: 0.92, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        calibration, forecastAccuracy: { basis, mape: 0.6, n: 5 },
+      })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('MAPE')
+    })
+
+    it('respects a tightened ceiling', () => {
+      const d = decide({
+        action: restock, confidence: 0.95, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        forecastAccuracy: { basis, mape: 0.3, n: 5 }, maxForecastMape: 0.25,
+      })
+      expect(d.autoExecute).toBe(false)
+    })
+
+    it('static gates still fire before the forecast veto', () => {
+      const d = decide({
+        action: restock, confidence: 0.5, violations: [], policy: DEFAULT_AUTO_EXEC_POLICY,
+        forecastAccuracy: { basis, mape: 0.9, n: 5 },
+      })
+      expect(d.autoExecute).toBe(false)
+      expect(d.reason).toContain('below')
+    })
+  })
 })

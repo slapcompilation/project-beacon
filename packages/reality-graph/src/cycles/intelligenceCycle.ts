@@ -90,6 +90,13 @@ export interface IntelligenceCycleDeps {
   calibration?: CalibrationReport
   requireCalibration?: boolean
   minCalibrationSamples?: number
+  /** Q3 — forecast-accuracy trust budget. Realized MAPE per forecast basis
+   *  (from scored forecast_observations), computed once by the caller. A proposal
+   *  sized by a basis running above the ceiling is queued even if the agent is
+   *  well-calibrated. Absent → no forecast veto (behaviour unchanged). */
+  forecastAccuracyByBasis?: ReadonlyMap<string, { mape: number; n: number }>
+  /** MAPE ceiling for the forecast veto. Default 0.4. */
+  maxForecastMape?: number
   /** Cap per cycle so a large catalogue can't trigger a request storm. */
   maxVariants?: number
   /** Injected for deterministic constraint evaluation + timestamps in tests. */
@@ -137,6 +144,9 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
         proposed++
 
         const violations = evaluateConstraints(proposal.action, deps.constraints, { now: now() })
+        // Q3: the realized accuracy of the basis that sized this proposal.
+        const faBasis = proposal.forecast?.basis
+        const fa = faBasis ? deps.forecastAccuracyByBasis?.get(faBasis) : undefined
         const decision = decideAutoExecution({
           action: proposal.action,
           confidence: proposal.confidence,
@@ -149,6 +159,8 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           calibration: deps.calibration,
           requireCalibration: deps.requireCalibration,
           minCalibrationSamples: deps.minCalibrationSamples,
+          forecastAccuracy: fa && faBasis ? { basis: faBasis, mape: fa.mape, n: fa.n } : undefined,
+          maxForecastMape: deps.maxForecastMape,
         })
 
         if (decision.autoExecute && (await deps.dispatch(proposal.action))) {

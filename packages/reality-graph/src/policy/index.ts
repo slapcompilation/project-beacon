@@ -79,6 +79,10 @@ export interface OrgPolicy {
     require_calibration: boolean
     /** Minimum resolved samples before calibration counts as proven. */
     min_calibration_samples: number
+    /** Q3 — MAPE ceiling above which a proven-inaccurate forecast basis vetoes
+     *  auto-execution (block-only, alongside calibration). The forecast that
+     *  sized the order must be trustworthy, not just the agent's confidence. 0..1. */
+    max_forecast_mape: number
   }
   promotion: {
     /** Minimum eval pass rate required to promote an agent to production, 0..1. */
@@ -121,6 +125,7 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     agent_overrides: {},
     require_calibration:     false,
     min_calibration_samples: 20,
+    max_forecast_mape:       0.4,
   },
   promotion: {
     production_pass_rate_floor: 0.7,
@@ -161,6 +166,7 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       agent_overrides: { ...DEFAULT_ORG_POLICY.auto_execution.agent_overrides },
       require_calibration:     DEFAULT_ORG_POLICY.auto_execution.require_calibration,
       min_calibration_samples: DEFAULT_ORG_POLICY.auto_execution.min_calibration_samples,
+      max_forecast_mape:       DEFAULT_ORG_POLICY.auto_execution.max_forecast_mape,
     },
     promotion:            { ...DEFAULT_ORG_POLICY.promotion },
     overstock:            { ...DEFAULT_ORG_POLICY.overstock },
@@ -199,6 +205,9 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     }
     if (typeof ae.min_calibration_samples === 'number' && ae.min_calibration_samples >= 1) {
       merged.auto_execution.min_calibration_samples = Math.round(ae.min_calibration_samples)
+    }
+    if (typeof ae.max_forecast_mape === 'number' && ae.max_forecast_mape >= 0) {
+      merged.auto_execution.max_forecast_mape = ae.max_forecast_mape
     }
   }
   if (isObj(o.promotion) && typeof (o.promotion as Record<string, unknown>).production_pass_rate_floor === 'number') {

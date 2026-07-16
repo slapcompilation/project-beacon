@@ -164,11 +164,12 @@ Deno.serve(async (req: Request) => {
   const overstockFactor = policy.overstock.factor
   const requireCalibration    = policy.auto_execution.require_calibration
   const minCalibrationSamples = policy.auto_execution.min_calibration_samples
+  const maxForecastMape       = policy.auto_execution.max_forecast_mape
 
   // Calibration trust budget applies to the only auto-exec-eligible agent here
   // (restock_advisor → REQUEST_RESTOCK). Overstock/waste always queue, so their
   // gate short-circuits on eligibility before calibration is ever consulted.
-  const shared = { productionReleases, autoExecPolicy, maxVariants, agentOverrides, requireCalibration, minCalibrationSamples }
+  const shared = { productionReleases, autoExecPolicy, maxVariants, agentOverrides, requireCalibration, minCalibrationSamples, maxForecastMape }
   const perHotel: Array<Record<string, unknown>> = []
   let totalAuto = 0
   let totalQueued = 0
@@ -178,7 +179,9 @@ Deno.serve(async (req: Request) => {
       // Dedup: skip re-proposing what an open proposal already covers — without
       // it every daily run re-creates the same proposals and the queue fills up.
       const openProposalKeys = await openProposalKeysFor(supabase, hotel.id)
-      const hotelShared = { ...shared, openProposalKeys }
+      // Q3: one read per hotel, reused by every agent's gate this run.
+      const forecastAccuracy = await forecastAccuracyByBasis(supabase, hotel.id)
+      const hotelShared = { ...shared, openProposalKeys, forecastAccuracyByBasis: forecastAccuracy }
 
       // restock_advisor on at-risk stock, then overstock_rebalancer on surplus.
       // Both route through the same decideAutoExecution gate; TRANSFER_STOCK
@@ -236,6 +239,35 @@ Deno.serve(async (req: Request) => {
   return json({ ok: true, autoExecuted: totalAuto, queued: totalQueued, hotels: perHotel })
 })
 
+/** Q3 — realized accuracy of each forecast basis, from the decision-forecasts Q2
+ *  records and the scorer grades. This is Q2's payoff: the gate can now ask "has
+ *  the model that sizes these orders actually been right?" Empty until horizons
+ *  close, which reads as "no evidence" → no veto. */
+async function forecastAccuracyByBasis(
+  supabase: SupabaseClient, hotelId: string,
+): Promise<Map<string, { mape: number; n: number }>> {
+  const { data, error } = await supabase
+    .from('forecast_observations')
+    .select('basis, abs_pct_error')
+    .eq('hotel_id', hotelId)
+    .eq('source', 'decision')
+    .not('abs_pct_error', 'is', null)
+  if (error) {
+    console.warn('[intelligence-cycle] forecast accuracy read failed:', error.message)
+    return new Map()
+  }
+  const agg = new Map<string, { sum: number; n: number }>()
+  for (const r of (data ?? []) as { basis: string; abs_pct_error: number }[]) {
+    const a = agg.get(r.basis) ?? { sum: 0, n: 0 }
+    a.sum += Number(r.abs_pct_error)
+    a.n += 1
+    agg.set(r.basis, a)
+  }
+  const out = new Map<string, { mape: number; n: number }>()
+  for (const [basis, a] of agg) out.set(basis, { mape: a.sum / a.n, n: a.n })
+  return out
+}
+
 interface AgentCycleOpts {
   agentName: string
   agentVersion: string
@@ -251,6 +283,9 @@ interface AgentCycleOpts {
   minCalibrationSamples?: number
   calibration?: unknown
   openProposalKeys?: ReadonlySet<string>
+  /** Q3 — realized MAPE per forecast basis, from scored decision-forecasts. */
+  forecastAccuracyByBasis?: ReadonlyMap<string, { mape: number; n: number }>
+  maxForecastMape?: number
 }
 
 // Keys (`${actionType}:${variantId}`) of this hotel's still-open proposals, so a
@@ -370,6 +405,8 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
     calibration: opts.calibration,
     requireCalibration: opts.requireCalibration,
     minCalibrationSamples: opts.minCalibrationSamples,
+    forecastAccuracyByBasis: opts.forecastAccuracyByBasis,
+    maxForecastMape: opts.maxForecastMape,
     openProposalKeys: opts.openProposalKeys,
     runAgent: async (variant: { id: string; name: string }) => {
       const agent = opts.buildAgent(reader, variant)
