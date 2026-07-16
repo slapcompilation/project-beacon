@@ -247,6 +247,17 @@ export function decideAutoExecution(args: {
   requireCalibration?: boolean
   /** Minimum resolved samples before calibration counts as proven. Default 20. */
   minCalibrationSamples?: number
+  /** Q3 — forecast-accuracy trust budget. Realized accuracy of the forecast
+   *  basis that SIZED this proposal (from scored forecast_observations). When the
+   *  basis has proven inaccurate — enough scored windows AND MAPE above the
+   *  ceiling — auto-execution is vetoed even if the agent's decision-calibration
+   *  looks fine: an accurate decision on a bad number still queues. BLOCK-only,
+   *  like the calibration budget. Omit → unchanged. */
+  forecastAccuracy?: { basis: string; mape: number; n: number }
+  /** MAPE ceiling above which a proven-inaccurate forecast basis vetoes auto-exec. Default 0.4. */
+  maxForecastMape?: number
+  /** Min scored windows before forecast accuracy counts as proven. Default 3. */
+  minForecastWindows?: number
 }): AutoExecutionDecision {
   const typeThreshold = args.policy.thresholds[args.action.type]
   if (typeThreshold == null) {
@@ -302,6 +313,22 @@ export function decideAutoExecution(args: {
       return {
         autoExecute: false,
         reason: `observed hit-rate ${observed.toFixed(2)} at confidence ~${args.confidence.toFixed(2)} below floor ${threshold.toFixed(2)} — agent is overconfident here`,
+      }
+    }
+  }
+
+  // Forecast-accuracy trust budget (Q3): the agent's decision may be well-
+  // calibrated, but if the FORECAST that sized this order has been running
+  // inaccurate, queue it — a confident, correct decision on a bad number is
+  // still a bad order. Composes the second accuracy signal into the one gate.
+  const fa = args.forecastAccuracy
+  if (fa != null) {
+    const minWindows = args.minForecastWindows ?? 3
+    const ceiling = args.maxForecastMape ?? 0.4
+    if (fa.n >= minWindows && fa.mape > ceiling) {
+      return {
+        autoExecute: false,
+        reason: `forecast basis ${fa.basis} running ${(fa.mape * 100).toFixed(0)}% MAPE over ${String(fa.n)} scored windows (ceiling ${(ceiling * 100).toFixed(0)}%) — queue for review`,
       }
     }
   }

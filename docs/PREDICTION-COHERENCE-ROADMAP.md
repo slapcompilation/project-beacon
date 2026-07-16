@@ -138,12 +138,19 @@ this makes the models *cowork*.
   recorded rows, and a proposal-view "forecast vs realized" display. The spine (record + link + score)
   lands here; the read-surface swap is additive.
 
-### Q3 — One trust signal governs autonomy
-- Extend `decideAutoExecution` to consume **forecast-accuracy-by-basis** alongside decision
-  calibration: a basis running hot on MAPE tightens the auto-exec floor even if the agent's confidence
-  looks calibrated. The two accuracy islands become one gate.
-- Replace the forecast's heuristic confidence with the **empirical hit-rate** the calibration module
-  already computes (`calibratedConfidence`) — the forecast's confidence starts meaning something.
+### Q3 — One trust signal governs autonomy  ✅ SHIPPED
+- `decideAutoExecution` now consumes **forecast-accuracy-by-basis** alongside decision calibration.
+  The two accuracy islands are one gate: a well-calibrated agent whose *sizing forecast* has been
+  running hot is **queued** — a confident, correct decision on a bad number is still a bad order.
+  BLOCK-only (it never loosens), mirroring the calibration budget. Fires only with enough scored
+  windows (default ≥3), so it activates as evidence accrues rather than vetoing prematurely.
+- `max_forecast_mape` is a tunable org-policy knob (default 0.4), not a constant — and because the
+  scenario sandbox merges a `DeepPartial<OrgPolicy>`, operators can simulate tightening it for free.
+- The accuracy map is read once per hotel per cron run from the **scored decision-forecasts Q2
+  records** — Q2's payoff: the gate can finally ask "has the model that sizes these orders been right?"
+- *Deferred:* replacing the forecast's own heuristic confidence (`activeDays`) with an empirical
+  hit-rate. It needs a pure logic tool to read realized outcomes, which breaks the tool contract —
+  it belongs with the Q2 read-surface follow-up, not here.
 
 ### Q4 — Unify the estimators (data-gated)
 - Promote `occupancy_adjusted_forecast` from a parallel web RPC to a **competing auto-select adapter**

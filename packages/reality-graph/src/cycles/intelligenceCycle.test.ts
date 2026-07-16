@@ -18,6 +18,10 @@ function proposal(confidence: number, quantityNeeded = 10): AgentProposal {
   }
 }
 
+function proposalWithForecast(confidence: number, basis: string): AgentProposal {
+  return { ...proposal(confidence), forecast: { basis, projectedUnits: 20, horizonDays: 7, confidence } }
+}
+
 function thresholdConstraint(severity: 'hard' | 'soft', max: number): ConstraintRecord {
   return {
     id: 'c1',
@@ -55,6 +59,8 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     // release gate, so they opt out by default; the release-gate block overrides.
     allowUnreleased: over.allowUnreleased ?? true,
     openProposalKeys: over.openProposalKeys,
+    forecastAccuracyByBasis: over.forecastAccuracyByBasis,
+    maxForecastMape: over.maxForecastMape,
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     runAgent,
@@ -206,6 +212,39 @@ describe('runIntelligenceCycle', () => {
       const result = await runIntelligenceCycle(deps)
 
       expect(deps.dispatch).toHaveBeenCalledTimes(1)
+      expect(result).toMatchObject({ autoExecuted: 1, queued: 0 })
+    })
+  })
+
+  describe('forecast-accuracy trust budget (Q3)', () => {
+    const basis = 'reorder-point-normal-v1/auto:ewma-v1'
+
+    it('queues a proposal whose sizing forecast basis runs hot', async () => {
+      const deps = makeDeps({
+        proposals: [proposalWithForecast(0.95, basis)],
+        forecastAccuracyByBasis: new Map([[basis, { mape: 0.6, n: 5 }]]),
+      })
+      const result = await runIntelligenceCycle(deps)
+      expect(deps.dispatch).not.toHaveBeenCalled()
+      expect(result).toMatchObject({ autoExecuted: 0, queued: 1 })
+      expect(result.items[0].reason).toContain('MAPE')
+    })
+
+    it('auto-executes when the sizing forecast basis is accurate', async () => {
+      const deps = makeDeps({
+        proposals: [proposalWithForecast(0.95, basis)],
+        forecastAccuracyByBasis: new Map([[basis, { mape: 0.1, n: 5 }]]),
+      })
+      const result = await runIntelligenceCycle(deps)
+      expect(result).toMatchObject({ autoExecuted: 1, queued: 0 })
+    })
+
+    it('does not veto when the basis has no accuracy record yet', async () => {
+      const deps = makeDeps({
+        proposals: [proposalWithForecast(0.95, basis)],
+        forecastAccuracyByBasis: new Map(),   // nothing scored for this basis
+      })
+      const result = await runIntelligenceCycle(deps)
       expect(result).toMatchObject({ autoExecuted: 1, queued: 0 })
     })
   })
