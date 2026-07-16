@@ -89,7 +89,7 @@ describe('compute_reorder_point', () => {
     expect(r.confidence).toBeLessThanOrEqual(0.4)
   })
 
-  it('uses the variant fastest supplier lead time when none is given', async () => {
+  it('uses the variant fastest supplier lead time when it names no supplier', async () => {
     const tool = makeComputeReorderPointTool(fakeReader({
       stockLogs: steady(5),
       suppliersByVariant: { [ids.variant1]: [supplier(10), supplier(4)] },
@@ -97,5 +97,31 @@ describe('compute_reorder_point', () => {
     const r = await tool.invoke({ variantId: ids.variant1, serviceLevel: 0.95 })
     expect(r.leadTimeDays).toBe(4)            // min of {10, 4}
     expect(r.demandOverLeadTime).toBe(20)     // 5/day × 4
+  })
+
+  it('buffers the variant OWN supplier lead time, not the fastest available', async () => {
+    // The reader hands back every supplier in the hotel, so min() would size a
+    // 7-day exposure against the 3-day supplier — systematic under-ordering.
+    const fast: SupplierRow = { id: ids.supplier1, hotel_id: ids.hotelA, name: 'Premium Spirits', lead_time_days: 3, on_time_pct: 90, cost_variance_pct: 0 }
+    const slow: SupplierRow = { id: ids.supplier2, hotel_id: ids.hotelA, name: 'Bar Essentials',  lead_time_days: 7, on_time_pct: 50, cost_variance_pct: 0 }
+    const tool = makeComputeReorderPointTool(fakeReader({
+      stockLogs: steady(5),
+      variants: [{ id: ids.variant1, hotel_id: ids.hotelA, name: 'Cola', current_stock: 10, par_level: 20, preferred_supplier_id: ids.supplier2 }],
+      suppliersByVariant: { [ids.variant1]: [fast, slow] },
+    }))
+    const r = await tool.invoke({ variantId: ids.variant1, serviceLevel: 0.95 })
+    expect(r.leadTimeDays).toBe(7)            // its OWN supplier, not min{3,7}
+    expect(r.demandOverLeadTime).toBe(35)     // 5/day × 7 — the real exposure
+  })
+
+  it('falls back to the fastest when the named supplier has no usable lead time', async () => {
+    const noLead: SupplierRow = { id: ids.supplier2, hotel_id: ids.hotelA, name: 'Unknown', lead_time_days: null, on_time_pct: null, cost_variance_pct: null }
+    const tool = makeComputeReorderPointTool(fakeReader({
+      stockLogs: steady(5),
+      variants: [{ id: ids.variant1, hotel_id: ids.hotelA, name: 'Cola', current_stock: 10, par_level: 20, preferred_supplier_id: ids.supplier2 }],
+      suppliersByVariant: { [ids.variant1]: [supplier(4), noLead] },
+    }))
+    const r = await tool.invoke({ variantId: ids.variant1, serviceLevel: 0.95 })
+    expect(r.leadTimeDays).toBe(4)
   })
 })
