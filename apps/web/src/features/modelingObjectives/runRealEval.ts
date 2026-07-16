@@ -31,18 +31,36 @@ export interface RealEvalSummary {
   perAdapter:  Array<{ adapter: string; mae: number; rmse: number; mape: number; bias: number; scored: number }>
 }
 
-/** Cohort per variant — its category. Real slices (Mixers vs Spirits) so a
- *  regression hidden in the overall number shows up where it lives. */
-async function cohortByVariant(variantIds: string[]): Promise<Map<string, string>> {
+/** Cohort + occupancy elasticity per variant, from its category. Real slices
+ *  (Mixers vs Spirits) so a regression hidden in the overall number shows up
+ *  where it lives — and the elasticity occupancy-v1 needs to compete (Q4). */
+async function categoryByVariant(variantIds: string[]): Promise<Map<string, { cohort: string; sensitivity: number }>> {
   const { data } = await supabase
     .from('product_variants')
-    .select('id, product:products(category:categories(name))')
+    .select('id, product:products(category:categories(name, occupancy_sensitivity))')
     .in('id', variantIds)
-  const out = new Map<string, string>()
-  for (const r of (data ?? []) as Array<{ id: string; product?: { category?: { name?: string } | null } | null }>) {
-    out.set(r.id, r.product?.category?.name ?? 'uncategorised')
+  const out = new Map<string, { cohort: string; sensitivity: number }>()
+  for (const r of (data ?? []) as Array<{ id: string; product?: { category?: { name?: string; occupancy_sensitivity?: number | null } | null } | null }>) {
+    out.set(r.id, {
+      cohort:      r.product?.category?.name ?? 'uncategorised',
+      sensitivity: r.product?.category?.occupancy_sensitivity ?? 0,
+    })
   }
   return out
+}
+
+/** Q4 — the hotel's occupancy by date, history + forward booking forecasts.
+ *  Passed whole; each adapter slices it at the backtest cutoff, so it can't see
+ *  history that hadn't happened. Hotel-wide, so it's fetched once per run. */
+async function occupancySeries(hotelId: string): Promise<Array<{ date: string; pct: number }>> {
+  const [hist, fwd] = await Promise.all([
+    supabase.from('occupancy_logs').select('date, occupancy_pct').eq('hotel_id', hotelId).order('date'),
+    supabase.from('booking_forecasts').select('date, expected_occupancy_pct').eq('hotel_id', hotelId).order('date'),
+  ])
+  return [
+    ...((hist.data ?? []) as Array<{ date: string; occupancy_pct: number }>).map((r) => ({ date: r.date, pct: r.occupancy_pct })),
+    ...((fwd.data ?? []) as Array<{ date: string; expected_occupancy_pct: number }>).map((r) => ({ date: r.date, pct: r.expected_occupancy_pct })),
+  ]
 }
 
 export async function runRealBacktestEval(args: {
@@ -55,17 +73,27 @@ export async function runRealBacktestEval(args: {
 }): Promise<RealEvalSummary> {
   const holdoutDays = args.holdoutDays ?? 7
   const variants = await fetchGradeableVariants(args.hotelId)
-  const cohorts = await cohortByVariant(variants.map((v) => v.variant_id))
+  const [cats, occ] = await Promise.all([
+    categoryByVariant(variants.map((v) => v.variant_id)),
+    occupancySeries(args.hotelId),
+  ])
   const reader = makeSupabaseGraphReader()
 
   // Enough history for the training window plus the held-out days.
   const since = LOOKBACK_DAYS + holdoutDays * 2
-  const cases: BacktestCase[] = await Promise.all(variants.map(async (v) => ({
-    variantId: v.variant_id,
-    label:     v.variant_name,
-    cohort:    cohorts.get(v.variant_id) ?? 'uncategorised',
-    logs:      await reader.getStockLogs(v.variant_id, since),
-  })))
+  const cases: BacktestCase[] = await Promise.all(variants.map(async (v) => {
+    const cat = cats.get(v.variant_id)
+    return {
+      variantId: v.variant_id,
+      label:     v.variant_name,
+      cohort:    cat?.cohort ?? 'uncategorised',
+      logs:      await reader.getStockLogs(v.variant_id, since),
+      // Q4: occupancy-v1 only competes where the category is actually elastic.
+      occupancy: cat && cat.sensitivity > 0 && occ.length > 0
+        ? { series: occ, sensitivity: cat.sensitivity }
+        : undefined,
+    }
+  }))
 
   // The objective registers its candidates as generic ModelAdapter; the backtest
   // is typed to the consumption-forecast IO. Same objects, narrower signature.

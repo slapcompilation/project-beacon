@@ -44,7 +44,8 @@ describe('Studio catalog', () => {
     expect(forecast).toBeDefined()
     // Every candidate name resolves to a real adapter object (drift-free).
     expect(forecast?.adapters.map((a) => a.name)).toEqual([...(forecast?.objective.candidates ?? [])])
-    expect(forecast?.adapters.length).toBe(5)
+    // auto-select + ewma + holt + seasonal + occupancy + baseline
+    expect(forecast?.adapters.length).toBe(6)
     expect(forecast?.evalSuite?.cases.length).toBeGreaterThanOrEqual(10)
   })
 })
