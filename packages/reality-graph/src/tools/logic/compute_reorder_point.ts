@@ -21,7 +21,8 @@ const LOOKBACK_DAYS = 30
 
 const inputSchema = zod.object({
   variantId:          zod.string().uuid(),
-  /** Supplier lead time in days. Omit to use the variant's fastest supplier. */
+  /** Supplier lead time in days. Omit to use the variant's OWN supplier — the one
+   *  it actually replenishes from — falling back to the fastest when it has none. */
   leadTimeDays:       zod.number().positive().optional(),
   /** Lead-time std (days). Defaults to 0 → safety stock from demand variability only. */
   leadTimeStddevDays: zod.number().nonnegative().default(0),
@@ -98,8 +99,20 @@ export function makeComputeReorderPointTool(
       let leadTime = input.leadTimeDays
       if (leadTime == null) {
         const suppliers = await deps.reader.getSuppliersForVariant(input.variantId)
+        // Buffer the lead time we'll ACTUALLY face: the variant's own supplier.
+        // getSuppliersForVariant returns every supplier in the hotel, so taking
+        // min() here silently sized the risk window against the FASTEST supplier
+        // even when the variant reorders from a slower one — a 7-day exposure
+        // buffered for 3 days, i.e. systematic under-ordering. Fall back to the
+        // fastest only when the variant names no supplier.
+        const variant = await deps.reader.getVariant(input.variantId)
+        const own = variant?.preferred_supplier_id
+          ? suppliers.find((s) => s.id === variant.preferred_supplier_id)
+          : undefined
         const leads = suppliers.map((s) => s.lead_time_days).filter((d): d is number => d != null && d > 0)
-        leadTime = leads.length ? Math.min(...leads) : 7
+        leadTime = own?.lead_time_days != null && own.lead_time_days > 0
+          ? own.lead_time_days
+          : (leads.length ? Math.min(...leads) : 7)
       }
 
       // Q1 — the demand level over the lead time comes from the active forecast
