@@ -20,6 +20,7 @@ import {
   useCreateDeployment,
   useStopDeployment,
   useRunEvalForAdapter,
+  useRunRealEval,
 } from '@/features/modelingObjectives/hooks'
 import type { ReleaseStage, ReleaseRow, EvalRunRow } from '@/features/modelingObjectives/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -181,8 +182,29 @@ function SubmissionsSection({
   evalByAdapter:   Map<string, EvalRunRow[]>
   evalSuite:       EvalSuite
 }) {
+  const runReal = useRunRealEval(objectiveName)
   return (
     <Section title="Submissions" icon="layers" subtitle={`${String(adapters.length)} candidate adapter(s) registered in code`}>
+      {/* Q5: the per-adapter "Run eval" below grades against the SYNTHETIC suite,
+          whose expected value is the flat 30-day mean — it scores conformity to
+          the baseline, not accuracy. This grades every candidate on real held-out
+          demand instead, and that's what the promotion banner should read. */}
+      <Card className="flex items-center gap-3 mb-2 border border-primary/30 bg-primary/5">
+        <Icon icon="pulse" size={14} className="text-primary shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium">Grade on real demand</p>
+          <p className="text-[11px] text-muted-foreground">
+            Holds out the last 7 days of this hotel's real stock logs and scores every adapter against what actually got consumed, per category cohort.
+          </p>
+        </div>
+        <Button
+          size="small" intent={Intent.PRIMARY} icon="play"
+          loading={runReal.isPending}
+          onClick={() => { runReal.mutate({ adapters, holdoutDays: 7 }) }}
+        >
+          Run real backtest
+        </Button>
+      </Card>
       <div className="space-y-2">
         {adapters.map((adapter) => {
           const releaseTags = STAGES
