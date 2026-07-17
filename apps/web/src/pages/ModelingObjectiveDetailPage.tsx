@@ -52,15 +52,14 @@ export default function ModelingObjectiveDetailPage() {
   }, [releases])
 
   const recommendation = useMemo<PromotionRecommendation>(() => {
-    // Latest MAE per adapter@version → the eval winner vs the production release.
-    const latestMae = new Map<string, EvalRunRow>()
-    for (const r of evalRuns) {
-      if (r.metric !== 'mae') continue
-      const key = `${r.adapter_name}@${r.adapter_version}`
-      const ex = latestMae.get(key)
-      if (!ex || new Date(r.run_at).getTime() > new Date(ex.run_at).getTime()) latestMae.set(key, r)
-    }
-    const evals = [...latestMae.values()].map((r) => ({ name: r.adapter_name, version: r.adapter_version, value: r.value }))
+    // EVERY overall-MAE run per adapter, not just the latest: the recommender
+    // ranks on the mean and refuses to promote until a winner has been measured
+    // enough independent times. Handing it one reading is what made a
+    // single-window result look like a verdict. Cohort subsets are excluded —
+    // they're slices of the same run, not extra evidence.
+    const evals = evalRuns
+      .filter((r) => r.metric === 'mae' && r.subset === 'overall')
+      .map((r) => ({ name: r.adapter_name, version: r.adapter_version, value: r.value, runAt: r.run_at }))
     const prod = releaseByStage.get('production')
     return recommendAdapterPromotion(evals, prod ? { name: prod.adapter_name, version: prod.adapter_version } : null)
   }, [evalRuns, releaseByStage])
