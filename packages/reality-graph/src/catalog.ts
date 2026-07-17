@@ -75,7 +75,7 @@ export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
     }),
     makeOccupancyAdjustedForecastTool({
       getStockLogs:        () => Promise.resolve([]),
-      getOccupancyContext: () => Promise.resolve({ histMean: 0, forward: [], sensitivity: 0 }),
+      getOccupancyContext: () => Promise.resolve({ series: [], sensitivity: 0 }),
     }),
   ] as LogicTool[]
 }

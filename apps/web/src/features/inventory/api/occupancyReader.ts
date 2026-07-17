@@ -16,21 +16,25 @@ export function makeOccupancyReader(): OccupancyForecastReader {
       const today = new Date().toISOString().slice(0, 10)
 
       const [occ, fwd, variant] = await Promise.all([
-        supabase.from('occupancy_logs').select('occupancy_pct').eq('hotel_id', hotelId).gte('date', since),
+        supabase.from('occupancy_logs').select('date, occupancy_pct').eq('hotel_id', hotelId).gte('date', since).order('date'),
         supabase.from('booking_forecasts').select('date, expected_occupancy_pct').eq('hotel_id', hotelId).gt('date', today).order('date'),
         supabase.from('product_variants').select('product:products(category:categories(occupancy_sensitivity))').eq('id', variantId).maybeSingle(),
       ])
 
-      const occRows = (occ.data ?? []) as Array<{ occupancy_pct: number }>
-      const histMean = occRows.length ? occRows.reduce((s, r) => s + r.occupancy_pct, 0) / occRows.length : 0
-
-      const fwdRows = (fwd.data ?? []) as Array<{ date: string; expected_occupancy_pct: number }>
-      const forward = fwdRows.map((r) => ({ date: r.date, pct: r.expected_occupancy_pct }))
+      // The whole series — history AND forward. The adapter slices it at `asOf`;
+      // handing over a precomputed mean is what let the tool's window drift from
+      // the model's.
+      const series = [
+        ...((occ.data ?? []) as Array<{ date: string; occupancy_pct: number }>)
+          .map((r) => ({ date: r.date, pct: r.occupancy_pct })),
+        ...((fwd.data ?? []) as Array<{ date: string; expected_occupancy_pct: number }>)
+          .map((r) => ({ date: r.date, pct: r.expected_occupancy_pct })),
+      ]
 
       const v = variant.data as { product?: { category?: { occupancy_sensitivity?: number | null } | null } | null } | null
       const sensitivity = v?.product?.category?.occupancy_sensitivity ?? 0.5
 
-      return { histMean, forward, sensitivity }
+      return { series, sensitivity }
     },
   }
 }
