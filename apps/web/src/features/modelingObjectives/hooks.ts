@@ -21,6 +21,7 @@ import { runRealBacktestEval } from './runRealEval'
 import {
   makeScoreForecastAccuracyTool,
   makeComputeDecisionQualityTool,
+  scoreDecisionQuality,
   type EvalSuite,
   type ModelAdapter,
 } from '@beacon/reality-graph'
@@ -110,6 +111,51 @@ export function useDecisionQuality(hotelId: string | null, windowDays = 30) {
       }))
       // Worst decisions first: most stockout-days, then most waste.
       return graded.sort((a, b) => b.stockout_days - a.stockout_days || b.waste_units - a.waste_units)
+    },
+    enabled:  !!hotelId,
+    staleTime: 60_000,
+  })
+}
+
+/** Q5 — the decision-quality north-star OVER TIME, not a snapshot. A promotion
+ *  decision reads one point in time; this is what says whether the decisions are
+ *  actually getting better. scoreDecisionQuality is a pure function of logs, so
+ *  every past month is derivable from history already on hand — no new storage,
+ *  no backfill. Fetch each variant's logs once, then score a 30d window per month. */
+export interface DecisionQualityPoint {
+  label:        string
+  stockoutDays: number
+  wasteUnits:   number
+  availability: number
+  variants:     number
+}
+
+export function useDecisionQualityTrend(hotelId: string | null, months = 6) {
+  return useQuery({
+    queryKey: ['mo', 'decisionQualityTrend', hotelId ?? '', months],
+    queryFn:  async (): Promise<DecisionQualityPoint[]> => {
+      if (!hotelId) return []
+      const variants = await fetchGradeableVariants(hotelId)
+      const reader = makeSupabaseGraphReader()
+      const logs = await Promise.all(variants.map((v) => reader.getStockLogs(v.variant_id, months * 31 + 31)))
+
+      const now = new Date()
+      const points: DecisionQualityPoint[] = []
+      for (let m = months - 1; m >= 0; m--) {
+        // End of each month back from today; the newest bucket ends now.
+        const end = m === 0 ? now : new Date(now.getFullYear(), now.getMonth() - m + 1, 0, 23, 59, 59)
+        const scored = logs.map((l) => scoreDecisionQuality(l, end.getTime(), 30))
+        const withSignal = scored.filter((s) => s.daysWithBalance > 0 || s.consumedUnits > 0)
+        if (withSignal.length === 0) continue
+        points.push({
+          label:        end.toLocaleString('en', { month: 'short' }),
+          stockoutDays: withSignal.reduce((s, x) => s + x.stockoutDays, 0),
+          wasteUnits:   withSignal.reduce((s, x) => s + x.wasteUnits, 0),
+          availability: withSignal.reduce((s, x) => s + x.availabilityRate, 0) / withSignal.length,
+          variants:     withSignal.length,
+        })
+      }
+      return points
     },
     enabled:  !!hotelId,
     staleTime: 60_000,

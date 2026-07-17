@@ -16,6 +16,7 @@ import {
   useReleases,
   useForecastAccuracy,
   useDecisionQuality,
+  useDecisionQualityTrend,
   usePromoteRelease,
   useCreateDeployment,
   useStopDeployment,
@@ -308,6 +309,51 @@ function AdapterCard({
 // The outcome a forecast is ultimately judged by. Under-forecast → stock-out
 // days; over-forecast → waste. Accuracy (below) is the model; this is the result.
 
+/** Q5 — the north-star over time. A promotion decision reads one point; this says
+ *  whether the decisions are actually getting better. Derived from stock-log
+ *  history, so it needs no stored snapshots. */
+function DecisionQualityTrend() {
+  const hotelId = useActiveHotelId()
+  const { data: points = [] } = useDecisionQualityTrend(hotelId)
+  if (points.length < 2) return null
+
+  const maxStockout = Math.max(...points.map((p) => p.stockoutDays), 1)
+  const maxWaste    = Math.max(...points.map((p) => p.wasteUnits), 1)
+  const first = points[0]
+  const last  = points[points.length - 1]
+  const delta = last.stockoutDays - first.stockoutDays
+
+  return (
+    <div className="rounded border border-border/50 p-2.5 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+          Trend · 30-day window per month
+        </span>
+        <span className="flex-1" />
+        <Tag minimal intent={delta <= 0 ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">
+          stock-out days {delta <= 0 ? '↓' : '↑'} {String(Math.abs(delta))} since {first.label}
+        </Tag>
+      </div>
+      <div className="flex items-end gap-1.5">
+        {points.map((p) => (
+          <div key={p.label} className="flex-1 flex flex-col items-center gap-1"
+               title={`${p.label}: ${String(p.stockoutDays)} stock-out days, ${String(p.wasteUnits)}u waste, ${pct(p.availability)} availability (${String(p.variants)} variants)`}>
+            <div className="w-full flex items-end justify-center gap-0.5 h-12">
+              <div className="w-1/2 bg-amber-400/70 rounded-sm" style={{ height: `${String(Math.max(2, (p.stockoutDays / maxStockout) * 100))}%` }} />
+              <div className="w-1/2 bg-red-400/60 rounded-sm"   style={{ height: `${String(Math.max(2, (p.wasteUnits / maxWaste) * 100))}%` }} />
+            </div>
+            <span className="text-[9px] text-muted-foreground">{p.label}</span>
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 text-[9px] text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-amber-400/70" /> stock-out days (under-order)</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400/60" /> waste units (over-order)</span>
+      </div>
+    </div>
+  )
+}
+
 function DecisionQualitySection() {
   const hotelId = useActiveHotelId()
   const { data: rows = [], isLoading } = useDecisionQuality(hotelId)
@@ -346,6 +392,8 @@ function DecisionQualitySection() {
             <MetricTag label="Waste" value={pct(summary.wasteRate)} intent={summary.wasteRate <= 0.02 ? Intent.SUCCESS : summary.wasteRate <= 0.05 ? Intent.WARNING : Intent.DANGER} hint={`${String(summary.wasteUnits)} units lost to spoilage/damage — the cost of forecasting high`} />
             <Tag minimal icon="cube">{summary.variants} variants</Tag>
           </div>
+
+          <DecisionQualityTrend />
 
           <div className="space-y-1">
             {rows.filter((r) => r.stockout_days > 0 || r.waste_units > 0).slice(0, 12).map((r) => (
