@@ -14,11 +14,15 @@ import { baselineRolling30dAdapter } from './baseline_rolling_30d'
 import { seasonalNaiveV1Adapter } from './seasonal_naive_v1'
 import { ewmaV1Adapter } from './ewma_v1'
 import { holtLinearV1Adapter } from './holt_linear_v1'
+import { occupancyV1Adapter } from './occupancy_v1'
 import { reconstructObservations, scoreForecastAccuracy, rollingCutoffs } from './accuracy'
 
 const INCUMBENT = ewmaV1Adapter
+// occupancy-v1 competes on the same terms as the rest: it only wins where its
+// external driver measurably beats EWMA on the variant's own history. With no
+// occupancy supplied it degrades to EWMA, ties, and the switch margin keeps it out.
 const CANDIDATES: ReadonlyArray<ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>> = [
-  ewmaV1Adapter, holtLinearV1Adapter, seasonalNaiveV1Adapter, baselineRolling30dAdapter,
+  ewmaV1Adapter, holtLinearV1Adapter, seasonalNaiveV1Adapter, baselineRolling30dAdapter, occupancyV1Adapter,
 ]
 const SELECT_WINDOWS = 5     // rolling holdout windows scored per candidate
 const MIN_SCORED     = 3     // need this many scoreable windows to trust a switch
@@ -38,7 +42,9 @@ export const autoSelectV1Adapter: ModelAdapter<ConsumptionForecastInput, Consump
     const mapeByName = new Map<string, { mape: number; n: number }>()
     for (const a of CANDIDATES) {
       const s = scoreForecastAccuracy(
-        await reconstructObservations(input.logs, { horizonDays: input.horizonDays, adapter: a, cutoffs }),
+        await reconstructObservations(input.logs, {
+          horizonDays: input.horizonDays, adapter: a, cutoffs, occupancy: input.occupancy,
+        }),
       )
       mapeByName.set(a.name, { mape: s.mape, n: s.n })
     }
@@ -57,7 +63,9 @@ export const autoSelectV1Adapter: ModelAdapter<ConsumptionForecastInput, Consump
       }
     }
 
-    const out = await chosen.runInference({ logs: input.logs, horizonDays: input.horizonDays, asOf })
+    const out = await chosen.runInference({
+      logs: input.logs, horizonDays: input.horizonDays, asOf, occupancy: input.occupancy,
+    })
     return { ...out, basis: `auto:${out.basis}` }
   },
 }

@@ -62,6 +62,10 @@ export interface ReconstructOpts {
   cutoffs: ReadonlyArray<number>
   /** Min distinct training days before a cutoff for its observation to be scored. */
   minTrainDays?: number
+  /** Q4 — occupancy context for adapters that model it. Passed through whole;
+   *  the adapter slices it at each cutoff's asOf, so it can't see history that
+   *  hadn't happened yet. Occupancy-blind adapters ignore it. */
+  occupancy?: ConsumptionForecastInput['occupancy']
 }
 
 /** Cutoffs whose realized windows tile backwards from `now`, each fully closed.
@@ -109,7 +113,9 @@ export async function reconstructObservations(
     const realized = consumedBetween(logs, asOf, asOf + opts.horizonDays * DAY)
     if (trainDays < minTrainDays || realized <= 0) continue   // unscoreable
 
-    const f = await opts.adapter.runInference({ logs: train, horizonDays: opts.horizonDays, asOf })
+    const f = await opts.adapter.runInference({
+      logs: train, horizonDays: opts.horizonDays, asOf, occupancy: opts.occupancy,
+    })
     const signedError = f.projectedUnits - realized
     out.push({
       asOf,

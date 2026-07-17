@@ -19,6 +19,9 @@ export interface BacktestCase {
   cohort: string
   /** Full history including the holdout window. */
   logs: ReadonlyArray<StockLogRow>
+  /** Q4 — occupancy context for adapters that model it (occupancy-v1). The
+   *  adapter slices it at the holdout cutoff. Omit for occupancy-blind runs. */
+  occupancy?: ConsumptionForecastInput['occupancy']
 }
 
 export interface BacktestConfig {
@@ -74,7 +77,9 @@ export async function backtestForecastAdapters(
     for (const a of adapters) {
       // asOf = the holdout cutoff so the rolling window ends there, never at the
       // wall clock — keeps the backtest deterministic + faithful to that point.
-      const out = await a.runInference({ logs: train, horizonDays: cfg.holdoutDays, asOf: cutoff.getTime() })
+      const out = await a.runInference({
+        logs: train, horizonDays: cfg.holdoutDays, asOf: cutoff.getTime(), occupancy: c.occupancy,
+      })
       const predicted = out.projectedUnits
       predictions.push({
         variantId: c.variantId, label: c.label, cohort: c.cohort, adapter: a.name,
