@@ -172,6 +172,62 @@ describe('restock_advisor v1.0.0', () => {
     expect(forecast?.projectedUnits).toBeGreaterThan(0)
   })
 
+  // ── Regression gates for the two bugs real data exposed (#357, #360) ────────
+  // Both shipped for months because the fixtures reproduced the production
+  // readers' variant-blindness, so the evals agreed with the bugs.
+
+  it('sizes the reorder point on the variant OWN supplier lead time, not the fastest (#357)', async () => {
+    const world = baseWorld()
+    world.variants = [
+      // Stocked by both, but reordered from the SLOW one — so 7 days of risk.
+      { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 100,
+        preferred_supplier_id: IDS.supplierSlow },
+    ]
+    world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
+    world.suppliers = [
+      { id: IDS.supplierFast, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'Sysco',    lead_time_days: 3, on_time_pct: 95, cost_variance_pct: 3 },
+      { id: IDS.supplierSlow, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'BudgetCo', lead_time_days: 7, on_time_pct: 90, cost_variance_pct: 5 },
+    ]
+    world.sourcedFrom = { [IDS.varTomatoesA]: [IDS.supplierFast, IDS.supplierSlow] }
+
+    const agent = buildRestockAdvisorAgent({
+      llm: scriptedLLM({ variantId: IDS.varTomatoesA, variantName: 'tomatoes' }),
+      reader: makeReader(world),
+    })
+    const result = await agent.run(baseInput)
+    // The forecast that sized it must cover the REAL 7-day exposure. Taking
+    // min(3,7) buffered 3 days against 7 and halved every order.
+    expect(result.proposals[0]?.forecast?.horizonDays).toBe(7)
+  })
+
+  it('only names a supplier that actually stocks the variant (#360)', async () => {
+    const world = baseWorld()
+    world.variants = [
+      { id: IDS.varTomatoesA, hotel_id: IDS.hotelA, name: 'tomatoes', current_stock: 0, par_level: 100,
+        preferred_supplier_id: IDS.supplierSlow },
+    ]
+    world.stockLogs = dailyConsumptionLogs({ variantId: IDS.varTomatoesA, hotelId: IDS.hotelA, dailyUnits: 10 })
+    world.suppliers = [
+      // Faster + more reliable, so it wins the ranking — but it doesn't stock this.
+      { id: IDS.supplierFast, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'Sysco',    lead_time_days: 3, on_time_pct: 99, cost_variance_pct: 1 },
+      { id: IDS.supplierSlow, hotel_id: IDS.hotelA, organization_id: IDS.org, name: 'BudgetCo', lead_time_days: 7, on_time_pct: 70, cost_variance_pct: 9 },
+    ]
+    world.sourcedFrom = { [IDS.varTomatoesA]: [IDS.supplierSlow] }   // only BudgetCo sources it
+
+    const agent = buildRestockAdvisorAgent({
+      llm: scriptedLLM({ variantId: IDS.varTomatoesA, variantName: 'tomatoes' }),
+      reader: makeReader(world),
+    })
+    const result = await agent.run(baseInput)
+    const action = result.proposals.find((p) => p.action.type === 'REQUEST_RESTOCK')?.action
+    expect(action?.type).toBe('REQUEST_RESTOCK')
+    if (action?.type === 'REQUEST_RESTOCK') {
+      // Ranking Sysco top here is what told operators to buy mixers from a
+      // spirits supplier: better score, doesn't carry the item.
+      expect(action.supplier).toBe('BudgetCo')
+    }
+  })
+
   it('picks the highest-scoring supplier when ranking multiple', async () => {
     const world = baseWorld()
     world.variants = [
