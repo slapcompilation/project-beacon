@@ -49,6 +49,12 @@ BEGIN
   RETURN NEW;
 END $fn$;
 
+-- Security invariant 1 (migration 176): a SECURITY DEFINER function must not be
+-- anon-executable. A trigger function is invoked BY the trigger and never called
+-- directly, but the default PUBLIC grant still exposes it — revoke it. Verified:
+-- the trigger still fires after the revoke.
+REVOKE EXECUTE ON FUNCTION public.tg_sync_sourced_from_edge() FROM PUBLIC, anon, authenticated;
+
 DROP TRIGGER IF EXISTS trg_sync_sourced_from_edge ON public.product_variants;
 CREATE TRIGGER trg_sync_sourced_from_edge
   AFTER UPDATE OF default_supplier_id ON public.product_variants
