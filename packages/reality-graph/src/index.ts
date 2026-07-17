@@ -335,6 +335,11 @@ export {
   occupancyV1Adapter,
   registerConsumptionForecast,
   backtestForecastAdapters,
+  // The accuracy instrument — score N closed windows and aggregate. A single
+  // holdout over few variants is noise; this is what auto-select uses internally.
+  reconstructObservations,
+  scoreForecastAccuracy,
+  rollingCutoffs,
   type ConsumptionForecastInput,
   type ConsumptionForecastOutput,
   type OccupancyInput,
