@@ -61,6 +61,24 @@ describe('occupancy-v1 adapter', () => {
     expect(r.confidence).toBeLessThanOrEqual(0.3)
   })
 
+  it('measures uplift against the RECENT norm, not the whole history', async () => {
+    // Demand (and so the EWMA base rate) has already adjusted to a hotel that has
+    // been full for the last 30 days. Occupancy stays full. There is no NEW
+    // information, so there must be no uplift — taking histMean over all history
+    // (which includes a quiet winter) re-applies a shift the base rate already
+    // contains: a systematic over-forecast. Measured at +6.3% bias before the fix.
+    const series: OccupancyPoint[] = [
+      ...Array.from({ length: 120 }, (_, k) => ({ date: iso(ASOF - (k + 31) * DAY), pct: 50 })),  // quiet winter, long ago
+      ...Array.from({ length: 30 },  (_, k) => ({ date: iso(ASOF - (k + 1) * DAY),  pct: 95 })),  // recent: full
+      ...Array.from({ length: 14 },  (_, k) => ({ date: iso(ASOF + (k + 1) * DAY),  pct: 95 })),  // forward: still full
+    ]
+    const r = await occupancyV1Adapter.runInference({
+      logs: flatLogs(), horizonDays: 7, asOf: ASOF, occupancy: { series, sensitivity: 0.9 },
+    })
+    // baseRate 10/day already reflects the full hotel → 7 days ≈ 70, no lift.
+    expect(r.projectedUnits).toBeCloseTo(70, -1)
+  })
+
   it('never sees occupancy from after asOf as history (backtest honesty)', async () => {
     // History says 50; the future says 100. If the adapter averaged the WHOLE
     // series into histMean it would leak the future and under-lift.

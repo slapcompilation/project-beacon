@@ -25,6 +25,12 @@ import type { ConsumptionForecastInput, ConsumptionForecastOutput } from './type
 import { ewmaV1Adapter } from './ewma_v1'
 
 const DAY = 86_400_000
+// Must match the window the base rate is learned over (ewma's daily series).
+// If histMean is taken over ALL history while baseRate reflects only the last 30
+// days, the uplift compares the future to a stale long-run mean and re-applies a
+// shift the base rate already contains — a systematic over-forecast. Measured:
+// +6.3% bias, worst of five adapters, before this was matched.
+const HIST_WINDOW_DAYS = 30
 const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10)
 
 export const occupancyV1Adapter: ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> = {
@@ -41,7 +47,10 @@ export const occupancyV1Adapter: ModelAdapter<ConsumptionForecastInput, Consumpt
     const base = await ewmaV1Adapter.runInference({ logs: input.logs, horizonDays: 1, asOf })
     const baseRate = base.projectedUnits
 
-    const past = occ?.series.filter((p) => p.date <= iso(asOf)) ?? []
+    // The norm the uplift is measured against: occupancy over the SAME recent
+    // window the base rate was learned from, never the whole history.
+    const from = iso(asOf - HIST_WINDOW_DAYS * DAY)
+    const past = occ?.series.filter((p) => p.date > from && p.date <= iso(asOf)) ?? []
     const histMean = past.length ? past.reduce((s, p) => s + p.pct, 0) / past.length : 0
 
     // No usable signal → don't invent one. Fall back to EWMA's own projection at

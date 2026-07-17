@@ -160,24 +160,38 @@ this makes the models *cowork*.
 - `ConsumptionForecastInput.occupancy` is optional and additive: occupancy-blind adapters are
   untouched, and occupancy-v1 **degrades to EWMA at capped confidence** rather than guessing when the
   signal is absent or the category is inelastic — so auto-select can't pick it on evidence it lacks.
-- **Graded by the instrument, live, on real demand** (the whole point — the referee decides, not us):
+- **Graded by the instrument, live, on real demand — and occupancy does NOT win.**
 
-  | Adapter | Valinor MAPE | Rivendell MAPE | bias |
-  |---|---|---|---|
-  | **occupancy-v1** | **14.3%** 🏆 | **8.5%** 🏆 | **+2.6% / −8.5%** |
-  | baseline-rolling-30d | 15.3% | 14.0% | −12% / −14% |
-  | ewma-v1 | 16.3% | 14.8% | −9% / −15% |
-  | seasonal-naive-v1 | 16.4% | 17.8% | −12% / −18% |
-  | holt-linear-v1 | 17.5% | 14.8% | −9% / −15% |
+  A first pass scored a *single* 7-day holdout and showed occupancy-v1 winning both hotels. That was
+  **noise, and it was over-claimed**: moving the cutoff one day flipped the winner. `backtestForecastAdapters`
+  scores one window; over 20 variants that is a tiny sample. The honest read uses the accuracy
+  instrument over **10 rolling windows** (what auto-select already does internally):
 
-  **Why it wins is the thesis:** every log-only adapter carries a −9% to −18% *systematic
-  under-forecast*, because demand is on a rising seasonal ramp and the past is all they can see.
-  occupancy-v1 knows the hotel is filling up, lifts demand, and lands nearly unbiased (+2.6%).
-  Under-forecast is exactly what causes stock-outs — so this is the Q0 north-star, not a vanity metric.
-- **The cohort split earns per-variant selection:** on Mixers (elasticity 0.90) occupancy-v1 halves the
-  error (8.2%/6.4% vs EWMA's 16.7%/16.1%), but on Valinor's Spirits it's *worse* than baseline
-  (20.5% vs 12.3%). It is not uniformly better — which is precisely why auto-select picks per variant
-  rather than crowning one global winner.
+  | Adapter | MAPE | bias | Mixers (0.90) | Spirits (0.45) |
+  |---|---|---|---|---|
+  | **baseline-rolling-30d** | **7.6%** 🏆 | −0.7% | 6.9% | 8.2% |
+  | ewma-v1 | 9.2% | −1.5% | 8.8% | 9.5% |
+  | seasonal-naive-v1 | 9.5% | −4.4% | 10.7% | 8.3% |
+  | occupancy-v1 | 10.1% | −1.3% | **8.1%** | 12.2% |
+  | holt-linear-v1 | 11.8% | −2.9% | 11.0% | 12.7% |
+
+  **The rolling run found a real bug in occupancy-v1**: `histMean` was taken over ALL history (~85%,
+  including the quiet winter) while `baseRate` is EWMA over the last 30 days — which already reflects
+  today's ~97% occupancy. So it lifted demand by ~13% *on top of a base that already contained it*.
+  Double-counting, measured as **+6.3% bias, worst of five**. Matching the windows fixed it
+  (**+6.3% → −1.3% bias, 11.9% → 10.1% MAPE**), and a test pins it.
+
+- **Why the simplest model wins right now, and that's the real lesson.** The seasonal ramp happened
+  Jan–June; recent occupancy is *pinned near 100%*. With no variance left to exploit, demand is
+  effectively stationary — and a flat 30-day mean beats every cleverer estimator, which only add
+  variance without adding signal. Occupancy pays when occupancy **changes** relative to the recent
+  norm. It isn't changing.
+- **The design held even though the hypothesis didn't.** occupancy-v1 helps exactly where theory says
+  it should — **Mixers, elasticity 0.90: 8.1%** — and hurts on Spirits (12.2%, elasticity 0.45). And
+  because auto-select keeps EWMA as incumbent behind a 10% switch margin, it simply **won't pick a
+  candidate that doesn't clearly win**. The safety design did its job without anyone intervening.
+- *Caveat:* auto-select itself isn't in the table — it backtests internally, so grading it inside a
+  backtest is recursive and slow. The comparison is between the base adapters it chooses from.
 - *Deferred:* retiring the parallel `get_occupancy_adjusted_forecast` RPC + the variant-view card. The
   tool and the adapter now share one uplift model, so they can't drift; removing the RPC is cleanup,
   not coherence.
