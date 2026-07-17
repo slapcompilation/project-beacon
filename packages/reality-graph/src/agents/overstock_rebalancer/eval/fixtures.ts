@@ -31,6 +31,8 @@ export interface FixtureWorld {
   hotels:          HotelRow[]
   suppliers:       SupplierRow[]
   principles?:     PrincipleRecord[]
+  /** variantId -> supplierIds that actually stock it (the `sourced_from` edges). */
+  sourcedFrom?:    Record<string, string[]>
 }
 
 export function emptyWorld(): FixtureWorld {
@@ -61,7 +63,16 @@ export function makeReader(world: FixtureWorld): GraphReader {
       const set = new Set(hotelIds)
       return Promise.resolve(world.variants.filter((v) => v.name === name && set.has(v.hotel_id)))
     },
-    getSuppliersForVariant: (_variantId) => Promise.resolve(world.suppliers),
+    // Mirrors the REAL reader (migration 202): traverse variant --sourced_from-->
+    // supplier; fall back to the hotel's suppliers only when a variant has no
+    // sourcing modelled. Ignoring variantId here reproduced a production bug, so
+    // the evals agreed with it instead of catching it (#357/#360).
+    getSuppliersForVariant: (variantId) => {
+      const ids = world.sourcedFrom?.[variantId]
+      if (!ids) return Promise.resolve(world.suppliers)
+      const linked = world.suppliers.filter((s) => ids.includes(s.id))
+      return Promise.resolve(linked.length > 0 ? linked : world.suppliers)
+    },
     getDocumentsForEntity:  (_entityType, _entityId) => Promise.resolve([]),
     searchDocumentChunks:   (_hotelId, _query, _opts) => Promise.resolve([]),
     getActivePrinciples:    (_hotelId, _orgId) => Promise.resolve(world.principles ?? []),
