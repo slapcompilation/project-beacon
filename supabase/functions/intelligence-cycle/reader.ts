@@ -106,16 +106,33 @@ export function makeServiceRoleGraphReader(supabase: SupabaseClient, hotelId: st
       return (data ?? []).map(toVariant)
     },
 
-    async getSuppliersForVariant(_variantId: string) {
+    async getSuppliersForVariant(variantId: string) {
+      // Traverse variant --sourced_from--> supplier (migration 202). This used to
+      // ignore variantId and return EVERY supplier in the hotel, so
+      // rank_alternative_suppliers scored suppliers that don't stock the item and
+      // the fastest won — live, it recommended mixers from a spirits supplier.
+      // Falls back to the hotel's suppliers only when a variant has no sourcing
+      // modelled yet.
+      //
       // Service role bypasses RLS, so scope by hotel explicitly. on_time_pct +
       // cost_variance_pct are populated by compute_supplier_reliability()
       // weekly (NULL until PO/invoice data lands; rank_alternative_suppliers
       // uses its conservative defaults then). organization_id isn't on this
       // table — suppliers are hotel-scoped.
-      const { data, error } = await supabase
+      const { data: edges } = await supabase
+        .from('relationship_edges')
+        .select('target_id')
+        .eq('source_type', 'variant')
+        .eq('source_id', variantId)
+        .eq('edge_type', 'sourced_from')
+      const ids = (edges ?? []).map((e: Record<string, unknown>) => e.target_id as string)
+
+      let q = supabase
         .from('suppliers')
         .select('id, hotel_id, name, lead_time_days, on_time_pct, cost_variance_pct')
         .eq('hotel_id', hotelId)
+      if (ids.length > 0) q = q.in('id', ids)
+      const { data, error } = await q
       if (error) throw new Error(error.message)
       return (data ?? []).map((s: Record<string, unknown>) => ({
         id: s.id as string,

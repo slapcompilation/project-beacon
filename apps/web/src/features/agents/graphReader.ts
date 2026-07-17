@@ -131,15 +131,34 @@ export function makeSupabaseGraphReader(): GraphReader {
       return data.map(toVariantRow)
     },
 
-    async getSuppliersForVariant(_variantId) {
+    async getSuppliersForVariant(variantId) {
+      // Traverse variant --sourced_from--> supplier (migration 202). This used to
+      // ignore variantId and hand back EVERY supplier in the hotel, so
+      // rank_alternative_suppliers scored suppliers that don't stock the item and
+      // the fastest one won — live, it recommended buying mixers from a spirits
+      // supplier. Fall back to the hotel's suppliers only when a variant has no
+      // sourcing modelled yet, so an unlinked variant still gets a candidate.
+      //
       // organization_id isn't a column on suppliers (they're hotel-scoped); the
       // reliability metrics on_time_pct / cost_variance_pct ARE — populated by
       // compute_supplier_reliability() weekly. NULL when no PO/invoice history
       // yet; rank_alternative_suppliers uses its conservative defaults then.
       // RLS scopes the rows to the caller's hotel.
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('id, hotel_id, name, lead_time_days, on_time_pct, cost_variance_pct')
+      const SELECT = 'id, hotel_id, name, lead_time_days, on_time_pct, cost_variance_pct'
+      const { data: edges } = await supabase
+        .from('relationship_edges')
+        .select('target_id')
+        .eq('source_type', 'variant')
+        .eq('source_id', variantId)
+        .eq('edge_type', 'sourced_from')
+      const ids = (edges ?? []).map((e: { target_id: string }) => e.target_id)
+
+      if (ids.length > 0) {
+        const { data, error } = await supabase.from('suppliers').select(SELECT).in('id', ids)
+        if (error) throw new Error(error.message)
+        if (data.length > 0) return data.map(toSupplierRow)
+      }
+      const { data, error } = await supabase.from('suppliers').select(SELECT)
       if (error) throw new Error(error.message)
       return data.map(toSupplierRow)
     },
