@@ -1,86 +1,92 @@
-# Document Ingestion — activate the arc (Phase D)
+# Document Ingestion — reconcile to Foundry-level, then prove (Phase D)
 
 > Build backlog #1 from [FOUNDRY-PLAYBOOK.md](FOUNDRY-PLAYBOOK.md): turn documents into a queryable,
 > resolved part of the graph — the Foundry "Ontology Augmented Generation" flow, hospitality-native.
 
 ---
 
-## The reframe (verified before drafting)
+## The verified state — a pre-Foundry stub with critical holes
 
-This is **not a greenfield build.** The whole pipeline exists end-to-end; it has simply **never been
-run** — every table is empty in production (0 documents, 0 chunks, 0 embeddings, 0 edges). Same pattern
-the prediction arc turned out to be: *the machinery is built; the gap is that nothing has exercised it.*
+The arc's *skeleton* exists end-to-end (upload → `document-ingest` → `embed-text` → `entity-extract` →
+approval → `describes_entity` edge → pgvector search) and has **never run** (all tables empty). But it
+was built *before* we studied Foundry's reference architecture, and the audit shows it's a
+**demo-grade stub**, not a pipeline. Reconcile it before proving it — proving a stub only certifies its
+shortcuts.
 
-**What's already built (grounded in code):**
+**Existing implementation vs the Foundry reference, step by step:**
 
-| Stage | Mechanism | Advances to |
+| Foundry reference | Our `document-ingest` (verified) | Severity |
 |---|---|---|
-| Upload | `documents/api.ts` `uploadDocument` → private `documents` storage bucket → `documents` row | `raw` |
-| OCR + chunk | `document-ingest` edge fn (Anthropic vision OCR) → chunks on the doc row | `ocr` |
-| Embed | `document-ingest` → `embed-text` edge fn → `document_chunks.embedding` (pgvector) | `embedded` |
-| **Resolve** | `entity-extract` edge fn — loads the hotel's **real variants + suppliers**, LLM matches chunks to their **node ids** (0.95 exact … <0.65 drop) → `entity_link_suggestions` (`status='pending'`) | `contextualized` |
-| Approve → link | `entityLinks/api.ts` `approveSuggestion` → writes `describes_entity` edge into `relationship_edges` | `linked` |
-| Search | `query_document_chunks` Logic Tool → `match_document_chunks` pgvector RPC (cosine, 0.70) | — |
-| Surface | `/documents`, `/documents/:documentId` routes (`DocumentsPage`, `DocumentObjectPage`) | — |
+| Extract **full** text from each page | OCR prompt asks Claude for *"first 240 chars of page text"* — the rest is thrown away | 🔴 **critical** |
+| `text_full` per chunk | column exists, **never populated** (dead) | 🔴 **critical** |
+| Chunk String (≈512, **overlapping**) within pages | **no chunking** — 1 "chunk" = 1 page-preview (240 chars) | 🔴 **critical** |
+| Composite `chunkId` (`rid_page_chunk`) | `docId-chunk-{pageIndex}` — deterministic but conflates page/chunk | 🟡 minor |
+| LLM **`summary`** per chunk | none — no summarization pass | 🟠 missing |
+| Embed the **summary** | embeds the raw 240-char preview | 🟠 wrong target + truncated |
+| Page-level `cited_in` edge | `cited_in` is a **declared edge type nothing ever writes** (the `sourced_from` bug class) | 🟠 phantom |
+| Entities (discovered) → Entity object | **dropped** — `entity-extract` only keeps matches to existing variant/supplier | 🟠 missing |
+| Chunk as a first-class object (traversable) | `document_chunks` is a table row; **`chunk` is not a graph node** | 🟠 missing |
 
-**The differentiator is already implemented.** `entity-extract` does *not* take Foundry's
-discovered-string path — it **resolves each mention to an existing Variant/Supplier node id** and stages
-it for human approval, which becomes a typed `describes_entity` edge. That's the exact "mention → real
-node" step the playbook calls our edge over Foundry. It's built. It's never fired.
+**What's genuinely good — keep it (it's better than Foundry):**
+- `entity-extract` **resolves mentions to real Variant/Supplier node ids** (not Foundry's
+  discovered-strings) — our differentiator for *known* entities.
+- **Human-in-the-loop approval** (`entity_link_suggestions` pending → approve → `describes_entity`).
+- **Native edges** — no join-table dataset to maintain.
 
-**So the job is: prove it, fix what proving exposes, then fill the two genuine holes** (a grounded
-document-copilot surface, and the lineage shown on Object Views).
+**The headline:** RAG currently runs on ~12% of each document (240 chars/page), with no real chunking
+and no page-citation edges. That's exactly the "problems later" you predicted. So Phase D is a
+*re-architecture of the ingest stages*, not a run.
 
 ---
 
-## Phase D — activate and prove
+## Phase D — three tracks
 
-### D0 — Prove the pipeline end-to-end (verify-first) ⭐ start here
-Upload one **real** hospitality document (a supplier contract PDF for Valinor) and run the full pipeline,
-asserting each hop live:
-- `documents` row created, stage `raw` → after ingest, advances `raw → ocr → embedded → contextualized`;
-- `document_chunks` populated with non-null `embedding`;
-- `entity_link_suggestions` created, **matched to real Variant/Supplier ids** with evidence snippets;
-- approve one → a `describes_entity` edge lands in `relationship_edges`, doc reaches `linked`.
+### Track 1 — fix the correctness holes (must, before anything else)
 
-**Outcome, either way, is the deliverable:** the feature activates (a dormant, fully-built arc goes
-live) — *or* the run exposes the one blocker that's kept it at zero (missing `OPENAI_API_KEY` /
-Anthropic key on the edge fn, an RLS gap on `entity_link_suggestions`, a storage-bucket policy, or the
-approval UI not wired). Nine-for-nine this session, the audit finds the gap; D0 is that audit.
+- **D0 — Full-text OCR + real chunking.** The extract step returns **full** page text (not a 240-char
+  preview); a chunk-string step splits each page into ~512-char **overlapping** segments; `text_full`
+  is populated; `chunkId` becomes composite (`docId_page_chunk`); the embedding is on the full chunk
+  text. Kills the 88% text loss and the no-chunking hole in one pass. *This is the foundation everything
+  else stands on — RAG, resolution, and search are all worthless on truncated previews.*
+- **D0b — Write the `cited_in` edges.** `document —cited_in→ chunk` (page-level), the declared edge
+  nothing honours — the same class as the `sourced_from` bug we already fixed this session. Makes the
+  "cite the page" provenance rule real instead of aspirational.
 
-### D1 — Fix what D0 exposes + a demo seed
-Whatever D0 breaks (keys, RLS, OCR path, approval surface). Then **seed 2–3 real documents** so the arc
-has data to stand on — a supplier contract, a product spec sheet — mirroring the real-demand-data work
-that unblocked the prediction arc. Grounds every downstream surface in something real.
+### Track 2 — reach Foundry-level (design forks — resolve with the deep-dives + your input)
 
-### D2 — The document copilot (the Foundry payoff app)
-The tutorial's capstone: NL question → grounded, cited answer over document chunks.
-- `query_document_chunks` (pgvector RAG retrieval) already exists as a Logic Tool. **First verify
-  whether the copilot already has it in its toolset** — if so, this is a *grounding-prompt + surface*
-  job, not a build ("answer using only these references; cite the page; if they don't answer it, say
-  so").
-- Hospitality shape: *"what does the Acme contract say about lead-time penalties?"* → retrieve the
-  chunks → grounded answer citing **contract p.3** → the supporting chunks shown beside it.
-- This is Foundry's `Ontology Augmented Generation` app, hospitality-native — and it composes directly
-  onto the resolved edges from D0.
+These are genuine architecture decisions, not obvious fixes. Flagging them as *decisions* to make with
+the incoming Foundry deep-dives, not assumptions to bake in:
 
-### D3 — Surface the lineage on Object Views
-A Supplier's (or Variant's) Object View right rail shows its **linked document chunks** via the
-`describes_entity` edges — *"Contract.pdf p.3: 5-day lead, penalty after 7."* The "related workflows /
-management consoles" elevation from the playbook. Turns a resolved edge into something an operator sees
-exactly where they act. Cheap once D0 has real edges.
+- **D1 — Per-chunk summary?** Foundry embeds an LLM `summary`, not the raw chunk. Fork: embed the full
+  chunk text (simpler, often better recall) **vs** add a summarization pass and embed the summary
+  (cleaner, Foundry's choice, more tokens). *Recommendation: start with full-chunk embedding; add
+  summaries only if retrieval quality demands it.*
+- **D2 — Discovered entities as objects?** Today we drop any mention that isn't a known
+  variant/supplier — so contract concepts (penalty clauses, delivery windows, lead-time terms) vanish.
+  Foundry captures them as first-class Entity objects. Fork: keep resolve-to-node **and** add a
+  discovered-concept node type (a real ontology extension) **vs** stay resolve-only. *This is the
+  biggest architectural decision; the Ontology deep-dive should inform it.*
+- **D3 — Chunks as graph nodes?** For Vertex / Search Around to traverse *from a chunk*, chunks must be
+  graph-addressable. Fork: promote `document_chunks` to nodes **vs** keep the table + synthesize edges.
+  *Depends on how central the knowledge-graph view (backlog #2/#4) becomes.*
 
-### D4 — Deferred (scale + reach)
-- **Retrieval before extraction.** `entity-extract` currently caps the candidate variants/suppliers in
-  the prompt; its own comment flags that large hotels need a vector-match (chunk text → top-K names)
-  first. Not needed at 20 variants; real at 200.
-- **Search Around** — the interactive graph traversal (playbook backlog #2). Separate arc; the resolved
-  `describes_entity` edges from D0 are what make it worth traversing.
+### Track 3 — prove + surface (only after Track 1, and the Track-2 forks are decided)
+
+- **D4 — Prove end-to-end on a real document.** Upload a real supplier contract for Valinor; assert
+  every stage advances, chunks carry full text + embeddings, suggestions resolve to real node ids,
+  approval writes `describes_entity` + `cited_in`. Now the proof means something.
+- **D5 — The document copilot (the Foundry payoff).** NL question → `query_document_chunks` (pgvector,
+  now on real chunks) → grounded, cited answer. Verify whether the copilot already carries the tool —
+  if so, a surface + grounding-prompt job.
+- **D6 — Lineage on Object Views + Search Around.** A supplier's rail shows its linked contract clauses
+  via `describes_entity`; Search Around traverses chunk ↔ entity (needs D3).
 
 ---
 
 ## Sequencing
 
-**D0 → D1 → D2 → D3.** D0 is the whole bet: it's cheap (upload one PDF, run one pipeline), it's
-verify-before-build, and it decides everything — if the arc works, D2/D3 are surfacing exercises on live
-data; if it doesn't, D0 hands us the exact fix. Do not build D2/D3 speculatively on an unproven pipeline.
+**Track 1 (D0/D0b) is non-negotiable and comes first** — it's the correctness foundation; nothing
+downstream is worth building on 240-char previews. **Track 2's forks (D1/D2/D3) are where the Foundry
+deep-dives earn their keep** — decide them with that material rather than guessing now. **Track 3 proves
+and surfaces** only once the pipeline is actually Foundry-level. The earlier "activate-and-prove" framing
+was wrong: this is reconcile-first.
