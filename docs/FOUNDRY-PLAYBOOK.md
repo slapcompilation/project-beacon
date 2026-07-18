@@ -248,9 +248,11 @@ Then *Save & publish → View*.
 Value ÷ effort, hospitality lens:
 
 1. **Document-ingestion arc.** PDF → chunk → embed → LLM entity extraction → **resolve the mention to a
-   real node** → `describes_entity` edge + page-level `cited_in`. The resolution step is our
-   differentiator; a supplier contract becomes queryable from the supplier. *Its own roadmap doc,
-   grounded in the `Document` node + `query_document_chunks` + pgvector we already have.*
+   real node** → `describes_entity` edge. **Verified 2026-07: this arc is built end-to-end and has never
+   run** (all tables empty) — the resolution step (`entity-extract` matching chunks to real
+   Variant/Supplier ids) is *already implemented*. So it's **activate-and-prove, not greenfield.** Full
+   plan: [DOCUMENT-INGESTION-ROADMAP.md](DOCUMENT-INGESTION-ROADMAP.md) (D0 = prove one real PDF through
+   the pipeline).
 2. **Search Around** — interactive multi-hop graph traversal (Supplier → its Variants → their Stock
    Logs → the Documents citing them), with a Radial/Cluster layout. Closes our clearest UX gap.
 3. **The Document Copilot app — the capstone (composes 1 + 2 + this).** The tutorial's entire payoff is
