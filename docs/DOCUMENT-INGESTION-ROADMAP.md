@@ -1,92 +1,142 @@
-# Document Ingestion — reconcile to Foundry-level, then prove (Phase D)
+# Document Ingestion — Foundry-exact replication spec (Phase D)
 
-> Build backlog #1 from [FOUNDRY-PLAYBOOK.md](FOUNDRY-PLAYBOOK.md): turn documents into a queryable,
-> resolved part of the graph — the Foundry "Ontology Augmented Generation" flow, hospitality-native.
-
----
-
-## The verified state — a pre-Foundry stub with critical holes
-
-The arc's *skeleton* exists end-to-end (upload → `document-ingest` → `embed-text` → `entity-extract` →
-approval → `describes_entity` edge → pgvector search) and has **never run** (all tables empty). But it
-was built *before* we studied Foundry's reference architecture, and the audit shows it's a
-**demo-grade stub**, not a pipeline. Reconcile it before proving it — proving a stub only certifies its
-shortcuts.
-
-**Existing implementation vs the Foundry reference, step by step:**
-
-| Foundry reference | Our `document-ingest` (verified) | Severity |
-|---|---|---|
-| Extract **full** text from each page | OCR prompt asks Claude for *"first 240 chars of page text"* — the rest is thrown away | 🔴 **critical** |
-| `text_full` per chunk | column exists, **never populated** (dead) | 🔴 **critical** |
-| Chunk String (≈512, **overlapping**) within pages | **no chunking** — 1 "chunk" = 1 page-preview (240 chars) | 🔴 **critical** |
-| Composite `chunkId` (`rid_page_chunk`) | `docId-chunk-{pageIndex}` — deterministic but conflates page/chunk | 🟡 minor |
-| LLM **`summary`** per chunk | none — no summarization pass | 🟠 missing |
-| Embed the **summary** | embeds the raw 240-char preview | 🟠 wrong target + truncated |
-| Page-level `cited_in` edge | `cited_in` is a **declared edge type nothing ever writes** (the `sourced_from` bug class) | 🟠 phantom |
-| Entities (discovered) → Entity object | **dropped** — `entity-extract` only keeps matches to existing variant/supplier | 🟠 missing |
-| Chunk as a first-class object (traversable) | `document_chunks` is a table row; **`chunk` is not a graph node** | 🟠 missing |
-
-**What's genuinely good — keep it (it's better than Foundry):**
-- `entity-extract` **resolves mentions to real Variant/Supplier node ids** (not Foundry's
-  discovered-strings) — our differentiator for *known* entities.
-- **Human-in-the-loop approval** (`entity_link_suggestions` pending → approve → `describes_entity`).
-- **Native edges** — no join-table dataset to maintain.
-
-**The headline:** RAG currently runs on ~12% of each document (240 chars/page), with no real chunking
-and no page-citation edges. That's exactly the "problems later" you predicted. So Phase D is a
-*re-architecture of the ingest stages*, not a run.
+> **Mandate: almost to the dot Foundry level. Nothing less is acceptable.**
+> Build backlog #1 from [FOUNDRY-PLAYBOOK.md](FOUNDRY-PLAYBOOK.md). This doc reconstructs Foundry's
+> exact document-processing pipeline from the walkthrough, sets our target as *Foundry-exact base + the
+> hospitality resolution layer on top*, and specs every stage against what we actually have.
 
 ---
 
-## Phase D — three tracks
+## 1. The Foundry pipeline, reconstructed transform-by-transform
 
-### Track 1 — fix the correctness holes (must, before anything else)
+This is the exact sequence from the walkthrough (Pipeline Builder → Ontology Manager → AIP Logic →
+Vertex → Workshop). Each numbered block is one Foundry transform; this is the spec we replicate.
 
-- **D0 — Full-text OCR + real chunking.** The extract step returns **full** page text (not a 240-char
-  preview); a chunk-string step splits each page into ~512-char **overlapping** segments; `text_full`
-  is populated; `chunkId` becomes composite (`docId_page_chunk`); the embedding is on the full chunk
-  text. Kills the 88% text loss and the no-chunking hole in one pass. *This is the foundation everything
-  else stands on — RAG, resolution, and search are all worthless on truncated previews.*
-- **D0b — Write the `cited_in` edges.** `document —cited_in→ chunk` (page-level), the declared edge
-  nothing honours — the same class as the `sourced_from` bug we already fixed this session. Makes the
-  "cite the page" provenance rule real instead of aspirational.
+**Pipeline Builder — `Document Processing`:**
 
-### Track 2 — reach Foundry-level (design forks — resolve with the deep-dives + your input)
+**A. Node "Process PDFs"** (from the Articles Media Set)
+1. `Extract text from PDF` — media reference → `content` (Extract method: Raw text / **OCR** / Layout-aware). *Full page text.*
+2. `Explode Array with Position` — `content` → one row per **page** (struct `{position, element}`).
+3. `Extract Many Struct Fields` — `position` → `pageNumber` (new); `element` → `content` (replace).
+4. `Drop Columns` — drop `timestamp`.
+→ one row per page, `pageNumber` + **full** `content`.
 
-These are genuine architecture decisions, not obvious fixes. Flagging them as *decisions* to make with
-the incoming Foundry deep-dives, not assumptions to bake in:
+**B. Node "Extract Chunks"**
+5. `Chunk String` — input `content`, **size 512, overlapping** → `content` (array of segments).
+6. `Explode Array with Position` — `content` → one row per **chunk** (struct).
+7. `Extract Many Struct Fields` — `position` → `chunkNumber` (new); `element` → `content` (replace).
+→ one row per chunk, `chunkNumber` + `content` + `pageNumber`.
 
-- **D1 — Per-chunk summary?** Foundry embeds an LLM `summary`, not the raw chunk. Fork: embed the full
-  chunk text (simpler, often better recall) **vs** add a summarization pass and embed the summary
-  (cleaner, Foundry's choice, more tokens). *Recommendation: start with full-chunk embedding; add
-  summaries only if retrieval quality demands it.*
-- **D2 — Discovered entities as objects?** Today we drop any mention that isn't a known
-  variant/supplier — so contract concepts (penalty clauses, delivery windows, lead-time terms) vanish.
-  Foundry captures them as first-class Entity objects. Fork: keep resolve-to-node **and** add a
-  discovered-concept node type (a real ontology extension) **vs** stay resolve-only. *This is the
-  biggest architectural decision; the Ontology deep-dive should inform it.*
-- **D3 — Chunks as graph nodes?** For Vertex / Search Around to traverse *from a chunk*, chunks must be
-  graph-addressable. Fork: promote `document_chunks` to nodes **vs** keep the table + synthesize edges.
-  *Depends on how central the knowledge-graph view (backlog #2/#4) becomes.*
+**C. Node "Create Chunk ID"**
+8. `Concatenate strings` — sep `_`, `[media_item_rid, Cast(pageNumber→String), Cast(chunkNumber→String)]` → `chunkId`.
+→ composite natural key `mediaItemRid_page_chunk` (the Chunk primary key).
 
-### Track 3 — prove + surface (only after Track 1, and the Track-2 forks are decided)
+**D. Node "Use LLM"** (per chunk row)
+9. Instructions: *summarize the snippet + extract entities* in fixed categories, singular form, no dupes.
+   Input = `content`. Output type = **Struct `{ summary: String, entities: Array<String> }`**. Output col = `response`. Model GPT-4o. (Optional `Array distinct` dedup.)
 
-- **D4 — Prove end-to-end on a real document.** Upload a real supplier contract for Valinor; assert
-  every stage advances, chunks carry full text + embeddings, suggestions resolve to real node ids,
-  approval writes `describes_entity` + `cited_in`. Now the proof means something.
-- **D5 — The document copilot (the Foundry payoff).** NL question → `query_document_chunks` (pgvector,
-  now on real chunks) → grounded, cited answer. Verify whether the copilot already carries the tool —
-  if so, a surface + grounding-prompt job.
-- **D6 — Lineage on Object Views + Search Around.** A supplier's rail shows its linked contract clauses
-  via `describes_entity`; Search Around traverses chunk ↔ entity (needs D3).
+**E. Three output branches off "Use LLM":**
+- **"Embed Chunks" → `Chunks` dataset:** `Get struct field` (`summary`) → **`Text to embeddings` on `summary`** → `embedding` (ada-002); drop `response`. Cols: `embedding, summary, chunkId, chunkNumber, content, pageNumber, mediaItemRid, …`.
+- **"Get Entities" → "Deduplicate Entities" → `Entities` dataset:** `Get struct field` (`entities`) → `Explode array` → `entityName`; then `Select columns` + `Drop duplicates` on `entityName`. → the unique entity list.
+- **"Get Join Table" → `Join Table` dataset:** `Select columns` `entityName` + `chunkId`. → the **many-to-many bridge**.
+
+**Ontology Manager:**
+- **`Chunk` object type** ← Chunks dataset. PK = `chunkId`. Title = `summary`. Props incl. `embedding` (vector), `content`, `pageNumber`, `media_reference`.
+- **`Entity` object type** ← Entities dataset. PK = `entityName`. Title = `entityName`.
+- **`Chunk ↔ Entity` link type** ← Join Table (many-to-many, `chunkId ↔ entityName`).
+
+**AIP Logic — `Ontology Augmented Generation`:** input `userQuestion` → **Semantic search** (Chunk,
+property `Embedding`, k=10, query=`userQuestion`) → **Use LLM** (answer *using only the references*,
+single completion) → output.
+
+**Vertex — `Knowledge Graph`:** add Chunk objects → **Search Around** to Entity → Radial layout →
+parameterized template.
+
+**Workshop — the App:** Text input (`User Question`) → Object list (semantic search over Chunk
+`Embedding`, k=10) → Vertex graph (the template) → Markdown (the AIP Logic answer).
 
 ---
 
-## Sequencing
+## 2. Our target — Foundry-exact base **+** the hospitality resolution layer
 
-**Track 1 (D0/D0b) is non-negotiable and comes first** — it's the correctness foundation; nothing
-downstream is worth building on 240-char previews. **Track 2's forks (D1/D2/D3) are where the Foundry
-deep-dives earn their keep** — decide them with that material rather than guessing now. **Track 3 proves
-and surfaces** only once the pipeline is actually Foundry-level. The earlier "activate-and-prove" framing
-was wrong: this is reconcile-first.
+We replicate Foundry's model exactly, then add the one thing the tutorial *skips* (its own docs call it
+a "harmonize" step): resolving discovered entities to our **operational** nodes. Foundry-exact is the
+floor; the resolution layer is where we own the semantics.
+
+| Foundry object/link | Beacon target |
+|---|---|
+| **Chunk** object (embedding, summary, content, page, chunkId) | **`Chunk` node type** — first-class, with an Object View, traversable |
+| **Entity** object (discovered, deduped, categorized) | **`Entity` node type** — new; discovered concepts keyed by name + category |
+| **Chunk ↔ Entity** link (many-to-many) | native `mentions` edge (many-to-many, no join-table dataset) |
+| *(not in the tutorial)* | **resolution layer:** `Entity —resolved_to→ Variant/Supplier` where a discovered entity matches a known operational node — staged for approval (our existing `entity-extract` + `entity_link_suggestions`, kept and elevated) |
+
+So a contract PDF produces: **Chunk** nodes (searchable), **Entity** nodes for every concept it mentions
+(*"penalty clause", "5-day lead time", "Acme Corp"*), `mentions` edges chunk→entity, **and** — where the
+entity is a known supplier — a resolved `describes_entity` edge to the real Supplier node, page-cited.
+
+---
+
+## 3. The gap, stage by stage (what to build)
+
+| # | Foundry stage | What we have | Build |
+|---|---|---|---|
+| 1 | Extract **full** page text | OCR returns **240 chars/page**; `text_full` dead | 🔴 rewrite OCR to extract full text; populate `text_full` |
+| 2 | `Chunk String` (512, overlap) | **none** — 1 chunk = 1 page-preview | 🔴 add 512-char overlapping chunker per page |
+| 3 | Composite `chunkId` | `docId-chunk-{page}` | 🟡 `docId_page_chunk` |
+| 4 | LLM per-chunk `{summary, entities}` | entity-extract (doc-level, no summary) | 🟠 per-chunk summary + entities; **categorized discovered entities**, not only known-node matches |
+| 5 | **Embed the `summary`** | embeds raw 240-char preview | 🟠 add `summary` column; embed it (or full chunk — §4 fork) |
+| 6 | **`Chunk` object type** | `document_chunks` table (not a node) | 🟠 promote `Chunk` to a node type + Object View |
+| 7 | **`Entity` object type** | none (entities dropped unless matched) | 🟠 new `Entity` node type (discovered concepts) |
+| 8 | **`Chunk ↔ Entity` link** | none | 🟠 `mentions` edge (many-to-many) |
+| 9 | *harmonize (skipped by Foundry)* | ✅ `entity-extract` resolves to variant/supplier | ✅ keep + elevate — our differentiator |
+| 10 | page citation | `cited_in` declared, **never written** | 🟠 write `document —cited_in→ Chunk` (the phantom-edge fix) |
+| 11 | AIP Logic RAG answer | `query_document_chunks` tool + copilot | 🟢 grounded RAG surface |
+| 12 | Vertex Search-Around graph | `GraphConnections` static | 🟢 interactive graph (backlog #2) |
+| 13 | Workshop app | React app + NL | 🟢 NL doc-copilot surface |
+
+**Kept as-is (genuinely good):** resolve-to-real-node (#9), human-in-the-loop approval, native edges.
+
+---
+
+## 4. Phases (your three tracks, now spec'd to the stage)
+
+### Track 1 — Foundry-exact ingest correctness (non-negotiable, first)
+- **P1 — Full-text OCR.** Rewrite the `document-ingest` extract prompt to return full page text; write
+  `text_full`. (kills the 240-char / 88%-loss hole)
+- **P2 — Real chunking.** Add a 512-char overlapping `Chunk String` step per page → one `document_chunks`
+  row per chunk with `chunkNumber`. (stages 1–2)
+- **P3 — Composite `chunkId`** `docId_page_chunk`. (stage 3)
+- **P4 — `cited_in` edges** `document → Chunk` (page-level). The declared-but-unwritten edge; same class
+  as the `sourced_from` bug we fixed. (stage 10)
+
+### Track 2 — Foundry-level objects (the forks — decide *with* the deep-dives)
+- **P5 — Per-chunk `{summary, entities}` + embed target.** Add the summary pass. **Fork:** embed
+  `summary` (Foundry-exact) vs embed full chunk (simpler recall). (stages 4–5)
+- **P6 — `Chunk` + `Entity` node types + `mentions` link.** The big ontology extension: Chunk and
+  Entity become first-class nodes with Object Views; discovered entities (categorized) become Entity
+  nodes; chunk `mentions` entity. This is what makes Vertex/Search-Around and Chunk Object Views
+  possible. **Fork:** entity categories for hospitality (supplier · product · clause-type · term …).
+  (stages 6–8) — *the Ontology deep-dive should shape this.*
+- **P7 — Elevate the resolution layer.** Keep `entity-extract` resolving to Variant/Supplier, but run it
+  *on the Entity nodes* (`Entity —resolved_to→ Variant/Supplier`), so discovered concepts and resolved
+  business objects coexist. (stage 9)
+
+### Track 3 — prove + surface (after Track 1 lands; forks decided)
+- **P8 — Prove end-to-end** on a real supplier contract for Valinor: every stage advances; chunks carry
+  full text + summary + embedding; Entity nodes + `mentions` edges created; matches resolve to real
+  Supplier ids; approval writes `describes_entity` + `cited_in`.
+- **P9 — Document copilot (AIP Logic parity).** NL question → semantic search over Chunk embeddings →
+  grounded, cited answer.
+- **P10 — Vertex graph + Object-View lineage** (backlog #2/#4): Search Around chunk↔entity; supplier rail
+  shows cited clauses.
+
+---
+
+## 5. Sequencing
+
+**Track 1 (P1–P4) is pure correctness — build it first, no debate needed.** **Track 2 (P5–P7) is the
+Foundry-exact object model — its forks (embed target, entity node/categories, resolution placement) are
+exactly what the incoming Foundry deep-dives should settle** before we commit the ontology extension.
+**Track 3 proves and surfaces.** This replaces the earlier "activate-and-prove" framing entirely:
+Foundry-exact means rebuilding the ingest stages and adding the Chunk/Entity object model, not running
+the stub.

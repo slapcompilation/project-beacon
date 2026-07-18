@@ -248,11 +248,13 @@ Then *Save & publish → View*.
 Value ÷ effort, hospitality lens:
 
 1. **Document-ingestion arc.** PDF → chunk → embed → LLM entity extraction → **resolve the mention to a
-   real node** → `describes_entity` edge. **Verified 2026-07: this arc is built end-to-end and has never
-   run** (all tables empty) — the resolution step (`entity-extract` matching chunks to real
-   Variant/Supplier ids) is *already implemented*. So it's **activate-and-prove, not greenfield.** Full
-   plan: [DOCUMENT-INGESTION-ROADMAP.md](DOCUMENT-INGESTION-ROADMAP.md) (D0 = prove one real PDF through
-   the pipeline).
+   real node** → `describes_entity` edge. **Audited 2026-07: the arc's skeleton exists end-to-end but is
+   a pre-Foundry stub** — OCR keeps only 240 chars/page, no real chunking, no per-chunk summary/entities,
+   `cited_in` never written, no Chunk/Entity objects. The resolution step (`entity-extract` matching to
+   real Variant/Supplier ids) is genuinely implemented and kept. **Mandate: Foundry-exact replication +
+   the resolution layer on top.** Full spec:
+   [DOCUMENT-INGESTION-ROADMAP.md](DOCUMENT-INGESTION-ROADMAP.md) (transform-by-transform reconstruction
+   of the Foundry pipeline + stage-by-stage gap table + P1–P10 phases).
 2. **Search Around** — interactive multi-hop graph traversal (Supplier → its Variants → their Stock
    Logs → the Documents citing them), with a Radial/Cluster layout. Closes our clearest UX gap.
 3. **The Document Copilot app — the capstone (composes 1 + 2 + this).** The tutorial's entire payoff is
