@@ -117,6 +117,10 @@ entity is a known supplier — a resolved `describes_entity` edge to the real Su
   nodes; chunk `mentions` entity. This is what makes Vertex/Search-Around and Chunk Object Views
   possible. **Fork:** entity categories for hospitality (supplier · product · clause-type · term …).
   (stages 6–8) — *the Ontology deep-dive should shape this.*
+  *Deep-dive 1 settled ([01-ontology](foundry-deep-dives/01-ontology.md)):* PKs deterministic + derived,
+  never random per run (chunkId/entityName comply); titles human-readable (Chunk = summary, Entity =
+  entityName); edges declare **cardinality as modeled, not observed** (`mentions` many-to-many) and name
+  both traversal directions. Entity categories still open.
 - **P7 — Elevate the resolution layer.** Keep `entity-extract` resolving to Variant/Supplier, but run it
   *on the Entity nodes* (`Entity —resolved_to→ Variant/Supplier`), so discovered concepts and resolved
   business objects coexist. (stage 9)

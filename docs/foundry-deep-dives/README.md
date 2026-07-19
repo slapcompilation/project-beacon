@@ -19,7 +19,7 @@ session (steps + screenshots) in order; each gets its own capture file here.
 
 | # | Session | Length | Capture file | Status | Expected to inform |
 |---|---|---|---|---|---|
-| 1 | Creating Your First Ontology | 60–90m | `01-ontology.md` | ⬜ pending | **P6 forks** (Chunk/Entity node types, entity categories, `mentions` link); ontology-manager scorecard row |
+| 1 | Creating Your First Ontology | 60–90m | [`01-ontology.md`](01-ontology.md) | ✅ captured 2026-07 | **P6 partially settled**: PK discipline (deterministic, never random), title rule (Chunk=summary, Entity=entityName), declare cardinality as modeled + both-direction traversal names. Still open: entity categories. Confirms Action Registry + Proposal-flywheel parity |
 | 2 | Building Your First Pipeline | 60–90m | `02-pipeline-builder.md` | ⬜ pending | **P1–P5** ingest transforms (chunking, LLM struct, embed target); pipeline best practices |
 | 3 | Transforming data with Code Repositories | 60m | `03-code-repositories.md` | ⬜ pending | our code-as-ontology stance vs their pro-code path; CI/branch parity claims |
 | 4 | Building Your First Application (Workshop) | 60–90m | `04-workshop.md` | ⬜ pending | P9/P10 surfaces; variables/widgets grammar; NL-authoring leapfrog scope |
