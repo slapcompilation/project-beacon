@@ -3,6 +3,14 @@
 Follow-on to [FOUNDRY-PLAYBOOK.md](../FOUNDRY-PLAYBOOK.md). The user delivers each Palantir deep-dive
 session (steps + screenshots) in order; each gets its own capture file here.
 
+## Source PDFs (local-only)
+
+Each session's lesson pages are exported via browser print-to-PDF into
+`source/<NN-session>/` (e.g. `source/03-code-repositories/01-intro.pdf`, numbered in lesson order).
+That folder is **gitignored** — the courses are Palantir's copyrighted material; only our own
+condensed capture notes are committed. Capture files cite `source PDF + page` for every claim, so any
+later contradiction or fork decision is re-verified against the exact source, not against a summary.
+
 ## Capture protocol (non-negotiable)
 
 1. **Verbatim first, analysis second.** Each file records the session's exact steps, UI names, menu
