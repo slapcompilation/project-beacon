@@ -1,6 +1,9 @@
 # Deep Dive 2 — Building Your First Pipeline (capture)
 
 > Captured 2026-07. Source: full course text + ~50 screenshots from the user.
+> **Cross-verified 2026-07-19 against the source PDFs** (`source/02-pipeline-builder/`, 23 lessons):
+> all key facts match. Two details recovered from source and added below (marked †): materialized
+> outputs are terminal, and the segmentation lesson's modularize-like-code rules of thumb.
 > Verbatim record first; Beacon mapping at the bottom. Unknowns are marked `OPEN:`.
 
 ## 0. Course frame
@@ -163,7 +166,8 @@ enter data. The Upload dialog offers **three destinations**:
   table**. Output rail: name (`joined_transactions_products`), "**Output will be created after first
   build**", "10/10 columns mapped", **Configure expectations / Configure write mode / Configure write
   format** dropdowns, column list (type icon + green check + ✕ + drag), "Use updated schema", "Add
-  column".
+  column". † **Materialized outputs are terminal** — they cannot be used as inputs to further
+  transformations; they represent the outcome of the pipeline (per Add-a-Dataset-Output lesson, p.1).
 - **Save → Deploy** panel: "Deploy this pipeline — Update pipeline logic and build target outputs";
   Last deployment **Succeeded** + timestamp; **Deploy settings | Errors** tabs; "Select outputs to
   build — Deploying … will update logic for **all** outputs, but only the **selected** outputs will
@@ -219,6 +223,11 @@ enter data. The Upload dialog offers **three destinations**:
   - *Optimize for extensibility/readability*: segment into separate Pipeline Builder instances
     ("cleaning", "joining", "ontology"), materialize at each boundary, reuse outputs as inputs —
     "maximize reusability and clarity, **at the cost of build latency**."
+  - † The lesson closes by framing segmentation as **software modularization applied to pipelines**,
+    with three rules of thumb: modularize into logical sections that can be developed/tested/debugged
+    independently; materialize judiciously at natural breakpoints where intermediates are reusable;
+    test segments at key points to catch bad joins/wrong aggregations before they trickle downstream
+    (Segmenting lesson, p.2).
 - **Scheduling**: schedule panel — name/description; Select scheduled outputs; **When to build:
   "When specific datasets update"** (pick dataset nodes + Add) **vs "At a specific time"**.
 - **Branching**: branch dropdown (Main ▾) → "Filter or create branch…" / **Create new branch**

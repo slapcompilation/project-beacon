@@ -1,6 +1,9 @@
 # Deep Dive 1 — Creating Your First Ontology (capture)
 
 > Captured 2026-07. Source: full course text + 28 screenshots from the user.
+> **Cross-verified 2026-07-19 against the source PDFs** (`source/01-ontology/`, 18 lessons): every
+> load-bearing fact matches — exercise answers, lineage counts, PK/title doctrine, cardinality
+> reasoning, action concepts, Object Storage v2. No corrections required.
 > Verbatim record first; Beacon mapping at the bottom. Unknowns are marked `OPEN:`.
 
 ## 0. Course frame (their own words, condensed)
