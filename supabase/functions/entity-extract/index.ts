@@ -24,9 +24,10 @@ interface ExtractRequest {
 }
 
 interface DocumentChunk {
-  chunk_id:     string
-  page:         number
-  text_preview: string
+  chunk_id: string
+  page:     number
+  /** Full chunk text when the Track-1 pipeline wrote it; preview otherwise. */
+  text:     string
 }
 
 interface VariantRow  { id: string; name: string }
@@ -49,7 +50,8 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
 
   try {
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    // Hyphenated fallback: the project secret was created as 'ANTHROPIC-API-KEY'.
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC-API-KEY')
     if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
 
     const auth = await verifyAuth(req)
@@ -60,17 +62,38 @@ Deno.serve(async (req: Request) => {
     if (!body.document_id) return json({ error: 'document_id required' }, 400)
     const threshold = body.threshold ?? 0.65
 
-    // 1. Load document + chunks.
+    // 1. Load the document, then its chunks. Prefer document_chunks.text_full
+    //    (the Track-1 512-char chunks) — matching against 240-char previews
+    //    misses most of every page. Fall back to the jsonb preview store for
+    //    documents ingested before the full-text pipeline.
     const { data: doc, error: docErr } = await supabase
       .from('documents')
       .select('id, hotel_id, title, chunks')
       .eq('id', body.document_id)
       .single() as unknown as {
-        data: { id: string; hotel_id: string; title: string; chunks: DocumentChunk[] | null } | null
+        data: {
+          id: string; hotel_id: string; title: string
+          chunks: Array<{ chunk_id: string; page: number; text_preview: string }> | null
+        } | null
         error: { message: string } | null
       }
     if (docErr || !doc) return json({ error: 'Document not found or access denied' }, 404)
-    if (!doc.chunks || doc.chunks.length === 0) {
+
+    const { data: chunkRows } = await supabase
+      .from('document_chunks')
+      .select('chunk_key, page, chunk_number, text_full, text_preview')
+      .eq('document_id', body.document_id)
+      .order('page', { ascending: true })
+      .order('chunk_number', { ascending: true })
+      .limit(400) as unknown as {
+        data: Array<{ chunk_key: string; page: number; chunk_number: number; text_full: string | null; text_preview: string }> | null
+      }
+
+    const chunks: DocumentChunk[] = (chunkRows && chunkRows.length > 0)
+      ? chunkRows.map((c) => ({ chunk_id: c.chunk_key, page: c.page, text: c.text_full ?? c.text_preview }))
+      : (doc.chunks ?? []).map((c) => ({ chunk_id: c.chunk_id, page: c.page, text: c.text_preview }))
+
+    if (chunks.length === 0) {
       return json({ error: 'Document has no chunks. Run ingestion first.' }, 400)
     }
 
@@ -107,7 +130,7 @@ Deno.serve(async (req: Request) => {
     const userPrompt =
       `Document: ${doc.title}\n\n` +
       `Chunks (chunk_id → text):\n` +
-      doc.chunks.map((c) => `${c.chunk_id}: ${c.text_preview}`).join('\n') +
+      chunks.map((c) => `${c.chunk_id}: ${c.text}`).join('\n') +
       '\n\nCandidate variants (id → name):\n' +
       variants.map((v) => `${v.id}: ${v.name}`).join('\n') +
       '\n\nCandidate suppliers (id → name):\n' +
@@ -136,7 +159,7 @@ Deno.serve(async (req: Request) => {
     // 4. Validate + persist.
     const variantIds  = new Set(variants.map((v) => v.id))
     const supplierIds = new Set(suppliers.map((s) => s.id))
-    const chunkIds    = new Set(doc.chunks.map((c) => c.chunk_id))
+    const chunkIds    = new Set(chunks.map((c) => c.chunk_id))
 
     const rowsToInsert = parsed.suggestions
       .filter((s) => typeof s.confidence === 'number' && s.confidence >= threshold)
