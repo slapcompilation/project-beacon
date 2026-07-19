@@ -108,10 +108,18 @@ entity is a known supplier — a resolved `describes_entity` edge to the real Su
 - **P3 — Composite `chunkId`** `docId_page_chunk`. (stage 3)
 - **P4 — `cited_in` edges** `document → Chunk` (page-level). The declared-but-unwritten edge; same class
   as the `sourced_from` bug we fixed. (stage 10)
+- **P4b — fail-closed stage gates** *(added by deep-dive 2: Foundry Data Expectations — "if checks fail
+  during a dataset build, the build fails")*. Each ingestion stage transition asserts its contract —
+  chunks > 0, `text_full` non-null, `chunkId` unique (the PK expectation), embeddings present,
+  `cited_in` written — and refuses to advance the stage marker otherwise. Today the fn warns to console
+  and advances on partial success; that's the anti-pattern their expectations exist to kill.
 
 ### Track 2 — Foundry-level objects (the forks — decide *with* the deep-dives)
 - **P5 — Per-chunk `{summary, entities}` + embed target.** Add the summary pass. **Fork:** embed
   `summary` (Foundry-exact) vs embed full chunk (simpler recall). (stages 4–5)
+  *Deep-dive 2 did NOT cover this* (the generic pipeline course has no LLM/embed content) — the
+  walkthrough (embeds the summary) stays the only Foundry source; decide with retrieval quality on real
+  data at D-phase.
 - **P6 — `Chunk` + `Entity` node types + `mentions` link.** The big ontology extension: Chunk and
   Entity become first-class nodes with Object Views; discovered entities (categorized) become Entity
   nodes; chunk `mentions` entity. This is what makes Vertex/Search-Around and Chunk Object Views
