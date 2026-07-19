@@ -35,12 +35,21 @@ later contradiction or fork decision is re-verified against the exact source, no
 | 6 | Governance — Security Primitives | 45–60m | [`06-security-primitives.md`](06-security-primitives.md) | ✅ captured 2026-07-19 | **RLS = the stronger primitive, no gap** (their separate-project rule for restricted views is a workaround we don't need). Steals: policy testing panel → "view as role" idea; **data-dependency marking inheritance = taint propagation** — sensitivity flag question parked for P6/P8 (docs will carry guest PII) |
 | 7 | Data Analysis in Contour | 60–90m | [`07-contour.md`](07-contour.md) | ✅ captured 2026-07-19 | **Skip-verdict confirmed** — Contour is dataset-level analyst tooling; their own positioning routes object analysis to Quiver. Keeps: viz-as-filter baseline, "recipes" → scheduled briefing-digest idea, asOf/staleness discipline confirmation, explicit complexity budgets |
 | 8 | Data Analysis in Quiver | 60–90m | [`08-quiver.md`](08-quiver.md) | ✅ captured 2026-07-19 | **Leapfrog validated a 4th time** — AIP Generate/Configure = NL producing the cards, conceding the canvas is scaffolding. Visual functions = Logic Tool registry (their auto-update vs our pin). Graph mode = show-the-wiring confirmation. OPEN: Quiver time-series/forecast + writeback |
-| 9 | Data Protection Tools | 45–60m | `09-data-protection.md` | ⬜ pending | download controls / scans / obfuscation vs our audit + advisor posture |
+| 9 | Data Protection Tools | 45–60m | [`09-data-protection.md`](09-data-protection.md) | ✅ captured 2026-07-19 | All three tools = our existing patterns: Checkpoints = justify-and-log as config-as-data (org_policy candidate); Scanner = detector grammar applied to governance (PII-scan-over-chunks ties to session-6 sensitivity flag, P8 question); Cipher = joinability-preserving column obfuscation (future guest-PII ask) |
 
-## Standing decisions parked on these sessions
+## Standing decisions — outcomes after all 9 sessions
 
-- **P5 fork** — embed the per-chunk `summary` (Foundry-exact) vs full chunk text → session 2.
-- **P6 fork** — Chunk + Entity as first-class node types; hospitality entity categories → session 1.
-- **P7 fork** — resolution layer placement (`Entity —resolved_to→ Variant/Supplier`) → sessions 1 + 2.
+- **P5 fork (embed target)** — NOT settled by any deep dive (session 2 has no LLM/embed content).
+  The original walkthrough (embed the summary) stays the only Foundry source; decide at D-phase with
+  retrieval quality on real data.
+- **P6 fork (Chunk/Entity node types)** — partially settled by session 1: PK discipline
+  (deterministic, never random), title rules (Chunk=summary, Entity=entityName), cardinality
+  declared as modeled + both-direction traversal names. **Hospitality entity categories remain open**
+  — our call to make at build time.
+- **P7 (resolution placement)** — no session contradicted the spec's `Entity —resolved_to→
+  Variant/Supplier` shape; stands as drafted.
+- **Added by the dives**: P4b fail-closed stage gates (session 2's Data Expectations); a parked
+  **sensitivity/PII question for P8** (session 6 marking inheritance + session 9 scanner: does a
+  sensitive source document taint its chunks/suggestions, and how is sensitivity detected?).
 
-Execution of the doc-ingestion spec (Track 1, P1–P4) starts after the forks are settled.
+**All 9 sessions captured. Track 1 (P1–P4b) is unblocked — execution starts on the user's word.**
