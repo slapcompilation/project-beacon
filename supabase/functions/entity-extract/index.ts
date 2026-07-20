@@ -24,9 +24,10 @@ interface ExtractRequest {
 }
 
 interface DocumentChunk {
-  chunk_id:     string
-  page:         number
-  text_preview: string
+  chunk_id: string
+  page:     number
+  /** Full chunk text when the Track-1 pipeline wrote it; preview otherwise. */
+  text:     string
 }
 
 interface VariantRow  { id: string; name: string }
@@ -49,7 +50,8 @@ Deno.serve(async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'POST only' }, 405)
 
   try {
-    const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
+    // Hyphenated fallback: the project secret was created as 'ANTHROPIC-API-KEY'.
+    const apiKey = Deno.env.get('ANTHROPIC_API_KEY') ?? Deno.env.get('ANTHROPIC-API-KEY')
     if (!apiKey) return json({ error: 'ANTHROPIC_API_KEY secret not set' }, 500)
 
     const auth = await verifyAuth(req)
@@ -60,17 +62,38 @@ Deno.serve(async (req: Request) => {
     if (!body.document_id) return json({ error: 'document_id required' }, 400)
     const threshold = body.threshold ?? 0.65
 
-    // 1. Load document + chunks.
+    // 1. Load the document, then its chunks. Prefer document_chunks.text_full
+    //    (the Track-1 512-char chunks) — matching against 240-char previews
+    //    misses most of every page. Fall back to the jsonb preview store for
+    //    documents ingested before the full-text pipeline.
     const { data: doc, error: docErr } = await supabase
       .from('documents')
       .select('id, hotel_id, title, chunks')
       .eq('id', body.document_id)
       .single() as unknown as {
-        data: { id: string; hotel_id: string; title: string; chunks: DocumentChunk[] | null } | null
+        data: {
+          id: string; hotel_id: string; title: string
+          chunks: Array<{ chunk_id: string; page: number; text_preview: string }> | null
+        } | null
         error: { message: string } | null
       }
     if (docErr || !doc) return json({ error: 'Document not found or access denied' }, 404)
-    if (!doc.chunks || doc.chunks.length === 0) {
+
+    const { data: chunkRows } = await supabase
+      .from('document_chunks')
+      .select('chunk_key, page, chunk_number, text_full, text_preview')
+      .eq('document_id', body.document_id)
+      .order('page', { ascending: true })
+      .order('chunk_number', { ascending: true })
+      .limit(400) as unknown as {
+        data: Array<{ chunk_key: string; page: number; chunk_number: number; text_full: string | null; text_preview: string }> | null
+      }
+
+    const chunks: DocumentChunk[] = (chunkRows && chunkRows.length > 0)
+      ? chunkRows.map((c) => ({ chunk_id: c.chunk_key, page: c.page, text: c.text_full ?? c.text_preview }))
+      : (doc.chunks ?? []).map((c) => ({ chunk_id: c.chunk_id, page: c.page, text: c.text_preview }))
+
+    if (chunks.length === 0) {
       return json({ error: 'Document has no chunks. Run ingestion first.' }, 400)
     }
 
@@ -107,7 +130,7 @@ Deno.serve(async (req: Request) => {
     const userPrompt =
       `Document: ${doc.title}\n\n` +
       `Chunks (chunk_id → text):\n` +
-      doc.chunks.map((c) => `${c.chunk_id}: ${c.text_preview}`).join('\n') +
+      chunks.map((c) => `${c.chunk_id}: ${c.text}`).join('\n') +
       '\n\nCandidate variants (id → name):\n' +
       variants.map((v) => `${v.id}: ${v.name}`).join('\n') +
       '\n\nCandidate suppliers (id → name):\n' +
@@ -136,7 +159,7 @@ Deno.serve(async (req: Request) => {
     // 4. Validate + persist.
     const variantIds  = new Set(variants.map((v) => v.id))
     const supplierIds = new Set(suppliers.map((s) => s.id))
-    const chunkIds    = new Set(doc.chunks.map((c) => c.chunk_id))
+    const chunkIds    = new Set(chunks.map((c) => c.chunk_id))
 
     const rowsToInsert = parsed.suggestions
       .filter((s) => typeof s.confidence === 'number' && s.confidence >= threshold)
@@ -158,19 +181,90 @@ Deno.serve(async (req: Request) => {
       return json({ inserted: 0, message: 'No suggestions above threshold.' })
     }
 
-    // Upsert against the partial unique index so re-runs don't double-insert
-    // still-pending suggestions for the same (doc, chunk, entity) triple.
-    const { error: insertError, count } = await supabase
+    // The pending-uniqueness index is PARTIAL (WHERE status='pending'), which
+    // PostgREST's ON CONFLICT cannot target — so re-run protection is done as
+    // a pre-check + plain insert: skip triples that are already pending;
+    // decided (approved/rejected) triples may be re-suggested, as the index
+    // intends.
+    const { data: existing } = await supabase
       .from('entity_link_suggestions')
-      .upsert(rowsToInsert, {
-        onConflict: 'document_id,chunk_key,entity_type,entity_id',
-        ignoreDuplicates: true,
-        count: 'exact',
-      })
-    if (insertError) return json({ error: insertError.message }, 502)
+      .select('chunk_key, entity_type, entity_id')
+      .eq('document_id', doc.id)
+      .eq('status', 'pending')
+    const seen = new Set((existing ?? []).map((e) => `${e.chunk_key}|${e.entity_type}|${e.entity_id}`))
+    const fresh = rowsToInsert.filter((r) => {
+      const key = `${r.chunk_key}|${r.entity_type}|${r.entity_id}`
+      if (seen.has(key)) return false
+      seen.add(key)  // also dedupes within this batch
+      return true
+    })
+
+    if (fresh.length > 0) {
+      const { error: insertError } = await supabase
+        .from('entity_link_suggestions')
+        .insert(fresh)
+      if (insertError) return json({ error: insertError.message }, 502)
+    }
+
+    // P7 harmonization: this document's discovered Entity nodes resolve to
+    // operational nodes via entity -resolved_to-> supplier|variant edges.
+    // DETERMINISTIC ONLY (case-insensitive exact name match) — anything fuzzy
+    // stays in the human-approved suggestions queue above.
+    let resolved = 0
+    const { data: mentionEdges } = await supabase
+      .from('relationship_edges')
+      .select('target_id')
+      .eq('edge_type', 'mentions')
+      .eq('metadata->>document_id', doc.id)
+    const mentionedIds = [...new Set((mentionEdges ?? []).map((e) => e.target_id as string))]
+
+    if (mentionedIds.length > 0) {
+      const { data: entityRows } = await supabase
+        .from('entities')
+        .select('id, name_key, category')
+        .in('id', mentionedIds)
+        .in('category', ['supplier', 'product'])
+
+      if (entityRows && entityRows.length > 0) {
+        const supplierByKey = new Map(suppliers.map((s) => [s.name.toLowerCase().trim(), s.id]))
+        const variantByKey  = new Map(variants.map((v) => [v.name.toLowerCase().trim(), v.id]))
+
+        const { data: alreadyResolved } = await supabase
+          .from('relationship_edges')
+          .select('source_id')
+          .eq('edge_type', 'resolved_to')
+          .in('source_id', entityRows.map((e) => e.id))
+        const done = new Set((alreadyResolved ?? []).map((e) => e.source_id as string))
+
+        const resolvedRows = entityRows.flatMap((e) => {
+          if (done.has(e.id)) return []
+          const targetId = e.category === 'supplier'
+            ? supplierByKey.get(e.name_key)
+            : variantByKey.get(e.name_key)
+          if (!targetId) return []
+          return [{
+            edge_type:    'resolved_to',
+            source_type:  'entity',
+            source_id:    e.id,
+            target_type:  e.category === 'supplier' ? 'supplier' : 'variant',
+            target_id:    targetId,
+            hotel_id:     doc.hotel_id,
+            triggered_by: 'system',
+            metadata:     { matched: 'exact-name', document_id: doc.id },
+          }]
+        })
+
+        if (resolvedRows.length > 0) {
+          const { error: resErr } = await supabase.from('relationship_edges').insert(resolvedRows)
+          if (resErr) return json({ error: `resolved_to insert failed: ${resErr.message}` }, 502)
+          resolved = resolvedRows.length
+        }
+      }
+    }
 
     return json({
-      inserted:    count ?? rowsToInsert.length,
+      inserted:    fresh.length,
+      resolved,
       considered:  parsed.suggestions.length,
       threshold,
       tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),

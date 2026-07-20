@@ -125,4 +125,6 @@ export const EDGE_LABELS: Record<EdgeType, string> = {
   cited_in:          'Cited in',
   applies_to:        'Applies to',
   derived_from:      'Derived from',
+  mentions:          'Mentions',
+  resolved_to:       'Resolved to',
 }
