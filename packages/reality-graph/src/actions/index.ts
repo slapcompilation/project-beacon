@@ -9,7 +9,7 @@ export type {
 
 export { validateAction } from './criteria'
 
-export { copilotProposalToAction } from './copilotProposal'
+export { copilotProposalToAction, evaluateBatchApprovals } from './copilotProposal'
 
 export { SYSTEM_ACTOR, isSystemActor, resolveActor } from './actor'
 

@@ -64,6 +64,7 @@ export {
   actionDescriptors,
   getActionDescriptor,
   copilotProposalToAction,
+  evaluateBatchApprovals,
   SYSTEM_ACTOR,
   isSystemActor,
   resolveActor,
