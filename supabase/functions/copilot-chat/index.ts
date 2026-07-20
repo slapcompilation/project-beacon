@@ -156,6 +156,17 @@ const TOOLS: Anthropic.Tool[] = [
     },
   },
   {
+    name: 'search_documents',
+    description: 'Semantic search across the hotel\'s uploaded documents (contracts, supplier specs, scanned invoices, transcribed calls). Returns the best-matching passages with the document title, page, and text. Use whenever the answer may be written in a document rather than the operational data — e.g. "what\'s the late-delivery penalty in the Premium Spirits contract", "what lead time did we agree with X", "does the agreement allow inter-property transfers", "what does the contract say about minimum order value". Always cite the document title and page in your answer when you use a passage.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: { type: 'string', description: 'Natural-language question or phrase to search for in the documents' },
+      },
+      required: ['query'],
+    },
+  },
+  {
     name: 'get_restock_requests',
     description: 'Get current restock requests with their status. Use for "pending orders", "restock queue", "what needs ordering".',
     input_schema: {
@@ -317,6 +328,7 @@ RULES:
 6. When multiple signals point to the same root cause, synthesize them — don't list each separately.
 7. If you can't find what the user is asking about, say so clearly rather than guessing.
 8. For numbers and costs, always be precise — never round unless the user asks for a summary.
+9. For anything that might be written in a document (contract terms, agreed lead times, penalties, policies, spec sheets), call search_documents. When you use a retrieved passage, cite it inline as (Document Title, p.N) and answer only from what the passages actually say — never invent contract terms.
 
 RESPONSE FORMAT:
 - Use markdown for structure (headers, bullets, bold for emphasis)
@@ -396,6 +408,7 @@ async function executeTool(
   selection: SelectionContext | undefined,
   hotelId: string | undefined,
   constraints: ConstraintRecordLite[],
+  authHeader: string,
 ): Promise<string> {
   try {
     switch (toolName) {
@@ -569,6 +582,51 @@ async function executeTool(
           .limit(10)
         if (error) return JSON.stringify({ error: error.message })
         return JSON.stringify(data)
+      }
+      case 'search_documents': {
+        // Foundry Ontology-Augmented Generation: embed the question, semantic
+        // search over chunk summaries, hand the passages back for a cited answer.
+        if (!hotelId) return JSON.stringify({ error: 'no hotel in context' })
+        if (typeof input.query !== 'string' || input.query.trim().length < 2) {
+          return JSON.stringify({ error: 'query is required' })
+        }
+        const embedResp = await fetch(`${Deno.env.get('SUPABASE_URL')!}/functions/v1/embed-text`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': authHeader },
+          body:    JSON.stringify({ texts: [input.query] }),
+        })
+        if (!embedResp.ok) {
+          return JSON.stringify({ error: `document search unavailable (embed failed ${String(embedResp.status)})` })
+        }
+        const { embeddings } = await embedResp.json() as { embeddings: number[][] }
+        const queryVec = embeddings[0]
+        if (!queryVec) return JSON.stringify({ error: 'query could not be embedded' })
+
+        const { data, error } = await supabase.rpc('match_document_chunks', {
+          p_hotel_id:  hotelId,
+          p_query:     `[${queryVec.join(',')}]`,
+          p_threshold: 0.35,
+          p_limit:     8,
+        }) as unknown as {
+          data: Array<{ document_id: string; document_title: string; page: number; summary: string | null; text_full: string | null; text_preview: string; similarity: number }> | null
+          error: { message: string } | null
+        }
+        if (error) return JSON.stringify({ error: error.message })
+        const passages = (data ?? []).map((m) => ({
+          document:   m.document_title,
+          documentId: m.document_id,
+          page:       m.page,
+          similarity: Number(m.similarity.toFixed(3)),
+          summary:    m.summary ?? undefined,
+          text:       m.text_full ?? m.text_preview,
+        }))
+        return JSON.stringify({
+          passages,
+          count: passages.length,
+          note: passages.length === 0
+            ? 'No matching document passages. Say so — do not invent document contents.'
+            : 'Answer only from these passages; cite each as (document, p.page).',
+        })
       }
       case 'get_restock_requests': {
         let query = supabase
@@ -893,6 +951,8 @@ Deno.serve(async (req: Request) => {
     const auth = await verifyAuth(req)
     if (isAuthError(auth)) return auth
     const { supabase, user } = auth
+    // Forwarded to embed-text for document search (same authenticated user).
+    const authHeader = req.headers.get('Authorization') ?? ''
 
     const body = await req.json() as RequestBody
     if (!body.messages || body.messages.length === 0) {
@@ -1081,7 +1141,7 @@ Deno.serve(async (req: Request) => {
                   iteration: iterations,
                 })
                 const start    = Date.now()
-                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId, constraintRecords)
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader)
                 const duration = Date.now() - start
                 send({
                   type:        'tool_result',
@@ -1195,7 +1255,7 @@ Deno.serve(async (req: Request) => {
       const toolResults: Anthropic.ToolResultBlockParam[] = []
       for (const toolUse of toolUseBlocks) {
         const start = Date.now()
-        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId, constraintRecords)
+        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader)
         const duration = Date.now() - start
 
         toolTrace.push({
