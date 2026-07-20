@@ -1,10 +1,10 @@
 name: Deploy edge functions
 
-# Auto-deploys the bundle-dependent Supabase edge functions on merge to main.
-# Removes the recurring manual step (regen the 692KB reality-graph bundle by
-# hand, then `supabase functions deploy`) that blocked shipping the calibration
-# pillar. The bundle is rebuilt FROM SOURCE here, so the deployed code is always
-# correct even if the committed artifact drifted.
+# Auto-deploys ALL Supabase edge functions on merge to main. Discovers the
+# function set from supabase/functions/ so the deployed set can't drift from the
+# repo. The reality-graph bundle is rebuilt FROM SOURCE first (bundle-dependent
+# functions import it), so the deployed code is always correct even if the
+# committed artifact drifted.
 #
 # Dormant until SUPABASE_ACCESS_TOKEN is set as a repo secret — the deploy step
 # no-ops with a warning when it's absent, so this never blocks a merge.
@@ -52,18 +52,24 @@ jobs:
         with:
           version: latest
 
-      # JWT policy per function lives in supabase/config.toml (verify_jwt), so the
-      # deploy never hand-passes --no-verify-jwt and a new function can't ship with
-      # the wrong default. To add a bundle-dependent function, add it to FUNCTIONS
-      # (and a [functions.<slug>] block in config.toml only if it must be public).
-      - name: Deploy bundle-dependent functions
-        env:
-          FUNCTIONS: copilot-chat scenario-simulate intelligence-cycle
+      # Deploy EVERY function in supabase/functions/ — discovered from the
+      # filesystem so the deployed set can't drift from the repo (the gap that
+      # left agent-llm, invite-member, parse-invoice, and the integration
+      # webhooks undeployed while the app called them). JWT policy per function
+      # lives in supabase/config.toml (verify_jwt), so the deploy never
+      # hand-passes a flag and a new function can't ship with the wrong default.
+      # A new function needs zero workflow changes — just add a [functions.<slug>]
+      # block in config.toml if it must be reachable without a user JWT.
+      - name: Deploy all edge functions
         run: |
           if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
             echo "::warning::SUPABASE_ACCESS_TOKEN not set — skipping edge deploy. Add the repo secret to enable."
             exit 0
           fi
-          for fn in $FUNCTIONS; do
+          for dir in supabase/functions/*/; do
+            fn=$(basename "$dir")
+            [ "$fn" = "_shared" ] && continue
+            echo "::group::deploy $fn"
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+            echo "::endgroup::"
           done
