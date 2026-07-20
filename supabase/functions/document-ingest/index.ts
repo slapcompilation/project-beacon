@@ -413,10 +413,14 @@ async function extractVision(
     ? 'Extract the COMPLETE text content of this PDF, page by page. For each page output a marker line "=== PAGE <n> ===" (1-based) followed by that page\'s full text in reading order. Include every page, even if nearly empty. Output only markers and text — no commentary, no markdown fences.'
     : 'Extract ALL visible text from this image, in reading order. Output only the text — no commentary, no markdown fences.'
 
+  // temperature 0: Foundry's extract step is deterministic; greedy decoding
+  // keeps re-ingestion text (and therefore chunk keys) as stable as an LLM
+  // extraction can be.
   const completion = await anthropic.messages.create({
-    model:      MODEL,
-    max_tokens: OCR_MAX_TOKENS,
-    messages:   [{ role: 'user', content: [contentBlock, { type: 'text', text: prompt }] }],
+    model:       MODEL,
+    max_tokens:  OCR_MAX_TOKENS,
+    temperature: 0,
+    messages:    [{ role: 'user', content: [contentBlock, { type: 'text', text: prompt }] }],
   })
 
   const tokensUsed = (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0)

@@ -181,19 +181,33 @@ Deno.serve(async (req: Request) => {
       return json({ inserted: 0, message: 'No suggestions above threshold.' })
     }
 
-    // Upsert against the partial unique index so re-runs don't double-insert
-    // still-pending suggestions for the same (doc, chunk, entity) triple.
-    const { error: insertError, count } = await supabase
+    // The pending-uniqueness index is PARTIAL (WHERE status='pending'), which
+    // PostgREST's ON CONFLICT cannot target — so re-run protection is done as
+    // a pre-check + plain insert: skip triples that are already pending;
+    // decided (approved/rejected) triples may be re-suggested, as the index
+    // intends.
+    const { data: existing } = await supabase
       .from('entity_link_suggestions')
-      .upsert(rowsToInsert, {
-        onConflict: 'document_id,chunk_key,entity_type,entity_id',
-        ignoreDuplicates: true,
-        count: 'exact',
-      })
-    if (insertError) return json({ error: insertError.message }, 502)
+      .select('chunk_key, entity_type, entity_id')
+      .eq('document_id', doc.id)
+      .eq('status', 'pending')
+    const seen = new Set((existing ?? []).map((e) => `${e.chunk_key}|${e.entity_type}|${e.entity_id}`))
+    const fresh = rowsToInsert.filter((r) => {
+      const key = `${r.chunk_key}|${r.entity_type}|${r.entity_id}`
+      if (seen.has(key)) return false
+      seen.add(key)  // also dedupes within this batch
+      return true
+    })
+
+    if (fresh.length > 0) {
+      const { error: insertError } = await supabase
+        .from('entity_link_suggestions')
+        .insert(fresh)
+      if (insertError) return json({ error: insertError.message }, 502)
+    }
 
     return json({
-      inserted:    count ?? rowsToInsert.length,
+      inserted:    fresh.length,
       considered:  parsed.suggestions.length,
       threshold,
       tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),
