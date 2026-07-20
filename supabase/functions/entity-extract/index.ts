@@ -206,8 +206,65 @@ Deno.serve(async (req: Request) => {
       if (insertError) return json({ error: insertError.message }, 502)
     }
 
+    // P7 harmonization: this document's discovered Entity nodes resolve to
+    // operational nodes via entity -resolved_to-> supplier|variant edges.
+    // DETERMINISTIC ONLY (case-insensitive exact name match) — anything fuzzy
+    // stays in the human-approved suggestions queue above.
+    let resolved = 0
+    const { data: mentionEdges } = await supabase
+      .from('relationship_edges')
+      .select('target_id')
+      .eq('edge_type', 'mentions')
+      .eq('metadata->>document_id', doc.id)
+    const mentionedIds = [...new Set((mentionEdges ?? []).map((e) => e.target_id as string))]
+
+    if (mentionedIds.length > 0) {
+      const { data: entityRows } = await supabase
+        .from('entities')
+        .select('id, name_key, category')
+        .in('id', mentionedIds)
+        .in('category', ['supplier', 'product'])
+
+      if (entityRows && entityRows.length > 0) {
+        const supplierByKey = new Map(suppliers.map((s) => [s.name.toLowerCase().trim(), s.id]))
+        const variantByKey  = new Map(variants.map((v) => [v.name.toLowerCase().trim(), v.id]))
+
+        const { data: alreadyResolved } = await supabase
+          .from('relationship_edges')
+          .select('source_id')
+          .eq('edge_type', 'resolved_to')
+          .in('source_id', entityRows.map((e) => e.id))
+        const done = new Set((alreadyResolved ?? []).map((e) => e.source_id as string))
+
+        const resolvedRows = entityRows.flatMap((e) => {
+          if (done.has(e.id)) return []
+          const targetId = e.category === 'supplier'
+            ? supplierByKey.get(e.name_key)
+            : variantByKey.get(e.name_key)
+          if (!targetId) return []
+          return [{
+            edge_type:    'resolved_to',
+            source_type:  'entity',
+            source_id:    e.id,
+            target_type:  e.category === 'supplier' ? 'supplier' : 'variant',
+            target_id:    targetId,
+            hotel_id:     doc.hotel_id,
+            triggered_by: 'system',
+            metadata:     { matched: 'exact-name', document_id: doc.id },
+          }]
+        })
+
+        if (resolvedRows.length > 0) {
+          const { error: resErr } = await supabase.from('relationship_edges').insert(resolvedRows)
+          if (resErr) return json({ error: `resolved_to insert failed: ${resErr.message}` }, 502)
+          resolved = resolvedRows.length
+        }
+      }
+    }
+
     return json({
       inserted:    fresh.length,
+      resolved,
       considered:  parsed.suggestions.length,
       threshold,
       tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),

@@ -1,4 +1,4 @@
-// document-ingest — Foundry-exact ingestion pipeline (Track 1: P1-P4b).
+// document-ingest — Foundry-exact ingestion pipeline (Tracks 1+2: P1-P6).
 //
 // Mirrors the Foundry document-processing reference, stage for stage:
 //   1. Extract FULL text per page (Anthropic vision / Whisper / in-process)
@@ -6,9 +6,13 @@
 //   3. Chunk String: 512 chars, 128 overlap, per page
 //   4. Composite chunk key: <docId>_<page>_<chunkNumber>  (deterministic —
 //      re-ingesting a document produces identical keys, never random ids)
-//   5. Embed each chunk's full text -> document_chunks rows
-//   6. cited_in provenance edges: document -> chunk (page-level)
-//   7. entity-extract -> entity_link_suggestions
+//   5. Use LLM per chunk -> { summary, entities[{name, category}] }
+//      (fixed hospitality categories, singular form, no duplicates)
+//   6. Embed each chunk's SUMMARY -> document_chunks rows (Foundry embeds the
+//      summary; text_full stays as a property)
+//   7. cited_in provenance edges: document -> chunk (page-level)
+//   8. Entity nodes (deduped per hotel/category) + chunk -mentions-> entity
+//   9. entity-extract -> entity_link_suggestions + resolved_to harmonization
 //
 // Stage transitions are FAIL-CLOSED (Foundry data-expectations posture): each
 // milestone asserts its contract and the stage marker refuses to advance
@@ -68,6 +72,17 @@ const CHUNK_SIZE     = 512   // Foundry reference: Chunk String, 512, overlappin
 const CHUNK_OVERLAP  = 128
 const MAX_CHUNKS     = 2000  // hard ceiling; a doc past this needs a batched design
 const OCR_MAX_TOKENS = 32000 // full-text extraction; stop_reason is gated below
+
+// P5 Use LLM step: fixed hospitality vocabulary for discovered entities.
+const ENTITY_CATEGORIES = ['supplier', 'product', 'location', 'clause', 'term'] as const
+type EntityCategory = (typeof ENTITY_CATEGORIES)[number]
+const ENRICH_BATCH        = 25    // chunks per enrichment call
+const MAX_ENTITIES_PER_CHUNK = 8
+
+interface ChunkEnrichment {
+  summary:  string
+  entities: Array<{ name: string; category: EntityCategory }>
+}
 
 // Three pipelines, gated by MIME:
 //   VISION  → Anthropic vision (pdf + images)
@@ -140,6 +155,61 @@ function gateFail(gate: string, detail: string, stageReached: 'raw' | IngestStag
   return json({ error: `stage gate failed: ${gate}`, gate, detail, stage_reached: stageReached }, status)
 }
 
+/** P5 Use LLM step: one batched call per ENRICH_BATCH chunks producing
+ *  { summary, entities } per chunk. Foundry's instructions verbatim in
+ *  spirit: summarize the snippet, extract entities in fixed categories,
+ *  singular form, no duplicates. Returns a map keyed by chunk_key; a chunk
+ *  missing from the model output is a gate failure upstream. */
+async function enrichChunks(
+  chunks: ChunkRow[],
+  apiKey: string,
+): Promise<{ enrichment: Map<string, ChunkEnrichment>; tokensUsed: number }> {
+  const anthropic  = new Anthropic({ apiKey })
+  const enrichment = new Map<string, ChunkEnrichment>()
+  let tokensUsed = 0
+
+  const categories = ENTITY_CATEGORIES.join(' | ')
+  for (let i = 0; i < chunks.length; i += ENRICH_BATCH) {
+    const batch = chunks.slice(i, i + ENRICH_BATCH)
+    const prompt =
+      'For each chunk below: (1) write a one-sentence summary of its content; ' +
+      `(2) extract the entities it mentions, each classified into exactly one category: ${categories}. ` +
+      'Use singular form for entity names, no duplicates within a chunk, at most ' +
+      `${String(MAX_ENTITIES_PER_CHUNK)} entities per chunk. A chunk with no clear entities gets an empty array. ` +
+      'Return ONLY JSON: {"chunks":[{"chunk_key":"...","summary":"...","entities":[{"name":"...","category":"..."}]}]} ' +
+      'covering EVERY chunk_key given.\n\n' +
+      batch.map((c) => `chunk_key ${c.chunk_key}:\n${c.text_full}`).join('\n\n')
+
+    const completion = await anthropic.messages.create({
+      model:       MODEL,
+      max_tokens:  16000,
+      temperature: 0,
+      messages:    [{ role: 'user', content: prompt }],
+    })
+    tokensUsed += (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0)
+
+    const textBlock = completion.content.find((b) => b.type === 'text')
+    if (!textBlock || textBlock.type !== 'text') continue
+    let parsed: { chunks: Array<{ chunk_key: string; summary: string; entities: Array<{ name: string; category: string }> }> }
+    try {
+      parsed = JSON.parse(textBlock.text.trim().replace(/^```(?:json)?\s*|\s*```$/g, ''))
+    } catch {
+      continue // missing keys are caught by the coverage gate
+    }
+    for (const c of parsed.chunks ?? []) {
+      if (typeof c.chunk_key !== 'string' || typeof c.summary !== 'string' || c.summary.trim().length === 0) continue
+      const entities = (Array.isArray(c.entities) ? c.entities : [])
+        .filter((e): e is { name: string; category: EntityCategory } =>
+          typeof e?.name === 'string' && e.name.trim().length > 0
+          && ENTITY_CATEGORIES.includes(e.category as EntityCategory))
+        .slice(0, MAX_ENTITIES_PER_CHUNK)
+        .map((e) => ({ name: e.name.trim(), category: e.category }))
+      enrichment.set(c.chunk_key, { summary: c.summary.trim(), entities })
+    }
+  }
+  return { enrichment, tokensUsed }
+}
+
 Deno.serve(async (req: Request) => {
   const pre = preflight(req)
   if (pre) return pre
@@ -166,7 +236,7 @@ Deno.serve(async (req: Request) => {
     // 1. Load the row; RLS guarantees the caller has scope.
     const { data: doc, error: docErr } = await supabase
       .from('documents')
-      .select('id, hotel_id, mime_type, storage_path, title, ingestion_stage')
+      .select('id, hotel_id, organization_id, mime_type, storage_path, title, ingestion_stage')
       .eq('id', body.document_id)
       .single()
     if (docErr || !doc) return json({ error: 'Document not found or access denied' }, 404)
@@ -251,8 +321,21 @@ Deno.serve(async (req: Request) => {
     const funcBase = `${Deno.env.get('SUPABASE_URL')!}/functions/v1`
     const forward  = { 'Content-Type': 'application/json', 'Authorization': authHeader }
 
-    // 5. Embed the FULL chunk text. Without embeddings the pipeline cannot
-    //    reach 'embedded' — a missing key is a failed build, not a silent skip.
+    // 5. Use LLM per chunk: { summary, entities } (P5). Every chunk must be
+    //    covered — a summary the model skipped is a gate failure, because the
+    //    embedding is computed over the summary.
+    const { enrichment, tokensUsed: enrichTokens } = await enrichChunks(chunkRows, anthropicKey)
+    tokensUsed += enrichTokens
+    const uncovered = chunkRows.filter((c) => !enrichment.has(c.chunk_key))
+    if (uncovered.length > 0) {
+      return gateFail('embedded.enrichment_complete',
+        `${String(uncovered.length)}/${String(chunkRows.length)} chunks missing {summary, entities} from the enrichment pass (first: ${uncovered[0]!.chunk_key}). Document settled at ocr.`,
+        'ocr', 502)
+    }
+
+    // 6. Embed each chunk's SUMMARY (Foundry-exact embed target). Without
+    //    embeddings the pipeline cannot reach 'embedded' — a missing key is a
+    //    failed build, not a silent skip.
     if (!openaiKey) {
       return gateFail('embedded.provider_available',
         'OPENAI_API_KEY secret not set — embeddings cannot be computed. Document settled at ocr.',
@@ -265,7 +348,7 @@ Deno.serve(async (req: Request) => {
       const batch = chunkRows.slice(i, i + BATCH)
       const resp = await fetch(`${funcBase}/embed-text`, {
         method: 'POST', headers: forward,
-        body: JSON.stringify({ texts: batch.map((c) => c.text_full) }),
+        body: JSON.stringify({ texts: batch.map((c) => enrichment.get(c.chunk_key)!.summary) }),
       })
       if (!resp.ok) {
         const errText = await resp.text().catch(() => '')
@@ -301,6 +384,7 @@ Deno.serve(async (req: Request) => {
         chunk_number: c.chunk_number,
         text_preview: c.text_preview,
         text_full:    c.text_full,
+        summary:      enrichment.get(c.chunk_key)!.summary,
         embedding:    `[${embeddings[i]!.join(',')}]`,
       })))
     if (insErr) {
@@ -340,6 +424,76 @@ Deno.serve(async (req: Request) => {
       })))
     if (edgeInsErr) {
       return gateFail('embedded.citations_written', `cited_in insert failed: ${edgeInsErr.message}`, 'ocr', 502)
+    }
+
+    // 7. Entity nodes + mentions edges (P6). Entities dedupe per
+    //    (hotel, category, name_key) — the Foundry Entity object's
+    //    PK-by-entityName, tenant-scoped. Mention edges are refreshed per
+    //    document like cited_in; entity rows are stable vocabulary and stay.
+    const wanted = new Map<string, { name: string; category: EntityCategory }>()
+    for (const c of chunkRows) {
+      for (const e of enrichment.get(c.chunk_key)!.entities) {
+        wanted.set(`${e.category}|${e.name.toLowerCase()}`, e)
+      }
+    }
+
+    let entityByKey = new Map<string, string>()
+    if (wanted.size > 0) {
+      const { error: entUpErr } = await supabase
+        .from('entities')
+        .upsert([...wanted.values()].map((e) => ({
+          hotel_id:        doc.hotel_id,
+          organization_id: doc.organization_id ?? null,
+          name:            e.name,
+          category:        e.category,
+        })), { onConflict: 'hotel_id,category,name_key', ignoreDuplicates: true })
+      if (entUpErr) {
+        return gateFail('embedded.entities_persisted', `Entity upsert failed: ${entUpErr.message}`, 'ocr', 502)
+      }
+
+      const { data: entRows, error: entSelErr } = await supabase
+        .from('entities')
+        .select('id, name_key, category')
+        .eq('hotel_id', doc.hotel_id)
+        .in('name_key', [...new Set([...wanted.values()].map((e) => e.name.toLowerCase().trim()))])
+      if (entSelErr || !entRows) {
+        return gateFail('embedded.entities_readback', `Entity readback failed: ${entSelErr?.message ?? 'no rows'}`, 'ocr', 502)
+      }
+      entityByKey = new Map(entRows.map((r) => [`${r.category}|${r.name_key}`, r.id]))
+    }
+
+    const chunkIdByKey = new Map(storedChunks.map((c) => [c.chunk_key, c.id]))
+    const mentionRows: Array<Record<string, unknown>> = []
+    for (const c of chunkRows) {
+      for (const e of enrichment.get(c.chunk_key)!.entities) {
+        const entityId = entityByKey.get(`${e.category}|${e.name.toLowerCase().trim()}`)
+        if (!entityId) continue
+        mentionRows.push({
+          edge_type:    'mentions',
+          source_type:  'chunk',
+          source_id:    chunkIdByKey.get(c.chunk_key),
+          target_type:  'entity',
+          target_id:    entityId,
+          hotel_id:     doc.hotel_id,
+          triggered_by: 'system',
+          metadata:     { document_id: body.document_id, chunk_key: c.chunk_key, page: c.page, entity_name: e.name },
+        })
+      }
+    }
+
+    const { error: menDelErr } = await supabase
+      .from('relationship_edges')
+      .delete()
+      .eq('edge_type', 'mentions')
+      .eq('metadata->>document_id', body.document_id)
+    if (menDelErr) {
+      return gateFail('embedded.mentions_refreshed', `Stale mentions cleanup failed: ${menDelErr.message}`, 'ocr', 502)
+    }
+    if (mentionRows.length > 0) {
+      const { error: menInsErr } = await supabase.from('relationship_edges').insert(mentionRows)
+      if (menInsErr) {
+        return gateFail('embedded.mentions_written', `mentions insert failed: ${menInsErr.message}`, 'ocr', 502)
+      }
     }
 
     stage = 'embedded'
