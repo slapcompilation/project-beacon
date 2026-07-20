@@ -56,3 +56,6 @@ web-build/
 .vercel
 .env*
 !.env.example
+
+# Palantir Learning course exports (copyrighted source material — local only)
+docs/foundry-deep-dives/source/

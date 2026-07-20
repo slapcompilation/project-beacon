@@ -1,0 +1,55 @@
+# Foundry Deep Dives — capture ledger
+
+Follow-on to [FOUNDRY-PLAYBOOK.md](../FOUNDRY-PLAYBOOK.md). The user delivers each Palantir deep-dive
+session (steps + screenshots) in order; each gets its own capture file here.
+
+## Source PDFs (local-only)
+
+Each session's lesson pages are exported via browser print-to-PDF into
+`source/<NN-session>/` (e.g. `source/03-code-repositories/01-intro.pdf`, numbered in lesson order).
+That folder is **gitignored** — the courses are Palantir's copyrighted material; only our own
+condensed capture notes are committed. Capture files cite `source PDF + page` for every claim, so any
+later contradiction or fork decision is re-verified against the exact source, not against a summary.
+
+## Capture protocol (non-negotiable)
+
+1. **Verbatim first, analysis second.** Each file records the session's exact steps, UI names, menu
+   paths, parameter values, and screenshot contents *as given* — before any Beacon mapping.
+2. **No assumption-fill.** Anything the session doesn't show is written as `OPEN: …`, never guessed.
+   An OPEN item is a question for the user or a later session — not a blank to improvise over.
+3. **Beacon mapping is a separate section** at the bottom of each file (what it confirms / changes /
+   adds in the playbook scorecard, the doc-ingestion spec P1–P10, or the build backlog).
+4. **After each session:** update the status table below + fold verdict changes back into
+   [FOUNDRY-PLAYBOOK.md](../FOUNDRY-PLAYBOOK.md) and
+   [DOCUMENT-INGESTION-ROADMAP.md](../DOCUMENT-INGESTION-ROADMAP.md).
+
+## Sessions
+
+| # | Session | Length | Capture file | Status | Expected to inform |
+|---|---|---|---|---|---|
+| 1 | Creating Your First Ontology | 60–90m | [`01-ontology.md`](01-ontology.md) | ✅ captured 2026-07 | **P6 partially settled**: PK discipline (deterministic, never random), title rule (Chunk=summary, Entity=entityName), declare cardinality as modeled + both-direction traversal names. Still open: entity categories. Confirms Action Registry + Proposal-flywheel parity |
+| 2 | Building Your First Pipeline | 60–90m | [`02-pipeline-builder.md`](02-pipeline-builder.md) | ✅ captured 2026-07 | **Data expectations = fail-closed stage gates** (adopted into Track 1); bad-join/grain-validation reflex; upload triage (structured/media/unstructured); **P5 NOT covered** (no LLM/embed content — walkthrough stays the only source) |
+| 3 | Transforming data with Code Repositories | 60m | [`03-code-repositories.md`](03-code-repositories.md) | ✅ captured 2026-07-19 | **Code-as-ontology stance CONFIRMED, no downgrade** — their pro-code path is a web git+PR+checks clone of our native flow. Steal candidates: PR tabs for pipeline-impact + security changes (CI comment analog); preview-sampling join caveat = grain lesson again |
+| 4 | Building Your First Application (Workshop) | 60–90m | [`04-workshop.md`](04-workshop.md) | ✅ captured 2026-07-19 | **GUI compiles to code** (action Rules page shows TS; complex actions require typed TS decorators) — strengthens NL-leapfrog case. Steal: ontology-level conditional formatting (value→intent rules in registry). Selection-aware defaults + "operational app vs dashboard" = our principles verbatim |
+| 5 | Creating Your First Data Connection | 45–60m | [`05-data-connection.md`](05-data-connection.md) | ✅ captured 2026-07-19 | Ingestion primitives named: Source (secrets/certs/egress) → Sync → build. Blueprint for future PMS/POS connector story; egress = named role-gated allowlists; secrets-on-source confirms our discipline. Their 4-question production checklist = our monitors config schema |
+| 6 | Governance — Security Primitives | 45–60m | [`06-security-primitives.md`](06-security-primitives.md) | ✅ captured 2026-07-19 | **RLS = the stronger primitive, no gap** (their separate-project rule for restricted views is a workaround we don't need). Steals: policy testing panel → "view as role" idea; **data-dependency marking inheritance = taint propagation** — sensitivity flag question parked for P6/P8 (docs will carry guest PII) |
+| 7 | Data Analysis in Contour | 60–90m | [`07-contour.md`](07-contour.md) | ✅ captured 2026-07-19 | **Skip-verdict confirmed** — Contour is dataset-level analyst tooling; their own positioning routes object analysis to Quiver. Keeps: viz-as-filter baseline, "recipes" → scheduled briefing-digest idea, asOf/staleness discipline confirmation, explicit complexity budgets |
+| 8 | Data Analysis in Quiver | 60–90m | [`08-quiver.md`](08-quiver.md) | ✅ captured 2026-07-19 | **Leapfrog validated a 4th time** — AIP Generate/Configure = NL producing the cards, conceding the canvas is scaffolding. Visual functions = Logic Tool registry (their auto-update vs our pin). Graph mode = show-the-wiring confirmation. OPEN: Quiver time-series/forecast + writeback |
+| 9 | Data Protection Tools | 45–60m | [`09-data-protection.md`](09-data-protection.md) | ✅ captured 2026-07-19 | All three tools = our existing patterns: Checkpoints = justify-and-log as config-as-data (org_policy candidate); Scanner = detector grammar applied to governance (PII-scan-over-chunks ties to session-6 sensitivity flag, P8 question); Cipher = joinability-preserving column obfuscation (future guest-PII ask) |
+
+## Standing decisions — outcomes after all 9 sessions
+
+- **P5 fork (embed target)** — NOT settled by any deep dive (session 2 has no LLM/embed content).
+  The original walkthrough (embed the summary) stays the only Foundry source; decide at D-phase with
+  retrieval quality on real data.
+- **P6 fork (Chunk/Entity node types)** — partially settled by session 1: PK discipline
+  (deterministic, never random), title rules (Chunk=summary, Entity=entityName), cardinality
+  declared as modeled + both-direction traversal names. **Hospitality entity categories remain open**
+  — our call to make at build time.
+- **P7 (resolution placement)** — no session contradicted the spec's `Entity —resolved_to→
+  Variant/Supplier` shape; stands as drafted.
+- **Added by the dives**: P4b fail-closed stage gates (session 2's Data Expectations); a parked
+  **sensitivity/PII question for P8** (session 6 marking inheritance + session 9 scanner: does a
+  sensitive source document taint its chunks/suggestions, and how is sensitivity detected?).
+
+**All 9 sessions captured. Track 1 (P1–P4b) is unblocked — execution starts on the user's word.**
