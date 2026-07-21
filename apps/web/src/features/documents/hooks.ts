@@ -8,6 +8,7 @@ import {
   fetchDocument,
   fetchDocumentEntityLinks,
   fetchDocuments,
+  fetchDocumentsForNode,
   ingestDocument,
   linkDocumentToEntity,
   unlinkDocumentFromEntity,
@@ -149,5 +150,18 @@ export function useUnlinkDocumentFromEntity(documentId: string) {
       void qc.invalidateQueries({ queryKey: documentLinkKeys.list(documentId) })
     },
     onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+// Reverse lineage: documents referencing a supplier/variant (P10).
+export function useDocumentsForNode(nodeType: 'supplier' | 'variant', nodeId: string | undefined) {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: ['documents-for-node', nodeType, nodeId, hotelId],
+    queryFn:  () => (hotelId && nodeId
+      ? fetchDocumentsForNode(hotelId, nodeType, nodeId)
+      : Promise.resolve([])),
+    enabled:  !!hotelId && !!nodeId,
+    staleTime: 120_000,
   })
 }

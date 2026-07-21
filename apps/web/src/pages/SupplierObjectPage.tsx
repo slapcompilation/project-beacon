@@ -27,6 +27,7 @@ import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
+import { ReferencedInDocuments } from '@/components/ReferencedInDocuments'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
@@ -386,6 +387,9 @@ export default function SupplierObjectPage() {
               </div>
             )}
           </Card>
+
+          {/* ── Documents referencing this supplier (ingestion lineage) ── */}
+          <ReferencedInDocuments nodeType="supplier" nodeId={supplierId} />
 
           {/* ── Open cases on this supplier (supplier-monitor effect) ── */}
           {openCases.length > 0 && (

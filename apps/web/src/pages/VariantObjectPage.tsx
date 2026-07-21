@@ -34,6 +34,7 @@ import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
 import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 import { ObjectViewFrame, ObjectRail, RailGroup } from '@/components/ObjectViewFrame'
+import { ReferencedInDocuments } from '@/components/ReferencedInDocuments'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 
@@ -560,6 +561,9 @@ export default function VariantObjectPage() {
               </div>
             </Card>
           )}
+
+          {/* ── Documents referencing this variant (ingestion lineage) ── */}
+          <ReferencedInDocuments nodeType="variant" nodeId={variantId} />
 
           {/* ── Graph connections ── */}
           <Card>
