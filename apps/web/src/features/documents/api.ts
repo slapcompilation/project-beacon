@@ -225,3 +225,32 @@ export async function unlinkDocumentFromEntity(edgeId: string): Promise<void> {
     .eq('id', edgeId)
   if (error) throw new Error(error.message)
 }
+
+// ─── Reverse document lineage (P10) ─────────────────────────────────────────
+// Which documents reference an operational node (supplier/variant), and how:
+//   'described' — an approved describes_entity edge (human-curated)
+//   'mentioned' — auto-resolved via entity (resolved_to → mentions → chunk)
+// Backed by the documents_referencing_node RPC (migration 206).
+
+export interface ReferencingDocument {
+  document_id:     string
+  document_title:  string
+  ingestion_stage: IngestionStage
+  link_kind:       'described' | 'mentioned'
+  page:            number | null
+  snippet:         string | null
+}
+
+export async function fetchDocumentsForNode(
+  hotelId:  string,
+  nodeType: 'supplier' | 'variant',
+  nodeId:   string,
+): Promise<ReferencingDocument[]> {
+  const { data, error } = await supabase.rpc('documents_referencing_node', {
+    p_hotel_id:  hotelId,
+    p_node_type: nodeType,
+    p_node_id:   nodeId,
+  }) as unknown as { data: ReferencingDocument[] | null; error: { message: string } | null }
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
