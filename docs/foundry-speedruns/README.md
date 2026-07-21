@@ -36,11 +36,11 @@ mandatory-*capability* checklist the five hands-on speedruns are assembled from.
 
 | # | Speedrun | Length | Teaches (verbatim blurb) | Capture file | Status |
 |---|---|---|---|---|---|
-| 1 | Your First End-to-End Workflow | 60–90m | Build an end-to-end Foundry workflow from raw data to operational application as an introduction to core platform concepts. | `01-end-to-end-workflow.md` | ⏳ awaiting PDFs |
-| 2 | Your First AIP Workflow · **registered** | 60–90m | Build an operational AI-powered workflow to parse PDF media sets using Foundry's AIP components. | `02-aip-workflow.md` | ⏳ awaiting PDFs |
-| 3 | Your First Agentic AIP Workflow | ~60m | Leverage AIP and the Ontology for an agentic workflow and AIP-human teaming. | `03-agentic-aip-workflow.md` | ⏳ awaiting PDFs |
-| 4 | Your First Ontology Function | 45–60m | Develop TypeScript-based Functions to pull data from and update Ontology Objects via a Workshop app. | `04-ontology-function.md` | ⏳ awaiting PDFs |
-| 5 | Mining Your First Business Process | 60–90m | Use Foundry's Machinery application to visualize business processes, identify bottlenecks, and create alerts. | `05-business-process-mining.md` | ⏳ awaiting PDFs |
+| 1 | Your First End-to-End Workflow | 60–90m | Build an end-to-end Foundry workflow from raw data to operational application as an introduction to core platform concepts. | [`01-end-to-end-workflow.md`](01-end-to-end-workflow.md) | ✅ captured 2026-07-21 · 13/13 |
+| 2 | Your First AIP Workflow · **registered** | 60–90m | Build an operational AI-powered workflow to parse PDF media sets using Foundry's AIP components. | [`02-aip-workflow.md`](02-aip-workflow.md) | ✅ captured 2026-07-21 · 12✅/1⚠️ |
+| 3 | Your First Agentic AIP Workflow | ~60m | Leverage AIP and the Ontology for an agentic workflow and AIP-human teaming. | [`03-agentic-aip-workflow.md`](03-agentic-aip-workflow.md) | ✅ captured 2026-07-21 · 13/13 |
+| 4 | Your First Ontology Function | 45–60m | Develop TypeScript-based Functions to pull data from and update Ontology Objects via a Workshop app. | [`04-ontology-function.md`](04-ontology-function.md) | ✅ captured 2026-07-21 · 11/11 |
+| 5 | Mining Your First Business Process | 60–90m | Use Foundry's Machinery application to visualize business processes, identify bottlenecks, and create alerts. | [`05-business-process-mining.md`](05-business-process-mining.md) | ✅ captured 2026-07-21 · 6✅/1⚠️/4❌ |
 | 6 | Introduction to Foundry for Enterprise Organizations · **concepts** | ~22 lessons | Conceptual foundations — mission, architecture, the three pillars, progressive automation, evals, governance. No hands-on steps. | [`06-intro-enterprise.md`](06-intro-enterprise.md) | ✅ captured 2026-07-21 |
 
 ## Why each guide matters to Beacon (pre-capture hypothesis — confirm/revise against the PDFs)
@@ -60,19 +60,39 @@ mandatory-*capability* checklist the five hands-on speedruns are assembled from.
   pillars, LLM-orchestrates-deterministic-logic, agents-in-process, evals-gated progressive
   automation, branching + runtime two-axis governance, full audit.
 
-## Coverage so far
+## Cross-guide mandatory-step rollup — the verdict
 
-**Guide 6 (concepts) — captured.** Foundry's own statement of mandatory capabilities scores Beacon
-**19 ✅ / 4 ⚠️ / 2 ❌** across the 24 in-scope capabilities (3 more are deliberate horizontal-platform
-non-goals: OSDK-for-third-parties, Multimodal Data Plane federation, Apollo multi-env delivery). The
-entire *core* — three pillars, LLM+deterministic-tool orchestration, agents in the process, eval-gated
-progressive automation, branching + runtime governance, full audit — is present, several at ✅✅. The
-two ❌ are **purpose-based controls** and **data-marking/classification propagation** — the same P8
-sensitivity/governance thread the deep dives flagged in sessions 6 and 9, now confirmed a third time
-as a real (not optional) gap. Full ledger + takeaways in [`06-intro-enterprise.md`](06-intro-enterprise.md).
+All six captured (2026-07-21). The five hands-on speedruns contribute **57 mandatory workflow steps**;
+Beacon covers **51 ✅ fully, 2 ⚠️ partial, 4 ❌ missing.** The concept course (guide 6) scored the
+capability checklist at 19✅/4⚠️/2❌ over 24 in-scope capabilities. Read together, the picture is
+unambiguous:
 
-## Cross-guide mandatory-step rollup
+**Guides 1–4 are Beacon's architecture, step for step.** The end-to-end spine (ingest → pipeline →
+ontology → action → app), the PDF→chunk→embed→entity→OAG→graph pipeline, the agent→eval→automate loop,
+and functions-on-objects→function-backed-action are the exact patterns in `CLAUDE.md`. Every mandatory
+step in guides 1, 3, 4 is ✅ (13/13, 13/13, 11/11); guide 2 is 12✅ with the lone ⚠️ being an OCR
+fallback for scanned PDFs. Several steps Beacon does *better* (dual-callable Logic Tools; eval-gated
+release before automate).
 
-_Filled in once the five hands-on captures land — the consolidated table of every mandatory workflow
-step across all five speedruns and Beacon's coverage verdict for each. The concept-level checklist
-(guide 6) is already done and will anchor it._
+**Two forks the deep dives left open are now settled by guide 2:**
+- **P5 (embed target) → embed the summary.** Foundry embeds the LLM `summary` column, not the raw
+  chunk — exactly what Beacon does. Settled.
+- **P6 (entity categories) → a prompt-level enum.** Foundry injects a fixed category taxonomy into the
+  extraction prompt (5 medical categories). Our hospitality analog is a prompt constant, not a schema
+  change.
+
+**The gaps cluster into exactly two named backlog items — no scattered holes:**
+
+| Gap | From | What's missing | Substrate we already hold | Proposed item |
+|---|---|---|---|---|
+| **Process mining** | Guide 5 (Machinery) | Turn the lifecycle transition log into per-state count/duration/throughput + per-transition lead-time + path explorer + bottleneck discovery | ✅ state machines (`LIFECYCLES`), ✅ enforcement (`enforce_lifecycle`), ✅ alerting (monitors + cycle), ✅ graph UI (`SearchAroundGraph`) — missing only a transition **event log** + the analytics layer | **P11: Process Mining** |
+| **Sensitivity governance** | Guide 6 (concepts) + deep-dive sessions 6 & 9 | Data markings/classifications that propagate Document→chunk→entity→proposal and survive being passed to an LLM; purpose-based access controls | ✅ provenance edges, ✅ scope/role RLS | **P8: Sensitivity/PII marking** (already parked, now confirmed 3× — promote) |
+
+Everything else Foundry teaches as mandatory, Beacon has. The two remaining items are additive layers
+on substrate we already own — the recurring "audit finds the thin missing layer, not a rearchitecture"
+pattern. **P11 is the higher-value, lower-cost of the two** (we hold four of its five pieces) and is
+the natural next build; **P8** rides on the governance thread the deep dives already flagged.
+
+Deliberate non-goals (scored ❌ nowhere because they're out of scope for a vertical product): OSDK for
+third-party developers, Multimodal Data Plane federation, Apollo multi-environment delivery — all
+horizontal-platform scale-infrastructure (see guide 6 ledger).
