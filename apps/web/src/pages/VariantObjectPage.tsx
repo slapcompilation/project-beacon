@@ -35,6 +35,7 @@ import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 import { ObjectViewFrame, ObjectRail, RailGroup } from '@/components/ObjectViewFrame'
 import { ReferencedInDocuments } from '@/components/ReferencedInDocuments'
+import { SearchAroundButton } from '@/components/SearchAroundGraph'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 
@@ -567,6 +568,10 @@ export default function VariantObjectPage() {
 
           {/* ── Graph connections ── */}
           <Card>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Connections</span>
+              <SearchAroundButton nodeType="variant" nodeId={variantId} />
+            </div>
             <GraphConnections nodeType="variant" nodeId={variantId} />
           </Card>
 
