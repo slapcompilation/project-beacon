@@ -31,6 +31,8 @@ against the exact source.
 ## Guides
 
 Ordered as they appear on the Palantir Speedruns page. "Registered" = the two the user has enrolled in.
+Guide 6 is a conceptual intro course (not a hands-on speedrun) the user added — it supplies the
+mandatory-*capability* checklist the five hands-on speedruns are assembled from.
 
 | # | Speedrun | Length | Teaches (verbatim blurb) | Capture file | Status |
 |---|---|---|---|---|---|
@@ -39,6 +41,7 @@ Ordered as they appear on the Palantir Speedruns page. "Registered" = the two th
 | 3 | Your First Agentic AIP Workflow | ~60m | Leverage AIP and the Ontology for an agentic workflow and AIP-human teaming. | `03-agentic-aip-workflow.md` | ⏳ awaiting PDFs |
 | 4 | Your First Ontology Function | 45–60m | Develop TypeScript-based Functions to pull data from and update Ontology Objects via a Workshop app. | `04-ontology-function.md` | ⏳ awaiting PDFs |
 | 5 | Mining Your First Business Process | 60–90m | Use Foundry's Machinery application to visualize business processes, identify bottlenecks, and create alerts. | `05-business-process-mining.md` | ⏳ awaiting PDFs |
+| 6 | Introduction to Foundry for Enterprise Organizations · **concepts** | ~22 lessons | Conceptual foundations — mission, architecture, the three pillars, progressive automation, evals, governance. No hands-on steps. | [`06-intro-enterprise.md`](06-intro-enterprise.md) | ✅ captured 2026-07-21 |
 
 ## Why each guide matters to Beacon (pre-capture hypothesis — confirm/revise against the PDFs)
 
@@ -53,8 +56,23 @@ Ordered as they appear on the Palantir Speedruns page. "Registered" = the two th
   Logic Tool Registry + Action Registry dual-callable story end to end.
 - **5 · Machinery / business-process mining** — process visualization, bottleneck detection, alerts →
   our monitors (metric+trigger), constraint engine, and intelligence cycle.
+- **6 · Enterprise Intro (concepts)** — the mandatory-*capability* checklist: Ontology-centered three
+  pillars, LLM-orchestrates-deterministic-logic, agents-in-process, evals-gated progressive
+  automation, branching + runtime two-axis governance, full audit.
+
+## Coverage so far
+
+**Guide 6 (concepts) — captured.** Foundry's own statement of mandatory capabilities scores Beacon
+**19 ✅ / 4 ⚠️ / 2 ❌** across the 24 in-scope capabilities (3 more are deliberate horizontal-platform
+non-goals: OSDK-for-third-parties, Multimodal Data Plane federation, Apollo multi-env delivery). The
+entire *core* — three pillars, LLM+deterministic-tool orchestration, agents in the process, eval-gated
+progressive automation, branching + runtime governance, full audit — is present, several at ✅✅. The
+two ❌ are **purpose-based controls** and **data-marking/classification propagation** — the same P8
+sensitivity/governance thread the deep dives flagged in sessions 6 and 9, now confirmed a third time
+as a real (not optional) gap. Full ledger + takeaways in [`06-intro-enterprise.md`](06-intro-enterprise.md).
 
 ## Cross-guide mandatory-step rollup
 
-_Filled in once the captures land — the consolidated table of every mandatory workflow step across all
-five speedruns and Beacon's coverage verdict for each._
+_Filled in once the five hands-on captures land — the consolidated table of every mandatory workflow
+step across all five speedruns and Beacon's coverage verdict for each. The concept-level checklist
+(guide 6) is already done and will anchor it._
