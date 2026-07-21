@@ -328,7 +328,7 @@ export function NotificationsPanel() {
             <Icon icon="notifications" size={32} className="text-muted-foreground/30 mb-3" />
             <p className="text-sm font-medium text-muted-foreground">All clear</p>
             <p className="text-xs text-muted-foreground/60 mt-1 max-w-[200px] leading-snug">
-              No unread notifications · configure alert thresholds in Eye · Alerts
+              No unread notifications · configure alert thresholds in Floor · Alerts
             </p>
           </div>
         ) : (

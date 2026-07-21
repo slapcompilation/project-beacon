@@ -18,7 +18,6 @@ const LoginPage = lazyWithRetry(() => import('@/pages/LoginPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'))
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const BriefingPage = lazyWithRetry(() => import('@/pages/BriefingPage'))
-const FoundryShellPreview = lazyWithRetry(() => import('@/pages/FoundryShellPreview'))
 const ApplicationsPage = lazyWithRetry(() => import('@/pages/ApplicationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
@@ -26,9 +25,8 @@ const AuditPage = lazyWithRetry(() => import('@/pages/AuditPage'))
 const StocktakePage = lazyWithRetry(() => import('@/pages/StocktakePage'))
 const ScanPage = lazyWithRetry(() => import('@/pages/ScanPage'))
 const LabelsPage = lazyWithRetry(() => import('@/pages/LabelsPage'))
-const RemindersPage = lazyWithRetry(() => import('@/pages/RemindersPage'))
-const PickListsPage = lazyWithRetry(() => import('@/pages/PickListsPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
+const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const SetupWizardPage = lazyWithRetry(() => import('@/pages/SetupWizardPage'))
 
@@ -96,7 +94,6 @@ function AppRoutes() {
             <Route path="/" element={<RootRedirect />} />
 
             <Route path="/briefing" element={<BriefingPage />} />
-            <Route path="/ux/sidebar" element={<FoundryShellPreview />} />
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/floor"    element={<FloorWorkspace />} />
             <Route path="/flow"     element={<FlowWorkspace />} />
@@ -143,10 +140,12 @@ function AppRoutes() {
             <Route path="/audit"         element={<AuditPage />} />
             <Route path="/stocktake"     element={<StocktakePage />} />
             <Route path="/labels"        element={<LabelsPage />} />
-            <Route path="/reminders"     element={<RemindersPage />} />
-            <Route path="/pick-lists"    element={<PickListsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/whats-new"     element={<WhatsNewPage />} />
             <Route path="/objects"       element={<ObjectsPage />} />
+            {/* retired: Reminders folded into Floor · Expiry; Pick Lists lives as a Flow tab */}
+            <Route path="/reminders"     element={<Navigate to="/floor?panel=expiry"  replace />} />
+            <Route path="/pick-lists"    element={<Navigate to="/flow?panel=picklists" replace />} />
             {/* retired (LEGACY-REDUCTION §C): deep links live on as redirects */}
             <Route path="/graph"         element={<Navigate to="/objects" replace />} />
             <Route path="/events"        element={<Navigate to="/mind?aip=forecast-lab" replace />} />

@@ -61,7 +61,7 @@ const SECTIONS: Section[] = [
       { label: 'Risk Matrix',  path: '/eye?panel=risk',        icon: 'grid',     desc: 'Likelihood × impact map' },
       { label: 'Performance',  path: '/eye?panel=performance', icon: 'chart',    desc: 'Finance + ops KPIs' },
       { label: 'Occupancy',    path: '/eye?panel=occupancy',   icon: 'people',   desc: 'Demand driver for forecasts' },
-      { label: 'Reality Graph',path: '/graph',                 icon: 'graph',    desc: 'Explore nodes + typed edges' },
+      { label: 'Reality Graph',path: '/objects',               icon: 'graph',    desc: 'Explore nodes + typed edges' },
     ],
   },
   {
@@ -130,7 +130,7 @@ const SECTIONS: Section[] = [
     surfaces: [
       { label: 'Home',          path: '/briefing',             icon: 'home',          desc: 'What the loop left you today' },
       { label: 'Notifications', path: '/notifications',        icon: 'notifications', desc: 'Alerts with inline response' },
-      { label: 'Reminders',     path: '/reminders',            icon: 'time',          desc: 'Scheduled nudges' },
+      { label: "What's New",    path: '/whats-new',            icon: 'star',          desc: 'Recent releases + improvements' },
       { label: 'Forecast Lab', path: '/mind?aip=forecast-lab', icon: 'lab-test',      desc: 'Backtest + run the forecast adapters' },
       { label: 'Team',          path: '/settings?section=team',icon: 'people',        desc: 'Members, roles + scope' },
       { label: 'Settings',      path: '/settings',             icon: 'cog',           desc: 'Org + property configuration' },

@@ -374,7 +374,7 @@ export default function ProcurementLeveragePage() {
           <div>
             <h1 className="text-xl font-semibold leading-none">Procurement Leverage Engine</h1>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Mind · supplier negotiation intelligence from delivery history
+              Operations · supplier negotiation intelligence from delivery history
             </p>
           </div>
         </div>

@@ -409,7 +409,7 @@ export default function GLExportPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Mind · GL Export</h1>
+          <h1 className="text-xl font-semibold">Operations · GL Export</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Audit-ready CSV for manual import into Xero, QuickBooks, or any accounting system.
             No API integration — finance owns the import step.

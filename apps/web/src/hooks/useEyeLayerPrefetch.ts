@@ -17,7 +17,6 @@ import {
 const EYE_MIND_ROUTES = [
   '/dashboard',
   '/briefing',
-  '/monitor',
   '/alerts',
   '/reports',
   '/chain',

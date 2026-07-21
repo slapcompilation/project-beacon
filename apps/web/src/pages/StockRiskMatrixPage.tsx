@@ -158,7 +158,7 @@ export default function StockRiskMatrixPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-4 shrink-0 bg-background">
         <div>
-          <h1 className="text-base font-semibold">Eye · Stock Risk Matrix</h1>
+          <h1 className="text-base font-semibold">Insights · Stock Risk Matrix</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
             Stockout probability per variant · Normal distribution model · 30-day rolling window
             {total > 0 && ` · ${String(total)} active variants`}

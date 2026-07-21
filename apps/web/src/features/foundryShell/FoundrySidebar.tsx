@@ -84,6 +84,7 @@ export function FoundrySidebar({
   popovers,
   filesItems,
   badges,
+  dots,
   onViewAll,
   accountMenu,
 }: {
@@ -96,6 +97,8 @@ export function FoundrySidebar({
   accountMenu?: ReactElement
   /** id → live count, overrides an item's static badge (e.g. notifications). */
   badges?: Record<string, number>
+  /** id → whether to show the amber dot, overriding the item's static dot (What's New). */
+  dots?: Record<string, boolean>
   /** Rendered under the orb, above the nav — the app injects a "+ New" here. */
   headerSlot?: ReactNode
   /** id → rich popover panel (e.g. Recent). When present, the row opens the
@@ -177,7 +180,7 @@ export function FoundrySidebar({
               <p className="px-4 py-1 text-[11px] leading-snug text-[#6b7482]">{section.empty}</p>
             ) : (
               items.map((item) => (
-                <RailRow key={item.id} item={{ ...item, badge: badges?.[item.id] ?? item.badge }} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
+                <RailRow key={item.id} item={{ ...item, badge: badges?.[item.id] ?? item.badge, dot: dots?.[item.id] ?? item.dot }} active={item.id === activeId} collapsed={collapsed} onClick={pick(item.id)} popover={popovers?.[item.id]} />
               ))
             )}
             {i < SECTIONS.length - 1 && <div className="mx-3 mt-2 border-b border-white/5" />}

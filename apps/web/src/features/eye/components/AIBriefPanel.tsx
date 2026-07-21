@@ -19,7 +19,7 @@ export function AIBriefPanel() {
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
           <Icon icon="predictive-analysis" size={10} className="text-purple-500" />
-          Mind · AI Brief
+          Decisions · AI Brief
         </p>
         <button
           onClick={() => { void generate() }}

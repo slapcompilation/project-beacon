@@ -16,7 +16,7 @@ export function AlertThresholdsSection() {
     <div>
       <SectionHeader
         title="Alert Thresholds"
-        description="Hotel-wide thresholds used by the Eye Layer alert engine. Changes apply to the next alert scan."
+        description="Hotel-wide thresholds used by the alert engine. Changes apply to the next alert scan."
       />
       <div>
         <div className="py-4">

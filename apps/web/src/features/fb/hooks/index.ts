@@ -1,4 +1,4 @@
-// Layer: Floor · Eye · Mind — TanStack Query hooks for F&B + POS Intelligence
+// Layer: Floor · Insights · Mind — TanStack Query hooks for F&B + POS Intelligence
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'

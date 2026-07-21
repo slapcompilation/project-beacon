@@ -366,7 +366,7 @@ export default function SupplierReliabilityPage() {
               Supplier Reliability Scorecard
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Eye Layer · delivery on-time rate · avg delay · cost variance vs contracts · ranked worst first
+              Insights · delivery on-time rate · avg delay · cost variance vs contracts · ranked worst first
             </p>
           </div>
           <div className="flex items-center gap-2">

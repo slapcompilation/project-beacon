@@ -18,6 +18,7 @@ import { useRecentActivity } from '@/features/inventory/hooks/reports'
 import { useFavoritesStore } from '@/stores/favorites.store'
 import { useAlertCount } from '@/hooks/useAlertCount'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
+import { useWhatsNew } from '@/features/whatsNew/hooks'
 import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { cn } from '@/lib/utils'
 
@@ -33,6 +34,7 @@ function activeIdFor(pathname: string, search: string): string {
   if (pathname.startsWith('/briefing')) return 'home'
   if (pathname.startsWith('/applications')) return 'apps'
   if (pathname.startsWith('/objects')) return 'objects'
+  if (pathname.startsWith('/whats-new')) return 'whatsnew'
   if (pathname.startsWith('/eye')) return 'insights'
   if (pathname.startsWith('/account')) return 'account'
   if (pathname.startsWith('/mind')) {
@@ -52,6 +54,7 @@ export function GlobalNav() {
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
   const email              = useAuthStore((s) => s.session?.user.email ?? '')
   const notifTotal         = useAlertCount() + useUnreadNotificationCount()
+  const { hasUnseen }      = useWhatsNew()
   const { data: aip }      = useAipSignalCounts()
   const [manageOpen, setManageOpen] = useState(false)
 
@@ -62,7 +65,7 @@ export function GlobalNav() {
       case 'home':      void navigate('/briefing'); break
       case 'search':    toggleCommandBar(); break
       case 'notifs':    setNotifPanelOpen(true); break
-      case 'whatsnew':  void navigate('/notifications'); break
+      case 'whatsnew':  void navigate('/whats-new'); break
       case 'recent':    toggleCommandBar(); break
       case 'objects':   void navigate('/objects'); break
       case 'apps':      void navigate('/applications'); break
@@ -93,6 +96,7 @@ export function GlobalNav() {
           decisions: (aip?.queue ?? 0) + (aip?.approvals ?? 0),
           studio:    aip?.entityLinks ?? 0,
         }}
+        dots={{ whatsnew: hasUnseen }}
         accountInitials={initialsFromEmail(email)}
         accountMenu={<AccountMenu />}
         onViewAll={(header) => { if (header === 'Files') setManageOpen(true); else void navigate('/applications') }}

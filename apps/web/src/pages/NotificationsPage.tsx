@@ -1,9 +1,6 @@
-// Layer: Eye — Notification centre
-// Sprint B UX: layer-grouped tab bar (Eye / Flow / Floor) and layer-grouped
-// list sections in "All" view. Notifications are decision triggers, not passive receipts.
-// Palantir principle: progressive disclosure with layer-awareness.
-//
-// 100% Blueprint — no shadcn primitives, no lucide icons.
+// Notification centre — the full archive behind the bell panel. Grouped by
+// surface (Insights / Flow / Floor / Decisions); notifications are decision
+// triggers, not passive receipts.
 
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -33,7 +30,7 @@ import type { Notification } from '@beacon/types'
 
 type NotifType = Notification['type']
 
-type NotifLayer = 'Eye' | 'Flow' | 'Floor' | 'Mind'
+type NotifLayer = 'Insights' | 'Flow' | 'Floor' | 'Decisions'
 
 const TYPE_CFG: Record<NotifType, {
   label: string
@@ -47,7 +44,7 @@ const TYPE_CFG: Record<NotifType, {
 }> = {
   low_stock: {
     label: 'Low Stock',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'box',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     iconColor: 'text-orange-500',
@@ -57,7 +54,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   expiry: {
     label: 'Expiry',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'calendar',
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
@@ -67,7 +64,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   predicted_outage: {
     label: 'Predicted Outage',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'flash',
     rowBg: 'bg-purple-50/60 dark:bg-purple-950/20',
     iconColor: 'text-purple-500',
@@ -77,7 +74,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   waste_alert: {
     label: 'Waste Alert',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'warning-sign',
     rowBg: 'bg-yellow-50/50 dark:bg-yellow-950/15',
     iconColor: 'text-yellow-500',
@@ -87,7 +84,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   consumption_spike: {
     label: 'Consumption Spike',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'flash',
     rowBg: 'bg-yellow-50/60 dark:bg-yellow-950/20',
     iconColor: 'text-yellow-600',
@@ -97,7 +94,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   price_drift: {
     label: 'Price Drift',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'warning-sign',
     rowBg: 'bg-blue-50/60 dark:bg-blue-950/20',
     iconColor: 'text-blue-500',
@@ -107,7 +104,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   pos_variance: {
     label: 'POS Variance',
-    layer: 'Eye',
+    layer: 'Insights',
     icon: 'shield',
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
@@ -117,7 +114,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   po_discrepancy: {
     label: 'Invoice Discrepancy',
-    layer: 'Mind',
+    layer: 'Decisions',
     icon: 'comparison',
     rowBg: 'bg-orange-50/60 dark:bg-orange-950/20',
     iconColor: 'text-orange-500',
@@ -127,7 +124,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   contract_expiry: {
     label: 'Contract Expiring',
-    layer: 'Mind',
+    layer: 'Decisions',
     icon: 'comparison',
     rowBg: 'bg-indigo-50/60 dark:bg-indigo-950/20',
     iconColor: 'text-indigo-500',
@@ -137,7 +134,7 @@ const TYPE_CFG: Record<NotifType, {
   },
   integration_health: {
     label: 'Data Feed',
-    layer: 'Mind',
+    layer: 'Decisions',
     icon: 'data-connection',
     rowBg: 'bg-red-50/60 dark:bg-red-950/20',
     iconColor: 'text-red-500',
@@ -169,15 +166,15 @@ const TYPE_CFG: Record<NotifType, {
 
 // Layer grouping for tab bar
 const LAYER_GROUPS: { layer: NotifLayer; types: NotifType[] }[] = [
-  { layer: 'Eye',   types: ['predicted_outage', 'expiry', 'low_stock', 'waste_alert', 'consumption_spike', 'price_drift', 'pos_variance'] },
-  { layer: 'Mind',  types: ['po_discrepancy', 'contract_expiry', 'integration_health'] },
+  { layer: 'Insights',  types: ['predicted_outage', 'expiry', 'low_stock', 'waste_alert', 'consumption_spike', 'price_drift', 'pos_variance'] },
+  { layer: 'Decisions', types: ['po_discrepancy', 'contract_expiry', 'integration_health'] },
   { layer: 'Flow',  types: ['approval'] },
   { layer: 'Floor', types: ['system'] },
 ]
 
 const LAYER_COLOR: Record<NotifLayer, string> = {
-  Eye:   'text-purple-600 dark:text-purple-400',
-  Mind:  'text-indigo-600 dark:text-indigo-400',
+  Insights:  'text-purple-600 dark:text-purple-400',
+  Decisions: 'text-indigo-600 dark:text-indigo-400',
   Flow:  'text-blue-600 dark:text-blue-400',
   Floor: 'text-slate-500 dark:text-slate-400',
 }
@@ -324,7 +321,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Eye · Notifications</h1>
+          <h1 className="text-xl font-semibold">Notifications</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {isLoading
               ? 'Loading…'

@@ -198,7 +198,7 @@ export default function AIPShell({
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        <PanelErrorBoundary name={`Mind · ${effTab}`}>
+        <PanelErrorBoundary name={`Decisions · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
             {renderTab(effTab, onTabChange)}
           </Suspense>

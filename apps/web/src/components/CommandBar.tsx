@@ -15,7 +15,7 @@ import { hasPermission } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 
-type NavGroup = 'Floor' | 'Flow' | 'Eye' | 'Mind' | 'Operations'
+type NavGroup = 'Floor' | 'Flow' | 'Insights' | 'Decisions' | 'Operations' | 'Settings'
 
 interface NavItem {
   group: NavGroup
@@ -39,29 +39,27 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Flow',  icon: 'truck',           label: 'Flow · Approvals',   path: '/flow?panel=approvals',  shortcut: 'G R' },
   { group: 'Flow',  icon: 'document',        label: 'Flow · Audit Log',   path: '/audit' },
 
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Signals',      path: '/eye?panel=signals' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Incidents',    path: '/eye?panel=incidents' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Waste Radar',  path: '/eye?panel=waste' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Risk Matrix',  path: '/eye?panel=risk' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Performance',  path: '/eye?panel=performance' },
-  { group: 'Eye',   icon: 'eye-open',        label: 'Eye · Occupancy',    path: '/eye?panel=occupancy' },
-  { group: 'Eye',   icon: 'notifications',   label: 'Notifications',      path: '/notifications' },
-  { group: 'Eye',   icon: 'time',            label: 'Reminders',          path: '/reminders' },
-  { group: 'Eye',   icon: 'pulse',           label: 'Live Monitor',       path: '/monitor' },
-  { group: 'Eye',   icon: 'graph',           label: 'Reality Graph',      path: '/graph' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Signals',     path: '/eye?panel=signals' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Incidents',   path: '/eye?panel=incidents' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Waste Radar', path: '/eye?panel=waste' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Risk Matrix', path: '/eye?panel=risk' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Performance', path: '/eye?panel=performance' },
+  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Occupancy',   path: '/eye?panel=occupancy' },
+  { group: 'Insights', icon: 'notifications', label: 'Notifications',          path: '/notifications' },
+  { group: 'Insights', icon: 'cube',          label: 'Objects',                path: '/objects' },
 
-  { group: 'Mind',  icon: 'predictive-analysis', label: 'Mind · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
-  { group: 'Mind',  icon: 'predictive-analysis', label: 'Mind · Agent Studio', path: '/agent-studio',          shortcut: 'G A' },
-  { group: 'Mind',  icon: 'function',            label: 'Mind · Logic Tools',  path: '/tools',                 shortcut: 'G L' },
-  { group: 'Mind',  icon: 'predictive-analysis', label: 'Mind · Modeling Objectives', path: '/modeling-objectives', shortcut: 'G M' },
-  { group: 'Mind',  icon: 'graph',               label: 'Mind · System Map',          path: '/system-map',          shortcut: 'G X' },
-  { group: 'Mind',  icon: 'warning-sign',        label: 'Mind · Pending Approvals',   path: '/pending-approvals',   shortcut: 'G P' },
-  { group: 'Mind',  icon: 'bookmark',            label: 'Mind · Approved Answers',    path: '/approved-answers',    shortcut: 'G Y' },
-  { group: 'Mind',  icon: 'folder-open',         label: 'Mind · Cases',               path: '/cases',               shortcut: 'G C' },
-  { group: 'Mind',  icon: 'document',            label: 'Mind · Documents',           path: '/documents',           shortcut: 'G D' },
-  { group: 'Mind',  icon: 'search-template',     label: 'Mind · Entity Link Suggestions', path: '/entity-link-suggestions', shortcut: 'G E' },
-  { group: 'Mind',  icon: 'link',                label: 'Mind · Action Chains',       path: '/action-chains',       shortcut: 'G N' },
-  { group: 'Mind',  icon: 'chat',                label: 'Mind · Copilot Config',      path: '/copilot-config',      shortcut: 'G O' },
+  { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
+  { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Agent Studio', path: '/agent-studio',          shortcut: 'G A' },
+  { group: 'Decisions', icon: 'function',            label: 'Decisions · Logic Tools',  path: '/tools',                 shortcut: 'G L' },
+  { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Modeling Objectives', path: '/modeling-objectives', shortcut: 'G M' },
+  { group: 'Decisions', icon: 'graph',               label: 'Decisions · System Map',          path: '/system-map',          shortcut: 'G X' },
+  { group: 'Decisions', icon: 'warning-sign',        label: 'Decisions · Pending Approvals',   path: '/pending-approvals',   shortcut: 'G P' },
+  { group: 'Decisions', icon: 'bookmark',            label: 'Decisions · Approved Answers',    path: '/approved-answers',    shortcut: 'G Y' },
+  { group: 'Decisions', icon: 'folder-open',         label: 'Decisions · Cases',               path: '/cases',               shortcut: 'G C' },
+  { group: 'Decisions', icon: 'document',            label: 'Decisions · Documents',           path: '/documents',           shortcut: 'G D' },
+  { group: 'Decisions', icon: 'search-template',     label: 'Decisions · Entity Link Suggestions', path: '/entity-link-suggestions', shortcut: 'G E' },
+  { group: 'Decisions', icon: 'link',                label: 'Decisions · Action Chains',       path: '/action-chains',       shortcut: 'G N' },
+  { group: 'Decisions', icon: 'chat',                label: 'Decisions · Copilot Config',      path: '/copilot-config',      shortcut: 'G O' },
   { group: 'Operations', icon: 'shop',           label: 'Operations · Triage',      path: '/operations?panel=triage' },
   { group: 'Operations', icon: 'truck',          label: 'Operations · Suppliers',   path: '/operations?panel=suppliers' },
   { group: 'Operations', icon: 'shopping-cart',  label: 'Operations · PO Builder',  path: '/operations?panel=procurement' },
@@ -70,9 +68,9 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Operations', icon: 'bank-account',   label: 'Operations · Finance',     path: '/operations?panel=finance' },
   { group: 'Operations', icon: 'th',             label: 'Operations · GL Export',   path: '/operations?panel=gl' },
   { group: 'Operations', icon: 'chart',          label: 'Operations · Strategy',    path: '/operations?panel=strategy' },
-  { group: 'Mind',  icon: 'time',            label: 'Forecast Lab',       path: '/mind?aip=forecast-lab' },
-  { group: 'Mind',  icon: 'people',          label: 'Team',               path: '/settings?section=team' },
-  { group: 'Mind',  icon: 'cog',             label: 'Settings',           path: '/settings' },
+  { group: 'Decisions', icon: 'time',        label: 'Forecast Lab',       path: '/mind?aip=forecast-lab' },
+  { group: 'Settings',  icon: 'people',      label: 'Team',               path: '/settings?section=team' },
+  { group: 'Settings',  icon: 'cog',         label: 'Settings',           path: '/settings' },
 ]
 
 function Row({

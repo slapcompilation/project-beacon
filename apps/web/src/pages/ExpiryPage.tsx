@@ -561,7 +561,7 @@ export default function ExpiryPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Eye · Expiry Risk</h1>
+          <h1 className="text-xl font-semibold">Insights · Expiry Risk</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {(isLoading || batchLoading)
               ? 'Loading…'

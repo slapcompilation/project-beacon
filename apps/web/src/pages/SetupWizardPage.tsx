@@ -339,8 +339,8 @@ function StepTeam({ onNext, onSkip }: { onNext: () => void; onSkip: () => void }
 const WORKSPACE_LINKS = [
   { path: '/floor', label: 'Floor', hint: 'Live stock · Alerts · Stocktake' },
   { path: '/flow',  label: 'Flow',  hint: 'Receive · Approvals · Movement' },
-  { path: '/eye',   label: 'Eye',   hint: 'Waste radar · Forecasts · Anomalies' },
-  { path: '/mind',  label: 'Mind',  hint: 'Suppliers · Finance · Strategy' },
+  { path: '/eye',   label: 'Insights',  hint: 'Waste radar · Forecasts · Anomalies' },
+  { path: '/mind',  label: 'Decisions', hint: 'Review queue · Agents · Cases' },
 ] as const
 
 function StepDone() {

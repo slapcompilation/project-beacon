@@ -343,7 +343,7 @@ export default function WasteRadarPage() {
             <div>
               <h1 className="text-base font-semibold">Waste Radar</h1>
               <p className="text-xs text-muted-foreground">
-                Eye Layer · 7-day write-off anomalies vs 4-week baseline · ranked by signal strength
+                Insights · 7-day write-off anomalies vs 4-week baseline · ranked by signal strength
               </p>
             </div>
           </div>

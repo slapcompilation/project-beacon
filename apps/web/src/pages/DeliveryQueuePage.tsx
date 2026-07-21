@@ -1,7 +1,7 @@
 // Layer: Flow
 // Delivery Queue — shows all POs that need receiving, sorted by urgency.
 // Operators see "what's arriving today / what's overdue" without navigating
-// to Mind · Procurement. Each line shows the ordered cost and contracted rate
+// to Operations · Procurement. Each line shows the ordered cost and contracted rate
 // so price deviations are visible before the item hits the receiving form.
 // "Receive" deep-links into ReceivePage with the request pre-selected.
 //
@@ -359,7 +359,7 @@ export default function DeliveryQueuePage() {
       <NonIdealState
         icon="tick-circle"
         title="All deliveries up to date"
-        description="No POs are currently awaiting receiving. Create purchase orders in Mind · Procurement."
+        description="No POs are currently awaiting receiving. Create purchase orders in Operations · Procurement."
       />
     )
   }
