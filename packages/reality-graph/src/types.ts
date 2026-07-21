@@ -45,6 +45,10 @@ export type NodeType =
   | 'menu_item_ingredient'
   // Demand-planner events
   | 'event'
+  // Doc-ingestion object model (Foundry-exact): a Chunk of a Document, and a
+  // discovered Entity that chunks mention and that resolves to operational nodes.
+  | 'chunk'
+  | 'entity'
 
 export type EdgeType =
   | 'belongs_to_hotel'

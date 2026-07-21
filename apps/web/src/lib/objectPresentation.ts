@@ -94,6 +94,8 @@ export const NODE_LABELS: Record<NodeType, string> = {
   menu_item:         'Menu Item',
   menu_item_ingredient: 'Ingredient',
   event:             'Event',
+  chunk:             'Chunk',
+  entity:            'Entity',
 }
 
 export const EDGE_LABELS: Record<EdgeType, string> = {
