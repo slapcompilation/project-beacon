@@ -33,6 +33,7 @@ import { DecisionFeed } from '@/features/briefing/components/DecisionFeed'
 import { PressureSection } from '@/features/briefing/components/PressureSection'
 import { ProposalQualitySection } from '@/features/briefing/components/ProposalQualitySection'
 import { OccupancyInsightSection } from '@/features/briefing/components/OccupancyInsightSection'
+import { FinanceSignalsSection } from '@/features/finance/FinanceSignalsSection'
 import { ShiftActivity } from '@/features/briefing/components/ShiftActivity'
 import { HotelMap } from '@/features/canvas/HotelMap'
 import { AipDecisionSummary } from '@/features/mind/AipDecisionSummary'
@@ -173,6 +174,7 @@ function HotelBriefing() {
           <SituationBanner />
           <SituationTimeline />
           <ProposalsPanel currency={currency} />
+          <FinanceSignalsSection />
           {locationPins.length > 0 && <PortfolioMap hotels={locationPins} title="Location" onHop={() => { /* already on this property */ }} />}
           <HotelMap />
           <DecisionFeed currency={currency} />
