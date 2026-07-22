@@ -174,7 +174,7 @@ function HotelBriefing() {
           <SituationBanner />
           <SituationTimeline />
           <ProposalsPanel currency={currency} />
-          <FinanceSignalsSection />
+          {isAdminOrOwner && <FinanceSignalsSection />}
           {locationPins.length > 0 && <PortfolioMap hotels={locationPins} title="Location" onHop={() => { /* already on this property */ }} />}
           <HotelMap />
           <DecisionFeed currency={currency} />
