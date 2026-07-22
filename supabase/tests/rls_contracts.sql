@@ -44,6 +44,7 @@ DECLARE
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
   v_doc uuid := '00000000-0000-00c8-0000-0000000000c8'; v_user uuid;
+  v_doc2 uuid := '00000000-0000-00c8-0000-0000000000c9';
 BEGIN
   -- Resolve two distinct populated hotels (skip gracefully if the env lacks them).
   SELECT h.id, h.organization_id INTO v_a, v_org FROM hotels h
@@ -200,6 +201,34 @@ BEGIN
   DELETE FROM documents WHERE id = v_doc;
   END IF;
 
+  -- ── C12: purpose-based controls narrow reads below role (C-22) ──
+  -- Same admin (clearance = restricted): under an 'operations' purpose a
+  -- restricted doc is hidden; under 'compliance' it's visible. Purpose only
+  -- narrows — it can never exceed the role clearance. Header simulates the
+  -- x-beacon-purpose that PostgREST forwards from the client.
+  IF v_user IS NOT NULL THEN
+    RESET ROLE;
+    DELETE FROM documents WHERE id = v_doc2;
+    INSERT INTO documents (id, hotel_id, title, mime_type, storage_path, uploaded_by_user_id, sensitivity)
+      VALUES (v_doc2, v_a, 'PBAC contract probe', 'text/plain', 'contract/pbac.txt', v_user, 'restricted');
+    BEGIN
+      PERFORM set_config('request.jwt.claims', claims_admin, true);
+      SET LOCAL ROLE authenticated;
+      PERFORM set_config('request.headers', '{"x-beacon-purpose":"operations"}', true);
+      SELECT count(*) INTO n FROM documents WHERE id = v_doc2;
+      IF n <> 0 THEN RAISE EXCEPTION 'C12a: admin under Operations purpose saw a restricted doc (purpose not narrowing)'; END IF;
+      PERFORM set_config('request.headers', '{"x-beacon-purpose":"compliance"}', true);
+      SELECT count(*) INTO n FROM documents WHERE id = v_doc2;
+      IF n <> 1 THEN RAISE EXCEPTION 'C12b: admin under Compliance purpose could not see the restricted doc (over-narrowed)'; END IF;
+    EXCEPTION WHEN OTHERS THEN
+      RESET ROLE; PERFORM set_config('request.headers', '', true);
+      DELETE FROM documents WHERE id = v_doc2; RAISE;
+    END;
+    RESET ROLE;
+    PERFORM set_config('request.headers', '', true);
+    DELETE FROM documents WHERE id = v_doc2;
+  END IF;
+
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing', v_b_pending;
 END $$;
