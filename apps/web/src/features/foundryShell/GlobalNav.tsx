@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils'
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
 // ?aip= tab decides which rail item is active.
 const STUDIO_AIP_TABS = new Set([
+  'studio',
   'agents', 'system-map', 'ontology', 'tools', 'objectives', 'forecast-lab',
   'calibration', 'flywheel', 'monitors', 'documents', 'entity-links', 'answers',
   'principles', 'constraints', 'scenarios', 'action-chains', 'copilot', 'policy',

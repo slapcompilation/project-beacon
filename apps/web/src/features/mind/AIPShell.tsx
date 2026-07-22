@@ -104,6 +104,10 @@ export default function AIPShell({
   const counts = useAipCounts()
   // A manager who lands on a Studio tab (e.g. a stale URL) falls back to the queue.
   const effTab: AipTab = (!allowStudio && isStudioTab(tab)) ? 'queue' : tab
+  // Two distinct surfaces, not one shared rail: Decisions (act on proposals) and
+  // Studio (build/configure). The rail shows only the section you're in — you
+  // switch between them via the sidebar, so they stop bleeding into each other.
+  const activeSection: Section = isStudioTab(effTab) ? 'Studio' : 'Decisions'
 
   // Auto-open the group containing the active Studio tab (deep links land expanded);
   // the operator can toggle the others. Collapsed by default keeps the rail short.
@@ -125,11 +129,13 @@ export default function AIPShell({
     <div className="flex h-full overflow-hidden">
       <aside className="w-52 border-r shrink-0 overflow-y-auto bg-surface-1/30">
         <nav className="py-2">
-          {/* Decisions — the daily inbox, each its own rail entry */}
+          {/* Decisions — the daily inbox: only shown when you're deciding */}
+          {activeSection === 'Decisions' && (
           <div className="mb-3">
             <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
               Decisions
             </p>
+            <p className="px-4 pb-2 text-[10px] text-muted-foreground leading-snug">Act on what the loop surfaced.</p>
             {DECISIONS_TABS.map((t) => (
               <RailButton
                 key={t.id}
@@ -143,13 +149,15 @@ export default function AIPShell({
               />
             ))}
           </div>
+          )}
 
-          {/* Studio — collapsible groups, surfaces inline (owner/admin only) */}
-          {allowStudio && (
+          {/* Studio — build & configure: only shown when you're configuring */}
+          {activeSection === 'Studio' && allowStudio && (
             <div className="mb-3">
               <p className="px-4 pt-3 pb-1 text-[11px] font-bold uppercase tracking-widest text-foreground/80">
                 Studio
               </p>
+              <p className="px-4 pb-2 text-[10px] text-muted-foreground leading-snug">Build &amp; configure the fabric.</p>
               <RailButton
                 icon="compass"
                 label="Overview"
@@ -198,7 +206,7 @@ export default function AIPShell({
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        <PanelErrorBoundary name={`Decisions · ${effTab}`}>
+        <PanelErrorBoundary name={`${activeSection} · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
             {renderTab(effTab, onTabChange)}
           </Suspense>
