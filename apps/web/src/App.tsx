@@ -29,6 +29,7 @@ const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'
 const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ProcessMiningPage = lazyWithRetry(() => import('@/pages/ProcessMiningPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
+const ObjectListPage = lazyWithRetry(() => import('@/pages/ObjectListPage'))
 const SetupWizardPage = lazyWithRetry(() => import('@/pages/SetupWizardPage'))
 
 const FloorWorkspace = lazyWithRetry(() => import('@/pages/FloorWorkspace'))
@@ -145,6 +146,7 @@ function AppRoutes() {
             <Route path="/whats-new"     element={<WhatsNewPage />} />
             <Route path="/process"       element={<ProcessMiningPage />} />
             <Route path="/objects"       element={<ObjectsPage />} />
+            <Route path="/objects/:type" element={<ObjectListPage />} />
             {/* retired: Reminders folded into Floor · Expiry; Pick Lists lives as a Flow tab */}
             <Route path="/reminders"     element={<Navigate to="/floor?panel=expiry"  replace />} />
             <Route path="/pick-lists"    element={<Navigate to="/flow?panel=picklists" replace />} />
