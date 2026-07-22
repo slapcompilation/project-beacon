@@ -139,7 +139,7 @@ export function useUnreadNotificationCount(): number {
 /**
  * Silently runs auto_create_alerts on mount (once per session) and
  * every INTERVAL_MS thereafter. No toast — background refresh only.
- * Call this from any persistent layout component (e.g. DashboardPage, AppShell).
+ * Call this from any persistent layout component (e.g. AppLayout).
  */
 const ALERT_REFRESH_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
 

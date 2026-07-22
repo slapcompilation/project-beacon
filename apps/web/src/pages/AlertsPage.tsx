@@ -1,5 +1,5 @@
 // Layer: Eye — intelligence surface for waste, expiry, low-stock, and notification signals
-// Layer-grouped sections (Eye · Expiry / Eye · Stock / Eye · Anomalies / Floor · Notifications),
+// Layer-grouped sections (Insights · Expiry / Insights · Stock / Insights · Anomalies / Floor · Notifications),
 // bulk restock action, and a scope-aware empty state.
 // Palantir principle: cross-domain synthesis + decision support, not data display.
 //
@@ -44,7 +44,7 @@ import { useDateFormat } from '@/features/user/hooks'
 
 type Band = 'critical' | 'warning' | 'info'
 type FilterBand = 'all' | Band
-type AlertLayer = 'Eye · Expiry Risk' | 'Eye · Stock Forecast' | 'Eye · Anomalies' | 'Floor · Notifications'
+type AlertLayer = 'Insights · Expiry Risk' | 'Insights · Stock Forecast' | 'Insights · Anomalies' | 'Floor · Notifications'
 
 interface AlertItem {
   id: string
@@ -88,9 +88,9 @@ const BAND_META: Record<Band, {
 }
 
 const LAYER_META: Record<AlertLayer, { icon: IconName; color: string }> = {
-  'Eye · Expiry Risk':      { icon: 'calendar',       color: 'text-orange-600 dark:text-orange-400' },
-  'Eye · Stock Forecast':   { icon: 'trending-down',  color: 'text-red-600 dark:text-red-400' },
-  'Eye · Anomalies':        { icon: 'flash',          color: 'text-yellow-600 dark:text-yellow-400' },
+  'Insights · Expiry Risk':      { icon: 'calendar',       color: 'text-orange-600 dark:text-orange-400' },
+  'Insights · Stock Forecast':   { icon: 'trending-down',  color: 'text-red-600 dark:text-red-400' },
+  'Insights · Anomalies':        { icon: 'flash',          color: 'text-yellow-600 dark:text-yellow-400' },
   'Floor · Notifications':  { icon: 'notifications',  color: 'text-blue-600 dark:text-blue-400' },
 }
 
@@ -460,7 +460,7 @@ export default function AlertsPage() {
   const alerts = useMemo<AlertItem[]>(() => {
     const items: AlertItem[] = []
 
-    // ── Eye · Expiry Risk ──────────────────────────────────────────────────
+    // ── Insights · Expiry Risk ──────────────────────────────────────────────────
     for (const v of expiring) {
       if (!v.expiry_date) continue
       const days = daysUntil(v.expiry_date)
@@ -483,7 +483,7 @@ export default function AlertsPage() {
       items.push({
         id: `expiry-${v.id}`,
         band,
-        layer: 'Eye · Expiry Risk',
+        layer: 'Insights · Expiry Risk',
         icon: 'calendar',
         title: variantLabel,
         subtitle: subtitleParts.join(' · '),
@@ -501,7 +501,7 @@ export default function AlertsPage() {
       })
     }
 
-    // ── Eye · Stock Forecast ───────────────────────────────────────────────
+    // ── Insights · Stock Forecast ───────────────────────────────────────────────
     for (const product of products) {
       for (const variant of product.product_variants) {
         const dtu      = forecastMap.get(variant.id)
@@ -514,7 +514,7 @@ export default function AlertsPage() {
           items.push({
             id: `stock-out-${variant.id}`,
             band: 'info',
-            layer: 'Eye · Stock Forecast',
+            layer: 'Insights · Stock Forecast',
             icon: 'add',
             title: `Needs initial stock: ${label}`,
             subtitle: [`SKU ${variant.sku}`, 'Never received — receive initial stock to activate'].join(' · '),
@@ -538,7 +538,7 @@ export default function AlertsPage() {
           items.push({
             id: `stock-out-${variant.id}`,
             band: 'critical',
-            layer: 'Eye · Stock Forecast',
+            layer: 'Insights · Stock Forecast',
             icon: 'box',
             title: `Out of stock: ${label}`,
             subtitle: subtitleParts.join(' · '),
@@ -568,7 +568,7 @@ export default function AlertsPage() {
           items.push({
             id: `stock-low-${variant.id}`,
             band: 'warning',
-            layer: 'Eye · Stock Forecast',
+            layer: 'Insights · Stock Forecast',
             icon: 'warning-sign',
             title: `Low stock: ${label}`,
             subtitle: subtitleParts.join(' · '),
@@ -586,7 +586,7 @@ export default function AlertsPage() {
       }
     }
 
-    // ── Eye · Anomalies + Floor · Notifications ─────────
+    // ── Insights · Anomalies + Floor · Notifications ─────────
     for (const n of notifications) {
       if (n.read) continue
 
@@ -594,7 +594,7 @@ export default function AlertsPage() {
         items.push({
           id: `notif-${n.id}`,
           band: 'warning',
-          layer: 'Eye · Anomalies',
+          layer: 'Insights · Anomalies',
           icon: 'flash',
           title: n.message,
           subtitle: `Detected ${fmtDate(n.timestamp)} at ${format(new Date(n.timestamp), 'HH:mm')} · based on 30-day avg`,
@@ -660,7 +660,7 @@ export default function AlertsPage() {
 
   const byLayer = useMemo(() => {
     const map = new Map<AlertLayer, AlertItem[]>()
-    const order: AlertLayer[] = ['Eye · Expiry Risk', 'Eye · Stock Forecast', 'Eye · Anomalies', 'Floor · Notifications']
+    const order: AlertLayer[] = ['Insights · Expiry Risk', 'Insights · Stock Forecast', 'Insights · Anomalies', 'Floor · Notifications']
     for (const layer of order) map.set(layer, [])
     for (const item of visibleAlerts) {
       map.get(item.layer)?.push(item)
@@ -669,7 +669,7 @@ export default function AlertsPage() {
   }, [visibleAlerts])
 
   const stockAlerts = useMemo(
-    () => visibleAlerts.filter((a) => a.layer === 'Eye · Stock Forecast' && a._variantId && !a._neverStocked),
+    () => visibleAlerts.filter((a) => a.layer === 'Insights · Stock Forecast' && a._variantId && !a._neverStocked),
     [visibleAlerts]
   )
   const unreadNotifCount = notifications.filter((n) => !n.read).length
@@ -819,9 +819,9 @@ export default function AlertsPage() {
         ) : (
           <div className="space-y-8 max-w-3xl">
             {([
-              'Eye · Expiry Risk',
-              'Eye · Stock Forecast',
-              'Eye · Anomalies',
+              'Insights · Expiry Risk',
+              'Insights · Stock Forecast',
+              'Insights · Anomalies',
               'Floor · Notifications',
             ] as AlertLayer[]).map((layer) => (
               <LayerSection

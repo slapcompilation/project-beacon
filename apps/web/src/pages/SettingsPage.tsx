@@ -68,7 +68,7 @@ const NAV: NavItem[] = [
 ]
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
-  { dot: 'bg-slate-400',   label: 'Eye',         ids: ['alert-thresholds'] },
+  { dot: 'bg-slate-400',   label: 'Insights',    ids: ['alert-thresholds'] },
   { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous', 'constraints', 'principles'] },
   { dot: 'bg-blue-500',    label: 'Inventory',   ids: ['categories', 'locations', 'custom-fields', 'move-reasons'] },
   { dot: 'bg-purple-500',  label: 'Hotel',       ids: ['hotel', 'team', 'webhooks'] },

@@ -398,7 +398,7 @@ export default function InvoicingPage() {
       {/* Header */}
       <div className="flex items-start justify-between border-b px-4 md:px-8 py-5 flex-shrink-0 gap-4">
         <div>
-          <h1 className="text-xl font-semibold">Mind · Invoicing Intelligence</h1>
+          <h1 className="text-xl font-semibold">Operations · Invoicing Intelligence</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Per-supplier invoice pricing patterns · consecutive overcharge streak detection
           </p>

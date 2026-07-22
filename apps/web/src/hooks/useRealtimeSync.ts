@@ -119,7 +119,7 @@ export function useRealtimeSync() {
       }, filter),
 
       // ── Alerts ───────────────────────────────────────────────────────────────
-      // Keeps the alerts list in Eye · Alerts fresh when auto_create_alerts fires.
+      // Keeps the alerts list in Insights · Alerts fresh when auto_create_alerts fires.
       services.realtime.subscribe('alerts', '*', () => {
         void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
       }, filter),
@@ -131,7 +131,7 @@ export function useRealtimeSync() {
       }, filter),
 
       // ── Purchase orders ──────────────────────────────────────────────────────
-      // Keeps the Mind · Operations PO pipeline and Procurement tab fresh.
+      // Keeps the Operations · Operations PO pipeline and Procurement tab fresh.
       services.realtime.subscribe('purchase_orders', '*', () => {
         void queryClient.invalidateQueries({ queryKey: ['mind', 'po-summary', hotelId] })
         void queryClient.invalidateQueries({ queryKey: briefingKeys.actions(hotelId) })

@@ -271,7 +271,7 @@ export default function FBIntelligencePage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Eye · F&amp;B Intelligence</h1>
+          <h1 className="text-xl font-semibold">Insights · F&amp;B Intelligence</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {cogsLoading
               ? 'Loading…'

@@ -382,7 +382,7 @@ function FinancialTab() {
           </button>
         ))}
       </div>
-      <PanelErrorBoundary name={`Mind · Finance · ${sub}`}>
+      <PanelErrorBoundary name={`Operations · Finance · ${sub}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden">
             {sub === 'cpor'   && <CPORDashboard />}
@@ -423,7 +423,7 @@ function StrategyTab({ role }: { role: string }) {
           </button>
         ))}
       </div>
-      <PanelErrorBoundary name={`Mind · Strategy · ${sub}`}>
+      <PanelErrorBoundary name={`Operations · Strategy · ${sub}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden">
             {sub === 'chain' && (
@@ -523,7 +523,7 @@ function SuppliersTab({ initialSub }: { initialSub: 'browser' | 'reliability' | 
           </button>
         ))}
       </div>
-      <PanelErrorBoundary name={`Mind · Suppliers · ${sub}`}>
+      <PanelErrorBoundary name={`Operations · Suppliers · ${sub}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
             {sub === 'browser'      && <SupplierBrowserPage />}
@@ -567,7 +567,7 @@ function TriageTab({ initialSub }: { initialSub: 'operations' | 'categories' | '
           </button>
         ))}
       </div>
-      <PanelErrorBoundary name={`Mind · Triage · ${sub}`}>
+      <PanelErrorBoundary name={`Operations · Triage · ${sub}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
             {sub === 'operations' && <OperationsTab />}
@@ -622,7 +622,7 @@ export function OperationsPanel({ initialPanel }: { initialPanel?: string }) {
           </button>
         ))}
       </div>
-      <PanelErrorBoundary name={`Mind · Operations · ${tab}`}>
+      <PanelErrorBoundary name={`Operations · Operations · ${tab}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
             {tab === 'triage'    && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}

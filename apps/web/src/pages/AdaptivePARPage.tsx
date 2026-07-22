@@ -467,7 +467,7 @@ export default function AdaptivePARPage() {
             <div>
               <h1 className="text-base font-semibold">Adaptive PAR Engine</h1>
               <p className="text-xs text-muted-foreground">
-                Eye · Mind Layer · PAR = μ×L + z×σ_dL · no hardcoded values · all inputs derived from data
+                Insights · PAR = μ×L + z×σ_dL · no hardcoded values · all inputs derived from data
               </p>
             </div>
           </div>

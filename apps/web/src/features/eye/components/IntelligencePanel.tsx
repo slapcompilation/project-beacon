@@ -173,7 +173,7 @@ export function IntelligencePanel({ currency, onRestock }: IntelligencePanelProp
       <div className="flex items-center justify-between mb-2">
         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1">
           <Icon icon="predictive-analysis" size={10} className="text-orange-500" />
-          Eye · Intelligence
+          Insights · Intelligence
         </p>
         <button
           onClick={() => { void navigate('/reports?tab=forecast') }}

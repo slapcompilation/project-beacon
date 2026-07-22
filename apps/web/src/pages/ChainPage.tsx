@@ -693,7 +693,7 @@ export default function ChainPage() {
       <div className="flex flex-col h-full">
         <div className="flex items-center justify-between border-b px-4 md:px-8 py-5">
           <div>
-            <h1 className="text-xl font-semibold">Mind · Chain Overview</h1>
+            <h1 className="text-xl font-semibold">Decisions · Chain Overview</h1>
             <p className="mt-0.5 text-sm text-muted-foreground">Multi-property intelligence</p>
           </div>
         </div>
@@ -712,7 +712,7 @@ export default function ChainPage() {
       {/* Header */}
       <div className="flex items-center justify-between border-b px-4 md:px-8 py-5 flex-shrink-0">
         <div>
-          <h1 className="text-xl font-semibold">Mind · Chain Overview</h1>
+          <h1 className="text-xl font-semibold">Decisions · Chain Overview</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {isLoading
               ? 'Loading…'

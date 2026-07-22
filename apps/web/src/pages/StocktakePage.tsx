@@ -541,7 +541,7 @@ function PostCommitReport({
         {nowEmpty.length > 0 && (
           <div>
             <h2 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Eye · Now empty — request restock
+              Insights · Now empty — request restock
             </h2>
             <div className="space-y-1.5">
               {nowEmpty.map((l) => (
