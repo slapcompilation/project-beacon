@@ -8,7 +8,7 @@ import { useMemo } from 'react'
 import { Icon } from '@blueprintjs/core'
 import type { LifecycleNode } from '@beacon/reality-graph'
 import type { MinedProcess, ProcessState } from './api'
-import { stateDepths, isTerminal, isBottleneck, formatDuration } from './analysis'
+import { stateDepths, isTerminal, formatDuration } from './analysis'
 
 const NODE_W = 150, NODE_H = 68, COL_GAP = 230, ROW_GAP = 104, MARGIN = 28
 
@@ -16,7 +16,12 @@ interface Positioned extends ProcessState { x: number; y: number }
 
 const AMBER = '#d9822b'
 
-export function ProcessExplorer({ nodeType, data }: { nodeType: LifecycleNode; data: MinedProcess }) {
+export function ProcessExplorer({ nodeType, data, bottlenecks }: {
+  nodeType: LifecycleNode
+  data: MinedProcess
+  /** State names the tunable bottleneck monitor fired on. */
+  bottlenecks: ReadonlySet<string>
+}) {
   const { nodes, width, height, byState } = useMemo(() => {
     const depths = stateDepths(nodeType)
     const observed = data.states.filter((s) => s.entered_count > 0)
@@ -95,7 +100,7 @@ export function ProcessExplorer({ nodeType, data }: { nodeType: LifecycleNode; d
 
         {/* state nodes */}
         {nodes.map((n) => {
-          const bottleneck = isBottleneck(nodeType, n)
+          const bottleneck = bottlenecks.has(n.state)
           const terminal = isTerminal(nodeType, n.state)
           return (
             <g key={n.state} transform={`translate(${n.x} ${n.y})`}>

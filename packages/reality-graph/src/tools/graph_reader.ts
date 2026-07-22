@@ -91,6 +91,24 @@ export interface PrincipleRecord {
   appliesToNodeIds?: string[]
 }
 
+export interface ProcessStateStat {
+  state:              string
+  enteredCount:       number
+  currentCount:       number
+  exitedCount:        number
+  avgDurationSeconds: number | null
+}
+export interface ProcessTransitionStat {
+  from:               string
+  to:                 string
+  count:              number
+  avgLeadTimeSeconds: number | null
+}
+export interface MinedProcessResult {
+  states:      ProcessStateStat[]
+  transitions: ProcessTransitionStat[]
+}
+
 /** Read-only abstraction used by all data/logic tools. */
 export interface GraphReader {
   getVariant(variantId: string): Promise<VariantRow | null>
@@ -114,4 +132,8 @@ export interface GraphReader {
    *  Agents fetch these and weigh applicable ones as soft constraints,
    *  recording honored principles in proposal provenance. */
   getActivePrinciples(hotelId: string, organizationId?: string): Promise<PrincipleRecord[]>
+  /** Process-mining metrics over the lifecycle transition log (mine_process RPC,
+   *  migration 208). Optional — only the browser reader implements it; agents /
+   *  fixtures that don't need it can omit it. Used by the mine_process tool. */
+  mineProcess?(nodeType: string, hotelId: string): Promise<MinedProcessResult>
 }

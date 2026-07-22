@@ -64,6 +64,19 @@ export interface IntegrationHealthConfig {
   stuck_ingest_after_minutes: number
 }
 
+/** Process-bottleneck detection over the lifecycle transition log (P11, Foundry
+ *  Machinery parity). The metric (how many objects entered vs exited a state) is
+ *  deterministic; these are the tunable thresholds — a non-terminal state fires
+ *  when its exit ratio slips below max_exit_ratio and enough objects have passed
+ *  through to matter. */
+export interface BottleneckMonitorConfig {
+  enabled: boolean
+  /** Ignore states fewer than this many objects have entered (noise floor). */
+  min_entered: number
+  /** Fire when exited/entered drops below this. Default 0.4. 0..1. */
+  max_exit_ratio: number
+}
+
 export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
@@ -116,6 +129,8 @@ export interface OrgPolicy {
     supplier: SupplierMonitorConfig
     /** Connector + ingestion-pipeline freshness (Foundry health-checks parity). */
     integration: IntegrationHealthConfig
+    /** Process bottlenecks over the lifecycle transition log (Machinery parity). */
+    bottleneck: BottleneckMonitorConfig
   }
 }
 
@@ -150,6 +165,7 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     waste:    { enabled: true, min_anomaly_score: 1 },
     supplier: { enabled: true, max_reliability_score: 6 },
     integration: { enabled: true, warn_after_minutes: 120, down_after_minutes: 1440, stuck_ingest_after_minutes: 720 },
+    bottleneck:  { enabled: true, min_entered: 3, max_exit_ratio: 0.4 },
   },
 }
 
@@ -179,6 +195,7 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       waste:       { ...DEFAULT_ORG_POLICY.monitors.waste },
       supplier:    { ...DEFAULT_ORG_POLICY.monitors.supplier },
       integration: { ...DEFAULT_ORG_POLICY.monitors.integration },
+      bottleneck:  { ...DEFAULT_ORG_POLICY.monitors.bottleneck },
     },
   }
 
@@ -265,6 +282,13 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       if (typeof ig.warn_after_minutes         === 'number')  m.warn_after_minutes         = clamp(Math.round(ig.warn_after_minutes), 1, 43200)
       if (typeof ig.down_after_minutes         === 'number')  m.down_after_minutes         = clamp(Math.round(ig.down_after_minutes), 1, 43200)
       if (typeof ig.stuck_ingest_after_minutes === 'number')  m.stuck_ingest_after_minutes = clamp(Math.round(ig.stuck_ingest_after_minutes), 1, 43200)
+    }
+    if (isObj(mo.bottleneck)) {
+      const bn = mo.bottleneck as Record<string, unknown>
+      const m = merged.monitors.bottleneck
+      if (typeof bn.enabled        === 'boolean') m.enabled        = bn.enabled
+      if (typeof bn.min_entered    === 'number')  m.min_entered    = Math.max(0, Math.round(bn.min_entered))
+      if (typeof bn.max_exit_ratio === 'number')  m.max_exit_ratio = clamp(bn.max_exit_ratio, 0, 1)
     }
   }
 

@@ -2,13 +2,14 @@
 // (restock / PO / case / proposal), see its mined state machine with per-state
 // and per-transition metrics, and catch bottlenecks where objects pile up.
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Icon, SegmentedControl, Spinner, SpinnerSize, HTMLTable, Tag, Intent } from '@blueprintjs/core'
-import type { LifecycleNode } from '@beacon/reality-graph'
+import { selectBottleneckTriggers, type LifecycleNode } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useMonitorPolicy } from '@/features/monitors/hooks'
 import { useMinedProcess } from '@/features/processMining/hooks'
 import { ProcessExplorer } from '@/features/processMining/ProcessExplorer'
-import { isBottleneck, formatDuration } from '@/features/processMining/analysis'
+import { toBottleneckReadings, formatDuration } from '@/features/processMining/analysis'
 
 const PROCESSES: { id: LifecycleNode; label: string }[] = [
   { id: 'restock_request', label: 'Restock Requests' },
@@ -19,11 +20,20 @@ const PROCESSES: { id: LifecycleNode; label: string }[] = [
 
 export default function ProcessMiningPage() {
   const hotelId = useActiveHotelId()
+  const { data: policy } = useMonitorPolicy()
   const [nodeType, setNodeType] = useState<LifecycleNode>('restock_request')
   const { data, isLoading } = useMinedProcess(nodeType, hotelId)
 
   const process = data ?? { states: [], transitions: [] }
-  const bottlenecks = process.states.filter((s) => isBottleneck(nodeType, s))
+  const rule = policy?.merged.monitors.bottleneck
+
+  // The bottleneck monitor's trigger is operator-tunable (org policy); the
+  // firing rule lives in reality-graph so the threshold isn't hardcoded here.
+  const hits = useMemo(
+    () => (rule ? selectBottleneckTriggers(toBottleneckReadings(nodeType, process.states), rule) : []),
+    [rule, nodeType, process.states],
+  )
+  const bottleneckStates = useMemo(() => new Set(hits.map((h) => h.state)), [hits])
 
   return (
     <div className="flex flex-col h-full">
@@ -49,21 +59,21 @@ export default function ProcessMiningPage() {
           </div>
         ) : (
           <>
-            {bottlenecks.length > 0 && (
+            {hits.length > 0 && (
               <div className="flex items-start gap-2 rounded border border-amber-400/50 bg-amber-50/60 px-4 py-3 text-sm dark:bg-amber-950/20">
                 <Icon icon="warning-sign" className="mt-0.5 text-amber-600" />
                 <div>
                   <span className="font-medium">
-                    {bottlenecks.length === 1 ? '1 bottleneck' : `${String(bottlenecks.length)} bottlenecks`} detected.
+                    {hits.length === 1 ? '1 bottleneck' : `${String(hits.length)} bottlenecks`} detected.
                   </span>{' '}
                   <span className="text-muted-foreground">
-                    {bottlenecks.map((b) => b.state.replace(/_/g, ' ')).join(', ')} — far more objects entered than exited.
+                    {hits.map((h) => `${h.state.replace(/_/g, ' ')} (${String(Math.round(h.exitRatio * 100))}% exit)`).join(', ')} — far more objects entered than exited.
                   </span>
                 </div>
               </div>
             )}
 
-            <ProcessExplorer nodeType={nodeType} data={process} />
+            <ProcessExplorer nodeType={nodeType} data={process} bottlenecks={bottleneckStates} />
 
             {process.states.length > 0 && (
               <div className="grid gap-6 lg:grid-cols-2">
@@ -84,7 +94,7 @@ export default function ProcessMiningPage() {
                         <tr key={s.state}>
                           <td className="capitalize">
                             {s.state.replace(/_/g, ' ')}
-                            {isBottleneck(nodeType, s) && (
+                            {bottleneckStates.has(s.state) && (
                               <Tag intent={Intent.WARNING} minimal className="ml-2">bottleneck</Tag>
                             )}
                           </td>

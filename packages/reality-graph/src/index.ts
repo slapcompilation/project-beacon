@@ -169,7 +169,7 @@ export {
   makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
-export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './tools/index'
+export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './tools/index'
 export type {
   ComputeDecisionCalibrationInput,
   ComputeDecisionCalibrationOutput,
@@ -299,6 +299,8 @@ export {
 
 // ── Tool factories (re-exported for descriptor introspection) ──────────────
 export { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
+export { makeMineProcessTool } from './tools/data/mine_process'
+export type { MineProcessInput, MineProcessOutput } from './tools/data/mine_process'
 
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
 // Phase C stub: contracts only. Objectives land in src/objectives/<name>/.
@@ -385,7 +387,7 @@ export type {
 } from './constraints/index'
 
 export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy } from './policy/index'
-export type { OrgPolicy, ExpiryMonitorConfig, IntegrationHealthConfig } from './policy/index'
+export type { OrgPolicy, ExpiryMonitorConfig, IntegrationHealthConfig, BottleneckMonitorConfig } from './policy/index'
 
 export {
   selectExpiryTriggers,
@@ -399,6 +401,8 @@ export {
   supplierUrgency,
   classifyIntegrationHealth,
   selectIntegrationHealthAlerts,
+  selectBottleneckTriggers,
+  bottleneckUrgency,
 } from './monitors/index'
 export type {
   ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult,
@@ -407,6 +411,7 @@ export type {
   SupplierReading, SupplierHit,
   IntegrationSourceReading, IntegrationHealthHit,
   IntegrationHealthStatus, IntegrationSourceKind,
+  BottleneckReading, BottleneckHit,
 } from './monitors/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
