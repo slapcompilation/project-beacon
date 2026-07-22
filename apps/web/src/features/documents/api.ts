@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase/client'
 
 export type DocumentSource = 'upload' | 'email' | 'integration' | 'ocr-capture'
 export type IngestionStage = 'raw' | 'ocr' | 'embedded' | 'contextualized' | 'linked'
+export type Sensitivity = 'public' | 'internal' | 'confidential' | 'restricted'
+export type PIIType = 'email' | 'phone' | 'credit_card' | 'iban'
 
 export interface DocumentChunk {
   chunk_id:     string
@@ -29,6 +31,8 @@ export interface DocumentRow {
   size_bytes:           number
   page_count:           number | null
   chunks:               DocumentChunk[] | null
+  sensitivity:          Sensitivity
+  pii_types:            PIIType[]
   uploaded_by_user_id:  string
   created_at:           string
   updated_at:           string
@@ -79,6 +83,8 @@ export interface UploadDocumentInput {
   file:           File
   title?:         string
   source?:        DocumentSource
+  /** Operator's base classification; the ingest scanner can raise it if it finds PII. */
+  sensitivity?:   Sensitivity
   uploadedByUserId: string
 }
 
@@ -112,6 +118,7 @@ export async function uploadDocument(input: UploadDocumentInput): Promise<Upload
       title,
       mime_type:           input.file.type || 'application/octet-stream',
       source:              input.source ?? 'upload',
+      sensitivity:         input.sensitivity ?? 'internal',
       bucket_name:         'documents',
       storage_path:        storagePath,
       size_bytes:          input.file.size,
@@ -127,6 +134,16 @@ export async function uploadDocument(input: UploadDocumentInput): Promise<Upload
   }
 
   return { row: data, path: storagePath }
+}
+
+/** Reclassify a document. RLS gates this to users cleared for the doc's current
+ *  level, so an under-cleared user can't lower a restricted doc to read it. */
+export async function updateDocumentSensitivity(id: string, sensitivity: Sensitivity): Promise<void> {
+  const { error } = await supabase
+    .from('documents')
+    .update({ sensitivity })
+    .eq('id', id)
+  if (error) throw new Error(error.message)
 }
 
 export async function deleteDocument(id: string, storagePath: string): Promise<void> {

@@ -42,7 +42,8 @@ DECLARE
   v_a uuid; v_org uuid; v_b uuid;
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
-  claims_a text; claims_b text;
+  claims_a text; claims_b text; claims_admin text;
+  v_doc uuid := '00000000-0000-00c8-0000-0000000000c8'; v_user uuid;
 BEGIN
   -- Resolve two distinct populated hotels (skip gracefully if the env lacks them).
   SELECT h.id, h.organization_id INTO v_a, v_org FROM hotels h
@@ -62,6 +63,8 @@ BEGIN
     'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text;
   claims_b := json_build_object('sub','00000000-0000-0000-0000-000000000002',
     'app_metadata', json_build_object('hotel_id', v_b::text, 'org_id', v_org::text, 'role','hotel_manager'))::text;
+  claims_admin := json_build_object('sub','00000000-0000-0000-0000-000000000009',
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text;
 
   -- ── C1: get_recent_activity — cross-hotel isolation ──
   PERFORM set_config('request.jwt.claims', claims_a, true);
@@ -154,6 +157,49 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
   IF NOT raised THEN RAISE EXCEPTION 'C10b: authenticated recorded forecasts for another hotel'; END IF;
 
+  -- ── C11: document sensitivity — clearance gates reads (P8, LLM boundary) ──
+  -- A restricted document (and its chunks — the content that reaches an LLM via
+  -- match_document_chunks) must be invisible to an under-cleared reader, but
+  -- visible to an admin. Setup as definer (RLS bypassed); cleaned up either way.
+  -- uploaded_by_user_id has an FK to auth.users, so use a real one (skip if none).
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped', v_b_pending;
+  SELECT id INTO v_user FROM auth.users LIMIT 1;
+  IF v_user IS NULL THEN
+    RAISE NOTICE 'C11 SKIPPED — no auth.users to attribute the probe document to';
+  ELSE
+  DELETE FROM document_chunks WHERE document_id = v_doc;
+  DELETE FROM documents WHERE id = v_doc;
+  INSERT INTO documents (id, hotel_id, title, mime_type, storage_path, uploaded_by_user_id, sensitivity)
+    VALUES (v_doc, v_a, 'P8 contract probe', 'text/plain', 'contract/probe.txt', v_user, 'restricted');
+  INSERT INTO document_chunks (document_id, hotel_id, chunk_key, page, text_preview)
+    VALUES (v_doc, v_a, 'probe_1_1', 1, 'restricted content');
+
+  BEGIN
+    -- hotel_manager (clearance = internal) sees neither the doc nor its chunks
+    PERFORM set_config('request.jwt.claims', claims_a, true);
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO n FROM documents WHERE id = v_doc;
+    IF n <> 0 THEN RAISE EXCEPTION 'C11a CLEARANCE BREACH: hotel_manager read a restricted document'; END IF;
+    SELECT count(*) INTO n FROM document_chunks WHERE document_id = v_doc;
+    IF n <> 0 THEN RAISE EXCEPTION 'C11b CLEARANCE BREACH: hotel_manager read % restricted chunk(s) (LLM boundary leak)', n; END IF;
+
+    -- admin (clearance = restricted) sees it — the gate blocks, not just hides-from-all
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', claims_admin, true);
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO n FROM documents WHERE id = v_doc;
+    IF n <> 1 THEN RAISE EXCEPTION 'C11c: admin could not read the restricted document (over-gated)'; END IF;
+  EXCEPTION WHEN OTHERS THEN
+    RESET ROLE;
+    DELETE FROM document_chunks WHERE document_id = v_doc;
+    DELETE FROM documents WHERE id = v_doc;
+    RAISE;
+  END;
+  RESET ROLE;
+  DELETE FROM document_chunks WHERE document_id = v_doc;
+  DELETE FROM documents WHERE id = v_doc;
+  END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated', v_b_pending;
 END $$;

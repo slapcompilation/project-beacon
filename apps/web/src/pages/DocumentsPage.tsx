@@ -11,23 +11,24 @@ const STAGES: { stage: IngestionStage; desc: string }[] = [
   { stage: 'linked',         desc: 'describes_entity & cited_in edges written — agents cite it by page.' },
 ]
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
+  Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { useDocuments, useUploadDocument } from '@/features/documents/hooks'
-import type { DocumentRow, IngestionStage } from '@/features/documents/api'
+import type { DocumentRow, IngestionStage, Sensitivity } from '@/features/documents/api'
 
 export default function DocumentsPage() {
   const { data: rows = [], isLoading, isError, refetch, isFetching } = useDocuments()
   const upload = useUploadDocument()
   const fileRef = useRef<HTMLInputElement>(null)
+  const [sensitivity, setSensitivity] = useState<Sensitivity>('internal')
 
   const handleFile = (file: File | null) => {
     if (!file) return
-    upload.mutate({ file })
+    upload.mutate({ file, sensitivity })
     if (fileRef.current) fileRef.current.value = ''
   }
 
@@ -63,6 +64,17 @@ export default function DocumentsPage() {
             <span className="font-semibold text-foreground">{formatBytes(totalBytes)}</span> stored
           </span>
           <Button variant="minimal" size="small" icon="refresh" loading={isFetching} onClick={() => { void refetch() }}>Refresh</Button>
+          <HTMLSelect
+            value={sensitivity}
+            onChange={(e) => { setSensitivity(e.currentTarget.value as Sensitivity) }}
+            title="Base classification for the upload — the scanner raises it if it finds PII"
+            options={[
+              { label: 'Public',       value: 'public' },
+              { label: 'Internal',     value: 'internal' },
+              { label: 'Confidential', value: 'confidential' },
+              { label: 'Restricted',   value: 'restricted' },
+            ]}
+          />
           <Button
             intent={Intent.PRIMARY}
             icon="upload"
