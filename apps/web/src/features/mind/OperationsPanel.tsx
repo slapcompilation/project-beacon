@@ -1,8 +1,8 @@
-// Layer: Mind — Operations (hospitality procurement / finance / strategy).
-// Demoted from a top-level Mind panel to the "Operations" entry inside the
-// AIP shell. Self-contained 4-tab workspace (Triage / Suppliers / Finance /
-// Strategy) with its own sub-tabs; preserves legacy ?panel= deep links via
-// PANEL_REDIRECT + the *_SUB_SEED maps.
+// Operations — the hospitality procurement workspace. Tabs: Triage (inbox) /
+// Procurement (a guided supplier→PO stepper, not a flat sub-tab strip) / Finance /
+// Strategy. Legacy ?panel= deep links resolve via PANEL_REDIRECT + seedProcurement.
+// (Finance/Strategy relocate to Home briefing + Insights in a later phase —
+// docs/OPERATIONS-RESTRUCTURE.md.)
 
 import { lazy, Suspense, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -396,17 +396,16 @@ function FinancialTab() {
   )
 }
 
-// ─── Strategy sub-tabs (Chain + Team + Events) ───────────────────────────────
+// ─── Strategy sub-tabs (Chain + Team) — Events moved into Build PO ────────────
 
 function StrategyTab({ role }: { role: string }) {
-  const [sub, setSub] = useState<'chain' | 'team' | 'events'>('chain')
+  const [sub, setSub] = useState<'chain' | 'team'>('chain')
   return (
     <div className="flex flex-col h-full overflow-hidden">
       <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
         {[
           { id: 'chain'  as const, label: 'Chain'  },
           { id: 'team'   as const, label: 'Team'   },
-          { id: 'events' as const, label: 'Events' },
         ].map((t) => (
           <button
             key={t.id}
@@ -435,7 +434,6 @@ function StrategyTab({ role }: { role: string }) {
               )
             )}
             {sub === 'team'   && <TeamIntelligencePage />}
-            {sub === 'events' && <EventDemandPage />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
@@ -454,15 +452,18 @@ const SupplierQuoteParserPage  = lazy(() => import('@/pages/SupplierQuoteParserP
 const ProcurementLeveragePage  = lazy(() => import('@/pages/ProcurementLeveragePage'))
 const SmartProposalsPage       = lazy(() => import('@/pages/SmartProposalsPage'))
 
-type PanelId = 'triage' | 'suppliers' | 'finance' | 'strategy'
+type PanelId = 'triage' | 'procurement' | 'finance' | 'strategy'
 
-// Backward-compat redirect map: old panel IDs → new panel
+// Backward-compat redirect map: old panel IDs → new panel. Procurement sub-seeds
+// (contracts/leverage/dispatch/events…) are resolved by seedProcurement().
 const PANEL_REDIRECT: Partial<Record<string, PanelId>> = {
   'operations':   'triage',
-  'procurement':  'suppliers',   // + SUPPLIERS_SUB_SEED maps it → po-builder
-  'contracts':    'suppliers',
-  'leverage':     'suppliers',
-  'dispatch':     'suppliers',
+  'suppliers':    'procurement',
+  'procurement':  'procurement',
+  'contracts':    'procurement',
+  'leverage':     'procurement',
+  'dispatch':     'procurement',
+  'events':       'procurement',   // event-driven PO is a Build PO mode now
   'proposals':    'triage',
   'par':          'triage',
   'categories':   'triage',
@@ -472,7 +473,6 @@ const PANEL_REDIRECT: Partial<Record<string, PanelId>> = {
   'gl':           'finance',
   'chain':        'strategy',
   'team':         'strategy',
-  'events':       'strategy',
 }
 
 // Deep-link sub-tab seeds: if the raw panel was one of these, open that sub-tab directly
@@ -483,56 +483,114 @@ const TRIAGE_SUB_SEED: Record<string, 'operations' | 'categories' | 'proposals'>
   'proposals':  'proposals',
 }
 
-const SUPPLIERS_SUB_SEED: Record<string, 'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser'> = {
-  'leverage':    'leverage',
-  'contracts':   'contracts',
-  'dispatch':    'dispatch',
-  'procurement': 'po-builder',
+// ─── Procurement flow (guided spine) ───────────────────────────────────────────
+// The supplier→PO lifecycle as an ordered, free-scrub stepper instead of a flat
+// tab strip: Find supplier → Vet → Review contract → Build PO → Dispatch. Every
+// step is jump-in-able (never locked). Build PO folds in event- and quote-driven
+// modes; Review contract folds in negotiation leverage.
+
+type ProcStep = 'find' | 'vet' | 'contract' | 'build' | 'dispatch'
+type BuildMode = 'new' | 'event' | 'quote'
+type ContractMode = 'terms' | 'leverage'
+
+const PROCUREMENT_STEPS: { id: ProcStep; label: string; hint: string }[] = [
+  { id: 'find',     label: 'Find supplier',   hint: 'Who can supply this?' },
+  { id: 'vet',      label: 'Vet reliability', hint: 'On-time rate, delays, cost variance' },
+  { id: 'contract', label: 'Review contract', hint: 'Terms + negotiation leverage' },
+  { id: 'build',    label: 'Build PO',        hint: 'Assemble the order' },
+  { id: 'dispatch', label: 'Dispatch',        hint: 'Send + track open POs' },
+]
+
+function ProcurementStepper({ active, onPick }: { active: ProcStep; onPick: (s: ProcStep) => void }) {
+  return (
+    <div className="flex items-center border-b shrink-0 px-4 py-2 bg-background overflow-x-auto">
+      {PROCUREMENT_STEPS.map((s, i) => (
+        <div key={s.id} className="flex items-center shrink-0">
+          <button
+            type="button"
+            title={s.hint}
+            onClick={() => { onPick(s.id) }}
+            className={cn('flex items-center gap-2 rounded px-2.5 py-1 transition-colors',
+              s.id === active ? 'bg-primary/10' : 'hover:bg-muted/50')}
+          >
+            <span className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold tabular-nums',
+              s.id === active ? 'bg-primary text-white' : 'bg-muted text-muted-foreground')}>
+              {i + 1}
+            </span>
+            <span className={cn('text-xs font-medium', s.id === active ? 'text-foreground' : 'text-muted-foreground')}>
+              {s.label}
+            </span>
+          </button>
+          {i < PROCUREMENT_STEPS.length - 1 && (
+            <Icon icon="chevron-right" size={12} className="mx-0.5 text-muted-foreground/40 shrink-0" />
+          )}
+        </div>
+      ))}
+    </div>
+  )
 }
 
-// ─── Suppliers tab ─────────────────────────────────────────────────────────────
-// Sub-tabs ordered by the PO lifecycle:
-//   Suppliers → Reliability → Contracts → PO Builder → PO Dispatch → Leverage → Quote Parser
+function ModeToggle<T extends string>({ value, onChange, options }: {
+  value: T; onChange: (v: T) => void; options: { id: T; label: string }[]
+}) {
+  return (
+    <div className="flex items-center gap-1 border-b shrink-0 px-4 py-1.5 bg-muted/20">
+      {options.map((o) => (
+        <button
+          key={o.id}
+          type="button"
+          onClick={() => { onChange(o.id) }}
+          className={cn('rounded px-2 py-0.5 text-[11px] font-medium transition-colors',
+            o.id === value ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground hover:bg-muted')}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
 
-function SuppliersTab({ initialSub }: { initialSub: 'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser' }) {
-  const [sub, setSub] = useState<'browser' | 'reliability' | 'contracts' | 'po-builder' | 'dispatch' | 'leverage' | 'quote-parser'>(initialSub)
+interface ProcSeed { step: ProcStep; build: BuildMode; contract: ContractMode }
+
+function seedProcurement(raw: string): ProcSeed {
+  const base: ProcSeed = { step: 'find', build: 'new', contract: 'terms' }
+  switch (raw) {
+    case 'reliability':  return { ...base, step: 'vet' }
+    case 'contracts':    return { ...base, step: 'contract', contract: 'terms' }
+    case 'leverage':     return { ...base, step: 'contract', contract: 'leverage' }
+    case 'procurement':  return { ...base, step: 'build', build: 'new' }
+    case 'events':       return { ...base, step: 'build', build: 'event' }
+    case 'quote-parser': return { ...base, step: 'build', build: 'quote' }
+    case 'dispatch':     return { ...base, step: 'dispatch' }
+    default:             return base
+  }
+}
+
+function ProcurementFlow({ seed }: { seed: ProcSeed }) {
+  const [step, setStep] = useState<ProcStep>(seed.step)
+  const [build, setBuild] = useState<BuildMode>(seed.build)
+  const [contract, setContract] = useState<ContractMode>(seed.contract)
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
-        {[
-          { id: 'browser'      as const, label: 'Suppliers'    },
-          { id: 'reliability'  as const, label: 'Reliability'  },
-          { id: 'contracts'    as const, label: 'Contracts'    },
-          { id: 'po-builder'   as const, label: 'PO Builder'   },
-          { id: 'dispatch'     as const, label: 'PO Dispatch'  },
-          { id: 'leverage'     as const, label: 'Leverage'     },
-          { id: 'quote-parser' as const, label: 'Quote Parser' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => { setSub(t.id) }}
-            className={cn(
-              'shrink-0 px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
-              sub === t.id
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <PanelErrorBoundary name={`Operations · Suppliers · ${sub}`}>
+      <ProcurementStepper active={step} onPick={setStep} />
+      {step === 'contract' && (
+        <ModeToggle value={contract} onChange={setContract}
+          options={[{ id: 'terms', label: 'Terms' }, { id: 'leverage', label: 'Negotiation leverage' }]} />
+      )}
+      {step === 'build' && (
+        <ModeToggle value={build} onChange={setBuild}
+          options={[{ id: 'new', label: 'New PO' }, { id: 'event', label: 'From event' }, { id: 'quote', label: 'From quote' }]} />
+      )}
+      <PanelErrorBoundary name={`Operations · Procurement · ${step}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
-            {sub === 'browser'      && <SupplierBrowserPage />}
-            {sub === 'reliability'  && <SupplierReliabilityPage />}
-            {sub === 'contracts'    && <ContractsPage />}
-            {sub === 'po-builder'   && <PurchaseOrderPage />}
-            {sub === 'dispatch'     && <PODispatchPage />}
-            {sub === 'leverage'     && <ProcurementLeveragePage />}
-            {sub === 'quote-parser' && <SupplierQuoteParserPage />}
+            {step === 'find'     && <SupplierBrowserPage />}
+            {step === 'vet'      && <SupplierReliabilityPage />}
+            {step === 'contract' && (contract === 'terms' ? <ContractsPage /> : <ProcurementLeveragePage />)}
+            {step === 'build'    && build === 'new'   && <PurchaseOrderPage />}
+            {step === 'build'    && build === 'event' && <EventDemandPage />}
+            {step === 'build'    && build === 'quote' && <SupplierQuoteParserPage />}
+            {step === 'dispatch' && <PODispatchPage />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
@@ -585,13 +643,13 @@ function TriageTab({ initialSub }: { initialSub: 'operations' | 'categories' | '
 // selector + internal state; `initialPanel` carries a legacy ?panel= value
 // so old deep links land on the right tab.
 
-type OpsTab = 'triage' | 'suppliers' | 'finance' | 'strategy'
+type OpsTab = 'triage' | 'procurement' | 'finance' | 'strategy'
 
 const OPS_TABS: { id: OpsTab; label: string }[] = [
-  { id: 'triage',    label: 'Triage'    },
-  { id: 'suppliers', label: 'Suppliers' },
-  { id: 'finance',   label: 'Finance'   },
-  { id: 'strategy',  label: 'Strategy'  },
+  { id: 'triage',      label: 'Triage'      },
+  { id: 'procurement', label: 'Procurement' },
+  { id: 'finance',     label: 'Finance'     },
+  { id: 'strategy',    label: 'Strategy'    },
 ]
 
 export function OperationsPanel({ initialPanel }: { initialPanel?: string }) {
@@ -625,10 +683,10 @@ export function OperationsPanel({ initialPanel }: { initialPanel?: string }) {
       <PanelErrorBoundary name={`Operations · Operations · ${tab}`}>
         <Suspense fallback={<PanelLoader />}>
           <div className="flex-1 overflow-hidden flex flex-col">
-            {tab === 'triage'    && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}
-            {tab === 'suppliers' && <SuppliersTab initialSub={SUPPLIERS_SUB_SEED[raw] ?? 'browser'} />}
-            {tab === 'finance'   && <FinancialTab />}
-            {tab === 'strategy'  && <StrategyTab role={role} />}
+            {tab === 'triage'      && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}
+            {tab === 'procurement' && <ProcurementFlow seed={seedProcurement(raw)} />}
+            {tab === 'finance'     && <FinancialTab />}
+            {tab === 'strategy'    && <StrategyTab role={role} />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
