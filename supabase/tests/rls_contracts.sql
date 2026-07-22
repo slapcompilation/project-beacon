@@ -43,7 +43,7 @@ DECLARE
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
-  v_doc uuid := '00000000-0000-00c8-0000-0000000000c8';
+  v_doc uuid := '00000000-0000-00c8-0000-0000000000c8'; v_user uuid;
 BEGIN
   -- Resolve two distinct populated hotels (skip gracefully if the env lacks them).
   SELECT h.id, h.organization_id INTO v_a, v_org FROM hotels h
@@ -161,12 +161,16 @@ BEGIN
   -- A restricted document (and its chunks — the content that reaches an LLM via
   -- match_document_chunks) must be invisible to an under-cleared reader, but
   -- visible to an admin. Setup as definer (RLS bypassed); cleaned up either way.
+  -- uploaded_by_user_id has an FK to auth.users, so use a real one (skip if none).
   RESET ROLE;
+  SELECT id INTO v_user FROM auth.users LIMIT 1;
+  IF v_user IS NULL THEN
+    RAISE NOTICE 'C11 SKIPPED — no auth.users to attribute the probe document to';
+  ELSE
   DELETE FROM document_chunks WHERE document_id = v_doc;
   DELETE FROM documents WHERE id = v_doc;
   INSERT INTO documents (id, hotel_id, title, mime_type, storage_path, uploaded_by_user_id, sensitivity)
-    VALUES (v_doc, v_a, 'P8 contract probe', 'text/plain', 'contract/probe.txt',
-            '00000000-0000-0000-0000-000000000001', 'restricted');
+    VALUES (v_doc, v_a, 'P8 contract probe', 'text/plain', 'contract/probe.txt', v_user, 'restricted');
   INSERT INTO document_chunks (document_id, hotel_id, chunk_key, page, text_preview)
     VALUES (v_doc, v_a, 'probe_1_1', 1, 'restricted content');
 
@@ -194,6 +198,7 @@ BEGIN
   RESET ROLE;
   DELETE FROM document_chunks WHERE document_id = v_doc;
   DELETE FROM documents WHERE id = v_doc;
+  END IF;
 
   RESET ROLE;
   RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated', v_b_pending;
