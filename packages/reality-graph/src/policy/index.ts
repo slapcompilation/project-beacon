@@ -77,6 +77,24 @@ export interface BottleneckMonitorConfig {
   max_exit_ratio: number
 }
 
+/** Budget monitor: fire when a category's spend crosses the operator's ceiling.
+ *  Metric = actual as % of the allocated budget; trigger = the % + a spend floor. */
+export interface BudgetMonitorConfig {
+  enabled: boolean
+  /** Fire when actual/allocated × 100 reaches this. Default 100 (at/over budget). */
+  over_budget_pct: number
+  /** Ignore categories with less actual spend than this (noise floor). */
+  min_spend: number
+}
+
+/** CPOR monitor: fire when cost-per-occupied-room rises sharply period-on-period.
+ *  Metric = cpor_change_pct (positive = cost rose); trigger = the % rise. */
+export interface CporMonitorConfig {
+  enabled: boolean
+  /** Fire when the latest period's CPOR rose by at least this %. Default 10. */
+  rise_pct: number
+}
+
 export interface OrgPolicy {
   auto_execution: {
     /** Per-action-type confidence floor for auto-execution, 0..1. */
@@ -131,6 +149,10 @@ export interface OrgPolicy {
     integration: IntegrationHealthConfig
     /** Process bottlenecks over the lifecycle transition log (Machinery parity). */
     bottleneck: BottleneckMonitorConfig
+    /** F&B budget breaches — fires a Home-briefing signal, not a dashboard tab. */
+    budget: BudgetMonitorConfig
+    /** Cost-per-occupied-room spikes — the GM's P&L signal in the briefing. */
+    cpor: CporMonitorConfig
   }
 }
 
@@ -166,6 +188,8 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     supplier: { enabled: true, max_reliability_score: 6 },
     integration: { enabled: true, warn_after_minutes: 120, down_after_minutes: 1440, stuck_ingest_after_minutes: 720 },
     bottleneck:  { enabled: true, min_entered: 3, max_exit_ratio: 0.4 },
+    budget:      { enabled: true, over_budget_pct: 100, min_spend: 0 },
+    cpor:        { enabled: true, rise_pct: 10 },
   },
 }
 
@@ -196,6 +220,8 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       supplier:    { ...DEFAULT_ORG_POLICY.monitors.supplier },
       integration: { ...DEFAULT_ORG_POLICY.monitors.integration },
       bottleneck:  { ...DEFAULT_ORG_POLICY.monitors.bottleneck },
+      budget:      { ...DEFAULT_ORG_POLICY.monitors.budget },
+      cpor:        { ...DEFAULT_ORG_POLICY.monitors.cpor },
     },
   }
 
@@ -289,6 +315,19 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       if (typeof bn.enabled        === 'boolean') m.enabled        = bn.enabled
       if (typeof bn.min_entered    === 'number')  m.min_entered    = Math.max(0, Math.round(bn.min_entered))
       if (typeof bn.max_exit_ratio === 'number')  m.max_exit_ratio = clamp(bn.max_exit_ratio, 0, 1)
+    }
+    if (isObj(mo.budget)) {
+      const b = mo.budget as Record<string, unknown>
+      const m = merged.monitors.budget
+      if (typeof b.enabled         === 'boolean') m.enabled         = b.enabled
+      if (typeof b.over_budget_pct === 'number')  m.over_budget_pct = clamp(b.over_budget_pct, 0, 1000)
+      if (typeof b.min_spend       === 'number')  m.min_spend       = Math.max(0, b.min_spend)
+    }
+    if (isObj(mo.cpor)) {
+      const c = mo.cpor as Record<string, unknown>
+      const m = merged.monitors.cpor
+      if (typeof c.enabled  === 'boolean') m.enabled  = c.enabled
+      if (typeof c.rise_pct === 'number')  m.rise_pct = clamp(c.rise_pct, 0, 1000)
     }
   }
 

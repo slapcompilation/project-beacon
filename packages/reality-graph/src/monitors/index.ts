@@ -10,7 +10,7 @@
 import type { BeaconAction } from '../actions/index'
 import type {
   ExpiryMonitorConfig, StockoutMonitorConfig, WasteMonitorConfig, SupplierMonitorConfig,
-  IntegrationHealthConfig, BottleneckMonitorConfig,
+  IntegrationHealthConfig, BottleneckMonitorConfig, BudgetMonitorConfig, CporMonitorConfig,
 } from '../policy/index'
 
 export interface ExpiryBatch {
@@ -352,6 +352,71 @@ export function selectBottleneckTriggers(
     hits.push({ ...r, exitRatio, urgency: bottleneckUrgency(exitRatio, rule.max_exit_ratio) })
   }
   return hits.sort((a, b) => b.urgency - a.urgency || b.currentCount - a.currentCount)
+}
+
+// ── Finance monitors (P2) — the Finance surfaces, as briefing signals ─────────
+// The metric (spend vs budget; CPOR period-on-period) is deterministic; the
+// trigger is the operator's rule in org policy. Fires a Home-briefing signal
+// rather than living as a dashboard tab nobody visits.
+
+export interface BudgetReading {
+  categoryId:   string | null
+  categoryName: string
+  /** actual / allocated × 100; null = unbudgeted (nothing to breach). */
+  spendPct:     number | null
+  actual:       number
+}
+
+export interface BudgetHit {
+  categoryId:   string | null
+  categoryName: string
+  spendPct:     number
+  /** How far over the allocation, in points (spendPct − 100); negative if under. */
+  overPct:      number
+  actual:       number
+  urgency:      number
+}
+
+export function selectBudgetTriggers(
+  readings: ReadonlyArray<BudgetReading>,
+  rule: BudgetMonitorConfig,
+): BudgetHit[] {
+  if (!rule.enabled) return []
+  const hits: BudgetHit[] = []
+  for (const r of readings) {
+    if (r.spendPct == null || r.actual < rule.min_spend) continue
+    if (r.spendPct < rule.over_budget_pct) continue
+    hits.push({
+      categoryId: r.categoryId, categoryName: r.categoryName, spendPct: r.spendPct,
+      overPct: r.spendPct - 100, actual: r.actual,
+      urgency: clamp(Math.round((r.spendPct - rule.over_budget_pct) / 5) + 1, 1, 10),
+    })
+  }
+  return hits.sort((a, b) => b.urgency - a.urgency || b.overPct - a.overPct)
+}
+
+export interface CporReading {
+  periodLabel: string
+  cpor:        number | null
+  /** period-on-period change %; positive = cost rose (unfavourable). */
+  changePct:   number | null
+}
+
+export interface CporHit {
+  periodLabel: string
+  cpor:        number
+  changePct:   number
+  urgency:     number
+}
+
+/** CPOR is a single latest-period signal, so this returns one hit or null. */
+export function selectCporTrigger(reading: CporReading | null, rule: CporMonitorConfig): CporHit | null {
+  if (!rule.enabled || !reading || reading.cpor == null || reading.changePct == null) return null
+  if (reading.changePct < rule.rise_pct) return null
+  return {
+    periodLabel: reading.periodLabel, cpor: reading.cpor, changePct: reading.changePct,
+    urgency: clamp(Math.round((reading.changePct - rule.rise_pct) / 5) + 1, 1, 10),
+  }
 }
 
 function minutesSince(iso: string | null, nowMs: number): number | null {

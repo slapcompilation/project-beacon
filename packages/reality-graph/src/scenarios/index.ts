@@ -122,6 +122,8 @@ export function mergePolicyOverlay(base: OrgPolicy, overlay: DeepPartial<OrgPoli
       supplier:    { ...base.monitors.supplier,    ...(overlay.monitors?.supplier ?? {}) },
       integration: { ...base.monitors.integration, ...(overlay.monitors?.integration ?? {}) },
       bottleneck:  { ...base.monitors.bottleneck,  ...(overlay.monitors?.bottleneck ?? {}) },
+      budget:      { ...base.monitors.budget,      ...(overlay.monitors?.budget ?? {}) },
+      cpor:        { ...base.monitors.cpor,        ...(overlay.monitors?.cpor ?? {}) },
     },
   }
 }
