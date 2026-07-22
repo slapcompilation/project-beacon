@@ -3,10 +3,24 @@
 // live inside Mind. Reuses the self-contained OperationsPanel; ?panel=<x> seeds
 // the initial tab (legacy /mind?panel=<x> links redirect here).
 
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { NonIdealState } from '@blueprintjs/core'
 import { useAuthStore } from '@/stores/auth.store'
 import { OperationsPanel } from '@/features/mind/OperationsPanel'
+
+// Finance + Strategy left Operations for Insights lenses (P3). Old ?panel= deep
+// links from object pages / briefing / bookmarks forward to the new home.
+const RELOCATED: Record<string, string> = {
+  finance:      '/eye?panel=cpor',
+  financial:    '/eye?panel=cpor',
+  cpor:         '/eye?panel=cpor',
+  budget:       '/eye?panel=budget',
+  gl:           '/eye?panel=gl',
+  intelligence: '/eye?panel=fb',
+  strategy:     '/eye?panel=chain',
+  chain:        '/eye?panel=chain',
+  team:         '/eye?panel=team',
+}
 
 export default function OperationsWorkspace() {
   const role = useAuthStore((s) => s.role ?? 'limited_access')
@@ -20,6 +34,10 @@ export default function OperationsWorkspace() {
       />
     )
   }
+
+  const panel = params.get('panel') ?? ''
+  const relocated = RELOCATED[panel]
+  if (relocated) return <Navigate to={relocated} replace />
 
   return <OperationsPanel initialPanel={params.get('panel') ?? undefined} />
 }

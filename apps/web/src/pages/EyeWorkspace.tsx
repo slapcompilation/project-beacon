@@ -8,9 +8,11 @@
 
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
+import { NonIdealState } from '@blueprintjs/core'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { WorkspaceTabs, PanelLoader } from '@/components/WorkspaceTabs'
 import { useAppStore } from '@/stores/app.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { InsightsOverview, LENSES, type LensId } from '@/features/eye/InsightsOverview'
 
 const UnifiedSignalsPage      = lazy(() => import('./UnifiedSignalsPage'))
@@ -19,6 +21,12 @@ const WasteRadarPage          = lazy(() => import('./WasteRadarPage'))
 const ProductPerformancePage  = lazy(() => import('./ProductPerformancePage'))
 const OccupancyForecastPage   = lazy(() => import('./OccupancyForecastPage'))
 const StockRiskMatrixPage     = lazy(() => import('./StockRiskMatrixPage'))
+const TeamIntelligencePage    = lazy(() => import('./TeamIntelligencePage'))
+const CPORDashboard           = lazy(() => import('./CPORDashboard'))
+const BudgetTrackerPage       = lazy(() => import('./BudgetTrackerPage'))
+const FBIntelligencePage      = lazy(() => import('./FBIntelligencePage'))
+const GLExportPage            = lazy(() => import('./GLExportPage'))
+const ChainPage               = lazy(() => import('./ChainPage'))
 
 // Overview first; the six lenses derive from the shared registry so labels and
 // grouping can't drift between the cards and the tab bar.
@@ -29,11 +37,13 @@ const GROUPS = [
   { id: 'start',        label: 'Overview',     tabs: ['overview'] as TabId[] },
   { id: 'intelligence', label: 'Intelligence', tabs: LENSES.filter((l) => l.group === 'Intelligence').map((l) => l.id) as TabId[] },
   { id: 'analytics',    label: 'Analytics',    tabs: LENSES.filter((l) => l.group === 'Analytics').map((l) => l.id) as TabId[] },
+  { id: 'finance',      label: 'Finance',      tabs: LENSES.filter((l) => l.group === 'Finance').map((l) => l.id) as TabId[] },
 ]
 
 export default function EyeWorkspace() {
   const [params, setParams] = useSearchParams()
   const toggleCopilot = useAppStore((s) => s.toggleCopilot)
+  const role  = useAuthStore((s) => s.role)
   const raw   = params.get('panel') ?? 'overview'
 
   // Redirect legacy ?panel=copilot URLs to open the ContextPanel copilot instead
@@ -71,6 +81,14 @@ export default function EyeWorkspace() {
             {panel === 'risk'        && <StockRiskMatrixPage />}
             {panel === 'performance' && <ProductPerformancePage />}
             {panel === 'occupancy'   && <OccupancyForecastPage />}
+            {panel === 'team'        && <TeamIntelligencePage />}
+            {panel === 'cpor'        && <CPORDashboard />}
+            {panel === 'budget'      && <BudgetTrackerPage />}
+            {panel === 'fb'          && <FBIntelligencePage />}
+            {panel === 'gl'          && <GLExportPage />}
+            {panel === 'chain'       && (role === 'owner'
+              ? <ChainPage />
+              : <NonIdealState icon="lightbulb" title="Chain benchmarking is available to owner role only" />)}
           </div>
         </Suspense>
       </PanelErrorBoundary>

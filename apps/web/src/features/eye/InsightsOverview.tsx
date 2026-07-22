@@ -6,10 +6,13 @@
 import { Card, Icon } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 
-export type LensId = 'signals' | 'incidents' | 'waste' | 'risk' | 'performance' | 'occupancy'
+export type LensGroup = 'Intelligence' | 'Analytics' | 'Finance'
+export type LensId =
+  | 'signals' | 'incidents' | 'waste' | 'risk' | 'performance' | 'occupancy'
+  | 'team' | 'cpor' | 'budget' | 'gl' | 'fb' | 'chain'
 
 export const LENSES: {
-  id: LensId; label: string; icon: IconName; group: 'Intelligence' | 'Analytics'; question: string
+  id: LensId; label: string; icon: IconName; group: LensGroup; question: string
 }[] = [
   { id: 'signals',     label: 'Signals',     icon: 'feed',                group: 'Intelligence', question: 'Everything demanding attention right now, ranked across waste, reliability, forecast and incidents.' },
   { id: 'incidents',   label: 'Incidents',   icon: 'search-around',       group: 'Intelligence', question: 'Correlated failures — what caused what, traced across the graph.' },
@@ -17,15 +20,22 @@ export const LENSES: {
   { id: 'risk',        label: 'Risk Matrix',  icon: 'grid',               group: 'Analytics',    question: 'Stockout probability across the catalogue — what will run out first.' },
   { id: 'performance', label: 'Performance',  icon: 'chart',              group: 'Analytics',    question: 'Which products move and which drag — value, velocity, margin.' },
   { id: 'occupancy',   label: 'Occupancy',    icon: 'timeline-area-chart', group: 'Analytics',   question: 'Forward demand from bookings — occupancy-adjusted consumption ahead.' },
+  { id: 'team',        label: 'Team',         icon: 'people',             group: 'Analytics',    question: 'Per-member waste attribution and outlier detection, benchmarked across the team.' },
+  { id: 'cpor',        label: 'CPOR',         icon: 'bank-account',       group: 'Finance',      question: 'Cost per occupied room — the P&L number, trended period on period.' },
+  { id: 'budget',      label: 'Budget',       icon: 'bank-account',       group: 'Finance',      question: 'Spend vs allocation by category — what’s over, and how much runway is left.' },
+  { id: 'fb',          label: 'F&B Intel',    icon: 'shop',              group: 'Finance',      question: 'Dish COGS and where stock disappears faster than POS explains — margin and theft.' },
+  { id: 'gl',          label: 'GL Export',    icon: 'th',                 group: 'Finance',      question: 'Map categories to GL codes and export the period to the ledger.' },
+  { id: 'chain',       label: 'Chain',        icon: 'graph',              group: 'Finance',      question: 'Which property needs attention now, benchmarked against the chain median (owner).' },
 ]
 
-const GROUP_BLURB: Record<'Intelligence' | 'Analytics', string> = {
+const GROUP_BLURB: Record<LensGroup, string> = {
   Intelligence: 'What is happening — the operation’s live signals and how failures connect.',
   Analytics:    'What is at risk and what performs — the analytical views over stock, demand and waste.',
+  Finance:      'The money view — cost per room, budgets, F&B margin, ledger export and the chain picture.',
 }
 
 export function InsightsOverview({ onOpen }: { onOpen: (id: LensId) => void }) {
-  const groups = ['Intelligence', 'Analytics'] as const
+  const groups = ['Intelligence', 'Analytics', 'Finance'] as const
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-8 py-6 max-w-4xl space-y-6">
