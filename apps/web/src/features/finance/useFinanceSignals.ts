@@ -39,7 +39,7 @@ export function useFinanceSignals(): FinanceSignal[] {
         urgency: h.urgency,
         label:   `${h.categoryName} ${String(Math.round(h.overPct))}% over budget`,
         detail:  `€${Math.round(h.actual).toLocaleString()} spent this month`,
-        to:      '/operations?panel=finance',
+        to:      '/eye?panel=budget',
       })
     }
 
@@ -56,7 +56,7 @@ export function useFinanceSignals(): FinanceSignal[] {
         urgency: cporHit.urgency,
         label:   `CPOR up ${String(Math.round(cporHit.changePct))}% (${cporHit.periodLabel})`,
         detail:  `Now €${cporHit.cpor.toFixed(0)} per occupied room`,
-        to:      '/operations?panel=finance',
+        to:      '/eye?panel=cpor',
       })
     }
 

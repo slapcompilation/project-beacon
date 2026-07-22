@@ -14,24 +14,16 @@ import {
   Card,
   Icon,
   Intent,
-  NonIdealState,
   Spinner,
   SpinnerSize,
 } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/lib/currency'
 import { useCurrency } from '@/hooks/useCurrency'
-import { useAuthStore } from '@/stores/auth.store'
 import { useSupplierSynthesis, usePODiscrepancies, useReviewPODiscrepancy, usePOSummary } from '@/features/mind/hooks'
 import { useBriefingActions } from '@/features/briefing/hooks'
 import type { SupplierSynthesisRow, PODiscrepancy, BriefingAction, POSummaryRow } from '@beacon/types'
-const GLExportPage          = lazy(() => import('@/pages/GLExportPage'))
-const ChainPage             = lazy(() => import('@/pages/ChainPage'))
 const EventDemandPage       = lazy(() => import('@/pages/EventDemandPage'))
-const FBIntelligencePage    = lazy(() => import('@/pages/FBIntelligencePage'))
-const TeamIntelligencePage  = lazy(() => import('@/pages/TeamIntelligencePage'))
-const CPORDashboard         = lazy(() => import('@/pages/CPORDashboard'))
-const BudgetTrackerPage     = lazy(() => import('@/pages/BudgetTrackerPage'))
 
 // ─── Shared tab strip ─────────────────────────────────────────────────────────
 
@@ -354,92 +346,9 @@ function OperationsTab() {
   )
 }
 
-// ─── Finance sub-tabs (CPOR + Budget + GL + F&B Intel) ───────────────────────
-
-function FinancialTab() {
-  const [sub, setSub] = useState<'cpor' | 'budget' | 'gl' | 'fb'>('cpor')
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex border-b shrink-0 px-4 bg-background">
-        {[
-          { id: 'cpor'   as const, label: 'CPOR'     },
-          { id: 'budget' as const, label: 'Budget'   },
-          { id: 'gl'     as const, label: 'GL Export' },
-          { id: 'fb'     as const, label: 'F&B Intel' },
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => { setSub(t.id) }}
-            className={cn(
-              'px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
-              sub === t.id
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <PanelErrorBoundary name={`Operations · Finance · ${sub}`}>
-        <Suspense fallback={<PanelLoader />}>
-          <div className="flex-1 overflow-hidden">
-            {sub === 'cpor'   && <CPORDashboard />}
-            {sub === 'budget' && <BudgetTrackerPage />}
-            {sub === 'gl'     && <GLExportPage />}
-            {sub === 'fb'     && <FBIntelligencePage />}
-          </div>
-        </Suspense>
-      </PanelErrorBoundary>
-    </div>
-  )
-}
-
-// ─── Strategy sub-tabs (Chain + Team) — Events moved into Build PO ────────────
-
-function StrategyTab({ role }: { role: string }) {
-  const [sub, setSub] = useState<'chain' | 'team'>('chain')
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex border-b shrink-0 px-4 bg-background overflow-x-auto">
-        {[
-          { id: 'chain'  as const, label: 'Chain'  },
-          { id: 'team'   as const, label: 'Team'   },
-        ].map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => { setSub(t.id) }}
-            className={cn(
-              'shrink-0 px-4 py-2 text-xs font-medium border-b-2 transition-colors -mb-px',
-              sub === t.id
-                ? 'border-primary text-foreground'
-                : 'border-transparent text-muted-foreground hover:text-foreground',
-            )}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
-      <PanelErrorBoundary name={`Operations · Strategy · ${sub}`}>
-        <Suspense fallback={<PanelLoader />}>
-          <div className="flex-1 overflow-hidden">
-            {sub === 'chain' && (
-              role === 'owner' ? <ChainPage /> : (
-                <NonIdealState
-                  icon="lightbulb"
-                  title="Chain benchmarking is available to owner role only"
-                />
-              )
-            )}
-            {sub === 'team'   && <TeamIntelligencePage />}
-          </div>
-        </Suspense>
-      </PanelErrorBoundary>
-    </div>
-  )
-}
+// Finance (CPOR/Budget/GL/F&B) + Strategy (Chain/Team) relocated to Insights
+// lenses in P3; Events folded into Build PO in P1. Operations is now just the
+// procurement flow — see relocateOperationsPanel() + docs/OPERATIONS-RESTRUCTURE.md.
 
 // ─── Main workspace ───────────────────────────────────────────────────────────
 const SupplierBrowserPage      = lazy(() => import('@/pages/SupplierBrowserPage'))
@@ -452,10 +361,11 @@ const SupplierQuoteParserPage  = lazy(() => import('@/pages/SupplierQuoteParserP
 const ProcurementLeveragePage  = lazy(() => import('@/pages/ProcurementLeveragePage'))
 const SmartProposalsPage       = lazy(() => import('@/pages/SmartProposalsPage'))
 
-type PanelId = 'triage' | 'procurement' | 'finance' | 'strategy'
+type PanelId = 'triage' | 'procurement'
 
 // Backward-compat redirect map: old panel IDs → new panel. Procurement sub-seeds
-// (contracts/leverage/dispatch/events…) are resolved by seedProcurement().
+// (contracts/leverage/dispatch/events…) are resolved by seedProcurement(); the
+// Finance/Strategy panels relocated to Insights — see RELOCATED in OperationsWorkspace.
 const PANEL_REDIRECT: Partial<Record<string, PanelId>> = {
   'operations':   'triage',
   'suppliers':    'procurement',
@@ -468,11 +378,6 @@ const PANEL_REDIRECT: Partial<Record<string, PanelId>> = {
   'par':          'triage',
   'categories':   'triage',
   'menu':         'triage',
-  'intelligence': 'finance',
-  'financial':    'finance',
-  'gl':           'finance',
-  'chain':        'strategy',
-  'team':         'strategy',
 }
 
 // Deep-link sub-tab seeds: if the raw panel was one of these, open that sub-tab directly
@@ -643,17 +548,14 @@ function TriageTab({ initialSub }: { initialSub: 'operations' | 'categories' | '
 // selector + internal state; `initialPanel` carries a legacy ?panel= value
 // so old deep links land on the right tab.
 
-type OpsTab = 'triage' | 'procurement' | 'finance' | 'strategy'
+type OpsTab = 'triage' | 'procurement'
 
 const OPS_TABS: { id: OpsTab; label: string }[] = [
   { id: 'triage',      label: 'Triage'      },
   { id: 'procurement', label: 'Procurement' },
-  { id: 'finance',     label: 'Finance'     },
-  { id: 'strategy',    label: 'Strategy'    },
 ]
 
 export function OperationsPanel({ initialPanel }: { initialPanel?: string }) {
-  const role = useAuthStore((s) => s.role ?? 'limited_access')
   const raw = initialPanel ?? ''
   const seeded: OpsTab =
     (OPS_TABS.some((t) => t.id === raw) ? raw as OpsTab : null)
@@ -685,8 +587,6 @@ export function OperationsPanel({ initialPanel }: { initialPanel?: string }) {
           <div className="flex-1 overflow-hidden flex flex-col">
             {tab === 'triage'      && <TriageTab initialSub={TRIAGE_SUB_SEED[raw] ?? 'operations'} />}
             {tab === 'procurement' && <ProcurementFlow seed={seedProcurement(raw)} />}
-            {tab === 'finance'     && <FinancialTab />}
-            {tab === 'strategy'    && <StrategyTab role={role} />}
           </div>
         </Suspense>
       </PanelErrorBoundary>
