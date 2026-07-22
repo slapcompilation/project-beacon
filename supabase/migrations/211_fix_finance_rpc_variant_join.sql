@@ -11,7 +11,7 @@ RETURNS TABLE (
   total_cost numeric, occupied_room_nights int, avg_occupancy_pct numeric,
   cpor numeric, prev_period_cpor numeric, cpor_change_pct numeric
 )
-LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 #variable_conflict use_column
 DECLARE
   v_hotel_id     uuid;
@@ -84,7 +84,7 @@ RETURNS TABLE (
   category_id uuid, category_name text, period_month date, allocated_amount numeric,
   actual_spend numeric, variance numeric, variance_pct numeric, spend_pct numeric, status text
 )
-LANGUAGE plpgsql STABLE SECURITY DEFINER AS $$
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
 #variable_conflict use_column
 DECLARE
   v_hotel_id uuid;
