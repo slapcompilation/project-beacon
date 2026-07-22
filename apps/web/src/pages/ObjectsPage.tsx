@@ -9,29 +9,16 @@ import { Link } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize } from '@blueprintjs/core'
 import type { NodeType } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { OBJECT_LIST } from '@/features/objects/objectList'
 import { supabase } from '@/lib/supabase/client'
 
-const TABLES: Record<keyof typeof OBJECT_PRESENTATION, string> = {
-  variant:         'product_variants',
-  product:         'products',
-  supplier:        'suppliers',
-  purchase_order:  'purchase_orders',
-  restock_request: 'restock_requests',
-  stock_log:       'stock_logs',
-  alert:           'notifications',
-  proposal:        'proposals',
-  case:            'cases',
-  document:        'documents',
-  constraint:      'constraints',
-  principle:       'principles',
-  action_chain:    'action_chains',
-}
-
+// One source of truth for the table per type — the same registry the instance
+// list reads, so a tile's count can never disagree with the rows behind it.
 async function fetchCounts(): Promise<Record<string, number>> {
-  const entries = Object.entries(TABLES)
+  const entries = Object.entries(OBJECT_LIST)
   const results = await Promise.all(
-    entries.map(async ([type, table]) => {
-      const { count, error } = await supabase.from(table).select('id', { count: 'exact', head: true })
+    entries.map(async ([type, spec]) => {
+      const { count, error } = await supabase.from(spec.table).select('id', { count: 'exact', head: true })
       return [type, error ? -1 : (count ?? 0)] as const
     }),
   )
@@ -67,7 +54,7 @@ export default function ObjectsPage() {
             {(Object.entries(OBJECT_PRESENTATION) as [keyof typeof OBJECT_PRESENTATION, (typeof OBJECT_PRESENTATION)[keyof typeof OBJECT_PRESENTATION]][]).map(([type, p]) => {
               const n = counts[type]
               return (
-                <Link key={type} to={p.home.to} className="no-underline">
+                <Link key={type} to={`/objects/${type}`} className="no-underline">
                   <Card interactive compact className="h-full">
                     <div className="flex items-center gap-2">
                       <Icon icon={p.icon} size={14} className="text-violet-500" />
