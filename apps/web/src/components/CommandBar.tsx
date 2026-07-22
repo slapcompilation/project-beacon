@@ -46,6 +46,7 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Insights', icon: 'eye-open',      label: 'Insights · Performance', path: '/eye?panel=performance' },
   { group: 'Insights', icon: 'eye-open',      label: 'Insights · Occupancy',   path: '/eye?panel=occupancy' },
   { group: 'Insights', icon: 'notifications', label: 'Notifications',          path: '/notifications' },
+  { group: 'Insights', icon: 'flows',         label: 'Process Mining',         path: '/process' },
   { group: 'Insights', icon: 'cube',          label: 'Objects',                path: '/objects' },
 
   { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
