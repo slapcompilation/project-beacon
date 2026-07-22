@@ -13,8 +13,10 @@ import {
   linkDocumentToEntity,
   unlinkDocumentFromEntity,
   uploadDocument,
+  updateDocumentSensitivity,
   type DocumentRow,
   type DocumentSource,
+  type Sensitivity,
   type EntityNodeType,
 } from './api'
 
@@ -58,13 +60,14 @@ export function useUploadDocument() {
   const qc      = useQueryClient()
 
   return useMutation({
-    mutationFn: async (args: { file: File; title?: string; source?: DocumentSource }) => {
+    mutationFn: async (args: { file: File; title?: string; source?: DocumentSource; sensitivity?: Sensitivity }) => {
       if (!hotelId || !userId) throw new Error('Missing context')
       return uploadDocument({
         hotelId,
         file:              args.file,
         title:             args.title,
         source:            args.source,
+        sensitivity:       args.sensitivity,
         uploadedByUserId:  userId,
       })
     },
@@ -85,6 +88,20 @@ export function useDeleteDocument() {
       deleteDocument(args.id, args.storagePath),
     onSuccess: () => {
       toast.success('Document deleted')
+      void qc.invalidateQueries({ queryKey: documentKeys.list(hotelId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+export function useUpdateDocumentSensitivity(documentId: string) {
+  const hotelId = useActiveHotelId()
+  const qc      = useQueryClient()
+  return useMutation({
+    mutationFn: (sensitivity: Sensitivity) => updateDocumentSensitivity(documentId, sensitivity),
+    onSuccess: () => {
+      toast.success('Classification updated')
+      void qc.invalidateQueries({ queryKey: documentKeys.detail(documentId) })
       void qc.invalidateQueries({ queryKey: documentKeys.list(hotelId ?? '') })
     },
     onError: (err: Error) => toast.error(err.message),

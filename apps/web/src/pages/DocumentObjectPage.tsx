@@ -16,8 +16,9 @@ import {
   useLinkDocumentToEntity,
   useSignedDocumentUrl,
   useUnlinkDocumentFromEntity,
+  useUpdateDocumentSensitivity,
 } from '@/features/documents/hooks'
-import type { EntityNodeType, IngestionStage } from '@/features/documents/api'
+import type { EntityNodeType, IngestionStage, Sensitivity } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import { SearchAroundButton } from '@/components/SearchAroundGraph'
@@ -41,6 +42,7 @@ export default function DocumentObjectPage() {
   const ingest  = useIngestDocument(documentId)
   const link    = useLinkDocumentToEntity(documentId)
   const unlink  = useUnlinkDocumentFromEntity(documentId)
+  const reclassify = useUpdateDocumentSensitivity(documentId)
   const autoExtract = useAutoExtractEntityLinks(documentId)
   const { data: suggestions = [] } = useSuggestionsForDocument(documentId)
   const approve = useApproveSuggestion()
@@ -74,6 +76,18 @@ export default function DocumentObjectPage() {
           <>
             <Tag minimal>{row.source}</Tag>
             <Tag minimal intent={stageIntent(row.ingestion_stage)}>{row.ingestion_stage}</Tag>
+            <Tag
+              minimal={row.sensitivity === 'public' || row.sensitivity === 'internal'}
+              intent={sensitivityIntent(row.sensitivity)}
+              icon="shield"
+            >
+              {row.sensitivity}
+            </Tag>
+            {row.pii_types.length > 0 && (
+              <Tag minimal intent={Intent.WARNING} icon="eye-off">
+                PII: {row.pii_types.join(', ')}
+              </Tag>
+            )}
           </>
         ),
         id: row.id,
@@ -81,15 +95,28 @@ export default function DocumentObjectPage() {
 
       metrics={
         <>
-        <Metric label="Source"   value={row.source} capitalize />
-        <Metric label="Stage"    value={row.ingestion_stage} capitalize />
-        <Metric label="Size"     value={formatBytes(row.size_bytes)} />
-        <Metric label="Uploaded" value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
+        <Metric label="Source"      value={row.source} capitalize />
+        <Metric label="Stage"       value={row.ingestion_stage} capitalize />
+        <Metric label="Sensitivity" value={row.sensitivity} capitalize />
+        <Metric label="Size"        value={formatBytes(row.size_bytes)} />
+        <Metric label="Uploaded"    value={formatDistanceToNow(new Date(row.created_at), { addSuffix: true })} capitalize />
         </>
       }
       actions={
         <>
         <SearchAroundButton nodeType="document" nodeId={documentId} />
+        <HTMLSelect
+          value={row.sensitivity}
+          disabled={reclassify.isPending}
+          onChange={(e) => { reclassify.mutate(e.currentTarget.value as Sensitivity) }}
+          title="Reclassify — gated by your clearance"
+          options={[
+            { label: 'Public',       value: 'public' },
+            { label: 'Internal',     value: 'internal' },
+            { label: 'Confidential', value: 'confidential' },
+            { label: 'Restricted',   value: 'restricted' },
+          ]}
+        />
         <Button
           variant="minimal"
           icon="link"
@@ -396,5 +423,14 @@ function stageIntent(stage: IngestionStage): Intent {
     case 'embedded':       return Intent.PRIMARY
     case 'contextualized': return Intent.WARNING
     case 'linked':         return Intent.SUCCESS
+  }
+}
+
+function sensitivityIntent(s: Sensitivity): Intent {
+  switch (s) {
+    case 'public':
+    case 'internal':     return Intent.NONE
+    case 'confidential': return Intent.WARNING
+    case 'restricted':   return Intent.DANGER
   }
 }

@@ -26,6 +26,7 @@ import mammoth from 'https://esm.sh/mammoth@1.8.0'
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 import { json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
+import { scanForPII, sensitivityFromPII } from '../_shared/reality-graph.bundle.mjs'
 
 interface IngestRequest {
   document_id: string
@@ -236,7 +237,7 @@ Deno.serve(async (req: Request) => {
     // 1. Load the row; RLS guarantees the caller has scope.
     const { data: doc, error: docErr } = await supabase
       .from('documents')
-      .select('id, hotel_id, organization_id, mime_type, storage_path, title, ingestion_stage')
+      .select('id, hotel_id, organization_id, mime_type, storage_path, title, ingestion_stage, sensitivity')
       .eq('id', body.document_id)
       .single()
     if (docErr || !doc) return json({ error: 'Document not found or access denied' }, 404)
@@ -389,6 +390,22 @@ Deno.serve(async (req: Request) => {
       })))
     if (insErr) {
       return gateFail('embedded.chunks_persisted', `Chunk insert failed: ${insErr.message}`, 'ocr', 502)
+    }
+
+    // 5b. Sensitive Data Scanner (P8): derive the sensitivity marking from the
+    //     content itself — scan every chunk for PII and RAISE the document's
+    //     classification (never below the operator's chosen base). The marking
+    //     then gates retrieval at the LLM boundary via RLS on documents/chunks.
+    const piiSet = new Set<string>()
+    for (const c of chunkRows) for (const t of scanForPII(c.text_full)) piiSet.add(t)
+    const piiTypes = [...piiSet]
+    const marked = sensitivityFromPII(piiTypes, doc.sensitivity ?? 'internal')
+    const { error: markErr } = await supabase
+      .from('documents')
+      .update({ sensitivity: marked, pii_types: piiTypes })
+      .eq('id', body.document_id)
+    if (markErr) {
+      return gateFail('embedded.sensitivity_marked', `Sensitivity marking failed: ${markErr.message}`, 'ocr', 502)
     }
 
     // 6. cited_in provenance: document -> chunk, page-level (P4). Part of the

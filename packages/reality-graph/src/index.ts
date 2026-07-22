@@ -302,6 +302,9 @@ export { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_lo
 export { makeMineProcessTool } from './tools/data/mine_process'
 export type { MineProcessInput, MineProcessOutput } from './tools/data/mine_process'
 
+export { scanForPII, sensitivityFromPII, SENSITIVITY_RANK } from './governance/pii'
+export type { PIIType, Sensitivity } from './governance/pii'
+
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
 // Phase C stub: contracts only. Objectives land in src/objectives/<name>/.
 // See CLAUDE.md → "Modeling Objectives and Adapters (Predictive Layer — Deferred)".
