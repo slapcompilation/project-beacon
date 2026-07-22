@@ -7,12 +7,19 @@ import type {
   DocumentRow,
   GraphReader,
   HotelRow,
+  MinedProcessResult,
   PrincipleRecord,
   RestockRequestRow,
   StockLogRow,
   SupplierRow,
   VariantRow,
 } from '@beacon/reality-graph'
+
+// Snake-case shape the mine_process RPC returns (mapped to camelCase below).
+interface RawMined {
+  states: Array<{ state: string; entered_count: number; current_count: number; exited_count: number; avg_duration_s: number | null }>
+  transitions: Array<{ from: string; to: string; count: number; avg_lead_time_s: number | null }>
+}
 
 interface VariantQueryRow {
   id: string
@@ -226,6 +233,30 @@ export function makeSupabaseGraphReader(): GraphReader {
         category:         r.category,
         appliesToNodeIds: r.applies_to_node_ids ?? [],
       }))
+    },
+
+    async mineProcess(nodeType, hotelId): Promise<MinedProcessResult> {
+      const result = await supabase.rpc('mine_process', {
+        p_node_type: nodeType,
+        p_hotel_id:  hotelId,
+      }) as unknown as { data: RawMined | null; error: { message: string } | null }
+      if (result.error) throw new Error(result.error.message)
+      const mined = result.data ?? { states: [], transitions: [] }
+      return {
+        states: mined.states.map((s) => ({
+          state:              s.state,
+          enteredCount:       s.entered_count,
+          currentCount:       s.current_count,
+          exitedCount:        s.exited_count,
+          avgDurationSeconds: s.avg_duration_s,
+        })),
+        transitions: mined.transitions.map((t) => ({
+          from:               t.from,
+          to:                 t.to,
+          count:              t.count,
+          avgLeadTimeSeconds: t.avg_lead_time_s,
+        })),
+      }
     },
   }
 }

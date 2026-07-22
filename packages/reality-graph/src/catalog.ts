@@ -25,6 +25,7 @@ import {
   makeOccupancyAdjustedForecastTool,
 } from './tools/index'
 import { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
+import { makeMineProcessTool } from './tools/data/mine_process'
 import { buildRestockAdvisorAgent } from './agents/restock_advisor/index'
 import { buildWasteTriageAgent } from './agents/waste_triage/index'
 import { buildOverstockRebalancerAgent } from './agents/overstock_rebalancer/index'
@@ -60,6 +61,7 @@ export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
     makeComputeReorderPointTool(noopGraphReader),
     makeRankAlternativeSuppliersTool(noopGraphReader),
     makeQueryRecentWasteLogsTool(noopGraphReader),
+    makeMineProcessTool(noopGraphReader),
     makeQueryVariantDocumentsTool(noopGraphReader),
     makeQueryDocumentChunksTool(noopGraphReader),
     requestClarificationTool,

@@ -1,7 +1,7 @@
 // Pure helpers for the process explorer — layout + metric formatting + the
 // bottleneck rule. Kept separate from the SVG so they can be unit-tested.
 
-import { LIFECYCLES, legalNext, type LifecycleNode } from '@beacon/reality-graph'
+import { LIFECYCLES, legalNext, type LifecycleNode, type BottleneckReading } from '@beacon/reality-graph'
 import type { ProcessState } from './api'
 
 export function formatDuration(s: number | null): string {
@@ -46,9 +46,16 @@ export function isTerminal(nodeType: LifecycleNode, state: string): boolean {
   return legalNext(nodeType, state).length === 0
 }
 
-// A bottleneck: a non-terminal state where far more objects entered than exited
-// (Machinery's "266 entered, only 16 exited" signal). Needs enough volume.
-export function isBottleneck(nodeType: LifecycleNode, st: ProcessState): boolean {
-  if (isTerminal(nodeType, st.state) || st.entered_count < 3) return false
-  return st.exited_count / st.entered_count < 0.4
+// Build the tunable bottleneck monitor's readings from a mined process. The
+// firing rule itself lives in reality-graph (selectBottleneckTriggers) so the
+// threshold is operator-owned, not hardcoded here.
+export function toBottleneckReadings(nodeType: LifecycleNode, states: ReadonlyArray<ProcessState>): BottleneckReading[] {
+  return states.map((s) => ({
+    nodeType,
+    state:        s.state,
+    isTerminal:   isTerminal(nodeType, s.state),
+    enteredCount: s.entered_count,
+    exitedCount:  s.exited_count,
+    currentCount: s.current_count,
+  }))
 }

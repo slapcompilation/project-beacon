@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDuration, stateDepths, isTerminal, isBottleneck } from './analysis'
+import { formatDuration, stateDepths, isTerminal, toBottleneckReadings } from './analysis'
 import type { ProcessState } from './api'
 
 const st = (over: Partial<ProcessState>): ProcessState => ({
@@ -41,17 +41,13 @@ describe('isTerminal', () => {
   })
 })
 
-describe('isBottleneck', () => {
-  it('flags a non-terminal state where entered ≫ exited', () => {
-    expect(isBottleneck('case', st({ state: 'in_review', entered_count: 20, exited_count: 3 }))).toBe(true)
-  })
-  it('ignores terminal states', () => {
-    expect(isBottleneck('restock_request', st({ state: 'fulfilled', entered_count: 20, exited_count: 0 }))).toBe(false)
-  })
-  it('ignores low-volume states', () => {
-    expect(isBottleneck('case', st({ state: 'in_review', entered_count: 2, exited_count: 0 }))).toBe(false)
-  })
-  it('passes a healthy state', () => {
-    expect(isBottleneck('case', st({ state: 'in_review', entered_count: 20, exited_count: 18 }))).toBe(false)
+describe('toBottleneckReadings', () => {
+  it('maps mined states to readings with isTerminal resolved', () => {
+    const readings = toBottleneckReadings('case', [
+      st({ state: 'in_review', entered_count: 20, exited_count: 3, current_count: 17 }),
+      st({ state: 'closed', entered_count: 5, exited_count: 0 }),
+    ])
+    expect(readings[0]).toMatchObject({ state: 'in_review', isTerminal: false, enteredCount: 20, exitedCount: 3, currentCount: 17 })
+    expect(readings[1]).toMatchObject({ state: 'closed', isTerminal: true })
   })
 })

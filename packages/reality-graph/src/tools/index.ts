@@ -93,7 +93,7 @@ export function listToolsByCategory(category: ToolCategory): ReadonlyArray<Logic
 
 // ── Concrete tools — Phase 1: restock_advisor toolset ─────────────────────────
 
-export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord } from './graph_reader'
+export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './graph_reader'
 export {
   makeQueryOpenRestockRequestsTool,
   type QueryOpenRestockRequestsInput,

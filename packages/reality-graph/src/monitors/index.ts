@@ -10,7 +10,7 @@
 import type { BeaconAction } from '../actions/index'
 import type {
   ExpiryMonitorConfig, StockoutMonitorConfig, WasteMonitorConfig, SupplierMonitorConfig,
-  IntegrationHealthConfig,
+  IntegrationHealthConfig, BottleneckMonitorConfig,
 } from '../policy/index'
 
 export interface ExpiryBatch {
@@ -308,6 +308,50 @@ function healthHit(
   detail: string,
 ): IntegrationHealthHit {
   return { ...reading, status, staleMinutes, urgency, detail }
+}
+
+// ── Process-bottleneck band (P11, Machinery parity) ──────────────────────────
+// The METRIC (entered vs exited counts per state, from the lifecycle transition
+// log) is deterministic; the TRIGGER is the operator's rule in org policy. A
+// non-terminal state fires when far more objects entered than exited — the
+// "266 entered, 16 exited" signal — with a noise floor on volume. isTerminal
+// rides in on the reading so this stays free of lifecycle knowledge.
+
+export interface BottleneckReading {
+  nodeType:     string
+  state:        string
+  isTerminal:   boolean
+  enteredCount: number
+  exitedCount:  number
+  currentCount: number
+}
+
+export interface BottleneckHit extends BottleneckReading {
+  /** exited / entered, 0..1 — how freely objects leave the state. */
+  exitRatio: number
+  urgency:   number
+}
+
+/** 0 exit ratio → 10, at the tunable edge → 1, linear between. Retune the rule
+ *  and the bands move with it. */
+export function bottleneckUrgency(exitRatio: number, maxExitRatio: number): number {
+  if (maxExitRatio <= 0) return 10
+  return clamp(Math.round((1 - exitRatio / maxExitRatio) * 9) + 1, 1, 10)
+}
+
+export function selectBottleneckTriggers(
+  readings: ReadonlyArray<BottleneckReading>,
+  rule: BottleneckMonitorConfig,
+): BottleneckHit[] {
+  if (!rule.enabled) return []
+  const hits: BottleneckHit[] = []
+  for (const r of readings) {
+    if (r.isTerminal || r.enteredCount < rule.min_entered) continue
+    const exitRatio = r.enteredCount > 0 ? r.exitedCount / r.enteredCount : 1
+    if (exitRatio >= rule.max_exit_ratio) continue
+    hits.push({ ...r, exitRatio, urgency: bottleneckUrgency(exitRatio, rule.max_exit_ratio) })
+  }
+  return hits.sort((a, b) => b.urgency - a.urgency || b.currentCount - a.currentCount)
 }
 
 function minutesSince(iso: string | null, nowMs: number): number | null {
