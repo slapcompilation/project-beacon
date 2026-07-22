@@ -4,6 +4,7 @@
 // and AgentCycleHistory.
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button, Card, Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { formatDistanceToNow } from 'date-fns'
@@ -12,8 +13,11 @@ import { cn } from '@/lib/utils'
 import { usePortfolioSignals, type PortfolioHotelSignal } from './portfolio'
 import { PortfolioMap } from './PortfolioMap'
 import { useCronHealthSummary, useAgentCycleHistory } from '@/features/monitor/hooks'
+import { useChainOverviewOrg } from '@/features/mind/hooks'
 import { useOrgOverstockSweep, type OrgSweepResult } from '@/features/agents/useOrgOverstockSweep'
 import { useAppStore } from '@/stores/app.store'
+import { useAuthStore } from '@/stores/auth.store'
+import type { ChainPropertyRow } from '@beacon/types'
 import type { AipTab } from './AIPShell'
 
 export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
@@ -26,6 +30,7 @@ export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
   const sweep = useOrgOverstockSweep()
   const [lastSweep, setLastSweep] = useState<OrgSweepResult | null>(null)
   const enterHotelScope = useAppStore((s) => s.enterHotelScope)
+  const role = useAuthStore((s) => s.role)
 
   const hopToHotel = (hotelId: string) => {
     if (onHopToHotel) { onHopToHotel(hotelId); return }
@@ -85,6 +90,10 @@ export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
           <PortfolioTotal label="Auto-exec last cycle" value={totals.auto24} icon="tick-circle"        intent={totals.auto24  > 0 ? Intent.SUCCESS : Intent.NONE} sub={`+ ${String(totals.queued24)} queued`} />
         </section>
 
+        {/* Chain benchmarking distilled to a signal: which property is worst
+            against chain median, and why. Full lens lives in Insights. */}
+        {role === 'owner' && <ChainAttentionSection onHop={hopToHotel} />}
+
         {/* Portfolio map — pin per property, click to drill in */}
         {!isLoading && hotels.length > 0 && <PortfolioMap hotels={hotels} onHop={hopToHotel} />}
 
@@ -121,6 +130,69 @@ export function PortfolioCommandHome({ onNavigate, onHopToHotel }: {
       </div>
     </div>
   )
+}
+
+// Health below this surfaces as "needs attention". Above it the property is
+// tracking the chain and doesn't earn a line on the Home.
+const ATTENTION_HEALTH = 75
+
+function ChainAttentionSection({ onHop }: { onHop: (hotelId: string) => void }) {
+  const navigate = useNavigate()
+  const { data: rows = [], isLoading } = useChainOverviewOrg()
+  if (isLoading) return null
+
+  const atRisk = [...rows]
+    .filter((r) => r.health_score < ATTENTION_HEALTH)
+    .sort((a, b) => a.health_score - b.health_score)
+    .slice(0, 4)
+  if (atRisk.length === 0) return null
+
+  return (
+    <section className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Chain · needs attention
+        </h2>
+        <button
+          type="button"
+          onClick={() => { void navigate('/eye?panel=chain') }}
+          className="text-[11px] font-medium text-primary hover:underline"
+        >
+          Full benchmarking →
+        </button>
+      </div>
+      <Card compact className="!p-0 overflow-hidden divide-y divide-border">
+        {atRisk.map((r, i) => (
+          <div key={r.hotel_id} className="flex items-center gap-3 px-4 py-2.5">
+            <span className="w-4 text-[10px] font-bold tabular-nums text-muted-foreground">{i + 1}</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium truncate">{r.hotel_name}</p>
+              <p className="text-[11px] text-muted-foreground truncate">{chainConcern(r)}</p>
+            </div>
+            <Tag minimal intent={healthIntent(r.health_score)} className="tabular-nums">
+              {Math.round(r.health_score)}
+            </Tag>
+            <Button variant="minimal" size="small" endIcon="chevron-right" onClick={() => { onHop(r.hotel_id) }}>
+              Open
+            </Button>
+          </div>
+        ))}
+      </Card>
+    </section>
+  )
+}
+
+// The single most salient reason a property is below benchmark, worst-first.
+function chainConcern(r: ChainPropertyRow): string {
+  if (r.out_of_stock_count > 0) return `${String(r.out_of_stock_count)} out of stock`
+  if (r.waste_rate > 0.05)      return `${(r.waste_rate * 100).toFixed(0)}% waste rate`
+  if (r.pending_restocks > 0)   return `${String(r.pending_restocks)} pending restocks`
+  if (r.low_stock_count > 0)    return `${String(r.low_stock_count)} low on stock`
+  return 'below chain benchmark'
+}
+
+function healthIntent(h: number): Intent {
+  return h < 50 ? Intent.DANGER : h < ATTENTION_HEALTH ? Intent.WARNING : Intent.SUCCESS
 }
 
 function PortfolioTotal({ label, value, icon, intent, sub, onClick }: {

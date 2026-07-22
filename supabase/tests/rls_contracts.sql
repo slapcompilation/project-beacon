@@ -35,11 +35,13 @@
 --       sales / decrement another hotel's stock (migration 181).
 --   C10 forecast_observations — a hotel only sees its own rows (RLS), and an
 --       authenticated user can't record forecasts for another hotel (migration 183).
+--   C13 get_chain_overview (SECURITY DEFINER, org-wide) — a non-admin/owner reads
+--       nothing; an admin reads its whole org and no other org's hotels (migration 212).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
 DECLARE
-  v_a uuid; v_org uuid; v_b uuid;
+  v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[];
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
@@ -59,6 +61,10 @@ BEGIN
   -- True count of B's pending proposals (we're the definer here, RLS bypassed) —
   -- makes the cross-hotel assertion strict only when B has rows to leak.
   SELECT count(*) INTO v_b_pending FROM proposals WHERE hotel_id = v_b AND status = 'pending';
+
+  -- v_org's hotels captured as definer (C13 compares against this, not an
+  -- RLS-gated re-read of hotels, which would hide siblings and false-flag them).
+  SELECT array_agg(id) INTO v_org_hotels FROM hotels WHERE organization_id = v_org;
 
   claims_a := json_build_object('sub','00000000-0000-0000-0000-000000000001',
     'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text;
@@ -229,6 +235,20 @@ BEGIN
     DELETE FROM documents WHERE id = v_doc2;
   END IF;
 
+  -- ── C13: chain benchmarking is org-wide + owner/admin-gated (migration 212) ──
+  -- A non-admin/owner sees nothing; an admin sees its whole org and no other org.
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing', v_b_pending;
+  PERFORM set_config('request.jwt.claims', claims_a, true);  -- hotel_manager
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM get_chain_overview(30);
+  IF n <> 0 THEN RAISE EXCEPTION 'C13a: hotel_manager read % chain rows (expected 0 — owner/admin only)', n; END IF;
+
+  PERFORM set_config('request.jwt.claims', claims_admin, true);  -- admin in v_org
+  SELECT count(*) INTO qp FROM get_chain_overview(30);
+  IF qp = 0 THEN RAISE EXCEPTION 'C13b: admin sees 0 chain rows (expected >=1 for its org)'; END IF;
+  SELECT count(*) INTO n FROM get_chain_overview(30) co WHERE NOT (co.hotel_id = ANY(v_org_hotels));
+  IF n <> 0 THEN RAISE EXCEPTION 'C13c CROSS-ORG LEAK: admin read % chain rows outside org %', n, v_org; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated', v_b_pending;
 END $$;

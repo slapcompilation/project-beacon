@@ -96,6 +96,19 @@ export function useChainOverview(days = 30) {
   })
 }
 
+// Org-scope variant for the portfolio Home. get_chain_overview is org-wide
+// (server reads auth_org_id), so it must fire without a single active hotel —
+// unlike useChainOverview, which gates on the active property. Owner only.
+export function useChainOverviewOrg(days = 30) {
+  const role = useAuthStore((s) => s.role)
+  return useQuery({
+    queryKey: mindKeys.chainOverview('org', days),
+    queryFn: () => fetchChainOverview(days),
+    staleTime: 5 * 60 * 1000,
+    enabled: role === 'owner',
+  })
+}
+
 /** Monthly waste_cost + activity per property for sparklines (last N months). */
 export function useChainHealthTrend(monthsBack = 6) {
   const hotelId = useActiveHotelId()
