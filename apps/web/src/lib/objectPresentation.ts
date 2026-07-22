@@ -16,13 +16,13 @@ export interface ObjectPresentation {
 }
 
 export const OBJECT_PRESENTATION = {
-  variant:         { icon: 'box',          label: 'Variant',         home: { label: 'Inventory', to: '/graph' },                          route: '/variant/' },
-  product:         { icon: 'box',          label: 'Product',         home: { label: 'Inventory', to: '/graph' },                          route: '/product/' },
-  supplier:        { icon: 'shop',         label: 'Supplier',        home: { label: 'Suppliers', to: '/mind?panel=suppliers' },           route: '/supplier/' },
-  purchase_order:  { icon: 'truck',        label: 'Purchase Order',  home: { label: 'Purchase Orders', to: '/mind?panel=procurement' },   route: '/po/' },
-  restock_request: { icon: 'box',          label: 'Restock Request', home: { label: 'Restock Requests', to: '/flow?panel=approvals' },    route: '/restock/' },
-  stock_log:       { icon: 'history',      label: 'Stock Log',       home: { label: 'Stock Log', to: '/flow' },                           route: '/log/' },
-  alert:           { icon: 'warning-sign', label: 'Alert',           home: { label: 'Alerts', to: '/eye' },                               route: '/alert/' },
+  variant:         { icon: 'box',          label: 'Variant',         home: { label: 'Inventory', to: '/floor?panel=stock' },              route: '/variant/' },
+  product:         { icon: 'box',          label: 'Product',         home: { label: 'Inventory', to: '/floor?panel=stock' },              route: '/product/' },
+  supplier:        { icon: 'shop',         label: 'Supplier',        home: { label: 'Suppliers', to: '/operations?panel=suppliers' },     route: '/supplier/' },
+  purchase_order:  { icon: 'truck',        label: 'Purchase Order',  home: { label: 'Purchase Orders', to: '/operations?panel=procurement' }, route: '/po/' },
+  restock_request: { icon: 'box',          label: 'Restock Request', home: { label: 'Restock Requests', to: '/mind?aip=restock-approvals' }, route: '/restock/' },
+  stock_log:       { icon: 'history',      label: 'Stock Log',       home: { label: 'Stock Log', to: '/flow?panel=timeline' },            route: '/log/' },
+  alert:           { icon: 'warning-sign', label: 'Alert',           home: { label: 'Alerts', to: '/floor?panel=alerts' },                route: '/alert/' },
   proposal:        { icon: 'annotation',   label: 'Proposal',        home: { label: 'Review Queue', to: '/review-queue' },                route: '/proposals/' },
   case:            { icon: 'folder-open',  label: 'Case',            home: { label: 'Cases', to: '/cases' },                              route: '/cases/' },
   document:        { icon: 'document',     label: 'Document',        home: { label: 'Documents', to: '/documents' },                      route: '/documents/' },
