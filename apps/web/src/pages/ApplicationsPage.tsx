@@ -61,6 +61,7 @@ const SECTIONS: Section[] = [
       { label: 'Risk Matrix',  path: '/eye?panel=risk',        icon: 'grid',     desc: 'Likelihood × impact map' },
       { label: 'Performance',  path: '/eye?panel=performance', icon: 'chart',    desc: 'Finance + ops KPIs' },
       { label: 'Occupancy',    path: '/eye?panel=occupancy',   icon: 'people',   desc: 'Demand driver for forecasts' },
+      { label: 'Process Mining',path: '/process',              icon: 'flows',    desc: 'How objects flow through their states · bottlenecks' },
       { label: 'Reality Graph',path: '/objects',               icon: 'graph',    desc: 'Explore nodes + typed edges' },
     ],
   },
