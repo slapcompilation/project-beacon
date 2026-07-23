@@ -51,6 +51,7 @@ const NAV_ITEMS: NavItem[] = [
 
   { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
   { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Agent Studio', path: '/agent-studio',          shortcut: 'G A' },
+  { group: 'Decisions', icon: 'path',                label: 'Create a workflow',        path: '/create-workflow' },
   { group: 'Decisions', icon: 'function',            label: 'Decisions · Logic Tools',  path: '/tools',                 shortcut: 'G L' },
   { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Modeling Objectives', path: '/modeling-objectives', shortcut: 'G M' },
   { group: 'Decisions', icon: 'graph',               label: 'Decisions · System Map',          path: '/system-map',          shortcut: 'G X' },
