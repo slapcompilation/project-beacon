@@ -1,6 +1,6 @@
-// Studio landing smoke (M3): the narrative overview renders — the loop stages,
-// cards generated from the tab registry, and card-click navigation into a tab
-// (including a rail-hidden one, which only the landing links).
+// Studio landing smoke: the guided "Create a workflow" recipe renders as the
+// front door, the loop stages render underneath as the browse view, and a
+// card-click navigates into a tab (including a rail-hidden one the landing links).
 
 import { test, expect } from '@playwright/test'
 
@@ -27,8 +27,12 @@ test('studio landing tells the loop and navigates', async ({ page }) => {
 
   await page.goto('/mind?aip=studio')
   await expect(page.getByRole('heading', { name: 'Studio', exact: true })).toBeVisible({ timeout: 45_000 })
-  for (const stage of ['1 · Build', '2 · Govern', '3 · Prove', '4 · Sandbox']) {
-    await expect(page.getByRole('heading', { name: stage })).toBeVisible()
+  // the guided recipe front door
+  await expect(page.getByRole('heading', { name: 'Create a workflow' })).toBeVisible()
+  await expect(page.getByText('Shape the data')).toBeVisible()
+  // the loop stages render underneath as the browse view
+  for (const stage of ['Build', 'Govern', 'Prove', 'Sandbox']) {
+    await expect(page.getByRole('heading', { name: stage, exact: true })).toBeVisible()
   }
   // a rail-hidden tab is reachable through its landing card
   await page.getByText('Scenarios', { exact: true }).click()
