@@ -1,0 +1,18 @@
+<!-- source: https://palantir.com/docs/foundry/action-types/side-effects-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+
+# Side effects
+
+Action types are designed to support the full range of decision-making processes within an organization. When the Ontology serves as the system of record for a decision-making process, using [rules](/docs/foundry/action-types/rules/) to define object modifications allows you to express business processes with great flexibility. In order to support the full range of organizational processes, action types support a few additional features:
+
+* For real-time processes, you may need to *notify* users about changes that are happening in the system so they can take action in response.
+* In cases when a system besides Foundry is the source of truth for your organization, you may need to *integrate* with the other system to support the existing business process. This pattern is sometimes referred to as "decision orchestration."
+
+**Side effects** in action types enable you to send data out of Foundry to integrate with existing organizational processes. There are two main types of side effects:
+
+* [Notifications](/docs/foundry/action-types/notifications/) allow you to flexibly configure how a user should be notified when an action is applied. This includes the ability to send an email to users on the platform.
+* [Webhooks](/docs/foundry/action-types/webhooks/) allow you to connect to systems outside Foundry in a highly flexible way, including sending requests to a REST API or an ERP system. This enables you to write to other sources systems in your organization, or more flexibly send notifications to users by integrating with messaging systems.
+
+You can learn more about notifications and webhooks using the links above, or review these guides to get started:
+
+* [Set up notifications](/docs/foundry/action-types/set-up-notification/)
+* [Set up a webhook](/docs/foundry/action-types/set-up-webhook/)
