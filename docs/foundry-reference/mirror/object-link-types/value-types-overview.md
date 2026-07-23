@@ -1,0 +1,13 @@
+<!-- source: https://palantir.com/docs/foundry/object-link-types/value-types-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+
+# Value types
+
+**Value types** are semantic wrappers around a [field type](/docs/foundry/data-integration/datasets/#supported-field-types) that include metadata and constraints that can enhance type safety, improve expressiveness, and provide additional context. Value types encapsulate domain-specific data types and enforce data validation in a manner reusable across the platform. Unlike object types, properties, link types, or other types that define and build the Ontology, value types are associated with a [space](/docs/foundry/security/orgs-and-spaces/#spaces) in the platform. A space can hold a single ontology. Value types can only be used within the space in which they were defined. Value types are not available for the Default ontology.
+
+Dataset [field types](/docs/foundry/data-integration/datasets/#supported-field-types) and property [base types](/docs/foundry/object-link-types/base-types/) reflect the primitive types found in programming languages. These types are domain-agnostic and provide no domain context. By contrast, value types capture the context and semantic meaning of data and centralize data validation. Users define and consume meaning directly from the value type, rather than relying on surrounding information such as column names or property descriptions. Value types also enforce their validation constraints on data in Builder pipelines and the ontology, so data integrators and ontology managers can ensure proper semantic typing in their data flows and models.
+
+For example, a user can define an “email” value type that has a regular expression constraint to ensure any property that uses the value type represents a valid email address. This value type can then be reused across multiple object types and pipelines without having to duplicate the validation logic for every such property. Additionally, each property that uses this value type is explicitly understood to contain an email address.
+
+Since value types are intended for reuse across multiple pipelines and object types, they are [permissioned](/docs/foundry/object-link-types/value-types-permissions/) to ensure users can apply them where needed and [versioned](/docs/foundry/object-link-types/value-types-versions/) to handle both breaking and non-breaking edits.
+
+Get started by learning how to [create a new value type](/docs/foundry/object-link-types/create-value-type/) or [use an existing value type](/docs/foundry/object-link-types/use-value-type/) on a property.
