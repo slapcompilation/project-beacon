@@ -3,7 +3,7 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import type { ObjectTypeDef, PropertyDef } from '@beacon/reality-graph'
+import type { ObjectTypeDef, PropertyDef, LinkTypeDef } from '@beacon/reality-graph'
 
 export interface ObjectTypeRow {
   id: string
@@ -111,5 +111,80 @@ export async function createObjectRecord(i: CreateObjectRecordInput): Promise<Ob
 
 export async function deleteObjectRecord(id: string): Promise<void> {
   const { error } = await supabase.from('object_records').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ── Link types + links (P2.3) ────────────────────────────────────────────────
+
+export interface LinkTypeRow {
+  id: string
+  organization_id: string
+  hotel_id: string | null
+  source_object_type_id: string
+  target_object_type_id: string
+  api_name: string
+  label: string
+}
+
+export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
+  return {
+    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    sourceTypeId: r.source_object_type_id, targetTypeId: r.target_object_type_id,
+    apiName: r.api_name, label: r.label,
+  }
+}
+
+export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
+  const { data, error } = await supabase.from('link_types').select('*').order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as LinkTypeRow[]
+}
+
+export interface CreateLinkTypeInput { hotelId: string | null; sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
+
+export async function createLinkType(i: CreateLinkTypeInput): Promise<LinkTypeRow> {
+  const { data, error } = await supabase.from('link_types')
+    .insert({ hotel_id: i.hotelId, source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
+    .select('*').single<LinkTypeRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteLinkType(id: string): Promise<void> {
+  const { error } = await supabase.from('link_types').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+export interface RecordLink { id: string; linkTypeLabel: string; targetRecordId: string; targetTitle: string }
+
+export async function fetchLinksForRecord(sourceRecordId: string): Promise<RecordLink[]> {
+  const { data, error } = await supabase.from('object_links')
+    .select('id, target_record_id, link_types(label)')
+    .eq('source_record_id', sourceRecordId)
+  if (error) throw new Error(error.message)
+  interface Row { id: string; target_record_id: string; link_types: { label: string } | { label: string }[] | null }
+  const rows = data as unknown as Row[]
+  const ids = [...new Set(rows.map((r) => r.target_record_id))]
+  const titles = new Map<string, string>()
+  if (ids.length > 0) {
+    const { data: recs } = await supabase.from('object_records').select('id, title').in('id', ids)
+    for (const rec of (recs ?? []) as { id: string; title: string }[]) titles.set(rec.id, rec.title)
+  }
+  return rows.map((r) => {
+    const lt = Array.isArray(r.link_types) ? r.link_types[0] : r.link_types
+    return { id: r.id, linkTypeLabel: lt?.label ?? 'link', targetRecordId: r.target_record_id, targetTitle: titles.get(r.target_record_id) ?? '(record)' }
+  })
+}
+
+export interface CreateObjectLinkInput { linkTypeId: string; hotelId: string | null; sourceRecordId: string; targetRecordId: string }
+
+export async function createObjectLink(i: CreateObjectLinkInput): Promise<void> {
+  const { error } = await supabase.from('object_links')
+    .insert({ link_type_id: i.linkTypeId, hotel_id: i.hotelId, source_record_id: i.sourceRecordId, target_record_id: i.targetRecordId })
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteObjectLink(id: string): Promise<void> {
+  const { error } = await supabase.from('object_links').delete().eq('id', id)
   if (error) throw new Error(error.message)
 }

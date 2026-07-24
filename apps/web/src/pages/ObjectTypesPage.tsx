@@ -10,15 +10,17 @@ import {
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import {
-  PROPERTY_TYPES, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
-  type PropertyType, type PropertyDef, type ObjectTypeDef,
+  PROPERTY_TYPES, toSlug, validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
+  type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-import { rowToObjectType } from '@/features/objectTypes/api'
+import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
   useObjectTypes, useCreateObjectType, useDeleteObjectType,
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
+  useLinkTypes, useCreateLinkType, useDeleteLinkType,
+  useRecordLinks, useCreateObjectLink, useDeleteObjectLink,
 } from '@/features/objectTypes/hooks'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
@@ -73,7 +75,7 @@ export default function ObjectTypesPage() {
           )}
         </section>
 
-        {selected && <RecordsPanel type={selected} />}
+        {selected && <RecordsPanel type={selected} allTypes={types} />}
       </div>
     </div>
   )
@@ -143,9 +145,11 @@ function TypeBuilder() {
   )
 }
 
-function RecordsPanel({ type }: { type: ObjectTypeDef }) {
+function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
   const hotelId = useActiveHotelId()
   const { data: records = [], isLoading } = useObjectRecords(type.id)
+  const { data: linkTypeRows = [] } = useLinkTypes()
+  const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id), [linkTypeRows, type.id])
   const create = useCreateObjectRecord()
   const del = useDeleteObjectType()
   const delRecord = useDeleteObjectRecord(type.id)
@@ -190,6 +194,8 @@ function RecordsPanel({ type }: { type: ObjectTypeDef }) {
         <Button intent={Intent.PRIMARY} size="small" icon="add" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Add record</Button>
       </Card>
 
+      <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
+
       {isLoading ? (
         <Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading records…</Card>
       ) : records.length === 0 ? (
@@ -203,6 +209,7 @@ function RecordsPanel({ type }: { type: ObjectTypeDef }) {
                 <p className="text-[11px] text-muted-foreground truncate">
                   {type.properties.map((p) => `${p.label}: ${formatVal(r.data[p.key])}`).join(' · ') || '—'}
                 </p>
+                {linkTypes.length > 0 && <RecordLinks recordId={r.id} linkTypes={linkTypes} hotelId={hotelId} />}
               </div>
               <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER} onClick={() => { delRecord.mutate(r.id) }} />
             </div>
@@ -210,6 +217,86 @@ function RecordsPanel({ type }: { type: ObjectTypeDef }) {
         </Card>
       )}
     </section>
+  )
+}
+
+function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[]; linkTypes: LinkTypeDef[] }) {
+  const hotelId = useActiveHotelId()
+  const create = useCreateLinkType()
+  const del = useDeleteLinkType()
+  const [label, setLabel] = useState('')
+  const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
+  const apiName = toSlug(label)
+  const validation = validateLinkTypeDraft({ apiName, label, sourceTypeId: type.id, targetTypeId })
+  const labelOf = (id: string) => allTypes.find((t) => t.id === id)?.label ?? '?'
+
+  const submit = () => {
+    if (!validation.ok) return
+    create.mutate({ hotelId, sourceTypeId: type.id, targetTypeId, apiName, label: label.trim() }, { onSuccess: () => { setLabel('') } })
+  }
+
+  return (
+    <Card className="space-y-2">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Link types</span>
+      {linkTypes.map((lt) => (
+        <div key={lt.id} className="flex items-center gap-2 text-xs">
+          <Icon icon="link" size={12} className="text-violet-500" />
+          <span className="font-medium">{lt.label}</span>
+          <span className="text-muted-foreground">→ {labelOf(lt.targetTypeId)}</span>
+          <Button variant="minimal" size="small" icon="cross" onClick={() => { del.mutate(lt.id) }} className="ml-auto" />
+        </div>
+      ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted-foreground">{type.label} →</span>
+        <InputGroup size="small" placeholder="Relationship (e.g. Belongs to room)" value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[180px]" />
+        <HTMLSelect value={targetTypeId} onChange={(e) => { setTargetTypeId(e.currentTarget.value) }}>
+          {allTypes.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+        </HTMLSelect>
+        <Button size="small" icon="add" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Add link type</Button>
+      </div>
+    </Card>
+  )
+}
+
+function RecordLinks({ recordId, linkTypes, hotelId }: { recordId: string; linkTypes: LinkTypeDef[]; hotelId: string | null }) {
+  const { data: links = [] } = useRecordLinks(recordId)
+  const create = useCreateObjectLink(recordId)
+  const del = useDeleteObjectLink(recordId)
+  const [open, setOpen] = useState(false)
+  const [ltId, setLtId] = useState(linkTypes[0]?.id ?? '')
+  // RecordLinks only renders when the type has link types, so [0] is defined.
+  const selectedLt = linkTypes.find((lt) => lt.id === ltId) ?? linkTypes[0]
+  const { data: targetRecords = [] } = useObjectRecords(open ? selectedLt.targetTypeId : null)
+  const [targetId, setTargetId] = useState('')
+
+  const addLink = () => {
+    if (!targetId) return
+    create.mutate({ linkTypeId: selectedLt.id, hotelId, sourceRecordId: recordId, targetRecordId: targetId }, { onSuccess: () => { setTargetId('') } })
+  }
+
+  return (
+    <div className="mt-1 space-y-1">
+      <div className="flex flex-wrap items-center gap-1">
+        {links.map((l) => (
+          <Tag key={l.id} minimal onRemove={() => { del.mutate(l.id) }} className="!text-[10px]">
+            {l.linkTypeLabel}: {l.targetTitle}
+          </Tag>
+        ))}
+        <Button variant="minimal" size="small" icon="link" onClick={() => { setOpen((o) => !o) }} className="!text-[10px]">Link</Button>
+      </div>
+      {open && (
+        <div className="flex flex-wrap items-center gap-1">
+          <HTMLSelect value={ltId} onChange={(e) => { setLtId(e.currentTarget.value) }}>
+            {linkTypes.map((lt) => <option key={lt.id} value={lt.id}>{lt.label}</option>)}
+          </HTMLSelect>
+          <HTMLSelect value={targetId} onChange={(e) => { setTargetId(e.currentTarget.value) }}>
+            <option value="">Select a record…</option>
+            {targetRecords.map((rec) => <option key={rec.id} value={rec.id}>{rec.title}</option>)}
+          </HTMLSelect>
+          <Button size="small" icon="add" disabled={!targetId} loading={create.isPending} onClick={addLink}>Add</Button>
+        </div>
+      )}
+    </div>
   )
 }
 

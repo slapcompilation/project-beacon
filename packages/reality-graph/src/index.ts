@@ -433,11 +433,11 @@ export type {
 
 export {
   PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, toSlug,
-  validateObjectTypeDraft, validateRecord, coerceValue,
+  validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
 } from './objectTypes/index'
 export type {
   PropertyType, PropertyDef, ObjectTypeDef, ObjectTypeDraft, RecordDraft,
-  Validation as ObjectTypeValidation,
+  LinkTypeDef, LinkTypeDraft, Validation as ObjectTypeValidation,
 } from './objectTypes/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
