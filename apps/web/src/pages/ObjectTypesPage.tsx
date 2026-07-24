@@ -20,6 +20,7 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
   useObjectTypes, useCreateObjectType, useDeleteObjectType,
+  useUpdateObjectType, useRevisions, useRestoreRevision,
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink,
@@ -210,6 +211,7 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
   const [title, setTitle] = useState('')
   const [values, setValues] = useState<Record<string, unknown>>({})
+  const [panel, setPanel] = useState<'none' | 'edit' | 'history'>('none')
 
   const data = useMemo(() => {
     const out: Record<string, unknown> = {}
@@ -230,12 +232,22 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
         <div className="flex items-center gap-2">
           <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
           <h2 className="text-sm font-semibold">{type.label} records</h2>
+          <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
         </div>
-        <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
-          onClick={() => { if (window.confirm(`Delete the "${type.label}" type and all its records?`)) del.mutate(type.id) }}>
-          Delete type
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button variant="minimal" size="small" icon="edit" active={panel === 'edit'}
+            onClick={() => { setPanel(panel === 'edit' ? 'none' : 'edit') }}>Edit schema</Button>
+          <Button variant="minimal" size="small" icon="history" active={panel === 'history'}
+            onClick={() => { setPanel(panel === 'history' ? 'none' : 'history') }}>History</Button>
+          <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
+            onClick={() => { if (window.confirm(`Delete the "${type.label}" type and all its records?`)) del.mutate(type.id) }}>
+            Delete type
+          </Button>
+        </div>
       </div>
+
+      {panel === 'edit' && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setPanel('none') }} />}
+      {panel === 'history' && <HistoryPanel type={type} />}
 
       <Card className="space-y-2">
         <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />
@@ -276,6 +288,117 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
         </Card>
       )}
     </section>
+  )
+}
+
+// Edit the live schema. Existing property keys are preserved (records reference
+// them); only newly added properties derive a key from their label. Saving bumps
+// the version + snapshots via the DB triggers.
+function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => void }) {
+  const update = useUpdateObjectType()
+  const [label, setLabel] = useState(type.label)
+  const [icon, setIcon] = useState<IconName>(type.icon as IconName)
+  const [description, setDescription] = useState(type.description)
+  const [props, setProps] = useState<(PropertyDef & { isNew?: boolean })[]>(type.properties)
+  const [computed, setComputed] = useState<ComputedRow[]>(
+    type.computedProperties.map((c) => ({ label: c.label, fn: c.fn, inputs: c.inputs })),
+  )
+
+  const properties: PropertyDef[] = props
+    .filter((p) => p.label.trim())
+    .map((p) => ({ key: p.isNew ? toSlug(p.label) : p.key, label: p.label.trim(), type: p.type, required: p.required }))
+  const computedProperties: ComputedPropertyDef[] = computed
+    .filter((c) => c.label.trim())
+    .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
+  const validation = validateObjectTypeDraft({ apiName: type.apiName, label, properties })
+  const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
+  const canSave = validation.ok && computedErrors.length === 0
+
+  const setProp = (i: number, patch: Partial<PropertyDef>) =>
+    { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
+
+  const save = () => {
+    if (!canSave) return
+    update.mutate(
+      { id: type.id, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
+      { onSuccess: onDone },
+    )
+  }
+
+  return (
+    <Card className="space-y-3 !border-violet-400/50">
+      <div className="flex items-center gap-2">
+        <Icon icon="edit" size={14} className="text-violet-500" />
+        <span className="text-sm font-semibold">Edit schema</span>
+        <span className="text-[11px] text-muted-foreground">saving creates v{type.version + 1}</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <InputGroup value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[200px]" />
+        <HTMLSelect value={icon} onChange={(e) => { setIcon(e.currentTarget.value as IconName) }}>
+          {[...new Set<IconName>([...ICONS, icon])].map((ic) => <option key={ic} value={ic}>{ic}</option>)}
+        </HTMLSelect>
+      </div>
+      <TextArea value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
+
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
+        {props.map((p, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-2">
+            <InputGroup size="small" value={p.label} onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
+            <HTMLSelect value={p.type} onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
+              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </HTMLSelect>
+            <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
+            <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
+          </div>
+        ))}
+        <Button variant="minimal" size="small" icon="add"
+          onClick={() => { setProps((cur) => [...cur, { key: '', label: '', type: 'text', required: false, isNew: true }]) }}>
+          Add property
+        </Button>
+      </div>
+
+      <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
+
+      {!canSave && (
+        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+      )}
+      <div className="flex items-center gap-2">
+        <Button intent={Intent.PRIMARY} icon="floppy-disk" disabled={!canSave} loading={update.isPending} onClick={save}>Save as v{type.version + 1}</Button>
+        <Button variant="minimal" onClick={onDone}>Cancel</Button>
+      </div>
+    </Card>
+  )
+}
+
+function HistoryPanel({ type }: { type: ObjectTypeDef }) {
+  const { data: revisions = [], isLoading } = useRevisions(type.id)
+  const restore = useRestoreRevision()
+
+  return (
+    <Card compact className="!p-0 overflow-hidden divide-y divide-border">
+      {isLoading ? (
+        <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading history…</div>
+      ) : revisions.map((rev) => (
+        <div key={rev.id} className="flex items-center gap-3 px-4 py-2.5">
+          <Tag minimal intent={rev.version === type.version ? Intent.SUCCESS : Intent.NONE} className="tabular-nums shrink-0">v{rev.version}</Tag>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium truncate">{rev.label}</p>
+            <p className="text-[11px] text-muted-foreground truncate">
+              {rev.properties.map((p) => p.label).join(', ') || 'no properties'}
+              {rev.computed_properties.length > 0 && ` · computed: ${rev.computed_properties.map((c) => c.label).join(', ')}`}
+            </p>
+          </div>
+          <span className="text-[10px] text-muted-foreground shrink-0">{new Date(rev.created_at).toLocaleDateString()}</span>
+          {rev.version !== type.version && (
+            <Button variant="minimal" size="small" icon="undo" loading={restore.isPending}
+              onClick={() => { restore.mutate(rev) }}>
+              Restore
+            </Button>
+          )}
+        </div>
+      ))}
+    </Card>
   )
 }
 

@@ -2,10 +2,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   fetchObjectTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
+  updateObjectType, fetchRevisions, restoreRevision,
   fetchObjectRecords, createObjectRecord, deleteObjectRecord,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchLinksForRecord, createObjectLink, deleteObjectLink,
   type CreateObjectTypeInput, type CreateObjectRecordInput,
+  type UpdateObjectTypeInput, type ObjectTypeRevisionRow,
   type CreateLinkTypeInput, type CreateObjectLinkInput,
 } from './api'
 
@@ -15,6 +17,7 @@ const keys = {
   records: (typeId: string) => ['object-records', typeId] as const,
   linkTypes: ['link-types'] as const,
   recordLinks: (recordId: string) => ['record-links', recordId] as const,
+  revisions: (typeId: string) => ['object-type-revisions', typeId] as const,
 }
 
 export function useObjectTypes() {
@@ -66,6 +69,42 @@ export function useDeleteObjectRecord(typeId: string) {
   return useMutation({
     mutationFn: (id: string) => deleteObjectRecord(id),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.records(typeId) }) },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useUpdateObjectType() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpdateObjectTypeInput) => updateObjectType(input),
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: keys.types })
+      void qc.invalidateQueries({ queryKey: keys.cards })
+      void qc.invalidateQueries({ queryKey: keys.revisions(v.id) })
+      toast.success('Saved — new version snapshotted')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useRevisions(typeId: string | null) {
+  return useQuery({
+    queryKey: keys.revisions(typeId ?? ''),
+    queryFn: () => fetchRevisions(typeId ?? ''),
+    enabled: !!typeId,
+    staleTime: 15_000,
+  })
+}
+
+export function useRestoreRevision() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (rev: ObjectTypeRevisionRow) => restoreRevision(rev),
+    onSuccess: (_d, rev) => {
+      void qc.invalidateQueries({ queryKey: keys.types })
+      void qc.invalidateQueries({ queryKey: keys.revisions(rev.object_type_id) })
+      toast.success(`Restored v${String(rev.version)} as a new version`)
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

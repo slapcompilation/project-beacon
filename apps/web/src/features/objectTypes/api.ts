@@ -77,6 +77,66 @@ export async function deleteObjectType(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+// ── Schema edits + revision history (P2.5) ───────────────────────────────────
+// Version bumps + snapshots happen in DB triggers (migration 217) — the client
+// just writes the new shape and re-reads.
+
+export interface UpdateObjectTypeInput {
+  id: string
+  label: string
+  icon: string
+  description: string
+  properties: PropertyDef[]
+  computedProperties: ComputedPropertyDef[]
+}
+
+export async function updateObjectType(i: UpdateObjectTypeInput): Promise<ObjectTypeRow> {
+  const { data, error } = await supabase
+    .from('object_types')
+    .update({ label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
+    .eq('id', i.id)
+    .select('*')
+    .single<ObjectTypeRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export interface ObjectTypeRevisionRow {
+  id: string
+  object_type_id: string
+  version: number
+  label: string
+  icon: string
+  description: string
+  properties: PropertyDef[]
+  computed_properties: ComputedPropertyDef[]
+  changed_by_user_id: string | null
+  created_at: string
+}
+
+export async function fetchRevisions(objectTypeId: string): Promise<ObjectTypeRevisionRow[]> {
+  const { data, error } = await supabase
+    .from('object_type_revisions')
+    .select('*')
+    .eq('object_type_id', objectTypeId)
+    .order('version', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as ObjectTypeRevisionRow[]
+}
+
+/** Restore = write the old snapshot's schema back onto the live row. The bump
+ *  trigger mints a NEW version and snapshots it — history is never rewritten. */
+export async function restoreRevision(rev: ObjectTypeRevisionRow): Promise<ObjectTypeRow> {
+  return await updateObjectType({
+    id: rev.object_type_id,
+    label: rev.label,
+    icon: rev.icon,
+    description: rev.description,
+    properties: rev.properties,
+    computedProperties: rev.computed_properties,
+  })
+}
+
 export interface ObjectRecordRow {
   id: string
   object_type_id: string
