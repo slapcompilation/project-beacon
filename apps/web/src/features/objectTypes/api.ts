@@ -35,6 +35,21 @@ export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
   return data as ObjectTypeRow[]
 }
 
+// For the /objects browser: each custom type + how many records it holds.
+export interface ObjectTypeCard { id: string; apiName: string; label: string; icon: string; count: number }
+
+export async function fetchObjectTypeCards(): Promise<ObjectTypeCard[]> {
+  const { data, error } = await supabase
+    .from('object_types')
+    .select('id, api_name, label, icon, object_records(count)')
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  interface Row { id: string; api_name: string; label: string; icon: string; object_records: { count: number }[] | null }
+  return (data as unknown as Row[]).map((r) => ({
+    id: r.id, apiName: r.api_name, label: r.label, icon: r.icon, count: r.object_records?.[0]?.count ?? 0,
+  }))
+}
+
 export interface CreateObjectTypeInput {
   hotelId: string | null
   apiName: string
