@@ -34,13 +34,14 @@ const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
+const ObjectTypesPage           = lazy(() => import('@/pages/ObjectTypesPage'))
 const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
 const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
 const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 
 export type AipTab =
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
-  | 'agents' | 'system-map' | 'ontology' | 'monitors' | 'automations'
+  | 'agents' | 'system-map' | 'ontology' | 'object-types' | 'monitors' | 'automations'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
   | 'studio'
@@ -60,6 +61,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
   { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute', desc: 'How nodes, tools & actions connect' },
   { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
+  { id: 'object-types', label: 'Object Types',      icon: 'cube',                section: 'Studio', group: 'Agents & compute', desc: 'Author a new kind of thing + its records' },
   { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
   { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates', railHidden: true },
   { id: 'forecast-lab', label: 'Forecast Lab',      icon: 'lab-test',            section: 'Studio', group: 'Agents & compute', desc: 'Backtest + run the forecast adapters by cohort' },
@@ -234,6 +236,7 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'agents':       return <AgentStudioPage />
     case 'system-map':   return <SystemMapPage />
     case 'ontology':     return <OntologyPage />
+    case 'object-types': return <ObjectTypesPage />
     case 'documents':    return <DocumentsPage />
     case 'entity-links': return <EntityLinkSuggestionsPage />
     case 'answers':      return <ApprovedAnswersPage />

@@ -27,7 +27,7 @@ import { cn } from '@/lib/utils'
 // ?aip= tab decides which rail item is active.
 const STUDIO_AIP_TABS = new Set([
   'studio',
-  'agents', 'system-map', 'ontology', 'tools', 'objectives', 'forecast-lab',
+  'agents', 'system-map', 'ontology', 'object-types', 'tools', 'objectives', 'forecast-lab',
   'calibration', 'flywheel', 'monitors', 'automations', 'documents', 'entity-links', 'answers',
   'principles', 'constraints', 'scenarios', 'action-chains', 'copilot', 'policy',
 ])

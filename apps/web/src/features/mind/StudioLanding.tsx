@@ -12,7 +12,7 @@ const STAGES: { title: string; blurb: string; ids: AipTab[] }[] = [
   {
     title: 'Build',
     blurb: 'Define what the system can do: agents composed of typed blocks, the tool registry they call, the trained adapters behind eval gates, and automations you author without code.',
-    ids: ['agents', 'tools', 'automations', 'objectives', 'forecast-lab'],
+    ids: ['agents', 'tools', 'automations', 'object-types', 'objectives', 'forecast-lab'],
   },
   {
     title: 'Govern',
