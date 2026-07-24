@@ -6,9 +6,9 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag, Tooltip } from '@blueprintjs/core'
+import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, NumericInput, ProgressBar, Spinner, SpinnerSize, Tag, Tooltip } from '@blueprintjs/core'
 import { format, formatDistanceToNow } from 'date-fns'
-import { computeCalibration, recommendAutonomy, DEFAULT_CALIBRATION_EDIT_PENALTY, type AutonomyRecommendation, type AgentActionContext, type CalibrationReport } from '@beacon/reality-graph'
+import { computeCalibration, recommendAutonomy, DEFAULT_CALIBRATION_EDIT_PENALTY, LOOP_GOALS, goalProgress, type AutonomyRecommendation, type AgentActionContext, type CalibrationReport, type OrgPolicy } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -87,6 +87,66 @@ const VERDICT: Record<string, { label: string; intent: Intent }> = {
   'overconfident':     { label: 'Overconfident',   intent: Intent.DANGER },
   'underconfident':    { label: 'Underconfident',  intent: Intent.WARNING },
   'insufficient-data': { label: 'Not enough data', intent: Intent.NONE },
+}
+
+// The Flywheel as a control surface: the operator sets what "getting better"
+// means (target ECE ceiling, approval-rate floor), stored in org_policy, and the
+// page tracks current-vs-target. Targets don't gate anything yet — they make the
+// loop's intent explicit and measurable (the first observability→control lever).
+function GoalsSection({ policy, ece, approval, onSave, saving }: {
+  policy: OrgPolicy
+  ece: number | null
+  approval: number | null
+  onSave: (goals: OrgPolicy['goals']) => void
+  saving: boolean
+}) {
+  const savedEce = Math.round(policy.goals.max_calibration_error * 100)
+  const savedApproval = Math.round(policy.goals.min_approval_rate * 100)
+  const [maxEce, setMaxEce] = useState(savedEce)
+  const [minApproval, setMinApproval] = useState(savedApproval)
+  const dirty = maxEce !== savedEce || minApproval !== savedApproval
+
+  const rows = [
+    { def: LOOP_GOALS[0], target: maxEce / 100, actual: ece, val: maxEce, set: setMaxEce },
+    { def: LOOP_GOALS[1], target: minApproval / 100, actual: approval, val: minApproval, set: setMinApproval },
+  ]
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold flex items-center gap-2"><Icon icon="flag" size={14} /> Goals</h2>
+        <Button size="small" intent={Intent.PRIMARY} icon="floppy-disk" disabled={!dirty} loading={saving}
+          onClick={() => { onSave({ max_calibration_error: maxEce / 100, min_approval_rate: minApproval / 100 }) }}>
+          Save goals
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-1">Set what "getting better" means for the loop, and track against it.</p>
+      <div className="space-y-3">
+        {rows.map(({ def, target, actual, val, set }) => {
+          const { met, pct } = goalProgress(target, actual, def.lowerIsBetter)
+          const actualPct = actual === null ? null : Math.round(actual * 100)
+          return (
+            <div key={def.key} className="space-y-1">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="font-medium w-48 shrink-0">{def.label}</span>
+                <span className="text-muted-foreground">{def.lowerIsBetter ? 'target ≤' : 'target ≥'}</span>
+                <NumericInput value={val} min={0} max={100} stepSize={1} style={{ width: 70 }} buttonPosition="none"
+                  onValueChange={(v) => { set(Math.round(Math.min(100, Math.max(0, Number.isFinite(v) ? v : 0)))) }} />
+                <span className="text-muted-foreground">%</span>
+                <span className="ml-auto tabular-nums">
+                  {actualPct === null ? <span className="text-muted-foreground">no data</span> : (
+                    <><span className={met ? 'text-emerald-600 font-semibold' : 'text-amber-600 font-semibold'}>{actualPct}%</span> now</>
+                  )}
+                </span>
+                {actualPct !== null && <Tag minimal intent={met ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">{met ? 'on track' : 'off target'}</Tag>}
+              </div>
+              <ProgressBar value={pct / 100} intent={met ? Intent.SUCCESS : Intent.PRIMARY} stripes={false} />
+            </div>
+          )
+        })}
+      </div>
+    </Card>
+  )
 }
 
 function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -173,6 +233,17 @@ export default function FlywheelPage() {
             ]}
           />
         </header>
+
+        {/* ── Goals — set what "getting better" means, track against it ── */}
+        {policyData && (
+          <GoalsSection
+            policy={policyData.merged}
+            ece={overall?.ece ?? null}
+            approval={learning.data ? approvalRate(learning.data.proposals) : null}
+            saving={setPolicy.isPending}
+            onSave={(goals) => { setPolicy.mutate({ ...policyData.merged, goals }) }}
+          />
+        )}
 
         {/* ── Decision calibration ── */}
         <Card className="space-y-4">

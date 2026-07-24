@@ -1,5 +1,22 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy } from './index'
+import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, goalProgress } from './index'
+
+describe('goals', () => {
+  it('merges goal overrides + clamps to 0..1', () => {
+    expect(mergeOrgPolicy({ goals: { max_calibration_error: 0.05 } }).goals.max_calibration_error).toBe(0.05)
+    expect(mergeOrgPolicy({ goals: { min_approval_rate: 1.5 } }).goals.min_approval_rate).toBe(1)
+    expect(mergeOrgPolicy({}).goals).toEqual(DEFAULT_ORG_POLICY.goals)
+  })
+  it('goalProgress: lower-is-better met at/below target', () => {
+    expect(goalProgress(0.1, 0.08, true)).toEqual({ met: true, pct: 100 })
+    expect(goalProgress(0.1, 0.2, true)).toEqual({ met: false, pct: 50 })
+    expect(goalProgress(0.1, null, true)).toEqual({ met: false, pct: 0 })
+  })
+  it('goalProgress: higher-is-better met at/above target', () => {
+    expect(goalProgress(0.7, 0.7, false)).toEqual({ met: true, pct: 100 })
+    expect(goalProgress(0.8, 0.4, false)).toEqual({ met: false, pct: 50 })
+  })
+})
 
 describe('mergeOrgPolicy', () => {
   it('returns defaults when override is null / undefined / non-object', () => {

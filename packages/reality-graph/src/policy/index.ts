@@ -154,6 +154,34 @@ export interface OrgPolicy {
     /** Cost-per-occupied-room spikes — the GM's P&L signal in the briefing. */
     cpor: CporMonitorConfig
   }
+  /** Learning-loop goals (P3 observability→control). Targets the operator sets
+   *  for "is the loop getting better?", tracked on the Flywheel as progress. */
+  goals: {
+    /** Target ceiling for calibration error (ECE), 0..1. Met when actual ≤ this. */
+    max_calibration_error: number
+    /** Target floor for the proposal approval rate, 0..1. Met when actual ≥ this. */
+    min_approval_rate: number
+  }
+}
+
+export interface GoalDef { key: 'calibration_error' | 'approval_rate'; label: string; unit: '%'; lowerIsBetter: boolean }
+
+export const LOOP_GOALS: GoalDef[] = [
+  { key: 'calibration_error', label: 'Calibration error (ECE)', unit: '%', lowerIsBetter: true },
+  { key: 'approval_rate',     label: 'Proposal approval rate',  unit: '%', lowerIsBetter: false },
+]
+
+/** Progress toward a goal: met + a 0–100 bar. lowerIsBetter goals (ECE) are met
+ *  at or below target; higher-is-better (approval) at or above. */
+export function goalProgress(target: number, actual: number | null, lowerIsBetter: boolean): { met: boolean; pct: number } {
+  if (actual === null || !Number.isFinite(actual)) return { met: false, pct: 0 }
+  const clamp01 = (x: number) => Math.max(0, Math.min(1, x))
+  if (lowerIsBetter) {
+    const met = actual <= target
+    return { met, pct: met ? 100 : actual > 0 ? Math.round(clamp01(target / actual) * 100) : 100 }
+  }
+  const met = actual >= target
+  return { met, pct: target > 0 ? Math.round(clamp01(actual / target) * 100) : 100 }
 }
 
 export const DEFAULT_ORG_POLICY: OrgPolicy = {
@@ -191,6 +219,10 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     budget:      { enabled: true, over_budget_pct: 100, min_spend: 0 },
     cpor:        { enabled: true, rise_pct: 10 },
   },
+  goals: {
+    max_calibration_error: 0.1,
+    min_approval_rate:     0.7,
+  },
 }
 
 /** Deep-merges operator overrides over the defaults. Missing sections fall
@@ -223,6 +255,7 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       budget:      { ...DEFAULT_ORG_POLICY.monitors.budget },
       cpor:        { ...DEFAULT_ORG_POLICY.monitors.cpor },
     },
+    goals: { ...DEFAULT_ORG_POLICY.goals },
   }
 
   if (isObj(o.auto_execution)) {
@@ -329,6 +362,11 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       if (typeof c.enabled  === 'boolean') m.enabled  = c.enabled
       if (typeof c.rise_pct === 'number')  m.rise_pct = clamp(c.rise_pct, 0, 1000)
     }
+  }
+  if (isObj(o.goals)) {
+    const g = o.goals as Record<string, unknown>
+    if (typeof g.max_calibration_error === 'number') merged.goals.max_calibration_error = clamp(g.max_calibration_error, 0, 1)
+    if (typeof g.min_approval_rate     === 'number') merged.goals.min_approval_rate     = clamp(g.min_approval_rate, 0, 1)
   }
 
   return merged
