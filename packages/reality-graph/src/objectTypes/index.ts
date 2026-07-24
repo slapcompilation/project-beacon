@@ -37,6 +37,8 @@ export interface ObjectTypeDef {
   properties: PropertyDef[]
   /** Derived values computed from stored properties at read time (P2.4). */
   computedProperties: ComputedPropertyDef[]
+  /** How records of this type present (P3). Empty config → standard view. */
+  viewConfig: ViewConfigDef
   enabled: boolean
   version: number
 }
@@ -148,6 +150,68 @@ export function validateObjectTypeDraft(draft: ObjectTypeDraft): Validation {
     if (seen.has(p.key)) { errors.push(`Duplicate property key "${p.key}".`); continue }
     seen.add(p.key)
     if (!PROPERTY_TYPES.some((t) => t.value === p.type)) errors.push(`Property "${p.label}" has an unknown type.`)
+  }
+  return { ok: errors.length === 0, errors }
+}
+
+// ── Object View config (P3) — how a type's records PRESENT. Foundry's model:
+// a standard view is derived for every type; a configured view overrides it.
+// Config is data on the type (versioned with the schema by the same triggers).
+
+export interface ViewSection {
+  title: string
+  /** property or computed-property keys shown in this section. */
+  keys: string[]
+}
+
+export interface ViewConfigDef {
+  /** keys surfaced in the metric strip at the top (property or computed). */
+  prominent: string[]
+  /** grouped body sections. Empty → one auto section with everything. */
+  sections: ViewSection[]
+}
+
+export const EMPTY_VIEW_CONFIG: ViewConfigDef = { prominent: [], sections: [] }
+
+/** All presentable keys of a type: stored properties + computed. */
+function presentableKeys(type: Pick<ObjectTypeDef, 'properties' | 'computedProperties'>): Set<string> {
+  return new Set([...type.properties.map((p) => p.key), ...type.computedProperties.map((c) => c.key)])
+}
+
+/** The standard (derived) view: configured values win; anything not placed in a
+ *  configured section lands in a trailing "Details" section, so a schema change
+ *  never silently hides a property. */
+export function resolveViewConfig(
+  type: Pick<ObjectTypeDef, 'properties' | 'computedProperties'>,
+  config: ViewConfigDef | null | undefined,
+): ViewConfigDef {
+  const all = presentableKeys(type)
+  const cfg = config ?? EMPTY_VIEW_CONFIG
+  const prominent = cfg.prominent.filter((k) => all.has(k))
+  const sections: ViewSection[] = cfg.sections
+    .map((s) => ({ title: s.title, keys: s.keys.filter((k) => all.has(k)) }))
+    .filter((s) => s.keys.length > 0)
+  const placed = new Set(sections.flatMap((s) => s.keys))
+  const rest = [...all].filter((k) => !placed.has(k))
+  if (rest.length > 0) sections.push({ title: sections.length > 0 ? 'Details' : 'Properties', keys: rest })
+  return { prominent, sections }
+}
+
+export function validateViewConfig(
+  config: ViewConfigDef,
+  type: Pick<ObjectTypeDef, 'properties' | 'computedProperties'>,
+): Validation {
+  const all = presentableKeys(type)
+  const errors: string[] = []
+  for (const k of config.prominent) if (!all.has(k)) errors.push(`Prominent key "${k}" is not a property of this type.`)
+  const seen = new Set<string>()
+  for (const s of config.sections) {
+    if (!s.title.trim()) errors.push('Every section needs a title.')
+    for (const k of s.keys) {
+      if (!all.has(k)) errors.push(`Section "${s.title}" references unknown key "${k}".`)
+      else if (seen.has(k)) errors.push(`Key "${k}" appears in more than one section.`)
+      seen.add(k)
+    }
   }
   return { ok: errors.length === 0, errors }
 }

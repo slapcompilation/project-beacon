@@ -432,14 +432,14 @@ export type {
 } from './automations/index'
 
 export {
-  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, COMPUTED_FNS, toSlug,
+  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
   validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
-  evaluateComputed, validateComputedProperty,
+  evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig,
 } from './objectTypes/index'
 export type {
   PropertyType, PropertyDef, ObjectTypeDef, ObjectTypeDraft, RecordDraft,
   LinkTypeDef, LinkTypeDraft, ComputedFn, ComputedFnDef, ComputedPropertyDef,
-  Validation as ObjectTypeValidation,
+  ViewSection, ViewConfigDef, Validation as ObjectTypeValidation,
 } from './objectTypes/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
