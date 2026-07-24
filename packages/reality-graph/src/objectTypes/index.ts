@@ -71,6 +71,31 @@ export function validateObjectTypeDraft(draft: ObjectTypeDraft): Validation {
   return { ok: errors.length === 0, errors }
 }
 
+// ── Link types (P2.3) — a named relationship from one object type to another.
+// Instances (object_links) connect a source record to a target record.
+
+export interface LinkTypeDef {
+  id: string
+  organizationId: string
+  hotelId: string | null
+  sourceTypeId: string
+  targetTypeId: string
+  /** slug, unique per source type — the relationship's api name. */
+  apiName: string
+  label: string
+}
+
+export type LinkTypeDraft = Pick<LinkTypeDef, 'apiName' | 'label' | 'sourceTypeId' | 'targetTypeId'>
+
+export function validateLinkTypeDraft(draft: LinkTypeDraft): Validation {
+  const errors: string[] = []
+  if (!draft.label.trim()) errors.push('Label is required.')
+  if (!SLUG_RE.test(draft.apiName)) errors.push('API name must be lower_snake_case.')
+  if (!draft.sourceTypeId) errors.push('A source type is required.')
+  if (!draft.targetTypeId) errors.push('A target type is required.')
+  return { ok: errors.length === 0, errors }
+}
+
 export interface RecordDraft {
   title: string
   data: Record<string, unknown>

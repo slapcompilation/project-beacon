@@ -41,7 +41,7 @@
 
 DO $$
 DECLARE
-  v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[];
+  v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[]; v_type uuid;
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
@@ -312,6 +312,40 @@ BEGIN
     IF n <> 1 THEN RAISE EXCEPTION 'C15b: admin could not author an object type (org/author defaults or check failed)'; END IF;
   END IF;
 
+  -- ── C16: link type authoring is admin/owner-gated (Studio P2.3, migration 215) ──
+  IF v_user IS NOT NULL THEN
+    RESET ROLE;
+    DELETE FROM object_types WHERE api_name = '__probe_type__';
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+    INSERT INTO object_types (api_name, label) VALUES ('__probe_type__', 'Probe') RETURNING id INTO v_type;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+    SET LOCAL ROLE authenticated;
+    raised := false;
+    BEGIN
+      INSERT INTO link_types (source_object_type_id, target_object_type_id, api_name, label) VALUES (v_type, v_type, 'rel', 'Rel');
+    EXCEPTION WHEN insufficient_privilege OR check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM object_types WHERE id = v_type;
+      RAISE EXCEPTION 'C16a: hotel_manager authored a link type (expected admin/owner-only)';
+    END IF;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+    INSERT INTO link_types (source_object_type_id, target_object_type_id, api_name, label) VALUES (v_type, v_type, 'rel', 'Rel');
+    SELECT count(*) INTO n FROM link_types WHERE source_object_type_id = v_type;
+    RESET ROLE;
+    DELETE FROM object_types WHERE id = v_type;   -- cascades the link type
+    IF n <> 1 THEN RAISE EXCEPTION 'C16b: admin could not author a link type'; END IF;
+  END IF;
+
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored', v_b_pending;
 END $$;

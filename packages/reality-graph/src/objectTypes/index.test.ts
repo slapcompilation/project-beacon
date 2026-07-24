@@ -4,8 +4,10 @@ import {
   validateRecord,
   coerceValue,
   toSlug,
+  validateLinkTypeDraft,
   type PropertyDef,
   type ObjectTypeDraft,
+  type LinkTypeDraft,
 } from './index'
 
 const props: PropertyDef[] = [
@@ -66,6 +68,20 @@ describe('coerceValue', () => {
     expect(coerceValue('boolean', 'true')).toBe(true)
     expect(coerceValue('date', '2026-07-24')).toBe('2026-07-24')
     expect(coerceValue('date', 'not-a-date')).toBeNull()
+  })
+})
+
+describe('validateLinkTypeDraft', () => {
+  const draft: LinkTypeDraft = { apiName: 'belongs_to_room', label: 'Belongs to room', sourceTypeId: 's1', targetTypeId: 't1' }
+  it('accepts a well-formed link type', () => {
+    expect(validateLinkTypeDraft(draft).ok).toBe(true)
+  })
+  it('requires both a source and target type', () => {
+    expect(validateLinkTypeDraft({ ...draft, targetTypeId: '' }).ok).toBe(false)
+    expect(validateLinkTypeDraft({ ...draft, sourceTypeId: '' }).ok).toBe(false)
+  })
+  it('rejects a non-slug api name', () => {
+    expect(validateLinkTypeDraft({ ...draft, apiName: 'Belongs To' }).ok).toBe(false)
   })
 })
 
