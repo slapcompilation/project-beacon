@@ -423,11 +423,12 @@ export type {
 export {
   AUTOMATION_METRICS, AUTOMATION_EFFECTS, COMPARISON_LABELS,
   evaluateAutomation, evaluateAutomations, validateAutomation, describeAutomation,
+  automationsToProposals,
 } from './automations/index'
 export type {
   Automation, AutomationSubject, AutomationCondition, AutomationEffect, AutomationGate,
   AutomationStage, ComparisonOp, MetricDef, EffectDef, AutomationReading, AutomationHit,
-  AutomationDraft, AutomationValidation,
+  AutomationDraft, AutomationValidation, AutomationProposal, AutomationContext,
 } from './automations/index'
 
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
