@@ -3,15 +3,17 @@
 // /objects tile), and every row opens that type's full Object View. Scope-agnostic
 // by design: it never depends on an active hotel the way the operational surfaces do.
 
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import { Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { evaluateComputed } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION, type ObjectPresentation } from '@/lib/objectPresentation'
 import { OBJECT_LIST, type ObjectListSpec } from '@/features/objects/objectList'
 import { useObjectTypes, useObjectRecords } from '@/features/objectTypes/hooks'
 import { rowToObjectType } from '@/features/objectTypes/api'
+import { RecordPanel } from '@/features/objectTypes/RecordPanel'
 import { supabase } from '@/lib/supabase/client'
 
 const LIMIT = 200
@@ -94,6 +96,7 @@ function CustomObjectList({ typeId }: { typeId: string }) {
   const { data: typeRows = [], isLoading: typesLoading } = useObjectTypes()
   const type = typeRows.map(rowToObjectType).find((t) => t.id === typeId)
   const { data: records = [], isLoading: recordsLoading } = useObjectRecords(type ? typeId : null)
+  const [panelId, setPanelId] = useState<string | null>(null)
 
   if (typesLoading) return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
   if (!type) return <Navigate to="/objects" replace />
@@ -123,25 +126,29 @@ function CustomObjectList({ typeId }: { typeId: string }) {
         ) : (
           <Card compact className="!p-0 overflow-hidden divide-y divide-border max-w-3xl">
             {records.map((r) => (
-              <Link key={r.id} to={`/objects/${type.id}/${r.id}`} className="flex items-start gap-3 px-4 py-2.5 no-underline hover:bg-muted/50">
-                <Icon icon={type.icon as IconName} size={14} className="text-muted-foreground shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{r.title}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">
-                    {type.properties.map((prop) => `${prop.label}: ${fmtVal(r.data[prop.key])}`).join(' · ') || '—'}
-                  </p>
-                  {type.computedProperties.length > 0 && (
-                    <p className="text-[11px] text-violet-600/80 truncate">
-                      {type.computedProperties.map((cp) => `${cp.label}: ${fmtVal(evaluateComputed(cp, r.data))}`).join(' · ')}
+              <div key={r.id} className="flex items-start gap-1 pr-2 hover:bg-muted/50">
+                <Link to={`/objects/${type.id}/${r.id}`} className="flex flex-1 items-start gap-3 px-4 py-2.5 min-w-0 no-underline">
+                  <Icon icon={type.icon as IconName} size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{r.title}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">
+                      {type.properties.map((prop) => `${prop.label}: ${fmtVal(r.data[prop.key])}`).join(' · ') || '—'}
                     </p>
-                  )}
-                </div>
-                <Icon icon="chevron-right" size={14} className="text-muted-foreground shrink-0 mt-0.5" />
-              </Link>
+                    {type.computedProperties.length > 0 && (
+                      <p className="text-[11px] text-violet-600/80 truncate">
+                        {type.computedProperties.map((cp) => `${cp.label}: ${fmtVal(evaluateComputed(cp, r.data))}`).join(' · ')}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+                <Button variant="minimal" size="small" icon="panel-stats" title="Quick look" className="mt-2 shrink-0"
+                  onClick={() => { setPanelId(r.id) }} />
+              </div>
             ))}
           </Card>
         )}
       </div>
+      <RecordPanel recordId={panelId} onClose={() => { setPanelId(null) }} />
     </div>
   )
 }
