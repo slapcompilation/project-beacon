@@ -1,18 +1,23 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  fetchObjectTypes, createObjectType, deleteObjectType,
+  fetchObjectTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   fetchObjectRecords, createObjectRecord, deleteObjectRecord,
   type CreateObjectTypeInput, type CreateObjectRecordInput,
 } from './api'
 
 const keys = {
   types: ['object-types'] as const,
+  cards: ['object-type-cards'] as const,
   records: (typeId: string) => ['object-records', typeId] as const,
 }
 
 export function useObjectTypes() {
   return useQuery({ queryKey: keys.types, queryFn: fetchObjectTypes, staleTime: 30_000 })
+}
+
+export function useObjectTypeCards() {
+  return useQuery({ queryKey: keys.cards, queryFn: fetchObjectTypeCards, staleTime: 30_000 })
 }
 
 export function useCreateObjectType() {

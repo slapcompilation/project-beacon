@@ -6,8 +6,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { OBJECT_PRESENTATION, type ObjectPresentation } from '@/lib/objectPresentation'
 import { OBJECT_LIST, type ObjectListSpec } from '@/features/objects/objectList'
+import { useObjectTypes, useObjectRecords } from '@/features/objectTypes/hooks'
+import { rowToObjectType } from '@/features/objectTypes/api'
 import { supabase } from '@/lib/supabase/client'
 
 const LIMIT = 200
@@ -32,7 +35,8 @@ export default function ObjectListPage() {
     },
   })
 
-  if (!spec || !p) return <Navigate to="/objects" replace />
+  // Not a built-in type → treat the param as a custom object_type id (P2.2).
+  if (!spec || !p) return <CustomObjectList typeId={type} />
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -81,4 +85,64 @@ export default function ObjectListPage() {
       </div>
     </div>
   )
+}
+
+// Records of a user-authored object type (Studio P2). The custom counterpart to
+// the built-in list above — reads object_records under the same RLS as the count.
+function CustomObjectList({ typeId }: { typeId: string }) {
+  const { data: typeRows = [], isLoading: typesLoading } = useObjectTypes()
+  const type = typeRows.map(rowToObjectType).find((t) => t.id === typeId)
+  const { data: records = [], isLoading: recordsLoading } = useObjectRecords(type ? typeId : null)
+
+  if (typesLoading) return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
+  if (!type) return <Navigate to="/objects" replace />
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="px-6 py-4 border-b shrink-0">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Link to="/objects" className="hover:underline">Objects</Link>
+          <Icon icon="chevron-right" size={10} />
+          <span className="font-mono">{type.apiName}</span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <Icon icon={type.icon as IconName} size={16} className="text-violet-500" />
+          <h1 className="text-sm font-semibold">{type.label}</h1>
+          <Tag minimal round className="tabular-nums">{records.length}</Tag>
+          <Link to="/mind?aip=object-types" className="text-[11px] text-primary hover:underline ml-auto">Edit type →</Link>
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {recordsLoading ? (
+          <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
+        ) : records.length === 0 ? (
+          <NonIdealState icon={type.icon as IconName} title={`No ${type.label.toLowerCase()} records yet`}
+            description="Add records from Studio → Object Types." />
+        ) : (
+          <Card compact className="!p-0 overflow-hidden divide-y divide-border max-w-3xl">
+            {records.map((r) => (
+              <div key={r.id} className="flex items-start gap-3 px-4 py-2.5">
+                <Icon icon={type.icon as IconName} size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{r.title}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">
+                    {type.properties.map((prop) => `${prop.label}: ${fmtVal(r.data[prop.key])}`).join(' · ') || '—'}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function fmtVal(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—'
+  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'number') return String(v)
+  if (typeof v === 'string') return v
+  return '—'
 }

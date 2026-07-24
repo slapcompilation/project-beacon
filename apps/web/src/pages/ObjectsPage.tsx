@@ -7,9 +7,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import type { NodeType } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { OBJECT_LIST } from '@/features/objects/objectList'
+import { useObjectTypeCards } from '@/features/objectTypes/hooks'
 import { supabase } from '@/lib/supabase/client'
 
 // One source of truth for the table per type — the same registry the instance
@@ -31,6 +33,7 @@ export default function ObjectsPage() {
     queryFn: fetchCounts,
     staleTime: 60_000,
   })
+  const { data: customCards = [] } = useObjectTypeCards()
 
   if (isError) {
     return <NonIdealState icon="warning-sign" title="Failed to load object types" description={error instanceof Error ? error.message : undefined} />
@@ -68,6 +71,18 @@ export default function ObjectsPage() {
                 </Link>
               )
             })}
+            {customCards.map((c) => (
+              <Link key={c.id} to={`/objects/${c.id}`} className="no-underline">
+                <Card interactive compact className="h-full">
+                  <div className="flex items-center gap-2">
+                    <Icon icon={c.icon as IconName} size={14} className="text-violet-500" />
+                    <span className="text-sm font-semibold">{c.label}</span>
+                  </div>
+                  <div className="mt-1 text-xl font-semibold tabular-nums">{c.count.toLocaleString()}</div>
+                  <div className="text-[11px] text-muted-foreground font-mono">{c.apiName}</div>
+                </Card>
+              </Link>
+            ))}
           </div>
         )}
       </div>
