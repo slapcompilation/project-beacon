@@ -26,6 +26,7 @@ import {
   HONEST_LABEL_OPTIONS,
   selectExpiryTriggers,
   expiryHitToWriteOff,
+  automationsToProposals,
 } from '../_shared/reality-graph.bundle.mjs'
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { json, preflight } from '../_shared/http.ts'
@@ -330,6 +331,9 @@ async function agentCalibration(supabase: SupabaseClient, hotelId: string, agent
 // decides what's at-risk of spoiling internally.
 async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: AgentCycleOpts) {
   let variants: { id: string; name: string }[]
+  // AutomationReadings for the at-risk (restock) scan, so operator-authored
+  // automations evaluate against the same live stock the agent sees.
+  const readings: { subject: string; subjectId: string; subjectName: string; hotelId: string; metrics: Record<string, number> }[] = []
 
   if (opts.scan === 'overstock') {
     // Forecast-aware scan: variants holding >= factor x their trailing-30-day
@@ -354,20 +358,59 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
       .gt('low_stock_threshold', 0)
     if (scanErr) throw new Error(scanErr.message)
 
-    variants = (variantRows ?? [])
-      .filter((v: Record<string, unknown>) => {
+    const nameOf = (v: Record<string, unknown>): string => {
+      const p = v.products as { name: string } | { name: string }[] | null
+      const product = Array.isArray(p) ? p[0] : p
+      const productName = product?.name ?? 'item'
+      return v.name !== 'Standard' ? `${productName} — ${String(v.name)}` : productName
+    }
+    const scanned = (variantRows ?? []).filter((v: Record<string, unknown>) => {
+      const stock = v.current_stock as number
+      const par   = v.low_stock_threshold as number
+      const prod  = (Array.isArray(v.products) ? v.products[0] : v.products) as { shelf_life_days: number | null } | null
+      if (opts.scan === 'at-risk') return stock <= par
+      return prod?.shelf_life_days != null   // waste: perishables only
+    })
+    variants = scanned.map((v: Record<string, unknown>) => ({ id: v.id as string, name: nameOf(v) }))
+    if (opts.scan === 'at-risk') {
+      for (const v of scanned as Record<string, unknown>[]) {
         const stock = v.current_stock as number
         const par   = v.low_stock_threshold as number
-        const prod  = (Array.isArray(v.products) ? v.products[0] : v.products) as { shelf_life_days: number | null } | null
-        if (opts.scan === 'at-risk') return stock <= par
-        return prod?.shelf_life_days != null   // waste: perishables only
-      })
-      .map((v: Record<string, unknown>) => {
-        const p = v.products as { name: string } | { name: string }[] | null
-        const product = Array.isArray(p) ? p[0] : p
-        const productName = product?.name ?? 'item'
-        return { id: v.id as string, name: v.name !== 'Standard' ? `${productName} — ${String(v.name)}` : productName }
-      })
+        readings.push({
+          subject: 'variant', subjectId: v.id as string, subjectName: nameOf(v), hotelId: hotel.id,
+          metrics: {
+            current_stock: stock,
+            par_level: par,
+            units_below_par: Math.max(0, par - stock),
+            stock_vs_par_pct: par > 0 ? Math.round((stock / par) * 100) : (stock > 0 ? 100 : 0),
+          },
+        })
+      }
+    }
+  }
+
+  // Operator-authored automations (production, in scope) → proposals per variant,
+  // routed through the SAME gate as the agent (P1.3, unattended path). Only the
+  // at-risk restock scan builds readings, so other scans no-op here.
+  const autoByVariant = new Map<string, { action: unknown; confidence: number; reasoning: string; provenance: unknown }[]>()
+  if (readings.length > 0) {
+    const orFilter = hotel.organization_id
+      ? `hotel_id.eq.${hotel.id},and(hotel_id.is.null,organization_id.eq.${hotel.organization_id})`
+      : `hotel_id.eq.${hotel.id}`
+    const { data: autoRows } = await supabase
+      .from('automations').select('*')
+      .eq('enabled', true).eq('stage', 'production').or(orFilter)
+    const automations = (autoRows ?? []).map((r: Record<string, unknown>) => ({
+      id: r.id, name: r.name, organizationId: r.organization_id, hotelId: r.hotel_id,
+      when: { subject: r.subject, metric: r.when_metric, op: r.when_op, value: Number(r.when_value) },
+      effect: r.effect, gate: r.gate, confidence: Number(r.confidence),
+      enabled: r.enabled, stage: r.stage, version: r.version,
+    }))
+    for (const ap of automationsToProposals(automations, readings, { requestorId: SYSTEM_ACTOR })) {
+      const list = autoByVariant.get(ap.subjectId) ?? []
+      list.push(ap.proposal)
+      autoByVariant.set(ap.subjectId, list)
+    }
   }
 
   const { data: constraintRows } = await supabase
@@ -408,6 +451,7 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
     forecastAccuracyByBasis: opts.forecastAccuracyByBasis,
     maxForecastMape: opts.maxForecastMape,
     openProposalKeys: opts.openProposalKeys,
+    automationProposals: (variant: { id: string }) => autoByVariant.get(variant.id) ?? [],
     runAgent: async (variant: { id: string; name: string }) => {
       const agent = opts.buildAgent(reader, variant)
       const run = await agent.run({ prompt: `${opts.promptVerb} ${variant.name}`, userId: SYSTEM_ACTOR, scope: { hotelId: hotel.id } })
