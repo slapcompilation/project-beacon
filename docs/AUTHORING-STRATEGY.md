@@ -1,6 +1,13 @@
 # Authoring strategy — how operators shape Beacon's behavior
 
-Status: **agreed** (2026-06-22). The product question this settles: *how do
+> **Superseded (2026-07-23)** by [`STUDIO-AUTHORING-PLAN.md`](./STUDIO-AUTHORING-PLAN.md).
+> Its *conclusion* — "natural language is the builder; defer visual authoring until demand
+> appears" — is reversed: Studio becomes a creation environment now (that demand has appeared).
+> Its **discipline** (typed grammar, one gate, versioning, eval-before-production) is kept and
+> carried into the new plan. Read this for the ladder/rung vocabulary; read the new plan for
+> the direction.
+
+Status: **superseded** — was agreed (2026-06-22). The product question this settles: *how do
 non-engineers change what the system does — and how far do we take "no-code"?*
 
 ## Thesis
