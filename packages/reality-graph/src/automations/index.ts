@@ -8,6 +8,7 @@
 // like every other proposal; authoring never adds a second execution path.
 
 import type { BeaconAction } from '../actions/types'
+import type { AgentProposal } from '../agents/index'
 
 export type AutomationSubject = 'variant'
 export type ComparisonOp = 'lt' | 'lte' | 'gt' | 'gte'
@@ -72,6 +73,9 @@ export interface AutomationReading {
   subjectId: string
   subjectName: string
   metrics: Record<string, number>
+  /** Needed to build a firing proposal (e.g. REQUEST_RESTOCK.hotelId). Optional:
+   *  the composer's preview doesn't need it, only the cycle does. */
+  hotelId?: string
 }
 
 export interface AutomationHit {
@@ -119,6 +123,67 @@ export function evaluateAutomation(automation: Automation, readings: AutomationR
 
 export function evaluateAutomations(automations: Automation[], readings: AutomationReading[]): AutomationHit[] {
   return automations.flatMap((a) => evaluateAutomation(a, readings))
+}
+
+// ── Firing: turn hits into proposals the cycle routes through the gate ────────
+
+export interface AutomationProposal {
+  automationId: string
+  subjectId: string
+  proposal: AgentProposal
+}
+
+/** Build the typed action a hit proposes, or null when it needs context a pure
+ *  function can't supply (transfer source, a write-off quantity model). Those
+ *  effects are authorable + previewable now; firing them is a later slice. */
+/** The identity a fired automation acts on behalf of — the cycle runner (an
+ *  operator's id, or the service identity on the cron path). */
+export interface AutomationContext { requestorId: string }
+
+function hitToAction(hit: AutomationHit, r: AutomationReading, ctx: AutomationContext): BeaconAction | null {
+  if (hit.effect === 'REQUEST_RESTOCK') {
+    if (!r.hotelId) return null
+    const gap = Math.ceil((r.metrics.par_level ?? 0) - (r.metrics.current_stock ?? 0))
+    return {
+      type: 'REQUEST_RESTOCK',
+      variantId: r.subjectId,
+      quantityNeeded: Math.max(1, gap),
+      urgency: hit.confidence >= 0.85 ? 'high' : hit.confidence >= 0.6 ? 'medium' : 'low',
+      hotelId: r.hotelId,
+      requestorId: ctx.requestorId,
+      notes: `Automation: ${hit.automationName}`,
+    }
+  }
+  return null
+}
+
+/** Production automations → proposals, keyed to the subject they fired on. The
+ *  cycle feeds these into the same persist → decideAutoExecution → dispatch path
+ *  as agent proposals, so there is exactly one gate. */
+export function automationsToProposals(
+  automations: Automation[],
+  readings: AutomationReading[],
+  ctx: AutomationContext,
+): AutomationProposal[] {
+  const byId = new Map(readings.map((r) => [r.subjectId, r]))
+  const out: AutomationProposal[] = []
+  for (const hit of evaluateAutomations(automations, readings)) {
+    const r = byId.get(hit.subjectId)
+    if (!r) continue
+    const action = hitToAction(hit, r, ctx)
+    if (!action) continue
+    out.push({
+      automationId: hit.automationId,
+      subjectId: hit.subjectId,
+      proposal: {
+        action,
+        confidence: hit.confidence,
+        reasoning: `Automation "${hit.automationName}": ${hit.reason}.`,
+        provenance: [{ kind: 'tool', ref: `automation:${hit.automationId}`, detail: hit.automationName }],
+      },
+    })
+  }
+  return out
 }
 
 // ── Authoring helpers ────────────────────────────────────────────────────────

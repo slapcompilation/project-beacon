@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { runIntelligenceCycle, type IntelligenceCycleDeps, type CycleVariant } from './intelligenceCycle'
 import type { AgentProposal } from '../agents/index'
 import type { ConstraintRecord } from '../constraints/index'
+import { automationsToProposals } from '../automations/index'
 
 const HOTEL = '21111111-1111-4111-8111-111111111111'
 const USER = '31111111-1111-4111-8111-111111111111'
@@ -63,6 +64,7 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     maxForecastMape: over.maxForecastMape,
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
+    automationProposals: over.automationProposals,
     runAgent,
     persistProposal,
     dispatch,
@@ -79,6 +81,23 @@ describe('runIntelligenceCycle', () => {
     expect(deps.markApproved).toHaveBeenCalledWith('p1')
     expect(result).toMatchObject({ scanned: 1, proposed: 1, autoExecuted: 1, queued: 0 })
     expect(result.items[0]).toMatchObject({ outcome: 'auto-executed', actionType: 'REQUEST_RESTOCK', proposalId: 'p1' })
+  })
+
+  it('fires an operator-authored automation through the same gate, tagged as automation', async () => {
+    const autoProposals = automationsToProposals(
+      [{ id: 'auto1', name: 'Low → restock', organizationId: 'o', hotelId: HOTEL,
+         when: { subject: 'variant', metric: 'units_below_par', op: 'gt', value: 0 },
+         effect: 'REQUEST_RESTOCK', gate: 'auto', confidence: 0.95, enabled: true, stage: 'production', version: 1 }],
+      [{ subject: 'variant', subjectId: VAR_A.id, subjectName: 'Tomatoes', hotelId: HOTEL,
+         metrics: { current_stock: 2, par_level: 12, units_below_par: 10, stock_vs_par_pct: 17 } }],
+      { requestorId: USER },
+    ).map((p) => p.proposal)
+    // no agent proposal — only the automation fires
+    const deps = makeDeps({ proposals: [], automationProposals: () => autoProposals })
+    const result = await runIntelligenceCycle(deps)
+    expect(result.proposed).toBe(1)
+    expect(result.autoExecuted).toBe(1) // 0.95, uncontested → through the same gate
+    expect(result.items[0]).toMatchObject({ source: 'automation', actionType: 'REQUEST_RESTOCK', outcome: 'auto-executed' })
   })
 
   it('dedups a proposal whose variant+action is already open (no re-persist)', async () => {

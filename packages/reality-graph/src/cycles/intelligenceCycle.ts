@@ -31,6 +31,8 @@ export interface CycleItem {
   actionType?: BeaconAction['type']
   proposalId?: string
   reason?: string
+  /** Which producer emitted the proposal — an agent, or an operator-authored automation. */
+  source?: 'agent' | 'automation'
 }
 
 export interface CycleResult {
@@ -49,6 +51,11 @@ export interface IntelligenceCycleDeps {
   variants: ReadonlyArray<CycleVariant>
   /** Run the agent for one variant; returns the proposals it emitted. */
   runAgent: (variant: CycleVariant) => Promise<ReadonlyArray<AgentProposal>>
+  /** Operator-authored automations that fired on this variant (production stage),
+   *  as proposals. Processed through the exact same gate + persist path as agent
+   *  proposals — one gate, no second execution path. The caller builds these from
+   *  automationsToProposals(); the cycle stays agnostic to how they were authored. */
+  automationProposals?: (variant: CycleVariant) => ReadonlyArray<AgentProposal>
   /** Persist a proposal; resolves to its stored id. */
   persistProposal: (variant: CycleVariant, proposal: AgentProposal) => Promise<string>
   /** Constraint records active for the scope, evaluated per proposed action. */
@@ -122,19 +129,22 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
 
   for (const variant of scope) {
     try {
-      const proposals = await deps.runAgent(variant)
+      const agentProposals = await deps.runAgent(variant)
+      const autoProposals = deps.automationProposals?.(variant) ?? []
+      const proposals = [...agentProposals, ...autoProposals]
       if (proposals.length === 0) {
         items.push({ variantId: variant.id, variantName: variant.name, outcome: 'no-proposal' })
         continue
       }
 
       for (const proposal of proposals) {
+        const source: 'agent' | 'automation' = proposal.provenance.some((p) => p.ref.startsWith('automation:')) ? 'automation' : 'agent'
         const dedupKey = proposalDedupKey(proposal.action)
         if (dedupKey && seen.has(dedupKey)) {
           deduped++
           items.push({
             variantId: variant.id, variantName: variant.name, outcome: 'duplicate',
-            actionType: proposal.action.type,
+            actionType: proposal.action.type, source,
             reason: 'an open proposal already covers this variant + action',
           })
           continue
@@ -173,6 +183,7 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
             actionType: proposal.action.type,
             proposalId,
             reason: decision.reason,
+            source,
           })
           continue
         }
@@ -189,6 +200,7 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
           actionType: proposal.action.type,
           proposalId,
           reason: decision.reason,
+          source,
         })
       }
     } catch {
