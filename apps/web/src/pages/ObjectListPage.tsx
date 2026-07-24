@@ -123,7 +123,7 @@ function CustomObjectList({ typeId }: { typeId: string }) {
         ) : (
           <Card compact className="!p-0 overflow-hidden divide-y divide-border max-w-3xl">
             {records.map((r) => (
-              <div key={r.id} className="flex items-start gap-3 px-4 py-2.5">
+              <Link key={r.id} to={`/objects/${type.id}/${r.id}`} className="flex items-start gap-3 px-4 py-2.5 no-underline hover:bg-muted/50">
                 <Icon icon={type.icon as IconName} size={14} className="text-muted-foreground shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{r.title}</p>
@@ -136,7 +136,8 @@ function CustomObjectList({ typeId }: { typeId: string }) {
                     </p>
                   )}
                 </div>
-              </div>
+                <Icon icon="chevron-right" size={14} className="text-muted-foreground shrink-0 mt-0.5" />
+              </Link>
             ))}
           </Card>
         )}

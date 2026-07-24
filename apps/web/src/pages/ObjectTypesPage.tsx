@@ -11,9 +11,9 @@ import {
 import type { IconName } from '@blueprintjs/icons'
 import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
-  validateLinkTypeDraft, evaluateComputed, validateComputedProperty,
+  validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
-  type ComputedFn, type ComputedPropertyDef,
+  type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -303,6 +303,7 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
   const [computed, setComputed] = useState<ComputedRow[]>(
     type.computedProperties.map((c) => ({ label: c.label, fn: c.fn, inputs: c.inputs })),
   )
+  const [viewConfig, setViewConfig] = useState<ViewConfigDef>(type.viewConfig)
 
   const properties: PropertyDef[] = props
     .filter((p) => p.label.trim())
@@ -312,15 +313,27 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
     .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
   const validation = validateObjectTypeDraft({ apiName: type.apiName, label, properties })
   const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
-  const canSave = validation.ok && computedErrors.length === 0
+  // resolveViewConfig on save drops keys that were removed; only structural errors block.
+  const viewErrors = validateViewConfig(viewConfig, { properties, computedProperties }).errors
+    .filter((e) => e.includes('title') || e.includes('more than one'))
+  const canSave = validation.ok && computedErrors.length === 0 && viewErrors.length === 0
 
   const setProp = (i: number, patch: Partial<PropertyDef>) =>
     { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
 
   const save = () => {
     if (!canSave) return
+    // Persist only the authored config, filtered to keys that still exist — the
+    // render-time resolver sweeps unplaced keys, so nothing is ever hidden.
+    const all = new Set([...properties.map((p) => p.key), ...computedProperties.map((c) => c.key)])
+    const cleaned: ViewConfigDef = {
+      prominent: viewConfig.prominent.filter((k) => all.has(k)),
+      sections: viewConfig.sections
+        .map((s) => ({ title: s.title, keys: s.keys.filter((k) => all.has(k)) }))
+        .filter((s) => s.title.trim() !== '' && s.keys.length > 0),
+    }
     update.mutate(
-      { id: type.id, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
+      { id: type.id, label: label.trim(), icon, description: description.trim(), properties, computedProperties, viewConfig: cleaned },
       { onSuccess: onDone },
     )
   }
@@ -360,14 +373,71 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
 
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
+      <ViewBuilder properties={properties} computedProperties={computedProperties} config={viewConfig} onChange={setViewConfig} />
+
       {!canSave && (
-        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
+        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors, ...viewErrors].map((e) => <li key={e}>{e}</li>)}</ul>
       )}
       <div className="flex items-center gap-2">
         <Button intent={Intent.PRIMARY} icon="floppy-disk" disabled={!canSave} loading={update.isPending} onClick={save}>Save as v{type.version + 1}</Button>
         <Button variant="minimal" onClick={onDone}>Cancel</Button>
       </div>
     </Card>
+  )
+}
+
+// Configure how records of this type PRESENT: prominent keys (metric strip) +
+// grouped sections. Unplaced keys are swept into a Details section at render
+// time, so config never hides data.
+function ViewBuilder({ properties, computedProperties, config, onChange }: {
+  properties: PropertyDef[]
+  computedProperties: ComputedPropertyDef[]
+  config: ViewConfigDef
+  onChange: (c: ViewConfigDef) => void
+}) {
+  const all = [
+    ...properties.map((p) => ({ key: p.key, label: p.label })),
+    ...computedProperties.map((c) => ({ key: c.key, label: c.label })),
+  ]
+  const toggleProminent = (key: string) => {
+    onChange({
+      ...config,
+      prominent: config.prominent.includes(key) ? config.prominent.filter((k) => k !== key) : [...config.prominent, key],
+    })
+  }
+  const setSection = (i: number, patch: Partial<{ title: string; keys: string[] }>) =>
+    { onChange({ ...config, sections: config.sections.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }) }
+  const toggleSectionKey = (i: number, key: string) => {
+    const s = config.sections[i]
+    setSection(i, { keys: s.keys.includes(key) ? s.keys.filter((k) => k !== key) : [...s.keys, key] })
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Object view</span>
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-xs text-muted-foreground">Metric strip:</span>
+        {all.map((k) => (
+          <Checkbox key={k.key} checked={config.prominent.includes(k.key)} label={k.label} className="mb-0"
+            onChange={() => { toggleProminent(k.key) }} />
+        ))}
+        {all.length === 0 && <span className="text-[11px] text-muted-foreground">add properties first</span>}
+      </div>
+      {config.sections.map((s, i) => (
+        <div key={i} className="flex flex-wrap items-center gap-2">
+          <InputGroup size="small" placeholder="Section title" value={s.title} onChange={(e) => { setSection(i, { title: e.currentTarget.value }) }} className="min-w-[140px]" />
+          {all.map((k) => (
+            <Checkbox key={k.key} checked={s.keys.includes(k.key)} label={k.label} className="mb-0"
+              onChange={() => { toggleSectionKey(i, k.key) }} />
+          ))}
+          <Button variant="minimal" size="small" icon="cross" onClick={() => { onChange({ ...config, sections: config.sections.filter((_, idx) => idx !== i) }) }} />
+        </div>
+      ))}
+      <Button variant="minimal" size="small" icon="add" disabled={all.length === 0}
+        onClick={() => { onChange({ ...config, sections: [...config.sections, { title: '', keys: [] }] }) }}>
+        Add section
+      </Button>
+    </div>
   )
 }
 

@@ -3,7 +3,8 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import type { ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef } from '@beacon/reality-graph'
+import type { ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef } from '@beacon/reality-graph'
+import { EMPTY_VIEW_CONFIG } from '@beacon/reality-graph'
 
 export interface ObjectTypeRow {
   id: string
@@ -15,6 +16,7 @@ export interface ObjectTypeRow {
   description: string
   properties: PropertyDef[]
   computed_properties: ComputedPropertyDef[] | null
+  view_config: ViewConfigDef | null
   enabled: boolean
   version: number
   created_by_user_id: string
@@ -27,6 +29,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
     properties: r.properties, computedProperties: r.computed_properties ?? [],
+    viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
   }
 }
@@ -88,12 +91,13 @@ export interface UpdateObjectTypeInput {
   description: string
   properties: PropertyDef[]
   computedProperties: ComputedPropertyDef[]
+  viewConfig: ViewConfigDef
 }
 
 export async function updateObjectType(i: UpdateObjectTypeInput): Promise<ObjectTypeRow> {
   const { data, error } = await supabase
     .from('object_types')
-    .update({ label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
+    .update({ label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties, view_config: i.viewConfig })
     .eq('id', i.id)
     .select('*')
     .single<ObjectTypeRow>()
@@ -110,6 +114,7 @@ export interface ObjectTypeRevisionRow {
   description: string
   properties: PropertyDef[]
   computed_properties: ComputedPropertyDef[]
+  view_config: ViewConfigDef | null
   changed_by_user_id: string | null
   created_at: string
 }
@@ -134,6 +139,7 @@ export async function restoreRevision(rev: ObjectTypeRevisionRow): Promise<Objec
     description: rev.description,
     properties: rev.properties,
     computedProperties: rev.computed_properties,
+    viewConfig: rev.view_config ?? EMPTY_VIEW_CONFIG,
   })
 }
 
@@ -153,6 +159,14 @@ export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRe
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return data as ObjectRecordRow[]
+}
+
+export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
+  const { data, error } = await supabase
+    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
+    .eq('id', id).maybeSingle<ObjectRecordRow>()
+  if (error) throw new Error(error.message)
+  return data
 }
 
 export interface CreateObjectRecordInput {

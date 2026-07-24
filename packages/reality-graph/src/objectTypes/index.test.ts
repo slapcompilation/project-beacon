@@ -7,6 +7,8 @@ import {
   validateLinkTypeDraft,
   evaluateComputed,
   validateComputedProperty,
+  resolveViewConfig,
+  validateViewConfig,
   type PropertyDef,
   type ObjectTypeDraft,
   type LinkTypeDraft,
@@ -125,6 +127,45 @@ describe('validateComputedProperty', () => {
   })
   it('rejects an input that is not a property', () => {
     expect(validateComputedProperty({ ...ok, inputs: ['nope'] }, props).ok).toBe(false)
+  })
+})
+
+describe('resolveViewConfig', () => {
+  const type = {
+    properties: props,   // room, urgent, reported_on, cost
+    computedProperties: [{ key: 'days_open', label: 'Days open', fn: 'days_since', inputs: ['reported_on'] }] as ComputedPropertyDef[],
+  }
+  it('derives a standard view when no config: everything in one section', () => {
+    const v = resolveViewConfig(type, null)
+    expect(v.prominent).toEqual([])
+    expect(v.sections).toHaveLength(1)
+    expect(v.sections[0].title).toBe('Properties')
+    expect(new Set(v.sections[0].keys)).toEqual(new Set(['room', 'urgent', 'reported_on', 'cost', 'days_open']))
+  })
+  it('keeps configured placement and sweeps the rest into Details', () => {
+    const v = resolveViewConfig(type, { prominent: ['days_open', 'cost'], sections: [{ title: 'Where', keys: ['room'] }] })
+    expect(v.prominent).toEqual(['days_open', 'cost'])
+    expect(v.sections[0]).toEqual({ title: 'Where', keys: ['room'] })
+    expect(v.sections[1].title).toBe('Details')
+    expect(new Set(v.sections[1].keys)).toEqual(new Set(['urgent', 'reported_on', 'cost', 'days_open']))
+  })
+  it('drops keys that no longer exist on the type', () => {
+    const v = resolveViewConfig(type, { prominent: ['ghost'], sections: [{ title: 'X', keys: ['ghost'] }] })
+    expect(v.prominent).toEqual([])
+    expect(v.sections).toHaveLength(1) // only the sweep section
+  })
+})
+
+describe('validateViewConfig', () => {
+  const type = { properties: props, computedProperties: [] as ComputedPropertyDef[] }
+  it('accepts valid config', () => {
+    expect(validateViewConfig({ prominent: ['cost'], sections: [{ title: 'Where', keys: ['room'] }] }, type).ok).toBe(true)
+  })
+  it('rejects unknown keys and duplicate placement', () => {
+    const r = validateViewConfig({ prominent: ['nope'], sections: [{ title: 'A', keys: ['room'] }, { title: 'B', keys: ['room'] }] }, type)
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('nope')
+    expect(r.errors.join(' ')).toContain('more than one section')
   })
 })
 
