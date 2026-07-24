@@ -60,6 +60,11 @@ BEGIN
   RETURN NEW;
 END $$;
 
+-- Trigger functions run via the trigger, never by callers — revoke the default
+-- PUBLIC EXECUTE (security invariant 1: anon must not execute SECURITY DEFINER fns).
+REVOKE EXECUTE ON FUNCTION snapshot_object_type() FROM anon, authenticated, public;
+REVOKE EXECUTE ON FUNCTION bump_object_type_version() FROM anon, authenticated, public;
+
 DROP TRIGGER IF EXISTS trg_bump_object_type_version ON object_types;
 CREATE TRIGGER trg_bump_object_type_version
   BEFORE UPDATE ON object_types
