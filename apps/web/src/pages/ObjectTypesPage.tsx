@@ -1,0 +1,229 @@
+// Object Types (Studio P2.1) — Foundry's Ontology Manager, starter. Author a new
+// kind of thing with typed properties, then create records of it. Config-as-data:
+// the type + its records are rows, no code deploy. Types are admin/owner-authored;
+// records can be created by any org member (RLS enforces both).
+
+import { useMemo, useState } from 'react'
+import {
+  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
+  NumericInput, Spinner, SpinnerSize, Switch, Tag, TextArea,
+} from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
+import {
+  PROPERTY_TYPES, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
+  type PropertyType, type PropertyDef, type ObjectTypeDef,
+} from '@beacon/reality-graph'
+import { useAuthStore } from '@/stores/auth.store'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { rowToObjectType } from '@/features/objectTypes/api'
+import {
+  useObjectTypes, useCreateObjectType, useDeleteObjectType,
+  useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
+} from '@/features/objectTypes/hooks'
+
+const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
+
+interface PropertyDraft { label: string; type: PropertyType; required: boolean }
+
+export default function ObjectTypesPage() {
+  const role = useAuthStore((s) => s.role)
+  const { data: rows = [], isLoading } = useObjectTypes()
+  const types = useMemo(() => rows.map(rowToObjectType), [rows])
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const selected = types.find((t) => t.id === selectedId) ?? null
+
+  if (role !== 'owner' && role !== 'admin') {
+    return <NonIdealState icon="shield" title="Object type authoring is available to admin and owner roles" />
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="px-8 py-6 max-w-4xl space-y-6">
+        <header>
+          <h1 className="text-xl font-semibold">Object types</h1>
+          <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
+            Define a new kind of thing with typed properties — a Maintenance Request, a Guest Complaint,
+            an Asset — then create records of it. No code deploy; the ontology grows as data.
+          </p>
+        </header>
+
+        <TypeBuilder />
+
+        <section className="space-y-2">
+          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Your object types</h2>
+          {isLoading ? (
+            <Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading…</Card>
+          ) : types.length === 0 ? (
+            <Card compact className="text-xs text-muted-foreground">None yet — author one above.</Card>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {types.map((t) => (
+                <Card key={t.id} interactive compact
+                  className={selectedId === t.id ? '!border-violet-400' : ''}
+                  onClick={() => { setSelectedId(selectedId === t.id ? null : t.id) }}>
+                  <div className="flex items-center gap-2">
+                    <Icon icon={t.icon as IconName} size={14} className="text-violet-500" />
+                    <span className="text-sm font-semibold">{t.label}</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
+                  <p className="text-[11px] text-muted-foreground mt-1">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {selected && <RecordsPanel type={selected} />}
+      </div>
+    </div>
+  )
+}
+
+function TypeBuilder() {
+  const hotelId = useActiveHotelId()
+  const create = useCreateObjectType()
+  const [label, setLabel] = useState('')
+  const [icon, setIcon] = useState<IconName>('cube')
+  const [description, setDescription] = useState('')
+  const [props, setProps] = useState<PropertyDraft[]>([{ label: '', type: 'text', required: false }])
+
+  const apiName = toSlug(label)
+  const properties: PropertyDef[] = props
+    .filter((p) => p.label.trim())
+    .map((p) => ({ key: toSlug(p.label), label: p.label.trim(), type: p.type, required: p.required }))
+  const validation = validateObjectTypeDraft({ apiName, label, properties })
+
+  const setProp = (i: number, patch: Partial<PropertyDraft>) =>
+    { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
+
+  const submit = () => {
+    if (!validation.ok) return
+    create.mutate(
+      { hotelId, apiName, label: label.trim(), icon, description: description.trim(), properties },
+      { onSuccess: () => { setLabel(''); setDescription(''); setProps([{ label: '', type: 'text', required: false }]); setIcon('cube') } },
+    )
+  }
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Icon icon="plus" size={14} className="text-violet-500" />
+        <span className="text-sm font-semibold">New object type</span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <InputGroup placeholder="Label (e.g. Maintenance Request)" value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[200px]" />
+        <HTMLSelect value={icon} onChange={(e) => { setIcon(e.currentTarget.value as IconName) }}>
+          {ICONS.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
+        </HTMLSelect>
+        {label && <Tag minimal className="font-mono">{apiName}</Tag>}
+      </div>
+      <TextArea placeholder="Description (optional)" value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
+
+      <div className="space-y-1.5">
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
+        {props.map((p, i) => (
+          <div key={i} className="flex flex-wrap items-center gap-2">
+            <InputGroup size="small" placeholder="Property label" value={p.label} onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
+            <HTMLSelect value={p.type} onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
+              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </HTMLSelect>
+            <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
+            <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
+          </div>
+        ))}
+        <Button variant="minimal" size="small" icon="add" onClick={() => { setProps((cur) => [...cur, { label: '', type: 'text', required: false }]) }}>Add property</Button>
+      </div>
+
+      {!validation.ok && label.trim() !== '' && (
+        <ul className="text-[11px] text-red-600 list-disc pl-4">{validation.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+      )}
+      <Button intent={Intent.PRIMARY} icon="tick" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Create object type</Button>
+    </Card>
+  )
+}
+
+function RecordsPanel({ type }: { type: ObjectTypeDef }) {
+  const hotelId = useActiveHotelId()
+  const { data: records = [], isLoading } = useObjectRecords(type.id)
+  const create = useCreateObjectRecord()
+  const del = useDeleteObjectType()
+  const delRecord = useDeleteObjectRecord(type.id)
+
+  const [title, setTitle] = useState('')
+  const [values, setValues] = useState<Record<string, unknown>>({})
+
+  const data = useMemo(() => {
+    const out: Record<string, unknown> = {}
+    for (const p of type.properties) out[p.key] = coerceValue(p.type, values[p.key])
+    return out
+  }, [type.properties, values])
+  const validation = validateRecord(type.properties, { title, data })
+
+  const submit = () => {
+    if (!validation.ok) return
+    create.mutate({ objectTypeId: type.id, hotelId, title: title.trim(), data },
+      { onSuccess: () => { setTitle(''); setValues({}) } })
+  }
+
+  return (
+    <section className="space-y-3 border-t pt-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
+          <h2 className="text-sm font-semibold">{type.label} records</h2>
+        </div>
+        <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
+          onClick={() => { if (window.confirm(`Delete the "${type.label}" type and all its records?`)) del.mutate(type.id) }}>
+          Delete type
+        </Button>
+      </div>
+
+      <Card className="space-y-2">
+        <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />
+        {type.properties.map((p) => (
+          <div key={p.key} className="flex items-center gap-2">
+            <label className="text-xs text-muted-foreground w-32 shrink-0">{p.label}{p.required && ' *'}</label>
+            <PropertyInput p={p} value={values[p.key]} onChange={(v) => { setValues((cur) => ({ ...cur, [p.key]: v })) }} />
+          </div>
+        ))}
+        <Button intent={Intent.PRIMARY} size="small" icon="add" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Add record</Button>
+      </Card>
+
+      {isLoading ? (
+        <Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading records…</Card>
+      ) : records.length === 0 ? (
+        <Card compact className="text-xs text-muted-foreground">No records yet.</Card>
+      ) : (
+        <Card compact className="!p-0 overflow-hidden divide-y divide-border">
+          {records.map((r) => (
+            <div key={r.id} className="flex items-start gap-3 px-4 py-2.5">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{r.title}</p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {type.properties.map((p) => `${p.label}: ${formatVal(r.data[p.key])}`).join(' · ') || '—'}
+                </p>
+              </div>
+              <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER} onClick={() => { delRecord.mutate(r.id) }} />
+            </div>
+          ))}
+        </Card>
+      )}
+    </section>
+  )
+}
+
+function PropertyInput({ p, value, onChange }: { p: PropertyDef; value: unknown; onChange: (v: unknown) => void }) {
+  if (p.type === 'boolean') return <Switch checked={value === true} onChange={() => { onChange(value !== true) }} className="mb-0" />
+  if (p.type === 'number') return <NumericInput value={typeof value === 'number' ? value : ''} onValueChange={(v) => { onChange(Number.isFinite(v) ? v : null) }} buttonPosition="none" style={{ width: 140 }} />
+  if (p.type === 'date') return <InputGroup type="date" value={typeof value === 'string' ? value : ''} onChange={(e) => { onChange(e.currentTarget.value) }} />
+  return <InputGroup value={typeof value === 'string' ? value : ''} onChange={(e) => { onChange(e.currentTarget.value) }} className="flex-1" />
+}
+
+function formatVal(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—'
+  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
+  if (typeof v === 'number') return String(v)
+  if (typeof v === 'string') return v
+  return '—'
+}

@@ -282,6 +282,36 @@ BEGIN
     IF n <> 1 THEN RAISE EXCEPTION 'C14b: admin could not author an automation (org/author defaults or check failed)'; END IF;
   END IF;
 
+  -- ── C15: object type authoring is admin/owner-gated (Studio P2, migration 214) ──
+  -- Schema shapes the ontology, so a non-admin/owner can't author an object_type;
+  -- an admin can, with org + author set server-side from identity.
+  IF v_user IS NOT NULL THEN
+    RESET ROLE;
+    DELETE FROM object_types WHERE api_name = '__contract_probe__';
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+    SET LOCAL ROLE authenticated;
+    raised := false;
+    BEGIN
+      INSERT INTO object_types (api_name, label) VALUES ('__contract_probe__', 'Probe');
+    EXCEPTION WHEN insufficient_privilege OR check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM object_types WHERE api_name = '__contract_probe__';
+      RAISE EXCEPTION 'C15a: hotel_manager authored an object type (expected admin/owner-only)';
+    END IF;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+    INSERT INTO object_types (api_name, label) VALUES ('__contract_probe__', 'Probe');
+    SELECT count(*) INTO n FROM object_types WHERE api_name = '__contract_probe__';
+    RESET ROLE;
+    DELETE FROM object_types WHERE api_name = '__contract_probe__';
+    IF n <> 1 THEN RAISE EXCEPTION 'C15b: admin could not author an object type (org/author defaults or check failed)'; END IF;
+  END IF;
+
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored', v_b_pending;
 END $$;
