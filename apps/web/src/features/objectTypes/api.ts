@@ -3,7 +3,7 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import type { ObjectTypeDef, PropertyDef, LinkTypeDef } from '@beacon/reality-graph'
+import type { ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef } from '@beacon/reality-graph'
 
 export interface ObjectTypeRow {
   id: string
@@ -14,6 +14,7 @@ export interface ObjectTypeRow {
   icon: string
   description: string
   properties: PropertyDef[]
+  computed_properties: ComputedPropertyDef[] | null
   enabled: boolean
   version: number
   created_by_user_id: string
@@ -25,7 +26,8 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
     id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
-    properties: r.properties, enabled: r.enabled, version: r.version,
+    properties: r.properties, computedProperties: r.computed_properties ?? [],
+    enabled: r.enabled, version: r.version,
   }
 }
 
@@ -57,12 +59,13 @@ export interface CreateObjectTypeInput {
   icon: string
   description: string
   properties: PropertyDef[]
+  computedProperties: ComputedPropertyDef[]
 }
 
 export async function createObjectType(i: CreateObjectTypeInput): Promise<ObjectTypeRow> {
   const { data, error } = await supabase
     .from('object_types')
-    .insert({ hotel_id: i.hotelId, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties })
+    .insert({ hotel_id: i.hotelId, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
     .select('*')
     .single<ObjectTypeRow>()
   if (error) throw new Error(error.message)

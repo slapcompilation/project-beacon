@@ -10,8 +10,10 @@ import {
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import {
-  PROPERTY_TYPES, toSlug, validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
+  PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
+  validateLinkTypeDraft, evaluateComputed, validateComputedProperty,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
+  type ComputedFn, type ComputedPropertyDef,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -26,6 +28,7 @@ import {
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
 interface PropertyDraft { label: string; type: PropertyType; required: boolean }
+interface ComputedRow { label: string; fn: ComputedFn; inputs: string[] }
 
 export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
@@ -88,21 +91,27 @@ function TypeBuilder() {
   const [icon, setIcon] = useState<IconName>('cube')
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<PropertyDraft[]>([{ label: '', type: 'text', required: false }])
+  const [computed, setComputed] = useState<ComputedRow[]>([])
 
   const apiName = toSlug(label)
   const properties: PropertyDef[] = props
     .filter((p) => p.label.trim())
     .map((p) => ({ key: toSlug(p.label), label: p.label.trim(), type: p.type, required: p.required }))
+  const computedProperties: ComputedPropertyDef[] = computed
+    .filter((c) => c.label.trim())
+    .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
   const validation = validateObjectTypeDraft({ apiName, label, properties })
+  const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
+  const canSave = validation.ok && computedErrors.length === 0
 
   const setProp = (i: number, patch: Partial<PropertyDraft>) =>
     { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
 
   const submit = () => {
-    if (!validation.ok) return
+    if (!canSave) return
     create.mutate(
-      { hotelId, apiName, label: label.trim(), icon, description: description.trim(), properties },
-      { onSuccess: () => { setLabel(''); setDescription(''); setProps([{ label: '', type: 'text', required: false }]); setIcon('cube') } },
+      { hotelId, apiName, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
+      { onSuccess: () => { setLabel(''); setDescription(''); setProps([{ label: '', type: 'text', required: false }]); setComputed([]); setIcon('cube') } },
     )
   }
 
@@ -137,11 +146,56 @@ function TypeBuilder() {
         <Button variant="minimal" size="small" icon="add" onClick={() => { setProps((cur) => [...cur, { label: '', type: 'text', required: false }]) }}>Add property</Button>
       </div>
 
-      {!validation.ok && label.trim() !== '' && (
-        <ul className="text-[11px] text-red-600 list-disc pl-4">{validation.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+      <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
+
+      {label.trim() !== '' && !canSave && (
+        <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
       )}
-      <Button intent={Intent.PRIMARY} icon="tick" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Create object type</Button>
+      <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave} loading={create.isPending} onClick={submit}>Create object type</Button>
     </Card>
+  )
+}
+
+function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyDef[]; rows: ComputedRow[]; onChange: (r: ComputedRow[]) => void }) {
+  const set = (i: number, patch: Partial<ComputedRow>) => { onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r))) }
+  const setFn = (i: number, fn: ComputedFn) => { set(i, { fn, inputs: [] }) } // input type changes → reset inputs
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Computed properties</span>
+      {rows.map((row, i) => {
+        const fnDef = COMPUTED_FNS.find((f) => f.value === row.fn)
+        const eligible = fnDef ? properties.filter((p) => p.type === fnDef.inputType) : []
+        return (
+          <div key={i} className="flex flex-wrap items-center gap-2">
+            <InputGroup size="small" placeholder="Computed label (e.g. Days open)" value={row.label} onChange={(e) => { set(i, { label: e.currentTarget.value }) }} className="min-w-[150px]" />
+            <HTMLSelect value={row.fn} onChange={(e) => { setFn(i, e.currentTarget.value as ComputedFn) }}>
+              {COMPUTED_FNS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+            </HTMLSelect>
+            {fnDef?.arity === 'many' ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {eligible.map((p) => (
+                  <Checkbox key={p.key} checked={row.inputs.includes(p.key)} label={p.label} className="mb-0"
+                    onChange={() => { set(i, { inputs: row.inputs.includes(p.key) ? row.inputs.filter((k) => k !== p.key) : [...row.inputs, p.key] }) }} />
+                ))}
+              </div>
+            ) : (
+              Array.from({ length: fnDef?.arity === 'two' ? 2 : 1 }).map((_, si) => (
+                <HTMLSelect key={si} value={row.inputs[si] ?? ''} onChange={(e) => { const next = [...row.inputs]; next[si] = e.currentTarget.value; set(i, { inputs: next }) }}>
+                  <option value="">Select…</option>
+                  {eligible.map((p) => <option key={p.key} value={p.key}>{p.label}</option>)}
+                </HTMLSelect>
+              ))
+            )}
+            <Button variant="minimal" size="small" icon="cross" onClick={() => { onChange(rows.filter((_, idx) => idx !== i)) }} />
+          </div>
+        )
+      })}
+      <Button variant="minimal" size="small" icon="add" disabled={properties.length === 0}
+        onClick={() => { onChange([...rows, { label: '', fn: 'sum', inputs: [] }]) }}>
+        Add computed property
+      </Button>
+    </div>
   )
 }
 
@@ -209,6 +263,11 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
                 <p className="text-[11px] text-muted-foreground truncate">
                   {type.properties.map((p) => `${p.label}: ${formatVal(r.data[p.key])}`).join(' · ') || '—'}
                 </p>
+                {type.computedProperties.length > 0 && (
+                  <p className="text-[11px] text-violet-600/80 truncate">
+                    {type.computedProperties.map((cp) => `${cp.label}: ${formatVal(evaluateComputed(cp, r.data))}`).join(' · ')}
+                  </p>
+                )}
                 {linkTypes.length > 0 && <RecordLinks recordId={r.id} linkTypes={linkTypes} hotelId={hotelId} />}
               </div>
               <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER} onClick={() => { delRecord.mutate(r.id) }} />

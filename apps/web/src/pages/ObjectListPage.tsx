@@ -7,6 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
+import { evaluateComputed } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION, type ObjectPresentation } from '@/lib/objectPresentation'
 import { OBJECT_LIST, type ObjectListSpec } from '@/features/objects/objectList'
 import { useObjectTypes, useObjectRecords } from '@/features/objectTypes/hooks'
@@ -129,6 +130,11 @@ function CustomObjectList({ typeId }: { typeId: string }) {
                   <p className="text-[11px] text-muted-foreground truncate">
                     {type.properties.map((prop) => `${prop.label}: ${fmtVal(r.data[prop.key])}`).join(' · ') || '—'}
                   </p>
+                  {type.computedProperties.length > 0 && (
+                    <p className="text-[11px] text-violet-600/80 truncate">
+                      {type.computedProperties.map((cp) => `${cp.label}: ${fmtVal(evaluateComputed(cp, r.data))}`).join(' · ')}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
