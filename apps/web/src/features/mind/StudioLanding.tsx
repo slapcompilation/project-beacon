@@ -11,8 +11,8 @@ import { STUDIO_TABS, type AipTab } from './AIPShell'
 const STAGES: { title: string; blurb: string; ids: AipTab[] }[] = [
   {
     title: 'Build',
-    blurb: 'Define what the system can do: agents composed of typed blocks, the tool registry they call, and the trained adapters behind eval gates.',
-    ids: ['agents', 'tools', 'objectives', 'forecast-lab'],
+    blurb: 'Define what the system can do: agents composed of typed blocks, the tool registry they call, the trained adapters behind eval gates, and automations you author without code.',
+    ids: ['agents', 'tools', 'automations', 'objectives', 'forecast-lab'],
   },
   {
     title: 'Govern',

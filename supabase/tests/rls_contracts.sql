@@ -249,6 +249,39 @@ BEGIN
   SELECT count(*) INTO n FROM get_chain_overview(30) co WHERE NOT (co.hotel_id = ANY(v_org_hotels));
   IF n <> 0 THEN RAISE EXCEPTION 'C13c CROSS-ORG LEAK: admin read % chain rows outside org %', n, v_org; END IF;
 
+  -- ── C14: automations authoring is admin/owner-gated (Studio P1, migration 213) ──
+  -- A non-admin/owner cannot author an automation (they can auto-execute actions);
+  -- an admin can, with org + author set server-side from identity. Needs a real
+  -- auth.users id as the JWT sub so the created_by FK + WITH CHECK (= auth.uid()) hold.
+  IF v_user IS NOT NULL THEN
+    RESET ROLE;
+    DELETE FROM automations WHERE name = '__contract_probe__';
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+    SET LOCAL ROLE authenticated;
+    raised := false;
+    BEGIN
+      INSERT INTO automations (name, when_metric, when_op, when_value, effect)
+        VALUES ('__contract_probe__', 'units_below_par', 'gt', 0, 'REQUEST_RESTOCK');
+    EXCEPTION WHEN insufficient_privilege OR check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM automations WHERE name = '__contract_probe__';
+      RAISE EXCEPTION 'C14a: hotel_manager authored an automation (expected admin/owner-only)';
+    END IF;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+    INSERT INTO automations (name, when_metric, when_op, when_value, effect)
+      VALUES ('__contract_probe__', 'units_below_par', 'gt', 0, 'REQUEST_RESTOCK');
+    SELECT count(*) INTO n FROM automations WHERE name = '__contract_probe__';
+    RESET ROLE;
+    DELETE FROM automations WHERE name = '__contract_probe__';
+    IF n <> 1 THEN RAISE EXCEPTION 'C14b: admin could not author an automation (org/author defaults or check failed)'; END IF;
+  END IF;
+
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored', v_b_pending;
 END $$;

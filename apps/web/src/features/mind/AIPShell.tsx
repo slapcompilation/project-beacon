@@ -35,11 +35,12 @@ const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
+const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
 const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 
 export type AipTab =
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
-  | 'agents' | 'system-map' | 'ontology' | 'monitors'
+  | 'agents' | 'system-map' | 'ontology' | 'monitors' | 'automations'
   | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
   | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
   | 'studio'
@@ -65,6 +66,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group
   { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
   { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', group: 'Agents & compute', desc: 'Is the system getting better — calibration + loop health' },
   { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', group: 'Agents & compute', desc: 'Tunable triggers that fire proposals into Decisions' },
+  { id: 'automations',  label: 'Automations',       icon: 'flows',               section: 'Studio', group: 'Agents & compute', desc: 'Create a monitor without code — when → then → gate' },
 
   { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge', desc: 'Ingested sources with page provenance' },
   { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge', desc: 'Review suggested links to entities' },
@@ -243,6 +245,7 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'calibration':  return <DecisionCalibrationPage />
     case 'flywheel':     return <FlywheelPage />
     case 'monitors':     return <MonitorsTab />
+    case 'automations':  return <AutomationsPage />
     case 'scenarios':     return <ScenariosPage />
     case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />

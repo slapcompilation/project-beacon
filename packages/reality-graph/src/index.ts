@@ -420,6 +420,16 @@ export type {
   BudgetReading, BudgetHit, CporReading, CporHit,
 } from './monitors/index'
 
+export {
+  AUTOMATION_METRICS, AUTOMATION_EFFECTS, COMPARISON_LABELS,
+  evaluateAutomation, evaluateAutomations, validateAutomation, describeAutomation,
+} from './automations/index'
+export type {
+  Automation, AutomationSubject, AutomationCondition, AutomationEffect, AutomationGate,
+  AutomationStage, ComparisonOp, MetricDef, EffectDef, AutomationReading, AutomationHit,
+  AutomationDraft, AutomationValidation,
+} from './automations/index'
+
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {
   IntelligenceCycleDeps,
