@@ -193,35 +193,21 @@ export function useRelease(id: string | null | undefined) {
 
 export function usePromoteRelease(objectiveName: string) {
   const orgId  = useActiveOrgId()
-  const userId = useAuthStore((s) => s.userId)
   const qc     = useQueryClient()
 
   return useMutation({
-    mutationFn: async (args: { adapterName: string; adapterVersion: string; stage: ReleaseStage; tag?: string }) => {
-      // Promotion gate: production requires at least one eval row for this
-      // exact adapter version. Sandbox/staging are unrestricted.
-      if (args.stage === 'production') {
-        const allRuns = await fetchEvalRuns(objectiveName, orgId)
-        const hasEval = allRuns.some(
-          (r) => r.adapter_name === args.adapterName && r.adapter_version === args.adapterVersion,
-        )
-        if (!hasEval) {
-          throw new Error(
-            `Cannot promote ${args.adapterName}@${args.adapterVersion} to production: no eval runs recorded. Run the eval suite first.`,
-          )
-        }
-      }
-
-      return createRelease({
-        organizationId:    orgId,
+    // The eval gate lives in promote_model — one gate, server-side, and its
+    // error text is what the operator sees. The server stamps the releaser
+    // from auth.uid(), so no user id travels with the request.
+    mutationFn: (args: { adapterName: string; adapterVersion: string; stage: ReleaseStage; tag?: string }) =>
+      createRelease({
+        organizationId: orgId,
         objectiveName,
-        adapterName:       args.adapterName,
-        adapterVersion:    args.adapterVersion,
-        stage:             args.stage,
-        tag:               args.tag ?? `${args.stage}-${args.adapterName}-${args.adapterVersion}`,
-        releasedByUserId:  userId,
-      })
-    },
+        adapterName:    args.adapterName,
+        adapterVersion: args.adapterVersion,
+        stage:          args.stage,
+        tag:            args.tag ?? `${args.stage}-${args.adapterName}-${args.adapterVersion}`,
+      }),
     onSuccess: (rel) => {
       toast.success(`Released ${rel.adapter_name}@${rel.adapter_version} → ${rel.stage}`)
       void qc.invalidateQueries({ queryKey: moKeys.releases(objectiveName, orgId ?? '') })
@@ -257,13 +243,12 @@ export function useReleaseBacktestWinner(objectiveName: string) {
         triggeredByUserId: userId,
       })
       return createRelease({
-        organizationId:   orgId,
+        organizationId: orgId,
         objectiveName,
-        adapterName:      args.adapterName,
-        adapterVersion:   args.adapterVersion,
-        stage:            args.stage,
-        tag:              `${args.stage}-${args.adapterName}-${args.adapterVersion}`,
-        releasedByUserId: userId,
+        adapterName:    args.adapterName,
+        adapterVersion: args.adapterVersion,
+        stage:          args.stage,
+        tag:            `${args.stage}-${args.adapterName}-${args.adapterVersion}`,
       })
     },
     onSuccess: (rel) => {

@@ -346,6 +346,58 @@ BEGIN
     IF n <> 1 THEN RAISE EXCEPTION 'C16b: admin could not author a link type'; END IF;
   END IF;
 
+  -- ── C17: model releases are server-gated (promote_model) ──────────────────
+  -- The web client used to hold the only eval gate, and model_releases had no
+  -- role check at all, so any org member could POST a production release.
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored', v_b_pending;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN
+    PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'sandbox');
+  EXCEPTION WHEN insufficient_privilege THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM model_releases WHERE adapter_name = '__c17__';
+    RAISE EXCEPTION 'C17a: hotel_manager promoted a model (expected admin/owner-only)';
+  END IF;
+
+  -- Direct table write must be denied too — the RPC is not a bypassable wrapper.
+  raised := false;
+  BEGIN
+    INSERT INTO model_releases (organization_id, objective_name, adapter_name, adapter_version, stage, tag)
+    VALUES (v_org, 'consumption_forecast', '__c17__', '0.0.1', 'production', 'c17');
+  EXCEPTION WHEN insufficient_privilege THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM model_releases WHERE adapter_name = '__c17__';
+    RAISE EXCEPTION 'C17b: hotel_manager inserted a release directly';
+  END IF;
+
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  -- Production without a recorded eval is blocked even for an admin.
+  raised := false;
+  BEGIN
+    PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'production');
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM model_releases WHERE adapter_name = '__c17__';
+    RAISE EXCEPTION 'C17c: admin promoted to production with no recorded eval';
+  END IF;
+
+  -- Sandbox needs no eval; admin can release.
+  PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'sandbox');
+  SELECT count(*) INTO n FROM model_releases WHERE adapter_name = '__c17__' AND stage = 'sandbox';
+  RESET ROLE;
+  DELETE FROM model_releases WHERE adapter_name = '__c17__';
+  IF n <> 1 THEN RAISE EXCEPTION 'C17d: admin could not release to sandbox'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated', v_b_pending;
 END $$;
