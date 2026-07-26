@@ -5,13 +5,13 @@
 
 import { useQuery } from '@tanstack/react-query'
 import {
-  backtestForecastAdapters, baselineRolling30dAdapter, seasonalNaiveV1Adapter,
+  backtestForecastAdapters, CONSUMPTION_FORECAST_ADAPTERS,
   type BacktestCase, type BacktestResult,
 } from '@beacon/reality-graph'
 import { supabase } from '@/lib/supabase/client'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 
-export const FORECAST_ADAPTERS = [baselineRolling30dAdapter, seasonalNaiveV1Adapter]
+export const FORECAST_ADAPTERS = CONSUMPTION_FORECAST_ADAPTERS
 export const HOLDOUT_DAYS = 7
 
 interface VariantRow {

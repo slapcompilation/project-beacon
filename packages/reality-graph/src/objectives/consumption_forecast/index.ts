@@ -1,10 +1,10 @@
 // consumption_forecast — the objective the forecast_consumption Logic Tool
-// delegates to once tool-side delegation lands. For Phase 8 v1 the objective
-// and its two adapters are registered so the Studio can render them; the
-// existing forecast_consumption tool still runs its inline baseline (the two
-// implementations are equivalent for the baseline case).
+// delegates to once tool-side delegation lands. Its candidate adapters are
+// registered so the Studio can render, backtest and release them; the existing
+// forecast_consumption tool still runs its inline baseline (equivalent to the
+// baseline adapter).
 
-import { registerAdapter, registerObjective, registerEvalSuite, type EvalSuite, type ModelingObjective } from '../index'
+import { registerAdapter, registerObjective, registerEvalSuite, type EvalSuite, type ModelAdapter, type ModelingObjective } from '../index'
 import { baselineRolling30dAdapter } from './baseline_rolling_30d'
 import { seasonalNaiveV1Adapter } from './seasonal_naive_v1'
 import { ewmaV1Adapter } from './ewma_v1'
@@ -14,6 +14,18 @@ import { autoSelectV1Adapter } from './auto_select_v1'
 import type { ConsumptionForecastInput, ConsumptionForecastOutput, OccupancyInput, OccupancyPoint } from './types'
 
 export { baselineRolling30dAdapter, seasonalNaiveV1Adapter, ewmaV1Adapter, holtLinearV1Adapter, occupancyV1Adapter, autoSelectV1Adapter }
+
+/** Every adapter that can run this objective, typed. The one list — `candidates`
+ *  and registration both derive from it, so a new adapter can't be deployable
+ *  but unscored (or scored but unresolvable) the way a hand-kept list drifts. */
+export const CONSUMPTION_FORECAST_ADAPTERS: ReadonlyArray<ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput>> = [
+  autoSelectV1Adapter,
+  ewmaV1Adapter,
+  holtLinearV1Adapter,
+  seasonalNaiveV1Adapter,
+  occupancyV1Adapter,
+  baselineRolling30dAdapter,
+]
 export type { ConsumptionForecastInput, ConsumptionForecastOutput, OccupancyInput, OccupancyPoint }
 export { backtestForecastAdapters } from './backtest'
 export type {
@@ -31,7 +43,7 @@ export const consumptionForecastObjective: ModelingObjective = {
   name:        CONSUMPTION_FORECAST_OBJECTIVE_NAME,
   description: 'Projects expected unit consumption for a variant over an N-day horizon. Used by restock_advisor + waste_triage to size gaps and at-risk inventory.',
   defaultAdapter: autoSelectV1Adapter.name,
-  candidates: [autoSelectV1Adapter.name, ewmaV1Adapter.name, holtLinearV1Adapter.name, seasonalNaiveV1Adapter.name, occupancyV1Adapter.name, baselineRolling30dAdapter.name],
+  candidates: CONSUMPTION_FORECAST_ADAPTERS.map((a) => a.name),
 }
 
 /** Synthetic eval cases — held-out historical windows where the actual
@@ -109,12 +121,7 @@ let registered = false
 export function registerConsumptionForecast(): void {
   if (registered) return
   registered = true
-  registerAdapter(baselineRolling30dAdapter)
-  registerAdapter(seasonalNaiveV1Adapter)
-  registerAdapter(ewmaV1Adapter)
-  registerAdapter(holtLinearV1Adapter)
-  registerAdapter(occupancyV1Adapter)
-  registerAdapter(autoSelectV1Adapter)
+  for (const a of CONSUMPTION_FORECAST_ADAPTERS) registerAdapter(a)
   registerObjective(consumptionForecastObjective)
   registerEvalSuite(consumptionForecastEvalSuite)
 }
