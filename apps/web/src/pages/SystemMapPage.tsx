@@ -1,8 +1,9 @@
-// System Map (OAG) — single-page diagram of every registered surface in the
-// Reality Graph: Agents × Tools × Actions × Objectives × Adapters. Edges
-// show "uses" (agent→tool), "emits" (agent→action), "delegates" (tool→objective),
-// and "candidate" (adapter→objective). Mirrors AIP's OAG Solution Designer
-// (folder 3 #10–11) — Foundry's "what's wired" view of the platform.
+// System Map (OAG) — what's wired, in two layers. The ontology canvas on top is
+// live and authorable: your object types and the relationships between them,
+// drawn by clicking two types. Below it the code surfaces — Agents × Tools ×
+// Actions × Objectives × Adapters — with edges for "uses" (agent→tool), "emits"
+// (agent→action), "delegates" (tool→objective), "candidate" (adapter→objective).
+// Mirrors AIP's OAG Solution Designer (folder 3 #10–11).
 
 import { useMemo, useRef, useState, useLayoutEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -10,6 +11,7 @@ import { Card, Icon, Intent, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { buildSystemMap } from '@/features/systemMap/registry'
+import OntologyCanvas from '@/features/systemMap/OntologyCanvas'
 
 interface LaneSpec {
   id:        string
@@ -80,13 +82,17 @@ export default function SystemMapPage() {
       <header className="px-6 py-4 border-b shrink-0">
         <h1 className="text-sm font-semibold">System Map</h1>
         <p className="text-xs text-muted-foreground mt-0.5">
-          Every registered surface in the Reality Graph and how they connect — agents call tools, tools delegate to objectives, objectives own candidate adapters.
+          Every registered surface in the Reality Graph and how they connect — your object types and their
+          relationships, then the compute wired on top: agents call tools, tools delegate to objectives,
+          objectives own candidate adapters.
         </p>
       </header>
 
-      <Legend />
-
-      <MapCanvas data={data} lanes={lanes} edges={edges} />
+      <div className="flex-1 overflow-auto">
+        <div className="p-6 pb-0"><OntologyCanvas /></div>
+        <Legend />
+        <MapCanvas data={data} lanes={lanes} edges={edges} />
+      </div>
     </div>
   )
 }
