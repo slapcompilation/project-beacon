@@ -139,30 +139,23 @@ export interface CreateReleaseInput {
   adapterVersion:  string
   stage:           ReleaseStage
   tag:             string
-  releasedByUserId: string | null
 }
 
+/** Goes through promote_model — the server is the gate. It re-checks admin/owner,
+ *  that production has a recorded eval for this exact adapter version, and that a
+ *  measured MAPE is within the org's ceiling. Direct table writes are admin-only,
+ *  so this is the path, not a convenience wrapper. */
 export async function createRelease(input: CreateReleaseInput): Promise<ReleaseRow> {
-  // Upsert: only one active release per (org, objective, stage).
-  const { data, error } = await supabase
-    .from('model_releases')
-    .upsert(
-      {
-        organization_id:      input.organizationId,
-        objective_name:       input.objectiveName,
-        adapter_name:         input.adapterName,
-        adapter_version:      input.adapterVersion,
-        stage:                input.stage,
-        tag:                  input.tag,
-        compatibility_passed: true,
-        released_by_user_id:  input.releasedByUserId,
-        released_at:          new Date().toISOString(),
-      },
-      { onConflict: 'organization_id,objective_name,stage' },
-    )
-    .select('*')
-    .single<ReleaseRow>()
+  const { data, error } = await supabase.rpc('promote_model', {
+    p_objective_name:  input.objectiveName,
+    p_adapter_name:    input.adapterName,
+    p_adapter_version: input.adapterVersion,
+    p_target_stage:    input.stage,
+    p_tag:             input.tag,
+    p_organization_id: input.organizationId,
+  }) as unknown as { data: ReleaseRow | null; error: { message: string } | null }
   if (error) throw new Error(error.message)
+  if (!data) throw new Error('promote_model returned no release')
   return data
 }
 
