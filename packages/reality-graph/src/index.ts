@@ -339,6 +339,7 @@ export {
   holtLinearV1Adapter,
   autoSelectV1Adapter,
   occupancyV1Adapter,
+  CONSUMPTION_FORECAST_ADAPTERS,
   registerConsumptionForecast,
   backtestForecastAdapters,
   // The accuracy instrument — score N closed windows and aggregate. A single

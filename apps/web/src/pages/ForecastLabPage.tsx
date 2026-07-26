@@ -1,8 +1,8 @@
-// Forecast Lab — the AIP "logic tools" bench for the consumption_forecast
-// objective. Backtests every candidate adapter against the held-out last 7 days
-// (overall + by eval cohort), shows per-variant predicted-vs-actual, and runs
-// any adapter live on a variant. This is how we test + optimize the predictive
-// tools: see which adapter wins, on which cohort, then promote it.
+// Forecast Lab — the bench for the consumption_forecast objective. Backtests
+// every candidate adapter against the held-out last 7 days (overall + by eval
+// cohort), shows per-variant predicted-vs-actual, runs any adapter live, and
+// releases the winner in place: the backtest that proved it becomes the eval
+// row on the release. Seeing which model wins and shipping it is one surface.
 
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -10,6 +10,9 @@ import {
   Button, Card, HTMLSelect, Icon, Intent, NonIdealState, NumericInput, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { FORECAST_ADAPTERS, HOLDOUT_DAYS, useForecastLab } from '@/features/forecastLab/hooks'
+import { useReleases, useReleaseBacktestWinner } from '@/features/modelingObjectives/hooks'
+import { CONSUMPTION_FORECAST_OBJECTIVE_NAME } from '@/features/modelingObjectives/registry'
+import type { ReleaseStage } from '@/features/modelingObjectives/api'
 
 const pct = (x: number) => `${String(Math.round(x * 100))}%`
 const signed = (x: number) => `${x >= 0 ? '+' : ''}${String(Math.round(x * 100))}%`
@@ -22,6 +25,8 @@ interface LiveOut { adapter: string; projectedUnits: number; confidence: number 
 
 export default function ForecastLabPage() {
   const { data, isLoading, isError, error } = useForecastLab()
+  const releases = useReleases(CONSUMPTION_FORECAST_OBJECTIVE_NAME)
+  const release  = useReleaseBacktestWinner(CONSUMPTION_FORECAST_OBJECTIVE_NAME)
   const [lrVariant, setLrVariant] = useState('')
   const [lrHorizon, setLrHorizon] = useState(7)
   const [lrOut, setLrOut] = useState<LiveOut[] | null>(null)
@@ -81,22 +86,57 @@ export default function ForecastLabPage() {
           <table className="w-full text-sm">
             <thead><tr className="text-[10px] uppercase tracking-widest text-muted-foreground text-left">
               <th className="font-bold pb-1">Adapter</th><th className="font-bold pb-1 tabular-nums">Cases</th>
-              <th className="font-bold pb-1 tabular-nums">MAPE</th><th className="font-bold pb-1 tabular-nums">Bias</th><th></th>
+              <th className="font-bold pb-1 tabular-nums">MAPE</th><th className="font-bold pb-1 tabular-nums">Bias</th>
+              <th className="font-bold pb-1">Stage</th><th className="font-bold pb-1 text-right">Release</th>
             </tr></thead>
             <tbody>
-              {scored.sort((a, b) => a.mape - b.mape).map((s) => (
-                <tr key={s.adapter} className="border-t border-border/50">
-                  <td className="py-1.5 font-mono text-xs">{s.adapter}</td>
-                  <td className="tabular-nums text-muted-foreground">{s.cases}</td>
-                  <td className="tabular-nums"><Tag minimal intent={mapeIntent(s.mape)}>{pct(s.mape)}</Tag></td>
-                  <td className="tabular-nums text-muted-foreground">{signed(s.bias)}</td>
-                  <td>{result.winner === s.adapter && <Tag intent={Intent.SUCCESS} icon="endorsed">winner</Tag>}</td>
-                </tr>
-              ))}
+              {scored.sort((a, b) => a.mape - b.mape).map((s) => {
+                const adapter = FORECAST_ADAPTERS.find((a) => a.name === s.adapter)
+                const stage = (releases.data ?? []).find(
+                  (r) => r.adapter_name === s.adapter && r.adapter_version === adapter?.version,
+                )?.stage
+                return (
+                  <tr key={s.adapter} className="border-t border-border/50">
+                    <td className="py-1.5 font-mono text-xs">
+                      {s.adapter}
+                      {result.winner === s.adapter && <Tag intent={Intent.SUCCESS} icon="endorsed" className="!text-[10px] ml-1.5">winner</Tag>}
+                    </td>
+                    <td className="tabular-nums text-muted-foreground">{s.cases}</td>
+                    <td className="tabular-nums"><Tag minimal intent={mapeIntent(s.mape)}>{pct(s.mape)}</Tag></td>
+                    <td className="tabular-nums text-muted-foreground">{signed(s.bias)}</td>
+                    <td>{stage ? <Tag minimal intent={stage === 'production' ? Intent.SUCCESS : Intent.NONE} className="!text-[10px]">{stage}</Tag> : <span className="text-muted-foreground text-xs">—</span>}</td>
+                    <td className="text-right">
+                      {adapter && (
+                        <HTMLSelect
+                          value=""
+                          disabled={release.isPending}
+                          onChange={(e) => {
+                            const next = e.currentTarget.value as ReleaseStage | ''
+                            if (!next) return
+                            release.mutate({
+                              adapterName: s.adapter, adapterVersion: adapter.version, stage: next,
+                              mape: s.mape, cases: s.cases, holdoutDays: HOLDOUT_DAYS,
+                            })
+                          }}
+                          options={[
+                            { value: '', label: stage ? 'Re-release…' : 'Release…' },
+                            { value: 'sandbox', label: '→ sandbox' },
+                            { value: 'staging', label: '→ staging' },
+                            { value: 'production', label: '→ production' },
+                          ]}
+                          minimal
+                        />
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
           <p className="text-[11px] text-muted-foreground">
-            Bias is signed: negative = systematic under-forecast. Promote the winner in <Link to="/mind?aip=objectives" className="text-primary hover:underline">Modeling Objectives</Link> to flip the tool's basis — callers don't change.
+            Bias is signed: negative = systematic under-forecast. Releasing from here records this backtest as
+            the eval that justifies it, then cuts the release — production flips the tool's basis and callers
+            don't change. Deployments live in <Link to="/mind?aip=objectives" className="text-primary hover:underline">Modeling Objectives</Link>.
           </p>
         </Card>
 

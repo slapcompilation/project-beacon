@@ -11,11 +11,7 @@ import { useActiveOrgId } from '@/hooks/useActiveOrgId'
 import { getObjectiveDescriptor } from './registry'
 import { fetchReleases, type ReleaseStage } from './api'
 import {
-  baselineRolling30dAdapter,
-  seasonalNaiveV1Adapter,
-  ewmaV1Adapter,
-  holtLinearV1Adapter,
-  autoSelectV1Adapter,
+  CONSUMPTION_FORECAST_ADAPTERS,
   type ConsumptionForecastInput,
   type ConsumptionForecastOutput,
   type ModelAdapter,
@@ -23,13 +19,10 @@ import {
 
 const STAGE_PRIORITY: ReleaseStage[] = ['production', 'staging', 'sandbox']
 
-const ADAPTERS_BY_NAME: Record<string, ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined> = {
-  [baselineRolling30dAdapter.name]: baselineRolling30dAdapter,
-  [seasonalNaiveV1Adapter.name]:    seasonalNaiveV1Adapter,
-  [ewmaV1Adapter.name]:             ewmaV1Adapter,
-  [holtLinearV1Adapter.name]:       holtLinearV1Adapter,
-  [autoSelectV1Adapter.name]:       autoSelectV1Adapter,
-}
+// Built from the objective's own adapter list — a hand-kept map silently made
+// a released adapter unresolvable (occupancy_v1) and fell through to the default.
+const ADAPTERS_BY_NAME: Record<string, ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined> =
+  Object.fromEntries(CONSUMPTION_FORECAST_ADAPTERS.map((a) => [a.name, a]))
 
 export function useActiveForecastAdapter(): ModelAdapter<ConsumptionForecastInput, ConsumptionForecastOutput> | undefined {
   const orgId = useActiveOrgId()

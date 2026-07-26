@@ -11,6 +11,7 @@ import {
   fetchGradeableVariants,
   fetchRelease,
   fetchReleases,
+  recordEvalRun,
   stopDeployment,
   type DeploymentKind,
   type ForecastAccuracyRow,
@@ -224,6 +225,51 @@ export function usePromoteRelease(objectiveName: string) {
     onSuccess: (rel) => {
       toast.success(`Released ${rel.adapter_name}@${rel.adapter_version} → ${rel.stage}`)
       void qc.invalidateQueries({ queryKey: moKeys.releases(objectiveName, orgId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
+}
+
+/** Ships a backtested adapter from the bench that scored it: the holdout result
+ *  is persisted as an eval run — real evidence on real stock logs, and what the
+ *  production gate checks — then the release is cut. One step, because seeing a
+ *  winner and shipping it shouldn't be two disconnected surfaces. */
+export function useReleaseBacktestWinner(objectiveName: string) {
+  const orgId  = useActiveOrgId()
+  const userId = useAuthStore((s) => s.userId)
+  const qc     = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (args: {
+      adapterName: string; adapterVersion: string; stage: ReleaseStage
+      mape: number; cases: number; holdoutDays: number
+    }) => {
+      await recordEvalRun({
+        organizationId:    orgId,
+        objectiveName,
+        adapterName:       args.adapterName,
+        adapterVersion:    args.adapterVersion,
+        dataset:           `stock_logs:holdout-${String(args.holdoutDays)}d`,
+        metric:            'mape',
+        value:             args.mape,
+        caseCount:         args.cases,
+        subset:            'overall',
+        triggeredByUserId: userId,
+      })
+      return createRelease({
+        organizationId:   orgId,
+        objectiveName,
+        adapterName:      args.adapterName,
+        adapterVersion:   args.adapterVersion,
+        stage:            args.stage,
+        tag:              `${args.stage}-${args.adapterName}-${args.adapterVersion}`,
+        releasedByUserId: userId,
+      })
+    },
+    onSuccess: (rel) => {
+      toast.success(`Released ${rel.adapter_name}@${rel.adapter_version} → ${rel.stage} (backtest recorded)`)
+      void qc.invalidateQueries({ queryKey: moKeys.releases(objectiveName, orgId ?? '') })
+      void qc.invalidateQueries({ queryKey: moKeys.evalRuns(objectiveName, orgId ?? '') })
     },
     onError: (err: Error) => toast.error(err.message),
   })
