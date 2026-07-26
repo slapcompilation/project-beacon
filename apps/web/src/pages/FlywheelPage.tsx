@@ -1,14 +1,14 @@
-// Flywheel health — "is the system getting better?" One read-only Studio view that
-// composes existing signals: decision calibration (does stated confidence match
-// reality), the autonomous loop's recent runs, and per-agent reliability. No new
-// backend — it reuses the calibration + monitor hooks and links to the deep pages.
+// Flywheel — "is the system getting better?" A Studio control surface: it composes
+// existing signals (decision calibration, the autonomous loop's recent runs, per-agent
+// reliability) and lets the operator set loop goals and, when one slips, apply a
+// bounded governed remediation. Reuses the calibration + monitor hooks + set_org_policy.
 
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Button, Card, HTMLSelect, Icon, Intent, NonIdealState, NumericInput, ProgressBar, Spinner, SpinnerSize, Tag, Tooltip } from '@blueprintjs/core'
 import { format, formatDistanceToNow } from 'date-fns'
-import { computeCalibration, recommendAutonomy, DEFAULT_CALIBRATION_EDIT_PENALTY, LOOP_GOALS, goalProgress, type AutonomyRecommendation, type AgentActionContext, type CalibrationReport, type OrgPolicy } from '@beacon/reality-graph'
+import { computeCalibration, recommendAutonomy, recommendGoalIntervention, DEFAULT_CALIBRATION_EDIT_PENALTY, LOOP_GOALS, goalProgress, type AutonomyRecommendation, type AgentActionContext, type CalibrationReport, type OrgPolicy } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -91,13 +91,14 @@ const VERDICT: Record<string, { label: string; intent: Intent }> = {
 
 // The Flywheel as a control surface: the operator sets what "getting better"
 // means (target ECE ceiling, approval-rate floor), stored in org_policy, and the
-// page tracks current-vs-target. Targets don't gate anything yet — they make the
-// loop's intent explicit and measurable (the first observability→control lever).
-function GoalsSection({ policy, ece, approval, onSave, saving }: {
+// page tracks current-vs-target. When a goal slips, it surfaces the single
+// bounded tightening lever that addresses it, applied through set_org_policy.
+function GoalsSection({ policy, ece, approval, onSave, onApply, saving }: {
   policy: OrgPolicy
   ece: number | null
   approval: number | null
   onSave: (goals: OrgPolicy['goals']) => void
+  onApply: (next: OrgPolicy) => void
   saving: boolean
 }) {
   const savedEce = Math.round(policy.goals.max_calibration_error * 100)
@@ -125,6 +126,7 @@ function GoalsSection({ policy, ece, approval, onSave, saving }: {
         {rows.map(({ def, target, actual, val, set }) => {
           const { met, pct } = goalProgress(target, actual, def.lowerIsBetter)
           const actualPct = actual === null ? null : Math.round(actual * 100)
+          const rec = met ? null : recommendGoalIntervention(def.key, actual, policy)
           return (
             <div key={def.key} className="space-y-1">
               <div className="flex items-center gap-2 text-xs">
@@ -141,6 +143,19 @@ function GoalsSection({ policy, ece, approval, onSave, saving }: {
                 {actualPct !== null && <Tag minimal intent={met ? Intent.SUCCESS : Intent.WARNING} className="!text-[10px]">{met ? 'on track' : 'off target'}</Tag>}
               </div>
               <ProgressBar value={pct / 100} intent={met ? Intent.SUCCESS : Intent.PRIMARY} stripes={false} />
+              {rec && (
+                <div className="flex items-start gap-2 rounded border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 px-2 py-1.5">
+                  <Icon icon="lightbulb" size={12} className="mt-0.5 text-amber-600 shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-medium">{rec.title}</div>
+                    <div className="text-[11px] text-muted-foreground">{rec.rationale}</div>
+                  </div>
+                  <Button size="small" intent={Intent.WARNING} loading={saving}
+                    onClick={() => { onApply(rec.next) }} className="shrink-0">
+                    {rec.applyLabel}
+                  </Button>
+                </div>
+              )}
             </div>
           )
         })}
@@ -238,6 +253,7 @@ export default function FlywheelPage() {
         {policyData && (
           <GoalsSection
             policy={policyData.merged}
+            onApply={(next) => { setPolicy.mutate(next) }}
             ece={overall?.ece ?? null}
             approval={learning.data ? approvalRate(learning.data.proposals) : null}
             saving={setPolicy.isPending}
