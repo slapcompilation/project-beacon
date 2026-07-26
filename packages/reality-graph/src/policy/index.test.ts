@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, goalProgress } from './index'
+import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, goalProgress, recommendGoalIntervention } from './index'
 
 describe('goals', () => {
   it('merges goal overrides + clamps to 0..1', () => {
@@ -15,6 +15,44 @@ describe('goals', () => {
   it('goalProgress: higher-is-better met at/above target', () => {
     expect(goalProgress(0.7, 0.7, false)).toEqual({ met: true, pct: 100 })
     expect(goalProgress(0.8, 0.4, false)).toEqual({ met: false, pct: 50 })
+  })
+})
+
+describe('recommendGoalIntervention', () => {
+  const base = mergeOrgPolicy({})  // defaults: ECE ceiling 0.1, approval floor 0.7, require_calibration false
+
+  it('returns null when the goal is met', () => {
+    expect(recommendGoalIntervention('calibration_error', 0.05, base)).toBeNull()
+    expect(recommendGoalIntervention('approval_rate', 0.8, base)).toBeNull()
+  })
+
+  it('returns null when actual is unknown', () => {
+    expect(recommendGoalIntervention('calibration_error', null, base)).toBeNull()
+  })
+
+  it('ECE off target → recommends requiring calibration + produces the next policy', () => {
+    const rec = recommendGoalIntervention('calibration_error', 0.25, base)
+    expect(rec?.goalKey).toBe('calibration_error')
+    expect(rec?.next.auto_execution.require_calibration).toBe(true)
+    // only that lever moved; other sections untouched
+    expect(rec?.next.auto_execution.thresholds).toEqual(base.auto_execution.thresholds)
+  })
+
+  it('ECE off but calibration already required → no lever left', () => {
+    const tightened = mergeOrgPolicy({ auto_execution: { require_calibration: true } })
+    expect(recommendGoalIntervention('calibration_error', 0.25, tightened)).toBeNull()
+  })
+
+  it('approval off target → raises every floor by 5%', () => {
+    const rec = recommendGoalIntervention('approval_rate', 0.4, base)
+    expect(rec?.goalKey).toBe('approval_rate')
+    expect(rec?.next.auto_execution.thresholds.REQUEST_RESTOCK).toBe(0.95)  // 0.9 → 0.95
+    expect(rec?.next.auto_execution.require_calibration).toBe(false)        // untouched
+  })
+
+  it('approval off but floors already capped → no lever left', () => {
+    const capped = mergeOrgPolicy({ auto_execution: { thresholds: { REQUEST_RESTOCK: 0.95 } } })
+    expect(recommendGoalIntervention('approval_rate', 0.4, capped)).toBeNull()
   })
 })
 

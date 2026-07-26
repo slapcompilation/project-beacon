@@ -184,6 +184,70 @@ export function goalProgress(target: number, actual: number | null, lowerIsBette
   return { met, pct: target > 0 ? Math.round(clamp01(actual / target) * 100) : 100 }
 }
 
+/** A goal that's off target maps to one bounded, governed remediation the
+ *  operator can apply with a click. Not silent automation — a recommendation
+ *  that writes through the same audited set_org_policy path. `next` is the full
+ *  policy to persist. */
+export interface GoalIntervention {
+  goalKey:    GoalDef['key']
+  title:      string
+  rationale:  string
+  applyLabel: string
+  next:       OrgPolicy
+}
+
+/** Given a missed loop-goal, returns the single tightening lever that most
+ *  directly addresses it, or null when the goal is met or the lever is already
+ *  pulled (nothing left to tighten). One lever per goal — deliberately bounded. */
+export function recommendGoalIntervention(key: GoalDef['key'], actual: number | null, policy: OrgPolicy): GoalIntervention | null {
+  if (actual === null || !Number.isFinite(actual)) return null
+  const pct = (x: number) => `${Math.round(x * 100)}%`
+
+  if (key === 'calibration_error') {
+    const target = policy.goals.max_calibration_error
+    if (actual <= target) return null                                  // met
+    if (policy.auto_execution.require_calibration) return null         // lever already pulled
+    return {
+      goalKey: key,
+      title: 'Require proven calibration for auto-execution',
+      rationale: `Calibration error is ${pct(actual)} against your ${pct(target)} ceiling — agents are more confident than they are correct. Gate unattended execution on proven calibration until the loop recovers.`,
+      applyLabel: 'Require calibration',
+      next: { ...policy, auto_execution: { ...policy.auto_execution, require_calibration: true } },
+    }
+  }
+
+  const target = policy.goals.min_approval_rate
+  if (actual >= target) return null                                    // met
+  const bumped = bumpThresholds(policy.auto_execution.thresholds, 0.05, 0.95)
+  if (bumped === null) return null                                     // nothing left to raise
+  return {
+    goalKey: key,
+    title: 'Raise the auto-execution bar',
+    rationale: `Operators are approving only ${pct(actual)} of proposals against your ${pct(target)} floor — too much is auto-executing that they would not sign off on. Raise the confidence floor so more proposals route to review.`,
+    applyLabel: 'Raise floors +5%',
+    next: { ...policy, auto_execution: { ...policy.auto_execution, thresholds: bumped } },
+  }
+}
+
+/** Bumps every set confidence floor by `step`, capped at `cap`. Returns null when
+ *  no floor could move (empty map, or all already at/above the cap). */
+function bumpThresholds(
+  thresholds: Partial<Record<BeaconAction['type'], number>>,
+  step: number,
+  cap: number,
+): Partial<Record<BeaconAction['type'], number>> | null {
+  const entries = Object.entries(thresholds) as [BeaconAction['type'], number][]
+  if (entries.length === 0) return null
+  let moved = false
+  const out: Partial<Record<BeaconAction['type'], number>> = {}
+  for (const [k, v] of entries) {
+    const next = Math.min(cap, Math.round((v + step) * 100) / 100)
+    if (next > v) moved = true
+    out[k] = next
+  }
+  return moved ? out : null
+}
+
 export const DEFAULT_ORG_POLICY: OrgPolicy = {
   auto_execution: {
     thresholds:      { REQUEST_RESTOCK: 0.9 },
