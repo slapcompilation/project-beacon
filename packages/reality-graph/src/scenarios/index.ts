@@ -125,6 +125,10 @@ export function mergePolicyOverlay(base: OrgPolicy, overlay: DeepPartial<OrgPoli
       budget:      { ...base.monitors.budget,      ...(overlay.monitors?.budget ?? {}) },
       cpor:        { ...base.monitors.cpor,        ...(overlay.monitors?.cpor ?? {}) },
     },
+    goals: {
+      max_calibration_error: overlay.goals?.max_calibration_error ?? base.goals.max_calibration_error,
+      min_approval_rate:     overlay.goals?.min_approval_rate     ?? base.goals.min_approval_rate,
+    },
   }
 }
 
