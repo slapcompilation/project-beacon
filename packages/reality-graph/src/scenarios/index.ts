@@ -129,6 +129,10 @@ export function mergePolicyOverlay(base: OrgPolicy, overlay: DeepPartial<OrgPoli
       max_calibration_error: overlay.goals?.max_calibration_error ?? base.goals.max_calibration_error,
       min_approval_rate:     overlay.goals?.min_approval_rate     ?? base.goals.min_approval_rate,
     },
+    calibration: {
+      edit_penalty:   overlay.calibration?.edit_penalty   ?? base.calibration.edit_penalty,
+      half_life_days: overlay.calibration?.half_life_days ?? base.calibration.half_life_days,
+    },
   }
 }
 

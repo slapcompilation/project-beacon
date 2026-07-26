@@ -10,7 +10,7 @@
 import { z } from 'zod'
 import type { LogicTool } from '../index'
 import type { ProposalStatus } from '../../nodes/aip'
-import { computeCalibration } from '../../calibration/index'
+import { computeCalibration, HONEST_LABEL_OPTIONS } from '../../calibration/index'
 
 /** One resolved proposal the calibration math scores. */
 export interface CalibrationProposalRef {
@@ -66,14 +66,18 @@ const outputSchema = z.object({
 export type ComputeDecisionCalibrationInput = z.infer<typeof inputSchema>
 export type ComputeDecisionCalibrationOutput = z.infer<typeof outputSchema>
 
+/** `scoring` is the org's calibration policy (orgPolicyToCalibrationOptions).
+ *  Defaults to the shipped scoring so the tool never reads raw labels — an LLM
+ *  asking for calibration gets the numbers the operator sees. */
 export function makeComputeDecisionCalibrationTool(
   reader: CalibrationReader,
+  scoring: { editPenalty: number; halfLifeDays: number } = HONEST_LABEL_OPTIONS,
 ): LogicTool<ComputeDecisionCalibrationInput, ComputeDecisionCalibrationOutput> {
   return {
     name: 'compute_decision_calibration',
     category: 'logic',
     kind: 'inproc',
-    version: '1.0.0',
+    version: '1.1.0',
     description:
       'Returns a reliability report for past proposals in a scope: per-confidence-band hit rate, ' +
       'Expected Calibration Error, Brier score, and a verdict (well-calibrated / over / under / ' +
@@ -107,7 +111,7 @@ export function makeComputeDecisionCalibrationTool(
         actionType: input.actionType,
         windowDays: input.windowDays,
       })
-      const report = computeCalibration(samples, { bins: input.bins, minSamples: input.minSamples })
+      const report = computeCalibration(samples, { bins: input.bins, minSamples: input.minSamples, ...scoring })
       return { ...report, basis: 'reliability-bins-v1' }
     },
   }

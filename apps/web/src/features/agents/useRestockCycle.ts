@@ -15,7 +15,8 @@ import {
   runIntelligenceCycle,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
-  HONEST_LABEL_OPTIONS,
+  orgPolicyToCalibrationOptions,
+  DEFAULT_ORG_POLICY,
   automationsToProposals,
   type BeaconAction,
   type CalibrationReport,
@@ -113,11 +114,11 @@ export function useRestockCycle() {
       const autoExecPolicy = orgPolicy ? orgPolicyToAutoExecPolicy(orgPolicy) : undefined
       const maxVariants    = orgPolicy?.caps.max_variants_per_cycle
       const agentOverrides = orgPolicy?.auto_execution.agent_overrides
-      const minCalSamples  = orgPolicy?.auto_execution.min_calibration_samples ?? 20
+      const calOpts        = orgPolicyToCalibrationOptions(orgPolicy ?? DEFAULT_ORG_POLICY)
 
       // Trust budget: score this agent's stated confidence against its own
       // resolved history. A proven-overconfident agent gets vetoed at the gate.
-      const calibration = await safeAgentCalibration(hotelId, meta.name, minCalSamples)
+      const calibration = await safeAgentCalibration(hotelId, meta.name, calOpts)
 
       // One case per variant-situation, reused within the run (an agent can
       // emit TRANSFER + RESTOCK for one variant a few ms apart, faster than a
@@ -143,7 +144,7 @@ export function useRestockCycle() {
         maxVariants,
         calibration,
         requireCalibration:    orgPolicy?.auto_execution.require_calibration,
-        minCalibrationSamples: minCalSamples,
+        minCalibrationSamples: calOpts.minSamples,
         openProposalKeys,
         automationProposals: (variant) => autoByVariant.get(variant.id) ?? [],
         runAgent: async (variant) => {
@@ -212,16 +213,16 @@ async function safeFetchConstraints(hotelId: string) {
 
 /** This agent's reliability report from its own resolved proposals. Best-effort
  *  — a failure leaves calibration undefined, so the gate falls back to the
- *  static floor (permissive). minSamples matches the policy so the report's
- *  `sufficientData` lines up with the gate's "proven" check. */
+ *  static floor (permissive). Scored with the operator's calibration policy, the
+ *  same options the Studio display uses, so what they see is what gates. */
 async function safeAgentCalibration(
   hotelId: string,
   agentName: string,
-  minSamples: number,
+  opts: ReturnType<typeof orgPolicyToCalibrationOptions>,
 ): Promise<CalibrationReport | undefined> {
   try {
     const samples = await fetchResolvedSamples(hotelId)
-    return computeCalibration(samples.filter((s) => s.agent_name === agentName), { minSamples, ...HONEST_LABEL_OPTIONS })
+    return computeCalibration(samples.filter((s) => s.agent_name === agentName), opts)
   } catch {
     return undefined
   }
