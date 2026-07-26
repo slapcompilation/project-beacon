@@ -389,7 +389,7 @@ export type {
   ActiveAgentReleases,
 } from './constraints/index'
 
-export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, LOOP_GOALS, goalProgress, recommendGoalIntervention } from './policy/index'
+export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, orgPolicyToCalibrationOptions, LOOP_GOALS, goalProgress, recommendGoalIntervention } from './policy/index'
 export type { OrgPolicy, GoalDef, GoalIntervention, ExpiryMonitorConfig, IntegrationHealthConfig, BottleneckMonitorConfig, BudgetMonitorConfig, CporMonitorConfig } from './policy/index'
 
 export {

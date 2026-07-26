@@ -18,7 +18,7 @@ describe('compute_decision_calibration tool', () => {
     const t = makeComputeDecisionCalibrationTool(readerOf([]))
     expect(t.name).toBe('compute_decision_calibration')
     expect(t.category).toBe('logic')
-    expect(t.version).toBe('1.0.0')
+    expect(t.version).toBe('1.1.0')  // 1.1.0: scores with honest labels, not raw
   })
 
   it('passes the scope filter through to the reader', async () => {
@@ -38,6 +38,23 @@ describe('compute_decision_calibration tool', () => {
     expect(out.basis).toBe('reliability-bins-v1')
     expect(out.confidence).toBeGreaterThan(0)
     expect(out.accuracy).toBeCloseTo(0.5, 5)
+  })
+
+  it('scores edited approvals as partial hits — the LLM sees what the operator sees', async () => {
+    // All approved, but every one was edited first. On raw labels that reads as
+    // a perfect 100%; under the honest default it's a half-hit.
+    const rows: CalibrationProposalRef[] = Array.from({ length: 20 },
+      () => ({ confidence: 0.9, status: 'approved' as const, edited: true }))
+    const out = await makeComputeDecisionCalibrationTool(readerOf(rows)).invoke({ hotelId: HOTEL, minSamples: 20 })
+    expect(out.accuracy).toBeCloseTo(0.5, 5)
+  })
+
+  it('honours an explicit scoring override', async () => {
+    const rows: CalibrationProposalRef[] = Array.from({ length: 20 },
+      () => ({ confidence: 0.9, status: 'approved' as const, edited: true }))
+    const t = makeComputeDecisionCalibrationTool(readerOf(rows), { editPenalty: 0, halfLifeDays: 0 })
+    const out = await t.invoke({ hotelId: HOTEL, minSamples: 20 })
+    expect(out.accuracy).toBeCloseTo(1, 5)
   })
 
   it('returns insufficient-data honestly when there are no resolved proposals', async () => {

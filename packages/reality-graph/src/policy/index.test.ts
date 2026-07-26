@@ -1,5 +1,26 @@
 import { describe, it, expect } from 'vitest'
-import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, goalProgress, recommendGoalIntervention } from './index'
+import { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, orgPolicyToCalibrationOptions, goalProgress, recommendGoalIntervention } from './index'
+import { HONEST_LABEL_OPTIONS } from '../calibration/index'
+
+describe('calibration scoring policy', () => {
+  it('defaults match the HONEST_LABEL_OPTIONS constant they replaced', () => {
+    const opts = orgPolicyToCalibrationOptions(mergeOrgPolicy({}))
+    expect(opts.editPenalty).toBe(HONEST_LABEL_OPTIONS.editPenalty)
+    expect(opts.halfLifeDays).toBe(HONEST_LABEL_OPTIONS.halfLifeDays)
+  })
+
+  it('merges + clamps operator overrides', () => {
+    expect(mergeOrgPolicy({ calibration: { edit_penalty: 0.25 } }).calibration.edit_penalty).toBe(0.25)
+    expect(mergeOrgPolicy({ calibration: { edit_penalty: 2 } }).calibration.edit_penalty).toBe(1)
+    expect(mergeOrgPolicy({ calibration: { half_life_days: -5 } }).calibration.half_life_days).toBe(0)
+    expect(mergeOrgPolicy({ calibration: { half_life_days: 30.6 } }).calibration.half_life_days).toBe(31)
+  })
+
+  it('draws minSamples from the trust-budget floor instead of duplicating it', () => {
+    const p = mergeOrgPolicy({ auto_execution: { min_calibration_samples: 50 } })
+    expect(orgPolicyToCalibrationOptions(p).minSamples).toBe(50)
+  })
+})
 
 describe('goals', () => {
   it('merges goal overrides + clamps to 0..1', () => {

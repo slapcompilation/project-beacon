@@ -3,18 +3,26 @@
 // truth (approved = hit, rejected/refined = miss). The math is reality-graph's
 // computeCalibration; this page slices the resolved population and renders the
 // reliability picture, honestly flagging when there isn't enough to judge.
+//
+// It's also where the operator owns *how* decisions are scored: the edit penalty
+// and recency half-life are policy, previewed here before saving, and every
+// consumer (both gates, the copilot, the Flywheel) reads the same values.
 
 import { Link } from 'react-router-dom'
 import {
-  Button, Card, HTMLSelect, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
+  Button, Card, HTMLSelect, Icon, Intent, NonIdealState, NumericInput, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
-import type { CalibrationBin, CalibrationReport, CalibrationVerdict } from '@beacon/reality-graph'
+import type { CalibrationBin, CalibrationReport, CalibrationVerdict, OrgPolicy } from '@beacon/reality-graph'
+import { orgPolicyToCalibrationOptions } from '@beacon/reality-graph'
 import {
   useDecisionCalibration,
+  deriveCalibration,
   type CalibrationSlice,
   type CalibrationWindow,
 } from '@/features/calibration/hooks'
-import { useState } from 'react'
+import { useOrgPolicy, useSetOrgPolicy } from '@/features/mind/policy'
+import type { ResolvedSample } from '@/features/calibration/api'
+import { useMemo, useState } from 'react'
 
 const WINDOWS: { value: CalibrationWindow; label: string }[] = [
   { value: 30, label: 'Last 30 days' },
@@ -24,7 +32,9 @@ const WINDOWS: { value: CalibrationWindow; label: string }[] = [
 
 export default function DecisionCalibrationPage() {
   const [window, setWindow] = useState<CalibrationWindow>(90)
-  const { calibration, isLoading, isError, refetch, isFetching } = useDecisionCalibration(window)
+  const { calibration, samples, isLoading, isError, refetch, isFetching } = useDecisionCalibration(window)
+  const { data: policyData } = useOrgPolicy()
+  const setPolicy = useSetOrgPolicy()
 
   if (isLoading) {
     return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
@@ -49,8 +59,8 @@ export default function DecisionCalibrationPage() {
           <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
             When an agent says it's 85% sure, is it right 85% of the time? Your decisions are the
             ground truth — approved counts as a hit, rejected or refined as a miss, and a call you
-            edited before approving as a partial hit. Recent outcomes are weighted more heavily
-            (90-day half-life).
+            edited before approving as a partial hit. Recent outcomes weigh more; you set how much
+            below.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -65,6 +75,14 @@ export default function DecisionCalibrationPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {policyData && (
+          <ScoringPolicyCard
+            policy={policyData.merged}
+            samples={samples ?? []}
+            saving={setPolicy.isPending}
+            onSave={(calibration) => { setPolicy.mutate({ ...policyData.merged, calibration }) }}
+          />
+        )}
         {overall.resolved === 0 ? (
           <EmptyState totalResolved={totalResolved} />
         ) : (
@@ -74,7 +92,82 @@ export default function DecisionCalibrationPage() {
             <SliceTable title="By action type" rows={byActionType} />
           </>
         )}
+        {setPolicy.isError && <p className="text-xs text-red-500">{setPolicy.error.message}</p>}
       </div>
+    </div>
+  )
+}
+
+// The scoring knobs are policy, not code — and the effect is previewed against
+// the real resolved population before it's saved, so the operator sees what the
+// change does to ECE and the verdict rather than guessing.
+function ScoringPolicyCard({ policy, samples, onSave, saving }: {
+  policy: OrgPolicy
+  samples: ResolvedSample[]
+  onSave: (calibration: OrgPolicy['calibration']) => void
+  saving: boolean
+}) {
+  const saved = policy.calibration
+  const [penalty, setPenalty] = useState(Math.round(saved.edit_penalty * 100))
+  const [halfLife, setHalfLife] = useState(saved.half_life_days)
+  const dirty = penalty !== Math.round(saved.edit_penalty * 100) || halfLife !== saved.half_life_days
+
+  const savedOpts = orgPolicyToCalibrationOptions(policy)
+  const draft = useMemo(() => {
+    if (!dirty || samples.length === 0) return null
+    const next = deriveCalibration(samples, { ...savedOpts, editPenalty: penalty / 100, halfLifeDays: halfLife })
+    return { current: deriveCalibration(samples, savedOpts).overall, next: next.overall }
+  }, [dirty, samples, penalty, halfLife, savedOpts.editPenalty, savedOpts.halfLifeDays, savedOpts.minSamples])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  return (
+    <Card className="flex flex-col gap-3">
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Scoring policy</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5">
+            How a decision is scored. Both auto-execution gates, the copilot and the Flywheel read these.
+          </p>
+        </div>
+        <Button size="small" intent={Intent.PRIMARY} icon="floppy-disk" disabled={!dirty} loading={saving}
+          onClick={() => { onSave({ edit_penalty: penalty / 100, half_life_days: halfLife }) }}>
+          Save scoring
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-6">
+        <Knob label="Edit penalty" suffix="%" value={penalty} min={0} max={100} onChange={setPenalty}
+          hint={penalty === 0 ? 'an edited approval counts as a full hit' : penalty === 100 ? 'an edited approval counts as a miss' : `an edited approval scores ${String(100 - penalty)}% of a hit`} />
+        <Knob label="Recency half-life" suffix="days" value={halfLife} min={0} max={3650} onChange={setHalfLife}
+          hint={halfLife === 0 ? 'no decay — all history weighs equally' : `a decision ${String(halfLife)}d old counts half as much`} />
+      </div>
+
+      {draft && (
+        <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-[11px] flex items-center gap-3 flex-wrap">
+          <Icon icon="eye-open" size={12} className="text-primary shrink-0" />
+          <span className="text-muted-foreground">Unsaved preview on {String(draft.current.resolved)} scored decisions:</span>
+          <span className="tabular-nums">ECE {draft.current.ece.toFixed(3)} → <strong>{draft.next.ece.toFixed(3)}</strong></span>
+          {draft.current.verdict !== draft.next.verdict && (
+            <span className="flex items-center gap-1"><VerdictTag verdict={draft.current.verdict} small /> → <VerdictTag verdict={draft.next.verdict} small /></span>
+          )}
+        </div>
+      )}
+    </Card>
+  )
+}
+
+function Knob({ label, value, min, max, suffix, hint, onChange }: {
+  label: string; value: number; min: number; max: number; suffix: string; hint: string
+  onChange: (n: number) => void
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <NumericInput value={value} min={min} max={max} stepSize={suffix === '%' ? 5 : 15} style={{ width: 80 }} buttonPosition="none"
+          onValueChange={(v) => { onChange(Math.round(Math.min(max, Math.max(min, Number.isFinite(v) ? v : min)))) }} />
+        <span className="text-xs text-muted-foreground">{suffix}</span>
+      </div>
+      <span className="text-[10px] text-muted-foreground/70 leading-tight max-w-[220px]">{hint}</span>
     </div>
   )
 }

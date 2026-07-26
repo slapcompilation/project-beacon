@@ -162,6 +162,19 @@ export interface OrgPolicy {
     /** Target floor for the proposal approval rate, 0..1. Met when actual ≥ this. */
     min_approval_rate: number
   }
+  /** How a decision is *scored* when measuring calibration. These were the
+   *  HONEST_LABEL_OPTIONS code constants; the operator owns them now, and every
+   *  consumer (both gates, copilot, the Studio display) reads the same values —
+   *  scoring the loop is a policy question, not a code question. */
+  calibration: {
+    /** An approval the operator edited first is a partial hit: it scores
+     *  1 − edit_penalty. 0 = an edited approval still counts as a full hit,
+     *  1 = it counts as a miss. 0..1. */
+    edit_penalty: number
+    /** Exponential recency weighting — a decision this many days old counts
+     *  half as much. 0 disables decay (all history weighs equally). */
+    half_life_days: number
+  }
 }
 
 export interface GoalDef { key: 'calibration_error' | 'approval_rate'; label: string; unit: '%'; lowerIsBetter: boolean }
@@ -287,6 +300,11 @@ export const DEFAULT_ORG_POLICY: OrgPolicy = {
     max_calibration_error: 0.1,
     min_approval_rate:     0.7,
   },
+  // Same values HONEST_LABEL_OPTIONS hardcoded — tuning starts from today's behaviour.
+  calibration: {
+    edit_penalty:   0.5,
+    half_life_days: 90,
+  },
 }
 
 /** Deep-merges operator overrides over the defaults. Missing sections fall
@@ -319,7 +337,8 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
       budget:      { ...DEFAULT_ORG_POLICY.monitors.budget },
       cpor:        { ...DEFAULT_ORG_POLICY.monitors.cpor },
     },
-    goals: { ...DEFAULT_ORG_POLICY.goals },
+    goals:       { ...DEFAULT_ORG_POLICY.goals },
+    calibration: { ...DEFAULT_ORG_POLICY.calibration },
   }
 
   if (isObj(o.auto_execution)) {
@@ -432,6 +451,11 @@ export function mergeOrgPolicy(override: unknown): OrgPolicy {
     if (typeof g.max_calibration_error === 'number') merged.goals.max_calibration_error = clamp(g.max_calibration_error, 0, 1)
     if (typeof g.min_approval_rate     === 'number') merged.goals.min_approval_rate     = clamp(g.min_approval_rate, 0, 1)
   }
+  if (isObj(o.calibration)) {
+    const c = o.calibration as Record<string, unknown>
+    if (typeof c.edit_penalty   === 'number') merged.calibration.edit_penalty   = clamp(c.edit_penalty, 0, 1)
+    if (typeof c.half_life_days === 'number') merged.calibration.half_life_days = clamp(Math.round(c.half_life_days), 0, 3650)
+  }
 
   return merged
 }
@@ -449,4 +473,18 @@ function isObj(x: unknown): x is Record<string, unknown> {
  *  instead of the hardcoded DEFAULT_AUTO_EXEC_POLICY. */
 export function orgPolicyToAutoExecPolicy(p: OrgPolicy): AutoExecutionPolicy {
   return { thresholds: { ...p.auto_execution.thresholds } }
+}
+
+/** Adapter — the scoring options computeCalibration expects, drawn from policy.
+ *  Replaces the HONEST_LABEL_OPTIONS constant at every consumer so the gates,
+ *  the copilot and the operator's display all score decisions identically.
+ *  minSamples reuses the existing trust-budget floor rather than duplicating it. */
+export function orgPolicyToCalibrationOptions(p: OrgPolicy): {
+  editPenalty: number; halfLifeDays: number; minSamples: number
+} {
+  return {
+    editPenalty:  p.calibration.edit_penalty,
+    halfLifeDays: p.calibration.half_life_days,
+    minSamples:   p.auto_execution.min_calibration_samples,
+  }
 }

@@ -23,7 +23,7 @@ import {
   mergeOrgPolicy,
   orgPolicyToAutoExecPolicy,
   computeCalibration,
-  HONEST_LABEL_OPTIONS,
+  orgPolicyToCalibrationOptions,
   selectExpiryTriggers,
   expiryHitToWriteOff,
   automationsToProposals,
@@ -165,6 +165,7 @@ Deno.serve(async (req: Request) => {
   const overstockFactor = policy.overstock.factor
   const requireCalibration    = policy.auto_execution.require_calibration
   const minCalibrationSamples = policy.auto_execution.min_calibration_samples
+  const calOpts = orgPolicyToCalibrationOptions(policy)
   const maxForecastMape       = policy.auto_execution.max_forecast_mape
 
   // Calibration trust budget applies to the only auto-exec-eligible agent here
@@ -187,7 +188,7 @@ Deno.serve(async (req: Request) => {
       // restock_advisor on at-risk stock, then overstock_rebalancer on surplus.
       // Both route through the same decideAutoExecution gate; TRANSFER_STOCK
       // isn't auto-exec-eligible so overstock proposals always queue for review.
-      const restockCalibration = await agentCalibration(supabase, hotel.id, restockMeta.name, minCalibrationSamples)
+      const restockCalibration = await agentCalibration(supabase, hotel.id, restockMeta.name, calOpts)
       const restock = await runAgentCycle(supabase, hotel, {
         agentName: restockMeta.name, agentVersion: restockMeta.version,
         // Q1: size on the recency-weighted auto-select forecast, not a flat mean.
@@ -309,7 +310,7 @@ async function openProposalKeysFor(supabase: SupabaseClient, hotelId: string): P
 
 // This agent's reliability report from its own resolved proposals in this hotel.
 // Best-effort: a query failure leaves calibration undefined → static-floor gate.
-async function agentCalibration(supabase: SupabaseClient, hotelId: string, agentName: string, minSamples: number) {
+async function agentCalibration(supabase: SupabaseClient, hotelId: string, agentName: string, opts: { editPenalty: number; halfLifeDays: number; minSamples: number }) {
   const { data, error } = await supabase
     .from('proposals')
     .select('confidence, status, decided_at, edited_before_approval')
@@ -320,9 +321,9 @@ async function agentCalibration(supabase: SupabaseClient, hotelId: string, agent
   if (error || !data) return undefined
   const samples = (data as { confidence: number; status: string; decided_at: string | null; edited_before_approval: boolean | null }[])
     .map((r) => ({ confidence: Number(r.confidence), status: r.status, decidedAt: r.decided_at, edited: r.edited_before_approval === true }))
-  // Honest labels (A4): the unattended gate must read the same reality the
-  // Studio page shows — edited approvals score partial credit, old evidence decays.
-  return computeCalibration(samples, { minSamples, ...HONEST_LABEL_OPTIONS })
+  // The unattended gate reads the same reality the Studio page shows — one
+  // scoring policy the operator owns, not a constant per caller.
+  return computeCalibration(samples, opts)
 }
 
 // Runs one agent over its scan of a hotel through the shared cycle gate.

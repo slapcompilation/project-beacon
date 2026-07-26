@@ -59,7 +59,7 @@ async function fetchLearning(hotelId: string | null): Promise<LearningData> {
 
 /** Monthly ECE buckets. Edit penalty applies (honest labels); no half-life
  *  inside a bucket — the bucket IS the time slice. */
-function monthlyCalibration(proposals: LearningRow[], months = 6): { label: string; report: CalibrationReport }[] {
+function monthlyCalibration(proposals: LearningRow[], editPenalty: number, months = 6): { label: string; report: CalibrationReport }[] {
   const now = new Date()
   const out: { label: string; report: CalibrationReport }[] = []
   for (let i = months - 1; i >= 0; i--) {
@@ -70,7 +70,7 @@ function monthlyCalibration(proposals: LearningRow[], months = 6): { label: stri
       label: start.toLocaleString('en', { month: 'short' }),
       report: computeCalibration(
         slice.map((p) => ({ confidence: p.confidence, status: p.status as Parameters<typeof computeCalibration>[0][number]['status'], edited: p.edited_before_approval === true })),
-        { minSamples: 5, editPenalty: DEFAULT_CALIBRATION_EDIT_PENALTY },
+        { minSamples: 5, editPenalty },  // buckets are already time-sliced, so no half-life here
       ),
     })
   }
@@ -290,7 +290,7 @@ export default function FlywheelPage() {
                 Calibration error by month <span className="font-normal normal-case tracking-normal text-muted-foreground/70">— lower is better, honest labels</span>
               </div>
               <div className="flex items-end gap-3 h-24">
-                {monthlyCalibration(learning.data.proposals).map(({ label, report }) => {
+                {monthlyCalibration(learning.data.proposals, policyData?.merged.calibration.edit_penalty ?? DEFAULT_CALIBRATION_EDIT_PENALTY).map(({ label, report }) => {
                   const thin = report.verdict === 'insufficient-data'
                   const h = thin ? 4 : Math.min(64, Math.max(4, Math.round(report.ece * 260)))
                   return (

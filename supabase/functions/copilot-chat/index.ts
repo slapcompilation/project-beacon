@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, HONEST_LABEL_OPTIONS, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, orgPolicyToCalibrationOptions, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -432,7 +432,10 @@ async function executeTool(
         }
         if (error) return JSON.stringify({ error: error.message })
         const samples = (data ?? []).map((r) => ({ confidence: Number(r.confidence), status: r.status, decidedAt: r.decided_at, edited: r.edited_before_approval === true }))
-        return JSON.stringify(computeCalibration(samples, HONEST_LABEL_OPTIONS))
+        // Score with the org's calibration policy so the copilot quotes the same
+        // numbers the operator sees on the Studio page.
+        const { data: calPol } = await supabase.rpc('get_org_policy')
+        return JSON.stringify(computeCalibration(samples, orgPolicyToCalibrationOptions(mergeOrgPolicy(calPol))))
       }
       case 'apply_overlay_edit': {
         const scenarioId = input.scenario_id ?? selection?.id

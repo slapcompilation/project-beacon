@@ -2,9 +2,10 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   computeCalibration,
-  HONEST_LABEL_OPTIONS,   type CalibrationReport,
+  orgPolicyToCalibrationOptions,   type CalibrationReport,
 } from '@beacon/reality-graph'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useOrgPolicy } from '@/features/mind/policy'
 import { fetchResolvedSamples, type ResolvedSample } from './api'
 
 export type CalibrationWindow = 30 | 90 | 0  // 0 = all-time
@@ -23,6 +24,7 @@ export interface DecisionCalibration {
 
 export function useDecisionCalibration(windowDays: CalibrationWindow) {
   const hotelId = useActiveHotelId()
+  const { data: policyData } = useOrgPolicy()
   const query = useQuery({
     queryKey: ['calibration', hotelId ?? '', windowDays],
     queryFn:  () => fetchResolvedSamples(hotelId ?? '', windowDays || undefined),
@@ -30,31 +32,31 @@ export function useDecisionCalibration(windowDays: CalibrationWindow) {
     staleTime: 60_000,
   })
 
+  const opts = policyData ? orgPolicyToCalibrationOptions(policyData.merged) : undefined
   const derived = useMemo<DecisionCalibration | null>(() => {
-    if (!query.data) return null
-    return deriveCalibration(query.data)
-  }, [query.data])
+    if (!query.data || !opts) return null
+    return deriveCalibration(query.data, opts)
+  }, [query.data, opts?.editPenalty, opts?.halfLifeDays, opts?.minSamples])  // eslint-disable-line react-hooks/exhaustive-deps
 
-  return { ...query, calibration: derived }
+  return { ...query, calibration: derived, samples: query.data }
 }
 
-// Operator display weights recent outcomes more (decided_at + half-life) and
-// discounts edited-then-approved calls to partial hits, so the reliability
-// picture is honest about how the agent behaves now. The auto-execution trust
-// budget is intentionally left on the raw labels for now.
-const DISPLAY_OPTS = HONEST_LABEL_OPTIONS
+export type CalibrationOpts = ReturnType<typeof orgPolicyToCalibrationOptions>
 
-function deriveCalibration(samples: ResolvedSample[]): DecisionCalibration {
-  const overall = computeCalibration(samples, DISPLAY_OPTS)
+/** Scores a sample set under the operator's scoring policy: recent outcomes
+ *  weigh more (half-life), an edited-then-approved call is a partial hit. The
+ *  page reuses this with draft options to preview a change before saving. */
+export function deriveCalibration(samples: ResolvedSample[], opts: CalibrationOpts): DecisionCalibration {
+  const overall = computeCalibration(samples, opts)
   return {
     overall,
-    byAgent:      sliceBy(samples, (s) => s.agent_name),
-    byActionType: sliceBy(samples, (s) => s.action_type),
+    byAgent:      sliceBy(samples, (s) => s.agent_name, opts),
+    byActionType: sliceBy(samples, (s) => s.action_type, opts),
     totalResolved: overall.resolved + overall.excluded.expired + overall.excluded.pending,
   }
 }
 
-function sliceBy(samples: ResolvedSample[], keyOf: (s: ResolvedSample) => string): CalibrationSlice[] {
+function sliceBy(samples: ResolvedSample[], keyOf: (s: ResolvedSample) => string, opts: CalibrationOpts): CalibrationSlice[] {
   const groups = new Map<string, ResolvedSample[]>()
   for (const s of samples) {
     const k = keyOf(s)
@@ -63,6 +65,6 @@ function sliceBy(samples: ResolvedSample[], keyOf: (s: ResolvedSample) => string
     else groups.set(k, [s])
   }
   return [...groups.entries()]
-    .map(([key, rows]) => ({ key, report: computeCalibration(rows, DISPLAY_OPTS) }))
+    .map(([key, rows]) => ({ key, report: computeCalibration(rows, opts) }))
     .sort((a, b) => b.report.resolved - a.report.resolved)
 }
