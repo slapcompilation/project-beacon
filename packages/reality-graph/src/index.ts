@@ -443,6 +443,7 @@ export type {
   AuthoredAgentDef, CompiledAgent, ProcedureStep, AgentApproval, CadenceDef,
 } from './authoredAgents/index'
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
+export { buildAuthoredAgentTools } from './authoredAgents/tools'
 export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from './authoredAgents/run'
 export type {
   UserToolDef, UserToolResult, ToolFilter, ToolRecord, AggregationFn, AggregationDef,
