@@ -1,11 +1,13 @@
 // Authored tools, each answered against live records — a tool you can't run is
 // just a stored definition. Same value + basis + confidence a code tool returns.
 
+import { useState } from 'react'
 import { Button, Card, Icon, Intent, NonIdealState, Tag, Tooltip } from '@blueprintjs/core'
-import { evaluateUserToolAcross, describeUserTool } from '@beacon/reality-graph'
+import { bindToolArgs, evaluateUserToolAcross, describeUserTool, type ToolArgs } from '@beacon/reality-graph'
 import { useUserTools, useDeleteUserTool } from './hooks'
 import { useToolSubject } from './subject'
 import Breakdown from './Breakdown'
+import { ArgInput } from './ToolComposer'
 import type { UserToolRow } from './api'
 
 export default function AuthoredTools({ onCompose }: { onCompose: () => void }) {
@@ -40,8 +42,14 @@ function AuthoredToolCard({ tool }: { tool: UserToolRow }) {
     subjectTypeId: tool.subject_type_id, subjectInterfaceId: tool.subject_interface_id,
   })
 
-  const def = { filters: tool.filters, aggregation: tool.aggregation }
-  const result = groups ? evaluateUserToolAcross(def, groups) : null
+  const params = tool.parameters
+  const [args, setArgs] = useState<ToolArgs>({})
+
+  const def = { parameters: params, filters: tool.filters, aggregation: tool.aggregation }
+  const bound = bindToolArgs(def, args)
+  const result = groups && bound.errors.length === 0
+    ? evaluateUserToolAcross({ ...def, filters: bound.filters }, groups)
+    : null
   const spansTypes = subject?.kind === 'interface'
 
   return (
@@ -66,7 +74,18 @@ function AuthoredToolCard({ tool }: { tool: UserToolRow }) {
 
       <p className="text-[11px] text-muted-foreground">{describeUserTool(def, subject)}</p>
 
-      {result ? (
+      {params.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {params.map((p) => (
+            <ArgInput key={p.key} param={p} value={args[p.key]}
+              onChange={(v) => { setArgs({ ...args, [p.key]: v }) }} />
+          ))}
+        </div>
+      )}
+
+      {bound.errors.length > 0 ? (
+        <span className="text-[11px] text-muted-foreground">{bound.errors[0]}</span>
+      ) : result ? (
         <div className="space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-lg font-semibold tabular-nums">

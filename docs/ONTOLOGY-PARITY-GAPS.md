@@ -98,7 +98,7 @@ filtering — the same drift class as the Forecast Lab bug (#403).
 
 **Either consume it or delete it.** A dormant abstraction is worse than none.
 
-## Gap 5 — authored tools and authored agents do not compose — CLOSED (#416)
+## Gap 5 — authored tools and authored agents do not compose — CLOSED (#416, #417)
 
 `buildAuthoredAgentTools` contained **zero** authored tools. An authored *agent* could not
 call an authored *tool*; the copilot could (#408) but agents could not — while
@@ -115,9 +115,14 @@ it surfaces instead of silently losing.
 Because authored tools target interfaces (#415), an agent calling one asks about a *shape*,
 not a table — that is how agents became interface-aware without a subject column.
 
-**Still open:** Foundry functions take **input parameters**. Our authored tools have fixed
-filters, so "count urgent requests" cannot generalise to "count requests where
-urgency = X". That is the remaining half of this gap.
+**Input parameters shipped too (#417, migration 226).** A filter may take its comparison
+value from a named parameter supplied at call time, so one tool answers a family of
+questions instead of one. The parameter list *is* the tool's typed input schema — what the
+LLM sees, and what the agent runtime validates a call against before it runs.
+
+Two rules: a **missing required argument is an error, never the authored fallback** (a
+wrong answer that looks right is worse than no answer), and a **parameter no filter reads
+is rejected** — it would make the caller supply something that changes nothing.
 
 ## Gap 6 — permissions are scope-shaped, not resource-shaped
 
@@ -145,8 +150,8 @@ These are strategy. Gaps 1–6 are absences.
 
 1. ~~**Unify the ontology** (gap 1)~~ — done, #413 / migration 223.
 2. ~~**Interfaces** (gap 2)~~ — done, #414 / migration 224; authored **tools** target them
-   (migration 225). Authored **agents** still bind to one type.
-3. ~~**Wire authored tools into agent toolsets** (gap 5)~~ — done, #416. Input parameters
-   for authored tools remain.
+   (migration 225). Agents inherit that reach through their toolset, not a subject column.
+3. ~~**Wire authored tools into agent toolsets** (gap 5)~~ — done, #416; input parameters
+   done, #417. **Gap 5 fully closed.**
 4. **Consume or delete `nodeSet`** (gap 4).
 5. Shared properties (gap 3), resource-level roles (gap 6) — lower urgency.

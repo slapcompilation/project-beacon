@@ -4,13 +4,13 @@
 
 import { useMemo, useState } from 'react'
 import {
-  Button, Card, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag,
+  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag,
 } from '@blueprintjs/core'
 import {
   AGGREGATIONS, OP_LABELS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
-  type AggregationFn, type PropertyDef, type ToolFilter,
+  bindToolArgs, shippedAgentToolNames,
+  type AggregationFn, type PropertyDef, type PropertyType, type ToolArgs, type ToolFilter, type ToolParamDef,
 } from '@beacon/reality-graph'
-import { shippedAgentToolNames } from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { useCreateUserTool } from './hooks'
 import Breakdown from './Breakdown'
@@ -26,6 +26,8 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('')
   const [ref, setRef] = useState<SubjectRef>({ subjectTypeId: null, subjectInterfaceId: null })
   const [filters, setFilters] = useState<ToolFilter[]>([])
+  const [parameters, setParameters] = useState<ToolParamDef[]>([])
+  const [args, setArgs] = useState<ToolArgs>({})
   const [fn, setFn] = useState<AggregationFn>('count')
   const [aggProp, setAggProp] = useState('')
 
@@ -34,15 +36,18 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const props = subject ? subjectProperties(subject) : []
   const numericProps = props.filter((p) => p.type === 'number')
 
-  const draft = { name, apiName: toSlug(name), ...ref, filters, aggregation: { fn, property: aggProp || undefined } }
+  const draft = { name, apiName: toSlug(name), ...ref, parameters, filters, aggregation: { fn, property: aggProp || undefined } }
   const errors = validateUserTool(draft, subject, SHIPPED_TOOL_NAMES)
   const sentence = describeUserTool(draft, subject)
 
-  // Answer it against the real record set as the operator builds it.
+  // Answer it against the real record set as the operator builds it — with the
+  // arguments they're trying, so a parameterised tool is testable before saving.
   const preview = useMemo(() => {
     if (errors.length > 0 || !groups) return null
-    return evaluateUserToolAcross(draft, groups)
-  }, [errors.length, groups, filters, fn, aggProp])   // eslint-disable-line react-hooks/exhaustive-deps
+    const bound = bindToolArgs(draft, args)
+    if (bound.errors.length > 0) return { pending: bound.errors[0] } as const
+    return evaluateUserToolAcross({ ...draft, filters: bound.filters }, groups)
+  }, [errors.length, groups, filters, parameters, args, fn, aggProp])   // eslint-disable-line react-hooks/exhaustive-deps
 
   const needsProperty = AGGREGATIONS.find((a) => a.fn === fn)?.needsProperty === true
 
@@ -97,7 +102,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
         <div className="space-y-1.5">
           {filters.map((f, i) => (
             <FilterRow
-              key={i} filter={f} props={props}
+              key={i} filter={f} props={props} parameters={parameters}
               onChange={(next) => { setFilters(filters.map((x, j) => (j === i ? next : x))) }}
               onRemove={() => { setFilters(filters.filter((_, j) => j !== i)) }}
             />
@@ -112,9 +117,54 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
+      {subject && (
+        <div className="space-y-1.5 border-t pt-2">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Parameters — asked for each time the tool runs
+          </span>
+          {parameters.map((p, i) => (
+            <div key={i} className="flex items-center gap-1.5">
+              <InputGroup size="small" placeholder="Label (e.g. Urgency)" value={p.label} style={{ width: 150 }}
+                onChange={(e) => {
+                  const label = e.target.value
+                  setParameters(parameters.map((x, j) => (j === i ? { ...x, label, key: toSlug(label) } : x)))
+                }} />
+              {p.key !== '' && <Tag minimal className="!text-[10px] font-mono">{p.key}</Tag>}
+              <HTMLSelect value={p.type} onChange={(e) => {
+                setParameters(parameters.map((x, j) => (j === i ? { ...x, type: e.currentTarget.value as PropertyType } : x)))
+              }} options={(['text', 'number', 'boolean', 'date'] as PropertyType[]).map((t) => ({ value: t, label: t }))} />
+              <Checkbox checked={p.required} className="!mb-0"
+                onChange={() => { setParameters(parameters.map((x, j) => (j === i ? { ...x, required: !x.required } : x))) }}
+                labelElement={<span className="text-[11px]">required</span>} />
+              <Button size="small" variant="minimal" icon="cross"
+                onClick={() => {
+                  setParameters(parameters.filter((_, j) => j !== i))
+                  setFilters(filters.map((f) => (f.param === p.key ? { ...f, param: undefined } : f)))
+                }} />
+            </div>
+          ))}
+          <Button size="small" variant="minimal" icon="add"
+            onClick={() => { setParameters([...parameters, { key: '', label: '', type: 'text', required: true }]) }}>
+            Add parameter
+          </Button>
+        </div>
+      )}
+
+      {parameters.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap text-xs">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Try it with</span>
+          {parameters.map((p) => (
+            <ArgInput key={p.key} param={p} value={args[p.key]}
+              onChange={(v) => { setArgs({ ...args, [p.key]: v }) }} />
+          ))}
+        </div>
+      )}
+
       {subject && <p className="text-xs text-muted-foreground italic">{sentence}</p>}
 
-      {preview && (
+      {preview && ('pending' in preview ? (
+        <div className="rounded-md border px-3 py-2 text-xs text-muted-foreground">{preview.pending}</div>
+      ) : (
         <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 space-y-1 text-xs">
           <div className="flex items-center gap-3 flex-wrap">
             <Icon icon="calculator" size={12} className="text-primary" />
@@ -127,7 +177,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
           </div>
           {preview.byType.length > 1 && <Breakdown byType={preview.byType} />}
         </div>
-      )}
+      ))}
 
       {name.trim() !== '' && errors.length > 0 && (
         <ul className="text-[11px] text-amber-600 list-disc pl-4">{errors.map((e) => <li key={e}>{e}</li>)}</ul>
@@ -138,7 +188,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
           disabled={errors.length > 0}
           onClick={() => {
             create.mutate(
-              { name: name.trim(), apiName: toSlug(name), description: sentence, ...ref, filters, aggregation: { fn, property: aggProp || undefined } },
+              { name: name.trim(), apiName: toSlug(name), description: sentence, ...ref, parameters, filters, aggregation: { fn, property: aggProp || undefined } },
               { onSuccess: onDone },
             )
           }}>
@@ -150,9 +200,10 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   )
 }
 
-function FilterRow({ filter, props, onChange, onRemove }: {
+function FilterRow({ filter, props, parameters, onChange, onRemove }: {
   filter: ToolFilter
   props: PropertyDef[]
+  parameters: ToolParamDef[]
   onChange: (f: ToolFilter) => void
   onRemove: () => void
 }) {
@@ -160,6 +211,12 @@ function FilterRow({ filter, props, onChange, onRemove }: {
   const isNumber = prop?.type === 'number'
   const isBool   = prop?.type === 'boolean'
   const ops: ToolFilter['op'][] = isNumber ? ['gte', 'gt', 'lte', 'lt', 'eq', 'neq'] : ['eq', 'neq']
+
+  // Only parameters of the property's own type can supply its value.
+  const usable = parameters.filter((p) => p.key !== '' && p.type === prop?.type)
+  const bound = parameters.find((p) => p.key === filter.param)
+  // A required parameter always supplies the value, so the literal is dead.
+  const literalIsRead = filter.param === undefined || bound?.required === false
 
   return (
     <div className="flex items-center gap-1.5 text-xs">
@@ -174,7 +231,12 @@ function FilterRow({ filter, props, onChange, onRemove }: {
       }} options={props.map((p) => ({ value: p.key, label: p.label }))} />
       <HTMLSelect value={filter.op} onChange={(e) => { onChange({ ...filter, op: e.currentTarget.value as ToolFilter['op'] }) }}
         options={ops.map((o) => ({ value: o, label: OP_LABELS[o] }))} />
-      {isNumber ? (
+      {usable.length > 0 && (
+        <HTMLSelect value={filter.param ?? ''}
+          onChange={(e) => { onChange({ ...filter, param: e.currentTarget.value || undefined }) }}
+          options={[{ value: '', label: 'a value' }, ...usable.map((p) => ({ value: p.key, label: `{${p.key}}` }))]} />
+      )}
+      {literalIsRead && (isNumber ? (
         <NumericInput value={typeof filter.value === 'number' ? filter.value : 0} style={{ width: 90 }} buttonPosition="none"
           onValueChange={(v) => { onChange({ ...filter, value: Number.isFinite(v) ? v : 0 }) }} />
       ) : isBool ? (
@@ -183,9 +245,45 @@ function FilterRow({ filter, props, onChange, onRemove }: {
       ) : (
         <InputGroup value={String(filter.value)} style={{ width: 140 }}
           onChange={(e) => { onChange({ ...filter, value: e.target.value }) }} />
+      ))}
+      {filter.param !== undefined && bound?.required === false && (
+        <span className="text-[10px] text-muted-foreground">fallback</span>
       )}
       <Button size="small" variant="minimal" icon="cross" onClick={onRemove} />
     </div>
+  )
+}
+
+/** One argument value, typed against its parameter. Shared by the composer's
+ *  "try it with" row and the tool card. */
+export function ArgInput({ param, value, onChange }: {
+  param: ToolParamDef
+  value: unknown
+  onChange: (v: unknown) => void
+}) {
+  const label = <span className="text-[10px] text-muted-foreground">{param.label || param.key}</span>
+  if (param.type === 'number') {
+    return (
+      <span className="flex items-center gap-1">{label}
+        <NumericInput size="small" value={typeof value === 'number' ? value : ''} style={{ width: 80 }} buttonPosition="none"
+          onValueChange={(v) => { onChange(Number.isFinite(v) ? v : undefined) }} />
+      </span>
+    )
+  }
+  if (param.type === 'boolean') {
+    return (
+      <span className="flex items-center gap-1">{label}
+        <HTMLSelect value={value === undefined ? '' : value === true ? 'true' : 'false'}
+          onChange={(e) => { onChange(e.currentTarget.value === '' ? undefined : e.currentTarget.value === 'true') }}
+          options={[{ value: '', label: '—' }, { value: 'true', label: 'true' }, { value: 'false', label: 'false' }]} />
+      </span>
+    )
+  }
+  return (
+    <span className="flex items-center gap-1">{label}
+      <InputGroup size="small" value={typeof value === 'string' ? value : ''} style={{ width: 110 }}
+        onChange={(e) => { onChange(e.target.value || undefined) }} />
+    </span>
   )
 }
 

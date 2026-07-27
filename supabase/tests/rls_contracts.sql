@@ -635,11 +635,44 @@ BEGIN
     END IF;
   END IF;
 
+  -- ── C23: tool parameter grammar is enforced by the DB (migration 226) ─────
+  -- Parameters are the tool's typed input schema; a malformed one would reach
+  -- an LLM as an uncallable tool. The composer is one client, not the authority.
+  FOR v_msg IN SELECT unnest(ARRAY[
+    '[{"key":"Is Urgent","label":"x","type":"boolean","required":true}]',   -- not lower_snake
+    '[{"key":"x","label":"x","type":"json","required":true}]',              -- unknown type
+    '[{"key":"x","label":"x","type":"text","required":"yes"}]'             -- required isn't boolean
+  ]) LOOP
+    raised := false;
+    BEGIN
+      INSERT INTO user_tools (name, api_name, subject_type_id, parameters, aggregation)
+      VALUES ('C23', 'c23_bad', v_type, v_msg::jsonb, '{"fn":"count"}'::jsonb);
+    EXCEPTION WHEN check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM user_tools WHERE api_name LIKE 'c2%';
+      DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+      RAISE EXCEPTION 'C23a: DB accepted a malformed tool parameter: %', v_msg;
+    END IF;
+  END LOOP;
+
+  INSERT INTO user_tools (name, api_name, subject_type_id, parameters, filters, aggregation)
+  VALUES ('C23 ok', 'c23_ok', v_type,
+          '[{"key":"is_urgent","label":"Urgent?","type":"boolean","required":true}]'::jsonb,
+          '[{"property":"room","op":"eq","value":"x","param":"is_urgent"}]'::jsonb,
+          '{"fn":"count"}'::jsonb);
+  SELECT count(*) INTO n FROM user_tools WHERE api_name = 'c23_ok';
+  IF n <> 1 THEN
+    RESET ROLE; DELETE FROM user_tools WHERE api_name LIKE 'c2%';
+    DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C23b: a well-formed parameterised tool was rejected';
+  END IF;
+
   RESET ROLE;
-  DELETE FROM user_tools WHERE api_name LIKE 'c22%';
+  DELETE FROM user_tools WHERE api_name LIKE 'c2%';
   DELETE FROM ontology_interfaces WHERE id = v_iface;
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced', v_b_pending;
 END $$;

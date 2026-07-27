@@ -11,7 +11,10 @@
 import { z } from 'zod'
 import type { LogicTool } from '../tools/index'
 import type { ObjectTypeDef } from '../objectTypes/index'
-import { evaluateUserToolAcross, type ToolRecord, type ToolRecordGroup, type UserToolDef } from './index'
+import {
+  bindToolArgs, evaluateUserToolAcross,
+  type ToolArgs, type ToolParamDef, type ToolRecord, type ToolRecordGroup, type UserToolDef,
+} from './index'
 
 /** The reads an authored tool needs. Deliberately fetch-only: resolving a
  *  subject to the types it spans stays in reality-graph, so every caller agrees
@@ -53,23 +56,39 @@ const outputSchema = z.object({
   })),
 })
 
+/** The tool's declared parameters as a zod schema — what the LLM sees as the
+ *  tool's input, and what the runtime validates a call against before it runs. */
+export function paramsToSchema(params: ReadonlyArray<ToolParamDef>): z.ZodTypeAny {
+  const shape: Record<string, z.ZodTypeAny> = {}
+  for (const p of params) {
+    const base = p.type === 'number' ? z.number() : p.type === 'boolean' ? z.boolean() : z.string()
+    shape[p.key] = p.required ? base.describe(p.label) : base.optional().describe(p.label)
+  }
+  return z.object(shape)
+}
+
 /** Wraps the definition as a real Logic Tool — same shape, same value + basis +
- *  confidence contract, so a caller can't tell it wasn't shipped in code.
- *
- *  No input parameters: an authored tool's filters are fixed at authoring time
- *  (the one place Foundry's functions are still more general than ours). */
+ *  confidence contract, so a caller can't tell it wasn't shipped in code. */
 export function authoredToolAsLogicTool(def: UserToolDef, reader: AuthoredToolReader): LogicTool {
+  const params = def.parameters.length === 0
+    ? ''
+    : ` Takes: ${def.parameters.map((p) => `${p.key} (${p.type}${p.required ? '' : ', optional'})`).join(', ')}.`
+
   return {
     name: def.apiName,
     category: 'logic',
     kind: 'inproc',
     version: '1.0.0',
-    description: `${def.description || def.name} (authored by this organization). Returns a number with the basis it was computed from and a confidence.`,
-    inputSchema: z.object({}),
+    description: `${def.description || def.name} (authored by this organization).${params} Returns a number with the basis it was computed from and a confidence.`,
+    inputSchema: paramsToSchema(def.parameters),
     outputSchema,
-    invoke: async () => {
+    invoke: async (input: unknown) => {
+      const { filters, errors } = bindToolArgs(def, (input ?? {}) as ToolArgs)
+      // Throwing gives the model a correctable error; answering with the
+      // authored fallback would be a wrong answer that looks right.
+      if (errors.length > 0) throw new Error(errors.join('; '))
       const groups = await resolveToolGroups(def, reader)
-      return evaluateUserToolAcross({ filters: def.filters, aggregation: def.aggregation }, groups)
+      return evaluateUserToolAcross({ filters, aggregation: def.aggregation }, groups)
     },
   } as LogicTool
 }

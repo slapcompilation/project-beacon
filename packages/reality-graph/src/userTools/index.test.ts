@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateUserTool, evaluateUserToolAcross, validateUserTool, describeUserTool, allProperties, subjectProperties } from './index'
+import { evaluateUserTool, evaluateUserToolAcross, validateUserTool, describeUserTool, allProperties, subjectProperties, bindToolArgs } from './index'
 import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 import type { InterfaceDef } from '../interfaces/index'
 
@@ -77,7 +77,7 @@ describe('evaluateUserTool', () => {
 })
 
 describe('validateUserTool', () => {
-  const base = { name: 'Open urgent', apiName: 'open_urgent', subjectTypeId: 't1', subjectInterfaceId: null }
+  const base = { name: 'Open urgent', apiName: 'open_urgent', subjectTypeId: 't1', subjectInterfaceId: null, parameters: [] }
   const on = { kind: 'type' as const, type }
 
   it('accepts an answerable tool', () => {
@@ -130,7 +130,7 @@ describe('tools targeting an interface', () => {
     // `severity` is real on Incident, but a tool using it would break on the
     // next implementer. That rejection is the load-bearing rule.
     const errs = validateUserTool(
-      { name: 'x', apiName: 'x', subjectTypeId: null, subjectInterfaceId: 'i1',
+      { name: 'x', apiName: 'x', subjectTypeId: null, subjectInterfaceId: 'i1', parameters: [],
         filters: [{ property: 'severity', op: 'eq', value: 'high' }], aggregation: { fn: 'count' } },
       onIface,
     )
@@ -175,6 +175,62 @@ describe('tools targeting an interface', () => {
     const after  = evaluateUserToolAcross(def, [{ type, records: [{ cost: 100 }] }, { type: incidentType, records: [{ cost: 60 }, { cost: 10 }] }])
     expect(before.value).toBe(1)
     expect(after.value).toBe(2)        // same definition, new implementer counted
+  })
+})
+
+// ── Input parameters — one tool answering a family of questions ──────────────
+
+describe('tool parameters', () => {
+  const on = { kind: 'type' as const, type }
+  const urgencyParam = { key: 'is_urgent', label: 'Urgent?', type: 'boolean' as const, required: true }
+  const paramTool = {
+    name: 'By urgency', apiName: 'by_urgency', subjectTypeId: 't1', subjectInterfaceId: null,
+    parameters: [urgencyParam],
+    filters: [{ property: 'urgent', op: 'eq' as const, value: true, param: 'is_urgent' }],
+    aggregation: { fn: 'count' as const },
+  }
+
+  it('accepts a filter that takes its value from a declared parameter', () => {
+    expect(validateUserTool(paramTool, on)).toEqual([])
+  })
+
+  it('rejects a parameter no filter reads — the caller would supply nothing', () => {
+    expect(validateUserTool({ ...paramTool, filters: [{ property: 'urgent', op: 'eq', value: true }] }, on)[0])
+      .toContain("isn't used by any filter")
+  })
+
+  it('rejects a parameter whose type does not match the property it filters', () => {
+    expect(validateUserTool({
+      ...paramTool, parameters: [{ ...urgencyParam, type: 'number' }],
+    }, on)[0]).toContain('is number, but "Urgent" is boolean')
+  })
+
+  it('answers differently for different arguments — one tool, two questions', () => {
+    const yes = bindToolArgs(paramTool, { is_urgent: true })
+    const no  = bindToolArgs(paramTool, { is_urgent: false })
+    expect(yes.errors).toEqual([])
+    expect(evaluateUserTool({ ...paramTool, filters: yes.filters }, records).value).toBe(3)
+    expect(evaluateUserTool({ ...paramTool, filters: no.filters }, records).value).toBe(1)
+  })
+
+  it('refuses to answer with the fallback when a required argument is missing', () => {
+    const { errors } = bindToolArgs(paramTool, {})
+    expect(errors[0]).toContain('Missing required argument "is_urgent"')
+  })
+
+  it('falls back to the authored value only when the parameter is optional', () => {
+    const optional = { ...paramTool, parameters: [{ ...urgencyParam, required: false }] }
+    const { filters, errors } = bindToolArgs(optional, {})
+    expect(errors).toEqual([])
+    expect(filters[0].value).toBe(true)      // the authored default
+  })
+
+  it('rejects an argument of the wrong type rather than coercing it', () => {
+    expect(bindToolArgs(paramTool, { is_urgent: 'yes' }).errors[0]).toContain('must be true or false')
+  })
+
+  it('reads as a question shape, with the parameter as a placeholder', () => {
+    expect(describeUserTool(paramTool, on)).toBe('Count of Maintenance Request where Urgent is {is_urgent}')
   })
 })
 
