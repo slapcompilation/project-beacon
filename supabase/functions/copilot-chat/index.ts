@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, orgPolicyToCalibrationOptions, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserTool, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -338,6 +338,8 @@ RESPONSE FORMAT:
 // ─── Tool execution ─────────────────────────────────────────────────────────────
 
 interface ToolInput {
+  /** run_authored_tool: which authored tool to answer. */
+  tool_api_name?: string
   window_days?: number
   days?: number
   forecast_days?: number
@@ -401,6 +403,52 @@ function blockedProposalResult(actionType: string, params: Record<string, unknow
   })
 }
 
+interface AuthoredToolRow {
+  id: string
+  name: string
+  api_name: string
+  description: string
+  subject_type_id: string
+  filters: { property: string; op: string; value: number | string | boolean }[]
+  aggregation: { fn: 'count' | 'sum' | 'avg' | 'min' | 'max'; property?: string }
+}
+
+/** Authored Logic Tools the caller can see (RLS scopes to their org). Capped so
+ *  a large catalogue can't quietly inflate every request's token bill. */
+async function fetchAuthoredTools(supabase: SupabaseClient): Promise<AuthoredToolRow[]> {
+  const { data, error } = await supabase
+    .from('user_tools')
+    .select('id, name, api_name, description, subject_type_id, filters, aggregation')
+    .eq('enabled', true)
+    .order('created_at', { ascending: true })
+    .limit(25) as unknown as { data: AuthoredToolRow[] | null; error: { message: string } | null }
+  if (error || !data) return []
+  return data
+}
+
+/** ONE tool slot for the whole catalogue, with the api names as an enum, rather
+ *  than one Anthropic tool per authored tool — the enum gives the model exact
+ *  valid choices while keeping the tool list bounded as orgs author more. */
+function authoredToolDescriptor(tools: AuthoredToolRow[]): Anthropic.Tool | null {
+  if (tools.length === 0) return null
+  const catalogue = tools.map((t) => `${t.api_name}: ${t.description || t.name}`).join('
+')
+  return {
+    name: 'run_authored_tool',
+    description:
+      'Answer a Logic Tool this organization authored over its own ontology. Each returns a ' +
+      'number with the basis it was computed from and a confidence. Available tools:
+' + catalogue,
+    input_schema: {
+      type: 'object',
+      properties: {
+        tool_api_name: { type: 'string', enum: tools.map((t) => t.api_name), description: 'Which authored tool to run' },
+      },
+      required: ['tool_api_name'],
+    },
+  }
+}
+
 async function executeTool(
   supabase: SupabaseClient,
   toolName: string,
@@ -409,9 +457,42 @@ async function executeTool(
   hotelId: string | undefined,
   constraints: ConstraintRecordLite[],
   authHeader: string,
+  authoredTools: AuthoredToolRow[] = [],
 ): Promise<string> {
   try {
     switch (toolName) {
+      case 'run_authored_tool': {
+        const def = authoredTools.find((t) => t.api_name === input.tool_api_name)
+        if (!def) return JSON.stringify({ error: `no authored tool named ${String(input.tool_api_name)}` })
+
+        // Fetch the subject type alongside its records so computed properties
+        // resolve — the same read the Studio surface does.
+        const [{ data: typeRow }, { data: records }] = await Promise.all([
+          supabase.from('object_types').select('*').eq('id', def.subject_type_id).maybeSingle(),
+          supabase.from('object_records').select('data').eq('object_type_id', def.subject_type_id).limit(1000),
+        ]) as unknown as [
+          { data: Record<string, unknown> | null },
+          { data: { data: Record<string, unknown> }[] | null },
+        ]
+
+        const type = typeRow
+          ? {
+              id: String(typeRow.id), organizationId: String(typeRow.organization_id),
+              hotelId: (typeRow.hotel_id as string | null),
+              apiName: String(typeRow.api_name), label: String(typeRow.label),
+              icon: String(typeRow.icon), description: String(typeRow.description),
+              properties: typeRow.properties, computedProperties: typeRow.computed_properties ?? [],
+              viewConfig: typeRow.view_config, enabled: true, version: 1,
+            }
+          : undefined
+
+        const result = evaluateUserTool(
+          { filters: def.filters, aggregation: def.aggregation },
+          (records ?? []).map((r) => r.data),
+          type,
+        )
+        return JSON.stringify({ tool: def.api_name, question: def.description || def.name, ...result })
+      }
       case 'get_decision_calibration': {
         // Reliability of an agent's confidence, scored against the operator's
         // own resolved proposals. RLS already scopes rows to the caller; we
@@ -990,9 +1071,14 @@ Deno.serve(async (req: Request) => {
     // Typed constraint records for suggest-time enforcement (#7) — the same rules
     // dispatchAction evaluates, loaded once and reused to annotate every proposal.
     const constraintRecords = callerHotelId ? await loadConstraintRecords(supabase, callerHotelId) : []
+    // P4.2 — authored Logic Tools are callable by the copilot, not just by the
+    // operator in Studio. Same definition, same interpreter, one contract.
+    const authoredTools = await fetchAuthoredTools(supabase)
+    const authoredDescriptor = authoredToolDescriptor(authoredTools)
+    const registeredTools = authoredDescriptor ? [...TOOLS, authoredDescriptor] : TOOLS
     const baseTools = disabledTools.length === 0
-      ? TOOLS
-      : TOOLS.filter((t) => !disabledTools.includes(t.name))
+      ? registeredTools
+      : registeredTools.filter((t) => !disabledTools.includes(t.name))
     // H4: surface the scenario overlay tools only when the operator is looking
     // at a scenario — keeps the global tool list lean everywhere else.
     const allowedTools = body.selection?.kind === 'scenario'
@@ -1144,7 +1230,7 @@ Deno.serve(async (req: Request) => {
                   iteration: iterations,
                 })
                 const start    = Date.now()
-                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader)
+                const result   = await executeTool(supabase, tu.name, tu.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader, authoredTools)
                 const duration = Date.now() - start
                 send({
                   type:        'tool_result',
@@ -1258,7 +1344,7 @@ Deno.serve(async (req: Request) => {
       const toolResults: Anthropic.ToolResultBlockParam[] = []
       for (const toolUse of toolUseBlocks) {
         const start = Date.now()
-        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader)
+        const result = await executeTool(supabase, toolUse.name, toolUse.input as ToolInput, body.selection, callerHotelId, constraintRecords, authHeader, authoredTools)
         const duration = Date.now() - start
 
         toolTrace.push({
