@@ -1,16 +1,22 @@
-// Agent Studio (read-only) — every registered agent with its declared shape
-// (blocks, tools, scope, cadence, stage) and live proposal stats. Dense cards:
-// one inline meta line, run stats only when there are runs.
+// Agent Studio — agents you authored first, then every shipped agent with its
+// declared shape (blocks, tools, scope, cadence, stage) and live proposal stats.
+// Dense cards: one inline meta line, run stats only when there are runs.
+//
+// An authored agent is the same shape expressed as data. It compiles to the same
+// prompts, runs on the same runtime, and passes the same gates.
 
-import { useMemo } from 'react'
-import { Intent, NonIdealState, Tag } from '@blueprintjs/core'
+import { useMemo, useState } from 'react'
+import { Button, Icon, Intent, NonIdealState, Tag } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
 import { EntityCard, Bit, Dot } from '@/components/EntityCard'
 import { agentDescriptors, type AgentDescriptor } from '@/features/agentStudio/registry'
 import { useAgentRunSummaries, type AgentRecentRunsSummary } from '@/features/agentStudio/hooks'
+import AgentComposer from '@/features/userAgents/AgentComposer'
+import AuthoredAgents from '@/features/userAgents/AuthoredAgents'
 
 export default function AgentStudioPage() {
+  const [composing, setComposing] = useState(false)
   const { data: summaries = [] } = useAgentRunSummaries()
   const summaryByName = useMemo(() => {
     const m = new Map<string, AgentRecentRunsSummary>()
@@ -20,14 +26,30 @@ export default function AgentStudioPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="px-6 py-3 border-b shrink-0">
-        <h1 className="text-sm font-semibold">Agent Studio</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Every registered agent — shape (blocks · tools · scope · cadence · stage) and live proposal stats.
-        </p>
+      <header className="px-6 py-3 border-b shrink-0 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-sm font-semibold">Agent Studio</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Agents you authored, then every shipped agent — shape (blocks · tools · scope · cadence · stage) and live proposal stats.
+          </p>
+        </div>
+        <Button size="small" intent={Intent.PRIMARY} icon="add" onClick={() => { setComposing(true) }}>New agent</Button>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-3">
+      <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        {composing && <AgentComposer onDone={() => { setComposing(false) }} />}
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            <Icon icon="build" size={12} /> Your agents
+          </h2>
+          <AuthoredAgents onCompose={() => { setComposing(true) }} />
+        </section>
+
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            <Icon icon="cube" size={12} /> Shipped agents
+          </h2>
         {agentDescriptors.length === 0 ? (
           <NonIdealState icon="predictive-analysis" title="No agents registered" />
         ) : (
@@ -37,6 +59,7 @@ export default function AgentStudioPage() {
             ))}
           </div>
         )}
+        </section>
       </div>
     </div>
   )
