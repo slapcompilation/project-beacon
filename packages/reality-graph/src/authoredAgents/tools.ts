@@ -18,8 +18,15 @@ import { requestClarificationTool } from '../tools/predefined/request_clarificat
 
 /** Executable, reader-backed tools keyed by name. The composer offers these
  *  names; the runner resolves them here, so a name the operator can pick is
- *  always a tool the model can actually call. */
-export function buildAuthoredAgentTools(reader: GraphReader): Map<string, LogicTool> {
+ *  always a tool the model can actually call.
+ *
+ *  `authored` are the org's own tools (authoredToolAsLogicTool). A shipped tool
+ *  always wins a name collision — an org must never be able to redefine what
+ *  `forecast_consumption` means for an agent by authoring one. */
+export function buildAuthoredAgentTools(
+  reader: GraphReader,
+  authored: ReadonlyArray<LogicTool> = [],
+): Map<string, LogicTool> {
   const tools = [
     makeQueryOpenRestockRequestsTool(reader),
     makeQuerySisterPropertyInventoryTool(reader),
@@ -30,5 +37,14 @@ export function buildAuthoredAgentTools(reader: GraphReader): Map<string, LogicT
     makeRankAlternativeSuppliersTool(reader),
     requestClarificationTool,
   ] as LogicTool[]
-  return new Map(tools.map((t) => [t.name, t]))
+
+  const registry = new Map(tools.map((t) => [t.name, t]))
+  for (const t of authored) if (!registry.has(t.name)) registry.set(t.name, t)
+  return registry
+}
+
+/** Names an authored tool may not take, so the collision is caught at authoring
+ *  time rather than silently ignored at run time. */
+export function shippedAgentToolNames(reader: GraphReader): string[] {
+  return [...buildAuthoredAgentTools(reader).keys()]
 }

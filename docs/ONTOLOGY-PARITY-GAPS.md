@@ -76,8 +76,9 @@ rules carry the weight:
 - **Records are pooled before aggregating**, so `avg` across an interface is the real mean
   of all matching records, not the mean of each type's mean.
 
-Still bound to one type: **authored agents** (`user_agents.subject_type_id`). Same change,
-not yet made.
+Authored **agents** need no equivalent change: `user_agents` has no subject column at all —
+an agent reaches the ontology through its toolset. Giving agents authored tools (below) is
+therefore what makes agents interface-aware.
 
 ## Gap 3 — no shared properties
 
@@ -97,15 +98,26 @@ filtering — the same drift class as the Forecast Lab bug (#403).
 
 **Either consume it or delete it.** A dormant abstraction is worse than none.
 
-## Gap 5 — authored tools and authored agents do not compose
+## Gap 5 — authored tools and authored agents do not compose — CLOSED (#416)
 
-`buildAuthoredAgentTools` contains **zero** authored tools. An authored *agent* cannot
-call an authored *tool*; the copilot can (#408) but agents cannot. Foundry functions are
-usable *"across action types and applications."*
+`buildAuthoredAgentTools` contained **zero** authored tools. An authored *agent* could not
+call an authored *tool*; the copilot could (#408) but agents could not — while
+`RunAuthoredAgentArgs` documented its registry as "code tools and authored ones alike".
+Foundry functions are usable *"across action types and applications."*
 
-Related: Foundry functions take **input parameters**. Our authored tools have fixed
+**Shipped.** `authoredToolAsLogicTool` wraps a `UserToolDef` as a real `LogicTool` — same
+`value` + `basis` + `confidence` contract, so a caller cannot tell it wasn't shipped in
+code. `buildAuthoredAgentTools(reader, authored)` merges them, and **a shipped tool always
+wins a name collision**: an org must not be able to redefine what `forecast_consumption`
+means to an agent by authoring one. The collision is also rejected at authoring time, so
+it surfaces instead of silently losing.
+
+Because authored tools target interfaces (#415), an agent calling one asks about a *shape*,
+not a table — that is how agents became interface-aware without a subject column.
+
+**Still open:** Foundry functions take **input parameters**. Our authored tools have fixed
 filters, so "count urgent requests" cannot generalise to "count requests where
-urgency = X".
+urgency = X". That is the remaining half of this gap.
 
 ## Gap 6 — permissions are scope-shaped, not resource-shaped
 
@@ -134,6 +146,7 @@ These are strategy. Gaps 1–6 are absences.
 1. ~~**Unify the ontology** (gap 1)~~ — done, #413 / migration 223.
 2. ~~**Interfaces** (gap 2)~~ — done, #414 / migration 224; authored **tools** target them
    (migration 225). Authored **agents** still bind to one type.
-3. **Wire authored tools into agent toolsets** (gap 5) — small, closes a hole we made.
+3. ~~**Wire authored tools into agent toolsets** (gap 5)~~ — done, #416. Input parameters
+   for authored tools remain.
 4. **Consume or delete `nodeSet`** (gap 4).
 5. Shared properties (gap 3), resource-level roles (gap 6) — lower urgency.

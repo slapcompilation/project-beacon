@@ -2,7 +2,7 @@
 // answer is computed by evaluateUserTool in reality-graph, never here.
 
 import { supabase } from '@/lib/supabase/client'
-import type { AggregationFn, ToolFilter } from '@beacon/reality-graph'
+import type { AggregationFn, ToolFilter, UserToolDef } from '@beacon/reality-graph'
 
 export interface UserToolRow {
   id: string
@@ -18,6 +18,15 @@ export interface UserToolRow {
   aggregation: { fn: AggregationFn; property?: string }
   enabled: boolean
   created_at: string
+}
+
+export function rowToUserToolDef(r: UserToolRow): UserToolDef {
+  return {
+    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    name: r.name, apiName: r.api_name, description: r.description,
+    subjectTypeId: r.subject_type_id, subjectInterfaceId: r.subject_interface_id,
+    filters: r.filters, aggregation: r.aggregation, enabled: r.enabled,
+  }
 }
 
 export async function fetchUserTools(): Promise<UserToolRow[]> {

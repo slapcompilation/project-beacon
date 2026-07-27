@@ -1,11 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { fetchUserTools, createUserTool, deleteUserTool, type CreateUserToolInput } from './api'
+import { fetchAuthoredLogicTools } from './authoredToolReader'
 
-const keys = { tools: ['user-tools'] as const }
+const keys = { tools: ['user-tools'] as const, asLogicTools: ['user-tools', 'as-logic-tools'] as const }
 
 export function useUserTools() {
   return useQuery({ queryKey: keys.tools, queryFn: fetchUserTools, staleTime: 30_000 })
+}
+
+/** Authored tools as callable Logic Tools — what the agent composer offers and
+ *  the runner resolves. */
+export function useAuthoredLogicTools() {
+  return useQuery({ queryKey: keys.asLogicTools, queryFn: fetchAuthoredLogicTools, staleTime: 30_000 })
 }
 
 export function useCreateUserTool() {

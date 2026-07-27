@@ -11,6 +11,7 @@ import {
   type AgentProposal, type CycleVariant, type GraphReader,
 } from '@beacon/reality-graph'
 import { AnthropicLLMClient } from '@/features/agents/anthropicLLM'
+import { fetchAuthoredLogicTools } from '@/features/userTools/authoredToolReader'
 import { fetchUserAgents, rowToAgentDef } from './api'
 
 /** Hard ceiling on authored agents per cycle. Without it, authoring a dozen
@@ -29,7 +30,9 @@ export async function runAuthoredAgents(args: {
     .slice(0, MAX_AGENTS_PER_CYCLE)
   if (rows.length === 0) return []
 
-  const toolRegistry = buildAuthoredAgentTools(args.reader)
+  // The org's own tools are in the registry too — an authored agent that can
+  // only call shipped tools can't ask about anything the org authored.
+  const toolRegistry = buildAuthoredAgentTools(args.reader, await fetchAuthoredLogicTools())
   const llm = new AnthropicLLMClient()
   // The at-risk set the agent is reasoning about, named so it can point at one.
   const situation =

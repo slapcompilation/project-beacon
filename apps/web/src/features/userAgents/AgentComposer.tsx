@@ -16,15 +16,25 @@ import {
 import { toolDescriptors } from '@/features/agentStudio/registry'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { AnthropicLLMClient } from '@/features/agents/anthropicLLM'
+import { useAuthoredLogicTools } from '@/features/userTools/hooks'
 import { useCreateUserAgent } from './hooks'
 
 /** Only tools the runner can actually resolve are offered — a name the operator
  *  can pick is always a tool the model can call. */
 const RUNNABLE = new Set(buildAuthoredAgentTools(makeSupabaseGraphReader()).keys())
-const PICKABLE = toolDescriptors.filter((t) => RUNNABLE.has(t.name))
+const SHIPPED = toolDescriptors.filter((t) => RUNNABLE.has(t.name))
+  .map((t) => ({ name: t.name, description: t.description, authored: false }))
 
 export default function AgentComposer({ onDone }: { onDone: () => void }) {
   const create = useCreateUserAgent()
+  const authored = useAuthoredLogicTools()
+
+  // The org's own tools sit alongside the shipped ones — same registry the
+  // runner builds, so what's offered is exactly what's callable.
+  const pickable = useMemo(() => [
+    ...SHIPPED,
+    ...(authored.data ?? []).map((t) => ({ name: t.name, description: t.description, authored: true })),
+  ], [authored.data])
 
   const [name, setName] = useState('')
   const [purpose, setPurpose] = useState('')
@@ -43,7 +53,7 @@ export default function AgentComposer({ onDone }: { onDone: () => void }) {
     name, apiName: toSlug(name), purpose, scope, cadence, approval,
     toolset, procedure, clarificationThreshold: threshold / 100,
   }
-  const errors = validateAuthoredAgent(draft, PICKABLE.map((t) => t.name))
+  const errors = validateAuthoredAgent(draft, pickable.map((t) => t.name))
   const compiled = useMemo(() => (errors.length === 0 ? compileAgent(draft) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [errors.length, name, purpose, scope, toolset, procedure, threshold])
@@ -55,7 +65,7 @@ export default function AgentComposer({ onDone }: { onDone: () => void }) {
       const run = await runAuthoredAgent({
         def: draft,
         llm: new AnthropicLLMClient(),
-        toolRegistry: buildAuthoredAgentTools(makeSupabaseGraphReader()),
+        toolRegistry: buildAuthoredAgentTools(makeSupabaseGraphReader(), authored.data ?? []),
         situation: situation.trim() || 'Give a general assessment for this scope.',
       })
       setResult({ output: run.output, steps: run.trace.steps.length })
@@ -106,12 +116,18 @@ export default function AgentComposer({ onDone }: { onDone: () => void }) {
       <div>
         <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Tools it may call</span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 mt-1">
-          {PICKABLE.map((t) => (
+          {pickable.map((t) => (
             <Checkbox key={t.name} checked={toolset.includes(t.name)} className="!mb-1"
               onChange={() => {
                 setToolset(toolset.includes(t.name) ? toolset.filter((x) => x !== t.name) : [...toolset, t.name])
               }}
-              labelElement={<span className="text-xs"><span className="font-mono">{t.name}</span> <span className="text-muted-foreground">— {t.description.slice(0, 60)}…</span></span>}
+              labelElement={
+                <span className="text-xs">
+                  <span className="font-mono">{t.name}</span>
+                  {t.authored && <Tag minimal className="!text-[9px] mx-1">authored</Tag>}
+                  <span className="text-muted-foreground">— {t.description.slice(0, 60)}…</span>
+                </span>
+              }
             />
           ))}
         </div>
