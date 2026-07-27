@@ -25,6 +25,7 @@ const MIGRATED: { table: string; route: string; scopeByHotel?: boolean }[] = [
   { table: 'documents',        route: 'documents' },
   { table: 'constraints',      route: 'constraints' },
   { table: 'principles',       route: 'principles' },
+  { table: 'approved_answers', route: 'answers' },
   { table: 'action_chains',    route: 'action-chains' },
 ]
 

@@ -54,6 +54,7 @@ const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/Modeling
 const DeploymentDetailPage        = lazyWithRetry(() => import('@/pages/DeploymentDetailPage'))
 const ProposalObjectPage          = lazyWithRetry(() => import('@/pages/ProposalObjectPage'))
 const PrincipleObjectPage         = lazyWithRetry(() => import('@/pages/PrincipleObjectPage'))
+const ApprovedAnswerObjectPage    = lazyWithRetry(() => import('@/pages/ApprovedAnswerObjectPage'))
 const ConstraintObjectPage        = lazyWithRetry(() => import('@/pages/ConstraintObjectPage'))
 const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
 const CaseObjectPage              = lazyWithRetry(() => import('@/pages/CaseObjectPage'))
@@ -126,6 +127,7 @@ function AppRoutes() {
             <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
             <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
             <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
+            <Route path="/answers/:answerId"                    element={<ApprovedAnswerObjectPage />} />
             <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
             <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />
             <Route path="/cases"                                element={<CasesPage />} />

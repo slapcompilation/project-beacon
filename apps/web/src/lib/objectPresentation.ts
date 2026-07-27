@@ -28,6 +28,7 @@ export const OBJECT_PRESENTATION = {
   document:        { icon: 'document',     label: 'Document',        home: { label: 'Documents', to: '/documents' },                      route: '/documents/' },
   constraint:      { icon: 'shield',       label: 'Constraint',      home: { label: 'Constraints', to: '/settings?section=constraints' }, route: '/constraints/' },
   principle:       { icon: 'learning',     label: 'Principle',       home: { label: 'Principles', to: '/settings?section=principles' },   route: '/principles/' },
+  approved_answer: { icon: 'bookmark',     label: 'Approved Answer', home: { label: 'Approved Answers', to: '/mind?aip=answers' },        route: '/answers/' },
   action_chain:    { icon: 'link',         label: 'Action Chain',    home: { label: 'Action Chains', to: '/action-chains' },              route: '/action-chains/' },
 } satisfies Partial<Record<NodeType, ObjectPresentation>>
 
