@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import type { ObjectTypeDef } from '@beacon/reality-graph'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   updateObjectType, fetchRevisions, restoreRevision,
-  fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, createObjectRecord, deleteObjectRecord,
+  fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, fetchBuiltinRecord,
+  createObjectRecord, deleteObjectRecord,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchLinksForRecord, createObjectLink, deleteObjectLink,
   type CreateObjectTypeInput, type CreateObjectRecordInput,
@@ -66,6 +68,19 @@ export function useObjectRecordsForTypes(typeIds: string[]) {
   return useQuery({
     queryKey: ['object-records-multi', key] as const,
     queryFn: () => fetchObjectRecordsForTypes(typeIds),
+    staleTime: 15_000,
+  })
+}
+
+/** A record of any type — built-ins read from their backing table, authored
+ *  ones from object_records. One hook so the generated view needs no branch. */
+export function useOntologyRecord(type: ObjectTypeDef | undefined, recordId: string | null) {
+  return useQuery({
+    queryKey: ['ontology-record', type?.id ?? '', recordId ?? ''] as const,
+    queryFn: () => (type && type.kind === 'builtin'
+      ? fetchBuiltinRecord(type, recordId ?? '')
+      : fetchObjectRecord(recordId ?? '')),
+    enabled: !!type && !!recordId,
     staleTime: 15_000,
   })
 }

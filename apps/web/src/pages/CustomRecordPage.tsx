@@ -1,22 +1,28 @@
-// Full Object View for a user-authored record (Studio P3.1/P3.2) — the page form
-// factor. Header + the shared RecordBody (metric strip → sections → links).
-// Clicking a linked record opens its Panel Object View (slide-over) so the
-// ontology graph is walkable in place.
+// Full Object View for ANY ontology record — the page form factor. Header + the
+// shared RecordBody (metric strip → sections → links). Clicking a linked record
+// opens its Panel Object View (slide-over) so the graph is walkable in place.
+//
+// G1: this now serves built-in types too. Their records live in `source_table`
+// rather than object_records, which is the only difference — the view itself is
+// generated from the type either way, so a built-in with no hand-written page
+// stops being invisible.
 
 import { useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { Icon, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { rowToObjectType } from '@/features/objectTypes/api'
-import { useObjectTypes, useObjectRecord, useRecordLinks } from '@/features/objectTypes/hooks'
+import { useOntologyTypes, useOntologyRecord, useRecordLinks } from '@/features/objectTypes/hooks'
 import { RecordBody } from '@/features/objectTypes/RecordBody'
 import { RecordPanel } from '@/features/objectTypes/RecordPanel'
 
 export default function CustomRecordPage() {
   const { type: typeId = '', recordId = '' } = useParams<{ type: string; recordId: string }>()
-  const { data: typeRows = [], isLoading: typesLoading } = useObjectTypes()
+  // The WHOLE ontology, not just authored types — a built-in registration is a
+  // legitimate destination now that its records are readable.
+  const { data: typeRows = [], isLoading: typesLoading } = useOntologyTypes()
   const type = typeRows.map(rowToObjectType).find((t) => t.id === typeId)
-  const { data: record, isLoading: recordLoading } = useObjectRecord(recordId)
+  const { data: record, isLoading: recordLoading } = useOntologyRecord(type, recordId)
   const { data: links = [] } = useRecordLinks(recordId)
   const [panelId, setPanelId] = useState<string | null>(null)
 
