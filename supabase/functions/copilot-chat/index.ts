@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserToolAcross, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserToolAcross, bindToolArgs, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -340,6 +340,7 @@ RESPONSE FORMAT:
 interface ToolInput {
   /** run_authored_tool: which authored tool to answer. */
   tool_api_name?: string
+  args?: Record<string, unknown>
   window_days?: number
   days?: number
   forecast_days?: number
@@ -411,7 +412,8 @@ interface AuthoredToolRow {
   /** Exactly one is set: one type, or an interface (every implementer). */
   subject_type_id: string | null
   subject_interface_id: string | null
-  filters: { property: string; op: string; value: number | string | boolean }[]
+  parameters: { key: string; label: string; type: string; required: boolean }[]
+  filters: { property: string; op: string; value: number | string | boolean; param?: string }[]
   aggregation: { fn: 'count' | 'sum' | 'avg' | 'min' | 'max'; property?: string }
 }
 
@@ -420,7 +422,7 @@ interface AuthoredToolRow {
 async function fetchAuthoredTools(supabase: SupabaseClient): Promise<AuthoredToolRow[]> {
   const { data, error } = await supabase
     .from('user_tools')
-    .select('id, name, api_name, description, subject_type_id, subject_interface_id, filters, aggregation')
+    .select('id, name, api_name, description, subject_type_id, subject_interface_id, parameters, filters, aggregation')
     .eq('enabled', true)
     .order('created_at', { ascending: true })
     .limit(25) as unknown as { data: AuthoredToolRow[] | null; error: { message: string } | null }
@@ -443,6 +445,7 @@ function authoredToolDescriptor(tools: AuthoredToolRow[]): Anthropic.Tool | null
       type: 'object',
       properties: {
         tool_api_name: { type: 'string', enum: tools.map((t) => t.api_name), description: 'Which authored tool to run' },
+        args: { type: 'object', description: 'Arguments for the declared parameters of that tool, keyed by parameter name' },
       },
       required: ['tool_api_name'],
     },
@@ -505,7 +508,15 @@ async function executeTool(
           records: (records ?? []).filter((r) => r.object_type_id === typeRow.id).map((r) => r.data),
         }))
 
-        const result = evaluateUserToolAcross({ filters: def.filters, aggregation: def.aggregation }, groups)
+        // A tool with parameters is answered with the caller's arguments; a
+        // missing required one is an error, never the authored fallback.
+        const bound = bindToolArgs(
+          { filters: def.filters, parameters: def.parameters ?? [] },
+          (input.args ?? {}) as Record<string, unknown>,
+        )
+        if (bound.errors.length > 0) return JSON.stringify({ error: bound.errors.join('; ') })
+
+        const result = evaluateUserToolAcross({ filters: bound.filters, aggregation: def.aggregation }, groups)
         return JSON.stringify({ tool: def.api_name, question: def.description || def.name, ...result })
       }
       case 'get_decision_calibration': {

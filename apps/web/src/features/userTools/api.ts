@@ -2,7 +2,7 @@
 // answer is computed by evaluateUserTool in reality-graph, never here.
 
 import { supabase } from '@/lib/supabase/client'
-import type { AggregationFn, ToolFilter, UserToolDef } from '@beacon/reality-graph'
+import type { AggregationFn, ToolFilter, ToolParamDef, UserToolDef } from '@beacon/reality-graph'
 
 export interface UserToolRow {
   id: string
@@ -14,6 +14,7 @@ export interface UserToolRow {
   /** Exactly one is set: one type, or an interface (every implementer). */
   subject_type_id: string | null
   subject_interface_id: string | null
+  parameters: ToolParamDef[]
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
   enabled: boolean
@@ -25,7 +26,7 @@ export function rowToUserToolDef(r: UserToolRow): UserToolDef {
     id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
     name: r.name, apiName: r.api_name, description: r.description,
     subjectTypeId: r.subject_type_id, subjectInterfaceId: r.subject_interface_id,
-    filters: r.filters, aggregation: r.aggregation, enabled: r.enabled,
+    parameters: r.parameters, filters: r.filters, aggregation: r.aggregation, enabled: r.enabled,
   }
 }
 
@@ -42,6 +43,7 @@ export interface CreateUserToolInput {
   description: string
   subjectTypeId: string | null
   subjectInterfaceId: string | null
+  parameters: ToolParamDef[]
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
 }
@@ -52,7 +54,7 @@ export async function createUserTool(i: CreateUserToolInput): Promise<UserToolRo
     .insert({
       name: i.name, api_name: i.apiName, description: i.description,
       subject_type_id: i.subjectTypeId, subject_interface_id: i.subjectInterfaceId,
-      filters: i.filters, aggregation: i.aggregation,
+      parameters: i.parameters, filters: i.filters, aggregation: i.aggregation,
     })
     .select('*').single<UserToolRow>()
   if (error) throw new Error(error.message)

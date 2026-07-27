@@ -434,7 +434,7 @@ export type {
 
 export {
   AGGREGATIONS, OP_LABELS, evaluateUserTool, evaluateUserToolAcross, validateUserTool,
-  describeUserTool, allProperties, subjectProperties, subjectLabel,
+  describeUserTool, allProperties, subjectProperties, subjectLabel, bindToolArgs,
 } from './userTools/index'
 
 export {
@@ -445,7 +445,7 @@ export type {
 } from './authoredAgents/index'
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
 export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
-export { authoredToolAsLogicTool, resolveToolGroups } from './userTools/asLogicTool'
+export { authoredToolAsLogicTool, resolveToolGroups, paramsToSchema } from './userTools/asLogicTool'
 export type { AuthoredToolReader } from './userTools/asLogicTool'
 
 export {
@@ -454,8 +454,8 @@ export {
 export type { InterfaceDef, InterfacePropertyDef } from './interfaces/index'
 export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from './authoredAgents/run'
 export type {
-  UserToolDef, UserToolResult, ToolFilter, ToolRecord, ToolRecordGroup, ToolSubject,
-  ToolTypeBreakdown, AggregationFn, AggregationDef,
+  UserToolDef, UserToolResult, ToolFilter, ToolParamDef, ToolArgs, ToolRecord,
+  ToolRecordGroup, ToolSubject, ToolTypeBreakdown, AggregationFn, AggregationDef,
 } from './userTools/index'
 
 export {

@@ -26,7 +26,7 @@ const reader: AuthoredToolReader = {
 
 const def = (over: Partial<UserToolDef> = {}): UserToolDef => ({
   id: 'u1', organizationId: 'o1', hotelId: null, name: 'Total cost', apiName: 'total_cost',
-  description: 'Sum of Cost across every Roomed', subjectTypeId: null, subjectInterfaceId: 'i1',
+  description: 'Sum of Cost across every Roomed', subjectTypeId: null, subjectInterfaceId: 'i1', parameters: [],
   filters: [], aggregation: { fn: 'sum', property: 'cost' }, enabled: true, ...over,
 })
 

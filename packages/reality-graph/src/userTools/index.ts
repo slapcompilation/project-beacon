@@ -12,7 +12,7 @@
 import type { ComparisonOp } from '../automations/index'
 import type { InterfaceDef } from '../interfaces/index'
 import { interfaceProperties } from '../interfaces/index'
-import type { ObjectTypeDef, PropertyDef } from '../objectTypes/index'
+import type { ObjectTypeDef, PropertyDef, PropertyType } from '../objectTypes/index'
 import { evaluateComputed } from '../objectTypes/index'
 
 export type { ComparisonOp }
@@ -62,9 +62,25 @@ export interface ToolFilter {
   property: string
   op: ComparisonOp | 'eq' | 'neq'
   /** Typed against the property: number for number/date-age, string for text,
-   *  boolean for boolean. */
+   *  boolean for boolean. When `param` is set this is the fallback used if the
+   *  caller omits an optional parameter. */
   value: number | string | boolean
+  /** Take the comparison value from this parameter instead of the literal
+   *  above — what turns one tool into a family of questions. */
+  param?: string
 }
+
+/** A value the caller supplies at call time. Foundry's functions take input
+ *  parameters; without these, "count urgent requests" needs a separate tool per
+ *  urgency. The LLM sees these as the tool's typed input schema. */
+export interface ToolParamDef {
+  key: string
+  label: string
+  type: PropertyType
+  required: boolean
+}
+
+export type ToolArgs = Record<string, unknown>
 
 export interface UserToolDef {
   id: string
@@ -77,6 +93,7 @@ export interface UserToolDef {
   /** Exactly one of these is set — one object type, or one interface. */
   subjectTypeId: string | null
   subjectInterfaceId: string | null
+  parameters: ToolParamDef[]
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
   enabled: boolean
@@ -112,7 +129,7 @@ export type ToolRecord = Record<string, unknown>
 /** Checks a draft against its subject. Returns [] when the tool is answerable;
  *  every message names what to fix. */
 export function validateUserTool(
-  draft: Pick<UserToolDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'filters' | 'aggregation'>,
+  draft: Pick<UserToolDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'parameters' | 'filters' | 'aggregation'>,
   subject: ToolSubject | undefined,
   /** Shipped tool names. An authored tool that took one would be silently
    *  ignored in an agent's registry, where the shipped tool wins. */
@@ -136,7 +153,32 @@ export function validateUserTool(
   const props = subjectProperties(subject)
   const byKey = new Map(props.map((p) => [p.key, p]))
 
+  const byParam = new Map(draft.parameters.map((p) => [p.key, p]))
+  const seen = new Set<string>()
+  for (const p of draft.parameters) {
+    if (!/^[a-z][a-z0-9_]*$/.test(p.key)) errors.push(`Parameter key "${p.key}" must be lower_snake_case`)
+    if (!p.label.trim()) errors.push(`Parameter "${p.key}" needs a label`)
+    if (seen.has(p.key)) errors.push(`Duplicate parameter "${p.key}"`)
+    seen.add(p.key)
+    // A parameter nothing reads makes the caller supply something that changes
+    // nothing — that's a broken tool, not a harmless extra.
+    if (!draft.filters.some((f) => f.param === p.key)) {
+      errors.push(`Parameter "${p.key}" isn't used by any filter`)
+    }
+  }
+
   for (const f of draft.filters) {
+    if (f.param !== undefined) {
+      const p = byParam.get(f.param)
+      if (!p) {
+        errors.push(`Filter takes its value from "${f.param}", which isn't a declared parameter`)
+      } else {
+        const target = byKey.get(f.property)
+        if (target && p.type !== target.type) {
+          errors.push(`Parameter "${p.label}" is ${p.type}, but "${target.label}" is ${target.type}`)
+        }
+      }
+    }
     const p = byKey.get(f.property)
     if (!p) {
       // On an interface this is the load-bearing rule, not a typo check: a
@@ -146,10 +188,13 @@ export function validateUserTool(
         : `Filter property "${f.property}" is not on ${label}`)
       continue
     }
-    if (p.type === 'number' && typeof f.value !== 'number') {
+    // A required parameter always supplies the value, so its literal is never
+    // read — only check the fallback when the caller may omit the argument.
+    const literalIsRead = f.param === undefined || byParam.get(f.param)?.required === false
+    if (literalIsRead && p.type === 'number' && typeof f.value !== 'number') {
       errors.push(`Filter on "${p.label}" needs a number`)
     }
-    if (p.type === 'boolean' && typeof f.value !== 'boolean') {
+    if (literalIsRead && p.type === 'boolean' && typeof f.value !== 'boolean') {
       errors.push(`Filter on "${p.label}" needs true or false`)
     }
     if ((p.type === 'text' || p.type === 'boolean') && f.op !== 'eq' && f.op !== 'neq') {
@@ -183,6 +228,41 @@ export function allProperties(type: ObjectTypeDef): PropertyDef[] {
 }
 
 // ── Evaluation ───────────────────────────────────────────────────────────────
+
+/** Substitutes call arguments into the filters that take a parameter. Returns
+ *  errors rather than guessing: answering with the authored fallback when the
+ *  caller meant something else is a wrong answer that looks right. */
+export function bindToolArgs(
+  def: Pick<UserToolDef, 'filters' | 'parameters'>,
+  args: ToolArgs,
+): { filters: ToolFilter[]; errors: string[] } {
+  const errors: string[] = []
+  const byKey = new Map(def.parameters.map((p) => [p.key, p]))
+
+  const filters = def.filters.map((f) => {
+    if (f.param === undefined) return f
+    const p = byKey.get(f.param)
+    if (!p) { errors.push(`Unknown parameter "${f.param}"`); return f }
+
+    const given = args[p.key]
+    if (given === undefined || given === null || given === '') {
+      if (p.required) errors.push(`Missing required argument "${p.key}" (${p.label})`)
+      return { ...f, value: f.value }   // authored fallback
+    }
+    if (p.type === 'number') {
+      const n = Number(given)
+      if (!Number.isFinite(n)) { errors.push(`"${p.key}" must be a number`); return f }
+      return { ...f, value: n }
+    }
+    if (p.type === 'boolean') {
+      if (typeof given !== 'boolean') { errors.push(`"${p.key}" must be true or false`); return f }
+      return { ...f, value: given }
+    }
+    return { ...f, value: String(given) }
+  })
+
+  return { filters, errors }
+}
 
 /** Records from one type. An interface tool gets one group per implementer. */
 export interface ToolRecordGroup {
@@ -309,7 +389,7 @@ function describeBasis(
 
 /** One-line English for the composer + the tool list, so an authored tool reads
  *  like a question rather than a config blob. */
-export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation'>, subject: ToolSubject | undefined): string {
+export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation'>, subject?: ToolSubject): string {
   const label = subject ? subjectLabel(subject) : 'records'
   const props = subject ? new Map(subjectProperties(subject).map((p) => [p.key, p.label])) : new Map<string, string>()
   const agg = AGGREGATIONS.find((a) => a.fn === def.aggregation.fn)
@@ -318,7 +398,10 @@ export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation
     ? `Count of ${scope}`
     : `${agg?.label ?? def.aggregation.fn} ${props.get(def.aggregation.property ?? '') ?? def.aggregation.property ?? '?'} across ${scope}`
   if (def.filters.length === 0) return head
-  const parts = def.filters.map((f) => `${props.get(f.property) ?? f.property} ${OP_LABELS[f.op]} ${String(f.value)}`)
+  // A parameterised filter reads as a placeholder — the question is the shape,
+  // not one of its answers.
+  const parts = def.filters.map((f) =>
+    `${props.get(f.property) ?? f.property} ${OP_LABELS[f.op]} ${f.param === undefined ? String(f.value) : `{${f.param}}`}`)
   return `${head} where ${parts.join(' and ')}`
 }
 
