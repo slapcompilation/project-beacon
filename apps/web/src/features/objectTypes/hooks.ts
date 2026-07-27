@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
-  fetchObjectTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
+  fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   updateObjectType, fetchRevisions, restoreRevision,
   fetchObjectRecords, fetchObjectRecord, createObjectRecord, deleteObjectRecord,
   fetchLinkTypes, createLinkType, deleteLinkType,
@@ -13,6 +13,7 @@ import {
 
 const keys = {
   types: ['object-types'] as const,
+  ontology: ['ontology-types'] as const,
   cards: ['object-type-cards'] as const,
   records: (typeId: string) => ['object-records', typeId] as const,
   linkTypes: ['link-types'] as const,
@@ -22,6 +23,11 @@ const keys = {
 
 export function useObjectTypes() {
   return useQuery({ queryKey: keys.types, queryFn: fetchObjectTypes, staleTime: 30_000 })
+}
+
+/** The whole ontology — authored plus built-in registrations. */
+export function useOntologyTypes() {
+  return useQuery({ queryKey: keys.ontology, queryFn: fetchOntologyTypes, staleTime: 30_000 })
 }
 
 export function useObjectTypeCards() {

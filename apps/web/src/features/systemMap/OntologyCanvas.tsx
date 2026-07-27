@@ -12,15 +12,15 @@ import { Link } from 'react-router-dom'
 import { Button, Card, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Intent, NonIdealState, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { toSlug } from '@beacon/reality-graph'
-import { useObjectTypes, useLinkTypes, useCreateLinkType, useDeleteLinkType } from '@/features/objectTypes/hooks'
+import { useOntologyTypes, useLinkTypes, useCreateLinkType, useDeleteLinkType } from '@/features/objectTypes/hooks'
 
 const R_NODE = 42        // node radius
 const PAD    = 90        // ring padding so labels clear the edge
 
-interface Placed { id: string; label: string; icon: string; x: number; y: number }
+interface Placed { id: string; label: string; icon: string; builtin: boolean; x: number; y: number }
 
 export default function OntologyCanvas() {
-  const types = useObjectTypes()
+  const types = useOntologyTypes()
   const links = useLinkTypes()
   const createLink = useCreateLinkType()
   const deleteLink = useDeleteLinkType()
@@ -39,7 +39,7 @@ export default function OntologyCanvas() {
     // Single type sits centred; otherwise spread evenly, starting at 12 o'clock.
     const angle = -Math.PI / 2 + (i * 2 * Math.PI) / Math.max(1, rows.length)
     return {
-      id: t.id, label: t.label, icon: t.icon,
+      id: t.id, label: t.label, icon: t.icon, builtin: t.kind === 'builtin',
       x: rows.length === 1 ? cx : cx + ring * Math.cos(angle),
       y: rows.length === 1 ? cy : cy + ring * Math.sin(angle),
     }
@@ -114,9 +114,11 @@ export default function OntologyCanvas() {
             const isSource = p.id === source
             return (
               <g key={p.id} onClick={() => { onNodeClick(p.id) }} className="cursor-pointer">
+                {/* Code-owned types are dashed — you can link them, not edit them. */}
                 <circle cx={p.x} cy={p.y} r={R_NODE}
                   className={isSource ? 'fill-primary/20 stroke-primary' : 'fill-muted/40 stroke-border hover:stroke-primary'}
-                  strokeWidth={isSource ? 2 : 1.25} />
+                  strokeWidth={isSource ? 2 : 1.25}
+                  strokeDasharray={p.builtin ? '4 3' : undefined} />
                 <foreignObject x={p.x - R_NODE} y={p.y - 20} width={R_NODE * 2} height={40}>
                   <div className="flex flex-col items-center justify-center h-full gap-0.5 pointer-events-none">
                     <Icon icon={(p.icon || 'cube') as IconName} size={12} />
