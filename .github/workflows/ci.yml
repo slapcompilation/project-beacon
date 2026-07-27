@@ -35,3 +35,9 @@ jobs:
         env:
           EVAL_PERSIST_URL:   ${{ secrets.EVAL_PERSIST_URL }}
           EVAL_PERSIST_TOKEN: ${{ secrets.EVAL_PERSIST_TOKEN }}
+
+      # turbo covers the TS packages but not supabase/functions (Deno, resolved
+      # at deploy). Without this a syntax error there passes CI and fails the
+      # production deploy instead.
+      - name: Edge function syntax
+        run: pnpm check:edge

@@ -435,6 +435,13 @@ export type {
 export {
   AGGREGATIONS, OP_LABELS, evaluateUserTool, validateUserTool, describeUserTool, allProperties,
 } from './userTools/index'
+
+export {
+  AGENT_CADENCES, validateAuthoredAgent, compileAgent, describeAuthoredAgent,
+} from './authoredAgents/index'
+export type {
+  AuthoredAgentDef, CompiledAgent, ProcedureStep, AgentApproval, CadenceDef,
+} from './authoredAgents/index'
 export type {
   UserToolDef, UserToolResult, ToolFilter, ToolRecord, AggregationFn, AggregationDef,
 } from './userTools/index'
