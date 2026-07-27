@@ -33,7 +33,7 @@ export interface CycleItem {
   reason?: string
   /** Which producer emitted the proposal: a shipped agent, an operator-authored
    *  automation, or an operator-authored agent. */
-  source?: 'agent' | 'automation' | 'authored-agent'
+  source?: 'agent' | 'automation' | 'authored-agent' | 'monitor'
 }
 
 export interface CycleResult {
@@ -57,12 +57,14 @@ export interface IntelligenceCycleDeps {
    *  proposals — one gate, no second execution path. The caller builds these from
    *  automationsToProposals(); the cycle stays agnostic to how they were authored. */
   automationProposals?: (variant: CycleVariant) => ReadonlyArray<AgentProposal>
-  /** Operator-authored agents (P5). Called ONCE per cycle, not per variant: an
-   *  authored agent reasons about its scope, and running one LLM agent per
-   *  scanned variant would multiply model cost by the scan size. It returns
-   *  proposals already paired with the variant they concern, which then take the
-   *  exact same gate + persist path as everything else. */
-  authoredAgentProposals?: () => Promise<ReadonlyArray<{ variant: CycleVariant; proposal: AgentProposal }>>
+  /** Proposal sources that reason ONCE per cycle rather than per variant —
+   *  authored agents (P5) and monitors. Running one LLM agent per scanned
+   *  variant would multiply model cost by the scan size, and a monitor already
+   *  sweeps its whole scope in one read. Each returns proposals already paired
+   *  with the variant they concern, which then take the exact same gate +
+   *  persist path as everything else. The `source` shown in the run is derived
+   *  from provenance, so a new source needs no new seam. */
+  externalProposals?: () => Promise<ReadonlyArray<{ variant: CycleVariant; proposal: AgentProposal }>>
   /** Persist a proposal; resolves to its stored id. */
   persistProposal: (variant: CycleVariant, proposal: AgentProposal) => Promise<string>
   /** Constraint records active for the scope, evaluated per proposed action. */
@@ -139,14 +141,14 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
   // and Case path. A proposal about a variant outside this cycle's scope is not
   // acted on here; the scan defines what the cycle may touch.
   const authoredByVariant = new Map<string, AgentProposal[]>()
-  if (deps.authoredAgentProposals) {
+  if (deps.externalProposals) {
     try {
-      for (const { variant, proposal } of await deps.authoredAgentProposals()) {
+      for (const { variant, proposal } of await deps.externalProposals()) {
         const list = authoredByVariant.get(variant.id)
         if (list) list.push(proposal)
         else authoredByVariant.set(variant.id, [proposal])
       }
-    } catch { /* an authored agent failing must not stop the cycle */ }
+    } catch { /* one external source failing must not stop the cycle */ }
   }
 
   for (const variant of scope) {
@@ -162,8 +164,9 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
 
       for (const proposal of proposals) {
         const source: CycleItem['source'] =
-          proposal.provenance.some((p) => p.ref.startsWith('automation:'))     ? 'automation'
-          : proposal.provenance.some((p) => p.ref.startsWith('authored-agent:')) ? 'authored-agent'
+          proposal.provenance.some((p) => p.ref.startsWith('automation:'))       ? 'automation'
+          : proposal.provenance.some((p) => p.ref.startsWith('authored-agent:'))  ? 'authored-agent'
+          : proposal.provenance.some((p) => p.ref.startsWith('monitor:'))         ? 'monitor'
           : 'agent'
         const dedupKey = proposalDedupKey(proposal.action)
         if (dedupKey && seen.has(dedupKey)) {

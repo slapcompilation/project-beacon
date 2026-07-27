@@ -82,10 +82,21 @@ maintain, and nothing to forget to add one for.
 panel sub-nav inside each, Studio landing generated from destinations. No page
 component touched. No data change.
 
-**P2 — merge Monitors into Automate.** The real logic consolidation: one grammar,
-one gate, one entry point. Monitors' better idea — deterministic metric in code,
-threshold tunable in `org_policy` — survives as automation conditions. This is the
-one phase with behavioural risk, so it ships on its own.
+**P2 — DONE (#420). Monitors go through the one gate.** The audit found worse than
+duplication: `useExpiryMonitorSweep` called `createProposal` **directly**, so monitor
+proposals never saw `decideAutoExecution` — no constraint evaluation, no calibration
+veto, no release gate. It was safe only because `WRITE_OFF` happens not to be in the
+auto-execution policy, which nothing enforces; adding it would have silently granted
+that path unattended execution.
+
+Fixed by making the monitor a proposal **source** rather than a writer. The cycle's
+`authoredAgentProposals` seam generalised to `externalProposals` — any source that
+reasons once per cycle rather than per variant — and `CycleItem.source` gained
+`'monitor'`, derived from a `monitor:` provenance prefix, so a new source needs no
+new seam. The monitor's own good idea is untouched: deterministic metric in code,
+threshold tunable in `org_policy`.
+
+The Monitors "run scan" button is now a **preview** that cannot write.
 
 **P3 — Explorer as one browser.** Today the five content panels are five bespoke
 pages. They already render through `ObjectViewFrame`, so the end state is one

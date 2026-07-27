@@ -65,7 +65,7 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     automationProposals: over.automationProposals,
-    authoredAgentProposals: over.authoredAgentProposals,
+    externalProposals: over.externalProposals,
     runAgent,
     persistProposal,
     dispatch,
@@ -106,7 +106,7 @@ describe('runIntelligenceCycle', () => {
     const deps = makeDeps({
       variants: [VAR_A, { id: 'v-b', name: 'Onions' }, { id: 'v-c', name: 'Garlic' }],
       proposals: [],
-      authoredAgentProposals: authored,
+      externalProposals: authored,
     })
     await runIntelligenceCycle(deps)
     expect(authored).toHaveBeenCalledTimes(1)   // not 3 — model cost can't scale with the scan
@@ -117,7 +117,7 @@ describe('runIntelligenceCycle', () => {
     const authoredProposal = { ...p, provenance: [{ kind: 'tool' as const, ref: 'authored-agent:expiry_watcher' }] }
     const deps = makeDeps({
       proposals: [],
-      authoredAgentProposals: () => Promise.resolve([{ variant: VAR_A, proposal: authoredProposal }]),
+      externalProposals: () => Promise.resolve([{ variant: VAR_A, proposal: authoredProposal }]),
     })
     const result = await runIntelligenceCycle(deps)
     expect(result.proposed).toBe(1)
@@ -125,11 +125,43 @@ describe('runIntelligenceCycle', () => {
     expect(result.items[0]).toMatchObject({ source: 'authored-agent', outcome: 'auto-executed' })
   })
 
+  it('puts a MONITOR proposal through the same gate, labelled as its own source', async () => {
+    // Monitors used to write proposals directly, bypassing decideAutoExecution.
+    // They are now just another external source — one gate, one audit path.
+    const p = proposal(0.95)
+    const monitorProposal = { ...p, provenance: [{ kind: 'tool' as const, ref: 'monitor:expiry' }] }
+    const deps = makeDeps({
+      proposals: [],
+      externalProposals: () => Promise.resolve([{ variant: VAR_A, proposal: monitorProposal }]),
+    })
+    const result = await runIntelligenceCycle(deps)
+    expect(result.proposed).toBe(1)
+    expect(result.items[0]).toMatchObject({ source: 'monitor', outcome: 'auto-executed' })
+  })
+
+  it('lets a hard constraint veto a monitor proposal — the gate is not optional', async () => {
+    const monitorProposal = {
+      ...proposal(0.99, 10),
+      provenance: [{ kind: 'tool' as const, ref: 'monitor:expiry' }],
+    }
+    const deps = makeDeps({
+      proposals: [],
+      externalProposals: () => Promise.resolve([{ variant: VAR_A, proposal: monitorProposal }]),
+      constraints: [thresholdConstraint('hard', 5)],
+    })
+    const result = await runIntelligenceCycle(deps)
+
+    // The old direct-write path would have persisted this regardless.
+    expect(deps.dispatch).not.toHaveBeenCalled()
+    expect(result).toMatchObject({ autoExecuted: 0, queued: 1 })
+    expect(result.items[0]).toMatchObject({ source: 'monitor', outcome: 'queued' })
+  })
+
   it('ignores an authored proposal about a variant outside this cycle scope', async () => {
     const deps = makeDeps({
       variants: [VAR_A],
       proposals: [],
-      authoredAgentProposals: () => Promise.resolve([
+      externalProposals: () => Promise.resolve([
         { variant: { id: 'not-scanned', name: 'Elsewhere' }, proposal: proposal(0.95) },
       ]),
     })
@@ -140,7 +172,7 @@ describe('runIntelligenceCycle', () => {
   it('survives an authored agent that throws — the cycle still runs', async () => {
     const deps = makeDeps({
       proposals: [proposal(0.95)],
-      authoredAgentProposals: () => Promise.reject(new Error('model unavailable')),
+      externalProposals: () => Promise.reject(new Error('model unavailable')),
     })
     const result = await runIntelligenceCycle(deps)
     expect(result.proposed).toBe(1)          // the shipped agent's proposal still lands

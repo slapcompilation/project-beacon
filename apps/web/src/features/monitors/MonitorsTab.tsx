@@ -280,7 +280,7 @@ export default function MonitorsTab() {
           <Button intent={Intent.PRIMARY} text="Save" icon="tick" disabled={!canEdit || !dirty || setMonitors.isPending}
             loading={setMonitors.isPending}
             onClick={() => { setMonitors.mutate(draft, { onSuccess: () => { setNlNote('Saved.') } }) }} />
-          <Button text="Run expiry scan now" icon="play" disabled={!draft.expiry.enabled || sweep.isPending} loading={sweep.isPending}
+          <Button text="Preview what this catches" icon="eye-open" disabled={!draft.expiry.enabled || sweep.isPending} loading={sweep.isPending}
             onClick={() => { sweep.mutate(undefined, { onSuccess: (r) => { setScan(r) } }) }} />
           {dirty && <span className="text-xs text-amber-600 dark:text-amber-400">Unsaved changes</span>}
           {setMonitors.isError && <span className="text-xs text-red-500">{setMonitors.error.message}</span>}
@@ -288,8 +288,13 @@ export default function MonitorsTab() {
         </div>
 
         {scan && (
-          <Callout intent={scan.proposalsCreated > 0 ? Intent.PRIMARY : Intent.SUCCESS} icon={scan.proposalsCreated > 0 ? 'inbox' : 'tick-circle'}>
-            Scanned {scan.scanned} batch{scan.scanned === 1 ? '' : 'es'} · {scan.fired} within trigger · {scan.proposalsCreated} write-off proposal{scan.proposalsCreated === 1 ? '' : 's'} queued in Decisions.
+          <Callout intent={scan.wouldPropose > 0 ? Intent.PRIMARY : Intent.SUCCESS} icon={scan.wouldPropose > 0 ? 'inbox' : 'tick-circle'}>
+            Scanned {scan.scanned} batch{scan.scanned === 1 ? '' : 'es'} · {scan.fired} within trigger ·{' '}
+            {scan.wouldPropose} write-off proposal{scan.wouldPropose === 1 ? '' : 's'} on the next cycle.
+            <span className="block text-[11px] text-muted-foreground mt-0.5">
+              Preview only — nothing was written. Monitors raise proposals through the cycle, so they pass the
+              same gate and constraints as everything else.
+            </span>
           </Callout>
         )}
       </div>
