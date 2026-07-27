@@ -531,6 +531,27 @@ BEGIN
   DELETE FROM user_agents WHERE api_name LIKE 'c19_%';
   IF n <> 1 THEN RAISE EXCEPTION 'C19d: admin could not author an agent, or org/author defaults did not land'; END IF;
 
+  -- ── C20: built-in object types are code-owned (migration 223) ─────────────
+  -- One ontology: built-ins are registered so links and tools can reach them,
+  -- but no user may edit or delete them — not even an admin.
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked', v_b_pending;
+  SELECT id INTO v_type FROM object_types
+   WHERE organization_id = v_org AND kind = 'builtin' AND api_name = 'variant';
+  IF v_type IS NOT NULL THEN
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+
+    UPDATE object_types SET label = 'Tampered' WHERE id = v_type;
+    SELECT count(*) INTO n FROM object_types WHERE id = v_type AND label = 'Variant';
+    IF n <> 1 THEN RESET ROLE; RAISE EXCEPTION 'C20a: admin edited a built-in object type'; END IF;
+
+    DELETE FROM object_types WHERE id = v_type;
+    SELECT count(*) INTO n FROM object_types WHERE id = v_type;
+    IF n <> 1 THEN RESET ROLE; RAISE EXCEPTION 'C20b: admin deleted a built-in object type'; END IF;
+    RESET ROLE;
+  END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned', v_b_pending;
 END $$;

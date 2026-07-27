@@ -35,6 +35,11 @@ export interface ObjectTypeDef {
   icon: string
   description: string
   properties: PropertyDef[]
+  /** authored = operator-defined, records in object_records. builtin = a
+   *  code-owned type registered so links and tools can reach it; its records
+   *  live in `sourceTable`, not object_records. */
+  kind?: 'authored' | 'builtin'
+  sourceTable?: string | null
   /** Derived values computed from stored properties at read time (P2.4). */
   computedProperties: ComputedPropertyDef[]
   /** How records of this type present (P3). Empty config → standard view. */

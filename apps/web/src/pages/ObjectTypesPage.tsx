@@ -19,7 +19,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useObjectTypes, useCreateObjectType, useDeleteObjectType,
+  useObjectTypes, useOntologyTypes, useCreateObjectType, useDeleteObjectType,
   useUpdateObjectType, useRevisions, useRestoreRevision,
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
@@ -35,6 +35,10 @@ export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
   const { data: rows = [], isLoading } = useObjectTypes()
   const types = useMemo(() => rows.map(rowToObjectType), [rows])
+  // Link endpoints span the WHOLE ontology (migration 223), so an authored type
+  // can point at a built-in one — a Maintenance Request belongs to a Variant.
+  const { data: ontologyRows = [] } = useOntologyTypes()
+  const linkTargets = useMemo(() => ontologyRows.map(rowToObjectType), [ontologyRows])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = types.find((t) => t.id === selectedId) ?? null
 
@@ -79,7 +83,7 @@ export default function ObjectTypesPage() {
           )}
         </section>
 
-        {selected && <RecordsPanel type={selected} allTypes={types} />}
+        {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
       </div>
     </div>
   )
