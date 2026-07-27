@@ -31,8 +31,9 @@ export interface CycleItem {
   actionType?: BeaconAction['type']
   proposalId?: string
   reason?: string
-  /** Which producer emitted the proposal — an agent, or an operator-authored automation. */
-  source?: 'agent' | 'automation'
+  /** Which producer emitted the proposal: a shipped agent, an operator-authored
+   *  automation, or an operator-authored agent. */
+  source?: 'agent' | 'automation' | 'authored-agent'
 }
 
 export interface CycleResult {
@@ -56,6 +57,12 @@ export interface IntelligenceCycleDeps {
    *  proposals — one gate, no second execution path. The caller builds these from
    *  automationsToProposals(); the cycle stays agnostic to how they were authored. */
   automationProposals?: (variant: CycleVariant) => ReadonlyArray<AgentProposal>
+  /** Operator-authored agents (P5). Called ONCE per cycle, not per variant: an
+   *  authored agent reasons about its scope, and running one LLM agent per
+   *  scanned variant would multiply model cost by the scan size. It returns
+   *  proposals already paired with the variant they concern, which then take the
+   *  exact same gate + persist path as everything else. */
+  authoredAgentProposals?: () => Promise<ReadonlyArray<{ variant: CycleVariant; proposal: AgentProposal }>>
   /** Persist a proposal; resolves to its stored id. */
   persistProposal: (variant: CycleVariant, proposal: AgentProposal) => Promise<string>
   /** Constraint records active for the scope, evaluated per proposed action. */
@@ -127,18 +134,37 @@ export async function runIntelligenceCycle(deps: IntelligenceCycleDeps): Promise
   // then grown within the run so an agent can't emit the same proposal twice.
   const seen = new Set<string>(deps.openProposalKeys ?? [])
 
+  // Authored agents run ONCE for the whole cycle, then their proposals join the
+  // per-variant stream below — so they pass the identical gate, dedup, persist
+  // and Case path. A proposal about a variant outside this cycle's scope is not
+  // acted on here; the scan defines what the cycle may touch.
+  const authoredByVariant = new Map<string, AgentProposal[]>()
+  if (deps.authoredAgentProposals) {
+    try {
+      for (const { variant, proposal } of await deps.authoredAgentProposals()) {
+        const list = authoredByVariant.get(variant.id)
+        if (list) list.push(proposal)
+        else authoredByVariant.set(variant.id, [proposal])
+      }
+    } catch { /* an authored agent failing must not stop the cycle */ }
+  }
+
   for (const variant of scope) {
     try {
       const agentProposals = await deps.runAgent(variant)
       const autoProposals = deps.automationProposals?.(variant) ?? []
-      const proposals = [...agentProposals, ...autoProposals]
+      const authored = authoredByVariant.get(variant.id) ?? []
+      const proposals = [...agentProposals, ...autoProposals, ...authored]
       if (proposals.length === 0) {
         items.push({ variantId: variant.id, variantName: variant.name, outcome: 'no-proposal' })
         continue
       }
 
       for (const proposal of proposals) {
-        const source: 'agent' | 'automation' = proposal.provenance.some((p) => p.ref.startsWith('automation:')) ? 'automation' : 'agent'
+        const source: CycleItem['source'] =
+          proposal.provenance.some((p) => p.ref.startsWith('automation:'))     ? 'automation'
+          : proposal.provenance.some((p) => p.ref.startsWith('authored-agent:')) ? 'authored-agent'
+          : 'agent'
         const dedupKey = proposalDedupKey(proposal.action)
         if (dedupKey && seen.has(dedupKey)) {
           deduped++

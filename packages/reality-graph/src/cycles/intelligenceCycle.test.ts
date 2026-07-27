@@ -65,6 +65,7 @@ function makeDeps(over: Partial<IntelligenceCycleDeps> & {
     maxVariants: over.maxVariants,
     now: over.now ?? (() => new Date('2026-05-29T12:00:00Z')),
     automationProposals: over.automationProposals,
+    authoredAgentProposals: over.authoredAgentProposals,
     runAgent,
     persistProposal,
     dispatch,
@@ -98,6 +99,52 @@ describe('runIntelligenceCycle', () => {
     expect(result.proposed).toBe(1)
     expect(result.autoExecuted).toBe(1) // 0.95, uncontested → through the same gate
     expect(result.items[0]).toMatchObject({ source: 'automation', actionType: 'REQUEST_RESTOCK', outcome: 'auto-executed' })
+  })
+
+  it('runs an authored agent ONCE per cycle, not once per variant', async () => {
+    const authored = vi.fn(() => Promise.resolve([]))
+    const deps = makeDeps({
+      variants: [VAR_A, { id: 'v-b', name: 'Onions' }, { id: 'v-c', name: 'Garlic' }],
+      proposals: [],
+      authoredAgentProposals: authored,
+    })
+    await runIntelligenceCycle(deps)
+    expect(authored).toHaveBeenCalledTimes(1)   // not 3 — model cost can't scale with the scan
+  })
+
+  it('puts an authored agent proposal through the same gate + persist path', async () => {
+    const p = proposal(0.95)
+    const authoredProposal = { ...p, provenance: [{ kind: 'tool' as const, ref: 'authored-agent:expiry_watcher' }] }
+    const deps = makeDeps({
+      proposals: [],
+      authoredAgentProposals: () => Promise.resolve([{ variant: VAR_A, proposal: authoredProposal }]),
+    })
+    const result = await runIntelligenceCycle(deps)
+    expect(result.proposed).toBe(1)
+    expect(result.autoExecuted).toBe(1)
+    expect(result.items[0]).toMatchObject({ source: 'authored-agent', outcome: 'auto-executed' })
+  })
+
+  it('ignores an authored proposal about a variant outside this cycle scope', async () => {
+    const deps = makeDeps({
+      variants: [VAR_A],
+      proposals: [],
+      authoredAgentProposals: () => Promise.resolve([
+        { variant: { id: 'not-scanned', name: 'Elsewhere' }, proposal: proposal(0.95) },
+      ]),
+    })
+    const result = await runIntelligenceCycle(deps)
+    expect(result.proposed).toBe(0)
+  })
+
+  it('survives an authored agent that throws — the cycle still runs', async () => {
+    const deps = makeDeps({
+      proposals: [proposal(0.95)],
+      authoredAgentProposals: () => Promise.reject(new Error('model unavailable')),
+    })
+    const result = await runIntelligenceCycle(deps)
+    expect(result.proposed).toBe(1)          // the shipped agent's proposal still lands
+    expect(result.autoExecuted).toBe(1)
   })
 
   it('dedups a proposal whose variant+action is already open (no re-persist)', async () => {
