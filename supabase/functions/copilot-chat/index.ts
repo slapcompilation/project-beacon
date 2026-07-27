@@ -19,7 +19,7 @@ import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserTool, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserToolAcross, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
@@ -408,7 +408,9 @@ interface AuthoredToolRow {
   name: string
   api_name: string
   description: string
-  subject_type_id: string
+  /** Exactly one is set: one type, or an interface (every implementer). */
+  subject_type_id: string | null
+  subject_interface_id: string | null
   filters: { property: string; op: string; value: number | string | boolean }[]
   aggregation: { fn: 'count' | 'sum' | 'avg' | 'min' | 'max'; property?: string }
 }
@@ -418,7 +420,7 @@ interface AuthoredToolRow {
 async function fetchAuthoredTools(supabase: SupabaseClient): Promise<AuthoredToolRow[]> {
   const { data, error } = await supabase
     .from('user_tools')
-    .select('id, name, api_name, description, subject_type_id, filters, aggregation')
+    .select('id, name, api_name, description, subject_type_id, subject_interface_id, filters, aggregation')
     .eq('enabled', true)
     .order('created_at', { ascending: true })
     .limit(25) as unknown as { data: AuthoredToolRow[] | null; error: { message: string } | null }
@@ -463,32 +465,47 @@ async function executeTool(
         const def = authoredTools.find((t) => t.api_name === input.tool_api_name)
         if (!def) return JSON.stringify({ error: `no authored tool named ${String(input.tool_api_name)}` })
 
-        // Fetch the subject type alongside its records so computed properties
+        // An interface tool runs over every implementer, so resolve the target
+        // types first — reading only subject_type_id would answer a confident
+        // zero for them.
+        let typeIds: string[] = def.subject_type_id ? [def.subject_type_id] : []
+        if (def.subject_interface_id) {
+          const { data: impls } = await supabase
+            .from('object_type_interfaces').select('object_type_id')
+            .eq('interface_id', def.subject_interface_id) as unknown as
+            { data: { object_type_id: string }[] | null }
+          typeIds = (impls ?? []).map((i) => i.object_type_id)
+        }
+        if (typeIds.length === 0) {
+          return JSON.stringify({
+            tool: def.api_name, value: 0, confidence: 0,
+            basis: 'no object type currently implements this interface',
+          })
+        }
+
+        // Fetch the subject types alongside their records so computed properties
         // resolve — the same read the Studio surface does.
-        const [{ data: typeRow }, { data: records }] = await Promise.all([
-          supabase.from('object_types').select('*').eq('id', def.subject_type_id).maybeSingle(),
-          supabase.from('object_records').select('data').eq('object_type_id', def.subject_type_id).limit(1000),
+        const [{ data: typeRows }, { data: records }] = await Promise.all([
+          supabase.from('object_types').select('*').in('id', typeIds),
+          supabase.from('object_records').select('object_type_id, data').in('object_type_id', typeIds).limit(1000),
         ]) as unknown as [
-          { data: Record<string, unknown> | null },
-          { data: { data: Record<string, unknown> }[] | null },
+          { data: Record<string, unknown>[] | null },
+          { data: { object_type_id: string; data: Record<string, unknown> }[] | null },
         ]
 
-        const type = typeRow
-          ? {
-              id: String(typeRow.id), organizationId: String(typeRow.organization_id),
-              hotelId: (typeRow.hotel_id as string | null),
-              apiName: String(typeRow.api_name), label: String(typeRow.label),
-              icon: String(typeRow.icon), description: String(typeRow.description),
-              properties: typeRow.properties, computedProperties: typeRow.computed_properties ?? [],
-              viewConfig: typeRow.view_config, enabled: true, version: 1,
-            }
-          : undefined
+        const groups = (typeRows ?? []).map((typeRow) => ({
+          type: {
+            id: String(typeRow.id), organizationId: String(typeRow.organization_id),
+            hotelId: (typeRow.hotel_id as string | null),
+            apiName: String(typeRow.api_name), label: String(typeRow.label),
+            icon: String(typeRow.icon), description: String(typeRow.description),
+            properties: typeRow.properties, computedProperties: typeRow.computed_properties ?? [],
+            viewConfig: typeRow.view_config, enabled: true, version: 1,
+          },
+          records: (records ?? []).filter((r) => r.object_type_id === typeRow.id).map((r) => r.data),
+        }))
 
-        const result = evaluateUserTool(
-          { filters: def.filters, aggregation: def.aggregation },
-          (records ?? []).map((r) => r.data),
-          type,
-        )
+        const result = evaluateUserToolAcross({ filters: def.filters, aggregation: def.aggregation }, groups)
         return JSON.stringify({ tool: def.api_name, question: def.description || def.name, ...result })
       }
       case 'get_decision_calibration': {

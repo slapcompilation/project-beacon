@@ -10,10 +10,30 @@
 // confidence), so a caller can't tell whether a tool was authored or shipped.
 
 import type { ComparisonOp } from '../automations/index'
+import type { InterfaceDef } from '../interfaces/index'
+import { interfaceProperties } from '../interfaces/index'
 import type { ObjectTypeDef, PropertyDef } from '../objectTypes/index'
 import { evaluateComputed } from '../objectTypes/index'
 
 export type { ComparisonOp }
+
+/** What a tool asks about. A `type` subject runs over one type's records; an
+ *  `interface` subject runs over EVERY type implementing it — including types
+ *  authored after the tool was written, which is the whole point of interfaces. */
+export type ToolSubject =
+  | { kind: 'type'; type: ObjectTypeDef }
+  | { kind: 'interface'; iface: InterfaceDef }
+
+/** Properties a tool may reference. For an interface that is the interface's own
+ *  properties ONLY — filtering on something one implementer happens to have is
+ *  exactly what breaks the tool on the next implementer. */
+export function subjectProperties(s: ToolSubject): PropertyDef[] {
+  return s.kind === 'type' ? allProperties(s.type) : interfaceProperties(s.iface)
+}
+
+export function subjectLabel(s: ToolSubject): string {
+  return s.kind === 'type' ? s.type.label : s.iface.label
+}
 
 /** Aggregations an authored tool may perform. `count` needs no property; the
  *  rest reduce a numeric one. */
@@ -54,11 +74,20 @@ export interface UserToolDef {
   name: string
   apiName: string
   description: string
-  /** The object type this tool asks about. */
-  subjectTypeId: string
+  /** Exactly one of these is set — one object type, or one interface. */
+  subjectTypeId: string | null
+  subjectInterfaceId: string | null
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
   enabled: boolean
+}
+
+export interface ToolTypeBreakdown {
+  typeId: string
+  label: string
+  matched: number
+  scanned: number
+  value: number
 }
 
 export interface UserToolResult {
@@ -69,6 +98,9 @@ export interface UserToolResult {
   confidence: number
   matched: number
   scanned: number
+  /** Where the answer came from: one entry per contributing type. An interface
+   *  tool's aggregate is otherwise unexplainable. */
+  byType: ToolTypeBreakdown[]
 }
 
 /** A record as stored: property key → value, plus computed properties resolved
@@ -77,26 +109,37 @@ export type ToolRecord = Record<string, unknown>
 
 // ── Validation ───────────────────────────────────────────────────────────────
 
-/** Checks a draft against its subject type. Returns [] when the tool is
- *  answerable; every message names what to fix. */
+/** Checks a draft against its subject. Returns [] when the tool is answerable;
+ *  every message names what to fix. */
 export function validateUserTool(
-  draft: Pick<UserToolDef, 'name' | 'apiName' | 'subjectTypeId' | 'filters' | 'aggregation'>,
-  type: ObjectTypeDef | undefined,
+  draft: Pick<UserToolDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'filters' | 'aggregation'>,
+  subject: ToolSubject | undefined,
 ): string[] {
   const errors: string[] = []
   if (!draft.name.trim())    errors.push('Name is required')
   if (!draft.apiName.trim()) errors.push('API name is required')
-  if (!type) {
-    errors.push('Pick an object type for the tool to ask about')
+  if (draft.subjectTypeId && draft.subjectInterfaceId) {
+    errors.push('A tool asks about one object type or one interface, not both')
+  }
+  if (!subject) {
+    errors.push('Pick an object type or interface for the tool to ask about')
     return errors
   }
 
-  const props = allProperties(type)
+  const label = subjectLabel(subject)
+  const props = subjectProperties(subject)
   const byKey = new Map(props.map((p) => [p.key, p]))
 
   for (const f of draft.filters) {
     const p = byKey.get(f.property)
-    if (!p) { errors.push(`Filter property "${f.property}" is not on ${type.label}`); continue }
+    if (!p) {
+      // On an interface this is the load-bearing rule, not a typo check: a
+      // property outside the interface would break on the next implementer.
+      errors.push(subject.kind === 'interface'
+        ? `"${f.property}" is not on the ${label} interface — a tool across types can only use the shape they all share`
+        : `Filter property "${f.property}" is not on ${label}`)
+      continue
+    }
     if (p.type === 'number' && typeof f.value !== 'number') {
       errors.push(`Filter on "${p.label}" needs a number`)
     }
@@ -117,7 +160,7 @@ export function validateUserTool(
       errors.push(`${agg.label} needs a numeric property`)
     } else {
       const p = byKey.get(key)
-      if (!p) errors.push(`Aggregated property "${key}" is not on ${type.label}`)
+      if (!p) errors.push(`Aggregated property "${key}" is not on ${label}`)
       else if (p.type !== 'number') errors.push(`${agg.label} needs a number property — "${p.label}" is ${p.type}`)
     }
   }
@@ -135,6 +178,14 @@ export function allProperties(type: ObjectTypeDef): PropertyDef[] {
 
 // ── Evaluation ───────────────────────────────────────────────────────────────
 
+/** Records from one type. An interface tool gets one group per implementer. */
+export interface ToolRecordGroup {
+  /** Undefined only when the type row couldn't be read — computed properties
+   *  then don't resolve. */
+  type?: ObjectTypeDef
+  records: ReadonlyArray<ToolRecord>
+}
+
 /** Answers the tool against a record set. Pure: the caller fetches, this
  *  computes — same split as every other tool in the registry. */
 export function evaluateUserTool(
@@ -142,38 +193,59 @@ export function evaluateUserTool(
   records: ReadonlyArray<ToolRecord>,
   type?: ObjectTypeDef,
 ): UserToolResult {
-  // Resolve computed properties first so filters and aggregation see them.
-  const resolved = type
-    ? records.map((r) => ({ ...r, ...computedValues(type, r) }))
-    : records.slice()
+  return evaluateUserToolAcross(def, [{ type, records }])
+}
 
-  const matched = resolved.filter((r) => def.filters.every((f) => passes(r[f.property], f)))
-  const agg = def.aggregation
+/** Answers the tool across every contributing type. Records are POOLED before
+ *  aggregating, so `avg` over an interface is the real mean of all matching
+ *  records — not the mean of each type's mean, which would weight a type with
+ *  three records like one with three hundred. */
+export function evaluateUserToolAcross(
+  def: Pick<UserToolDef, 'filters' | 'aggregation'>,
+  groups: ReadonlyArray<ToolRecordGroup>,
+): UserToolResult {
+  const per = groups.map((g) => {
+    // Resolve computed properties first so filters and aggregation see them.
+    const resolved = g.type ? g.records.map((r) => ({ ...r, ...computedValues(g.type as ObjectTypeDef, r) })) : g.records.slice()
+    const matched = resolved.filter((r) => def.filters.every((f) => passes(r[f.property], f)))
+    return { type: g.type, scanned: resolved.length, matched }
+  })
 
-  if (agg.fn === 'count') {
-    return {
-      value: matched.length,
-      basis: describeBasis(def, matched.length, resolved.length),
-      confidence: resolved.length === 0 ? 0 : 1,   // counting is exact when there's anything to count
-      matched: matched.length,
-      scanned: resolved.length,
-    }
-  }
+  const pooled  = per.flatMap((g) => g.matched)
+  const scanned = per.reduce((s, g) => s + g.scanned, 0)
+  const total   = aggregate(def.aggregation, pooled, scanned)
 
-  const key = agg.property ?? ''
-  const nums = matched
-    .map((r) => Number(r[key]))
-    .filter((n) => Number.isFinite(n))
-
-  const value = nums.length === 0 ? 0 : reduce(agg.fn, nums)
   return {
-    value,
-    basis: describeBasis(def, matched.length, resolved.length),
+    ...total,
+    basis: describeBasis(def, pooled.length, scanned, per.length),
+    matched: pooled.length,
+    scanned,
+    byType: per.map((g) => ({
+      typeId: g.type?.id ?? '',
+      label:  g.type?.label ?? 'records',
+      matched: g.matched.length,
+      scanned: g.scanned,
+      value: aggregate(def.aggregation, g.matched, g.scanned).value,
+    })),
+  }
+}
+
+function aggregate(
+  agg: UserToolDef['aggregation'],
+  matched: ReadonlyArray<ToolRecord>,
+  scanned: number,
+): { value: number; confidence: number } {
+  if (agg.fn === 'count') {
+    // Counting is exact when there's anything to count.
+    return { value: matched.length, confidence: scanned === 0 ? 0 : 1 }
+  }
+  const key = agg.property ?? ''
+  const nums = matched.map((r) => Number(r[key])).filter((n) => Number.isFinite(n))
+  return {
+    value: nums.length === 0 ? 0 : reduce(agg.fn, nums),
     // No matching records, or none with a usable number, is a real answer of
     // "unknown" — say so rather than reporting a confident zero.
     confidence: nums.length === 0 ? 0 : Math.min(1, nums.length / Math.max(1, matched.length)),
-    matched: matched.length,
-    scanned: resolved.length,
   }
 }
 
@@ -217,23 +289,28 @@ function normalize(v: unknown): unknown {
   return typeof v === 'string' ? v.trim().toLowerCase() : v
 }
 
-function describeBasis(def: Pick<UserToolDef, 'filters' | 'aggregation'>, matched: number, scanned: number): string {
+function describeBasis(
+  def: Pick<UserToolDef, 'filters' | 'aggregation'>,
+  matched: number, scanned: number, types: number,
+): string {
   const what = def.aggregation.fn === 'count'
     ? 'count'
     : `${def.aggregation.fn}(${def.aggregation.property ?? '?'})`
   const where = def.filters.length === 0 ? 'all records' : `${String(def.filters.length)} filter(s)`
-  return `${what} over ${String(matched)}/${String(scanned)} records matching ${where}`
+  const span = types === 1 ? '' : ` across ${String(types)} types`
+  return `${what} over ${String(matched)}/${String(scanned)} records matching ${where}${span}`
 }
 
 /** One-line English for the composer + the tool list, so an authored tool reads
  *  like a question rather than a config blob. */
-export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation'>, type: ObjectTypeDef | undefined): string {
-  const label = type?.label ?? 'records'
-  const props = type ? new Map(allProperties(type).map((p) => [p.key, p.label])) : new Map<string, string>()
+export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation'>, subject: ToolSubject | undefined): string {
+  const label = subject ? subjectLabel(subject) : 'records'
+  const props = subject ? new Map(subjectProperties(subject).map((p) => [p.key, p.label])) : new Map<string, string>()
   const agg = AGGREGATIONS.find((a) => a.fn === def.aggregation.fn)
+  const scope = subject?.kind === 'interface' ? `every ${label}` : label
   const head = def.aggregation.fn === 'count'
-    ? `Count of ${label}`
-    : `${agg?.label ?? def.aggregation.fn} ${props.get(def.aggregation.property ?? '') ?? def.aggregation.property ?? '?'} across ${label}`
+    ? `Count of ${scope}`
+    : `${agg?.label ?? def.aggregation.fn} ${props.get(def.aggregation.property ?? '') ?? def.aggregation.property ?? '?'} across ${scope}`
   if (def.filters.length === 0) return head
   const parts = def.filters.map((f) => `${props.get(f.property) ?? f.property} ${OP_LABELS[f.op]} ${String(f.value)}`)
   return `${head} where ${parts.join(' and ')}`

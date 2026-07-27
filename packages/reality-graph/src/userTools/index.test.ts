@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateUserTool, validateUserTool, describeUserTool, allProperties } from './index'
+import { evaluateUserTool, evaluateUserToolAcross, validateUserTool, describeUserTool, allProperties, subjectProperties } from './index'
 import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
+import type { InterfaceDef } from '../interfaces/index'
 
 const type: ObjectTypeDef = {
   id: 't1', organizationId: 'o1', hotelId: null,
@@ -76,32 +77,116 @@ describe('evaluateUserTool', () => {
 })
 
 describe('validateUserTool', () => {
-  const base = { name: 'Open urgent', apiName: 'open_urgent', subjectTypeId: 't1' }
+  const base = { name: 'Open urgent', apiName: 'open_urgent', subjectTypeId: 't1', subjectInterfaceId: null }
+  const on = { kind: 'type' as const, type }
 
   it('accepts an answerable tool', () => {
-    expect(validateUserTool({ ...base, filters: [{ property: 'urgent', op: 'eq', value: true }], aggregation: { fn: 'count' } }, type)).toEqual([])
+    expect(validateUserTool({ ...base, filters: [{ property: 'urgent', op: 'eq', value: true }], aggregation: { fn: 'count' } }, on)).toEqual([])
   })
 
   it('rejects an unknown property, a wrong-typed filter value, and ordering on text', () => {
-    expect(validateUserTool({ ...base, filters: [{ property: 'nope', op: 'eq', value: 1 }], aggregation: { fn: 'count' } }, type)[0]).toContain('not on')
-    expect(validateUserTool({ ...base, filters: [{ property: 'cost', op: 'gt', value: 'lots' }], aggregation: { fn: 'count' } }, type)[0]).toContain('needs a number')
-    expect(validateUserTool({ ...base, filters: [{ property: 'room', op: 'gt', value: 'x' }], aggregation: { fn: 'count' } }, type)[0]).toContain('is / is not')
+    expect(validateUserTool({ ...base, filters: [{ property: 'nope', op: 'eq', value: 1 }], aggregation: { fn: 'count' } }, on)[0]).toContain('not on')
+    expect(validateUserTool({ ...base, filters: [{ property: 'cost', op: 'gt', value: 'lots' }], aggregation: { fn: 'count' } }, on)[0]).toContain('needs a number')
+    expect(validateUserTool({ ...base, filters: [{ property: 'room', op: 'gt', value: 'x' }], aggregation: { fn: 'count' } }, on)[0]).toContain('is / is not')
   })
 
   it('requires a numeric property for aggregations that reduce one', () => {
-    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'sum' } }, type)[0]).toContain('needs a numeric property')
-    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'sum', property: 'room' } }, type)[0]).toContain('is text')
+    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'sum' } }, on)[0]).toContain('needs a numeric property')
+    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'sum', property: 'room' } }, on)[0]).toContain('is text')
   })
 
-  it('needs a subject type', () => {
-    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'count' } }, undefined)[0]).toContain('object type')
+  it('needs a subject', () => {
+    expect(validateUserTool({ ...base, filters: [], aggregation: { fn: 'count' } }, undefined)[0]).toContain('object type or interface')
+  })
+
+  it('refuses a tool claiming both a type and an interface', () => {
+    expect(validateUserTool({ ...base, subjectInterfaceId: 'i1', filters: [], aggregation: { fn: 'count' } }, on))
+      .toContain('A tool asks about one object type or one interface, not both')
+  })
+})
+
+// ── Interface subjects — the reason interfaces exist ─────────────────────────
+
+const roomed: InterfaceDef = {
+  id: 'i1', organizationId: 'o1', apiName: 'roomed', label: 'Roomed', description: '',
+  properties: [{ key: 'room', label: 'Room', type: 'text' }, { key: 'cost', label: 'Cost', type: 'number' }],
+}
+
+const incidentType: ObjectTypeDef = {
+  ...type, id: 't2', apiName: 'incident', label: 'Incident',
+  properties: [
+    { key: 'room', label: 'Room', type: 'text', required: true },
+    { key: 'cost', label: 'Cost', type: 'number', required: false },
+    { key: 'severity', label: 'Severity', type: 'text', required: false },
+  ],
+  computedProperties: [],
+}
+
+describe('tools targeting an interface', () => {
+  const onIface = { kind: 'interface' as const, iface: roomed }
+
+  it('only offers the shared shape — not what one implementer happens to have', () => {
+    expect(subjectProperties(onIface).map((p) => p.key)).toEqual(['room', 'cost'])
+    // `severity` is real on Incident, but a tool using it would break on the
+    // next implementer. That rejection is the load-bearing rule.
+    const errs = validateUserTool(
+      { name: 'x', apiName: 'x', subjectTypeId: null, subjectInterfaceId: 'i1',
+        filters: [{ property: 'severity', op: 'eq', value: 'high' }], aggregation: { fn: 'count' } },
+      onIface,
+    )
+    expect(errs[0]).toContain('shape they all share')
+  })
+
+  it('pools records so avg is the real mean, not the mean of each type mean', () => {
+    const r = evaluateUserToolAcross(
+      { filters: [], aggregation: { fn: 'avg', property: 'cost' } },
+      [
+        { type, records: [{ cost: 300 }] },
+        { type: incidentType, records: [{ cost: 100 }, { cost: 100 }, { cost: 100 }] },
+      ],
+    )
+    expect(r.value).toBe(150)          // (300+100+100+100)/4 — NOT (300+100)/2
+    expect(r.matched).toBe(4)
+    expect(r.basis).toContain('across 2 types')
+  })
+
+  it('shows which type each part of the answer came from', () => {
+    const r = evaluateUserToolAcross(
+      { filters: [], aggregation: { fn: 'sum', property: 'cost' } },
+      [{ type, records: [{ cost: 10 }] }, { type: incidentType, records: [{ cost: 40 }] }],
+    )
+    expect(r.value).toBe(50)
+    expect(r.byType).toEqual([
+      { typeId: 't1', label: 'Maintenance Request', matched: 1, scanned: 1, value: 10 },
+      { typeId: 't2', label: 'Incident',            matched: 1, scanned: 1, value: 40 },
+    ])
+  })
+
+  it('answers an interface nothing implements yet with no confidence', () => {
+    const r = evaluateUserToolAcross({ filters: [], aggregation: { fn: 'count' } }, [])
+    expect(r.value).toBe(0)
+    expect(r.confidence).toBe(0)
+    expect(r.byType).toEqual([])
+  })
+
+  it('picks up a type implementing the interface later, with no re-authoring', () => {
+    const def = { filters: [{ property: 'cost', op: 'gte' as const, value: 50 }], aggregation: { fn: 'count' as const } }
+    const before = evaluateUserToolAcross(def, [{ type, records: [{ cost: 100 }] }])
+    const after  = evaluateUserToolAcross(def, [{ type, records: [{ cost: 100 }] }, { type: incidentType, records: [{ cost: 60 }, { cost: 10 }] }])
+    expect(before.value).toBe(1)
+    expect(after.value).toBe(2)        // same definition, new implementer counted
   })
 })
 
 describe('describeUserTool + allProperties', () => {
   it('reads as a question, not a config blob', () => {
-    expect(describeUserTool({ filters: [{ property: 'urgent', op: 'eq', value: true }], aggregation: { fn: 'count' } }, type))
+    expect(describeUserTool({ filters: [{ property: 'urgent', op: 'eq', value: true }], aggregation: { fn: 'count' } }, { kind: 'type', type }))
       .toBe('Count of Maintenance Request where Urgent is true')
+  })
+
+  it('says an interface tool spans every implementer', () => {
+    expect(describeUserTool({ filters: [], aggregation: { fn: 'count' } }, { kind: 'interface', iface: roomed }))
+      .toBe('Count of every Roomed')
   })
 
   it('exposes computed properties alongside stored ones', () => {

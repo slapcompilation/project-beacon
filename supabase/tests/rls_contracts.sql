@@ -42,6 +42,7 @@
 DO $$
 DECLARE
   v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[]; v_type uuid; v_iface uuid; v_other uuid;
+  v_foreign_type uuid;
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
@@ -584,11 +585,61 @@ BEGIN
     INSERT INTO object_type_interfaces (object_type_id, interface_id) VALUES (v_other, v_iface);
   EXCEPTION WHEN check_violation THEN raised := true;
   END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C21b: DB accepted a false interface claim';
+  END IF;
+
+  -- ── C22: a tool has exactly one subject, and it must be readable (mig 225) ─
+  -- An interface-targeted tool is how one definition survives new types; a tool
+  -- over both a type and an interface has no defined record set at all.
+  raised := false;
+  BEGIN
+    INSERT INTO user_tools (name, api_name, subject_type_id, subject_interface_id, aggregation)
+    VALUES ('C22 both', 'c22_both', v_type, v_iface, '{"fn":"count"}'::jsonb);
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C22a: a tool claiming both a type and an interface was accepted';
+  END IF;
+
+  -- the interface-targeted tool itself is legitimate
+  INSERT INTO user_tools (name, api_name, subject_type_id, subject_interface_id, aggregation)
+  VALUES ('C22 roomed', 'c22_roomed', NULL, v_iface, '{"fn":"count"}'::jsonb);
+  SELECT count(*) INTO n FROM user_tools WHERE api_name = 'c22_roomed';
+  IF n <> 1 THEN
+    RESET ROLE; DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C22b: an admin could not author a tool targeting an interface';
+  END IF;
+
+  -- A subject the author cannot read is never a legitimate tool. Only assertable
+  -- where a second org exists — with one org the FK would reject any id we could
+  -- invent, which would pass this for the wrong reason.
   RESET ROLE;
-  DELETE FROM ontology_interfaces WHERE id = v_iface;
-  DELETE FROM object_types WHERE id IN (v_type, v_other);
-  IF NOT raised THEN RAISE EXCEPTION 'C21b: DB accepted a false interface claim'; END IF;
+  SELECT id INTO v_foreign_type FROM object_types WHERE organization_id <> v_org LIMIT 1;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+  IF v_foreign_type IS NOT NULL THEN
+    raised := false;
+    BEGIN
+      INSERT INTO user_tools (name, api_name, subject_type_id, aggregation)
+      VALUES ('C22 foreign', 'c22_foreign', v_foreign_type, '{"fn":"count"}'::jsonb);
+    EXCEPTION WHEN insufficient_privilege THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM user_tools WHERE api_name LIKE 'c22%';
+      DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+      RAISE EXCEPTION 'C22c CROSS-ORG: a tool over another org''s object type was accepted';
+    END IF;
+  END IF;
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified', v_b_pending;
+  DELETE FROM user_tools WHERE api_name LIKE 'c22%';
+  DELETE FROM ontology_interfaces WHERE id = v_iface;
+  DELETE FROM object_types WHERE id IN (v_type, v_other);
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject', v_b_pending;
 END $$;

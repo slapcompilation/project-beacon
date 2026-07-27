@@ -181,6 +181,18 @@ export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRe
   return data as ObjectRecordRow[]
 }
 
+/** Records for several types in one read — what an interface-targeted tool needs,
+ *  since its record set spans every implementer. */
+export async function fetchObjectRecordsForTypes(typeIds: string[]): Promise<ObjectRecordRow[]> {
+  if (typeIds.length === 0) return []
+  const { data, error } = await supabase
+    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
+    .in('object_type_id', typeIds)
+    .order('created_at', { ascending: false })
+  if (error) throw new Error(error.message)
+  return data as ObjectRecordRow[]
+}
+
 export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
   const { data, error } = await supabase
     .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
