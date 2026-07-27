@@ -1,36 +1,36 @@
-// Expiry monitor sweep — the effect side of the loop. Reads the deterministic
-// metric (expiry batches), applies the operator's tunable trigger, and fires a
-// typed WRITE_OFF proposal per fired variant into Decisions. WRITE_OFF is never
-// in the auto-exec policy, so every proposal queues for review — by design.
+// Expiry monitor PREVIEW — what would fire, without writing anything.
+//
+// This used to create proposals directly, which was a second write path that
+// never saw decideAutoExecution. Firing now happens inside the intelligence
+// cycle (buildExpiryProposals feeds the one gate), so the operator affordance
+// here is "show me what this threshold catches" — useful while tuning, and
+// incapable of writing.
 
 import { useMutation } from '@tanstack/react-query'
-import { selectExpiryTriggers, expiryHitToWriteOff, type ExpiryBatch } from '@beacon/reality-graph'
+import { selectExpiryTriggers, type ExpiryBatch } from '@beacon/reality-graph'
 import { fetchExpiryBatches } from '@/features/inventory/api'
-import { createProposal } from '@/features/agents/proposalsApi'
-import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useMonitorPolicy } from './hooks'
 
 export interface ExpiryScanResult {
   scanned: number
   fired: number
-  proposalsCreated: number
+  /** Distinct variants the next cycle would raise a write-off proposal for. */
+  wouldPropose: number
   ranAt: string
 }
 
 export function useExpiryMonitorSweep() {
-  const userId = useAuthStore((s) => s.userId)
   const hotelId = useActiveHotelId()
   const { data: policy } = useMonitorPolicy()
 
   return useMutation<ExpiryScanResult>({
     mutationFn: async () => {
-      if (!userId || !hotelId) throw new Error('Not signed in')
+      if (!hotelId) throw new Error('Not signed in')
       const rule = policy?.merged.monitors.expiry
-      if (!rule || !rule.enabled) throw new Error('Expiry monitor is disabled')
+      if (!rule?.enabled) throw new Error('Expiry monitor is disabled')
 
-      // METRIC: pull readings within the tunable window; the TRIGGER decides
-      // what fires. No hardcoded band here.
+      // METRIC: readings within the tunable window; the TRIGGER decides what fires.
       const rows = await fetchExpiryBatches(Math.max(rule.threshold_days, 1))
       const batches: ExpiryBatch[] = rows.map((r) => ({
         variantId: r.variant_id,
@@ -44,31 +44,12 @@ export function useExpiryMonitorSweep() {
       }))
 
       const hits = selectExpiryTriggers(batches, rule)
-
-      // One proposal per variant — its most urgent batch leads (hits are sorted).
-      const seen = new Set<string>()
-      let created = 0
-      for (const hit of hits) {
-        if (seen.has(hit.variantId)) continue
-        seen.add(hit.variantId)
-        const action = expiryHitToWriteOff(hit, userId)
-        const when = hit.daysUntilExpiry <= 0 ? 'has expired' : `expires in ${String(hit.daysUntilExpiry)}d`
-        await createProposal({
-          hotelId,
-          agentName: 'expiry_monitor',
-          agentVersion: '1.0.0',
-          createdByUserId: userId,
-          proposal: {
-            action,
-            confidence: Math.min(0.95, 0.5 + hit.urgency / 20),
-            reasoning: `Expiry monitor fired: ${hit.variantLabel} ${when}, €${hit.costAtRisk.toFixed(0)} at risk. Trigger: days_until_expiry ≤ ${String(rule.threshold_days)}.`,
-            provenance: [{ kind: 'tool', ref: 'expiry_monitor', detail: `days_until_expiry=${String(hit.daysUntilExpiry)} ≤ ${String(rule.threshold_days)}` }],
-          },
-        })
-        created++
+      return {
+        scanned: batches.length,
+        fired: hits.length,
+        wouldPropose: new Set(hits.map((h) => h.variantId)).size,
+        ranAt: new Date().toISOString(),
       }
-
-      return { scanned: batches.length, fired: hits.length, proposalsCreated: created, ranAt: new Date().toISOString() }
     },
   })
 }

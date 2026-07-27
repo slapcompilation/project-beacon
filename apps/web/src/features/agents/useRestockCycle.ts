@@ -30,6 +30,7 @@ import {
 } from '@beacon/reality-graph'
 import { fetchAutomations, rowToAutomation } from '@/features/automations/api'
 import { runAuthoredAgents } from '@/features/userAgents/runInCycle'
+import { buildExpiryProposals } from '@/features/monitors/expiryProposals'
 import { fetchResolvedSamples } from '@/features/calibration/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
@@ -152,7 +153,12 @@ export function useRestockCycle() {
         minCalibrationSamples: calOpts.minSamples,
         openProposalKeys,
         automationProposals: (variant) => autoByVariant.get(variant.id) ?? [],
-        authoredAgentProposals: () => runAuthoredAgents({ variants, hotelId, reader }),
+        // Every source that reasons once per cycle — authored agents and the
+        // monitors — funnels through this one seam and the one gate.
+        externalProposals: async () => [
+          ...await runAuthoredAgents({ variants, hotelId, reader }),
+          ...await buildExpiryProposals({ policy: orgPolicy, hotelId, userId, scope: variants }),
+        ],
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals
