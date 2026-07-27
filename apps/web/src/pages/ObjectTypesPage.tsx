@@ -25,6 +25,7 @@ import {
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink,
 } from '@/features/objectTypes/hooks'
+import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -84,6 +85,8 @@ export default function ObjectTypesPage() {
         </section>
 
         {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
+
+        <InterfacesSection types={types} />
       </div>
     </div>
   )
