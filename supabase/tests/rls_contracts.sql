@@ -428,6 +428,57 @@ BEGIN
   DELETE FROM model_eval_runs WHERE adapter_name = '__c17__';
   IF n <> 1 THEN RAISE EXCEPTION 'C17e: staged adapter could not reach production'; END IF;
 
+  -- ── C18: authored Logic Tools are admin-authored + DB-grammar-checked ─────
+  -- Needs its own subject type: the C15/C16 probe type was already dropped.
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production', v_b_pending;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+  INSERT INTO object_types (api_name, label) VALUES ('c18_probe_type', 'C18 Probe') RETURNING id INTO v_type;
+  RESET ROLE;
+
+  IF v_type IS NOT NULL THEN
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+    SET LOCAL ROLE authenticated;
+    raised := false;
+    BEGIN
+      INSERT INTO user_tools (name, api_name, subject_type_id, aggregation)
+      VALUES ('probe', 'c18_probe', v_type, '{"fn":"count"}'::jsonb);
+    EXCEPTION WHEN insufficient_privilege THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM object_types WHERE id = v_type;   -- cascades the tool
+      RAISE EXCEPTION 'C18a: hotel_manager authored a Logic Tool (expected admin/owner-only)';
+    END IF;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+
+    -- The database is the last word on the grammar, not the composer: an
+    -- aggregation that reduces a property must name one.
+    raised := false;
+    BEGIN
+      INSERT INTO user_tools (name, api_name, subject_type_id, aggregation)
+      VALUES ('bad', 'c18_bad', v_type, '{"fn":"sum"}'::jsonb);
+    EXCEPTION WHEN check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM object_types WHERE id = v_type;
+      RAISE EXCEPTION 'C18b: DB accepted a sum tool with no property';
+    END IF;
+
+    INSERT INTO user_tools (name, api_name, subject_type_id, aggregation)
+    VALUES ('probe', 'c18_probe', v_type, '{"fn":"count"}'::jsonb);
+    SELECT count(*) INTO n FROM user_tools
+     WHERE api_name = 'c18_probe' AND organization_id = v_org AND created_by_user_id = v_user;
+    RESET ROLE;
+    DELETE FROM object_types WHERE id = v_type;   -- cascades the tool
+    IF n <> 1 THEN RAISE EXCEPTION 'C18c: admin could not author a Logic Tool, or org/author defaults did not land'; END IF;
+  END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked', v_b_pending;
 END $$;

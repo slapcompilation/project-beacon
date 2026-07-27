@@ -433,6 +433,13 @@ export type {
 } from './automations/index'
 
 export {
+  AGGREGATIONS, OP_LABELS, evaluateUserTool, validateUserTool, describeUserTool, allProperties,
+} from './userTools/index'
+export type {
+  UserToolDef, UserToolResult, ToolFilter, ToolRecord, AggregationFn, AggregationDef,
+} from './userTools/index'
+
+export {
   PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
   validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
   evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig,

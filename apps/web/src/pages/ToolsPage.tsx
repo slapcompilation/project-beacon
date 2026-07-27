@@ -1,17 +1,23 @@
-// Tools index — every Logic Tool in the registry, grouped by AIP category.
-// Shows category coverage (which of the 7 AIP categories we've populated).
+// Tools index — every Logic Tool available here, authored ones first, then the
+// shipped registry grouped by AIP category (which of the 7 we've populated).
+//
+// An authored tool is a bounded question over the ontology rather than a code
+// body; it answers with the same value + basis + confidence contract.
 
-import { useMemo } from 'react'
-import { Card, Intent, Tag } from '@blueprintjs/core'
+import { useMemo, useState } from 'react'
+import { Button, Card, Icon, Intent, Tag } from '@blueprintjs/core'
 import { EntityCard } from '@/components/EntityCard'
 import { toolDescriptors } from '@/features/agentStudio/registry'
 import type { LogicTool, ToolCategory } from '@beacon/reality-graph'
+import ToolComposer from '@/features/userTools/ToolComposer'
+import AuthoredTools from '@/features/userTools/AuthoredTools'
 
 const ALL_CATEGORIES: ToolCategory[] = [
   'data', 'logic', 'search', 'mutation', 'utility', 'predefined', 'ui-control',
 ]
 
 export default function ToolsPage() {
+  const [composing, setComposing] = useState(false)
   const grouped = useMemo(() => {
     const m = new Map<ToolCategory, LogicTool[]>()
     for (const c of ALL_CATEGORIES) m.set(c, [])
@@ -21,14 +27,27 @@ export default function ToolsPage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="px-6 py-4 border-b shrink-0">
-        <h1 className="text-sm font-semibold">Logic Tools</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          Every registered Logic Tool, grouped by AIP category. Agents may only invoke tools listed in their declared toolset.
-        </p>
+      <header className="px-6 py-4 border-b shrink-0 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-sm font-semibold">Logic Tools</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Every Logic Tool available here. Agents may only invoke tools listed in their declared toolset.
+          </p>
+        </div>
+        <Button size="small" intent={Intent.PRIMARY} icon="add" onClick={() => { setComposing(true) }}>New tool</Button>
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        {composing && <ToolComposer onDone={() => { setComposing(false) }} />}
+
+        <section className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Tag minimal intent={Intent.PRIMARY} className="font-mono text-[10px]">authored</Tag>
+            <h2 className="text-sm font-semibold flex items-center gap-1.5"><Icon icon="build" size={12} /> Your tools</h2>
+          </div>
+          <AuthoredTools onCompose={() => { setComposing(true) }} />
+        </section>
+
         {ALL_CATEGORIES.map((category) => {
           const tools = grouped.get(category) ?? []
           return (
