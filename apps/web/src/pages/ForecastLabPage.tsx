@@ -122,7 +122,10 @@ export default function ForecastLabPage() {
                             { value: '', label: stage ? 'Re-release…' : 'Release…' },
                             { value: 'sandbox', label: '→ sandbox' },
                             { value: 'staging', label: '→ staging' },
-                            { value: 'production', label: '→ production' },
+                            // Production requires this adapter to be the current
+                            // staging release — the server enforces it, so don't
+                            // offer a click that can only fail.
+                            ...(stage === 'staging' ? [{ value: 'production', label: '→ production' }] : []),
                           ]}
                           minimal
                         />
@@ -135,7 +138,8 @@ export default function ForecastLabPage() {
           </table>
           <p className="text-[11px] text-muted-foreground">
             Bias is signed: negative = systematic under-forecast. Releasing from here records this backtest as
-            the eval that justifies it, then cuts the release — production flips the tool's basis and callers
+            the eval that justifies it, then cuts the release. Production is offered once an adapter is the
+            current staging release — stage it, watch it, then promote; that flips the tool's basis and callers
             don't change. Deployments live in <Link to="/mind?aip=objectives" className="text-primary hover:underline">Modeling Objectives</Link>.
           </p>
         </Card>

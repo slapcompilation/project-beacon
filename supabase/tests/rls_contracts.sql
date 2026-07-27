@@ -394,10 +394,40 @@ BEGIN
   -- Sandbox needs no eval; admin can release.
   PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'sandbox');
   SELECT count(*) INTO n FROM model_releases WHERE adapter_name = '__c17__' AND stage = 'sandbox';
+  IF n <> 1 THEN
+    RESET ROLE; DELETE FROM model_releases WHERE adapter_name = '__c17__';
+    RAISE EXCEPTION 'C17d: admin could not release to sandbox';
+  END IF;
+
+  -- C17e: staging before production. A passing eval is not enough — the adapter
+  -- must be the one currently on staging, and that check reports first.
   RESET ROLE;
-  DELETE FROM model_releases WHERE adapter_name = '__c17__';
-  IF n <> 1 THEN RAISE EXCEPTION 'C17d: admin could not release to sandbox'; END IF;
+  INSERT INTO model_eval_runs (organization_id, objective_name, adapter_name, adapter_version, dataset, metric, value, case_count)
+  VALUES (v_org, 'consumption_forecast', '__c17__', '0.0.1', 'probe', 'mape', 0.05, 10);
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN
+    PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'production');
+  EXCEPTION WHEN check_violation THEN raised := true; v_msg := SQLERRM;
+  END;
+  IF NOT raised OR v_msg NOT LIKE '%promote it to staging first%' THEN
+    RESET ROLE;
+    DELETE FROM model_releases  WHERE adapter_name = '__c17__';
+    DELETE FROM model_eval_runs WHERE adapter_name = '__c17__';
+    RAISE EXCEPTION 'C17e: unstaged adapter reached production (or wrong reason): %', coalesce(v_msg, 'no error');
+  END IF;
+
+  -- Stage it, then production is allowed.
+  PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'staging');
+  PERFORM promote_model('consumption_forecast', '__c17__', '0.0.1', 'production');
+  SELECT count(*) INTO n FROM model_releases WHERE adapter_name = '__c17__' AND stage = 'production';
+  RESET ROLE;
+  DELETE FROM model_releases  WHERE adapter_name = '__c17__';
+  DELETE FROM model_eval_runs WHERE adapter_name = '__c17__';
+  IF n <> 1 THEN RAISE EXCEPTION 'C17e: staged adapter could not reach production'; END IF;
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production', v_b_pending;
 END $$;

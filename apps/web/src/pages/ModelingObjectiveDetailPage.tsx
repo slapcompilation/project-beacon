@@ -107,7 +107,7 @@ export default function ModelingObjectiveDetailPage() {
       </header>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <PromotionBanner objectiveName={objectiveName} rec={recommendation} />
+        <PromotionBanner objectiveName={objectiveName} rec={recommendation} staged={releaseByStage.get('staging')} />
 
         <SubmissionsSection
           objectiveName={objectiveName}
@@ -146,26 +146,34 @@ export default function ModelingObjectiveDetailPage() {
 
 // ─── Promotion recommendation (closes the modeling loop) ─────────────────────
 
-function PromotionBanner({ objectiveName, rec }: { objectiveName: string; rec: PromotionRecommendation }) {
+function PromotionBanner({ objectiveName, rec, staged }: {
+  objectiveName: string; rec: PromotionRecommendation; staged: ReleaseRow | undefined
+}) {
   const promote = usePromoteRelease(objectiveName)
   if (rec.action !== 'promote' || !rec.winner) return null
   const winner = rec.winner
+  // Production requires this exact adapter to be the current staging release
+  // (migration 220). Offer the staging hop instead of a click that would fail.
+  const isStaged = staged?.adapter_name === winner.name && staged.adapter_version === winner.version
+  const target: ReleaseStage = isStaged ? 'production' : 'staging'
   return (
     <Card className="flex items-center gap-3 border border-primary/40 bg-primary/5">
       <Icon icon="lightbulb" intent={Intent.PRIMARY} size={16} />
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold">
-          Recommended: promote <span className="font-mono">{winner.name}</span> to production
+          Recommended: promote <span className="font-mono">{winner.name}</span> to {target}
         </div>
-        <div className="text-[11px] text-muted-foreground">{rec.reason}</div>
+        <div className="text-[11px] text-muted-foreground">
+          {rec.reason}{isStaged ? '' : ' Stage it first — production promotes what is currently on staging.'}
+        </div>
       </div>
       <Button
         intent={Intent.PRIMARY}
         icon="flag"
         loading={promote.isPending}
-        onClick={() => { promote.mutate({ adapterName: winner.name, adapterVersion: winner.version, stage: 'production' }) }}
+        onClick={() => { promote.mutate({ adapterName: winner.name, adapterVersion: winner.version, stage: target }) }}
       >
-        Promote to production
+        Promote to {target}
       </Button>
     </Card>
   )
@@ -247,7 +255,11 @@ function AdapterCard({
   const runEval   = useRunEvalForAdapter(objectiveName)
   const [stage, setStage] = useState<ReleaseStage>('staging')
   const hasEval   = !!latestMae
-  const blockedByGate = stage === 'production' && !hasEval
+  const notStaged = !releaseTags.includes('staging')
+  const blockedByGate = stage === 'production' && (!hasEval || notStaged)
+  const blockReason = !hasEval ? 'Run an eval before promoting to production'
+    : notStaged ? 'Promote to staging first — production promotes what is currently on staging'
+    : undefined
 
   return (
     <Card className="space-y-3">
@@ -288,7 +300,7 @@ function AdapterCard({
           icon="flag"
           loading={promote.isPending}
           disabled={blockedByGate}
-          title={blockedByGate ? 'Run an eval before promoting to production' : undefined}
+          title={blockedByGate ? blockReason : undefined}
           onClick={() => { promote.mutate({ adapterName: adapter.name, adapterVersion: adapter.version, stage }) }}
         >
           Promote to {stage}
