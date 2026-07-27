@@ -479,6 +479,58 @@ BEGIN
     IF n <> 1 THEN RAISE EXCEPTION 'C18c: admin could not author a Logic Tool, or org/author defaults did not land'; END IF;
   END IF;
 
+  -- ── C19: authored agents are admin-authored + DB-shape-checked ────────────
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked', v_b_pending;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN
+    INSERT INTO user_agents (name, api_name, purpose, toolset, procedure)
+    VALUES ('probe', 'c19_probe', 'p', '["forecast_consumption"]'::jsonb, '[{"instruction":"go"}]'::jsonb);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM user_agents WHERE api_name LIKE 'c19_%';
+    RAISE EXCEPTION 'C19a: hotel_manager authored an agent (expected admin/owner-only)';
+  END IF;
+
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  -- An agent with no tools could only guess; one with no steps is a prompt.
+  raised := false;
+  BEGIN
+    INSERT INTO user_agents (name, api_name, purpose, toolset, procedure)
+    VALUES ('probe', 'c19_probe', 'p', '[]'::jsonb, '[{"instruction":"go"}]'::jsonb);
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM user_agents WHERE api_name LIKE 'c19_%';
+    RAISE EXCEPTION 'C19b: DB accepted an agent with an empty toolset';
+  END IF;
+
+  raised := false;
+  BEGIN
+    INSERT INTO user_agents (name, api_name, purpose, toolset, procedure)
+    VALUES ('probe', 'c19_probe', 'p', '["forecast_consumption"]'::jsonb, '[]'::jsonb);
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM user_agents WHERE api_name LIKE 'c19_%';
+    RAISE EXCEPTION 'C19c: DB accepted an agent with no procedure';
+  END IF;
+
+  INSERT INTO user_agents (name, api_name, purpose, toolset, procedure)
+  VALUES ('probe', 'c19_probe', 'p', '["forecast_consumption"]'::jsonb, '[{"instruction":"go"}]'::jsonb);
+  SELECT count(*) INTO n FROM user_agents
+   WHERE api_name = 'c19_probe' AND organization_id = v_org AND created_by_user_id = v_user;
+  RESET ROLE;
+  DELETE FROM user_agents WHERE api_name LIKE 'c19_%';
+  IF n <> 1 THEN RAISE EXCEPTION 'C19d: admin could not author an agent, or org/author defaults did not land'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked', v_b_pending;
 END $$;

@@ -431,14 +431,12 @@ async function fetchAuthoredTools(supabase: SupabaseClient): Promise<AuthoredToo
  *  valid choices while keeping the tool list bounded as orgs author more. */
 function authoredToolDescriptor(tools: AuthoredToolRow[]): Anthropic.Tool | null {
   if (tools.length === 0) return null
-  const catalogue = tools.map((t) => `${t.api_name}: ${t.description || t.name}`).join('
-')
+  const catalogue = tools.map((t) => `${t.api_name}: ${t.description || t.name}`).join('\n')
   return {
     name: 'run_authored_tool',
     description:
       'Answer a Logic Tool this organization authored over its own ontology. Each returns a ' +
-      'number with the basis it was computed from and a confidence. Available tools:
-' + catalogue,
+      'number with the basis it was computed from and a confidence. Available tools:\n' + catalogue,
     input_schema: {
       type: 'object',
       properties: {
