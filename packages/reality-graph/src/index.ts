@@ -444,6 +444,11 @@ export type {
 } from './authoredAgents/index'
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
 export { buildAuthoredAgentTools } from './authoredAgents/tools'
+
+export {
+  validateInterfaceDraft, conformanceErrors, implementsInterface, typesConforming, interfaceProperties,
+} from './interfaces/index'
+export type { InterfaceDef, InterfacePropertyDef } from './interfaces/index'
 export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from './authoredAgents/run'
 export type {
   UserToolDef, UserToolResult, ToolFilter, ToolRecord, AggregationFn, AggregationDef,

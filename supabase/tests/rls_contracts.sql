@@ -41,7 +41,7 @@
 
 DO $$
 DECLARE
-  v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[]; v_type uuid;
+  v_a uuid; v_org uuid; v_b uuid; v_org_hotels uuid[]; v_type uuid; v_iface uuid; v_other uuid;
   v_b_pending int; v_expected int;
   v_log_a uuid; n int; qp int; leaked boolean; raised boolean; v_msg text;
   claims_a text; claims_b text; claims_admin text;
@@ -552,6 +552,43 @@ BEGIN
     RESET ROLE;
   END IF;
 
+  -- ── C21: an interface claim must be TRUE (migration 224) ──────────────────
+  -- Polymorphism that lies is worse than none: a tool written against the
+  -- interface would break at read time on a type that never had the shape.
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned', v_b_pending;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  INSERT INTO object_types (api_name, label, properties)
+  VALUES ('c21_conforms', 'C21 Conforms', '[{"key":"room","label":"Room","type":"text","required":true}]'::jsonb)
+  RETURNING id INTO v_type;
+  INSERT INTO ontology_interfaces (api_name, label, properties)
+  VALUES ('c21_roomed', 'C21 Roomed', '[{"key":"room","label":"Room","type":"text"}]'::jsonb)
+  RETURNING id INTO v_iface;
+
+  -- the honest claim is accepted
+  INSERT INTO object_type_interfaces (object_type_id, interface_id) VALUES (v_type, v_iface);
+  SELECT count(*) INTO n FROM object_type_interfaces WHERE interface_id = v_iface;
+  IF n <> 1 THEN
+    RESET ROLE; DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id = v_type;
+    RAISE EXCEPTION 'C21a: a conforming type could not implement the interface';
+  END IF;
+
+  -- a type without the shape must be refused
+  INSERT INTO object_types (api_name, label, properties)
+  VALUES ('c21_lacks', 'C21 Lacks', '[{"key":"floor","label":"Floor","type":"number","required":false}]'::jsonb)
+  RETURNING id INTO v_other;
+  raised := false;
+  BEGIN
+    INSERT INTO object_type_interfaces (object_type_id, interface_id) VALUES (v_other, v_iface);
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  RESET ROLE;
+  DELETE FROM ontology_interfaces WHERE id = v_iface;
+  DELETE FROM object_types WHERE id IN (v_type, v_other);
+  IF NOT raised THEN RAISE EXCEPTION 'C21b: DB accepted a false interface claim'; END IF;
+
+  RESET ROLE;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified', v_b_pending;
 END $$;
