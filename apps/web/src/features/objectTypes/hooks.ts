@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   updateObjectType, fetchRevisions, restoreRevision,
-  fetchObjectRecords, fetchObjectRecord, createObjectRecord, deleteObjectRecord,
+  fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, createObjectRecord, deleteObjectRecord,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchLinksForRecord, createObjectLink, deleteObjectLink,
   type CreateObjectTypeInput, type CreateObjectRecordInput,
@@ -57,6 +57,15 @@ export function useObjectRecords(typeId: string | null) {
     queryKey: keys.records(typeId ?? ''),
     queryFn: () => fetchObjectRecords(typeId ?? ''),
     enabled: !!typeId,
+    staleTime: 15_000,
+  })
+}
+
+export function useObjectRecordsForTypes(typeIds: string[]) {
+  const key = [...typeIds].sort().join(',')
+  return useQuery({
+    queryKey: ['object-records-multi', key] as const,
+    queryFn: () => fetchObjectRecordsForTypes(typeIds),
     staleTime: 15_000,
   })
 }

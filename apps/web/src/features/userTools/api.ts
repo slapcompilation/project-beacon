@@ -11,7 +11,9 @@ export interface UserToolRow {
   name: string
   api_name: string
   description: string
-  subject_type_id: string
+  /** Exactly one is set: one type, or an interface (every implementer). */
+  subject_type_id: string | null
+  subject_interface_id: string | null
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
   enabled: boolean
@@ -29,7 +31,8 @@ export interface CreateUserToolInput {
   name: string
   apiName: string
   description: string
-  subjectTypeId: string
+  subjectTypeId: string | null
+  subjectInterfaceId: string | null
   filters: ToolFilter[]
   aggregation: { fn: AggregationFn; property?: string }
 }
@@ -39,7 +42,8 @@ export async function createUserTool(i: CreateUserToolInput): Promise<UserToolRo
   const { data, error } = await supabase.from('user_tools')
     .insert({
       name: i.name, api_name: i.apiName, description: i.description,
-      subject_type_id: i.subjectTypeId, filters: i.filters, aggregation: i.aggregation,
+      subject_type_id: i.subjectTypeId, subject_interface_id: i.subjectInterfaceId,
+      filters: i.filters, aggregation: i.aggregation,
     })
     .select('*').single<UserToolRow>()
   if (error) throw new Error(error.message)

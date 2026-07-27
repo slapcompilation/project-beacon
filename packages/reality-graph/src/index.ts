@@ -433,7 +433,8 @@ export type {
 } from './automations/index'
 
 export {
-  AGGREGATIONS, OP_LABELS, evaluateUserTool, validateUserTool, describeUserTool, allProperties,
+  AGGREGATIONS, OP_LABELS, evaluateUserTool, evaluateUserToolAcross, validateUserTool,
+  describeUserTool, allProperties, subjectProperties, subjectLabel,
 } from './userTools/index'
 
 export {
@@ -451,7 +452,8 @@ export {
 export type { InterfaceDef, InterfacePropertyDef } from './interfaces/index'
 export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from './authoredAgents/run'
 export type {
-  UserToolDef, UserToolResult, ToolFilter, ToolRecord, AggregationFn, AggregationDef,
+  UserToolDef, UserToolResult, ToolFilter, ToolRecord, ToolRecordGroup, ToolSubject,
+  ToolTypeBreakdown, AggregationFn, AggregationDef,
 } from './userTools/index'
 
 export {

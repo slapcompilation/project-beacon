@@ -7,41 +7,36 @@ import {
   Button, Card, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag,
 } from '@blueprintjs/core'
 import {
-  AGGREGATIONS, OP_LABELS, allProperties, describeUserTool, evaluateUserTool, validateUserTool, toSlug,
-  type AggregationFn, type ObjectTypeDef, type ToolFilter,
+  AGGREGATIONS, OP_LABELS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
+  type AggregationFn, type PropertyDef, type ToolFilter,
 } from '@beacon/reality-graph'
-import { useObjectTypes, useObjectRecords } from '@/features/objectTypes/hooks'
-import { rowToObjectType } from '@/features/objectTypes/api'
 import { useCreateUserTool } from './hooks'
+import Breakdown from './Breakdown'
+import { decodeSubject, encodeSubject, useToolSubject, type SubjectRef } from './subject'
 
 export default function ToolComposer({ onDone }: { onDone: () => void }) {
-  const types = useObjectTypes()
   const create = useCreateUserTool()
 
   const [name, setName] = useState('')
-  const [typeId, setTypeId] = useState('')
+  const [ref, setRef] = useState<SubjectRef>({ subjectTypeId: null, subjectInterfaceId: null })
   const [filters, setFilters] = useState<ToolFilter[]>([])
   const [fn, setFn] = useState<AggregationFn>('count')
   const [aggProp, setAggProp] = useState('')
 
-  const type: ObjectTypeDef | undefined = useMemo(() => {
-    const row = (types.data ?? []).find((t) => t.id === typeId)
-    return row ? rowToObjectType(row) : undefined
-  }, [types.data, typeId])
+  const { subject, targets, groups, types, interfaces } = useToolSubject(ref)
 
-  const props = type ? allProperties(type) : []
+  const props = subject ? subjectProperties(subject) : []
   const numericProps = props.filter((p) => p.type === 'number')
-  const records = useObjectRecords(typeId || null)
 
-  const draft = { name, apiName: toSlug(name), subjectTypeId: typeId, filters, aggregation: { fn, property: aggProp || undefined } }
-  const errors = validateUserTool(draft, type)
-  const sentence = describeUserTool(draft, type)
+  const draft = { name, apiName: toSlug(name), ...ref, filters, aggregation: { fn, property: aggProp || undefined } }
+  const errors = validateUserTool(draft, subject)
+  const sentence = describeUserTool(draft, subject)
 
   // Answer it against the real record set as the operator builds it.
   const preview = useMemo(() => {
-    if (errors.length > 0 || !records.data) return null
-    return evaluateUserTool(draft, records.data.map((r) => r.data), type)
-  }, [errors.length, records.data, type, filters, fn, aggProp])   // eslint-disable-line react-hooks/exhaustive-deps
+    if (errors.length > 0 || !groups) return null
+    return evaluateUserToolAcross(draft, groups)
+  }, [errors.length, groups, filters, fn, aggProp])   // eslint-disable-line react-hooks/exhaustive-deps
 
   const needsProperty = AGGREGATIONS.find((a) => a.fn === fn)?.needsProperty === true
 
@@ -58,8 +53,18 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
           <InputGroup value={name} placeholder="Open urgent requests" onChange={(e) => { setName(e.target.value) }} style={{ width: 200 }} />
         </Field>
         <Field label="About">
-          <HTMLSelect value={typeId} onChange={(e) => { setTypeId(e.currentTarget.value); setFilters([]); setAggProp('') }}
-            options={[{ value: '', label: 'Pick an object type…' }, ...(types.data ?? []).map((t) => ({ value: t.id, label: t.label }))]} />
+          <HTMLSelect value={encodeSubject(ref)}
+            onChange={(e) => { setRef(decodeSubject(e.currentTarget.value)); setFilters([]); setAggProp('') }}>
+            <option value="">Pick an object type or interface…</option>
+            <optgroup label="Object types">
+              {(types.data ?? []).map((t) => <option key={t.id} value={`type:${t.id}`}>{t.label}</option>)}
+            </optgroup>
+            {(interfaces.data ?? []).length > 0 && (
+              <optgroup label="Interfaces — runs across every implementer">
+                {(interfaces.data ?? []).map((i) => <option key={i.id} value={`iface:${i.id}`}>{i.label}</option>)}
+              </optgroup>
+            )}
+          </HTMLSelect>
         </Field>
         <Field label="Answer">
           <HTMLSelect value={fn} onChange={(e) => { setFn(e.currentTarget.value as AggregationFn) }}
@@ -73,7 +78,16 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
         )}
       </div>
 
-      {type && (
+      {subject?.kind === 'interface' && (
+        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+          <Icon icon="layers" size={11} className="text-violet-500" />
+          {targets.length === 0
+            ? <span className="text-amber-600">No type implements {subject.iface.label} yet — this tool will answer nothing until one does.</span>
+            : <span>Runs across {targets.map((t) => t.label).join(', ')} — and any type that implements {subject.iface.label} later.</span>}
+        </div>
+      )}
+
+      {subject && (
         <div className="space-y-1.5">
           {filters.map((f, i) => (
             <FilterRow
@@ -92,17 +106,20 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
-      {type && <p className="text-xs text-muted-foreground italic">{sentence}</p>}
+      {subject && <p className="text-xs text-muted-foreground italic">{sentence}</p>}
 
       {preview && (
-        <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 flex items-center gap-3 flex-wrap text-xs">
-          <Icon icon="calculator" size={12} className="text-primary" />
-          <span className="text-lg font-semibold tabular-nums">{round(preview.value)}</span>
-          <span className="text-muted-foreground">{preview.basis}</span>
-          <Tag minimal intent={preview.confidence >= 0.85 ? Intent.SUCCESS : preview.confidence >= 0.6 ? Intent.WARNING : Intent.DANGER}
-            className="!text-[10px]">
-            confidence {Math.round(preview.confidence * 100)}%
-          </Tag>
+        <div className="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 space-y-1 text-xs">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Icon icon="calculator" size={12} className="text-primary" />
+            <span className="text-lg font-semibold tabular-nums">{round(preview.value)}</span>
+            <span className="text-muted-foreground">{preview.basis}</span>
+            <Tag minimal intent={preview.confidence >= 0.85 ? Intent.SUCCESS : preview.confidence >= 0.6 ? Intent.WARNING : Intent.DANGER}
+              className="!text-[10px]">
+              confidence {Math.round(preview.confidence * 100)}%
+            </Tag>
+          </div>
+          {preview.byType.length > 1 && <Breakdown byType={preview.byType} />}
         </div>
       )}
 
@@ -115,7 +132,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
           disabled={errors.length > 0}
           onClick={() => {
             create.mutate(
-              { name: name.trim(), apiName: toSlug(name), description: sentence, subjectTypeId: typeId, filters, aggregation: { fn, property: aggProp || undefined } },
+              { name: name.trim(), apiName: toSlug(name), description: sentence, ...ref, filters, aggregation: { fn, property: aggProp || undefined } },
               { onSuccess: onDone },
             )
           }}>
@@ -129,7 +146,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
 
 function FilterRow({ filter, props, onChange, onRemove }: {
   filter: ToolFilter
-  props: ReturnType<typeof allProperties>
+  props: PropertyDef[]
   onChange: (f: ToolFilter) => void
   onRemove: () => void
 }) {

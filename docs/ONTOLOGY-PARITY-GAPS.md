@@ -53,7 +53,7 @@ coherent in two halves that cannot reference each other.
 truth for their schema; the row is a registration). Then links, tools and the canvas
 reach the whole ontology.
 
-## Gap 2 — no interfaces
+## Gap 2 — no interfaces — CLOSED (#414, migration 224; tools target them, migration 225)
 
 `interfaces/interface-overview.md` names precisely what we lose:
 
@@ -64,6 +64,20 @@ reach the whole ontology.
 Our authored tools and agents bind to **one** `subject_type_id`. Author a second similar
 type and every tool and agent must be re-authored. Interfaces are the abstraction that
 makes P4/P5 scale rather than multiply.
+
+**Shipped.** `ontology_interfaces` + a conformance trigger (a type may claim an interface
+only if it actually has the shape), then `user_tools.subject_interface_id`: a tool targets
+one type *or* one interface, and an interface tool runs across every implementer. Two
+rules carry the weight:
+
+- **Interface properties only.** A tool over an interface may filter and aggregate on the
+  shared shape and nothing else. Using a property one implementer happens to have is
+  precisely what breaks on the next one.
+- **Records are pooled before aggregating**, so `avg` across an interface is the real mean
+  of all matching records, not the mean of each type's mean.
+
+Still bound to one type: **authored agents** (`user_agents.subject_type_id`). Same change,
+not yet made.
 
 ## Gap 3 — no shared properties
 
@@ -117,8 +131,9 @@ These are strategy. Gaps 1–6 are absences.
 
 ## Fix order
 
-1. **Unify the ontology** (gap 1) — highest value, unblocks 2, 4 and 5.
-2. **Interfaces** (gap 2) — makes authored tools/agents survive new types.
+1. ~~**Unify the ontology** (gap 1)~~ — done, #413 / migration 223.
+2. ~~**Interfaces** (gap 2)~~ — done, #414 / migration 224; authored **tools** target them
+   (migration 225). Authored **agents** still bind to one type.
 3. **Wire authored tools into agent toolsets** (gap 5) — small, closes a hole we made.
 4. **Consume or delete `nodeSet`** (gap 4).
 5. Shared properties (gap 3), resource-level roles (gap 6) — lower urgency.
