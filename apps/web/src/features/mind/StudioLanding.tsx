@@ -1,40 +1,11 @@
-// Studio landing: the everyday build surface. Leads with the capability map —
-// the loop build → govern → prove → sandbox, knowledge feeding the agents — with
-// cards generated from the SAME tab registry the rail uses (labels/icons can't
-// drift). The guided "Create a workflow" recipe is a card at the bottom (its own
-// surface), not the everyday front door.
+// Studio landing: one card per destination, generated from the SAME registry the
+// rail uses so labels and icons can't drift. Five applications over one ontology
+// (docs/STUDIO-RESTRUCTURE.md) — each card lists the panels inside it, so the
+// structure is legible before you click.
 
 import { Card, Icon } from '@blueprintjs/core'
 import { useNavigate } from 'react-router-dom'
-import { STUDIO_TABS, type AipTab } from './AIPShell'
-
-const STAGES: { title: string; blurb: string; ids: AipTab[] }[] = [
-  {
-    title: 'Build',
-    blurb: 'Define what the system can do: agents composed of typed blocks, the tool registry they call, the trained adapters behind eval gates, and automations you author without code.',
-    ids: ['agents', 'tools', 'automations', 'object-types', 'objectives', 'forecast-lab'],
-  },
-  {
-    title: 'Govern',
-    blurb: 'The rules every run obeys. Principles steer agents softly; constraints hard-gate action submission; policy sets the auto-execution thresholds.',
-    ids: ['policy', 'constraints', 'principles'],
-  },
-  {
-    title: 'Prove',
-    blurb: 'Evidence it works — and the gates that consume it. Calibration feeds the trust budget, the flywheel shows the system learning, monitors fire proposals into Decisions, the ontology grows under review.',
-    ids: ['calibration', 'flywheel', 'monitors', 'ontology', 'system-map'],
-  },
-  {
-    title: 'Sandbox',
-    blurb: 'Try without committing. Scenarios overlay the graph; action chains batch writes behind one commit boundary; tune the copilot here.',
-    ids: ['scenarios', 'action-chains', 'copilot'],
-  },
-  {
-    title: 'Knowledge — what agents cite',
-    blurb: 'Ingested documents with page provenance, their suggested entity links, and curated answers served before any fresh LLM call.',
-    ids: ['documents', 'entity-links', 'answers'],
-  },
-]
+import { DESTINATIONS, STUDIO_TABS, type AipTab } from './AIPShell'
 
 export default function StudioLanding({ onNavigate }: { onNavigate: (t: AipTab) => void }) {
   const navigate = useNavigate()
@@ -45,35 +16,38 @@ export default function StudioLanding({ onNavigate }: { onNavigate: (t: AipTab) 
         <header>
           <h1 className="text-xl font-semibold">Studio</h1>
           <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-            Where the intelligence fabric is built, governed, and proven. Everything here feeds the
-            loop the operators live in: what you <b>build</b> obeys what you <b>govern</b>, earns
-            autonomy through what you <b>prove</b>, and lands in Decisions.
+            One ontology, and the applications that use it. The <b>Ontology Manager</b> defines the
+            types everything else speaks; the rest read those types and propose typed Actions, which
+            land in Decisions.
           </p>
         </header>
 
-        {STAGES.map((stage) => (
-          <section key={stage.title} className="space-y-2">
-            <div>
-              <h2 className="text-sm font-semibold">{stage.title}</h2>
-              <p className="text-xs text-muted-foreground max-w-2xl">{stage.blurb}</p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {stage.ids.map((id) => {
-                const t = byId.get(id)
-                if (!t) return null
-                return (
-                  <Card key={id} interactive compact onClick={() => { onNavigate(id) }}>
-                    <div className="flex items-center gap-2">
-                      <Icon icon={t.icon} size={13} className="text-violet-500" />
-                      <span className="text-sm font-semibold">{t.label}</span>
-                    </div>
-                    {t.desc && <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{t.desc}</p>}
-                  </Card>
-                )
-              })}
-            </div>
-          </section>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {DESTINATIONS.map((d) => (
+            <Card key={d.id} interactive className="!p-4" onClick={() => { onNavigate(d.panels[0]) }}>
+              <div className="flex items-center gap-2">
+                <Icon icon={d.icon} size={14} className="text-violet-500" />
+                <span className="text-sm font-semibold">{d.label}</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{d.desc}</p>
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-2">
+                {d.panels.map((p) => {
+                  const t = byId.get(p)
+                  if (!t) return null
+                  return (
+                    <button
+                      key={p} type="button" title={t.desc}
+                      onClick={(e) => { e.stopPropagation(); onNavigate(p) }}
+                      className="text-[11px] text-muted-foreground hover:text-violet-500 hover:underline"
+                    >
+                      {t.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </Card>
+          ))}
+        </div>
 
         {/* New here? The guided path, on its own surface. */}
         <Card

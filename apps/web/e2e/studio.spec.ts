@@ -1,6 +1,7 @@
-// Studio landing smoke: the capability map (loop stages) is the everyday primary
-// view, a card-click navigates into a tab (including a rail-hidden one), and the
-// guided "Create a workflow" recipe lives on its own surface behind the bottom card.
+// Studio landing smoke: five destinations are the everyday primary view, a card
+// navigates into the destination's first panel, a rail-hidden panel is still
+// reachable, deep links to a panel still resolve (no redirect table), and the
+// guided "Create a workflow" recipe lives on its own surface.
 
 import { test, expect } from '@playwright/test'
 
@@ -11,7 +12,7 @@ const PASSWORD = process.env.SMOKE_USER_PASSWORD ?? ''
 
 test.skip(!SUPABASE_URL || !EMAIL, 'SMOKE_USER_* / VITE_SUPABASE_* env not set')
 
-test('studio landing tells the loop and navigates', async ({ page }) => {
+test('studio landing shows the destinations and navigates', async ({ page }) => {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
@@ -27,13 +28,18 @@ test('studio landing tells the loop and navigates', async ({ page }) => {
 
   await page.goto('/mind?aip=studio')
   await expect(page.getByRole('heading', { name: 'Studio', exact: true })).toBeVisible({ timeout: 45_000 })
-  // the capability map is the everyday primary view
-  for (const stage of ['Build', 'Govern', 'Prove', 'Sandbox']) {
-    await expect(page.getByRole('heading', { name: stage, exact: true })).toBeVisible()
+  // five applications over one ontology — the destinations are the primary view
+  for (const dest of ['Ontology Manager', 'Object Explorer', 'Automate', 'Logic & Evals', 'Policy']) {
+    await expect(page.getByText(dest, { exact: true }).first()).toBeVisible()
   }
-  // a rail-hidden tab is reachable through its landing card
-  await page.getByText('Scenarios', { exact: true }).click()
+  // a rail-hidden panel is still reachable from its destination card
+  await page.getByRole('button', { name: 'Scenarios', exact: true }).click()
   await expect(page).toHaveURL(/aip=scenarios/)
+
+  // an existing deep link to a panel still resolves, and the rail shows the
+  // destination that contains it — this is what replaces a redirect table.
+  await page.goto('/mind?aip=monitors')
+  await expect(page.getByRole('button', { name: /Automate/ })).toBeVisible({ timeout: 45_000 })
 
   // the guided recipe is its own surface, linked from the bottom card
   await page.goto('/mind?aip=studio')
