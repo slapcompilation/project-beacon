@@ -5,9 +5,13 @@
 // persistence, and the dispatchAction write path. A cron edge function injects
 // service-role versions of the same seams.
 //
-// Runs each agent with the heuristic LLM client — the variant is already known
-// from the scan, so no extraction call (and no LLM spend) is needed; the
-// reasoning block's tool calls are deterministic.
+// The shipped agent runs on the heuristic LLM client — the variant is already
+// known from the scan, so no extraction call (and no model spend) is needed and
+// its tool calls are deterministic.
+//
+// Operator-AUTHORED agents are different: they reason with the real model, so a
+// cycle costs one request per enabled authored agent (capped in runInCycle).
+// That only happens once someone has authored and enabled one.
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -25,6 +29,7 @@ import {
   type AutomationProposal,
 } from '@beacon/reality-graph'
 import { fetchAutomations, rowToAutomation } from '@/features/automations/api'
+import { runAuthoredAgents } from '@/features/userAgents/runInCycle'
 import { fetchResolvedSamples } from '@/features/calibration/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
@@ -147,6 +152,7 @@ export function useRestockCycle() {
         minCalibrationSamples: calOpts.minSamples,
         openProposalKeys,
         automationProposals: (variant) => autoByVariant.get(variant.id) ?? [],
+        authoredAgentProposals: () => runAuthoredAgents({ variants, hotelId, reader }),
         runAgent: async (variant) => {
           const run = await buildAgent(variant).run({ prompt: `restock ${variant.name}`, userId, scope: { hotelId } })
           return run.proposals
