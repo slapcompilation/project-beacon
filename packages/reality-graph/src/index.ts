@@ -28,10 +28,6 @@ export { EDGE_TYPES } from './types'
 export type { EdgeRecord, TraversalNode, TraverseOptions } from './engine'
 export { edgesForNode, outEdges, inEdges, walkRevertChain, hasEdge, groupByEdgeType, traverseGraph, otherSide } from './engine'
 
-// ── Graph query primitive (Phase 5 — punch-list #3 from osdk-ts audit) ───────
-export type { Direction, NodeSetQuery, NodeSetEdge } from './queries'
-export { NodeSetBuilder, nodeSet, linkedIds } from './queries'
-
 // ── Action Registry — every mutation flows through here ───────────────────────
 export type {
   BeaconAction,
