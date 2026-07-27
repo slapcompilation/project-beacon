@@ -98,9 +98,31 @@ threshold tunable in `org_policy`.
 
 The Monitors "run scan" button is now a **preview** that cannot write.
 
-**P3 — Explorer as one browser.** Today the five content panels are five bespoke
-pages. They already render through `ObjectViewFrame`, so the end state is one
-type-filtered explorer. Cosmetic until P1/P2 land; deliberately last.
+**P3 — mostly already built; the plan above was wrong.** Audited before building:
+
+`/objects` (card grid) and `/objects/:type` (`ObjectListPage`) **already are** a
+registry-driven, type-filtered explorer, and `OBJECT_LIST` already covers
+`document`, `constraint` and `principle` — three of the five panels P3 named.
+
+So "collapse the five bespoke pages into one browser" was the wrong framing. The
+bespoke pages are **authoring** surfaces (upload a document, teach a principle,
+review an entity-link suggestion); `/objects` is the **browsing** surface. Foundry
+splits these too — Ontology Manager authors, Object Explorer browses. Keeping both
+is correct, not duplication.
+
+What is genuinely missing, and all that remains of P3:
+
+1. **`approved_answer` is absent from the explorer.** It is in `NODE_LABELS` but
+   *not* in `OBJECT_PRESENTATION`, and `ObjectListType = keyof typeof
+   OBJECT_PRESENTATION`, so it cannot get an `OBJECT_LIST` spec until it gets a
+   presentation entry. `OBJECT_PRESENTATION` is `satisfies`-exact and consumed by
+   `GraphConnections`, 13 page headers and `ENTITY_META`, so adding a key cascades
+   — small but not a one-liner, and it wants its own change.
+2. **Entity Links is a review queue, not a browsable type.** It should not be
+   forced into the explorer; it belongs where it is.
+
+The Object Explorer destination from P1 already gives these panels one home. That
+was the IA win; there is no second one hiding here.
 
 ## What this is not
 
