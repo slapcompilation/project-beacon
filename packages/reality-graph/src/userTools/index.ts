@@ -114,10 +114,16 @@ export type ToolRecord = Record<string, unknown>
 export function validateUserTool(
   draft: Pick<UserToolDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'filters' | 'aggregation'>,
   subject: ToolSubject | undefined,
+  /** Shipped tool names. An authored tool that took one would be silently
+   *  ignored in an agent's registry, where the shipped tool wins. */
+  reserved: ReadonlyArray<string> = [],
 ): string[] {
   const errors: string[] = []
   if (!draft.name.trim())    errors.push('Name is required')
   if (!draft.apiName.trim()) errors.push('API name is required')
+  if (reserved.includes(draft.apiName)) {
+    errors.push(`"${draft.apiName}" is a shipped tool — pick another name`)
+  }
   if (draft.subjectTypeId && draft.subjectInterfaceId) {
     errors.push('A tool asks about one object type or one interface, not both')
   }

@@ -444,7 +444,9 @@ export type {
   AuthoredAgentDef, CompiledAgent, ProcedureStep, AgentApproval, CadenceDef,
 } from './authoredAgents/index'
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
-export { buildAuthoredAgentTools } from './authoredAgents/tools'
+export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
+export { authoredToolAsLogicTool, resolveToolGroups } from './userTools/asLogicTool'
+export type { AuthoredToolReader } from './userTools/asLogicTool'
 
 export {
   validateInterfaceDraft, conformanceErrors, implementsInterface, typesConforming, interfaceProperties,

@@ -10,9 +10,15 @@ import {
   AGGREGATIONS, OP_LABELS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
   type AggregationFn, type PropertyDef, type ToolFilter,
 } from '@beacon/reality-graph'
+import { shippedAgentToolNames } from '@beacon/reality-graph'
+import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { useCreateUserTool } from './hooks'
 import Breakdown from './Breakdown'
 import { decodeSubject, encodeSubject, useToolSubject, type SubjectRef } from './subject'
+
+/** An authored tool taking a shipped tool's name would be silently ignored in an
+ *  agent's registry, where the shipped one wins. Catch it at authoring time. */
+const SHIPPED_TOOL_NAMES = shippedAgentToolNames(makeSupabaseGraphReader())
 
 export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const create = useCreateUserTool()
@@ -29,7 +35,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const numericProps = props.filter((p) => p.type === 'number')
 
   const draft = { name, apiName: toSlug(name), ...ref, filters, aggregation: { fn, property: aggProp || undefined } }
-  const errors = validateUserTool(draft, subject)
+  const errors = validateUserTool(draft, subject, SHIPPED_TOOL_NAMES)
   const sentence = describeUserTool(draft, subject)
 
   // Answer it against the real record set as the operator builds it.
