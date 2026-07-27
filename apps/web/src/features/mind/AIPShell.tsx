@@ -1,11 +1,11 @@
 // AIP shell — the spine of the Mind module. A left-rail workspace split into
-// Decisions (the daily inbox: queue / approvals / cases) and Studio (build &
-// configure the fabric), with Studio's three groups shown as collapsible
-// sections in the rail so the structure is visible without crowding the daily
-// items. Mind opens on the Review Queue; Home (/briefing) is the single landing.
-// Deep-linkable via ?aip=<tab>.
+// Decisions (the daily inbox: queue / approvals / cases) and Studio, which is
+// five APPLICATIONS over one ontology rather than a tab per noun — each showing
+// its panels as a sub-nav. Mind opens on the Review Queue; Home (/briefing) is
+// the single landing. Deep-linkable via ?aip=<panel>: the destination is derived
+// from the panel, so old links resolve with no redirect table.
 
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense } from 'react'
 import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
@@ -47,45 +47,79 @@ export type AipTab =
   | 'studio'
 
 // Two intents: Decisions is the daily operator inbox (each its own rail entry);
-// Studio is where you build/configure the fabric, surfaced as three collapsible
-// groups so the structure is discoverable without crowding the daily items.
+// Studio builds and configures the fabric, grouped into destinations below.
 type Section = 'Decisions' | 'Studio'
-const TABS: { id: AipTab; label: string; icon: IconName; section: Section; group: string; desc?: string; railHidden?: boolean }[] = [
+const TABS: { id: AipTab; label: string; icon: IconName; section: Section; desc?: string; railHidden?: boolean }[] = [
   // Decisions — the daily driver
-  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', group: '', desc: 'Agent proposals awaiting your decision' },
-  { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', group: '', desc: 'Approve, edit or reject restock requests' },
-  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', group: '', desc: 'Actions a soft constraint paused for sign-off' },
-  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', group: '', desc: 'The trigger → trace → outcome envelope' },
+  { id: 'queue',        label: 'Review Queue',      icon: 'predictive-analysis', section: 'Decisions', desc: 'Agent proposals awaiting your decision' },
+  { id: 'restock-approvals', label: 'Restock Approvals', icon: 'shopping-cart',  section: 'Decisions', desc: 'Approve, edit or reject restock requests' },
+  { id: 'approvals',    label: 'Pending Approvals', icon: 'warning-sign',        section: 'Decisions', desc: 'Actions a soft constraint paused for sign-off' },
+  { id: 'cases',        label: 'Cases',             icon: 'folder-open',         section: 'Decisions', desc: 'The trigger → trace → outcome envelope' },
 
   // Studio — build & configure the fabric
-  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', group: 'Agents & compute', desc: 'Build, eval & release the typed agents' },
-  { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', group: 'Agents & compute', desc: 'How nodes, tools & actions connect' },
-  { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', group: 'Agents & compute', desc: 'Typed concepts your data is missing' },
-  { id: 'object-types', label: 'Object Types',      icon: 'cube',                section: 'Studio', group: 'Agents & compute', desc: 'Author a new kind of thing + its records' },
-  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', group: 'Agents & compute', desc: 'The typed, versioned tool registry' },
-  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', group: 'Agents & compute', desc: 'Trained adapters behind eval gates', railHidden: true },
-  { id: 'forecast-lab', label: 'Forecast Lab',      icon: 'lab-test',            section: 'Studio', group: 'Agents & compute', desc: 'Backtest + run the forecast adapters by cohort' },
-  { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', group: 'Agents & compute', desc: 'Is stated confidence matching reality?' },
-  { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', group: 'Agents & compute', desc: 'Is the system getting better — calibration + loop health' },
-  { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', group: 'Agents & compute', desc: 'Tunable triggers that fire proposals into Decisions' },
-  { id: 'automations',  label: 'Automations',       icon: 'flows',               section: 'Studio', group: 'Agents & compute', desc: 'Create a monitor without code — when → then → gate' },
+  { id: 'agents',       label: 'Agents',            icon: 'predictive-analysis', section: 'Studio', desc: 'Build, eval & release the typed agents' },
+  { id: 'system-map',   label: 'System Map',        icon: 'graph',               section: 'Studio', desc: 'How nodes, tools & actions connect' },
+  { id: 'ontology',     label: 'Ontology',          icon: 'diagram-tree',        section: 'Studio', desc: 'Typed concepts your data is missing' },
+  { id: 'object-types', label: 'Object Types',      icon: 'cube',                section: 'Studio', desc: 'Author a new kind of thing + its records' },
+  { id: 'tools',        label: 'Logic Tools',       icon: 'function',            section: 'Studio', desc: 'The typed, versioned tool registry' },
+  { id: 'objectives',   label: 'Modeling Objectives', icon: 'chart',             section: 'Studio', desc: 'Trained adapters behind eval gates', railHidden: true },
+  { id: 'forecast-lab', label: 'Forecast Lab',      icon: 'lab-test',            section: 'Studio', desc: 'Backtest + run the forecast adapters by cohort' },
+  { id: 'calibration',  label: 'Calibration',       icon: 'timeline-line-chart', section: 'Studio', desc: 'Is stated confidence matching reality?' },
+  { id: 'flywheel',     label: 'Flywheel',          icon: 'pulse',               section: 'Studio', desc: 'Is the system getting better — calibration + loop health' },
+  { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', desc: 'Tunable triggers that fire proposals into Decisions' },
+  { id: 'automations',  label: 'Automations',       icon: 'flows',               section: 'Studio', desc: 'Create a monitor without code — when → then → gate' },
 
-  { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', group: 'Knowledge', desc: 'Ingested sources with page provenance' },
-  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', group: 'Knowledge', desc: 'Review suggested links to entities' },
-  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', group: 'Knowledge', desc: 'Curated Q&A served before the LLM' },
-  { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', group: 'Knowledge', desc: 'Soft NL guidance injected into agents' },
-  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', group: 'Knowledge', desc: 'Hard gates at action submission' },
+  { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', desc: 'Ingested sources with page provenance' },
+  { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', desc: 'Review suggested links to entities' },
+  { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', desc: 'Curated Q&A served before the LLM' },
+  { id: 'principles',   label: 'Principles',        icon: 'learning',            section: 'Studio', desc: 'Soft NL guidance injected into agents' },
+  { id: 'constraints',  label: 'Constraints',       icon: 'shield',              section: 'Studio', desc: 'Hard gates at action submission' },
 
-  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', group: 'Sandbox & policy', desc: 'Explore graph overlays, uncommitted', railHidden: true },
-  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', group: 'Sandbox & policy', desc: 'Batch actions with a commit boundary', railHidden: true },
-  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', group: 'Sandbox & policy', desc: 'Tune the operator copilot', railHidden: true },
-  { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', group: 'Sandbox & policy', desc: 'Auto-execution thresholds & overrides' },
+  { id: 'scenarios',    label: 'Scenarios',         icon: 'lab-test',            section: 'Studio', desc: 'Explore graph overlays, uncommitted', railHidden: true },
+  { id: 'action-chains', label: 'Action Chains',    icon: 'link',                section: 'Studio', desc: 'Batch actions with a commit boundary', railHidden: true },
+  { id: 'copilot',      label: 'Copilot Config',    icon: 'chat',                section: 'Studio', desc: 'Tune the operator copilot', railHidden: true },
+  { id: 'policy',       label: 'Policy',            icon: 'cog',                 section: 'Studio', desc: 'Auto-execution thresholds & overrides' },
 ]
 
 const DECISIONS_TABS = TABS.filter((t) => t.section === 'Decisions')
 export const STUDIO_TABS = TABS.filter((t) => t.section === 'Studio')
-// M3: thin tabs live in the landing's cards, not the rail (deep links still work)
-const STUDIO_GROUPS   = groupTabs(STUDIO_TABS.filter((t) => !t.railHidden))
+
+// Studio is five APPLICATIONS over one ontology, not twenty nouns. Foundry keeps
+// the ontology (types, properties, links, actions) separate from the apps that
+// consume it, and has exactly one ontology editor; we had a tab per noun.
+// See docs/STUDIO-RESTRUCTURE.md.
+export interface StudioDestination {
+  id: string
+  label: string
+  icon: IconName
+  desc: string
+  /** Panels in rail order. `railHidden` ones stay reachable by deep link. */
+  panels: AipTab[]
+}
+
+export const DESTINATIONS: StudioDestination[] = [
+  { id: 'ontology-manager', label: 'Ontology Manager', icon: 'diagram-tree',
+    desc: 'The types, properties, links and interfaces everything else speaks',
+    panels: ['object-types', 'ontology', 'system-map', 'scenarios'] },
+  { id: 'explorer', label: 'Object Explorer', icon: 'search-template',
+    desc: 'The records themselves — documents, principles, constraints, answers',
+    panels: ['documents', 'entity-links', 'answers', 'principles', 'constraints'] },
+  { id: 'automate', label: 'Automate', icon: 'flows',
+    desc: 'One entry point: when the ontology changes, propose an Action',
+    panels: ['automations', 'monitors', 'action-chains'] },
+  { id: 'logic', label: 'Logic & Evals', icon: 'predictive-analysis',
+    desc: 'Author the agents and tools, then prove they work',
+    panels: ['agents', 'tools', 'forecast-lab', 'calibration', 'flywheel', 'objectives', 'copilot'] },
+  { id: 'policy', label: 'Policy', icon: 'cog',
+    desc: 'Thresholds and overrides that govern unattended execution',
+    panels: ['policy'] },
+]
+
+/** The destination a panel belongs to. Deriving it from the panel is why every
+ *  existing `?aip=<tab>` link still resolves — there is no redirect table. */
+function destinationOf(t: AipTab): StudioDestination | undefined {
+  return DESTINATIONS.find((d) => d.panels.includes(t))
+}
 
 function isStudioTab(t: AipTab): boolean {
   return t === 'studio' || STUDIO_TABS.some((s) => s.id === t)
@@ -113,21 +147,11 @@ export default function AIPShell({
   // switch between them via the sidebar, so they stop bleeding into each other.
   const activeSection: Section = isStudioTab(effTab) ? 'Studio' : 'Decisions'
 
-  // Auto-open the group containing the active Studio tab (deep links land expanded);
-  // the operator can toggle the others. Collapsed by default keeps the rail short.
-  const activeGroup = STUDIO_TABS.find((t) => t.id === effTab)?.group ?? null
-  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set(activeGroup ? [activeGroup] : []))
-  useEffect(() => {
-    if (activeGroup) setOpenGroups((prev) => (prev.has(activeGroup) ? prev : new Set(prev).add(activeGroup)))
-  }, [activeGroup])
-  const toggleGroup = (label: string) => {
-    setOpenGroups((prev) => {
-      const next = new Set(prev)
-      if (next.has(label)) next.delete(label)
-      else next.add(label)
-      return next
-    })
-  }
+  const activeDest = destinationOf(effTab)
+  const byId = new Map(TABS.map((t) => [t.id, t]))
+  // A hidden panel appears in the sub-nav only while it's the one you're on, so
+  // a deep link never lands somewhere with no visible trace of where it is.
+  const subNav = (activeDest?.panels ?? []).filter((p) => !byId.get(p)?.railHidden || p === effTab)
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -170,47 +194,52 @@ export default function AIPShell({
                 badgeIntent={Intent.NONE}
                 onClick={() => { onTabChange('studio') }}
               />
-              {STUDIO_GROUPS.map((g) => {
-                const open = openGroups.has(g.label)
-                const groupBadge = g.tabs.reduce((s, t) => s + (counts[t.id] ?? 0), 0)
-                return (
-                  <div key={g.label}>
-                    <button
-                      type="button"
-                      onClick={() => { toggleGroup(g.label) }}
-                      className="flex w-full items-center gap-2 px-4 py-1.5 text-xs text-left text-muted-foreground hover:bg-surface-2 hover:text-foreground border-l-2 border-transparent transition-colors"
-                    >
-                      <Icon icon={open ? 'chevron-down' : 'chevron-right'} size={12} />
-                      <span className="flex-1 truncate font-medium">{g.label}</span>
-                      {groupBadge > 0 && (
-                        <Tag minimal className="!text-[10px] !min-h-0 !py-0">
-                          {groupBadge > 99 ? '99+' : String(groupBadge)}
-                        </Tag>
-                      )}
-                    </button>
-                    {open && g.tabs.map((t) => (
-                      <RailButton
-                        key={t.id}
-                        icon={t.icon}
-                        label={t.label}
-                        title={t.desc}
-                        active={t.id === effTab}
-                        badge={counts[t.id]}
-                        badgeIntent={badgeIntent(t.id)}
-                        onClick={() => { onTabChange(t.id) }}
-                        indent
-                      />
-                    ))}
-                  </div>
-                )
-              })}
+              {DESTINATIONS.map((d) => (
+                <RailButton
+                  key={d.id}
+                  icon={d.icon}
+                  label={d.label}
+                  title={d.desc}
+                  active={d.id === activeDest?.id}
+                  badge={d.panels.reduce((s, p) => s + (counts[p] ?? 0), 0)}
+                  badgeIntent={Intent.NONE}
+                  // Landing on a destination lands on its first panel.
+                  onClick={() => { onTabChange(d.panels[0]) }}
+                />
+              ))}
             </div>
           )}
         </nav>
       </aside>
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        <PanelErrorBoundary name={`${activeSection} · ${effTab}`}>
+        {activeDest && subNav.length > 1 && (
+          <div className="flex items-center gap-1 border-b px-4 py-1.5 shrink-0 overflow-x-auto">
+            {subNav.map((p) => {
+              const t = byId.get(p)
+              if (!t) return null
+              return (
+                <button
+                  key={p} type="button" title={t.desc}
+                  onClick={() => { onTabChange(p) }}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded px-2 py-1 text-xs whitespace-nowrap transition-colors',
+                    p === effTab ? 'bg-surface-2 font-medium text-foreground' : 'text-muted-foreground hover:bg-surface-2/60 hover:text-foreground',
+                  )}
+                >
+                  <Icon icon={t.icon} size={12} />
+                  {t.label}
+                  {(counts[p] ?? 0) > 0 && (
+                    <Tag minimal intent={badgeIntent(p)} className="!text-[10px] !min-h-0 !py-0">
+                      {(counts[p] ?? 0) > 99 ? '99+' : String(counts[p])}
+                    </Tag>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+        <PanelErrorBoundary name={`${activeDest?.label ?? activeSection} · ${effTab}`}>
           <Suspense fallback={<div className="flex flex-1 items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>}>
             {renderTab(effTab, onTabChange)}
           </Suspense>
@@ -256,20 +285,6 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
   }
 }
 
-function groupTabs(tabs: typeof TABS) {
-  const order: string[] = []
-  const map = new Map<string, typeof TABS>()
-  for (const t of tabs) {
-    let bucket = map.get(t.group)
-    if (!bucket) {
-      bucket = []
-      map.set(t.group, bucket)
-      order.push(t.group)
-    }
-    bucket.push(t)
-  }
-  return order.map((label) => ({ label, tabs: map.get(label) ?? [] }))
-}
 
 function RailButton({
   icon, label, title, active, badge, badgeIntent, onClick, indent,
