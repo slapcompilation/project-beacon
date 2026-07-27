@@ -104,6 +104,13 @@ export const OBJECT_LIST: Record<ObjectListType, ObjectListSpec> = {
     title: (r) => str(r.body).slice(0, 90) || `Principle ${short(r)}`,
     subtitle: (r) => str(r.category) || null,
   },
+  approved_answer: {
+    table: 'approved_answers',
+    select: 'id, question, answer, hit_count, retired_at, created_at',
+    orderBy: newest,
+    title: (r) => str(r.question).slice(0, 90) || `Answer ${short(r)}`,
+    subtitle: (r) => `served ${str(r.hit_count) || '0'}×${r.retired_at ? ' · retired' : ''}`,
+  },
   action_chain: {
     table: 'action_chains',
     select: 'id, title, status, created_at',

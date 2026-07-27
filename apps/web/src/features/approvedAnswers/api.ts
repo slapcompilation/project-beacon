@@ -30,6 +30,13 @@ export async function fetchApprovedAnswers(hotelId: string): Promise<ApprovedAns
   return data
 }
 
+export async function fetchApprovedAnswer(id: string): Promise<ApprovedAnswerRow | null> {
+  const { data, error } = await supabase
+    .from('approved_answers').select('*').eq('id', id).maybeSingle<ApprovedAnswerRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
 export interface CreateApprovedAnswerInput {
   hotelId:           string
   organizationId?:   string | null
