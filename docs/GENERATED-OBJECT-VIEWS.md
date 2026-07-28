@@ -174,9 +174,12 @@ page; a type without one falls through to the generated view.
 
 ## Phases
 
-**G1 — the read seam.** `source_table` gains its first consumer: fetch a built-in
-record as `{ id, data }`. Route `/objects/:type/:recordId` resolves built-ins
-through it. No schema change; proves the path before mass-registering anything.
+**G1 — DONE (#424, migration 227).** The read seam: `fetchBuiltinRecord` shapes a
+`source_table` row like an `object_records` row, so `RecordBody` and
+`resolveViewConfig` consumed it unchanged. `CustomRecordPage` resolves the whole
+ontology. Scope was widened deliberately — with `properties` still `[]` the
+generated view renders nothing, so the seam alone would have been unverifiable;
+G1 therefore also derived properties for the four built-ins with no page.
 
 **G2 — DONE.** Migration 228: all 15 registered built-ins derived (2–18 properties
 each), plus an explicit `title_key` column set per type — NULL where no single
@@ -186,11 +189,27 @@ which fall back rather than pretending. `builtin_property_drift()` +
 proven by injecting all three drift kinds and watching it fire**, not just by
 observing zero.
 
-**G3 — converge the registries.** `OBJECT_LIST` and `ENTITY_META` read from the
-ontology row instead of their own copies. This is the one that deletes code.
+**G3 — DONE (#426, migration 229), and the audit changed the answer.** The plan was
+"converge the three registries". Only one of them should collapse:
 
-**G4 — interfaces over built-ins.** Now possible: author `Perishable` across
-Variant and Batch, and point one authored tool at it.
+- `ENTITY_META`'s `table`/`select` had drifted into **verbatim duplicates** of
+  `OBJECT_LIST`'s. Pure deletion — it now reads both registries and holds no copies.
+- `OBJECT_LIST` does **not** collapse, and shouldn't: its entries do what a title
+  key cannot — joins (a variant's title is its *product's* name) and composed
+  subtitles. Instead it became an **override layer** over `defaultListSpec(type)`,
+  which derives table/title/subtitle from the registration.
+
+Net effect: a registered built-in with no `OBJECT_LIST` entry gets a card, a list
+and an Object View for **zero code** — `hotel`, `location`, `product_batch`,
+`stock_transfer` lit up immediately. 229 also registered `approved_answer` (it had
+a view and a list entry but no registration) and set `proposal.title_key`.
+
+**G4 — THE ONLY ONE LEFT.** Interfaces over built-in types. Unblocked by G2:
+`assert_interface_conformance` has no `kind` restriction, and built-ins satisfied
+nothing only because `properties` was `[]`. Now they have real properties, so a
+`Perishable` interface can span Variant and Batch, with one authored tool pointed
+at it — which is also the first real test of #415's interface-targeted tools
+against the operational domain rather than authored types.
 
 ## Risks
 
