@@ -11,7 +11,7 @@ import type { IconName } from '@blueprintjs/icons'
 import type { NodeType } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { OBJECT_LIST } from '@/features/objects/objectList'
-import { useObjectTypeCards } from '@/features/objectTypes/hooks'
+import { useObjectTypeCards, useOntologyTypes } from '@/features/objectTypes/hooks'
 import { supabase } from '@/lib/supabase/client'
 
 // One source of truth for the table per type — the same registry the instance
@@ -34,6 +34,25 @@ export default function ObjectsPage() {
     staleTime: 60_000,
   })
   const { data: customCards = [] } = useObjectTypeCards()
+
+  // G3: registered built-ins with no bespoke presentation still get a card —
+  // the ontology row is the source; hand-written entries are overrides.
+  const { data: ontologyRows = [] } = useOntologyTypes()
+  const derivedTypes = ontologyRows.filter((r) =>
+    r.kind === 'builtin' && r.source_table !== null && !(r.api_name in OBJECT_PRESENTATION))
+  const { data: derivedCounts } = useQuery({
+    queryKey: ['object-type-counts-derived', derivedTypes.map((t) => t.api_name).join(',')],
+    enabled: derivedTypes.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const results = await Promise.all(derivedTypes.map(async (t) => {
+        const { count, error: err } = await supabase
+          .from(t.source_table as string).select('id', { count: 'exact', head: true })
+        return [t.api_name, err ? -1 : (count ?? 0)] as const
+      }))
+      return Object.fromEntries(results)
+    },
+  })
 
   if (isError) {
     return <NonIdealState icon="warning-sign" title="Failed to load object types" description={error instanceof Error ? error.message : undefined} />
@@ -67,6 +86,23 @@ export default function ObjectsPage() {
                       {n === -1 ? <span className="text-muted-foreground text-sm">—</span> : n.toLocaleString()}
                     </div>
                     <div className="text-[11px] text-muted-foreground font-mono">{type as NodeType}</div>
+                  </Card>
+                </Link>
+              )
+            })}
+            {derivedTypes.map((t) => {
+              const n = derivedCounts?.[t.api_name]
+              return (
+                <Link key={t.id} to={`/objects/${t.api_name}`} className="no-underline">
+                  <Card interactive compact className="h-full">
+                    <div className="flex items-center gap-2">
+                      <Icon icon={t.icon as IconName} size={14} className="text-violet-500" />
+                      <span className="text-sm font-semibold">{t.label}</span>
+                    </div>
+                    <div className="mt-1 text-xl font-semibold tabular-nums">
+                      {n === undefined || n === -1 ? <span className="text-muted-foreground text-sm">—</span> : n.toLocaleString()}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground font-mono">{t.api_name}</div>
                   </Card>
                 </Link>
               )

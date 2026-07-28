@@ -10,8 +10,8 @@ import { Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag } 
 import type { IconName } from '@blueprintjs/icons'
 import { evaluateComputed } from '@beacon/reality-graph'
 import { OBJECT_PRESENTATION, type ObjectPresentation } from '@/lib/objectPresentation'
-import { OBJECT_LIST, type ObjectListSpec } from '@/features/objects/objectList'
-import { useObjectTypes, useObjectRecords } from '@/features/objectTypes/hooks'
+import { OBJECT_LIST, defaultListSpec, type ObjectListSpec } from '@/features/objects/objectList'
+import { useObjectTypes, useOntologyTypes, useObjectRecords } from '@/features/objectTypes/hooks'
 import { rowToObjectType } from '@/features/objectTypes/api'
 import { RecordPanel } from '@/features/objectTypes/RecordPanel'
 import { supabase } from '@/lib/supabase/client'
@@ -38,8 +38,10 @@ export default function ObjectListPage() {
     },
   })
 
-  // Not a built-in type → treat the param as a custom object_type id (P2.2).
-  if (!spec || !p) return <CustomObjectList typeId={type} />
+  // No bespoke spec → a registered built-in still lists via its ontology row
+  // (G3: the registration is the source; OBJECT_LIST entries are overrides).
+  // Failing that, treat the param as a custom object_type id (P2.2).
+  if (!spec || !p) return <OntologyFallbackList apiNameOrId={type} />
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -75,6 +77,80 @@ export default function ObjectListPage() {
               return (
                 <Link key={id} to={`${p.route}${id}`} className="flex items-center gap-3 px-4 py-2.5 no-underline hover:bg-muted/50">
                   <Icon icon={p.icon} size={14} className="text-muted-foreground shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{spec.title(r)}</p>
+                    {sub && <p className="text-[11px] text-muted-foreground truncate">{sub}</p>}
+                  </div>
+                  <Icon icon="chevron-right" size={14} className="text-muted-foreground shrink-0" />
+                </Link>
+              )
+            })}
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// A built-in type with no bespoke OBJECT_LIST entry — its list is derived from
+// the registration (source_table + title_key). Rows open the generated Object
+// View, the same page authored records use.
+function OntologyFallbackList({ apiNameOrId }: { apiNameOrId: string }) {
+  const { data: rows = [], isLoading } = useOntologyTypes()
+  const t = rows.filter((r) => r.kind === 'builtin').map(rowToObjectType).find((x) => x.apiName === apiNameOrId)
+  const spec = t ? defaultListSpec(t) : null
+
+  const { data, isLoading: listLoading, isError, error } = useQuery({
+    queryKey: ['object-list-derived', t?.id ?? ''],
+    enabled: !!spec,
+    staleTime: 60_000,
+    queryFn: async () => {
+      if (!spec) return { rows: [] as Row[], total: 0 }
+      let q = supabase.from(spec.table).select(spec.select, { count: 'exact' }).limit(LIMIT)
+      if (spec.orderBy) q = q.order(spec.orderBy.column, { ascending: spec.orderBy.ascending ?? false })
+      const { data: r, count, error: err } = await q
+      if (err) throw new Error(err.message)
+      return { rows: r as unknown as Row[], total: count ?? 0 }
+    },
+  })
+
+  if (isLoading) return <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
+  if (!t || !spec) return <CustomObjectList typeId={apiNameOrId} />
+
+  return (
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="px-6 py-4 border-b shrink-0">
+        <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+          <Link to="/objects" className="hover:underline">Objects</Link>
+          <Icon icon="chevron-right" size={10} />
+          <span className="font-mono">{t.apiName}</span>
+        </div>
+        <div className="mt-1 flex items-center gap-2">
+          <Icon icon={t.icon as IconName} size={16} className="text-violet-500" />
+          <h1 className="text-sm font-semibold">{t.label}</h1>
+          {data && (
+            <Tag minimal round className="tabular-nums">
+              {data.total}{data.total > LIMIT ? ` · showing ${String(LIMIT)}` : ''}
+            </Tag>
+          )}
+        </div>
+      </header>
+
+      <div className="flex-1 overflow-y-auto p-4">
+        {isError ? (
+          <NonIdealState icon="warning-sign" title="Failed to load instances" description={error instanceof Error ? error.message : undefined} />
+        ) : listLoading || !data ? (
+          <div className="flex h-full items-center justify-center"><Spinner size={SpinnerSize.STANDARD} intent={Intent.PRIMARY} /></div>
+        ) : data.rows.length === 0 ? (
+          <NonIdealState icon={t.icon as IconName} title={`No ${t.label.toLowerCase()} instances in your scope`} />
+        ) : (
+          <Card compact className="!p-0 overflow-hidden divide-y divide-border max-w-3xl">
+            {data.rows.map((r) => {
+              const id = String(r.id)
+              const sub = spec.subtitle?.(r)
+              return (
+                <Link key={id} to={`/objects/${t.id}/${id}`} className="flex items-center gap-3 px-4 py-2.5 no-underline hover:bg-muted/50">
+                  <Icon icon={t.icon as IconName} size={14} className="text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{spec.title(r)}</p>
                     {sub && <p className="text-[11px] text-muted-foreground truncate">{sub}</p>}
