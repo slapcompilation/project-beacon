@@ -31,7 +31,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 5 | Developer toolchain | audited below |
 | 6 | Use case development | audited below |
 | 7 | Observability | audited below |
-| 8 | Analytics | — not yet audited |
+| 8 | Analytics | audited below |
 | 9 | Product delivery | — not yet audited |
 | 10 | Security & governance | — not yet audited |
 | 11 | Management & enablement | — not yet audited |
@@ -788,3 +788,103 @@ Open gaps:
 3. **Data-vs-dataset freshness** (7.1) — we would report a stale POS feed as
    healthy if it commits on schedule.
 4. **Check groups and watching** (7.1) — health checks are not operator-extensible.
+
+---
+
+# 8. Analytics
+
+Products: **quiver** (77), **slate** (47), **notepad** (41), **map** (34),
+**contour** (33), **time-series** (29), **vertex** (27), **carbon** (25),
+**reports** (22), **fusion** (22), **geospatial** (9), **analytics** (9),
+**geotemporal-series** (6).
+
+## 8.1 Quiver — the closest analogue to our authored tools, and it exposes the gap
+
+> Perform data analysis on **object and time series data** from the Ontology …
+> **links between objects are natively represented, so users navigate
+> relationships without manual joins** … **parameters** for dynamic analyses …
+> embedding findings into other object-aware applications.
+
+Our authored tools are a narrow Quiver: an aggregation over an object set, with
+filters, and — since #417 — **parameters**. The building blocks line up.
+
+**What we cannot do is traverse a link.** An authored tool reads properties of one
+type (or of an interface's implementers) and stops there. *"Count restock requests
+for variants supplied by Supplier X"* is not expressible, because it crosses
+`fulfills` and `sourced_from`. Quiver treats that as the *normal* case — it is the
+reason the Ontology has typed links at all.
+
+This is the single largest functional gap in the audit so far, measured by
+questions an operator can ask.
+
+### The second unenforced claim
+
+CLAUDE.md states:
+
+> **`traversableLinks`** declares which edges the tool may follow. The LLM sees
+> this; **ad-hoc traversal is rejected.**
+
+Verified: `traversableLinks` is declared on seven shipped tools and read in exactly
+one place — `ToolDetailPage`, **for display**. Nothing rejects anything. There is
+no traversal to reject, because no tool traverses.
+
+That is the second documented-but-unenforced guarantee, after version pinning
+(5.2). Both are in CLAUDE.md, which makes it a credibility problem for the
+document rather than only a code gap: a reader is told two safeguards exist that
+do not.
+
+## 8.2 Vertex — partial
+
+> Visualize and quantify **cause and effect** across the digital twin … monitor
+> current conditions and **simulate potential futures**.
+
+We have both halves in pieces: the System Map and ontology canvas visualise
+structure, and Scenarios are an uncommitted graph-overlay sandbox. What we lack is
+the *quantified* cause-and-effect — Vertex propagates impact through the graph,
+where our causal edges (`causes`, `caused_by`, `triggered`) exist in the type
+vocabulary but nothing computes over them.
+
+## 8.3 Time series — absent as a primitive
+
+29 docs, plus `geotemporal-series`. Foundry treats a time series as a first-class
+ontology-attached type with signal-processing functions.
+
+We derive daily series inside the forecasting adapters (`daily_series.ts`) and
+throw them away. There is no time-series object, so no operator can ask a
+time-shaped question that we did not pre-build a tool for. Given hospitality is
+seasonal by nature, this is a more serious absence for our domain than the doc
+count suggests.
+
+## 8.4 Map and geospatial — parity in kind
+
+34 + 9 docs. We ship a maplibre portfolio map with hotel coordinates served from
+`get_portfolio_signals`. Narrower, same kind.
+
+## 8.5 Contour, Slate, Notepad, Reports, Carbon, Fusion — divergence (scope)
+
+Analyst-facing authoring environments: point-and-click pipelines, legacy app
+builder, documents, reports, spreadsheets. We are one operational product, not a
+suite. **Scope, not rigor** — none of these encode a guarantee we are failing to
+honour.
+
+One caveat worth recording: `reports` (22 docs) is the closest to a real user need
+we have not met. Operators cannot export a briefing; everything lives in the app.
+
+---
+
+## Section 8 verdict
+
+Open gaps:
+
+1. **Authored tools cannot traverse links** (8.1) — the largest functional gap in
+   the audit, measured by what an operator can ask. Typed links exist and nothing
+   queries across them.
+2. **`traversableLinks` is documented as enforced and is not** (8.1) — pair with
+   5.2; fix both or amend CLAUDE.md. Two false guarantees in one document is a
+   pattern, not an oversight.
+3. **No time-series primitive** (8.3) — we compute series and discard them, in a
+   seasonal domain.
+4. **No quantified cause-and-effect** (8.2) — causal edge types exist in the
+   vocabulary with nothing computing over them.
+5. **No export/reporting** (8.5) — minor, but the only thing in this section an
+   operator would ask for by name.
