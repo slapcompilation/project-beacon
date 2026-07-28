@@ -12,7 +12,13 @@ navigation lists them**, reconciling each against what Beacon has. Successor to
    reconcile from a product name alone**; the name rarely predicts the concept.
 3. Reconcile against our system, **verified against the code**, not remembered.
 4. Record: parity / partial / absent — and for absences, whether they're a *gap*
-   or a *deliberate divergence* (we are a hospitality vertical, not a platform).
+   or a *deliberate divergence*.
+
+**Calibration on "deliberate divergence" (revised at section 5).** Being a vertical
+product justifies narrower **scope** — fewer connectors, one LLM, no Spark. It never
+justifies weaker **logic or execution**. If Foundry enforces a limit, tests a unit,
+or pins a version, we should too, at our scale. Divergence claims in sections 1-3
+that rest on scope stand; any resting on rigor are re-opened.
 
 Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate divergence
 
@@ -22,7 +28,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 2 | Data connectivity & integration | 🟡 audited below |
 | 3 | Model connectivity & development | audited below |
 | 4 | Ontology building | ✅ covered in `ONTOLOGY-PARITY-GAPS.md` + `GENERATED-OBJECT-VIEWS.md` |
-| 5 | Developer toolchain | — not yet audited |
+| 5 | Developer toolchain | audited below |
 | 6 | Use case development | — not yet audited |
 | 7 | Observability | — not yet audited |
 | 8 | Analytics | — not yet audited |
@@ -432,3 +438,109 @@ Open gaps:
    present state, where safeguards exist but nothing uses them, is not.
 3. **Model checks** (3.5) — a reviewable pre-operationalization checklist.
 4. **Inference history / compute usage** (3.7) — shares a fix with 1.1.
+
+---
+
+# 5. Developer toolchain
+
+Products: **functions** (53), **code-repositories** (34), **ontology-sdk** (19),
+**linter** (7), **checkpoints** (7), **foundry-devops** (8), plus `transforms-*`
+and `code-workbook` / `code-workspaces`.
+
+Audited under the revised rule above: scope may narrow, rigor may not.
+
+## 5.1 Function unit testing — parity, and better than expected
+
+Seven of the 53 function docs are about **unit testing** — stub objects, stub users
+and groups, object searches, ontology edits, dates. Foundry's mechanism is
+`Objects.create().objectType(...)`, building mock ontology objects so tests need no
+live data.
+
+We have the equivalent through the reader seam: `fakeReader({ stockLogs })` in tool
+tests, in-memory `GraphReader` implementations for evals, `AuthoredToolReader`
+stubs. Same property — logic is testable without a database.
+
+**No gap.** Worth stating plainly, because it is the rigor mechanism that justifies
+much of the rest of the architecture.
+
+## 5.2 Tool versioning — declared, never enforced
+
+`LogicTool.version` exists, and CLAUDE.md is explicit:
+
+> **Versioned.** Bump version on input/output/basis change. **Callers pin.**
+
+**There is no pinning.** `.version` is never read at call time — not in
+`runtime.ts`, not in the registry, not by `invokeTool`. `catalog.test.ts` asserts
+only `expect(t.version).toBeTruthy()`. A caller cannot pin, so a tool whose `basis`
+changes silently changes every caller's answer.
+
+Foundry's equivalent is real: functions are versioned artifacts and consumers bind
+to a version. **This is a rigor gap, not a scope one** — exactly the class the
+revised rule says we do not get to wave away.
+
+Cheapest honest fix: enforce pinning at `invokeTool`, or delete the field and the
+CLAUDE.md claim. A version nobody can pin to is decoration.
+
+## 5.3 Enforced limits — partial
+
+Foundry publishes hard runtime limits: 60s elapsed, 30s CPU (TS v1), 128MB-5GB
+memory by runtime, **100,000 objects** per `.all()`, max 3 search-arounds. Exceeding
+them terminates the function.
+
+Ours are uneven:
+
+| Bounded | Unbounded |
+|---|---|
+| agent loop `maxIterations = 8` | any Logic Tool's row reads |
+| `tokenWindow = 24_000` | `evaluateUserToolAcross` across an interface's implementers |
+| `MAX_AGENTS_PER_CYCLE = 3` | authored-tool aggregation scan size |
+| edge function 150s (platform) | |
+
+The agent loop is well bounded because we thought hard about model cost. The **data**
+path is not: an interface tool spanning several large types has no equivalent of
+Foundry's 100k object ceiling. The `.limit(1000)` in the copilot path is one call
+site, not a contract.
+
+## 5.4 Ontology SDK — the structural gap
+
+Foundry **generates** a typed client from the ontology (19 docs, plus
+`ontology-sdk-react-applications`), so application code gets types that cannot drift
+from the live ontology.
+
+We hand-write `@beacon/types` and reality-graph types while `object_types` is
+config-as-data. **Those two can disagree** — and G2's `builtin_property_drift()`
+exists precisely because they did. That tripwire *detects* a problem generation
+would *prevent*.
+
+Same finding as section 3.4 and G1-G4 from another angle: the ontology is the source
+of truth for data, but not yet for **types**.
+
+## 5.5 Repositories, transforms, workbooks, linter — divergence (scope), with one real borrow
+
+Foundry hosts authoring environments: repos, Spark transforms in four languages,
+notebooks, a linter for platform artifacts. We use git, TypeScript and ESLint outside
+the product. Scope, not rigor — our equivalent gates (turbo lint, type-check, tests,
+`check:edge`, DB contracts) run on every change.
+
+**The genuine borrow is `checkpoints` / `foundry-devops`**: promoting platform
+artifacts between environments. Our ontology artifacts — object types, interfaces,
+automations, authored tools and agents — live in the database with **no export,
+import or promotion path**. Moving an authored tool from a test org to production
+means re-authoring it by hand. Foundry's `marketplace` and `export-import` exist for
+exactly this.
+
+---
+
+## Section 5 verdict
+
+Testing rigor is genuinely at parity. The real gaps are all versions of *the ontology
+is the source of truth for data, but not yet for everything else*:
+
+1. **Version pinning declared and unenforced** (5.2) — fix it or drop the claim; the
+   present state misleads a reader of CLAUDE.md.
+2. **No generated types from the ontology** (5.4) — drift is *detected* (G2) rather
+   than *prevented*.
+3. **No promotion path for ontology artifacts** (5.5) — authored types, tools and
+   agents cannot move between environments.
+4. **Data-path limits unbounded** (5.3) — the agent loop is capped, the row reads are
+   not.
