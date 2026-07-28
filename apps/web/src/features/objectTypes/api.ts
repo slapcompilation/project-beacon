@@ -193,6 +193,42 @@ export async function fetchObjectRecordsForTypes(typeIds: string[]): Promise<Obj
   return data as ObjectRecordRow[]
 }
 
+/** A built-in type's record, read from its backing table and shaped like an
+ *  object_records row so the generated view consumes it unchanged.
+ *
+ *  Goes through PostgREST under the caller's JWT, so each table's own RLS still
+ *  decides what is visible — never a service-role shortcut. */
+export async function fetchBuiltinRecord(
+  type: ObjectTypeDef, id: string,
+): Promise<ObjectRecordRow | null> {
+  if (!type.sourceTable) return null
+  // The table name is data, so PostgREST can't type this — say so explicitly
+  // rather than letting an `any` leak into the record shape.
+  const { data, error } = await supabase
+    .from(type.sourceTable).select('*').eq('id', id).maybeSingle() as unknown as {
+      data: Record<string, unknown> | null
+      error: { message: string } | null
+    }
+  if (error) throw new Error(error.message)
+  if (!data) return null
+
+  const row = data
+  // Provisional title: the first text property. G2 replaces this with the
+  // explicit title key Foundry requires on every object type.
+  const titleKey = type.properties.find((p) => p.type === 'text')?.key
+  const raw = titleKey ? row[titleKey] : undefined
+  const title = typeof raw === 'string' && raw !== '' ? raw : `${type.label} ${id.slice(0, 8)}`
+
+  return {
+    id,
+    object_type_id: type.id,
+    hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
+    title,
+    data: row,
+    created_at: typeof row.created_at === 'string' ? row.created_at : '',
+  }
+}
+
 export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
   const { data, error } = await supabase
     .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
