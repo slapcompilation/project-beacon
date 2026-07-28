@@ -152,7 +152,7 @@ Products: **available-connectors** (193 docs), **data-connection** (30),
 The biggest section by doc count, and the one where "vertical solution vs
 platform" changes the answer most. Reconciling by *concept*, not doc count.
 
-## 2.1 Document ingestion — ✅ built to spec, ❌ never exercised
+## 2.1 Document ingestion — ✅ built to spec, and now PROVEN — with five defects found by proving it
 
 **`docs/DOCUMENT-INGESTION-ROADMAP.md` was stale and is corrected in this change.**
 Its gap table listed stages 1–8 and 10 as unbuilt (🔴/🟠). `document-ingest`
@@ -177,9 +177,67 @@ The pipeline our own roadmap calls the differentiator has never run in this
 environment. Everything above is verified by reading code, not by observing
 output. The `documents` row of the object-view e2e gate is therefore skipping.
 
-**This is the section's top action: ingest one real document end to end.** It is
-the only way to know whether the fail-closed gates pass, whether the entity
-categories are sane, and whether `cited_in` produces usable page citations.
+### Proven end to end (2026-07-28)
+
+A real `text/plain` supplier agreement was ingested through the live edge
+function under a real user session. **The pipeline works**, stage `raw →
+contextualized`, and the Foundry-exact stages hold:
+
+| Stage | Result |
+|---|---|
+| Chunking 512/128 | 2 chunks from 1 page |
+| Composite key | `<docId>_1_1`, `<docId>_1_2` — exactly the spec |
+| Per-chunk LLM summary | real summaries, not previews |
+| Embeddings | 2/2 |
+| `text_full` | 2/2 populated |
+| `cited_in` edges | 2 (document → chunk) |
+| `mentions` edges | 11 |
+| Entity categorization | `Rivendell Provisions Ltd[supplier]`, `Valinor Hotel[location]`, `Lime/Orange Juice/Tomato[product]`, `Lead Time/Shelf Life[term]`, `Quality/Pricing[clause]` — genuinely good |
+
+**But proving it surfaced five defects, none of which reading the code revealed.**
+
+### D1 — Harmonization produces nothing (the differentiator is dead)
+
+`entity_link_suggestions = 0`. `Lime` and `Orange Juice` **exist as real products**
+and were extracted as `[product]` entities — exact name matches — yet stage 9
+resolved nothing to a real node.
+
+The roadmap calls resolve-to-real-node *"our differentiator, keep + elevate"*. It
+is currently inert. **Highest-severity finding in the section.**
+
+### D2 — The stage-9 gate is shallow, which is why D1 went unnoticed
+
+`document-ingest` gates `citations_written` and `mentions_written` on **content**
+(`gateFail('embedded.mentions_written', …)`), but gates entity-extract on
+**HTTP status only** (`if (!exResp.ok)`). A 200 that wrote zero suggestions
+advances the document to `contextualized` and reports success.
+
+The fail-closed posture is real but inconsistently applied. One gate asserts the
+call happened; the others assert the contract holds.
+
+### D3 — Deleting a user destroys their documents and the citation graph
+
+`documents_uploaded_by_user_id_fkey … ON DELETE CASCADE`. Deleting the probe user
+silently removed the document **and all its chunks and edges**.
+
+In a system whose premise is immutable audit and provenance, offboarding staff
+would erase ingested evidence. StockLogs are never deleted; documents are one
+`DELETE FROM auth.users` away. **Should be `ON DELETE SET NULL`.**
+
+### D4 — Entities outlive their documents as orphans
+
+23 entities remain, 0 documents. Entity rows are not cascaded or cleaned, so the
+graph accumulates nodes nothing mentions. Either cascade them or make orphan
+entities visible and reapable.
+
+### D5 — The same real-world thing duplicates across categories
+
+`Valinor Hotel Operations` exists twice — once `[supplier]`, once `[location]` —
+because dedup is keyed on (hotel, name, **category**). Exactly the harmonization
+problem D1 was meant to solve.
+
+**Live state after the probe: `documents = 0` again** (D3 took it), so the
+`documents` row of the object-view e2e gate is still skipping.
 
 ## 2.2 Connectors — ⬜ divergence in breadth, ✅ parity in kind
 
@@ -252,8 +310,13 @@ The section splits cleanly:
 
 Ranked:
 
-1. **Ingest one real document end to end.** Zero have ever been ingested. The
-   pipeline is written to spec and completely unexercised.
-2. **Source registry** — make a connector config-as-data instead of an edge
+1. **D3 — `ON DELETE CASCADE` on `documents.uploaded_by_user_id`.** A user
+   deletion erases documents, chunks and citation edges. Data-loss severity;
+   trivial fix.
+2. **D1 + D2 — harmonization is inert and its gate can't see that.** The stage
+   the roadmap calls our differentiator resolved zero exact matches, and the gate
+   only checks HTTP 200. Fix the gate first; it would have caught this.
+3. **D4/D5 — entity orphans and cross-category duplicates.**
+4. **Source registry** — make a connector config-as-data instead of an edge
    function, so adding one doesn't mean shipping code.
-3. **Data-quality checks** — extend the drift idea from schema to data.
+5. **Data-quality checks** — extend the drift idea from schema to data.
