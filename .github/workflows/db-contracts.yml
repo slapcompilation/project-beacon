@@ -48,7 +48,7 @@ jobs:
             echo "::warning::SUPABASE_DB_URL not set — skipping DB contract tests. Add the repo secret (the project's postgres connection string) to enable."
             exit 0
           fi
-          for f in supabase/tests/security_invariants.sql supabase/tests/rls_contracts.sql; do
+          for f in supabase/tests/security_invariants.sql supabase/tests/rls_contracts.sql supabase/tests/ontology_drift.sql; do
             echo "── running $f"
             psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$f"
           done
