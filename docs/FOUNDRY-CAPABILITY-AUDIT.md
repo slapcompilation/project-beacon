@@ -30,7 +30,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 4 | Ontology building | ✅ covered in `ONTOLOGY-PARITY-GAPS.md` + `GENERATED-OBJECT-VIEWS.md` |
 | 5 | Developer toolchain | audited below |
 | 6 | Use case development | audited below |
-| 7 | Observability | — not yet audited |
+| 7 | Observability | audited below |
 | 8 | Analytics | — not yet audited |
 | 9 | Product delivery | — not yet audited |
 | 10 | Security & governance | — not yet audited |
@@ -670,3 +670,121 @@ Open gaps:
 3. **No operator-composable layout** (6.4) — an operator can author types, tools
    and agents but not a screen.
 4. **No packaging/export** (6.6) — duplicate of 5.5; counts once in the map.
+
+---
+
+# 7. Observability
+
+Products: **announcements** (30), **foundry-rules** (28), **data-lineage** (17),
+**data-health** (12), **resource-management** (11), **process-mining** (5),
+**dataset-preview** (5).
+
+## 7.1 Data health checks — partial
+
+Foundry ships a **typed catalogue** of checks, not a health boolean:
+
+| Check | Verifies |
+|---|---|
+| Job status | the dataset built when refreshed |
+| Schedule status / duration | the whole schedule, including intermediates |
+| Time since last updated | elapsed time since the last transaction — *freshness of the dataset* |
+| Data freshness | last transaction vs the max value in a timestamp column — *freshness of the data* |
+| Sync freshness | latest sync vs max datetime in the synced data |
+
+Plus check **groups**, **watching/subscription**, and notifications.
+
+Ours: `get_integration_health()` (migration 190) covers connector and
+ingestion-pipeline freshness, and the pipeline-health monitor (#297) surfaces it.
+That is roughly two of the five, with no check groups, no per-user watching, and
+no catalogue an operator can extend.
+
+The distinction Foundry draws between *dataset* freshness and *data* freshness is
+worth stealing: a POS connector can be committing transactions on schedule while
+the newest sale in them is three days old. We would report that as healthy.
+
+## 7.2 Lineage and impact analysis — the section's headline gap
+
+Foundry's lineage answers *what breaks if I change this* **before** the change:
+downstream consumers, affected resources, stale datasets.
+
+We have no equivalent, and it is not hypothetical. Verified:
+
+- `validateUserTool` is called in **exactly one place** — `ToolComposer`, at
+  authoring time.
+- Object types are editable (`updateObjectType`, with revisions).
+- Therefore **deleting a property from an object type silently breaks every saved
+  tool that filtered on it.** `passes(undefined, filter)` is `false`, so the tool
+  keeps answering — with zero — and reports it confidently.
+
+That is the same failure signature as the date-comparison bug (#428): a confident
+wrong answer, not an error.
+
+The symmetry with G2 is striking. `builtin_property_drift()` is precisely the
+right tripwire — and it covers **built-in types against their tables only**.
+Nothing checks **authored tools and agents against the authored types they
+reference**. We built the correct mechanism for one half of the ontology and none
+for the other.
+
+## 7.3 Process mining — parity
+
+`mine_process` mines `restock_request`, `purchase_order`, `case` and `proposal`
+using `lifecycle_transitions` and bottleneck triggers. Foundry's process-mining
+(setup, core concepts, operationalize) is the same idea: discover the real process
+from event data, find bottlenecks, operationalize the finding.
+
+Ours is narrower in scope and equal in kind. **No gap.**
+
+## 7.4 Run observability — ahead
+
+`AgentRunTrace` records numbered steps with block, tool, input, output, thought,
+duration and token usage, rendered in both a developer debugger and an operator
+slide-over. Foundry's closest analogue is the build timeline, which is coarser.
+
+A proposal without a viewable trace is a defect here — a standard the platform
+does not impose on itself.
+
+## 7.5 Foundry Rules — and a correction I owe
+
+> A rule is "a set of conditions that … specify particular rows of data" … rules
+> also support **categorization and cohort creation**.
+
+This reframes two earlier findings. Foundry Rules produce a **set**; alerting is
+merely one consumer. Ours invert that: an `automation` is a condition welded to an
+effect (`when → then → gate`). We have no way to name a set without also saying
+what to do with it — which is exactly why section 6.2 found no Cohort object.
+
+**The correction:** I recommended deleting `nodeSet` in #418 because it had zero
+consumers, and that was right about *that code*. But the audit has since found the
+object-set concept load-bearing in three separate places:
+
+- §5 — Foundry functions take and return object sets (`api-object-sets`)
+- §6 — cohorts *are* named object sets with rules
+- §7 — Foundry Rules produce object sets
+
+So the deletion stands (dead code with no consumers is dead code), but **the
+concept should return with a consumer**, not as a dormant primitive. That is the
+opposite of how it existed before.
+
+## 7.6 Announcements, resource management, dataset preview — divergence (scope)
+
+Platform-operator surfaces: broadcasting platform notices, managing compute
+resources, previewing datasets. We have none and need none at our scale.
+
+---
+
+## Section 7 verdict
+
+Strong on *run* observability, weak on *artifact* observability. We can explain
+what an agent did in exquisite detail, and cannot answer what breaks if an
+operator edits a type.
+
+Open gaps:
+
+1. **Impact analysis for ontology artifacts** (7.2) — extend the G2 drift idea from
+   built-in types to authored tools and agents. Today an operator can silently
+   break every saved tool by editing a type.
+2. **Rules that produce sets** (7.5) — one primitive that would also deliver
+   cohorts (6.2) and generalise automations.
+3. **Data-vs-dataset freshness** (7.1) — we would report a stale POS feed as
+   healthy if it commits on schedule.
+4. **Check groups and watching** (7.1) — health checks are not operator-extensible.
