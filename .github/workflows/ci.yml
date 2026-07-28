@@ -4,6 +4,9 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Manual trigger: a run blocked by billing can't be queued for later, so this
+  # is how main gets a real verification pass once minutes are available again.
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

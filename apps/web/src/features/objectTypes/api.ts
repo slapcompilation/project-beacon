@@ -23,6 +23,7 @@ export interface ObjectTypeRow {
    *  builtin  = code-owned registration; records live in source_table. */
   kind: 'authored' | 'builtin'
   source_table: string | null
+  title_key: string | null
   created_by_user_id: string
   created_at: string
   updated_at: string
@@ -35,7 +36,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     properties: r.properties, computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
-    kind: r.kind, sourceTable: r.source_table,
+    kind: r.kind, sourceTable: r.source_table, titleKey: r.title_key,
   }
 }
 

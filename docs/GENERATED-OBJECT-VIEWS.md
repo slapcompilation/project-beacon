@@ -40,8 +40,57 @@ Foundry also **excludes complex columns**: *"A backing datasource for an object
 type may not contain `MapType` or `StructType` columns."* That is a precedent for
 skipping our `jsonb` columns rather than inventing a property type for them.
 
-And crucially, Foundry does **not** silently auto-sync on schema drift — it fails
-loudly:
+### Why Foundry fails loudly — it is architectural, not stylistic
+
+Objects are **materialised into an index** (Object Storage / Phonograph), so the
+ontology's property schema *is* the index's schema. From `edit-object-type.md`:
+
+> Changes that require Object Storage v1 (Phonograph) to unregister and reregister
+> the backing datasources of an object type will make the objects of that type
+> **unavailable** in user applications during that reindex time.
+
+> When the backing datasources … are unregistered, **the history of edits … is
+> deleted** and future builds of the writeback dataset will fail.
+
+Loud failure protects **availability and edit history**. It is a consequence of
+the indexing architecture, not a taste.
+
+**We have no index.** We read the backing table live through PostgREST. So we get
+the benefits free — no reindex, no downtime, no unregister, no edit-history risk —
+and **no failure either**: a renamed column silently renders as `undefined`.
+
+Foundry earns its tripwire structurally. We have to build ours. That is why the
+drift contract test is not optional here; it replaces a property our architecture
+does not provide.
+
+### How schemas are actually authored there
+
+Inference is a bootstrap, and Foundry warns against leaning on it:
+
+> Schemas applied statically based on the initial dataset's files can become **out
+> of date if data changes**. — `infer-schema.md`
+
+> Disabling automatic schema inference will result in significantly better
+> performance and **consistency**, especially for incremental pipelines where
+> different schema inference results between incremental batches can be
+> problematic. — `infer-schema.md`
+
+And the operational guidance, from `development-best-practices.md`:
+
+> **Explicitly cast the column types** in the `raw` → `clean` transform, even if
+> the schema inference … has chosen correct values. **This will help catch
+> breaking changes from the source system if a column type changes.**
+
+So the methodology is: declare the schema explicitly *so it acts as a tripwire on
+upstream change*. Note our derivation reads Postgres's **declared DDL**, not
+sampled data — much closer to Foundry's "explicitly pass a schema" than to CSV
+inference, so the inconsistency warning does not apply to us.
+
+Foundry also confirms the title key is **cheap**: "changing the display name,
+title key, render hints, type classes, and visibility of a property will **not**
+require the object type to unregister" — it is presentation, not schema.
+
+Original note, retained:
 
 > `Phonograph2:SchemaMismatch` … there is a mismatch between the data types in the
 > dataset that backs your object and the data types that the ontology expects. You
@@ -129,9 +178,13 @@ page; a type without one falls through to the generated view.
 record as `{ id, data }`. Route `/objects/:type/:recordId` resolves built-ins
 through it. No schema change; proves the path before mass-registering anything.
 
-**G2 — derive properties.** Migration maps columns → properties for the 15
-registered built-in types, plus the title key. Contract test for drift. Generated
-views light up for every built-in without a hand-written page.
+**G2 — DONE.** Migration 228: all 15 registered built-ins derived (2–18 properties
+each), plus an explicit `title_key` column set per type — NULL where no single
+column reads as a title (stock_log, restock_request, purchase_order, proposal),
+which fall back rather than pretending. `builtin_property_drift()` +
+`supabase/tests/ontology_drift.sql`, wired into db-contracts CI. **The tripwire was
+proven by injecting all three drift kinds and watching it fire**, not just by
+observing zero.
 
 **G3 — converge the registries.** `OBJECT_LIST` and `ENTITY_META` read from the
 ontology row instead of their own copies. This is the one that deletes code.

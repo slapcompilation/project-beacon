@@ -40,6 +40,10 @@ export interface ObjectTypeDef {
    *  live in `sourceTable`, not object_records. */
   kind?: 'authored' | 'builtin'
   sourceTable?: string | null
+  /** Property whose value titles a record — Foundry requires a title key per
+   *  object type. NULL where no single column reads as one (a stock log's title
+   *  comes from a join, not a column). */
+  titleKey?: string | null
   /** Derived values computed from stored properties at read time (P2.4). */
   computedProperties: ComputedPropertyDef[]
   /** How records of this type present (P3). Empty config → standard view. */
