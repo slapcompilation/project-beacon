@@ -29,7 +29,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 3 | Model connectivity & development | audited below |
 | 4 | Ontology building | ✅ covered in `ONTOLOGY-PARITY-GAPS.md` + `GENERATED-OBJECT-VIEWS.md` |
 | 5 | Developer toolchain | audited below |
-| 6 | Use case development | — not yet audited |
+| 6 | Use case development | audited below |
 | 7 | Observability | — not yet audited |
 | 8 | Analytics | — not yet audited |
 | 9 | Product delivery | — not yet audited |
@@ -544,3 +544,129 @@ is the source of truth for data, but not yet for everything else*:
    agents cannot move between environments.
 4. **Data-path limits unbounded** (5.3) — the agent loop is capped, the row reads are
    not.
+
+---
+
+# 6. Use case development
+
+Products: **workshop** (96), **use-case-examples** (20), **forms** (19),
+**cross-app-interactivity** (9), **use-cases** (9), **marketplace** (7),
+**use-case-patterns** (6), **use-case-life-cycle** (6), **app-building** (5).
+
+The most useful thing here is not a product — it is `use-case-patterns`, which
+names the five canonical operational shapes Foundry is built to serve:
+
+`alerting-workflow` · `investigation-and-cohorting` ·
+`operational-process-coordination` · `resource-allocation-optimization` ·
+`multi-organization-ecosystems`
+
+**Beacon is an instance of all five at once.** That is worth stating: it is
+independent confirmation that the domain we picked is one the ontology pattern
+was designed for, rather than one we bent it to fit.
+
+## 6.1 Alerting workflow — parity, and ahead in one direction
+
+Foundry's pattern: **Alert objects** for the thing needing review, **Trigger
+objects** for the subject that prompted it, **Actions** recording decision
+metadata (user, timestamp, decision, optional explanation), and **writeback** of
+the result.
+
+Ours maps one-to-one and then goes further: `Proposal` is the alert,
+`variant`/`supplier` the trigger, the Action Registry records the decision with
+`triggered_by`, `decided_at` and `edited_before_approval`, and the immutable
+`StockLog` is the writeback.
+
+Beyond the pattern we add confidence-coded queues, calibration scoring of those
+decisions, and constraint gating before execution — none of which the pattern
+requires.
+
+**Foundry's pattern doc explicitly stops short of triage, assignment and
+resolution.** We have resolution (Cases, lifecycle transitions). We do **not**
+have assignment — see 6.2.
+
+## 6.2 Investigation and cohorting — partial, and the section's real gap
+
+> **Cohort and Rules objects that store investigation logic** … cohorts generated
+> by manual rule creation, automated clustering, or exploratory analysis.
+
+Two absences, both verified:
+
+**No Cohort object.** `Case` is our investigation envelope (trigger → trace →
+outcome) and it is good. But a cohort is the *grouping* that precedes an
+investigation — "the set of variants with anomalous waste this month", stored as a
+named thing with its rule, trackable over time. Ours are re-derived on every sweep
+by `useMonitorCaseSweep`, which opens a Case per fired subject and keeps no record
+of the group. There is no `cohorts` table.
+
+The consequence is that investigation logic is not an ontology object. It lives in
+a hook. That is the same class of gap as automations-before-#420 and monitors
+before their config moved to `org_policy`: real capability that is not
+config-as-data.
+
+**No assignment.** Neither `proposals` nor `cases` has an assignee column —
+`cases` has `opened_by_user_id` and `resolved_by_user_id` only. A hotel with three
+managers cannot route a proposal to one of them, and nobody owns an open Case
+between opening and resolution. Foundry's pattern doc omits assignment too, but a
+multi-operator property needs it, and our echelon model (`org_director >
+regional_manager > hotel_admin > hotel_manager > team_member`) makes its absence
+more conspicuous, not less.
+
+## 6.3 Operational process coordination, resource allocation, multi-org — parity
+
+- **Process coordination** → the intelligence cycle, one loop with two callers.
+- **Resource allocation optimization** → restock sizing, and lateral
+  `TRANSFER_STOCK` checked before external procurement.
+- **Multi-organization ecosystems** → `organization_id` + `hotel_id` on every node,
+  scope-aware RLS, benchmarking across siblings.
+
+These are the patterns we implement most completely.
+
+## 6.4 Workshop — scope divergence, with the logic already borrowed
+
+96 docs: build applications from ontology-bound widgets without writing code.
+
+Building *many* applications is scope — we are one application. But the **logic**
+is not scope, and we already adopted it: generated Object Views (G1-G4) render a
+type from its ontology definition with no per-type code, and `ActionFormModal`
+renders a form from an action's schema. That is Workshop's principle applied
+where it matters to us.
+
+What we do not have is **operator-composable layout** — an operator can author a
+type, a tool and an agent, but cannot compose a screen. `viewConfig` is the
+closest thing and only orders properties within a generated view.
+
+## 6.5 Forms — parity in kind
+
+19 docs on ontology-bound data entry with validation. Our actions declare
+`open-form` and the modal is auto-rendered from the action's schema, with
+submission criteria checked before execution. Same mechanism, narrower surface.
+
+## 6.6 Marketplace — same gap as 5.5
+
+Packaging a use case for distribution and installation elsewhere. This is the
+export/import gap already recorded in 5.5, seen from the product side: our
+authored ontology artifacts cannot leave the database they were authored in.
+
+## 6.7 use-case-life-cycle — methodology, not software
+
+`distilling-functional-requirements`, `sequencing-development`, `solution-design`,
+`use-case-roles`. Process guidance rather than platform capability. No gap to
+close in code; worth reading before the implementation map, since it is Palantir's
+own account of how to sequence work like ours.
+
+---
+
+## Section 6 verdict
+
+The strongest section for us. We implement all five canonical patterns, and on
+alerting we exceed the documented pattern.
+
+Open gaps:
+
+1. **No Cohort object** (6.2) — investigation logic lives in a hook, not the
+   ontology. Cohorts are the natural companion to the Case we already have.
+2. **No assignment** (6.2) — proposals and cases have no owner; the role hierarchy
+   makes this more glaring, not less.
+3. **No operator-composable layout** (6.4) — an operator can author types, tools
+   and agents but not a screen.
+4. **No packaging/export** (6.6) — duplicate of 5.5; counts once in the map.
