@@ -76,7 +76,20 @@ entity is a known supplier — a resolved `describes_entity` edge to the real Su
 
 ---
 
-## 3. The gap, stage by stage (what to build)
+## 3. The gap, stage by stage — ⚠️ SUPERSEDED (audited 2026-07-28)
+
+**The table below is STALE.** `supabase/functions/document-ingest/index.ts`
+implements stages 1–8 and 10 to the Foundry reference: 512/128 overlapping
+chunking, composite `${docId}_${page}_${chunk}` keys, per-chunk LLM
+`{summary, entities}` with categories, `text_full`, `cited_in` document→chunk
+edges and `Entity` nodes with `mentions` edges — the last two **fail-closed**, so
+ingestion refuses to advance a stage it couldn't link.
+
+**What is actually open is not in this table: `documents = 0`.** Nothing has ever
+been ingested in the live environment, so none of the above is verified by
+observation. See `FOUNDRY-CAPABILITY-AUDIT.md` §2.1.
+
+Original table kept for the stage-by-stage spec, which is still the reference:
 
 | # | Foundry stage | What we have | Build |
 |---|---|---|---|

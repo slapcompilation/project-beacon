@@ -19,7 +19,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | # | Capability | Status |
 |---|---|---|
 | 1 | AI Platform (AIP) | 🟡 audited below |
-| 2 | Data connectivity & integration | — not yet audited |
+| 2 | Data connectivity & integration | 🟡 audited below |
 | 3 | Model connectivity & development | — not yet audited |
 | 4 | Ontology building | ✅ covered in `ONTOLOGY-PARITY-GAPS.md` + `GENERATED-OBJECT-VIEWS.md` |
 | 5 | Developer toolchain | — not yet audited |
@@ -140,3 +140,120 @@ Ranked by value over effort:
 3. **Cost/compute view** over `AgentRunStep.tokens` — small, and we already pay to
    collect the data.
 4. **Multi-chatbot** — decide deliberately; may be a divergence rather than a gap.
+
+---
+
+# 2. Data connectivity & integration
+
+Products: **available-connectors** (193 docs), **data-connection** (30),
+**data-integration** (27, mirrored), **analytics-connectivity** (25), **sap** (34),
+**fusion** (22), **hyperauto**, **media-sets**, **microsoft-excel**, **email**.
+
+The biggest section by doc count, and the one where "vertical solution vs
+platform" changes the answer most. Reconciling by *concept*, not doc count.
+
+## 2.1 Document ingestion — ✅ built to spec, ❌ never exercised
+
+**`docs/DOCUMENT-INGESTION-ROADMAP.md` was stale and is corrected in this change.**
+Its gap table listed stages 1–8 and 10 as unbuilt (🔴/🟠). `document-ingest`
+implements all of them, to the Foundry reference:
+
+| Roadmap said | Actual |
+|---|---|
+| 🔴 no 512-char overlapping chunker | `CHUNK_SIZE = 512`, `CHUNK_OVERLAP = 128`, `chunkString()` |
+| 🟡 chunk id `docId-chunk-{page}` | `${docId}_${page}_${chunk}` — Foundry's composite key exactly |
+| 🟠 doc-level entity extract, no summary | per-chunk LLM `{summary, entities}` with categories |
+| 🟠 embeds a 240-char preview | `text_full` populated; summary embedded |
+| 🟠 `Chunk` not a node | `document_chunks` table + `chunk` in NODE_LABELS |
+| 🟠 no `Entity` type | `entities` table + `entity` node type |
+| 🟠 no `mentions` edge | written, and **fail-closed** (`gateFail('embedded.mentions_written', …)`) |
+| 🟠 `cited_in` declared, never written | written, also fail-closed |
+
+Those gates are the good part: ingestion refuses to advance a document's stage if
+citations or mentions can't be written, rather than leaving a half-linked doc.
+
+**The real finding is different, and worse: `documents = 0`, `document_chunks = 0`.**
+The pipeline our own roadmap calls the differentiator has never run in this
+environment. Everything above is verified by reading code, not by observing
+output. The `documents` row of the object-view e2e gate is therefore skipping.
+
+**This is the section's top action: ingest one real document end to end.** It is
+the only way to know whether the fail-closed gates pass, whether the entity
+categories are sane, and whether `cited_in` produces usable page citations.
+
+## 2.2 Connectors — ⬜ divergence in breadth, ✅ parity in kind
+
+Foundry documents 193 connectors to generic enterprise sources (SAP, S3,
+Snowflake, JDBC…). We have hospitality-specific inbound instead:
+
+`mews-webhook` (PMS) · `square-webhook` (POS) · `ingest-pos` · `ingest-occupancy` ·
+`parse-invoice` (vision) · `parse-shelf-photo` (vision) · `smart-import` ·
+`document-ingest` · `fire-webhooks` (outbound)
+
+For a vertical, that *is* the right connector set — breadth over generic sources
+is a platform-vendor need. **Not a gap.**
+
+What we lack is a **source registry**: Foundry's `source-type-overview` makes a
+source a first-class configurable object with credentials, health and lineage.
+Ours are nine hard-coded edge functions. Adding a connector means writing one.
+That's the honest limitation, and it's the same shape as every gap this repo has
+closed lately — a capability that exists in code but isn't config-as-data.
+
+## 2.3 Datasets, builds, schedules, branching — ⬜ deliberate divergence
+
+Foundry's dataset → build → schedule → branch model is a pipeline engine. Ours is
+Postgres tables plus pg_cron running one intelligence cycle. We don't have a
+build graph because we don't have derived datasets; computed values are node
+properties resolved at read time.
+
+Worth naming so it isn't mistaken for a gap later: **our "pipeline" is the
+intelligence cycle**, and it already has the things that matter from this section
+— a schedule, a health check, and observable runs.
+
+## 2.4 Data health — 🟡 partial
+
+Foundry: health checks on datasets and connections, plus stream monitoring.
+Ours: `get_integration_health()` (migration 190) and the pipeline-health monitor
+(#297). Covers connection liveness; does not cover *data* quality assertions
+(row-count deltas, null-rate drift, schema expectations).
+
+Adjacent to something we just built: `builtin_property_drift()` is a schema
+expectation check. The same idea applied to data rather than schema is what
+Foundry's health checks do.
+
+## 2.5 Streams, CDC, Flink — ⬜ deliberate divergence
+
+We are not a streaming platform. Worth noting that the webhooks *are* our event
+stream — Mews and Square push, we react — which covers the operational need
+without a streaming engine.
+
+## 2.6 Virtual tables, external transforms, dataproxy, S3 API — ❌ absent
+
+Foundry can compute over data **without copying it** (`virtual-tables`,
+`external-transforms`, `foundry-s3-api`). We always ingest.
+
+Plausibly relevant for a hotel group whose PMS or finance data can't be copied
+for contractual reasons — but speculative until a customer asks. Recording it as
+absent rather than divergent, since the reason to skip it is "no demand yet",
+not "wrong for a vertical".
+
+---
+
+## Section 2 verdict
+
+The section splits cleanly:
+
+- **Genuinely divergent** (connector breadth, pipeline engine, streaming) — a
+  vertical shouldn't rebuild a data platform.
+- **Genuinely partial** (data health) — we check that connections are alive, not
+  that data is sane.
+- **Genuinely absent** (source registry as config-as-data; federated compute).
+- **Built but unproven** — document ingestion, which is the urgent one.
+
+Ranked:
+
+1. **Ingest one real document end to end.** Zero have ever been ingested. The
+   pipeline is written to spec and completely unexercised.
+2. **Source registry** — make a connector config-as-data instead of an edge
+   function, so adding one doesn't mean shipping code.
+3. **Data-quality checks** — extend the drift idea from schema to data.
