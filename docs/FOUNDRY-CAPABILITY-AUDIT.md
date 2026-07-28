@@ -20,7 +20,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 |---|---|---|
 | 1 | AI Platform (AIP) | 🟡 audited below |
 | 2 | Data connectivity & integration | 🟡 audited below |
-| 3 | Model connectivity & development | — not yet audited |
+| 3 | Model connectivity & development | audited below |
 | 4 | Ontology building | ✅ covered in `ONTOLOGY-PARITY-GAPS.md` + `GENERATED-OBJECT-VIEWS.md` |
 | 5 | Developer toolchain | — not yet audited |
 | 6 | Use case development | — not yet audited |
@@ -320,3 +320,115 @@ Ranked:
 4. **Source registry** — make a connector config-as-data instead of an edge
    function, so adding one doesn't mean shipping code.
 5. **Data-quality checks** — extend the drift idea from schema to data.
+
+---
+
+# 3. Model connectivity & development
+
+Products: **integrate-models** (26), **manage-models** (18), **model-integration**
+(15), **evaluate-models** (9), **compute-modules** (7), **model-catalog** (2),
+**migrate-models** (2).
+
+The section we copied most deliberately — CLAUDE.md's Modeling Objectives contract
+(adapter with `api()` + `runInference()`, eval suite, releases
+`sandbox to staging to production`, deployments `live | batch`) is Foundry's model
+lifecycle almost term for term. Structural parity is real. The findings are about
+**use**, not structure.
+
+## 3.1 Model adapters — parity
+
+Foundry's `model-adapter-api` wraps any model behind a uniform interface so callers
+never talk to the model. Ours: `ModelAdapter` with `name`, `api()`,
+`runInference()`, and six registered consumption-forecast adapters
+(`auto_select_v1`, `ewma_v1`, `holt_linear_v1`, `seasonal_naive_v1`,
+`occupancy_v1`, `baseline_rolling_30d`), all reachable through one Logic Tool whose
+`basis` names which one answered. The rule that matters — *no code talks to a model
+directly* — holds.
+
+## 3.2 Evaluation — parity, and genuinely alive
+
+`model_eval_runs`: **5,745 rows**, CI-fed through `autoPersistReporter`, with
+per-case results and cohort slices. Foundry splits evaluators into regression /
+binary-classification / custom; ours are Vitest suites with object-match,
+string-contains and rubric graders. Different mechanism, same contract.
+
+## 3.3 The release + deployment lifecycle — built, never used
+
+`model_releases` and `model_deployments` exist (migration 131), `promote_model` is
+role-gated, and require-staging is enforced server-side (#405, #406).
+
+**Live: `model_releases = 0`, `model_deployments = 0`.**
+
+Compare `agent_releases`: **5 rows, including production**. The agent lifecycle is
+exercised; the model one is not.
+
+Our forecast adapters are selected **in code** — `CONSUMPTION_FORECAST_ADAPTERS`
+plus `auto_select_v1` — never through a release. `basis` changes from
+`rolling-30d-avg` to `ewma-v1` because a function chose it, not because anyone
+promoted it. That is precisely what the release machinery was built to prevent,
+bypassed by code that predates it.
+
+**Not a missing feature — an unused one**, which is worse: the safeguards look
+present.
+
+## 3.4 Models in the Ontology — the real conceptual gap
+
+> Run model inference in the context of Ontology objects, **binding object
+> properties to model inputs**, and exposing outputs as **object properties or
+> function return values**. — `models-in-the-ontology`
+
+Foundry binds a model to an object type: the object's properties *are* the model's
+inputs, and outputs come back as properties, so model-backed Actions and UI follow
+for free.
+
+Ours takes a `variantId` and returns a forecast to whoever asked. The model is
+reachable *from* the ontology but not bound *to* it — a `Variant` has no
+`projected_demand` property a model fills; our computed properties are
+deterministic functions only.
+
+Same shape as the gap G1-G4 closed one layer down: the capability exists but is not
+part of the type. **The section's most interesting gap**, because binding would make
+forecasts visible everywhere a Variant is, instead of only where someone called a
+tool.
+
+## 3.5 Model checks — absent
+
+Foundry's `set-up-checks`: per-objective quality checks (smoke tests, metric
+thresholds, fairness), manual or automatic, before a model is operationalized —
+and notably **not hard gates** there, but documented approvals.
+
+We have no equivalent. Eval suites are closest but are pass/fail on cases, not a
+reviewable checklist against an objective. Since we *do* hard-gate on evals, we are
+stricter in one dimension and absent in another (no fairness or smoke-test concept,
+no reviewer threads).
+
+## 3.6 External model connections — deliberate divergence
+
+`external-model-connection-{open-ai,sagemaker,vertex-ai}`, container models, compute
+modules: bring your own serving infrastructure. We call Anthropic through one edge
+function and run statistical adapters in-process. Right for a vertical.
+
+## 3.7 Inference history and compute usage — partial
+
+Foundry has `model-inference-history` and per-model `compute-usage`. We record
+`forecast_observations` (feeding accuracy scoring) and `AgentRunStep.tokens`, but
+there is no per-model inference log or spend view — the same cost-visibility gap as
+section 1.1.
+
+---
+
+## Section 3 verdict
+
+Structure copied faithfully; **operation diverged**. The release/deployment
+lifecycle is the clearest case in this audit of machinery that exists, is correct,
+and is simply not in the path.
+
+Open gaps:
+
+1. **Bind models to object types** (3.4) — model outputs as object properties. Most
+   valuable, and consistent with the direction of G1-G4.
+2. **Route adapter selection through releases** (3.3) — or consciously decide
+   in-code selection is right and retire the tables. Either is defensible; the
+   present state, where safeguards exist but nothing uses them, is not.
+3. **Model checks** (3.5) — a reviewable pre-operationalization checklist.
+4. **Inference history / compute usage** (3.7) — shares a fix with 1.1.
