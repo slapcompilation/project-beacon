@@ -204,12 +204,28 @@ and an Object View for **zero code** — `hotel`, `location`, `product_batch`,
 `stock_transfer` lit up immediately. 229 also registered `approved_answer` (it had
 a view and a list entry but no registration) and set `proposal.title_key`.
 
-**G4 — THE ONLY ONE LEFT.** Interfaces over built-in types. Unblocked by G2:
+**G4 — DONE (#428, migration 230). The arc is complete.** Interfaces over built-in types. Unblocked by G2:
 `assert_interface_conformance` has no `kind` restriction, and built-ins satisfied
 nothing only because `properties` was `[]`. Now they have real properties, so a
 `Perishable` interface can span Variant and Batch, with one authored tool pointed
 at it — which is also the first real test of #415's interface-targeted tools
 against the operational domain rather than authored types.
+
+**Shipped.** `Perishable` = `{ expiry_date: date, lot_number: text, status: text }`,
+implemented by `variant` and `product_batch` — a shape they genuinely share, not a
+contrivance. `product` is deliberately *not* an implementer: it has
+`shelf_life_days` but no `expiry_date`, and the trigger refuses it, which is the
+conformance rule doing its job on code-owned types.
+
+`perishables_expiring_by({before})` answers across both, and would pick up a third
+implementer with no edit. Live: **6** before 2026-07-01 (2 variants + 4 batches),
+**9** before 2026-12-31 (4 + 5).
+
+**G4 also exposed a real bug.** `Number('2026-06-25')` is `NaN`, so every ordering
+filter on a date silently matched *nothing* and reported it as a confident zero —
+and "what expires soon" is the canonical Perishable question. `passes()` now
+compares both sides on one scale (both numbers, or both dates), and never mixes:
+a timestamp against `5` matches nothing rather than everything.
 
 ## Risks
 

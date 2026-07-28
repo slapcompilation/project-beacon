@@ -65,6 +65,28 @@ describe('evaluateUserTool', () => {
     expect(r.value).toBe(1)
   })
 
+  it('compares dates as dates, not as NaN', () => {
+    // Number('2026-06-25') is NaN, so an ordering filter on a date used to match
+    // NOTHING and report it as a confident zero — the worst kind of wrong answer.
+    const rows = [
+      { lot: 'A', expiry_date: '2026-06-25' },
+      { lot: 'B', expiry_date: '2026-08-01' },
+    ]
+    const r = evaluateUserTool(
+      { filters: [{ property: 'expiry_date', op: 'lte', value: '2026-07-01' }], aggregation: { fn: 'count' } },
+      rows,
+    )
+    expect(r.value).toBe(1)
+  })
+
+  it('does not compare a date against a number', () => {
+    const r = evaluateUserTool(
+      { filters: [{ property: 'expiry_date', op: 'gte', value: 5 }], aggregation: { fn: 'count' } },
+      [{ expiry_date: '2026-06-25' }],
+    )
+    expect(r.value).toBe(0)   // a timestamp vs 5 is meaningless, not "everything"
+  })
+
   it('filters on a computed property like a stored one', () => {
     const iso = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString()
     const rows = [{ reported_on: iso(10) }, { reported_on: iso(1) }]
@@ -231,6 +253,68 @@ describe('tool parameters', () => {
 
   it('reads as a question shape, with the parameter as a placeholder', () => {
     expect(describeUserTool(paramTool, on)).toBe('Count of Maintenance Request where Urgent is {is_urgent}')
+  })
+})
+
+// ── G4: an interface over BUILT-IN types, with a date parameter ──────────────
+// The composition the whole arc was for — interfaces (#414), interface-targeted
+// tools (#415), input parameters (#417) and derived built-in properties (G2)
+// meeting on the operational domain rather than authored types.
+
+describe('a parameterised tool over an interface spanning built-in types', () => {
+  const perishable: InterfaceDef = {
+    id: 'i-per', organizationId: 'o1', apiName: 'perishable', label: 'Perishable', description: '',
+    properties: [
+      { key: 'expiry_date', label: 'Expiry date', type: 'date' },
+      { key: 'lot_number', label: 'Lot number', type: 'text' },
+    ],
+  }
+  const variantType: ObjectTypeDef = {
+    ...type, id: 'bt-variant', apiName: 'variant', label: 'Variant', kind: 'builtin',
+    sourceTable: 'product_variants', titleKey: 'name',
+    properties: [
+      { key: 'expiry_date', label: 'Expiry date', type: 'date', required: false },
+      { key: 'lot_number', label: 'Lot number', type: 'text', required: false },
+    ],
+    computedProperties: [],
+  }
+  const batchType: ObjectTypeDef = {
+    ...variantType, id: 'bt-batch', apiName: 'product_batch', label: 'Product Batch',
+    sourceTable: 'product_batches', titleKey: 'lot_number',
+  }
+
+  const def = {
+    name: 'Perishables expiring by', apiName: 'perishables_expiring_by',
+    subjectTypeId: null, subjectInterfaceId: 'i-per',
+    parameters: [{ key: 'before', label: 'Expiring before', type: 'date' as const, required: true }],
+    filters: [{ property: 'expiry_date', op: 'lte' as const, value: '', param: 'before' }],
+    aggregation: { fn: 'count' as const },
+  }
+
+  const groups = [
+    { type: variantType, records: [{ expiry_date: '2026-06-30' }, { expiry_date: '2026-08-15' }] },
+    { type: batchType,   records: [{ expiry_date: '2026-06-25' }, { expiry_date: '2026-12-01' }] },
+  ]
+
+  it('is answerable against the interface', () => {
+    expect(validateUserTool(def, { kind: 'interface', iface: perishable })).toEqual([])
+  })
+
+  it('answers differently per argument, pooling both built-in types', () => {
+    const july = bindToolArgs(def, { before: '2026-07-01' })
+    const dec  = bindToolArgs(def, { before: '2026-12-31' })
+    expect(july.errors).toEqual([])
+    // one variant + one batch fall before July; everything falls before December
+    expect(evaluateUserToolAcross({ ...def, filters: july.filters }, groups).value).toBe(2)
+    expect(evaluateUserToolAcross({ ...def, filters: dec.filters }, groups).value).toBe(4)
+  })
+
+  it('attributes the answer to each built-in type', () => {
+    const { filters } = bindToolArgs(def, { before: '2026-07-01' })
+    expect(evaluateUserToolAcross({ ...def, filters }, groups).byType).toEqual([
+      { typeId: 'bt-variant', label: 'Variant',       matched: 1, scanned: 2, value: 1 },
+      { typeId: 'bt-batch',   label: 'Product Batch', matched: 1, scanned: 2, value: 1 },
+    ])
   })
 })
 

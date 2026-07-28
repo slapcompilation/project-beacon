@@ -358,15 +358,36 @@ function reduce(fn: Exclude<AggregationFn, 'count'>, nums: number[]): number {
 function passes(actual: unknown, f: ToolFilter): boolean {
   if (f.op === 'eq')  return normalize(actual) === normalize(f.value)
   if (f.op === 'neq') return normalize(actual) !== normalize(f.value)
-  const a = Number(actual)
-  const b = Number(f.value)
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return false
+  const pair = comparable(actual, f.value)
+  if (!pair) return false
+  const [a, b] = pair
   switch (f.op) {
     case 'lt':  return a <  b
     case 'lte': return a <= b
     case 'gt':  return a >  b
     case 'gte': return a >= b
   }
+}
+
+/** Both sides as one comparable scale — both numbers, or both dates. Never a
+ *  mix: a timestamp against 5 is meaningless, so it matches nothing rather than
+ *  everything. `Number('2026-06-25')` is NaN, which used to make every date
+ *  range filter silently match zero rows and report it confidently. */
+function comparable(x: unknown, y: unknown): [number, number] | null {
+  const asNumber = (v: unknown): number | null =>
+    typeof v === 'number' ? (Number.isFinite(v) ? v : null)
+    : typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v)) ? Number(v)
+    : null
+  const nx = asNumber(x), ny = asNumber(y)
+  if (nx !== null && ny !== null) return [nx, ny]
+
+  const asDate = (v: unknown): number | null => {
+    if (typeof v !== 'string') return null
+    const t = Date.parse(v)
+    return Number.isNaN(t) ? null : t
+  }
+  const dx = asDate(x), dy = asDate(y)
+  return dx !== null && dy !== null ? [dx, dy] : null
 }
 
 /** Text compares case-insensitively; everything else by value. Keeps
