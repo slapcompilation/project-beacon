@@ -2,7 +2,14 @@
 // no hotel filter, so a list always matches the /objects count) and how to render
 // a row. The Objects page cards link here; each row opens the type's Object View.
 // Presentation (icon/label/route) still comes from OBJECT_PRESENTATION.
+//
+// G3: the ontology row is the SOURCE and these entries are overrides. A built-in
+// type with no entry here still lists — defaultListSpec derives one from its
+// registration (source_table + title_key). Entries below earn their place by
+// doing what a title key can't: joins (a variant's title is its product's name)
+// and composed subtitles.
 
+import type { ObjectTypeDef } from '@beacon/reality-graph'
 import type { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 
 export type ObjectListType = keyof typeof OBJECT_PRESENTATION
@@ -118,4 +125,20 @@ export const OBJECT_LIST: Record<ObjectListType, ObjectListSpec> = {
     title: (r) => str(r.title) || `Action Chain ${short(r)}`,
     subtitle: (r) => str(r.status) || null,
   },
+}
+
+/** A list spec derived from a built-in type's registration — table from
+ *  source_table, title from title_key, subtitle from the first two other
+ *  properties. What every type gets for free; an OBJECT_LIST entry overrides. */
+export function defaultListSpec(t: ObjectTypeDef): ObjectListSpec | null {
+  if (!t.sourceTable) return null
+  const subtitleProps = t.properties.filter((p) => p.key !== t.titleKey && p.key !== 'created_at').slice(0, 2)
+  return {
+    table: t.sourceTable,
+    select: '*',
+    orderBy: t.properties.some((p) => p.key === 'created_at') ? newest : undefined,
+    title: (r) => (t.titleKey ? str(r[t.titleKey]) : '') || `${t.label} ${short(r)}`,
+    subtitle: (r) =>
+      subtitleProps.map((p) => `${p.label}: ${str(r[p.key]) || '—'}`).join(' · ') || null,
+  }
 }
