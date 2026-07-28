@@ -33,7 +33,7 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 7 | Observability | audited below |
 | 8 | Analytics | audited below |
 | 9 | Product delivery | — not yet audited |
-| 10 | Security & governance | — not yet audited |
+| 10 | Security & governance | audited below |
 | 11 | Management & enablement | — not yet audited |
 
 ---
@@ -888,3 +888,112 @@ Open gaps:
    vocabulary with nothing computing over them.
 5. **No export/reporting** (8.5) — minor, but the only thing in this section an
    operator would ask for by name.
+
+---
+
+# 10. Security & governance
+
+Products: **security** (32), **authentication** (14), **platform-security-management**
+(10), **platform-security-third-party** (10), **cipher** (10), **data-lifetime** (10),
+**projects** (10), **retention** (8), **sensitive-data-scanner** (7),
+**object-permissioning** (5), **approvals** (3).
+
+Our strongest section, and the only one where we can point at enforcement rather
+than intent — the RLS contract suite runs in CI on every DB change.
+
+## 10.1 Object-level permissioning — parity
+
+> A two-level authorization structure: **Ontology resources** (object types, link
+> types, action types — the schema) versus **objects and links** (the data).
+> Granular controls apply at the object level: row-level security independent of
+> dataset permissions.
+
+We have both levels:
+
+- **Schema level** — `object_types` write policies are admin/owner-gated, and since
+  migration 223 built-in types are code-owned and unwritable at any role (C20).
+- **Data level** — every node carries `organization_id` and `hotel_id`, with
+  scope-aware RLS via `auth_org_id()` / `auth_hotel_id()`, proved by C1/C2
+  (cross-hotel isolation) and C13 (cross-org).
+
+**Contract-tested, not asserted.** C1–C23 run in CI. That is the mechanism this
+section is about, and we have it.
+
+## 10.2 Markings, purpose limitation and clearance — parity, unusually
+
+Migration 210 gives us `access_purposes` and purpose-based narrowing, and document
+`sensitivity` gates reads by clearance. Both are contract-tested:
+
+- **C11** — a `hotel_manager` cannot read a restricted document **or its chunks**,
+  explicitly framed as the LLM boundary. That is the right place to test it: the
+  chunk table is what RAG reads, so a clearance breach there leaks into an answer.
+- **C12** — purpose-based narrowing.
+
+Most products at our stage have role checks and call it access control. Having
+purpose *and* clearance *and* a test that treats the retrieval path as the boundary
+is genuinely ahead of where a vertical usually is.
+
+## 10.3 Data lifetime and retention — absent, and we have the failure to prove it
+
+> **Lineage-aware** retention policies … deletion governs the transactions in a
+> dataset **and all descendants within the data lineage**, preventing orphaned or
+> incomplete removal.
+
+We have no retention concept at all — no policy, no purge, no scheduled deletion.
+Nothing in `supabase/migrations` matches retention or purge.
+
+More pointedly, section 2 found the inverse failure by accident: deleting a user
+**cascaded away their documents, chunks and citation edges** (D3), while the
+`entities` those chunks produced **survived as orphans** (D4).
+
+That is exactly the problem Data Lifetime exists to solve, and we currently have
+it in both directions at once — deleting too much along one edge and too little
+along another. Foundry's answer is that deletion follows lineage. Ours follows
+whatever `ON DELETE` clause happened to be written.
+
+## 10.4 Sensitive data scanning — partial
+
+Foundry scans for sensitive data as a platform service. We run `scanForPII` /
+`sensitivityFromPII` during document ingestion, which classifies on the way in.
+
+Narrower but the same idea, and correctly placed at the ingestion boundary. The
+gap is that it runs **only** there — nothing scans data that arrives through the
+POS, PMS or occupancy connectors, or anything an operator types into a Principle
+or a Case note.
+
+## 10.5 Approvals — parity in kind
+
+Foundry's `approvals` (3 docs) governs change requests on platform resources. Ours
+governs *operational* actions: the review queue, constraint-driven escalation to a
+higher approval tier, and `promote_agent` / `promote_model` role gates for
+artifacts.
+
+Different subject, same mechanism. Worth noting our approval path is the more
+exercised one.
+
+## 10.6 Cipher, third-party security, projects — divergence (scope)
+
+`cipher` (application-level encryption with in-function decryption), third-party
+integrations, and project-based resource organisation are platform concerns. Under
+the revised rule these are scope, not rigor — none encodes a guarantee we claim
+and fail to keep.
+
+`cipher` is worth remembering if invoice or contract data ever needs field-level
+encryption, but nothing today requires it.
+
+---
+
+## Section 10 verdict
+
+The section where we are strongest, because the claims are contract-tested rather
+than documented. Object permissioning, purpose limitation and clearance are real
+and proven in CI.
+
+The gap is entirely on the **lifecycle** side:
+
+1. **No retention or lineage-aware deletion** (10.3) — and D3/D4 already show the
+   consequence: user deletion destroys documents and their citations while leaving
+   orphaned entities behind. Deletion currently follows whichever `ON DELETE`
+   clause was written, not the graph.
+2. **PII scanning only at document ingestion** (10.4) — connector payloads and
+   operator free text are unscanned.
