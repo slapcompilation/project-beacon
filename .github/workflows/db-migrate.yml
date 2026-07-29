@@ -1,0 +1,74 @@
+name: DB migrate
+
+# Applies pending migrations to the linked project when they land on main, then
+# re-runs the data-layer guards against the result. This is the only automated
+# writer; scripts/db.mjs is the only path either way.
+#
+# Why not Supabase's own GitHub integration: it derives a migration version from
+# the leading digits of the filename, so 111a/111b/111c all collide on 111, and
+# none of our NNN_ versions matched the timestamp history its MCP writes. Its
+# "deploy to production" is deliberately off.
+#
+# Safety properties:
+#   • forward-only — a mistake is corrected by a new migration, never an edit
+#   • each migration and its history row commit together (or roll back together)
+#   • a pg advisory lock serializes this against any local run
+#   • a migration edited after it was applied fails the job, on PR and on main
+#   • dormant without SUPABASE_DB_URL, so a fork never blocks on a missing secret
+#
+# On PRs it only reports (`--status`) — applying belongs to merge, not review.
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/db-migrate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - 'supabase/tests/**'
+      - '.github/workflows/db-migrate.yml'
+  workflow_dispatch:
+
+# Queue, never cancel: interrupting a run mid-migration is the one thing worse
+# than a slow one.
+concurrency:
+  group: supabase-db-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: apply pending migrations + guards
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Report migration state
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::warning::SUPABASE_DB_URL not set — skipping. Add the repo secret to enable."
+            exit 0
+          fi
+          pnpm db:status
+
+      - name: Apply pending migrations
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          pnpm db:migrate
+
+      - name: Data-layer guards
+        if: github.event_name != 'pull_request'
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          pnpm db:contracts
