@@ -35,7 +35,17 @@ const CONTRACTS = [
 const LOCK_KEY = 4021763
 
 function connectionString() {
-  if (process.env.SUPABASE_DB_URL) return process.env.SUPABASE_DB_URL
+  const raw = process.env.SUPABASE_DB_URL ?? readEnvLocal()
+  if (!raw) return null
+  // pg 8.22 reads sslmode from the URL and maps `require` to verify-full, which
+  // then rejects Supabase's chain. Drop it and let the explicit ssl option below
+  // decide — encrypted, unverified, which is what sslmode=require meant here.
+  const url = new URL(raw)
+  url.searchParams.delete('sslmode')
+  return url.toString()
+}
+
+function readEnvLocal() {
   const file = path.join(process.cwd(), '.env.local')
   if (!fs.existsSync(file)) return null
   const line = fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith('SUPABASE_DB_URL='))
