@@ -152,6 +152,9 @@ export interface AgentRunStep {
   type: AgentRunStepType
   /** Set when type is 'llm_tool_use' or 'tool_response'. */
   toolName?: string
+  /** Version of the tool that ran. Provenance: a proposal's numbers are only
+   *  reproducible if the trace says which implementation produced them. */
+  toolVersion?: string
   input?: unknown
   output?: unknown
   /** Intermediate LLM reasoning ("Thought: …"). */

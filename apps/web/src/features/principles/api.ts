@@ -12,7 +12,7 @@ export interface PrincipleRow {
   category: PrincipleCategory
   applies_to_node_ids: string[]
   active: boolean
-  authored_by_user_id: string
+  authored_by_user_id: string | null
   created_at: string
   deactivated_at: string | null
 }

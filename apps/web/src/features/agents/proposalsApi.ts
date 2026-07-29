@@ -18,7 +18,7 @@ export interface ProposalRow {
   status: ProposalStatus
   parent_version_id: string | null
   refinement_note: string | null
-  created_by_user_id: string
+  created_by_user_id: string | null
   decided_by_user_id: string | null
   decided_at: string | null
   edited_before_approval: boolean

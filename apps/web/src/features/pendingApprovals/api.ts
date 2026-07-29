@@ -23,7 +23,7 @@ export interface PendingApprovalRow {
   original_triggered_by:  TriggeredBy
   original_actor_id:      string | null
   status:                 PendingStatus
-  requested_by_user_id:   string
+  requested_by_user_id:   string | null
   decided_by_user_id:     string | null
   decided_at:             string | null
   decision_note:          string | null

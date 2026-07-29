@@ -7,7 +7,7 @@
 
 import { z } from 'zod'
 import { buildRunner, runToolLoop, type BlockContext } from '../agents/runtime'
-import type { LLMClient } from '../agents/llm'
+import { toolSpec, type LLMClient } from '../agents/llm'
 import type { AgentRunTrace } from '../agents/index'
 import type { LogicTool } from '../tools/index'
 import { compileAgent, type AuthoredAgentDef } from './index'
@@ -97,6 +97,6 @@ function toSpecs(toolset: ReadonlyArray<string>, registry: Map<string, LogicTool
   return toolset.flatMap((name) => {
     const tool = registry.get(name)
     if (!tool) return []
-    return [{ name: tool.name, description: tool.description, inputSchema: tool.inputSchema }]
+    return [toolSpec(tool)]
   })
 }

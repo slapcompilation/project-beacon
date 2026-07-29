@@ -12,7 +12,7 @@ export interface ApprovedAnswerRow {
   hit_count:           number
   last_served_at:      string | null
   source_message_id:   string | null
-  curated_by_user_id:  string
+  curated_by_user_id:  string | null
   created_at:          string
   retired_at:          string | null
 }

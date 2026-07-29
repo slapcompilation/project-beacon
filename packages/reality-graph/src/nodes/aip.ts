@@ -66,7 +66,8 @@ export interface ApprovedAnswerPayload {
   embedding_ref: string
   /** Tracks reuse — high counts indicate "stable knowledge". */
   hit_count: number
-  curated_by_user_id: string
+  /** NULL once the curator is deleted — the answer outlives them (mig 231). */
+  curated_by_user_id: string | null
 }
 
 // ── Case — canonical workflow envelope ───────────────────────────────────────
@@ -76,7 +77,7 @@ export type CaseStatus = 'open' | 'in_review' | 'resolved' | 'closed'
 export interface CasePayload {
   title: string
   status: CaseStatus
-  opened_by_user_id: string
+  opened_by_user_id: string | null
   /** Inputs that triggered the case (alert id, agent run id, manual context). */
   input_refs: ReadonlyArray<string>
   /** Proposal node ids attached to this case. */
@@ -97,7 +98,7 @@ export interface ConstraintPayload {
   /** BeaconAction types this constraint gates. Empty = applies to all. */
   applies_to_action_types: ReadonlyArray<string>
   active: boolean
-  authored_by_user_id: string
+  authored_by_user_id: string | null
 }
 
 // ── Node descriptors ─────────────────────────────────────────────────────────

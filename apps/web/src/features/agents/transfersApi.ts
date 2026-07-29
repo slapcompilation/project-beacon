@@ -12,7 +12,7 @@ export interface StockTransferRow {
   quantity: number
   reason: string
   status: 'pending' | 'approved' | 'rejected' | 'cancelled' | 'completed'
-  requested_by_user_id: string
+  requested_by_user_id: string | null
   approved_by_user_id: string | null
   approved_at: string | null
   from_log_id: string | null

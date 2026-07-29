@@ -33,7 +33,8 @@ export interface DocumentRow {
   chunks:               DocumentChunk[] | null
   sensitivity:          Sensitivity
   pii_types:            PIIType[]
-  uploaded_by_user_id:  string
+  /** NULL once the uploader is deleted — the document outlives them (mig 231). */
+  uploaded_by_user_id:  string | null
   created_at:           string
   updated_at:           string
 }

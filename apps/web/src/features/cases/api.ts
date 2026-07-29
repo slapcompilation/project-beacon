@@ -35,7 +35,7 @@ export interface CaseRow {
   input_refs:           CaseInputRef[]
   proposal_ids:         string[]
   outcome:              CaseOutcome | null
-  opened_by_user_id:    string
+  opened_by_user_id:    string | null
   resolved_by_user_id:  string | null
   resolved_at:          string | null
   created_at:           string

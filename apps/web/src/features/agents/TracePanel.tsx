@@ -144,6 +144,13 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   )
 }
 
+/** Which implementation produced the numbers — a rerun on a bumped version
+ *  gives different results, so the trace has to name the version it ran. */
+function toolLabel(step: AgentRunStep): string {
+  const name = step.toolName ?? 'tool'
+  return step.toolVersion ? `${name} v${step.toolVersion}` : name
+}
+
 function describeStep(step: AgentRunStep): { icon: IconName; label: string; intent: Intent } {
   switch (step.type) {
     case 'system_prompt':
@@ -151,9 +158,9 @@ function describeStep(step: AgentRunStep): { icon: IconName; label: string; inte
     case 'task_prompt':
       return { icon: 'document', label: 'Task prompt', intent: Intent.NONE }
     case 'llm_tool_use':
-      return { icon: 'play', label: `→ ${step.toolName ?? 'tool'}`, intent: Intent.PRIMARY }
+      return { icon: 'play', label: `→ ${toolLabel(step)}`, intent: Intent.PRIMARY }
     case 'tool_response':
-      return { icon: 'tick-circle', label: `← ${step.toolName ?? 'tool'}`, intent: Intent.SUCCESS }
+      return { icon: 'tick-circle', label: `← ${toolLabel(step)}`, intent: Intent.SUCCESS }
     case 'llm_output':
       return { icon: 'comment', label: 'Block output', intent: Intent.NONE }
     case 'exited_block':

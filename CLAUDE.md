@@ -136,9 +136,9 @@ export const forecastConsumptionTool = {
 - **One file per tool.** Co-locate schema, examples, impl.
 - **Dual-callable.** UI calls `tool.invoke(...)`; agent blocks pick from a registered list. No "LLM-only" variants.
 - **Pure unless `mutation`.** Tools query the graph; only mutation tools write — and only through the Action Registry.
-- **Versioned.** Bump version on input/output/basis change. Callers pin.
+- **Versioned.** Bump version on input/output/basis change. Every agent run records the version that ran on both the call and the response step, so a number in a proposal is traceable to the implementation that produced it. There is one registry entry per tool name — callers don't select a version, the trace reports it.
 - **Explicit basis + confidence** on every computed result. Without these the operator can't audit and the transparency layer has nothing to render.
-- **`traversableLinks`** declares which edges the tool may follow. The LLM sees this; ad-hoc traversal is rejected.
+- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement lands with Tier 2 of `docs/IMPLEMENTATION-MAP.md`; until then, treat this as a contract with the model, not a sandbox.
 
 ---
 
