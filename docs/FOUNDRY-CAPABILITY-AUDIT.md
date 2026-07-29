@@ -32,9 +32,9 @@ Status legend: ✅ parity · 🟡 partial · ❌ absent · ⬜ deliberate diverg
 | 6 | Use case development | audited below |
 | 7 | Observability | audited below |
 | 8 | Analytics | audited below |
-| 9 | Product delivery | — not yet audited |
+| 9 | Product delivery | audited below |
 | 10 | Security & governance | audited below |
-| 11 | Management & enablement | — not yet audited |
+| 11 | Management & enablement | audited below |
 
 ---
 
@@ -997,3 +997,161 @@ The gap is entirely on the **lifecycle** side:
    clause was written, not the graph.
 2. **PII scanning only at document ingestion** (10.4) — connector payloads and
    operator free text are unscanned.
+
+---
+
+# 9. Product delivery
+
+Products: **upgrade-assistant** (9), **foundry-devops** (8), **marketplace** (7),
+**checkpoints** (7), **devops** (3), **release-notes** (1).
+
+> **Products** are packaged bundles of "any combination of Foundry resources"
+> including **ontologies** … **Stores** are repositories with permissions and tags
+> … **Installations** are deployed instances, managed as a **fleet** … **release
+> channels** act as gatekeepers — "versions only reach qualifying installations".
+
+Confirmed by `supported-resources`: action types and automations **are** packageable.
+The ontology itself ships as a product.
+
+## 9.1 Packaging and export — absent (third sighting)
+
+Sections 5.5 and 6.6 already recorded this; section 9 is where it is the whole
+subject, so it is worth stating at full strength.
+
+Our authored ontology artifacts — object types, interfaces, link types,
+automations, `user_tools`, `user_agents` — live in Postgres rows with **no export,
+no import, no packaging**. Moving an authored tool from a test org to a customer
+org means an operator re-authoring it by hand, and there is no way to ship a
+curated starter ontology with the product.
+
+That last consequence is the sharp one: **every new customer starts from an empty
+Studio.** All the authoring work we shipped (P1–P5, G1–G4) is per-tenant and
+non-transferable. A "hospitality starter pack" — standard object types, a
+Perishable interface, expiry automations, restock agents — is exactly what Foundry
+Marketplace exists to distribute, and we cannot produce one.
+
+Counted once across 5.5 / 6.6 / 9.1 in the implementation map, but this is its
+primary home.
+
+## 9.2 Release channels and phased rollout — a genuinely new gap
+
+Foundry gates *which installations* receive a version. We gate *which stage* an
+artifact reaches.
+
+Verified: `agent_releases` is keyed on **`(organization_id, agent_name, stage)`** —
+`147_agent_releases.sql`. Stage is a promotion ladder for the artifact, and the
+scope is the whole organization.
+
+So a twelve-property chain **cannot roll an agent version out to one hotel first.**
+Promoting to `production` promotes it everywhere in the org simultaneously.
+
+For a product whose multi-echelon model is a headline feature — org → hotel → zone,
+with `hotel_is_in_user_scope` threaded through every policy — the release path is
+the one place the echelon disappears. Given our own agents propose actions that
+spend money, a canary property is the obvious safety mechanism and we do not have
+it.
+
+**This is the section's real finding**; the packaging gap was already known.
+
+## 9.3 Installations and fleet management — divergence (scope)
+
+Foundry manages many customer installations of a product. We are one multi-tenant
+instance. The genuinely transferable need inside "fleet management" is phased
+rollout, which is 9.2.
+
+## 9.4 Upgrade assistant, release notes — divergence (scope)
+
+Platform-upgrade tooling and platform release notes. Not applicable to a single
+continuously-deployed product.
+
+---
+
+## Section 9 verdict
+
+1. **No phased rollout across the fleet** (9.2) — `agent_releases` is org-scoped;
+   a chain cannot canary a version at one property. New, and it undercuts the
+   echelon model.
+2. **No packaging or export of ontology artifacts** (9.1) — third sighting; every
+   new customer starts from an empty Studio.
+
+---
+
+# 11. Management & enablement
+
+Products: **questions-answers** (33), **administration** (31), **getting-started**
+(19), **foundry-adoption** (12), **platform-overview** (6).
+
+## 11.1 Administration — partial
+
+31 docs of enrollment settings, user and group management, org administration. We
+have `TeamPage`, `invite-member`, `user_org_memberships`, and the role hierarchy
+enforced in RLS.
+
+Narrower and correctly so. One real absence: **groups**. Our roles are per-user
+per-org; there is no group primitive, so permissions cannot be granted to "the
+F&B team" — only to a tier. That connects to the missing assignment in 6.2: you
+cannot assign work to a team either.
+
+## 11.2 Foundry adoption — absent, and it is a blind spot for our thesis
+
+12 docs on measuring whether the platform is actually being used. Verified: we have
+**no adoption or usage metrics at all** — nothing matching adoption, active users
+or usage in `apps/web` or `reality-graph`.
+
+We measure whether the **system** is learning — calibration, the Flywheel,
+approval lift, vocabulary growth. We do not measure whether **operators** are
+using it: how many authored a tool, how many proposals get reviewed within a day,
+which properties never open a Studio page.
+
+For a product whose entire thesis is *the operator authors the system*, not
+measuring authoring adoption is the blind spot that matters most in this section.
+The Flywheel answers "is it getting smarter"; nothing answers "is anyone driving".
+
+## 11.3 Questions & answers — partial, and it links two other gaps
+
+33 docs — Foundry's curated Q&A knowledge base. We have `ApprovedAnswer`: a
+curated Q&A cache served before any fresh LLM call, with hit counts and an Object
+View since #422.
+
+The store exists; the **surface** does not. This is the same finding as 1.3 (AIP
+Assist) from the enablement side: we hold the knowledge and never present it as
+help.
+
+## 11.4 Getting started and onboarding — parity in kind
+
+19 + 6 docs. We have `CreateWorkflowGuide` — a guided six-step path from idea to a
+gated running agent (data → compute → actions → agent → guardrails → release), on
+its own surface and linked from the Studio landing.
+
+Genuinely the same idea at our scale. **No gap.**
+
+---
+
+## Section 11 verdict
+
+1. **No adoption or usage measurement** (11.2) — we measure the system's learning
+   and not the operator's use, in a product about operators authoring.
+2. **No groups** (11.1) — permissions and assignment can only target a role tier,
+   never a team.
+3. **Q&A has no help surface** (11.3) — same gap as 1.3, counted once.
+
+---
+
+# Audit complete — all eleven sections
+
+Every capability in Foundry's documentation navigation has now been walked and
+reconciled against the code. The implementation map follows in a separate
+document.
+
+**The pattern across all eleven sections**, worth carrying into that map:
+
+Our recurring failure mode is **not missing capability — it is capability that
+exists but is not in the path.** The document pipeline built to spec and never run
+(2.1). The model release lifecycle correct and bypassed (3.3). Version pinning and
+`traversableLinks` documented as enforced and enforcing nothing (5.2, 8.1). The
+drift tripwire built for one half of the ontology (7.2). Monitors that reached
+`createProposal` without passing the gate (#420, before this audit).
+
+Several entries in the map will therefore be *wiring*, not building — which is
+good news for sequencing, and a warning about how much of what looks finished is
+load-bearing only by accident.
