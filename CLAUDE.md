@@ -2,6 +2,32 @@
 
 Guidance for Claude Code working in this repo. The north star is **replicating Palantir AIP** for hospitality. Everything below exists to keep us on that path.
 
+## Stage directive — copy Foundry's structure first
+
+**Right now we are replicating Foundry's structure faithfully. Tailoring it to hospitality, and simplifying it, is a later pass — not this stage's job.**
+
+Where Foundry has a shape for the thing being built, adopt that shape — its decomposition, its names, its limits — before considering a simpler one. The reason is cost, not reverence: a structure retrofitted after five migrations is far more expensive than the same structure adopted once.
+
+When building anything with a Foundry counterpart:
+
+1. **Find it in `docs/foundry-reference/` before designing.** `grep mirror/` for the concept (311 pages of the load-bearing sections); `all-foundry-urls.txt` for the page when the mirror doesn't carry it. The mirror is a dated snapshot (2026-07-23) — re-fetch the page when precision matters.
+2. **Adopt the decomposition, not just the vocabulary.** Foundry's `searchAround` returns an object *set*, not a filtered list. Copying the word while keeping a different shape is the exact failure this rule exists to prevent.
+3. **Copy the limits too.** They encode a reason — traversal depth is capped at 3 because the search fails at runtime beyond it. A limit dropped for convenience is a decision made without the evidence behind it.
+4. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
+
+### How this sits with "no concept without its consumer"
+
+Both rules hold, on different things:
+
+- **Shape that mirrors Foundry** may land ahead of its consumer. That is the point of this stage; the rework it avoids is the whole argument.
+- **Shape we invented** may not. `nodeSet` had no Foundry counterpart *and* no consumer — deleted in #418, re-derived in Tier 1 once four consumers existed. That deletion was right and the rule that produced it stands.
+
+So the test is: **is this Foundry's shape, or ours?** Ours needs a consumer today. Theirs needs a citation.
+
+### Deliberate divergences
+
+Recorded in `docs/IMPLEMENTATION-MAP.md` under non-goals, with the reason. Choosing not to build something is fine; **quietly building a different shape is not.**
+
 ## Commands
 
 ```bash
@@ -412,6 +438,7 @@ When you edit a file, rewrite or remove AI-flavored comments in the area you tou
 
 Before code, answer in a top-of-file comment:
 
+0. **Does Foundry have this?** → find it in `docs/foundry-reference/` and mirror its shape (see the stage directive at the top). If the docs don't settle it, say so rather than guessing.
 1. **Layer** — data, compute, mutation, agent, or surface?
 2. **Ontology fit** — which nodes / edges does it use or add?
 3. **Scope** — hotel, organization, or both? How is RLS enforcing it?

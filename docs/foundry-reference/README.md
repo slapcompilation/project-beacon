@@ -7,7 +7,7 @@ walkthroughs; this is the docs map + selected source text).
 
 ## What's here
 
-- **[`INDEX.md`](./INDEX.md)** — every Foundry doc URL (3,696), grouped by capability
+- **[`INDEX.md`](./INDEX.md)** — Foundry doc URLs grouped by capability (from the 3,696-URL sitemap pass; the flat list below is now larger)
   area. The navigable map: find the section, drill in.
 - **[`all-foundry-urls.txt`](./all-foundry-urls.txt)** — the same URLs as a flat list.
   `grep` it to jump straight to the page for a topic.
@@ -18,6 +18,19 @@ walkthroughs; this is the docs map + selected source text).
   `object-views`, `object-monitors`, `object-link-types`, `interfaces`, `logic`,
   `object-edits`, `functions`) + pipelines (`data-integration`, `building-pipelines`,
   `pipeline-builder`). Grep `mirror/` for a concept; each file carries its source URL.
+
+## Two sources, because the sitemap is incomplete
+
+`all-foundry-urls.txt` merges the sitemap pass (3,696) with a **link crawl** of
+`ontology`, `dev-toolchain`, `app-building`, `observability`, `analytics`,
+`devops`, `security` and `administration` (3,763 reachable pages, 2026-07-30).
+
+The crawl found **1,063 URLs the sitemap never listed** — 218 under `quiver`
+alone — and the sitemap holds ~996 the crawl cannot reach from those eight roots.
+Neither source is complete on its own, which is why both are merged.
+`ontology/ontology-structural-guidance`, which settled the object-backed-link
+question, was missing from the sitemap pass entirely. **Do not treat the index as
+exhaustive.**
 
 ## How it's kept honest
 

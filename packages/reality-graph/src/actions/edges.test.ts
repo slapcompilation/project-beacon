@@ -14,26 +14,30 @@ const VAR    = 'v-1'
 const ctx: EdgeContext = { hotelId: HOTEL, actorId: USER, triggeredBy: 'user' }
 
 describe('edgesForAction', () => {
-  it('REQUEST_RESTOCK fans out restocks + belongs_to_hotel + created_by', () => {
+  it('REQUEST_RESTOCK fans out the restocks link', () => {
     const edges = edgesForAction(
       { type: 'REQUEST_RESTOCK', variantId: VAR, quantityNeeded: 5, hotelId: HOTEL, requestorId: USER },
       { restockId: 'r-1' },
       ctx,
     )
     const types = edges.map((e) => e.edge_type).sort()
-    expect(types).toEqual(['belongs_to_hotel', 'created_by', 'restocks'])
+    expect(types).toEqual(['restocks'])
     const restocks = edges.find((e) => e.edge_type === 'restocks')
     expect(restocks).toMatchObject({ source_type: 'variant', source_id: VAR, target_type: 'restock_request', target_id: 'r-1' })
   })
 
-  it('REQUEST_RESTOCK without actorId skips created_by', () => {
+  // Authorship and tenancy are PROPERTIES, not links (migration 252). Every table
+  // already carries hotel_id and an author column, so edges restating them
+  // answered no domain question and were rewritten on every action.
+  it('writes no authorship or tenancy edges — those are columns, not relationships', () => {
     const edges = edgesForAction(
       { type: 'REQUEST_RESTOCK', variantId: VAR, quantityNeeded: 5, hotelId: HOTEL, requestorId: USER },
       { restockId: 'r-1' },
-      { hotelId: HOTEL, actorId: null, triggeredBy: 'system' },
+      ctx,
     )
-    expect(edges.some((e) => e.edge_type === 'created_by')).toBe(false)
-    expect(edges.every((e) => e.triggered_by === 'system')).toBe(true)
+    expect(edges.map((e) => e.edge_type)).not.toContain('created_by')
+    expect(edges.map((e) => e.edge_type)).not.toContain('belongs_to_hotel')
+    expect(edges.every((e) => e.triggered_by === 'user')).toBe(true)
   })
 
   it('REVERT_ACTION marks itself triggered_by="revert" regardless of ctx', () => {
@@ -50,14 +54,14 @@ describe('edgesForAction', () => {
     })
   })
 
-  it('TRANSFER_STOCK belongs_to_hotel targets the DESTINATION hotel', () => {
+  it('TRANSFER_STOCK still records the transfer itself, without a tenancy edge', () => {
     const edges = edgesForAction(
       { type: 'TRANSFER_STOCK', fromHotelId: HOTEL, toHotelId: HOTEL2, variantId: VAR, quantity: 3, reason: 'x' },
       { transferId: 'xfer-1' },
       ctx,
     )
-    const owner = edges.find((e) => e.edge_type === 'belongs_to_hotel')
-    expect(owner?.target_id).toBe(HOTEL2)
+    expect(edges.map((e) => e.edge_type)).not.toContain('belongs_to_hotel')
+    expect(edges.length).toBeGreaterThan(0)
   })
 
   it('WRITE_OFF stamps discarded_via with waste_reason metadata', () => {
@@ -101,7 +105,7 @@ describe('edgesForAction', () => {
     expect(edges).toEqual([])
   })
 
-  it('LOG_DELIVERY fans out belongs_to_hotel + sourced_from + created_by', () => {
+  it('LOG_DELIVERY fans out the sourced_from link', () => {
     const edges = edgesForAction(
       {
         type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: 's-1',
@@ -111,20 +115,19 @@ describe('edgesForAction', () => {
       ctx,
     )
     const types = edges.map((e) => e.edge_type).sort()
-    expect(types).toEqual(['belongs_to_hotel', 'created_by', 'sourced_from'])
+    expect(types).toEqual(['sourced_from'])
     const sourcedFrom = edges.find((e) => e.edge_type === 'sourced_from')
     expect(sourcedFrom).toMatchObject({ source_type: 'delivery_event', source_id: 'd-1', target_type: 'supplier', target_id: 's-1' })
   })
 
-  it('CREATE_LOCATION fans out belongs_to_hotel + created_by, scoped to a location node', () => {
+  it('CREATE_LOCATION emits NO edges — its only relationships were properties', () => {
     const edges = edgesForAction(
       { type: 'CREATE_LOCATION', hotelId: HOTEL, name: 'Walk-in' },
       { nodeId: 'loc-1' },
       ctx,
     )
-    const types = edges.map((e) => e.edge_type).sort()
-    expect(types).toEqual(['belongs_to_hotel', 'created_by'])
-    expect(edges[0].source_type).toBe('location')
+    // hotel_id and the author column already carry both facts.
+    expect(edges).toEqual([])
   })
 
   it('UPDATE_REMOVAL_REASON emits modified_by sourced from the removal_reason node', () => {
@@ -160,7 +163,7 @@ describe('edgesForAction', () => {
     expect(consumes).toMatchObject({ source_type: 'menu_item_ingredient', target_type: 'variant', target_id: 'v-1' })
   })
 
-  it('CREATE_EVENT fans out belongs_to_hotel + created_by, scoped to an event node', () => {
+  it('CREATE_EVENT emits NO edges — its only relationships were properties', () => {
     const edges = edgesForAction(
       {
         type: 'CREATE_EVENT', hotelId: HOTEL, name: 'NY Gala',
@@ -169,8 +172,7 @@ describe('edgesForAction', () => {
       { nodeId: 'ev-1' },
       ctx,
     )
-    expect(edges.map((e) => e.edge_type).sort()).toEqual(['belongs_to_hotel', 'created_by'])
-    expect(edges[0].source_type).toBe('event')
+    expect(edges).toEqual([])
   })
 
   it('ADD_PICK_LIST_ITEM links the item to both pick_list and variant', () => {
