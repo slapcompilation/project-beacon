@@ -12,6 +12,7 @@ import {
   type AggregationFn, type PropertyType, type ToolArgs, type ToolFilter, type ToolParamDef,
 } from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
+import { BUILTIN_SET_LIMIT } from '@/features/objectTypes/api'
 import { useCreateUserTool } from './hooks'
 import Breakdown from './Breakdown'
 import { decodeSubject, encodeSubject, useSetSubject, type SubjectRef } from '@/features/objectSets/subject'
@@ -32,7 +33,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const [fn, setFn] = useState<AggregationFn>('count')
   const [aggProp, setAggProp] = useState('')
 
-  const { subject, targets, groups, types, interfaces } = useSetSubject(ref)
+  const { subject, targets, groups, types, interfaces, truncated } = useSetSubject(ref)
 
   const props = subject ? subjectProperties(subject) : []
   const numericProps = props.filter((p) => p.type === 'number')
@@ -167,6 +168,11 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
               confidence {Math.round(preview.confidence * 100)}%
             </Tag>
           </div>
+          {truncated.length > 0 && (
+            <div className="text-amber-600">
+              Read the first {BUILTIN_SET_LIMIT} rows of {truncated.join(', ')} — this answer covers a sample, not the whole table.
+            </div>
+          )}
           {preview.byType.length > 1 && <Breakdown byType={preview.byType} />}
         </div>
       ))}

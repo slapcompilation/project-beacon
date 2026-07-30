@@ -14,6 +14,7 @@ import {
 } from '@beacon/reality-graph'
 import { useObjectSets, useCreateObjectSet, useDeleteObjectSet } from './hooks'
 import { rowToObjectSet } from './api'
+import { BUILTIN_SET_LIMIT } from '@/features/objectTypes/api'
 import { decodeSubject, encodeSubject, useSetSubject, type SubjectRef } from './subject'
 import { Field, FilterRow, SubjectSelect } from './FilterRow'
 
@@ -59,7 +60,7 @@ export default function Cohorts() {
 
 function CohortCard({ def }: { def: ObjectSetDef }) {
   const del = useDeleteObjectSet()
-  const { subject, targets, groups } = useSetSubject(def)
+  const { subject, targets, groups, truncated } = useSetSubject(def)
 
   const selection = useMemo(
     () => (groups ? selectObjectSet(def, groups) : null),
@@ -103,6 +104,12 @@ function CohortCard({ def }: { def: ObjectSetDef }) {
         </div>
       )}
 
+      {truncated.length > 0 && (
+        <div className="text-[11px] text-amber-600">
+          Counted the first {BUILTIN_SET_LIMIT} rows of {truncated.join(', ')} — this cohort is larger than shown.
+        </div>
+      )}
+
       {def.parameters.length > 0 && (
         <div className="text-[11px] text-muted-foreground">
           Takes {def.parameters.map((p) => p.label || p.key).join(', ')} — counts above use the authored defaults.
@@ -118,7 +125,7 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
   const [ref, setRef] = useState<SubjectRef>({ subjectTypeId: null, subjectInterfaceId: null })
   const [filters, setFilters] = useState<SetFilter[]>([])
 
-  const { subject, targets, groups, types, interfaces } = useSetSubject(ref)
+  const { subject, targets, groups, types, interfaces, truncated } = useSetSubject(ref)
   const props = subject ? subjectProperties(subject) : []
 
   // Parameters are a tool concern until something calls a cohort with arguments;
@@ -196,6 +203,9 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
           <Icon icon="group-objects" size={12} className="text-primary" />
           <span className="text-lg font-semibold tabular-nums">{preview.records.length}</span>
           <span className="text-muted-foreground">of {preview.scanned} records match right now</span>
+          {truncated.length > 0 && (
+            <span className="text-amber-600">first {BUILTIN_SET_LIMIT} of {truncated.join(', ')} only</span>
+          )}
         </div>
       )}
 
