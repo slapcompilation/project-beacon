@@ -89,8 +89,6 @@ export function edgesForAction(
     case 'CREATE_SUPPLIER': {
       const { supplierId } = result as SupplierCreateResult
       if (!supplierId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'supplier', source_id: supplierId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'supplier', source_id: supplierId, target_type: 'user', target_id: actorId })
       break
     }
 
@@ -107,9 +105,7 @@ export function edgesForAction(
     case 'LOG_DELIVERY': {
       const { deliveryId } = result as DeliveryLogResult
       if (!deliveryId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'delivery_event', source_id: deliveryId, target_type: 'hotel', target_id: hotelId })
       push({ ...base, edge_type: 'sourced_from',     source_type: 'delivery_event', source_id: deliveryId, target_type: 'supplier', target_id: action.supplierId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'delivery_event', source_id: deliveryId, target_type: 'user', target_id: actorId })
       break
     }
 
@@ -120,9 +116,7 @@ export function edgesForAction(
       // variant --restocks--> restock_request
       push({ ...base, edge_type: 'restocks', source_type: 'variant', source_id: action.variantId, target_type: 'restock_request', target_id: restockId })
       // restock_request --belongs_to_hotel--> hotel
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'restock_request', source_id: restockId, target_type: 'hotel', target_id: hotelId })
       // restock_request --created_by--> user  (only if actor known)
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'restock_request', source_id: restockId, target_type: 'user', target_id: actorId })
       break
     }
 
@@ -148,9 +142,7 @@ export function edgesForAction(
       const { logId, receiveId } = result as ReceiveStockResult
       if (logId) {
         // stock_log --fulfills--> restock_request
-        push({ ...base, edge_type: 'fulfills', source_type: 'stock_log', source_id: logId, target_type: 'restock_request', target_id: action.requestId })
-        push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: logId, target_type: 'hotel', target_id: hotelId })
-        if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: logId, target_type: 'user', target_id: actorId })
+        push({ ...base, edge_type: 'log_fulfills_request', source_type: 'stock_log', source_id: logId, target_type: 'restock_request', target_id: action.requestId })
       }
       if (receiveId && action.supplierId) {
         // restock_receive --sourced_from--> supplier
@@ -162,16 +154,12 @@ export function edgesForAction(
     case 'ADJUST_STOCK': {
       const { logId } = result as StockLogResult
       if (!logId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: logId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: logId, target_type: 'user', target_id: actorId })
       break
     }
 
     case 'WRITE_OFF': {
       const { logId } = result as StockLogResult
       if (!logId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: logId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: logId, target_type: 'user', target_id: actorId })
       // stock_log --discarded_via--> variant (write-offs are a specific removal reason)
       push({ ...base, edge_type: 'discarded_via', source_type: 'stock_log', source_id: logId, target_type: 'variant', target_id: action.variantId, metadata: { waste_reason: action.wasteReason } })
       break
@@ -182,16 +170,12 @@ export function edgesForAction(
       if (!newLogId) break
       // new stock_log --reverts--> original stock_log
       push({ ...base, edge_type: 'reverts', triggered_by: 'revert', source_type: 'stock_log', source_id: newLogId, target_type: 'stock_log', target_id: action.originalLogId })
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: newLogId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: newLogId, target_type: 'user', target_id: actorId })
       break
     }
 
     case 'CREATE_PO': {
       const { poId } = result as POCreateResult
       if (!poId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'purchase_order', source_id: poId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'purchase_order', source_id: poId, target_type: 'user', target_id: actorId })
       if (action.supplierId) {
         push({ ...base, edge_type: 'sourced_from', source_type: 'purchase_order', source_id: poId, target_type: 'supplier', target_id: action.supplierId })
       }
@@ -229,8 +213,6 @@ export function edgesForAction(
       // stock_transfer --transfers--> variant
       push({ ...base, edge_type: 'transfers', source_type: 'stock_transfer', source_id: transferId, target_type: 'variant', target_id: action.variantId })
       // stock_transfer --belongs_to_hotel--> hotel (destination)
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_transfer', source_id: transferId, target_type: 'hotel', target_id: action.toHotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_transfer', source_id: transferId, target_type: 'user', target_id: actorId })
       break
     }
 
@@ -240,13 +222,10 @@ export function edgesForAction(
       }
       const approve = result as Partial<TransferApproveResult>
       if (approve.fromLogId) {
-        push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'stock_log', source_id: approve.fromLogId, target_type: 'hotel', target_id: hotelId })
-        if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: approve.fromLogId, target_type: 'user', target_id: actorId })
       }
       if (approve.toLogId) {
         // toLog lives in the destination hotel — its belongs_to_hotel edge would be in the dest hotel scope,
         // not the dispatch context's hotelId, so we leave that to a server-side trigger if/when added.
-        if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'stock_log', source_id: approve.toLogId, target_type: 'user', target_id: actorId })
       }
       break
     }
@@ -255,8 +234,6 @@ export function edgesForAction(
     case 'CREATE_LOCATION': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'location', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'location', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_LOCATION': {
@@ -268,8 +245,6 @@ export function edgesForAction(
     case 'CREATE_CATEGORY': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'category', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'category', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_CATEGORY': {
@@ -281,8 +256,6 @@ export function edgesForAction(
     case 'CREATE_REMOVAL_REASON': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'removal_reason', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'removal_reason', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_REMOVAL_REASON': {
@@ -295,8 +268,6 @@ export function edgesForAction(
     case 'CREATE_PICK_LIST': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'pick_list', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'pick_list', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_PICK_LIST': {
@@ -314,7 +285,6 @@ export function edgesForAction(
       // item to the inventory it'll deduct on commit.
       push({ ...base, edge_type: 'belongs_to_session', source_type: 'pick_list_item', source_id: nodeId, target_type: 'pick_list', target_id: action.pickListId })
       push({ ...base, edge_type: 'consumes', source_type: 'pick_list_item', source_id: nodeId, target_type: 'variant', target_id: action.variantId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'pick_list_item', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_PICK_LIST_ITEM': {
@@ -327,8 +297,6 @@ export function edgesForAction(
     case 'CREATE_MENU_ITEM': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'menu_item', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'menu_item', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_MENU_ITEM':
@@ -344,7 +312,6 @@ export function edgesForAction(
       // variant --consumes--> ingredient ties the menu item to its inventory cost.
       push({ ...base, edge_type: 'belongs_to_session', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'menu_item', target_id: action.menuItemId })
       push({ ...base, edge_type: 'consumes',           source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'variant',   target_id: action.variantId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_MENU_INGREDIENT': {
@@ -357,8 +324,6 @@ export function edgesForAction(
     case 'CREATE_EVENT': {
       const { nodeId } = result as Partial<TaxonomyCreateResult>
       if (!nodeId) break
-      push({ ...base, edge_type: 'belongs_to_hotel', source_type: 'event', source_id: nodeId, target_type: 'hotel', target_id: hotelId })
-      if (actorId) push({ ...base, edge_type: 'created_by', source_type: 'event', source_id: nodeId, target_type: 'user', target_id: actorId })
       break
     }
     case 'UPDATE_EVENT': {

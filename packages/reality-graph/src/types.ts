@@ -51,8 +51,6 @@ export type NodeType =
   | 'entity'
 
 export type EdgeType =
-  | 'belongs_to_hotel'
-  | 'created_by'
   | 'causes'
   | 'consumes'
   | 'restocks'
@@ -64,15 +62,16 @@ export type EdgeType =
   | 'rejected_by'
   | 'modified_by'
   | 'fulfills'
+  | 'log_fulfills_request'
   | 'sourced_from'
   | 'batch_of'
   | 'discarded_via'
   | 'linked_to_po'
   | 'invoiced_by'
-  | 'influenced_by'
+  | 'influenced_by_occupancy'
+  | 'influenced_by_principle'
   | 'similar_to'
   // AIP-native edges
-  | 'belongs_to_org'
   | 'transfers'
   | 'proposed_by'
   | 'benchmarks'
@@ -92,10 +91,10 @@ export type EdgeType =
  *  not here is an untyped-edge gap. Kept exhaustive against EdgeType by the
  *  compile-time check below (and `satisfies` guards against typos / stale entries). */
 export const EDGE_TYPES = [
-  'belongs_to_hotel', 'created_by', 'causes', 'consumes', 'restocks', 'reverts',
+  'causes', 'consumes', 'restocks', 'reverts',
   'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
-  'fulfills', 'sourced_from', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
-  'influenced_by', 'similar_to', 'belongs_to_org', 'transfers', 'proposed_by', 'benchmarks',
+  'fulfills', 'log_fulfills_request', 'sourced_from', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
+  'influenced_by_occupancy', 'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
   'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
   'mentions', 'resolved_to',
 ] as const satisfies readonly EdgeType[]

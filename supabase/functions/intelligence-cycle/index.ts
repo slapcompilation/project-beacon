@@ -34,7 +34,7 @@ import { verifySharedSecret, isAuthError } from '../_shared/auth.ts'
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/** proposal --influenced_by--> principle edges from provenance. Best-effort:
+/** proposal --influenced_by_principle--> principle edges from provenance. Best-effort:
  *  an edge-write failure never fails the cycle (mirrors the web path). */
 async function writePrincipleEdges(
   supabase: SupabaseClient, hotelId: string, proposalId: string, provenance: unknown,
@@ -46,7 +46,7 @@ async function writePrincipleEdges(
   if (refs.length === 0) return
   const { error } = await supabase.from('relationship_edges').insert(
     refs.map((principleId) => ({
-      hotel_id: hotelId, edge_type: 'influenced_by',
+      hotel_id: hotelId, edge_type: 'influenced_by_principle',
       source_type: 'proposal', source_id: proposalId,
       target_type: 'principle', target_id: principleId,
       triggered_by: 'ai_proposal_accepted', actor_id: null,
@@ -478,7 +478,7 @@ async function runAgentCycle(supabase: SupabaseClient, hotel: HotelRow, opts: Ag
         .single()
       if (error) throw new Error(`proposal insert failed: ${error.message}`)
       // Close the learning flywheel in the GRAPH (O1): write
-      // proposal --influenced_by--> principle edges from the provenance, the
+      // proposal --influenced_by_principle--> principle edges from the provenance, the
       // same as the web createProposal path. The cron produces most proposals,
       // so without this the edges were never written (0 in prod) and
       // "which principles shape decisions" was untraversable.
