@@ -37,12 +37,12 @@ they are "object type foreign keys", registered against the column already there
 
 | edge type | rows | cardinality | metadata | likely backing |
 |---|---|---|---|---|
-| `influenced_by` stock_log→occupancy_log | 3802 | many-to-one | on every row | FK column, or object-backed |
-| `causes` pos_sale→stock_log | 2548 | **many-to-many** | on every row | **object-backed** |
+| `influenced_by` stock_log→occupancy_log | 3802 | many-to-one | on every row | FK column (see addendum) |
+| `causes` pos_sale→stock_log | 2548 | **many-to-many** | on every row | join table (see addendum) |
 | `influenced_by` proposal→principle | 261 | **many-to-many** | none | join table |
-| `mentions` chunk→entity | 11 | **many-to-many** | on every row | **object-backed** |
+| `mentions` chunk→entity | 11 | **many-to-many** | on every row | join table (see addendum) |
 | `triggered_alert` stock_log→alert | 14 | many-to-one | none | FK column |
-| `linked_to_po` restock_request→purchase_order | 8 | many-to-one | on every row | FK column, or object-backed |
+| `linked_to_po` restock_request→purchase_order | 8 | many-to-one | on every row | the one object-backed candidate |
 | `created_by` stock_log→user | 1 | many-to-one | none | FK column |
 | `fulfills` stock_log→restock_request | 1 | many-to-one | none | FK column |
 
@@ -69,10 +69,10 @@ link types of their own.
 
 ## 5. `consumes` is an FK relationship carrying attributes
 
-All 3,822 rows duplicate `stock_logs.variant_id` **and** carry metadata. Either
-the metadata belongs as properties on `stock_logs`, or the relationship is
-genuinely object-backed. Worth deciding explicitly rather than by default — it is
-the largest single edge type we have.
+All 3,822 rows duplicate `stock_logs.variant_id` **and** carry metadata — the
+largest single edge type we have, so it should be decided explicitly rather than
+by default. **Settled in the addendum: FK-backed, metadata dropped.** Its `delta`
+and `reason` are `stock_logs` columns, not properties of the relationship.
 
 ## What this means for Tier 2
 
@@ -80,8 +80,8 @@ Faithful adoption is **mostly registration and deletion, not construction**:
 
 1. Register the 14 FK-backed triples as link types over columns that already
    exist. No new tables, and 3,922 rows become redundant.
-2. Give the 4 substantial relationships their own backing — two look object-backed
-   on the evidence (many-to-many + attributes on every row).
+2. Give the 4 substantial relationships their own backing — join tables, not
+   object-backed; see the addendum, which overturned the guess made here.
 3. Split the 4 overloaded edge-type names into distinct link types.
 4. Drop tenant scaffolding from the link vocabulary.
 
