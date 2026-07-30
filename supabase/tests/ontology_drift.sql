@@ -49,3 +49,23 @@ BEGIN
 
   RAISE NOTICE 'ontology drift OK — % built-in registrations match their backing tables', registered;
 END $$;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Authored artifacts: the half with no compiler.
+--
+-- builtin_property_drift above checks code-owned types against their tables.
+-- This checks the operator-authored side, where validateUserTool runs in the
+-- COMPOSER and never again — so a property deleted after a tool was saved leaves
+-- that tool answering zero with a basis line and a confidence score. An answer
+-- that is wrong and looks right is the failure this whole audit kept finding.
+-- ─────────────────────────────────────────────────────────────────────────────
+DO $$
+DECLARE n int; detail text;
+BEGIN
+  SELECT count(*), string_agg(format('%s "%s" %s', artifact_kind, artifact_name, problem), '; ')
+    INTO n, detail FROM authored_artifact_drift();
+  IF n > 0 THEN
+    RAISE EXCEPTION 'AUTHORED ARTIFACT DRIFT — % artifact(s) reference something that no longer exists: %', n, detail;
+  END IF;
+  RAISE NOTICE 'authored artifacts OK — every saved tool, cohort, automation and agent still resolves';
+END $$;
