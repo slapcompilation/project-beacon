@@ -714,6 +714,38 @@ BEGIN
     RAISE EXCEPTION 'C24c: admin could not author a cohort, or org/author defaults did not land';
   END IF;
 
+  -- ── C25: the edge vocabulary is DB-enforced, not TypeScript-only ──────────
+  -- Until migration 252 there was no CHECK here at all, which is how one name
+  -- came to mean two relationships without anything objecting.
+  raised := false;
+  BEGIN
+    INSERT INTO relationship_edges (hotel_id, edge_type, source_type, source_id, target_type, target_id, triggered_by)
+    VALUES (v_a, 'not_a_real_edge_type', 'stock_log', gen_random_uuid(), 'variant', gen_random_uuid(), 'system');
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM relationship_edges WHERE edge_type = 'not_a_real_edge_type';
+    DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
+    DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C25a: the database accepted an edge type outside the vocabulary';
+  END IF;
+
+  -- The retired property-shaped edges must stay retired.
+  FOR v_msg IN SELECT unnest(ARRAY['belongs_to_hotel','created_by','belongs_to_org']) LOOP
+    raised := false;
+    BEGIN
+      INSERT INTO relationship_edges (hotel_id, edge_type, source_type, source_id, target_type, target_id, triggered_by)
+      VALUES (v_a, v_msg, 'stock_log', gen_random_uuid(), 'hotel', v_a, 'system');
+    EXCEPTION WHEN check_violation THEN raised := true;
+    END;
+    IF NOT raised THEN
+      RESET ROLE; DELETE FROM relationship_edges WHERE edge_type = v_msg;
+      DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
+      DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+      RAISE EXCEPTION 'C25b: % was accepted — tenancy/authorship are properties, not links', v_msg;
+    END IF;
+  END LOOP;
+
   RESET ROLE;
   DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
@@ -721,5 +753,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced', v_b_pending;
 END $$;
