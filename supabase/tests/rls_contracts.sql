@@ -746,6 +746,28 @@ BEGIN
     END IF;
   END LOOP;
 
+  -- ── C26: a join-backed relationship agrees with its link table ────────────
+  -- relationship_edges is a PROJECTION of the backings since migration 260, but
+  -- several writers still insert into it directly. For the seven join-backed
+  -- relationships the link_* table is the real store, so an edge with no matching
+  -- link row means a writer bypassed the backing and the link table is going
+  -- stale. Catch that here rather than discovering it as missing traversals.
+  FOR v_msg IN SELECT unnest(ARRAY[
+    'causes','influenced_by_occupancy','influenced_by_principle','mentions',
+    'linked_to_po','triggered_alert','log_fulfills_request'
+  ]) LOOP
+    EXECUTE format(
+      'SELECT count(*) FROM relationship_edges e WHERE e.edge_type = %L
+         AND NOT EXISTS (SELECT 1 FROM public.%I l
+                         WHERE l.source_id = e.source_id AND l.target_id = e.target_id)',
+      v_msg, 'link_' || v_msg) INTO n;
+    IF n > 0 THEN
+      RAISE EXCEPTION
+        'C26: % edge(s) of type "%" have no row in link_% — a writer is bypassing the backing, which is now the source of truth (migrations 258/260).',
+        n, v_msg, v_msg;
+    END IF;
+  END LOOP;
+
   RESET ROLE;
   DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
@@ -753,5 +775,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table', v_b_pending;
 END $$;
