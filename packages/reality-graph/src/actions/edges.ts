@@ -114,7 +114,6 @@ export function edgesForAction(
       if (!restockId) break
 
       // variant --restocks--> restock_request
-      push({ ...base, edge_type: 'restocks', source_type: 'variant', source_id: action.variantId, target_type: 'restock_request', target_id: restockId })
       // restock_request --belongs_to_hotel--> hotel
       // restock_request --created_by--> user  (only if actor known)
       break
@@ -123,7 +122,6 @@ export function edgesForAction(
     case 'APPROVE_RESTOCK': {
       if (!actorId) break
       // restock_request --approved_by--> user
-      push({ ...base, edge_type: 'approved_by', source_type: 'restock_request', source_id: action.requestId, target_type: 'user', target_id: actorId })
       break
     }
 
@@ -169,7 +167,6 @@ export function edgesForAction(
       const { newLogId } = result as RevertActionResult
       if (!newLogId) break
       // new stock_log --reverts--> original stock_log
-      push({ ...base, edge_type: 'reverts', triggered_by: 'revert', source_type: 'stock_log', source_id: newLogId, target_type: 'stock_log', target_id: action.originalLogId })
       break
     }
 
@@ -197,13 +194,11 @@ export function edgesForAction(
     case 'SUBMIT_PO_INVOICE': {
       const { invoiceId } = result as InvoiceSubmitResult
       if (!invoiceId) break
-      push({ ...base, edge_type: 'invoiced_by', source_type: 'purchase_order', source_id: action.poId, target_type: 'po_invoice', target_id: invoiceId })
       break
     }
 
     case 'MATCH_INVOICE': {
       // purchase_order --invoiced_by--> po_invoice
-      push({ ...base, edge_type: 'invoiced_by', source_type: 'purchase_order', source_id: action.poId, target_type: 'po_invoice', target_id: action.invoiceId })
       break
     }
 
