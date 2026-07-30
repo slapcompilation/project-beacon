@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { evaluateUserTool, evaluateUserToolAcross, validateUserTool, describeUserTool, allProperties, subjectProperties, bindToolArgs } from './index'
+import { evaluateUserTool, evaluateUserToolAcross, validateUserTool, describeUserTool, allProperties, subjectProperties, bindToolArgs, groupObjectSet } from './index'
 import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 import type { InterfaceDef } from '../interfaces/index'
 
@@ -331,5 +331,38 @@ describe('describeUserTool + allProperties', () => {
 
   it('exposes computed properties alongside stored ones', () => {
     expect(allProperties(type).map((p) => p.key)).toContain('days_open')
+  })
+})
+
+describe('groupObjectSet', () => {
+  const rows = [
+    { supplier: 'Acme',  cost: 10 },
+    { supplier: 'Acme',  cost: 30 },
+    { supplier: 'Bolt',  cost: 5 },
+    { supplier: null,    cost: 7 },
+  ]
+
+  it('buckets by a property and counts each', () => {
+    const g = groupObjectSet(rows, 'supplier', { fn: 'count' })
+    expect(g.buckets.map((b) => [b.label, b.value])).toEqual([['Acme', 2], ['Bolt', 1], ['Not set', 1]])
+  })
+
+  it('aggregates a numeric property per bucket, biggest first', () => {
+    const g = groupObjectSet(rows, 'supplier', { fn: 'sum', property: 'cost' })
+    expect(g.buckets.map((b) => [b.label, b.value])).toEqual([['Acme', 40], ['Not set', 7], ['Bolt', 5]])
+  })
+
+  it('names missing values rather than dropping them', () => {
+    const g = groupObjectSet(rows, 'supplier', { fn: 'count' })
+    expect(g.buckets.find((b) => b.label === 'Not set')?.matched).toBe(1)
+  })
+
+  it('folds the tail into one bucket so a partial breakdown is not read as whole', () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({ supplier: `S${String(i)}`, cost: 1 }))
+    const g = groupObjectSet(many, 'supplier', { fn: 'count' }, 5)
+    expect(g.buckets).toHaveLength(6)
+    expect(g.buckets[5].label).toBe('15 more')
+    expect(g.buckets[5].matched).toBe(15)
+    expect(g.otherDistinct).toBe(15)
   })
 })

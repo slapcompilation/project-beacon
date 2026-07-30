@@ -431,6 +431,7 @@ export type {
 export {
   AGGREGATIONS, OP_LABELS, evaluateUserTool, evaluateUserToolAcross, validateUserTool,
   describeUserTool, allProperties, subjectProperties, subjectLabel, bindToolArgs,
+  groupObjectSet,
 } from './userTools/index'
 
 // Tier 1 — the object set: the selection an authored tool aggregates over, and
@@ -462,6 +463,7 @@ export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from
 export type {
   UserToolDef, UserToolResult, ToolFilter, ToolParamDef, ToolArgs, ToolRecord,
   ToolRecordGroup, ToolSubject, ToolTypeBreakdown, AggregationFn, AggregationDef,
+  SetBucket, GroupedSet,
 } from './userTools/index'
 
 export {

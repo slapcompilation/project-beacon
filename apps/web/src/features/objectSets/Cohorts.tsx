@@ -7,9 +7,9 @@
 // records, so a cohort is always current rather than as-of-last-sweep.
 
 import { useMemo, useState } from 'react'
-import { Button, Card, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
+import { Button, Card, HTMLSelect, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
 import {
-  describeSetFilters, selectObjectSet, subjectProperties, toSlug, validateObjectSet,
+  describeSetFilters, groupObjectSet, selectObjectSet, subjectProperties, toSlug, validateObjectSet,
   type ObjectSetDef, type SetFilter,
 } from '@beacon/reality-graph'
 import { useObjectSets, useCreateObjectSet, useDeleteObjectSet } from './hooks'
@@ -68,6 +68,14 @@ function CohortCard({ def }: { def: ObjectSetDef }) {
   )
   const where = describeSetFilters(def, subject)
 
+  // A cohort of 40 is a number; the same 40 split by supplier is a decision.
+  const [groupBy, setGroupBy] = useState('')
+  const groupable = subject ? subjectProperties(subject).filter((p) => p.type === 'text' || p.type === 'boolean') : []
+  const grouped = useMemo(
+    () => (selection && groupBy ? groupObjectSet(selection.records, groupBy, { fn: 'count' }) : null),
+    [selection, groupBy],
+  )
+
   return (
     <Card className="space-y-2">
       <div className="flex items-center gap-2">
@@ -101,6 +109,24 @@ function CohortCard({ def }: { def: ObjectSetDef }) {
               {selection.byType.filter((b) => b.matched > 0).map((b) => `${b.label} ${String(b.matched)}`).join(' · ')}
             </span>
           )}
+        </div>
+      )}
+
+      {groupable.length > 0 && selection !== null && selection.records.length > 0 && (
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Break down by</span>
+            <HTMLSelect value={groupBy} onChange={(e) => { setGroupBy(e.currentTarget.value) }}
+              options={[{ value: '', label: '—' }, ...groupable.map((p) => ({ value: p.key, label: p.label }))]} />
+          </div>
+          {grouped && grouped.buckets.map((b) => (
+            <div key={b.key} className="flex items-center gap-2 text-xs">
+              <span className="w-40 truncate text-muted-foreground">{b.label}</span>
+              <div className="h-1.5 rounded-sm bg-violet-500/70"
+                style={{ width: `${String(Math.max(2, Math.round((b.value / (grouped.buckets[0]?.value || 1)) * 160)))}px` }} />
+              <span className="tabular-nums">{b.value}</span>
+            </div>
+          ))}
         </div>
       )}
 
