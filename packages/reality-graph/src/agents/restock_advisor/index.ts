@@ -15,6 +15,7 @@ import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_do
 import { makeQueryDocumentChunksTool } from '../../tools/data/query_document_chunks'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
 import type { LLMClient, LLMToolSpec } from '../llm'
+import { toolSpec } from '../llm'
 import type { ModelAdapter } from '../../objectives/index'
 import type {
   ConsumptionForecastInput,
@@ -62,7 +63,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
   const registry = new Map(tools.map((t) => [t.name, t]))
   const toolset = tools.map((t) => t.name)
   // Tool specs the LLM sees when it orchestrates the loop (reasoning: 'llm').
-  const toolSpecs: LLMToolSpec[] = tools.map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }))
+  const toolSpecs: LLMToolSpec[] = tools.map(toolSpec)
   const reasonLlmBlock = makeReasonAndProposeLlmBlock(toolSpecs)
 
   return {

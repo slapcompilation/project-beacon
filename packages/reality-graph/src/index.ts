@@ -254,7 +254,7 @@ export {
 
 // ── Agent runtime + LLM adapter ─────────────────────────────────────────────
 export type { LLMClient, LLMCallInput, LLMResponse, LLMMessage, LLMToolCall, LLMToolSpec } from './agents/llm'
-export { StubLLMClient } from './agents/llm'
+export { StubLLMClient, toolSpec } from './agents/llm'
 export type { BlockDef, BlockContext, RunAgentArgs, AgentRunner } from './agents/runtime'
 export { createBlock, buildRunner, llmCallWithSchema } from './agents/runtime'
 

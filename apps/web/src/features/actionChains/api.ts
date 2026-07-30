@@ -19,7 +19,7 @@ export interface ActionChainRow {
   base_case_id:         string | null
   simulated_actions:    BeaconAction[]
   notes:                string | null
-  opened_by_user_id:    string
+  opened_by_user_id:    string | null
   committed_by_user_id: string | null
   committed_at:         string | null
   commit_results:       Array<{ actionType: string; result?: unknown; error?: string }> | null

@@ -135,6 +135,7 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
           blockName: block.name,
           type: 'llm_tool_use',
           toolName,
+          toolVersion: tool.version,
           input: toolInput,
           thought: opts?.thought,
         })
@@ -146,6 +147,7 @@ export function buildRunner(args: RunAgentArgs): AgentRunner {
           blockName: block.name,
           type: 'tool_response',
           toolName,
+          toolVersion: tool.version,
           output: result,
           durationMs: Date.now() - started,
         })

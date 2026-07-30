@@ -14,7 +14,7 @@ export interface ConstraintRow {
   severity: 'hard' | 'soft'
   applies_to_action_types: string[]
   active: boolean
-  authored_by_user_id: string
+  authored_by_user_id: string | null
   created_at: string
   deactivated_at: string | null
 }

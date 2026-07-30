@@ -26,6 +26,12 @@
 --   Service-role-only fns are exempt (not authed-executable). A function that
 --   legitimately role-gates an org arg without a scope reference must be added to
 --   v_inv3_allow with a documented reason — empty by design; keep it that way.
+-- Invariant 4: no provenance column cascades from auth.users. A `*_by_user_id`
+--   FK records WHO did something; deleting the user must not delete the record.
+--   Found live (audit D3): deleting a user erased their document, its chunks and
+--   every citation edge, and object_types.created_by_user_id cascaded further
+--   into object_records. Identity columns (user_profiles.id, memberships) keep
+--   CASCADE — there the row IS the user. Fixed in migration 231.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -33,6 +39,7 @@ DECLARE
   v_anon   text;
   v_nopath text;
   v_leak   text;
+  v_prov   text;
   v_inv3_allow text[] := ARRAY[]::text[];  -- documented exceptions; none today
 BEGIN
   SELECT string_agg(format('%s.%s', n.nspname, p.proname), ', ' ORDER BY p.proname)
@@ -66,6 +73,16 @@ BEGIN
     AND p.prosrc !~* '(auth_hotel_id|auth_org_id|hotel_is_in_user_scope)'
     AND NOT (p.proname = ANY (v_inv3_allow));
 
+  SELECT string_agg(format('%s.%s', c.conrelid::regclass, a.attname), ', ' ORDER BY c.conrelid::regclass::text)
+    INTO v_prov
+  FROM pg_constraint c
+  JOIN pg_attribute  a ON a.attrelid = c.conrelid AND a.attnum = c.conkey[1]
+  WHERE c.contype     = 'f'
+    AND c.confrelid   = 'auth.users'::regclass
+    AND c.confdeltype = 'c'
+    AND array_length(c.conkey, 1) = 1
+    AND a.attname ~ '_by(_user_id)?$';
+
   IF v_anon IS NOT NULL THEN
     RAISE EXCEPTION
       'SECURITY INVARIANT 1 VIOLATED — anon can EXECUTE SECURITY DEFINER function(s): %. Revoke anon (see migration 176).',
@@ -84,5 +101,11 @@ BEGIN
       v_leak;
   END IF;
 
-  RAISE NOTICE 'Security invariants OK — no anon-executable, unpinned, or unscoped-tenant-param SECURITY DEFINER functions in public.';
+  IF v_prov IS NOT NULL THEN
+    RAISE EXCEPTION
+      'SECURITY INVARIANT 4 VIOLATED — provenance column(s) cascade from auth.users, so deleting a user deletes the records they authored: %. Use ON DELETE SET NULL (see migration 231).',
+      v_prov;
+  END IF;
+
+  RAISE NOTICE 'Security invariants OK — no anon-executable, unpinned, or unscoped-tenant-param SECURITY DEFINER functions, and no cascading provenance FKs.';
 END $$;

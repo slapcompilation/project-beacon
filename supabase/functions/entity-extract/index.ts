@@ -14,6 +14,7 @@
 // their scope.
 
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
 
@@ -30,7 +31,7 @@ interface DocumentChunk {
   text:     string
 }
 
-interface VariantRow  { id: string; name: string }
+interface VariantRow  { id: string; name: string; label: string }
 interface SupplierRow { id: string; name: string }
 
 interface LLMSuggestion {
@@ -102,9 +103,11 @@ Deno.serve(async (req: Request) => {
     //    (vector match on chunk text → top-K names) in a future iteration.
     const { data: variantRows } = await supabase
       .from('product_variants')
-      .select('id, name, products!inner(hotel_id)')
+      .select('id, name, products!inner(name, hotel_id)')
       .eq('products.hotel_id', doc.hotel_id)
-      .limit(500) as unknown as { data: Array<{ id: string; name: string }> | null }
+      .limit(500) as unknown as {
+        data: Array<{ id: string; name: string; products: { name: string } | null }> | null
+      }
 
     const { data: supplierRows } = await supabase
       .from('suppliers')
@@ -112,14 +115,30 @@ Deno.serve(async (req: Request) => {
       .eq('hotel_id', doc.hotel_id)
       .limit(500) as unknown as { data: Array<{ id: string; name: string }> | null }
 
-    const variants:  VariantRow[]  = (variantRows  ?? []).map((v) => ({ id: v.id, name: v.name }))
+    // Nearly every variant is literally named 'Standard' — the identifying name
+    // lives on the product. Matching on the bare variant name showed the model
+    // 500 identical candidates and made exact-name harmonization impossible.
+    const variants: VariantRow[] = (variantRows ?? []).map((v) => {
+      const product = v.products?.name ?? v.name
+      return {
+        id:    v.id,
+        name:  product,
+        label: v.name && v.name !== 'Standard' ? `${product} — ${v.name}` : product,
+      }
+    })
     const suppliers: SupplierRow[] = (supplierRows ?? []).map((s) => ({ id: s.id, name: s.name }))
 
     if (variants.length === 0 && suppliers.length === 0) {
-      return json({ inserted: 0, message: 'No variants or suppliers in this hotel to match against.' })
+      return json({ inserted: 0, resolved: 0, entities_considered: 0, message: 'No variants or suppliers in this hotel to match against.' })
     }
 
-    // 3. Ask the LLM. Tight system prompt + JSON-shaped output.
+    // 3. Harmonize FIRST. Resolution is deterministic and free, so it must not
+    //    depend on the LLM pass below succeeding — it used to sit after an
+    //    early return and never ran when the model suggested nothing.
+    const harmony = await harmonize(supabase, doc, variants, suppliers)
+    if ('error' in harmony) return json({ error: harmony.error }, 502)
+
+    // 4. Ask the LLM. Tight system prompt + JSON-shaped output.
     const anthropic = new Anthropic({ apiKey })
     const systemPrompt =
       'You are linking document chunks to entities in a hotel inventory graph. For each chunk that clearly references one of the listed entities, return a suggestion. ' +
@@ -132,7 +151,7 @@ Deno.serve(async (req: Request) => {
       `Chunks (chunk_id → text):\n` +
       chunks.map((c) => `${c.chunk_id}: ${c.text}`).join('\n') +
       '\n\nCandidate variants (id → name):\n' +
-      variants.map((v) => `${v.id}: ${v.name}`).join('\n') +
+      variants.map((v) => `${v.id}: ${v.label}`).join('\n') +
       '\n\nCandidate suppliers (id → name):\n' +
       suppliers.map((s) => `${s.id}: ${s.name}`).join('\n') +
       '\n\nReturn JSON: { "suggestions": [{ "chunk_id": "...", "entity_type": "variant"|"supplier", "entity_id": "<uuid>", "confidence": <0..1>, "reasoning": "<one sentence>", "evidence_snippet": "<exact text from the chunk>" }, ...] }'
@@ -177,10 +196,6 @@ Deno.serve(async (req: Request) => {
         evidence_snippet: s.evidence_snippet?.slice(0, 500) ?? null,
       }))
 
-    if (rowsToInsert.length === 0) {
-      return json({ inserted: 0, message: 'No suggestions above threshold.' })
-    }
-
     // The pending-uniqueness index is PARTIAL (WHERE status='pending'), which
     // PostgREST's ON CONFLICT cannot target — so re-run protection is done as
     // a pre-check + plain insert: skip triples that are already pending;
@@ -206,66 +221,11 @@ Deno.serve(async (req: Request) => {
       if (insertError) return json({ error: insertError.message }, 502)
     }
 
-    // P7 harmonization: this document's discovered Entity nodes resolve to
-    // operational nodes via entity -resolved_to-> supplier|variant edges.
-    // DETERMINISTIC ONLY (case-insensitive exact name match) — anything fuzzy
-    // stays in the human-approved suggestions queue above.
-    let resolved = 0
-    const { data: mentionEdges } = await supabase
-      .from('relationship_edges')
-      .select('target_id')
-      .eq('edge_type', 'mentions')
-      .eq('metadata->>document_id', doc.id)
-    const mentionedIds = [...new Set((mentionEdges ?? []).map((e) => e.target_id as string))]
-
-    if (mentionedIds.length > 0) {
-      const { data: entityRows } = await supabase
-        .from('entities')
-        .select('id, name_key, category')
-        .in('id', mentionedIds)
-        .in('category', ['supplier', 'product'])
-
-      if (entityRows && entityRows.length > 0) {
-        const supplierByKey = new Map(suppliers.map((s) => [s.name.toLowerCase().trim(), s.id]))
-        const variantByKey  = new Map(variants.map((v) => [v.name.toLowerCase().trim(), v.id]))
-
-        const { data: alreadyResolved } = await supabase
-          .from('relationship_edges')
-          .select('source_id')
-          .eq('edge_type', 'resolved_to')
-          .in('source_id', entityRows.map((e) => e.id))
-        const done = new Set((alreadyResolved ?? []).map((e) => e.source_id as string))
-
-        const resolvedRows = entityRows.flatMap((e) => {
-          if (done.has(e.id)) return []
-          const targetId = e.category === 'supplier'
-            ? supplierByKey.get(e.name_key)
-            : variantByKey.get(e.name_key)
-          if (!targetId) return []
-          return [{
-            edge_type:    'resolved_to',
-            source_type:  'entity',
-            source_id:    e.id,
-            target_type:  e.category === 'supplier' ? 'supplier' : 'variant',
-            target_id:    targetId,
-            hotel_id:     doc.hotel_id,
-            triggered_by: 'system',
-            metadata:     { matched: 'exact-name', document_id: doc.id },
-          }]
-        })
-
-        if (resolvedRows.length > 0) {
-          const { error: resErr } = await supabase.from('relationship_edges').insert(resolvedRows)
-          if (resErr) return json({ error: `resolved_to insert failed: ${resErr.message}` }, 502)
-          resolved = resolvedRows.length
-        }
-      }
-    }
-
     return json({
-      inserted:    fresh.length,
-      resolved,
-      considered:  parsed.suggestions.length,
+      inserted:            fresh.length,
+      resolved:            harmony.resolved,
+      entities_considered: harmony.entities_considered,
+      considered:          parsed.suggestions.length,
       threshold,
       tokens_used: (completion.usage.input_tokens ?? 0) + (completion.usage.output_tokens ?? 0),
     })
@@ -274,3 +234,79 @@ Deno.serve(async (req: Request) => {
     return json({ error: message }, 500)
   }
 })
+
+/** Index name → id, dropping any name that two records share. A deterministic
+ *  match has to be unambiguous; two variants called "Lime" resolve to neither. */
+function uniqueByName<T extends { id: string }>(rows: T[], names: (r: T) => string[]): Map<string, string> {
+  const hits = new Map<string, string | null>()
+  for (const r of rows) {
+    for (const raw of names(r)) {
+      const key = raw.toLowerCase().trim()
+      if (!key) continue
+      hits.set(key, hits.has(key) && hits.get(key) !== r.id ? null : r.id)
+    }
+  }
+  return new Map([...hits].flatMap(([k, v]) => (v ? [[k, v] as [string, string]] : [])))
+}
+
+/** P7 harmonization: Entity nodes this document mentions resolve to operational
+ *  nodes via entity -resolved_to-> supplier|variant. DETERMINISTIC ONLY
+ *  (case-insensitive exact name match); anything fuzzy stays in the
+ *  human-approved suggestions queue. */
+async function harmonize(
+  supabase:  SupabaseClient,
+  doc:       { id: string; hotel_id: string },
+  variants:  VariantRow[],
+  suppliers: SupplierRow[],
+): Promise<{ resolved: number; entities_considered: number } | { error: string }> {
+  const { data: mentionEdges } = await supabase
+    .from('relationship_edges')
+    .select('target_id')
+    .eq('edge_type', 'mentions')
+    .eq('metadata->>document_id', doc.id)
+  const mentionedIds = [...new Set((mentionEdges ?? []).map((e) => e.target_id as string))]
+  if (mentionedIds.length === 0) return { resolved: 0, entities_considered: 0 }
+
+  const { data: entityRows } = await supabase
+    .from('entities')
+    .select('id, name_key, category')
+    .in('id', mentionedIds)
+    .in('category', ['supplier', 'product']) as unknown as {
+      data: Array<{ id: string; name_key: string; category: string }> | null
+    }
+  if (!entityRows || entityRows.length === 0) return { resolved: 0, entities_considered: 0 }
+
+  const supplierByKey = uniqueByName(suppliers, (s) => [s.name])
+  const variantByKey  = uniqueByName(variants,  (v) => [v.name, v.label])
+
+  const { data: alreadyResolved } = await supabase
+    .from('relationship_edges')
+    .select('source_id')
+    .eq('edge_type', 'resolved_to')
+    .in('source_id', entityRows.map((e) => e.id))
+  const done = new Set((alreadyResolved ?? []).map((e) => e.source_id as string))
+
+  const resolvedRows = entityRows.flatMap((e) => {
+    if (done.has(e.id)) return []
+    const targetId = e.category === 'supplier'
+      ? supplierByKey.get(e.name_key)
+      : variantByKey.get(e.name_key)
+    if (!targetId) return []
+    return [{
+      edge_type:    'resolved_to',
+      source_type:  'entity',
+      source_id:    e.id,
+      target_type:  e.category === 'supplier' ? 'supplier' : 'variant',
+      target_id:    targetId,
+      hotel_id:     doc.hotel_id,
+      triggered_by: 'system',
+      metadata:     { matched: 'exact-name', document_id: doc.id },
+    }]
+  })
+
+  if (resolvedRows.length > 0) {
+    const { error } = await supabase.from('relationship_edges').insert(resolvedRows)
+    if (error) return { error: `resolved_to insert failed: ${error.message}` }
+  }
+  return { resolved: resolvedRows.length, entities_considered: entityRows.length }
+}

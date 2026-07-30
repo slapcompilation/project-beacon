@@ -24,7 +24,7 @@ export interface AutomationRow {
   enabled: boolean
   stage: AutomationStage
   version: number
-  created_by_user_id: string
+  created_by_user_id: string | null
   created_at: string
   updated_at: string
 }

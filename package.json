@@ -8,9 +8,15 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "check:edge": "node scripts/check-edge-syntax.mjs",
-    "build:edge-bundle": "pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/_shared/reality-graph.bundle.mjs"
+    "build:edge-bundle": "pnpm dlx esbuild@0.25.12 packages/reality-graph/src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=supabase/functions/_shared/reality-graph.bundle.mjs",
+    "db": "node scripts/db.mjs",
+    "db:contracts": "node scripts/db.mjs --contracts",
+    "db:status": "node scripts/db.mjs --status",
+    "db:migrate": "node scripts/db.mjs --migrate",
+    "db:baseline": "node scripts/db.mjs --baseline"
   },
   "devDependencies": {
+    "pg": "^8.22.0",
     "prettier": "^3.8.3",
     "turbo": "^2.9.6",
     "typescript": "^5.7.3"

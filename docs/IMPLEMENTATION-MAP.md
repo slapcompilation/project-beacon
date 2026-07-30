@@ -42,25 +42,39 @@ Every item below names its consumer. An item that cannot name one does not ship.
 
 ---
 
-## Tier 0 — correctness and honesty (do first, all small)
+## Tier 0 — correctness and honesty ✅ shipped
 
-Nothing here is a feature. These are things that are currently **wrong or untrue**.
+Nothing here was a feature. These were things that were **wrong or untrue**.
 
-| # | Item | Consumer | Source |
-|---|---|---|---|
-| 0.1 | `documents.uploaded_by_user_id` → `ON DELETE SET NULL` | the audit trail itself | D3 |
-| 0.2 | Stage-9 gate asserts **content**, not HTTP status | ingestion fail-closed posture | D2 |
-| 0.3 | Fix harmonization (exact-name matches resolve) | `entity_link_suggestions`, the doc→ontology loop | D1 |
-| 0.4 | Enforce `version` pinning at `invokeTool` **or delete the field and the CLAUDE.md claim** | every tool caller | 5.2 |
-| 0.5 | Same for `traversableLinks` — enforce, or amend CLAUDE.md until 2.1 lands | the LLM tool contract | 8.1 |
+| # | Item | Consumer | Source | Status |
+|---|---|---|---|---|
+| 0.1 | Provenance FKs → `ON DELETE SET NULL` | the audit trail itself | D3 | ✅ mig 231 + invariant 4 |
+| 0.2 | Stage-9 gate asserts **content**, not HTTP status | ingestion fail-closed posture | D2 | ✅ |
+| 0.3 | Fix harmonization (exact-name matches resolve) | `entity_link_suggestions`, the doc→ontology loop | D1 | ✅ |
+| 0.4 | `version` — enforce or drop the claim | the agent run trace | 5.2 | ✅ recorded per step |
+| 0.5 | `traversableLinks` — enforce or amend CLAUDE.md | the LLM tool contract | 8.1 | ✅ reaches the prompt |
 
-**0.1 is data loss.** Deleting a user erases their documents, chunks and citation
-edges. In a system built on immutable audit, that is the most serious single
-finding in the audit.
+**0.1 was wider than the audit found.** The cascade was not specific to documents:
+~14 provenance columns carried it, including `object_types.created_by_user_id`,
+which cascades on into `object_records` and `link_records` — deleting the operator
+who authored a type deleted the type and its data. The convention was already
+correct in most of the schema (127/132/134/136/147/151/157/163 use `SET NULL`);
+migration 231 derives the offenders from the catalog rather than listing them, and
+security invariant 4 fails the build if one comes back.
 
-**0.4/0.5 are honesty.** CLAUDE.md documents two guarantees that do not exist. Two
-false guarantees in one document is a pattern, and the cheapest fix is to make them
-true or stop claiming them. Do not leave them ambiguous.
+**0.3 was two bugs, and neither was visible by reading.** Every `product_variants.name`
+is literally `'Standard'` — the identifying name is on the product — so the candidate
+list handed to the model was N identical rows and `variantByKey` was keyed on
+`"standard"`. On top of that, harmonization sat *after* an early return taken when
+the LLM produced no suggestion, so the deterministic step was a dependent of the
+probabilistic one. It now runs first, because it is free and cannot fail.
+
+**0.4/0.5 were honesty.** Both fields existed and reached nobody. Rather than delete
+them, each got the consumer that makes the claim true: `version` is recorded on the
+call and response steps of every trace, and `traversableLinks` is appended to the
+description the model actually sees. CLAUDE.md now states what is enforced (a
+contract with the model) and what is not (a runtime sandbox — that arrives with
+Tier 2).
 
 ---
 

@@ -531,6 +531,23 @@ Deno.serve(async (req: Request) => {
         'embedded', 502)
     }
 
+    // A 200 is not the contract. Assert the harmonization pass actually looked
+    // at the entities we just wrote — a green status over zero considered
+    // entities is exactly how resolution stayed dead without anyone noticing.
+    const exBody = await exResp.json().catch(() => null) as { entities_considered?: unknown } | null
+    const considered = exBody?.entities_considered
+    if (typeof considered !== 'number') {
+      return gateFail('contextualized.extract_contract',
+        'entity-extract returned 200 without entities_considered. Document settled at embedded.',
+        'embedded', 502)
+    }
+    const resolvable = [...wanted.values()].filter((e) => e.category === 'supplier' || e.category === 'product').length
+    if (resolvable > 0 && considered === 0) {
+      return gateFail('contextualized.harmonization_ran',
+        `Wrote ${String(resolvable)} resolvable entities but harmonization considered 0. Document settled at embedded.`,
+        'embedded', 502)
+    }
+
     stage = 'contextualized'
     await supabase
       .from('documents')

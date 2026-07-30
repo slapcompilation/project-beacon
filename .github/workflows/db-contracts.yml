@@ -19,9 +19,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'supabase/migrations/**'
-      - 'supabase/tests/**'
       - '.github/workflows/db-contracts.yml'
+  # On main, db-migrate.yml owns the supabase/** paths: it applies pending
+  # migrations and then runs these same guards against the result. Triggering
+  # both would race the guards against the migration they are meant to check.
+  #
   # Daily sweep catches drift introduced outside a PR — e.g. a migration applied
   # directly via the Supabase MCP (which is how the #235 leak landed). Runs after
   # the 07:00 UTC intelligence cron.

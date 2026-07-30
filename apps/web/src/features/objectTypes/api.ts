@@ -24,7 +24,7 @@ export interface ObjectTypeRow {
   kind: 'authored' | 'builtin'
   source_table: string | null
   title_key: string | null
-  created_by_user_id: string
+  created_by_user_id: string | null
   created_at: string
   updated_at: string
 }

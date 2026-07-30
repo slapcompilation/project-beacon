@@ -13,6 +13,26 @@ export interface LLMToolSpec {
   inputSchema: unknown
 }
 
+/** The one place a LogicTool becomes something the model can see. Appends the
+ *  declared traversals to the description — the field existed for years without
+ *  ever reaching a prompt, so the model could not reason about what a tool
+ *  would and wouldn't follow. */
+export function toolSpec(tool: {
+  name: string
+  description: string
+  inputSchema: unknown
+  traversableLinks?: ReadonlyArray<string>
+}): LLMToolSpec {
+  const links = tool.traversableLinks
+  return {
+    name:        tool.name,
+    description: links && links.length > 0
+      ? `${tool.description} Traverses only these links: ${links.join(', ')}.`
+      : tool.description,
+    inputSchema: tool.inputSchema,
+  }
+}
+
 export interface LLMToolCall {
   toolName: string
   input: unknown
