@@ -95,10 +95,38 @@ export interface SetDefinition {
   filters: SetFilter[]
 }
 
-// A NAMED, stored set (id + apiName + description, pointed at by several
-// consumers) is deliberately not declared yet. It arrives with the first thing
-// that needs to refer to a set by name — a cohort — because a shape with no
-// consumer is exactly what nodeSet was.
+/** A set stored under a name — a cohort. The name is the point: it lets more
+ *  than one thing refer to the same group, which is what neither the automation
+ *  nor the tool copy of this concept could do. */
+export interface ObjectSetDef extends SetDefinition {
+  id: string
+  organizationId: string
+  hotelId: string | null
+  name: string
+  /** Stable identifier a consumer refers to, unique per organization. */
+  apiName: string
+  description: string
+}
+
+/** Checks a named set. The selection rules plus the naming ones — a set nothing
+ *  can refer to is not a cohort. */
+export function validateObjectSet(
+  draft: Pick<ObjectSetDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'parameters' | 'filters'>,
+  subject: SetSubject | undefined,
+  /** apiNames already taken in the organization, excluding this set's own. */
+  taken: ReadonlyArray<string> = [],
+): string[] {
+  const errors: string[] = []
+  if (!draft.name.trim()) errors.push('Name is required')
+  if (!draft.apiName.trim()) {
+    errors.push('API name is required')
+  } else if (!/^[a-z][a-z0-9_]*$/.test(draft.apiName)) {
+    errors.push('API name must be lower_snake_case')
+  } else if (taken.includes(draft.apiName)) {
+    errors.push(`"${draft.apiName}" is already used by another set`)
+  }
+  return [...errors, ...validateSetDefinition(draft, subject)]
+}
 
 export interface SetTypeBreakdown {
   typeId: string

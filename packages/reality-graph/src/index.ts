@@ -436,10 +436,10 @@ export {
 // Tier 1 — the object set: the selection an authored tool aggregates over, and
 // that an automation and a cohort will act on and name.
 export {
-  selectObjectSet, bindSetArgs, validateSetDefinition, describeSetFilters,
+  selectObjectSet, bindSetArgs, validateSetDefinition, validateObjectSet, describeSetFilters,
 } from './objectSets/index'
 export type {
-  SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
+  ObjectSetDef, SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
   SetRecord, RecordGroup, ObjectSetSelection, SetTypeBreakdown,
 } from './objectSets/index'
 

@@ -668,11 +668,58 @@ BEGIN
     RAISE EXCEPTION 'C23b: a well-formed parameterised tool was rejected';
   END IF;
 
+  -- ── C24: cohorts are admin-authored and have exactly one subject ──────────
+  -- A cohort becomes the subject of automations and tools, so widening who can
+  -- author one widens what they act on. Same gate as the tool it will feed.
   RESET ROLE;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+  SET LOCAL ROLE authenticated;
+  raised := false;
+  BEGIN
+    INSERT INTO object_sets (name, api_name, subject_type_id) VALUES ('C24', 'c24_probe', v_type);
+  EXCEPTION WHEN insufficient_privilege THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
+    DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C24a: hotel_manager authored a cohort (expected admin/owner-only)';
+  END IF;
+
+  RESET ROLE;
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+    'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+  SET LOCAL ROLE authenticated;
+
+  -- A set over both a type and an interface has no defined membership.
+  raised := false;
+  BEGIN
+    INSERT INTO object_sets (name, api_name, subject_type_id, subject_interface_id)
+    VALUES ('C24 both', 'c24_both', v_type, v_iface);
+  EXCEPTION WHEN check_violation THEN raised := true;
+  END;
+  IF NOT raised THEN
+    RESET ROLE; DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
+    DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C24b: a cohort claiming both a type and an interface was accepted';
+  END IF;
+
+  INSERT INTO object_sets (name, api_name, subject_interface_id, filters)
+  VALUES ('C24 ok', 'c24_ok', v_iface, '[{"property":"room","op":"eq","value":"x"}]'::jsonb);
+  SELECT count(*) INTO n FROM object_sets
+   WHERE api_name = 'c24_ok' AND organization_id = v_org AND created_by_user_id = v_user;
+  IF n <> 1 THEN
+    RESET ROLE; DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
+    DELETE FROM ontology_interfaces WHERE id = v_iface; DELETE FROM object_types WHERE id IN (v_type, v_other);
+    RAISE EXCEPTION 'C24c: admin could not author a cohort, or org/author defaults did not land';
+  END IF;
+
+  RESET ROLE;
+  DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
   DELETE FROM ontology_interfaces WHERE id = v_iface;
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject', v_b_pending;
 END $$;

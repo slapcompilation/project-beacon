@@ -7,14 +7,15 @@ import {
   Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag,
 } from '@blueprintjs/core'
 import {
-  AGGREGATIONS, OP_LABELS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
+  AGGREGATIONS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
   bindToolArgs, shippedAgentToolNames,
-  type AggregationFn, type PropertyDef, type PropertyType, type ToolArgs, type ToolFilter, type ToolParamDef,
+  type AggregationFn, type PropertyType, type ToolArgs, type ToolFilter, type ToolParamDef,
 } from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { useCreateUserTool } from './hooks'
 import Breakdown from './Breakdown'
-import { decodeSubject, encodeSubject, useToolSubject, type SubjectRef } from './subject'
+import { decodeSubject, encodeSubject, useSetSubject, type SubjectRef } from '@/features/objectSets/subject'
+import { Field, FilterRow, SubjectSelect } from '@/features/objectSets/FilterRow'
 
 /** An authored tool taking a shipped tool's name would be silently ignored in an
  *  agent's registry, where the shipped one wins. Catch it at authoring time. */
@@ -31,7 +32,7 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const [fn, setFn] = useState<AggregationFn>('count')
   const [aggProp, setAggProp] = useState('')
 
-  const { subject, targets, groups, types, interfaces } = useToolSubject(ref)
+  const { subject, targets, groups, types, interfaces } = useSetSubject(ref)
 
   const props = subject ? subjectProperties(subject) : []
   const numericProps = props.filter((p) => p.type === 'number')
@@ -64,18 +65,9 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
           <InputGroup value={name} placeholder="Open urgent requests" onChange={(e) => { setName(e.target.value) }} style={{ width: 200 }} />
         </Field>
         <Field label="About">
-          <HTMLSelect value={encodeSubject(ref)}
-            onChange={(e) => { setRef(decodeSubject(e.currentTarget.value)); setFilters([]); setAggProp('') }}>
-            <option value="">Pick an object type or interface…</option>
-            <optgroup label="Object types">
-              {(types.data ?? []).map((t) => <option key={t.id} value={`type:${t.id}`}>{t.label}</option>)}
-            </optgroup>
-            {(interfaces.data ?? []).length > 0 && (
-              <optgroup label="Interfaces — runs across every implementer">
-                {(interfaces.data ?? []).map((i) => <option key={i.id} value={`iface:${i.id}`}>{i.label}</option>)}
-              </optgroup>
-            )}
-          </HTMLSelect>
+          <SubjectSelect value={encodeSubject(ref)}
+            types={types.data ?? []} interfaces={interfaces.data ?? []}
+            onChange={(v) => { setRef(decodeSubject(v)); setFilters([]); setAggProp('') }} />
         </Field>
         <Field label="Answer">
           <HTMLSelect value={fn} onChange={(e) => { setFn(e.currentTarget.value as AggregationFn) }}
@@ -200,60 +192,6 @@ export default function ToolComposer({ onDone }: { onDone: () => void }) {
   )
 }
 
-function FilterRow({ filter, props, parameters, onChange, onRemove }: {
-  filter: ToolFilter
-  props: PropertyDef[]
-  parameters: ToolParamDef[]
-  onChange: (f: ToolFilter) => void
-  onRemove: () => void
-}) {
-  const prop = props.find((p) => p.key === filter.property)
-  const isNumber = prop?.type === 'number'
-  const isBool   = prop?.type === 'boolean'
-  const ops: ToolFilter['op'][] = isNumber ? ['gte', 'gt', 'lte', 'lt', 'eq', 'neq'] : ['eq', 'neq']
-
-  // Only parameters of the property's own type can supply its value.
-  const usable = parameters.filter((p) => p.key !== '' && p.type === prop?.type)
-  const bound = parameters.find((p) => p.key === filter.param)
-  // A required parameter always supplies the value, so the literal is dead.
-  const literalIsRead = filter.param === undefined || bound?.required === false
-
-  return (
-    <div className="flex items-center gap-1.5 text-xs">
-      <span className="text-muted-foreground w-10">where</span>
-      <HTMLSelect value={filter.property} onChange={(e) => {
-        const p = props.find((x) => x.key === e.currentTarget.value)
-        onChange({
-          property: e.currentTarget.value,
-          op: p?.type === 'number' ? 'gte' : 'eq',
-          value: p?.type === 'number' ? 0 : p?.type === 'boolean' ? true : '',
-        })
-      }} options={props.map((p) => ({ value: p.key, label: p.label }))} />
-      <HTMLSelect value={filter.op} onChange={(e) => { onChange({ ...filter, op: e.currentTarget.value as ToolFilter['op'] }) }}
-        options={ops.map((o) => ({ value: o, label: OP_LABELS[o] }))} />
-      {usable.length > 0 && (
-        <HTMLSelect value={filter.param ?? ''}
-          onChange={(e) => { onChange({ ...filter, param: e.currentTarget.value || undefined }) }}
-          options={[{ value: '', label: 'a value' }, ...usable.map((p) => ({ value: p.key, label: `{${p.key}}` }))]} />
-      )}
-      {literalIsRead && (isNumber ? (
-        <NumericInput value={typeof filter.value === 'number' ? filter.value : 0} style={{ width: 90 }} buttonPosition="none"
-          onValueChange={(v) => { onChange({ ...filter, value: Number.isFinite(v) ? v : 0 }) }} />
-      ) : isBool ? (
-        <HTMLSelect value={String(filter.value)} onChange={(e) => { onChange({ ...filter, value: e.currentTarget.value === 'true' }) }}
-          options={[{ value: 'true', label: 'true' }, { value: 'false', label: 'false' }]} />
-      ) : (
-        <InputGroup value={String(filter.value)} style={{ width: 140 }}
-          onChange={(e) => { onChange({ ...filter, value: e.target.value }) }} />
-      ))}
-      {filter.param !== undefined && bound?.required === false && (
-        <span className="text-[10px] text-muted-foreground">fallback</span>
-      )}
-      <Button size="small" variant="minimal" icon="cross" onClick={onRemove} />
-    </div>
-  )
-}
-
 /** One argument value, typed against its parameter. Shared by the composer's
  *  "try it with" row and the tool card. */
 export function ArgInput({ param, value, onChange }: {
@@ -284,15 +222,6 @@ export function ArgInput({ param, value, onChange }: {
       <InputGroup size="small" value={typeof value === 'string' ? value : ''} style={{ width: 110 }}
         onChange={(e) => { onChange(e.target.value || undefined) }} />
     </span>
-  )
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
-      {children}
-    </div>
   )
 }
 

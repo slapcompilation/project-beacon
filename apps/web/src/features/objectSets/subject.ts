@@ -1,12 +1,12 @@
-// Resolving a tool's subject to the records it runs over.
+// Resolving a SET's subject to the records it draws from.
 //
 // One place, because "every type implementing this interface" has to mean the
-// same thing in the composer's preview and in the saved tool's answer. The
+// same thing in a composer's preview and in the saved set's membership. The
 // select value is encoded as `type:<id>` / `iface:<id>` so one dropdown can
 // offer both without a second piece of state.
 
 import { useMemo } from 'react'
-import type { ObjectTypeDef, ToolRecord, ToolRecordGroup, ToolSubject } from '@beacon/reality-graph'
+import type { ObjectTypeDef, SetRecord, RecordGroup, SetSubject } from '@beacon/reality-graph'
 import { useObjectTypes, useObjectRecordsForTypes } from '@/features/objectTypes/hooks'
 import { rowToObjectType } from '@/features/objectTypes/api'
 import { useInterfaces, useImplementations } from '@/features/interfaces/hooks'
@@ -24,14 +24,14 @@ export function decodeSubject(v: string): SubjectRef {
   return { subjectTypeId: null, subjectInterfaceId: null }
 }
 
-export function useToolSubject(ref: SubjectRef) {
+export function useSetSubject(ref: SubjectRef) {
   const types      = useObjectTypes()
   const interfaces = useInterfaces()
   const impls      = useImplementations()
 
   const all = useMemo(() => (types.data ?? []).map(rowToObjectType), [types.data])
 
-  const subject: ToolSubject | undefined = useMemo(() => {
+  const subject: SetSubject | undefined = useMemo(() => {
     if (ref.subjectTypeId) {
       const t = all.find((x) => x.id === ref.subjectTypeId)
       return t ? { kind: 'type', type: t } : undefined
@@ -55,9 +55,9 @@ export function useToolSubject(ref: SubjectRef) {
 
   const records = useObjectRecordsForTypes(targets.map((t) => t.id))
 
-  const groups: ToolRecordGroup[] | null = useMemo(() => {
+  const groups: RecordGroup[] | null = useMemo(() => {
     if (!records.data) return null
-    const byType = new Map(targets.map((t) => [t.id, [] as ToolRecord[]]))
+    const byType = new Map(targets.map((t) => [t.id, [] as SetRecord[]]))
     for (const r of records.data) byType.get(r.object_type_id)?.push(r.data)
     return targets.map((t) => ({ type: t, records: byType.get(t.id) ?? [] }))
   }, [records.data, targets])
