@@ -96,3 +96,74 @@ column — `restock_requests` has three FKs to users (`requestor_id`, `approved_
 `rejected_by`). It also missed `restock_receives.request_id` by guessing the table
 was named `restock_receipts`. Both were corrected by listing every candidate
 column per pair rather than taking the first match.
+
+---
+
+# Addendum — applying Foundry's structural guidance
+
+`ontology/ontology-structural-guidance` (fetched live 2026-07-30; absent from the
+mirror *and* from the 3,696-URL index, so the sitemap missed it) gives the rule
+that decides the open question:
+
+> **If the relationship carries its own metadata** — such as dates, roles, status,
+> or allocation percentage — **use an object-backed link type to capture that
+> metadata.**
+
+> Links should represent semantically meaningful relationships. **Every link type
+> should answer a clear domain question.**
+
+> Name links by relationship: a link from `Employee` to `Department` should be
+> `department` (from the employee's perspective) and `employees` (from the
+> department's perspective).
+
+The discriminator in their example is *ambiguity*: `ventureRole` and
+`ventureStartDate` cannot live on `Employee` because an employee has **many**
+venture assignments, so an intermediate `VentureStaffing` object is required.
+
+## Applied to every edge type that carries metadata
+
+| edge type | metadata | what it actually is |
+|---|---|---|
+| `consumes` stock_log→variant | `delta`, `reason` | **columns of `stock_logs`** |
+| `influenced_by` stock_log→occupancy_log | `date`, `delta` | columns of the two endpoints |
+| `batch_of` product_batch→variant | `quantity`, `expiry_date` | columns of `product_batches` |
+| `cited_in` document→chunk | `page`, `chunk_key` | columns of `document_chunks` |
+| `fulfills` restock_receive→restock_request | `quantity_received` | column of `restock_receives` |
+| `invoiced_by` purchase_order→po_invoice | `status`, `invoice_amount`, `invoice_number`, `discrepancy_amount` | columns of `po_invoices` |
+| `mentions` chunk→entity | `page`, `chunk_key`, `document_id`, `entity_name` | columns of the two endpoints |
+| `reverts` stock_log→stock_log | `reason`, `backfilled_by_migration` | column + migration marker |
+| `causes` pos_sale→stock_log | `seed` | seeding marker |
+| `belongs_to_org` hotel→organization | `created_by_migration` | migration marker |
+| `linked_to_po` restock_request→purchase_order | `variant_id`, `ordered_qty` | **the only possible exception** — see below |
+
+**Not one edge type carries genuine relationship metadata.** Every payload either
+restates a column of the source or target object, or is a seeding/migration
+marker. Foundry's condition for an object-backed link is met by **zero** of them.
+
+So the answer to "should `consumes` become an object-backed link?" is **no**. Its
+`delta` and `reason` are `stock_logs` columns, and the relationship is many-to-one,
+so there is no ambiguity to resolve. It is an FK-backed link and the metadata is
+duplication.
+
+**The one to check:** `linked_to_po` carries `ordered_qty` — how much of a request
+was ordered on that PO. That *is* relationship metadata by Foundry's definition.
+But the intermediary object almost certainly already exists as a purchase-order
+line item, in which case this is two FK-backed links through an object we already
+have — which is exactly what an object-backed link is.
+
+## Revised Tier 2 shape
+
+- **~14 FK-backed link types** — registered against existing columns, no new tables
+- **~4 join tables** for the genuine many-to-many links (`causes`, `mentions`,
+  `influenced_by` proposal→principle, and one more)
+- **0–1 object-backed link types**, pending the `linked_to_po` check
+- **all edge metadata dropped**, since none of it is link metadata
+
+Note what this does *not* say: several of the LINKS are real even where the
+metadata is not. `causes`, `mentions` and `influenced_by` have no backing FK and
+must exist. The claim is narrower and firmer: **the links are sometimes real; the
+metadata never is.**
+
+Foundry's "every link type should answer a clear domain question" also disposes of
+`belongs_to_hotel`, `belongs_to_org` and `created_by`: tenancy and authorship are
+properties, not domain relationships.
