@@ -433,6 +433,16 @@ export {
   describeUserTool, allProperties, subjectProperties, subjectLabel, bindToolArgs,
 } from './userTools/index'
 
+// Tier 1 — the object set: the selection an authored tool aggregates over, and
+// that an automation and a cohort will act on and name.
+export {
+  selectObjectSet, bindSetArgs, validateSetDefinition, describeSetFilters,
+} from './objectSets/index'
+export type {
+  SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
+  SetRecord, RecordGroup, ObjectSetSelection, SetTypeBreakdown,
+} from './objectSets/index'
+
 export {
   AGENT_CADENCES, validateAuthoredAgent, compileAgent, describeAuthoredAgent,
 } from './authoredAgents/index'
