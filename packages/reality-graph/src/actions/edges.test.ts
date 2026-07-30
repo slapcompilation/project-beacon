@@ -103,7 +103,7 @@ describe('edgesForAction', () => {
     expect(edges).toEqual([])
   })
 
-  it('LOG_DELIVERY fans out the sourced_from link', () => {
+  it('LOG_DELIVERY fans out delivery_sourced_from — its own relationship, not the variant one', () => {
     const edges = edgesForAction(
       {
         type: 'LOG_DELIVERY', hotelId: HOTEL, supplierId: 's-1',
@@ -113,8 +113,8 @@ describe('edgesForAction', () => {
       ctx,
     )
     const types = edges.map((e) => e.edge_type).sort()
-    expect(types).toEqual(['sourced_from'])
-    const sourcedFrom = edges.find((e) => e.edge_type === 'sourced_from')
+    expect(types).toEqual(['delivery_sourced_from'])
+    const sourcedFrom = edges.find((e) => e.edge_type === 'delivery_sourced_from')
     expect(sourcedFrom).toMatchObject({ source_type: 'delivery_event', source_id: 'd-1', target_type: 'supplier', target_id: 's-1' })
   })
 
@@ -156,7 +156,7 @@ describe('edgesForAction', () => {
       ctx,
     )
     const session = edges.find((e) => e.edge_type === 'belongs_to_session')
-    const consumes = edges.find((e) => e.edge_type === 'consumes')
+    const consumes = edges.find((e) => e.edge_type === 'recipe_consumes')
     expect(session).toMatchObject({ source_type: 'menu_item_ingredient', target_type: 'menu_item', target_id: 'mi-1' })
     expect(consumes).toMatchObject({ source_type: 'menu_item_ingredient', target_type: 'variant', target_id: 'v-1' })
   })
@@ -180,7 +180,7 @@ describe('edgesForAction', () => {
       ctx,
     )
     const session = edges.find((e) => e.edge_type === 'belongs_to_session')
-    const consumes = edges.find((e) => e.edge_type === 'consumes')
+    const consumes = edges.find((e) => e.edge_type === 'pick_consumes')
     expect(session).toMatchObject({ source_type: 'pick_list_item', source_id: 'pli-1', target_type: 'pick_list', target_id: 'pl-1' })
     expect(consumes).toMatchObject({ source_type: 'pick_list_item', source_id: 'pli-1', target_type: 'variant', target_id: 'v-1' })
   })
