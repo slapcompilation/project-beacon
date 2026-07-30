@@ -431,15 +431,16 @@ export type {
 export {
   AGGREGATIONS, OP_LABELS, evaluateUserTool, evaluateUserToolAcross, validateUserTool,
   describeUserTool, allProperties, subjectProperties, subjectLabel, bindToolArgs,
+  groupObjectSet,
 } from './userTools/index'
 
 // Tier 1 — the object set: the selection an authored tool aggregates over, and
 // that an automation and a cohort will act on and name.
 export {
-  selectObjectSet, bindSetArgs, validateSetDefinition, describeSetFilters,
+  selectObjectSet, bindSetArgs, validateSetDefinition, validateObjectSet, describeSetFilters,
 } from './objectSets/index'
 export type {
-  SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
+  ObjectSetDef, SetDefinition, SetSubject, SetFilter, SetParamDef, SetArgs,
   SetRecord, RecordGroup, ObjectSetSelection, SetTypeBreakdown,
 } from './objectSets/index'
 
@@ -462,6 +463,7 @@ export type { AuthoredAgentOutput, AuthoredAgentRun, RunAuthoredAgentArgs } from
 export type {
   UserToolDef, UserToolResult, ToolFilter, ToolParamDef, ToolArgs, ToolRecord,
   ToolRecordGroup, ToolSubject, ToolTypeBreakdown, AggregationFn, AggregationDef,
+  SetBucket, GroupedSet,
 } from './userTools/index'
 
 export {

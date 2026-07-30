@@ -28,7 +28,14 @@ export interface Automation {
   name: string
   organizationId: string
   hotelId: string | null
-  when: AutomationCondition
+  /** The welded condition. Absent when the automation fires on a cohort. */
+  when: AutomationCondition | null
+  /** Fire on membership of this object set instead. Exactly one of `when` /
+   *  `objectSetId` is set — the set says WHICH records, the automation says what
+   *  to propose, and the set is reusable by a tool or a report. */
+  objectSetId: string | null
+  /** Display name of that set, for the reason line on every hit. */
+  objectSetName?: string
   effect: AutomationEffect
   gate: AutomationGate
   /** Author-set 0–1; feeds decideAutoExecution exactly like an agent proposal's. */
@@ -96,33 +103,61 @@ function compare(a: number, op: ComparisonOp, b: number): boolean {
   return a >= b // gte
 }
 
-/** Pure: the subjects an enabled automation fires on, given current readings. */
-export function evaluateAutomation(automation: Automation, readings: AutomationReading[]): AutomationHit[] {
+/** Cohort membership by object-set id. Resolved by the caller: selection needs
+ *  the records, and this module stays pure. */
+export type CohortMembers = ReadonlyMap<string, ReadonlySet<string>>
+
+/** Pure: the subjects an enabled automation fires on, given current readings.
+ *  A cohort-backed automation fires on the members the caller resolved; the
+ *  welded form compares one metric, as before. */
+export function evaluateAutomation(
+  automation: Automation,
+  readings: AutomationReading[],
+  members?: CohortMembers,
+): AutomationHit[] {
   if (!automation.enabled) return []
-  const label = AUTOMATION_METRICS[automation.when.subject].find((m) => m.key === automation.when.metric)?.label ?? automation.when.metric
+
+  const hit = (r: AutomationReading, reason: string): AutomationHit => ({
+    automationId: automation.id,
+    automationName: automation.name,
+    subjectId: r.subjectId,
+    subjectName: r.subjectName,
+    effect: automation.effect,
+    gate: automation.gate,
+    confidence: automation.confidence,
+    reason,
+  })
+
+  if (automation.objectSetId) {
+    // No membership resolved is "unknown", not "empty" — firing on nothing would
+    // look like a quiet, healthy run rather than a missing input.
+    const ids = members?.get(automation.objectSetId)
+    if (!ids) return []
+    const label = automation.objectSetName ?? 'cohort'
+    return readings.filter((r) => ids.has(r.subjectId)).map((r) => hit(r, `in cohort "${label}"`))
+  }
+
+  const when = automation.when
+  if (!when) return []
+  const label = AUTOMATION_METRICS[when.subject].find((m) => m.key === when.metric)?.label ?? when.metric
   const hits: AutomationHit[] = []
   for (const r of readings) {
-    if (r.subject !== automation.when.subject) continue
-    const actual = r.metrics[automation.when.metric]
+    if (r.subject !== when.subject) continue
+    const actual = r.metrics[when.metric]
     if (actual === undefined) continue
-    if (compare(actual, automation.when.op, automation.when.value)) {
-      hits.push({
-        automationId: automation.id,
-        automationName: automation.name,
-        subjectId: r.subjectId,
-        subjectName: r.subjectName,
-        effect: automation.effect,
-        gate: automation.gate,
-        confidence: automation.confidence,
-        reason: `${label} ${COMPARISON_SYMBOL[automation.when.op]} ${String(automation.when.value)} (actual ${String(actual)})`,
-      })
+    if (compare(actual, when.op, when.value)) {
+      hits.push(hit(r, `${label} ${COMPARISON_SYMBOL[when.op]} ${String(when.value)} (actual ${String(actual)})`))
     }
   }
   return hits
 }
 
-export function evaluateAutomations(automations: Automation[], readings: AutomationReading[]): AutomationHit[] {
-  return automations.flatMap((a) => evaluateAutomation(a, readings))
+export function evaluateAutomations(
+  automations: Automation[],
+  readings: AutomationReading[],
+  members?: CohortMembers,
+): AutomationHit[] {
+  return automations.flatMap((a) => evaluateAutomation(a, readings, members))
 }
 
 // ── Firing: turn hits into proposals the cycle routes through the gate ────────
@@ -164,10 +199,11 @@ export function automationsToProposals(
   automations: Automation[],
   readings: AutomationReading[],
   ctx: AutomationContext,
+  members?: CohortMembers,
 ): AutomationProposal[] {
   const byId = new Map(readings.map((r) => [r.subjectId, r]))
   const out: AutomationProposal[] = []
-  for (const hit of evaluateAutomations(automations, readings)) {
+  for (const hit of evaluateAutomations(automations, readings, members)) {
     const r = byId.get(hit.subjectId)
     if (!r) continue
     const action = hitToAction(hit, r, ctx)
@@ -188,30 +224,42 @@ export function automationsToProposals(
 
 // ── Authoring helpers ────────────────────────────────────────────────────────
 
-export type AutomationDraft = Pick<Automation, 'name' | 'when' | 'effect' | 'gate' | 'confidence'>
+export type AutomationDraft = Pick<Automation, 'name' | 'when' | 'objectSetId' | 'effect' | 'gate' | 'confidence'>
 
 export interface AutomationValidation { ok: boolean; errors: string[] }
 
 export function validateAutomation(draft: AutomationDraft): AutomationValidation {
   const errors: string[] = []
   if (!draft.name.trim()) errors.push('Name is required.')
-  const metrics = AUTOMATION_METRICS[draft.when.subject] as MetricDef[] | undefined
-  if (!metrics) errors.push(`Unknown subject "${draft.when.subject}".`)
-  else if (!metrics.some((m) => m.key === draft.when.metric)) errors.push(`Metric "${draft.when.metric}" is not valid for ${draft.when.subject}.`)
-  if (!Number.isFinite(draft.when.value)) errors.push('Condition value must be a number.')
+
+  // Exactly one condition form. Both would be two conditions with no defined
+  // precedence; neither is a rule that fires on everything.
+  if (draft.objectSetId && draft.when) errors.push('An automation fires on a cohort or on a metric condition, not both.')
+  if (!draft.objectSetId && !draft.when) errors.push('Pick a cohort, or a metric condition.')
+
   const effectDef = AUTOMATION_EFFECTS.find((e) => e.effect === draft.effect)
   if (!effectDef) errors.push(`Unknown effect "${draft.effect}".`)
-  else if (!effectDef.subjects.includes(draft.when.subject)) errors.push(`"${effectDef.label}" doesn't apply to a ${draft.when.subject}.`)
+
+  if (draft.when) {
+    const metrics = AUTOMATION_METRICS[draft.when.subject] as MetricDef[] | undefined
+    if (!metrics) errors.push(`Unknown subject "${draft.when.subject}".`)
+    else if (!metrics.some((m) => m.key === draft.when?.metric)) errors.push(`Metric "${draft.when.metric}" is not valid for ${draft.when.subject}.`)
+    if (!Number.isFinite(draft.when.value)) errors.push('Condition value must be a number.')
+    if (effectDef && !effectDef.subjects.includes(draft.when.subject)) errors.push(`"${effectDef.label}" doesn't apply to a ${draft.when.subject}.`)
+  }
   if (draft.confidence < 0 || draft.confidence > 1) errors.push('Confidence must be between 0 and 1.')
   if (draft.gate === 'auto' && draft.confidence < 0.6) errors.push('Auto-execute needs confidence ≥ 0.6 — below that the gate always queues it.')
   return { ok: errors.length === 0, errors }
 }
 
 /** The plain-language sentence the composer renders as you build the rule. */
-export function describeAutomation(a: Pick<Automation, 'when' | 'effect' | 'gate'>): string {
-  const m = AUTOMATION_METRICS[a.when.subject].find((x) => x.key === a.when.metric)
+export function describeAutomation(a: Pick<Automation, 'when' | 'objectSetId' | 'objectSetName' | 'effect' | 'gate'>): string {
   const effect = AUTOMATION_EFFECTS.find((e) => e.effect === a.effect)
-  const pct = m?.unit === '%' ? '%' : ''
   const tail = a.gate === 'auto' ? 'auto-execute it when confident, otherwise queue for review' : 'queue it for review'
-  return `When a ${a.when.subject}'s ${m?.label ?? a.when.metric} ${COMPARISON_LABELS[a.when.op]} ${String(a.when.value)}${pct}, propose to ${(effect?.label ?? a.effect).toLowerCase()} — then ${tail}.`
+  const then = `propose to ${(effect?.label ?? a.effect).toLowerCase()} — then ${tail}.`
+  if (a.objectSetId) return `When a record joins the "${a.objectSetName ?? 'cohort'}" cohort, ${then}`
+  if (!a.when) return `When the condition holds, ${then}`
+  const m = AUTOMATION_METRICS[a.when.subject].find((x) => x.key === a.when?.metric)
+  const pct = m?.unit === '%' ? '%' : ''
+  return `When a ${a.when.subject}'s ${m?.label ?? a.when.metric} ${COMPARISON_LABELS[a.when.op]} ${String(a.when.value)}${pct}, ${then}`
 }

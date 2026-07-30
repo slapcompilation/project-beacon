@@ -218,3 +218,63 @@ export function describeUserTool(def: Pick<UserToolDef, 'filters' | 'aggregation
   const where = describeSetFilters(def, subject)
   return where ? `${head} where ${where}` : head
 }
+
+// ── Group-by — the same aggregation, bucketed ────────────────────────────────
+// Quiver's normal output is a breakdown, not a single figure. A cohort of 40
+// expiring batches is a number; the same cohort split by supplier is a decision.
+// Lives here rather than in objectSets because it IS the tool's aggregation,
+// applied per bucket.
+
+export interface SetBucket {
+  /** Raw property value, as the record carried it. */
+  key: string
+  label: string
+  matched: number
+  value: number
+  confidence: number
+}
+
+export interface GroupedSet {
+  property: string
+  buckets: SetBucket[]
+  /** Distinct values beyond the cap, folded into one bucket so a partial
+   *  breakdown never reads as the whole one. */
+  otherDistinct: number
+}
+
+/** Buckets a selection by one property. Ordered by the aggregate, descending —
+ *  a breakdown is read for its top, and an alphabetical one buries it. */
+export function groupObjectSet(
+  records: ReadonlyArray<SetRecord>,
+  property: string,
+  aggregation: UserToolDef['aggregation'],
+  maxBuckets = 12,
+): GroupedSet {
+  const byKey = new Map<string, SetRecord[]>()
+  for (const r of records) {
+    const raw = r[property]
+    const key = raw === undefined || raw === null || raw === '' ? '—' : String(raw)
+    const list = byKey.get(key)
+    if (list) list.push(r)
+    else byKey.set(key, [r])
+  }
+
+  const all = [...byKey].map(([key, rows]) => {
+    const agg = aggregate(aggregation, rows, rows.length)
+    return { key, label: key === '—' ? 'Not set' : key, matched: rows.length, ...agg }
+  })
+  all.sort((a, b) => b.value - a.value || a.label.localeCompare(b.label))
+
+  const buckets = all.slice(0, maxBuckets)
+  const rest = all.slice(maxBuckets)
+  if (rest.length > 0) {
+    const rows = rest.flatMap((b) => byKey.get(b.key) ?? [])
+    buckets.push({
+      key: '__other__',
+      label: `${String(rest.length)} more`,
+      matched: rows.length,
+      ...aggregate(aggregation, rows, rows.length),
+    })
+  }
+  return { property, buckets, otherDistinct: rest.length }
+}

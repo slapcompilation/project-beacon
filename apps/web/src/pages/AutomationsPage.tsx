@@ -20,6 +20,7 @@ import {
   usePromoteAutomation, useDeleteAutomation,
 } from '@/features/automations/hooks'
 import { rowToAutomation } from '@/features/automations/api'
+import { useObjectSets, useCohortMembers } from '@/features/objectSets/hooks'
 
 const OPS: ComparisonOp[] = ['lt', 'lte', 'gt', 'gte']
 const STAGE_INTENT: Record<AutomationStage, Intent> = { sandbox: Intent.NONE, staging: Intent.WARNING, production: Intent.SUCCESS }
@@ -43,8 +44,16 @@ export default function AutomationsPage() {
   const [effect, setEffect] = useState<AutomationEffect>('REQUEST_RESTOCK')
   const [gate, setGate] = useState<AutomationGate>('review')
   const [confidence, setConfidence] = useState(0.7)
+  // '' = the welded metric condition; otherwise the cohort the rule fires on.
+  const [objectSetId, setObjectSetId] = useState('')
 
-  const draft = { name, when: { subject: 'variant' as const, metric, op, value }, effect, gate, confidence }
+  const cohorts = useObjectSets()
+  const membersQ = useCohortMembers(objectSetId || null)
+  const members = membersQ.data
+  const cohortRows = (cohorts.data ?? []).filter((c) => c.subject_type_id !== null)
+  const when = objectSetId === '' ? { subject: 'variant' as const, metric, op, value } : null
+  const draft = { name, when, objectSetId: objectSetId || null,
+    objectSetName: cohortRows.find((c) => c.id === objectSetId)?.name, effect, gate, confidence }
   const validation = validateAutomation(draft)
   const sentence = describeAutomation(draft)
 
@@ -52,11 +61,11 @@ export default function AutomationsPage() {
     const readings = readingsQ.data ?? []
     const probe: Automation = {
       id: 'preview', name: name || 'preview', organizationId: '', hotelId: null,
-      when: { subject: 'variant', metric, op, value }, effect, gate, confidence,
-      enabled: true, stage: 'sandbox', version: 1,
+      when, objectSetId: objectSetId || null, objectSetName: draft.objectSetName,
+      effect, gate, confidence, enabled: true, stage: 'sandbox', version: 1,
     }
-    return { total: readings.length, hits: evaluateAutomation(probe, readings) }
-  }, [readingsQ.data, name, metric, op, value, effect, gate, confidence])
+    return { total: readings.length, hits: evaluateAutomation(probe, readings, members) }
+  }, [readingsQ.data, name, metric, op, value, effect, gate, confidence, objectSetId, members])   // eslint-disable-line react-hooks/exhaustive-deps
 
   if (role !== 'owner' && role !== 'admin') {
     return <NonIdealState icon="shield" title="Automations authoring is available to admin and owner roles" />
@@ -65,7 +74,9 @@ export default function AutomationsPage() {
   const submit = () => {
     if (!validation.ok) return
     create.mutate(
-      { hotelId, name: name.trim(), subject: 'variant', when: { metric, op, value }, effect, gate, confidence, stage: 'sandbox' },
+      { hotelId, name: name.trim(), subject: 'variant',
+        when: objectSetId === '' ? { metric, op, value } : null,
+        objectSetId: objectSetId || null, effect, gate, confidence, stage: 'sandbox' },
       { onSuccess: () => { setName(''); setValue(0) } },
     )
   }
@@ -88,16 +99,36 @@ export default function AutomationsPage() {
 
           <div className="space-y-2 text-sm">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-muted-foreground">When a variant's</span>
-              <HTMLSelect value={metric} onChange={(e) => { setMetric(e.currentTarget.value) }}>
-                {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+              <span className="text-muted-foreground">Fires on</span>
+              <HTMLSelect value={objectSetId} onChange={(e) => { setObjectSetId(e.currentTarget.value) }}>
+                <option value="">a stock condition</option>
+                {cohortRows.length > 0 && (
+                  <optgroup label="Cohorts — a named group, reusable by tools and reports">
+                    {cohortRows.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </optgroup>
+                )}
               </HTMLSelect>
-              <HTMLSelect value={op} onChange={(e) => { setOp(e.currentTarget.value as ComparisonOp) }}>
-                {OPS.map((o) => <option key={o} value={o}>{COMPARISON_LABELS[o]}</option>)}
-              </HTMLSelect>
-              <NumericInput value={value} onValueChange={(v) => { setValue(Number.isFinite(v) ? v : 0) }} style={{ width: 90 }} buttonPosition="none" />
-              <span className="text-muted-foreground">{metrics.find((m) => m.key === metric)?.unit === '%' ? '%' : 'units'}</span>
             </div>
+
+            {objectSetId === '' ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-muted-foreground">When a variant's</span>
+                <HTMLSelect value={metric} onChange={(e) => { setMetric(e.currentTarget.value) }}>
+                  {metrics.map((m) => <option key={m.key} value={m.key}>{m.label}</option>)}
+                </HTMLSelect>
+                <HTMLSelect value={op} onChange={(e) => { setOp(e.currentTarget.value as ComparisonOp) }}>
+                  {OPS.map((o) => <option key={o} value={o}>{COMPARISON_LABELS[o]}</option>)}
+                </HTMLSelect>
+                <NumericInput value={value} onValueChange={(v) => { setValue(Number.isFinite(v) ? v : 0) }} style={{ width: 90 }} buttonPosition="none" />
+                <span className="text-muted-foreground">{metrics.find((m) => m.key === metric)?.unit === '%' ? '%' : 'units'}</span>
+              </div>
+            ) : (
+              <div className="text-[11px] text-muted-foreground">
+                {membersQ.isLoading
+                  ? 'Resolving members…'
+                  : `${String(members?.get(objectSetId)?.size ?? 0)} variants are in this cohort right now. Edit the cohort to change who it fires on.`}
+              </div>
+            )}
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground">then propose to</span>

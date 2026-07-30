@@ -230,6 +230,44 @@ export async function fetchBuiltinRecord(
   }
 }
 
+/** How many rows a set will read from one built-in table. Sets are answered in
+ *  the browser, so this is the honest ceiling rather than a silent one — the
+ *  caller is told when it bites instead of reporting a confident partial count. */
+export const BUILTIN_SET_LIMIT = 1000
+
+/** A built-in type's records, shaped like object_records rows so a set reads
+ *  authored and code-owned types identically. Registration (migration 223) has
+ *  named the backing table since G1; nothing consumed it in bulk until sets did.
+ *
+ *  Under the caller's JWT, so each table's own RLS decides what is visible. */
+export async function fetchBuiltinRecords(
+  type: ObjectTypeDef,
+): Promise<{ rows: ObjectRecordRow[]; truncated: boolean }> {
+  if (!type.sourceTable) return { rows: [], truncated: false }
+  const { data, error } = await supabase
+    .from(type.sourceTable).select('*').limit(BUILTIN_SET_LIMIT) as unknown as {
+      data: Record<string, unknown>[] | null
+      error: { message: string } | null
+    }
+  if (error) throw new Error(error.message)
+
+  const raw = data ?? []
+  const titleKey = type.titleKey ?? type.properties.find((p) => p.type === 'text')?.key
+  const rows = raw.map((row) => {
+    const id = typeof row.id === 'string' ? row.id : ''
+    const t = titleKey ? row[titleKey] : undefined
+    return {
+      id,
+      object_type_id: type.id,
+      hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
+      title: typeof t === 'string' && t !== '' ? t : `${type.label} ${id.slice(0, 8)}`,
+      data: row,
+      created_at: typeof row.created_at === 'string' ? row.created_at : '',
+    }
+  })
+  return { rows, truncated: raw.length === BUILTIN_SET_LIMIT }
+}
+
 export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
   const { data, error } = await supabase
     .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')

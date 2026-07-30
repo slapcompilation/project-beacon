@@ -15,9 +15,11 @@ export interface AutomationRow {
   hotel_id: string | null
   name: string
   subject: AutomationSubject
-  when_metric: string
-  when_op: ComparisonOp
-  when_value: number
+  /** NULL when the automation fires on a cohort instead (migration 249). */
+  when_metric: string | null
+  when_op: ComparisonOp | null
+  when_value: number | null
+  object_set_id: string | null
   effect: AutomationEffect
   gate: AutomationGate
   confidence: number
@@ -29,10 +31,14 @@ export interface AutomationRow {
   updated_at: string
 }
 
-export function rowToAutomation(r: AutomationRow): Automation {
+export function rowToAutomation(r: AutomationRow, setNames?: ReadonlyMap<string, string>): Automation {
   return {
     id: r.id, name: r.name, organizationId: r.organization_id, hotelId: r.hotel_id,
-    when: { subject: r.subject, metric: r.when_metric, op: r.when_op, value: r.when_value },
+    when: r.when_metric !== null && r.when_op !== null && r.when_value !== null
+      ? { subject: r.subject, metric: r.when_metric, op: r.when_op, value: r.when_value }
+      : null,
+    objectSetId: r.object_set_id,
+    objectSetName: r.object_set_id ? setNames?.get(r.object_set_id) : undefined,
     effect: r.effect, gate: r.gate, confidence: r.confidence,
     enabled: r.enabled, stage: r.stage, version: r.version,
   }
@@ -48,7 +54,9 @@ export interface CreateAutomationInput {
   hotelId: string | null
   name: string
   subject: AutomationSubject
-  when: { metric: string; op: ComparisonOp; value: number }
+  /** Exactly one of these. The DB enforces it too (migration 249). */
+  when: { metric: string; op: ComparisonOp; value: number } | null
+  objectSetId: string | null
   effect: AutomationEffect
   gate: AutomationGate
   confidence: number
@@ -62,9 +70,10 @@ export async function createAutomation(i: CreateAutomationInput): Promise<Automa
       hotel_id:    i.hotelId,
       name:        i.name,
       subject:     i.subject,
-      when_metric: i.when.metric,
-      when_op:     i.when.op,
-      when_value:  i.when.value,
+      when_metric: i.when?.metric  ?? null,
+      when_op:     i.when?.op      ?? null,
+      when_value:  i.when?.value   ?? null,
+      object_set_id: i.objectSetId,
       effect:      i.effect,
       gate:        i.gate,
       confidence:  i.confidence,

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { Button, Card, Icon, Intent, NonIdealState, Tag, Tooltip } from '@blueprintjs/core'
 import { bindToolArgs, evaluateUserToolAcross, describeUserTool, type ToolArgs } from '@beacon/reality-graph'
 import { useUserTools, useDeleteUserTool } from './hooks'
-import { useToolSubject } from './subject'
+import { useSetSubject } from '@/features/objectSets/subject'
 import Breakdown from './Breakdown'
 import { ArgInput } from './ToolComposer'
 import type { UserToolRow } from './api'
@@ -38,7 +38,7 @@ export default function AuthoredTools({ onCompose }: { onCompose: () => void }) 
 
 function AuthoredToolCard({ tool }: { tool: UserToolRow }) {
   const del = useDeleteUserTool()
-  const { subject, targets, groups } = useToolSubject({
+  const { subject, targets, groups } = useSetSubject({
     subjectTypeId: tool.subject_type_id, subjectInterfaceId: tool.subject_interface_id,
   })
 

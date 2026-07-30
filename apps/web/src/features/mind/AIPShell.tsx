@@ -28,6 +28,7 @@ const FlywheelPage              = lazy(() => import('@/pages/FlywheelPage'))
 const StudioLanding             = lazy(() => import('@/features/mind/StudioLanding'))
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
+const Cohorts                   = lazy(() => import('@/features/objectSets/Cohorts'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
 const ActionChainsPage          = lazy(() => import('@/pages/ActionChainsPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
@@ -42,7 +43,7 @@ const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 export type AipTab =
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
   | 'agents' | 'system-map' | 'ontology' | 'object-types' | 'monitors' | 'automations'
-  | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints'
+  | 'documents' | 'entity-links' | 'answers' | 'principles' | 'constraints' | 'cohorts'
   | 'tools' | 'objectives' | 'forecast-lab' | 'calibration' | 'flywheel' | 'scenarios' | 'action-chains' | 'copilot' | 'policy'
   | 'studio'
 
@@ -69,6 +70,7 @@ const TABS: { id: AipTab; label: string; icon: IconName; section: Section; desc?
   { id: 'monitors',     label: 'Monitors',          icon: 'feed',                section: 'Studio', desc: 'Tunable triggers that fire proposals into Decisions' },
   { id: 'automations',  label: 'Automations',       icon: 'flows',               section: 'Studio', desc: 'Create a monitor without code — when → then → gate' },
 
+  { id: 'cohorts',      label: 'Cohorts',           icon: 'group-objects',       section: 'Studio', desc: 'Named groups of records other things point at' },
   { id: 'documents',    label: 'Documents',         icon: 'document',            section: 'Studio', desc: 'Ingested sources with page provenance' },
   { id: 'entity-links', label: 'Entity Links',      icon: 'search-template',     section: 'Studio', desc: 'Review suggested links to entities' },
   { id: 'answers',      label: 'Approved Answers',  icon: 'bookmark',            section: 'Studio', desc: 'Curated Q&A served before the LLM' },
@@ -103,7 +105,7 @@ export const DESTINATIONS: StudioDestination[] = [
     panels: ['object-types', 'ontology', 'system-map', 'scenarios'] },
   { id: 'explorer', label: 'Object Explorer', icon: 'search-template',
     desc: 'The records themselves — documents, principles, constraints, answers',
-    panels: ['documents', 'entity-links', 'answers', 'principles', 'constraints'] },
+    panels: ['cohorts', 'documents', 'entity-links', 'answers', 'principles', 'constraints'] },
   { id: 'automate', label: 'Automate', icon: 'flows',
     desc: 'One entry point: when the ontology changes, propose an Action',
     panels: ['automations', 'monitors', 'action-chains'] },
@@ -267,6 +269,7 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'ontology':     return <OntologyPage />
     case 'object-types': return <ObjectTypesPage />
     case 'documents':    return <DocumentsPage />
+    case 'cohorts': return <Cohorts />
     case 'entity-links': return <EntityLinkSuggestionsPage />
     case 'answers':      return <ApprovedAnswersPage />
     case 'principles':   return <SectionFrame><PrinciplesSection /></SectionFrame>
