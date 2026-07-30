@@ -167,3 +167,55 @@ metadata never is.**
 Foundry's "every link type should answer a clear domain question" also disposes of
 `belongs_to_hotel`, `belongs_to_org` and `created_by`: tenancy and authorship are
 properties, not domain relationships.
+
+
+---
+
+# Addendum 2 — the prerequisite Tier 2.2 hit
+
+Registering "one link type per relationship" needs **both endpoints to be
+registered object types**. Measured 2026-07-30, only 8 of 17 relationships
+qualify:
+
+**Registerable now:** `batch_of`, `consumes`, `influenced_by_principle`,
+`linked_to_po`, `log_fulfills_request`, `restocks`, `reverts`, `sourced_from`
+
+**Blocked — the endpoint has no object type:**
+
+| relationship | missing endpoint |
+|---|---|
+| `causes` pos_sale→stock_log | `pos_sale` |
+| `influenced_by_occupancy` stock_log→occupancy_log | `occupancy_log` |
+| `mentions` chunk→entity | `chunk`, `entity` |
+| `cited_in` document→chunk | `chunk` |
+| `fulfills` restock_receive→restock_request | `restock_receive` |
+| `invoiced_by` purchase_order→po_invoice | `po_invoice` |
+| `triggered_alert` stock_log→alert | `alert` |
+| `derived_from` proposal→forecast_observation | `forecast_observation` |
+| `approved_by` restock_request→user | `user` |
+
+So **Tier 2.2 has a prerequisite**: register those nine as built-in object types
+(the G-series pattern — `source_table` plus derived properties, migrations
+223/227). Two of them, `chunk` and `entity`, are the document-pipeline endpoints,
+and three (`pos_sale`, `occupancy_log`, `forecast_observation`) are the
+highest-volume relationships we have.
+
+Registering half the link types and leaving the rest as raw edges would recreate
+the exact split this tier exists to remove, so the order is: **object types
+first, then link types, then `searchAround`.**
+
+## Traversal semantics — resolved
+
+`workshop/concepts-variables` closes the question this doc left open:
+
+> Object set: … Initialized from **either an entire object type or another object
+> set variable**, then may be optionally filtered … or **optionally pivoted to
+> linked objects via a Search Around**.
+
+Object sets pivot "through shared property types or **object-backed link types**",
+so an object-backed link is traversed as a **single hop**, like any other link —
+not as two hops through the intermediary. It also confirms the chain model
+(set → filter → pivot → set) that `api-object-sets` describes.
+
+New from that page, not yet investigated: pivoting **through shared property
+types**, with no link type at all.

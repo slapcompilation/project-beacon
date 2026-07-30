@@ -78,7 +78,9 @@ https://palantir.com/docs/foundry/administration/internal-dataset-export/
 https://palantir.com/docs/foundry/administration/network-egress-observability/
 https://palantir.com/docs/foundry/administration/overview/
 https://palantir.com/docs/foundry/administration/platform-communications/
+https://palantir.com/docs/foundry/administration/secure-tunnels/
 https://palantir.com/docs/foundry/agent-studio/agents-as-functions/
+https://palantir.com/docs/foundry/agent-studio/getting-started/
 https://palantir.com/docs/foundry/agent-studio/overview/
 https://palantir.com/docs/foundry/agent-studio/tools/
 https://palantir.com/docs/foundry/agents/agent-templates/
@@ -118,6 +120,7 @@ https://palantir.com/docs/foundry/aip-observability/performance-monitoring-and-o
 https://palantir.com/docs/foundry/aip-observability/run-history/
 https://palantir.com/docs/foundry/aip-observability/service-logs-and-debugging/
 https://palantir.com/docs/foundry/aip-observability/trace-view/
+https://palantir.com/docs/foundry/aip/
 https://palantir.com/docs/foundry/aip/aip-compute-usage/
 https://palantir.com/docs/foundry/aip/aip-features/
 https://palantir.com/docs/foundry/aip/aip-observability/
@@ -2486,6 +2489,7 @@ https://palantir.com/docs/foundry/functions/api-objects-links/
 https://palantir.com/docs/foundry/functions/api-ontology-edits/
 https://palantir.com/docs/foundry/functions/attachments/
 https://palantir.com/docs/foundry/functions/branching-functions/
+https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/
 https://palantir.com/docs/foundry/functions/chunking/
 https://palantir.com/docs/foundry/functions/configure-notifications/
 https://palantir.com/docs/foundry/functions/create-custom-aggregation/
@@ -4268,6 +4272,7 @@ https://palantir.com/docs/foundry/security/code-scanning-overview/
 https://palantir.com/docs/foundry/security/cover-pages/
 https://palantir.com/docs/foundry/security/cross-organization-collaboration/
 https://palantir.com/docs/foundry/security/data-protection-and-governance/
+https://palantir.com/docs/foundry/security/disaster-recovery/
 https://palantir.com/docs/foundry/security/download-controls/
 https://palantir.com/docs/foundry/security/emulation-mode/
 https://palantir.com/docs/foundry/security/enable-code-scanning/
