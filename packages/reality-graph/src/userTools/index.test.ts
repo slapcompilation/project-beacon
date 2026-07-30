@@ -123,7 +123,7 @@ describe('validateUserTool', () => {
 
   it('refuses a tool claiming both a type and an interface', () => {
     expect(validateUserTool({ ...base, subjectInterfaceId: 'i1', filters: [], aggregation: { fn: 'count' } }, on))
-      .toContain('A tool asks about one object type or one interface, not both')
+      .toContain('Pick one object type or one interface, not both')
   })
 })
 
