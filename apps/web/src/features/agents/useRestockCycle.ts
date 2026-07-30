@@ -29,6 +29,7 @@ import {
   type AutomationProposal,
 } from '@beacon/reality-graph'
 import { fetchAutomations, rowToAutomation } from '@/features/automations/api'
+import { resolveCohortMembers } from '@/features/objectSets/api'
 import { runAuthoredAgents } from '@/features/userAgents/runInCycle'
 import { buildExpiryProposals } from '@/features/monitors/expiryProposals'
 import { fetchResolvedSamples } from '@/features/calibration/api'
@@ -64,36 +65,42 @@ export function useRestockCycle() {
       // At-risk = at or below par. Deterministic scan over the loaded catalogue.
       // Build an AutomationReading per scanned variant so operator-authored
       // automations evaluate against the same live stock the agent sees.
+      // Readings cover EVERY variant; the agent scan stays at-risk-only. They used
+      // to share the at-or-below-par filter, so an automation on "stock is above
+      // X" — or any cohort of healthy stock — could never fire and looked merely
+      // quiet.
       const variants: CycleVariant[] = []
       const readings: AutomationReading[] = []
       for (const p of products) {
         for (const v of p.product_variants) {
-          if (v.low_stock_threshold > 0 && v.current_stock <= v.low_stock_threshold) {
-            const name = v.name !== 'Standard' ? `${p.name} — ${v.name}` : p.name
-            variants.push({ id: v.id, name })
-            const par = v.low_stock_threshold
-            const stock = v.current_stock
-            readings.push({
-              subject: 'variant', subjectId: v.id, subjectName: name, hotelId,
-              metrics: {
-                current_stock: stock,
-                par_level: par,
-                units_below_par: Math.max(0, par - stock),
-                stock_vs_par_pct: par > 0 ? Math.round((stock / par) * 100) : (stock > 0 ? 100 : 0),
-              },
-            })
-          }
+          const name = v.name !== 'Standard' ? `${p.name} — ${v.name}` : p.name
+          const par = v.low_stock_threshold
+          const stock = v.current_stock
+          if (par > 0 && stock <= par) variants.push({ id: v.id, name })
+          readings.push({
+            subject: 'variant', subjectId: v.id, subjectName: name, hotelId,
+            metrics: {
+              current_stock: stock,
+              par_level: par,
+              units_below_par: Math.max(0, par - stock),
+              stock_vs_par_pct: par > 0 ? Math.round((stock / par) * 100) : (stock > 0 ? 100 : 0),
+            },
+          })
         }
       }
 
       // Operator-authored automations (production stage, in scope) → proposals,
       // keyed by variant. The cycle routes them through the same gate as the agent.
       const automationRows = await fetchAutomations().catch(() => [])
-      const prodAutomations = automationRows
+      const prodRows = automationRows
         .filter((r) => r.enabled && r.stage === 'production' && (r.hotel_id === hotelId || r.hotel_id === null))
-        .map(rowToAutomation)
+      // Cohort membership is resolved once per cycle, for the sets in play.
+      const members = await resolveCohortMembers(
+        [...new Set(prodRows.map((r) => r.object_set_id).filter((id): id is string => !!id))],
+      ).catch(() => new Map<string, Set<string>>())
+      const prodAutomations = prodRows.map((r) => rowToAutomation(r))
       const autoByVariant = new Map<string, AutomationProposal['proposal'][]>()
-      for (const ap of automationsToProposals(prodAutomations, readings, { requestorId: userId })) {
+      for (const ap of automationsToProposals(prodAutomations, readings, { requestorId: userId }, members)) {
         const list = autoByVariant.get(ap.subjectId) ?? []
         list.push(ap.proposal)
         autoByVariant.set(ap.subjectId, list)

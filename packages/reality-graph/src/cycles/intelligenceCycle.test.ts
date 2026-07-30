@@ -87,7 +87,7 @@ describe('runIntelligenceCycle', () => {
   it('fires an operator-authored automation through the same gate, tagged as automation', async () => {
     const autoProposals = automationsToProposals(
       [{ id: 'auto1', name: 'Low → restock', organizationId: 'o', hotelId: HOTEL,
-         when: { subject: 'variant', metric: 'units_below_par', op: 'gt', value: 0 },
+         when: { subject: 'variant', metric: 'units_below_par', op: 'gt', value: 0 }, objectSetId: null,
          effect: 'REQUEST_RESTOCK', gate: 'auto', confidence: 0.95, enabled: true, stage: 'production', version: 1 }],
       [{ subject: 'variant', subjectId: VAR_A.id, subjectName: 'Tomatoes', hotelId: HOTEL,
          metrics: { current_stock: 2, par_level: 12, units_below_par: 10, stock_vs_par_pct: 17 } }],

@@ -16,6 +16,7 @@ const base: Automation = {
   organizationId: 'org1',
   hotelId: 'h1',
   when: { subject: 'variant', metric: 'units_below_par', op: 'gt', value: 0 },
+  objectSetId: null,
   effect: 'REQUEST_RESTOCK',
   gate: 'review',
   confidence: 0.7,
@@ -71,7 +72,7 @@ describe('evaluateAutomations', () => {
 })
 
 describe('validateAutomation', () => {
-  const draft: AutomationDraft = { name: 'x', when: base.when, effect: 'REQUEST_RESTOCK', gate: 'review', confidence: 0.7 }
+  const draft: AutomationDraft = { objectSetId: null, name: 'x', when: base.when, effect: 'REQUEST_RESTOCK', gate: 'review', confidence: 0.7 }
   it('accepts a well-formed draft', () => {
     expect(validateAutomation(draft).ok).toBe(true)
   })
@@ -79,7 +80,7 @@ describe('validateAutomation', () => {
     expect(validateAutomation({ ...draft, name: '  ' }).ok).toBe(false)
   })
   it('rejects a metric outside the registry', () => {
-    const r = validateAutomation({ ...draft, when: { ...draft.when, metric: 'made_up' } })
+    const r = validateAutomation({ ...draft, when: { subject: 'variant', op: 'gt', value: 0, metric: 'made_up' } })
     expect(r.ok).toBe(false)
     expect(r.errors.join(' ')).toContain('made_up')
   })
@@ -124,12 +125,72 @@ describe('automationsToProposals', () => {
 
 describe('describeAutomation', () => {
   it('renders a plain-language sentence with the % unit', () => {
-    const s = describeAutomation({ when: { subject: 'variant', metric: 'stock_vs_par_pct', op: 'lt', value: 25 }, effect: 'REQUEST_RESTOCK', gate: 'review' })
+    const s = describeAutomation({ objectSetId: null, when: { subject: 'variant', metric: 'stock_vs_par_pct', op: 'lt', value: 25 }, effect: 'REQUEST_RESTOCK', gate: 'review' })
     expect(s).toContain('Stock vs PAR is below 25%')
     expect(s).toContain('queue it for review')
   })
   it('describes the auto gate', () => {
-    const s = describeAutomation({ when: base.when, effect: 'TRANSFER_STOCK', gate: 'auto' })
+    const s = describeAutomation({ objectSetId: null, when: base.when, effect: 'TRANSFER_STOCK', gate: 'auto' })
     expect(s).toContain('auto-execute it when confident')
+  })
+})
+
+describe('cohort-backed automations', () => {
+  const cohort: Automation = { ...base, when: null, objectSetId: 's1', objectSetName: 'Below par' }
+  const cohortDraft: AutomationDraft = {
+    name: 'Below par → restock', when: null, objectSetId: 's1',
+    effect: 'REQUEST_RESTOCK', gate: 'review', confidence: 0.7,
+  }
+
+  it('fires on the members the caller resolved, not on a metric', () => {
+    const members = new Map([['s1', new Set(['v2'])]])
+    const hits = evaluateAutomation(cohort, readings, members)
+    expect(hits.map((h) => h.subjectName)).toEqual(['Lime'])
+    expect(hits[0].reason).toBe('in cohort "Below par"')
+  })
+
+  it('fires on NOTHING when membership was not resolved — unknown is not empty', () => {
+    // Silently firing on zero would read as a quiet healthy run rather than a
+    // missing input, which is how a dead rule hides.
+    expect(evaluateAutomation(cohort, readings)).toEqual([])
+    expect(evaluateAutomation(cohort, readings, new Map())).toEqual([])
+  })
+
+  it('ignores members that have no reading', () => {
+    const members = new Map([['s1', new Set(['v1', 'ghost'])]])
+    expect(evaluateAutomation(cohort, readings, members).map((h) => h.subjectId)).toEqual(['v1'])
+  })
+
+  it('builds the same proposal a metric automation would', () => {
+    const members = new Map([['s1', new Set(['v1'])]])
+    const out = automationsToProposals(
+      [cohort],
+      readings.map((r) => ({ ...r, hotelId: 'h1' })),
+      { requestorId: 'u1' },
+      members,
+    )
+    expect(out).toHaveLength(1)
+    expect(out[0].proposal.action.type).toBe('REQUEST_RESTOCK')
+    expect(out[0].proposal.reasoning).toContain('Below par')
+  })
+
+  it('rejects a draft carrying both a cohort and a metric condition', () => {
+    const r = validateAutomation({ ...cohortDraft, when: { subject: 'variant', metric: 'current_stock', op: 'lt', value: 5 } })
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('not both')
+  })
+
+  it('rejects a draft carrying neither', () => {
+    const r = validateAutomation({ ...cohortDraft, objectSetId: null })
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('Pick a cohort')
+  })
+
+  it('accepts a well-formed cohort draft', () => {
+    expect(validateAutomation(cohortDraft).ok).toBe(true)
+  })
+
+  it('reads as a sentence naming the cohort', () => {
+    expect(describeAutomation(cohort)).toContain('"Below par" cohort')
   })
 })
