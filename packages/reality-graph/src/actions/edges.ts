@@ -105,7 +105,7 @@ export function edgesForAction(
     case 'LOG_DELIVERY': {
       const { deliveryId } = result as DeliveryLogResult
       if (!deliveryId) break
-      push({ ...base, edge_type: 'sourced_from',     source_type: 'delivery_event', source_id: deliveryId, target_type: 'supplier', target_id: action.supplierId })
+      push({ ...base, edge_type: 'delivery_sourced_from', source_type: 'delivery_event', source_id: deliveryId, target_type: 'supplier', target_id: action.supplierId })
       break
     }
 
@@ -144,7 +144,7 @@ export function edgesForAction(
       }
       if (receiveId && action.supplierId) {
         // restock_receive --sourced_from--> supplier
-        push({ ...base, edge_type: 'sourced_from', source_type: 'restock_receive', source_id: receiveId, target_type: 'supplier', target_id: action.supplierId })
+        push({ ...base, edge_type: 'receipt_sourced_from', source_type: 'restock_receive', source_id: receiveId, target_type: 'supplier', target_id: action.supplierId })
       }
       break
     }
@@ -174,7 +174,7 @@ export function edgesForAction(
       const { poId } = result as POCreateResult
       if (!poId) break
       if (action.supplierId) {
-        push({ ...base, edge_type: 'sourced_from', source_type: 'purchase_order', source_id: poId, target_type: 'supplier', target_id: action.supplierId })
+        push({ ...base, edge_type: 'po_sourced_from', source_type: 'purchase_order', source_id: poId, target_type: 'supplier', target_id: action.supplierId })
       }
       for (const line of action.lines) {
         // variant --linked_to_po--> purchase_order
@@ -213,7 +213,7 @@ export function edgesForAction(
 
     case 'APPROVE_TRANSFER': {
       if (actorId) {
-        push({ ...base, edge_type: 'approved_by', source_type: 'stock_transfer', source_id: action.transferId, target_type: 'user', target_id: actorId })
+        push({ ...base, edge_type: 'transfer_approved_by', source_type: 'stock_transfer', source_id: action.transferId, target_type: 'user', target_id: actorId })
       }
       const approve = result as Partial<TransferApproveResult>
       if (approve.fromLogId) {
@@ -279,7 +279,7 @@ export function edgesForAction(
       // its parent batch). variant --consumes--> pick_list_item ties the
       // item to the inventory it'll deduct on commit.
       push({ ...base, edge_type: 'belongs_to_session', source_type: 'pick_list_item', source_id: nodeId, target_type: 'pick_list', target_id: action.pickListId })
-      push({ ...base, edge_type: 'consumes', source_type: 'pick_list_item', source_id: nodeId, target_type: 'variant', target_id: action.variantId })
+      push({ ...base, edge_type: 'pick_consumes', source_type: 'pick_list_item', source_id: nodeId, target_type: 'variant', target_id: action.variantId })
       break
     }
     case 'UPDATE_PICK_LIST_ITEM': {
@@ -306,7 +306,7 @@ export function edgesForAction(
       // ingredient --belongs_to_session--> parent menu_item (the recipe row),
       // variant --consumes--> ingredient ties the menu item to its inventory cost.
       push({ ...base, edge_type: 'belongs_to_session', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'menu_item', target_id: action.menuItemId })
-      push({ ...base, edge_type: 'consumes',           source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'variant',   target_id: action.variantId })
+      push({ ...base, edge_type: 'recipe_consumes', source_type: 'menu_item_ingredient', source_id: nodeId, target_type: 'variant',   target_id: action.variantId })
       break
     }
     case 'UPDATE_MENU_INGREDIENT': {

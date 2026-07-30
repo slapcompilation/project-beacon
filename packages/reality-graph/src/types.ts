@@ -64,6 +64,12 @@ export type EdgeType =
   | 'fulfills'
   | 'log_fulfills_request'
   | 'sourced_from'
+  | 'delivery_sourced_from'
+  | 'receipt_sourced_from'
+  | 'po_sourced_from'
+  | 'recipe_consumes'
+  | 'pick_consumes'
+  | 'transfer_approved_by'
   | 'batch_of'
   | 'discarded_via'
   | 'linked_to_po'
@@ -93,7 +99,9 @@ export type EdgeType =
 export const EDGE_TYPES = [
   'causes', 'consumes', 'restocks', 'reverts',
   'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
-  'fulfills', 'log_fulfills_request', 'sourced_from', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
+  'fulfills', 'log_fulfills_request', 'sourced_from',
+  'delivery_sourced_from', 'receipt_sourced_from', 'po_sourced_from',
+  'recipe_consumes', 'pick_consumes', 'transfer_approved_by', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
   'influenced_by_occupancy', 'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
   'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
   'mentions', 'resolved_to',
