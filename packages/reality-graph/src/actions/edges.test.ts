@@ -14,16 +14,17 @@ const VAR    = 'v-1'
 const ctx: EdgeContext = { hotelId: HOTEL, actorId: USER, triggeredBy: 'user' }
 
 describe('edgesForAction', () => {
-  it('REQUEST_RESTOCK fans out the restocks link', () => {
+  // restocks/reverts/approved_by/invoiced_by are FK-backed since migration 256:
+  // restock_requests.variant_id IS the relationship, so emitting an edge for it
+  // was writing the same fact twice. The view derives them from the column.
+  it('REQUEST_RESTOCK emits no edge — the column carries the relationship', () => {
     const edges = edgesForAction(
       { type: 'REQUEST_RESTOCK', variantId: VAR, quantityNeeded: 5, hotelId: HOTEL, requestorId: USER },
       { restockId: 'r-1' },
       ctx,
     )
     const types = edges.map((e) => e.edge_type).sort()
-    expect(types).toEqual(['restocks'])
-    const restocks = edges.find((e) => e.edge_type === 'restocks')
-    expect(restocks).toMatchObject({ source_type: 'variant', source_id: VAR, target_type: 'restock_request', target_id: 'r-1' })
+    expect(types).toEqual([])
   })
 
   // Authorship and tenancy are PROPERTIES, not links (migration 252). Every table
@@ -40,18 +41,15 @@ describe('edgesForAction', () => {
     expect(edges.every((e) => e.triggered_by === 'user')).toBe(true)
   })
 
-  it('REVERT_ACTION marks itself triggered_by="revert" regardless of ctx', () => {
+  it('REVERT_ACTION emits no reverts edge — stock_logs.revert_of carries it', () => {
     const edges = edgesForAction(
       { type: 'REVERT_ACTION', variantId: VAR, hotelId: HOTEL, userId: USER, originalLogId: 'log-old', revertReason: 'x' },
       { newLogId: 'log-new' },
       ctx,
     )
-    const reverts = edges.find((e) => e.edge_type === 'reverts')
-    expect(reverts).toMatchObject({
-      triggered_by: 'revert',
-      source_type:  'stock_log', source_id: 'log-new',
-      target_type:  'stock_log', target_id: 'log-old',
-    })
+    expect(edges.map((e) => e.edge_type)).not.toContain('reverts')
+    // The revert still stamps its provenance on whatever edges it does emit.
+    expect(edges.every((e) => e.triggered_by === 'revert')).toBe(true)
   })
 
   it('TRANSFER_STOCK still records the transfer itself, without a tenancy edge', () => {
