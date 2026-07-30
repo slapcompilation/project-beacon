@@ -9,10 +9,10 @@
 import { useMemo, useState } from 'react'
 import { Button, Card, HTMLSelect, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core'
 import {
-  describeSetFilters, groupObjectSet, selectObjectSet, subjectProperties, toSlug, validateObjectSet,
-  type ObjectSetDef, type SetFilter,
+  MAX_TRAVERSAL_DEPTH, describeSetFilters, groupObjectSet, searchAround, selectObjectSet, subjectProperties, toSlug, validateObjectSet,
+  type ObjectSetDef, type SetFilter, type SetTraversal,
 } from '@beacon/reality-graph'
-import { useObjectSets, useCreateObjectSet, useDeleteObjectSet } from './hooks'
+import { useObjectSets, useCreateObjectSet, useDeleteObjectSet, useDeclaredLinks, useLinkRows } from './hooks'
 import { rowToObjectSet } from './api'
 import { BUILTIN_SET_LIMIT } from '@/features/objectTypes/api'
 import { decodeSubject, encodeSubject, useSetSubject, type SubjectRef } from './subject'
@@ -68,6 +68,16 @@ function CohortCard({ def }: { def: ObjectSetDef }) {
   )
   const where = describeSetFilters(def, subject)
 
+  // Traversal changes the TYPE of the set, so the members shown are of the last
+  // hop's type — not the subject's. Link rows come from the relationship_edges
+  // view, which is the same query whatever backing owns each relationship.
+  const linkRows = useLinkRows(def.traversals.map((t) => t.edgeType))
+  const traversed = useMemo(() => {
+    if (def.traversals.length === 0 || !selection || !linkRows.data) return null
+    const start = new Set(selection.records.flatMap((r) => (typeof r.id === 'string' ? [r.id] : [])))
+    return searchAround(start, linkRows.data, def.traversals)
+  }, [def.traversals, selection, linkRows.data])
+
   // A cohort of 40 is a number; the same 40 split by supplier is a decision.
   const [groupBy, setGroupBy] = useState('')
   const groupable = subject ? subjectProperties(subject).filter((p) => p.type === 'text' || p.type === 'boolean') : []
@@ -112,6 +122,22 @@ function CohortCard({ def }: { def: ObjectSetDef }) {
         </div>
       )}
 
+      {traversed && (
+        <div className="rounded-md border border-violet-300/40 bg-violet-50/40 dark:bg-violet-950/20 px-3 py-2 text-xs space-y-1">
+          <div className="flex items-center gap-2">
+            <Icon icon="flow-linear" size={12} className="text-violet-500" />
+            <span className="text-lg font-semibold tabular-nums">{traversed.members.size}</span>
+            <span className="text-muted-foreground">linked records after searching around</span>
+          </div>
+          {traversed.steps.map((st, i) => (
+            <div key={i} className="text-[11px] text-muted-foreground">
+              {st.direction === 'forward' ? '→' : '←'} {st.edgeType}: {st.from} → {st.to}
+              {st.to === 0 && <span className="text-amber-600"> — chain ends here</span>}
+            </div>
+          ))}
+        </div>
+      )}
+
       {groupable.length > 0 && selection !== null && selection.records.length > 0 && (
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs">
@@ -150,16 +176,20 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
   const [name, setName] = useState('')
   const [ref, setRef] = useState<SubjectRef>({ subjectTypeId: null, subjectInterfaceId: null })
   const [filters, setFilters] = useState<SetFilter[]>([])
+  const [traversals, setTraversals] = useState<SetTraversal[]>([])
 
   const { subject, targets, groups, types, interfaces, truncated } = useSetSubject(ref)
   const props = subject ? subjectProperties(subject) : []
+  const declared = useDeclaredLinks()
+  const declaredSet = useMemo(() => new Set((declared.data ?? []).map((l) => l.edgeType)), [declared.data])
 
   // Parameters are a tool concern until something calls a cohort with arguments;
   // a cohort is a fixed group by definition.
-  const draft = { name, apiName: toSlug(name), ...ref, parameters: [], filters }
-  const errors = validateObjectSet(draft, subject, taken)
+  const draft = { name, apiName: toSlug(name), ...ref, parameters: [], filters, traversals }
+  const errors = validateObjectSet(draft, subject, taken, declaredSet)
   const where = describeSetFilters(draft, subject)
 
+  const previewLinks = useLinkRows(traversals.map((t) => t.edgeType))
   const preview = useMemo(
     () => (errors.length > 0 || !groups ? null : selectObjectSet(draft, groups)),
     [errors.length, groups, filters],   // eslint-disable-line react-hooks/exhaustive-deps
@@ -218,6 +248,33 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
       )}
 
       {subject && (
+        <div className="space-y-1.5 border-t pt-2">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+            Search around — each hop returns a set of the LINKED type (max {MAX_TRAVERSAL_DEPTH})
+          </span>
+          {traversals.map((t, i) => (
+            <div key={i} className="flex items-center gap-1.5 text-xs">
+              <span className="text-muted-foreground w-10">then</span>
+              <HTMLSelect value={t.edgeType}
+                onChange={(e) => { setTraversals(traversals.map((x, j) => (j === i ? { ...x, edgeType: e.currentTarget.value } : x))) }}
+                options={(declared.data ?? []).map((l) => ({ value: l.edgeType, label: l.label }))} />
+              <HTMLSelect value={t.direction}
+                onChange={(e) => { setTraversals(traversals.map((x, j) => (j === i ? { ...x, direction: e.currentTarget.value as 'forward' | 'reverse' } : x))) }}
+                options={[{ value: 'forward', label: 'forward' }, { value: 'reverse', label: 'reverse' }]} />
+              <Button size="small" variant="minimal" icon="cross"
+                onClick={() => { setTraversals(traversals.filter((_, j) => j !== i)) }} />
+            </div>
+          ))}
+          {traversals.length < MAX_TRAVERSAL_DEPTH && (declared.data ?? []).length > 0 && (
+            <Button size="small" variant="minimal" icon="flow-linear"
+              onClick={() => { setTraversals([...traversals, { edgeType: (declared.data ?? [])[0].edgeType, direction: 'forward', filters: [] }]) }}>
+              Search around
+            </Button>
+          )}
+        </div>
+      )}
+
+      {subject && (
         <p className="text-xs text-muted-foreground italic">
           Every {subject.kind === 'interface' ? subject.iface.label : subject.type.label}
           {where ? ` where ${where}` : ''}
@@ -229,6 +286,11 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
           <Icon icon="group-objects" size={12} className="text-primary" />
           <span className="text-lg font-semibold tabular-nums">{preview.records.length}</span>
           <span className="text-muted-foreground">of {preview.scanned} records match right now</span>
+          {traversals.length > 0 && previewLinks.data && (() => {
+            const start = new Set(preview.records.flatMap((r) => (typeof r.id === 'string' ? [r.id] : [])))
+            const t = searchAround(start, previewLinks.data, traversals)
+            return <span className="text-violet-600">→ {t.members.size} linked</span>
+          })()}
           {truncated.length > 0 && (
             <span className="text-amber-600">first {BUILTIN_SET_LIMIT} of {truncated.join(', ')} only</span>
           )}
@@ -245,7 +307,7 @@ function CohortComposer({ taken, onDone }: { taken: string[]; onDone: () => void
             create.mutate({
               name: name.trim(), apiName: toSlug(name),
               description: where ? `Every ${subject ? (subject.kind === 'interface' ? subject.iface.label : subject.type.label) : 'record'} where ${where}` : '',
-              ...ref, parameters: [], filters,
+              ...ref, parameters: [], filters, traversals,
             }, { onSuccess: onDone })
           }}>
           Create cohort

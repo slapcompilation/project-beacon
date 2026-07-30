@@ -2,7 +2,7 @@
 // by selectObjectSet in reality-graph, never here and never materialised.
 
 import { supabase } from '@/lib/supabase/client'
-import { selectObjectSet, type ObjectSetDef, type SetFilter, type SetParamDef } from '@beacon/reality-graph'
+import { selectObjectSet, type LinkRow, type ObjectSetDef, type SetFilter, type SetParamDef, type SetTraversal } from '@beacon/reality-graph'
 import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
@@ -19,6 +19,7 @@ export interface ObjectSetRow {
   subject_interface_id: string | null
   parameters: SetParamDef[]
   filters: SetFilter[]
+  traversals: SetTraversal[]
   created_at: string
 }
 
@@ -27,7 +28,7 @@ export function rowToObjectSet(r: ObjectSetRow): ObjectSetDef {
     id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
     name: r.name, apiName: r.api_name, description: r.description,
     subjectTypeId: r.subject_type_id, subjectInterfaceId: r.subject_interface_id,
-    parameters: r.parameters, filters: r.filters,
+    parameters: r.parameters, filters: r.filters, traversals: r.traversals,
   }
 }
 
@@ -46,6 +47,7 @@ export interface CreateObjectSetInput {
   subjectInterfaceId: string | null
   parameters: SetParamDef[]
   filters: SetFilter[]
+  traversals: SetTraversal[]
 }
 
 /** org + author land from column DEFAULTs, so the client sends only the set. */
@@ -54,7 +56,7 @@ export async function createObjectSet(i: CreateObjectSetInput): Promise<ObjectSe
     .insert({
       name: i.name, api_name: i.apiName, description: i.description,
       subject_type_id: i.subjectTypeId, subject_interface_id: i.subjectInterfaceId,
-      parameters: i.parameters, filters: i.filters,
+      parameters: i.parameters, filters: i.filters, traversals: i.traversals,
     })
     .select('*').single<ObjectSetRow>()
   if (error) throw new Error(error.message)
@@ -97,4 +99,35 @@ export async function resolveCohortMembers(setIds: string[]): Promise<Map<string
     out.set(s.id, new Set(selection.records.flatMap((r) => (typeof r.id === 'string' ? [r.id] : []))))
   }
   return out
+}
+
+/** Link types registered in the ontology, as searchAround's declaration gate.
+ *  A hop over anything not in here is refused rather than silently empty. */
+export async function fetchDeclaredLinks(): Promise<
+  { edgeType: string; label: string; sourceApiName: string | null; targetApiName: string | null }[]
+> {
+  const { data, error } = await supabase
+    .from('link_types').select('edge_type, label, source_api_name, target_api_name')
+    .not('edge_type', 'is', null)
+  if (error) throw new Error(error.message)
+  return (data as { edge_type: string; label: string; source_api_name: string | null; target_api_name: string | null }[])
+    .map((r) => ({ edgeType: r.edge_type, label: r.label, sourceApiName: r.source_api_name, targetApiName: r.target_api_name }))
+}
+
+/** Link rows for a set of relationships.
+ *
+ *  Read from the relationship_edges VIEW rather than each backing: the view
+ *  already unifies foreign-key columns, join tables and the residue, so
+ *  traversal asks one question regardless of how a relationship is stored. That
+ *  indifference is what the migrations were for.
+ */
+export async function fetchLinkRows(edgeTypes: string[]): Promise<LinkRow[]> {
+  if (edgeTypes.length === 0) return []
+  const { data, error } = await supabase
+    .from('relationship_edges').select('edge_type, source_id, target_id')
+    .in('edge_type', edgeTypes)
+    .limit(20000)
+  if (error) throw new Error(error.message)
+  return (data as { edge_type: string; source_id: string; target_id: string }[])
+    .map((r) => ({ edgeType: r.edge_type, sourceId: r.source_id, targetId: r.target_id }))
 }

@@ -16,6 +16,7 @@ import type { ComparisonOp } from '../automations/index'
 import type { InterfaceDef } from '../interfaces/index'
 import { interfaceProperties } from '../interfaces/index'
 import type { ObjectTypeDef, PropertyDef, PropertyType } from '../objectTypes/index'
+import { validateTraversals, type SetTraversal } from './traversal'
 import { evaluateComputed } from '../objectTypes/index'
 
 export type { ComparisonOp }
@@ -99,6 +100,9 @@ export interface SetDefinition {
  *  than one thing refer to the same group, which is what neither the automation
  *  nor the tool copy of this concept could do. */
 export interface ObjectSetDef extends SetDefinition {
+  /** Search Around chain. When present the set's members are of the LAST hop's
+   *  type, not the subject's — traversal changes the type of the set. */
+  traversals: SetTraversal[]
   id: string
   organizationId: string
   hotelId: string | null
@@ -111,10 +115,13 @@ export interface ObjectSetDef extends SetDefinition {
 /** Checks a named set. The selection rules plus the naming ones — a set nothing
  *  can refer to is not a cohort. */
 export function validateObjectSet(
-  draft: Pick<ObjectSetDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'parameters' | 'filters'>,
+  draft: Pick<ObjectSetDef, 'name' | 'apiName' | 'subjectTypeId' | 'subjectInterfaceId' | 'parameters' | 'filters'>
+       & Partial<Pick<ObjectSetDef, 'traversals'>>,
   subject: SetSubject | undefined,
   /** apiNames already taken in the organization, excluding this set's own. */
   taken: ReadonlyArray<string> = [],
+  /** Registered link types. A hop over anything else is refused. */
+  declaredLinks: ReadonlySet<string> = new Set(),
 ): string[] {
   const errors: string[] = []
   if (!draft.name.trim()) errors.push('Name is required')
@@ -125,6 +132,7 @@ export function validateObjectSet(
   } else if (taken.includes(draft.apiName)) {
     errors.push(`"${draft.apiName}" is already used by another set`)
   }
+  errors.push(...validateTraversals(draft.traversals ?? [], declaredLinks))
   return [...errors, ...validateSetDefinition(draft, subject)]
 }
 

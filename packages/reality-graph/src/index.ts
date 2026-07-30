@@ -444,6 +444,15 @@ export type {
   SetRecord, RecordGroup, ObjectSetSelection, SetTypeBreakdown,
 } from './objectSets/index'
 
+// searchAround — Foundry's set-to-set traversal, capped at depth 3 and gated on
+// registered link types (api-object-sets).
+export {
+  MAX_TRAVERSAL_DEPTH, searchAround, traverseOnce, validateTraversals, describeTraversals,
+} from './objectSets/traversal'
+export type {
+  SetTraversal, TraversalDirection, LinkRow, TraversalResult, TraversalStep,
+} from './objectSets/traversal'
+
 export {
   AGENT_CADENCES, validateAuthoredAgent, compileAgent, describeAuthoredAgent,
 } from './authoredAgents/index'
