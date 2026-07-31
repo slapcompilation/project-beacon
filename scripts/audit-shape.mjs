@@ -161,6 +161,20 @@ if (process.argv.includes('--check')) {
     }
   }
 
+  // An allowlist rots in two directions, and both are drift: an exemption for a
+  // function that now HAS a consumer is a stale claim, and one for a function
+  // that no longer exists is a lie about the schema. 298 cleared both kinds;
+  // this keeps them cleared.
+  const byName = new Map(enriched.map((f) => [f.name, f]))
+  for (const name of exempt) {
+    const f = byName.get(name)
+    if (!f) {
+      failures.push(`exemption for ${name} names a function that does not exist — drop the shape_registry row`)
+    } else if (f.reachable) {
+      failures.push(`exemption for ${name} is stale — it is reachable now, so it does not need one`)
+    }
+  }
+
   if (failures.length > 0) {
     console.error(`SHAPE DRIFT — ${failures.length} finding(s):`)
     for (const f of failures) console.error(`  ${f}`)

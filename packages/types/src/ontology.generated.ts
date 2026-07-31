@@ -404,6 +404,20 @@ export interface Supplier {
   reliability_computed_at?: string
 }
 
+/** Supplier Contract — An agreed price and minimum order for one variant from one supplier, valid between two dates.
+ *  Code-owned; records live in `supplier_contracts`. */
+export interface SupplierContract {
+  supplier_name: string
+  contracted_price: number
+  min_order_qty?: number
+  contract_start: string
+  contract_end?: string
+  notes?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
 /** User — A person acting in the organization.
  *  Code-owned; records live in `profiles`. */
 export interface User {
@@ -474,6 +488,7 @@ export interface OntologyTypes {
   stock_log: StockLog
   stock_transfer: StockTransfer
   supplier: Supplier
+  supplier_contract: SupplierContract
   user: User
   variant: Variant
 }
