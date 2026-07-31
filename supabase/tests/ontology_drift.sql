@@ -69,3 +69,18 @@ BEGIN
   END IF;
   RAISE NOTICE 'authored artifacts OK — every saved tool, cohort, automation and agent still resolves';
 END $$;
+
+-- Orphans are REPORTED, not failed on. They accumulate legitimately between
+-- reaps — a document deleted today leaves its entities behind until someone
+-- decides — so a red build would punish normal operation. What matters is that
+-- nobody has to go looking.
+DO $$
+DECLARE n int; detail text;
+BEGIN
+  SELECT count(*), string_agg(DISTINCT kind, ', ') INTO n, detail FROM ontology_orphans();
+  IF n > 0 THEN
+    RAISE NOTICE 'lineage: % orphaned node(s) (%). Reap with select * from reap_ontology_orphans().', n, detail;
+  ELSE
+    RAISE NOTICE 'lineage OK — no derived node outlives its source';
+  END IF;
+END $$;
