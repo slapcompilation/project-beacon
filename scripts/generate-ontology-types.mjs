@@ -14,19 +14,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import pg from 'pg'
+import { connectionString, SSL } from './db-url.mjs'
 
 const OUT = 'packages/types/src/ontology.generated.ts'
 
-function connectionString() {
-  if (process.env.SUPABASE_DB_URL) return process.env.SUPABASE_DB_URL
-  const file = path.join(process.cwd(), '.env.local')
-  if (!fs.existsSync(file)) return null
-  const line = fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith('SUPABASE_DB_URL='))
-  if (!line) return null
-  const url = new URL(line.slice('SUPABASE_DB_URL='.length).trim())
-  url.searchParams.delete('sslmode')
-  return url.toString()
-}
 
 const TS_TYPE = { text: 'string', number: 'number', boolean: 'boolean', date: 'string' }
 
@@ -71,7 +62,7 @@ if (!url) {
   process.exit(2)
 }
 
-const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
+const client = new pg.Client({ connectionString: url, ssl: SSL })
 await client.connect()
 const { rows } = await client.query(`
   SELECT api_name, label, description, kind, source_table,
