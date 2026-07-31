@@ -21,14 +21,19 @@ export interface SourceFreshnessRow {
   data_changed_at: string | null
   run_age_hours:   number | null
   data_age_hours:  number | null
+  /** Landed rows the pipeline has not processed. NULL for a source with no
+   *  backlog column — "not applicable", distinct from a backlog of zero. */
+  pending_count:     number | null
+  oldest_pending_at: string | null
   verdict:         string
 }
 
 /** What PostgREST actually sends: a pg numeric arrives as a string. Declaring
  *  it as number was the lie, not the conversion below. */
-type RawFreshnessRow = Omit<SourceFreshnessRow, 'run_age_hours' | 'data_age_hours'> & {
+type RawFreshnessRow = Omit<SourceFreshnessRow, 'run_age_hours' | 'data_age_hours' | 'pending_count'> & {
   run_age_hours:  number | string | null
   data_age_hours: number | string | null
+  pending_count:  number | string | null
 }
 
 export interface SourceReconciliationRow {
@@ -62,6 +67,7 @@ async function fetchRegistry(): Promise<RegisteredSource[]> {
       ...f,
       run_age_hours:  f.run_age_hours  === null ? null : Number(f.run_age_hours),
       data_age_hours: f.data_age_hours === null ? null : Number(f.data_age_hours),
+      pending_count:  f.pending_count  === null ? null : Number(f.pending_count),
       reconciliation: r?.verdict ?? null,
       deadLetters:    r?.dead_letters ?? 0,
       ontologized:    r?.ontologized ?? false,

@@ -4,7 +4,6 @@
 import { supabase } from '@/lib/supabase/client'
 import type {
   MenuItemWithIngredients,
-  POSHealthRow,
   COGSByItemRow,
   POSVarianceRow,
 } from '@beacon/types'
@@ -84,17 +83,6 @@ export async function updateIngredient(
 export async function removeIngredient(id: string): Promise<void> {
   const { error } = await supabase.from('menu_item_ingredients').delete().eq('id', id)
   if (error) throw new Error(error.message)
-}
-
-// ─── POS health ───────────────────────────────────────────────────────────────
-
-export async function fetchPOSHealth(): Promise<POSHealthRow[]> {
-  const result = await supabase.rpc('get_pos_health') as unknown as {
-    data: POSHealthRow[] | null
-    error: { message: string } | null
-  }
-  if (result.error) throw new Error(result.error.message)
-  return result.data ?? []
 }
 
 // ─── COGS ────────────────────────────────────────────────────────────────────

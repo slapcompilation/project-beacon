@@ -1,7 +1,7 @@
 // Layer: Eye — API calls for Eye Layer intelligence RPCs
 
 import { supabase } from '@/lib/supabase/client'
-import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, PMSHealthRow, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow, ActiveIncidentRow, SupplierReliabilityRow } from '@beacon/types'
+import type { WasteRadarRow, ConsumptionStatRow, ConsumptionForecastRow, DeadStockRow, ConsumptionSpikeRow, OccupancyLog, SupplierWasteRow, BookingForecast, VariantIntelligence, StockPressureItem, AnomalyExplanation, CausalTraceStep, OptimalPARRow, TeamPerformanceRow, StocktakeSessionSummary, StocktakeVarianceRow, ProductPerformanceRow, ActiveIncidentRow, SupplierReliabilityRow } from '@beacon/types'
 
 // ─── Shift Intelligence ────────────────────────────────────────────────────────
 
@@ -94,16 +94,9 @@ export async function deleteOccupancyDay(date: string): Promise<void> {
   if (result.error) throw new Error(result.error.message)
 }
 
-// ─── Booking forecasts + PMS health ──────────────────────────────────────────
-
-export async function fetchPMSHealth(): Promise<PMSHealthRow[]> {
-  const result = await supabase.rpc('get_pms_health') as unknown as {
-    data: PMSHealthRow[] | null
-    error: { message: string } | null
-  }
-  if (result.error) throw new Error(result.error.message)
-  return result.data ?? []
-}
+// ─── Booking forecasts ───────────────────────────────────────────────────────
+// PMS health lives in the source registry now — one mechanism over registered
+// sources, rather than a function per connector type.
 
 export async function fetchBookingForecasts(fromDate: string, toDate: string): Promise<BookingForecast[]> {
   const { data, error } = (await supabase

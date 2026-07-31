@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import {
   fetchMenuItems,
-  fetchPOSHealth, fetchCOGSByItem, fetchPOSVariance,
+  fetchCOGSByItem, fetchPOSVariance,
 } from '../api'
 
 export const fbKeys = {
@@ -154,19 +154,6 @@ export function useRemoveIngredient() {
     },
     onSuccess: () => { void queryClient.invalidateQueries({ queryKey: fbKeys.menuItems(hotelId ?? '') }) },
     onError:   (err: Error) => toast.error(err.message),
-  })
-}
-
-// ─── POS health ───────────────────────────────────────────────────────────────
-
-export function usePOSHealth() {
-  const hotelId = useActiveHotelId()
-  return useQuery({
-    queryKey:       fbKeys.posHealth(hotelId ?? ''),
-    queryFn:        fetchPOSHealth,
-    enabled:        !!hotelId,
-    staleTime:       5 * 60 * 1000,  // match refetch interval to avoid stale-window double-fetches
-    refetchInterval: 5 * 60 * 1000,
   })
 }
 
