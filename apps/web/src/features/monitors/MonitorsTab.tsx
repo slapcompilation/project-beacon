@@ -9,15 +9,12 @@ import {
   Button, Callout, Card, Icon, InputGroup, Intent, NumericInput, Spinner, SpinnerSize, Switch, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { formatDistanceToNow } from 'date-fns'
-import { parseExpiryTuning, type OrgPolicy, type IntegrationHealthStatus } from '@beacon/reality-graph'
+import { classifyIntegrationHealth, parseExpiryTuning, type OrgPolicy } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useMonitorPolicy, useSetMonitors } from './hooks'
 import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
 import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
-import { useIntegrationHealth } from './useIntegrationHealth'
-import { useIntegrationHealthSweep } from './useIntegrationHealthSweep'
 import { useSourceRegistry, freshnessIntent } from './useSourceRegistry'
 
 type Monitors = OrgPolicy['monitors']
@@ -69,81 +66,20 @@ function CaseScanRow({ kind, enabled, running, result, onRun }: {
   )
 }
 
-const HEALTH_META: Record<IntegrationHealthStatus, { intent: Intent; icon: IconName; label: string }> = {
-  fresh: { intent: Intent.SUCCESS, icon: 'tick-circle', label: 'Fresh' },
-  stale: { intent: Intent.WARNING, icon: 'time',        label: 'Stale' },
-  down:  { intent: Intent.DANGER,  icon: 'offline',     label: 'Down' },
-  never: { intent: Intent.NONE,    icon: 'disable',     label: 'No data' },
-}
-
-// Live connector + ingestion readout, classified against the saved SLA. Worst
-// first so the operator triages at a glance; an explicit empty state explains
-// what's watched and when it populates.
-function IntegrationHealthReadout({ enabled }: { enabled: boolean }) {
-  const { hits, isLoading, isError, error } = useIntegrationHealth()
-  const sweep = useIntegrationHealthSweep()
-
-  if (!enabled) return <p className="text-xs text-muted-foreground">Monitor off — connectors aren&apos;t being checked.</p>
-  if (isLoading) {
-    return <div className="flex items-center gap-2 text-xs text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Checking connectors…</div>
-  }
-  if (isError) return <p className="text-xs text-red-500">{error instanceof Error ? error.message : 'Failed to load health'}</p>
-  if (hits.length === 0) {
-    return (
-      <Callout intent={Intent.NONE} icon="feed">
-        No connectors or documents yet for this property. POS/PMS webhooks and document uploads appear here once data arrives, checked against the thresholds above.
-      </Callout>
-    )
-  }
-
-  const sorted = [...hits].sort((a, b) => b.urgency - a.urgency)
-  const downCount = hits.filter((h) => h.status === 'down' || h.status === 'never').length
-  return (
-    <div className="space-y-2">
-      <div className="divide-y divide-border rounded border">
-        {sorted.map((h) => {
-          const meta = HEALTH_META[h.status]
-          return (
-            <div key={h.sourceKey} className="flex items-center justify-between gap-3 px-3 py-2">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-medium">{h.label}</span>
-                  <Tag minimal intent={meta.intent} icon={meta.icon}>{meta.label}</Tag>
-                </div>
-                <div className="text-[11px] text-muted-foreground">{h.detail}</div>
-              </div>
-              <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
-                <div>{h.lastActivityAt ? formatDistanceToNow(new Date(h.lastActivityAt), { addSuffix: true }) : '—'}</div>
-                <div>{h.totalEvents.toLocaleString()} events</div>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-      <div className="flex items-center gap-2">
-        <Button size="small" icon="notifications" loading={sweep.isPending} disabled={downCount === 0 || sweep.isPending}
-          text={downCount > 0 ? `Notify me — ${String(downCount)} feed${downCount === 1 ? '' : 's'} down` : 'All feeds reporting'}
-          onClick={() => { sweep.mutate() }} />
-        {sweep.data && (
-          <span className="text-xs text-muted-foreground">
-            {sweep.data.raised > 0
-              ? `${String(sweep.data.raised)} alert${sweep.data.raised === 1 ? '' : 's'} raised`
-              : sweep.data.actionable > 0 ? 'Already alerted' : 'Nothing to alert'}
-          </span>
-        )}
-        {sweep.isError && <span className="text-xs text-red-500">{sweep.error.message}</span>}
-      </div>
-    </div>
-  )
-}
-
 /** Registered sources (5.5/5.6). Foundry's shape: a source is a row, and its
  *  health is a freshness check over it — not a function per connector type.
- *  Shows dataset freshness (when we last ran) against data freshness (when the
- *  data last changed), because those come apart in the one way that matters. */
-function SourceRegistryReadout() {
+ *
+ *  The registry supplies the METRIC (data age, run age, backlog); the operator's
+ *  SLA in org policy is still the TRIGGER, applied by the same
+ *  classifyIntegrationHealth the per-connector readout used. Reading thresholds
+ *  off source_freshness's built-in 24/48h would have traded config-as-data back
+ *  for hardcoded numbers, which is the wrong direction. */
+function SourceRegistryReadout({ enabled }: { enabled: boolean }) {
   const { data, isLoading, isError, error } = useSourceRegistry()
+  const { data: policy } = useMonitorPolicy()
+  const rule = policy?.merged.monitors.integration
 
+  if (!enabled) return <p className="text-xs text-muted-foreground">Monitor off — sources aren&apos;t being checked.</p>
   if (isLoading) {
     return <div className="flex items-center gap-2 text-xs text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Reading the source registry…</div>
   }
@@ -156,28 +92,50 @@ function SourceRegistryReadout() {
     )
   }
 
+  // A source with a backlog column is judged on how long its oldest unprocessed
+  // row has waited; a live feed on how long since it last fed us.
+  const hits = rule?.enabled
+    ? data.map((s) => classifyIntegrationHealth({
+        sourceKey:      s.api_name,
+        label:          s.label,
+        kind:           s.pending_count === null ? 'pos' : 'documents',
+        lastActivityAt: s.data_changed_at,
+        totalEvents:    0,
+        pendingCount:   s.pending_count ?? undefined,
+        oldestPendingAt: s.oldest_pending_at,
+      }, rule)).sort((a, b) => b.urgency - a.urgency)
+    : []
+
   const INTENT = { danger: Intent.DANGER, warning: Intent.WARNING, success: Intent.SUCCESS, none: Intent.NONE } as const
   const hours = (h: number | null) => h === null ? '—' : h < 48 ? `${String(Math.round(h))}h` : `${String(Math.round(h / 24))}d`
+  const byName = new Map(hits.map((h) => [h.sourceKey, h]))
 
   return (
     <div className="divide-y divide-border rounded border">
-      {data.map((s) => (
-        <div key={s.api_name} className="flex items-start justify-between gap-3 px-3 py-2">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="truncate text-sm font-medium">{s.label}</span>
-              <Tag minimal intent={INTENT[freshnessIntent(s.verdict)]}>{s.verdict}</Tag>
-              {!s.ontologized && <Tag minimal icon="help">not ontologized</Tag>}
-              {s.deadLetters > 0 && <Tag minimal intent={Intent.DANGER} icon="inbox">{s.deadLetters} dead-lettered</Tag>}
+      {data.map((s) => {
+        const hit = byName.get(s.api_name)
+        return (
+          <div key={s.api_name} className="flex items-start justify-between gap-3 px-3 py-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="truncate text-sm font-medium">{s.label}</span>
+                <Tag minimal intent={INTENT[freshnessIntent(s.verdict)]}>{s.verdict}</Tag>
+                {hit && <Tag minimal intent={hit.status === 'down' ? Intent.DANGER : hit.status === 'stale' ? Intent.WARNING : Intent.NONE}>
+                  vs your SLA: {hit.status}
+                </Tag>}
+                {!s.ontologized && <Tag minimal icon="help">not ontologized</Tag>}
+                {s.deadLetters > 0 && <Tag minimal intent={Intent.DANGER} icon="inbox">{s.deadLetters} dead-lettered</Tag>}
+              </div>
+              {s.reconciliation && <div className="text-[11px] text-muted-foreground">{s.reconciliation}</div>}
+              {hit && <div className="text-[11px] text-muted-foreground">{hit.detail}</div>}
             </div>
-            {s.reconciliation && <div className="text-[11px] text-muted-foreground">{s.reconciliation}</div>}
+            <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+              <div>data <span className="font-semibold text-foreground">{hours(s.data_age_hours)}</span> old</div>
+              <div>{s.last_run_at ? `ran ${hours(s.run_age_hours)} ago` : 'never ran'}</div>
+            </div>
           </div>
-          <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
-            <div>data <span className="font-semibold text-foreground">{hours(s.data_age_hours)}</span> old</div>
-            <div>{s.last_run_at ? `ran ${hours(s.run_age_hours)} ago` : 'never ran'}</div>
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -317,13 +275,7 @@ export default function MonitorsTab() {
             <NumField label="Ingest stalled after (min)" value={draft.integration.stuck_ingest_after_minutes} max={43200} step={30} disabled={!canEdit}
               onChange={(n) => { patch('integration', { stuck_ingest_after_minutes: Math.round(n) }) }} />
           </div>
-          <IntegrationHealthReadout enabled={draft.integration.enabled} />
-
-          {/* Registered sources — the config-as-data view of the same question.
-              Phase B of the shape audit retires the per-connector readout above
-              in favour of this one; both are shown while that lands. */}
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-1">Registered sources</div>
-          <SourceRegistryReadout />
+          <SourceRegistryReadout enabled={draft.integration.enabled} />
         </MonitorShell>
 
         {!canEdit && <Callout intent={Intent.NONE} icon="lock">Read-only — an admin or owner can tune these monitors.</Callout>}

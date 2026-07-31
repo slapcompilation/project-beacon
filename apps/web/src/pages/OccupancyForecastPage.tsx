@@ -25,9 +25,10 @@ import { cn } from '@/lib/utils'
 import { useConsumptionForecast } from '@/features/eye/hooks'
 import {
   useOccupancyLogs, useUpsertOccupancy, useDeleteOccupancy,
-  usePMSHealth, useBookingForecasts, useUpsertBookingForecast, useDeleteBookingForecast,
+  useBookingForecasts, useUpsertBookingForecast, useDeleteBookingForecast,
 } from '@/features/eye/hooks'
-import type { OccupancyLog, PMSHealthRow, BookingForecast } from '@beacon/types'
+import type { OccupancyLog, BookingForecast } from '@beacon/types'
+import { useSourceRegistry, freshnessIntent } from '@/features/monitors/useSourceRegistry'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -416,31 +417,28 @@ function ForecastTable({
 }
 
 // ─── PMS health badge ──────────────────────────────────────────────────────────
+// Reads the source registry, not a per-connector health function. One
+// mechanism: a source is a row, and its health is a freshness check over it.
+// The three functions this replaced each covered a different subset — PMS only,
+// POS only, POS+documents — and none covered all of them.
 
-function PMSHealthBadge({ rows }: { rows: PMSHealthRow[] }) {
-  if (rows.length === 0) return null
+function PMSHealthBadge() {
+  const { data = [] } = useSourceRegistry()
+  const pms = data.find((s) => s.api_name === 'pms_occupancy')
+  if (!pms) return null
 
-  const worst = rows.reduce<PMSHealthRow | null>((acc, r) => {
-    const order = { connected: 0, warning: 1, disconnected: 2, never_connected: 3 }
-    if (!acc) return r
-    return order[r.status] > order[acc.status] ? r : acc
-  }, null)
-
-  if (!worst) return null
-
-  const STATUS: Record<string, { icon: IconName; color: string; bg: string; label: string }> = {
-    connected:       { icon: 'globe-network', color: 'text-green-600 dark:text-green-400',  bg: 'bg-green-50 dark:bg-green-950/30',  label: 'PMS connected' },
-    warning:         { icon: 'time',          color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-950/20', label: 'PMS delayed' },
-    disconnected:    { icon: 'offline',       color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-950/20',       label: 'PMS disconnected' },
-    never_connected: { icon: 'offline',       color: 'text-muted-foreground',                bg: 'bg-muted/40',                        label: 'PMS not connected' },
+  const intent = freshnessIntent(pms.verdict)
+  const CFG = {
+    success: { icon: 'globe-network' as IconName, color: 'text-green-600 dark:text-green-400',   bg: 'bg-green-50 dark:bg-green-950/30',   label: 'PMS connected' },
+    warning: { icon: 'time'          as IconName, color: 'text-yellow-600 dark:text-yellow-400', bg: 'bg-yellow-50 dark:bg-yellow-950/20', label: 'PMS delayed' },
+    danger:  { icon: 'offline'       as IconName, color: 'text-red-600 dark:text-red-400',       bg: 'bg-red-50 dark:bg-red-950/20',       label: 'PMS stalled' },
+    none:    { icon: 'offline'       as IconName, color: 'text-muted-foreground',                bg: 'bg-muted/40',                        label: 'PMS unknown' },
   }
-
-  const cfg = STATUS[worst.status]
-  const detail = worst.status === 'never_connected'
-    ? `${worst.source_system} · no events received`
-    : worst.status === 'connected'
-      ? `${worst.source_system} · ${String(worst.total_events)} events`
-      : `${worst.source_system} · ${worst.hours_since_last != null ? `${String(worst.hours_since_last)}h ago` : 'unknown'}`
+  const cfg = CFG[intent]
+  const age = pms.data_age_hours
+  const detail = age === null ? pms.verdict
+    : age < 48 ? `data ${String(Math.round(age))}h old`
+    : `data ${String(Math.round(age / 24))}d old`
 
   return (
     <div className={cn('flex items-center gap-1.5 rounded-full border px-2.5 py-1', cfg.bg)}>
@@ -625,7 +623,6 @@ export default function OccupancyForecastPage() {
   const { data: upcoming  = [], isLoading: upcomingLoading } = useOccupancyLogs(futureFrom, futureTo)
   const { data: allLogs   = [] } = useOccupancyLogs(futureFrom, format(toDate, 'yyyy-MM-dd'))
   const { data: forecast  = [], isLoading: forecastLoading } = useConsumptionForecast(HISTORICAL_DAYS)
-  const { data: pmsHealth = [] } = usePMSHealth()
   const { data: bookingForecasts = [] } = useBookingForecasts(futureFrom, horizonTo)
 
   const [view, setView] = useState<'actuals' | 'horizon'>('actuals')
@@ -706,7 +703,7 @@ export default function OccupancyForecastPage() {
                 : `${String(ctx.daysEntered)} days entered · next ${String(FORECAST_WINDOW)}d avg ${ctx.upcomingAvg.toFixed(0)}% vs ${ctx.historicalAvg.toFixed(0)}% baseline → ${ctx.factor.toFixed(2)}× factor`}
           </p>
         </div>
-        {pmsHealth.length > 0 && <PMSHealthBadge rows={pmsHealth} />}
+        <PMSHealthBadge />
       </div>
 
       {/* KPI strip */}

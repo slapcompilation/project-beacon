@@ -10,7 +10,7 @@ import {
   fetchConsumptionSpikes, fetchShiftIntelligence, fetchInventoryIntelligence,
   fetchOccupancyLogs, upsertOccupancyDay, deleteOccupancyDay,
   fetchSupplierWasteAnalytics,
-  fetchPMSHealth, fetchBookingForecasts, upsertBookingForecast, deleteBookingForecast,
+  fetchBookingForecasts, upsertBookingForecast, deleteBookingForecast,
   fetchVariantIntelligence, fetchStockPressure,
   fetchAnomalyExplanation, fetchCausalTrace, logCausalTrace, fetchOptimalPAR,
   fetchTeamPerformance,
@@ -248,19 +248,9 @@ export function useSupplierWasteAnalytics(days = 90) {
   })
 }
 
-// ─── PMS health + Booking forecasts ──────────────────────────────────────────
-// Eye Layer · Occupancy Automation (Sprint 9)
-
-export function usePMSHealth() {
-  const hotelId = useActiveHotelId()
-  return useQuery({
-    queryKey: ['eye', 'pms-health', hotelId],
-    queryFn: fetchPMSHealth,
-    enabled: !!hotelId,
-    staleTime: 5 * 60 * 1000,        // match refetch interval to avoid stale-window double-fetches
-    refetchInterval: 5 * 60 * 1000,  // poll every 5 min for live indicator
-  })
-}
+// ─── Booking forecasts ───────────────────────────────────────────────────────
+// Eye Layer · Occupancy Automation (Sprint 9). PMS health moved to the source
+// registry — one mechanism, a source is a row.
 
 export function useBookingForecasts(fromDate: string, toDate: string) {
   const hotelId = useActiveHotelId()

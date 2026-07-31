@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:NODE_OPTIONS=\"--use-system-ca\"; $env:SMOKE_USER_EMAIL=\"smoke@beacon.test\"; $env:SMOKE_USER_PASSWORD=\"29DMYHtQwKopTa6H7htAyeB1ynae\"; Set-Location d:\\\\project-beacon\\\\apps\\\\web; pnpm exec playwright test 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:NODE_OPTIONS=\"--use-system-ca\"; $env:SMOKE_USER_EMAIL=\"smoke@beacon.test\"; $env:SMOKE_USER_PASSWORD=\"29DMYHtQwKopTa6H7htAyeB1ynae\"; Set-Location d:\\\\project-beacon\\\\apps\\\\web; pnpm exec playwright test 2>&1 | Select-Object -Last 12)",
+      "PowerShell($env:NODE_OPTIONS=\"--use-system-ca\"; Set-Location d:\\\\project-beacon; pnpm --filter @beacon/web build 2>&1 | Select-Object -Last 1; $env:SMOKE_USER_EMAIL=\"smoke@beacon.test\"; $env:SMOKE_USER_PASSWORD=\"29DMYHtQwKopTa6H7htAyeB1ynae\"; Set-Location apps\\\\web; pnpm exec playwright test 2>&1 | Select-Object -Last 6)",
+      "Bash(grep -n \"style={{ position: 'absolute', inset: 0 }}\" src/features/mind/PortfolioMap.tsx)",
+      "PowerShell($env:NODE_OPTIONS=\"--use-system-ca\"; Set-Location d:\\\\project-beacon; pnpm --filter @beacon/web build 2>&1 | Select-Object -Last 1; node scripts/verify-deploy.mjs --sha deadbeef 2>&1; Write-Output \"exit=$LASTEXITCODE\")"
+    ]
+  }
+}
