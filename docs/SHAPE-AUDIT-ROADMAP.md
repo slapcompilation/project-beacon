@@ -18,6 +18,8 @@ Age is not the criterion and using it would be destructive: `product_variants` a
 |---|---|
 | functions (excl. pgvector) | **249** — 146 called by the app, 38 triggers, **24 reachable by nothing** |
 | tables | **106** — 27 back an object type, 9 back a link, **70 neither** |
+
+*After all five phases: 246 functions, 0 undeclared unreachable; 105 tables, every one classified, 10 grandfathered and falling.*
 | link types | 24 (16 FK-backed, 8 join-backed, 0 loose) |
 | time series registered | 4 |
 
@@ -98,6 +100,19 @@ The problem is that nothing *says so*. There is no declaration of which tables a
 
 # Roadmap
 
+> **STATUS — all five phases shipped (2026-07-31).** Outcomes recorded per phase
+> below. `audit-shape --check` now runs in CI, so the findings this document
+> describes become build failures rather than the next audit's material.
+>
+> | | | |
+> |---|---|---|
+> | A | #451 | 10 capabilities wired · **3 had never worked** |
+> | B | #452 | 3 health mechanisms → 1 · **found a live stock-write abort** |
+> | C | #451 | BOM chain closed · 2,548 sale→variant paths |
+> | D | #453 | 2 series registered · `booking_forecast` typed |
+> | E | #453 | boundary declared · ratchet in CI · **caught an orphan on run one** |
+
+
 Ordered so each phase makes the next cheaper, and so the ratchet lands before the big changes.
 
 ## Phase A — consume what already exists *(no new substrate)*
@@ -155,3 +170,45 @@ Make the audit a build gate rather than an exercise:
 Phase A is first because it is pure debt from this week and the cheapest thing on the list. Phase E is last only because it needs the earlier phases to pass — but **it is the deliverable that matters**. Everything above it is a one-off cleanup; the ratchet is what stops the next 285 migrations accumulating the same drift.
 
 The three defects found this week — harmonization blind (#446), `ON CONFLICT` on a view (#448), four RPCs that never existed (#449) — were all found by pushing **real data** through the system, never by a test. Phase E is the attempt to make the next one fail in CI instead.
+
+
+---
+
+# What each phase actually cost and found
+
+Recorded because the estimates were wrong in both directions, and the pattern is
+worth keeping.
+
+**A — consume what exists.** The cheapest phase by code and the most productive
+by defects. Three of the ten had never worked: `review_queue_load` returned 403
+for every real user (SECURITY INVOKER joining `auth.users`), `adoption_metrics`
+reported a false 0%, and the curated answers had never been consulted. All three
+were invisible until something called them.
+
+**B — one health mechanism.** Nearly deleted the operator's tunable SLA by
+accident: `source_freshness` has hardcoded thresholds and the band it was
+replacing read org policy. Caught before merging; the registry supplies the
+metric, policy still supplies the trigger. Then the POS probe hit
+`trg_stock_log_occupancy_edge` still writing the **pre-split** edge name, which
+aborts every `stock_logs` write on a day with occupancy data. Latent for months
+because occupancy was stale; reachable the moment a real event landed.
+
+**C — the BOM chain.** Three registrations, no new code, and the highest value
+per line in the whole roadmap. `pos_sale → menu_item → menu_item_ingredient →
+variant` now traverses in three hops.
+
+**D — typing gaps.** The roadmap's own suggestion (fold `booking_forecasts` into
+`forecast_observations`) turned out to be wrong once the data was checked —
+per-variant demand versus per-hotel occupancy. Recorded rather than followed.
+
+**E — the ratchet.** Found `raise_integration_health_alert` orphaned by Phase B
+on its first run, in a PR that was already merged and green. That is the entire
+argument for the gate: it caught in CI exactly the class of thing that had
+needed a full audit to find.
+
+## The through-line
+
+Every defect in this arc came from **real data**, never from a test — a Greek
+invoice, a source registration, a webhook, a POS probe. The guards were correct;
+the coverage was the gap. Phase E exists to make the next one fail in CI instead
+of waiting for someone to look.
