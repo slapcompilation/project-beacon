@@ -69,6 +69,9 @@ export type EdgeType =
   | 'po_sourced_from'
   | 'recipe_consumes'
   | 'pick_consumes'
+  // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients
+  | 'sold'
+  | 'ingredient_of'
   | 'transfer_approved_by'
   | 'batch_of'
   | 'discarded_via'
@@ -101,7 +104,7 @@ export const EDGE_TYPES = [
   'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
   'fulfills', 'log_fulfills_request', 'sourced_from',
   'delivery_sourced_from', 'receipt_sourced_from', 'po_sourced_from',
-  'recipe_consumes', 'pick_consumes', 'transfer_approved_by', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
+  'recipe_consumes', 'pick_consumes', 'sold', 'ingredient_of', 'transfer_approved_by', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
   'influenced_by_occupancy', 'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
   'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
   'mentions', 'resolved_to',

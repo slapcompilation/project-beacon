@@ -11,8 +11,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Button, Card, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
-  SegmentedControl, Spinner, SpinnerSize, Tag,
+  Button, Card, HTMLSelect, Icon, InputGroup, Intent, Menu, MenuDivider, MenuItem,
+  NonIdealState, Popover, SegmentedControl, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from '@/lib/utils'
@@ -26,9 +26,12 @@ import { decideProposal } from '@/features/agents/proposalsApi'
 import { toast } from 'sonner'
 import type { ProposalRow } from '@/features/agents/proposalsApi'
 import { TeachRuleDialog, actionQuantity, type TeachRuleContext } from '@/features/agents/TeachRuleDialog'
+import { useTeamMembers } from '@/features/team/hooks'
 import {
   bandByConfidence,
   reviewQueueKeys,
+  useAssignProposal,
+  useReviewQueueLoad,
   usePendingProposals,
   useApproveProposalFromQueue,
   useRejectProposalFromQueue,
@@ -39,6 +42,34 @@ import { useRestockCycle } from '@/features/agents/useRestockCycle'
 
 type Band = 'all' | 'red' | 'yellow' | 'green'
 type SortKey = 'confidence-asc' | 'confidence-desc' | 'newest' | 'oldest'
+type OwnerFilter = 'all' | 'mine' | 'unassigned'
+
+/** Pending review per person, unassigned as its own column. The adoption band
+ *  on the Flywheel says decisions are concentrated in one reviewer; this is
+ *  where an operator can see that daily and move work off them. */
+function QueueLoad({ rows }: { rows: { assignee: string | null; assignee_email: string; pending: number; oldest_days: number }[] }) {
+  if (rows.length === 0) return null
+  return (
+    <div className="flex items-center gap-4 px-4 py-2 border-b shrink-0 flex-wrap text-xs">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Load</span>
+      {rows.map((r) => (
+        <div key={r.assignee ?? 'unassigned'} className="flex items-center gap-1.5">
+          <Icon icon={r.assignee ? 'user' : 'inbox'} size={11}
+            className={r.assignee ? 'text-muted-foreground' : 'text-amber-600'} />
+          <span className={cn('truncate max-w-[14rem]', !r.assignee && 'text-amber-700 dark:text-amber-500')}>
+            {r.assignee_email}
+          </span>
+          <span className="tabular-nums font-semibold">{r.pending}</span>
+          {r.oldest_days > 1 && (
+            <Tag minimal intent={r.oldest_days > 7 ? Intent.DANGER : Intent.WARNING} className="!text-[10px]">
+              oldest {r.oldest_days}d
+            </Tag>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function ReviewQueuePage() {
   const { data: rows = [], isLoading, isError, refetch, isFetching, dataUpdatedAt } = usePendingProposals()
@@ -65,8 +96,15 @@ export default function ReviewQueuePage() {
   const [teachCtx, setTeachCtx]       = useState<TeachRuleContext | null>(null)
   const [search, setSearch]           = useState('')
   const [sortBy, setSortBy]           = useState<SortKey>('confidence-asc')
+  // Assignment (275): who owns reviewing this. Unassigned is a real state, not a
+  // missing value, so it gets its own filter rather than being folded into "all".
+  const [owner, setOwner]             = useState<OwnerFilter>('all')
+  const userId  = useAuthStore((s) => s.userId)
+  const load    = useReviewQueueLoad()
+  const members = useTeamMembers()
+  const assign  = useAssignProposal()
   // The "confirm" arming is set-specific — drop it whenever the visible set changes.
-  useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter, search])
+  useEffect(() => { setArmBulk(false) }, [band, agentFilter, typeFilter, search, owner])
 
   const handleReject = (row: ProposalRow) => {
     reject.mutate(row.id, { onSuccess: () => { setTeachCtx(teachCtxFor(row)) } })
@@ -88,6 +126,8 @@ export default function ReviewQueuePage() {
     if (band === 'green'  && r.confidence < 0.85) return false
     if (agentFilter && r.agent_name !== agentFilter) return false
     if (typeFilter  && r.action_type !== typeFilter) return false
+    if (owner === 'mine'       && r.assigned_to_user_id !== userId) return false
+    if (owner === 'unassigned' && r.assigned_to_user_id !== null)   return false
     return true
   })
 
@@ -166,8 +206,20 @@ export default function ReviewQueuePage() {
         </div>
       </header>
 
+      {rows.length > 0 && <QueueLoad rows={load.data ?? []} />}
+
       {rows.length > 0 && (
         <div className="flex items-center gap-3 px-4 py-2 border-b shrink-0 flex-wrap">
+          <SegmentedControl
+            size="small"
+            value={owner}
+            onValueChange={(v) => { setOwner(v as OwnerFilter) }}
+            options={[
+              { value: 'all',        label: 'Everyone' },
+              { value: 'mine',       label: `Mine (${String(rows.filter((r) => r.assigned_to_user_id === userId).length)})` },
+              { value: 'unassigned', label: `Unassigned (${String(rows.filter((r) => r.assigned_to_user_id === null).length)})` },
+            ]}
+          />
           <SegmentedControl
             size="small"
             value={band}
@@ -256,6 +308,9 @@ export default function ReviewQueuePage() {
               onApprove={() => { approve.mutate(row) }}
               onReject={() => { handleReject(row) }}
               onTeach={() => { setTeachCtx(teachCtxFor(row)) }}
+              members={members.data ?? []}
+              assigning={assign.isPending}
+              onAssign={(assignee) => { assign.mutate({ id: row.id, assignee }) }}
             />
           ))
         )}
@@ -280,6 +335,58 @@ function teachCtxFor(row: ProposalRow): TeachRuleContext {
   }
 }
 
+/** Assign this proposal to somebody, or clear it. Unassigned reads as an amber
+ *  "Unassigned" rather than an empty control — a queue nobody owns is the state
+ *  worth noticing, and 275's whole point is that nothing routes work today. */
+function AssigneeControl({ row, members, currentUserId, busy, onAssign }: {
+  row: ProposalRow
+  members: { id: string; email: string }[]
+  currentUserId: string | null
+  busy: boolean
+  onAssign: (assignee: string | null) => void
+}) {
+  const assigned = row.assigned_to_user_id
+  const mine     = assigned !== null && assigned === currentUserId
+  const email    = members.find((m) => m.id === assigned)?.email
+
+  return (
+    <Popover
+      minimal
+      placement="bottom-end"
+      content={
+        <Menu>
+          {currentUserId && !mine && (
+            <MenuItem icon="user" text="Assign to me" onClick={() => { onAssign(currentUserId) }} />
+          )}
+          {members
+            .filter((m) => m.id !== currentUserId && m.id !== assigned)
+            .map((m) => (
+              <MenuItem key={m.id} icon="person" text={m.email} onClick={() => { onAssign(m.id) }} />
+            ))}
+          {assigned !== null && (
+            <>
+              <MenuDivider />
+              <MenuItem icon="cross" text="Unassign" intent={Intent.WARNING} onClick={() => { onAssign(null) }} />
+            </>
+          )}
+        </Menu>
+      }
+    >
+      <Button
+        variant="minimal"
+        size="small"
+        loading={busy}
+        icon={assigned ? 'user' : 'inbox'}
+        intent={assigned ? Intent.NONE : Intent.WARNING}
+        title={assigned ? `Assigned to ${email ?? 'someone'}` : 'Nobody owns this yet'}
+        className="!text-[11px]"
+      >
+        {mine ? 'Me' : assigned ? (email ?? 'Assigned') : 'Unassigned'}
+      </Button>
+    </Popover>
+  )
+}
+
 // ─── Card ─────────────────────────────────────────────────────────────────────
 
 function QueueRow({
@@ -288,12 +395,18 @@ function QueueRow({
   onApprove,
   onReject,
   onTeach,
+  members,
+  assigning,
+  onAssign,
 }: {
   row: ProposalRow
   busy: boolean
   onApprove: () => void
   onReject:  () => void
   onTeach:   () => void
+  members:   { id: string; email: string }[]
+  assigning: boolean
+  onAssign:  (assignee: string | null) => void
 }) {
   const navigate = useNavigate()
   const hotelId  = useActiveHotelId()
@@ -326,6 +439,13 @@ function QueueRow({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <AssigneeControl
+            row={row}
+            members={members}
+            currentUserId={userId}
+            busy={assigning}
+            onAssign={onAssign}
+          />
           <span className="text-[11px] text-muted-foreground">
             {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
           </span>

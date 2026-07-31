@@ -18,6 +18,7 @@ import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitor
 import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
 import { useIntegrationHealth } from './useIntegrationHealth'
 import { useIntegrationHealthSweep } from './useIntegrationHealthSweep'
+import { useSourceRegistry, freshnessIntent } from './useSourceRegistry'
 
 type Monitors = OrgPolicy['monitors']
 
@@ -132,6 +133,51 @@ function IntegrationHealthReadout({ enabled }: { enabled: boolean }) {
         )}
         {sweep.isError && <span className="text-xs text-red-500">{sweep.error.message}</span>}
       </div>
+    </div>
+  )
+}
+
+/** Registered sources (5.5/5.6). Foundry's shape: a source is a row, and its
+ *  health is a freshness check over it — not a function per connector type.
+ *  Shows dataset freshness (when we last ran) against data freshness (when the
+ *  data last changed), because those come apart in the one way that matters. */
+function SourceRegistryReadout() {
+  const { data, isLoading, isError, error } = useSourceRegistry()
+
+  if (isLoading) {
+    return <div className="flex items-center gap-2 text-xs text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Reading the source registry…</div>
+  }
+  if (isError) return <p className="text-xs text-red-500">{error instanceof Error ? error.message : 'Failed to read registry'}</p>
+  if (!data || data.length === 0) {
+    return (
+      <Callout intent={Intent.NONE} icon="database">
+        No sources registered. A source is a row — where its rows land, what identifies them, and what they become — so registering one needs no deployment.
+      </Callout>
+    )
+  }
+
+  const INTENT = { danger: Intent.DANGER, warning: Intent.WARNING, success: Intent.SUCCESS, none: Intent.NONE } as const
+  const hours = (h: number | null) => h === null ? '—' : h < 48 ? `${String(Math.round(h))}h` : `${String(Math.round(h / 24))}d`
+
+  return (
+    <div className="divide-y divide-border rounded border">
+      {data.map((s) => (
+        <div key={s.api_name} className="flex items-start justify-between gap-3 px-3 py-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="truncate text-sm font-medium">{s.label}</span>
+              <Tag minimal intent={INTENT[freshnessIntent(s.verdict)]}>{s.verdict}</Tag>
+              {!s.ontologized && <Tag minimal icon="help">not ontologized</Tag>}
+              {s.deadLetters > 0 && <Tag minimal intent={Intent.DANGER} icon="inbox">{s.deadLetters} dead-lettered</Tag>}
+            </div>
+            {s.reconciliation && <div className="text-[11px] text-muted-foreground">{s.reconciliation}</div>}
+          </div>
+          <div className="shrink-0 text-right text-[11px] tabular-nums text-muted-foreground">
+            <div>data <span className="font-semibold text-foreground">{hours(s.data_age_hours)}</span> old</div>
+            <div>{s.last_run_at ? `ran ${hours(s.run_age_hours)} ago` : 'never ran'}</div>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -272,6 +318,12 @@ export default function MonitorsTab() {
               onChange={(n) => { patch('integration', { stuck_ingest_after_minutes: Math.round(n) }) }} />
           </div>
           <IntegrationHealthReadout enabled={draft.integration.enabled} />
+
+          {/* Registered sources — the config-as-data view of the same question.
+              Phase B of the shape audit retires the per-connector readout above
+              in favour of this one; both are shown while that lands. */}
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground pt-1">Registered sources</div>
+          <SourceRegistryReadout />
         </MonitorShell>
 
         {!canEdit && <Callout intent={Intent.NONE} icon="lock">Read-only — an admin or owner can tune these monitors.</Callout>}

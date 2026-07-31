@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useDecisionCalibration, type CalibrationWindow } from '@/features/calibration/hooks'
-import { useAgentCycleHistory, useCronHealthSummary } from '@/features/monitor/hooks'
+import { useAgentCycleHistory, useCronHealthSummary, useAdoptionMetrics } from '@/features/monitor/hooks'
 import { useOrgPolicy, useSetOrgPolicy } from '@/features/mind/policy'
 import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
 import { AGENT_ACTION } from '@/features/mind/agentActions'
@@ -160,6 +160,72 @@ function GoalsSection({ policy, ece, approval, onSave, onApply, saving }: {
           )
         })}
       </div>
+    </Card>
+  )
+}
+
+/** "Is anyone driving?" — the counterpart to everything else on this page,
+ *  which measures whether the SYSTEM is learning. Two signals get called out
+ *  rather than left in the numbers: one person making every decision is
+ *  key-person risk wearing the costume of healthy adoption, and a property with
+ *  no activity is invisible in a portfolio total. */
+function AdoptionSection({ days }: { days: number }) {
+  const { data, isLoading, error } = useAdoptionMetrics(days)
+  const by = new Map((data ?? []).map((m) => [m.metric, m]))
+  const get = (k: string) => by.get(k)?.value ?? null
+  const pct = (k: string) => { const v = get(k); return v === null ? '—' : `${String(Math.round(v))}%` }
+
+  const deciders = get('deciders')
+  const quiet    = get('quiet_properties')
+  const proposals = get('proposals')
+
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Icon icon="people" size={14} className="text-sky-500" /> Adoption
+        </h2>
+        <Link to="/mind?aip=review" className="text-xs text-primary hover:underline">Review queue →</Link>
+      </div>
+      <p className="text-xs text-muted-foreground -mt-1">
+        Everything else here asks whether the system is getting better. This asks whether anyone is driving it.
+      </p>
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} /> Loading…</div>
+      ) : error ? (
+        <p className="text-xs text-muted-foreground">Adoption unavailable: {error.message}</p>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-end gap-8">
+            <Metric label="Authors" value={String(get('authors') ?? 0)}
+              sub={by.get('authors')?.detail ?? 'tools, cohorts, automations, types, principles'} />
+            <Metric label="Of members" value={pct('author_share')} sub="have authored something" />
+            <Metric label="Proposals" value={String(proposals ?? 0)} sub={`raised in ${days >= 3650 ? 'all time' : `${String(days)} days`}`} />
+            <Metric label="Decided" value={pct('decided_share')} sub="of those proposals" />
+            <Metric label="Within a day" value={pct('decided_within_a_day')} sub="of decisions made in 24h" />
+          </div>
+
+          {deciders === 1 && (
+            <div className="flex items-start gap-2 rounded border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 px-2 py-1.5">
+              <Icon icon="user" size={12} className="mt-0.5 text-amber-600 shrink-0" />
+              <div className="text-[11px]">
+                <span className="font-medium">Every decision is one person.</span>{' '}
+                A high decision rate carried by a single reviewer is key-person risk, not adoption. Assigning work spreads it.
+              </div>
+            </div>
+          )}
+          {quiet !== null && quiet > 0 && (
+            <div className="flex items-start gap-2 rounded border border-amber-300/60 bg-amber-50/60 dark:bg-amber-950/20 px-2 py-1.5">
+              <Icon icon="offline" size={12} className="mt-0.5 text-amber-600 shrink-0" />
+              <div className="text-[11px]">
+                <span className="font-medium">{String(quiet)} quiet {quiet === 1 ? 'property' : 'properties'}.</span>{' '}
+                No proposal activity at all — silence at one property is invisible in a portfolio total.
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </Card>
   )
 }
@@ -315,6 +381,11 @@ export default function FlywheelPage() {
             </div>
           )}
         </Card>
+
+        {/* ── Adoption: the Flywheel says "is it getting better", this says who
+             is actually driving it. Counts and shares only — a composite index
+             would hide the two things worth seeing. ── */}
+        <AdoptionSection days={windowDays === 0 ? 3650 : windowDays} />
 
         {/* ── Learning loop (O1/O2 payoff): taught → grown → shaping outcomes ── */}
         <Card className="space-y-3">

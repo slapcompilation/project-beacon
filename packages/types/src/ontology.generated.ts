@@ -150,6 +150,16 @@ export interface MaintenanceRequest {
   days_open?: number  // computed
 }
 
+/** Menu Item — A dish sold to a guest. Consumes variants through its recipe.
+ *  Code-owned; records live in `menu_items`. */
+export interface MenuItem {
+  name: string
+  category?: string
+  sell_price?: number
+  is_active: boolean
+  created_at: string
+}
+
 /** Recipe Ingredient — A variant a menu item is made from.
  *  Code-owned; records live in `menu_item_ingredients`. */
 export interface MenuItemIngredient {
@@ -407,6 +417,7 @@ export interface OntologyTypes {
   incident: Incident
   location: Location
   maintenance_request: MaintenanceRequest
+  menu_item: MenuItem
   menu_item_ingredient: MenuItemIngredient
   occupancy_log: OccupancyLog
   pick_list_item: PickListItem
