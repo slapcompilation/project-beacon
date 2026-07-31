@@ -67,6 +67,13 @@ jobs:
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
           pnpm db:migrate
 
+      # A generated file nobody regenerates is worse than none: it looks
+      # authoritative and is quietly wrong.
+      - name: Ontology types are current
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          pnpm gen:ontology:check
+
       - name: Data-layer guards
         if: github.event_name != 'pull_request'
         run: |

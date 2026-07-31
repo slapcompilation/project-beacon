@@ -24,6 +24,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import pg from 'pg'
+import { connectionString, SSL } from './db-url.mjs'
 
 const MIGRATIONS = 'supabase/migrations'
 const CONTRACTS = [
@@ -34,23 +35,6 @@ const CONTRACTS = [
 // Two runners must never apply concurrently — CI on merge and someone local.
 const LOCK_KEY = 4021763
 
-function connectionString() {
-  const raw = process.env.SUPABASE_DB_URL ?? readEnvLocal()
-  if (!raw) return null
-  // pg 8.22 reads sslmode from the URL and maps `require` to verify-full, which
-  // then rejects Supabase's chain. Drop it and let the explicit ssl option below
-  // decide — encrypted, unverified, which is what sslmode=require meant here.
-  const url = new URL(raw)
-  url.searchParams.delete('sslmode')
-  return url.toString()
-}
-
-function readEnvLocal() {
-  const file = path.join(process.cwd(), '.env.local')
-  if (!fs.existsSync(file)) return null
-  const line = fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith('SUPABASE_DB_URL='))
-  return line ? line.slice('SUPABASE_DB_URL='.length).trim() : null
-}
 
 /** Version + name exactly as the filename gives them. Null for non-migrations. */
 function migrationId(file) {
@@ -126,7 +110,7 @@ if (!url) {
   process.exit(2)
 }
 
-const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
+const client = new pg.Client({ connectionString: url, ssl: SSL })
 try {
   await client.connect()
 } catch (err) {

@@ -13,7 +13,9 @@
     "db:contracts": "node scripts/db.mjs --contracts",
     "db:status": "node scripts/db.mjs --status",
     "db:migrate": "node scripts/db.mjs --migrate",
-    "db:baseline": "node scripts/db.mjs --baseline"
+    "db:baseline": "node scripts/db.mjs --baseline",
+    "gen:ontology": "node scripts/generate-ontology-types.mjs",
+    "gen:ontology:check": "node scripts/generate-ontology-types.mjs --check"
   },
   "devDependencies": {
     "pg": "^8.22.0",
