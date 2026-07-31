@@ -178,6 +178,18 @@ Cheap relative to value, because the hard half exists.
 answers "is anyone driving". For a product about operators authoring the system,
 that is the blind spot that matters most.
 
+**5.2 needed no build — it needed a document.** `search_documents` was already a
+first-class copilot tool over `match_document_chunks`, returning title + page and
+instructed to cite both, with an empty state that says *"do not invent document
+contents"*. `documents` was 0, so none of it had ever run. Verified 2026-07-31 by
+ingesting a real Greek invoice and asking in English: one `search_documents` call
+returned **€1,200.00, due 30 January 2026, cited `(Τιμολόγιο INV11122, p. 1)`**.
+Cross-lingual retrieval was not designed for; it falls out of embedding summaries.
+
+That ingest is also what caught the regressions fixed in #446 — the Tier 0 stage
+gate refused the document because harmonization had gone blind when
+`relationship_edges` became a view. **Nine tiers of guards were worth one real file.**
+
 ---
 
 ## Deliberate non-goals
