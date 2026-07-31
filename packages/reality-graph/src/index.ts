@@ -165,7 +165,7 @@ export {
   makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
-export type { GraphReader, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './tools/index'
+export type { GraphReader, ContractTerms, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './tools/index'
 export type {
   ComputeDecisionCalibrationInput,
   ComputeDecisionCalibrationOutput,

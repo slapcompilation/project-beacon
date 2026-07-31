@@ -136,4 +136,20 @@ export interface GraphReader {
    *  migration 208). Optional — only the browser reader implements it; agents /
    *  fixtures that don't need it can omit it. Used by the mine_process tool. */
   mineProcess?(nodeType: string, hotelId: string): Promise<MinedProcessResult>
+  /** The agreed commercial term for a variant from a supplier, or null when no
+   *  agreement covers the pair. Optional like mineProcess — fixtures and the
+   *  edge reader need not implement it. Used by get_contract_terms. */
+  getContractTerms?(variantId: string, supplierId: string): Promise<ContractTerms | null>
+}
+
+/** One row of get_contract_terms (migration 300). inForce folds is_active and
+ *  the validity window together, because a decision cares about "can I use this
+ *  price today", not about which of the three reasons it cannot. */
+export interface ContractTerms {
+  contractedPrice: number
+  minOrderQty:     number | null
+  validFrom:       string | null
+  validUntil:      string | null
+  inForce:         boolean
+  basis:           string
 }

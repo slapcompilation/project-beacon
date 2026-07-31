@@ -13,6 +13,7 @@ import { makeQuerySisterPropertyInventoryTool } from '../../tools/data/query_sis
 import { makeRankAlternativeSuppliersTool } from '../../tools/logic/rank_alternative_suppliers'
 import { makeQueryVariantDocumentsTool } from '../../tools/data/query_variant_documents'
 import { makeQueryDocumentChunksTool } from '../../tools/data/query_document_chunks'
+import { makeGetContractTermsTool } from '../../tools/data/get_contract_terms'
 import { requestClarificationTool } from '../../tools/predefined/request_clarification'
 import type { LLMClient, LLMToolSpec } from '../llm'
 import { toolSpec } from '../llm'
@@ -58,6 +59,7 @@ export function buildRestockAdvisorAgent(deps: RestockAdvisorDeps): AgentSpec {
     makeRankAlternativeSuppliersTool(deps.reader) as LogicTool,
     makeQueryVariantDocumentsTool(deps.reader) as LogicTool,
     makeQueryDocumentChunksTool(deps.reader) as LogicTool,
+    makeGetContractTermsTool(deps.reader)    as LogicTool,
     requestClarificationTool as LogicTool,
   ]
   const registry = new Map(tools.map((t) => [t.name, t]))

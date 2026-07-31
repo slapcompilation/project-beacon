@@ -200,6 +200,24 @@ Recorded so nobody re-derives them as gaps:
 - **Automations as an object type** — Foundry doesn't; it is cargo-culting.
 - **Federated compute** (virtual tables, external transforms, S3 API) — no consumer
   in our domain yet. Revisit when a customer cannot copy their data.
+- **SQL-learned per-variant thresholds** — `update_learned_thresholds` wrote
+  per-variant alert days, restock multipliers and a confidence, derived from
+  operator dismissals and approvals. That is a **model**, and Foundry's shape for
+  a model is objective → deployment → function, reached *"in the context of the
+  Ontology by using functions that invoke models"* (`functions-on-models`). Ours
+  is the same: `objectives/<name>/adapter.ts` behind `runInference()`, an eval
+  suite, release stages, and *"no code anywhere talks to a model directly"*. The
+  function had no objective, no adapter, no eval, no release stage, and nothing
+  read its confidence. It also **competed with a decision already made**: the
+  monitors pattern is a deterministic metric plus a trigger the operator owns in
+  `org_policy`, and a learned per-variant threshold is a second source of truth
+  for the same number with no rule about which wins. CLAUDE.md admits a model only
+  *"when a deterministic baseline gets beaten by a trained model on the eval set"*
+  — no such evidence exists, so building it would have been adopting a model
+  because the table was already there. Dropped in 299; if per-variant thresholds
+  are ever justified they arrive as a modelling objective behind the adapter seam.
+  `variant_learned_thresholds` stays — the proposal-quality briefing counts it,
+  and that count is honestly zero rather than broken.
 - **Analyst suite** (Contour, Slate, Notepad, Carbon, Fusion) — scope.
 - **Container/external model serving, Spark, streaming engines** — scope.
 - **Solution Designer** — design-time diagramming is a platform-vendor need.

@@ -3,6 +3,7 @@
 
 import { supabase } from '@/lib/supabase/client'
 import type {
+  ContractTerms,
   DocumentChunkMatch,
   DocumentRow,
   GraphReader,
@@ -190,6 +191,37 @@ export function makeSupabaseGraphReader(): GraphReader {
         .in('id', docIds)
       if (docError) throw new Error(docError.message)
       return docs as DocumentRow[]
+    },
+
+    async getContractTerms(variantId, supplierId): Promise<ContractTerms | null> {
+      // The structured half of what the agents used to scrape out of contract
+      // PDFs. Returns null when no agreement covers the pair, which is a real
+      // answer — the agent then prices from the supplier list instead.
+      const result = await supabase.rpc('get_contract_terms', {
+        p_variant_id:  variantId,
+        p_supplier_id: supplierId,
+      }) as unknown as {
+        data: Array<{
+          contracted_price: number | string
+          min_order_qty:    number | null
+          valid_from:       string | null
+          valid_until:      string | null
+          in_force:         boolean
+          basis:            string
+        }> | null
+        error: { message: string } | null
+      }
+      if (result.error) throw new Error(result.error.message)
+      const row = result.data?.[0]
+      if (!row) return null
+      return {
+        contractedPrice: Number(row.contracted_price),
+        minOrderQty:     row.min_order_qty,
+        validFrom:       row.valid_from,
+        validUntil:      row.valid_until,
+        inForce:         row.in_force,
+        basis:           row.basis,
+      }
     },
 
     async searchDocumentChunks(hotelId, query, opts): Promise<DocumentChunkMatch[]> {
