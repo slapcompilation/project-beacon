@@ -24,6 +24,18 @@ Both rules hold, on different things:
 
 So the test is: **is this Foundry's shape, or ours?** Ours needs a consumer today. Theirs needs a citation.
 
+### What we copy, and what we deliberately don't
+
+**Copy the shape: decomposition, names, limits, cardinality rules, error semantics.** That is what "to the letter" means here.
+
+**Do not copy the substrate.** Foundry's backend is predominantly Java (their error codes — `Phonograph2:SchemaMismatch` — follow Conjure's `Namespace:ErrorName`), with TypeScript/React front-ends. We are not moving to it, and the reason is specific rather than inertia:
+
+> Our TypeScript domain library runs in **both** the browser and the edge functions — `selectObjectSet`, `searchAround`, `evaluateAutomation`, `decideAutoExecution` are one implementation with one test suite, executing identically client- and server-side. Foundry needs generated SDKs to get that across a language boundary. A Java backend would mean a TS client anyway, and then **two implementations of ontology semantics** — the exact drift class the whole ontology arc exists to remove.
+
+Two supporting reasons: Foundry's Java serves a multi-tenant platform with Spark, streaming and custom compute, all of which are already non-goals here — copying the language optimised for needs we have declined is the cargo-culting this directive warns against. And our backend is increasingly Postgres: link types, the `relationship_edges` view, the drift guards and 26 RLS contracts are SQL, which a rewrite would not touch.
+
+Worth taking from their stack without a rewrite: **Conjure-style namespaced errors** (`Namespace:ErrorName`), and **Python for modelling** behind the existing adapter seam — language pluralism where it pays.
+
 ### Deliberate divergences
 
 Recorded in `docs/IMPLEMENTATION-MAP.md` under non-goals, with the reason. Choosing not to build something is fine; **quietly building a different shape is not.**
