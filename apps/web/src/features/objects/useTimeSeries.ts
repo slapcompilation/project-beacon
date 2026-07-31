@@ -19,20 +19,32 @@ export interface SeriesBounds {
   last:  SeriesPoint | null
 }
 
-async function point(fn: 'time_series_first_point' | 'time_series_last_point',
-                     typeApiName: string, propertyKey: string, recordId: string): Promise<SeriesPoint | null> {
-  const result = await supabase.rpc(fn, {
-    p_type_api_name: typeApiName, p_property_key: propertyKey, p_record_id: recordId,
-  }) as unknown as {
-    data: { at: string; value: number | string }[] | null
-    error: { message: string } | null
-  }
-  // An unregistered series raises TimeSeries:PropertyNotRegistered. That is a
-  // real answer for a caller asking about a property this type does not have,
-  // so it surfaces as "no series" rather than as a thrown error.
+interface PointResult {
+  data:  { at: string; value: number | string }[] | null
+  error: { message: string } | null
+}
+
+// An unregistered series raises TimeSeries:PropertyNotRegistered. That is a real
+// answer for a caller asking about a property this type does not have, so it
+// surfaces as "no series" rather than as a thrown error.
+function firstRow(result: PointResult): SeriesPoint | null {
   if (result.error) return null
   const row = result.data?.[0]
   return row ? { at: row.at, value: Number(row.value) } : null
+}
+
+// Both names are written as LITERALS on purpose. scripts/check-rpcs.mjs and the
+// shape audit find callers by matching a literal argument, so a dynamically
+// named call is never checked against pg_proc — which is exactly how four
+// missing RPCs survived until a webhook hit them. A shared helper taking the
+// name as an argument would read tidier and defeat both guards.
+async function seriesPoints(typeApiName: string, propertyKey: string, recordId: string): Promise<SeriesBounds> {
+  const args = { p_type_api_name: typeApiName, p_property_key: propertyKey, p_record_id: recordId }
+  const [first, last] = await Promise.all([
+    supabase.rpc('time_series_first_point', args) as unknown as Promise<PointResult>,
+    supabase.rpc('time_series_last_point',  args) as unknown as Promise<PointResult>,
+  ])
+  return { first: firstRow(first), last: firstRow(last) }
 }
 
 /** First and last point of one object's series. Null when the series is not
@@ -42,12 +54,6 @@ export function useSeriesBounds(typeApiName: string, propertyKey: string, record
     queryKey: ['time-series-bounds', typeApiName, propertyKey, recordId],
     enabled:  !!recordId,
     staleTime: 60_000,
-    queryFn:  async (): Promise<SeriesBounds> => {
-      const [first, last] = await Promise.all([
-        point('time_series_first_point', typeApiName, propertyKey, recordId ?? ''),
-        point('time_series_last_point',  typeApiName, propertyKey, recordId ?? ''),
-      ])
-      return { first, last }
-    },
+    queryFn:  () => seriesPoints(typeApiName, propertyKey, recordId ?? ''),
   })
 }
