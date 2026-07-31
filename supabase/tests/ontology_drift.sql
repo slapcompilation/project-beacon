@@ -125,3 +125,23 @@ BEGIN
   END IF;
   RAISE NOTICE 'link tenancy OK — every join-backed link carries its hotel''s organization';
 END $$;
+
+-- relationship_edges is a view, and a view has no unique constraints — so
+-- INSERT ... ON CONFLICT against it is not a slow degradation, it is 42P10 at
+-- runtime. Five functions carried that clause from when it was a table, and
+-- three were live: restock fulfilment, POS ingestion, stocktake commit. Dedup
+-- belongs to the router now (282). The `\s*\(` is load-bearing —
+-- relationship_edges is a prefix of relationship_edges_store, where the same
+-- clause is correct.
+DO $$
+DECLARE bad text;
+BEGIN
+  SELECT string_agg(p.proname, ', ') INTO bad
+  FROM pg_proc p JOIN pg_namespace nsp ON nsp.oid = p.pronamespace
+  WHERE nsp.nspname = 'public' AND p.prokind = 'f'
+    AND pg_get_functiondef(p.oid) ~* 'INSERT INTO\s+(public\.)?relationship_edges\s*\([^;]*ON CONFLICT';
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'EDGE WRITE DRIFT — ON CONFLICT against the relationship_edges view throws 42P10: %', bad;
+  END IF;
+  RAISE NOTICE 'edge writes OK — nobody guards the view with a constraint it cannot have';
+END $$;
