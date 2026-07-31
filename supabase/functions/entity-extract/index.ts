@@ -82,12 +82,12 @@ Deno.serve(async (req: Request) => {
 
     const { data: chunkRows } = await supabase
       .from('document_chunks')
-      .select('chunk_key, page, chunk_number, text_full, text_preview')
+      .select('id, chunk_key, page, chunk_number, text_full, text_preview')
       .eq('document_id', body.document_id)
       .order('page', { ascending: true })
       .order('chunk_number', { ascending: true })
       .limit(400) as unknown as {
-        data: Array<{ chunk_key: string; page: number; chunk_number: number; text_full: string | null; text_preview: string }> | null
+        data: Array<{ id: string; chunk_key: string; page: number; chunk_number: number; text_full: string | null; text_preview: string }> | null
       }
 
     const chunks: DocumentChunk[] = (chunkRows && chunkRows.length > 0)
@@ -135,7 +135,7 @@ Deno.serve(async (req: Request) => {
     // 3. Harmonize FIRST. Resolution is deterministic and free, so it must not
     //    depend on the LLM pass below succeeding — it used to sit after an
     //    early return and never ran when the model suggested nothing.
-    const harmony = await harmonize(supabase, doc, variants, suppliers)
+    const harmony = await harmonize(supabase, doc, (chunkRows ?? []).map((c) => c.id), variants, suppliers)
     if ('error' in harmony) return json({ error: harmony.error }, 502)
 
     // 4. Ask the LLM. Tight system prompt + JSON-shaped output.
@@ -256,14 +256,21 @@ function uniqueByName<T extends { id: string }>(rows: T[], names: (r: T) => stri
 async function harmonize(
   supabase:  SupabaseClient,
   doc:       { id: string; hotel_id: string },
+  chunkIds:  string[],
   variants:  VariantRow[],
   suppliers: SupplierRow[],
 ): Promise<{ resolved: number; entities_considered: number } | { error: string }> {
+  // Find this document's mentions through its CHUNKS, not through edge metadata.
+  // relationship_edges became a view (migration 262) and join-backed links carry
+  // no metadata, so metadata->>document_id was silently NULL for every mention —
+  // harmonization considered nothing and the stage-9 gate caught it on the first
+  // real document. The chunk already knows its document; ask it instead.
+  if (chunkIds.length === 0) return { resolved: 0, entities_considered: 0 }
   const { data: mentionEdges } = await supabase
     .from('relationship_edges')
     .select('target_id')
     .eq('edge_type', 'mentions')
-    .eq('metadata->>document_id', doc.id)
+    .in('source_id', chunkIds)
   const mentionedIds = [...new Set((mentionEdges ?? []).map((e) => e.target_id as string))]
   if (mentionedIds.length === 0) return { resolved: 0, entities_considered: 0 }
 
