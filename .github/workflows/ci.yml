@@ -44,3 +44,12 @@ jobs:
       # production deploy instead.
       - name: Edge function syntax
         run: pnpm check:edge
+
+      # Same class of gap as the one above: an RPC name is a STRING handed to
+      # PostgREST, so a function that does not exist type-checks perfectly and
+      # fails at runtime. Four were missing when this was written — occupancy
+      # ingestion had never worked.
+      - name: Every called RPC exists
+        run: pnpm check:rpcs
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
