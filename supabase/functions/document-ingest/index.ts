@@ -419,29 +419,10 @@ Deno.serve(async (req: Request) => {
         `Chunk readback mismatch: ${String(storedChunks?.length ?? 0)}/${String(chunkRows.length)}.`, 'ocr', 502)
     }
 
-    const { error: edgeDelErr } = await supabase
-      .from('relationship_edges')
-      .delete()
-      .eq('edge_type', 'cited_in')
-      .eq('source_id', body.document_id)
-    if (edgeDelErr) {
-      return gateFail('embedded.citations_refreshed', `Stale cited_in cleanup failed: ${edgeDelErr.message}`, 'ocr', 502)
-    }
-    const { error: edgeInsErr } = await supabase
-      .from('relationship_edges')
-      .insert(storedChunks.map((c) => ({
-        edge_type:    'cited_in',
-        source_type:  'document',
-        source_id:    body.document_id,
-        target_type:  'chunk',
-        target_id:    c.id,
-        hotel_id:     doc.hotel_id,
-        triggered_by: 'system',
-        metadata:     { chunk_key: c.chunk_key, page: c.page },
-      })))
-    if (edgeInsErr) {
-      return gateFail('embedded.citations_written', `cited_in insert failed: ${edgeInsErr.message}`, 'ocr', 502)
-    }
+    // No cited_in write here. That link is FK-backed on document_chunks.
+    // document_id, so inserting the chunk above already made it true — 262's
+    // router discards the edge write on purpose. Page-level citation survives
+    // because the page lives on the chunk, which is where it belonged anyway.
 
     // 7. Entity nodes + mentions edges (P6). Entities dedupe per
     //    (hotel, category, name_key) — the Foundry Entity object's
@@ -493,19 +474,18 @@ Deno.serve(async (req: Request) => {
           target_id:    entityId,
           hotel_id:     doc.hotel_id,
           triggered_by: 'system',
-          metadata:     { document_id: body.document_id, chunk_key: c.chunk_key, page: c.page, entity_name: e.name },
+          // No metadata: link_mentions stores the relationship, not a copy of
+          // its endpoints. document_id, chunk_key and page all live on the
+          // chunk; entity_name lives on the entity.
         })
       }
     }
 
-    const { error: menDelErr } = await supabase
-      .from('relationship_edges')
-      .delete()
-      .eq('edge_type', 'mentions')
-      .eq('metadata->>document_id', body.document_id)
-    if (menDelErr) {
-      return gateFail('embedded.mentions_refreshed', `Stale mentions cleanup failed: ${menDelErr.message}`, 'ocr', 502)
-    }
+    // Stale mentions need no cleanup either: link_mentions.source_id references
+    // document_chunks ON DELETE CASCADE, and the chunk rows were replaced
+    // wholesale above. The delete that used to sit here filtered on
+    // metadata->>document_id, which the view stopped carrying in 262 — it had
+    // been matching nothing.
     if (mentionRows.length > 0) {
       const { error: menInsErr } = await supabase.from('relationship_edges').insert(mentionRows)
       if (menInsErr) {
