@@ -1736,3 +1736,6 @@ export interface StocktakeVarianceRow {
   direction:             'surplus' | 'deficit' | 'exact'
 }
 
+// The ontology, as TypeScript. Generated from object_types by
+// `pnpm gen:ontology`; CI fails when it drifts from the schema.
+export type * from './ontology.generated'
