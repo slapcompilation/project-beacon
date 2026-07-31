@@ -101,3 +101,27 @@ BEGIN
   END IF;
   RAISE NOTICE 'ontology package OK — portable, every reference by api_name';
 END $$;
+
+-- A link is a node too, tenancy-wise: it carries the organization its hotel
+-- belongs to. 262's router wrote (hotel_id, source_id, target_id) and skipped
+-- the org column entirely — 4,076 rows across four backings, invisible because
+-- every policy on those tables happens to be hotel-scoped. It would have
+-- surfaced eventually as "the chain-wide query returns nothing", which is a
+-- much worse place to learn it. Checked generically so a new join table
+-- inherits the check instead of needing to remember it.
+DO $$
+DECLARE t text; n int; bad text;
+BEGIN
+  FOR t IN SELECT DISTINCT backing_table FROM link_types
+            WHERE backing_kind = 'join_table' AND backing_table IS NOT NULL
+  LOOP
+    EXECUTE format(
+      'SELECT count(*) FROM public.%I l JOIN hotels h ON h.id = l.hotel_id
+        WHERE h.organization_id IS NOT NULL AND l.organization_id IS NULL', t) INTO n;
+    IF n > 0 THEN bad := concat_ws('; ', bad, format('%s: %s rows', t, n)); END IF;
+  END LOOP;
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'LINK TENANCY DRIFT — join-backed links missing their organization: %', bad;
+  END IF;
+  RAISE NOTICE 'link tenancy OK — every join-backed link carries its hotel''s organization';
+END $$;
