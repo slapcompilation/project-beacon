@@ -24,6 +24,17 @@ export interface ApprovedAnswer {
   retired_at?: string
 }
 
+/** Booking Forecast — Expected occupancy for a future date. Actuals land in occupancy_log; this is the forward curve.
+ *  Code-owned; records live in `booking_forecasts`. */
+export interface BookingForecast {
+  date: string
+  expected_occupancy_pct: number
+  horizon_source: string
+  created_by?: string
+  created_at: string
+  updated_at: string
+}
+
 /** Case — A workflow envelope: trigger, proposals, outcome.
  *  Code-owned; records live in `cases`. */
 export interface Case {
@@ -406,6 +417,7 @@ export interface Variant {
 export interface OntologyTypes {
   alert: Alert
   approved_answer: ApprovedAnswer
+  booking_forecast: BookingForecast
   case: Case
   chunk: Chunk
   constraint: Constraint
