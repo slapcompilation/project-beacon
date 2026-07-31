@@ -366,25 +366,30 @@ export interface User {
 }
 
 /** Variant — A specific variant of a product — the unit inventory is counted in.
- *  Code-owned; records live in `product_variants`. */
+ *  Code-owned; records live in `variant_ontology`. */
 export interface Variant {
-  name: string
-  sku: string
-  current_stock: number
+  name?: string
+  sku?: string
+  current_stock?: number
   expiry_date?: string
   lot_number?: string
   serial?: string
-  cost: number
-  low_stock_threshold: number
-  enabled: boolean
+  cost?: number
+  low_stock_threshold?: number
+  enabled?: boolean
   barcode?: string
   reminder_date?: string
   reminder_label?: string
-  unit_of_measure: string
-  status: string
-  active: boolean
-  has_stock_history: boolean
-  par_source: string
+  unit_of_measure?: string
+  status?: string
+  active?: boolean
+  has_stock_history?: boolean
+  par_source?: string
+  projected_demand?: number
+  forecast_basis?: string
+  forecast_confidence?: number
+  forecast_horizon_days?: number
+  forecast_as_of?: string
 }
 
 /** Every registered object type, keyed by its api name. */
