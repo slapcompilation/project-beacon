@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { format, formatDistanceToNow } from 'date-fns'
+import { useSeriesBounds } from '@/features/objects/useTimeSeries'
 import {
   AnchorButton,
   Button,
@@ -260,6 +261,7 @@ export default function VariantObjectPage() {
   const refineProposalId = searchParams.get('refine')
   const [adviceOpen, setAdviceOpen] = useState(false)
   const [wasteOpen, setWasteOpen]   = useState(false)
+  const consumption = useSeriesBounds('variant', 'consumption', variantId)
   const [overstockOpen, setOverstockOpen] = useState(false)
   const hotelId = useActiveHotelId() // also gates the open-case lookup below
 
@@ -397,6 +399,17 @@ export default function VariantObjectPage() {
           label="Stock Value"
           value={`€${costAtRisk.toFixed(2)}`}
           sub={`@ €${variant.cost.toFixed(2)} / unit`}
+        />
+        {/* Registered time series (5.7) — last point is "what is it now",
+            first point is "how far back does this go". Both come from the
+            registration, so a newly registered series needs no code here. */}
+        <Metric
+          label="Consumption"
+          value={consumption.data?.last ? `${String(Math.round(consumption.data.last.value))} units` : '—'}
+          sub={consumption.data?.last
+            ? `latest ${format(new Date(consumption.data.last.at), 'd MMM')}${
+                consumption.data.first ? ` · since ${format(new Date(consumption.data.first.at), 'MMM yyyy')}` : ''}`
+            : 'no series points yet'}
         />
         </>
       }
