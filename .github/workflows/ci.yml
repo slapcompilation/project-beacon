@@ -53,3 +53,12 @@ jobs:
         run: pnpm check:rpcs
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+
+      # The ratchet. A new table must declare whether it is platform or domain;
+      # a domain table must be reachable by the ontology; the grandfathered set
+      # may only shrink; an unreachable function must be declared intentional.
+      # Caught an orphaned RPC on its very first run.
+      - name: Shape has not drifted
+        run: pnpm check:shape
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

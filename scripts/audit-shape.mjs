@@ -9,6 +9,19 @@
 //
 //   node scripts/audit-shape.mjs           summary + findings
 //   node scripts/audit-shape.mjs --json    full data to stdout
+//   node scripts/audit-shape.mjs --check   fail the build on new drift
+//
+// --check is the ratchet (Phase E). It enforces three things against
+// shape_registry, which is where the platform/domain boundary is DECLARED:
+//
+//   1. every table declares what it is — a new one cannot arrive unclassified
+//   2. every `domain` table is reached by the ontology (object type, link OR
+//      time series — three doors, not one)
+//   3. the grandfathered `domain_untyped` set may only SHRINK, and no
+//      unreachable function may appear that is not declared intentional
+//
+// The point is not this file. It is that the next capability from Foundry's
+// list cannot land half-typed or half-consumed without the build saying so.
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -88,6 +101,16 @@ const { rows: fns } = await c.query(`
                     WHERE d.objid = p.oid AND d.deptype = 'e')
   ORDER BY 1`)
 
+const { rows: registry } = await c.query(
+  `SELECT object_kind, object_name, classification, reason FROM public.shape_registry`)
+
+const { rows: reached } = await c.query(`
+  SELECT DISTINCT name FROM (
+    SELECT source_table  AS name FROM object_types           WHERE source_table  IS NOT NULL
+    UNION SELECT backing_table   FROM link_types             WHERE backing_table IS NOT NULL
+    UNION SELECT source_table    FROM time_series_properties WHERE source_table  IS NOT NULL
+  ) x`)
+
 const { rows: tbls } = await c.query(`
   SELECT c.relname AS name, coalesce(s.n_live_tup, 0) AS rows,
          EXISTS (SELECT 1 FROM object_types o WHERE o.source_table = c.relname) AS backs_type,
@@ -108,6 +131,44 @@ const enriched = fns.map((f) => ({
     || Number(f.refs_policies) > 0 || Number(f.refs_checks) > 0 || Number(f.refs_cron) > 0
     || Number(f.refs_evt) > 0 || inGuards(f.name) !== null,
 }))
+
+// ── The ratchet ─────────────────────────────────────────────────────────────
+if (process.argv.includes('--check')) {
+  const failures = []
+  const declared = new Map(registry.filter((r) => r.object_kind === 'table').map((r) => [r.object_name, r]))
+  const reachedSet = new Set(reached.map((r) => r.name))
+  const exempt = new Set(registry.filter((r) => r.object_kind === 'function').map((r) => r.object_name))
+
+  for (const t of tbls) {
+    const d = declared.get(t.name)
+    if (!d) {
+      failures.push(`table ${t.name} declares nothing — add it to shape_registry as platform, domain or dev`)
+    } else if (d.classification === 'domain' && !reachedSet.has(t.name)) {
+      failures.push(`table ${t.name} is declared domain but the ontology does not reach it (no object type, link or time series)`)
+    }
+  }
+
+  const baselineRow = registry.find((r) => r.object_kind === 'meta' && r.object_name === 'domain_untyped_baseline')
+  const baseline = baselineRow ? Number(baselineRow.reason) : 0
+  const untyped = registry.filter((r) => r.classification === 'domain_untyped').length
+  if (untyped > baseline) {
+    failures.push(`grandfathered domain tables rose from ${baseline} to ${untyped} — the ratchet only turns one way`)
+  }
+
+  for (const f of enriched.filter((x) => !x.reachable)) {
+    if (!exempt.has(f.name)) {
+      failures.push(`function ${f.name} is reachable by nothing — give it a consumer, delete it, or declare it intentional_unreachable`)
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error(`SHAPE DRIFT — ${failures.length} finding(s):`)
+    for (const f of failures) console.error(`  ${f}`)
+    process.exit(1)
+  }
+  console.log(`shape OK — ${tbls.length} tables declared, ${untyped}/${baseline} grandfathered, every unreachable function accounted for`)
+  process.exit(0)
+}
 
 if (process.argv.includes('--json')) {
   console.log(JSON.stringify({ fns: enriched, tbls }, null, 1))

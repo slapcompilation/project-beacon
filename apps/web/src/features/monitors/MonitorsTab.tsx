@@ -16,6 +16,7 @@ import { aiTuneMonitors } from './aiTune'
 import { useExpiryMonitorSweep, type ExpiryScanResult } from './useExpiryMonitorSweep'
 import { useMonitorCaseSweep, type MonitorKind, type CaseSweepResult } from './useMonitorCaseSweep'
 import { useSourceRegistry, freshnessIntent } from './useSourceRegistry'
+import { useSourceHealthSweep } from './useSourceHealthSweep'
 
 type Monitors = OrgPolicy['monitors']
 
@@ -78,6 +79,7 @@ function SourceRegistryReadout({ enabled }: { enabled: boolean }) {
   const { data, isLoading, isError, error } = useSourceRegistry()
   const { data: policy } = useMonitorPolicy()
   const rule = policy?.merged.monitors.integration
+  const sweep = useSourceHealthSweep()
 
   if (!enabled) return <p className="text-xs text-muted-foreground">Monitor off — sources aren&apos;t being checked.</p>
   if (isLoading) {
@@ -109,6 +111,7 @@ function SourceRegistryReadout({ enabled }: { enabled: boolean }) {
   const INTENT = { danger: Intent.DANGER, warning: Intent.WARNING, success: Intent.SUCCESS, none: Intent.NONE } as const
   const hours = (h: number | null) => h === null ? '—' : h < 48 ? `${String(Math.round(h))}h` : `${String(Math.round(h / 24))}d`
   const byName = new Map(hits.map((h) => [h.sourceKey, h]))
+  const downCount = hits.filter((h) => h.status === 'down' || h.status === 'never').length
 
   return (
     <div className="divide-y divide-border rounded border">
@@ -136,6 +139,20 @@ function SourceRegistryReadout({ enabled }: { enabled: boolean }) {
           </div>
         )
       })}
+      <div className="flex items-center gap-2 px-3 py-2">
+        <Button size="small" icon="notifications" loading={sweep.isPending}
+          disabled={downCount === 0 || sweep.isPending}
+          text={downCount > 0 ? `Notify me — ${String(downCount)} source${downCount === 1 ? '' : 's'} down` : 'All sources reporting'}
+          onClick={() => { sweep.mutate() }} />
+        {sweep.data && (
+          <span className="text-xs text-muted-foreground">
+            {sweep.data.raised > 0
+              ? `${String(sweep.data.raised)} alert${sweep.data.raised === 1 ? '' : 's'} raised`
+              : sweep.data.actionable > 0 ? 'Already alerted' : 'Nothing to alert'}
+          </span>
+        )}
+        {sweep.isError && <span className="text-xs text-red-500">{sweep.error.message}</span>}
+      </div>
     </div>
   )
 }
