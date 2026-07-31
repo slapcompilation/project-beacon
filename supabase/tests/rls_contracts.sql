@@ -714,6 +714,43 @@ BEGIN
     RAISE EXCEPTION 'C24c: admin could not author a cohort, or org/author defaults did not land';
   END IF;
 
+  -- ── C27: a canary release does not leak to sibling properties ─────────────
+  -- Audit 9.2: promoting to production used to promote everywhere in the org at
+  -- once, which for agents that propose spending is the one place the echelon
+  -- model disappeared. A hotel-targeted release must win at its own property and
+  -- be invisible at every other.
+  RESET ROLE;
+  SELECT id INTO v_user FROM auth.users LIMIT 1;
+  IF v_user IS NOT NULL THEN
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
+      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
+    SET LOCAL ROLE authenticated;
+
+    -- Up the ladder for both versions; promote_agent supersedes as it goes, so
+    -- there is never a second unsuperseded row for the same target.
+    PERFORM promote_agent('__c27_probe__','1.0.0','staging',    1.0, 5, 'c27', v_org, NULL);
+    PERFORM promote_agent('__c27_probe__','1.0.0','production', 1.0, 5, 'c27 org-wide', v_org, NULL);
+    PERFORM promote_agent('__c27_probe__','2.0.0','staging',    1.0, 5, 'c27', v_org, NULL);
+    PERFORM promote_agent('__c27_probe__','2.0.0','production', 1.0, 5, 'c27 canary', v_org, v_a);
+
+    SELECT version INTO v_msg FROM get_current_agent_releases(v_a)
+     WHERE agent_name = '__c27_probe__' AND stage = 'production';
+    IF v_msg IS DISTINCT FROM '2.0.0' THEN
+      RESET ROLE; DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
+      RAISE EXCEPTION 'C27a: the canary property did not get its targeted release (got %)', v_msg;
+    END IF;
+
+    SELECT version INTO v_msg FROM get_current_agent_releases(v_b)
+     WHERE agent_name = '__c27_probe__' AND stage = 'production';
+    IF v_msg IS DISTINCT FROM '1.0.0' THEN
+      RESET ROLE; DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
+      RAISE EXCEPTION 'C27b CANARY LEAK: a sibling property saw the hotel-targeted release (got %)', v_msg;
+    END IF;
+
+    RESET ROLE;
+    DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
+  END IF;
+
   -- ── C25: the edge vocabulary is DB-enforced, not TypeScript-only ──────────
   -- Until migration 252 there was no CHECK here at all, which is how one name
   -- came to mean two relationships without anything objecting.
@@ -775,5 +812,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property', v_b_pending;
 END $$;

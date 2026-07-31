@@ -69,3 +69,35 @@ BEGIN
   END IF;
   RAISE NOTICE 'authored artifacts OK — every saved tool, cohort, automation and agent still resolves';
 END $$;
+
+-- Orphans are REPORTED, not failed on. They accumulate legitimately between
+-- reaps — a document deleted today leaves its entities behind until someone
+-- decides — so a red build would punish normal operation. What matters is that
+-- nobody has to go looking.
+DO $$
+DECLARE n int; detail text;
+BEGIN
+  SELECT count(*), string_agg(DISTINCT kind, ', ') INTO n, detail FROM ontology_orphans();
+  IF n > 0 THEN
+    RAISE NOTICE 'lineage: % orphaned node(s) (%). Reap with select * from reap_ontology_orphans().', n, detail;
+  ELSE
+    RAISE NOTICE 'lineage OK — no derived node outlives its source';
+  END IF;
+END $$;
+
+-- A package must contain no uuids. Every reference travels by API name, because
+-- an id means nothing in the organization installing it — an export carrying one
+-- installs as a dangling reference, which is the failure this arc is about.
+-- Cheap to check and it catches the regression that matters: somebody adding a
+-- field to the export that leaks a local id.
+DO $$
+DECLARE doc text; n int;
+BEGIN
+  SELECT export_ontology_package()::text INTO doc;
+  SELECT count(*) INTO n FROM regexp_matches(
+    doc, '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', 'g');
+  IF n > 0 THEN
+    RAISE EXCEPTION 'ONTOLOGY PACKAGE NOT PORTABLE — the export contains % uuid(s); references must travel by api_name', n;
+  END IF;
+  RAISE NOTICE 'ontology package OK — portable, every reference by api_name';
+END $$;
