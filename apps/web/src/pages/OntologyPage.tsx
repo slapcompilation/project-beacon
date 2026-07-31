@@ -5,15 +5,18 @@
 // a recognized type the detector stops re-proposing. Detection runs live in
 // reality-graph's detect_ontology_gaps Logic Tool.
 
+import { useRef, useState } from 'react'
 import {
-  Button, Card, Icon, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
+  Button, Card, Icon, InputGroup, Intent, NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { formatDistanceToNow } from 'date-fns'
+import { toast } from 'sonner'
 import type { DetectOntologyGapsOutput, NodeType } from '@beacon/reality-graph'
 import { actionDescriptors, LIFECYCLES } from '@beacon/reality-graph'
 import { NODE_LABELS, EDGE_LABELS, OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { useApprovedExtensions, useDecideOntologyGap, useOntologyGaps } from '@/features/ontology/hooks'
 import type { OntologyProposalRow } from '@/features/ontology/api'
+import { useExportOntologyPackage, useInstallOntologyPackage } from '@/features/ontology/packaging'
 
 type Gap = DetectOntologyGapsOutput['gaps'][number]
 
@@ -259,7 +262,59 @@ function VocabularySection() {
           ))}
         </ul>
       </Card>
+
+      <PackagingCard />
     </section>
+  )
+}
+
+/** Tier 4.3 made the ontology portable and nothing could reach it — export was
+ *  called only by the drift test, install by nobody. Without this every new
+ *  customer starts from an empty Studio. */
+function PackagingCard() {
+  const [name, setName] = useState('hospitality-starter')
+  const exportPkg  = useExportOntologyPackage()
+  const installPkg = useInstallOntologyPackage()
+  const fileRef    = useRef<HTMLInputElement>(null)
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return
+    file.text()
+      .then((txt) => { installPkg.mutate(JSON.parse(txt)) })
+      .catch(() => { toast.error('That file is not a valid ontology package') })
+  }
+
+  return (
+    <Card compact className="!p-0">
+      <VocabHeader icon="box" title="Portability" count={2} hint="Take this ontology to another organization — every reference travels by api_name, never by id." />
+      <div className="flex flex-wrap items-end gap-3 px-3 py-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Package name</span>
+          <InputGroup size="small" value={name} onChange={(e) => { setName(e.currentTarget.value) }} style={{ width: 220 }} />
+        </label>
+        <Button size="small" icon="export" loading={exportPkg.isPending} disabled={name.trim().length === 0}
+          onClick={() => { exportPkg.mutate(name.trim()) }}>
+          Export
+        </Button>
+        <Button size="small" icon="import" loading={installPkg.isPending}
+          onClick={() => { fileRef.current?.click() }}>
+          Install from file
+        </Button>
+        <input ref={fileRef} type="file" accept="application/json,.json" className="hidden"
+          onChange={(e) => { onFile(e.currentTarget.files?.[0]); e.currentTarget.value = '' }} />
+      </div>
+      {installPkg.data && (
+        <ul className="divide-y divide-border/30 border-t border-border">
+          {installPkg.data.map((r) => (
+            <li key={r.artifact} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+              <span className="flex-1">{r.artifact}</span>
+              <Tag minimal intent={r.installed > 0 ? Intent.SUCCESS : Intent.NONE} className="text-[9px]">{r.installed} installed</Tag>
+              {r.skipped > 0 && <Tag minimal className="text-[9px]">{r.skipped} already present</Tag>}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
   )
 }
 

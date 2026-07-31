@@ -849,6 +849,52 @@ interface SelectionContext {
   label?: string
 }
 
+// ── Tier-1 curated answers (5.1) ─────────────────────────────────────────────
+
+interface CuratedAnswer { id: string; question: string; answer: string }
+
+/** ts_rank floor for serving a curated answer instead of the model. Ranks on a
+ *  question+answer tsvector land around 0.05–0.1 for a real match; below this a
+ *  hit is a shared word rather than the same question. */
+const CURATED_MIN_RANK = 0.05
+
+const lastUserContent = (msgs: { role: string; content: string }[]): string =>
+  [...msgs].reverse().find((m) => m.role === 'user')?.content ?? ''
+
+/** The top curated answer, but only when it is unambiguously the answer.
+ *  Returns null on a weak match, or when a second answer scores close enough
+ *  that picking one would be a guess — the model handles those. */
+async function findCuratedAnswer(supabase: SupabaseClient, question: string): Promise<CuratedAnswer | null> {
+  if (question.trim().length < 4) return null
+  const { data, error } = await supabase.rpc('help_search', { p_query: question, p_limit: 3 }) as unknown as {
+    data: { id: string; question: string; answer: string; rank: number }[] | null
+    error: { message: string } | null
+  }
+  if (error || !data || data.length === 0) return null
+
+  const [top, second] = data
+  if (!top || Number(top.rank) < CURATED_MIN_RANK) return null
+  // Ambiguous: two curated answers this close means the question matches a
+  // topic, not an entry. Answering with either would be a coin flip.
+  if (second && Number(second.rank) > Number(top.rank) * 0.8) return null
+  return { id: top.id, question: top.question, answer: top.answer }
+}
+
+/** Persist a user+assistant pair. Shared with the model path so a curated turn
+ *  appears in history identically — the operator should be able to scroll back
+ *  without the answer's origin changing its shape. */
+async function persistTurn(
+  supabase: SupabaseClient, conversationId: string | null,
+  userContent: string, assistantContent: string, model: string,
+): Promise<void> {
+  if (!conversationId || !userContent) return
+  const { error } = await supabase.from('copilot_messages').insert([
+    { conversation_id: conversationId, role: 'user', content: userContent, tool_trace: [], iterations: 0, model: null, action_proposal: null },
+    { conversation_id: conversationId, role: 'assistant', content: assistantContent, tool_trace: [], iterations: 0, model, action_proposal: null },
+  ]) as unknown as { error: { message: string } | null }
+  if (error) console.warn('[copilot-chat] persistence failed:', error.message)
+}
+
 interface RequestBody {
   /** New user turn (and optionally any client-side override of prior turns).
    *  When `conversation_id` is provided, history is loaded server-side; the
@@ -1181,6 +1227,43 @@ Deno.serve(async (req: Request) => {
       ...priorMessages.map((m) => ({ role: m.role, content: m.content })),
       ...body.messages.map((m) => ({ role: m.role, content: m.content })),
     ]
+
+    // ── Tier-1: a curated answer beats a fresh LLM call ──────────────────
+    // ApprovedAnswer exists to be served BEFORE spending a model call. Three
+    // curated answers sat at hit_count = 0 because nothing consulted them.
+    // Only a confident single match short-circuits: an operator asking
+    // something adjacent must still reach the model, so a weak or ambiguous
+    // match falls through rather than answering approximately.
+    const curated = await findCuratedAnswer(supabase, lastUserContent(body.messages))
+    if (curated) {
+      await persistTurn(supabase, conversationId, lastUserContent(body.messages), curated.answer, 'approved_answer')
+      // Served, not merely found — that distinction is the whole point of
+      // record_answer_served being its own function.
+      const { error: hitErr } = await supabase.rpc('record_answer_served', { p_answer_id: curated.id })
+      if (hitErr) console.warn('[copilot-chat] record_answer_served failed:', hitErr.message)
+
+      const payload = {
+        response:         curated.answer,
+        tool_trace:       [{ tool: 'approved_answer', input: { question: curated.question }, duration_ms: 0 }],
+        model:            'approved_answer',
+        iterations:       0,
+        conversation_id:  conversationId,
+        action_proposals: [],
+      }
+      if ((req.headers.get('accept') ?? '').includes('text/event-stream')) {
+        const enc = new TextEncoder()
+        return new Response(new ReadableStream({
+          start(controller) {
+            const send = (e: object) => controller.enqueue(enc.encode(`data: ${JSON.stringify(e)}\n\n`))
+            send({ type: 'conversation_id', conversation_id: conversationId })
+            send({ type: 'text_delta', delta: curated.answer })
+            send({ type: 'done', ...payload })
+            controller.close()
+          },
+        }), { headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' } })
+      }
+      return json(payload)
+    }
 
     // ── Streaming branch (SSE) ───────────────────────────────────────────
     // When the caller advertises `Accept: text/event-stream`, we stream the
