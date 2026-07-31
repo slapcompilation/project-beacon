@@ -6,14 +6,17 @@ import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
 import { dispatchAction } from '@/lib/actions/dispatch'
 import {
+  assignProposal,
   decideProposal,
   fetchPendingProposals,
+  fetchReviewQueueLoad,
   rejectProposal,
   type ProposalRow,
 } from './proposalsApi'
 
 export const reviewQueueKeys = {
   pending: (hotelId: string) => ['proposals', 'pending', hotelId] as const,
+  load:    (hotelId: string) => ['proposals', 'queue-load', hotelId] as const,
 }
 
 /** Pending proposals for triage. Refetches every 30s so the queue stays live. */
@@ -158,4 +161,32 @@ function resultingNodeTypeFor(actionType: BeaconAction['type']): string {
     case 'SUBMIT_PO_INVOICE': return 'po_invoice'
     default:                  return actionType
   }
+}
+
+/** Pending review per assignee, unassigned included as its own row.
+ *  274 showed decisions concentrated in one person; this is where that shows up
+ *  daily rather than in an audit. */
+export function useReviewQueueLoad() {
+  const hotelId = useActiveHotelId()
+  return useQuery({
+    queryKey: reviewQueueKeys.load(hotelId ?? ''),
+    queryFn:  fetchReviewQueueLoad,
+    enabled:  !!hotelId,
+    staleTime: 30_000,
+  })
+}
+
+/** Route a proposal to somebody, or clear it with null. */
+export function useAssignProposal() {
+  const qc = useQueryClient()
+  const hotelId = useActiveHotelId()
+  return useMutation({
+    mutationFn: ({ id, assignee }: { id: string; assignee: string | null }) => assignProposal(id, assignee),
+    onSuccess: (_row, { assignee }) => {
+      toast.success(assignee ? 'Assigned' : 'Unassigned')
+      void qc.invalidateQueries({ queryKey: reviewQueueKeys.pending(hotelId ?? '') })
+      void qc.invalidateQueries({ queryKey: reviewQueueKeys.load(hotelId ?? '') })
+    },
+    onError: (err: Error) => toast.error(err.message),
+  })
 }

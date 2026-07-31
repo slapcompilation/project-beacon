@@ -21,6 +21,9 @@ export interface ProposalRow {
   created_by_user_id: string | null
   decided_by_user_id: string | null
   decided_at: string | null
+  /** Who owns reviewing this. NULL is a real state — the unassigned queue. */
+  assigned_to_user_id: string | null
+  assigned_at: string | null
   edited_before_approval: boolean
   resulting_node_id: string | null
   resulting_node_type: string | null
@@ -266,4 +269,35 @@ export function rowToAgentProposal(row: ProposalRow): AgentProposal {
     reasoning: row.reasoning,
     provenance: row.provenance,
   }
+}
+
+// ── Assignment (migration 275) ───────────────────────────────────────────────
+// Routes a proposal to a person, or clears it with null. Goes through the RPC
+// rather than an UPDATE: assign_proposal refuses an assignee outside the
+// organization, because work assigned to someone who cannot open it is a queue
+// that silently never moves.
+
+export async function assignProposal(proposalId: string, assignee: string | null): Promise<ProposalRow> {
+  const { data, error } = await supabase
+    .rpc('assign_proposal', { p_proposal_id: proposalId, p_assignee: assignee })
+    .single<ProposalRow>()
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export interface ReviewQueueLoadRow {
+  assignee:       string | null
+  assignee_email: string
+  pending:        number
+  oldest_days:    number
+}
+
+/** Pending review per assignee, unassigned included as its own row. */
+export async function fetchReviewQueueLoad(): Promise<ReviewQueueLoadRow[]> {
+  const result = await supabase.rpc('review_queue_load') as unknown as {
+    data: ReviewQueueLoadRow[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  return result.data ?? []
 }

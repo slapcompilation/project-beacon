@@ -3,11 +3,12 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth.store'
-import { fetchCronHealthSummary, fetchAgentCycleHistory } from '../api'
+import { fetchCronHealthSummary, fetchAgentCycleHistory, fetchAdoptionMetrics } from '../api'
 
 export const monitorKeys = {
   cronHealth:        () => ['monitor', 'cron-health'] as const,
   agentCycleHistory: (limit: number) => ['monitor', 'agent-cycle-history', limit] as const,
+  adoption:          (days: number)  => ['monitor', 'adoption', days] as const,
 }
 
 /**
@@ -40,5 +41,18 @@ export function useAgentCycleHistory(limit = 5) {
     enabled,
     staleTime: 60_000,
     refetchInterval: 120_000,  // the cron runs daily; lighter refresh than cron-health
+  })
+}
+
+/**
+ * Adoption metrics for the Flywheel's "is anyone driving" band.
+ * Backed by `adoption_metrics(p_days)` — SECURITY INVOKER, so every count is
+ * already scoped to what the caller can see. No role gate for that reason.
+ */
+export function useAdoptionMetrics(days: number) {
+  return useQuery({
+    queryKey:  monitorKeys.adoption(days),
+    queryFn:   () => fetchAdoptionMetrics(days),
+    staleTime: 300_000,   // adoption moves over days, not seconds
   })
 }

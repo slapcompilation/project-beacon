@@ -58,3 +58,29 @@ export async function fetchAgentCycleHistory(limit = 5): Promise<AgentCycleHisto
   if (!result.data) throw new Error('Empty agent cycle history')
   return result.data
 }
+
+// ── Adoption — is anyone driving ─────────────────────────────────────────────
+// The Flywheel answers "is it getting better". This answers whether operators
+// are USING it, which for a product about operators authoring the system is the
+// blind spot that matters more. Counts and shares, never a composite score: an
+// index would hide exactly the thing worth seeing — decisions concentrated in
+// one person, or a property gone quiet.
+
+export interface AdoptionMetric {
+  metric: string
+  /** null when the share has no denominator — "cannot tell", not "zero". */
+  value:  number | null
+  detail: string
+}
+
+export async function fetchAdoptionMetrics(days: number): Promise<AdoptionMetric[]> {
+  const result = await supabase.rpc('adoption_metrics', { p_days: days }) as unknown as {
+    data: { metric: string; value: number | string | null; detail: string }[] | null
+    error: { message: string } | null
+  }
+  if (result.error) throw new Error(result.error.message)
+  // Number(null) is 0, which would undo migration 286 on the way in.
+  return (result.data ?? []).map((r) => ({
+    ...r, value: r.value === null ? null : Number(r.value),
+  }))
+}
