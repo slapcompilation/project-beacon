@@ -201,6 +201,22 @@ export interface PickListItem {
   created_at: string
 }
 
+/** PO Discrepancy — A mismatch between what was ordered, received and invoiced.
+ *  Code-owned; records live in `po_discrepancies`. */
+export interface PoDiscrepancy {
+  po_value: number
+  received_value: number
+  invoiced_value: number
+  variance_pct: number
+  tolerance_pct: number
+  status: string
+  reviewed_by?: string
+  reviewed_at?: string
+  review_notes?: string
+  detected_at: string
+  supplier_name?: string
+}
+
 /** PO Invoice — An invoice received against a purchase order.
  *  Code-owned; records live in `po_invoices`. */
 export interface PoInvoice {
@@ -292,6 +308,16 @@ export interface PurchaseOrder {
   created_by?: string
   created_at: string
   updated_at: string
+}
+
+/** PO Line — One line on a purchase order: a variant, a quantity, a cost.
+ *  Code-owned; records live in `purchase_order_lines`. */
+export interface PurchaseOrderLine {
+  ordered_qty: number
+  received_qty: number
+  unit_cost: number
+  line_total: number
+  notes?: string
 }
 
 /** Restock Receipt — Stock received against a restock request.
@@ -433,6 +459,7 @@ export interface OntologyTypes {
   menu_item_ingredient: MenuItemIngredient
   occupancy_log: OccupancyLog
   pick_list_item: PickListItem
+  po_discrepancy: PoDiscrepancy
   po_invoice: PoInvoice
   pos_sale: PosSale
   principle: Principle
@@ -440,6 +467,7 @@ export interface OntologyTypes {
   product_batch: ProductBatch
   proposal: Proposal
   purchase_order: PurchaseOrder
+  purchase_order_line: PurchaseOrderLine
   restock_receive: RestockReceive
   restock_request: RestockRequest
   room: Room
