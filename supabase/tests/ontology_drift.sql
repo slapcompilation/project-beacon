@@ -84,3 +84,20 @@ BEGIN
     RAISE NOTICE 'lineage OK — no derived node outlives its source';
   END IF;
 END $$;
+
+-- A package must contain no uuids. Every reference travels by API name, because
+-- an id means nothing in the organization installing it — an export carrying one
+-- installs as a dangling reference, which is the failure this arc is about.
+-- Cheap to check and it catches the regression that matters: somebody adding a
+-- field to the export that leaks a local id.
+DO $$
+DECLARE doc text; n int;
+BEGIN
+  SELECT export_ontology_package()::text INTO doc;
+  SELECT count(*) INTO n FROM regexp_matches(
+    doc, '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', 'g');
+  IF n > 0 THEN
+    RAISE EXCEPTION 'ONTOLOGY PACKAGE NOT PORTABLE — the export contains % uuid(s); references must travel by api_name', n;
+  END IF;
+  RAISE NOTICE 'ontology package OK — portable, every reference by api_name';
+END $$;
