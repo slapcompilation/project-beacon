@@ -145,3 +145,21 @@ BEGIN
   END IF;
   RAISE NOTICE 'edge writes OK — nobody guards the view with a constraint it cannot have';
 END $$;
+
+-- A link registered and not projected is "a registration, not a relationship" —
+-- the failure this whole arc kept finding. Since 295 the view is GENERATED from
+-- link_types, so the two cannot drift by hand; this asserts it, and catches a
+-- link whose backing is misconfigured badly enough to emit nothing.
+-- Deliberate withholdings (link_types.projected = false) are excluded by the
+-- function itself, so receipt_sourced_from stays quiet until its tenancy column
+-- is settled.
+DO $$
+DECLARE bad text;
+BEGIN
+  SELECT string_agg(format('%s (%s): %s', edge_type, backing_kind, reason), '; ')
+    INTO bad FROM unprojected_link_types();
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'LINK PROJECTION DRIFT — %', bad;
+  END IF;
+  RAISE NOTICE 'link projection OK — every projected link type surfaces in relationship_edges';
+END $$;
