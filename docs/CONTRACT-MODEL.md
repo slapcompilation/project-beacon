@@ -140,3 +140,73 @@ The document was **transcribed from rendered images**, not parsed from the PDF, 
 the OCR/vision stage was not exercised and page numbers are chunk-derived — the
 copilot's *"p. 2"* refers to a chunk group, not to page 2 of the original. With a
 real PDF the citations would carry true source pages.
+
+
+---
+
+# Quotes are a different class, and they do not fit
+
+**Tested 2026-08-01** against four more samples, all of them *offers* rather than
+agreements:
+
+| sample | shape |
+|---|---|
+| QUOTATION QT10000 | $12,500 painting work · **30% deposit / 70% on completion** · **validity 90 days** |
+| VENDOR QUOTE 0000226 | line items with QTY / unit price / amount · subtotal 575.00, tax 5%, **total 603.75** · payment due 14 days |
+| SAMPLE SUPPLIER LTD | £72,000 + VAT 20% · **30% order / 60% delivery / 10% commissioning** · valid 30 days · delivery 3 weeks from deposit |
+| ΤΙΜΟΛΟΓΙΟ ΠΡΟΣΦΟΡΑΣ (Δημοτικό Βρεφοκομείο Αθηνών, 2015) | blank offer form, *«για συμπλήρωση… από τον υποψήφιο προμηθευτή»* — unit price columns **ΑΡΙΘΜΗΤΙΚΩΣ and ΟΛΟΓΡΑΦΩΣ**, both empty, **no quantity column** |
+
+plus a **STATE OF SOUTH DAKOTA Request for Quote** — a blank form travelling the
+*other* direction, buyer soliciting vendors.
+
+## Why they do not go in `supplier_contracts`
+
+**A quote is not an agreement.** It is a unilateral, time-limited offer that
+binds nobody until accepted. Storing one as a contract would make the system
+believe an agreement exists when it does not — the same class of error as the
+expired price `get_contract_price` used to return, and worse, because it would be
+wrong from the moment it was written.
+
+Three concrete mismatches:
+
+1. **Validity is a different clock.** *"Valid 90 days from the date of this
+   quote"* is how long the **offer stands**, not how long **supply runs**.
+   Mapping it onto `contract_start`/`contract_end` conflates the two.
+2. **Payment milestones are not a number of days.** *"30% deposit / 60% on
+   delivery / 10% on commissioning"* is a **schedule**. `payment_terms_days`,
+   added in 301 because three of four contracts stated a plain number, cannot
+   hold it — and these samples show that number is not universal.
+3. **There is no acceptance state.** `is_active` is a human flag on an agreement,
+   not `offered → accepted → expired → lost`.
+
+The RFQ is not an agreement at all — it is a **request**, and it belongs to
+whoever is running the sourcing round, not to a supplier relationship.
+
+## What they show is missing
+
+A lifecycle, of which we hold the back half:
+
+```
+RFQ  →  quote  →  contract  →  purchase order  →  invoice
+ ✗        ✗          ✓             ✓                 ✓
+```
+
+`purchase_order`, `po_invoice` and (since #457) `supplier_contract` are typed.
+**RFQ and quote are not**, and a quote is the one with an obvious consumer:
+`rank_alternative_suppliers` could rank on a *quoted* price with a *validity*,
+which is a better basis than a list price.
+
+## Still not built, and why
+
+Every quote sample is a **template or a generic example** — none is a real offer,
+from a real supplier, for a variant this system stocks. Same blocker as the
+contracts arc had: the shape is legible, the data is not there.
+
+Typing `quote` now would mean inventing an acceptance lifecycle and a milestone
+schedule from four documents that agree on neither. Two of the four state
+milestones, two state plain terms; one has quantities, one explicitly has none.
+
+**What all of them do work as, today: documents.** The pipeline ingests them,
+extracts terms, and answers cited questions — proven on ΗΛΙΑΚΤΙΔΑ. That is the
+honest current answer to *"do these work?"*: **yes as documents, no as contract
+rows, and the gap they reveal is a quote object nobody can populate yet.**
