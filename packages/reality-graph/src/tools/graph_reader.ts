@@ -157,5 +157,9 @@ export interface ContractTerms {
    *  operator confirms per-PO is the normal case in hospitality. */
   pricingBasis:     'fixed_in_contract' | 'per_purchase_order' | 'quoted_on_request'
   paymentTermsDays: number | null
+  /** The ingested agreement this term was read from, when one exists. A term an
+   *  agent can cite beats a number it cannot source. */
+  documentId:       string | null
+  documentTitle:    string | null
   basis:            string
 }

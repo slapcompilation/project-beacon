@@ -209,6 +209,8 @@ export function makeSupabaseGraphReader(): GraphReader {
           in_force:         boolean
           pricing_basis:      ContractTerms['pricingBasis']
           payment_terms_days: number | null
+          document_id:        string | null
+          document_title:     string | null
           basis:            string
         }> | null
         error: { message: string } | null
@@ -224,6 +226,8 @@ export function makeSupabaseGraphReader(): GraphReader {
         inForce:          row.in_force,
         pricingBasis:     row.pricing_basis,
         paymentTermsDays: row.payment_terms_days,
+        documentId:       row.document_id,
+        documentTitle:    row.document_title,
         basis:            row.basis,
       }
     },

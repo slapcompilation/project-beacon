@@ -18,6 +18,10 @@ const outputSchema = z.object({
    *  in hospitality. */
   pricingBasis:  z.enum(['fixed_in_contract', 'per_purchase_order', 'quoted_on_request']).nullable(),
   paymentTermsDays: z.number().int().nullable(),
+  /** The agreement this term came from. Cite it — a contracted number with no
+   *  source is the one claim in a proposal nobody can audit. */
+  documentId:    z.string().uuid().nullable(),
+  documentTitle: z.string().nullable(),
   /** Minimum order quantity the agreement requires, if any. */
   minOrderQty:   z.number().int().nullable(),
   validUntil:    z.string().nullable(),
@@ -69,6 +73,7 @@ export function makeGetContractTermsTool(
         },
         output: {
           contracted: false, price: null, pricingBasis: null, paymentTermsDays: null,
+          documentId: null, documentTitle: null,
           minOrderQty: null, validUntil: null, inForce: false,
           basis: 'no contract covers this variant and supplier', confidence: 1,
         },
@@ -81,6 +86,7 @@ export function makeGetContractTermsTool(
         // confidence 1. The agent should price from the supplier list instead.
         return {
           contracted: false, price: null, pricingBasis: null, paymentTermsDays: null,
+          documentId: null, documentTitle: null,
           minOrderQty: null, validUntil: null, inForce: false,
           basis: 'no contract covers this variant and supplier', confidence: 1,
         }
@@ -90,6 +96,8 @@ export function makeGetContractTermsTool(
         price:            terms.contractedPrice,
         pricingBasis:     terms.pricingBasis,
         paymentTermsDays: terms.paymentTermsDays,
+        documentId:       terms.documentId,
+        documentTitle:    terms.documentTitle,
         minOrderQty:      terms.minOrderQty,
         validUntil:       terms.validUntil,
         inForce:          terms.inForce,
