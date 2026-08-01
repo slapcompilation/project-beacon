@@ -202,11 +202,13 @@ export function makeSupabaseGraphReader(): GraphReader {
         p_supplier_id: supplierId,
       }) as unknown as {
         data: Array<{
-          contracted_price: number | string
+          contracted_price: number | string | null
           min_order_qty:    number | null
           valid_from:       string | null
           valid_until:      string | null
           in_force:         boolean
+          pricing_basis:      ContractTerms['pricingBasis']
+          payment_terms_days: number | null
           basis:            string
         }> | null
         error: { message: string } | null
@@ -215,12 +217,14 @@ export function makeSupabaseGraphReader(): GraphReader {
       const row = result.data?.[0]
       if (!row) return null
       return {
-        contractedPrice: Number(row.contracted_price),
-        minOrderQty:     row.min_order_qty,
-        validFrom:       row.valid_from,
-        validUntil:      row.valid_until,
-        inForce:         row.in_force,
-        basis:           row.basis,
+        contractedPrice:  row.contracted_price === null ? null : Number(row.contracted_price),
+        minOrderQty:      row.min_order_qty,
+        validFrom:        row.valid_from,
+        validUntil:       row.valid_until,
+        inForce:          row.in_force,
+        pricingBasis:     row.pricing_basis,
+        paymentTermsDays: row.payment_terms_days,
+        basis:            row.basis,
       }
     },
 

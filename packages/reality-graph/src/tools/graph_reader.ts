@@ -146,10 +146,16 @@ export interface GraphReader {
  *  the validity window together, because a decision cares about "can I use this
  *  price today", not about which of the three reasons it cannot. */
 export interface ContractTerms {
-  contractedPrice: number
-  minOrderQty:     number | null
-  validFrom:       string | null
-  validUntil:      string | null
-  inForce:         boolean
-  basis:           string
+  /** Null on a framework agreement — the price is set per purchase order. */
+  contractedPrice:  number | null
+  minOrderQty:      number | null
+  validFrom:        string | null
+  validUntil:       string | null
+  inForce:          boolean
+  /** How the price is determined: a fixed line, or per PO, or on request.
+   *  Four sample agreements and only ONE named a price in the contract; the
+   *  operator confirms per-PO is the normal case in hospitality. */
+  pricingBasis:     'fixed_in_contract' | 'per_purchase_order' | 'quoted_on_request'
+  paymentTermsDays: number | null
+  basis:            string
 }
