@@ -163,3 +163,21 @@ BEGIN
   END IF;
   RAISE NOTICE 'link projection OK — every projected link type surfaces in relationship_edges';
 END $$;
+
+-- A vocabulary name with a same-named foreign-key column behind it, and no
+-- link_types row, is a relationship the schema already holds and the ontology
+-- cannot traverse. That was rejected_by's state: approved_by was a first-class
+-- link on the same table while rejected_by fell through to the generic store,
+-- and nothing noticed because no request had ever been rejected.
+-- Narrow by construction — it matches column NAMES, so belongs_to_session
+-- (backed by session_id) slipped past it and needed an audit instead.
+DO $$
+DECLARE bad text;
+BEGIN
+  SELECT string_agg(format('%s <- %s', edge_type, backing), '; ') INTO bad
+    FROM unbacked_vocabulary();
+  IF bad IS NOT NULL THEN
+    RAISE EXCEPTION 'UNBACKED VOCABULARY — the column exists and the link does not: %', bad;
+  END IF;
+  RAISE NOTICE 'vocabulary OK — no edge type has a same-named column without a link';
+END $$;
