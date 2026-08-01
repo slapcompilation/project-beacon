@@ -78,7 +78,7 @@ Tier 2).
 
 ---
 
-## Tier 1 — the object-set spine (the highest-leverage build)
+## Tier 1 — the object-set spine ✅ shipped
 
 **One concept, four consumers already identified by the audit.** This is the
 clearest case in the map of the governing rule passing loudly.
@@ -106,7 +106,7 @@ primitive. Deleting it was right; re-deriving it here is the point.
 
 ---
 
-## Tier 2 — link traversal (depends on Tier 1)
+## Tier 2 — link traversal ✅ shipped
 
 **The largest functional gap measured by what an operator can ask** (8.1).
 
@@ -121,7 +121,7 @@ was written for a capability that never arrived.
 
 ---
 
-## Tier 3 — the ontology as source of truth for more than data
+## Tier 3 — the ontology as source of truth for more than data ✅ shipped
 
 Three faces of one idea, and the direct continuation of G1–G4.
 
@@ -142,7 +142,7 @@ where someone called a tool.
 
 ---
 
-## Tier 4 — lifecycle, fleet and distribution
+## Tier 4 — lifecycle, fleet and distribution ✅ shipped
 
 | # | Item | Consumer | Source |
 |---|---|---|---|
@@ -160,7 +160,7 @@ P1–P5 and G1–G4 is per-tenant and non-transferable.
 
 ---
 
-## Tier 5 — surfaces over substrate we already own
+## Tier 5 — surfaces over substrate we already own ✅ shipped
 
 Cheap relative to value, because the hard half exists.
 
@@ -221,6 +221,33 @@ Recorded so nobody re-derives them as gaps:
 - **Analyst suite** (Contour, Slate, Notepad, Carbon, Fusion) — scope.
 - **Container/external model serving, Spark, streaming engines** — scope.
 - **Solution Designer** — design-time diagramming is a platform-vendor need.
+
+---
+
+## Status — the map is closed
+
+**All six tiers shipped, verified 2026-08-01 against the live database rather
+than against memory.** Spot-checks that mattered:
+
+| item | evidence |
+|---|---|
+| 1 object sets | `object_sets` + `selectObjectSet` + Cohorts, traversals capped at 3 |
+| 2 traversal | `searchAround`, `MAX_TRAVERSAL_DEPTH = 3` |
+| 3.1 impact analysis | `authored_artifact_drift()` runs in the contract suite |
+| 3.2 generated types | `gen:ontology:check` gates CI; fired twice and was right both times |
+| **3.3 models as properties** | `variant.projected_demand`, `forecast_basis`, `forecast_confidence`, `forecast_horizon_days`, `forecast_as_of` — plus four registered time series |
+| 4.1 lineage | `ontology_orphans()` / `reap_ontology_orphans()` |
+| 4.2 per-hotel release | contract C27 — *a canary release stays at its property* |
+| 4.3 packaging | export + install, Portability card |
+| 5.1–5.7 | all wired in Phase A of the shape audit; see `SHAPE-AUDIT-ROADMAP.md` |
+
+`model_releases` and `model_deployments` are both **empty**, and that is the
+correct state: a model is admitted only when it beats a baseline on the eval set,
+and none has. See the SQL-learned-thresholds non-goal below for the one time that
+rule was nearly broken.
+
+Work continues in `docs/SHAPE-AUDIT-ROADMAP.md` (drift the map did not cover) and
+`docs/CONTRACT-MODEL.md` (what real documents taught us).
 
 ---
 

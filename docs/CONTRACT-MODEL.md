@@ -210,3 +210,39 @@ milestones, two state plain terms; one has quantities, one explicitly has none.
 extracts terms, and answers cited questions — proven on ΗΛΙΑΚΤΙΔΑ. That is the
 honest current answer to *"do these work?"*: **yes as documents, no as contract
 rows, and the gap they reveal is a quote object nobody can populate yet.**
+
+
+---
+
+# Invoices do not reference the contract
+
+**Operator, 2026-08-01:** *"The invoice doesn't reference the contract — there
+will be the company name and the supplier name in the invoice, and probably in
+the purchase order. For the invoice I'm 100% sure, for PO 80%."*
+
+This settles a link I was about to design and would have got wrong.
+
+`invoice → contract` **cannot be a foreign key read off the document**, because
+the document does not carry the reference. It has to be **resolved**:
+
+```
+supplier name on the invoice  →  supplier entity  →  the agreement in force on that date
+```
+
+That is a harmonization problem, not a link problem — and harmonization already
+exists for suppliers, extracting and resolving named entities out of ingested
+documents. The same machinery that matched "ILIAKTIDA" out of the contract is
+what would match a supplier name off an invoice.
+
+Two consequences worth writing down before Monday:
+
+1. **The join is by name and date, so it is fallible.** Two agreements with one
+   supplier, overlapping windows, and the resolution is ambiguous. That argues
+   for surfacing the match as a *suggestion* with a confidence — the shape
+   `entity_link_suggestions` already has — rather than writing a silent FK.
+2. **The PO is only 80% certain to carry the supplier name.** Anything built on
+   "the PO names the supplier" needs to degrade when it does not, rather than
+   assume.
+
+Not built. Recorded so the design starts from what the documents actually
+contain.
