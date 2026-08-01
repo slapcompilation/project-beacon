@@ -111,6 +111,9 @@ The problem is that nothing *says so*. There is no declaration of which tables a
 > | C | #451 | BOM chain closed · 2,548 sale→variant paths |
 > | D | #453 | 2 series registered · `booking_forecast` typed |
 > | E | #453 | boundary declared · ratchet in CI · **caught an orphan on run one** |
+>
+> **The grandfathered set reached 0 (#462).** 10 → 8 → 7 → 0. See "the heuristic
+> that was wrong" below — most of those tables were never blocked on data.
 
 
 Ordered so each phase makes the next cheaper, and so the ratchet lands before the big changes.
@@ -212,3 +215,58 @@ Every defect in this arc came from **real data**, never from a test — a Greek
 invoice, a source registration, a webhook, a POS probe. The guards were correct;
 the coverage was the gap. Phase E exists to make the next one fail in CI instead
 of waiting for someone to look.
+
+
+---
+
+# The heuristic that was wrong
+
+293 grandfathered ten domain tables, and I justified leaving most of them with:
+*"six are empty, and typing an empty table means guessing its shape."*
+
+**The contracts arc disproved that.** `supplier_contracts` was empty and its shape
+was perfectly settled — a UI and two RPCs had already defined it. Emptiness was
+never the test.
+
+The right test is whether a **consumer has settled the shape**. Re-checked on that
+basis, the remaining seven looked nothing like blocked:
+
+| table | consumers |
+|---|---|
+| `categories` | **37 web files** · self-hierarchy · carries `products.category_id` |
+| `shift_handovers` | 4 |
+| `stocktake_sessions` | 2 · `commit_stocktake`, `get_stocktake_variance` |
+| `stocktake_lines` | 2 · `session_id` + `variant_id`, a clean chain |
+| `pick_lists` | 1 · its **items** were already typed in 263 |
+| `gl_account_mappings` | 1 · `upsert_gl_mapping` |
+| `budget_allocations` | 0 · but FK'd to `categories` |
+
+My recorded reason for `categories` — *"superseded in practice by product and
+variant naming"* — was simply **wrong**. It has thirty-seven consumers and holds
+the foreign key that classifies every product.
+
+## What 303 fixed beyond tidiness
+
+- **`belongs_to_session` was in the vocabulary and unregistered**, falling through
+  to the generic store. It backs `stocktake_lines.session_id`.
+- **`product → category` was invisible** despite 37 consumers, so *"which
+  categories is this supplier's stock concentrated in"* was not a traversal.
+  Now it is:
+
+  ```
+  Mixers & Soft Drinks   10 products   1359 units
+  Spirits                10 products    567 units
+  ```
+
+- **`pick_list_item` was typed and its parent was not** — the same half-typed
+  chain the PO lines had, mirrored.
+
+## Still deliberately unregistered
+
+`categories.parent_id`. The self-hierarchy has **four rows and none has a
+parent**, so the shape of a category tree here is a guess. The foreign key stays;
+the link waits for a tree that exists.
+
+That is the distinction the whole exercise turned on: *a shape settled by a
+consumer* is buildable, *a shape with no instance* is not — and "empty" alone
+tells you neither.

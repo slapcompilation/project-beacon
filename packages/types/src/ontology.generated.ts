@@ -35,6 +35,15 @@ export interface BookingForecast {
   updated_at: string
 }
 
+/** Budget Allocation — Money allotted to a category for a period.
+ *  Code-owned; records live in `budget_allocations`. */
+export interface BudgetAllocation {
+  period_month: string
+  allocated_amount: number
+  created_at: string
+  updated_at: string
+}
+
 /** Case — A workflow envelope: trigger, proposals, outcome.
  *  Code-owned; records live in `cases`. */
 export interface Case {
@@ -42,6 +51,15 @@ export interface Case {
   status: string
   resolved_at?: string
   created_at: string
+}
+
+/** Category — How products are grouped. Carries the FK every product classifies by.
+ *  Code-owned; records live in `categories`. */
+export interface Category {
+  name: string
+  order: number
+  require_photo_for_removal_over?: number
+  occupancy_sensitivity: number
 }
 
 /** Document Chunk — A passage of an ingested document, with its page.
@@ -123,6 +141,17 @@ export interface ForecastObservation {
   created_at: string
 }
 
+/** GL Account Mapping — How a movement maps onto a general-ledger account.
+ *  Code-owned; records live in `gl_account_mappings`. */
+export interface GlAccountMapping {
+  mapping_type: string
+  mapping_key: string
+  gl_account_code: string
+  gl_account_name: string
+  created_at: string
+  updated_at: string
+}
+
 /** Hotel — A property in the organization.
  *  Code-owned; records live in `hotels`. */
 export interface Hotel {
@@ -188,6 +217,19 @@ export interface OccupancyLog {
   total_rooms?: number
   source: string
   notes?: string
+  created_at: string
+}
+
+/** Pick List — A set of items to be picked, assigned to somebody.
+ *  Code-owned; records live in `pick_lists`. */
+export interface PickList {
+  name: string
+  notes?: string
+  status: string
+  assigned_to?: string
+  due_date?: string
+  created_by: string
+  completed_at?: string
   created_at: string
 }
 
@@ -360,6 +402,16 @@ export interface Room {
   floor?: number
 }
 
+/** Shift Handover — What one shift told the next.
+ *  Code-owned; records live in `shift_handovers`. */
+export interface ShiftHandover {
+  created_by?: string
+  window_hours: number
+  started_at: string
+  notes?: string
+  created_at: string
+}
+
 /** Stock Log — An immutable record of a stock movement.
  *  Code-owned; records live in `stock_logs`. */
 export interface StockLog {
@@ -383,6 +435,23 @@ export interface StockTransfer {
   status: string
   approved_at?: string
   created_at: string
+}
+
+/** Stocktake Line — One counted variant in a session, with its variance.
+ *  Code-owned; records live in `stocktake_lines`. */
+export interface StocktakeLine {
+  system_qty: number
+  counted_qty?: number
+}
+
+/** Stocktake Session — A counting round: what was counted, by whom, when.
+ *  Code-owned; records live in `stocktake_sessions`. */
+export interface StocktakeSession {
+  created_by?: string
+  status: string
+  note?: string
+  started_at: string
+  committed_at?: string
 }
 
 /** Supplier — A vendor the organization orders from.
@@ -458,13 +527,16 @@ export interface OntologyTypes {
   alert: Alert
   approved_answer: ApprovedAnswer
   booking_forecast: BookingForecast
+  budget_allocation: BudgetAllocation
   case: Case
+  category: Category
   chunk: Chunk
   constraint: Constraint
   delivery_event: DeliveryEvent
   document: Document
   entity: Entity
   forecast_observation: ForecastObservation
+  gl_account_mapping: GlAccountMapping
   hotel: Hotel
   incident: Incident
   location: Location
@@ -472,6 +544,7 @@ export interface OntologyTypes {
   menu_item: MenuItem
   menu_item_ingredient: MenuItemIngredient
   occupancy_log: OccupancyLog
+  pick_list: PickList
   pick_list_item: PickListItem
   po_discrepancy: PoDiscrepancy
   po_invoice: PoInvoice
@@ -485,8 +558,11 @@ export interface OntologyTypes {
   restock_receive: RestockReceive
   restock_request: RestockRequest
   room: Room
+  shift_handover: ShiftHandover
   stock_log: StockLog
   stock_transfer: StockTransfer
+  stocktake_line: StocktakeLine
+  stocktake_session: StocktakeSession
   supplier: Supplier
   supplier_contract: SupplierContract
   user: User
