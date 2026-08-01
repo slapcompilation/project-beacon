@@ -18,6 +18,9 @@ export type NodeType =
   | 'product_batch'
   | 'restock_receive'
   | 'purchase_order'
+  | 'shift_handover'
+  | 'budget_allocation'
+  | 'gl_account_mapping'
   | 'purchase_order_line'
   | 'po_discrepancy'
   | 'po_invoice'
@@ -74,6 +77,11 @@ export type EdgeType =
   // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients
   | 'sold'
   | 'ingredient_of'
+  // 303 — the last grandfathered tables join the ontology
+  | 'counts_variant'
+  | 'item_of'
+  | 'categorised_as'
+  | 'allocated_to'
   // 294 — purchase-order lines and discrepancies
   | 'line_of'
   | 'line_orders'
@@ -112,7 +120,8 @@ export const EDGE_TYPES = [
   'fulfills', 'log_fulfills_request', 'sourced_from',
   'delivery_sourced_from', 'receipt_sourced_from', 'po_sourced_from',
   'recipe_consumes', 'pick_consumes', 'sold', 'ingredient_of', 'transfer_approved_by',
-  'line_of', 'line_orders', 'line_fulfills_request', 'discrepancy_of', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
+  'line_of', 'line_orders', 'line_fulfills_request', 'discrepancy_of',
+  'counts_variant', 'item_of', 'categorised_as', 'allocated_to', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
   'influenced_by_occupancy', 'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
   'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
   'mentions', 'resolved_to',
