@@ -83,6 +83,42 @@ of them is a price.
    "late delivery penalty" as an entity; nothing links it to the supplier, and
    `rank_alternative_suppliers` cannot see it.
 
+## Resolved: four samples show two archetypes
+
+Three more agreements settled the question the first one could only raise.
+
+| sample | price |
+|---|---|
+| **ΝΕ.ΔΗ.ΚΕ.Π Πρέβεζας 2013** | itemised and fixed — 894,00 / 464,00 / +160 installation, ΦΠΑ 23%, total **1.867,14** |
+| ΗΛΙΑΚΤΙΔΑ 2/2023 | price grid blank; quantities explicitly non-binding |
+| Supply Agreement (US) | *"as specified in each purchase order"* |
+| Supply Agreement Rev.133C84E | *"$___ per unit … specified in each Purchase Order"* |
+
+**One of four names a price in the contract.** The operator confirms the pattern:
+*"prices for hospitality are not standard and are subject to change in each
+Purchase order, but we should be able to adapt to both."*
+
+So there are two archetypes, not one wrong model:
+
+- **Priced line** — the contract fixes the number (Πρέβεζα)
+- **Framework agreement** — the contract governs *how* orders work; price is set
+  on each PO
+
+`supplier_contracts` had `variant_id` and `contracted_price` both `NOT NULL`, so
+it could represent the first and **not the other three**. That is why
+`get_contract_terms` reported "no contract covers this variant and supplier" for
+a real fifteen-page agreement — not a lookup bug, a shape that could not hold the
+thing.
+
+Migration 301 adds `pricing_basis` (`fixed_in_contract` / `per_purchase_order` /
+`quoted_on_request`), makes variant and price nullable, and keeps a CHECK so a
+"fixed" row must still carry its price. A framework agreement now answers
+*"there is an agreement, price is set per purchase order"* — a different and more
+useful answer than *"no contract"*.
+
+`payment_terms_days` came along because three of the four state it explicitly and
+it is the one governing term that is unambiguously a number.
+
 ## Deliberately not built yet
 
 A clause-to-decision path is the obvious next move and the obvious place to
@@ -90,9 +126,10 @@ overbuild. Before any of it:
 
 - **no `supplier_contract` row exists for this document** — the typed contract and
   the contract document are unconnected, and there is no link type between them
-- the sample is **one contract**. One document told us the model is wrong; it
-  cannot tell us what the right one is. A second and third would show whether
-  "clauses with deadlines" generalises or whether this is procurement-specific.
+- the **clause** path is still unconnected to decisions. Four samples showed the
+  pricing split cleanly; they do NOT yet show which *clauses* generalise —
+  Πρέβεζα has almost none, ΗΛΙΑΚΤΙΔΑ has 27. Penalties, delivery windows and
+  replacement obligations stay in the document path until that is clearer.
 
 Recorded rather than acted on, per the stage directive: a wrong guess here
 becomes structure.
