@@ -200,14 +200,35 @@ Two things the runtime supplies that no author should have to bind:
 action machinery rendered in the page instead of a modal — presentation, not
 capability. It gets built when someone wants a form that is always open.
 
-### W4 — the portal becomes real
+### W4 — the portal becomes real ✅ shipped
 
 Promotion flow, required metadata, collections and tags **as data**, version
-pinning, un-promotion. `ApplicationsPage` stops listing hardcoded routes and
-starts listing promoted modules alongside the built-in apps — Foundry's *basic*
-vs *advanced* mode distinction.
+pinning, un-promotion. `ApplicationsPage` keeps its hardcoded built-ins *and*
+lists promoted modules under a "Built here" section.
 
 **Exit:** a built module appears in the portal for the roles it is granted to.
+— *met; `low_stock_triage` is published to the Inventory collection, and the e2e
+publishes, filters by tag, and unpublishes through the real UI.*
+
+**Promotion is its own resource**, per `app-building/curating-apps` — it points
+at the module and pins the version the portal serves, so *"you can change the
+resource that a promotion references to release new applications in a controlled
+manner"*. Un-promoting deletes the promotion, never the module; the migration
+asserts exactly that.
+
+Required to promote: **name, icon, owner, collection**. Optional: tags,
+description. Collections section the portal; tags filter the cards — different
+jobs, kept apart as Foundry keeps them. A collection with nothing the viewer can
+reach produces no rows, which is their *"only appear if they contain promoted
+apps accessible to the user"* enforced in SQL rather than as an empty heading.
+
+**Deliberate divergence:** the thumbnail is nullable. Foundry requires one; we
+have no upload surface for app art, and a required column nobody can populate is
+a promotion nobody can make. The card falls back to the icon, and the column
+becomes `NOT NULL` the day an upload surface exists.
+
+A card whose module has moved past the published version says so. A promotion is
+a release, and a stale one is a decision nobody has made yet.
 
 ### W5 — the compounding phase, and the actual point
 

@@ -3,12 +3,18 @@
 // own split), plus where you build them. System utilities (Home, Notifications,
 // Settings, Account) are NOT apps — they live in the sidebar / user menu. The dock
 // + Cmd+K stay the fast path to any individual surface; this is the app portfolio.
+//
+// W4: the built-in apps above are code, and always will be. Below them the portal
+// lists PROMOTED MODULES — collections as sections, tags as filters — so an
+// application somebody assembled is as findable as one we shipped.
 
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Icon, Tag, Intent } from '@blueprintjs/core'
+import { Button, Icon, Tag, Intent } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAipSignalCounts } from '@/features/aipSignals/hooks'
+import { usePromotedApps, type PromotedApp } from '@/features/modules/promotions'
 
 type Access = 'all' | 'manager' | 'admin'
 
@@ -59,6 +65,8 @@ const CATEGORIES: Category[] = [
 export default function ApplicationsPage() {
   const role = useAuthStore((s) => s.role)
   const { data: counts } = useAipSignalCounts()
+  const { data: promoted = [] } = usePromotedApps()
+  const [tagFilter, setTagFilter] = useState<string | null>(null)
 
   const isManager      = !!role && role !== 'limited_access' && role !== 'team_member'
   const isOwnerOrAdmin = role === 'owner' || role === 'admin'
@@ -69,6 +77,14 @@ export default function ApplicationsPage() {
   const categories = CATEGORIES
     .map((c) => ({ ...c, apps: c.apps.filter((a) => canSee(a.access)) }))
     .filter((c) => c.apps.length > 0)
+
+  // Tags filter the cards; collections section them. Two different jobs, which
+  // is why Foundry keeps them apart and so do we.
+  const allTags = [...new Set(promoted.flatMap((a) => a.tags))].sort()
+  const shown = tagFilter ? promoted.filter((a) => a.tags.includes(tagFilter)) : promoted
+  const collections = [...new Map(shown.map((a) =>
+    [a.collectionApiName, { title: a.collectionTitle, position: a.collectionPosition }])).entries()]
+    .sort((a, b) => a[1].position - b[1].position || a[1].title.localeCompare(b[1].title))
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -110,8 +126,75 @@ export default function ApplicationsPage() {
               </div>
             </section>
           ))}
+
+          {promoted.length > 0 && (
+            <div className="pt-2 border-t space-y-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-sm font-semibold">Built here</h2>
+                  <span className="text-xs text-muted-foreground">
+                    Applications assembled in this organization and published to the portal.
+                  </span>
+                </div>
+                {allTags.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 justify-end">
+                    {allTags.map((t) => (
+                      <Button key={t} size="small" variant="minimal"
+                        active={tagFilter === t} text={t}
+                        onClick={() => { setTagFilter(tagFilter === t ? null : t) }} />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {collections.map(([apiName, meta]) => (
+                <section key={apiName}>
+                  <h3 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {meta.title}
+                  </h3>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {shown.filter((a) => a.collectionApiName === apiName)
+                      .map((a) => <PromotedCard key={a.promotionId} app={a} />)}
+                  </div>
+                </section>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
+  )
+}
+
+function PromotedCard({ app }: { app: PromotedApp }) {
+  // The portal serves the PINNED version. When the module has moved past it that
+  // is worth seeing — a promotion is a release, and a stale one is a decision
+  // nobody has made yet.
+  const behind = app.moduleVersion > app.publishedVersion
+
+  return (
+    <Link to={`/modules/${app.moduleApiName}`}
+      className="group rounded-md border p-4 transition-all hover:border-muted-foreground/40 hover:bg-muted/40">
+      <div className="flex items-center gap-2">
+        <Icon icon={app.icon as IconName} size={15}
+          className="text-muted-foreground group-hover:text-foreground" />
+        <span className="text-sm font-medium">{app.name}</span>
+        <Tag minimal className="!text-[10px] ml-auto">v{app.publishedVersion}</Tag>
+      </div>
+      {app.description && (
+        <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{app.description}</p>
+      )}
+      <div className="flex flex-wrap items-center gap-1 mt-2">
+        {app.tags.map((t) => <Tag key={t} minimal className="!text-[10px]">{t}</Tag>)}
+        {behind && (
+          <Tag minimal intent={Intent.WARNING} className="!text-[10px]">
+            v{app.moduleVersion} unpublished
+          </Tag>
+        )}
+      </div>
+      {app.ownerEmail && (
+        <p className="text-[10px] text-muted-foreground mt-2">owner {app.ownerEmail}</p>
+      )}
+    </Link>
   )
 }

@@ -79,3 +79,44 @@ test('a module computes through a Logic Tool and proposes a typed action', async
   await dialog.getByRole('button', { name: /request|submit|create/i }).click()
   await expect(dialog).toBeHidden({ timeout: 30_000 })
 })
+
+// W4: promotion is its own resource. Publishing lists the module in the portal
+// and pins a version; unpublishing removes the listing and leaves the module.
+test('an admin publishes a module to the portal and takes it back down', async ({ page }) => {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+  })
+  if (!res.ok) throw new Error(`smoke login failed: ${res.status}`)
+  const session = JSON.stringify(await res.json())
+  const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
+  await page.addInitScript(([k, v]) => { localStorage.setItem(k, v) }, [`sb-${ref}-auth-token`, session])
+
+  await page.goto('/modules/low_stock_triage')
+  await expect(page.getByRole('heading', { name: 'Low stock triage' })).toBeVisible({ timeout: 45_000 })
+
+  await page.getByRole('button', { name: 'Publish', exact: true }).click()
+  const dialog = page.getByRole('dialog')
+  await dialog.getByPlaceholder('inventory, daily').fill('inventory, e2e')
+  await dialog.getByRole('button', { name: /^Publish/ }).click()
+  await expect(dialog).toBeHidden({ timeout: 30_000 })
+
+  // It is now findable by somebody who never knew the URL.
+  await page.goto('/applications')
+  await expect(page.getByRole('heading', { name: 'Built here' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('Inventory', { exact: true })).toBeVisible()
+  const card = page.getByRole('link', { name: /Low stock triage/ })
+  await expect(card).toBeVisible()
+
+  // A tag filters the cards; it is not a section.
+  await page.getByRole('button', { name: 'e2e', exact: true }).click()
+  await expect(card).toBeVisible()
+
+  // Unpublishing removes the listing, not the module.
+  await page.goto('/modules/low_stock_triage')
+  await page.getByRole('button', { name: 'Publication' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Unpublish' }).click()
+  await expect(page.getByRole('dialog')).toBeHidden({ timeout: 30_000 })
+  await expect(page.getByRole('heading', { name: 'Low stock triage' })).toBeVisible()
+})
