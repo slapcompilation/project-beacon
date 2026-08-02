@@ -435,7 +435,7 @@ Three things make it tractable here specifically, and they are all already built
   inspect field-by-field is a proposal without a trace, which this codebase
   already calls a defect.
 
-#### The shape it should take: W7 proposes, it does not write
+#### W7 ✅ shipped — it proposes, it does not write
 
 Not "describe an app and it appears." **The generator emits rows, and the rows
 open in the builder as a draft for approval** — the same Proposal pattern
@@ -446,9 +446,39 @@ That satisfies the AIP-native test — a tunable capability over config-as-data,
 loop-closing, with a human gate — while keeping the invented shape honest: **the
 consumer of NL authoring is the builder, and the builder has to exist first.**
 
-An eval suite is not optional here. `*.eval.ts` with ≥10 cases of
-"request → expected rows", graded on structure rather than prose, before it is
-offered to anyone.
+An eval suite is not optional here — **29 cases** in
+`packages/reality-graph/src/authoring/moduleSpec.eval.ts`, graded on structure
+rather than prose, and **no model runs in them**. Six specs that must be
+accepted, ten that must be refused with a code a caller can branch on, the
+parser, and the row conversion. *The refusals are the point:* a generator trusted
+because nothing checks it is the failure this phase was designed around.
+
+**What shipped:** `authoring/moduleSpec.ts` holds the grammar, `validateModuleSpec`,
+`parseModuleSpec` and `moduleSpecToRows`. The `module-author` edge function is a
+**thin adapter that only holds the API key** — the lesson from #340, where a
+guard inlined into an edge function was eval-unreachable and drifted. Validation
+is not the security boundary either way: the `module_*` CHECK constraints refuse
+malformed rows whoever sends them, so it lives where one implementation serves
+the dialog, the tests and any future caller.
+
+**Two things the first live generation taught, both fixed:**
+
+- The prompt never named the per-item JSON keys, so the model answered entirely
+  in **snake_case** — every field read `undefined` and all ten elements were
+  refused. The validator did its job; the prompt hadn't done its own. It now
+  states the exact shape, *and* the parser normalises snake_case, because models
+  send it perhaps a third of the time regardless of what the prompt says.
+  `config` keys are left alone — those belong to the application, not to us.
+- One model call, no retry loop. A retry on a paid call is how a bad prompt
+  becomes a bill, and the operator can simply ask again.
+
+**Verified live** with a real request — *"a morning screen for the F&B manager:
+what is below par right now, how many lines that is, and a way to request a
+restock for the one they pick"* — which produced a clean three-widget screen with
+a row-selection event in 5.5s. And covered by `e2e/module-author.spec.ts`, which
+**intercepts the model call** so the test is free and deterministic: what it
+proves is everything after the model — parse, validate, resolve names into ids,
+land in the builder as a draft.
 
 ---
 
