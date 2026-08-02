@@ -96,6 +96,17 @@ test('an admin publishes a module to the portal and takes it back down', async (
   await page.goto('/modules/low_stock_triage')
   await expect(page.getByRole('heading', { name: 'Low stock triage' })).toBeVisible({ timeout: 45_000 })
 
+  // The module may already be published from an earlier run or a seed, so start
+  // from a known state rather than assuming which button is on screen. CI found
+  // this: prod had a promotion, so the control read "Publication" and the click
+  // waited 90s for a button that was never going to appear.
+  const existing = page.getByRole('button', { name: 'Publication' })
+  if (await existing.isVisible()) {
+    await existing.click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Unpublish' }).click()
+    await expect(page.getByRole('dialog')).toBeHidden({ timeout: 30_000 })
+  }
+
   await page.getByRole('button', { name: 'Publish', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByPlaceholder('inventory, daily').fill('inventory, e2e')
