@@ -80,6 +80,50 @@ test('a module computes through a Logic Tool and proposes a typed action', async
   await expect(dialog).toBeHidden({ timeout: 30_000 })
 })
 
+// W5: a workflow authored at one property is adopted by another. The scope rule
+// itself is proved in supabase/tests/rls_contracts.sql (C28) under a
+// hotel-scoped role — an org-level user sees every hotel, so a browser test
+// could not prove it. This covers the operator's half: the adoption surface.
+test('an org director sees which properties have adopted a module', async ({ page }) => {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+  })
+  if (!res.ok) throw new Error(`smoke login failed: ${res.status}`)
+  const session = JSON.stringify(await res.json())
+  const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
+  await page.addInitScript(([k, v]) => { localStorage.setItem(k, v) }, [`sb-${ref}-auth-token`, session])
+
+  await page.goto('/modules/morning_par_check')
+  await expect(page.getByRole('heading', { name: 'Morning par check' })).toBeVisible({ timeout: 45_000 })
+
+  await expect(page.getByText('Adoption', { exact: true })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('authored here')).toBeVisible()
+
+  // A previous run may have left the sister property adopted, so start from a
+  // known state instead of assuming which button is on screen.
+  const uninstall = page.getByRole('button', { name: 'Uninstall' })
+  if (await uninstall.isVisible()) {
+    await uninstall.click()
+    await expect(page.getByRole('button', { name: 'Install' })).toBeVisible({ timeout: 30_000 })
+  }
+
+  await expect(page.getByText('0 of 1 other property')).toBeVisible()
+
+  // Install at the sister property. The count is the org-wide half of the exit
+  // criterion — who has adopted this, not just that it can be adopted.
+  await page.getByRole('button', { name: 'Install' }).click()
+  await expect(page.getByRole('button', { name: 'Fork' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('1 of 1 other property')).toBeVisible()
+
+  // Uninstalling puts the property back to offering Install — and leaves the
+  // suite re-runnable, which a test that adopts and walks away would not.
+  await page.getByRole('button', { name: 'Uninstall' }).click()
+  await expect(page.getByRole('button', { name: 'Install' })).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByText('0 of 1 other property')).toBeVisible()
+})
+
 // W4: promotion is its own resource. Publishing lists the module in the portal
 // and pins a version; unpublishing removes the listing and leaves the module.
 test('an admin publishes a module to the portal and takes it back down', async ({ page }) => {
@@ -96,10 +140,8 @@ test('an admin publishes a module to the portal and takes it back down', async (
   await page.goto('/modules/low_stock_triage')
   await expect(page.getByRole('heading', { name: 'Low stock triage' })).toBeVisible({ timeout: 45_000 })
 
-  // The module may already be published from an earlier run or a seed, so start
-  // from a known state rather than assuming which button is on screen. CI found
-  // this: prod had a promotion, so the control read "Publication" and the click
-  // waited 90s for a button that was never going to appear.
+  // The module may already be published from a previous run or a seed, so start
+  // from a known state rather than assuming which button is on screen.
   const existing = page.getByRole('button', { name: 'Publication' })
   if (await existing.isVisible()) {
     await existing.click()
@@ -130,4 +172,5 @@ test('an admin publishes a module to the portal and takes it back down', async (
   await page.getByRole('dialog').getByRole('button', { name: 'Unpublish' }).click()
   await expect(page.getByRole('dialog')).toBeHidden({ timeout: 30_000 })
   await expect(page.getByRole('heading', { name: 'Low stock triage' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Publish', exact: true })).toBeVisible()
 })

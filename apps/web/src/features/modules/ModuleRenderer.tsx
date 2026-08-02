@@ -29,6 +29,7 @@ import {
   scalarValue, visibleVariableIds,
   type ModuleUiState, type SideEffect, type TriggerContext,
 } from './runtime'
+import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
 import { usePromotedApps } from './promotions'
 
@@ -476,6 +477,8 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
             reported here rather than silently doing nothing.
           </Card>
         )}
+
+        {canPromote && <AdoptionPanel mod={mod} />}
 
         {params && (params.unknownParameters.length > 0 || params.unresolved.length > 0) && (
           <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">

@@ -230,14 +230,54 @@ becomes `NOT NULL` the day an upload surface exists.
 A card whose module has moved past the published version says so. A promotion is
 a release, and a stale one is a decision nobody has made yet.
 
-### W5 — the compounding phase, and the actual point
+### W5 — the compounding phase, and the actual point ✅ shipped
 
 Promote a module **across properties**. An org-scoped module installs at each
 hotel; a hotel-scoped one stays local. Hotel overrides org, as everywhere else in
 this system.
 
 **Exit:** a workflow authored at Valinor runs at Rivendell without being rebuilt
-— and the org can see which properties have adopted it.
+— and the org can see which properties have adopted it. — *met; `morning_par_check`
+is authored at Valinor and installed at Rivendell, and the adoption panel counts
+it.*
+
+**Foundry's installation model** (`marketplace/installations`): an installation
+is a deployed instance that **tracks a version**, and newer ones *"surface as new
+versions available for upgrade"*. **Locking** is the divergence rule — locked
+projects can't be edited and *"edits to installed content will be overwritten
+when a new product version is applied"*; unlocking lets you *"fork the content
+you installed"*.
+
+Ours reads the same and is structural rather than advisory:
+
+| | |
+|---|---|
+| `forked_module_id IS NULL` | **locked** — runs the source at its pinned version, cannot drift, can be upgraded |
+| `forked_module_id` set | **forked** — owns a copy, may be edited, receives no upgrades |
+
+**One place we deliberately improve on the description rather than copy it:**
+nothing is silently overwritten. An upgrade re-points the pin explicitly, and a
+fork is an act that costs you upgrades. Foundry warns; we make the two states
+different objects so the warning can't be ignored.
+
+Forking remaps ids — variables, layouts, widgets, **and the variable ids inside
+event configs**. A fork whose buttons still set the source module's variables
+would render perfectly and drive the wrong screen; migration 311 asserts against
+exactly that.
+
+**Two scope findings, both real:**
+
+- `hotels` is protected by `id = auth_hotel_id()` — *nobody* can read a sibling
+  property's row. An org-wide adoption view is impossible under invoker rights,
+  so `get_module_adoption` follows `get_chain_overview`: SECURITY DEFINER, an
+  owner/admin gate inside the function, org-scoped (migration 312). The panel had
+  been rendering one property in a two-property org — a wrong answer that read
+  like a real one.
+- `hotel_is_in_user_scope()` returns true for **every** hotel in the org once
+  `auth_org_role()` is set. So an org-level user could see a hotel-scoped module
+  either way, and a browser test would prove nothing. The scope rule is proved in
+  `rls_contracts.sql` **C28** under a hotel-scoped role instead: invisible at
+  hotel B, visible after B installs it, and still invisible to a third property.
 
 ---
 
