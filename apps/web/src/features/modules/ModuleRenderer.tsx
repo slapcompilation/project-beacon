@@ -268,43 +268,51 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
       )
     }
 
-    case 'tabs': {
-      // Foundry's Tabs widget surfaces the tab LAYOUTS of the layout it sits in
-      // — the bar AND the selected tab's contents. Children skips tab layouts
-      // precisely because they belong to this widget.
-      const parentKey = widget.layoutId ?? ROOT
-      const tabs = mod.layouts
-        .filter((l) => l.layoutType === 'tab' && (l.parentId ?? ROOT) === parentKey)
-        .sort((a, b) => a.position - b.position)
-      const active = activeTabId(mod, ui, parentKey)
-
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center gap-1 border-b">
-            {tabs.map((t) => (
-              <button key={t.id} type="button"
-                onClick={() => {
-                  ctx.setUi((s) => ({ ...s, activeTabByParent: { ...s.activeTabByParent, [parentKey]: t.id } }))
-                  dispatch(widget.id, 'tab_change', { button: t.apiName })
-                }}
-                className={cn('px-3 py-1.5 text-sm border-b-2 -mb-px',
-                  t.id === active ? 'border-primary font-semibold'
-                                  : 'border-transparent text-muted-foreground hover:text-foreground')}>
-                {t.title || t.apiName}
-              </button>
-            ))}
-          </div>
-          {active && <div className="space-y-4"><Children parentKey={active} ctx={ctx} /></div>}
-        </div>
-      )
-    }
   }
 }
 
+/** The tab bar a container draws for its own tab children — Foundry's Tabs is a
+ *  layout option on a section, "adds tabs to the top of a section", not a widget
+ *  somebody places. */
+function TabBar({ parentKey, ctx }: { parentKey: string; ctx: Ctx }) {
+  const { mod, ui, dispatch } = ctx
+  const tabs = mod.layouts
+    .filter((l) => l.layoutType === 'tab' && (l.parentId ?? ROOT) === parentKey)
+    .sort((a, b) => a.position - b.position)
+  if (tabs.length === 0) return null
+  const active = activeTabId(mod, ui, parentKey)
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-1 border-b">
+        {tabs.map((t) => (
+          <button key={t.id} type="button"
+            onClick={() => {
+              ctx.setUi((s) => ({ ...s, activeTabByParent: { ...s.activeTabByParent, [parentKey]: t.id } }))
+              // A tab_change event belongs to the tab, not to a widget.
+              dispatch(t.id, 'tab_change', { button: t.apiName })
+            }}
+            className={cn('px-3 py-1.5 text-sm border-b-2 -mb-px',
+              t.id === active ? 'border-primary font-semibold'
+                              : 'border-transparent text-muted-foreground hover:text-foreground')}>
+            {t.title || t.apiName}
+          </button>
+        ))}
+      </div>
+      {active && <Children parentKey={active} ctx={ctx} />}
+    </div>
+  )
+}
+
 /** Widgets and child layouts of one parent, interleaved by position so an author
- *  can put a heading above a section without fighting the renderer. */
+ *  can put a heading above a section without fighting the renderer.
+ *
+ *  A `row` lays its children out horizontally; everything else stacks. That is
+ *  the whole of Foundry's arrangement model that we carry — rows and columns. */
 function Children({ parentKey, ctx }: { parentKey: string; ctx: Ctx }) {
   const { mod } = ctx
+  const container = mod.layouts.find((l) => l.id === parentKey)
+  const horizontal = container?.layoutType === 'row'
   const items: Array<{ position: number; key: string; node: ReactNode }> = []
 
   for (const w of mod.widgets) {
@@ -313,13 +321,22 @@ function Children({ parentKey, ctx }: { parentKey: string; ctx: Ctx }) {
   }
   for (const l of mod.layouts) {
     if ((l.parentId ?? ROOT) !== parentKey) continue
-    // Tabs are surfaced by the tabs widget; overlays render as dialogs at root.
+    // Tabs are drawn by their container's bar; overlays are dialogs at root.
     if (l.layoutType === 'tab' || l.layoutType === 'overlay') continue
     items.push({ position: l.position, key: `l${l.id}`, node: <Layout layout={l} ctx={ctx} /> })
   }
 
   items.sort((a, b) => a.position - b.position)
-  return <>{items.map((i) => <div key={i.key}>{i.node}</div>)}</>
+  return (
+    <div className="space-y-4">
+      {/* "Adds tabs to the TOP of a section" — and outside a row's flex, or the
+          bar would become one more column. */}
+      <TabBar parentKey={parentKey} ctx={ctx} />
+      <div className={cn(horizontal ? 'flex items-start gap-4 [&>*]:flex-1 [&>*]:min-w-0' : 'space-y-4')}>
+        {items.map((i) => <div key={i.key}>{i.node}</div>)}
+      </div>
+    </div>
+  )
 }
 
 function Layout({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
@@ -331,7 +348,7 @@ function Layout({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
       .sort((a, b) => a.position - b.position)
     const activeId = (siblings.find((p) => p.id === ui.activePageId) ?? siblings[0]).id
     if (layout.id !== activeId) return null
-    return <div className="space-y-4"><Children parentKey={layout.id} ctx={ctx} /></div>
+    return <Children parentKey={layout.id} ctx={ctx} />
   }
 
   if (layout.layoutType === 'section') {
@@ -347,13 +364,13 @@ function Layout({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
           {layout.title || layout.apiName}
         </button>
         <Collapse isOpen={!collapsed} keepChildrenMounted>
-          <div className="space-y-4"><Children parentKey={layout.id} ctx={ctx} /></div>
+          <Children parentKey={layout.id} ctx={ctx} />
         </Collapse>
       </section>
     )
   }
 
-  return <div className="space-y-4"><Children parentKey={layout.id} ctx={ctx} /></div>
+  return <Children parentKey={layout.id} ctx={ctx} />
 }
 
 export function ModuleRenderer({ apiName }: { apiName: string }) {
@@ -456,9 +473,13 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
               </Tag>
             )}
             {canPromote && (
-              <Button size="small" variant="minimal" icon="share"
-                text={promotion ? 'Publication' : 'Publish'}
-                onClick={() => { setPromoting(true) }} />
+              <>
+                <Button size="small" variant="minimal" icon="edit" text="Edit"
+                  onClick={() => { window.location.assign(`/modules/${mod.apiName}/edit`) }} />
+                <Button size="small" variant="minimal" icon="share"
+                  text={promotion ? 'Publication' : 'Publish'}
+                  onClick={() => { setPromoting(true) }} />
+              </>
             )}
           </div>
         </header>
@@ -467,7 +488,7 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
           <NonIdealState icon="widget" title="Nothing on this application yet"
             description="It has been created but no widgets have been added. Add one to see it here." />
         ) : (
-          <div className="space-y-4"><Children parentKey={ROOT} ctx={ctx} /></div>
+          <Children parentKey={ROOT} ctx={ctx} />
         )}
 
         {unsupported.length > 0 && (
@@ -519,7 +540,7 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
         <Dialog key={o.id} isOpen={ui.openOverlays.includes(o.id)} title={o.title || o.apiName}
           onClose={() => { setUi((s) => ({ ...s, openOverlays: s.openOverlays.filter((id) => id !== o.id) })) }}>
           <DialogBody>
-            <div className="space-y-4"><Children parentKey={o.id} ctx={ctx} /></div>
+            <Children parentKey={o.id} ctx={ctx} />
           </DialogBody>
         </Dialog>
       ))}

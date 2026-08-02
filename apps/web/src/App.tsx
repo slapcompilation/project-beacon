@@ -30,6 +30,7 @@ const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ProcessMiningPage = lazyWithRetry(() => import('@/pages/ProcessMiningPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const ModulePage  = lazyWithRetry(() => import('@/pages/ModulePage'))
+const ModuleBuilderPage  = lazyWithRetry(() => import('@/pages/ModuleBuilderPage'))
 const ObjectListPage = lazyWithRetry(() => import('@/pages/ObjectListPage'))
 const CreateWorkflowGuide = lazyWithRetry(() => import('@/features/mind/CreateWorkflowGuide'))
 const CustomRecordPage = lazyWithRetry(() => import('@/pages/CustomRecordPage'))
@@ -153,6 +154,7 @@ function AppRoutes() {
             <Route path="/objects"       element={<ObjectsPage />} />
             {/* Generic on purpose: a new application must not mean a new route. */}
             <Route path="/modules/:apiName" element={<ModulePage />} />
+            <Route path="/modules/:apiName/edit" element={<ModuleBuilderPage />} />
             <Route path="/objects/:type" element={<ObjectListPage />} />
             <Route path="/objects/:type/:recordId" element={<CustomRecordPage />} />
             <Route path="/create-workflow" element={<CreateWorkflowGuide />} />
