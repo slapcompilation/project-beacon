@@ -37,6 +37,11 @@
 --       authenticated user can't record forecasts for another hotel (migration 183).
 --   C13 get_chain_overview (SECURITY DEFINER, org-wide) — a non-admin/owner reads
 --       nothing; an admin reads its whole org and no other org's hotels (migration 212).
+--   C28 a module authored at hotel A is invisible at hotel B until B INSTALLS it,
+--       and its widgets travel with it (migration 311). Verified under a
+--       hotel-scoped role on purpose: hotel_is_in_user_scope() returns true for
+--       every hotel in the org once auth_org_role() is set, so an org-level user
+--       could see the module either way and would prove nothing.
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -805,6 +810,65 @@ BEGIN
     END IF;
   END LOOP;
 
+  -- ── C28: a module crosses properties only by installation ──
+  RESET ROLE;
+  DECLARE
+    v_mod uuid; v_var uuid; v_seen int; v_widgets int;
+  BEGIN
+    INSERT INTO modules (organization_id, hotel_id, api_name, title)
+    VALUES (v_org, v_a, 'c28_travel', 'C28') RETURNING id INTO v_mod;
+    INSERT INTO module_variables (module_id, api_name, var_type)
+    VALUES (v_mod, 'x', 'string') RETURNING id INTO v_var;
+    INSERT INTO module_widgets (module_id, api_name, widget_type, variable_id, config)
+    VALUES (v_mod, 'card', 'metric_card', v_var, '{}'::jsonb);
+
+    -- Hotel B, no org role: the module is next door and out of reach.
+    PERFORM set_config('request.jwt.claims', claims_b, true);
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO v_seen FROM modules WHERE id = v_mod;
+    IF v_seen <> 0 THEN
+      RAISE EXCEPTION 'C28: hotel B can see hotel A''s module before installing it';
+    END IF;
+    IF get_module('c28_travel') IS NOT NULL THEN
+      RAISE EXCEPTION 'C28: get_module served hotel A''s module to hotel B before installation';
+    END IF;
+
+    RESET ROLE;
+    -- installed_by defaults to auth.uid(), and this suite's JWT subs are
+    -- synthetic — no such user exists, so name the column and leave it null.
+    INSERT INTO module_installations (organization_id, module_id, hotel_id, installed_version, installed_by)
+    VALUES (v_org, v_mod, v_b, 1, NULL);
+
+    PERFORM set_config('request.jwt.claims', claims_b, true);
+    SET LOCAL ROLE authenticated;
+    SELECT count(*) INTO v_seen FROM modules WHERE id = v_mod;
+    IF v_seen <> 1 THEN
+      RAISE EXCEPTION 'C28: hotel B installed the module and still cannot see it';
+    END IF;
+    -- A title with no widgets is a blank screen, so the children must travel too.
+    SELECT count(*) INTO v_widgets FROM module_widgets WHERE module_id = v_mod;
+    IF v_widgets <> 1 THEN
+      RAISE EXCEPTION 'C28: the module is visible at hotel B but its widgets are not (% found)', v_widgets;
+    END IF;
+    IF get_module('c28_travel') IS NULL THEN
+      RAISE EXCEPTION 'C28: get_module still refuses the module hotel B installed';
+    END IF;
+
+    -- A THIRD party must not inherit B's adoption.
+    PERFORM set_config('request.jwt.claims', json_build_object(
+      'sub','00000000-0000-0000-0000-00000000002c',
+      'app_metadata', json_build_object('hotel_id','00000000-0000-0000-0000-0000000000ff',
+                                        'org_id', v_org::text, 'role','hotel_manager'))::text, true);
+    SELECT count(*) INTO v_seen FROM modules WHERE id = v_mod;
+    IF v_seen <> 0 THEN
+      RAISE EXCEPTION 'C28: a property that never installed the module can read it';
+    END IF;
+
+    RESET ROLE;
+    DELETE FROM module_installations WHERE module_id = v_mod;
+    DELETE FROM modules WHERE id = v_mod;
+  END;
+
   RESET ROLE;
   DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
@@ -812,5 +876,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation', v_b_pending;
 END $$;

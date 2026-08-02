@@ -200,23 +200,84 @@ Two things the runtime supplies that no author should have to bind:
 action machinery rendered in the page instead of a modal — presentation, not
 capability. It gets built when someone wants a form that is always open.
 
-### W4 — the portal becomes real
+### W4 — the portal becomes real ✅ shipped
 
 Promotion flow, required metadata, collections and tags **as data**, version
-pinning, un-promotion. `ApplicationsPage` stops listing hardcoded routes and
-starts listing promoted modules alongside the built-in apps — Foundry's *basic*
-vs *advanced* mode distinction.
+pinning, un-promotion. `ApplicationsPage` keeps its hardcoded built-ins *and*
+lists promoted modules under a "Built here" section.
 
 **Exit:** a built module appears in the portal for the roles it is granted to.
+— *met; `low_stock_triage` is published to the Inventory collection, and the e2e
+publishes, filters by tag, and unpublishes through the real UI.*
 
-### W5 — the compounding phase, and the actual point
+**Promotion is its own resource**, per `app-building/curating-apps` — it points
+at the module and pins the version the portal serves, so *"you can change the
+resource that a promotion references to release new applications in a controlled
+manner"*. Un-promoting deletes the promotion, never the module; the migration
+asserts exactly that.
+
+Required to promote: **name, icon, owner, collection**. Optional: tags,
+description. Collections section the portal; tags filter the cards — different
+jobs, kept apart as Foundry keeps them. A collection with nothing the viewer can
+reach produces no rows, which is their *"only appear if they contain promoted
+apps accessible to the user"* enforced in SQL rather than as an empty heading.
+
+**Deliberate divergence:** the thumbnail is nullable. Foundry requires one; we
+have no upload surface for app art, and a required column nobody can populate is
+a promotion nobody can make. The card falls back to the icon, and the column
+becomes `NOT NULL` the day an upload surface exists.
+
+A card whose module has moved past the published version says so. A promotion is
+a release, and a stale one is a decision nobody has made yet.
+
+### W5 — the compounding phase, and the actual point ✅ shipped
 
 Promote a module **across properties**. An org-scoped module installs at each
 hotel; a hotel-scoped one stays local. Hotel overrides org, as everywhere else in
 this system.
 
 **Exit:** a workflow authored at Valinor runs at Rivendell without being rebuilt
-— and the org can see which properties have adopted it.
+— and the org can see which properties have adopted it. — *met; `morning_par_check`
+is authored at Valinor and installed at Rivendell, and the adoption panel counts
+it.*
+
+**Foundry's installation model** (`marketplace/installations`): an installation
+is a deployed instance that **tracks a version**, and newer ones *"surface as new
+versions available for upgrade"*. **Locking** is the divergence rule — locked
+projects can't be edited and *"edits to installed content will be overwritten
+when a new product version is applied"*; unlocking lets you *"fork the content
+you installed"*.
+
+Ours reads the same and is structural rather than advisory:
+
+| | |
+|---|---|
+| `forked_module_id IS NULL` | **locked** — runs the source at its pinned version, cannot drift, can be upgraded |
+| `forked_module_id` set | **forked** — owns a copy, may be edited, receives no upgrades |
+
+**One place we deliberately improve on the description rather than copy it:**
+nothing is silently overwritten. An upgrade re-points the pin explicitly, and a
+fork is an act that costs you upgrades. Foundry warns; we make the two states
+different objects so the warning can't be ignored.
+
+Forking remaps ids — variables, layouts, widgets, **and the variable ids inside
+event configs**. A fork whose buttons still set the source module's variables
+would render perfectly and drive the wrong screen; migration 311 asserts against
+exactly that.
+
+**Two scope findings, both real:**
+
+- `hotels` is protected by `id = auth_hotel_id()` — *nobody* can read a sibling
+  property's row. An org-wide adoption view is impossible under invoker rights,
+  so `get_module_adoption` follows `get_chain_overview`: SECURITY DEFINER, an
+  owner/admin gate inside the function, org-scoped (migration 312). The panel had
+  been rendering one property in a two-property org — a wrong answer that read
+  like a real one.
+- `hotel_is_in_user_scope()` returns true for **every** hotel in the org once
+  `auth_org_role()` is set. So an org-level user could see a hotel-scoped module
+  either way, and a browser test would prove nothing. The scope rule is proved in
+  `rls_contracts.sql` **C28** under a hotel-scoped role instead: invisible at
+  hotel B, visible after B installs it, and still invisible to a third property.
 
 ---
 

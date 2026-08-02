@@ -29,6 +29,9 @@ import {
   scalarValue, visibleVariableIds,
   type ModuleUiState, type SideEffect, type TriggerContext,
 } from './runtime'
+import { AdoptionPanel } from './AdoptionPanel'
+import { PromoteDialog } from './PromoteDialog'
+import { usePromotedApps } from './promotions'
 
 export function useModule(apiName: string) {
   return useQuery({
@@ -361,8 +364,11 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
     activePageId: null, activeTabByParent: {}, collapsedSections: {}, openOverlays: [], values: {},
   })
   const [pendingAction, setPendingAction] = useState<ActionSpec | null>(null)
+  const [promoting, setPromoting] = useState(false)
   const hotelId = useActiveHotelId()
   const actorId = useAuthStore((st) => st.session?.user.id ?? null)
+  const role    = useAuthStore((st) => st.role)
+  const { data: promotedApps = [] } = usePromotedApps()
 
   const perform = useCallback((effects: SideEffect[]) => {
     for (const e of effects) {
@@ -427,6 +433,9 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
              description={`Nothing named "${apiName}" is published in your scope.`} />
   }
 
+  const promotion = promotedApps.find((p) => p.moduleApiName === mod.apiName)
+  const canPromote = role === 'owner' || role === 'admin'
+
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-8 py-6 max-w-5xl space-y-4">
@@ -441,6 +450,16 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
             <Tag minimal intent={mod.status === 'published' ? Intent.SUCCESS : Intent.NONE}>{mod.status}</Tag>
             <Tag minimal>v{mod.version}</Tag>
             {mod.hotelId === null && <Tag minimal icon="globe">org-wide</Tag>}
+            {promotion && (
+              <Tag minimal icon="application" intent={Intent.PRIMARY}>
+                in portal · v{promotion.publishedVersion}
+              </Tag>
+            )}
+            {canPromote && (
+              <Button size="small" variant="minimal" icon="share"
+                text={promotion ? 'Publication' : 'Publish'}
+                onClick={() => { setPromoting(true) }} />
+            )}
           </div>
         </header>
 
@@ -458,6 +477,8 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
             reported here rather than silently doing nothing.
           </Card>
         )}
+
+        {canPromote && <AdoptionPanel mod={mod} />}
 
         {params && (params.unknownParameters.length > 0 || params.unresolved.length > 0) && (
           <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
@@ -488,6 +509,10 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
             void queryClient.invalidateQueries({ queryKey: ['module-variable'] })
           }}
         />
+      )}
+
+      {promoting && (
+        <PromoteDialog open onClose={() => { setPromoting(false) }} mod={mod} existing={promotion} />
       )}
 
       {mod.layouts.filter((l) => l.layoutType === 'overlay').map((o) => (
