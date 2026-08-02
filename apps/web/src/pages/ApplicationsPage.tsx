@@ -15,6 +15,7 @@ import type { IconName } from '@blueprintjs/icons'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { usePromotedApps, type PromotedApp } from '@/features/modules/promotions'
+import { DescribeDialog } from '@/features/modules/builder/DescribeDialog'
 
 type Access = 'all' | 'manager' | 'admin'
 
@@ -67,6 +68,7 @@ export default function ApplicationsPage() {
   const { data: counts } = useAipSignalCounts()
   const { data: promoted = [] } = usePromotedApps()
   const [tagFilter, setTagFilter] = useState<string | null>(null)
+  const [describing, setDescribing] = useState(false)
 
   const isManager      = !!role && role !== 'limited_access' && role !== 'team_member'
   const isOwnerOrAdmin = role === 'owner' || role === 'admin'
@@ -126,6 +128,21 @@ export default function ApplicationsPage() {
               </div>
             </section>
           ))}
+
+          {isOwnerOrAdmin && (
+            <div className="rounded-md border border-dashed p-4 flex items-center gap-3">
+              <Icon icon="clean" size={15} className="text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Describe an application</p>
+                <p className="text-[11px] text-muted-foreground leading-snug">
+                  Say what a screen is for and get a draft to review — you edit and publish it yourself.
+                </p>
+              </div>
+              <Button size="small" text="Describe" onClick={() => { setDescribing(true) }} />
+            </div>
+          )}
+
+          {describing && <DescribeDialog open onClose={() => { setDescribing(false) }} />}
 
           {promoted.length > 0 && (
             <div className="pt-2 border-t space-y-6">

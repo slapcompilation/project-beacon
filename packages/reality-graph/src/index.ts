@@ -461,6 +461,17 @@ export type {
 } from './authoredAgents/index'
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
 export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
+
+// W7 — describing an application. The generator proposes; this validates.
+export {
+  validateModuleSpec, moduleSpecToRows, buildAuthoringPrompt, parseModuleSpec,
+  WIDGET_TYPES, VARIABLE_TYPES, DEFINITION_KINDS, LAYOUT_TYPES,
+  TRIGGERS as AUTHORING_TRIGGERS, EFFECT_TYPES as AUTHORING_EFFECTS,
+} from './authoring/moduleSpec'
+export type {
+  ModuleSpec, SpecVariable, SpecLayout, SpecWidget, SpecEvent,
+  AuthoringCatalog, SpecProblem, RowPayloads,
+} from './authoring/moduleSpec'
 export { authoredToolAsLogicTool, resolveToolGroups, paramsToSchema } from './userTools/asLogicTool'
 export type { AuthoredToolReader } from './userTools/asLogicTool'
 
