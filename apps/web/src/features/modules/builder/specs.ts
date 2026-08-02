@@ -1,0 +1,117 @@
+// What the builder knows how to configure.
+//
+// One registry entry per widget type, so adding a widget means adding an entry
+// rather than editing the builder in five places. `needsVariable` mirrors the
+// module_widgets_needs_binding CHECK — the constraint stays the authority, this
+// is what stops the form offering an invalid save.
+
+import type { ModuleVariableType, ModuleWidgetType } from '../api'
+
+export type FieldKind = 'text' | 'textarea' | 'select' | 'csv'
+
+export interface ConfigField {
+  key:      string
+  label:    string
+  kind:     FieldKind
+  options?: string[]
+  help?:    string
+}
+
+export interface WidgetSpec {
+  label:         string
+  icon:          string
+  needsVariable: boolean
+  /** Which variable types this widget can bind to. */
+  binds?:        ModuleVariableType[]
+  fields:        ConfigField[]
+  blurb:         string
+}
+
+export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
+  object_table: {
+    label: 'Object table', icon: 'th', needsVariable: true, binds: ['object_set'],
+    blurb: 'Rows from an object set. Selecting a row can drive other widgets.',
+    fields: [
+      { key: 'columns', label: 'Columns', kind: 'csv',
+        help: 'Property keys, comma separated. Leave blank to show the first six.' },
+    ],
+  },
+  metric_card: {
+    label: 'Metric card', icon: 'numerical', needsVariable: true,
+    blurb: 'One number: a count or aggregate over a set, or the value of a variable.',
+    fields: [
+      { key: 'aggregation', label: 'Aggregation', kind: 'select',
+        options: ['count', 'sum', 'avg', 'min', 'max'],
+        help: 'Ignored when the variable is not an object set.' },
+      { key: 'property', label: 'Property', kind: 'text',
+        help: 'The numeric property to aggregate. Not needed for count.' },
+    ],
+  },
+  object_set_title: {
+    label: 'Set title', icon: 'header', needsVariable: true, binds: ['object_set'],
+    blurb: 'A heading with the number of objects currently in the set.',
+    fields: [],
+  },
+  markdown: {
+    label: 'Text', icon: 'paragraph', needsVariable: false,
+    blurb: 'Static text. {{variableName}} is replaced with the current value.',
+    fields: [{ key: 'body', label: 'Body', kind: 'textarea' }],
+  },
+  button_group: {
+    label: 'Buttons', icon: 'widget-button', needsVariable: false,
+    blurb: 'Buttons that fire events, apply a typed Action, or both.',
+    fields: [],
+  },
+}
+
+export const LAYOUT_KINDS = [
+  { value: 'section', label: 'Section',  blurb: 'A titled, collapsible group.' },
+  { value: 'row',     label: 'Row',      blurb: 'Arranges its children side by side.' },
+  { value: 'column',  label: 'Column',   blurb: 'Stacks its children. Use inside a row.' },
+  { value: 'tab',     label: 'Tab',      blurb: 'Its container draws a tab bar above.' },
+  { value: 'overlay', label: 'Overlay',  blurb: 'A dialog, opened by an event.' },
+  { value: 'page',    label: 'Page',     blurb: 'One of several screens; events switch between them.' },
+] as const
+
+export const VARIABLE_KINDS = [
+  { value: 'static', label: 'A fixed value', enabled: true,
+    blurb: 'Set once here; events can change it while the app runs.' },
+  { value: 'object_set_definition', label: 'A saved object set', enabled: true,
+    blurb: 'Resolves through the same path cohorts use.' },
+  { value: 'function', label: 'A Logic Tool', enabled: true,
+    blurb: 'Calls a registered tool and carries its basis and confidence.' },
+  { value: 'object_set_aggregation', label: 'An aggregate over a set', enabled: false,
+    blurb: 'Not built yet — a metric card over the set does this today.' },
+  { value: 'object_property', label: 'A property of one object', enabled: false,
+    blurb: 'Not built yet — a row selection into a variable does this today.' },
+  { value: 'variable_transformation', label: 'Derived from another variable', enabled: false,
+    blurb: 'Not built yet.' },
+] as const
+
+/** Effects the runtime implements. The others are in the CHECK and reported on
+ *  screen when wired, so the builder does not offer what it cannot honour. */
+export interface EffectKind {
+  value: string
+  label: string
+  /** What the effect needs pointed at before it does anything. */
+  needs: ReadonlyArray<'variable' | 'layout'>
+}
+
+export const EFFECT_KINDS: ReadonlyArray<EffectKind> = [
+  { value: 'set_variable',       label: 'Set a variable',   needs: ['variable'] },
+  { value: 'reset_variable',     label: 'Reset a variable', needs: ['variable'] },
+  { value: 'recompute_variable', label: 'Recompute a variable', needs: ['variable'] },
+  { value: 'switch_tab',         label: 'Switch tab',       needs: ['layout'] },
+  { value: 'switch_page',        label: 'Switch page',      needs: ['layout'] },
+  { value: 'toggle_section',     label: 'Expand or collapse a section', needs: ['layout'] },
+  { value: 'open_overlay',       label: 'Open an overlay',  needs: ['layout'] },
+  { value: 'close_overlay',      label: 'Close an overlay', needs: ['layout'] },
+  { value: 'refresh_module',     label: 'Refresh data',     needs: [] },
+]
+
+export const TRIGGERS = [
+  { value: 'click',            label: 'a button is pressed' },
+  { value: 'row_select',       label: 'a table row is selected' },
+  { value: 'tab_change',       label: 'a tab is opened' },
+  { value: 'on_load',          label: 'the application opens' },
+] as const

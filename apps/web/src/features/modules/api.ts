@@ -20,12 +20,13 @@ export type ModuleDefinitionKind =
   | 'static' | 'object_set_definition' | 'function'
   | 'object_set_aggregation' | 'object_property' | 'variable_transformation'
 
-/** Six of Foundry's ~forty. The rest are demand-gated individually.
- *  W2 adds the two from Foundry's event-trigger group — without something to
- *  press, an event model has no way to fire. */
+/** Five of Foundry's ~forty, demand-gated individually.
+ *
+ *  `tabs` was here and is gone (migration 313): Foundry's Tabs is a layout
+ *  option on a section, not a widget you place, so the container draws its own
+ *  bar and the widget had nothing left to do. */
 export type ModuleWidgetType =
-  | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title'
-  | 'button_group' | 'tabs'
+  | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title' | 'button_group'
 
 export interface ModuleVariable {
   id:             string
@@ -40,7 +41,8 @@ export interface ModuleVariable {
 
 export interface ModuleLayout {
   id: string; apiName: string; title: string
-  layoutType: 'page' | 'section' | 'tab' | 'overlay'
+  /** `row` arranges children horizontally; everything else stacks. */
+  layoutType: 'page' | 'section' | 'tab' | 'overlay' | 'row' | 'column'
   parentId: string | null; position: number
 }
 

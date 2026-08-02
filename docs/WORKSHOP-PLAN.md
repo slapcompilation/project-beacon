@@ -279,7 +279,7 @@ exactly that.
   `rls_contracts.sql` **C28** under a hotel-scoped role instead: invisible at
   hotel B, visible after B installs it, and still invisible to a third property.
 
-### W6 — the builder — SPEC, not yet built
+### W6 — the builder ✅ shipped
 
 W1–W5 shipped the model, the runtime, the portal and cross-property adoption.
 **A module is still composed by writing SQL.** That is the honest limit of the
@@ -365,7 +365,22 @@ codebase and should not become per-section settings.
 
 **Exit:** an admin creates a module from nothing in the UI — variables, layout,
 widgets, an action button, an event — publishes it, and it appears in the portal
-for another property to install. **Zero SQL.**
+for another property to install. **Zero SQL.** — *met; `e2e/module-builder.spec.ts`
+adds a variable, adds a text widget, interpolates the variable, watches the canvas
+update, publishes, and reads the result at the operator's own route.*
+
+**One defect, and it had been there since W1.** `modules.organization_id` is NOT
+NULL with no default while the admin policy requires
+`organization_id IS NOT DISTINCT FROM auth_org_id()` — so **a module has never
+been creatable from a browser.** Nobody hit it because every module in the system
+was made in SQL, which is the exact gap this phase closes. Fixed in migration 314,
+which also asserts the same default across every tenant-scoped table the builder
+writes to, so there is no fourth discovery.
+
+**The pattern worth naming** (third time in this arc, after 310 and 312): a
+scope-aware RLS policy on a NOT NULL tenant column is only satisfiable if that
+column carries a matching DEFAULT. Writing the policy is half the work; the other
+half is making a legitimate caller able to pass it.
 
 ---
 
