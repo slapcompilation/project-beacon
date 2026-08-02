@@ -42,6 +42,9 @@ export interface ActionFormModalProps {
    *  the operator's form input becomes a step in simulated_actions; nothing
    *  hits the Action Registry until the chain commits. */
   onCapture?: (action: BeaconAction) => void
+  /** Fields shown read-only. Foundry's third parameter state ("disabled" —
+   *  prefilled, visible, not editable), used by module Button Groups. */
+  disabledFields?: ReadonlyArray<string>
   /** Custom modal title; defaults to descriptor.title. */
   titleOverride?: string
   /** Custom submit button label; defaults to descriptor.submitLabel or 'Submit'. */
@@ -50,7 +53,7 @@ export interface ActionFormModalProps {
 
 export function ActionFormModal({
   open, onClose, actionType, context, initialValues,
-  dispatchContext, onSuccess, onCapture,
+  dispatchContext, onSuccess, onCapture, disabledFields,
   titleOverride, submitLabelOverride,
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
@@ -147,6 +150,7 @@ export function ActionFormModal({
               field={field}
               value={values[field.name]}
               error={fieldErrors[field.name]}
+              disabled={disabledFields?.includes(field.name) ?? false}
               suggestions={
                 field.optionsSource === 'approved_removal_categories' ? removalCategories
                 : field.optionsSource === 'approved_movement_categories' ? movementCategories
@@ -183,13 +187,15 @@ export function ActionFormModal({
 // ─── Field renderer ──────────────────────────────────────────────────────────
 
 function FieldRenderer({
-  field, value, error, suggestions, onChange,
+  field, value, error, suggestions, disabled = false, onChange,
 }: {
   field: ActionField
   value: FormValue | undefined
   error: string | undefined
   /** Dynamic type-or-pick options (e.g. approved removal categories). */
   suggestions?: ReadonlyArray<string>
+  /** Prefilled and shown, but not editable. */
+  disabled?: boolean
   onChange: (v: FormValue | undefined) => void
 }) {
   const labelInfo = field.required ? `${field.label} *` : field.label
@@ -203,6 +209,7 @@ function FieldRenderer({
             value={(value as string | undefined) ?? ''}
             onChange={(e) => { onChange(e.target.value) }}
             placeholder={field.placeholder}
+            disabled={disabled}
             fill
             rows={3}
           />
@@ -218,6 +225,7 @@ function FieldRenderer({
               { label: '— select —', value: '' },
               ...(field.options ?? []).map((opt) => ({ label: opt, value: opt })),
             ]}
+            disabled={disabled}
             fill
           />
         </FormGroup>
@@ -234,6 +242,7 @@ function FieldRenderer({
             min={field.min}
             max={field.max}
             buttonPosition={stepperButtons ? 'right' : 'none'}
+            disabled={disabled}
             fill
           />
         </FormGroup>
@@ -246,6 +255,7 @@ function FieldRenderer({
             type="date"
             value={(value as string | undefined) ?? ''}
             onChange={(e) => { onChange(e.target.value || undefined) }}
+            disabled={disabled}
           />
         </FormGroup>
       )
@@ -262,6 +272,7 @@ function FieldRenderer({
             value={(value as string | undefined) ?? ''}
             onChange={(e) => { onChange(e.target.value) }}
             placeholder={field.placeholder}
+            disabled={disabled}
             list={listId}
           />
           {listId && (

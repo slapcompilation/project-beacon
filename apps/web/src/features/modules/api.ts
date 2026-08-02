@@ -9,7 +9,8 @@ import { rowToObjectSet, type ObjectSetRow } from '@/features/objectSets/api'
 import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
-import { selectObjectSet } from '@beacon/reality-graph'
+import { buildAuthoredAgentTools, selectObjectSet } from '@beacon/reality-graph'
+import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 
 /** Foundry names twelve variable types; W1 sources six. */
 export type ModuleVariableType =
@@ -99,6 +100,23 @@ export async function fetchModules(): Promise<Pick<ModuleDoc,
     status: r.status as ModuleDoc['status'], version: r.version as number,
     hotelId: r.hotel_id as string | null,
   }))
+}
+
+/** A `function`-defined variable: a Logic Tool call, with its arguments bound by
+ *  the same grammar action parameters use.
+ *
+ *  The tool registry is built with a browser reader, so the SAME implementation
+ *  the agents and the cycle call answers here — a module cannot compute a number
+ *  a different way than the rest of the system does. */
+export async function resolveFunctionVariable(
+  variable: ModuleVariable, args: Record<string, unknown>,
+): Promise<Record<string, unknown> | null> {
+  const name = variable.definition.toolName
+  if (typeof name !== 'string') return null
+  const tool = buildAuthoredAgentTools(makeSupabaseGraphReader()).get(name)
+  if (!tool) throw new Error(`Workshop:UnknownTool ${name}`)
+  const out = await tool.invoke(args)
+  return out as Record<string, unknown>
 }
 
 /** Records behind an `object_set` variable.
