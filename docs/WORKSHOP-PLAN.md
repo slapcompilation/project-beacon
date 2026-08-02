@@ -143,14 +143,27 @@ paid for twice.
 
 **Exit:** an admin composes a module over an existing object set and it renders.
 
-### W2 — events and layouts
+### W2 — events and layouts ✅ shipped
 
 Layouts (pages, sections, tabs, overlays). The event model with Foundry's effect
 groups and its **non-blocking dispatch semantics**. Variable recompute modes and
 lazy evaluation.
 
 **Exit:** a Button Group sets a variable, an Object Table row selection drives a
-Metric Card.
+Metric Card. — *met; `low_stock_triage` does exactly this, covered by
+`e2e/module.spec.ts` in a real browser.*
+
+Notes worth keeping:
+
+- The full 13-effect vocabulary is in the CHECK; the runtime implements the
+  Layer, Layout, Variable and refresh groups. `open_module` / `open_object_view`
+  belong to W3–W4 and are **reported on screen** when an author wires one, rather
+  than silently doing nothing.
+- The lazy rule copies Foundry's list exactly — pages, tabs, overlays. **Sections
+  are not on it**, so a collapsed section still computes. Deliberate: an operator
+  expanding a section expects data, not a spinner.
+- Two widgets added (Button Group, Tabs) because an event model with nothing to
+  press cannot fire. Six of ~forty; each consumed by the renderer in the same change.
 
 ### W3 — actions and functions in widgets
 
