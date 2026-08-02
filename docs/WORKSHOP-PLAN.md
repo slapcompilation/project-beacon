@@ -279,6 +279,162 @@ exactly that.
   `rls_contracts.sql` **C28** under a hotel-scoped role instead: invisible at
   hotel B, visible after B installs it, and still invisible to a third property.
 
+### W6 — the builder — SPEC, not yet built
+
+W1–W5 shipped the model, the runtime, the portal and cross-property adoption.
+**A module is still composed by writing SQL.** That is the honest limit of the
+arc: every application in the system was authored by a developer with database
+access, which is the thing this arc exists to stop.
+
+#### Foundry's builder, by its own names
+
+From `workshop/getting-started` and `workshop/module-interface`:
+
+| region | what it does |
+|---|---|
+| **Left workspace navigation panel** | *Projects & Files* → **New › Workshop module** |
+| **Canvas** | the module layout, centre |
+| **Configuration panel** | right side, appears when a widget is selected |
+| **Top bar** | resource name and publishing controls |
+| **Section toolbar** | layout options, e.g. **Add — Right** |
+| **Variables menu** | left sidebar; each variable has a **Settings tab** |
+
+A widget arrives via **Add widget** → a widget-selector popup → configuration on
+the right. Sections carry the layout: column width in absolute pixels, plus
+**Section Header** and **Collapsible** toggles.
+
+**This is a CRUD surface over tables we already have.** The config panel edits
+`module_widgets.config`; the Variables menu edits `module_variables`; the canvas
+is `ModuleRenderer` with selection affordances. No new vocabulary, no new write
+path — admins already hold `FOR ALL` policies on all five tables.
+
+#### Two model corrections the builder forces
+
+Reading `concepts-layouts` *after* building W2 surfaced both. Recording them
+rather than quietly building around them:
+
+**1. There is no way to put two widgets side by side.** Foundry's layout types
+are pages, sections, tabs, **rows**, **columns**, flow, toolbar, loop, overlays.
+Ours are `page | section | tab | overlay`. Arrangement lives in rows and columns,
+and without them every widget in a module stacks vertically forever. A builder
+whose only layout act is "append to the bottom" is not a builder.
+
+→ **Add `row` and `column` to the CHECK, consumed by the builder in the same
+change.** `flow`, `toolbar` and `loop` stay out until asked for — `loop` in
+particular means embedded modules, which is its own phase.
+
+**2. Our `tabs` widget should not exist.** Foundry's Tabs is a *layout option on
+a section* — *"adds tabs to the top of a section"* — not a widget you place. W2
+built tab layouts (correct) plus a `tabs` widget to draw the bar (ours). A
+section with tab children should render its own tab bar.
+
+→ **Sections render their own tab bar; the `tabs` widget is deprecated.** It was
+invented shape with no citation, which the stage directive says not to keep.
+
+#### What W6 builds
+
+- **Route** `/modules/:apiName/edit`, admin/owner only, mirroring the three
+  regions above. `ModuleRenderer` gains a `selection` prop rather than being
+  forked — one renderer, or the builder and the runtime will drift.
+- **Widget picker** driven by a registry keyed on widget type, so a new widget
+  type means one registry entry, not edits in five places. Each entry declares
+  its config form fields and whether it needs a variable binding — the same
+  `needs_binding` rule the CHECK already enforces.
+- **Variable editor** per definition kind: `static` (a value), `object_set_definition`
+  (pick a saved set), `function` (pick a Logic Tool, then bind its args with the
+  W3 grammar). The kinds not yet implemented stay listed and disabled, with the
+  phase that owns them named.
+- **Event editor** — trigger, then ordered effects, reusing `effectsFor`'s shape.
+  The dispatch-order-not-completion-order rule is shown in the UI, because an
+  author who does not know it will write the bug it describes.
+- **Layout tree** with add/remove/reorder and row/column nesting. Reordering is
+  `position` arithmetic — up/down buttons before drag-and-drop, which is
+  presentation over the same writes.
+- **Publishing** — the top bar bumps `modules.version`. Promotions pin a version
+  (W4) and installations pin one (W5), so both already show "vN available" the
+  moment a builder publishes. **The builder is the thing that finally makes those
+  pins move.**
+
+#### Deliberately not in W6
+
+Pixel-precise column widths, background colours, border styles, header
+formatting (Block/Contained/Floating), conditional section visibility, drop
+zones. All real Foundry features, all presentation, none of which changes what a
+module can *do*. Density and 4px radii are already decided globally in this
+codebase and should not become per-section settings.
+
+**Exit:** an admin creates a module from nothing in the UI — variables, layout,
+widgets, an action button, an event — publishes it, and it appears in the portal
+for another property to install. **Zero SQL.**
+
+---
+
+## 3a. The NL case, argued properly
+
+W6 is Foundry's shape and has a citation. **NL authoring is ours, and by this
+repo's own rule invented shape needs a consumer today.** So it has to be argued,
+not assumed — `AUTHORING-STRATEGY.md` asserts *"NL is the builder"* and
+`STUDIO-AUTHORING-PLAN.md` asserts *"copy what Foundry IS"*, and on this surface
+those two disagree.
+
+#### What Foundry actually does here
+
+**AIP Assist does not author.** It is documentation Q&A and navigation; its one
+documented suggested action is directing users to the developer forum. The three
+AIP widgets — Analyst, Chatbot, Generated Content — put AI **inside the built
+app**, not into the building of it. There is no NL app-generation in Foundry to
+copy.
+
+#### Why that is not the end of the argument
+
+Foundry's absence here is explained by its distribution model, not by the idea
+being wrong. Foundry ships with forward-deployed engineers who build Workshop
+apps for customers. **Our operators have nobody.** An F&B manager who wants a
+morning par-check screen will not open a widget picker, and there is no
+implementation team to open it for them. That is a real difference in who is
+holding the mouse, and it is the same reason `project_hospitality_niche` records
+NL-native authoring as the leapfrog rather than the imitation.
+
+Three things make it tractable here specifically, and they are all already built:
+
+1. **The target grammar is tiny and validated.** Six widget types, six variable
+   types, thirteen effects, an action registry with typed descriptors. An LLM
+   emitting into that can be checked *deterministically before any write* —
+   unlike NL → code, where the only check is running it.
+2. **We already do exactly this pattern.** Constraints are NL categorised into
+   typed buckets; principles are NL folded into agent prompts; authored tools and
+   agents are NL-shaped rows behind a grammar check. NL → typed rows is the
+   house style, not a new bet.
+3. **W3 proved the failure mode is catchable.** A binding naming `quantity`
+   instead of `quantityNeeded` resolved to a real number and went nowhere — the
+   exact class of mistake an LLM makes. It is now reported against the
+   descriptor. **That report is the precondition for trusting a generator**, and
+   it exists because a human made the mistake first.
+
+#### Why it must come second
+
+- **An NL mistake needs somewhere to be corrected.** Without W6, the only repair
+  for a wrong generated module is SQL — which is the situation we are in now, and
+  the reason the arc is incomplete. NL-first without an editor is a trap.
+- **The builder is the audit surface.** A generated module the operator cannot
+  inspect field-by-field is a proposal without a trace, which this codebase
+  already calls a defect.
+
+#### The shape it should take: W7 proposes, it does not write
+
+Not "describe an app and it appears." **The generator emits rows, and the rows
+open in the builder as a draft for approval** — the same Proposal pattern
+everything else here uses. `status = 'draft'` already exists on `modules`, so the
+generator has a landing state and no new column is needed.
+
+That satisfies the AIP-native test — a tunable capability over config-as-data,
+loop-closing, with a human gate — while keeping the invented shape honest: **the
+consumer of NL authoring is the builder, and the builder has to exist first.**
+
+An eval suite is not optional here. `*.eval.ts` with ≥10 cases of
+"request → expected rows", graded on structure rather than prose, before it is
+offered to anyone.
+
 ---
 
 ## 4. What this does not include
