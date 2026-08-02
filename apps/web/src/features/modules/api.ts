@@ -19,9 +19,12 @@ export type ModuleDefinitionKind =
   | 'static' | 'object_set_definition' | 'function'
   | 'object_set_aggregation' | 'object_property' | 'variable_transformation'
 
-/** Four of Foundry's ~forty. The rest are demand-gated individually. */
+/** Six of Foundry's ~forty. The rest are demand-gated individually.
+ *  W2 adds the two from Foundry's event-trigger group — without something to
+ *  press, an event model has no way to fire. */
 export type ModuleWidgetType =
   | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title'
+  | 'button_group' | 'tabs'
 
 export interface ModuleVariable {
   id:             string
@@ -46,6 +49,23 @@ export interface ModuleWidget {
   config: Record<string, unknown>; position: number
 }
 
+/** One EFFECT. A trigger with three effects is three rows sharing a source
+ *  widget and trigger, ordered by `position` — dispatch order, not completion
+ *  order. See applyEffects in runtime.ts. */
+export interface ModuleEvent {
+  id: string
+  sourceWidgetId: string | null
+  trigger: 'click' | 'row_select' | 'selection_change' | 'tab_change' | 'on_load'
+  effectType:
+    | 'open_overlay' | 'close_overlay'
+    | 'switch_page' | 'switch_tab' | 'toggle_section'
+    | 'set_variable' | 'reset_variable' | 'recompute_variable' | 'stream_llm_into_variable'
+    | 'open_module' | 'open_object_view'
+    | 'refresh_module' | 'toggle_theme'
+  config: Record<string, unknown>
+  position: number
+}
+
 export interface ModuleDoc {
   id: string; apiName: string; title: string; description: string; icon: string
   status: 'draft' | 'published' | 'archived'
@@ -54,6 +74,7 @@ export interface ModuleDoc {
   variables: ModuleVariable[]
   layouts:   ModuleLayout[]
   widgets:   ModuleWidget[]
+  events:    ModuleEvent[]
 }
 
 export async function fetchModule(apiName: string): Promise<ModuleDoc | null> {
