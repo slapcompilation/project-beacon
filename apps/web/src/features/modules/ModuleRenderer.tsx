@@ -8,12 +8,20 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query'
 import {
-  Button, ButtonGroup, Card, Collapse, Dialog, DialogBody, Icon, Intent,
+  Button, ButtonGroup, Callout, Card, Collapse, Dialog, DialogBody, Icon, Intent,
   NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
+import { useActiveHotelId } from '@/hooks/useActiveHotelId'
+import { useAuthStore } from '@/stores/auth.store'
+import { ActionFormModal } from '@/features/actions/ActionFormModal'
+import type { BeaconAction } from '@beacon/reality-graph'
 import {
-  fetchModule, resolveObjectSetVariable,
+  argsReady, resolveArgs, resolveParameters,
+  type ActionSpec, type Binding, type ButtonSpec,
+} from './bindings'
+import {
+  fetchModule, resolveFunctionVariable, resolveObjectSetVariable,
   type ModuleDoc, type ModuleEvent, type ModuleLayout, type ModuleVariable, type ModuleWidget,
 } from './api'
 import {
@@ -30,15 +38,26 @@ export function useModule(apiName: string) {
   })
 }
 
-type Resolved = { records: Record<string, unknown>[]; loading: boolean }
+type Resolved = {
+  records: Record<string, unknown>[]
+  loading: boolean
+  /** Function variables: the tool's output, plus the basis/confidence every
+   *  computed result in this system is required to carry. */
+  value?: unknown
+  basis?: string
+  confidence?: number
+  error?: string
+}
 
 /** Only variables on visible layouts resolve — Foundry's lazy rule, which W1
  *  could not implement because it had nowhere to hide a widget. */
 function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiState) {
   const wanted = mod ? visibleVariableIds(mod, ui) : new Set<string>()
-  const setVars = (mod?.variables ?? []).filter((v) => v.varType === 'object_set' && wanted.has(v.id))
+  const shown = (mod?.variables ?? []).filter((v) => wanted.has(v.id))
+  const setVars = shown.filter((v) => v.varType === 'object_set')
+  const fnVars  = shown.filter((v) => v.definitionKind === 'function')
 
-  const results = useQueries({
+  const setResults = useQueries({
     queries: setVars.map((v) => ({
       queryKey: ['module-variable', v.id],
       queryFn:  () => resolveObjectSetVariable(v),
@@ -46,9 +65,37 @@ function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiSta
     })),
   })
 
+  // A tool called with an unset argument throws a schema error the operator
+  // reads as a broken screen, so an incomplete binding stays unresolved instead.
+  const fnArgs = fnVars.map((v) => mod
+    ? resolveArgs((v.definition.args ?? {}) as Record<string, Binding>, { mod, ui })
+    : {})
+
+  const fnResults = useQueries({
+    queries: fnVars.map((v, i) => ({
+      queryKey: ['module-variable', v.id, fnArgs[i]],
+      queryFn:  () => resolveFunctionVariable(v, fnArgs[i]),
+      enabled:  argsReady(fnArgs[i]),
+      staleTime: 30_000,
+    })),
+  })
+
   const byId = new Map<string, Resolved>()
   setVars.forEach((v, i) => {
-    byId.set(v.id, { records: results[i]?.data ?? [], loading: results[i]?.isLoading ?? false })
+    byId.set(v.id, { records: setResults[i]?.data ?? [], loading: setResults[i]?.isLoading ?? false })
+  })
+  fnVars.forEach((v, i) => {
+    const r = fnResults[i]
+    const out = r.data ?? null
+    const key = typeof v.definition.output === 'string' ? v.definition.output : null
+    byId.set(v.id, {
+      records: [],
+      loading: r.isLoading && argsReady(fnArgs[i]),
+      value: out ? (key ? out[key] : out) : undefined,
+      basis: typeof out?.basis === 'string' ? out.basis : undefined,
+      confidence: typeof out?.confidence === 'number' ? out.confidence : undefined,
+      error: r.error instanceof Error ? r.error.message : undefined,
+    })
   })
   return byId
 }
@@ -59,6 +106,9 @@ interface Ctx {
   resolved: Map<string, Resolved>
   dispatch: (widgetId: string, trigger: ModuleEvent['trigger'], tctx?: TriggerContext) => void
   setUi:    (fn: (s: ModuleUiState) => ModuleUiState) => void
+  /** Opens the Action Registry's own form. A module is a new CALLER of
+   *  dispatchAction, never a second write path. */
+  openAction: (spec: ActionSpec) => void
 }
 
 function aggregate(records: Record<string, unknown>[], prop: string | null, agg: string): number {
@@ -165,8 +215,18 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
       const prop = typeof widget.config.property === 'string' ? widget.config.property : null
       const agg  = typeof widget.config.aggregation === 'string' ? widget.config.aggregation : 'count'
       const isSet = variable?.varType === 'object_set'
-      const raw: unknown = isSet ? aggregate(records, prop, agg) : scalarValue(variable, ui)
+      const isFn  = variable?.definitionKind === 'function'
+      const raw: unknown = isSet ? aggregate(records, prop, agg)
+        : isFn ? bound?.value
+        : scalarValue(variable, ui)
       const shown = typeof raw === 'number' ? Math.round(raw * 100) / 100 : display(raw)
+
+      // Every computed result carries its basis and confidence — a number an
+      // operator cannot trace is a number they cannot act on.
+      const footer = bound?.error ? bound.error
+        : isFn && bound?.basis ? `${bound.basis}${bound.confidence === undefined ? '' : ` · ${Math.round(bound.confidence * 100)}% confidence`}`
+        : isSet ? (agg === 'count' ? 'objects in the set' : `${agg} of ${String(prop)}`)
+        : variable?.label
 
       return (
         <Card className="space-y-1">
@@ -174,10 +234,10 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
             {widget.title || variable?.label}
           </div>
           <div className="text-2xl font-semibold tabular-nums">
-            {isSet && bound?.loading ? <Spinner size={SpinnerSize.SMALL} /> : shown}
+            {bound?.loading ? <Spinner size={SpinnerSize.SMALL} /> : shown}
           </div>
-          <div className="text-[11px] text-muted-foreground">
-            {isSet ? (agg === 'count' ? 'objects in the set' : `${agg} of ${String(prop)}`) : variable?.label}
+          <div className={cn('text-[11px]', bound?.error ? 'text-danger' : 'text-muted-foreground')}>
+            {footer}
           </div>
         </Card>
       )
@@ -187,17 +247,20 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
       return <ObjectTable widget={widget} resolved={bound} dispatch={dispatch} />
 
     case 'button_group': {
-      const buttons = Array.isArray(widget.config.buttons) ? widget.config.buttons : []
+      const buttons = (Array.isArray(widget.config.buttons) ? widget.config.buttons : []) as ButtonSpec[]
       return (
         <ButtonGroup>
-          {buttons.map((b, i) => {
-            const btn = b as { key?: string; label?: string; intent?: Intent }
-            return (
-              <Button key={btn.key ?? i} text={btn.label ?? btn.key ?? 'Button'} intent={btn.intent}
-                size="small"
-                onClick={() => { dispatch(widget.id, 'click', { button: btn.key }) }} />
-            )
-          })}
+          {buttons.map((btn, i) => (
+            <Button key={btn.key ?? i} text={btn.label ?? btn.key ?? 'Button'}
+              intent={btn.intent as Intent | undefined} size="small"
+              icon={btn.action ? 'flash' : undefined}
+              onClick={() => {
+                // Foundry applies actions through WIDGET CONFIG, not an event
+                // effect — so a button can do both, and events still fire.
+                if (btn.action) ctx.openAction(btn.action)
+                dispatch(widget.id, 'click', { button: btn.key })
+              }} />
+          ))}
         </ButtonGroup>
       )
     }
@@ -297,6 +360,9 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
   const [ui, setUi] = useState<ModuleUiState>({
     activePageId: null, activeTabByParent: {}, collapsedSections: {}, openOverlays: [], values: {},
   })
+  const [pendingAction, setPendingAction] = useState<ActionSpec | null>(null)
+  const hotelId = useActiveHotelId()
+  const actorId = useAuthStore((st) => st.session?.user.id ?? null)
 
   const perform = useCallback((effects: SideEffect[]) => {
     for (const e of effects) {
@@ -335,7 +401,21 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
   // Deliberately not memoised: `resolved` is a fresh Map every render, so a memo
   // would freeze the context on the first (all-loading) one and the tables would
   // spin forever. Building the object is cheaper than that bug.
-  const ctx: Ctx | null = mod ? { mod, ui, resolved, dispatch, setUi } : null
+  const ctx: Ctx | null = mod
+    ? { mod, ui, resolved, dispatch, setUi, openAction: setPendingAction }
+    : null
+
+  // Function-variable results are values a binding can read, same as any other.
+  const computed = new Map<string, unknown>()
+  for (const [id, r] of resolved) if (r.value !== undefined) computed.set(id, r.value)
+
+  const params = pendingAction && mod
+    ? resolveParameters(pendingAction, {
+        mod, ui, computed,
+        // The module knows where it is running; the author binds neither.
+        ambient: { hotelId, requestorId: actorId, actorId, userId: actorId },
+      })
+    : null
 
   if (isLoading) return <div className="flex h-full items-center justify-center"><Spinner /></div>
   if (isError) {
@@ -378,7 +458,37 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
             reported here rather than silently doing nothing.
           </Card>
         )}
+
+        {params && (params.unknownParameters.length > 0 || params.unresolved.length > 0) && (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            {params.unknownParameters.length > 0 && (
+              <div>
+                <strong>{pendingAction?.type}</strong> has no parameter named{' '}
+                {params.unknownParameters.join(', ')} — that binding is being dropped.
+              </div>
+            )}
+            {params.unresolved.length > 0 && (
+              <div>Bound to a variable this module does not have: {params.unresolved.join(', ')}.</div>
+            )}
+          </Callout>
+        )}
       </div>
+
+      {pendingAction && params && hotelId && (
+        <ActionFormModal
+          open
+          onClose={() => { setPendingAction(null) }}
+          actionType={pendingAction.type as BeaconAction['type']}
+          context={params.context}
+          initialValues={params.initialValues}
+          disabledFields={params.disabled}
+          dispatchContext={{ hotelId, actorId, triggeredBy: 'user' }}
+          onSuccess={() => {
+            setPendingAction(null)
+            void queryClient.invalidateQueries({ queryKey: ['module-variable'] })
+          }}
+        />
+      )}
 
       {mod.layouts.filter((l) => l.layoutType === 'overlay').map((o) => (
         <Dialog key={o.id} isOpen={ui.openOverlays.includes(o.id)} title={o.title || o.apiName}

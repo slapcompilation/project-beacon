@@ -165,14 +165,40 @@ Notes worth keeping:
 - Two widgets added (Button Group, Tabs) because an event model with nothing to
   press cannot fire. Six of ~forty; each consumed by the renderer in the same change.
 
-### W3 — actions and functions in widgets
+### W3 — actions and functions in widgets ✅ shipped
 
 Bind the Action Registry to Button Group / Inline Action, and Logic Tools to
 Function-defined variables. Every write still goes through `dispatchAction` and
 the constraint gate — **a module is a new caller, never a new write path.**
 
 **Exit:** a module can propose a typed action, and it lands in the same audit
-trail as every other proposal.
+trail as every other proposal. — *met; verified in the database, not just the UI:
+`quantity_needed 156` (the tool's number), requestor `smoke@beacon.test`, one
+`relationship_edge`.*
+
+**Checked before designing, and it changed the design.** `workshop/actions-use`:
+*"actions apply through **widget configuration**, not event effects."* So the
+action lives on the Button Group's config, and W2's event vocabulary was left
+alone. Parameters take their value from a **variable**, a **static** default or
+**user input**, and each is **visible / hidden / disabled** — all three copied,
+which is why `ActionFormModal` gained read-only fields.
+
+Foundry's fourth source, the Object Table's *active object*, **is itself a
+variable** in their model and in ours (a `row_select` event sets one from the
+row). No fourth source to invent.
+
+Two things the runtime supplies that no author should have to bind:
+
+- **Ambient context** — `hotelId`, `requestorId`. A module knows where it runs.
+  Without this the action fails validation on a field that is never rendered, so
+  the error had nowhere to appear.
+- **Binding validation** — a parameter name the action doesn't have, or a
+  variable the module doesn't have, is reported on screen. Foundry validates
+  this when the module is built; we validate it when it resolves.
+
+**Deferred with a reason:** the *Inline Action Form* widget. It is the same
+action machinery rendered in the page instead of a modal — presentation, not
+capability. It gets built when someone wants a form that is always open.
 
 ### W4 — the portal becomes real
 
