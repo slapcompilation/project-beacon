@@ -25,13 +25,17 @@ const ANSWER = '```json\n' + JSON.stringify({
   variables: [
     { api_name: 'lowStock', label: 'Below par', var_type: 'object_set',
       definition_kind: 'object_set_definition', definition: { objectSet: 'low_stock' } },
+    // The card displays a VALUE; the aggregating belongs to the variable (#478).
+    { api_name: 'lines', label: 'Lines below par', var_type: 'numeric',
+      definition_kind: 'object_set_aggregation',
+      definition: { objectSet: 'lowStock', metric: 'count' } },
     { api_name: 'picked', label: 'Picked', var_type: 'string',
       definition_kind: 'static', definition: { value: null } },
   ],
   layouts: [{ api_name: 'top', title: 'Top', layout_type: 'row', position: 0 }],
   widgets: [
     { api_name: 'count', widget_type: 'metric_card', title: 'Lines below par',
-      layout: 'top', variable: 'lowStock', config: { aggregation: 'count' }, position: 0 },
+      layout: 'top', variable: 'lines', config: {}, position: 0 },
     { api_name: 'items', widget_type: 'object_table', title: 'Below par',
       variable: 'lowStock', config: { columns: ['name', 'current_stock'] }, position: 1 },
     { api_name: 'note', widget_type: 'markdown', title: '',

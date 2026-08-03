@@ -10,24 +10,18 @@ import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
 import { buildAuthoredAgentTools, selectObjectSet } from '@beacon/reality-graph'
+import type {
+  ModuleDefinitionKind, ModuleLayoutType, ModuleVariableType, ModuleWidgetType,
+} from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 
-/** Foundry names twelve variable types; W1 sources six. */
-export type ModuleVariableType =
-  | 'object_set' | 'object_set_filter' | 'string' | 'numeric' | 'boolean' | 'date'
-
-export type ModuleDefinitionKind =
-  | 'static' | 'object_set_definition' | 'function'
-  | 'object_set_aggregation' | 'object_property' | 'variable_transformation'
-
-/** Five of Foundry's ~forty, demand-gated individually.
- *
- *  `tabs` was here and is gone (migration 313): Foundry's Tabs is a layout
- *  option on a section, not a widget you place, so the container draws its own
- *  bar and the widget had nothing left to do. */
-export type ModuleWidgetType =
-  | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title' | 'button_group'
-  | 'embedded_module' | 'tabs' | 'filter_list'
+// The vocabulary is defined once, in reality-graph, so the renderer, the
+// builder and the authoring validator cannot disagree about it. They did:
+// the generator's grammar sat three widget types and a definition kind behind,
+// and still believed a metric card could show an object set.
+export type {
+  ModuleVariableType, ModuleDefinitionKind, ModuleWidgetType, ModuleLayoutType,
+} from '@beacon/reality-graph'
 
 export interface ModuleVariable {
   id:             string
@@ -47,7 +41,7 @@ export interface ModuleLayout {
   id: string; apiName: string; title: string
   /** `row` arranges children horizontally; `loop` renders an embedded module
    *  per entry of a set; everything else stacks. */
-  layoutType: 'page' | 'section' | 'tab' | 'overlay' | 'row' | 'column' | 'loop'
+  layoutType: ModuleLayoutType
   parentId: string | null; position: number
   /** Loop settings live here — layouts carry no other configuration yet. */
   config: Record<string, unknown>
