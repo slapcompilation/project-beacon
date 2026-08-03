@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  ROOT, aggregateSet, aggregationSource, applyEffects, effectsFor, initialState,
-  interpolate, selectedTabKey, tabState, visibleVariableIds,
+  ROOT, aggregateSet, aggregationSource, applyEffects, applyObjectSetFilter,
+  effectsFor, initialState, interpolate, propertyValues, selectedTabKey, tabState,
+  visibleVariableIds,
 } from './runtime'
 import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
@@ -438,5 +439,51 @@ describe('variables named in widget config are consumers too', () => {
         config: { tabs: [{ key: 'a', badge: 'shortCount' }] } })],
     })
     expect(visibleVariableIds(mod, initialState(mod)).size).toBe(0)
+  })
+})
+
+// Foundry's three starting filters. CONTAIN is prefix-only, which a substring
+// match would quietly turn into a different feature.
+describe('filtering an object set', () => {
+  const rows = [
+    { name: 'Tomatoes', sku: 'id000123', status: 'open' },
+    { name: 'Tomato paste', sku: 'id000456', status: 'closed' },
+    { name: 'Olive oil', sku: 'ol000123', status: null },
+  ]
+
+  it('returns everything when nothing is set', () => {
+    expect(applyObjectSetFilter(rows, [])).toHaveLength(3)
+    expect(applyObjectSetFilter(rows, [{ property: 'status', op: 'IS', value: '' }])).toHaveLength(3)
+  })
+
+  it('IS matches exactly, and several values read as any-of', () => {
+    expect(applyObjectSetFilter(rows, [{ property: 'status', op: 'IS', value: 'open' }])).toHaveLength(1)
+    expect(applyObjectSetFilter(rows, [{ property: 'status', op: 'IS', value: ['open', 'closed'] }]))
+      .toHaveLength(2)
+  })
+
+  it('NULL finds the ones with nothing there', () => {
+    const out = applyObjectSetFilter(rows, [{ property: 'status', op: 'NULL' }])
+    expect(out).toHaveLength(1)
+    expect(out[0].name).toBe('Olive oil')
+  })
+
+  // Their example, verbatim: id000123 matches id0001 but NOT d0001.
+  it('CONTAIN is a PREFIX, not a substring', () => {
+    expect(applyObjectSetFilter(rows, [{ property: 'sku', op: 'CONTAIN', value: 'id0001' }]))
+      .toHaveLength(1)
+    expect(applyObjectSetFilter(rows, [{ property: 'sku', op: 'CONTAIN', value: 'd0001' }]))
+      .toHaveLength(0)
+  })
+
+  it('narrows further with each clause', () => {
+    expect(applyObjectSetFilter(rows, [
+      { property: 'name', op: 'CONTAIN', value: 'Tomato' },
+      { property: 'status', op: 'IS', value: 'open' },
+    ])).toHaveLength(1)
+  })
+
+  it('offers the values actually present, sorted and without blanks', () => {
+    expect(propertyValues(rows, 'status')).toEqual(['closed', 'open'])
   })
 })

@@ -60,6 +60,11 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
     blurb: 'Buttons that fire events, apply a typed Action, or both.',
     fields: [],
   },
+  filter_list: {
+    label: 'Filters', icon: 'filter', needsVariable: true, binds: ['object_set'],
+    blurb: 'Lets an operator narrow a set. Everything reading that set narrows with it.',
+    fields: [],
+  },
   tabs: {
     label: 'Tabs', icon: 'application', needsVariable: false,
     blurb: 'Navigation. Each tab fires events; which one looks selected is worked out from where you already are.',

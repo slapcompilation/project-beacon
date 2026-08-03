@@ -206,6 +206,44 @@ that one is structural.
 string/numeric as documented. The condition recorded for removing it was met, and
 `shift_nav`'s badge reads an aggregation variable.
 
+### Filter List — and a variable type that had been dead since W1
+
+**`object_set_filter` was in the CHECK from migration 306, the builder offered it
+in its type dropdown, and nothing consumed it.** An author could create one and
+watch it do nothing. That is the dead vocabulary this codebase keeps removing —
+except the shape ratchet cannot see this one, because it is a CHECK value rather
+than a database object. So: build the consumer, or admit the type is dead.
+
+**The two halves, from `object-set-filter-variables` and `widgets-filter-list`:**
+
+- **The variable** *"stores a set of property type / property value pairs used to
+  filter object set variables"* — state, produced by widgets or given a default.
+  An object set *"may be optionally filtered by property values or **Filter
+  variables**"*.
+- **The widget** takes an object set as input and has **one** output variable
+  that *"plays two roles"*: the live filter state, and the default applied on load.
+
+**The operators, copied exactly — including the limit that would otherwise be
+silently wrong:**
+
+| | |
+|---|---|
+| `IS` | *"a property value that matches exactly"* |
+| `NULL` | *"a property value that is null"* |
+| `CONTAIN` | *"limited to **prefixes**; matching arbitrary portions of strings is not currently supported"* |
+
+Their own example: `id000123` matches `id0001` but **not** `d0001`. A substring
+match would look more useful and be a different feature.
+
+**Why this pairs with the aggregation work:** the filter is applied to the *set
+variable*, so the table, the loop and every aggregation over it narrow together.
+One filter, one set, N numbers that all move at once — which is the same
+argument as 317, from the other end.
+
+**Two components of Foundry's seven:** pick-from-values and starts-with.
+Histograms, distribution charts, date pickers and timelines are demand-gated.
+Pills layout deferred; vertical only.
+
 ### Object set aggregation — the metric card stops aggregating
 
 **Read the source before changing anything, and it changed the design.**
