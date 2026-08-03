@@ -62,6 +62,12 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
     blurb: 'Buttons that fire events, apply a typed Action, or both.',
     fields: [],
   },
+  embedded_module: {
+    label: 'Another application', icon: 'applications', needsVariable: false,
+    blurb: 'Shows a published application inside this one. Variables you map are shared both ways.',
+    fields: [{ key: 'module', label: 'Application', kind: 'text',
+      help: 'The api name of a published application.' }],
+  },
 }
 
 export const LAYOUT_KINDS = [
@@ -70,6 +76,8 @@ export const LAYOUT_KINDS = [
   { value: 'column',  label: 'Column',   blurb: 'Stacks its children. Use inside a row.' },
   { value: 'tab',     label: 'Tab',      blurb: 'Its container draws a tab bar above.' },
   { value: 'overlay', label: 'Overlay',  blurb: 'A dialog, opened by an event.' },
+  { value: 'loop',    label: 'One per object',
+    blurb: 'Renders another application once for each object in a set.' },
   { value: 'page',    label: 'Page',     blurb: 'One of several screens; events switch between them.' },
 ] as const
 

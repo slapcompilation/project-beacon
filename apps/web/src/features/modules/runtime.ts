@@ -81,13 +81,24 @@ export function visibleLayoutIds(mod: ModuleDoc, ui: ModuleUiState): Set<string>
   return out
 }
 
-/** Variables worth resolving right now — the lazy rule applied to the graph of
- *  widget bindings. A widget with no layout sits at module root and always shows. */
+/** Variables worth resolving right now — the lazy rule applied to everything
+ *  that consumes one. A widget with no layout sits at module root and always shows.
+ *
+ *  A LOOP consumes a variable too, from its own config rather than a binding.
+ *  Missing that made a loop render "nothing in the set" forever, because the set
+ *  it walks was never resolved. */
 export function visibleVariableIds(mod: ModuleDoc, ui: ModuleUiState): Set<string> {
   const shown = visibleLayoutIds(mod, ui)
   const ids = new Set<string>()
   for (const w of mod.widgets) {
     if (w.variableId && (w.layoutId === null || shown.has(w.layoutId))) ids.add(w.variableId)
+  }
+  for (const l of mod.layouts) {
+    if (l.layoutType !== 'loop') continue
+    if (l.parentId !== null && !shown.has(l.parentId)) continue
+    const name = l.config.variable
+    const v = typeof name === 'string' ? mod.variables.find((x) => x.apiName === name) : undefined
+    if (v) ids.add(v.id)
   }
   return ids
 }
@@ -213,11 +224,22 @@ export function display(v: unknown): string {
   return '—' // functions and symbols never arrive from JSON
 }
 
-/** `{{apiName}}` in Markdown reads module state — the smallest useful version of
- *  Foundry's variable interpolation. */
+/** `{{apiName}}` in Markdown reads module state, and `{{apiName.property}}`
+ *  reaches inside it.
+ *
+ *  The dotted form is what makes a loop useful: the loop hands a whole object to
+ *  the child's interface variable, and without a way to read one property off it
+ *  a per-object card can only print JSON. */
 export function interpolate(body: string, mod: ModuleDoc, ui: ModuleUiState): string {
-  return body.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, (whole, name: string) => {
-    const v = mod.variables.find((x) => x.apiName === name)
-    return v ? display(scalarValue(v, ui)) : whole
-  })
+  return body.replace(/\{\{\s*([a-zA-Z0-9_]+)((?:\.[a-zA-Z0-9_]+)*)\s*\}\}/g,
+    (whole, name: string, path: string) => {
+      const v = mod.variables.find((x) => x.apiName === name)
+      if (!v) return whole
+      let value = scalarValue(v, ui)
+      for (const key of path.split('.').filter(Boolean)) {
+        if (value === null || value === undefined || typeof value !== 'object') return '—'
+        value = (value as Record<string, unknown>)[key]
+      }
+      return display(value)
+    })
 }

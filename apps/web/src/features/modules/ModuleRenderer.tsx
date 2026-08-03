@@ -5,7 +5,7 @@
 // W2 adds the layout tree, event dispatch, and Foundry's lazy computation rule.
 // Both copied semantics live in runtime.ts with a test; this file is the drawing.
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query'
 import {
   Button, ButtonGroup, Callout, Card, Collapse, Dialog, DialogBody, Icon, Intent,
@@ -112,7 +112,18 @@ interface Ctx {
   /** Opens the Action Registry's own form. A module is a new CALLER of
    *  dispatchAction, never a second write path. */
   openAction: (spec: ActionSpec) => void
+  /** How deep this instance is embedded, and which modules are above it.
+   *  Foundry documents neither a depth cap nor a self-embed rule; an uncapped
+   *  recursive renderer is a tab that stops responding, so both live here. */
+  depth: number
+  ancestors: ReadonlyArray<string>
 }
+
+/** The same number searchAround uses. Stated as ours, not as Foundry's. */
+const MAX_EMBED_DEPTH = 3
+/** Foundry: "loop layouts are currently limited to paging through the first ten
+ *  thousand objects." Copied rather than chosen. */
+const LOOP_CEILING = 10_000
 
 function aggregate(records: Record<string, unknown>[], prop: string | null, agg: string): number {
   if (!prop || agg === 'count') return records.length
@@ -249,6 +260,34 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
     case 'object_table':
       return <ObjectTable widget={widget} resolved={bound} dispatch={dispatch} />
 
+    case 'embedded_module': {
+      // Foundry maps parent variables onto the child's INTERFACE variables and
+      // shares them both ways: "any change to a variable value in either the
+      // child or parent module will be reflected in all modules where the
+      // variable is mapped."
+      const childName = typeof widget.config.module === 'string' ? widget.config.module : null
+      const mapping = (widget.config.mapping ?? {}) as Record<string, string>
+      if (!childName) {
+        return (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            This is meant to show another application, but none has been chosen.
+          </Callout>
+        )
+      }
+      const injected: Record<string, unknown> = {}
+      for (const [childVar, parentVar] of Object.entries(mapping)) {
+        const pv = mod.variables.find((v) => v.apiName === parentVar)
+        injected[childVar] = pv ? (ctx.resolved.get(pv.id)?.value ?? scalarValue(pv, ui)) : undefined
+      }
+      return (
+        <Embedded apiName={childName} ctx={ctx} injected={injected}
+          onSharedChange={(childVar, value) => {
+            const parentVar = mod.variables.find((v) => v.apiName === mapping[childVar])
+            if (parentVar) ctx.setUi((st) => ({ ...st, values: { ...st.values, [parentVar.id]: value } }))
+          }} />
+      )
+    }
+
     case 'button_group': {
       const buttons = (Array.isArray(widget.config.buttons) ? widget.config.buttons : []) as ButtonSpec[]
       return (
@@ -304,6 +343,112 @@ function TabBar({ parentKey, ctx }: { parentKey: string; ctx: Ctx }) {
   )
 }
 
+/** A module rendered inside another one — the Loop layout's per-item instance
+ *  and the Embedded Module widget both land here.
+ *
+ *  Foundry: each instance "functions independently from other embedded module
+ *  instances, and has its own variable scope and layout state". So this owns
+ *  its state, and only the variables the parent MAPS are shared. */
+function Embedded({ apiName, ctx, injected, onSharedChange }: {
+  apiName: string
+  ctx: Ctx
+  /** Parent-supplied values, by the child's variable api name. */
+  injected?: Record<string, unknown>
+  /** Called when the child changes a mapped variable — the sharing is
+   *  bidirectional, and the parent's definition is what backs it. */
+  onSharedChange?: (variableApiName: string, value: unknown) => void
+}) {
+  if (ctx.ancestors.includes(apiName)) {
+    return (
+      <Callout intent={Intent.WARNING} icon="repeat" className="text-xs">
+        <strong>{apiName}</strong> already contains this one. A module cannot embed
+        itself, directly or through the chain {ctx.ancestors.join(' → ')}.
+      </Callout>
+    )
+  }
+  if (ctx.depth >= MAX_EMBED_DEPTH) {
+    return (
+      <Callout intent={Intent.WARNING} icon="layers" className="text-xs">
+        Modules are nested {MAX_EMBED_DEPTH} deep here, which is as far as this
+        runtime goes. Flatten the composition rather than nesting further.
+      </Callout>
+    )
+  }
+  return (
+    <ModuleInstance apiName={apiName} depth={ctx.depth + 1}
+      ancestors={[...ctx.ancestors, ctx.mod.apiName]}
+      injected={injected} onSharedChange={onSharedChange} />
+  )
+}
+
+/** Foundry's Loop layout: iterate an object set, render one embedded module per
+ *  entry, and pass the entry in through a named interface variable of the child. */
+function Loop({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
+  const [page, setPage] = useState(0)
+  const cfg = layout.config
+  const varName = typeof cfg.variable === 'string' ? cfg.variable : null
+  const childName = typeof cfg.module === 'string' ? cfg.module : null
+  const itemInto = typeof cfg.itemInto === 'string' ? cfg.itemInto : null
+
+  if (!varName || !childName || !itemInto) {
+    return (
+      <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+        This loop is not finished — it needs a set to walk, a module to show for
+        each entry, and the name of the variable in that module the entry goes into.
+      </Callout>
+    )
+  }
+
+  const variable = ctx.mod.variables.find((v) => v.apiName === varName)
+  const bound = variable ? ctx.resolved.get(variable.id) : undefined
+  if (bound?.loading) {
+    return <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Spinner size={SpinnerSize.SMALL} /> Resolving the set…
+    </div>
+  }
+
+  const all = (bound?.records ?? []).slice(0, LOOP_CEILING)
+  const paging = (cfg.paging ?? {}) as { style?: string; size?: number }
+  const size = typeof paging.size === 'number' && paging.size > 0 ? paging.size : 25
+  const paged = paging.style === 'paged'
+  const shown = paged ? all.slice(page * size, page * size + size) : all.slice(0, size)
+  const display = (cfg.display ?? {}) as { mode?: string; columns?: number }
+  const grid = display.mode === 'grid'
+
+  if (all.length === 0) {
+    return <div className="text-sm text-muted-foreground">
+      Nothing in the set right now, so there is nothing to show one of.
+    </div>
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className={cn(grid
+        ? `grid gap-3 grid-cols-1 sm:grid-cols-${String(display.columns ?? 2)}`
+        : 'space-y-3')}>
+        {shown.map((item, i) => (
+          <Embedded key={typeof item.id === 'string' ? item.id : i}
+            apiName={childName} ctx={ctx} injected={{ [itemInto]: item }} />
+        ))}
+      </div>
+      {paged && all.length > size && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Button size="small" variant="minimal" icon="chevron-left" aria-label="Previous page"
+            disabled={page === 0} onClick={() => { setPage((p) => p - 1) }} />
+          <span>{page * size + 1}–{Math.min((page + 1) * size, all.length)} of {all.length}</span>
+          <Button size="small" variant="minimal" icon="chevron-right" aria-label="Next page"
+            disabled={(page + 1) * size >= all.length} onClick={() => { setPage((p) => p + 1) }} />
+        </div>
+      )}
+      {all.length === LOOP_CEILING && (
+        <p className="text-[11px] text-muted-foreground">
+          Showing the first {LOOP_CEILING.toLocaleString()} — a loop does not page past that.
+        </p>
+      )}
+    </div>
+  )
+}
+
 /** Widgets and child layouts of one parent, interleaved by position so an author
  *  can put a heading above a section without fighting the renderer.
  *
@@ -342,6 +487,8 @@ function Children({ parentKey, ctx }: { parentKey: string; ctx: Ctx }) {
 function Layout({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
   const { mod, ui } = ctx
 
+  if (layout.layoutType === 'loop') return <Loop layout={layout} ctx={ctx} />
+
   if (layout.layoutType === 'page') {
     const siblings = mod.layouts
       .filter((l) => l.layoutType === 'page' && l.parentId === layout.parentId)
@@ -373,7 +520,21 @@ function Layout({ layout, ctx }: { layout: ModuleLayout; ctx: Ctx }) {
   return <Children parentKey={layout.id} ctx={ctx} />
 }
 
-export function ModuleRenderer({ apiName }: { apiName: string }) {
+/** One running module: its own state, its own overlays, its own action form.
+ *
+ *  Split out of ModuleRenderer so it can render itself — a loop entry and an
+ *  embedded module are both just another instance, and sharing the top-level
+ *  chrome with them would put a page header inside a card. */
+function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, chrome }: {
+  apiName: string
+  depth: number
+  ancestors: ReadonlyArray<string>
+  injected?: Record<string, unknown>
+  onSharedChange?: (variableApiName: string, value: unknown) => void
+  /** The top-level renderer draws the header, promotion and adoption; an
+   *  embedded instance draws none of it. */
+  chrome?: (mod: ModuleDoc, body: ReactNode) => ReactNode
+}) {
   const { data: mod, isLoading, isError, error } = useModule(apiName)
   const queryClient = useQueryClient()
   const [unsupported, setUnsupported] = useState<string[]>([])
@@ -381,11 +542,9 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
     activePageId: null, activeTabByParent: {}, collapsedSections: {}, openOverlays: [], values: {},
   })
   const [pendingAction, setPendingAction] = useState<ActionSpec | null>(null)
-  const [promoting, setPromoting] = useState(false)
+  const injectedRef = useRef<Record<string, unknown>>({})
   const hotelId = useActiveHotelId()
   const actorId = useAuthStore((st) => st.session?.user.id ?? null)
-  const role    = useAuthStore((st) => st.role)
-  const { data: promotedApps = [] } = usePromotedApps()
 
   const perform = useCallback((effects: SideEffect[]) => {
     for (const e of effects) {
@@ -415,17 +574,38 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
       const { state: next, sideEffects } = applyEffects(
         mod, state, effectsFor(mod, widgetId, trigger, tctx), tctx)
       if (sideEffects.length > 0) queueMicrotask(() => { perform(sideEffects) })
+      // A change to a mapped variable belongs to the parent, which owns it.
+      if (onSharedChange) {
+        for (const v of mod.variables) {
+          if (!v.isInterface || !(v.id in injectedRef.current)) continue
+          if (next.values[v.id] !== injectedRef.current[v.id]) {
+            const value = next.values[v.id]
+            queueMicrotask(() => { onSharedChange(v.apiName, value) })
+          }
+        }
+      }
       return next
     })
-  }, [mod, perform])
+  }, [mod, perform, onSharedChange])
 
-  const resolved = useResolvedVariables(mod, ui)
+  // A mapped variable is backed by the PARENT's definition, so the injected
+  // value wins over anything local — Foundry: "default variable values of mapped
+  // variables defined in the child module will not be used".
+  const injectedById = new Map<string, unknown>()
+  for (const [name, value] of Object.entries(injected ?? {})) {
+    const v = mod?.variables.find((x) => x.apiName === name && x.isInterface)
+    if (v) injectedById.set(v.id, value)
+  }
+  const effectiveUi = injectedById.size === 0 ? ui
+    : { ...ui, values: { ...ui.values, ...Object.fromEntries(injectedById) } }
+
+  const resolved = useResolvedVariables(mod, effectiveUi)
 
   // Deliberately not memoised: `resolved` is a fresh Map every render, so a memo
   // would freeze the context on the first (all-loading) one and the tables would
   // spin forever. Building the object is cheaper than that bug.
   const ctx: Ctx | null = mod
-    ? { mod, ui, resolved, dispatch, setUi, openAction: setPendingAction }
+    ? { mod, ui: effectiveUi, resolved, dispatch, setUi, openAction: setPendingAction, depth, ancestors }
     : null
 
   // Function-variable results are values a binding can read, same as any other.
@@ -450,71 +630,56 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
              description={`Nothing named "${apiName}" is published in your scope.`} />
   }
 
-  const promotion = promotedApps.find((p) => p.moduleApiName === mod.apiName)
-  const canPromote = role === 'owner' || role === 'admin'
+  // Foundry embeds "the published version of the child module". We do not
+  // snapshot module CONTENT per version — `version` is a pin, not a copy — so
+  // the honest equivalent is that a draft may not be embedded at all. A parent
+  // quietly showing a colleague's half-finished work is the failure that rule
+  // exists to prevent.
+  if (depth > 0 && mod.status !== 'published') {
+    return (
+      <Callout intent={Intent.WARNING} icon="document" className="text-xs">
+        <strong>{mod.title}</strong> is still a {mod.status}. Only a published
+        application can be shown inside another one.
+      </Callout>
+    )
+  }
+
+  const body = (
+    <>
+      {mod.widgets.length === 0 && mod.layouts.length === 0 ? (
+        <NonIdealState icon="widget" title="Nothing on this application yet"
+          description="It has been created but no widgets have been added. Add one to see it here." />
+      ) : (
+        <Children parentKey={ROOT} ctx={ctx} />
+      )}
+
+      {unsupported.length > 0 && (
+        <Card className="text-xs text-muted-foreground">
+          Wired but not implemented in this runtime yet: {unsupported.join(', ')}. The effect
+          is stored on the module and starts working when the phase that owns it lands —
+          reported here rather than silently doing nothing.
+        </Card>
+      )}
+
+      {params && (params.unknownParameters.length > 0 || params.unresolved.length > 0) && (
+        <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+          {params.unknownParameters.length > 0 && (
+            <div>
+              <strong>{pendingAction?.type}</strong> has no parameter named{' '}
+              {params.unknownParameters.join(', ')} — that binding is being dropped.
+            </div>
+          )}
+          {params.unresolved.length > 0 && (
+            <div>Bound to a variable this module does not have: {params.unresolved.join(', ')}.</div>
+          )}
+        </Callout>
+      )}
+    </>
+  )
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="px-8 py-6 max-w-5xl space-y-4">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-xl font-semibold flex items-center gap-2">
-              <Icon icon="application" size={16} /> {mod.title}
-            </h1>
-            {mod.description && <p className="text-sm text-muted-foreground mt-0.5">{mod.description}</p>}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Tag minimal intent={mod.status === 'published' ? Intent.SUCCESS : Intent.NONE}>{mod.status}</Tag>
-            <Tag minimal>v{mod.version}</Tag>
-            {mod.hotelId === null && <Tag minimal icon="globe">org-wide</Tag>}
-            {promotion && (
-              <Tag minimal icon="application" intent={Intent.PRIMARY}>
-                in portal · v{promotion.publishedVersion}
-              </Tag>
-            )}
-            {canPromote && (
-              <>
-                <Button size="small" variant="minimal" icon="edit" text="Edit"
-                  onClick={() => { window.location.assign(`/modules/${mod.apiName}/edit`) }} />
-                <Button size="small" variant="minimal" icon="share"
-                  text={promotion ? 'Publication' : 'Publish'}
-                  onClick={() => { setPromoting(true) }} />
-              </>
-            )}
-          </div>
-        </header>
-
-        {mod.widgets.length === 0 ? (
-          <NonIdealState icon="widget" title="Nothing on this application yet"
-            description="It has been created but no widgets have been added. Add one to see it here." />
-        ) : (
-          <Children parentKey={ROOT} ctx={ctx} />
-        )}
-
-        {unsupported.length > 0 && (
-          <Card className="text-xs text-muted-foreground">
-            Wired but not implemented in this runtime yet: {unsupported.join(', ')}. The effect
-            is stored on the module and starts working when the phase that owns it lands —
-            reported here rather than silently doing nothing.
-          </Card>
-        )}
-
-        {canPromote && <AdoptionPanel mod={mod} />}
-
-        {params && (params.unknownParameters.length > 0 || params.unresolved.length > 0) && (
-          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
-            {params.unknownParameters.length > 0 && (
-              <div>
-                <strong>{pendingAction?.type}</strong> has no parameter named{' '}
-                {params.unknownParameters.join(', ')} — that binding is being dropped.
-              </div>
-            )}
-            {params.unresolved.length > 0 && (
-              <div>Bound to a variable this module does not have: {params.unresolved.join(', ')}.</div>
-            )}
-          </Callout>
-        )}
-      </div>
+    <>
+      {chrome ? chrome(mod, body) : <div className="space-y-4">{body}</div>}
 
       {pendingAction && params && hotelId && (
         <ActionFormModal
@@ -532,10 +697,6 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
         />
       )}
 
-      {promoting && (
-        <PromoteDialog open onClose={() => { setPromoting(false) }} mod={mod} existing={promotion} />
-      )}
-
       {mod.layouts.filter((l) => l.layoutType === 'overlay').map((o) => (
         <Dialog key={o.id} isOpen={ui.openOverlays.includes(o.id)} title={o.title || o.apiName}
           onClose={() => { setUi((s) => ({ ...s, openOverlays: s.openOverlays.filter((id) => id !== o.id) })) }}>
@@ -544,6 +705,69 @@ export function ModuleRenderer({ apiName }: { apiName: string }) {
           </DialogBody>
         </Dialog>
       ))}
+    </>
+  )
+}
+
+/** The top-level surface: one instance, plus the page chrome only it should
+ *  have — header, promotion, adoption. */
+export function ModuleRenderer({ apiName }: { apiName: string }) {
+  const [promoting, setPromoting] = useState(false)
+  const role = useAuthStore((st) => st.role)
+  const { data: promotedApps = [] } = usePromotedApps()
+  const canPromote = role === 'owner' || role === 'admin'
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="px-8 py-6 max-w-5xl">
+        <ModuleInstance apiName={apiName} depth={0} ancestors={[]} chrome={(mod, body) => {
+          const promotion = promotedApps.find((p) => p.moduleApiName === mod.apiName)
+          return (
+            <div className="space-y-4">
+              <header className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-xl font-semibold flex items-center gap-2">
+                    <Icon icon="application" size={16} /> {mod.title}
+                  </h1>
+                  {mod.description && (
+                    <p className="text-sm text-muted-foreground mt-0.5">{mod.description}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Tag minimal intent={mod.status === 'published' ? Intent.SUCCESS : Intent.NONE}>
+                    {mod.status}
+                  </Tag>
+                  <Tag minimal>v{mod.version}</Tag>
+                  {mod.hotelId === null && <Tag minimal icon="globe">org-wide</Tag>}
+                  {promotion && (
+                    <Tag minimal icon="application" intent={Intent.PRIMARY}>
+                      in portal · v{promotion.publishedVersion}
+                    </Tag>
+                  )}
+                  {canPromote && (
+                    <>
+                      <Button size="small" variant="minimal" icon="edit" text="Edit"
+                        onClick={() => { window.location.assign(`/modules/${mod.apiName}/edit`) }} />
+                      <Button size="small" variant="minimal" icon="share"
+                        text={promotion ? 'Publication' : 'Publish'}
+                        onClick={() => { setPromoting(true) }} />
+                    </>
+                  )}
+                </div>
+              </header>
+
+              {body}
+
+              {canPromote && <AdoptionPanel mod={mod} />}
+
+              {promoting && (
+                <PromoteDialog open onClose={() => { setPromoting(false) }}
+                  mod={mod} existing={promotion} />
+              )}
+            </div>
+          )
+        }} />
+      </div>
     </div>
   )
 }

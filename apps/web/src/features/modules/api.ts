@@ -27,6 +27,7 @@ export type ModuleDefinitionKind =
  *  bar and the widget had nothing left to do. */
 export type ModuleWidgetType =
   | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title' | 'button_group'
+  | 'embedded_module'
 
 export interface ModuleVariable {
   id:             string
@@ -37,13 +38,19 @@ export interface ModuleVariable {
   definition:     Record<string, unknown>
   /** automatic | event | on_load_and_event — Foundry's recompute contract. */
   recompute:      'automatic' | 'event' | 'on_load_and_event'
+  /** True when a parent module may map onto this one. Everything else is the
+   *  module's own private state. */
+  isInterface:    boolean
 }
 
 export interface ModuleLayout {
   id: string; apiName: string; title: string
-  /** `row` arranges children horizontally; everything else stacks. */
-  layoutType: 'page' | 'section' | 'tab' | 'overlay' | 'row' | 'column'
+  /** `row` arranges children horizontally; `loop` renders an embedded module
+   *  per entry of a set; everything else stacks. */
+  layoutType: 'page' | 'section' | 'tab' | 'overlay' | 'row' | 'column' | 'loop'
   parentId: string | null; position: number
+  /** Loop settings live here — layouts carry no other configuration yet. */
+  config: Record<string, unknown>
 }
 
 export interface ModuleWidget {

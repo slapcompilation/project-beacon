@@ -56,6 +56,11 @@ test('a module computes through a Logic Tool and proposes a typed action', async
   const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
   await page.addInitScript(([k, v]) => { localStorage.setItem(k, v) }, [`sb-${ref}-auth-token`, session])
 
+  // A live constraint blocks stock actions outside 06:00–22:00 UTC, so without
+  // a fixed clock this test passes by day and fails every night. The engine is
+  // right; the test was the thing depending on when it ran.
+  await page.clock.install({ time: new Date('2026-08-03T12:00:00Z') })
+
   await page.goto('/modules/low_stock_triage')
   const firstRow = page.locator('table tbody tr').first()
   await expect(firstRow).toBeVisible({ timeout: 45_000 })
