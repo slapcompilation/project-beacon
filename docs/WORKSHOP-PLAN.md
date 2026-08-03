@@ -15,12 +15,16 @@ wrote — which cannot compound at all.
 
 ## Source
 
-Fetched live 2026-08-02. **None of `app-building/` or `workshop/` is in the local
-mirror** — 139 Workshop URLs sit in `all-foundry-urls.txt` with zero mirrored, so
-the decomposition below is transcribed from the source pages and cited. A proper
-crawl into `docs/foundry-reference/mirror/workshop/` is the first follow-up;
-until then treat this file as the reference and re-check the URL when precision
-matters.
+**Mirrored 2026-08-03**: 127 pages under `docs/foundry-reference/mirror/workshop/`
+and `mirror/app-building/`, via `node scripts/mirror-foundry-docs.mjs`. Grep those
+before re-fetching anything.
+
+W1–W7 and G1 were designed from *live* fetches summarised page by page, so the
+mirror was also an audit of what was built from them. Two corrections came out of
+it, both recorded below where they belong: the Tabs finding under W2, and the
+self-embed attribution under G1. Everything else checked out verbatim — including
+the non-blocking dispatch rule and the lazy-computation rule, which are quoted
+exactly as written.
 
 - `workshop/concepts-variables/` · `concepts-widgets/` · `concepts-events/`
 - `app-building/overview/` · `app-building/curating-apps/`
@@ -164,6 +168,23 @@ Notes worth keeping:
   expanding a section expects data, not a spinner.
 - Two widgets added (Button Group, Tabs) because an event model with nothing to
   press cannot fire. Six of ~forty; each consumed by the renderer in the same change.
+
+**Correction, from the 2026-08-03 mirror.** Migration 313 deleted our `tabs`
+widget on the grounds that *"Foundry's Tabs is a layout option on a section, not
+a widget you place."* **Half of that is wrong: Foundry has both**, and they do
+different jobs.
+
+- **Tabs as a section layout option** — *"adds tabs to the top of a section and
+  allows module builders to configure different configurations of widgets within
+  each tab"*. This is what our containers now draw, and 313's *behaviour* was
+  right.
+- **The Tabs widget** — *"displays configurable tabs that trigger Workshop events
+  to navigate throughout pages and overlays of a module"*, each tab carrying a
+  label, an on-click event, an icon, a badge and conditional visibility.
+
+So we are **missing a real widget**, and it is the natural G2 candidate: our
+runtime already implements `switch_page`, `switch_tab` and `open_overlay`, and a
+Button Group is currently the only thing that can trigger any of them.
 
 ### W3 — actions and functions in widgets ✅ shipped
 
