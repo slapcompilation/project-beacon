@@ -18,7 +18,10 @@ import {
 } from '../api'
 import { useModule } from '../ModuleRenderer'
 import type { Binding, ButtonSpec } from '../bindings'
-import type { TabSpec } from '../runtime'
+import {
+  AGGREGATION_METRICS, METRIC_ACCEPTS,
+  type AggregationMetric, type TabSpec,
+} from '../runtime'
 import { nextPosition, useCreateRow, useDeleteRow, useUpdateRow } from './api'
 import { EFFECT_KINDS, TRIGGERS, VARIABLE_KINDS, WIDGET_SPECS } from './specs'
 
@@ -153,6 +156,11 @@ export function VariablePanel({ mod, variable, apiName }: {
           </FormGroup>
         )}
 
+        {variable.definitionKind === 'object_set_aggregation' && (
+          <AggregationConfig mod={mod} variable={variable}
+            onChange={(d) => { patch({ definition: d }) }} />
+        )}
+
         {variable.definitionKind === 'function' && (
           <>
             <FormGroup label="Logic Tool">
@@ -179,6 +187,58 @@ export function VariablePanel({ mod, variable, apiName }: {
         )}
       </Section>
     </div>
+  )
+}
+
+/** An aggregation reads another object-set VARIABLE — the whole reason it exists
+ *  is that one set can back a count, a sum and an average without three
+ *  near-identical sets of the same object type. */
+function AggregationConfig({ mod, variable, onChange }: {
+  mod: ModuleDoc; variable: ModuleVariable
+  onChange: (definition: Record<string, unknown>) => void
+}) {
+  const def = variable.definition
+  const sets = mod.variables.filter((v) => v.varType === 'object_set')
+  // `definition` is jsonb, so the stored metric is a string until proven
+  // otherwise. Checking it beats casting and hoping.
+  const stored = typeof def.metric === 'string' ? def.metric : ''
+  const metric: AggregationMetric =
+    (AGGREGATION_METRICS as readonly string[]).includes(stored)
+      ? (stored as AggregationMetric) : 'count'
+  const needs = METRIC_ACCEPTS[metric]
+
+  return (
+    <>
+      <FormGroup label="Over which set" helperText={sets.length === 0
+        ? 'This application has no object-set variable yet.' : undefined}>
+        <HTMLSelect fill value={text(def.objectSet)}
+          onChange={(e) => { onChange({ ...def, objectSet: e.currentTarget.value }) }}
+          options={[{ label: '— pick a set —', value: '' },
+            ...sets.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+      </FormGroup>
+
+      <FormGroup label="Measure">
+        <HTMLSelect fill value={metric}
+          onChange={(e) => { onChange({ ...def, metric: e.currentTarget.value }) }}
+          options={AGGREGATION_METRICS.map((m) => ({ label: m, value: m }))} />
+      </FormGroup>
+
+      {needs !== 'none' && (
+        <FormGroup label="Of which property"
+          helperText={needs === 'numeric'
+            ? 'A number. Summing dates is not a thing.'
+            : needs === 'ordered' ? 'A number, date or timestamp.' : 'Any property.'}>
+          <InputGroup defaultValue={text(def.property)}
+            onBlur={(e) => { onChange({ ...def, property: e.target.value }) }} />
+        </FormGroup>
+      )}
+
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        {metric === 'count' ? 'Counts objects, not values.'
+          : metric === 'cardinality' ? 'How many distinct values that property takes.'
+          : `The ${metric} of that property across the set.`}
+      </p>
+    </>
   )
 }
 

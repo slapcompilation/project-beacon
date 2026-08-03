@@ -38,14 +38,12 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
   },
   metric_card: {
     label: 'Metric card', icon: 'numerical', needsVariable: true,
-    blurb: 'One number: a count or aggregate over a set, or the value of a variable.',
-    fields: [
-      { key: 'aggregation', label: 'Aggregation', kind: 'select',
-        options: ['count', 'sum', 'avg', 'min', 'max'],
-        help: 'Ignored when the variable is not an object set.' },
-      { key: 'property', label: 'Property', kind: 'text',
-        help: 'The numeric property to aggregate. Not needed for count.' },
-    ],
+    // Foundry's card displays a variable of the matching type; the aggregating
+    // belongs to the variable. Binding a set here is what makes people keep a
+    // second set per number.
+    binds: ['string', 'numeric', 'boolean', 'date'],
+    blurb: 'One value, from a variable. To show a number about a set, make an aggregation variable first.',
+    fields: [],
   },
   object_set_title: {
     label: 'Set title', icon: 'header', needsVariable: true, binds: ['object_set'],
@@ -93,8 +91,8 @@ export const VARIABLE_KINDS = [
     blurb: 'Resolves through the same path cohorts use.' },
   { value: 'function', label: 'A Logic Tool', enabled: true,
     blurb: 'Calls a registered tool and carries its basis and confidence.' },
-  { value: 'object_set_aggregation', label: 'An aggregate over a set', enabled: false,
-    blurb: 'Not built yet — a metric card over the set does this today.' },
+  { value: 'object_set_aggregation', label: 'An aggregate over a set', enabled: true,
+    blurb: 'Counts or measures another object-set variable. One set can back as many numbers as you need.' },
   { value: 'object_property', label: 'A property of one object', enabled: false,
     blurb: 'Not built yet — a row selection into a variable does this today.' },
   { value: 'variable_transformation', label: 'Derived from another variable', enabled: false,

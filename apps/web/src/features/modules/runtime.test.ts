@@ -3,8 +3,8 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  ROOT, applyEffects, effectsFor, initialState, interpolate, selectedTabKey,
-  tabState, visibleVariableIds,
+  ROOT, aggregateSet, aggregationSource, applyEffects, effectsFor, initialState,
+  interpolate, selectedTabKey, tabState, visibleVariableIds,
 } from './runtime'
 import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
@@ -293,5 +293,150 @@ describe('a tab can be gated on a boolean', () => {
     const m = base({ value: true })
     expect(tabState(m, initialState(m), { key: 'a', visibleWhen: 'ready', whenFalse: 'hidden' }))
       .toBe('shown')
+  })
+})
+
+// Foundry's six metrics, from functions/api-object-sets. Named as they name them.
+describe('aggregating an object set', () => {
+  const rows = [
+    { qty: 10, cat: 'dry', at: '2026-01-10T00:00:00Z' },
+    { qty: 5,  cat: 'dry', at: '2026-01-20T00:00:00Z' },
+    { qty: 15, cat: 'cold', at: '2026-01-30T00:00:00Z' },
+  ]
+
+  it('counts objects, not values, and needs no property', () => {
+    expect(aggregateSet(rows, 'count')).toBe(3)
+    expect(aggregateSet([], 'count')).toBe(0)
+  })
+
+  it('sums, averages, mins and maxes a numeric property', () => {
+    expect(aggregateSet(rows, 'sum', 'qty')).toBe(30)
+    expect(aggregateSet(rows, 'average', 'qty')).toBe(10)
+    expect(aggregateSet(rows, 'min', 'qty')).toBe(5)
+    expect(aggregateSet(rows, 'max', 'qty')).toBe(15)
+  })
+
+  // "The sum of values for the given NUMERIC property" — dates are not summable
+  // and Foundry does not offer it.
+  it('refuses to sum a date property while still ordering it', () => {
+    expect(aggregateSet(rows, 'sum', 'at')).toBeNull()
+    expect(aggregateSet(rows, 'min', 'at')).toBe('2026-01-10T00:00:00.000Z')
+    expect(aggregateSet(rows, 'max', 'at')).toBe('2026-01-30T00:00:00.000Z')
+    expect(aggregateSet(rows, 'average', 'at')).toBe('2026-01-20T00:00:00.000Z')
+  })
+
+  // Theirs is documented as APPROXIMATE because it runs over an index; ours is
+  // exact because the objects are already in hand.
+  it('counts distinct values exactly', () => {
+    expect(aggregateSet(rows, 'cardinality', 'cat')).toBe(2)
+  })
+
+  it('answers null rather than zero when there is nothing to measure', () => {
+    expect(aggregateSet(rows, 'sum', 'nope')).toBeNull()
+    expect(aggregateSet([], 'average', 'qty')).toBeNull()
+    expect(aggregateSet(rows, 'sum')).toBeNull()
+  })
+
+  it('ignores nulls instead of treating them as zero', () => {
+    const sparse = [{ qty: 10 }, { qty: null }, { qty: 20 }]
+    expect(aggregateSet(sparse, 'average', 'qty')).toBe(15)
+    expect(aggregateSet(sparse, 'count')).toBe(3)
+  })
+})
+
+// An aggregation names another VARIABLE, not a saved set — one set variable can
+// back a count, a sum and an average without three near-identical sets.
+describe('what an aggregation reads from', () => {
+  const mod = doc({
+    variables: [
+      v({ id: 'set', apiName: 'lowStock', varType: 'object_set' }),
+      v({ id: 'agg', apiName: 'lines', varType: 'numeric',
+          definitionKind: 'object_set_aggregation',
+          definition: { objectSet: 'lowStock', metric: 'count' } }),
+    ],
+    widgets: [w({ id: 'card', widgetType: 'metric_card', variableId: 'agg' })],
+  })
+
+  it('resolves the set behind a displayed aggregation', () => {
+    // The card shows the aggregation; the SET is what has to be fetched.
+    expect([...visibleVariableIds(mod, initialState(mod))].sort()).toEqual(['agg', 'set'])
+  })
+
+  it('leaves the set alone when the aggregation is behind a hidden tab', () => {
+    const hidden = doc({
+      variables: mod.variables,
+      layouts: [
+        l({ id: 'first', layoutType: 'tab', position: 0 }),
+        l({ id: 'second', layoutType: 'tab', position: 1 }),
+      ],
+      widgets: [w({ id: 'card', widgetType: 'metric_card', variableId: 'agg', layoutId: 'second' })],
+    })
+    expect(visibleVariableIds(hidden, initialState(hidden)).size).toBe(0)
+  })
+
+  it('does not resolve a source that is not an object set', () => {
+    const wrong = doc({
+      variables: [
+        v({ id: 'str', apiName: 'notASet' }),
+        v({ id: 'agg', apiName: 'x', definitionKind: 'object_set_aggregation',
+            definition: { objectSet: 'notASet', metric: 'count' } }),
+      ],
+    })
+    expect(aggregationSource(wrong, wrong.variables[1])).toBeUndefined()
+  })
+})
+
+// The same gap three times — a loop's set, a tab's badge, an embedded module's
+// mapping. A binding is not the only way to consume a variable.
+describe('variables named in widget config are consumers too', () => {
+  it('resolves a badge variable, which no widget binds', () => {
+    const mod = doc({
+      variables: [v({ id: 'n', apiName: 'shortCount', varType: 'numeric' })],
+      widgets: [w({ id: 'nav', widgetType: 'tabs',
+        config: { tabs: [{ key: 'a', label: 'A', badge: 'shortCount' }] } })],
+    })
+    expect([...visibleVariableIds(mod, initialState(mod))]).toEqual(['n'])
+  })
+
+  it('resolves the boolean a tab is gated on', () => {
+    const mod = doc({
+      variables: [v({ id: 'b', apiName: 'ready', varType: 'boolean' })],
+      widgets: [w({ id: 'nav', widgetType: 'tabs',
+        config: { tabs: [{ key: 'a', visibleWhen: 'ready' }] } })],
+    })
+    expect([...visibleVariableIds(mod, initialState(mod))]).toEqual(['b'])
+  })
+
+  it('resolves what a parent maps into an embedded module', () => {
+    const mod = doc({
+      variables: [v({ id: 'p', apiName: 'picked' })],
+      widgets: [w({ id: 'child', widgetType: 'embedded_module',
+        config: { module: 'card', mapping: { item: 'picked' } } })],
+    })
+    expect([...visibleVariableIds(mod, initialState(mod))]).toEqual(['p'])
+  })
+
+  it('resolves a variable an action parameter reads', () => {
+    const mod = doc({
+      variables: [v({ id: 'q', apiName: 'gap', varType: 'numeric' })],
+      widgets: [w({ id: 'btns', widgetType: 'button_group', config: { buttons: [
+        { key: 'go', action: { type: 'REQUEST_RESTOCK',
+          parameters: { quantityNeeded: { variable: 'gap' } } } },
+      ] } })],
+    })
+    expect([...visibleVariableIds(mod, initialState(mod))]).toEqual(['q'])
+  })
+
+  it('still respects the lazy rule for all of them', () => {
+    const mod = doc({
+      variables: [v({ id: 'n', apiName: 'shortCount', varType: 'numeric' })],
+      layouts: [
+        l({ id: 'first', layoutType: 'tab', position: 0 }),
+        l({ id: 'second', layoutType: 'tab', position: 1 }),
+      ],
+      widgets: [w({ id: 'nav', widgetType: 'tabs', layoutId: 'second',
+        config: { tabs: [{ key: 'a', badge: 'shortCount' }] } })],
+    })
+    expect(visibleVariableIds(mod, initialState(mod)).size).toBe(0)
   })
 })

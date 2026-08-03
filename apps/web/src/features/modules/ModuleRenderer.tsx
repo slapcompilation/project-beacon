@@ -27,8 +27,10 @@ import {
 } from './api'
 import {
   ROOT, activeTabId, applyEffects, display, effectsFor, initialState, interpolate,
-  scalarValue, selectedTabKey, tabState, visibleVariableIds,
-  type ModuleUiState, type SideEffect, type TabSpec, type TriggerContext,
+  aggregateSet, aggregationSource, scalarValue, selectedTabKey, tabState,
+  visibleVariableIds,
+  type AggregationMetric, type ModuleUiState, type SideEffect, type TabSpec,
+  type TriggerContext,
 } from './runtime'
 import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
@@ -88,6 +90,24 @@ function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiSta
   setVars.forEach((v, i) => {
     byId.set(v.id, { records: setResults[i]?.data ?? [], loading: setResults[i]?.isLoading ?? false })
   })
+  // An aggregation is derived, not fetched: it reads the records its source set
+  // variable already resolved. One set can back a count, a sum and an average.
+  for (const v of shown) {
+    if (v.definitionKind !== 'object_set_aggregation' || !mod) continue
+    const src = aggregationSource(mod, v)
+    const bound = src ? byId.get(src.id) : undefined
+    const metric = (typeof v.definition.metric === 'string' ? v.definition.metric : 'count') as AggregationMetric
+    const property = typeof v.definition.property === 'string' ? v.definition.property : null
+    byId.set(v.id, {
+      records: [],
+      loading: bound?.loading ?? false,
+      value: bound ? aggregateSet(bound.records, metric, property) ?? undefined : undefined,
+      // Every computed value in this system carries where it came from.
+      basis: src ? `${metric}${property ? ` of ${property}` : ''} over ${src.apiName}` : undefined,
+      error: src ? undefined : `Workshop:UnknownObjectSet ${String(v.definition.objectSet)}`,
+    })
+  }
+
   fnVars.forEach((v, i) => {
     const r = fnResults[i]
     const out = r.data ?? null
@@ -125,16 +145,6 @@ const MAX_EMBED_DEPTH = 3
 /** Foundry: "loop layouts are currently limited to paging through the first ten
  *  thousand objects." Copied rather than chosen. */
 const LOOP_CEILING = 10_000
-
-function aggregate(records: Record<string, unknown>[], prop: string | null, agg: string): number {
-  if (!prop || agg === 'count') return records.length
-  const nums = records.map((r) => Number(r[prop])).filter((n) => Number.isFinite(n))
-  if (agg === 'sum') return nums.reduce((a, b) => a + b, 0)
-  if (agg === 'avg') return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0
-  if (agg === 'min') return nums.length ? Math.min(...nums) : 0
-  if (agg === 'max') return nums.length ? Math.max(...nums) : 0
-  return records.length
-}
 
 function ObjectTable({ widget, resolved, dispatch }: {
   widget: ModuleWidget; resolved: Resolved | undefined; dispatch: Ctx['dispatch']
@@ -225,23 +235,29 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
       )
 
     case 'metric_card': {
-      // Over a set: count or an aggregate of one numeric property. Over a scalar
-      // variable: the value itself — which is how a row selection drives a card.
-      const prop = typeof widget.config.property === 'string' ? widget.config.property : null
-      const agg  = typeof widget.config.aggregation === 'string' ? widget.config.aggregation : 'count'
-      const isSet = variable?.varType === 'object_set'
-      const isFn  = variable?.definitionKind === 'function'
-      const raw: unknown = isSet ? aggregate(records, prop, agg)
-        : isFn ? bound?.value
-        : scalarValue(variable, ui)
+      // Foundry: "the value used to populate the metric must be backed by a
+      // Workshop variable of the corresponding type". The card DISPLAYS; the
+      // aggregating belongs to an object_set_aggregation variable. Binding a set
+      // straight to a card is what makes people keep a second set per number.
+      if (variable?.varType === 'object_set') {
+        return (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            <strong>{widget.title || 'This metric'}</strong> is bound to a set rather
+            than a value. Point it at an aggregation variable over{' '}
+            <code>{variable.apiName}</code> instead — one set can back as many
+            numbers as you need.
+          </Callout>
+        )
+      }
+      const raw: unknown = bound?.value ?? scalarValue(variable, ui)
       const shown = typeof raw === 'number' ? Math.round(raw * 100) / 100 : display(raw)
 
       // Every computed result carries its basis and confidence — a number an
       // operator cannot trace is a number they cannot act on.
       const footer = bound?.error ? bound.error
-        : isFn && bound?.basis ? `${bound.basis}${bound.confidence === undefined ? '' : ` · ${Math.round(bound.confidence * 100)}% confidence`}`
-        : isSet ? (agg === 'count' ? 'objects in the set' : `${agg} of ${String(prop)}`)
-        : variable?.label
+        : bound?.basis
+          ? `${bound.basis}${bound.confidence === undefined ? '' : ` · ${Math.round(bound.confidence * 100)}% confidence`}`
+          : variable?.label
 
       return (
         <Card className="space-y-1">
@@ -275,19 +291,15 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
             const key = tab.key ?? String(i)
             const state = tabState(mod, ui, tab)
             if (state === 'hidden') return null
-            // Foundry's badge takes "text via a string variable or a numeric
-            // value via a number variable". We also accept an OBJECT SET and show
-            // its count — a deliberate divergence, because the count of a set is
-            // the obvious badge and Foundry reaches it through an
-            // object_set_aggregation variable, a definition kind we have not
-            // built. This goes back to string/numeric the day we do.
+            // "Text via a string variable or a numeric value via a number
+            // variable." This briefly also accepted an object set and showed its
+            // count, because there was no other way to get one; an aggregation
+            // variable is that way, so the divergence is withdrawn as promised.
             const badgeVar = tab.badge
               ? mod.variables.find((v) => v.apiName === tab.badge)
               : undefined
             const bound = badgeVar ? resolved.get(badgeVar.id) : undefined
-            const badge = badgeVar?.varType === 'object_set'
-              ? (bound?.loading ? undefined : bound?.records.length)
-              : (bound?.value ?? scalarValue(badgeVar, ui))
+            const badge = bound?.value ?? scalarValue(badgeVar, ui)
 
             return (
               <button key={key} type="button" disabled={state === 'disabled'}
