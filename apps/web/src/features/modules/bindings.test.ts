@@ -7,7 +7,7 @@ import type { ModuleDoc, ModuleVariable } from './api'
 
 const v = (o: Partial<ModuleVariable> & { id: string; apiName: string }): ModuleVariable => ({
   label: o.apiName, varType: 'string', definitionKind: 'static',
-  definition: {}, recompute: 'automatic', ...o,
+  definition: {}, recompute: 'automatic', isInterface: false, ...o,
 })
 const doc = (variables: ModuleVariable[]): ModuleDoc => ({
   id: 'm', apiName: 'm', title: 'M', description: '', icon: 'application',

@@ -9,10 +9,11 @@ import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget
 
 const v = (o: Partial<ModuleVariable> & { id: string }): ModuleVariable => ({
   apiName: o.id, label: o.id, varType: 'string', definitionKind: 'static',
-  definition: {}, recompute: 'automatic', ...o,
+  definition: {}, recompute: 'automatic', isInterface: false, ...o,
 })
 const l = (o: Partial<ModuleLayout> & { id: string }): ModuleLayout => ({
-  apiName: o.id, title: o.id, layoutType: 'section', parentId: null, position: 0, ...o,
+  apiName: o.id, title: o.id, layoutType: 'section', parentId: null, position: 0,
+  config: {}, ...o,
 })
 const w = (o: Partial<ModuleWidget> & { id: string }): ModuleWidget => ({
   apiName: o.id, widgetType: 'metric_card', title: '', layoutId: null,
@@ -152,5 +153,56 @@ describe('markdown interpolation', () => {
   it('shows an em dash for a variable with no value yet', () => {
     const m = doc({ variables: [v({ id: 'x', apiName: 'x' })] })
     expect(interpolate('{{x}}', m, initialState(m))).toBe('—')
+  })
+})
+
+// What makes a loop useful: the loop hands the child a whole object, so the
+// child needs a way to read one property off it or a card can only print JSON.
+describe('reaching into an object', () => {
+  const row = { name: 'Tomatoes', current_stock: 4, supplier: { name: 'Rivendell Produce' } }
+  const mod = doc({ variables: [v({ id: 'item', apiName: 'item', definition: { value: row } })] })
+  const ui = initialState(mod)
+
+  it('reads a property of the injected object', () => {
+    expect(interpolate('{{item.name}} — {{item.current_stock}} left', mod, ui))
+      .toBe('Tomatoes — 4 left')
+  })
+
+  it('follows a nested path', () => {
+    expect(interpolate('{{item.supplier.name}}', mod, ui)).toBe('Rivendell Produce')
+  })
+
+  it('shows an em dash rather than throwing when the path is not there', () => {
+    expect(interpolate('{{item.nope.deeper}}', mod, ui)).toBe('—')
+  })
+
+  it('still prints the whole value when no path is given', () => {
+    expect(interpolate('{{item}}', mod, ui)).toContain('Tomatoes')
+  })
+})
+
+// A loop consumes a variable from its config rather than through a widget
+// binding. Missing that made a loop show "nothing in the set" forever.
+describe('a loop is a consumer too', () => {
+  const mod = doc({
+    variables: [v({ id: 'set', apiName: 'items', varType: 'object_set' })],
+    layouts: [l({ id: 'each', layoutType: 'loop', config: { variable: 'items', module: 'card', itemInto: 'item' } })],
+  })
+
+  it('resolves the set a visible loop walks, with no widget bound to it', () => {
+    expect([...visibleVariableIds(mod, initialState(mod))]).toEqual(['set'])
+  })
+
+  it('leaves it alone when the loop sits inside a tab that is not showing', () => {
+    const hidden = doc({
+      variables: mod.variables,
+      layouts: [
+        l({ id: 'first', layoutType: 'tab', position: 0 }),
+        l({ id: 'second', layoutType: 'tab', position: 1 }),
+        l({ id: 'each', layoutType: 'loop', parentId: 'second',
+            config: { variable: 'items', module: 'card', itemInto: 'item' } }),
+      ],
+    })
+    expect(visibleVariableIds(hidden, initialState(hidden)).size).toBe(0)
   })
 })
