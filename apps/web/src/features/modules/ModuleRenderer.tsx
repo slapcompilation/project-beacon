@@ -28,7 +28,8 @@ import {
 import {
   ROOT, activeTabId, applyEffects, display, effectsFor, initialState, interpolate,
   aggregateSet, aggregationSource, applyObjectSetFilter, filterClauses,
-  propertyValues, scalarValue, selectedTabKey, tabState, visibleVariableIds,
+  propertyValues, scalarValue, selectedTabKey, shouldCompute, tabState,
+  visibleVariableIds,
   type AggregationMetric, type FilterClause, type ModuleUiState, type SideEffect,
   type TabSpec, type TriggerContext,
 } from './runtime'
@@ -57,7 +58,12 @@ type Resolved = {
 
 /** Only variables on visible layouts resolve — Foundry's lazy rule, which W1
  *  could not implement because it had nowhere to hide a widget. */
-function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiState) {
+function useResolvedVariables(
+  mod: ModuleDoc | null | undefined,
+  ui: ModuleUiState,
+  triggered: ReadonlySet<string>,
+  loaded: boolean,
+) {
   const wanted = mod ? visibleVariableIds(mod, ui) : new Set<string>()
   const shown = (mod?.variables ?? []).filter((v) => wanted.has(v.id))
   const setVars = shown.filter((v) => v.varType === 'object_set')
@@ -81,7 +87,9 @@ function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiSta
     queries: fnVars.map((v, i) => ({
       queryKey: ['module-variable', v.id, fnArgs[i]],
       queryFn:  () => resolveFunctionVariable(v, fnArgs[i]),
-      enabled:  argsReady(fnArgs[i]),
+      // Foundry's recompute contract, which this had been storing and ignoring:
+      // `event` waits for a recompute event; `on_load_and_event` runs once.
+      enabled:  argsReady(fnArgs[i]) && shouldCompute(v, triggered, loaded),
       staleTime: 30_000,
     })),
   })
@@ -102,6 +110,7 @@ function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiSta
   // variable already resolved. One set can back a count, a sum and an average.
   for (const v of shown) {
     if (v.definitionKind !== 'object_set_aggregation' || !mod) continue
+    if (!shouldCompute(v, triggered, loaded)) continue
     const src = aggregationSource(mod, v)
     const bound = src ? byId.get(src.id) : undefined
     const metric = (typeof v.definition.metric === 'string' ? v.definition.metric : 'count') as AggregationMetric
@@ -694,6 +703,10 @@ function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, c
     activePageId: null, activeTabByParent: {}, collapsedSections: {}, openOverlays: [], values: {},
   })
   const [pendingAction, setPendingAction] = useState<ActionSpec | null>(null)
+  // Which variables a `recompute` effect has asked for, and whether the module's
+  // first pass is done — both halves of the recompute contract.
+  const [triggered, setTriggered] = useState<ReadonlySet<string>>(new Set())
+  const [loaded, setLoaded] = useState(false)
   const injectedRef = useRef<Record<string, unknown>>({})
   const hotelId = useActiveHotelId()
   const actorId = useAuthStore((st) => st.session?.user.id ?? null)
@@ -701,6 +714,7 @@ function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, c
   const perform = useCallback((effects: SideEffect[]) => {
     for (const e of effects) {
       if (e.kind === 'recompute') {
+        setTriggered((t) => new Set(t).add(e.variableId))
         void queryClient.invalidateQueries({ queryKey: ['module-variable', e.variableId] })
       } else if (e.kind === 'refresh') {
         void queryClient.invalidateQueries({ queryKey: ['module-variable'] })
@@ -717,6 +731,8 @@ function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, c
     const { state, sideEffects } = applyEffects(mod, initialState(mod), [...loads].sort((a, b) => a.position - b.position))
     setUi(state)
     perform(sideEffects)
+    // One tick later, so the first pass has already run with `loaded` false.
+    queueMicrotask(() => { setLoaded(true) })
   }, [mod, perform])
 
   const dispatch = useCallback<Ctx['dispatch']>((widgetId, trigger, tctx = {}) => {
@@ -751,7 +767,7 @@ function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, c
   const effectiveUi = injectedById.size === 0 ? ui
     : { ...ui, values: { ...ui.values, ...Object.fromEntries(injectedById) } }
 
-  const resolved = useResolvedVariables(mod, effectiveUi)
+  const resolved = useResolvedVariables(mod, effectiveUi, triggered, loaded)
 
   // Deliberately not memoised: `resolved` is a fresh Map every render, so a memo
   // would freeze the context on the first (all-loading) one and the tables would

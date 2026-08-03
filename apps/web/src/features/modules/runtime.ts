@@ -531,3 +531,40 @@ export function propertyValues(
   }
   return [...seen].sort()
 }
+
+// ── Recompute behaviour ──────────────────────────────────────────────────────
+
+/** Which definition kinds Foundry offers recompute configuration on:
+ *  "Function, Object set aggregation, Object property, Variable transformation,
+ *  Object set filter."
+ *
+ *  `object_set_definition` is deliberately absent — "does not offer recompute
+ *  behavior configuration, and functions similarly to Automatic". Copying the
+ *  exclusion matters: a set that stopped refreshing because somebody set a
+ *  recompute mode on it would be a bug nobody could find. */
+const RECOMPUTE_CONFIGURABLE = new Set([
+  'function', 'object_set_aggregation', 'object_property', 'variable_transformation',
+])
+
+/** Whether a variable may compute right now.
+ *
+ *    automatic            "recomputed automatically when the value of any of the
+ *                          variables it depends on changes" — always.
+ *    event                "recomputed ONLY when explicitly triggered by a
+ *                          recompute event" — so not until one fires.
+ *    on_load_and_event    "recomputed when the module is initially loaded, and
+ *                          when explicitly triggered" — the first pass, then on
+ *                          demand.
+ *
+ *  `triggered` holds the ids a `recompute_variable` effect has asked for, and
+ *  `loaded` says whether the module's first pass has happened. */
+export function shouldCompute(
+  variable: ModuleVariable,
+  triggered: ReadonlySet<string>,
+  loaded: boolean,
+): boolean {
+  if (!RECOMPUTE_CONFIGURABLE.has(variable.definitionKind)) return true
+  if (variable.recompute === 'automatic') return true
+  if (triggered.has(variable.id)) return true
+  return variable.recompute === 'on_load_and_event' && !loaded
+}

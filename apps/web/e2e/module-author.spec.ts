@@ -7,6 +7,7 @@
 // suite in packages/reality-graph/src/authoring — no model runs there either.
 
 import { test, expect } from '@playwright/test'
+import { accessToken, deleteModule } from './helpers/modules'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
@@ -83,8 +84,12 @@ test('a described application arrives as a reviewable draft', async ({ page }) =
   // The event's variable reference survived the name → id rewrite. Checked on
   // the module's own route: the builder canvas is deliberately not interactive,
   // so selection there means "configure this", not "use it".
+  // The generator names it, so the spec only learns the name here.
   const apiName = /\/modules\/([^/]+)\/edit/.exec(page.url())?.[1] ?? ''
+  test.info().annotations.push({ type: 'cleanup', description: apiName })
   await page.goto(`/modules/${apiName}`)
   await page.locator('table tbody tr').first().click({ timeout: 30_000 })
   await expect(page.getByText(/^Picked: (?!—)/)).toBeVisible({ timeout: 15_000 })
+
+  await deleteModule(await accessToken(), apiName)
 })

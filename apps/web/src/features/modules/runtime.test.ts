@@ -4,8 +4,8 @@
 import { describe, it, expect } from 'vitest'
 import {
   ROOT, aggregateSet, aggregationSource, applyEffects, applyObjectSetFilter,
-  effectsFor, initialState, interpolate, propertyValues, selectedTabKey, tabState,
-  visibleVariableIds,
+  effectsFor, initialState, interpolate, propertyValues, selectedTabKey,
+  shouldCompute, tabState, visibleVariableIds,
 } from './runtime'
 import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
@@ -485,5 +485,40 @@ describe('filtering an object set', () => {
 
   it('offers the values actually present, sorted and without blanks', () => {
     expect(propertyValues(rows, 'status')).toEqual(['closed', 'open'])
+  })
+})
+
+// The recompute contract was stored, typed and never read: every variable
+// behaved as `automatic`, so an author choosing "only when triggered" silently
+// got the opposite.
+describe('recompute behaviour', () => {
+  const none = new Set<string>()
+  const fn = (recompute: ModuleVariable['recompute']) =>
+    v({ id: 'f', apiName: 'f', definitionKind: 'function', recompute })
+
+  it('automatic always computes', () => {
+    expect(shouldCompute(fn('automatic'), none, false)).toBe(true)
+    expect(shouldCompute(fn('automatic'), none, true)).toBe(true)
+  })
+
+  it('event waits for a recompute event, before and after load', () => {
+    expect(shouldCompute(fn('event'), none, false)).toBe(false)
+    expect(shouldCompute(fn('event'), none, true)).toBe(false)
+    expect(shouldCompute(fn('event'), new Set(['f']), true)).toBe(true)
+  })
+
+  it('on_load_and_event computes once, then waits', () => {
+    expect(shouldCompute(fn('on_load_and_event'), none, false)).toBe(true)
+    expect(shouldCompute(fn('on_load_and_event'), none, true)).toBe(false)
+    expect(shouldCompute(fn('on_load_and_event'), new Set(['f']), true)).toBe(true)
+  })
+
+  // "The Object set definition variable definition type does not offer recompute
+  // behavior configuration, and functions similarly to Automatic." A set that
+  // stopped refreshing because somebody set a mode on it would be unfindable.
+  it('ignores the setting on an object set definition, as Foundry does', () => {
+    const set = v({ id: 's', apiName: 's', varType: 'object_set',
+      definitionKind: 'object_set_definition', recompute: 'event' })
+    expect(shouldCompute(set, none, true)).toBe(true)
   })
 })

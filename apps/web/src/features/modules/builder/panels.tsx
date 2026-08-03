@@ -156,6 +156,21 @@ export function VariablePanel({ mod, variable, apiName }: {
           </FormGroup>
         )}
 
+        {/* Foundry offers this on Function, Object set aggregation, Object
+            property and Variable transformation — not on an object set
+            definition, which "functions similarly to Automatic". */}
+        {['function', 'object_set_aggregation'].includes(variable.definitionKind) && (
+          <FormGroup label="Recomputes" helperText="When this value is worked out again.">
+            <HTMLSelect fill value={variable.recompute}
+              onChange={(e) => { patch({ recompute: e.currentTarget.value }) }}
+              options={[
+                { label: 'whenever something it reads changes', value: 'automatic' },
+                { label: 'only when an event asks', value: 'event' },
+                { label: 'on load, and when an event asks', value: 'on_load_and_event' },
+              ]} />
+          </FormGroup>
+        )}
+
         {variable.definitionKind === 'object_set_aggregation' && (
           <AggregationConfig mod={mod} variable={variable}
             onChange={(d) => { patch({ definition: d }) }} />

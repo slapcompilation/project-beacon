@@ -6,6 +6,7 @@
 // stops you keeping a second saved set of the same object type per number.
 
 import { test, expect } from '@playwright/test'
+import { accessToken, deleteModule } from './helpers/modules'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
@@ -13,6 +14,12 @@ const EMAIL = process.env.SMOKE_USER_EMAIL ?? ''
 const PASSWORD = process.env.SMOKE_USER_PASSWORD ?? ''
 
 test.skip(!SUPABASE_URL || !EMAIL, 'SMOKE_USER_* / VITE_SUPABASE_* env not set')
+
+const created: string[] = []
+test.afterEach(async () => {
+  const token = await accessToken()
+  for (const name of created.splice(0)) await deleteModule(token, name)
+})
 
 test('one set backs four different numbers', async ({ page }) => {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -68,6 +75,7 @@ test('a metric card bound to a set says so instead of guessing', async ({ page }
   }
 
   const apiName = `agg_probe_${Date.now().toString(36)}`
+  created.push(apiName)
   const mod = await post('modules', { api_name: apiName, title: 'Aggregation probe', status: 'draft' })
   const set = await post('module_variables', {
     module_id: mod.id, api_name: 'items', label: 'Items', var_type: 'object_set',
