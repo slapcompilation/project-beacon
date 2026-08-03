@@ -243,3 +243,78 @@ export function interpolate(body: string, mod: ModuleDoc, ui: ModuleUiState): st
       return display(value)
     })
 }
+
+// ── The Tabs widget ──────────────────────────────────────────────────────────
+
+/** One tab of a Tabs widget. Its events are ordinary module_events keyed by
+ *  `button`, exactly as a Button Group's are. */
+export interface TabSpec {
+  key?:     string
+  label?:   string
+  icon?:    string
+  /** api name of a string or numeric variable shown to the right of the label. */
+  badge?:   string
+  /** api name of a boolean variable that controls this tab… */
+  visibleWhen?: string
+  /** …by disabling it when false, or hiding it entirely. */
+  whenFalse?: 'disabled' | 'hidden'
+}
+
+/** Which tab reads as selected.
+ *
+ *  Copied, because it is the one part of this widget nobody would invent
+ *  correctly: "the Tabs widget does not hold its own selection state. Instead,
+ *  selection state is derived from events configured for the widget. Switch to
+ *  tab and Switch to page events that lead to NO LAYOUT STATE CHANGE will be
+ *  used to determine the selected tab."
+ *
+ *  So a tab is selected when pressing it would do nothing — its own event
+ *  already describes where you are. Their tie-break comes with it: "the tab with
+ *  the most no-layout-state-change events will be the selected tab, preferring
+ *  the earliest tab in the case of a tie", and "set variable value events are
+ *  not currently used to check for selected tab state". */
+export function selectedTabKey(
+  mod: ModuleDoc, ui: ModuleUiState, widgetId: string, tabs: ReadonlyArray<TabSpec>,
+): string | null {
+  let best: { key: string; score: number } | null = null
+
+  for (const [i, tab] of tabs.entries()) {
+    const key = tab.key ?? String(i)
+    const events = mod.events.filter((e) =>
+      e.sourceWidgetId === widgetId && e.config.button === key)
+
+    let score = 0
+    for (const e of events) {
+      const target = typeof e.config.layoutApiName === 'string'
+        ? mod.layouts.find((l) => l.apiName === e.config.layoutApiName)
+        : undefined
+      if (!target) continue
+      if (e.effectType === 'switch_tab' && activeTabId(mod, ui, target.parentId ?? ROOT) === target.id) score += 1
+      if (e.effectType === 'switch_page' && activePageId(mod, ui, target.parentId) === target.id) score += 1
+    }
+    // Strictly greater keeps the earliest tab on a tie.
+    if (score > 0 && (best === null || score > best.score)) best = { key, score }
+  }
+  return best?.key ?? null
+}
+
+/** The page currently showing among siblings — the page equivalent of activeTabId. */
+export function activePageId(mod: ModuleDoc, ui: ModuleUiState, parentId: string | null): string | null {
+  const pages = mod.layouts
+    .filter((l) => l.layoutType === 'page' && l.parentId === parentId)
+    .sort((a, b) => a.position - b.position)
+  if (pages.length === 0) return null
+  return (pages.find((p) => p.id === ui.activePageId) ?? pages[0]).id
+}
+
+/** Hidden tabs are dropped; disabled ones are shown and not pressable. */
+export function tabState(
+  mod: ModuleDoc, ui: ModuleUiState, tab: TabSpec,
+): 'shown' | 'disabled' | 'hidden' {
+  if (!tab.visibleWhen) return 'shown'
+  const v = mod.variables.find((x) => x.apiName === tab.visibleWhen)
+  if (!v) return 'shown'
+  const on = scalarValue(v, ui) === true || scalarValue(v, ui) === 'true'
+  if (on) return 'shown'
+  return tab.whenFalse === 'hidden' ? 'hidden' : 'disabled'
+}

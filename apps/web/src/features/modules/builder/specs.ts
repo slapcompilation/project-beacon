@@ -62,6 +62,12 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
     blurb: 'Buttons that fire events, apply a typed Action, or both.',
     fields: [],
   },
+  tabs: {
+    label: 'Tabs', icon: 'application', needsVariable: false,
+    blurb: 'Navigation. Each tab fires events; which one looks selected is worked out from where you already are.',
+    fields: [{ key: 'direction', label: 'Direction', kind: 'select',
+      options: ['horizontal', 'vertical'] }],
+  },
   embedded_module: {
     label: 'Another application', icon: 'applications', needsVariable: false,
     blurb: 'Shows a published application inside this one. Variables you map are shared both ways.',
