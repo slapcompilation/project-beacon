@@ -3,7 +3,8 @@
 
 import { describe, it, expect } from 'vitest'
 import {
-  ROOT, applyEffects, effectsFor, initialState, interpolate, visibleVariableIds,
+  ROOT, applyEffects, effectsFor, initialState, interpolate, selectedTabKey,
+  tabState, visibleVariableIds,
 } from './runtime'
 import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
@@ -204,5 +205,93 @@ describe('a loop is a consumer too', () => {
       ],
     })
     expect(visibleVariableIds(hidden, initialState(hidden)).size).toBe(0)
+  })
+})
+
+// Foundry's Tabs widget derives selection rather than holding it: a tab reads as
+// selected when pressing it would change nothing. Nobody would invent that, so
+// it is copied and tested.
+describe('the Tabs widget derives its selection', () => {
+  const mod = doc({
+    layouts: [
+      l({ id: 'first', apiName: 'first', layoutType: 'tab', position: 0 }),
+      l({ id: 'second', apiName: 'second', layoutType: 'tab', position: 1 }),
+    ],
+    widgets: [w({ id: 'nav', widgetType: 'tabs' })],
+    events: [
+      e({ id: 'a', sourceWidgetId: 'nav', effectType: 'switch_tab',
+          config: { button: 'now', layoutApiName: 'first' } }),
+      e({ id: 'b', sourceWidgetId: 'nav', effectType: 'switch_tab',
+          config: { button: 'all', layoutApiName: 'second' } }),
+    ],
+  })
+  const tabs = [{ key: 'now', label: 'Now' }, { key: 'all', label: 'Everything' }]
+
+  it('selects the tab whose event would do nothing', () => {
+    expect(selectedTabKey(mod, initialState(mod), 'nav', tabs)).toBe('now')
+  })
+
+  it('follows the layout state rather than the press', () => {
+    const onSecond = { ...initialState(mod), activeTabByParent: { [ROOT]: 'second' } }
+    expect(selectedTabKey(mod, onSecond, 'nav', tabs)).toBe('all')
+  })
+
+  it('selects nothing when no tab describes where you are', () => {
+    const orphan = doc({ widgets: [w({ id: 'nav', widgetType: 'tabs' })] })
+    expect(selectedTabKey(orphan, initialState(orphan), 'nav', tabs)).toBeNull()
+  })
+
+  // "Set variable value events are not currently used to check for selected tab
+  // state." Copied as a limit, not improved on.
+  it('ignores set_variable events entirely', () => {
+    const m = doc({
+      variables: [v({ id: 'x', apiName: 'x' })],
+      widgets: [w({ id: 'nav', widgetType: 'tabs' })],
+      events: [e({ id: 's', sourceWidgetId: 'nav', effectType: 'set_variable',
+        config: { button: 'now', variableId: 'x', value: 'anything' } })],
+    })
+    expect(selectedTabKey(m, initialState(m), 'nav', tabs)).toBeNull()
+  })
+
+  // "Preferring the earliest tab in the case of a tie."
+  it('prefers the earliest tab when two describe the same state', () => {
+    const m = doc({
+      layouts: [l({ id: 'first', apiName: 'first', layoutType: 'tab', position: 0 })],
+      widgets: [w({ id: 'nav', widgetType: 'tabs' })],
+      events: [
+        e({ id: 'a', sourceWidgetId: 'nav', effectType: 'switch_tab',
+            config: { button: 'now', layoutApiName: 'first' } }),
+        e({ id: 'b', sourceWidgetId: 'nav', effectType: 'switch_tab',
+            config: { button: 'all', layoutApiName: 'first' } }),
+      ],
+    })
+    expect(selectedTabKey(m, initialState(m), 'nav', tabs)).toBe('now')
+  })
+})
+
+describe('a tab can be gated on a boolean', () => {
+  const base = (over: Record<string, unknown>) => doc({
+    variables: [v({ id: 'ok', apiName: 'ready', varType: 'boolean', definition: over }) ],
+  })
+
+  it('shows normally with no gate', () => {
+    expect(tabState(doc({}), initialState(doc({})), { key: 'a' })).toBe('shown')
+  })
+
+  it('disables rather than hides by default', () => {
+    const m = base({ value: false })
+    expect(tabState(m, initialState(m), { key: 'a', visibleWhen: 'ready' })).toBe('disabled')
+  })
+
+  it('hides when the author asked for hidden', () => {
+    const m = base({ value: false })
+    expect(tabState(m, initialState(m), { key: 'a', visibleWhen: 'ready', whenFalse: 'hidden' }))
+      .toBe('hidden')
+  })
+
+  it('shows once the variable is true', () => {
+    const m = base({ value: true })
+    expect(tabState(m, initialState(m), { key: 'a', visibleWhen: 'ready', whenFalse: 'hidden' }))
+      .toBe('shown')
   })
 })

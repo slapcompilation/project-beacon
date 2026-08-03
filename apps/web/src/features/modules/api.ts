@@ -27,7 +27,7 @@ export type ModuleDefinitionKind =
  *  bar and the widget had nothing left to do. */
 export type ModuleWidgetType =
   | 'object_table' | 'metric_card' | 'markdown' | 'object_set_title' | 'button_group'
-  | 'embedded_module'
+  | 'embedded_module' | 'tabs'
 
 export interface ModuleVariable {
   id:             string

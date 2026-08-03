@@ -18,6 +18,7 @@ import {
 } from '../api'
 import { useModule } from '../ModuleRenderer'
 import type { Binding, ButtonSpec } from '../bindings'
+import type { TabSpec } from '../runtime'
 import { nextPosition, useCreateRow, useDeleteRow, useUpdateRow } from './api'
 import { EFFECT_KINDS, TRIGGERS, VARIABLE_KINDS, WIDGET_SPECS } from './specs'
 
@@ -448,6 +449,10 @@ export function WidgetPanel({ mod, widget, apiName }: {
         <ButtonsPanel mod={mod} widget={widget} onChange={(b) => { setConfig('buttons', b) }} />
       )}
 
+      {widget.widgetType === 'tabs' && (
+        <TabsPanel mod={mod} widget={widget} onChange={(t) => { setConfig('tabs', t) }} />
+      )}
+
       {widget.widgetType === 'embedded_module' && (
         <EmbeddedConfig mod={mod} widget={widget} apiName={apiName}
           onChange={(c) => { patch({ config: c }) }} />
@@ -511,6 +516,73 @@ function ButtonsPanel({ mod, widget, onChange }: {
       })}
       <Button size="small" icon="add" text="Add button" fill
         onClick={() => { onChange([...buttons, { key: `b${buttons.length + 1}`, label: 'Button' }]) }} />
+    </Section>
+  )
+}
+
+/** Tabs. Each one is a label plus, optionally, an icon, a badge read from a
+ *  variable, and a boolean that gates it — Foundry's own configuration set,
+ *  minus the four styling presets, which are decided globally here. */
+function TabsPanel({ mod, widget, onChange }: {
+  mod: ModuleDoc; widget: ModuleWidget; onChange: (tabs: TabSpec[]) => void
+}) {
+  const tabs = (Array.isArray(widget.config.tabs) ? widget.config.tabs : []) as TabSpec[]
+  const set = (i: number, t: TabSpec) => { onChange(tabs.map((x, j) => (j === i ? t : x))) }
+  const booleans = mod.variables.filter((v) => v.varType === 'boolean')
+  // Foundry allows a string or a number here. An object set is ours, showing its
+  // count — see the note in ModuleRenderer.
+  const badgeable = mod.variables.filter((v) =>
+    v.varType === 'string' || v.varType === 'numeric' || v.varType === 'object_set')
+
+  return (
+    <Section title="Tabs">
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        Give each tab an effect below — the one whose effect would leave you
+        where you already are is the one that looks selected.
+      </p>
+
+      {tabs.map((t, i) => (
+        <div key={i} className="rounded border p-2 space-y-2">
+          <div className="flex gap-1">
+            <InputGroup fill placeholder="Label" defaultValue={t.label ?? ''}
+              onBlur={(e) => {
+                set(i, { ...t, label: e.target.value,
+                  key: t.key ?? e.target.value.toLowerCase().replace(/\W+/g, '_') })
+              }} />
+            <Button size="small" variant="minimal" icon="cross" aria-label="Remove tab"
+              onClick={() => { onChange(tabs.filter((_, j) => j !== i)) }} />
+          </div>
+
+          <InputGroup size="small" placeholder="Icon (optional, e.g. inbox)"
+            defaultValue={t.icon ?? ''}
+            onBlur={(e) => { set(i, { ...t, icon: e.target.value || undefined }) }} />
+
+          <FormGroup label="Badge" helperText="A label to the right — or a set, shown as its count.">
+            <HTMLSelect fill value={t.badge ?? ''}
+              onChange={(e) => { set(i, { ...t, badge: e.currentTarget.value || undefined }) }}
+              options={[{ label: '— none —', value: '' },
+                ...badgeable.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+          </FormGroup>
+
+          <FormGroup label="Only when" helperText="A boolean that gates this tab.">
+            <div className="flex gap-1">
+              <HTMLSelect fill value={t.visibleWhen ?? ''}
+                onChange={(e) => { set(i, { ...t, visibleWhen: e.currentTarget.value || undefined }) }}
+                options={[{ label: '— always —', value: '' },
+                  ...booleans.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+              {t.visibleWhen && (
+                <HTMLSelect value={t.whenFalse ?? 'disabled'}
+                  onChange={(e) => { set(i, { ...t, whenFalse: e.currentTarget.value as TabSpec['whenFalse'] }) }}
+                  options={[{ label: 'else greyed', value: 'disabled' },
+                    { label: 'else hidden', value: 'hidden' }]} />
+              )}
+            </div>
+          </FormGroup>
+        </div>
+      ))}
+
+      <Button size="small" icon="add" text="Add tab" fill
+        onClick={() => { onChange([...tabs, { key: `t${tabs.length + 1}`, label: 'Tab' }]) }} />
     </Section>
   )
 }

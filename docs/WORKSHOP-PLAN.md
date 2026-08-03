@@ -182,9 +182,30 @@ different jobs.
   to navigate throughout pages and overlays of a module"*, each tab carrying a
   label, an on-click event, an icon, a badge and conditional visibility.
 
-So we are **missing a real widget**, and it is the natural G2 candidate: our
-runtime already implements `switch_page`, `switch_tab` and `open_overlay`, and a
-Button Group is currently the only thing that can trigger any of them.
+So we were **missing a real widget** — ✅ **built** (migration 316). The runtime
+had implemented `switch_page`, `switch_tab` and `open_overlay` since W2 with only
+a Button Group able to trigger them.
+
+**The part nobody would have invented correctly**, copied verbatim: *"the Tabs
+widget does not hold its own selection state. Instead, selection state is derived
+from events configured for the widget. Switch to tab and Switch to page events
+that lead to **no layout state change** will be used to determine the selected
+tab."* A tab reads as selected when pressing it would do nothing. Their two limits
+come with it — most no-op events wins, earliest tab on a tie, and *"set variable
+value events are not currently used to check for selected tab state"*.
+
+Also copied: label, icon, badge, and conditional visibility gating a tab to
+`disabled` or `hidden` on a boolean. **Not copied:** the four styling presets
+(Outline / Block / Prominent / Grouped), active colour, tab height. Density and
+radius are decided globally here, and per-widget styling is the thing that turns
+a vocabulary into a theme editor. Direction (horizontal / vertical) *is* kept —
+that one is structural.
+
+**A deliberate divergence:** Foundry's badge takes *"text via a string variable or
+a numeric value via a number variable"*. Ours also accepts an **object set** and
+shows its count, because a count is the obvious badge and Foundry reaches it
+through an `object_set_aggregation` variable — a definition kind we have not
+built. This narrows back to string/numeric the day we do.
 
 ### W3 — actions and functions in widgets ✅ shipped
 

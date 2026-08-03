@@ -11,6 +11,7 @@ import {
   Button, ButtonGroup, Callout, Card, Collapse, Dialog, DialogBody, Icon, Intent,
   NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
+import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
@@ -26,8 +27,8 @@ import {
 } from './api'
 import {
   ROOT, activeTabId, applyEffects, display, effectsFor, initialState, interpolate,
-  scalarValue, visibleVariableIds,
-  type ModuleUiState, type SideEffect, type TriggerContext,
+  scalarValue, selectedTabKey, tabState, visibleVariableIds,
+  type ModuleUiState, type SideEffect, type TabSpec, type TriggerContext,
 } from './runtime'
 import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
@@ -259,6 +260,55 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
 
     case 'object_table':
       return <ObjectTable widget={widget} resolved={bound} dispatch={dispatch} />
+
+    case 'tabs': {
+      // Foundry's Tabs widget owns no layouts — it fires events. Selection is
+      // DERIVED: the tab whose own event would change nothing is the one you are
+      // already on. See selectedTabKey.
+      const tabs = (Array.isArray(widget.config.tabs) ? widget.config.tabs : []) as TabSpec[]
+      const vertical = widget.config.direction === 'vertical'
+      const active = selectedTabKey(mod, ui, widget.id, tabs)
+
+      return (
+        <div className={cn('flex gap-1', vertical ? 'flex-col items-stretch' : 'items-center border-b')}>
+          {tabs.map((tab, i) => {
+            const key = tab.key ?? String(i)
+            const state = tabState(mod, ui, tab)
+            if (state === 'hidden') return null
+            // Foundry's badge takes "text via a string variable or a numeric
+            // value via a number variable". We also accept an OBJECT SET and show
+            // its count — a deliberate divergence, because the count of a set is
+            // the obvious badge and Foundry reaches it through an
+            // object_set_aggregation variable, a definition kind we have not
+            // built. This goes back to string/numeric the day we do.
+            const badgeVar = tab.badge
+              ? mod.variables.find((v) => v.apiName === tab.badge)
+              : undefined
+            const bound = badgeVar ? resolved.get(badgeVar.id) : undefined
+            const badge = badgeVar?.varType === 'object_set'
+              ? (bound?.loading ? undefined : bound?.records.length)
+              : (bound?.value ?? scalarValue(badgeVar, ui))
+
+            return (
+              <button key={key} type="button" disabled={state === 'disabled'}
+                onClick={() => { dispatch(widget.id, 'click', { button: key }) }}
+                className={cn('flex items-center gap-1.5 px-3 py-1.5 text-sm',
+                  vertical ? 'justify-start rounded' : 'border-b-2 -mb-px',
+                  state === 'disabled' && 'opacity-40 cursor-not-allowed',
+                  key === active
+                    ? (vertical ? 'bg-primary/10 font-semibold' : 'border-primary font-semibold')
+                    : (vertical ? 'hover:bg-muted/60' : 'border-transparent text-muted-foreground hover:text-foreground'))}>
+                {tab.icon && <Icon icon={tab.icon as IconName} size={13} />}
+                {tab.label ?? key}
+                {badge !== undefined && badge !== null && badge !== '' && (
+                  <Tag minimal round className="!text-[10px]">{display(badge)}</Tag>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      )
+    }
 
     case 'embedded_module': {
       // Foundry maps parent variables onto the child's INTERFACE variables and
