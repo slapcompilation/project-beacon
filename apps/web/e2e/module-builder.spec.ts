@@ -3,6 +3,7 @@
 // somebody without database access, which is the whole point of the arc.
 
 import { test, expect } from '@playwright/test'
+import { accessToken, deleteModule } from './helpers/modules'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
@@ -10,6 +11,14 @@ const EMAIL = process.env.SMOKE_USER_EMAIL ?? ''
 const PASSWORD = process.env.SMOKE_USER_PASSWORD ?? ''
 
 test.skip(!SUPABASE_URL || !EMAIL, 'SMOKE_USER_* / VITE_SUPABASE_* env not set')
+
+// A spec that creates a module owns removing it. An audit found 87 leftovers in
+// the demo org — one more every run — because none of them did.
+const created: string[] = []
+test.afterEach(async () => {
+  const token = await accessToken()
+  for (const name of created.splice(0)) await deleteModule(token, name)
+})
 
 /** The builder edits an existing module, so the test needs one it can wreck.
  *  A fresh api_name per run keeps the suite re-runnable. */
@@ -38,6 +47,7 @@ async function seedEmptyModule(apiName: string) {
 
 test('an admin builds an application in the UI and publishes it', async ({ page }) => {
   const apiName = `builder_probe_${Date.now().toString(36)}`
+  created.push(apiName)
   const session = await seedEmptyModule(apiName)
   const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
   await page.addInitScript(([k, v]) => { localStorage.setItem(k, v) },

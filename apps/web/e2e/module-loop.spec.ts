@@ -6,6 +6,7 @@
 // that the card is written once.
 
 import { test, expect } from '@playwright/test'
+import { deleteModule } from './helpers/modules'
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL ?? ''
 const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? ''
@@ -13,6 +14,12 @@ const EMAIL = process.env.SMOKE_USER_EMAIL ?? ''
 const PASSWORD = process.env.SMOKE_USER_PASSWORD ?? ''
 
 test.skip(!SUPABASE_URL || !EMAIL, 'SMOKE_USER_* / VITE_SUPABASE_* env not set')
+
+const created: string[] = []
+test.afterEach(async () => {
+  const token = await accessToken()
+  for (const name of created.splice(0)) await deleteModule(token, name)
+})
 
 async function signIn(page: import('@playwright/test').Page) {
   const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
@@ -90,6 +97,7 @@ test('a loop can be configured in the builder without SQL', async ({ page }) => 
   await signIn(page)
   const token = await accessToken()
   const parent = `loop_probe_${Date.now().toString(36)}`
+  created.push(parent)
 
   // A parent with a set to walk. The component it will show already exists and
   // is published — that is the point of a component.
