@@ -1,5 +1,12 @@
 # Authoring strategy — how operators shape Beacon's behavior
 
+> **Retired 2026-08-04.** Superseded by [`STUDIO-AUTHORING-PLAN.md`](./STUDIO-AUTHORING-PLAN.md), then
+> settled by the Workshop arc: W6 built the visual builder this file argued
+> against, and W7 made NL a *generator into* it rather than a replacement for it.
+> Kept only because the reasoning explains why the builder came first.
+> **Do not plan from this.** See [`WORKSHOP-PLAN.md`](./WORKSHOP-PLAN.md).
+
+
 > **Superseded (2026-07-23)** by [`STUDIO-AUTHORING-PLAN.md`](./STUDIO-AUTHORING-PLAN.md).
 > Its *conclusion* — "natural language is the builder; defer visual authoring until demand
 > appears" — is reversed: Studio becomes a creation environment now (that demand has appeared).

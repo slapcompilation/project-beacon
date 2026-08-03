@@ -1,5 +1,8 @@
 # Portfolio-scale test (P0.3)
 
+> **RECORD — record — a dated load result, not a plan.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Status: **run 2026-06-30** against the live project (`nohsofkkuypwlvdsfbnw`).
 
 P0.3 of the AIP-parity roadmap: prove the unattended intelligence cycle scales

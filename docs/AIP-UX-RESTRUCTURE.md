@@ -1,5 +1,8 @@
 # AIP UX restructure — the visual-parity roadmap
 
+> **RECORD — closed — Phases 0–3 delivered.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Status: **Phase 0 (in progress, 2026-07)**. Goal: make Beacon *look almost
 exactly like* Palantir Foundry / AIP.
 

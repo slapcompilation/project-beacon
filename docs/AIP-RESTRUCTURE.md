@@ -1,5 +1,8 @@
 # AIP-native restructure — the spec
 
+> **RECORD — closed — the dock became destinations.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Status: **agreed** (2026-06). The dock today is six modules-of-tabs (Floor, Flow,
 Eye, Mind, Operations, Briefing) with ~40 tabs between them. Most of those tabs
 are bespoke pages that re-implement, beside the ontology, things the AIP model
