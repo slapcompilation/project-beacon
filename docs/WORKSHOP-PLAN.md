@@ -201,11 +201,53 @@ radius are decided globally here, and per-widget styling is the thing that turns
 a vocabulary into a theme editor. Direction (horizontal / vertical) *is* kept —
 that one is structural.
 
-**A deliberate divergence:** Foundry's badge takes *"text via a string variable or
-a numeric value via a number variable"*. Ours also accepts an **object set** and
-shows its count, because a count is the obvious badge and Foundry reaches it
-through an `object_set_aggregation` variable — a definition kind we have not
-built. This narrows back to string/numeric the day we do.
+~~**A deliberate divergence:** the badge also accepts an object set.~~
+**Withdrawn** — `object_set_aggregation` now exists, so the badge is back to
+string/numeric as documented. The condition recorded for removing it was met, and
+`shift_nav`'s badge reads an aggregation variable.
+
+### Object set aggregation — the metric card stops aggregating
+
+**Read the source before changing anything, and it changed the design.**
+`widgets-metric-card`: *"the value used to populate the metric must be backed by a
+Workshop variable of the corresponding type… if the value type is set to Number,
+the user will have to select a numeric variable."* And `scenarios-getting-started`,
+configuring a real one: *"we're creating a new numeric metric with a value defined
+by a new **Object set aggregation** variable."*
+
+**Foundry's Metric Card does not aggregate. It displays a variable.** Ours
+aggregated inline off a bound object set, which is precisely why you would end up
+keeping a second saved set of the same object type for every extra number.
+
+The co-link, exactly:
+
+```
+object set  ──▶  object-set VARIABLE  ──▶  aggregation VARIABLE  ──▶  metric card
+                        │                        (count · sum ·
+                        │                         average · min ·
+                        └──▶ another aggregation   max · cardinality)
+                        └──▶ another aggregation
+```
+
+An aggregation names **another variable**, not a saved set. One `lowStock`
+variable now backs a count, a sum, a min and a distinct count in
+`low_stock_triage` — four numbers, one set.
+
+**The metric vocabulary is theirs**, from `functions/api-object-sets` → *Choosing
+an aggregation metric*: `count`, `average`, `max`, `min`, `sum`, `cardinality`.
+Their type rules come with it — `sum` is *"for the given numeric property"* only,
+while `average`/`min`/`max` take *"numeric, timestamp, date"*. Our `avg` was
+renamed `average`, because a name that differs from the docs is a name nobody can
+look up. Migration 317 converted 19 existing cards.
+
+**One divergence in substance:** their `.cardinality()` is documented as returning
+*"the **approximate** number of distinct values"* because it runs server-side over
+an index. Ours is exact, because the objects are already in hand. More precise,
+same meaning — worth knowing if a number here ever has to match one of theirs.
+
+**Not built:** `groupBy` / `segmentBy` bucketing and the 10,000-bucket limit that
+governs it. Those produce two- and three-dimensional aggregations for charts; a
+Workshop aggregation *variable* is scalar, which is what a metric card takes.
 
 ### W3 — actions and functions in widgets ✅ shipped
 

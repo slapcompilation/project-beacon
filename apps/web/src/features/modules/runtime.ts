@@ -4,7 +4,7 @@
 // that a comment cannot enforce, so they live here with a test beside them
 // rather than tangled into the renderer.
 
-import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable } from './api'
+import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
 export interface ModuleUiState {
   activePageId:      string | null
@@ -81,17 +81,54 @@ export function visibleLayoutIds(mod: ModuleDoc, ui: ModuleUiState): Set<string>
   return out
 }
 
+/** Every variable a widget names in its CONFIG rather than through its binding.
+ *
+ *  This has now been the same bug three times — a loop's set, a tab's badge, an
+ *  embedded module's mapping — so it is one function rather than three patches.
+ *  The rule: a binding is not the only way to consume a variable, and anything
+ *  that names one is a consumer for the purposes of the lazy rule. */
+export function configReferences(widget: ModuleWidget): string[] {
+  const out: string[] = []
+  const cfg = widget.config
+
+  if (Array.isArray(cfg.tabs)) {
+    for (const t of cfg.tabs as TabSpec[]) {
+      if (t.badge) out.push(t.badge)
+      if (t.visibleWhen) out.push(t.visibleWhen)
+    }
+  }
+  if (cfg.mapping && typeof cfg.mapping === 'object') {
+    // A parent fills a child's inputs from its own variables.
+    out.push(...Object.values(cfg.mapping as Record<string, string>).filter(Boolean))
+  }
+  if (Array.isArray(cfg.buttons)) {
+    for (const b of cfg.buttons as Array<{ action?: { parameters?: Record<string, { variable?: string }> } }>) {
+      for (const p of Object.values(b.action?.parameters ?? {})) {
+        if (p.variable) out.push(p.variable)
+      }
+    }
+  }
+  return out
+}
+
 /** Variables worth resolving right now — the lazy rule applied to everything
  *  that consumes one. A widget with no layout sits at module root and always shows.
  *
- *  A LOOP consumes a variable too, from its own config rather than a binding.
- *  Missing that made a loop render "nothing in the set" forever, because the set
- *  it walks was never resolved. */
+ *  Foundry: variables "compute and recompute lazily only when displayed by a
+ *  visible widget OR LAYOUT". Both halves matter — a loop is a layout that
+ *  consumes a set, and missing that made every loop render "nothing in the set". */
 export function visibleVariableIds(mod: ModuleDoc, ui: ModuleUiState): Set<string> {
   const shown = visibleLayoutIds(mod, ui)
   const ids = new Set<string>()
+  const byName = new Map(mod.variables.map((v) => [v.apiName, v.id]))
+
   for (const w of mod.widgets) {
-    if (w.variableId && (w.layoutId === null || shown.has(w.layoutId))) ids.add(w.variableId)
+    if (w.layoutId !== null && !shown.has(w.layoutId)) continue
+    if (w.variableId) ids.add(w.variableId)
+    for (const name of configReferences(w)) {
+      const id = byName.get(name)
+      if (id) ids.add(id)
+    }
   }
   for (const l of mod.layouts) {
     if (l.layoutType !== 'loop') continue
@@ -99,6 +136,14 @@ export function visibleVariableIds(mod: ModuleDoc, ui: ModuleUiState): Set<strin
     const name = l.config.variable
     const v = typeof name === 'string' ? mod.variables.find((x) => x.apiName === name) : undefined
     if (v) ids.add(v.id)
+  }
+  // An aggregation is displayed, but what has to be RESOLVED is the set behind
+  // it. Same shape as the loop gap: a variable is not only reached through a
+  // widget binding.
+  for (const v of [...ids]) {
+    const variable = mod.variables.find((x) => x.id === v)
+    const source = variable ? aggregationSource(mod, variable) : undefined
+    if (source) ids.add(source.id)
   }
   return ids
 }
@@ -317,4 +362,101 @@ export function tabState(
   const on = scalarValue(v, ui) === true || scalarValue(v, ui) === 'true'
   if (on) return 'shown'
   return tab.whenFalse === 'hidden' ? 'hidden' : 'disabled'
+}
+
+// ── Object set aggregation ───────────────────────────────────────────────────
+
+/** Foundry's six, from functions/api-object-sets "Choosing an aggregation metric":
+ *
+ *    .count()        the number of objects in each bucket
+ *    .average()      "for the given numeric, timestamp, date property"
+ *    .max()          "for the given numeric, timestamp, date property"
+ *    .min()          "for the given numeric, timestamp, date property"
+ *    .sum()          "the sum of values for the given numeric property"   ← numeric only
+ *    .cardinality()  "the APPROXIMATE number of distinct values"
+ *
+ *  Named as they name them. `cardinality` rather than "distinct" is theirs, and
+ *  keeping the word keeps the concept findable in their docs.
+ */
+export const AGGREGATION_METRICS = ['count', 'sum', 'average', 'min', 'max', 'cardinality'] as const
+export type AggregationMetric = typeof AGGREGATION_METRICS[number]
+
+/** Which property types each metric accepts, straight from that list. `count`
+ *  takes none — it counts objects, not values. */
+export const METRIC_ACCEPTS: Record<AggregationMetric, 'none' | 'numeric' | 'ordered' | 'any'> = {
+  count:       'none',
+  sum:         'numeric',
+  average:     'ordered',   // numeric, timestamp, date
+  min:         'ordered',
+  max:         'ordered',
+  cardinality: 'any',
+}
+
+const num = (v: unknown): number | null => {
+  if (typeof v === 'number') return Number.isFinite(v) ? v : null
+  if (typeof v === 'string' && v.trim() !== '') {
+    const n = Number(v)
+    if (Number.isFinite(n)) return n
+    const t = Date.parse(v)          // a date property arrives as an ISO string
+    return Number.isFinite(t) ? t : null
+  }
+  return null
+}
+
+const isDateLike = (v: unknown): boolean =>
+  typeof v === 'string' && Number.isNaN(Number(v)) && Number.isFinite(Date.parse(v))
+
+/** One number (or date) out of a set.
+ *
+ *  Computed over the records we already hold, which is the one place this
+ *  differs from Foundry in substance: their `.cardinality()` is documented as
+ *  APPROXIMATE because it runs server-side over an index, and ours is exact
+ *  because the objects are already in hand. More precise, same meaning — worth
+ *  knowing if a number here ever has to match one of theirs. */
+export function aggregateSet(
+  records: ReadonlyArray<Record<string, unknown>>,
+  metric: AggregationMetric,
+  property?: string | null,
+): number | string | null {
+  if (metric === 'count') return records.length
+  if (!property) return null
+
+  const raw = records.map((r) => r[property]).filter((v) => v !== null && v !== undefined)
+  if (raw.length === 0) return null
+
+  if (metric === 'cardinality') {
+    return new Set(raw.map((v) => (typeof v === 'object' ? JSON.stringify(v) : v))).size
+  }
+
+  const dated = raw.some(isDateLike)
+  const nums = raw.map(num).filter((n): n is number => n !== null)
+  if (nums.length === 0) return null
+
+  switch (metric) {
+    case 'sum':
+      // "The sum of values for the given NUMERIC property" — summing dates is
+      // meaningless, and Foundry does not offer it.
+      return dated ? null : nums.reduce((a, b) => a + b, 0)
+    case 'average': {
+      const mean = nums.reduce((a, b) => a + b, 0) / nums.length
+      return dated ? new Date(mean).toISOString() : mean
+    }
+    case 'min':
+      return dated ? new Date(Math.min(...nums)).toISOString() : Math.min(...nums)
+    case 'max':
+      return dated ? new Date(Math.max(...nums)).toISOString() : Math.max(...nums)
+  }
+}
+
+/** The object-set variable an aggregation reads from.
+ *
+ *  An aggregation names another VARIABLE, not a saved set — which is the whole
+ *  point: one set variable can back a count, a sum and an average without three
+ *  near-identical sets of the same object type. */
+export function aggregationSource(
+  mod: ModuleDoc, variable: ModuleVariable,
+): ModuleVariable | undefined {
+  const name = variable.definition.objectSet
+  if (variable.definitionKind !== 'object_set_aggregation' || typeof name !== 'string') return undefined
+  return mod.variables.find((v) => v.apiName === name && v.varType === 'object_set')
 }
