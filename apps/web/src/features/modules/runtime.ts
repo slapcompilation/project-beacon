@@ -101,6 +101,7 @@ export function configReferences(widget: ModuleWidget): string[] {
     // A parent fills a child's inputs from its own variables.
     out.push(...Object.values(cfg.mapping as Record<string, string>).filter(Boolean))
   }
+  if (typeof cfg.output === 'string') out.push(cfg.output)   // a Filter List's state
   if (Array.isArray(cfg.buttons)) {
     for (const b of cfg.buttons as Array<{ action?: { parameters?: Record<string, { variable?: string }> } }>) {
       for (const p of Object.values(b.action?.parameters ?? {})) {
@@ -459,4 +460,74 @@ export function aggregationSource(
   const name = variable.definition.objectSet
   if (variable.definitionKind !== 'object_set_aggregation' || typeof name !== 'string') return undefined
   return mod.variables.find((v) => v.apiName === name && v.varType === 'object_set')
+}
+
+// ── Object set filters ───────────────────────────────────────────────────────
+
+/** Foundry's three, from object-set-filter-variables → "Supported starting filters".
+ *
+ *  CONTAIN is the one worth reading twice: "this matching behavior is currently
+ *  limited to PREFIXES; matching arbitrary portions of strings is not currently
+ *  supported. For instance, if the property value is `id000123` and the filter
+ *  query is `d0001`, this will not be considered a match."
+ *
+ *  A substring match would look more useful and be a different feature. */
+export type FilterOp = 'IS' | 'NULL' | 'CONTAIN'
+
+export interface FilterClause {
+  property: string
+  op: FilterOp
+  /** IS accepts one value or several — several reads as "any of". NULL ignores it. */
+  value?: unknown
+}
+
+/** "Stores a set of property type / property value pairs used to filter object
+ *  set variables." Clauses are ANDed: each one narrows further. */
+export function applyObjectSetFilter(
+  records: ReadonlyArray<Record<string, unknown>>,
+  clauses: ReadonlyArray<FilterClause>,
+): Record<string, unknown>[] {
+  const active = clauses.filter((c) => c.property && (c.op === 'NULL' || !isEmpty(c.value)))
+  if (active.length === 0) return [...records]
+
+  return records.filter((r) => active.every((c) => {
+    const v = r[c.property]
+    if (c.op === 'NULL') return v === null || v === undefined
+    if (c.op === 'IS') {
+      const wanted = Array.isArray(c.value) ? c.value : [c.value]
+      return wanted.some((w) => String(v) === String(w))
+    }
+    // CONTAIN — a prefix, and only a prefix.
+    return typeof v === 'string' && v.toLowerCase().startsWith(String(c.value).toLowerCase())
+  }))
+}
+
+const isEmpty = (v: unknown): boolean =>
+  v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0)
+
+/** The clauses a filter variable currently holds. */
+export function filterClauses(
+  mod: ModuleDoc, ui: ModuleUiState, apiName: unknown,
+): FilterClause[] {
+  if (typeof apiName !== 'string') return []
+  const v = mod.variables.find((x) => x.apiName === apiName && x.varType === 'object_set_filter')
+  if (!v) return []
+  const raw = scalarValue(v, ui)
+  return Array.isArray(raw) ? (raw as FilterClause[]) : []
+}
+
+/** Distinct values of a property, for a multi-select to offer. Foundry's Filter
+ *  List builds these from the object set it is showing. */
+export function propertyValues(
+  records: ReadonlyArray<Record<string, unknown>>, property: string,
+): string[] {
+  const seen = new Set<string>()
+  for (const r of records) {
+    const v = r[property]
+    if (v === null || v === undefined || v === '') continue
+    // A property holding an object is not something to offer as a filter chip.
+    if (typeof v === 'object') continue
+    seen.add(display(v))
+  }
+  return [...seen].sort()
 }

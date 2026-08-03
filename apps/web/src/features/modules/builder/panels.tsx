@@ -509,6 +509,11 @@ export function WidgetPanel({ mod, widget, apiName }: {
         <ButtonsPanel mod={mod} widget={widget} onChange={(b) => { setConfig('buttons', b) }} />
       )}
 
+      {widget.widgetType === 'filter_list' && (
+        <FilterListPanel mod={mod} widget={widget}
+          onChange={(c) => { patch({ config: c }) }} />
+      )}
+
       {widget.widgetType === 'tabs' && (
         <TabsPanel mod={mod} widget={widget} onChange={(t) => { setConfig('tabs', t) }} />
       )}
@@ -576,6 +581,79 @@ function ButtonsPanel({ mod, widget, onChange }: {
       })}
       <Button size="small" icon="add" text="Add button" fill
         onClick={() => { onChange([...buttons, { key: `b${buttons.length + 1}`, label: 'Button' }]) }} />
+    </Section>
+  )
+}
+
+/** A Filter List: which properties an operator may narrow on, and the one
+ *  variable that holds what they chose.
+ *
+ *  Foundry's output variable "plays two roles" — the live filter state and the
+ *  default applied on load — so there is exactly one, and the set that should
+ *  narrow has to name it back. That second half is easy to forget, so the panel
+ *  offers to wire it. */
+function FilterListPanel({ mod, widget, onChange }: {
+  mod: ModuleDoc; widget: ModuleWidget; onChange: (config: Record<string, unknown>) => void
+}) {
+  const update = useUpdateRow(mod.apiName)
+  const cfg = widget.config
+  const out = typeof cfg.output === 'string' ? cfg.output : ''
+  const props = (Array.isArray(cfg.properties) ? cfg.properties : []) as Array<{ property: string; component?: string }>
+  const filters = mod.variables.filter((v) => v.varType === 'object_set_filter')
+  const shown = mod.variables.find((v) => v.id === widget.variableId)
+  const wired = shown && shown.definition.filterVariable === out
+
+  return (
+    <Section title="Filtering">
+      <FormGroup label="Puts the choice in" helperText={filters.length === 0
+        ? 'Add a variable of type object_set_filter first — that is where the choice lives.'
+        : undefined}>
+        <HTMLSelect fill value={out}
+          onChange={(e) => { onChange({ ...cfg, output: e.currentTarget.value }) }}
+          options={[{ label: '— pick a filter variable —', value: '' },
+            ...filters.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+      </FormGroup>
+
+      {out !== '' && shown && !wired && (
+        <Callout intent={Intent.WARNING} icon="warning-sign" className="text-[11px]">
+          <div className="mb-1">
+            <code>{shown.apiName}</code> is not reading this filter yet, so nothing
+            will narrow.
+          </div>
+          <Button size="small" text={`Have ${shown.apiName} use it`}
+            onClick={() => {
+              update.mutate({ table: 'module_variables', id: shown.id,
+                patch: { definition: { ...shown.definition, filterVariable: out } } })
+            }} />
+        </Callout>
+      )}
+
+      {props.map((p, i) => (
+        <div key={i} className="flex gap-1">
+          <InputGroup fill placeholder="Property" defaultValue={p.property}
+            onBlur={(e) => {
+              onChange({ ...cfg, properties: props.map((x, j) =>
+                (j === i ? { ...x, property: e.target.value } : x)) })
+            }} />
+          <HTMLSelect value={p.component ?? 'multi_select'}
+            onChange={(e) => {
+              onChange({ ...cfg, properties: props.map((x, j) =>
+                (j === i ? { ...x, component: e.currentTarget.value } : x)) })
+            }}
+            options={[{ label: 'pick from values', value: 'multi_select' },
+              { label: 'starts with', value: 'keyword' }]} />
+          <Button size="small" variant="minimal" icon="cross" aria-label="Remove filter"
+            onClick={() => { onChange({ ...cfg, properties: props.filter((_, j) => j !== i) }) }} />
+        </div>
+      ))}
+
+      <Button size="small" icon="add" text="Add a property" fill
+        onClick={() => { onChange({ ...cfg, properties: [...props, { property: '', component: 'multi_select' }] }) }} />
+
+      <p className="text-[11px] text-muted-foreground leading-snug">
+        Two components for now: pick-from-values, and starts-with. Foundry also
+        offers histograms, distribution charts and date pickers.
+      </p>
     </Section>
   )
 }

@@ -9,7 +9,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useQuery, useQueries, useQueryClient } from '@tanstack/react-query'
 import {
   Button, ButtonGroup, Callout, Card, Collapse, Dialog, DialogBody, Icon, Intent,
-  NonIdealState, Spinner, SpinnerSize, Tag,
+  InputGroup, NonIdealState, Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
@@ -27,10 +27,10 @@ import {
 } from './api'
 import {
   ROOT, activeTabId, applyEffects, display, effectsFor, initialState, interpolate,
-  aggregateSet, aggregationSource, scalarValue, selectedTabKey, tabState,
-  visibleVariableIds,
-  type AggregationMetric, type ModuleUiState, type SideEffect, type TabSpec,
-  type TriggerContext,
+  aggregateSet, aggregationSource, applyObjectSetFilter, filterClauses,
+  propertyValues, scalarValue, selectedTabKey, tabState, visibleVariableIds,
+  type AggregationMetric, type FilterClause, type ModuleUiState, type SideEffect,
+  type TabSpec, type TriggerContext,
 } from './runtime'
 import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
@@ -88,7 +88,15 @@ function useResolvedVariables(mod: ModuleDoc | null | undefined, ui: ModuleUiSta
 
   const byId = new Map<string, Resolved>()
   setVars.forEach((v, i) => {
-    byId.set(v.id, { records: setResults[i]?.data ?? [], loading: setResults[i]?.isLoading ?? false })
+    // Foundry: an object set "may be optionally filtered by property values or
+    // FILTER VARIABLES". Applied once here, so the table, the loop and every
+    // aggregation over this set all move together.
+    const all = setResults[i]?.data ?? []
+    const clauses = mod ? filterClauses(mod, ui, v.definition.filterVariable) : []
+    byId.set(v.id, {
+      records: clauses.length > 0 ? applyObjectSetFilter(all, clauses) : all,
+      loading: setResults[i]?.isLoading ?? false,
+    })
   })
   // An aggregation is derived, not fetched: it reads the records its source set
   // variable already resolved. One set can back a count, a sum and an average.
@@ -276,6 +284,88 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
 
     case 'object_table':
       return <ObjectTable widget={widget} resolved={bound} dispatch={dispatch} />
+
+    case 'filter_list': {
+      // Input is an object set; output is ONE object set filter variable that
+      // "plays two roles": the live filter state, and the default applied on load.
+      const outName = typeof widget.config.output === 'string' ? widget.config.output : null
+      const outVar = outName
+        ? mod.variables.find((v) => v.apiName === outName && v.varType === 'object_set_filter')
+        : undefined
+      const props = (Array.isArray(widget.config.properties)
+        ? widget.config.properties : []) as Array<{ property: string; component?: string }>
+
+      if (!outVar) {
+        return (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            This filter has nowhere to put what the operator chooses. Point it at an
+            object-set-filter variable, then let the set it filters read that variable.
+          </Callout>
+        )
+      }
+
+      const clauses = filterClauses(mod, ui, outName)
+      const clauseFor = (p: string) => clauses.find((c) => c.property === p)
+      const write = (next: FilterClause[]) => {
+        ctx.setUi((st) => ({ ...st, values: { ...st.values, [outVar.id]: next } }))
+      }
+      const setClause = (property: string, patch: Partial<FilterClause> | null) => {
+        const rest = clauses.filter((c) => c.property !== property)
+        write(patch === null ? rest : [...rest, { property, op: 'IS', ...patch } as FilterClause])
+      }
+
+      // The values offered come from the set BEFORE its own filter narrows it,
+      // or choosing one value would hide all the others.
+      const unfiltered = records
+
+      return (
+        <Card className="space-y-3">
+          {widget.title && <div className="text-sm font-semibold">{widget.title}</div>}
+          {props.map((p) => {
+            const current = clauseFor(p.property)
+            if (p.component === 'keyword') {
+              return (
+                <div key={p.property} className="space-y-1">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    {p.property}
+                  </div>
+                  <InputGroup size="small" placeholder="Starts with…"
+                    value={typeof current?.value === 'string' ? current.value : ''}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      setClause(p.property, v === '' ? null : { op: 'CONTAIN', value: v })
+                    }} />
+                </div>
+              )
+            }
+            const chosen = Array.isArray(current?.value) ? current.value as string[] : []
+            return (
+              <div key={p.property} className="space-y-1">
+                <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {p.property}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {propertyValues(unfiltered, p.property).map((val) => {
+                    const on = chosen.includes(val)
+                    return (
+                      <Button key={val} size="small" active={on} text={val}
+                        onClick={() => {
+                          const next = on ? chosen.filter((x) => x !== val) : [...chosen, val]
+                          setClause(p.property, next.length === 0 ? null : { op: 'IS', value: next })
+                        }} />
+                    )
+                  })}
+                </div>
+              </div>
+            )
+          })}
+          {clauses.length > 0 && (
+            <Button size="small" variant="minimal" icon="filter-remove" text="Clear filters"
+              onClick={() => { write([]) }} />
+          )}
+        </Card>
+      )
+    }
 
     case 'tabs': {
       // Foundry's Tabs widget owns no layouts — it fires events. Selection is
