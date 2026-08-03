@@ -137,7 +137,12 @@ if (process.argv.includes('--check')) {
   const failures = []
   const declared = new Map(registry.filter((r) => r.object_kind === 'table').map((r) => [r.object_name, r]))
   const reachedSet = new Set(reached.map((r) => r.name))
-  const exempt = new Set(registry.filter((r) => r.object_kind === 'function').map((r) => r.object_name))
+  // The message below tells authors to declare a function `intentional_unreachable`.
+  // Until check-vocabulary.mjs pointed it out, ANY classification exempted it and
+  // the word was decorative — a documented contract the code did not read.
+  const exempt = new Set(registry
+    .filter((r) => r.object_kind === 'function' && r.classification === 'intentional_unreachable')
+    .map((r) => r.object_name))
 
   for (const t of tbls) {
     const d = declared.get(t.name)
@@ -145,6 +150,11 @@ if (process.argv.includes('--check')) {
       failures.push(`table ${t.name} declares nothing — add it to shape_registry as platform, domain or dev`)
     } else if (d.classification === 'domain' && !reachedSet.has(t.name)) {
       failures.push(`table ${t.name} is declared domain but the ontology does not reach it (no object type, link or time series)`)
+    } else if (d.classification === 'dev') {
+      // `dev` existed as a classification nothing branched on, which made it a
+      // silent way to opt out of the domain-reachability rule. A scratch table
+      // is fine locally and has no business in the shipped schema.
+      failures.push(`table ${t.name} is declared dev — scratch tables must not ship; classify it or drop it`)
     }
   }
 
