@@ -1,6 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
   "display": "Base",
+  "//": "Shared options only — every package extends this and supplies its own include. `files: []` keeps it from being resolved as a project: without it, an editor or a bare `tsc -p` compiles the entire repo with lib ES2022 and no DOM, and every browser and Playwright file lights up red.",
+  "files": [],
   "compilerOptions": {
     "strict": true,
     "noImplicitAny": true,

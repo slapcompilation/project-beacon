@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "//": "The e2e specs were covered by no tsconfig at all — 36 files that CI never type-checked, which is why a `using` declaration and several wrong locator types only failed at runtime. They need DOM (page.evaluate runs in a browser) and Playwright's types, which the app project deliberately does not carry.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["node"],
+    "noEmit": true,
+    "noUnusedLocals": false
+  },
+  "include": ["e2e", "playwright.config.ts"]
+}
