@@ -1,5 +1,8 @@
 # AIP Parity Roadmap — closing the stress-test gaps
 
+> **RECORD — closed — superseded by FOUNDRY-CAPABILITY-AUDIT.md.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 > North star unchanged: **replicate Palantir AIP for hospitality.** This roadmap
 > takes the gaps surfaced in the 2026-06-30 stress test and turns each into a
 > sequenced, reviewable phase. It complements — does not replace —

@@ -1,5 +1,12 @@
 # AIP Workflows — how Beacon runs, end to end
 
+> **Stale 2026-08-04.** Written 2026-06-08, before the ontology split, the
+> intelligence cycle's current gate, the Studio IA and the whole Workshop arc.
+> It describes how workflows ran then, not now.
+> **Do not plan from this.** See [`CAPABILITY-CHAIN.md`](./CAPABILITY-CHAIN.md)
+> for how the layers actually connect today.
+
+
 This walks the core Palantir-AIP workflows as they actually run in Beacon, grounded in
 the live demo org (`My Hotel`, two F&B properties). It is not aspirational — every number
 below is real seeded data flowing through production code paths (`seed_demo_world`,

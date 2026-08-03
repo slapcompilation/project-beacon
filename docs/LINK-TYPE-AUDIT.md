@@ -1,5 +1,8 @@
 # Link-type audit — what `relationship_edges` actually holds
 
+> **RECORD — closed — one edge type per relationship, enforced by the database.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Input to Tier 2. Foundry requires **each relationship to be its own link type with
 its own backing** — a datasource may back exactly one link type, enforced at save
 time (`Phonograph2:DatasetAndBranchAlreadyRegistered`). Our single polymorphic

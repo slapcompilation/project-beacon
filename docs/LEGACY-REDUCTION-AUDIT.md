@@ -1,5 +1,8 @@
 # Legacy reduction audit — what's dead weight since the AIP shift
 
+> **RECORD — closed — the July surface triage.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Status: **triage, 2026-07**. Companion to `AIP-RESTRUCTURE.md` (the agreed IA
 target) and `AIP-UX-RESTRUCTURE.md` (visual parity). This lists modules/features
 that the move to the ontology + typed-agent + eval model has left redundant,

@@ -1,5 +1,8 @@
 # Implementation map — closing the Foundry capability gaps
 
+> **RECORD — closed — every gap in it has shipped or been recorded as a non-goal.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 Consolidates every open gap from `FOUNDRY-CAPABILITY-AUDIT.md` (all eleven
 sections) plus the five ingestion defects found by running the pipeline. Ordered
 by **dependency**, not by section number.

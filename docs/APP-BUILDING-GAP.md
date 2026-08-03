@@ -1,5 +1,8 @@
 # App building — what Foundry has that we do not
 
+> **RECORD — closed — delivered by the Workshop arc, W1–W7 + G1.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 **Audited 2026-08-01** against `palantir.com/docs/foundry/app-building/overview/`
 and its sub-pages. None of the app-building section is in the local mirror
 (`all-foundry-urls.txt` carries six URLs, zero mirrored), so this was fetched

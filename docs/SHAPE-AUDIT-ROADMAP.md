@@ -1,5 +1,8 @@
 # Shape audit — what 285 migrations actually left, and what to do about it
 
+> **RECORD — closed — items A–E done; the ratchet it produced is `pnpm check:shape`.** Kept for the reasoning; see
+> [`docs/README.md`](./README.md) for what is live.
+
 **Run it yourself:** `node scripts/audit-shape.mjs` (add `--json` for the raw data).
 
 ## Method, and why not the migration files
