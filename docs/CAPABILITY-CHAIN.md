@@ -159,7 +159,30 @@ be corrected, and without the builder that place is SQL.
 Four gaps are recorded. They are **not** equally urgent, and the dependency
 graph — not appetite — decides the order.
 
-### G1 · Loop layouts and embedded modules — *the only one that unlocks anything*
+### G1 · Loop layouts and embedded modules — ✅ shipped (#474, #475)
+
+**Correction, from the 2026-08-03 mirror.** Migration 315 says Foundry documents
+neither a nesting cap nor a self-embed rule. **The self-embed half is wrong** —
+`embedding-workshop-modules-overview` states it plainly:
+
+> *"A module may not embed itself, either directly or through a chain of child
+> modules. If a self-reference is configured, the module will display a warning to
+> builders and render nothing to viewers."*
+
+Our behaviour matches theirs almost exactly — warn the author, render nothing —
+so what was wrong is the **attribution**, not the guard. The depth cap of 3 really
+is ours: Foundry prevents infinite chains with the cycle check alone and sets no
+maximum depth, so ours is the stricter of the two and would refuse a legitimate
+four-level composition. Worth revisiting if anyone hits it.
+
+The rest of the phase checked out against the source, including the 10,000-object
+loop limit and the rule that the child's **published** version is always used.
+
+---
+
+#### The original entry, kept for the reasoning
+
+**G1 · Loop layouts and embedded modules — *the only one that unlocks anything***
 
 **Foundry:** `Loop` "loops over an object set or array, displaying an embedded
 module for each object", and modules "can be embedded in other modules".

@@ -13,11 +13,16 @@ walkthroughs; this is the docs map + selected source text).
   `grep` it to jump straight to the page for a topic.
 - **`mirror/`** — full text of the load-bearing conceptual sections, saved as markdown
   so they're searchable offline. Curated, not the whole site — API reference and
-  localized trees are left as links in the index. **311 pages (2026-07-23)** across:
+  localized trees are left as links in the index. **438 pages** across:
   ontology core (`ontologies`, `ontology`, `ontology-manager`, `action-types`,
   `object-views`, `object-monitors`, `object-link-types`, `interfaces`, `logic`,
   `object-edits`, `functions`) + pipelines (`data-integration`, `building-pipelines`,
-  `pipeline-builder`). Grep `mirror/` for a concept; each file carries its source URL.
+  `pipeline-builder`) + **application building (`workshop`, `app-building`, 127 pages,
+  2026-08-03)**. Grep `mirror/` for a concept; each file carries its source URL.
+
+  Add or refresh a section with **`node scripts/mirror-foundry-docs.mjs <section>`**.
+  It reads each page's own source markdown out of `__NEXT_DATA__` rather than
+  converting HTML, so what lands is what the authors wrote.
 
 ## Two sources, because the sitemap is incomplete
 
