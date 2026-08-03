@@ -54,6 +54,14 @@ jobs:
 
       # A module's references live by NAME inside jsonb, where no foreign key
       # reaches. A broken one renders fine and answers nothing.
+      # audit-shape polices tables and functions — database OBJECTS. A value
+      # inside a CHECK is not one, so an allowed value nothing consumes reads as
+      # a working feature indefinitely. Three did.
+      - name: Every allowed value is consumed
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm check:vocabulary
+
       - name: Module references resolve
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
