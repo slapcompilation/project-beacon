@@ -324,6 +324,17 @@ function normaliseDefinition(v: SpecVariable): Record<string, unknown> {
       ])),
     }
   }
+  if (v.definitionKind === 'object_set_aggregation') {
+    // Missing this fell through to the static branch below, flattening the whole
+    // definition to `{ value: null }` — a generated aggregation arrived pointing
+    // at no set, with no metric. It rendered an em dash and nothing said why.
+    // check:modules found it on its first real run against a generated draft.
+    return {
+      objectSet: v.definition.objectSet,
+      metric: v.definition.metric ?? 'count',
+      ...(v.definition.property ? { property: v.definition.property } : {}),
+    }
+  }
   return { value: v.definition.value ?? null }
 }
 

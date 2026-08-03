@@ -109,10 +109,21 @@ async function setTimeWindowConstraints(
     apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json', Prefer: 'return=representation',
   }
-  const ids = only ?? await fetch(
-    `${SUPABASE_URL}/rest/v1/constraints?bucket=eq.time-window&active=eq.true&select=id`,
-    { headers },
-  ).then(async (r) => ((await r.json()) as Array<{ id: string }>).map((c) => c.id))
+  // Read explicitly rather than inline: this helper DISABLES a live constraint
+  // and is trusted to put it back. The original swallowed a failed read and
+  // returned no ids, so a restore could quietly do nothing and leave the
+  // organisation's time-window rule switched off. Type-checking the e2e
+  // directory for the first time is what surfaced it.
+  let ids = only
+  if (!ids) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/constraints?bucket=eq.time-window&active=eq.true&select=id`,
+      { headers })
+    if (!res.ok) throw new Error(`constraint read failed: ${res.status} ${await res.text()}`)
+    const rows: unknown = await res.json()
+    if (!Array.isArray(rows)) throw new Error('constraint read returned no list')
+    ids = rows.map((r) => (r as { id: string }).id)
+  }
 
   if (ids.length === 0) return []
   const res = await fetch(

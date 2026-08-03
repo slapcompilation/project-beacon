@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildAuthoringPrompt, moduleSpecToRows, parseModuleSpec, validateModuleSpec,
   DEFINITION_KINDS, EFFECT_TYPES, LAYOUT_TYPES, WIDGET_TYPES,
-  type AuthoringCatalog, type ModuleSpec,
+  type AuthoringCatalog, type ModuleSpec, type SpecVariable,
 } from './moduleSpec'
 
 const catalog: AuthoringCatalog = {
@@ -360,5 +360,41 @@ describe('the grammar covers what the runtime can do', () => {
   it('refuses an effect the runtime would not perform', () => {
     expect(EFFECT_TYPES as readonly string[]).not.toContain('stream_llm_into_variable')
     expect(EFFECT_TYPES as readonly string[]).not.toContain('open_object_view')
+  })
+})
+
+// A generated aggregation used to fall through to the static branch and arrive
+// as `{ value: null }` — pointing at no set, with no metric, rendering an em
+// dash. Every definition kind the grammar accepts must survive conversion.
+describe('every accepted definition kind survives becoming rows', () => {
+  // Row payloads are Record<string, unknown>, so the definition arrives unknown.
+  const kindOf = (v: SpecVariable): Record<string, unknown> =>
+    moduleSpecToRows(base({ variables: [v] })).variables[0].definition as Record<string, unknown>
+
+  it('keeps an aggregation whole', () => {
+    expect(kindOf({ apiName: 'n', label: 'N', varType: 'numeric',
+      definitionKind: 'object_set_aggregation',
+      definition: { objectSet: 'lowStock', metric: 'sum', property: 'current_stock' } }))
+      .toEqual({ objectSet: 'lowStock', metric: 'sum', property: 'current_stock' })
+  })
+
+  it('defaults an aggregation with no metric to a count', () => {
+    expect(kindOf({ apiName: 'n', label: 'N', varType: 'numeric',
+      definitionKind: 'object_set_aggregation', definition: { objectSet: 'items' } }))
+      .toEqual({ objectSet: 'items', metric: 'count' })
+  })
+
+  // The general form of the bug: the grammar and the converter are two lists
+  // that have to agree, and only one of them was being checked. Naming the kinds
+  // that came out empty is what makes a failure here readable.
+  it('loses nothing for any kind the grammar accepts', () => {
+    const emptied = DEFINITION_KINDS.filter((kind) => {
+      const def = kindOf({ apiName: 'v', label: 'V', varType: 'string',
+        definitionKind: kind, definition: { value: 'x', objectSet: 's', tool: 't' } })
+      return Object.keys(def).length === 0
+    })
+    // Compared as a string so a failure names the kinds rather than showing
+    // two arrays.
+    expect(emptied.join(', ')).toBe('')
   })
 })
