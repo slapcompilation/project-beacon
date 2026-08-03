@@ -1,8 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ObjectTypeDef } from '@beacon/reality-graph'
+import { STATUS_META } from '@beacon/reality-graph'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
+  setObjectTypeStatus,
   updateObjectType, fetchRevisions, restoreRevision,
   fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, fetchBuiltinRecord,
   createObjectRecord, deleteObjectRecord,
@@ -51,6 +53,21 @@ export function useDeleteObjectType() {
   return useMutation({
     mutationFn: (id: string) => deleteObjectType(id),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.types }); toast.success('Object type deleted') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useSetObjectTypeStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: setObjectTypeStatus,
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: keys.types })
+      void qc.invalidateQueries({ queryKey: keys.ontology })
+      // A link type follows the weaker of its two ends, in a trigger.
+      void qc.invalidateQueries({ queryKey: keys.linkTypes })
+      toast.success(`Now ${STATUS_META[v.status].label.toLowerCase()}`)
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

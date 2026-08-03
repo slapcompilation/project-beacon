@@ -8,6 +8,8 @@
 // (property types are a closed set), validated before persistence, versioned,
 // admin/owner-authored, scope-gated.
 
+import type { Deprecation, OntologyStatus, OntologyVisibility } from '../ontology/status'
+
 export type PropertyType = 'text' | 'number' | 'boolean' | 'date'
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string }[] = [
@@ -50,6 +52,12 @@ export interface ObjectTypeDef {
   viewConfig: ViewConfigDef
   enabled: boolean
   version: number
+  /** Developmental state, and where the type surfaces. Foundry's; see
+   *  ontology/status.ts. Optional on the type so a caller building a draft
+   *  need not restate the defaults the database applies. */
+  status?: OntologyStatus
+  visibility?: OntologyVisibility
+  deprecation?: Deprecation | null
 }
 
 // ── Computed properties (P2.4) — derived, not entered. A bounded function over

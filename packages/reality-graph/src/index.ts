@@ -509,6 +509,16 @@ export type {
   ViewSection, ViewConfigDef, Validation as ObjectTypeValidation,
 } from './objectTypes/index'
 
+// Developmental state — Foundry's status + visibility, one definition.
+export {
+  ONTOLOGY_STATUSES, LINK_AND_INTERFACE_STATUSES, ONTOLOGY_VISIBILITIES,
+  STATUS_META, VISIBILITY_META, linkStatusFromEnds, statusChangeProblem,
+} from './ontology/status'
+export type {
+  OntologyStatus, OntologyVisibility, OntologyStatusMeta, Deprecation,
+  OntologyStatusFields,
+} from './ontology/status'
+
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {
   IntelligenceCycleDeps,

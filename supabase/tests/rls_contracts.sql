@@ -42,6 +42,9 @@
 --       hotel-scoped role on purpose: hotel_is_in_user_scope() returns true for
 --       every hotel in the org once auth_org_role() is set, so an org-level user
 --       could see the module either way and would prove nothing.
+--   C29 an active object type cannot be deleted or renamed by an admin, and
+--       deprecating one reaches its link types — under `authenticated`, because
+--       as the owner every one of these passes vacuously (migrations 321/323).
 -- ─────────────────────────────────────────────────────────────────────────────
 
 DO $$
@@ -869,6 +872,72 @@ BEGIN
     DELETE FROM modules WHERE id = v_mod;
   END;
 
+  -- ── C29: ontology status holds for an operator, not just for the owner ──
+  -- The guards and the cascade are triggers, and migrations run as the table
+  -- owner — which bypasses RLS and proved nothing about a browser session. The
+  -- cascade shipped broken exactly this way (migration 323): link_types has no
+  -- UPDATE policy, so as SECURITY INVOKER it updated zero rows and left a
+  -- deprecated object type wired to an active link, silently. Proven here under
+  -- `authenticated`, which is the only role that can catch it.
+  RESET ROLE;
+  DECLARE
+    v_ca uuid; v_cb uuid; v_clink uuid; v_st text; blocked boolean;
+  BEGIN
+    INSERT INTO object_types (organization_id, api_name, label, created_by_user_id)
+    VALUES (v_org, 'c29_a', 'C29 A', NULL) RETURNING id INTO v_ca;
+    INSERT INTO object_types (organization_id, api_name, label, created_by_user_id)
+    VALUES (v_org, 'c29_b', 'C29 B', NULL) RETURNING id INTO v_cb;
+    INSERT INTO link_types (organization_id, source_object_type_id, target_object_type_id,
+                            api_name, label, target_api_name, target_label,
+                            cardinality, backing_kind, backing_table, created_by_user_id)
+    VALUES (v_org, v_ca, v_cb, 'c29_link', 'C29', 'c29_link', 'C29',
+            'many_to_many', 'join_table', 'object_links', NULL) RETURNING id INTO v_clink;
+    UPDATE object_types SET status = 'active' WHERE id IN (v_ca, v_cb);
+    UPDATE link_types SET status = 'active' WHERE id = v_clink;
+
+    PERFORM set_config('request.jwt.claims', claims_admin, true);
+    SET LOCAL ROLE authenticated;
+
+    -- "A resource's status must be experimental or deprecated before it can be
+    -- deleted." An admin is still refused.
+    blocked := false;
+    BEGIN
+      DELETE FROM object_types WHERE id = v_ca;
+    EXCEPTION WHEN raise_exception THEN blocked := true;
+    END;
+    IF NOT blocked THEN
+      RAISE EXCEPTION 'C29: an admin deleted an active object type';
+    END IF;
+
+    -- "The API name of an active resource cannot be changed."
+    blocked := false;
+    BEGIN
+      UPDATE object_types SET api_name = 'c29_a_renamed' WHERE id = v_ca;
+    EXCEPTION WHEN raise_exception THEN blocked := true;
+    END;
+    IF NOT blocked THEN
+      RAISE EXCEPTION 'C29: an admin renamed an active object type';
+    END IF;
+
+    -- Deprecating one end must reach the link, through a policy the operator
+    -- does not have.
+    UPDATE object_types SET status = 'deprecated', deprecation_reason = 'c29',
+           deprecation_deadline = current_date + 30 WHERE id = v_ca;
+    RESET ROLE;
+    SELECT status INTO v_st FROM link_types WHERE id = v_clink;
+    IF v_st <> 'deprecated' THEN
+      RAISE EXCEPTION
+        'C29: an admin deprecated an object type and its link stayed "%" — the cascade is invisible to operators again', v_st;
+    END IF;
+
+    -- Tearing down needs the same demotion a real retirement does — the guard
+    -- reads auth.uid(), and the claims outlive RESET ROLE.
+    RESET ROLE;
+    UPDATE object_types SET status = 'experimental' WHERE id IN (v_ca, v_cb);
+    DELETE FROM link_types WHERE id = v_clink;
+    DELETE FROM object_types WHERE id IN (v_ca, v_cb);
+  END;
+
   RESET ROLE;
   DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
@@ -876,5 +945,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation, C29 ontology status guards + cascade hold for an operator', v_b_pending;
 END $$;

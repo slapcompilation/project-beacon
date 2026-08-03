@@ -94,6 +94,38 @@ will re-check.
 
 ---
 
+## Ontology status
+
+| | | source |
+|---|---|---|
+| **Theirs** | Three rules: one end `experimental` → the link is experimental; one end `example` → example; one end `deprecated` → deprecated. The table resolves only experimental vs deprecated ("deprecated only"), and has **no `example` column at all**. | `mirror/object-link-types/metadata-statuses.md` |
+| **Ours** | Precedence `deprecated > experimental > example`. | migration 322 |
+| **Why** | Their three rules collide and the docs settle one collision. `example` asserts provenance — "the resource has been installed as an example" — and a link with one end that was not installed as an example was not either, so the label would be false. `experimental` asserts development state, which is true of the link either way. |
+| **Undo when** | Their docs cover the case, or a real ontology package installs an example type next to an experimental one and the operator expects the other answer. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | Statuses cover object types, **properties**, link types, actions and interfaces. | same page |
+| **Ours** | Object types, link types and interfaces. Properties are jsonb on their object type, so they carry the type's status rather than one each. | migration 321 |
+| **Why** | "If an object type is changed from `active` to `experimental`, all of its properties will be marked `experimental`" — with properties stored inside the type, that propagation is not a rule to run, it is already true. A per-property status would need properties to become rows first. |
+| **Undo when** | Properties become rows. Then a property status is a column, and the propagation is a trigger. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | Deleting an `active` resource is refused, full stop. | same page |
+| **Ours** | Refused for operator sessions (`auth.uid()` present). Service-role paths and cascades are not blocked. | migration 321 |
+| **Why** | Deleting an organization cascades to its object types; an unconditional guard makes the org undeletable, which protects the wrong thing. The guard exists to stop a person removing what a live application reads. |
+| **Undo when** | Org deletion stops cascading into ontology tables, or grows an explicit teardown path. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | `promoted` requires the Ontology Owner role. | same page |
+| **Ours** | Any org admin or owner, via the existing `admins update object types` policy. | migration 321 |
+| **Why** | We have no separate ontology-owner role, and inventing one for a single status would be a permission tier with one consumer. |
+| **Undo when** | A role hierarchy distinguishes ontology stewardship from org administration. |
+
+---
+
 ## Not divergences — things we copied that look odd
 
 Recorded because each was nearly "improved" into a different feature.
@@ -104,6 +136,8 @@ Recorded because each was nearly "improved" into a different feature.
 - **The Tabs widget derives its selection.** It *"does not hold its own selection state"*; the selected tab is the one whose event would cause **no layout state change**. (`mirror/workshop/widgets-tabs.md`)
 - **A loop pages through at most 10,000 objects.** (`mirror/workshop/loop-layouts.md`)
 - **`object_set_definition` ignores recompute configuration** and behaves as automatic. (`mirror/workshop/concepts-variables.md`)
+- **A new ontology resource starts `experimental`, not `active`.** Everything that existed when statuses arrived was set to `active`, because it was already relied on — but the default going forward is theirs. (`mirror/object-link-types/metadata-statuses.md`)
+- **`promoted` sets visibility to `prominent` by itself**, so the visibility control is disabled while it is selected rather than showing a value the write will overrule. (same page)
 
 ---
 

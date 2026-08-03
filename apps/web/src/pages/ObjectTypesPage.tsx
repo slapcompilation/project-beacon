@@ -12,8 +12,10 @@ import type { IconName } from '@blueprintjs/icons'
 import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
+  ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES, STATUS_META, VISIBILITY_META, statusChangeProblem,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
+  type OntologyStatus, type OntologyVisibility, type OntologyStatusMeta,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -24,6 +26,7 @@ import {
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
+  useSetObjectTypeStatus,
 } from '@/features/objectTypes/hooks'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
@@ -77,7 +80,10 @@ export default function ObjectTypesPage() {
                     <span className="text-sm font-semibold">{t.label}</span>
                   </div>
                   <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
-                  <p className="text-[11px] text-muted-foreground mt-1">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
+                  <div className="flex items-center gap-1.5 mt-1">
+                    <p className="text-[11px] text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
+                    <StatusTag status={t.status ?? 'experimental'} />
+                  </div>
                 </Card>
               ))}
             </div>
@@ -89,6 +95,89 @@ export default function ObjectTypesPage() {
         <InterfacesSection types={types} />
       </div>
     </div>
+  )
+}
+
+function StatusTag({ status }: { status: OntologyStatus }) {
+  const m = STATUS_META[status]
+  return <Tag minimal intent={INTENTS[m.intent]} className="!text-[9px] uppercase tracking-wide" title={m.help}>{m.label}</Tag>
+}
+
+const INTENTS: Record<OntologyStatusMeta['intent'], Intent> = {
+  success: Intent.SUCCESS, primary: Intent.PRIMARY, warning: Intent.WARNING,
+  danger: Intent.DANGER, none: Intent.NONE,
+}
+
+/** Retiring a type rather than deleting it. Foundry's status vocabulary, and
+ *  the deprecation record it asks for: a reason, a deadline, and what replaces
+ *  this. Without the last one the next reader has to guess. */
+function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
+  const set = useSetObjectTypeStatus()
+  const current = type.status ?? 'experimental'
+  const [status, setStatus] = useState<OntologyStatus>(current)
+  const [visibility, setVisibility] = useState<OntologyVisibility>(type.visibility ?? 'normal')
+  const [reason, setReason] = useState(type.deprecation?.reason ?? '')
+  const [deadline, setDeadline] = useState(type.deprecation?.deadline ?? '')
+  const [replacedBy, setReplacedBy] = useState(type.deprecation?.replacedBy ?? '')
+
+  const deprecation = status === 'deprecated'
+    ? { reason, deadline, replacedBy: replacedBy || null }
+    : null
+  const problem = statusChangeProblem(current, status, deprecation)
+  // Promoting sets visibility in a trigger; showing 'normal' while the write
+  // makes it 'prominent' would be the form lying about its own result.
+  const effectiveVisibility = status === 'promoted' ? 'prominent' : visibility
+
+  return (
+    <Card compact className="space-y-3">
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</span>
+          <HTMLSelect value={status} onChange={(e) => { setStatus(e.currentTarget.value as OntologyStatus) }}>
+            {ONTOLOGY_STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+          </HTMLSelect>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Visibility</span>
+          <HTMLSelect value={effectiveVisibility} disabled={status === 'promoted'}
+            onChange={(e) => { setVisibility(e.currentTarget.value as OntologyVisibility) }}>
+            {ONTOLOGY_VISIBILITIES.map((v) => <option key={v} value={v}>{VISIBILITY_META[v].label}</option>)}
+          </HTMLSelect>
+        </label>
+        <p className="text-[11px] text-muted-foreground flex-1 min-w-48">{STATUS_META[status].help}</p>
+      </div>
+
+      {status === 'deprecated' && (
+        <div className="flex flex-wrap items-end gap-3 border-t border-border/40 pt-3">
+          <label className="flex flex-col gap-1 flex-1 min-w-56">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Why</span>
+            <InputGroup size="small" value={reason} placeholder="Superseded by the maintenance ticket type"
+              onChange={(e) => { setReason(e.currentTarget.value) }} />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Delete by</span>
+            <InputGroup size="small" type="date" value={deadline} onChange={(e) => { setDeadline(e.currentTarget.value) }} />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Replaced by</span>
+            <HTMLSelect value={replacedBy} onChange={(e) => { setReplacedBy(e.currentTarget.value) }}>
+              <option value="">Nothing — it is simply going</option>
+              {allTypes.filter((t) => t.id !== type.id).map((t) => (
+                <option key={t.id} value={t.apiName}>{t.label}</option>
+              ))}
+            </HTMLSelect>
+          </label>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <Button size="small" intent={Intent.PRIMARY} icon="tick" disabled={!!problem} loading={set.isPending}
+          onClick={() => { set.mutate({ id: type.id, status, visibility: effectiveVisibility, deprecation }) }}>
+          Save
+        </Button>
+        {problem && <span className="text-[11px] text-muted-foreground">{problem}</span>}
+      </div>
+    </Card>
   )
 }
 
@@ -219,7 +308,9 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
   const [title, setTitle] = useState('')
   const [values, setValues] = useState<Record<string, unknown>>({})
-  const [panel, setPanel] = useState<'none' | 'edit' | 'history'>('none')
+  const [panel, setPanel] = useState<'none' | 'edit' | 'history' | 'status'>('none')
+  const status = type.status ?? 'experimental'
+  const meta = STATUS_META[status]
 
   const data = useMemo(() => {
     const out: Record<string, unknown> = {}
@@ -241,13 +332,20 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
           <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
           <h2 className="text-sm font-semibold">{type.label} records</h2>
           <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
+          <StatusTag status={status} />
         </div>
         <div className="flex items-center gap-1">
           <Button variant="minimal" size="small" icon="edit" active={panel === 'edit'}
             onClick={() => { setPanel(panel === 'edit' ? 'none' : 'edit') }}>Edit schema</Button>
           <Button variant="minimal" size="small" icon="history" active={panel === 'history'}
             onClick={() => { setPanel(panel === 'history' ? 'none' : 'history') }}>History</Button>
+          <Button variant="minimal" size="small" icon="lifesaver" active={panel === 'status'}
+            onClick={() => { setPanel(panel === 'status' ? 'none' : 'status') }}>Status</Button>
           <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
+            // The database refuses this outright; say so before the click rather
+            // than surfacing a raised exception as a toast.
+            disabled={!meta.deletable}
+            title={meta.deletable ? undefined : `${meta.label} — deprecate it first, with a reason and a deadline.`}
             onClick={() => {
               // Impact analysis before the edit, not a stack trace after it.
               const breaks = impact.data ?? []
@@ -267,6 +365,7 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
       {panel === 'edit' && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setPanel('none') }} />}
       {panel === 'history' && <HistoryPanel type={type} />}
+      {panel === 'status' && <StatusPanel type={type} allTypes={allTypes} />}
 
       <Card className="space-y-2">
         <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />

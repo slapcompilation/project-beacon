@@ -3,7 +3,10 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import type { ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef } from '@beacon/reality-graph'
+import type {
+  ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
+  OntologyStatus, OntologyVisibility, Deprecation,
+} from '@beacon/reality-graph'
 import { EMPTY_VIEW_CONFIG } from '@beacon/reality-graph'
 
 export interface ObjectTypeRow {
@@ -24,6 +27,12 @@ export interface ObjectTypeRow {
   kind: 'authored' | 'builtin'
   source_table: string | null
   title_key: string | null
+  /** Developmental state (migration 321). Anything new starts experimental. */
+  status: OntologyStatus
+  visibility: OntologyVisibility
+  deprecation_reason: string | null
+  deprecation_deadline: string | null
+  replaced_by: string | null
   created_by_user_id: string | null
   created_at: string
   updated_at: string
@@ -37,6 +46,10 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
     kind: r.kind, sourceTable: r.source_table, titleKey: r.title_key,
+    status: r.status, visibility: r.visibility,
+    deprecation: r.deprecation_reason && r.deprecation_deadline
+      ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
+      : null,
   }
 }
 
@@ -98,6 +111,22 @@ export async function createObjectType(i: CreateObjectTypeInput): Promise<Object
 
 export async function deleteObjectType(id: string): Promise<void> {
   const { error } = await supabase.from('object_types').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+/** Retire a type instead of deleting it. The database refuses a deprecation
+ *  with no reason or deadline, and refuses to delete anything active — this is
+ *  the surface that makes both reachable. */
+export async function setObjectTypeStatus(
+  i: { id: string; status: OntologyStatus; visibility: OntologyVisibility; deprecation: Deprecation | null },
+): Promise<void> {
+  const { error } = await supabase.from('object_types').update({
+    status: i.status,
+    visibility: i.visibility,
+    deprecation_reason:   i.status === 'deprecated' ? i.deprecation?.reason ?? null : null,
+    deprecation_deadline: i.status === 'deprecated' ? i.deprecation?.deadline ?? null : null,
+    replaced_by:          i.status === 'deprecated' ? i.deprecation?.replacedBy ?? null : null,
+  }).eq('id', i.id)
   if (error) throw new Error(error.message)
 }
 
