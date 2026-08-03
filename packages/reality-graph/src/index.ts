@@ -462,6 +462,18 @@ export type {
 export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
 export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
 
+// The Workshop module vocabulary — one definition for the renderer, the builder
+// and the authoring validator.
+export {
+  MODULE_WIDGET_TYPES, MODULE_VARIABLE_TYPES, MODULE_DEFINITION_KINDS,
+  IMPLEMENTED_DEFINITION_KINDS, MODULE_LAYOUT_TYPES, MODULE_TRIGGERS,
+  IMPLEMENTED_EFFECTS, WIDGET_BINDING,
+} from './modules/vocabulary'
+export type {
+  ModuleWidgetType, ModuleVariableType, ModuleDefinitionKind, ModuleLayoutType,
+  ModuleTrigger,
+} from './modules/vocabulary'
+
 // W7 — describing an application. The generator proposes; this validates.
 export {
   validateModuleSpec, moduleSpecToRows, buildAuthoringPrompt, parseModuleSpec,

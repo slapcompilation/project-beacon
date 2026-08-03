@@ -61,9 +61,12 @@ export function DescribeDialog({ open, onClose }: { open: boolean; onClose: () =
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
-  const { data: cat } = useCatalog()
+  const { data: cat, isLoading: catalogLoading } = useCatalog()
 
   const ask = async () => {
+    // Guarded again for safety, but the button is disabled until the catalog is
+    // in hand: pressing Compose early used to return here silently, which reads
+    // as a dead button. It passed locally on a warm query and failed in CI.
     if (!cat) return
     setBusy(true); setError(null); setProposal(null)
     try {
@@ -168,7 +171,8 @@ ${cat.blurbs}`,
         <>
           <Button variant="minimal" onClick={onClose} disabled={busy}>Cancel</Button>
           <Button variant="minimal" onClick={() => { void ask() }}
-            disabled={busy || request.trim().length < 8}>
+            loading={catalogLoading}
+            disabled={busy || catalogLoading || !cat || request.trim().length < 8}>
             {proposal ? 'Try again' : 'Compose'}
           </Button>
           <Button intent={Intent.PRIMARY} loading={busy && !!proposal}

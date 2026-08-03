@@ -16,26 +16,23 @@
 
 import { getActionDescriptor } from '../actions/descriptors'
 import type { BeaconAction } from '../actions/types'
+import {
+  IMPLEMENTED_DEFINITION_KINDS, IMPLEMENTED_EFFECTS, MODULE_LAYOUT_TYPES,
+  MODULE_TRIGGERS, MODULE_VARIABLE_TYPES, MODULE_WIDGET_TYPES, WIDGET_BINDING,
+  type ModuleWidgetType,
+} from '../modules/vocabulary'
 
-export const WIDGET_TYPES = [
-  'object_table', 'metric_card', 'markdown', 'object_set_title', 'button_group',
-] as const
-export const VARIABLE_TYPES = [
-  'object_set', 'object_set_filter', 'string', 'numeric', 'boolean', 'date',
-] as const
-export const DEFINITION_KINDS = ['static', 'object_set_definition', 'function'] as const
-export const LAYOUT_TYPES = ['page', 'section', 'tab', 'overlay', 'row', 'column'] as const
-export const TRIGGERS = ['click', 'row_select', 'tab_change', 'on_load'] as const
-export const EFFECT_TYPES = [
-  'set_variable', 'reset_variable', 'recompute_variable',
-  'switch_tab', 'switch_page', 'toggle_section',
-  'open_overlay', 'close_overlay', 'refresh_module',
-] as const
+// The vocabulary lives in one place now — see modules/vocabulary.ts for why.
+export const WIDGET_TYPES = MODULE_WIDGET_TYPES
+export const VARIABLE_TYPES = MODULE_VARIABLE_TYPES
+export const LAYOUT_TYPES = MODULE_LAYOUT_TYPES
+export const TRIGGERS = MODULE_TRIGGERS
+/** A generator may only produce kinds and effects the runtime honours. */
+export const DEFINITION_KINDS = IMPLEMENTED_DEFINITION_KINDS
+export const EFFECT_TYPES = IMPLEMENTED_EFFECTS
 
-/** Widgets that must carry a variable — mirrors module_widgets_needs_binding. */
-const NEEDS_VARIABLE = new Set(['object_table', 'metric_card', 'object_set_title'])
-/** Widgets that can only show a set. */
-const SET_ONLY = new Set(['object_table', 'object_set_title'])
+// What each widget accepts comes from the shared vocabulary, so the validator
+// and the renderer cannot disagree about what a valid module is.
 
 const API_NAME = /^[a-z][a-zA-Z0-9_]*$/
 
@@ -177,18 +174,19 @@ export function validateModuleSpec(
     if (w.layout !== undefined && !layoutNames.has(w.layout)) {
       out.push(problem('Workshop:UnknownLayout', `Its container "${w.layout}" does not exist.`, at))
     }
-    if (NEEDS_VARIABLE.has(w.widgetType)) {
+    const binding = WIDGET_BINDING[w.widgetType as ModuleWidgetType]
+    if (binding.needsVariable) {
       if (w.variable === undefined) {
         out.push(problem('Workshop:MissingBinding',
           `A ${w.widgetType} has to show something — give it a variable.`, at))
       } else if (!varNames.has(w.variable)) {
         out.push(problem('Workshop:UnknownVariable',
           `It shows "${w.variable}", which this application does not have.`, at))
-      } else if (SET_ONLY.has(w.widgetType)) {
+      } else if (binding.accepts) {
         const bound = spec.variables.find((v) => v.apiName === w.variable)
-        if (bound && bound.varType !== 'object_set') {
+        if (bound && !binding.accepts.includes(bound.varType as typeof binding.accepts[number])) {
           out.push(problem('Workshop:TypeMismatch',
-            `A ${w.widgetType} can only show an object set.`, at))
+            `A ${w.widgetType} shows ${binding.accepts.join(' or ')}, not ${bound.varType}.`, at))
         }
       }
     }

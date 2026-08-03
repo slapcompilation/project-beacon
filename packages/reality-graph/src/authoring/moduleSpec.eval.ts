@@ -13,6 +13,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildAuthoringPrompt, moduleSpecToRows, parseModuleSpec, validateModuleSpec,
+  DEFINITION_KINDS, EFFECT_TYPES, LAYOUT_TYPES, WIDGET_TYPES,
   type AuthoringCatalog, type ModuleSpec,
 } from './moduleSpec'
 
@@ -41,17 +42,35 @@ describe('a spec that should be accepted', () => {
     }))).toEqual([])
   })
 
-  it('2. a row arranging two metric cards', () => {
+  // Two numbers off ONE set, which is the shape #478 established: the card
+  // displays a variable, and the aggregating belongs to the variable. This case
+  // previously bound both cards straight to the set and asserted that was fine —
+  // the eval suite was certifying a shape the renderer had stopped accepting.
+  it('2. a row arranging two metric cards over one set', () => {
     expect(codes(base({
-      variables: [setVar],
+      variables: [setVar,
+        { apiName: 'lines', label: 'Lines', varType: 'numeric',
+          definitionKind: 'object_set_aggregation',
+          definition: { objectSet: 'lowStock', metric: 'count' } },
+        { apiName: 'onHand', label: 'On hand', varType: 'numeric',
+          definitionKind: 'object_set_aggregation',
+          definition: { objectSet: 'lowStock', metric: 'sum', property: 'current_stock' } }],
       layouts: [{ apiName: 'top', title: 'Top', layoutType: 'row', position: 0 }],
       widgets: [
         { apiName: 'a', widgetType: 'metric_card', title: 'Count', layout: 'top',
-          variable: 'lowStock', config: { aggregation: 'count' }, position: 0 },
+          variable: 'lines', config: {}, position: 0 },
         { apiName: 'b', widgetType: 'metric_card', title: 'Stock', layout: 'top',
-          variable: 'lowStock', config: { aggregation: 'sum', property: 'current_stock' }, position: 1 },
+          variable: 'onHand', config: {}, position: 1 },
       ],
     }))).toEqual([])
+  })
+
+  it('2b. refuses a metric card bound straight to a set, as the renderer does', () => {
+    expect(codes(base({
+      variables: [setVar],
+      widgets: [{ apiName: 'a', widgetType: 'metric_card', title: 'Count',
+        variable: 'lowStock', config: {}, position: 0 }],
+    }))).toEqual(['Workshop:TypeMismatch'])
   })
 
   it('3. a row selection driving a scalar, then shown in text', () => {
@@ -307,5 +326,39 @@ describe('a snake_case answer, which is what models actually send', () => {
         config: { body: 'x', low_stock_threshold: 4 }, position: 0 }],
     }))
     expect(spec?.widgets[0].config).toEqual({ body: 'x', low_stock_threshold: 4 })
+  })
+})
+
+// The grammar and the runtime used to be written twice and drifted within days.
+// These hold the single definition to what the database actually allows.
+describe('the grammar covers what the runtime can do', () => {
+  it('offers every widget the renderer draws', () => {
+    for (const w of ['tabs', 'embedded_module', 'filter_list']) {
+      expect(WIDGET_TYPES as readonly string[]).toContain(w)
+    }
+  })
+
+  it('offers the loop layout, so a generator can compose one', () => {
+    expect(LAYOUT_TYPES as readonly string[]).toContain('loop')
+  })
+
+  it('offers the aggregation kind, which is how a number comes off a set', () => {
+    expect(DEFINITION_KINDS as readonly string[]).toContain('object_set_aggregation')
+  })
+
+  // The two Foundry names we have not built stay OUT of the generator's grammar:
+  // a spec naming them is refused rather than becoming a variable that never
+  // computes.
+  it('refuses the definition kinds nothing implements', () => {
+    for (const kind of ['object_property', 'variable_transformation']) {
+      const spec = base({ variables: [{ apiName: 'x', label: 'X', varType: 'string',
+        definitionKind: kind, definition: {} }] })
+      expect(codes(spec)).toEqual(['Workshop:UnsupportedDefinitionKind'])
+    }
+  })
+
+  it('refuses an effect the runtime would not perform', () => {
+    expect(EFFECT_TYPES as readonly string[]).not.toContain('stream_llm_into_variable')
+    expect(EFFECT_TYPES as readonly string[]).not.toContain('open_object_view')
   })
 })

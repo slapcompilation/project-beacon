@@ -25,13 +25,17 @@ const ANSWER = '```json\n' + JSON.stringify({
   variables: [
     { api_name: 'lowStock', label: 'Below par', var_type: 'object_set',
       definition_kind: 'object_set_definition', definition: { objectSet: 'low_stock' } },
+    // The card displays a VALUE; the aggregating belongs to the variable (#478).
+    { api_name: 'lines', label: 'Lines below par', var_type: 'numeric',
+      definition_kind: 'object_set_aggregation',
+      definition: { objectSet: 'lowStock', metric: 'count' } },
     { api_name: 'picked', label: 'Picked', var_type: 'string',
       definition_kind: 'static', definition: { value: null } },
   ],
   layouts: [{ api_name: 'top', title: 'Top', layout_type: 'row', position: 0 }],
   widgets: [
     { api_name: 'count', widget_type: 'metric_card', title: 'Lines below par',
-      layout: 'top', variable: 'lowStock', config: { aggregation: 'count' }, position: 0 },
+      layout: 'top', variable: 'lines', config: {}, position: 0 },
     { api_name: 'items', widget_type: 'object_table', title: 'Below par',
       variable: 'lowStock', config: { columns: ['name', 'current_stock'] }, position: 1 },
     { api_name: 'note', widget_type: 'markdown', title: '',
@@ -65,7 +69,11 @@ test('a described application arrives as a reviewable draft', async ({ page }) =
 
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox').fill('What is below par this morning, and let me reorder it.')
-  await dialog.getByRole('button', { name: 'Compose' }).click()
+  // Compose stays disabled until the object-set catalog is in hand — the model
+  // must only ever be told about sets this user can already see.
+  const compose = dialog.getByRole('button', { name: 'Compose' })
+  await expect(compose).toBeEnabled({ timeout: 30_000 })
+  await compose.click()
 
   // The proposal is reviewed before anything is written.
   await expect(dialog.getByText('Authored probe')).toBeVisible({ timeout: 30_000 })
