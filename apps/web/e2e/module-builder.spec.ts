@@ -53,11 +53,13 @@ test('an admin builds an application in the UI and publishes it', async ({ page 
   await page.getByRole('button', { name: 'Add Variables' }).click()
   await expect(config.getByText('Variable', { exact: true })).toBeVisible({ timeout: 15_000 })
 
-  const nameField = config.locator('input').first()
+  // By label, not by position — a field added to the panel used to shift these.
+  const nameField = config.getByLabel('Name')
   await nameField.fill('lines')
   await nameField.blur()
-  await config.locator('input').nth(2).fill('12')   // the static value
-  await config.locator('input').nth(2).blur()
+  const valueField = config.getByLabel('Value')
+  await valueField.fill('12')
+  await valueField.blur()
   await expect(page.getByText('lines').first()).toBeVisible({ timeout: 15_000 })
 
   // A text widget, configured to interpolate that variable.

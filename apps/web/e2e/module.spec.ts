@@ -56,11 +56,6 @@ test('a module computes through a Logic Tool and proposes a typed action', async
   const ref = new URL(SUPABASE_URL).hostname.split('.')[0]
   await page.addInitScript(([k, v]) => { localStorage.setItem(k, v) }, [`sb-${ref}-auth-token`, session])
 
-  // A live constraint blocks stock actions outside 06:00–22:00 UTC, so without
-  // a fixed clock this test passes by day and fails every night. The engine is
-  // right; the test was the thing depending on when it ran.
-  await page.clock.install({ time: new Date('2026-08-03T12:00:00Z') })
-
   await page.goto('/modules/low_stock_triage')
   const firstRow = page.locator('table tbody tr').first()
   await expect(firstRow).toBeVisible({ timeout: 45_000 })
@@ -81,9 +76,52 @@ test('a module computes through a Logic Tool and proposes a typed action', async
 
   // Submitting goes through dispatchAction, the constraint gate and the audit
   // trail — the module is a caller, not a second write path.
-  await dialog.getByRole('button', { name: /request|submit|create/i }).click()
-  await expect(dialog).toBeHidden({ timeout: 30_000 })
+  //
+  // A live org constraint blocks stock actions outside 06:00–22:00 UTC, so this
+  // used to pass by day and fail every night. Pinning the browser clock instead
+  // expires the JWT and lands on the login page — the constraint is DATA, so the
+  // test suspends that one row and puts it back.
+  const token = await accessToken()
+  const windows = await setTimeWindowConstraints(token, false)
+  try {
+    await dialog.getByRole('button', { name: /request|submit|create/i }).click()
+    await expect(dialog).toBeHidden({ timeout: 30_000 })
+  } finally {
+    await setTimeWindowConstraints(token, true, windows)
+  }
 })
+
+async function accessToken(): Promise<string> {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
+  })
+  return ((await res.json()) as { access_token: string }).access_token
+}
+
+/** Suspend (or restore) the org's time-window constraints. Returns the ids it
+ *  touched so the restore only re-activates what it switched off. */
+async function setTimeWindowConstraints(
+  token: string, active: boolean, only?: string[],
+): Promise<string[]> {
+  const headers = {
+    apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json', Prefer: 'return=representation',
+  }
+  const ids = only ?? await fetch(
+    `${SUPABASE_URL}/rest/v1/constraints?bucket=eq.time-window&active=eq.true&select=id`,
+    { headers },
+  ).then(async (r) => ((await r.json()) as Array<{ id: string }>).map((c) => c.id))
+
+  if (ids.length === 0) return []
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/constraints?id=in.(${ids.join(',')})`,
+    { method: 'PATCH', headers, body: JSON.stringify({ active }) },
+  )
+  if (!res.ok) throw new Error(`constraint toggle failed: ${res.status} ${await res.text()}`)
+  return ids
+}
 
 // W5: a workflow authored at one property is adopted by another. The scope rule
 // itself is proved in supabase/tests/rls_contracts.sql (C28) under a

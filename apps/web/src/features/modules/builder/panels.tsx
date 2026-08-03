@@ -4,15 +4,19 @@
 // and no Save button: the canvas is the same renderer operators use, so an edit
 // that is not yet written is an edit you cannot see the effect of.
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  Button, Callout, FormGroup, HTMLSelect, InputGroup, Intent, TextArea, Tag,
+  Button, Callout, FormGroup, HTMLSelect, InputGroup, Intent, Switch, TextArea, Tag,
 } from '@blueprintjs/core'
 import { useQuery } from '@tanstack/react-query'
 import { actionDescriptors, buildAuthoredAgentTools, type LogicTool } from '@beacon/reality-graph'
 import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { supabase } from '@/lib/supabase/client'
-import type { ModuleDoc, ModuleLayout, ModuleVariable, ModuleWidget } from '../api'
+import {
+  fetchModules,
+  type ModuleDoc, type ModuleLayout, type ModuleVariable, type ModuleWidget,
+} from '../api'
+import { useModule } from '../ModuleRenderer'
 import type { Binding, ButtonSpec } from '../bindings'
 import { nextPosition, useCreateRow, useDeleteRow, useUpdateRow } from './api'
 import { EFFECT_KINDS, TRIGGERS, VARIABLE_KINDS, WIDGET_SPECS } from './specs'
@@ -52,6 +56,16 @@ function useTools() {
   })
 }
 
+/** Published modules, minus this one — a module cannot contain itself, and
+ *  offering it in the picker only teaches the author to hit the guard. */
+function useEmbeddable(selfApiName: string) {
+  return useQuery({
+    queryKey: ['builder-embeddable'],
+    queryFn: fetchModules,
+    select: (all) => all.filter((m) => m.status === 'published' && m.apiName !== selfApiName),
+  })
+}
+
 function useObjectSets() {
   return useQuery({
     queryKey: ['builder-object-sets'],
@@ -82,8 +96,9 @@ export function VariablePanel({ mod, variable, apiName }: {
   return (
     <div>
       <Section title="Variable">
-        <FormGroup label="Name" helperText="Used in {{interpolation}} and in bindings.">
-          <InputGroup defaultValue={variable.apiName}
+        <FormGroup label="Name" labelFor="var-name"
+          helperText="Used in {{interpolation}} and in bindings.">
+          <InputGroup id="var-name" defaultValue={variable.apiName}
             onBlur={(e) => { patch({ api_name: e.target.value }) }} />
         </FormGroup>
         <FormGroup label="Label" helperText="What an operator sees.">
@@ -95,6 +110,16 @@ export function VariablePanel({ mod, variable, apiName }: {
             onChange={(e) => { patch({ var_type: e.currentTarget.value }) }}
             options={['object_set', 'string', 'numeric', 'boolean', 'date', 'object_set_filter']} />
         </FormGroup>
+        {/* Without this nothing can be a component: a parent can only fill the
+            variables a module says it accepts, and everything else stays private. */}
+        <Switch checked={variable.isInterface} label="A parent application can fill this"
+          onChange={(e) => { patch({ is_interface: e.currentTarget.checked }) }} />
+        {variable.isInterface && (
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            A loop puts each object here, and an embedding module maps one of its
+            own variables onto it. What is set outside wins over the value below.
+          </p>
+        )}
       </Section>
 
       <Section title="Where its value comes from">
@@ -111,8 +136,8 @@ export function VariablePanel({ mod, variable, apiName }: {
         </p>
 
         {variable.definitionKind === 'static' && (
-          <FormGroup label="Value">
-            <InputGroup defaultValue={text(def.value)}
+          <FormGroup label="Value" labelFor="var-value">
+            <InputGroup id="var-value" defaultValue={text(def.value)}
               onBlur={(e) => { patch({ definition: { value: e.target.value } }) }} />
           </FormGroup>
         )}
@@ -207,6 +232,10 @@ export function LayoutPanel({ mod, layout, apiName }: {
         <InputGroup type="number" defaultValue={String(layout.position)}
           onBlur={(e) => { patch({ position: Number(e.target.value) }) }} />
       </FormGroup>
+      {layout.layoutType === 'loop' && (
+        <LoopConfig mod={mod} layout={layout} apiName={apiName}
+          onChange={(c) => { patch({ config: c }) }} />
+      )}
       {layout.layoutType === 'tab' && (
         <Callout intent={Intent.NONE} icon="info-sign" className="text-[11px]">
           Its container draws the tab bar. Variables used only inside a tab that is
@@ -218,6 +247,143 @@ export function LayoutPanel({ mod, layout, apiName }: {
           Hidden until an <strong>Open an overlay</strong> effect opens it.
         </Callout>
       )}
+    </Section>
+  )
+}
+
+/** Everything a loop needs: a set to walk, an application to show per entry, and
+ *  the name of the variable in that application the entry lands in. Pickers
+ *  rather than free text — the runtime resolves all three by name, so a typo is
+ *  a loop that silently shows nothing. */
+function LoopConfig({ mod, layout, apiName, onChange }: {
+  mod: ModuleDoc; layout: ModuleLayout; apiName: string
+  onChange: (config: Record<string, unknown>) => void
+}) {
+  // Each field writes the WHOLE config object, so spreading the server copy
+  // would let two quick edits race: the second read the row before the first
+  // landed and dropped it. The draft is what the author has actually chosen.
+  const [cfg, setCfg] = useState<Record<string, unknown>>(layout.config)
+  // Reseed only when a DIFFERENT loop is selected. Depending on the config too
+  // would overwrite the draft on every refetch — which is the race this exists
+  // to prevent.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setCfg(layout.config) }, [layout.id])
+
+  const { data: modules = [] } = useEmbeddable(apiName)
+  const childName = typeof cfg.module === 'string' ? cfg.module : ''
+  const { data: child } = useModule(childName)
+  const set = (patch: Record<string, unknown>) => {
+    const next = { ...cfg, ...patch }
+    setCfg(next)
+    onChange(next)
+  }
+
+  const sets = mod.variables.filter((v) => v.varType === 'object_set')
+  const inbound = (child?.variables ?? []).filter((v) => v.isInterface)
+  const paging = (cfg.paging ?? {}) as { style?: string; size?: number }
+  const display = (cfg.display ?? {}) as { mode?: string; columns?: number }
+
+  return (
+    <div className="space-y-2 pt-1">
+      <FormGroup label="Walk this set" labelFor="loop-set" helperText={sets.length === 0
+        ? 'This application has no object-set variable yet.' : undefined}>
+        <HTMLSelect id="loop-set" fill value={text(cfg.variable)}
+          onChange={(e) => { set({ variable: e.currentTarget.value }) }}
+          options={[{ label: '— pick a set —', value: '' },
+            ...sets.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+      </FormGroup>
+
+      <FormGroup label="Show this application for each" labelFor="loop-module"
+        helperText={modules.length === 0
+          ? 'Nothing published to embed yet — publish the component first.' : undefined}>
+        <HTMLSelect id="loop-module" fill value={childName}
+          onChange={(e) => { set({ module: e.currentTarget.value, itemInto: '' }) }}
+          options={[{ label: '— pick an application —', value: '' },
+            ...modules.map((m) => ({ label: m.title, value: m.apiName }))]} />
+      </FormGroup>
+
+      {childName !== '' && (
+        <FormGroup label="The object arrives in" labelFor="loop-into"
+          helperText={inbound.length === 0
+            ? 'That application has no variable marked as an input. Open it and turn one on.'
+            : 'Only variables it accepts from outside.'}>
+          <HTMLSelect id="loop-into" fill value={text(cfg.itemInto)}
+            onChange={(e) => { set({ itemInto: e.currentTarget.value }) }}
+            options={[{ label: '— pick a variable —', value: '' },
+              ...inbound.map((v) => ({ label: v.apiName, value: v.apiName }))]} />
+        </FormGroup>
+      )}
+
+      <FormGroup label="How many at a time">
+        <div className="flex gap-1">
+          <HTMLSelect value={paging.style ?? 'limit'}
+            onChange={(e) => { set({ paging: { ...paging, style: e.currentTarget.value } }) }}
+            options={[{ label: 'first', value: 'limit' }, { label: 'pages of', value: 'paged' }]} />
+          <InputGroup type="number" value={String(paging.size ?? 25)}
+            onChange={(e) => { set({ paging: { ...paging, size: Number(e.target.value) || 25 } }) }} />
+        </div>
+      </FormGroup>
+
+      <FormGroup label="Arranged as">
+        <div className="flex gap-1">
+          <HTMLSelect value={display.mode ?? 'list'}
+            onChange={(e) => { set({ display: { ...display, mode: e.currentTarget.value } }) }}
+            options={[{ label: 'a list', value: 'list' }, { label: 'a grid', value: 'grid' }]} />
+          {display.mode === 'grid' && (
+            <HTMLSelect value={String(display.columns ?? 2)}
+              onChange={(e) => { set({ display: { ...display, columns: Number(e.currentTarget.value) } }) }}
+              options={['2', '3', '4']} />
+          )}
+        </div>
+      </FormGroup>
+    </div>
+  )
+}
+
+/** An embedded application, and which of this module's variables fill its
+ *  inputs. Foundry shares them both ways, so this mapping is the whole contract
+ *  between parent and child. */
+function EmbeddedConfig({ mod, widget, apiName, onChange }: {
+  mod: ModuleDoc; widget: ModuleWidget; apiName: string
+  onChange: (config: Record<string, unknown>) => void
+}) {
+  // Same race as the loop: one mapping row per interface variable, each writing
+  // the whole config.
+  const [cfg, setCfg] = useState<Record<string, unknown>>(widget.config)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- see LoopConfig
+  useEffect(() => { setCfg(widget.config) }, [widget.id])
+  const set = (next: Record<string, unknown>) => { setCfg(next); onChange(next) }
+
+  const { data: modules = [] } = useEmbeddable(apiName)
+  const childName = typeof cfg.module === 'string' ? cfg.module : ''
+  const { data: child } = useModule(childName)
+  const mapping = (cfg.mapping ?? {}) as Record<string, string>
+  const inbound = (child?.variables ?? []).filter((v) => v.isInterface)
+
+  return (
+    <Section title="Which application">
+      <HTMLSelect fill value={childName}
+        onChange={(e) => { set({ module: e.currentTarget.value, mapping: {} }) }}
+        options={[{ label: '— pick an application —', value: '' },
+          ...modules.map((m) => ({ label: m.title, value: m.apiName }))]} />
+
+      {childName !== '' && inbound.length === 0 && (
+        <Callout intent={Intent.NONE} icon="info-sign" className="text-[11px]">
+          It takes no inputs, so it will show the same thing wherever it appears.
+        </Callout>
+      )}
+
+      {inbound.map((v) => (
+        <FormGroup key={v.id} label={v.label || v.apiName}
+          helperText="Shared both ways — a change on either side shows on both.">
+          <HTMLSelect fill value={mapping[v.apiName] ?? ''}
+            onChange={(e) => {
+              set({ ...cfg, mapping: { ...mapping, [v.apiName]: e.currentTarget.value } })
+            }}
+            options={[{ label: '— leave it alone —', value: '' },
+              ...mod.variables.map((p) => ({ label: p.apiName, value: p.apiName }))]} />
+        </FormGroup>
+      ))}
     </Section>
   )
 }
@@ -280,6 +446,11 @@ export function WidgetPanel({ mod, widget, apiName }: {
 
       {widget.widgetType === 'button_group' && (
         <ButtonsPanel mod={mod} widget={widget} onChange={(b) => { setConfig('buttons', b) }} />
+      )}
+
+      {widget.widgetType === 'embedded_module' && (
+        <EmbeddedConfig mod={mod} widget={widget} apiName={apiName}
+          onChange={(c) => { patch({ config: c }) }} />
       )}
     </div>
   )
