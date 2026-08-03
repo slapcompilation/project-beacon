@@ -69,7 +69,11 @@ test('a described application arrives as a reviewable draft', async ({ page }) =
 
   const dialog = page.getByRole('dialog')
   await dialog.getByRole('textbox').fill('What is below par this morning, and let me reorder it.')
-  await dialog.getByRole('button', { name: 'Compose' }).click()
+  // Compose stays disabled until the object-set catalog is in hand — the model
+  // must only ever be told about sets this user can already see.
+  const compose = dialog.getByRole('button', { name: 'Compose' })
+  await expect(compose).toBeEnabled({ timeout: 30_000 })
+  await compose.click()
 
   // The proposal is reviewed before anything is written.
   await expect(dialog.getByText('Authored probe')).toBeVisible({ timeout: 30_000 })
