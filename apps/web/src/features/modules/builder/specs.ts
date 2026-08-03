@@ -65,8 +65,7 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
   embedded_module: {
     label: 'Another application', icon: 'applications', needsVariable: false,
     blurb: 'Shows a published application inside this one. Variables you map are shared both ways.',
-    fields: [{ key: 'module', label: 'Application', kind: 'text',
-      help: 'The api name of a published application.' }],
+    fields: [],
   },
 }
 

@@ -83,3 +83,56 @@ async function patchModule(token: string, apiName: string, patch: Record<string,
   })
   if (!res.ok) throw new Error(`patch failed: ${res.status} ${await res.text()}`)
 }
+
+// The authoring half: G1 shipped a runtime that only SQL could configure, which
+// is the gap W6 existed to close. This composes a loop through the builder.
+test('a loop can be configured in the builder without SQL', async ({ page }) => {
+  await signIn(page)
+  const token = await accessToken()
+  const parent = `loop_probe_${Date.now().toString(36)}`
+
+  // A parent with a set to walk. The component it will show already exists and
+  // is published — that is the point of a component.
+  await seed(token, parent)
+
+  await page.goto(`/modules/${parent}/edit`)
+  await expect(page.getByText(parent).first()).toBeVisible({ timeout: 45_000 })
+
+  await page.getByRole('button', { name: 'Add Layout' }).click()
+  await page.getByRole('button', { name: /One per object/ }).click()
+
+  const config = page.getByRole('complementary', { name: 'Configuration' })
+  await expect(config.getByText('loop layout')).toBeVisible({ timeout: 15_000 })
+
+  // Three pickers, all resolving by name at runtime — free text here would be a
+  // loop that silently shows nothing.
+  await config.getByLabel('Walk this set').selectOption('belowPar')
+  await config.getByLabel('Show this application for each').selectOption('variant_card')
+  await config.getByLabel('The object arrives in').selectOption('item')
+
+  // The canvas renders the component per object, straight away.
+  await expect(page.getByText(/on hand, par/).first()).toBeVisible({ timeout: 30_000 })
+})
+
+async function seed(token: string, apiName: string) {
+  const post = async (path: string, body: unknown) => {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY, Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json', Prefer: 'return=representation',
+      },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) throw new Error(`${path} failed: ${res.status} ${await res.text()}`)
+    return (await res.json()) as Array<{ id: string }>
+  }
+  const [mod] = await post('modules', { api_name: apiName, title: apiName, status: 'draft' })
+  const sets = await fetch(`${SUPABASE_URL}/rest/v1/object_sets?api_name=eq.low_stock&select=id`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${token}` },
+  }).then((r) => r.json() as Promise<Array<{ id: string }>>)
+  await post('module_variables', {
+    module_id: mod.id, api_name: 'belowPar', label: 'Below par', var_type: 'object_set',
+    definition_kind: 'object_set_definition', definition: { objectSetId: sets[0].id },
+  })
+}
