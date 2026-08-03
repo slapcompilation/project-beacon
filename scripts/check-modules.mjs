@@ -138,8 +138,15 @@ const CHECKS = [
   {
     name: 'test debris left in the application list',
     why: 'Specs must remove what they create; otherwise the portal fills with probes.',
-    sql: `SELECT api_name AS subject, status AS detail FROM modules
-          WHERE api_name ~ '^(builder|loop|agg|authored|w1)_probe' OR api_name ~ '^probe_'`,
+    // Only debris that OUTLIVED a test run counts. The e2e job and this one run
+    // concurrently in CI, so a probe created seconds ago is a spec in flight,
+    // not a spec that forgot — and failing on that would make the guard flaky
+    // for a reason unrelated to what it checks.
+    sql: `SELECT api_name AS subject, status || ', created ' ||
+                 date_trunc('minute', now() - created_at)::text || ' ago' AS detail
+          FROM modules
+          WHERE (api_name ~ '^(builder|loop|agg|authored|w1)_probe' OR api_name ~ '^probe_')
+            AND created_at < now() - interval '1 hour'`,
   },
 ]
 
