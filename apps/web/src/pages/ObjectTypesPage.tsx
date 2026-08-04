@@ -13,7 +13,7 @@ import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
   ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES, STATUS_META, VISIBILITY_META, statusChangeProblem,
-  promotionEffects, attachProblem, usedBy,
+  attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
   type OntologyStatus, type OntologyVisibility, type OntologyStatusMeta,
@@ -27,11 +27,12 @@ import {
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
-  useSetObjectTypeStatus, usePromotions, useSetPromotion,
+  useSetObjectTypeStatus,
 } from '@/features/objectTypes/hooks'
 import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
 } from '@/features/objectTypes/sharedProperties'
+import { PromoteToggle, usePromotions } from '@/features/promotion/api'
 import { ActionTypesSection } from '@/features/actionTypes/ActionTypesSection'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
@@ -205,7 +206,6 @@ const INTENTS: Record<OntologyStatusMeta['intent'], Intent> = {
 function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
   const set = useSetObjectTypeStatus()
   const { data: promotions } = usePromotions()
-  const promote = useSetPromotion()
   const isPromoted = promotions?.has(`object_type:${type.id}`) ?? false
   const current = type.status ?? 'experimental'
   const [status, setStatus] = useState<OntologyStatus>(current)
@@ -241,15 +241,8 @@ function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Object
 
       {/* Promotion is a different axis from status — a type is active AND
           promoted, never one instead of the other. */}
-      <div className="flex items-start gap-3 border-t border-border/40 pt-3">
-        <Switch checked={isPromoted} disabled={promote.isPending} className="!mb-0"
-          labelElement={<span className="text-xs font-medium">Promote this object type</span>}
-          onChange={(e) => {
-            promote.mutate({ kind: 'object_type', id: type.id, promoted: e.currentTarget.checked })
-          }} />
-        <ul className="text-[11px] text-muted-foreground space-y-0.5 flex-1">
-          {promotionEffects('object_type').map((line) => <li key={line}>{line}</li>)}
-        </ul>
+      <div className="border-t border-border/40 pt-3">
+        <PromoteToggle kind="object_type" id={type.id} withEffects />
       </div>
 
       {status === 'deprecated' && (

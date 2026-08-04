@@ -11,6 +11,7 @@ const STAGES: { stage: IngestionStage; desc: string }[] = [
   { stage: 'linked',         desc: 'describes_entity & cited_in edges written — agents cite it by page.' },
 ]
 
+import { PromoteToggle } from '@/features/promotion/api'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -161,6 +162,7 @@ function DocumentRowCard({ row }: { row: DocumentRow }) {
             <span>{formatBytes(row.size_bytes)}</span>
             <span>·</span>
             <span>{formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}</span>
+            <PromoteToggle kind="document" id={row.id} />
           </div>
         </div>
         {row.page_count != null && (

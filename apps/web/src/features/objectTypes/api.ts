@@ -5,7 +5,7 @@
 import { supabase } from '@/lib/supabase/client'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
-  OntologyStatus, OntologyVisibility, Deprecation, PromotableKind,
+  OntologyStatus, OntologyVisibility, Deprecation,
 } from '@beacon/reality-graph'
 import { EMPTY_VIEW_CONFIG } from '@beacon/reality-graph'
 
@@ -111,28 +111,6 @@ export async function createObjectType(i: CreateObjectTypeInput): Promise<Object
 
 export async function deleteObjectType(id: string): Promise<void> {
   const { error } = await supabase.from('object_types').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-}
-
-/** Which resources a curator has promoted. One read for the whole org — the
- *  table is small by construction, since a catalog everyone is in is no catalog. */
-export async function fetchPromotions(): Promise<Set<string>> {
-  const { data, error } = await supabase.from('resource_status')
-    .select('resource_kind, resource_id').eq('status', 'promoted')
-  if (error) throw new Error(error.message)
-  return new Set((data as { resource_kind: string; resource_id: string }[])
-    .map((r) => `${r.resource_kind}:${r.resource_id}`))
-}
-
-/** Promotion is a row; removing it is deleting that row. Foundry has no "not
- *  promoted" value — "the resource will return to its default state". */
-export async function setPromotion(
-  i: { kind: PromotableKind; id: string; promoted: boolean },
-): Promise<void> {
-  const { error } = i.promoted
-    ? await supabase.from('resource_status').insert({ resource_kind: i.kind, resource_id: i.id })
-    : await supabase.from('resource_status').delete()
-        .eq('resource_kind', i.kind).eq('resource_id', i.id)
   if (error) throw new Error(error.message)
 }
 

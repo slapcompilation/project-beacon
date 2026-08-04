@@ -8,6 +8,7 @@
 // lists PROMOTED MODULES — collections as sections, tags as filters — so an
 // application somebody assembled is as findable as one we shipped.
 
+import { PromoteToggle } from '@/features/promotion/api'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Icon, Tag, Intent } from '@blueprintjs/core'
@@ -202,6 +203,9 @@ function PromotedCard({ app }: { app: PromotedApp }) {
         <p className="text-[11px] text-muted-foreground mt-1 leading-snug">{app.description}</p>
       )}
       <div className="flex flex-wrap items-center gap-1 mt-2">
+        {/* Curation, not publication: publishing puts it in the portal, promoting
+            says it is the one to start from. */}
+        <PromoteToggle kind="module" id={app.moduleId} />
         {app.tags.map((t) => <Tag key={t} minimal className="!text-[10px]">{t}</Tag>)}
         {behind && (
           <Tag minimal intent={Intent.WARNING} className="!text-[10px]">

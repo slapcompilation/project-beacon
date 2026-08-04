@@ -4,7 +4,7 @@ import type { ObjectTypeDef } from '@beacon/reality-graph'
 import { STATUS_META } from '@beacon/reality-graph'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
-  setObjectTypeStatus, fetchPromotions, setPromotion,
+  setObjectTypeStatus,
   updateObjectType, fetchRevisions, restoreRevision,
   fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, fetchBuiltinRecord,
   createObjectRecord, deleteObjectRecord,
@@ -24,7 +24,6 @@ const keys = {
   linkTypes: ['link-types'] as const,
   recordLinks: (recordId: string) => ['record-links', recordId] as const,
   revisions: (typeId: string) => ['object-type-revisions', typeId] as const,
-  promotions: ['resource-promotions'] as const,
 }
 
 export function useObjectTypes() {
@@ -68,25 +67,6 @@ export function useSetObjectTypeStatus() {
       // A link type follows the weaker of its two ends, in a trigger.
       void qc.invalidateQueries({ queryKey: keys.linkTypes })
       toast.success(`Now ${STATUS_META[v.status].label.toLowerCase()}`)
-    },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-export function usePromotions() {
-  return useQuery({ queryKey: keys.promotions, queryFn: fetchPromotions, staleTime: 30_000 })
-}
-
-export function useSetPromotion() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: setPromotion,
-    onSuccess: (_d, v) => {
-      void qc.invalidateQueries({ queryKey: keys.promotions })
-      // Promoting an object type makes it prominent, in a trigger.
-      void qc.invalidateQueries({ queryKey: keys.types })
-      void qc.invalidateQueries({ queryKey: ['quicksearch'] })
-      toast.success(v.promoted ? 'Promoted — it now leads search and the catalog' : 'Promotion removed')
     },
     onError: (e: Error) => { toast.error(e.message) },
   })

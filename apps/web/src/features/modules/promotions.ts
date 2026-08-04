@@ -12,6 +12,7 @@ export interface PromotedApp {
   collectionApiName:  string
   collectionTitle:    string
   collectionPosition: number
+  moduleId:           string
   moduleApiName:      string
   /** Where the module actually is. */
   moduleVersion:      number
@@ -28,7 +29,7 @@ export interface PromotedApp {
 
 interface Row {
   promotion_id: string; collection_api_name: string; collection_title: string
-  collection_position: number; module_api_name: string; module_version: number
+  collection_position: number; module_id: string; module_api_name: string; module_version: number
   published_version: number; name: string; icon: string; description: string
   thumbnail_url: string | null; tags: string[]; owner_email: string | null
   hotel_id: string | null
@@ -47,6 +48,7 @@ export async function fetchPromotedApps(): Promise<PromotedApp[]> {
     collectionApiName: r.collection_api_name,
     collectionTitle: r.collection_title,
     collectionPosition: r.collection_position,
+    moduleId: r.module_id,
     moduleApiName: r.module_api_name,
     moduleVersion: r.module_version,
     publishedVersion: r.published_version,
