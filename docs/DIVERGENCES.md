@@ -128,9 +128,9 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 | | | source |
 |---|---|---|
 | **Theirs** | Fifteen base types, including Vector, Geopoint, Geoshape, Attachment, Time series, Geotemporal series, Media reference, Cipher text and Struct. | `mirror/object-link-types/base-types.md` |
-| **Ours** | Six: text, number, boolean, date, media_reference, vector. | migration 339 |
-| **Why** | The two advanced ones added have consumers — a chunk needs a vector to be searched, a document needs a media reference to be shown beside the chunk citing it. The other seven have none, and a base type nobody stores is the dead vocabulary the guards keep removing. Their **title-key rule is adopted exactly**: neither may title a record. |
-| **Undo when** | Per type, on demand. Geopoint is the likeliest next — hotels already carry coordinates in `hotels.config` jsonb. |
+| **Ours** | Seven: text, number, boolean, date, media_reference, vector, geopoint. | migrations 339, 342 |
+| **Why** | The three advanced ones added have consumers — a chunk needs a vector to be searched, a document needs a media reference to be shown beside the chunk citing it, and a hotel needs a geopoint to sit on the portfolio map. The other six have none, and a base type nobody stores is the dead vocabulary the guards keep removing. Their **title-key rule is adopted exactly**, including that geopoint *may* title a record where the other two may not. Geopoint's storage format is theirs verbatim: `latitude,longitude`. |
+| **Undo when** | Per type, on demand — when something needs to store one. |
 
 | | | source |
 |---|---|---|

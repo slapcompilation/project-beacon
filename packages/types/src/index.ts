@@ -53,6 +53,8 @@ export interface Hotel {
   timezone: string
   currency: string
   config: Record<string, unknown>
+  /** Geopoint — `latitude,longitude`. The only coordinate source (migration 342). */
+  location: string | null
   created_at: string
   manager_approval_threshold: number
   director_approval_threshold: number

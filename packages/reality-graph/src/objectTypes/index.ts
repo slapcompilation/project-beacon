@@ -15,7 +15,7 @@ export type PropertyType =
   // Foundry's advanced base types. Two of the nine, because two have consumers:
   // a chunk needs a vector to be searched, and a document needs a media
   // reference to be shown beside the chunk that cites it.
-  | 'media_reference' | 'vector'
+  | 'media_reference' | 'vector' | 'geopoint'
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string }[] = [
   { value: 'text',    label: 'Text',    help: 'Free text — names, notes, descriptions.' },
@@ -24,6 +24,7 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string 
   { value: 'date',    label: 'Date',    help: 'A calendar date.' },
   { value: 'media_reference', label: 'Media', help: 'A file — a PDF, image or recording. Points at the stored item rather than copying it.' },
   { value: 'vector',  label: 'Vector',  help: 'An embedding, for semantic search. Stored, never typed by hand.' },
+  { value: 'geopoint', label: 'Location', help: 'A point on the map, as latitude,longitude.' },
 ]
 
 /** Foundry: Media Reference, Vector, Time Series, Geotemporal Series, Attachment,
@@ -31,6 +32,27 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string 
  *  (`mirror/object-link-types/properties-overview.md`). Of the two we have, both
  *  are in that set — a title is something a person reads, and neither is. */
 export const TITLE_KEY_INELIGIBLE: ReadonlyArray<PropertyType> = ['media_reference', 'vector']
+
+/** Foundry: "Geopoint values are stored as a comma-separated string in the
+ *  format `latitude,longitude` (for example, `57.64911,10.40744`)." Copied
+ *  exactly — a point that round-trips through their format travels to any
+ *  consumer that expects one. */
+export function parseGeopoint(v: unknown): { lat: number; lng: number } | null {
+  if (typeof v !== 'string') return null
+  const [a, b, ...rest] = v.split(',')
+  if (rest.length > 0 || b === undefined) return null
+  // Number('') is 0, so an empty half would silently place the point on a
+  // meridian instead of failing. Both halves have to be there.
+  if (a.trim() === '' || b.trim() === '') return null
+  const lat = Number(a.trim())
+  const lng = Number(b.trim())
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+  // Out of range is a transposed pair or a bad parse, not a place.
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null
+  return { lat, lng }
+}
+
+export const formatGeopoint = (lat: number, lng: number): string => `${String(lat)},${String(lng)}`
 
 export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE.includes(t)
 
@@ -302,6 +324,9 @@ export function validateRecord(properties: PropertyDef[], draft: RecordDraft): V
     if (p.type === 'media_reference' && !(typeof raw === 'string' && raw.includes('/'))) {
       errors.push(`${p.label} must point at a stored file, as bucket/path.`)
     }
+    if (p.type === 'geopoint' && parseGeopoint(raw) === null) {
+      errors.push(`${p.label} must be latitude,longitude — for example 37.9838,23.7275.`)
+    }
     if (p.type === 'vector' && !Array.isArray(raw)) {
       errors.push(`${p.label} is an embedding — it is written by the pipeline, not entered.`)
     }
@@ -334,5 +359,11 @@ export function coerceValue(type: PropertyType, raw: unknown): unknown {
     case 'vector':
       return Array.isArray(raw) && raw.every((n) => typeof n === 'number' && Number.isFinite(n))
         ? raw : null
+    // Normalised through their format, so a value that survives coercion is one
+    // any geopoint consumer can read.
+    case 'geopoint': {
+      const p = parseGeopoint(raw)
+      return p ? formatGeopoint(p.lat, p.lng) : null
+    }
   }
 }

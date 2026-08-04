@@ -23,6 +23,7 @@ import { PortfolioCommandHome } from '@/features/mind/PortfolioCommandHome'
 import { PortfolioMap } from '@/features/mind/PortfolioMap'
 import type { PortfolioHotelSignal } from '@/features/mind/portfolio'
 import { useAipSignalCounts } from '@/features/aipSignals/hooks'
+import { parseGeopoint } from '@beacon/reality-graph'
 import type { AipTab } from '@/features/mind/AIPShell'
 
 import { SituationBanner } from '@/features/briefing/components/SituationBanner'
@@ -73,14 +74,12 @@ function HotelBriefing() {
   const { data: aipCounts } = useAipSignalCounts()
 
   // This property on the geographic map — same basemap + tile-free fallback as
-  // the org portfolio, one pin. Coords live in hotels.config ({lat,lng}); no
+  // the org portfolio, one pin. Coords are the hotel's geopoint property; no
   // coords → the map is skipped and the zone map below still shows.
-  const cfg  = (activeHotel?.config ?? {}) as { lat?: number | string; lng?: number | string }
-  const hLat = cfg.lat != null ? Number(cfg.lat) : NaN
-  const hLng = cfg.lng != null ? Number(cfg.lng) : NaN
+  const point = useMemo(() => parseGeopoint(activeHotel?.location), [activeHotel?.location])
   const locationPins = useMemo<PortfolioHotelSignal[]>(
     () =>
-      activeHotel && Number.isFinite(hLat) && Number.isFinite(hLng)
+      activeHotel && point
         ? [{
             hotel_id:             activeHotel.id,
             hotel_name:           activeHotel.name,
@@ -91,11 +90,11 @@ function HotelBriefing() {
             last_cycle_at:        null,
             last_cycle_auto:      0,
             last_cycle_queued:    0,
-            lat: hLat,
-            lng: hLng,
+            lat: point.lat,
+            lng: point.lng,
           }]
         : [],
-    [activeHotel, hLat, hLng, aipCounts?.queue, aipCounts?.approvals, aipCounts?.entityLinks, aipCounts?.casesOpen],
+    [activeHotel, point, aipCounts?.queue, aipCounts?.approvals, aipCounts?.entityLinks, aipCounts?.casesOpen],
   )
 
   // Auto-capture snapshot once per day on mount (server is idempotent; client guards too)

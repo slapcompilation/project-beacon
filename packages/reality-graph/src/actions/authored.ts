@@ -87,6 +87,8 @@ const FIELD_KIND: Record<PropertyType, ActionField['kind']> = {
   // Never reached: a vector is filtered out below. Present because the Record is
   // exhaustive, which is what made this decision surface at all.
   vector: 'string',
+  // A location is typed as text until there is a map picker to type it with.
+  geopoint: 'string',
 }
 
 /** An embedding is written by the pipeline, never by a person, so it is not a

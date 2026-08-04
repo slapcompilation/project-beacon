@@ -36,21 +36,11 @@ guards and the cascade. Only object types have a UI for any of it.
 
 ## Property base types — partly closed
 
-`media_reference` and `vector` shipped (migration 339) with Foundry's title-key
-rule: neither may title a record. The remaining seven — Geopoint, Geoshape,
-Attachment, Time series, Geotemporal series, Cipher text, Struct — have no
-consumer here. Geopoint is the likeliest next, since hotels already carry
-coordinates in `hotels.config` jsonb.
-
-**The OAG chain** is chunk object → media reference property → semantic search →
-PDF viewer. The first three are done: `document.storage_path` is registered as a
-media reference and `chunk.embedding` as a vector (migration 340), so the
-ontology now knows a document has a file and a chunk has an embedding.
-
-**The chain is complete** (migration 341): the `source_viewer` widget renders the
-source beside the thing citing it — *"source-of-truth cross-validation for the
-users"*. It shows extracted text rather than PDF pixels, and the divergence says
-so.
+Three of Foundry's advanced types have a consumer here and shipped with it:
+`media_reference` and `vector` (339, 340), `geopoint` (342). The remaining six —
+Geoshape, Attachment, Time series, Geotemporal series, Cipher text, Struct — have
+none. Adding one before something stores it produces the dead vocabulary the
+guards exist to delete, so each waits for its consumer.
 
 ## Parity gaps, found and not yet argued
 
