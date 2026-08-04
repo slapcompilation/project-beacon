@@ -1,0 +1,87 @@
+<!-- source: https://palantir.com/docs/foundry/functions/language-models-legacy/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+
+# Legacy language models within functions
+
+:::callout{title="Legacy" theme="danger"}
+This is documentation for the **legacy** language models within functions. The [updated language models in functions](/docs/foundry/functions/language-models-python-tsv2/) offer more robust capabilities, such as vision and streaming. [Upgrade your language models in functions](/docs/foundry/functions/language-models/#upgrade-from-legacy-language-models-within-functions) to take advantage of the latest AIP offerings.
+:::
+
+Palantir provides a set of language models which can be used within functions. [Read more about Palantir-provided LLMs](/docs/foundry/aip/supported-llms/).
+
+:::callout{title="Prerequisites" theme="neutral"}
+To use Palantir-provided language models, [AIP must first be enabled on your enrollment](/docs/foundry/aip/enable-aip-features/). You also must have permissions to use [AIP builder capabilities](/docs/foundry/aip/aip-features/#aip-applications-and-builder-capabilities).
+:::
+
+## Import a language model
+
+To begin using a language model, you must import the specific model into the code repository where you are writing your functions by following the steps below:
+
+1. Navigate and open the **Model Imports** side panel to view all existing imported models.
+
+<img src="./media/language-model-import-sidebar.png" alt="Model import sidebar." width="400" />
+
+2. To import a new language model, select **Add** in the top-right corner of the **Resource Imports** panel and select **Models**. This will open a new window where you will be able to view the Palantir-provided models that are available to you.
+
+<img src="./media/language-model-import-dialog.png" alt="Model import dialog showing a few Palantir-provided LLMs." width="600" />
+
+3. You will also see a tab where you can view custom models which have been created through the Modeling Objectives app or direct model deployments previously. More information on using those models can be found in the [functions on models](/docs/foundry/functions/functions-on-models/) documentation.
+
+4. Select the models you would like to import, then select **Confirm selection** to import these models into your repository. Task runner will execute the `localDev` task, generating code bindings to interact with these models.
+
+5. After importing the language models, you can now use them in your repository by adding the following import statement, replacing GPT\_4o with the name of the language model you have imported into your repository:
+
+```typescript
+import { GPT_4o } from "@foundry/models-api/language-models"
+```
+
+## Writing a function that uses a language model
+
+At this stage, we can now write a function that uses a language model we imported. For this example, we assume that we have imported GPT\_4o as described above.
+
+We begin by adding the following import statement to our file:
+
+```typescript
+import { GPT_4o } from "@foundry/models-api/language-models"
+```
+
+Each language model will have generated methods available with strongly typed inputs and outputs. For example, the GPT\_4o model provides a createChatCompletion method which allows the user to pass a set of messages along with additional parameters to modify the model’s behavior, such as the temperature or maximum number of tokens.
+
+In the following illustrative example, we use the provided GPT\_4o model to run a simple sentiment analysis on a piece of text provided by a user. The function will classify the text as "Good", "Bad", or "Uncertain".
+
+```typescript
+@Function()
+public async sentimentAnalysis(userPrompt: string): Promise<string> {
+    const systemPrompt = "Provide an estimation of the sentiment the text the user has provided. \
+    You may respond with either Good, Bad, or Uncertain. Only choose Good or Bad if you are overwhelmingly \
+    sure that the text is either good or bad. If the text is neutral, or you are unable to determine, choose Uncertain."
+
+    const systemMessage = { role: "SYSTEM", contents: [{ text: systemPrompt }] };
+    const userMessage = { role: "USER", contents: [{ text: userPrompt }] };
+    const gptResponse = await GPT_4o.createChatCompletion({messages: [systemMessage, userMessage], params: { temperature: 0.7 } });
+    return gptResponse.choices[0].message.content ?? "Uncertain";
+}
+```
+
+This function can then be used throughout the platform.
+
+## Embeddings
+
+Along with generative language models, Palantir also provides models which can be used to generate embeddings. A simple example is as follows:
+
+```typescript
+@Function()
+public async generateEmbeddingsForText(inputs: string[]): Promise<Double[][]> {
+    const response = await TextEmbeddingAda_002.createEmbeddings({ inputs });
+    return response.embeddings;
+}
+```
+
+This is most commonly used to perform [semantic search](/docs/foundry/ontology/using-palantir-provided-models-to-create-a-semantic-search-workflow/) workflows.
+
+## Performance considerations
+
+Certain models may have rate limits applied to them, limiting the number of tokens which may be passed over a certain time period. This will be enforced along with any standard limits that apply to functions.
+
+***
+
+Note: AIP feature availability is subject to change and may differ between customers.
