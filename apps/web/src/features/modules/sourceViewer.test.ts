@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { splitOnTerm } from './SourceViewer'
+import { splitOnTerm } from './splitOnTerm'
 
 describe('splitOnTerm', () => {
   it('keeps the whole text when nothing is searched', () => {

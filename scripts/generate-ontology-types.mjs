@@ -34,7 +34,7 @@ function emit(types) {
   for (const t of types) {
     const props = [...(t.properties ?? []), ...(t.computed ?? []).map((c) => ({ ...c, type: 'number', computed: true }))]
     lines.push(`/** ${t.label}${t.description ? ` — ${t.description}` : ''}`)
-    lines.push(` *  ${t.kind === 'builtin' ? `Code-owned; records live in \`${t.source_table}\`.` : 'Operator-authored.'} */`)
+    lines.push(` *  ${t.source_table ? `Code-owned; records live in \`${t.source_table}\`.` : 'Operator-authored.'} */`)
     lines.push(`export interface ${pascal(t.api_name)} {`)
     for (const p of props) {
       const ts = TS_TYPE[p.type] ?? 'unknown'
@@ -65,7 +65,7 @@ if (!url) {
 const client = new pg.Client({ connectionString: url, ssl: SSL })
 await client.connect()
 const { rows } = await client.query(`
-  SELECT api_name, label, description, kind, source_table,
+  SELECT api_name, label, description, source_table,
          properties, computed_properties AS computed
   FROM object_types
   WHERE enabled

@@ -72,6 +72,7 @@ export interface Chunk {
   created_at: string
   chunk_number: number
   summary?: string
+  embedding?: unknown
 }
 
 /** Constraint — A rule evaluated at action submission.
@@ -106,7 +107,7 @@ export interface Document {
   source: string
   ingestion_stage: string
   bucket_name: string
-  storage_path: string
+  storage_path: unknown
   size_bytes: number
   page_count?: number
   created_at: string
@@ -166,6 +167,8 @@ export interface Hotel {
   auto_approve_threshold: number
   auto_po_enabled: boolean
   auto_invoice_tolerance_pct: number
+  location?: unknown
+  require_removal_reason?: boolean
 }
 
 /** Incident — A guest-reported incident.
