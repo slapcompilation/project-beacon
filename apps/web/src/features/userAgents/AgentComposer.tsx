@@ -18,6 +18,7 @@ import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { AnthropicLLMClient } from '@/features/agents/anthropicLLM'
 import { useAuthoredLogicTools } from '@/features/userTools/hooks'
 import { useCreateUserAgent } from './hooks'
+import { LogicCanvasEditor } from './LogicCanvasEditor'
 
 /** Only tools the runner can actually resolve are offered — a name the operator
  *  can pick is always a tool the model can call. */
@@ -134,23 +135,15 @@ export default function AgentComposer({ onDone }: { onDone: () => void }) {
       </div>
 
       <div className="space-y-1.5">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Procedure — one step at a time</span>
-        {procedure.map((s, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground w-4 tabular-nums">{i + 1}.</span>
-            <HTMLSelect value={s.tool ?? ''} onChange={(e) => {
-              const v = e.currentTarget.value
-              setProcedure(procedure.map((x, j) => (j === i ? { ...x, tool: v || undefined } : x)))
-            }} options={[{ value: '', label: 'no tool' }, ...toolset.map((t) => ({ value: t, label: t }))]} />
-            <InputGroup fill value={s.instruction} placeholder="What to do at this step"
-              onChange={(e) => { setProcedure(procedure.map((x, j) => (j === i ? { ...x, instruction: e.target.value } : x))) }} />
-            <Button size="small" variant="minimal" icon="cross" disabled={procedure.length === 1}
-              onClick={() => { setProcedure(procedure.filter((_, j) => j !== i)) }} />
-          </div>
-        ))}
-        <Button size="small" variant="minimal" icon="add" onClick={() => { setProcedure([...procedure, { instruction: '' }]) }}>
-          Add step
-        </Button>
+        <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+          Procedure — the logic canvas
+        </span>
+        <LogicCanvasEditor
+          procedure={procedure}
+          toolset={toolset}
+          threshold={threshold / 100}
+          onChange={setProcedure}
+        />
       </div>
 
       {name.trim() !== '' && errors.length > 0 && (

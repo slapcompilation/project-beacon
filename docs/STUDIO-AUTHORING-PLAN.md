@@ -123,3 +123,24 @@ versioning; actions *have* typed validations; models *are* eval-gated):
   writes stay scope-gated.
 
 This is a living document — refined as each phase is designed.
+
+---
+
+## Update 2026-08-04 — the logic canvas editor shipped, narrowed
+
+This plan chose NL as the builder and declined a visual editor. The editor was
+then asked for, and building it surfaced the constraint that decides its shape:
+
+**Our procedure compiles into a prompt, not into an executed graph.** So the
+canvas edits Foundry's *Use LLM* block and nothing else — Conditionals and Loops
+would become prose an LLM interprets, which is not what a block is.
+
+What the canvas adds over the row form it replaced is the thing a list cannot
+show: **the typed handoff**. Choose `forecast_consumption` on step 2 and step 3
+is authored knowing it will have `projectedUnits`, `basis` and `confidence`. The
+clarification rule — appended by `compileAgent`, never authored — is drawn as the
+terminal block, so an author can see where their procedure actually ends.
+
+NL authoring is unchanged and still generates into this same data. The two are
+not alternatives: the generator writes the procedure, the canvas is where you
+read and adjust it.

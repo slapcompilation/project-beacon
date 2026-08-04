@@ -116,6 +116,24 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 
 ---
 
+## Logic
+
+| | | source |
+|---|---|---|
+| **Theirs** | AIP Logic has six block types — Use LLM, Apply action, Execute function, Conditionals, Loops, Create variable — and **executes** them. A Conditional "evaluates a condition and executes different paths based on whether that condition is true or false". | `mirror/logic/blocks.md` |
+| **Ours** | One block type: Foundry's Use LLM (a prompt, optionally a tool). | `authoredAgents/index.ts` |
+| **Why** | Our procedure **compiles into a numbered task prompt** an LLM follows (`compileAgent`), not into an executed graph. A Conditional block here would become the sentence "if X then Y" and the model would decide — prose wearing a block's clothes, which is the dead vocabulary this codebase keeps deleting. |
+| **Undo when** | The runtime executes the procedure rather than prompting it. Then Conditional and Loop are real control flow and the canvas is drawing a graph instead of a list. Adding the block types first would be backwards. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | AIP Logic is "a **no-code** development environment" — every function is authored in the UI. | `mirror/logic/overview.md` |
+| **Ours** | Authored agents are data and editable on the canvas; **shipped agents are code and the canvas stays a viewer** for them. | #330, and the editor above |
+| **Why** | A shipped agent's blocks are `BlockDef`s with zod schemas in TypeScript. Editing them from a canvas means generating code, and the generated half would drift from the hand-written half — the exact split the ontology arc exists to remove. |
+| **Undo when** | Never, deliberately. The two halves are different kinds of thing and the canvas says so. |
+
+---
+
 ## Ontology status
 
 | | | source |
