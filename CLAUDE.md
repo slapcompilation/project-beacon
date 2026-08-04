@@ -13,7 +13,21 @@ When building anything with a Foundry counterpart:
 1. **Find it in `docs/foundry-reference/` before designing.** `grep mirror/` for the concept (311 pages of the load-bearing sections); `all-foundry-urls.txt` for the page when the mirror doesn't carry it. The mirror is a dated snapshot (2026-07-23) — re-fetch the page when precision matters.
 2. **Adopt the decomposition, not just the vocabulary.** Foundry's `searchAround` returns an object *set*, not a filtered list. Copying the word while keeping a different shape is the exact failure this rule exists to prevent.
 3. **Copy the limits too.** They encode a reason — traversal depth is capped at 3 because the search fails at runtime beyond it. A limit dropped for convenience is a decision made without the evidence behind it.
-4. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
+4. **Two similar functionalities means one of them is wrong.** When the system
+   has two ways to do a thing — or you are about to add a second — go to
+   `docs/foundry-reference/` and read how Palantir configures that
+   functionality, then **adopt their configuration**. Do not pick between ours
+   on taste. This is the rule that would have caught the seven-versus-three tool
+   categories, the `EdgeType` union outliving `link_types`, and a hand-written
+   `TrendCell` sitting beside a shared one.
+
+5. **Search the pages, not the URLs.** `all-foundry-urls.txt` is an index of
+   slugs. Concluding "Foundry has no staging releases" because `staging` appears
+   in no URL is wrong — the page is called `release-model`, and it defines the
+   term. `grep -r mirror/` before deciding something is ours; mirror the section
+   first if it is not there.
+
+6. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
 
 ### How this sits with "no concept without its consumer"
 
@@ -287,7 +301,13 @@ When a deterministic baseline (rolling avg, percentile threshold) gets beaten by
 
 - `adapter.ts` exposes `api()` (input/output Tabular columns + Parameters) and `runInference()`
 - Eval suite — datasets, metrics, cohorts
-- Releases — `sandbox → staging → production`, with compatibility checks and review gates
+- Releases — `sandbox → staging → production`. **`staging → production` is
+  Foundry's**: *"a staging release is a release that is staged to become the
+  production release... after testing, an objective owner can mark a staging
+  release as production"* (`mirror/manage-models/release-model.md`). **`sandbox`
+  is ours** — an extra rung below theirs, for something not yet worth staging.
+  Their **objective checks** (`set-up-checks.md`) and **reviews**
+  (`review-model.md`) are the compatibility-check and review-gate concepts
 - Deployments — `live` (real-time) or `batch` (pipeline populates computed properties)
 
 The existing Logic Tool gets a second implementation behind the same signature; `basis` changes from `'rolling-30d-avg'` to `'prophet-v1'`; **callers don't change**.
@@ -373,10 +393,18 @@ A proposal without a viewable trace is a defect.
 Every agent and every non-trivial tool ships an eval suite alongside it.
 
 - **Test cases** — historical inputs with expected outputs or rubrics
-- **Three evaluator types**:
-  - **Object match** — exact / subset equality on the typed output
-  - **String contains** — substring assertion on rationale or response
-  - **Rubric grader** — LLM-as-judge with an explicit checklist
+- **Evaluators, in Foundry's vocabulary.** AIP Evals ships **nineteen built-in
+  evaluators** (`mirror/aip-evals/create-suite.md`); we implement three of them
+  through Vitest, plus one custom evaluation function:
+  - **Exact object match** — `expect(out).toEqual(expected)`
+  - **Regex match** / **Keyword checker** — `expect(out).toMatch(pattern)`
+  - **LLM-as-a-judge** — Foundry's built-in returns a boolean on one condition
+  - **Custom evaluation function** — our weighted `gradeWithRubric`. Foundry's own
+    example is a *"custom function rubric grader"* scored against a minimum
+    threshold, which is exactly its shape. Their rule holds: a custom evaluator
+    *"must return at least one Boolean or numeric type as a metric"*.
+- **Pass criteria** decide `Passed`/`Failed` per case — ours is `passThreshold`
+  plus `required: true` checks, which is that concept.
 - **Diff view** — runs of version A vs version B side-by-side on the same cases
 - **Cohorts** — per-hotel / per-region slices flagged when overall pass rate hides a regression
 
