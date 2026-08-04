@@ -40,17 +40,24 @@ One batched round-trip per list: `aip_signals_for_variants(ids[])` RPC →
 RLS. This is the data all the row affordances read; without it every badge is an
 N+1 query.
 
-### P1 — the row badge, on the flagship list first
+### P1 — the row badge, on the flagship list first ✅ SHIPPED (#346 spine, badge since)
 `AipRowBadge` — the uniform inline affordance (e.g. `◆ 2 proposals`, `⏳ awaiting
 you`, `● case open`). Lands on Floor → Live Stock rows (extends the existing
 `RowIntelStrip`). Click **opens the item's `ObjectAgentActivity` in the
 ContextPanel slide-over** — inline, no navigation. Prove the pattern on the
 busiest surface before spreading.
 
-### P2 — spread to every OPERATE list *(mechanical once P0/P1 land)*
+### P2 — spread to every OPERATE list ✅ COMPLETE
 Each list maps its rows → variant ids and drops `AipRowBadge` + the slide-over:
-- **Floor:** Alerts, Expiry, Locations
-- **Flow:** Timeline, Receive, Deliveries, Pick Lists
+- **Floor:** Live Stock (via `RowIntelStrip`), Alerts, Expiry, Locations — all shipped
+- **Flow:** Deliveries, Pick Lists — shipped; **Timeline and Receive closed the set**
+
+Timeline needed a judgement rather than a copy: it shows one variant's events,
+so there is no row list to badge. The badge went on the **variant selector**,
+which is the list — an operator scanning for what to inspect now sees which
+variants the agent has something to say about. The selector renders every
+variant in the property, so it is capped at 60 visible and the signal batch
+takes only those; the rest say "narrow the search".
 Supplier/PO rows resolve via *their variants* (the link that has data — same
 approach `ObjectAgentActivity` already uses; payload links are 0% populated).
 

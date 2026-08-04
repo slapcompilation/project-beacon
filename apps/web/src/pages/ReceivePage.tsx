@@ -25,6 +25,8 @@ import { useRestockRequests, useReceiveRestock } from '@/features/restock/hooks'
 import { useProducts, useLookupBarcode } from '@/features/inventory/hooks'
 import { useSuppliers } from '@/features/suppliers/hooks'
 import type { RestockRequestRow } from '@/features/restock/api'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 
 // ─── Step machine ─────────────────────────────────────────────────────────────
 
@@ -142,6 +144,7 @@ function SearchStep({
 
       {/* Recent open requests shortlist */}
       {pendingRequests.length > 0 && (
+        <AipSignalsProvider variantIds={pendingRequests.slice(0, 8).map((r) => r.variant_id).filter(Boolean)}>
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Or pick from open requests</p>
           <div className="space-y-2">
@@ -161,7 +164,10 @@ function SearchStep({
                   <Icon icon="box" size={16} className="text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate">{displayName}</p>
-                    <p className="text-xs text-muted-foreground tabular-nums">{r.quantity_needed} units requested{r.supplier ? ` · ${r.supplier}` : ''}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground tabular-nums">{r.quantity_needed} units requested{r.supplier ? ` · ${r.supplier}` : ''}</p>
+                      <AipRowBadge variantIds={r.variant_id ? [r.variant_id] : []} />
+                    </div>
                   </div>
                   <Icon icon="chevron-right" size={14} className="text-muted-foreground flex-shrink-0" />
                 </button>
@@ -172,6 +178,7 @@ function SearchStep({
             )}
           </div>
         </div>
+        </AipSignalsProvider>
       )}
     </div>
   )

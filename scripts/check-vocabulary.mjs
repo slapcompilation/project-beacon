@@ -23,7 +23,8 @@
 // how a guard becomes noise:
 //
 //   1. CODE     a literal in app, package, edge-function or script source, or
-//               inside a database function body or RLS policy.
+//               inside a database function body or RLS policy — EXCEPT in a file
+//               marked `@vocabulary-declaration`, which see below.
 //   2. DATA     at least one row actually holds it. `one_to_many` appears in no
 //               TypeScript at all and is the stored cardinality of four link
 //               types — flagging it would have been a false positive on the
@@ -32,6 +33,22 @@
 //               with a reason. That is the honest escape hatch, and like the
 //               function exemptions it is checked for staleness: a declaration
 //               for a value that IS now consumed is itself reported.
+//
+// A CONSTANTS FILE IS NOT A CONSUMER. Rule 1 was defeated the first time someone
+// leaned on it. Migration 321 added eight values across two new columns and every
+// one passed, because `ontology/status.ts` restates the vocabulary in TypeScript
+// and rule 1 counts a string literal anywhere. Restating a list is not acting on
+// it — `visibility` was written by a form, stored, and read by nothing.
+//
+// So a file whose head carries `@vocabulary-declaration` is excluded from the
+// corpus. Mark the files that MIRROR the database's vocabulary; the values then
+// have to earn their keep somewhere that actually branches on them.
+//
+// WHAT THIS STILL CANNOT SEE, so nobody mistakes green for proof: a column that
+// is written and never read. `object_types.visibility` is touched by a trigger
+// (which SETS it) and by a form (which SUBMITS it), and both look like use to any
+// static scan. Catching that needs read/write discrimination this guard does not
+// have. If you add a column, ask what QUERIES it — the guard cannot ask for you.
 
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -69,7 +86,10 @@ const { rows: declarations } = await client.query(
   "SELECT object_name, reason FROM shape_registry WHERE object_kind = 'vocabulary'")
 
 // ── 1. Code ──────────────────────────────────────────────────────────────────
+// A file marked @vocabulary-declaration is the vocabulary RESTATED, not a
+// consumer of it, and does not count. See the header for what went wrong.
 let code = `${fns.src}\n${pols.src}`
+const declarationFiles = []
 for (const root of CODE_ROOTS) {
   const walk = (dir) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -77,7 +97,16 @@ for (const root of CODE_ROOTS) {
       if (e.isDirectory()) {
         if (!['node_modules', 'dist', '.turbo', 'coverage'].includes(e.name)) walk(p)
       } else if (/\.(ts|tsx|mjs|js)$/.test(e.name)) {
-        code += `\n${readFileSync(p, 'utf8')}`
+        const src = readFileSync(p, 'utf8')
+        // The marker must lead the file, or this script excludes itself for
+        // explaining the rule.
+        if (src.split('\n', 3).join('\n').includes('@vocabulary-declaration')) {
+          declarationFiles.push(p); continue
+        }
+        // A test asserting the list contains a value is the same restatement as
+        // a constants file — `status.test.ts` kept `example` alive on its own.
+        if (/\.(test|spec)\.|[\\/]evals?[\\/]/.test(p)) { declarationFiles.push(p); continue }
+        code += `\n${src}`
       }
     }
   }
@@ -144,7 +173,9 @@ for (const key of declared.keys()) {
 await client.end()
 
 if (dead.length === 0 && staleDeclarations.length === 0) {
-  console.log(`vocabulary OK — ${total} allowed value(s) across ${checks.length} constraint(s), every one consumed or declared`)
+  const excluded = declarationFiles.length > 0
+    ? ` · ${declarationFiles.length} declaration file(s) excluded` : ''
+  console.log(`vocabulary OK — ${total} allowed value(s) across ${checks.length} constraint(s), every one consumed or declared${excluded}`)
   process.exit(0)
 }
 

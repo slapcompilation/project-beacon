@@ -1,3 +1,4 @@
+// @vocabulary-declaration — restates the database CHECKs; not a consumer.
 // Developmental state for an ontology resource — object type, link type or
 // interface. Foundry's, from metadata-statuses: "Every object type, property,
 // link type, action, or interface in the Ontology has a status that indicates

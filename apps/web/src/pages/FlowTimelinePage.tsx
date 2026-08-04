@@ -30,6 +30,8 @@ import { useProducts, useUndoStock } from '@/features/inventory/hooks'
 import { StockAdjustModal } from '@/features/inventory/components/StockAdjustModal'
 import { VoiceAdjustButton } from '@/components/VoiceAdjustButton'
 import { useVariantTimeline } from '@/features/flow/hooks'
+import { AipSignalsProvider } from '@/features/aipSignals/AipSignalsProvider'
+import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
 import type { TimelineRow } from '@/features/flow/api'
@@ -563,7 +565,12 @@ function VariantSelector({
     )
   }, [variants, search])
 
+  // Only what is on screen — the selector lists every variant in the property,
+  // and the signal RPC takes the ids it is given.
+  const visible = filtered.slice(0, 60)
+
   return (
+    <AipSignalsProvider variantIds={visible.map((v) => v.variantId)}>
     <div className="flex flex-col h-full">
       <div className="px-3 py-2 border-b">
         <InputGroup
@@ -575,7 +582,7 @@ function VariantSelector({
         />
       </div>
       <div className="flex-1 overflow-y-auto py-1">
-        {filtered.map((v) => (
+        {visible.map((v) => (
           <button
             key={v.variantId}
             type="button"
@@ -586,16 +593,25 @@ function VariantSelector({
             )}
           >
             <div className="font-medium text-foreground truncate">{v.productName}</div>
-            <div className="text-[11px] text-muted-foreground">
-              {v.variantName !== 'Standard' ? `${v.variantName} · ` : ''}{v.sku}
+            <div className="flex items-center gap-1.5">
+              <div className="text-[11px] text-muted-foreground">
+                {v.variantName !== 'Standard' ? `${v.variantName} · ` : ''}{v.sku}
+              </div>
+              <AipRowBadge variantIds={[v.variantId]} />
             </div>
           </button>
         ))}
+        {filtered.length > visible.length && (
+          <p className="px-3 py-2 text-[11px] text-muted-foreground text-center">
+            +{filtered.length - visible.length} more — narrow the search
+          </p>
+        )}
         {filtered.length === 0 && (
           <p className="px-3 py-4 text-xs text-muted-foreground text-center">No products match</p>
         )}
       </div>
     </div>
+    </AipSignalsProvider>
   )
 }
 

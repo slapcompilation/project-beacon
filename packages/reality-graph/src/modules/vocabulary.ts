@@ -1,3 +1,4 @@
+// @vocabulary-declaration — restates the database CHECKs; not a consumer.
 // The Workshop module vocabulary — one definition, used by everything.
 //
 // This existed twice: once in apps/web as the renderer's types, once in
