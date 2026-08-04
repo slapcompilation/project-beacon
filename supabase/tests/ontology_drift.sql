@@ -47,7 +47,35 @@ BEGIN
     RAISE EXCEPTION 'ONTOLOGY DRIFT — % built-in type(s) have a backing table but no derived properties', n;
   END IF;
 
-  RAISE NOTICE 'ontology drift OK — % built-in registrations match their backing tables', registered;
+  -- Foundry requires a title key on every object type — "the property that acts
+  -- as a display name for objects of this type". Without one, every surface
+  -- invents its own answer, which is how three different titles for the same
+  -- record got shipped (migration 346).
+  --
+  -- Two exemptions, both structural rather than convenient:
+  --   * authored types — object_records.title is NOT NULL, so the title is
+  --     guaranteed by the storage model instead of chosen per type;
+  --   * four relational line types whose columns are a parent id, a variant id
+  --     and numbers. Nothing in the row names the row. They are enumerated here
+  --     so the exemption cannot quietly grow — a fifth one fails this test.
+  SELECT string_agg(api_name, ', ' ORDER BY api_name) INTO detail
+  FROM public.object_types
+  WHERE source_table IS NOT NULL AND title_key IS NULL
+    AND api_name NOT IN ('menu_item_ingredient','pick_list_item','purchase_order_line','stocktake_line');
+  IF detail IS NOT NULL THEN
+    RAISE EXCEPTION 'ONTOLOGY DRIFT — object type(s) with a backing table and no title key: %. Foundry requires one; derive it if no column reads as a name.', detail;
+  END IF;
+
+  -- A title key naming a property that does not exist is a dangling display name.
+  SELECT string_agg(o.api_name || '.' || o.title_key, ', ') INTO detail
+  FROM public.object_types o
+  WHERE o.title_key IS NOT NULL
+    AND NOT EXISTS (SELECT 1 FROM jsonb_array_elements(o.properties) p WHERE p->>'key' = o.title_key);
+  IF detail IS NOT NULL THEN
+    RAISE EXCEPTION 'ONTOLOGY DRIFT — title key(s) naming no property: %', detail;
+  END IF;
+
+  RAISE NOTICE 'ontology drift OK — % built-in registrations match their backing tables, every one titled', registered;
 END $$;
 
 -- ─────────────────────────────────────────────────────────────────────────────

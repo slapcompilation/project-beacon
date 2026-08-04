@@ -7,7 +7,7 @@ import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, OntologyVisibility, Deprecation,
 } from '@beacon/reality-graph'
-import { EMPTY_VIEW_CONFIG } from '@beacon/reality-graph'
+import { EMPTY_VIEW_CONFIG, objectTitle } from '@beacon/reality-graph'
 
 export interface ObjectTypeRow {
   id: string
@@ -244,17 +244,11 @@ export async function fetchBuiltinRecord(
   if (!data) return null
 
   const row = data
-  // Provisional title: the first text property. G2 replaces this with the
-  // explicit title key Foundry requires on every object type.
-  const titleKey = type.properties.find((p) => p.type === 'text')?.key
-  const raw = titleKey ? row[titleKey] : undefined
-  const title = typeof raw === 'string' && raw !== '' ? raw : `${type.label} ${id.slice(0, 8)}`
-
   return {
     id,
     object_type_id: type.id,
     hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
-    title,
+    title: objectTitle(type, row),
     data: row,
     created_at: typeof row.created_at === 'string' ? row.created_at : '',
   }
@@ -282,15 +276,13 @@ export async function fetchBuiltinRecords(
   if (error) throw new Error(error.message)
 
   const raw = data ?? []
-  const titleKey = type.titleKey ?? type.properties.find((p) => p.type === 'text')?.key
   const rows = raw.map((row) => {
     const id = typeof row.id === 'string' ? row.id : ''
-    const t = titleKey ? row[titleKey] : undefined
     return {
       id,
       object_type_id: type.id,
       hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
-      title: typeof t === 'string' && t !== '' ? t : `${type.label} ${id.slice(0, 8)}`,
+      title: objectTitle(type, row),
       data: row,
       created_at: typeof row.created_at === 'string' ? row.created_at : '',
     }

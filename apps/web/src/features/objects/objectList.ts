@@ -9,6 +9,7 @@
 // doing what a title key can't: joins (a variant's title is its product's name)
 // and composed subtitles.
 
+import { objectTitle } from '@beacon/reality-graph'
 import type { ObjectTypeDef } from '@beacon/reality-graph'
 import type { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 
@@ -137,7 +138,7 @@ export function defaultListSpec(t: ObjectTypeDef): ObjectListSpec | null {
     table: t.sourceTable,
     select: '*',
     orderBy: t.properties.some((p) => p.key === 'created_at') ? newest : undefined,
-    title: (r) => (t.titleKey ? str(r[t.titleKey]) : '') || `${t.label} ${short(r)}`,
+    title: (r) => objectTitle(t, r),
     subtitle: (r) =>
       subtitleProps.map((p) => `${p.label}: ${str(r[p.key]) || '—'}`).join(' · ') || null,
   }

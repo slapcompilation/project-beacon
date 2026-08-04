@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   validateObjectTypeDraft,
+  objectTitle,
   validateRecord,
   coerceValue,
   toSlug,
@@ -173,5 +174,45 @@ describe('toSlug', () => {
   it('slugifies a label', () => {
     expect(toSlug('Guest Complaint!')).toBe('guest_complaint')
     expect(toSlug('  Room 204 ')).toBe('room_204')
+  })
+})
+
+describe('objectTitle', () => {
+  it('uses the title key — the property Foundry says names the object', () => {
+    expect(objectTitle({ titleKey: 'po_number', label: 'Purchase order' },
+      { id: 'abc', po_number: 'PO-1042' })).toBe('PO-1042')
+  })
+
+  it('titles on dates and numbers, not only text', () => {
+    // A stock log has no name column; when it happened is the handle.
+    expect(objectTitle({ titleKey: 'timestamp', label: 'Stock log' },
+      { id: 'x', timestamp: '2026-08-04T09:00:00Z' })).toBe('2026-08-04T09:00:00Z')
+    expect(objectTitle({ titleKey: 'floor', label: 'Room' }, { id: 'x', floor: 3 })).toBe('3')
+  })
+
+  it('falls back to the record title — authored records always carry one', () => {
+    expect(objectTitle({ titleKey: null, label: 'Incident' },
+      { id: 'abc12345678', title: 'Lift stuck on 4' })).toBe('Lift stuck on 4')
+  })
+
+  it('skips an empty title-key value rather than showing a blank name', () => {
+    expect(objectTitle({ titleKey: 'notes', label: 'Line' },
+      { id: 'abcdef1234', notes: '', title: 'from record' })).toBe('from record')
+  })
+
+  it('names the type and the id when nothing in the row names the row', () => {
+    // The four relational line types reach here: parent id, variant id, numbers.
+    expect(objectTitle({ titleKey: null, label: 'PO line' },
+      { id: 'abcdef1234567', ordered_qty: 5 })).toBe('PO line abcdef12')
+  })
+
+  it('does not trail a bare space when the row has no id', () => {
+    expect(objectTitle({ titleKey: null, label: 'PO line' }, {})).toBe('PO line')
+  })
+
+  it('never guesses a text property — the bug migration 346 removed', () => {
+    // `supplier_name` is text and would have been picked by the old guess.
+    expect(objectTitle({ titleKey: null, label: 'Line' },
+      { id: 'aaaabbbbcccc', supplier_name: 'Ada Foods' })).toBe('Line aaaabbbb')
   })
 })

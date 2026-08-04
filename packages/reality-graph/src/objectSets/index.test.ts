@@ -2,20 +2,21 @@
 // previously reimplemented inside each one.
 
 import { describe, it, expect } from 'vitest'
-import type { ObjectTypeDef } from '../objectTypes/index'
+import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } from './index'
 
 const batchType: ObjectTypeDef = {
   id: 't1', organizationId: 'o1', hotelId: null,
-  apiName: 'batch', label: 'Batch', pluralLabel: 'Batches', icon: 'box',
-  sourceTable: null, titleKey: null, viewConfig: null, createdByUserId: null,
+  apiName: 'batch', label: 'Batch', icon: 'box', description: '',
+  sourceTable: null, titleKey: null, viewConfig: EMPTY_VIEW_CONFIG,
+  enabled: true, version: 1,
   properties: [
     { key: 'lot',    label: 'Lot',    type: 'text',   required: true },
     { key: 'units',  label: 'Units',  type: 'number', required: false },
     { key: 'expiry', label: 'Expiry', type: 'text',   required: false },
   ],
   computedProperties: [],
-} as unknown as ObjectTypeDef
+}
 
 const records = [
   { lot: 'A', units: 10, expiry: '2026-08-01' },

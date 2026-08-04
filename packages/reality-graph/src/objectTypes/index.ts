@@ -62,6 +62,27 @@ export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE
 export const isBacked = (t: { sourceTable?: string | null }): boolean =>
   t.sourceTable != null
 
+/** The display name for one record, resolved the way Foundry defines it: the
+ *  title key is "the property that acts as a display name for objects of this
+ *  type". Authored records instead carry a NOT NULL `title` column, which is the
+ *  same idea fixed to one property by the storage model.
+ *
+ *  The only surface allowed to answer this question. Three call sites used to
+ *  answer it differently — two by guessing the first text property — so a record
+ *  could be titled one way in a list and another in a set. */
+export function objectTitle(
+  type: { titleKey?: string | null; label: string },
+  row: Record<string, unknown>,
+): string {
+  const keyed = type.titleKey ? row[type.titleKey] : undefined
+  // Dates and numbers title perfectly well — a stock log is "when it happened".
+  if (keyed != null && keyed !== '') return String(keyed)
+  if (typeof row.title === 'string' && row.title !== '') return row.title
+  // Only the four relational line types reach here; nothing in the row names it.
+  const id = typeof row.id === 'string' ? row.id : ''
+  return id === '' ? type.label : `${type.label} ${id.slice(0, 8)}`
+}
+
 export interface PropertyDef {
   /** api name — a slug, unique within the type. Never changes when a shared
    *  property is attached; downstream workflows are bound to it. */
