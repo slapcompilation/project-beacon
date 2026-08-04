@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   authoredActionDescriptor, validateAuthoredAction, evaluateSubmissionCriteria,
-  SHIPPED_ACTION_NAMES, type AuthoredActionDef,
+  SHIPPED_ACTION_NAMES, parametersFromProperties, type AuthoredActionDef,
 } from './authored'
 
 const base: AuthoredActionDef = {
@@ -106,5 +106,56 @@ describe('evaluateSubmissionCriteria', () => {
   it('compares numbers written as strings, which is what a form yields', () => {
     expect(evaluateSubmissionCriteria([{ parameter: 'hours', operator: 'lte', value: 8 }], { hours: '4' }))
       .toEqual([])
+  })
+})
+
+describe('parametersFromProperties', () => {
+  // Foundry derives the form from the rule: "the Ticket and Priority parameter
+  // have already been created based by the Rule."
+  const props = [
+    { key: 'status',   label: 'Status',   type: 'text' as const,   required: true },
+    { key: 'priority', label: 'Priority', type: 'text' as const,   required: false },
+    { key: 'hours',    label: 'Hours',    type: 'number' as const, required: false },
+  ]
+
+  it('turns the properties an action modifies into its typed parameters', () => {
+    expect(parametersFromProperties(props, ['status', 'hours'])).toEqual([
+      { key: 'status', label: 'Status', type: 'text', required: true },
+      { key: 'hours', label: 'Hours', type: 'number', required: false },
+    ])
+  })
+
+  it('keeps the object type\'s own order, not the click order', () => {
+    expect(parametersFromProperties(props, ['hours', 'status']).map((p) => p.key))
+      .toEqual(['status', 'hours'])
+  })
+
+  it('ignores a key the type does not have', () => {
+    expect(parametersFromProperties(props, ['gone'])).toEqual([])
+  })
+})
+
+describe('submission criteria failure messages', () => {
+  it('uses the author\'s message when there is one', () => {
+    // "Add a failure message so users can see why an action has failed."
+    const [fail] = evaluateSubmissionCriteria(
+      [{ parameter: 'hours', operator: 'lte', value: 8, message: 'A shift cannot exceed 8 hours.' }],
+      { hours: 12 },
+    )
+    expect(fail.message).toBe('A shift cannot exceed 8 hours.')
+  })
+
+  it('falls back to a generated one, which states the rule but not the reason', () => {
+    const [fail] = evaluateSubmissionCriteria(
+      [{ parameter: 'hours', operator: 'lte', value: 8 }], { hours: 12 },
+    )
+    expect(fail.message).toMatch(/at most 8/)
+  })
+
+  it('uses the author\'s message for a missing value too', () => {
+    const [fail] = evaluateSubmissionCriteria(
+      [{ parameter: 'hours', operator: 'lte', value: 8, message: 'Hours are required.' }], {},
+    )
+    expect(fail.message).toBe('Hours are required.')
   })
 })

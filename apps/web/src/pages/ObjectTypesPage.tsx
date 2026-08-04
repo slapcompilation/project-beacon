@@ -32,6 +32,7 @@ import {
 import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
 } from '@/features/objectTypes/sharedProperties'
+import { ActionTypesSection } from '@/features/actionTypes/ActionTypesSection'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
@@ -97,6 +98,8 @@ export default function ObjectTypesPage() {
         {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
 
         <SharedPropertiesSection types={types} />
+
+        <ActionTypesSection types={types} />
 
         <InterfacesSection types={types} />
       </div>

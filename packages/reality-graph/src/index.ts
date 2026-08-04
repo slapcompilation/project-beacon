@@ -58,6 +58,7 @@ export type {
 // agents. A shipped action always wins a name collision.
 export {
   authoredActionDescriptor, validateAuthoredAction, evaluateSubmissionCriteria,
+  parametersFromProperties,
   SHIPPED_ACTION_NAMES,
 } from './actions/authored'
 export type {

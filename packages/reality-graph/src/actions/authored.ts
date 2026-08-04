@@ -44,6 +44,10 @@ export interface SubmissionCriterion {
   operator: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'non_empty'
   /** Absent for `non_empty`, which compares against nothing. */
   value?: string | number | boolean
+  /** Foundry: "add a failure message so users can see why an action has
+   *  failed." Falls back to a generated one, which states the rule but not the
+   *  reason behind it. */
+  message?: string
 }
 
 export interface AuthoredActionDef {
@@ -131,6 +135,19 @@ export function validateAuthoredAction(
   return errors
 }
 
+/** Foundry derives parameters from the rule: pick the properties an action
+ *  modifies and "the parameters have already been created based by the Rule".
+ *  So the composer picks properties, and this turns them into the action's
+ *  typed input rather than making anyone retype keys and types. */
+export function parametersFromProperties(
+  properties: ReadonlyArray<{ key: string; label: string; type: PropertyType; required: boolean }>,
+  chosenKeys: ReadonlyArray<string>,
+): AuthoredActionParameter[] {
+  return properties
+    .filter((p) => chosenKeys.includes(p.key))
+    .map((p) => ({ key: p.key, label: p.label, type: p.type, required: p.required }))
+}
+
 export interface CriterionFailure { parameter: string; message: string }
 
 /** Foundry: "actions can only be submitted if ALL the submission criteria are
@@ -145,7 +162,7 @@ export function evaluateSubmissionCriteria(
     const v = values[c.parameter]
     if (c.operator === 'non_empty') {
       if (v === null || v === undefined || v === '') {
-        out.push({ parameter: c.parameter, message: `${c.parameter} must be filled in` })
+        out.push({ parameter: c.parameter, message: c.message?.trim() || `${c.parameter} must be filled in` })
       }
       continue
     }
@@ -153,12 +170,18 @@ export function evaluateSubmissionCriteria(
     // A comparison against a missing value fails rather than passing silently —
     // an absent parameter is not evidence the condition holds.
     if (v === null || v === undefined) {
-      out.push({ parameter: c.parameter, message: `${c.parameter} is required by a submission criterion` })
+      out.push({
+        parameter: c.parameter,
+        message: c.message?.trim() || `${c.parameter} is required by a submission criterion`,
+      })
       continue
     }
     const ok = compare(v, c.operator, target)
     if (!ok) {
-      out.push({ parameter: c.parameter, message: `${c.parameter} must be ${readable(c.operator)} ${String(target)}` })
+      out.push({
+        parameter: c.parameter,
+        message: c.message?.trim() || `${c.parameter} must be ${readable(c.operator)} ${String(target)}`,
+      })
     }
   }
   return out
