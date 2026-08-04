@@ -581,6 +581,17 @@ Deno.serve(async (req: Request) => {
       rejected_entities: rejectedNames,
       ...(template.isBlank ? { blank_template: { score: template.score, signals: template.signals } } : {}),
     }
+
+    // The findings outlive this response. They describe the document, so they
+    // live on the document — a warning only the caller ever saw is a warning
+    // the documents list can never show.
+    await supabase.from('documents').update({
+      ingest_warnings: {
+        ...(template.isBlank ? { blankTemplate: { score: template.score, signals: template.signals } } : {}),
+        ...(rejectedNames.length > 0 ? { rejectedEntities: rejectedNames } : {}),
+      },
+    }).eq('id', body.document_id)
+
     return json(response)
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error'

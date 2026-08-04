@@ -32,10 +32,6 @@ data again.
 carry `status`, `visibility`, the deprecation record, the delete and rename
 guards and the cascade. Only object types have a UI for any of it.
 
-**Ingest signals.** `document-ingest` returns `blank_template` and
-`rejected_entities`; nothing displays either. A form that reaches the graph looks
-like evidence, and the signal that says otherwise is discarded.
-
 ---
 
 ## Property base types — the gap the media question exposed

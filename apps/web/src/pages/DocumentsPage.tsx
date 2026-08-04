@@ -163,6 +163,12 @@ function DocumentRowCard({ row }: { row: DocumentRow }) {
             <span>·</span>
             <span>{formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}</span>
             <PromoteToggle kind="document" id={row.id} />
+            {row.ingest_warnings?.blankTemplate && (
+              <Tag minimal intent={Intent.WARNING} icon="warning-sign" className="!text-[9px]"
+                title={row.ingest_warnings.blankTemplate.signals.join(' · ')}>
+                blank form
+              </Tag>
+            )}
           </div>
         </div>
         {row.page_count != null && (

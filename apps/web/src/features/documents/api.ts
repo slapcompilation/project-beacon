@@ -18,6 +18,15 @@ export interface DocumentChunk {
   text_preview: string
 }
 
+export interface IngestWarnings {
+  /** The document reads as an unfilled form. Its extracted facts are
+   *  illustrative — do not reconcile against them. */
+  blankTemplate?: { score: number; signals: string[] }
+  /** Names the model offered that identify nothing, with the reason each was
+   *  refused. A growing list means the extraction prompt is drifting. */
+  rejectedEntities?: string[]
+}
+
 export interface DocumentRow {
   id:                   string
   hotel_id:             string
@@ -33,6 +42,9 @@ export interface DocumentRow {
   chunks:               DocumentChunk[] | null
   sensitivity:          Sensitivity
   pii_types:            PIIType[]
+  /** Advisory findings from the last ingest (migration 338). NULL means never
+   *  ingested; {} means it came through clean. */
+  ingest_warnings:      IngestWarnings | null
   /** NULL once the uploader is deleted — the document outlives them (mig 231). */
   uploaded_by_user_id:  string | null
   created_at:           string

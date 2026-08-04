@@ -88,6 +88,14 @@ export default function DocumentObjectPage() {
                 PII: {row.pii_types.join(', ')}
               </Tag>
             )}
+            {/* A form that reaches the graph looks like evidence. This is the
+                one place that says otherwise before anyone reconciles against it. */}
+            {row.ingest_warnings?.blankTemplate && (
+              <Tag minimal intent={Intent.WARNING} icon="warning-sign"
+                title={row.ingest_warnings.blankTemplate.signals.join(' · ')}>
+                Reads as a blank form
+              </Tag>
+            )}
           </>
         ),
         id: row.id,
