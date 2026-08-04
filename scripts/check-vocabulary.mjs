@@ -170,9 +170,31 @@ for (const key of declared.keys()) {
   }
 }
 
+// ── The shipped-action collision list ───────────────────────────────────────
+// A vocabulary SQL holds as a copy, because a trigger cannot import the action
+// registry. It was written by hand once and was wrong immediately — twelve names
+// against a registry of forty-two, two of them misspellings — so thirty-two
+// shipped names were takeable by an authored action type. The TypeScript side is
+// derived now; this is what keeps the copy in step.
+const actionDrift = []
+try {
+  const { actionDescriptors } = await import('../supabase/functions/_shared/reality-graph.bundle.mjs')
+  const registry = Object.keys(actionDescriptors).sort()
+  const body = /shipped text\[\] := ARRAY\[([\s\S]*?)\]/.exec(fns.src)?.[1] ?? ''
+  const inSql = [...body.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]).sort()
+  if (inSql.length === 0) {
+    actionDrift.push('refuse_shipped_action_name has no name array — the collision guard is not deployed')
+  } else {
+    for (const n of registry) if (!inSql.includes(n)) actionDrift.push(`${n} is a shipped action an authored one could take`)
+    for (const n of inSql) if (!registry.includes(n)) actionDrift.push(`${n} is guarded but is not an action type`)
+  }
+} catch {
+  actionDrift.push('could not read the edge bundle — run `pnpm build:edge-bundle` first')
+}
+
 await client.end()
 
-if (dead.length === 0 && staleDeclarations.length === 0) {
+if (dead.length === 0 && staleDeclarations.length === 0 && actionDrift.length === 0) {
   const excluded = declarationFiles.length > 0
     ? ` · ${declarationFiles.length} declaration file(s) excluded` : ''
   console.log(`vocabulary OK — ${total} allowed value(s) across ${checks.length} constraint(s), every one consumed or declared${excluded}`)
@@ -189,6 +211,16 @@ if (dead.length > 0) {
 
     INSERT INTO shape_registry (object_kind, object_name, classification, reason)
     VALUES ('vocabulary', '<table>.<value>', 'intentional_unreachable', '<why>');`)
+}
+
+if (actionDrift.length > 0) {
+  console.error(`
+✗ the shipped-action collision guard disagrees with the registry:
+`)
+  for (const d of actionDrift) console.error(`    ${d}`)
+  console.error(`
+  SHIPPED_ACTION_NAMES is derived from actionDescriptors; the trigger's text[]
+  is a generated copy. Regenerate it in a new migration.`)
 }
 
 if (staleDeclarations.length > 0) {

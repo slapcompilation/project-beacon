@@ -116,6 +116,17 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 
 ---
 
+## Tenancy
+
+| | | source |
+|---|---|---|
+| **Theirs** | Two separate things. **Organizations and Markings are mandatory controls** — *"will always prevent an ineligible user from accessing a resource, regardless of the user's role"* — and are not properties or links. Everything else that relates two objects is a **link type** with a declared backing. | `mirror/security/projects-and-roles.md`, `mirror/object-link-types/` |
+| **Ours** | **Two** hardcoded tenant columns: `organization_id` on 52 tables and `hotel_id` on **89 of 120**, both enforced by RLS through `auth_org_id()` / `auth_hotel_id()`. |  |
+| **Why** | `organization_id` is the exact analogue of their Organization, and correct as a column. **`hotel_id` is doing two jobs**: it is a mandatory control *and* a domain relationship, because a property is both a security realm and a business object in hospitality. Foundry has no second tenant level, so there is nothing to copy. |
+| **Undo when** | Never for `organization_id`. For `hotel_id`, only if properties stop being a security boundary — which would mean a different product. **What should change is the honesty**: `belongs_to_hotel`, `belongs_to_org`, `manages` and `operates` were declared as edge types, and the database refuses all four (absent from the CHECK, zero rows). The relationship is real; the edge never was. |
+
+---
+
 ## Logic
 
 | | | source |

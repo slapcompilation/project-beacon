@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest'
+import { actionDescriptors } from './descriptors'
 import {
   authoredActionDescriptor, validateAuthoredAction, evaluateSubmissionCriteria,
   SHIPPED_ACTION_NAMES, parametersFromProperties, type AuthoredActionDef,
@@ -158,4 +159,15 @@ describe('submission criteria failure messages', () => {
     )
     expect(fail.message).toBe('Hours are required.')
   })
+})
+
+describe('the shipped-name collision guard', () => {
+  it('covers every action in the registry, not a hand-written subset', () => {
+    // Was twelve names against a registry of forty-two, two of them misspelled
+    // (CREATE_PURCHASE_ORDER, SUBMIT_INVOICE). Thirty-two shipped names were
+    // takeable by an authored action, including CREATE_PO and MATCH_INVOICE.
+    expect([...SHIPPED_ACTION_NAMES].sort()).toEqual(Object.keys(actionDescriptors).sort())
+    expect(SHIPPED_ACTION_NAMES.length).toBeGreaterThan(40)
+  })
+
 })

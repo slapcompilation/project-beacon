@@ -150,8 +150,11 @@ export type EdgeType =
   | 'causes' | 'caused_by' | 'triggered'
   // operational
   | 'consumes' | 'restocks' | 'fulfills' | 'transfers'
-  // organizational
-  | 'belongs_to_hotel' | 'belongs_to_org' | 'manages' | 'operates'
+  // NOTE: `belongs_to_hotel`, `belongs_to_org`, `manages` and `operates` were
+  // listed here and the database REFUSES them — they are absent from
+  // relationship_edges_edge_type_check and have zero rows. Tenancy is not an
+  // edge here; it is the hotel_id / organization_id columns, which is a
+  // deliberate divergence recorded in DIVERGENCES.md.
   // intelligence + learning
   | 'proposed_by' | 'approved_by' | 'reverts' | 'similar_to' | 'benchmarks'
   // documents + provenance

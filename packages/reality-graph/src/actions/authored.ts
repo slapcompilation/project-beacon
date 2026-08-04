@@ -24,7 +24,7 @@
 // An authored action edits `object_records`, which is the half of the ontology
 // that is already data.
 
-import type { ActionDescriptor, ActionField, InvocationMode } from './descriptors'
+import { actionDescriptors, type ActionDescriptor, type ActionField, type InvocationMode } from './descriptors'
 import type { PropertyType } from '../objectTypes/index'
 
 export type AuthoredActionOperation = 'create' | 'modify' | 'delete'
@@ -68,12 +68,15 @@ export interface AuthoredActionDef {
 
 /** Code-defined action names. An authored action may not take one — the same
  *  collision rule authored tools use, refused at authoring time so it surfaces
- *  instead of silently losing at dispatch. Mirrors the trigger in migration 333. */
-export const SHIPPED_ACTION_NAMES: ReadonlyArray<string> = [
-  'ADJUST_STOCK', 'REQUEST_RESTOCK', 'WRITE_OFF', 'APPROVE_RESTOCK', 'REJECT_RESTOCK',
-  'REVERT_ACTION', 'TRANSFER_STOCK', 'APPROVE_TRANSFER', 'RECEIVE_STOCK',
-  'CREATE_SUPPLIER', 'CREATE_PURCHASE_ORDER', 'SUBMIT_INVOICE',
-]
+ *  instead of silently losing at dispatch.
+ *
+ *  DERIVED, not listed. The first version of this was a hand-written array of
+ *  twelve. The registry has forty-two, and two of the twelve were names that do
+ *  not exist (`CREATE_PURCHASE_ORDER`, `SUBMIT_INVOICE` — the real ones are
+ *  `CREATE_PO` and `SUBMIT_PO_INVOICE`), so the guard protected ten and left
+ *  thirty-two takeable. A list that restates a registry drifts from it; this one
+ *  cannot. */
+export const SHIPPED_ACTION_NAMES: ReadonlyArray<string> = Object.keys(actionDescriptors)
 
 const FIELD_KIND: Record<PropertyType, ActionField['kind']> = {
   text: 'string', number: 'number', boolean: 'enum', date: 'date',
