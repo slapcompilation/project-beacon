@@ -80,7 +80,19 @@ export const SHIPPED_ACTION_NAMES: ReadonlyArray<string> = Object.keys(actionDes
 
 const FIELD_KIND: Record<PropertyType, ActionField['kind']> = {
   text: 'string', number: 'number', boolean: 'enum', date: 'date',
+  // Foundry renders a media reference parameter as a File picker with
+  // drag-and-drop (`mirror/media-sets-advanced-formats/upload-media.md`). We have
+  // no file field kind, so it takes a path as text — the divergence is recorded.
+  media_reference: 'string',
+  // Never reached: a vector is filtered out below. Present because the Record is
+  // exhaustive, which is what made this decision surface at all.
+  vector: 'string',
 }
+
+/** An embedding is written by the pipeline, never by a person, so it is not a
+ *  form field at any width. Filtered rather than rendered read-only, because a
+ *  disabled box of 1,536 floats is worse than no box. */
+const isEnterable = (p: AuthoredActionParameter): boolean => p.type !== 'vector'
 
 /** An authored action rendered as an ActionDescriptor, so `ActionFormModal`
  *  draws it with no idea it wasn't shipped in code — the same trick
@@ -92,7 +104,7 @@ export function authoredActionDescriptor(def: AuthoredActionDef): ActionDescript
     description: def.description || `${def.operation} a ${'record'}`,
     approvalTier: def.approvalTier,
     // A delete needs no parameters — the record id is context.
-    fields: def.operation === 'delete' ? [] : def.parameters.map((p): ActionField => ({
+    fields: def.operation === 'delete' ? [] : def.parameters.filter(isEnterable).map((p): ActionField => ({
       name: p.key,
       label: p.label,
       kind: FIELD_KIND[p.type],

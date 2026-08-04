@@ -34,33 +34,19 @@ guards and the cascade. Only object types have a UI for any of it.
 
 ---
 
-## Property base types — the gap the media question exposed
+## Property base types — partly closed
 
-Our `PropertyType` is four values: `text | number | boolean | date`. Foundry's
-base types include those plus **Vector, Geopoint, Geoshape, Attachment, Time
-series, Geotemporal series, Media reference, Cipher text and Struct**
-(`mirror/object-link-types/base-types.md`).
+`media_reference` and `vector` shipped (migration 339) with Foundry's title-key
+rule: neither may title a record. The remaining seven — Geopoint, Geoshape,
+Attachment, Time series, Geotemporal series, Cipher text, Struct — have no
+consumer here. Geopoint is the likeliest next, since hotels already carry
+coordinates in `hotels.config` jsonb.
 
-Two of those are load-bearing for work already half-built here:
-
-**Media reference.** *"A media reference property type allows you to have media on
-your objects... points to a specific media item within a media set. The media
-reference contains information about the media file, which means Foundry can
-display the media wherever the media reference is used."* `documents` carries
-`storage_path` and `bucket_name` as plain text — a media reference in everything
-but type, which is why nothing can render a source document beside a chunk.
-
-It is also where document processing *belongs*: `mirror/media-sets-advanced-formats/media-in-ontology.md`
-says OCR, text extraction, audio transcription and metadata reads are
-**operations on the media reference**, performed in functions on objects. Ours
-live inside one `document-ingest` edge function instead.
-
-**Vector**, *"for storing vectors on objects for use in a semantic search"* — our
-chunk embeddings sit in a column the ontology does not know about.
-
-Neither is queued. Both are recorded because the ontology-augmented-generation
-chain (chunk object → media reference property → semantic search → PDF viewer)
-needs the property types before the widget is worth building.
+**What the two unblock, and what still stands in the way.** The OAG chain is
+chunk object → media reference property → semantic search → PDF viewer. The
+property types exist now; `documents.storage_path` and
+`document_chunks.embedding` still need to be *registered as* those properties on
+their built-in types, and there is no viewer widget. Neither is queued.
 
 ## Parity gaps, found and not yet argued
 

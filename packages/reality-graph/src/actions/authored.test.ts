@@ -171,3 +171,24 @@ describe('the shipped-name collision guard', () => {
   })
 
 })
+
+describe('the new base types in an action form', () => {
+  it('never offers a vector as a field — an embedding is not typed by a person', () => {
+    const d = authoredActionDescriptor({
+      ...base,
+      parameters: [
+        { key: 'note', label: 'Note', type: 'text', required: false },
+        { key: 'emb', label: 'Embedding', type: 'vector', required: false },
+      ],
+    })
+    expect(d.fields.map((f) => f.name)).toEqual(['note'])
+  })
+
+  it('takes a media reference as text, since there is no file picker yet', () => {
+    const d = authoredActionDescriptor({
+      ...base,
+      parameters: [{ key: 'scan', label: 'Scan', type: 'media_reference', required: true }],
+    })
+    expect(d.fields[0].kind).toBe('string')
+  })
+})

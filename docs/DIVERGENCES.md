@@ -116,6 +116,24 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 
 ---
 
+## Property base types
+
+| | | source |
+|---|---|---|
+| **Theirs** | Fifteen base types, including Vector, Geopoint, Geoshape, Attachment, Time series, Geotemporal series, Media reference, Cipher text and Struct. | `mirror/object-link-types/base-types.md` |
+| **Ours** | Six: text, number, boolean, date, media_reference, vector. | migration 339 |
+| **Why** | The two advanced ones added have consumers — a chunk needs a vector to be searched, a document needs a media reference to be shown beside the chunk citing it. The other seven have none, and a base type nobody stores is the dead vocabulary the guards keep removing. Their **title-key rule is adopted exactly**: neither may title a record. |
+| **Undo when** | Per type, on demand. Geopoint is the likeliest next — hotels already carry coordinates in `hotels.config` jsonb. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | A media reference action parameter renders as a **File picker** with drag-and-drop, and media uploads only commit to the media set on successful submission, so a cancelled form leaves no orphan. | `mirror/media-sets-advanced-formats/upload-media.md`, `media-in-ontology.md` |
+| **Ours** | The parameter takes a path as text. | migration 339 |
+| **Why** | `ActionFieldKind` has no file kind, and adding one means an upload widget, a staging area and the orphan guarantee — a feature, not a field. |
+| **Undo when** | Documents are uploaded through an action rather than the documents page. Then the file picker and the commit-on-submit rule land together, because the second is what makes the first safe. |
+
+---
+
 ## Tenancy
 
 | | | source |

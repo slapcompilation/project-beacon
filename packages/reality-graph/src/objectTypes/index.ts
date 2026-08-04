@@ -10,14 +10,29 @@
 
 import type { Deprecation, OntologyStatus, OntologyVisibility } from '../ontology/status'
 
-export type PropertyType = 'text' | 'number' | 'boolean' | 'date'
+export type PropertyType =
+  | 'text' | 'number' | 'boolean' | 'date'
+  // Foundry's advanced base types. Two of the nine, because two have consumers:
+  // a chunk needs a vector to be searched, and a document needs a media
+  // reference to be shown beside the chunk that cites it.
+  | 'media_reference' | 'vector'
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string }[] = [
   { value: 'text',    label: 'Text',    help: 'Free text — names, notes, descriptions.' },
   { value: 'number',  label: 'Number',  help: 'A numeric value.' },
   { value: 'boolean', label: 'Yes / No', help: 'A true/false flag.' },
   { value: 'date',    label: 'Date',    help: 'A calendar date.' },
+  { value: 'media_reference', label: 'Media', help: 'A file — a PDF, image or recording. Points at the stored item rather than copying it.' },
+  { value: 'vector',  label: 'Vector',  help: 'An embedding, for semantic search. Stored, never typed by hand.' },
 ]
+
+/** Foundry: Media Reference, Vector, Time Series, Geotemporal Series, Attachment,
+ *  Geoshape, Struct and Marking are valid as NEITHER title key NOR primary key
+ *  (`mirror/object-link-types/properties-overview.md`). Of the two we have, both
+ *  are in that set — a title is something a person reads, and neither is. */
+export const TITLE_KEY_INELIGIBLE: ReadonlyArray<PropertyType> = ['media_reference', 'vector']
+
+export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE.includes(t)
 
 export interface PropertyDef {
   /** api name — a slug, unique within the type. Never changes when a shared
@@ -284,6 +299,12 @@ export function validateRecord(properties: PropertyDef[], draft: RecordDraft): V
     if (p.type === 'boolean' && typeof raw !== 'boolean') errors.push(`${p.label} must be true or false.`)
     if (p.type === 'date' && !(typeof raw === 'string' && !Number.isNaN(Date.parse(raw)))) errors.push(`${p.label} must be a valid date.`)
     if (p.type === 'text' && typeof raw !== 'string') errors.push(`${p.label} must be text.`)
+    if (p.type === 'media_reference' && !(typeof raw === 'string' && raw.includes('/'))) {
+      errors.push(`${p.label} must point at a stored file, as bucket/path.`)
+    }
+    if (p.type === 'vector' && !Array.isArray(raw)) {
+      errors.push(`${p.label} is an embedding — it is written by the pipeline, not entered.`)
+    }
   }
   return { ok: errors.length === 0, errors }
 }
@@ -303,5 +324,15 @@ export function coerceValue(type: PropertyType, raw: unknown): unknown {
       return typeof raw === 'string' && !Number.isNaN(Date.parse(raw)) ? raw : null
     case 'text':
       return typeof raw === 'string' ? raw : String(raw)
+    // A media reference is a POINTER, not the file: "media references enable you
+    // to use a media item in Foundry without having to make copies of the media
+    // item itself." Ours is `bucket/path`, which is what the storage client takes.
+    case 'media_reference':
+      return typeof raw === 'string' && raw.includes('/') ? raw : null
+    // A vector is written by an embedder, never typed. Accept an array of finite
+    // numbers and nothing else, so a stray string cannot poison a search index.
+    case 'vector':
+      return Array.isArray(raw) && raw.every((n) => typeof n === 'number' && Number.isFinite(n))
+        ? raw : null
   }
 }
