@@ -123,9 +123,16 @@ vocabulary. `ontology_drift.sql` already reports them and `reap_ontology_orphans
 already removes them, deliberately as an explicit decision — *"entities are
 vocabulary: reaping is a decision, not a background sweep."* Working as designed.
 
-**Track E is unblocked.** The contract *and* an invoice are both ingested and
-contextualized. `CONTRACT-MODEL.md` says it is "waiting on a real invoice/PO";
-it is not waiting any more.
+**Track E is NOT unblocked — corrected same day.** The contract is real; the
+invoice is a **blank template**. Its "From:" block is five empty field labels
+(Όνομα / Επωνυμία / Διεύθυνση / Πόλη / Τ.Κ.) and its two lines are Είδος 1 and
+Είδος 2 — "Item 1" and "Item 2", which is where four of the junk entities above
+came from. No supplier, no real line items, nothing to reconcile.
+
+Which is the third time `CONTRACT-MODEL.md`'s finding has held — *"the shape is
+legible, the data is not there"* — so it is now a check: `detectBlankTemplate`
+flags an unfilled form at ingest. A signal, not a gate; keeping a template is
+legitimate, looking like evidence is not.
 
 Original table kept for the stage-by-stage spec, which is still the reference:
 

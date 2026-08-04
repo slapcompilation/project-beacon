@@ -524,6 +524,11 @@ export type {
   OntologyStatusFields,
 } from './ontology/status'
 
+// Is this a filled-in document or a blank form? A form that reaches the graph
+// looks like evidence and is not.
+export { detectBlankTemplate } from './documents/blankTemplate'
+export type { TemplateVerdict } from './documents/blankTemplate'
+
 // An extracted entity's name is its identity — so it has to name something.
 export { checkEntityName, isNameableEntity, ENTITY_CATEGORIES } from './documents/entityNames'
 export type { EntityCategory, EntityNameVerdict } from './documents/entityNames'

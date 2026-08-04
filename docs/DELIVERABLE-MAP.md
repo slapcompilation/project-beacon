@@ -276,16 +276,49 @@ Remaining: Track 3 — the document copilot (P9) and the Search-Around graph (P1
 
 ---
 
-## 6. Track E — contract reconciliation — UNBLOCKED
+## 6. Track E — contract reconciliation — STILL BLOCKED
 
-`CONTRACT-MODEL.md` says the reconciliation half "needs a real invoice or PO".
-**It has one.** `Τιμολόγιο INV11122` is ingested, chunked, embedded and
-contextualized alongside the ΗΛΙΑΚΤΙΔΑ contract it belongs to. Both sit at
-Valinor.
+**I said this was unblocked one commit ago. It is not, and the correction
+matters because it changes what to build.** INV11122 is a **blank template**:
 
-So E is no longer waiting on an input from outside the codebase — it is waiting
-on the reconciliation logic, which is ordinary work: match invoice lines to
-contract terms, flag price and quantity variance, cite the clause.
+```
+Από:                          Περιγραφή | Ποσότητα | Τιμή μονάδας | Ποσό
+Όνομα                         Είδος 1   | 1        | €200.00      | €200.00
+Επωνυμία                      Είδος 2   | 2        | €500.00      | €1,000.00
+Διεύθυνση
+Πόλη
+```
+
+"From:" is five empty field labels. The lines are *Item 1* and *Item 2* — which
+is where four of the junk entities in track D came from. There is **no supplier
+name and no real line item**, so the resolution path this doc already specifies —
+*supplier name on the invoice → supplier entity → the agreement in force* — has
+nothing to resolve.
+
+The other half is blocked on the same class of gap: `supplier_contracts = 0`, and
+that table is **per-variant** (`variant_id NOT NULL`, a contracted price per
+variant). Typing the ΗΛΙΑΚΤΙΔΑ contract needs ΗΛΙΑΚΤΙΔΑ to be one of Valinor's
+suppliers and its bakery goods to be variants Valinor stocks. Neither is true —
+Valinor is a hotel bar.
+
+`CONTRACT-MODEL.md` reached this conclusion twice already, for quotes: *"the
+shape is legible, the data is not there."* This is the third time, which is why
+it became a check rather than a note — see below.
+
+### What would unblock it
+
+One invoice that is **filled in**, from a supplier the system stocks, for
+variants it carries. Specifically it must carry: a supplier name in the From
+block, line descriptions that name real products, and quantities and unit prices
+that are not specimen values. Everything downstream is then ordinary work.
+
+### What shipped instead
+
+`detectBlankTemplate` — ingestion now says so when a document is an unfilled
+form. INV11122 passed every stage gate, because gates ask "did this stage produce
+output" and forms produce output fine. It cost an LLM pass, five junk entities,
+and a reconciliation cycle that could not be verified. A signal rather than a
+gate: storing a template is legitimate, looking like evidence is not.
 
 ---
 
@@ -315,9 +348,10 @@ Small, independent, each fixing something that lets a defect through.
    and is still blocked on properties becoming rows — see §3.
 6. ~~**D**~~ ✅ Tracks 1–2 — already run on real documents; the fix was extraction
    quality. Track 3 (doc copilot, graph) remains.
-7. **E** — contract reconciliation. **No longer blocked** — the contract and the
-   invoice are both ingested. ← next
-8. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
+7. **E** — contract reconciliation. **Still blocked**: the sample invoice is a
+   blank form. Needs one filled-in invoice from a stocked supplier. Ingestion now
+   detects the blank-form case rather than treating it as evidence.
+8. **A4/B4** — the filesystem and resource-level roles, when someone needs them. ← next
 
 Then, by explicit instruction, the three items under *"What is deliberately not
 here"* — Workshop G2–G4, the visual logic canvas editor, and user-authored

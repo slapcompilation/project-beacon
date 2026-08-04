@@ -26,7 +26,7 @@ import mammoth from 'https://esm.sh/mammoth@1.8.0'
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 import { json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
-import { scanForPII, sensitivityFromPII, checkEntityName } from '../_shared/reality-graph.bundle.mjs'
+import { scanForPII, sensitivityFromPII, checkEntityName, detectBlankTemplate } from '../_shared/reality-graph.bundle.mjs'
 
 interface IngestRequest {
   document_id: string
@@ -66,6 +66,9 @@ interface IngestResponse {
   /** Entity names the model offered that identify nothing, with the reason.
    *  Empty is the healthy case; a growing list means the prompt is drifting. */
   rejected_entities: string[]
+  /** Set when the document reads as an unfilled form. Its extracted facts are
+   *  illustrative — do not reconcile against them. */
+  blank_template?: { score: number; signals: string[] }
 }
 
 const MODEL         = 'claude-haiku-4-5-20251001'
@@ -435,6 +438,13 @@ Deno.serve(async (req: Request) => {
       return gateFail('embedded.sensitivity_marked', `Sensitivity marking failed: ${markErr.message}`, 'ocr', 502)
     }
 
+    // 5c. Is this a filled-in document or a blank form? INV11122 went all the
+    //     way to `contextualized` with no supplier, no customer and two lines
+    //     called "Item 1" and "Item 2" — every gate passed, because a form
+    //     produces output fine. A signal, not a gate: keeping the template is
+    //     legitimate, looking like evidence is not.
+    const template = detectBlankTemplate(pages.map((p) => p.text).join('\n'))
+
     // 6. cited_in provenance: document -> chunk, page-level (P4). Part of the
     //    'embedded' contract — search results must be traceable to a page.
     const { data: storedChunks, error: chunkSelErr } = await supabase
@@ -569,6 +579,7 @@ Deno.serve(async (req: Request) => {
       tokens_used: tokensUsed,
       stage,
       rejected_entities: rejectedNames,
+      ...(template.isBlank ? { blank_template: { score: template.score, signals: template.signals } } : {}),
     }
     return json(response)
   } catch (err) {
