@@ -750,6 +750,23 @@ function RecordLinks({ recordId, linkTypes, hotelId }: { recordId: string; linkT
 }
 
 function PropertyInput({ p, value, onChange }: { p: PropertyDef; value: unknown; onChange: (v: unknown) => void }) {
+  // An embedding is written by the pipeline. Showing an editable box would invite
+  // someone to type into a search index.
+  if (p.type === 'vector') {
+    const dims = Array.isArray(value) ? value.length : 0
+    return (
+      <Tag minimal icon="array-numeric" className="!text-[10px]">
+        {dims > 0 ? `${String(dims)}-dimension embedding` : 'set when the document is processed'}
+      </Tag>
+    )
+  }
+  if (p.type === 'media_reference') {
+    return (
+      <InputGroup value={typeof value === 'string' ? value : ''} placeholder="bucket/path/to/file"
+        leftIcon="paperclip" className="flex-1"
+        onChange={(e) => { onChange(e.currentTarget.value) }} />
+    )
+  }
   if (p.type === 'boolean') return <Switch checked={value === true} onChange={() => { onChange(value !== true) }} className="mb-0" />
   if (p.type === 'number') return <NumericInput value={typeof value === 'number' ? value : ''} onValueChange={(v) => { onChange(Number.isFinite(v) ? v : null) }} buttonPosition="none" style={{ width: 140 }} />
   if (p.type === 'date') return <InputGroup type="date" value={typeof value === 'string' ? value : ''} onChange={(e) => { onChange(e.currentTarget.value) }} />
@@ -761,5 +778,8 @@ function formatVal(v: unknown): string {
   if (typeof v === 'boolean') return v ? 'Yes' : 'No'
   if (typeof v === 'number') return String(v)
   if (typeof v === 'string') return v
+  // A vector reads as its shape, never its contents — 1,536 floats in a table
+  // cell is noise that hides every other value in the row.
+  if (Array.isArray(v)) return `${String(v.length)} dimensions`
   return '—'
 }

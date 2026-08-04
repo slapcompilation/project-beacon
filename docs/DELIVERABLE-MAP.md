@@ -42,11 +42,16 @@ Attachment, Time series, Geotemporal series, Cipher text, Struct — have no
 consumer here. Geopoint is the likeliest next, since hotels already carry
 coordinates in `hotels.config` jsonb.
 
-**What the two unblock, and what still stands in the way.** The OAG chain is
-chunk object → media reference property → semantic search → PDF viewer. The
-property types exist now; `documents.storage_path` and
-`document_chunks.embedding` still need to be *registered as* those properties on
-their built-in types, and there is no viewer widget. Neither is queued.
+**The OAG chain** is chunk object → media reference property → semantic search →
+PDF viewer. The first three are done: `document.storage_path` is registered as a
+media reference and `chunk.embedding` as a vector (migration 340), so the
+ontology now knows a document has a file and a chunk has an embedding.
+
+**What is left is the viewer.** Foundry documents `workshop/widgets-pdf-viewer`,
+which renders the source beside the result — *"source-of-truth cross-validation
+for the users"*. Not queued: it is one more Workshop widget, demand-gated like
+the rest, and worth building when somebody is actually reading contracts against
+chunks.
 
 ## Parity gaps, found and not yet argued
 
