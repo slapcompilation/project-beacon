@@ -206,7 +206,26 @@ test('an admin publishes a module to the portal and takes it back down', async (
   await page.getByRole('button', { name: 'Publish', exact: true }).click()
   const dialog = page.getByRole('dialog')
   await dialog.getByPlaceholder('inventory, daily').fill('inventory, e2e')
-  await dialog.getByRole('button', { name: /^Publish/ }).click()
+
+  // A thumbnail is required before an app can be promoted — Foundry lists it as
+  // required metadata alongside Name, Icon and Collections, with Description the
+  // only optional one (mirror/app-building/curating-apps.md). So the test has to
+  // supply one; the file input is hidden behind an Upload button, and
+  // setInputFiles drives it directly.
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: 'thumb.png',
+    mimeType: 'image/png',
+    // Smallest valid PNG: a 1x1 transparent pixel.
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+      'base64'),
+  })
+  // Upload is asynchronous; the button only enables once the URL comes back.
+  await expect(dialog.getByRole('button', { name: 'Replace' })).toBeVisible({ timeout: 30_000 })
+
+  const submit = dialog.getByRole('button', { name: /^Publish/ })
+  await expect(submit).toBeEnabled({ timeout: 30_000 })
+  await submit.click()
   await expect(dialog).toBeHidden({ timeout: 30_000 })
 
   // It is now findable by somebody who never knew the URL.
