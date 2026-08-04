@@ -524,6 +524,12 @@ export type {
   OntologyStatusFields,
 } from './ontology/status'
 
+// Shared properties — one definition reused across object types (gap 3).
+export {
+  resolveProperty, resolveProperties, attachProblem, usedBy, INHERITED_FIELDS,
+} from './objectTypes/sharedProperties'
+export type { SharedPropertyDef, ResolvedProperty } from './objectTypes/sharedProperties'
+
 export { runIntelligenceCycle } from './cycles/intelligenceCycle'
 export type {
   IntelligenceCycleDeps,

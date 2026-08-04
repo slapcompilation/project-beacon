@@ -193,19 +193,33 @@ open two gaps that are closed:
 
 Remaining, in order:
 
-### B1 — Shared properties
+### B1 — Shared properties ✅ SHIPPED (migration 329)
 
-Gap 3. Every object type redefines `room`, `cost`, `reported_on` independently
-(`object-link-types/create-shared-property.md`). Centralised property metadata
-with a consistency guarantee. **The highest-value ontology item left**, because
-it is the one that stops drift rather than describing it.
+`shared_properties`, one definition reused across object types. Metadata is
+shared, data is not — "while property metadata is shared across object types, the
+underlying object data is not". A property's **api name never changes** when
+attached, because downstream workflows are bound to it, and inherited fields go
+read-only, which is the entire point: an editable copy is the drift.
 
-### B2 — Property-level status
+**The gap was real; the drift it predicted was not.** Measured first: 84
+duplicated property definitions, and every one agrees on type and label. They all
+sit on built-in registrations, which `ontology_drift.sql` already holds to their
+backing tables — so the guard exists for the half that cannot drift, and authored
+types are the half with no guarantee. Landed ahead of its consumer under the
+stage directive's rule for Foundry's shapes, cited.
 
-Recorded as a divergence today: properties are jsonb on their object type, so
-they carry the type's status rather than one each. Foundry gives each property
-its own, with bulk edit. **Blocked on properties becoming rows**, which is B1's
-natural byproduct — do them together or not at all.
+### B2 — Property-level status — NOT unblocked by B1, contrary to this map
+
+This entry claimed properties becoming rows was "B1's natural byproduct". It is
+not. `shared_properties` is its own table; object-type properties stay jsonb, and
+a shared property is a *reference* from inside that jsonb. Nothing about B1 moved
+properties into rows.
+
+So per-property status stays blocked on the same thing it was blocked on, and the
+divergence in `DIVERGENCES.md` stands: properties carry their object type's
+status. Making them rows is a large migration touching every reader of
+`object_types.properties`, and it needs its own argument rather than being
+smuggled in as a byproduct.
 
 ### B3 — Interfaces, continued
 
@@ -276,8 +290,9 @@ Small, independent, each fixing something that lets a defect through.
    findability.
 4. ~~**A2**~~ ✅ — `resource_status`, migrations 327/328. Promotion is its own
    axis, with the search boost, the checkmark and the catalog.
-5. **B1 + B2** — shared properties, with property status falling out of it. ← next
-6. **D** — ingestion stages, which also unblocks **E** for when the contract lands.
+5. ~~**B1**~~ ✅ — shared properties, migration 329. **B2 did not fall out of it**
+   and is still blocked on properties becoming rows — see §3.
+6. **D** — ingestion stages, which also unblocks **E** for when the contract lands. ← next
 7. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
 
 Then, by explicit instruction, the three items under *"What is deliberately not

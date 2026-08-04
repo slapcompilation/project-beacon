@@ -80,11 +80,28 @@ Authored **agents** need no equivalent change: `user_agents` has no subject colu
 an agent reaches the ontology through its toolset. Giving agents authored tools (below) is
 therefore what makes agents interface-aware.
 
-## Gap 3 — no shared properties
+## Gap 3 — no shared properties — CLOSED (#, migration 329)
 
 Every object type redefines `room`, `cost`, `reported_on` independently. No centralized
 property metadata, no consistency guarantee across types
 (`object-link-types/create-shared-property.md`).
+
+**The gap was real; the drift it predicted was not.** Measured before building:
+`created_at` is defined on **30** object types, `notes` on 13, `status` on 11,
+`name` on 9 — 84 duplicated definitions in all. Every one agrees on base type
+*and* label. `distinct_types = 1` across the board.
+
+The reason is that all 84 sit on **built-in** registrations, which are code-owned
+and already held to their backing tables by `ontology_drift.sql`. So the guard
+that would have caught drift exists — for the half of the ontology that cannot
+drift. Authored types are the half with no guarantee, and they are where shared
+properties apply.
+
+**Which means this landed ahead of its consumer, deliberately.** The stage
+directive allows exactly that: *"Shape that mirrors Foundry may land ahead of its
+consumer... ours needs a consumer today. Theirs needs a citation."* This is
+theirs, cited. Seeding the built-ins to use it would have been the wrong move —
+it would fight the drift test that already governs them.
 
 ## Gap 4 — object sets exist but are dead code — CLOSED (#418, then re-derived)
 

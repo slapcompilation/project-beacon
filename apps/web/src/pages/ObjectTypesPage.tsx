@@ -13,7 +13,7 @@ import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
   ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES, STATUS_META, VISIBILITY_META, statusChangeProblem,
-  promotionEffects,
+  promotionEffects, attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
   type OntologyStatus, type OntologyVisibility, type OntologyStatusMeta,
@@ -29,6 +29,9 @@ import {
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
   useSetObjectTypeStatus, usePromotions, useSetPromotion,
 } from '@/features/objectTypes/hooks'
+import {
+  useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
+} from '@/features/objectTypes/sharedProperties'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
@@ -93,9 +96,93 @@ export default function ObjectTypesPage() {
 
         {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
 
+        <SharedPropertiesSection types={types} />
+
         <InterfacesSection types={types} />
       </div>
     </div>
+  )
+}
+
+/** One definition of `cost`, used by several object types. Foundry: "update
+ *  metadata in one place instead of on each object type" — so editing here moves
+ *  every type that inherits it, which is the whole point and worth showing. */
+function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
+  const { data: defs = [] } = useSharedProperties()
+  const create = useCreateSharedProperty()
+  const del = useDeleteSharedProperty()
+  const [label, setLabel] = useState('')
+  const [description, setDescription] = useState('')
+  const [baseType, setBaseType] = useState<PropertyType>('text')
+  const apiName = toSlug(label)
+
+  return (
+    <section className="space-y-2 border-t pt-5">
+      <div className="flex items-center gap-2">
+        <Icon icon="globe" size={14} className="text-violet-500" />
+        <h2 className="text-sm font-semibold">Shared properties</h2>
+        <Tag minimal className="!text-[10px]">{defs.length}</Tag>
+      </div>
+      <p className="text-[11px] text-muted-foreground max-w-2xl">
+        One definition used by several object types. The metadata is shared — the data is not;
+        each type still stores its own values. Editing a definition moves every property that
+        inherits from it.
+      </p>
+
+      <Card compact className="flex flex-wrap items-end gap-2">
+        <label className="flex flex-col gap-1 flex-1 min-w-40">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</span>
+          <InputGroup size="small" value={label} placeholder="Cost"
+            onChange={(e) => { setLabel(e.currentTarget.value) }} />
+        </label>
+        <label className="flex flex-col gap-1 flex-1 min-w-56">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</span>
+          <InputGroup size="small" value={description} placeholder="What it cost us, in the property currency"
+            onChange={(e) => { setDescription(e.currentTarget.value) }} />
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Base type</span>
+          <HTMLSelect value={baseType} onChange={(e) => { setBaseType(e.currentTarget.value as PropertyType) }}>
+            {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </HTMLSelect>
+        </label>
+        <Button size="small" icon="add" intent={Intent.PRIMARY} loading={create.isPending}
+          disabled={!apiName || defs.some((d) => d.apiName === apiName)}
+          onClick={() => {
+            create.mutate({ apiName, label: label.trim(), description: description.trim(), baseType },
+              { onSuccess: () => { setLabel(''); setDescription('') } })
+          }}>
+          Create
+        </Button>
+      </Card>
+
+      {defs.length > 0 && (
+        <Card compact className="!p-0">
+          <ul className="divide-y divide-border/30">
+            {defs.map((d) => {
+              const consumers = usedBy(d.apiName, types)
+              return (
+                <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
+                  <Icon icon="globe" size={11} className="text-violet-500 shrink-0" />
+                  <span className="font-medium">{d.label}</span>
+                  <span className="font-mono text-[10px] text-muted-foreground">{d.apiName}</span>
+                  <Tag minimal className="!text-[9px]">{d.baseType}</Tag>
+                  <span className="flex-1 truncate text-muted-foreground">{d.description}</span>
+                  <Tag minimal intent={consumers.length > 0 ? Intent.PRIMARY : Intent.NONE} className="!text-[9px]"
+                    title={consumers.map((t) => t.label).join(', ') || 'Not used by any object type yet'}>
+                    {consumers.length} type{consumers.length === 1 ? '' : 's'}
+                  </Tag>
+                  <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
+                    disabled={consumers.length > 0}
+                    title={consumers.length > 0 ? `Used by ${consumers.map((t) => t.label).join(', ')} — detach it there first.` : undefined}
+                    onClick={() => { del.mutate(d.id) }} />
+                </li>
+              )
+            })}
+          </ul>
+        </Card>
+      )}
+    </section>
   )
 }
 
@@ -432,15 +519,21 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
   const [label, setLabel] = useState(type.label)
   const [icon, setIcon] = useState<IconName>(type.icon as IconName)
   const [description, setDescription] = useState(type.description)
+  const sharedMap = useSharedPropertyMap()
   const [props, setProps] = useState<(PropertyDef & { isNew?: boolean })[]>(type.properties)
   const [computed, setComputed] = useState<ComputedRow[]>(
     type.computedProperties.map((c) => ({ label: c.label, fn: c.fn, inputs: c.inputs })),
   )
   const [viewConfig, setViewConfig] = useState<ViewConfigDef>(type.viewConfig)
 
+  // `shared` travels with the property — dropping it here would silently detach
+  // every inheriting property on the next save.
   const properties: PropertyDef[] = props
     .filter((p) => p.label.trim())
-    .map((p) => ({ key: p.isNew ? toSlug(p.label) : p.key, label: p.label.trim(), type: p.type, required: p.required }))
+    .map((p) => ({
+      key: p.isNew ? toSlug(p.label) : p.key, label: p.label.trim(),
+      type: p.type, required: p.required, shared: p.shared ?? null,
+    }))
   const computedProperties: ComputedPropertyDef[] = computed
     .filter((c) => c.label.trim())
     .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
@@ -488,16 +581,35 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
 
       <div className="space-y-1.5">
         <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
-        {props.map((p, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <InputGroup size="small" value={p.label} onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
-            <HTMLSelect value={p.type} onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
-              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </HTMLSelect>
-            <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
-            <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
-          </div>
-        ))}
+        {props.map((p, i) => {
+          const def = p.shared ? sharedMap.get(p.shared) : undefined
+          // "Direct edits to property metadata that is inherited from the shared
+          // property will be disabled." An editable copy is the drift this exists
+          // to remove. `required` stays the object type's to decide.
+          return (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              {def && <Icon icon="globe" size={12} className="text-violet-500 shrink-0" title={`Inherits from "${def.apiName}"`} />}
+              <InputGroup size="small" value={def?.label ?? p.label} disabled={!!def}
+                onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
+              <HTMLSelect value={def?.baseType ?? p.type} disabled={!!def}
+                onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
+                {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </HTMLSelect>
+              <HTMLSelect value={p.shared ?? ''} title="Inherit this property's metadata from a shared definition"
+                onChange={(e) => { setProp(i, { shared: e.currentTarget.value || null }) }}>
+                <option value="">Not shared</option>
+                {[...sharedMap.values()].map((d) => (
+                  <option key={d.apiName} value={d.apiName}
+                    disabled={!!attachProblem({ ...p, key: p.key || 'x' }, d)}>
+                    {d.label} ({d.baseType})
+                  </option>
+                ))}
+              </HTMLSelect>
+              <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
+              <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
+            </div>
+          )
+        })}
         <Button variant="minimal" size="small" icon="add"
           onClick={() => { setProps((cur) => [...cur, { key: '', label: '', type: 'text', required: false, isNew: true }]) }}>
           Add property

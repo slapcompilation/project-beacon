@@ -20,11 +20,18 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string 
 ]
 
 export interface PropertyDef {
-  /** api name — a slug, unique within the type. */
+  /** api name — a slug, unique within the type. Never changes when a shared
+   *  property is attached; downstream workflows are bound to it. */
   key: string
   label: string
   type: PropertyType
   required: boolean
+  /** api_name of the shared property this inherits its metadata from, if any.
+   *  See sharedProperties.ts — attached, label/type/description/visibility come
+   *  from the definition and are not editable here. */
+  shared?: string | null
+  description?: string
+  visibility?: 'prominent' | 'normal' | 'hidden'
 }
 
 export interface ObjectTypeDef {
