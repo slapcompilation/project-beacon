@@ -10,7 +10,7 @@ checking whether a behaviour is theirs or ours — which is the question this
 register exists to answer.
 
 **Every row cites the mirrored page**, not a URL. `docs/foundry-reference/mirror/`
-holds 438 pages; a claim about Foundry that cannot be grepped is a claim nobody
+holds 532 pages; a claim about Foundry that cannot be grepped is a claim nobody
 will re-check.
 
 ## How to read the columns
@@ -173,7 +173,7 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 | **Theirs** | `promoted` requires the Ontology Owner role, or "a proposal for review and approval by an Ontology Owner". At the platform level, Compass requires **Editor on the resource *and* Resource Curator at the space level**. | `mirror/object-link-types/metadata-statuses.md`, `mirror/compass/resource-status.md` |
 | **Ours** | Any org admin or owner, via the existing `admins update object types` policy. | migration 321 |
 | **Why** | We have no curator or ontology-owner role, and inventing one for a single status would be a permission tier with one consumer. |
-| **Undo when** | Resource-level roles land — `ONTOLOGY-PARITY-GAPS.md` gap 6, which is where Resource Curator belongs. |
+| **Undo when** | A role hierarchy distinguishes ontology stewardship from org administration. Resource Curator is the first such role to define. |
 
 ### `promoted` was in the wrong place — RESOLVED (migrations 327/328)
 
@@ -199,7 +199,7 @@ Two real divergences came out of the move:
 | **Theirs** | Promoting needs **Editor on the resource *and* Resource Curator at the space level** — two grants, one of them scoped above the resource. | `mirror/compass/resource-status.md` |
 | **Ours** | Org admin or owner. | migration 327 |
 | **Why** | We have neither role, and a curated catalog only works if curation is scarce — the two-grant design is how Foundry keeps it scarce. Ours leans on admin being scarce instead, which is weaker. |
-| **Undo when** | Resource-level roles land (`ONTOLOGY-PARITY-GAPS.md` gap 6). Resource Curator is the first role that arc should define. |
+| **Undo when** | A curator role exists. Project roles (migration 330) are the spine it would attach to. |
 
 ---
 

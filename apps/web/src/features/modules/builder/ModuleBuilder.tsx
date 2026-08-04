@@ -1,4 +1,4 @@
-// The builder. W6 of docs/WORKSHOP-PLAN.md.
+// The builder. Foundry: mirror/workshop/overview.md.
 //
 // Foundry's regions, by their names (workshop/getting-started): a left panel
 // listing variables and the layout tree, the CANVAS in the middle, a

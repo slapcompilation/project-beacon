@@ -1,4 +1,4 @@
-// The Applications portal, as data. W4 of docs/WORKSHOP-PLAN.md.
+// The Applications portal, as data. Foundry: mirror/app-building/curating-apps.md.
 //
 // Foundry's split, kept: a COLLECTION is a section of the portal; a TAG is a
 // filterable label on a card. Promotion is its own resource pointing at a

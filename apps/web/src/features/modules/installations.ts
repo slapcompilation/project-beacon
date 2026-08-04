@@ -1,4 +1,4 @@
-// Adoption across properties. W5 of docs/WORKSHOP-PLAN.md — the point of the arc.
+// Adoption across properties — installing a module at a second one.
 //
 // An installation pins a version rather than mirroring the source, so a property
 // does not change under its staff overnight. Forking trades upgrades for local

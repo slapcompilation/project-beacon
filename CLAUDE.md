@@ -83,6 +83,41 @@ So before trusting a list in this file, check what actually holds it:
 **A list in this file that no guard polices is a description, not a rule.** When
 they disagree, the guard is right.
 
+### The guards, and what each one catches
+
+Prose rots; the gates do not. These are executable and run in CI:
+
+| command | catches |
+|---|---|
+| `pnpm check:shape` | a table or function nothing reaches |
+| `pnpm check:surfaces` | a web file nothing can reach from `main.tsx` |
+| `pnpm check:vocabulary` | a CHECK value no code, data or declaration consumes — and the shipped-action collision list drifting from the registry |
+| `pnpm check:modules` | a module reference held by name in jsonb that points nowhere |
+| `pnpm check:rpcs` | an RPC name the app calls that does not exist |
+| `pnpm check:edge` | edge functions that do not parse |
+| `pnpm db:contracts` | RLS and security invariants, including cross-hotel scope |
+
+**These replaced the documentation that used to claim the same things.** Twelve
+separate stale claims across the docs sent work in the wrong direction in a
+single week — "ingestion stops at ocr" when two documents were fully processed,
+"no cross-artifact search" when a ⌘K palette existed, an `EdgeType` union listing
+four edges the database refuses. A guard cannot go stale without failing.
+
+## Where the source of truth is
+
+Three things, and nothing else:
+
+1. **`docs/foundry-reference/mirror/`** — 532 mirrored pages. Grep here before
+   designing anything. `node scripts/mirror-foundry-docs.mjs <section>` adds more.
+2. **`docs/foundry-reference/all-foundry-urls.txt`** — 4,764 page slugs. An index
+   of names, *not* content: mirror the section before concluding Foundry lacks
+   something.
+3. **`docs/foundry-deep-dives/`** — 214 PDFs from learn.palantir.com across nine
+   courses, with a summary per course.
+
+Everything else that used to sit in `docs/` was commentary on those, and drifted
+away from them. It is in git history if a decision needs recovering.
+
 ## Commands
 
 ```bash
@@ -235,7 +270,7 @@ rather than a query, `mutation` is Foundry's `action`, and `utility`,
 - **Pure unless `mutation`.** Tools query the graph; only mutation tools write — and only through the Action Registry.
 - **Versioned.** Bump version on input/output/basis change. Every agent run records the version that ran on both the call and the response step, so a number in a proposal is traceable to the implementation that produced it. There is one registry entry per tool name — callers don't select a version, the trace reports it.
 - **Explicit basis + confidence** on every computed result. Without these the operator can't audit and the transparency layer has nothing to render.
-- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement has no owner yet — `docs/IMPLEMENTATION-MAP.md` is closed and this outlived it. Treat it as a contract with the model, not a sandbox, and see `docs/DELIVERABLE-MAP.md` for what is actually queued.
+- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement has no owner yet. Treat it as a contract with the model, not a sandbox; `docs/DELIVERABLE-MAP.md` carries what is actually queued.
 
 ---
 

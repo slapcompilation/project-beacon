@@ -1,7 +1,7 @@
 // GlobalNav — wires the presentational FoundrySidebar into the app: maps each
 // rail id to a route or a panel action, and derives the active item from the
 // current URL. This is the Foundry-style left sidebar as the real global nav,
-// replacing the bottom CommandDock (docs/AIP-UX-RESTRUCTURE.md, Phase 1).
+// replacing the bottom CommandDock.
 
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'

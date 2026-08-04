@@ -1,4 +1,4 @@
-// AIP-native OPERATE arc gates (docs/AIP-OPERATE-INLINE.md):
+// Per-item agent signal gates:
 //  P1  a Live Stock row surfaces the agent take inline + opens it in the slide-over
 //  P2  the badge reaches another list (Locations) via the provider
 //  P3  a pending proposal can be ACTED ON inline (approve button on the shared

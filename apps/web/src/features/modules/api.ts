@@ -1,5 +1,5 @@
 // Workshop modules — an application assembled from rows rather than written as
-// a React file. W1 of docs/WORKSHOP-PLAN.md.
+// a React file. Foundry: mirror/workshop/concepts-widgets.md.
 //
 // The whole module arrives in ONE call (get_module) because a renderer that
 // makes four requests to draw one screen is a renderer that flickers.

@@ -1,4 +1,4 @@
-// P0 of the AIP-native OPERATE arc (docs/AIP-OPERATE-INLINE.md): one batched
+// The per-item signal spine: one batched
 // round-trip that tells every list row whether the agent has a take on its
 // variant — open proposals, a paused action awaiting sign-off, an open Case.
 // Backed by the aip_signals_for_variants RPC (migration 199); rows without a
