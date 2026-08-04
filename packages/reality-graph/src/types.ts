@@ -55,60 +55,13 @@ export type NodeType =
   | 'chunk'
   | 'entity'
 
-export type EdgeType =
-  | 'causes'
-  | 'consumes'
-  | 'restocks'
-  | 'reverts'
-  | 'belongs_to_session'
-  | 'triggered_alert'
-  // Sprint 1 — Reality Graph Core
-  | 'approved_by'
-  | 'rejected_by'
-  | 'modified_by'
-  | 'fulfills'
-  | 'log_fulfills_request'
-  | 'sourced_from'
-  | 'delivery_sourced_from'
-  | 'receipt_sourced_from'
-  | 'po_sourced_from'
-  | 'recipe_consumes'
-  | 'pick_consumes'
-  // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients
-  | 'sold'
-  | 'ingredient_of'
-  // 303 — the last grandfathered tables join the ontology
-  | 'counts_variant'
-  | 'item_of'
-  | 'categorised_as'
-  | 'allocated_to'
-  // 294 — purchase-order lines and discrepancies
-  | 'line_of'
-  | 'line_orders'
-  | 'line_fulfills_request'
-  | 'discrepancy_of'
-  | 'transfer_approved_by'
-  | 'batch_of'
-  | 'discarded_via'
-  | 'linked_to_po'
-  | 'invoiced_by'
-  | 'influenced_by_occupancy'
-  | 'influenced_by_principle'
-  | 'similar_to'
-  // AIP-native edges
-  | 'transfers'
-  | 'proposed_by'
-  | 'benchmarks'
-  | 'harmonized_to'
-  | 'describes_entity'
-  | 'cited_in'
-  | 'applies_to'
-  // Prediction lineage (Q2): a proposal traces to the forecast that sized it.
-  | 'derived_from'
-  // Doc-ingestion Track 2 (Foundry-exact object model): chunk mentions a
-  // discovered Entity; an Entity resolves to a real operational node.
-  | 'mentions'      // many-to-many: chunk -> entity
-  | 'resolved_to'   // entity -> supplier | variant (deterministic exact match)
+// The edge vocabulary lives in @beacon/types so BOTH packages can name it
+// without a cycle — reality-graph depends on types, never the reverse. It was
+// here, and `types` grew a second, staler union (GraphEdgeType, eight values,
+// one of which the database refuses) precisely because it could not reach this
+// one. Re-exported so the nine importers here are unchanged.
+import type { EdgeType } from '@beacon/types'
+export type { EdgeType }
 
 /** Runtime list of every typed edge. The ontology drift detector compares the
  *  edge types present in the graph against this set; anything in the data but

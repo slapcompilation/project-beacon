@@ -498,10 +498,69 @@ export type GraphNodeType =
   | 'restock_request' | 'stocktake_session' | 'stocktake_line'
   | 'alert' | 'report'
 
-export type GraphEdgeType =
-  | 'belongs_to_hotel' | 'created_by' | 'causes'
-  | 'consumes' | 'restocks' | 'reverts'
-  | 'belongs_to_session' | 'triggered_alert'
+// The edge vocabulary. Mirrors relationship_edges_edge_type_check — the
+// database is the authority and `pnpm check:vocabulary` holds the two together.
+export type EdgeType =
+  | 'causes'
+  | 'consumes'
+  | 'restocks'
+  | 'reverts'
+  | 'belongs_to_session'
+  | 'triggered_alert'
+  // Sprint 1 — Reality Graph Core
+  | 'approved_by'
+  | 'rejected_by'
+  | 'modified_by'
+  | 'fulfills'
+  | 'log_fulfills_request'
+  | 'sourced_from'
+  | 'delivery_sourced_from'
+  | 'receipt_sourced_from'
+  | 'po_sourced_from'
+  | 'recipe_consumes'
+  | 'pick_consumes'
+  // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients
+  | 'sold'
+  | 'ingredient_of'
+  // 303 — the last grandfathered tables join the ontology
+  | 'counts_variant'
+  | 'item_of'
+  | 'categorised_as'
+  | 'allocated_to'
+  // 294 — purchase-order lines and discrepancies
+  | 'line_of'
+  | 'line_orders'
+  | 'line_fulfills_request'
+  | 'discrepancy_of'
+  | 'transfer_approved_by'
+  | 'batch_of'
+  | 'discarded_via'
+  | 'linked_to_po'
+  | 'invoiced_by'
+  | 'influenced_by_occupancy'
+  | 'influenced_by_principle'
+  | 'similar_to'
+  // AIP-native edges
+  | 'transfers'
+  | 'proposed_by'
+  | 'benchmarks'
+  | 'harmonized_to'
+  | 'describes_entity'
+  | 'cited_in'
+  | 'applies_to'
+  // Prediction lineage (Q2): a proposal traces to the forecast that sized it.
+  | 'derived_from'
+  // Doc-ingestion Track 2 (Foundry-exact object model): chunk mentions a
+  // discovered Entity; an Entity resolves to a real operational node.
+  | 'mentions'      // many-to-many: chunk -> entity
+  | 'resolved_to'   // entity -> supplier | variant (deterministic exact match)
+
+/** @deprecated Use `EdgeType`. This was a SECOND, staler union: eight values
+ *  where the constraint allows forty, and one of the eight —
+ *  `belongs_to_hotel` — the database REFUSES. A row carrying `mentions` or
+ *  `cited_in` did not fit it at all, so `RelationshipEdge` was quietly wrong
+ *  about most real edges. Kept as an alias so its five consumers compile. */
+export type GraphEdgeType = EdgeType
 
 export interface RelationshipEdge {
   id: string

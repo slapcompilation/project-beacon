@@ -27,7 +27,18 @@ When building anything with a Foundry counterpart:
    term. `grep -r mirror/` before deciding something is ours; mirror the section
    first if it is not there.
 
-6. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
+6. **A link is not a reading.** `all-foundry-urls.txt` holds 4,764 slugs and the
+   mirror holds 532 pages — having the URL proves nothing about what the page
+   says. Mirror the section and read it before describing Foundry's behaviour,
+   and quote the sentence you are relying on.
+
+7. **If the documentation does not cover it, ASK — do not infer.** When a
+   capability has no page you can find, say so plainly and ask the operator to
+   search for it. They have access to material we do not: the end-to-end
+   walkthroughs and the learn.palantir.com courses. A plausible shape invented
+   here becomes a migration, and a migration becomes structure.
+
+8. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
 
 ### How this sits with "no concept without its consumer"
 
@@ -179,7 +190,7 @@ The union below is the TypeScript mirror of that vocabulary and drifts if edited
 alone — `pnpm db:contracts` (C25, C26) is what actually holds the two together.
 
 ```ts
-// packages/types/src/edges.ts — mirrors link_types; the database is the authority
+// packages/types/src/index.ts — mirrors link_types; the database is the authority
 export type EdgeType =
   // causal
   | 'causes' | 'caused_by' | 'triggered'

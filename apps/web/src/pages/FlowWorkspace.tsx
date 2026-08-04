@@ -1,6 +1,6 @@
 // Layer: Flow — Replenishment: the physical restock loop (timeline · receive ·
 // deliveries · pick lists) + handover. Approvals and the approvals dashboard
-// moved to the Decisions inbox (see docs/AIP-RESTRUCTURE.md); legacy
+// moved to the Decisions inbox ; legacy
 // ?panel=approvals|dashboard redirect there so existing links keep working.
 
 import { lazy, Suspense } from 'react'
