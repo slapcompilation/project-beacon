@@ -48,6 +48,12 @@ any `.ts` file as consumption, so writing `ONTOLOGY_VISIBILITIES` into
 `ontology/status.ts` laundered all eight new values into "consumed" without
 anything acting on them. A vocabulary module can defeat the vocabulary guard.
 That is a hole worth closing before it is used again by accident.
+*(Closed — R1. Declaration files and test files no longer count as consumers.)*
+
+**Half of this is now fixed.** A1 shipped the search that ranks on `visibility`
+and excludes `deprecated` and `hidden`, so the column is load-bearing rather
+than decorative. What remains is the modelling: `promoted` is still an ontology
+enum member when it is a platform resource status. That is A2.
 
 ### What this costs to correct
 
@@ -108,21 +114,33 @@ tags, curation and per-resource permissions.
 This is not a small track and not all of it is wanted. Ranked by whether
 anything today is worse for its absence:
 
-### A1 — Quicksearch *(the keystone)*
+### A1 — Quicksearch ✅ SHIPPED (migrations 325/326)
 
-**There is no cross-artifact search in the product.** Verified: no global
-search component, no search RPC beyond `help_search`, which is help content
-only. Every surface has its own filter box over its own table.
+**This entry was wrong when written.** It claimed there was no cross-artifact
+search. There was: a ⌘K palette (`CommandBar`) searching nav entries, products,
+variants and suppliers. I grepped for `quicksearch|CommandPalette|globalSearch|
+omnibox` and it is called `CommandBar`. **Ninth for nine** on "already built,
+the audit found the gap" — and the first time the map itself was the thing that
+needed auditing.
 
-Foundry's `compass/quicksearch` is the single entry point to everything by name.
-For us "everything" is already enumerable — object types, link types,
-interfaces, modules, object sets, user tools, cohorts, automations, authored
-agents, documents — and each already has a registry. The work is one search RPC
-over those registries plus one palette.
+The real gap was narrower and sharper: the palette searched **operational data
+but not the ontology**. An operator could find "tomatoes" and could not find the
+object type they authored, the Workshop app someone built, or a document.
 
-**Why it is the keystone:** promotion boosts search results, tags filter search
-results, and a curated catalog is a search result set. Every other item in this
-track is an adjective on a noun that does not exist yet.
+Shipped as `quicksearch(query, limit)` — titles only, per jump-to mode — over
+object types, records, applications and documents, with Foundry's ranking rule:
+
+> "prioritized by `Active` object types with `Prominent`, then `Normal`, and then
+> `Experimental` status (deprecated and hidden object types are not searched on)"
+
+**Which is what gave `visibility` a consumer**, and closes the dead-column half
+of §0 without A2: a hidden type is unfindable, and so are its records; a
+deprecated one drops out of search, which is most of what deprecating something
+is supposed to accomplish. `SECURITY INVOKER`, so "Quicksearch respects all
+existing permissions" is RLS rather than a second permission model.
+
+Still open from §0: `promoted` remains an ontology enum member rather than a
+resource-status axis. That is A2.
 
 ### A2 — Resource status, properly
 
@@ -249,13 +267,22 @@ Small, independent, each fixing something that lets a defect through.
 
 ## 8. Recommended order
 
-1. **R1** — half a day, and it stops the next dead vocabulary silently passing.
-2. **C/P1** — the row badge. Unblocked, highest operator payoff, pattern-setting.
-3. **A1** — quicksearch. The keystone; unblocks A2/A3 and gives `promoted` a home.
-4. **A2** — move `promoted` and `visibility` onto the resource axis. Closes §0.
+1. ~~**R1**~~ ✅ — declaration and test files no longer launder a vocabulary.
+2. ~~**C/P1–P2**~~ ✅ — the badge was already on six surfaces; Timeline and
+   Receive closed the set.
+3. ~~**A1**~~ ✅ — quicksearch, migrations 325/326. `visibility` now decides
+   findability.
+4. **A2** — move `promoted` onto the resource axis. Closes the rest of §0. ← next
 5. **B1 + B2** — shared properties, with property status falling out of it.
 6. **D** — ingestion stages, which also unblocks **E** for when the contract lands.
 7. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
+
+Then, by explicit instruction, the three items under *"What is deliberately not
+here"* — Workshop G2–G4, the visual logic canvas editor, and user-authored
+action types. The last one **contradicts `CLAUDE.md`**, which keeps
+`BeaconAction` typed in code so every write carries a compile-time guarantee,
+submission criteria and an audit entry. That spec has to change in the same
+commit, and the audit entry and submission criteria have to survive the change.
 
 R2 and R3 are one-line doc edits; fold them into whatever lands next.
 

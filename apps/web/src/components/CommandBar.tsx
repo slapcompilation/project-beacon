@@ -14,6 +14,9 @@ import { useAppStore } from '@/stores/app.store'
 import { hasPermission } from '@beacon/types'
 import { stockUrgency } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
+import {
+  useQuickSearch, quickHitPath, QUICK_HIT_GROUP, type QuickHit,
+} from '@/features/search/useQuickSearch'
 
 type NavGroup = 'Floor' | 'Flow' | 'Insights' | 'Decisions' | 'Operations' | 'Settings'
 
@@ -198,8 +201,22 @@ export function CommandBar() {
     }, {}),
   [matchedNav])
 
+  // The ontology, the applications and the documents — server-side, because
+  // ranking one against another needs the object type's status and visibility
+  // (migration 326), and none of it is loaded on the client.
+  const { data: ontologyHits = [] } = useQuickSearch(query)
+  const hitGroups = useMemo(() => {
+    const by = new Map<string, QuickHit[]>()
+    for (const h of ontologyHits) {
+      const g = QUICK_HIT_GROUP[h.kind]
+      by.set(g, [...(by.get(g) ?? []), h])
+    }
+    return [...by.entries()]
+  }, [ontologyHits])
+
   const totalResults =
     matchedProducts.length + matchedVariants.length + matchedSuppliers.length + matchedNav.length
+    + ontologyHits.length
 
   // Keyboard focus index across all visible rows, in render order
   const [focusIdx, setFocusIdx] = useState(0)
@@ -252,6 +269,22 @@ export function CommandBar() {
             <p className="text-sm text-muted-foreground">No results for "{query}"</p>
           </div>
         )}
+
+        {hitGroups.map(([heading, hits]) => (
+          <Group key={heading} heading={heading}>
+            {hits.map((h) => {
+              const path = quickHitPath(h)
+              const idx = action(() => { go(path) })
+              return (
+                <Row key={`${h.kind}-${h.id}`} icon={h.icon as IconName}
+                  onSelect={() => { go(path) }} focused={focusIdx === idx}>
+                  <span className="block truncate text-xs font-medium">{h.title}</span>
+                  <span className="block truncate text-[10px] text-muted-foreground">{h.subtitle}</span>
+                </Row>
+              )
+            })}
+          </Group>
+        ))}
 
         {matchedVariants.length > 0 && (
           <Group heading="Variants">
