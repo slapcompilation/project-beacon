@@ -97,7 +97,18 @@
       "Bash(cat /d/project-beacon/apps/web/src/features/events/api/*.ts)",
       "mcp__claude_ai_Supabase__list_tables",
       "mcp__claude_ai_Supabase__execute_sql",
-      "WebFetch(domain:www.gallatin.ai)"
+      "WebFetch(domain:www.gallatin.ai)",
+      "Bash(git push *)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr view 3 --json state,baseRefName)",
+      "Bash('/c/Program Files/GitHub CLI/gh.exe' pr create --base main --head feat/rg-node-set-queries --title 'feat\\(rg\\): nodeSet\\(\\) chainable graph query primitive + get_node_set RPC' --body 'Reopened from #3 after the base branch \\(feat/rg-tagged-error-variants\\) was auto-deleted on PR #1'\\\\''s squash-merge. Same content, rebased onto main. *)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr merge 14 --merge --delete-branch)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr view 14 --json state,mergedAt)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr merge 8 --squash --delete-branch)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" pr view 8 --json state,mergedAt)",
+      "Bash(git checkout *)",
+      "Bash(git pull *)",
+      "Bash(git stash *)",
+      "Bash(git rebase *)"
     ]
   }
 }

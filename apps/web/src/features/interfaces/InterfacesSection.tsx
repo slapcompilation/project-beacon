@@ -3,6 +3,9 @@
 // A type that doesn't have the shape is shown with the reason and can't be
 // ticked — the claim has to be true, and the database enforces that too.
 
+import { StatusControl, StatusTag } from '@/features/ontologyStatus/StatusControl'
+import { useStatuses, useSetStatus } from '@/features/ontologyStatus/api'
+import { STATUS_META } from '@beacon/reality-graph'
 import { useState } from 'react'
 import { Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Tag, Tooltip } from '@blueprintjs/core'
 import {
@@ -15,6 +18,9 @@ import { rowToInterface } from './api'
 const TYPES: PropertyType[] = ['text', 'number', 'boolean', 'date']
 
 export default function InterfacesSection({ types }: { types: ObjectTypeDef[] }) {
+  const { data: statuses } = useStatuses('ontology_interfaces')
+  const setStatus = useSetStatus('ontology_interfaces')
+  const [openStatus, setOpenStatus] = useState<string | null>(null)
   const interfaces = useInterfaces()
   const impls = useImplementations()
   const create = useCreateInterface()
@@ -41,6 +47,7 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
 
       {(interfaces.data ?? []).map((row) => {
         const iface = rowToInterface(row)
+        const st = statuses?.get(row.id)
         return (
           <div key={row.id} className="rounded border px-2 py-1.5 space-y-1">
             <div className="flex items-center gap-2">
@@ -50,9 +57,29 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
               <span className="text-[10px] text-muted-foreground">
                 {iface.properties.map((p) => `${p.key}:${p.type}`).join(' · ')}
               </span>
-              <Button size="small" variant="minimal" icon="trash" className="ml-auto"
+              {st && <StatusTag status={st.status} />}
+              <Button size="small" variant="minimal" icon="lifesaver" title="Status" className="ml-auto"
+                active={openStatus === row.id}
+                onClick={() => { setOpenStatus(openStatus === row.id ? null : row.id) }} />
+              {/* An active interface cannot be deleted; say so rather than
+                  surfacing the database exception as a toast. */}
+              <Button size="small" variant="minimal" icon="trash"
+                disabled={st ? !STATUS_META[st.status].deletable : false}
+                title={st && !STATUS_META[st.status].deletable
+                  ? 'Deprecate it first — an active interface cannot be deleted.' : undefined}
                 onClick={() => { del.mutate(row.id) }} />
             </div>
+            {openStatus === row.id && st && (
+              <StatusControl
+                key={`${row.id}-${st.status}`}
+                current={st.status}
+                visibility={st.visibility}
+                deprecation={st.deprecation}
+                replacements={(interfaces.data ?? []).filter((o) => o.id !== row.id)
+                  .map((o) => ({ apiName: rowToInterface(o).apiName, label: rowToInterface(o).label }))}
+                pending={setStatus.isPending}
+                onSave={(v) => { setStatus.mutate({ id: row.id, ...v }) }} />
+            )}
             <div className="flex flex-wrap gap-x-4">
               {types.map((t) => {
                 const why = conformanceErrors(t, iface)

@@ -12,11 +12,9 @@ import type { IconName } from '@blueprintjs/icons'
 import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
-  ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES, STATUS_META, VISIBILITY_META, statusChangeProblem,
-  attachProblem, usedBy,
+  STATUS_META, attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
-  type OntologyStatus, type OntologyVisibility, type OntologyStatusMeta,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
@@ -33,6 +31,8 @@ import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
 } from '@/features/objectTypes/sharedProperties'
 import { PromoteToggle, usePromotions } from '@/features/promotion/api'
+import { StatusControl, StatusTag } from '@/features/ontologyStatus/StatusControl'
+import { useStatuses, useSetStatus } from '@/features/ontologyStatus/api'
 import { ActionTypesSection } from '@/features/actionTypes/ActionTypesSection'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
@@ -190,95 +190,6 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
   )
 }
 
-function StatusTag({ status }: { status: OntologyStatus }) {
-  const m = STATUS_META[status]
-  return <Tag minimal intent={INTENTS[m.intent]} className="!text-[9px] uppercase tracking-wide" title={m.help}>{m.label}</Tag>
-}
-
-const INTENTS: Record<OntologyStatusMeta['intent'], Intent> = {
-  success: Intent.SUCCESS, primary: Intent.PRIMARY, warning: Intent.WARNING,
-  danger: Intent.DANGER, none: Intent.NONE,
-}
-
-/** Retiring a type rather than deleting it. Foundry's status vocabulary, and
- *  the deprecation record it asks for: a reason, a deadline, and what replaces
- *  this. Without the last one the next reader has to guess. */
-function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
-  const set = useSetObjectTypeStatus()
-  const { data: promotions } = usePromotions()
-  const isPromoted = promotions?.has(`object_type:${type.id}`) ?? false
-  const current = type.status ?? 'experimental'
-  const [status, setStatus] = useState<OntologyStatus>(current)
-  const [visibility, setVisibility] = useState<OntologyVisibility>(type.visibility ?? 'normal')
-  const [reason, setReason] = useState(type.deprecation?.reason ?? '')
-  const [deadline, setDeadline] = useState(type.deprecation?.deadline ?? '')
-  const [replacedBy, setReplacedBy] = useState(type.deprecation?.replacedBy ?? '')
-
-  const deprecation = status === 'deprecated'
-    ? { reason, deadline, replacedBy: replacedBy || null }
-    : null
-  const problem = statusChangeProblem(current, status, deprecation)
-
-  return (
-    <Card compact className="space-y-3">
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Status</span>
-          <HTMLSelect value={status} onChange={(e) => { setStatus(e.currentTarget.value as OntologyStatus) }}>
-            {ONTOLOGY_STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
-          </HTMLSelect>
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Visibility</span>
-          <HTMLSelect value={visibility} disabled={isPromoted}
-            title={isPromoted ? 'A promoted resource is prominent by definition.' : undefined}
-            onChange={(e) => { setVisibility(e.currentTarget.value as OntologyVisibility) }}>
-            {ONTOLOGY_VISIBILITIES.map((v) => <option key={v} value={v}>{VISIBILITY_META[v].label}</option>)}
-          </HTMLSelect>
-        </label>
-        <p className="text-[11px] text-muted-foreground flex-1 min-w-48">{STATUS_META[status].help}</p>
-      </div>
-
-      {/* Promotion is a different axis from status — a type is active AND
-          promoted, never one instead of the other. */}
-      <div className="border-t border-border/40 pt-3">
-        <PromoteToggle kind="object_type" id={type.id} withEffects />
-      </div>
-
-      {status === 'deprecated' && (
-        <div className="flex flex-wrap items-end gap-3 border-t border-border/40 pt-3">
-          <label className="flex flex-col gap-1 flex-1 min-w-56">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Why</span>
-            <InputGroup size="small" value={reason} placeholder="Superseded by the maintenance ticket type"
-              onChange={(e) => { setReason(e.currentTarget.value) }} />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Delete by</span>
-            <InputGroup size="small" type="date" value={deadline} onChange={(e) => { setDeadline(e.currentTarget.value) }} />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Replaced by</span>
-            <HTMLSelect value={replacedBy} onChange={(e) => { setReplacedBy(e.currentTarget.value) }}>
-              <option value="">Nothing — it is simply going</option>
-              {allTypes.filter((t) => t.id !== type.id).map((t) => (
-                <option key={t.id} value={t.apiName}>{t.label}</option>
-              ))}
-            </HTMLSelect>
-          </label>
-        </div>
-      )}
-
-      <div className="flex items-center gap-2">
-        <Button size="small" intent={Intent.PRIMARY} icon="tick" disabled={!!problem} loading={set.isPending}
-          onClick={() => { set.mutate({ id: type.id, status, visibility, deprecation }) }}>
-          Save
-        </Button>
-        {problem && <span className="text-[11px] text-muted-foreground">{problem}</span>}
-      </div>
-    </Card>
-  )
-}
-
 function TypeBuilder() {
   const hotelId = useActiveHotelId()
   const create = useCreateObjectType()
@@ -409,6 +320,9 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
   const [panel, setPanel] = useState<'none' | 'edit' | 'history' | 'status'>('none')
   const status = type.status ?? 'experimental'
   const meta = STATUS_META[status]
+  const setStatus = useSetObjectTypeStatus()
+  const { data: promotions } = usePromotions()
+  const isPromoted = promotions?.has(`object_type:${type.id}`) ?? false
 
   const data = useMemo(() => {
     const out: Record<string, unknown> = {}
@@ -463,7 +377,22 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
       {panel === 'edit' && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setPanel('none') }} />}
       {panel === 'history' && <HistoryPanel type={type} />}
-      {panel === 'status' && <StatusPanel type={type} allTypes={allTypes} />}
+      {panel === 'status' && (
+        <div className="space-y-2">
+          <StatusControl
+            key={`${type.id}-${status}`}
+            current={status}
+            visibility={type.visibility ?? 'normal'}
+            deprecation={type.deprecation ?? null}
+            replacements={allTypes.filter((t) => t.id !== type.id)
+              .map((t) => ({ apiName: t.apiName, label: t.label }))}
+            visibilityLocked={isPromoted}
+            pending={setStatus.isPending}
+            onSave={(v) => { setStatus.mutate({ id: type.id, ...v }) }} />
+          {/* Promotion is a different axis — a type is active AND promoted. */}
+          <Card compact><PromoteToggle kind="object_type" id={type.id} withEffects /></Card>
+        </div>
+      )}
 
       <Card className="space-y-2">
         <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />
@@ -717,6 +646,9 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const hotelId = useActiveHotelId()
   const create = useCreateLinkType()
   const del = useDeleteLinkType()
+  const { data: statuses } = useStatuses('link_types')
+  const setStatus = useSetStatus('link_types')
+  const [openStatus, setOpenStatus] = useState<string | null>(null)
   const [label, setLabel] = useState('')
   const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
   const apiName = toSlug(label)
@@ -731,14 +663,38 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   return (
     <Card className="space-y-2">
       <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Link types</span>
-      {linkTypes.map((lt) => (
-        <div key={lt.id} className="flex items-center gap-2 text-xs">
-          <Icon icon="link" size={12} className="text-violet-500" />
-          <span className="font-medium">{lt.label}</span>
-          <span className="text-muted-foreground">→ {labelOf(lt.targetTypeId)}</span>
-          <Button variant="minimal" size="small" icon="cross" onClick={() => { del.mutate(lt.id) }} className="ml-auto" />
-        </div>
-      ))}
+      {linkTypes.map((lt) => {
+        const st = statuses?.get(lt.id)
+        return (
+          <div key={lt.id} className="space-y-1.5">
+            <div className="flex items-center gap-2 text-xs">
+              <Icon icon="link" size={12} className="text-violet-500" />
+              <span className="font-medium">{lt.label}</span>
+              <span className="text-muted-foreground">→ {labelOf(lt.targetTypeId)}</span>
+              {st && <StatusTag status={st.status} />}
+              <Button variant="minimal" size="small" icon="lifesaver" title="Status"
+                active={openStatus === lt.id} className="ml-auto"
+                onClick={() => { setOpenStatus(openStatus === lt.id ? null : lt.id) }} />
+              {/* An active link type cannot be deleted — the database says so,
+                  and saying it here beats surfacing the exception as a toast. */}
+              <Button variant="minimal" size="small" icon="cross"
+                disabled={st ? !STATUS_META[st.status].deletable : false}
+                title={st && !STATUS_META[st.status].deletable
+                  ? `${STATUS_META[st.status].label} — deprecate it first.` : undefined}
+                onClick={() => { del.mutate(lt.id) }} />
+            </div>
+            {openStatus === lt.id && st && (
+              <StatusControl
+                key={`${lt.id}-${st.status}`}
+                current={st.status} visibility={st.visibility} deprecation={st.deprecation}
+                replacements={linkTypes.filter((o) => o.id !== lt.id)
+                  .map((o) => ({ apiName: o.apiName, label: o.label }))}
+                pending={setStatus.isPending}
+                onSave={(v) => { setStatus.mutate({ id: lt.id, ...v }) }} />
+            )}
+          </div>
+        )
+      })}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-muted-foreground">{type.label} →</span>
         <InputGroup size="small" placeholder="Relationship (e.g. Belongs to room)" value={label} onChange={(e) => { setLabel(e.currentTarget.value) }} className="flex-1 min-w-[180px]" />
