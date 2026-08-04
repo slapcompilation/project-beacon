@@ -29,10 +29,13 @@ import {
   ROOT, activeTabId, applyEffects, display, effectsFor, initialState, interpolate,
   aggregateSet, aggregationSource, applyObjectSetFilter, filterClauses,
   propertyValues, scalarValue, selectedTabKey, shouldCompute, tabState,
-  visibleVariableIds,
-  type AggregationMetric, type FilterClause, type ModuleUiState, type SideEffect,
-  type TabSpec, type TriggerContext,
+  visibleVariableIds, chartSeries,
+  type AggregationMetric, type ChartLayerType, type FilterClause, type ModuleUiState,
+  type SideEffect, type TabSpec, type TriggerContext,
 } from './runtime'
+import { ChartXY } from './ChartXY'
+import { EmbeddedObjectView } from './EmbeddedObjectView'
+import { InlineActionForm } from './InlineActionForm'
 import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
 import { usePromotedApps } from './promotions'
@@ -447,6 +450,72 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
             if (parentVar) ctx.setUi((st) => ({ ...st, values: { ...st.values, [parentVar.id]: value } }))
           }} />
       )
+    }
+
+    case 'chart_xy': {
+      // One layer. Foundry's is an array of them, which exists to overlay a
+      // forecast on an actual — nothing has asked for two series yet, and the
+      // divergence is recorded rather than quietly assumed.
+      const xKey = typeof widget.config.xKey === 'string' ? widget.config.xKey : ''
+      const yKey = typeof widget.config.yKey === 'string' ? widget.config.yKey : null
+      const metric = (typeof widget.config.metric === 'string' ? widget.config.metric : 'count') as AggregationMetric
+      const layerType = (typeof widget.config.layerType === 'string' ? widget.config.layerType : 'bar') as ChartLayerType
+      const points = chartSeries(records, xKey, metric, yKey)
+
+      if (bound?.loading) return <Card className="flex justify-center py-8"><Spinner size={SpinnerSize.SMALL} /></Card>
+      if (!xKey) {
+        return (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            <strong>{widget.title || 'This chart'}</strong> has no X axis property yet.
+          </Callout>
+        )
+      }
+      if (points.length === 0) {
+        return (
+          <Card className="space-y-1">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{widget.title}</div>
+            <p className="text-xs text-muted-foreground">
+              Nothing to plot — the set is empty, or no object carries <code>{xKey}</code>.
+            </p>
+          </Card>
+        )
+      }
+      return <ChartXY title={widget.title} points={points} layerType={layerType}
+                      caption={`${metric}${yKey ? ` of ${yKey}` : ''} by ${xKey}`} />
+    }
+
+    case 'object_view': {
+      // "Provides detailed information about a SINGLE object... choose the input
+      // object set, which determines the object that will be displayed." The set
+      // says which object; the first member is the one shown.
+      if (bound?.loading) return <Card className="flex justify-center py-8"><Spinner size={SpinnerSize.SMALL} /></Card>
+      if (records.length === 0) {
+        return (
+          <Card className="text-xs text-muted-foreground">
+            {widget.title || 'Object'} — nothing selected. This view shows the first object in{' '}
+            <code>{variable?.apiName ?? 'its set'}</code>.
+          </Card>
+        )
+      }
+      const showHeader = widget.config.header !== false && widget.config.header !== 'false'
+      return <EmbeddedObjectView record={records[0]} title={widget.title} showHeader={showHeader}
+                                 extra={records.length > 1 ? records.length - 1 : 0} />
+    }
+
+    case 'inline_action': {
+      // G3: the same Action Registry rendered in the page rather than a modal.
+      // "Action forms trigger one Action at a time and are recommended for
+      // small-scale datasets where guided form interaction is desired."
+      const actionType = typeof widget.config.actionType === 'string' ? widget.config.actionType : ''
+      if (!actionType) {
+        return (
+          <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+            <strong>{widget.title || 'This form'}</strong> names no action yet.
+          </Callout>
+        )
+      }
+      return <InlineActionForm actionType={actionType} title={widget.title}
+                               defaults={widget.config.defaults} onDone={() => { dispatch(widget.id, 'click', {}) }} />
     }
 
     case 'button_group': {

@@ -135,8 +135,10 @@ describe('a spec that should be accepted', () => {
 
 describe('a spec that must be refused', () => {
   it('7. a widget type nobody built', () => {
+    // Was chart_xy until migration 331 built it — which is this case doing its
+    // job. Gantt is the replacement: Foundry has widgets-gantt-chart, we do not.
     expect(codes(base({
-      widgets: [{ apiName: 'chart', widgetType: 'chart_xy', title: 'Trend', config: {}, position: 0 }],
+      widgets: [{ apiName: 'plan', widgetType: 'gantt_chart', title: 'Plan', config: {}, position: 0 }],
     }))).toEqual(['Workshop:UnknownWidgetType'])
   })
 
@@ -254,7 +256,10 @@ describe('the prompt', () => {
     expect(p).toContain('low_stock')
     expect(p).toContain('forecast_consumption')
     expect(p).toContain('quantityNeeded')
-    expect(p).not.toContain('chart_xy')
+    // The prompt lists the widgets that exist, so chart_xy now belongs in it and
+    // an unbuilt one does not.
+    expect(p).toContain('chart_xy')
+    expect(p).not.toContain('gantt_chart')
   })
 
   it('carries the non-blocking dispatch rule, which is the one an author cannot guess', () => {

@@ -76,6 +76,30 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
     blurb: 'Shows a published application inside this one. Variables you map are shared both ways.',
     fields: [],
   },
+  chart_xy: {
+    label: 'Chart', icon: 'timeline-bar-chart', needsVariable: true, binds: ['object_set'],
+    blurb: 'A trend from a set. Group by one property, aggregate another.',
+    fields: [
+      { key: 'layerType', label: 'Type', kind: 'select', options: ['bar', 'line', 'scatter'] },
+      { key: 'xKey', label: 'Group by', kind: 'text', help: 'Property on the X axis — one bar or point per distinct value.' },
+      { key: 'metric', label: 'Measure', kind: 'select',
+        options: ['count', 'sum', 'average', 'min', 'max', 'cardinality'] },
+      { key: 'yKey', label: 'Measure property', kind: 'text',
+        help: 'Which property to measure. Leave blank for count, which counts objects.' },
+    ],
+  },
+  object_view: {
+    label: 'Object detail', icon: 'cube', needsVariable: true, binds: ['object_set'],
+    blurb: 'One object in full. The set says which — the first in it is shown.',
+    fields: [{ key: 'header', label: 'Show header', kind: 'select', options: ['true', 'false'] }],
+  },
+  inline_action: {
+    label: 'Action form', icon: 'form', needsVariable: false,
+    blurb: 'An always-open form. The same action, validation and audit entry as the modal.',
+    fields: [
+      { key: 'actionType', label: 'Action', kind: 'text', help: 'The BeaconAction type, e.g. ADJUST_STOCK.' },
+    ],
+  },
 }
 
 export const LAYOUT_KINDS = [

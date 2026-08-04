@@ -209,7 +209,7 @@ mapped in from the parent, and a module that embeds itself refused by a test.
 
 ---
 
-### G2 · The widget catalogue — *demand-gated, individually*
+### G2 · The widget catalogue — *Chart XY, Filter List and Object View shipped; the rest still demand-gated*
 
 34 of Foundry's ~40 remain. **This is deliberately not a phase.** The rule that
 has held all arc: a widget earns its place by being asked for, and the registry
@@ -228,7 +228,7 @@ embedding is the same machinery.
 
 ---
 
-### G3 · Inline Action Form — *presentation, not capability*
+### G3 · Inline Action Form — ✅ shipped (migration 331), and it was presentation
 
 The same Action Registry machinery rendered in the page rather than in a modal.
 Worth building when somebody wants a form that is always open — a receiving desk,
@@ -238,7 +238,7 @@ a stock count — where a modal per row is friction.
 
 ---
 
-### G4 · App thumbnails — *blocked on a decision, not on code*
+### G4 · App thumbnails — ✅ shipped (migration 332); the decision was made
 
 Foundry requires a thumbnail to promote. Ours is nullable with the reason
 recorded: no upload surface for app art. Making it `NOT NULL` is one line **the

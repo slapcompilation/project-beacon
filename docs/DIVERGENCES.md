@@ -43,12 +43,34 @@ will re-check.
 
 ## Workshop
 
+~~**Thumbnails are optional.**~~ **CLOSED — migration 332.** The undo condition
+was "an upload surface exists", and it now does: an `app-art` public bucket and
+an upload control in the promote dialog. `thumbnail_url` is `NOT NULL`, so this
+matches Foundry exactly. The decision the old row was really waiting on was
+*where app art lives* — not `documents` (private, PII-scanned, ingestion-piped: a
+thumbnail is chrome, not evidence) and not `product-images` (right visibility,
+wrong owner). Zero promotions existed, so nothing needed backfilling.
+
 | | | source |
 |---|---|---|
-| **Theirs** | A promotion requires a **thumbnail**. | `mirror/app-building/curating-apps.md` |
-| **Ours** | `app_promotions.thumbnail_url` is nullable; the card falls back to the icon. | migration 309 |
-| **Why** | We have no upload surface for application art. A required column nobody can populate is a promotion nobody can make. |
-| **Undo when** | An upload surface exists — then `NOT NULL`, which is the only change needed. |
+| **Theirs** | Chart XY takes an array of **layers**, each with its own data input and type, so a chart can overlay several series. | `mirror/workshop/widgets-chart.md` |
+| **Ours** | One layer. | migration 331 |
+| **Why** | Multi-layer exists to overlay a forecast on an actual. Nothing has asked for two series on one axis, and the layer array is the difference between a chart config and a chart *builder*. |
+| **Undo when** | A screen wants forecast-vs-actual on one axis — then `config.layers[]` instead of the flat keys, which is a config migration and no renderer change. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | The Inline Action widget supports **form and table** interfaces; the table does bulk editing and CSV upload. | `mirror/workshop/widgets-inline-action-form.md` |
+| **Ours** | The form only. | migration 331 |
+| **Why** | Theirs says the form is "recommended for small-scale datasets where guided form interaction is desired" and the table is for "large-scale datasets or when data is sourced from CSV files". We have a CSV import path already; an editable action grid is a different product. |
+| **Undo when** | Somebody needs bulk edits inside a module rather than through import. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | The Object View widget can embed the **full or panel** object view. | `mirror/workshop/widgets-object-view.md` |
+| **Ours** | Panel only. | migration 331 |
+| **Why** | The full view owns a page — header, metric strip, action bar, right rail — and a module already has one. Embedding it puts two page frames on one screen. |
+| **Undo when** | A module is used as a full-page shell rather than a composed screen. |
 
 | | | source |
 |---|---|---|
@@ -88,8 +110,8 @@ will re-check.
 | | | source |
 |---|---|---|
 | **Theirs** | ~40 widgets. | `mirror/workshop/concepts-widgets.md` |
-| **Ours** | 8. | W1–G1 |
-| **Why** | A widget nobody has asked for is the dead vocabulary this codebase keeps removing. Two earned their place by evidence: Tabs, because three effects existed with nothing able to trigger them; Filter List, because `object_set_filter` was a variable type with no consumer. |
+| **Ours** | 11. | W1–G3 |
+| **Why** | A widget nobody has asked for is the dead vocabulary this codebase keeps removing. Two earned their place by evidence rather than request: Tabs, because three effects existed with nothing able to trigger them; Filter List, because `object_set_filter` was a variable type with no consumer. Chart XY, Object View and Inline Action were asked for. |
 | **Undo when** | Per widget, on demand. |
 
 ---

@@ -5,7 +5,7 @@ import { describe, it, expect } from 'vitest'
 import {
   ROOT, aggregateSet, aggregationSource, applyEffects, applyObjectSetFilter,
   effectsFor, initialState, interpolate, propertyValues, selectedTabKey,
-  shouldCompute, tabState, visibleVariableIds,
+  shouldCompute, tabState, visibleVariableIds, chartSeries,
 } from './runtime'
 import type { ModuleDoc, ModuleEvent, ModuleLayout, ModuleVariable, ModuleWidget } from './api'
 
@@ -520,5 +520,41 @@ describe('recompute behaviour', () => {
     const set = v({ id: 's', apiName: 's', varType: 'object_set',
       definitionKind: 'object_set_definition', recompute: 'event' })
     expect(shouldCompute(set, none, true)).toBe(true)
+  })
+})
+
+describe('chartSeries (G2)', () => {
+  const rows = [
+    { day: '2026-01-01', qty: 3, kind: 'a' },
+    { day: '2026-01-01', qty: 5, kind: 'b' },
+    { day: '2026-01-02', qty: 2, kind: 'a' },
+  ]
+
+  it('groups by the X property and aggregates each group', () => {
+    expect(chartSeries(rows, 'day', 'sum', 'qty')).toEqual([
+      { label: '2026-01-01', value: 8 },
+      { label: '2026-01-02', value: 2 },
+    ])
+  })
+
+  it('counts objects when the metric is count, with no measure property', () => {
+    expect(chartSeries(rows, 'kind', 'count')).toEqual([
+      { label: 'a', value: 2 },
+      { label: 'b', value: 1 },
+    ])
+  })
+
+  it('keeps first-seen order, so a set sorted by date charts in date order', () => {
+    const reversed = [...rows].reverse()
+    expect(chartSeries(reversed, 'day', 'count').map((p) => p.label))
+      .toEqual(['2026-01-02', '2026-01-01'])
+  })
+
+  it('skips objects with no value for the X property rather than bucketing them together', () => {
+    expect(chartSeries([...rows, { day: null, qty: 9 }], 'day', 'count')).toHaveLength(2)
+  })
+
+  it('has nothing to plot without an X property', () => {
+    expect(chartSeries(rows, '', 'count')).toEqual([])
   })
 })

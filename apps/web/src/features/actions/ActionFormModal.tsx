@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import {
-  Button, Callout, Dialog, DialogBody, DialogFooter,
+  Button, Callout, Card, Dialog, DialogBody, DialogFooter,
   FormGroup, HTMLSelect, InputGroup, Intent, NumericInput, TextArea,
 } from '@blueprintjs/core'
 import {
@@ -49,12 +49,17 @@ export interface ActionFormModalProps {
   titleOverride?: string
   /** Custom submit button label; defaults to descriptor.submitLabel or 'Submit'. */
   submitLabelOverride?: string
+  /** Where the form is drawn. `inline` is Workshop's Inline Action widget (G3):
+   *  the same fields, validation, dispatch and audit entry, rendered in the page
+   *  instead of a Dialog. A second implementation of this form is the last thing
+   *  the Action Registry needs. */
+  chrome?: 'dialog' | 'inline'
 }
 
 export function ActionFormModal({
   open, onClose, actionType, context, initialValues,
   dispatchContext, onSuccess, onCapture, disabledFields,
-  titleOverride, submitLabelOverride,
+  titleOverride, submitLabelOverride, chrome = 'dialog',
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
 
@@ -63,8 +68,9 @@ export function ActionFormModal({
   const needsRemoval  = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_removal_categories'),  [descriptor])
   const needsMovement = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_movement_categories'), [descriptor])
   const hotelId = (context.hotelId as string | undefined) ?? dispatchContext?.hotelId
-  const { data: removalCategories  = [] } = useApprovedRemovalCategories(hotelId,  needsRemoval  && open)
-  const { data: movementCategories = [] } = useApprovedMovementCategories(hotelId, needsMovement && open)
+  const live = open || chrome === 'inline'
+  const { data: removalCategories  = [] } = useApprovedRemovalCategories(hotelId,  needsRemoval  && live)
+  const { data: movementCategories = [] } = useApprovedMovementCategories(hotelId, needsMovement && live)
 
   const [values, setValues]   = useState<Record<string, FormValue | undefined>>(() =>
     deriveInitial(descriptor, initialValues),
@@ -74,12 +80,14 @@ export function ActionFormModal({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    if (open) {
+    // An inline form is always open, so `open` never transitions — reset on the
+    // descriptor changing instead.
+    if (open || chrome === 'inline') {
       setValues(deriveInitial(descriptor, initialValues))
       setFieldErrors({})
       setError(null)
     }
-  }, [open, descriptor, initialValues])
+  }, [open, chrome, descriptor, initialValues])
 
   const handleSubmit = () => {
     setSubmitting(true)
@@ -131,6 +139,57 @@ export function ActionFormModal({
     })()
   }
 
+  const fields = (
+    <>
+      <p className="mb-3 text-xs text-muted-foreground leading-relaxed">{descriptor.description}</p>
+      {descriptor.fields.length === 0 && (
+        <p className="text-xs italic text-muted-foreground">No editable fields — submit to apply.</p>
+      )}
+      <div className="space-y-3">
+        {descriptor.fields.map((field) => (
+          <FieldRenderer
+            key={field.name}
+            field={field}
+            value={values[field.name]}
+            error={fieldErrors[field.name]}
+            disabled={disabledFields?.includes(field.name) ?? false}
+            suggestions={
+              field.optionsSource === 'approved_removal_categories' ? removalCategories
+              : field.optionsSource === 'approved_movement_categories' ? movementCategories
+              : undefined
+            }
+            onChange={(v) => { setValues((prev) => ({ ...prev, [field.name]: v })) }}
+          />
+        ))}
+      </div>
+      {error && (
+        <Callout intent={Intent.DANGER} icon="error" className="mt-3">
+          {error}
+        </Callout>
+      )}
+    </>
+  )
+
+  const submitButton = (
+    <Button intent={Intent.PRIMARY} loading={submitting} onClick={handleSubmit}>
+      {submitLabelOverride ?? descriptor.submitLabel ?? 'Submit'}
+    </Button>
+  )
+
+  // G3: the same form, drawn in the page. No Cancel — there is nothing to
+  // dismiss when the form is the surface.
+  if (chrome === 'inline') {
+    return (
+      <Card className="space-y-2">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          {titleOverride ?? descriptor.title}
+        </div>
+        {fields}
+        <div className="flex justify-end pt-1">{submitButton}</div>
+      </Card>
+    )
+  }
+
   return (
     <Dialog
       isOpen={open}
@@ -138,45 +197,12 @@ export function ActionFormModal({
       title={titleOverride ?? descriptor.title}
       className="!w-[28rem]"
     >
-      <DialogBody>
-        <p className="mb-3 text-xs text-muted-foreground leading-relaxed">{descriptor.description}</p>
-        {descriptor.fields.length === 0 && (
-          <p className="text-xs italic text-muted-foreground">No editable fields — submit to apply.</p>
-        )}
-        <div className="space-y-3">
-          {descriptor.fields.map((field) => (
-            <FieldRenderer
-              key={field.name}
-              field={field}
-              value={values[field.name]}
-              error={fieldErrors[field.name]}
-              disabled={disabledFields?.includes(field.name) ?? false}
-              suggestions={
-                field.optionsSource === 'approved_removal_categories' ? removalCategories
-                : field.optionsSource === 'approved_movement_categories' ? movementCategories
-                : undefined
-              }
-              onChange={(v) => { setValues((prev) => ({ ...prev, [field.name]: v })) }}
-            />
-          ))}
-        </div>
-        {error && (
-          <Callout intent={Intent.DANGER} icon="error" className="mt-3">
-            {error}
-          </Callout>
-        )}
-      </DialogBody>
+      <DialogBody>{fields}</DialogBody>
       <DialogFooter
         actions={
           <>
             <Button variant="minimal" disabled={submitting} onClick={onClose}>Cancel</Button>
-            <Button
-              intent={Intent.PRIMARY}
-              loading={submitting}
-              onClick={handleSubmit}
-            >
-              {submitLabelOverride ?? descriptor.submitLabel ?? 'Submit'}
-            </Button>
+            {submitButton}
           </>
         }
       />

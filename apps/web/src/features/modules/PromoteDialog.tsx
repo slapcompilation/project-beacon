@@ -2,9 +2,10 @@
 //
 // Foundry requires name, icon, owner, thumbnail and a collection before an app
 // can be promoted; tags and description are optional. Everything but the
-// thumbnail is required here — see migration 309 for why that one diverges.
+// thumbnail is required here too since migration 332 — the app-art bucket gave
+// it somewhere to live, which is what 309's divergence was waiting on.
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   Button, Callout, Dialog, DialogBody, DialogFooter, FormGroup, HTMLSelect,
   InputGroup, Intent, TextArea,
@@ -13,6 +14,7 @@ import { useAuthStore } from '@/stores/auth.store'
 import {
   useAppCollections, usePromoteModule, useUnpromote, type PromotedApp,
 } from './promotions'
+import { SupabaseStorageService } from '@/lib/supabase/storage'
 import type { ModuleDoc } from './api'
 
 export function PromoteDialog({ open, onClose, mod, existing }: {
@@ -32,15 +34,32 @@ export function PromoteDialog({ open, onClose, mod, existing }: {
   const [tags, setTags] = useState((existing?.tags ?? []).join(', '))
   const [collectionId, setCollectionId] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Foundry requires a thumbnail to promote, and since migration 332 so do we —
+  // there is somewhere to put one now.
+  const [thumbnailUrl, setThumbnailUrl] = useState(existing?.thumbnailUrl ?? '')
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
 
   const chosen = collectionId || collections[0]?.id || ''
-  const ready = name.trim() !== '' && icon.trim() !== '' && chosen !== ''
+  const ready = name.trim() !== '' && icon.trim() !== '' && chosen !== '' && thumbnailUrl !== ''
+
+  const onFile = (file: File | undefined) => {
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const path = `${mod.id}/${String(Date.now())}-${file.name.replace(/[^\w.-]/g, '_')}`
+    void new SupabaseStorageService().upload('app-art', path, file)
+      .then((url) => { setThumbnailUrl(url) })
+      .catch((e: unknown) => { setError(e instanceof Error ? e.message : 'Upload failed') })
+      .finally(() => { setUploading(false) })
+  }
 
   const submit = () => {
     setError(null)
     promote.mutate({
       moduleId: mod.id, moduleVersion: mod.version, collectionId: chosen,
       name: name.trim(), icon: icon.trim(), description: description.trim(),
+      thumbnailUrl,
       tags: tags.split(',').map((t) => t.trim()).filter(Boolean),
       ownerUserId: userId, hotelId: mod.hotelId,
     }, {
@@ -76,6 +95,19 @@ export function PromoteDialog({ open, onClose, mod, existing }: {
             </FormGroup>
             <FormGroup label="Icon *" helperText="A Blueprint icon name, e.g. inbox.">
               <InputGroup value={icon} onChange={(e) => { setIcon(e.target.value) }} />
+            </FormGroup>
+            <FormGroup label="Thumbnail *" helperText="The image on the portal card. Foundry requires one before an app is published.">
+              <div className="flex items-center gap-2">
+                {thumbnailUrl && (
+                  <img src={thumbnailUrl} alt="" className="h-10 w-16 rounded object-cover border border-border" />
+                )}
+                <Button size="small" icon="upload" loading={uploading}
+                  onClick={() => { fileRef.current?.click() }}>
+                  {thumbnailUrl ? 'Replace' : 'Upload'}
+                </Button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                  onChange={(e) => { onFile(e.currentTarget.files?.[0]); e.currentTarget.value = '' }} />
+              </div>
             </FormGroup>
             <FormGroup label="Description" helperText="One line on the card.">
               <TextArea fill rows={2} value={description}

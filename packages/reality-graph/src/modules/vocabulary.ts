@@ -21,6 +21,9 @@
 export const MODULE_WIDGET_TYPES = [
   'object_table', 'metric_card', 'markdown', 'object_set_title', 'button_group',
   'embedded_module', 'tabs', 'filter_list',
+  // G2/G3 — asked for, so built. One registry entry each, which is what the
+  // demand-gating design was for.
+  'chart_xy', 'object_view', 'inline_action',
 ] as const
 export type ModuleWidgetType = typeof MODULE_WIDGET_TYPES[number]
 
@@ -76,7 +79,15 @@ export const WIDGET_BINDING: Record<ModuleWidgetType, {
   // variable of the corresponding type". A set is not a value — aggregating
   // belongs to an object_set_aggregation variable (#478).
   metric_card:      { needsVariable: true,  accepts: ['string', 'numeric', 'boolean', 'date'] },
+  // Foundry's chart is layered; ours takes one layer. Both read an object set.
+  chart_xy:         { needsVariable: true,  accepts: ['object_set'] },
+  // "Provides detailed information about a SINGLE object... choose the input
+  // object set, which determines the object that will be displayed" — the set
+  // says WHICH object, not how many.
+  object_view:      { needsVariable: true,  accepts: ['object_set'] },
   markdown:         { needsVariable: false },
+  // Carries its action in config, like button_group.
+  inline_action:    { needsVariable: false },
   button_group:     { needsVariable: false },
   embedded_module:  { needsVariable: false },
   tabs:             { needsVariable: false },

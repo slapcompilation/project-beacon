@@ -568,3 +568,41 @@ export function shouldCompute(
   if (triggered.has(variable.id)) return true
   return variable.recompute === 'on_load_and_event' && !loaded
 }
+
+// ── Chart XY (G2) ────────────────────────────────────────────────────────────
+// Foundry's chart is layered, each layer with its own data input and type. Ours
+// takes one layer, and reuses AGGREGATION_METRICS rather than inventing a second
+// aggregation vocabulary — "how these properties are aggregated (e.g. count,
+// sum, average)" is the same list object_set_aggregation already computes.
+
+export const CHART_LAYER_TYPES = ['bar', 'line', 'scatter'] as const
+export type ChartLayerType = typeof CHART_LAYER_TYPES[number]
+
+export interface ChartPoint { label: string; value: number }
+
+/** Group records by the X property and aggregate each group — the shape a bar,
+ *  line or scatter chart all read from. Groups keep first-seen order, so a set
+ *  already sorted by date charts in date order without a second sort key. */
+export function chartSeries(
+  records: ReadonlyArray<Record<string, unknown>>,
+  xKey: string,
+  metric: AggregationMetric,
+  yKey?: string | null,
+): ChartPoint[] {
+  if (!xKey) return []
+  const groups = new Map<string, Record<string, unknown>[]>()
+  for (const r of records) {
+    const raw = r[xKey]
+    if (raw === null || raw === undefined) continue
+    // Group keys are display labels, so an object key is JSON rather than
+    // "[object Object]" — which would silently collapse every object into one bar.
+    const label = typeof raw === 'object' ? JSON.stringify(raw) : String(raw as string | number | boolean)
+    const bucket = groups.get(label)
+    if (bucket) bucket.push(r)
+    else groups.set(label, [r])
+  }
+  return [...groups].map(([label, rows]) => {
+    const v = aggregateSet(rows, metric, yKey)
+    return { label, value: typeof v === 'number' ? v : 0 }
+  })
+}

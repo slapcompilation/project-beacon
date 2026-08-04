@@ -85,6 +85,8 @@ export interface PromoteInput {
   tags:          string[]
   ownerUserId:   string
   hotelId:       string | null
+  /** Required since migration 332 — Foundry needs one to promote. */
+  thumbnailUrl:  string
 }
 
 /** Promote, or re-point an existing promotion at a newer version — Foundry's
@@ -99,6 +101,7 @@ export function usePromoteModule() {
         collection_id: i.collectionId, name: i.name, icon: i.icon,
         description: i.description, tags: i.tags,
         owner_user_id: i.ownerUserId, hotel_id: i.hotelId,
+        thumbnail_url: i.thumbnailUrl,
       }, { onConflict: 'module_id,organization_id' })
       if (error) throw new Error(error.message)
     },
