@@ -22,6 +22,7 @@ here. These are the maps and the working notes.
 
 | doc | status | what it is |
 |---|---|---|
+| [DELIVERABLE-MAP.md](./DELIVERABLE-MAP.md) | LIVE | **What to build next, in dependency order.** Verified against code, not against the other docs — it corrects three of them. Start here for sequencing. |
 | [CAPABILITY-CHAIN.md](./CAPABILITY-CHAIN.md) | LIVE | **How everything connects.** Every layer consumes the one below and adds exactly one thing. The dependency graph, one need traced end to end, and what is left. |
 | [DIVERGENCES.md](./DIVERGENCES.md) | LIVE | **Where we deliberately differ from Foundry**, each with the mirrored citation and the condition that undoes it. |
 | [foundry-reference/](./foundry-reference/) | LIVE | 438 mirrored pages + the URL index. **Grep here before designing anything.** `node scripts/mirror-foundry-docs.mjs <section>` adds more. |
@@ -43,7 +44,7 @@ here. These are the maps and the working notes.
 
 | doc | status | what is left |
 |---|---|---|
-| [PREDICTION-COHERENCE-ROADMAP.md](./PREDICTION-COHERENCE-ROADMAP.md) | OPEN | Q1 onward: route EWMA into reorder sizing. Q0 shipped. |
+| [PREDICTION-COHERENCE-ROADMAP.md](./PREDICTION-COHERENCE-ROADMAP.md) | OPEN | Q5 only — prove it, close the loop visibly. Q0–Q4 shipped. |
 | [AIP-OPERATE-INLINE.md](./AIP-OPERATE-INLINE.md) | OPEN | P1: the row badge and slide-over. P0 signal spine shipped. |
 | [DOCUMENT-INGESTION-ROADMAP.md](./DOCUMENT-INGESTION-ROADMAP.md) | OPEN | Ingestion stops at `ocr`; the later stages are unbuilt. |
 | [OPERATIONS-RESTRUCTURE.md](./OPERATIONS-RESTRUCTURE.md) | OPEN | Spec for review, not built. |

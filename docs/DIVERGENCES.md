@@ -119,10 +119,19 @@ will re-check.
 
 | | | source |
 |---|---|---|
-| **Theirs** | `promoted` requires the Ontology Owner role. | same page |
+| **Theirs** | `promoted` requires the Ontology Owner role, or "a proposal for review and approval by an Ontology Owner". At the platform level, Compass requires **Editor on the resource *and* Resource Curator at the space level**. | `mirror/object-link-types/metadata-statuses.md`, `mirror/compass/resource-status.md` |
 | **Ours** | Any org admin or owner, via the existing `admins update object types` policy. | migration 321 |
-| **Why** | We have no separate ontology-owner role, and inventing one for a single status would be a permission tier with one consumer. |
-| **Undo when** | A role hierarchy distinguishes ontology stewardship from org administration. |
+| **Why** | We have no curator or ontology-owner role, and inventing one for a single status would be a permission tier with one consumer. |
+| **Undo when** | Resource-level roles land — `ONTOLOGY-PARITY-GAPS.md` gap 6, which is where Resource Curator belongs. |
+
+### `promoted` is in the wrong place — known, not yet moved
+
+| | | source |
+|---|---|---|
+| **Theirs** | Promotion is a **Compass** concept — the filesystem's, not the ontology's. "Resource status allows you to indicate the importance of resources in the platform... currently, the only available status is Promoted." It applies to any resource and does three things: boosts search ranking, shows a checkmark, and fills a "Promoted items" curated filter. The ontology page surfaces that same status for object types. | `mirror/compass/resource-status.md` |
+| **Ours** | A fifth value in the ontology status enum on `object_types`, plus a `visibility` column. | migration 321 |
+| **Why** | Not a reasoned divergence — the Compass section was not mirrored when 321 was written, so the ontology page was read as the whole story. **The effect is missing entirely:** `visibility` is read by nothing, because there is no cross-artifact search to rank, no curated catalog and no curator role. It is dead vocabulary. |
+| **Undo when** | Quicksearch exists to be boosted — `DELIVERABLE-MAP.md` A1, then A2 moves `promoted` and `visibility` onto a resource-status axis. Moving it before then swaps one dead column for another. |
 
 ---
 

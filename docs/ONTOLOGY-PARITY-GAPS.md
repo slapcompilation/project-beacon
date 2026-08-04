@@ -86,7 +86,7 @@ Every object type redefines `room`, `cost`, `reported_on` independently. No cent
 property metadata, no consistency guarantee across types
 (`object-link-types/create-shared-property.md`).
 
-## Gap 4 — object sets exist but are dead code
+## Gap 4 — object sets exist but are dead code — CLOSED (#418, then re-derived)
 
 `packages/reality-graph/src/queries/nodeSet.ts` is built, exported, and explicitly
 modelled on osdk's `ObjectSet` — with **zero consumers**. `runNodeSet` is imported
@@ -97,6 +97,12 @@ around. Ours is an unused primitive while `evaluateUserTool` does its own ad-hoc
 filtering — the same drift class as the Forecast Lab bug (#403).
 
 **Either consume it or delete it.** A dormant abstraction is worse than none.
+
+**Resolved the hard way, and the right way.** `nodeSet` was deleted in #418 —
+it had no Foundry counterpart *and* no consumer. It came back as
+`selectObjectSet` + `searchAround` in `packages/reality-graph/src/objectSets/`
+once four consumers existed to shape it. The deletion is the precedent, not the
+re-derivation.
 
 ## Gap 5 — authored tools and authored agents do not compose — CLOSED (#416, #417)
 
@@ -153,5 +159,9 @@ These are strategy. Gaps 1–6 are absences.
    (migration 225). Agents inherit that reach through their toolset, not a subject column.
 3. ~~**Wire authored tools into agent toolsets** (gap 5)~~ — done, #416; input parameters
    done, #417. **Gap 5 fully closed.**
-4. **Consume or delete `nodeSet`** (gap 4).
-5. Shared properties (gap 3), resource-level roles (gap 6) — lower urgency.
+4. ~~**Consume or delete `nodeSet`** (gap 4)~~ — deleted in #418, re-derived as
+   `selectObjectSet`/`searchAround` once it had consumers.
+5. Shared properties (gap 3), resource-level roles (gap 6) — see
+   `docs/DELIVERABLE-MAP.md` §3, which sequences these against everything else.
+   Resource-level roles now also carry Compass's **Resource Curator**, and depend
+   on a resource tree existing first.
