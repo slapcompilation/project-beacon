@@ -76,18 +76,56 @@ entity is a known supplier — a resolved `describes_entity` edge to the real Su
 
 ---
 
-## 3. The gap, stage by stage — ⚠️ SUPERSEDED (audited 2026-07-28)
+## 3. The gap, stage by stage — ⚠️ SUPERSEDED AGAIN (audited 2026-08-04)
 
-**The table below is STALE.** `supabase/functions/document-ingest/index.ts`
-implements stages 1–8 and 10 to the Foundry reference: 512/128 overlapping
-chunking, composite `${docId}_${page}_${chunk}` keys, per-chunk LLM
-`{summary, entities}` with categories, `text_full`, `cited_in` document→chunk
-edges and `Entity` nodes with `mentions` edges — the last two **fail-closed**, so
-ingestion refuses to advance a stage it couldn't link.
+**The 2026-07-28 note below is itself stale.** It said `documents = 0` and that
+nothing was verified by observation. Measured today:
 
-**What is actually open is not in this table: `documents = 0`.** Nothing has ever
-been ingested in the live environment, so none of the above is verified by
-observation. See `FOUNDRY-CAPABILITY-AUDIT.md` §2.1.
+| | |
+|---|---|
+| documents | **2** — a real Greek supply contract (ΗΛΙΑΚΤΙΔΑ 2/2023) and a real invoice (INV11122) |
+| ingestion_stage | **`contextualized`** on both — the last stage the pipeline sets |
+| chunks | 37, every one with `text_full` **and** an embedding |
+| `cited_in` edges | 37 (document → chunk, page-level) |
+| entities | 87 across all five categories — term 38, clause 31, product 9, supplier 5, location 4 |
+| `mentions` edges | 76 (chunk → entity) |
+
+So stages 1–8 and 10 are not merely implemented, they have **run on real
+documents**. Track 1 and most of Track 2 are done. The roadmap's headline —
+"ingestion stops at `ocr`" — has been wrong for some time.
+
+### What the real run actually exposed
+
+**Stage 9 resolves nothing, and that is CORRECT.** `entity_link_suggestions = 0`
+and `resolved_to = 0`. It looks like the differentiator is broken; it is not. The
+seven supplier/product entities the documents mention are `bakery product`,
+`food product`, `frozen product`, `Item 1`, `Item 2`, `ILIAKTIDA` and `supplier`.
+There is nothing to match: the contract is with ΗΛΙΑΚΤΙΔΑ, who is not one of
+Valinor's suppliers, and Valinor's inventory is a hotel bar. Harmonization
+declining to invent a link is the behaviour we want.
+
+**The real defect is upstream — extraction quality.** Four of those seven names
+identify nothing. An `Entity`'s primary key *is* its name (Foundry's Entity
+object: PK and title are both `entityName`), so `supplier` becomes a node that
+every chunk saying the word points at, and that the resolver then offers as a
+candidate. Fixed two ways: the prompt now demands names that identify one
+specific thing and gives the rejects explicitly, and `checkEntityName`
+(reality-graph, unit-tested) refuses them deterministically — prompt for intent,
+filter for the contract.
+
+Run against the 87 real names, the filter rejects exactly the 7 junk ones and
+keeps all the rest, including Greek names, `Law 4412/2016`, and `INV11122` while
+refusing the bare word `invoice`.
+
+**21 orphaned entities are not a bug.** They have no `mentions` edge because
+re-ingesting replaces chunks and their edges while entity rows persist as
+vocabulary. `ontology_drift.sql` already reports them and `reap_ontology_orphans()`
+already removes them, deliberately as an explicit decision — *"entities are
+vocabulary: reaping is a decision, not a background sweep."* Working as designed.
+
+**Track E is unblocked.** The contract *and* an invoice are both ingested and
+contextualized. `CONTRACT-MODEL.md` says it is "waiting on a real invoice/PO";
+it is not waiting any more.
 
 Original table kept for the stage-by-stage spec, which is still the reference:
 

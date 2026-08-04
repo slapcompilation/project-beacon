@@ -249,22 +249,43 @@ work.
 
 ---
 
-## 5. Track D — document ingestion
+## 5. Track D — document ingestion ✅ Tracks 1–2 SHIPPED and RUN
 
-`DOCUMENT-INGESTION-ROADMAP.md`. Ingestion stops at `ocr`; the later stages are
-unbuilt. Track 1 (Foundry-exact ingest correctness) is the non-negotiable first
-step, Track 2 decides the `Chunk`/`Entity` node-type forks, Track 3 surfaces it.
+**This entry was wrong too.** It said ingestion stops at `ocr`. Measured: two
+real documents — the Greek ΗΛΙΑΚΤΙΔΑ supply contract and invoice INV11122 — both
+at `contextualized`, 37 chunks with full text and embeddings, 37 `cited_in`
+edges, 87 entities, 76 `mentions` edges. **Tenth for ten.**
 
-Note the coupling: **track E needs this**, and E is the one with a real business
-input waiting.
+The real run exposed one defect and cleared two false alarms:
+
+- **Fixed:** extraction produced `supplier`, `food product`, `Item 1` as
+  entities. An Entity's name is its primary key, so those become high-degree
+  nodes meaning nothing. Prompt tightened *and* `checkEntityName` refuses them
+  deterministically. Verified against the 87 real names: 7 junk rejected, 0 false
+  positives.
+- **Not a bug:** stage 9 resolving nothing is correct — the contract is with a
+  supplier we do not stock, against a hotel-bar inventory. Declining to invent a
+  link is the behaviour we want.
+- **Not a bug:** 21 orphaned entities are re-ingest residue that
+  `ontology_drift.sql` already reports and `reap_ontology_orphans()` already
+  removes, deliberately as an explicit decision.
+
+Remaining: Track 3 — the document copilot (P9) and the Search-Around graph (P10).
+
+**Track E is unblocked.** The contract *and* an invoice are both ingested.
 
 ---
 
-## 6. Track E — contract reconciliation
+## 6. Track E — contract reconciliation — UNBLOCKED
 
-`CONTRACT-MODEL.md`. The contract shape is tested against a real Greek supply
-agreement; the reconciliation half needs a real invoice or PO. **Blocked on an
-input from outside the codebase**, so it is scheduled rather than sequenced.
+`CONTRACT-MODEL.md` says the reconciliation half "needs a real invoice or PO".
+**It has one.** `Τιμολόγιο INV11122` is ingested, chunked, embedded and
+contextualized alongside the ΗΛΙΑΚΤΙΔΑ contract it belongs to. Both sit at
+Valinor.
+
+So E is no longer waiting on an input from outside the codebase — it is waiting
+on the reconciliation logic, which is ordinary work: match invoice lines to
+contract terms, flag price and quantity variance, cite the clause.
 
 ---
 
@@ -292,8 +313,11 @@ Small, independent, each fixing something that lets a defect through.
    axis, with the search boost, the checkmark and the catalog.
 5. ~~**B1**~~ ✅ — shared properties, migration 329. **B2 did not fall out of it**
    and is still blocked on properties becoming rows — see §3.
-6. **D** — ingestion stages, which also unblocks **E** for when the contract lands. ← next
-7. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
+6. ~~**D**~~ ✅ Tracks 1–2 — already run on real documents; the fix was extraction
+   quality. Track 3 (doc copilot, graph) remains.
+7. **E** — contract reconciliation. **No longer blocked** — the contract and the
+   invoice are both ingested. ← next
+8. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
 
 Then, by explicit instruction, the three items under *"What is deliberately not
 here"* — Workshop G2–G4, the visual logic canvas editor, and user-authored

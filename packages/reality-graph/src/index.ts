@@ -524,6 +524,10 @@ export type {
   OntologyStatusFields,
 } from './ontology/status'
 
+// An extracted entity's name is its identity — so it has to name something.
+export { checkEntityName, isNameableEntity, ENTITY_CATEGORIES } from './documents/entityNames'
+export type { EntityCategory, EntityNameVerdict } from './documents/entityNames'
+
 // Shared properties — one definition reused across object types (gap 3).
 export {
   resolveProperty, resolveProperties, attachProblem, usedBy, INHERITED_FIELDS,

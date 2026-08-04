@@ -26,7 +26,7 @@ import mammoth from 'https://esm.sh/mammoth@1.8.0'
 import * as XLSX from 'https://esm.sh/xlsx@0.18.5'
 import { json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
-import { scanForPII, sensitivityFromPII } from '../_shared/reality-graph.bundle.mjs'
+import { scanForPII, sensitivityFromPII, checkEntityName } from '../_shared/reality-graph.bundle.mjs'
 
 interface IngestRequest {
   document_id: string
@@ -63,6 +63,9 @@ interface IngestResponse {
   chunk_count: number
   tokens_used: number
   stage:       IngestStage
+  /** Entity names the model offered that identify nothing, with the reason.
+   *  Empty is the healthy case; a growing list means the prompt is drifting. */
+  rejected_entities: string[]
 }
 
 const MODEL         = 'claude-haiku-4-5-20251001'
@@ -164,10 +167,13 @@ function gateFail(gate: string, detail: string, stageReached: 'raw' | IngestStag
 async function enrichChunks(
   chunks: ChunkRow[],
   apiKey: string,
-): Promise<{ enrichment: Map<string, ChunkEnrichment>; tokensUsed: number }> {
+): Promise<{ enrichment: Map<string, ChunkEnrichment>; tokensUsed: number; rejected: string[] }> {
   const anthropic  = new Anthropic({ apiKey })
   const enrichment = new Map<string, ChunkEnrichment>()
   let tokensUsed = 0
+  /** Names the model offered that do not identify anything — surfaced in the
+   *  response so a drifting prompt is visible in the data, not just the graph. */
+  const rejected: string[] = []
 
   const categories = ENTITY_CATEGORIES.join(' | ')
   for (let i = 0; i < chunks.length; i += ENRICH_BATCH) {
@@ -177,6 +183,19 @@ async function enrichChunks(
       `(2) extract the entities it mentions, each classified into exactly one category: ${categories}. ` +
       'Use singular form for entity names, no duplicates within a chunk, at most ' +
       `${String(MAX_ENTITIES_PER_CHUNK)} entities per chunk. A chunk with no clear entities gets an empty array. ` +
+      // An Entity's primary key IS its name (Foundry's Entity object: PK and
+      // title are both entityName). So the name has to identify one thing.
+      // Without this, the first real contract produced "supplier", "food
+      // product" and "Item 1" as entities — a category word, a type and a
+      // placeholder label, none of which name anything.
+      'AN ENTITY NAME MUST IDENTIFY ONE SPECIFIC THING, because the name is its ' +
+      'identity. Extract the proper name as written in the document — "ΗΛΙΑΚΤΙΔΑ", ' +
+      '"Orange Juice", "Clause 7.2". REJECT: bare category words ("supplier", ' +
+      '"product", "customer"), generic types ("food product", "frozen product"), ' +
+      'placeholder or positional labels ("Item 1", "line 2", "the above"), and ' +
+      'anything you would not expect to appear identically in another document ' +
+      'about the same thing. If a chunk only refers to things generically, return ' +
+      'an empty array — that is a correct answer, not a failure. ' +
       'Return ONLY JSON: {"chunks":[{"chunk_key":"...","summary":"...","entities":[{"name":"...","category":"..."}]}]} ' +
       'covering EVERY chunk_key given.\n\n' +
       batch.map((c) => `chunk_key ${c.chunk_key}:\n${c.text_full}`).join('\n\n')
@@ -203,12 +222,20 @@ async function enrichChunks(
         .filter((e): e is { name: string; category: EntityCategory } =>
           typeof e?.name === 'string' && e.name.trim().length > 0
           && ENTITY_CATEGORIES.includes(e.category as EntityCategory))
+        // The prompt asks for names that identify one thing; this refuses the
+        // ones that arrive anyway. An Entity's name is its primary key, so
+        // "supplier" or "Item 1" becomes a high-degree node meaning nothing.
+        .filter((e) => {
+          const verdict = checkEntityName(e.name)
+          if (!verdict.ok) rejected.push(`${e.name} (${String(verdict.reason)})`)
+          return verdict.ok
+        })
         .slice(0, MAX_ENTITIES_PER_CHUNK)
         .map((e) => ({ name: e.name.trim(), category: e.category }))
       enrichment.set(c.chunk_key, { summary: c.summary.trim(), entities })
     }
   }
-  return { enrichment, tokensUsed }
+  return { enrichment, tokensUsed, rejected }
 }
 
 Deno.serve(async (req: Request) => {
@@ -325,7 +352,7 @@ Deno.serve(async (req: Request) => {
     // 5. Use LLM per chunk: { summary, entities } (P5). Every chunk must be
     //    covered — a summary the model skipped is a gate failure, because the
     //    embedding is computed over the summary.
-    const { enrichment, tokensUsed: enrichTokens } = await enrichChunks(chunkRows, anthropicKey)
+    const { enrichment, tokensUsed: enrichTokens, rejected: rejectedNames } = await enrichChunks(chunkRows, anthropicKey)
     tokensUsed += enrichTokens
     const uncovered = chunkRows.filter((c) => !enrichment.has(c.chunk_key))
     if (uncovered.length > 0) {
@@ -541,6 +568,7 @@ Deno.serve(async (req: Request) => {
       chunk_count: chunkRows.length,
       tokens_used: tokensUsed,
       stage,
+      rejected_entities: rejectedNames,
     }
     return json(response)
   } catch (err) {
