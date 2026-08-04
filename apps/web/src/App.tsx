@@ -29,6 +29,7 @@ const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'
 const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ProcessMiningPage = lazyWithRetry(() => import('@/pages/ProcessMiningPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
+const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ModulePage  = lazyWithRetry(() => import('@/pages/ModulePage'))
 const ModuleBuilderPage  = lazyWithRetry(() => import('@/pages/ModuleBuilderPage'))
 const ObjectListPage = lazyWithRetry(() => import('@/pages/ObjectListPage'))
@@ -152,6 +153,7 @@ function AppRoutes() {
             <Route path="/whats-new"     element={<WhatsNewPage />} />
             <Route path="/process"       element={<ProcessMiningPage />} />
             <Route path="/objects"       element={<ObjectsPage />} />
+            <Route path="/projects"      element={<ProjectsPage />} />
             {/* Generic on purpose: a new application must not mean a new route. */}
             <Route path="/modules/:apiName" element={<ModulePage />} />
             <Route path="/modules/:apiName/edit" element={<ModuleBuilderPage />} />
