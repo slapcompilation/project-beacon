@@ -42,6 +42,9 @@
 --       hotel-scoped role on purpose: hotel_is_in_user_scope() returns true for
 --       every hotel in the org once auth_org_role() is set, so an org-level user
 --       could see the module either way and would prove nothing.
+--   C30 a project role grant delegates editor to a non-admin WITHIN the org and
+--       confers nothing outside it — discretionary access inside the mandatory
+--       boundary (gap 6, migration 330).
 --   C29 an active object type cannot be deleted or renamed by an admin, and
 --       deprecating one reaches its link types — under `authenticated`, because
 --       as the owner every one of these passes vacuously (migrations 321/323).
@@ -938,6 +941,60 @@ BEGIN
     DELETE FROM object_types WHERE id IN (v_ca, v_cb);
   END;
 
+  -- ── C30: a project role delegates within an org and never across one ──────
+  -- Gap 6 closed by migration 330. Two things have to hold at once, and the
+  -- second is the one that makes the first safe: a grant WIDENS what a non-admin
+  -- may do inside their organization, and a grant is worth NOTHING outside it.
+  -- Foundry: "mandatory controls, Organizations and Markings, will always
+  -- prevent an ineligible user from accessing a resource, regardless of the
+  -- user's role."
+  RESET ROLE;
+  DECLARE
+    v_proj uuid; v_ptype uuid; v_grantee uuid; held boolean;
+  BEGIN
+    SELECT u.id INTO v_grantee FROM auth.users u LIMIT 1;
+
+    INSERT INTO projects (organization_id, api_name, name, created_by_user_id)
+    VALUES (v_org, 'c30_project', 'C30', NULL) RETURNING id INTO v_proj;
+    INSERT INTO object_types (organization_id, api_name, label, created_by_user_id)
+    VALUES (v_org, 'c30_type', 'C30 Type', NULL) RETURNING id INTO v_ptype;
+    INSERT INTO project_resources (resource_kind, resource_id, project_id, organization_id)
+    VALUES ('object_type', v_ptype, v_proj, v_org);
+    -- granted_by defaults to auth.uid(), and this suite's JWT subs are synthetic
+    -- (same trap as C28) — name the column and leave it null.
+    INSERT INTO project_role_grants (project_id, user_id, role, organization_id, granted_by)
+    VALUES (v_proj, v_grantee, 'editor', v_org, NULL);
+
+    -- The grantee, as a plain member of this org, inherits editor via the project.
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_grantee,
+      'app_metadata', json_build_object('org_id', v_org::text, 'role', 'team_member'))::text, true);
+    SET LOCAL ROLE authenticated;
+    SELECT has_resource_role('object_type', v_ptype, 'editor') INTO held;
+    IF NOT held THEN
+      RAISE EXCEPTION 'C30: an editor grant did not inherit from the project to its resource';
+    END IF;
+    SELECT has_resource_role('object_type', v_ptype, 'owner') INTO held;
+    IF held THEN
+      RAISE EXCEPTION 'C30: an editor grant conferred owner';
+    END IF;
+
+    -- The SAME grant row, read from another organization, confers nothing.
+    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_grantee,
+      'app_metadata', json_build_object('org_id', '00000000-0000-0000-0000-0000000000fe',
+                                        'role', 'admin'))::text, true);
+    SELECT has_resource_role('object_type', v_ptype, 'editor') INTO held;
+    IF held THEN
+      RAISE EXCEPTION 'C30: a project role crossed an organization boundary — discretionary beat mandatory';
+    END IF;
+
+    RESET ROLE;
+    PERFORM set_config('request.jwt.claims', claims_admin, true);
+    DELETE FROM project_role_grants WHERE project_id = v_proj;
+    DELETE FROM project_resources WHERE project_id = v_proj;
+    DELETE FROM projects WHERE id = v_proj;
+    DELETE FROM object_types WHERE id = v_ptype;
+  END;
+
   RESET ROLE;
   DELETE FROM object_sets WHERE api_name LIKE 'c24_%';
   DELETE FROM user_tools WHERE api_name LIKE 'c2%';
@@ -945,5 +1002,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation, C29 ontology status guards + cascade hold for an operator', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation, C29 ontology status guards + cascade hold for an operator, C30 project roles delegate inside the org and never across it', v_b_pending;
 END $$;

@@ -165,13 +165,17 @@ concepts grow independently.
 
 `compass/tags`. Cheap once A1 exists, meaningless before. Demand-gated.
 
-### A4 — Projects and folders
+### A4 — Projects ✅ SHIPPED (migration 330), folders deliberately not
 
-`compass/create-a-project`, `move-and-share-resources`. A real filesystem with
-containment and inherited permissions. **The biggest item in this map**, and the
-prerequisite for B4. Not worth starting on Foundry-fidelity grounds alone — start
-it when someone cannot find their work, or when per-resource permissions are
-genuinely needed.
+`projects` is the security boundary and the container: a resource belongs to at
+most one, per *"work and its output live in the same Project"*. That is the half
+B4 needed.
+
+**Folders are not built**, and that is a choice rather than an omission. Their
+job in Foundry is nesting inside a project, and their role-grant capability is
+*disabled by default* on Foundry's own recommendation — so a folder here would be
+containment with no permission consequence, for a resource count that fits on one
+screen. Add them when a project outgrows a flat list.
 
 ### A5 — Data catalog
 
@@ -227,12 +231,19 @@ Interfaces exist (migration 224) and tools target them (225). Foundry's
 `actions-on-interfaces` and interface-typed link ends are not covered. Audit
 consumption first; the pattern here has been that more exists than expected.
 
-### B4 — Resource-level roles
+### B4 — Resource-level roles ✅ SHIPPED (migration 330)
 
-Gap 6. Foundry grants ontology roles "on the Ontology level or the individual
-resource level"; ours are org + hotel + tier, so any admin writes every object
-type. This is also where Compass's **Resource Curator** role lands. **Depends on
-A4** for a resource tree to grant against.
+Four roles — owner, editor, viewer, discoverer — granted **on the project**, not
+the resource, which is Foundry's own recommendation and much simpler. A role may
+only assign the same or a lesser role, enforced in a trigger.
+
+Additive by construction: the existing admin/owner terms are untouched, so the
+change can only widen. An admin can now delegate Editor on a project to a
+non-admin. Contract C30 proves both halves — it inherits inside the org, and it
+is worth nothing outside it.
+
+**Resource Curator** is the next role to define here, and it is what
+`DIVERGENCES.md` points at for Compass promotion.
 
 ---
 
@@ -351,7 +362,11 @@ Small, independent, each fixing something that lets a defect through.
 7. **E** — contract reconciliation. **Still blocked**: the sample invoice is a
    blank form. Needs one filled-in invoice from a stocked supplier. Ingestion now
    detects the blank-form case rather than treating it as evidence.
-8. **A4/B4** — the filesystem and resource-level roles, when someone needs them. ← next
+8. ~~**A4/B4**~~ ✅ — projects as the security boundary, roles granted on them.
+   Folders deliberately skipped.
+
+**The map is now clear.** What remains is the three tracks recorded below as
+deliberately-not-here, which the operator has since asked for. ← next
 
 Then, by explicit instruction, the three items under *"What is deliberately not
 here"* — Workshop G2–G4, the visual logic canvas editor, and user-authored

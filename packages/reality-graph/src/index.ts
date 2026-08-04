@@ -524,6 +524,11 @@ export type {
   OntologyStatusFields,
 } from './ontology/status'
 
+// Projects — Foundry's primary security boundary — and the roles granted on
+// them. Discretionary, inside the mandatory org/hotel boundary.
+export { PROJECT_ROLES, ROLE_META, roleAtLeast, canGrant, grantableRoles, effectiveRole } from './projects/roles'
+export type { ProjectRole } from './projects/roles'
+
 // Is this a filled-in document or a blank form? A form that reaches the graph
 // looks like evidence and is not.
 export { detectBlankTemplate } from './documents/blankTemplate'

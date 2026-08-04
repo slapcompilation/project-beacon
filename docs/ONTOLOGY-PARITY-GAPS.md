@@ -147,11 +147,38 @@ Two rules: a **missing required argument is an error, never the authored fallbac
 wrong answer that looks right is worse than no answer), and a **parameter no filter reads
 is rejected** — it would make the caller supply something that changes nothing.
 
-## Gap 6 — permissions are scope-shaped, not resource-shaped
+## Gap 6 — permissions are scope-shaped, not resource-shaped — CLOSED (migration 330)
 
 Foundry grants Ontology roles *"on the Ontology level or the individual resource level"*.
 Ours is organization + hotel + role tier. There is no per-object-type or per-action-type
 grant: any org member reads every object type, any admin writes every one.
+
+**Closed with projects, which is where Foundry actually puts the grant.** Not
+per-resource: *"Role grants on folders and files are disabled by default... We
+recommend keeping role grants on folders and files disabled."* A project is
+*"the primary security boundary"*, grants attach to it, and they inherit to
+everything it contains. So `projects` + `project_resources` +
+`project_role_grants`, four roles (owner/editor/viewer/discoverer), and a
+resource's role is its project's.
+
+**The sentence that made it safe to turn on live data:** *"mandatory controls,
+Organizations and Markings, will ALWAYS prevent an ineligible user from accessing
+a resource, regardless of the user's role."* Roles are discretionary and sit
+inside the mandatory boundary — ours is org/hotel scope, and every policy keeps
+its `organization_id = auth_org_id()` term.
+
+Which means it **only ever widens**. The admin/owner terms are untouched, so
+nobody lost a capability; what is new is that an admin can grant a non-admin
+Editor on a project and they may write that project's resources. Delegation is
+the point of a discretionary role, and it is the half of gap 6 that actually
+hurt.
+
+Proven under a real role in `rls_contracts.sql` C30 — the grant inherits to the
+resource, does not confer more than was granted, and the same grant row read from
+another organization confers nothing.
+
+**Resource Curator** (Compass's promotion gate, `DIVERGENCES.md`) is the obvious
+next role to define on this spine.
 
 ---
 
