@@ -1,3 +1,4 @@
+// @surface-orphan-ok — procurement insights panel, orphaned with the same barrel. Operations has an intelligence panel that may supersede it.
 // Supplier spend, order volume, fulfillment time.
 
 import { useState } from 'react'

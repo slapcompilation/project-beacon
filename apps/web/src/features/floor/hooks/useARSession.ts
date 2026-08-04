@@ -1,3 +1,4 @@
+// @surface-orphan-ok — the AR session behind CameraShelfView. Lives or dies with it.
 // Layer: Floor — AR session state machine stub
 //
 // Phase 9 extension points (documented here for the AR implementation sprint):

@@ -339,6 +339,7 @@ Small, independent, each fixing something that lets a defect through.
 
 | | what | why now |
 |---|---|---|
+| **R5** | ~~No guard covers `apps/web`~~ ✅ `check:surfaces` — walks the import graph from `main.tsx`. Added after a cleanup deleted `ReportsPage` and left its eleven sections plus `FinancePage` behind: 2,503 lines surviving the sweep meant to find them. |
 | **R1** | `check:vocabulary` must not accept a constants file as a consumer | It passed eight dead values today. Require a *behavioural* consumer — a comparison, a query, a branch — not a literal in an array. |
 | **R2** | `docs/README.md` says prediction coherence is "Q1 onward" | Q1–Q4 shipped. Only Q5 (prove it, close the loop visibly) remains. |
 | **R3** | `ONTOLOGY-PARITY-GAPS.md` gap 4 | Closed by #418 + the objectSets re-derivation; the file still lists it open. |

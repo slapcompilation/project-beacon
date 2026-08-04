@@ -1,3 +1,4 @@
+// @surface-orphan-ok — AR shelf scanning, complete and never wired to Floor. A real capability, not debris; deleting it is a product call.
 // Layer: Floor — Camera viewfinder with shelf overlay skeleton
 //
 // Phase 9 extension: Replace placeholder overlays with real ARDetectedItem

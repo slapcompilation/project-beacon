@@ -1,3 +1,4 @@
+// @surface-orphan-ok — chain benchmarking panel, exported by a barrel nobody imported. ChainPage may already cover it; needs a look before deleting.
 // Layer: Mind — Chain benchmarking panel (multi-hotel owners only)
 // Compares waste rate, supplier fill rate, and throughput across all hotels.
 

@@ -1,3 +1,4 @@
+// @surface-orphan-ok — built, never given a panel slot in Insights. Awaiting a decision on whether the AI brief belongs there or in the Home briefing, which already exists.
 // Daily brief synthesised from all live signals.
 
 import { useEffect } from 'react'

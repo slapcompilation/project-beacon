@@ -77,6 +77,7 @@ are what actually hold:
 | command | catches |
 |---|---|
 | `pnpm check:shape` | a table or function nothing reaches |
+| `pnpm check:surfaces` | a web file nothing can reach from `main.tsx` |
 | `pnpm check:vocabulary` | a CHECK value no code, data or declaration consumes |
 | `pnpm check:modules` | a module reference held by name in jsonb that points nowhere |
 | `pnpm check:rpcs` | an RPC name the app calls that does not exist |

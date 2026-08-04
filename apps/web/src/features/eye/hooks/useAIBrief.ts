@@ -1,3 +1,4 @@
+// @surface-orphan-ok — reached only by AIBriefPanel, which is itself unwired. Lives or dies with it.
 // Layer: Eye — AI-generated daily brief via Supabase Edge Function
 // Imperative / on-demand hook (no TanStack Query — brief is user-triggered, not a background fetch).
 

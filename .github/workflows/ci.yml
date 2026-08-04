@@ -67,6 +67,13 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: pnpm check:modules
 
+      # Five guards policed the database and none looked at apps/web. A cleanup
+      # deleted ReportsPage and left its eleven sections behind, plus FinancePage
+      # whose route had become a redirect — 2,503 lines surviving the very sweep
+      # meant to find them. This walks the import graph from main.tsx.
+      - name: Every web file is reachable
+        run: pnpm check:surfaces
+
       # The ratchet. A new table must declare whether it is platform or domain;
       # a domain table must be reachable by the ontology; the grandfathered set
       # may only shrink; an unreachable function must be declared intentional.
