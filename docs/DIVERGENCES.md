@@ -243,6 +243,31 @@ Recorded because each was nearly "improved" into a different feature.
 
 ---
 
+## Property metadata (concept 2 audit, 2026-08-04)
+
+| | | source |
+|---|---|---|
+| **Theirs** | **Edit-only properties** — *"Ontology properties that are not directly mapped to a column in the backing dataset… This allows you to easily create new properties before the backing column exists"*, later mappable to a real column. | `mirror/object-link-types/edit-only-properties.md` |
+| **Ours** | Forbidden: `builtin_property_drift()` reports any property without a matching column, so every property must map to one. |
+| **Why** | Edit-only exists because **Foundry does not own the backing dataset** — a pipeline someone else builds produces it, so the ontology needs somewhere to put a field the pipeline has not added yet. We own every backing table, so the equivalent move is one `ALTER TABLE`. Adopting edit-only would mean building a writeback store for values with nowhere to live — a concept with no consumer. |
+| **Undo when** | An object type is backed by a table we do not own — an external system, a read-only view, or a customer's own database. Then the column cannot be added and edit-only becomes the only way to hold the field. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | Every property carries a **status** (`active`/`experimental`/`deprecated`) independently of its object type. | `mirror/object-link-types/property-metadata.md` |
+| **Ours** | Status lives on object types, link types and interfaces; properties have none. |
+| **Why** | Our properties are derived from columns, and a column that should not be relied on is dropped rather than marked. Nothing yet reads a per-property status. |
+| **Undo when** | A property needs deprecating without dropping its column — most likely once authored types have enough consumers that removing a field breaks a saved view. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | **Value formatting**, **conditional formatting**, **type classes** and **render hints** as property metadata — number/date formats, colouring rules, and per-property `searchable`/`sortable` flags that *"impact the performance of reindexes"*. | `mirror/object-link-types/property-metadata.md` |
+| **Ours** | None of the four. Formatting is per-surface; there is no reindex to tune. |
+| **Why** | Render hints exist to control Object Storage indexing, which Postgres does not have — the honest counterpart is an index, not metadata. Formatting and type classes are real gaps with no consumer asking yet. |
+| **Undo when** | Two surfaces disagree on how the same property should read — that is the same drift that put descriptions in a web-side const, and the fix is the same: move it onto the property. |
+
+---
+
 ## Adding a row
 
 When you deviate: add the row **in the same change**, cite the mirrored page, and

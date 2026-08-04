@@ -5,7 +5,7 @@
 // navigable). Foundry's standard-vs-configured view is resolved by
 // resolveViewConfig; nothing is ever hidden (unplaced keys sweep to Details).
 
-import { Card, Icon, NonIdealState } from '@blueprintjs/core'
+import { Card, Icon, NonIdealState, Tooltip } from '@blueprintjs/core'
 import { evaluateComputed, resolveViewConfig, type ObjectTypeDef } from '@beacon/reality-graph'
 
 export interface RecordShape { id: string; title: string; data: Record<string, unknown>; created_at: string }
@@ -22,6 +22,15 @@ export function RecordBody({ type, record, links, dense = false, onOpenRecord }:
   const labelOf = (key: string) =>
     type.properties.find((p) => p.key === key)?.label ?? type.computedProperties.find((c) => c.key === key)?.label ?? key
   const isComputed = (key: string) => type.computedProperties.some((c) => c.key === key)
+  const describes = (key: string) => type.properties.find((p) => p.key === key)?.description
+
+  /** Foundry's "property mouseover reveals its definition" — the ontology
+   *  answering what a field means, rather than a colleague. */
+  const Label = ({ k, className }: { k: string; className: string }) => {
+    const hint = describes(k)
+    const el = <span className={hint ? `${className} cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2` : className}>{labelOf(k)}</span>
+    return hint ? <Tooltip content={hint} placement="top" compact>{el}</Tooltip> : el
+  }
   const valueOf = (key: string): string => {
     const computed = type.computedProperties.find((c) => c.key === key)
     return fmt(computed ? evaluateComputed(computed, record.data) : record.data[key])
@@ -33,7 +42,7 @@ export function RecordBody({ type, record, links, dense = false, onOpenRecord }:
         <div className={`grid gap-3 ${dense ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
           {view.prominent.map((key) => (
             <Card key={key} compact>
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{labelOf(key)}</p>
+              <Label k={key} className="block text-[10px] font-semibold uppercase tracking-wide text-muted-foreground" />
               <p className={`text-lg font-semibold tabular-nums mt-0.5 ${isComputed(key) ? 'text-violet-600' : ''}`}>{valueOf(key)}</p>
             </Card>
           ))}
@@ -46,7 +55,7 @@ export function RecordBody({ type, record, links, dense = false, onOpenRecord }:
           <div className="divide-y divide-border">
             {section.keys.map((key) => (
               <div key={key} className="flex items-center justify-between py-1.5 gap-4">
-                <span className="text-xs text-muted-foreground">{labelOf(key)}</span>
+                <Label k={key} className="text-xs text-muted-foreground" />
                 <span className={`text-xs font-medium tabular-nums text-right ${isComputed(key) ? 'text-violet-600' : ''}`}>{valueOf(key)}</span>
               </div>
             ))}
