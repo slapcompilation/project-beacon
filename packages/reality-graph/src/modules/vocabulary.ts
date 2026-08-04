@@ -24,6 +24,8 @@ export const MODULE_WIDGET_TYPES = [
   // G2/G3 — asked for, so built. One registry entry each, which is what the
   // demand-gating design was for.
   'chart_xy', 'object_view', 'inline_action',
+  // The fourth step of the OAG chain: the source, beside the thing citing it.
+  'source_viewer',
 ] as const
 export type ModuleWidgetType = typeof MODULE_WIDGET_TYPES[number]
 
@@ -85,6 +87,7 @@ export const WIDGET_BINDING: Record<ModuleWidgetType, {
   // object set, which determines the object that will be displayed" — the set
   // says WHICH object, not how many.
   object_view:      { needsVariable: true,  accepts: ['object_set'] },
+  source_viewer:    { needsVariable: true,  accepts: ['object_set'] },
   markdown:         { needsVariable: false },
   // Carries its action in config, like button_group.
   inline_action:    { needsVariable: false },

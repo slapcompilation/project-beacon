@@ -93,6 +93,18 @@ export const WIDGET_SPECS: Record<ModuleWidgetType, WidgetSpec> = {
     blurb: 'One object in full. The set says which — the first in it is shown.',
     fields: [{ key: 'header', label: 'Show header', kind: 'select', options: ['true', 'false'] }],
   },
+  source_viewer: {
+    label: 'Source document', icon: 'document-open', needsVariable: true, binds: ['object_set'],
+    blurb: 'The source beside the thing citing it. Point it at a set holding one document.',
+    fields: [
+      { key: 'property', label: 'Media property', kind: 'text',
+        help: 'The media reference property holding the file — storage_path on a document.' },
+      { key: 'page', label: 'Page from variable', kind: 'text',
+        help: 'A numeric variable. Shows only that page.' },
+      { key: 'term', label: 'Search term from variable', kind: 'text',
+        help: 'A string variable. Fills the search box and highlights matches.' },
+    ],
+  },
   inline_action: {
     label: 'Action form', icon: 'form', needsVariable: false,
     blurb: 'An always-open form. The same action, validation and audit entry as the modal.',

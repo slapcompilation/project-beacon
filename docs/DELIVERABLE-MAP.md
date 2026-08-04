@@ -47,11 +47,10 @@ PDF viewer. The first three are done: `document.storage_path` is registered as a
 media reference and `chunk.embedding` as a vector (migration 340), so the
 ontology now knows a document has a file and a chunk has an embedding.
 
-**What is left is the viewer.** Foundry documents `workshop/widgets-pdf-viewer`,
-which renders the source beside the result — *"source-of-truth cross-validation
-for the users"*. Not queued: it is one more Workshop widget, demand-gated like
-the rest, and worth building when somebody is actually reading contracts against
-chunks.
+**The chain is complete** (migration 341): the `source_viewer` widget renders the
+source beside the thing citing it — *"source-of-truth cross-validation for the
+users"*. It shows extracted text rather than PDF pixels, and the divergence says
+so.
 
 ## Parity gaps, found and not yet argued
 

@@ -109,8 +109,15 @@ wrong owner). Zero promotions existed, so nothing needed backfilling.
 
 | | | source |
 |---|---|---|
+| **Theirs** | A **PDF Viewer** widget: renders PDF pixels, supports text and area **annotations** created through configured actions, and accepts four media sources — Compass, datasets, media references and attachments. | `mirror/workshop/widgets-pdf-viewer.md` |
+| **Ours** | `source_viewer`: renders the **extracted text** the pipeline produced, from the one media source that exists here, with the original behind a signed URL. | migration 341 |
+| **Why** | Their binding is copied exactly — an object set holding one object, plus a media reference property, with page and search-term variable inputs, highlighting and a hit count. What differs is the rendering: our documents are extracted text, and PDF pixels need a renderer. **Named `source_viewer`, not `pdf_viewer`, so the name does not promise one.** Annotations are a separate feature (objects created through actions), not a rendering detail. |
+| **Undo when** | Somebody needs to see the page rather than its text — then a PDF renderer, and the name changes with it. Annotations undo separately, on demand. |
+
+| | | source |
+|---|---|---|
 | **Theirs** | ~40 widgets. | `mirror/workshop/concepts-widgets.md` |
-| **Ours** | 11. | W1–G3 |
+| **Ours** | 12. | W1–G3 |
 | **Why** | A widget nobody has asked for is the dead vocabulary this codebase keeps removing. Two earned their place by evidence rather than request: Tabs, because three effects existed with nothing able to trigger them; Filter List, because `object_set_filter` was a variable type with no consumer. Chart XY, Object View and Inline Action were asked for. |
 | **Undo when** | Per widget, on demand. |
 

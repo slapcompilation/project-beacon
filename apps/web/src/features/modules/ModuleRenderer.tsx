@@ -34,6 +34,7 @@ import {
   type SideEffect, type TabSpec, type TriggerContext,
 } from './runtime'
 import { ChartXY } from './ChartXY'
+import { SourceViewer } from './SourceViewer'
 import { EmbeddedObjectView } from './EmbeddedObjectView'
 import { InlineActionForm } from './InlineActionForm'
 import { AdoptionPanel } from './AdoptionPanel'
@@ -482,6 +483,20 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
       }
       return <ChartXY title={widget.title} points={points} layerType={layerType}
                       caption={`${metric}${yKey ? ` of ${yKey}` : ''} by ${xKey}`} />
+    }
+
+    case 'source_viewer': {
+      // "Define an object set with a single object and select the media
+      // reference typed property." The set says which document; the property
+      // says which of its fields holds the file.
+      const property = typeof widget.config.property === 'string' ? widget.config.property : 'storage_path'
+      const pageVar = typeof widget.config.page === 'string' ? Number(scalarValue(mod.variables.find((v) => v.apiName === widget.config.page), ui)) : undefined
+      const rawTerm = typeof widget.config.term === 'string'
+        ? scalarValue(mod.variables.find((v) => v.apiName === widget.config.term), ui)
+        : undefined
+      const termVar = typeof rawTerm === 'string' ? rawTerm : undefined
+      return <SourceViewer record={records[0]} property={property} title={widget.title}
+                           page={Number.isFinite(pageVar) ? pageVar : undefined} term={termVar} />
     }
 
     case 'object_view': {
