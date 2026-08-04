@@ -278,7 +278,13 @@ export function CommandBar() {
               return (
                 <Row key={`${h.kind}-${h.id}`} icon={h.icon as IconName}
                   onSelect={() => { go(path) }} focused={focusIdx === idx}>
-                  <span className="block truncate text-xs font-medium">{h.title}</span>
+                  <span className="flex items-center gap-1 truncate text-xs font-medium">
+                    {h.title}
+                    {h.promoted && (
+                      <Icon icon="endorsed" size={10} className="text-violet-500 flex-shrink-0"
+                        title="Promoted — recommended for everyone" />
+                    )}
+                  </span>
                   <span className="block truncate text-[10px] text-muted-foreground">{h.subtitle}</span>
                 </Row>
               )

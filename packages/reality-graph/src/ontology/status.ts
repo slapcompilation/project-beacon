@@ -13,14 +13,14 @@
 // the guards. This is the one place TypeScript states them, so a picker and a
 // badge cannot disagree about what the values are.
 
+// `promoted` is NOT here. It looked like a fifth status because the ontology
+// page lists it among five values, but Compass owns it — a separate, binary axis
+// over any resource, so a type is `active` AND promoted rather than one or the
+// other. See migration 327 and `promotion.ts`.
 export const ONTOLOGY_STATUSES = [
-  'promoted', 'active', 'experimental', 'deprecated', 'example',
+  'active', 'experimental', 'deprecated', 'example',
 ] as const
 export type OntologyStatus = typeof ONTOLOGY_STATUSES[number]
-
-/** `promoted` is object types only — "not available for properties, link types,
- *  action types or interfaces". */
-export const LINK_AND_INTERFACE_STATUSES = ONTOLOGY_STATUSES.filter((s) => s !== 'promoted')
 
 export const ONTOLOGY_VISIBILITIES = ['prominent', 'normal', 'hidden'] as const
 export type OntologyVisibility = typeof ONTOLOGY_VISIBILITIES[number]
@@ -38,11 +38,6 @@ export interface OntologyStatusMeta {
 }
 
 export const STATUS_META: Record<OntologyStatus, OntologyStatusMeta> = {
-  promoted: {
-    label: 'Promoted',
-    help: 'A core, trusted resource, vetted by an ontology owner. Surfaces prominently.',
-    intent: 'success', deletable: false, renamable: false,
-  },
   active: {
     label: 'Active',
     help: 'Actively in use. Breaking changes will not be made — it cannot be deleted or renamed.',

@@ -1,23 +1,39 @@
 import { describe, it, expect } from 'vitest'
-import {
-  ONTOLOGY_STATUSES, LINK_AND_INTERFACE_STATUSES, STATUS_META,
-  linkStatusFromEnds, statusChangeProblem,
-} from './status'
+import { ONTOLOGY_STATUSES, STATUS_META, linkStatusFromEnds, statusChangeProblem } from './status'
+import { RESOURCE_STATUSES, PROMOTABLE_KINDS, promotionEffects } from './promotion'
 
 describe('ontology status vocabulary', () => {
-  it('carries Foundry\'s five values, promoted excluded from links and interfaces', () => {
-    expect([...ONTOLOGY_STATUSES]).toEqual(['promoted', 'active', 'experimental', 'deprecated', 'example'])
-    // "Not available for properties, link types, action types or interfaces."
-    expect(LINK_AND_INTERFACE_STATUSES).not.toContain('promoted')
-    expect(LINK_AND_INTERFACE_STATUSES).toHaveLength(4)
+  it('carries developmental state only — promotion is a different axis', () => {
+    expect([...ONTOLOGY_STATUSES]).toEqual(['active', 'experimental', 'deprecated', 'example'])
+    // `promoted` looked like a fifth value and is Compass's. Keeping it here made
+    // it exclusive with `active`, so promoting meant no longer saying it was
+    // in use. See migration 327.
+    expect(ONTOLOGY_STATUSES).not.toContain('promoted')
   })
 
   it('lets only experimental be renamed, and refuses to delete what is in use', () => {
     const renamable = ONTOLOGY_STATUSES.filter((s) => STATUS_META[s].renamable)
     expect(renamable).toEqual(['experimental'])
     expect(STATUS_META.active.deletable).toBe(false)
-    expect(STATUS_META.promoted.deletable).toBe(false)
     expect(STATUS_META.deprecated.deletable).toBe(true)
+  })
+})
+
+describe('resource status', () => {
+  it('has exactly one value, which is theirs', () => {
+    // "Currently, the only available status is Promoted." Absence is the
+    // default state, so there is no 'none' to model.
+    expect([...RESOURCE_STATUSES]).toEqual(['promoted'])
+  })
+
+  it('names all three effects at the point of decision', () => {
+    for (const kind of PROMOTABLE_KINDS) {
+      const effects = promotionEffects(kind)
+      expect(effects).toHaveLength(3)
+      expect(effects.join(' ')).toMatch(/search/i)
+      expect(effects.join(' ')).toMatch(/checkmark/i)
+      expect(effects.join(' ')).toMatch(/catalog/i)
+    }
   })
 })
 
@@ -38,7 +54,7 @@ describe('linkStatusFromEnds', () => {
 
   it('never restores a link upward when both ends are healthy', () => {
     // A link somebody deliberately marked experimental stays that way.
-    expect(linkStatusFromEnds('active', 'promoted', 'experimental')).toBe('experimental')
+    expect(linkStatusFromEnds('active', 'active', 'experimental')).toBe('experimental')
     expect(linkStatusFromEnds('active', 'active', 'active')).toBe('active')
   })
 })

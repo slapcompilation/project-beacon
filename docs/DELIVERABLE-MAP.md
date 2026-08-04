@@ -50,23 +50,24 @@ anything acting on them. A vocabulary module can defeat the vocabulary guard.
 That is a hole worth closing before it is used again by accident.
 *(Closed — R1. Declaration files and test files no longer count as consumers.)*
 
-**Half of this is now fixed.** A1 shipped the search that ranks on `visibility`
-and excludes `deprecated` and `hidden`, so the column is load-bearing rather
-than decorative. What remains is the modelling: `promoted` is still an ontology
-enum member when it is a platform resource status. That is A2.
+**CLOSED — A1 and A2.** A1 shipped the search that ranks on `visibility` and
+excludes `deprecated` and `hidden`; A2 moved `promoted` onto `resource_status`,
+where it is a separate binary axis rather than a fifth developmental state. The
+enum no longer accepts it, and all three Compass effects are live. The rest of
+this section stands as the record of how it went wrong.
 
 ### What this costs to correct
 
 | | |
 |---|---|
 | Keep | The four-value ontology status (`active`/`experimental`/`deprecated`/`example`), the deprecation record, the delete + rename guards, the link cascade, C29. All of that is `metadata-statuses` and all of it is load-bearing. |
-| Move | `promoted` + `visibility` — out of the ontology enum and onto a resource-status axis that any artifact can carry. |
-| Add | The discovery surface that makes it mean something (track A). |
-| Fix | `check:vocabulary`, so a constants file is not accepted as a consumer. |
+| Move | ✅ `promoted` out of the ontology enum, onto `resource_status`. `visibility` stayed on the object type — it is ontology metadata in Foundry too, and quicksearch ranks on it. |
+| Add | ✅ The discovery surface that makes it mean something (A1). |
+| Fix | ✅ `check:vocabulary`, so a constants file is not accepted as a consumer. |
 
-**Do not move `promoted` until track A1 exists.** Relocating it into another
-table with no reader trades one dead column for another. The right order is:
-build the thing promotion affects, then promote into it.
+**The order mattered.** Moving `promoted` before A1 existed would have traded one
+dead column for another — a promotion that boosts nothing. Build the thing
+promotion affects, then promote into it.
 
 ---
 
@@ -139,19 +140,20 @@ deprecated one drops out of search, which is most of what deprecating something
 is supposed to accomplish. `SECURITY INVOKER`, so "Quicksearch respects all
 existing permissions" is RLS rather than a second permission model.
 
-Still open from §0: `promoted` remains an ontology enum member rather than a
-resource-status axis. That is A2.
+### A2 — Resource status ✅ SHIPPED (migrations 327/328)
 
-### A2 — Resource status, properly
+`resource_status (resource_kind, resource_id, status)`, `promoted` its only
+value, per "currently the only available status is Promoted". Absence is the
+default state, so un-promoting **deletes the row** rather than storing a `none`.
 
-Once A1 exists: one `resource_status` row per artifact — `(resource_kind,
-resource_id, status)` with `promoted` as the only value, per "currently the only
-available status is Promoted". Effects: boost in A1's ranking, a checkmark in
-its results, and a "Promoted" filter.
+The enum no longer accepts `promoted`, and that was the substance of the fix: as
+a fifth status it was exclusive with `active`, so promoting a type meant giving
+up saying it was in use. The two axes now compose.
 
-Then `object_types.visibility` and the `promoted` enum member retire into it,
-and the ontology page reads promotion rather than owning it — which is how
-Foundry has it.
+All three effects are live and were verified against real data — promoting the
+`Supplier` type moved it from rank 10 to −5, above its unpromoted peer, marked
+it, and put it in the empty-query catalog. The bridge is theirs too: promoting
+sets `visibility` to `prominent`, and un-promoting returns it to `normal`.
 
 **`app_promotions` (migration 309) is the precedent to reconcile with.** It
 promotes modules into portal collections, which is Foundry's *curating apps*,
@@ -272,8 +274,9 @@ Small, independent, each fixing something that lets a defect through.
    Receive closed the set.
 3. ~~**A1**~~ ✅ — quicksearch, migrations 325/326. `visibility` now decides
    findability.
-4. **A2** — move `promoted` onto the resource axis. Closes the rest of §0. ← next
-5. **B1 + B2** — shared properties, with property status falling out of it.
+4. ~~**A2**~~ ✅ — `resource_status`, migrations 327/328. Promotion is its own
+   axis, with the search boost, the checkmark and the catalog.
+5. **B1 + B2** — shared properties, with property status falling out of it. ← next
 6. **D** — ingestion stages, which also unblocks **E** for when the contract lands.
 7. **A4/B4** — the filesystem and resource-level roles, when someone needs them.
 

@@ -124,14 +124,31 @@ will re-check.
 | **Why** | We have no curator or ontology-owner role, and inventing one for a single status would be a permission tier with one consumer. |
 | **Undo when** | Resource-level roles land — `ONTOLOGY-PARITY-GAPS.md` gap 6, which is where Resource Curator belongs. |
 
-### `promoted` is in the wrong place — known, not yet moved
+### `promoted` was in the wrong place — RESOLVED (migrations 327/328)
+
+Left here as a record, because the shape it produced is now the one in the code.
+Migration 321 made `promoted` a fifth ontology status, which made it **exclusive
+with `active`** — promoting a type meant no longer being able to say it was in
+use. Compass owns it: a separate binary axis over any resource, so a type is
+`active` *and* promoted. `resource_status` now holds it, and all three of its
+effects are live — search boost, checkmark, and the promoted-items catalog that
+an empty palette shows.
+
+Two real divergences came out of the move:
 
 | | | source |
 |---|---|---|
-| **Theirs** | Promotion is a **Compass** concept — the filesystem's, not the ontology's. "Resource status allows you to indicate the importance of resources in the platform... currently, the only available status is Promoted." It applies to any resource and does three things: boosts search ranking, shows a checkmark, and fills a "Promoted items" curated filter. The ontology page surfaces that same status for object types. | `mirror/compass/resource-status.md` |
-| **Ours** | A fifth value in the ontology status enum on `object_types`, plus a `visibility` column. | migration 321 |
-| **Why** | Not a reasoned divergence — the Compass section was not mirrored when 321 was written, so the ontology page was read as the whole story. **The effect is missing entirely:** `visibility` is read by nothing, because there is no cross-artifact search to rank, no curated catalog and no curator role. It is dead vocabulary. |
-| **Undo when** | Quicksearch exists to be boosted — `DELIVERABLE-MAP.md` A1, then A2 moves `promoted` and `visibility` onto a resource-status axis. Moving it before then swaps one dead column for another. |
+| **Theirs** | Resource status applies to **any** resource — projects, folders, files, datasets. | `mirror/compass/resource-status.md` |
+| **Ours** | Three kinds: object types, applications, documents. | migration 327 |
+| **Why** | Promotion is only *felt* where quicksearch can surface something, and those are the three kinds it searches. A promotable kind that never appears in a result set is a curation nobody can see. |
+| **Undo when** | Quicksearch grows a kind — the two move together, one row in `PROMOTABLE_KINDS` and one `UNION ALL`. |
+
+| | | source |
+|---|---|---|
+| **Theirs** | Promoting needs **Editor on the resource *and* Resource Curator at the space level** — two grants, one of them scoped above the resource. | `mirror/compass/resource-status.md` |
+| **Ours** | Org admin or owner. | migration 327 |
+| **Why** | We have neither role, and a curated catalog only works if curation is scarce — the two-grant design is how Foundry keeps it scarce. Ours leans on admin being scarce instead, which is weaker. |
+| **Undo when** | Resource-level roles land (`ONTOLOGY-PARITY-GAPS.md` gap 6). Resource Curator is the first role that arc should define. |
 
 ---
 

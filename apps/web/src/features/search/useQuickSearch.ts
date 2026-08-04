@@ -21,6 +21,8 @@ export interface QuickHit {
   title: string
   subtitle: string
   icon: string
+  /** Curated by an admin — ranks higher and carries a checkmark. */
+  promoted: boolean
 }
 
 interface Row extends QuickHit { rank: number }
@@ -51,8 +53,10 @@ export function useQuickSearch(query: string) {
       if (res.error) throw new Error(res.error.message)
       return (res.data ?? []).map(({ rank: _rank, ...hit }) => hit)
     },
-    // Two characters is where a title search stops matching everything.
-    enabled: q.length >= 2,
+    // Two characters is where a title search stops matching everything. An
+    // EMPTY query is not idle — it returns the promoted-items catalog, which is
+    // what an operator should see on opening the palette with nothing typed.
+    enabled: q.length === 0 || q.length >= 2,
     staleTime: 15_000,
     placeholderData: (prev) => prev,
   })

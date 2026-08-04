@@ -13,6 +13,7 @@ import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
   ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES, STATUS_META, VISIBILITY_META, statusChangeProblem,
+  promotionEffects,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
   type OntologyStatus, type OntologyVisibility, type OntologyStatusMeta,
@@ -26,7 +27,7 @@ import {
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
-  useSetObjectTypeStatus,
+  useSetObjectTypeStatus, usePromotions, useSetPromotion,
 } from '@/features/objectTypes/hooks'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
@@ -113,6 +114,9 @@ const INTENTS: Record<OntologyStatusMeta['intent'], Intent> = {
  *  this. Without the last one the next reader has to guess. */
 function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
   const set = useSetObjectTypeStatus()
+  const { data: promotions } = usePromotions()
+  const promote = useSetPromotion()
+  const isPromoted = promotions?.has(`object_type:${type.id}`) ?? false
   const current = type.status ?? 'experimental'
   const [status, setStatus] = useState<OntologyStatus>(current)
   const [visibility, setVisibility] = useState<OntologyVisibility>(type.visibility ?? 'normal')
@@ -124,9 +128,6 @@ function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Object
     ? { reason, deadline, replacedBy: replacedBy || null }
     : null
   const problem = statusChangeProblem(current, status, deprecation)
-  // Promoting sets visibility in a trigger; showing 'normal' while the write
-  // makes it 'prominent' would be the form lying about its own result.
-  const effectiveVisibility = status === 'promoted' ? 'prominent' : visibility
 
   return (
     <Card compact className="space-y-3">
@@ -139,12 +140,26 @@ function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Object
         </label>
         <label className="flex flex-col gap-1">
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Visibility</span>
-          <HTMLSelect value={effectiveVisibility} disabled={status === 'promoted'}
+          <HTMLSelect value={visibility} disabled={isPromoted}
+            title={isPromoted ? 'A promoted resource is prominent by definition.' : undefined}
             onChange={(e) => { setVisibility(e.currentTarget.value as OntologyVisibility) }}>
             {ONTOLOGY_VISIBILITIES.map((v) => <option key={v} value={v}>{VISIBILITY_META[v].label}</option>)}
           </HTMLSelect>
         </label>
         <p className="text-[11px] text-muted-foreground flex-1 min-w-48">{STATUS_META[status].help}</p>
+      </div>
+
+      {/* Promotion is a different axis from status — a type is active AND
+          promoted, never one instead of the other. */}
+      <div className="flex items-start gap-3 border-t border-border/40 pt-3">
+        <Switch checked={isPromoted} disabled={promote.isPending} className="!mb-0"
+          labelElement={<span className="text-xs font-medium">Promote this object type</span>}
+          onChange={(e) => {
+            promote.mutate({ kind: 'object_type', id: type.id, promoted: e.currentTarget.checked })
+          }} />
+        <ul className="text-[11px] text-muted-foreground space-y-0.5 flex-1">
+          {promotionEffects('object_type').map((line) => <li key={line}>{line}</li>)}
+        </ul>
       </div>
 
       {status === 'deprecated' && (
@@ -172,7 +187,7 @@ function StatusPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Object
 
       <div className="flex items-center gap-2">
         <Button size="small" intent={Intent.PRIMARY} icon="tick" disabled={!!problem} loading={set.isPending}
-          onClick={() => { set.mutate({ id: type.id, status, visibility: effectiveVisibility, deprecation }) }}>
+          onClick={() => { set.mutate({ id: type.id, status, visibility, deprecation }) }}>
           Save
         </Button>
         {problem && <span className="text-[11px] text-muted-foreground">{problem}</span>}
