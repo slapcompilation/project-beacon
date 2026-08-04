@@ -57,6 +57,14 @@ jobs:
       # audit-shape polices tables and functions — database OBJECTS. A value
       # inside a CHECK is not one, so an allowed value nothing consumes reads as
       # a working feature indefinitely. Three did.
+      # check:vocabulary compares the deployed collision guard against
+      # actionDescriptors, which it reads from the edge bundle. The bundle is a
+      # build artifact and gitignored, so it exists on a developer's machine and
+      # never in CI — the check reported "could not read the edge bundle" and
+      # failed. It stayed hidden while an earlier step was failing first.
+      - name: Build the edge bundle
+        run: pnpm build:edge-bundle
+
       - name: Every allowed value is consumed
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
