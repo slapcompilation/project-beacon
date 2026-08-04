@@ -38,6 +38,34 @@ like evidence, and the signal that says otherwise is discarded.
 
 ---
 
+## Property base types — the gap the media question exposed
+
+Our `PropertyType` is four values: `text | number | boolean | date`. Foundry's
+base types include those plus **Vector, Geopoint, Geoshape, Attachment, Time
+series, Geotemporal series, Media reference, Cipher text and Struct**
+(`mirror/object-link-types/base-types.md`).
+
+Two of those are load-bearing for work already half-built here:
+
+**Media reference.** *"A media reference property type allows you to have media on
+your objects... points to a specific media item within a media set. The media
+reference contains information about the media file, which means Foundry can
+display the media wherever the media reference is used."* `documents` carries
+`storage_path` and `bucket_name` as plain text — a media reference in everything
+but type, which is why nothing can render a source document beside a chunk.
+
+It is also where document processing *belongs*: `mirror/media-sets-advanced-formats/media-in-ontology.md`
+says OCR, text extraction, audio transcription and metadata reads are
+**operations on the media reference**, performed in functions on objects. Ours
+live inside one `document-ingest` edge function instead.
+
+**Vector**, *"for storing vectors on objects for use in a semantic search"* — our
+chunk embeddings sit in a column the ontology does not know about.
+
+Neither is queued. Both are recorded because the ontology-augmented-generation
+chain (chunk object → media reference property → semantic search → PDF viewer)
+needs the property types before the widget is worth building.
+
 ## Parity gaps, found and not yet argued
 
 **AIP Analyst** — *"an interface for agentic workflows that lets you use natural
