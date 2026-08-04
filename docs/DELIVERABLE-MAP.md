@@ -380,6 +380,24 @@ R2 and R3 are one-line doc edits; fold them into whatever lands next.
 
 ---
 
+## Newly visible — AIP Analyst
+
+Mirroring the AIP sections (24 pages, never pulled before) surfaced one real
+parity gap. **AIP Analyst** is *"an interface for agentic workflows that lets you
+use natural language to perform ad-hoc analyses across your Ontology... the agent
+will answer by autonomously searching your Ontology, creating object sets, and
+transforming data before generating summaries and visualizations"*
+(`mirror/aip-analyst/overview.md`).
+
+Our copilot answers questions with tools; it does not autonomously *build object
+sets* and return visualizations. We now have `selectObjectSet`, `searchAround`
+and the Chart XY widget, so the pieces exist. Not queued — recorded so the gap is
+visible rather than rediscovered.
+
+`aip-evals` and `aip-observability` are also newly mirrored; both look largely
+covered by the eval pipeline and agent traces, and are worth a read before
+anything is built against them.
+
 ## What is deliberately not here
 
 - **Workshop G2–G4** — the remaining widgets are demand-gated by policy, one

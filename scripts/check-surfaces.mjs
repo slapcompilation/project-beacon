@@ -130,11 +130,14 @@ for (const f of all) {
 // the vocabulary guard runs, for the same reason.
 const staleExemptions = [...exempt.keys()].filter((f) => reachable.has(f))
 
-const scanned = all.filter((f) => !isTest(f) && !isDecl(f)).length
+// Product files only, both sides of the ratio: `reachable` can include a .d.ts
+// somebody imports, which would otherwise report more reachable than scanned.
+const product = all.filter((f) => !isTest(f) && !isDecl(f))
+const live = product.filter((f) => reachable.has(f)).length
 
 if (dead.length === 0 && staleExemptions.length === 0) {
   const note = exempt.size > 0 ? ` · ${exempt.size} declared orphan(s)` : ''
-  console.log(`surfaces OK — ${reachable.size} of ${scanned} file(s) reachable from main.tsx${note}`)
+  console.log(`surfaces OK — ${live} of ${product.length} file(s) reachable from main.tsx${note}`)
   process.exit(0)
 }
 

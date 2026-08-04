@@ -44,7 +44,30 @@ Why Java is right *for them* and not for us, so this isn't re-litigated: Foundry
 
 ### Deliberate divergences
 
-Recorded in `docs/IMPLEMENTATION-MAP.md` under non-goals, with the reason. Choosing not to build something is fine; **quietly building a different shape is not.**
+Recorded in `docs/DIVERGENCES.md`, each with the mirrored citation and the condition that undoes it. Choosing not to build something is fine; **quietly building a different shape is not.**
+
+## Where the authority lives, per layer
+
+This file drifts, and it drifts the same way every time: **it restates a
+vocabulary that is really enforced somewhere else.** The `EdgeType` union was the
+authority until `link_types` became one. Tool categories claimed AIP parity
+against a number nobody rechecked. Both read as spec and neither was.
+
+So before trusting a list in this file, check what actually holds it:
+
+| layer | the authority | the guard |
+|---|---|---|
+| Edges / link types | `link_types` rows | `db:contracts` C25, C26 |
+| Object types, status, visibility | `object_types` + its CHECKs | `check:shape`, `check:vocabulary` |
+| Any CHECK vocabulary | the constraint | `check:vocabulary` |
+| Actions | `BeaconAction` in code **and** `user_action_types` rows | `check:shape`, C1–C30 |
+| Workshop modules | `module_*` rows | `check:modules` |
+| RPC names | the database | `check:rpcs` |
+| Web surfaces | the import graph from `main.tsx` | `check:surfaces` |
+| Divergences from Foundry | `docs/DIVERGENCES.md` | the mirrored citation in each row |
+
+**A list in this file that no guard polices is a description, not a rule.** When
+they disagree, the guard is right.
 
 ## Commands
 
@@ -100,8 +123,14 @@ LLMs are glue. They decide *which* component to call. They never do retrieval, m
 
 All data is nodes + typed edges. No bare foreign keys.
 
+**The authority is `link_types`, not this union.** Since migration 256 a link
+type is a row with two named sides, a cardinality and a backing; since 260
+`relationship_edges` is a *projection* over those backings rather than a table.
+The union below is the TypeScript mirror of that vocabulary and drifts if edited
+alone — `pnpm db:contracts` (C25, C26) is what actually holds the two together.
+
 ```ts
-// packages/types/src/edges.ts
+// packages/types/src/edges.ts — mirrors link_types; the database is the authority
 export type EdgeType =
   // causal
   | 'causes' | 'caused_by' | 'triggered'
@@ -163,7 +192,14 @@ export const forecastConsumptionTool = {
 }
 ```
 
-### Tool categories (AIP parity)
+### Tool categories — ours, a superset of Foundry's three
+
+Foundry documents **three**: *"AIP Logic leverages three categories of
+Ontology-driven tools — data, logic, and action"* (`mirror/logic/blocks.md`).
+Ours splits further. That is a divergence, not parity, and the extra four earn
+their place by being things the LLM must be told apart: `search` is retrieval
+rather than a query, `mutation` is Foundry's `action`, and `utility`,
+`predefined` and `ui-control` never touch the ontology at all.
 
 | Category | Purpose |
 |---|---|
@@ -182,7 +218,7 @@ export const forecastConsumptionTool = {
 - **Pure unless `mutation`.** Tools query the graph; only mutation tools write — and only through the Action Registry.
 - **Versioned.** Bump version on input/output/basis change. Every agent run records the version that ran on both the call and the response step, so a number in a proposal is traceable to the implementation that produced it. There is one registry entry per tool name — callers don't select a version, the trace reports it.
 - **Explicit basis + confidence** on every computed result. Without these the operator can't audit and the transparency layer has nothing to render.
-- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement lands with Tier 2 of `docs/IMPLEMENTATION-MAP.md`; until then, treat this as a contract with the model, not a sandbox.
+- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement has no owner yet — `docs/IMPLEMENTATION-MAP.md` is closed and this outlived it. Treat it as a contract with the model, not a sandbox, and see `docs/DELIVERABLE-MAP.md` for what is actually queued.
 
 ---
 
