@@ -54,6 +54,16 @@ export type {
   ActionDescriptor,
   InvocationMode,
 } from './actions/index'
+// Operator-defined action types — the third authored artifact, after tools and
+// agents. A shipped action always wins a name collision.
+export {
+  authoredActionDescriptor, validateAuthoredAction, evaluateSubmissionCriteria,
+  SHIPPED_ACTION_NAMES,
+} from './actions/authored'
+export type {
+  AuthoredActionDef, AuthoredActionParameter, AuthoredActionOperation,
+  SubmissionCriterion, CriterionFailure,
+} from './actions/authored'
 export {
   validateAction,
   edgesForAction,

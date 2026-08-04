@@ -213,6 +213,36 @@ Every action declares:
 
 StockLogs are never edited or deleted. Corrections are compensating transactions (`is_revert: true`, `revert_of: <id>`).
 
+### Two kinds of action type, and where the line is
+
+**Code-defined** `BeaconAction`s are the union above. They stay in code because
+the engine *reasons* about them — revert chains, transfer approval, stock
+arithmetic — and that reasoning needs compile-time exhaustiveness.
+
+**Operator-authored** action types are rows in `user_action_types` (migration
+333), and they edit `object_records`: the half of the ontology that is already
+data. This is Foundry's own scope — an action type is *"a set of changes or edits
+to objects, property values, and links"*.
+
+The four requirements above are **not** waived for them; they are columns:
+`parameters`, `submission_criteria`, `invocation_mode`, `approval_tier`, plus an
+append-only `user_action_log` — Foundry's action log, *"one-to-one with action
+types"*. A row that omits one does not insert.
+
+Two rules keep the two kinds from colliding:
+
+- **A shipped action always wins a name.** `ADJUST_STOCK` cannot be redefined by
+  an organization; the collision is refused at authoring time, not at dispatch.
+- **An authored action may not target a built-in object type.** Writing
+  `stock_logs`, `purchase_orders` and the rest needs a code-defined action,
+  because those carry compensating-transaction semantics a form cannot express.
+
+This was listed as a deliberate divergence until 2026-08-04. It was not one: all
+four requirements are properties of a *definition*, which is why Foundry can
+author action types in Ontology Manager and keep every one. The argument against
+generated types in this file is expressly about a **language boundary**, which
+does not exist inside one TypeScript codebase.
+
 ---
 
 ## Modeling Objectives (when a baseline isn't enough)

@@ -186,9 +186,16 @@ next role to define on this spine.
 
 Separated so this doesn't read as a checklist to close blindly:
 
-- **User-authored action types.** Foundry lets users create action types in Ontology
-  Manager. CLAUDE.md deliberately keeps `BeaconAction` typed in code so every write has
-  compile-time guarantees, submission criteria and an audit entry.
+- ~~**User-authored action types.**~~ **Withdrawn — this was never a divergence,
+  and it is now closed (migration 333).** The reasoning was that keeping
+  `BeaconAction` in code is what buys "submission criteria and an audit entry".
+  It is not: both are *fields on a definition*, which is why Foundry authors
+  action types in Ontology Manager and keeps all four requirements. The one thing
+  the code union actually buys is compile-time exhaustiveness, and that is why
+  the actions the engine reasons about — reverts, transfers, stock arithmetic —
+  stay in code. Authored action types edit `object_records`, with parameters,
+  submission criteria, invocation mode and an append-only action log required by
+  the database.
 - **Visual no-code authoring.** `docs/STUDIO-AUTHORING-PLAN.md` chooses NL-native
   authoring over a drag-and-drop canvas.
 
