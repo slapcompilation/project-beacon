@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ObjectTypeDef } from '@beacon/reality-graph'
-import { STATUS_META } from '@beacon/reality-graph'
+import { STATUS_META, isBacked } from '@beacon/reality-graph'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   setObjectTypeStatus,
@@ -95,7 +95,7 @@ export function useObjectRecordsForTypes(typeIds: string[]) {
 export function useOntologyRecord(type: ObjectTypeDef | undefined, recordId: string | null) {
   return useQuery({
     queryKey: ['ontology-record', type?.id ?? '', recordId ?? ''] as const,
-    queryFn: () => (type && type.kind === 'builtin'
+    queryFn: () => (type && isBacked(type)
       ? fetchBuiltinRecord(type, recordId ?? '')
       : fetchObjectRecord(recordId ?? '')),
     enabled: !!type && !!recordId,

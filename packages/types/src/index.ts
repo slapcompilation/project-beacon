@@ -52,9 +52,10 @@ export interface Hotel {
   address: string
   timezone: string
   currency: string
-  config: Record<string, unknown>
   /** Geopoint — `latitude,longitude`. The only coordinate source (migration 342). */
   location: string | null
+  /** Operators must pick a category when removing stock. */
+  require_removal_reason: boolean
   created_at: string
   manager_approval_threshold: number
   director_approval_threshold: number

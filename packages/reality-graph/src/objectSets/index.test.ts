@@ -6,7 +6,7 @@ import type { ObjectTypeDef } from '../objectTypes/index'
 import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } from './index'
 
 const batchType: ObjectTypeDef = {
-  id: 't1', organizationId: 'o1', hotelId: null, kind: 'authored',
+  id: 't1', organizationId: 'o1', hotelId: null,
   apiName: 'batch', label: 'Batch', pluralLabel: 'Batches', icon: 'box',
   sourceTable: null, titleKey: null, viewConfig: null, createdByUserId: null,
   properties: [

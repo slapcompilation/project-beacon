@@ -45,10 +45,10 @@ export async function updateAutonomousSettings(id: string, input: AutonomousSett
   if (error) throw new Error(error.message)
 }
 
-export async function updateHotelConfig(key: string, value: unknown): Promise<void> {
-  const { error } = await supabase.rpc('update_hotel_config', {
-    p_key: key,
-    p_value: value,
-  })
+export async function updateRemovalReasonPolicy(id: string, required: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('hotels')
+    .update({ require_removal_reason: required })
+    .eq('id', id)
   if (error) throw new Error(error.message)
 }

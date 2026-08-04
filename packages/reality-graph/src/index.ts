@@ -510,7 +510,7 @@ export type {
 } from './userTools/index'
 
 export {
-  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, parseGeopoint, formatGeopoint, canBeTitleKey, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
+  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, parseGeopoint, formatGeopoint, canBeTitleKey, isBacked, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
   validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
   evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig,
 } from './objectTypes/index'

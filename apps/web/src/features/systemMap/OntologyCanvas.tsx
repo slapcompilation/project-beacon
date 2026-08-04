@@ -39,7 +39,7 @@ export default function OntologyCanvas() {
     // Single type sits centred; otherwise spread evenly, starting at 12 o'clock.
     const angle = -Math.PI / 2 + (i * 2 * Math.PI) / Math.max(1, rows.length)
     return {
-      id: t.id, label: t.label, icon: t.icon, builtin: t.kind === 'builtin',
+      id: t.id, label: t.label, icon: t.icon, builtin: t.source_table !== null,
       x: rows.length === 1 ? cx : cx + ring * Math.cos(angle),
       y: rows.length === 1 ? cy : cy + ring * Math.sin(angle),
     }

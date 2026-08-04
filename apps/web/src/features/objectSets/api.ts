@@ -2,7 +2,7 @@
 // by selectObjectSet in reality-graph, never here and never materialised.
 
 import { supabase } from '@/lib/supabase/client'
-import { selectObjectSet, type LinkRow, type ObjectSetDef, type SetFilter, type SetParamDef, type SetTraversal } from '@beacon/reality-graph'
+import { selectObjectSet, isBacked, type LinkRow, type ObjectSetDef, type SetFilter, type SetParamDef, type SetTraversal } from '@beacon/reality-graph'
 import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
@@ -91,7 +91,7 @@ export async function resolveCohortMembers(setIds: string[]): Promise<Map<string
   for (const s of sets) {
     const type = types.get(s.subject_type_id as string)
     if (!type) continue
-    const records = type.kind === 'builtin'
+    const records = isBacked(type)
       ? (await fetchBuiltinRecords(type)).rows
       : await fetchObjectRecordsForTypes([type.id])
     const selection = selectObjectSet(rowToObjectSet(s), [{ type, records: records.map((r) => r.data) }])

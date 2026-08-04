@@ -39,7 +39,7 @@ export default function ObjectsPage() {
   // the ontology row is the source; hand-written entries are overrides.
   const { data: ontologyRows = [] } = useOntologyTypes()
   const derivedTypes = ontologyRows.filter((r) =>
-    r.kind === 'builtin' && r.source_table !== null && !(r.api_name in OBJECT_PRESENTATION))
+    r.source_table !== null && !(r.api_name in OBJECT_PRESENTATION))
   const { data: derivedCounts } = useQuery({
     queryKey: ['object-type-counts-derived', derivedTypes.map((t) => t.api_name).join(',')],
     enabled: derivedTypes.length > 0,

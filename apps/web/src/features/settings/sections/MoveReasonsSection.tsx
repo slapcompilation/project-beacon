@@ -4,7 +4,7 @@ import { useState } from 'react'
 import {
   Button, Card, Icon, InputGroup, Intent, Spinner, SpinnerSize, Switch,
 } from '@blueprintjs/core'
-import { useActiveHotel, useUpdateHotelConfig } from '@/features/hotel/hooks'
+import { useActiveHotel, useUpdateRemovalReasonPolicy } from '@/features/hotel/hooks'
 import {
   useCustomRemovalReasons,
   useCreateCustomRemovalReason,
@@ -15,7 +15,7 @@ import { SectionHeader, SettingRow } from './_shared'
 
 export function MoveReasonsSection() {
   const hotel = useActiveHotel()
-  const updateHotelConfig = useUpdateHotelConfig()
+  const updateRemovalPolicy = useUpdateRemovalReasonPolicy()
   const { data: reasons = [], isLoading } = useCustomRemovalReasons()
   const createReason = useCreateCustomRemovalReason()
   const updateReason = useUpdateCustomRemovalReason()
@@ -24,7 +24,7 @@ export function MoveReasonsSection() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
 
-  const requireRemovalReason = hotel?.config.require_removal_reason === true
+  const requireRemovalReason = hotel?.require_removal_reason === true
 
   const handleAdd = async () => {
     const name = newName.trim()
@@ -55,7 +55,7 @@ export function MoveReasonsSection() {
           <Switch
             checked={requireRemovalReason}
             onChange={(e) => {
-              void updateHotelConfig.mutateAsync({ key: 'require_removal_reason', value: e.currentTarget.checked })
+              void updateRemovalPolicy.mutateAsync(e.currentTarget.checked)
             }}
             className="!mb-0"
           />

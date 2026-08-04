@@ -25,7 +25,7 @@ DECLARE
   detail text;
   registered int;
 BEGIN
-  SELECT count(*) INTO registered FROM public.object_types WHERE kind = 'builtin';
+  SELECT count(*) INTO registered FROM public.object_types WHERE source_table IS NOT NULL;
   IF registered = 0 THEN
     RAISE NOTICE 'ontology drift SKIPPED — no built-in type registrations in this environment';
     RETURN;
@@ -42,7 +42,7 @@ BEGIN
   -- like a broken page rather than a missing mapping. Catch it here instead.
   SELECT count(*) INTO n
   FROM public.object_types
-  WHERE kind = 'builtin' AND source_table IS NOT NULL AND jsonb_array_length(properties) = 0;
+  WHERE source_table IS NOT NULL AND jsonb_array_length(properties) = 0;
   IF n > 0 THEN
     RAISE EXCEPTION 'ONTOLOGY DRIFT — % built-in type(s) have a backing table but no derived properties', n;
   END IF;

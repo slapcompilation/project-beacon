@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
 import {
-  fetchAccessibleHotels, updateHotelProfile, updateHotelConfig, updateAutonomousSettings,
+  fetchAccessibleHotels, updateHotelProfile, updateRemovalReasonPolicy, updateAutonomousSettings,
   type HotelProfileInput, type AutonomousSettingsInput,
 } from '../api'
 
@@ -54,12 +54,16 @@ export function useUpdateAutonomousSettings() {
   })
 }
 
-export function useUpdateHotelConfig() {
+export function useUpdateRemovalReasonPolicy() {
   const queryClient = useQueryClient()
   const hotelId = useAuthStore((s) => s.hotelId)
+  // The setting is read off the active hotel, so it has to be written there too.
+  // The old RPC wrote to users.hotel_id, which is a different property once
+  // somebody manages two.
+  const active = useActiveHotel()
 
   return useMutation({
-    mutationFn: ({ key, value }: { key: string; value: unknown }) => updateHotelConfig(key, value),
+    mutationFn: (required: boolean) => updateRemovalReasonPolicy(active?.id ?? '', required),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['hotels', hotelId] })
     },

@@ -9,7 +9,7 @@ import { rowToObjectSet, type ObjectSetRow } from '@/features/objectSets/api'
 import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
-import { buildAuthoredAgentTools, selectObjectSet } from '@beacon/reality-graph'
+import { buildAuthoredAgentTools, selectObjectSet, isBacked } from '@beacon/reality-graph'
 import type {
   ModuleDefinitionKind, ModuleLayoutType, ModuleVariableType, ModuleWidgetType,
 } from '@beacon/reality-graph'
@@ -145,7 +145,7 @@ export async function resolveObjectSetVariable(
   if (!typeRow) return []
 
   const type = rowToObjectType(typeRow)
-  const records = type.kind === 'builtin'
+  const records = isBacked(type)
     ? (await fetchBuiltinRecords(type)).rows
     : await fetchObjectRecordsForTypes([type.id])
 

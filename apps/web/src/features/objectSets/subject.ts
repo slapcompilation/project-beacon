@@ -12,6 +12,7 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { isBacked } from '@beacon/reality-graph'
 import type { ObjectTypeDef, SetRecord, RecordGroup, SetSubject } from '@beacon/reality-graph'
 import { useOntologyTypes } from '@/features/objectTypes/hooks'
 import { fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType } from '@/features/objectTypes/api'
@@ -40,8 +41,8 @@ function useSetRecords(targets: ObjectTypeDef[]) {
     enabled: targets.length > 0,
     staleTime: 15_000,
     queryFn: async () => {
-      const authored = targets.filter((t) => t.kind !== 'builtin')
-      const builtin  = targets.filter((t) => t.kind === 'builtin')
+      const authored = targets.filter((t) => !isBacked(t))
+      const builtin  = targets.filter((t) => isBacked(t))
 
       const authoredRows = authored.length > 0 ? await fetchObjectRecordsForTypes(authored.map((t) => t.id)) : []
       const builtinResults = await Promise.all(builtin.map(async (t) => ({ type: t, ...(await fetchBuiltinRecords(t)) })))

@@ -270,7 +270,7 @@ describe('a parameterised tool over an interface spanning built-in types', () =>
     ],
   }
   const variantType: ObjectTypeDef = {
-    ...type, id: 'bt-variant', apiName: 'variant', label: 'Variant', kind: 'builtin',
+    ...type, id: 'bt-variant', apiName: 'variant', label: 'Variant',
     sourceTable: 'product_variants', titleKey: 'name',
     properties: [
       { key: 'expiry_date', label: 'Expiry date', type: 'date', required: false },

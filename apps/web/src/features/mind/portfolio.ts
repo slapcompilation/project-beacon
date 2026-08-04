@@ -16,7 +16,7 @@ export interface PortfolioHotelSignal {
   last_cycle_at:        string | null
   last_cycle_auto:      number
   last_cycle_queued:    number
-  /** Geographic coordinates from hotels.config; null when unset. */
+  /** Split from the hotel's geopoint `location`; null when it has none. */
   lat:                  number | null
   lng:                  number | null
 }

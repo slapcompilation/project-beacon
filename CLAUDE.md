@@ -332,9 +332,12 @@ Two rules keep the two kinds from colliding:
 
 - **A shipped action always wins a name.** `ADJUST_STOCK` cannot be redefined by
   an organization; the collision is refused at authoring time, not at dispatch.
-- **An authored action may not target a built-in object type.** Writing
-  `stock_logs`, `purchase_orders` and the rest needs a code-defined action,
-  because those carry compensating-transaction semantics a form cannot express.
+- **An authored action may not target a type with a backing datasource.**
+  Writing `stock_logs`, `purchase_orders` and the rest needs a code-defined
+  action, because those carry compensating-transaction semantics a form cannot
+  express. "Backed" is the whole test: Foundry classifies object types by their
+  datasource and has no built-in kind, so `object_types.source_table` is the
+  authority and migration 344 removed the `kind` column that duplicated it.
 
 This was listed as a deliberate divergence until 2026-08-04. It was not one: all
 four requirements are properties of a *definition*, which is why Foundry can

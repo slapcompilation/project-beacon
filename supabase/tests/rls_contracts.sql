@@ -548,7 +548,7 @@ BEGIN
   -- but no user may edit or delete them — not even an admin.
   RESET ROLE;
   SELECT id INTO v_type FROM object_types
-   WHERE organization_id = v_org AND kind = 'builtin' AND api_name = 'variant';
+   WHERE organization_id = v_org AND source_table IS NOT NULL AND api_name = 'variant';
   IF v_type IS NOT NULL THEN
     PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
       'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);

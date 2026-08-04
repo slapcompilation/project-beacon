@@ -35,7 +35,7 @@ export function StockAdjustModal({ open, onClose, product, prefill }: Props) {
   const adjustStock = useAdjustStock()
   const { data: customReasons = [] } = useCustomRemovalReasons()
   const activeHotel = useActiveHotel()
-  const requireRemovalCategory = activeHotel?.config.require_removal_reason === true
+  const requireRemovalCategory = activeHotel?.require_removal_reason === true
   const [direction, setDirection] = useState<'add' | 'remove'>(
     prefill ? (prefill.delta >= 0 ? 'add' : 'remove') : 'remove'
   )

@@ -56,6 +56,12 @@ export const formatGeopoint = (lat: number, lng: number): string => `${String(la
 
 export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE.includes(t)
 
+/** True when the type has a backing datasource — a code-owned table rather than
+ *  object_records. Foundry classifies object types by their datasource and has
+ *  no notion of a built-in one, so this replaced `kind` in migration 344. */
+export const isBacked = (t: { sourceTable?: string | null }): boolean =>
+  t.sourceTable != null
+
 export interface PropertyDef {
   /** api name — a slug, unique within the type. Never changes when a shared
    *  property is attached; downstream workflows are bound to it. */
@@ -81,10 +87,10 @@ export interface ObjectTypeDef {
   icon: string
   description: string
   properties: PropertyDef[]
-  /** authored = operator-defined, records in object_records. builtin = a
-   *  code-owned type registered so links and tools can reach it; its records
-   *  live in `sourceTable`, not object_records. */
-  kind?: 'authored' | 'builtin'
+  /** The backing datasource, and the whole of what separates the two halves of
+   *  the ontology. NULL = records live in object_records, which is Foundry's
+   *  "object type with no datasource"; set = a code-owned table. Ask through
+   *  {@link isBacked} rather than testing it inline. */
   sourceTable?: string | null
   /** Property whose value titles a record — Foundry requires a title key per
    *  object type. NULL where no single column reads as one (a stock log's title

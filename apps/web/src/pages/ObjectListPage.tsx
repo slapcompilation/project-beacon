@@ -97,7 +97,7 @@ export default function ObjectListPage() {
 // View, the same page authored records use.
 function OntologyFallbackList({ apiNameOrId }: { apiNameOrId: string }) {
   const { data: rows = [], isLoading } = useOntologyTypes()
-  const t = rows.filter((r) => r.kind === 'builtin').map(rowToObjectType).find((x) => x.apiName === apiNameOrId)
+  const t = rows.filter((r) => r.source_table !== null).map(rowToObjectType).find((x) => x.apiName === apiNameOrId)
   const spec = t ? defaultListSpec(t) : null
 
   const { data, isLoading: listLoading, isError, error } = useQuery({

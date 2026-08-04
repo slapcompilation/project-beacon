@@ -22,9 +22,9 @@ export interface ObjectTypeRow {
   view_config: ViewConfigDef | null
   enabled: boolean
   version: number
-  /** authored = operator-defined, records in object_records.
-   *  builtin  = code-owned registration; records live in source_table. */
-  kind: 'authored' | 'builtin'
+  /** The backing datasource, and the only thing that separates the two halves
+   *  of the ontology: NULL means the records live in object_records (Foundry's
+   *  "object type with no datasource"); set means a code-owned table. */
   source_table: string | null
   title_key: string | null
   /** Developmental state (migration 321). Anything new starts experimental. */
@@ -45,7 +45,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     properties: r.properties, computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
-    kind: r.kind, sourceTable: r.source_table, titleKey: r.title_key,
+    sourceTable: r.source_table, titleKey: r.title_key,
     status: r.status, visibility: r.visibility,
     deprecation: r.deprecation_reason && r.deprecation_deadline
       ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
@@ -58,7 +58,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
  *  empty editable types in the browser and the type editor. */
 export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
   const { data, error } = await supabase.from('object_types').select('*')
-    .eq('kind', 'authored').order('created_at', { ascending: false })
+    .is('source_table', null).order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return data as ObjectTypeRow[]
 }
@@ -68,7 +68,8 @@ export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
  *  (a Maintenance Request may now link to a Variant). */
 export async function fetchOntologyTypes(): Promise<ObjectTypeRow[]> {
   const { data, error } = await supabase.from('object_types').select('*')
-    .order('kind', { ascending: true }).order('label', { ascending: true })
+    .order('source_table', { ascending: true, nullsFirst: true })
+    .order('label', { ascending: true })
   if (error) throw new Error(error.message)
   return data as ObjectTypeRow[]
 }
@@ -80,7 +81,7 @@ export async function fetchObjectTypeCards(): Promise<ObjectTypeCard[]> {
   const { data, error } = await supabase
     .from('object_types')
     .select('id, api_name, label, icon, object_records(count)')
-    .eq('kind', 'authored')
+    .is('source_table', null)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   interface Row { id: string; api_name: string; label: string; icon: string; object_records: { count: number }[] | null }
