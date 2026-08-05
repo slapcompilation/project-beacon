@@ -31,8 +31,3 @@ export const ENTITY_META: Record<ObjectPanelEntity, {
   location:        { icon: 'map-marker',  label: 'Zone',           route: '/location/', table: 'locations',       select: '*' },
 }
 
-export const GRAPH_NODE_TYPE: Partial<Record<ObjectPanelEntity, string>> = {
-  variant: 'variant', product: 'product', supplier: 'supplier',
-  restock_request: 'restock_request', stock_log: 'stock_log',
-  alert: 'alert', purchase_order: 'purchase_order',
-}

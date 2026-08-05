@@ -1,20 +1,14 @@
-import { Suspense, lazy } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { formatDistanceToNow } from 'date-fns'
 import { Button, Icon, Intent, Spinner, SpinnerSize } from '@blueprintjs/core'
 import { supabase } from '@/lib/supabase/client'
 import { useAppStore, type ObjectPanelEntity } from '@/stores/app.store'
-import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import { ENTITY_META, GRAPH_NODE_TYPE } from './EntityMeta'
+import { ENTITY_META } from './EntityMeta'
 import { EntitySummary } from './EntitySummary'
 import { LocationAipPanel } from '@/features/canvas/LocationAipPanel'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-
-const GraphConnections = lazy(() =>
-  import('@/components/GraphConnections').then((m) => ({ default: m.GraphConnections }))
-)
 
 function useObjectData(entityType: ObjectPanelEntity | null, entityId: string | null) {
   const meta = entityType ? ENTITY_META[entityType] : null
@@ -110,22 +104,6 @@ export function DetailTabContent() {
                   hotelId={hotelId ?? undefined}
                   emptyHint="No agent decisions on this item yet."
                 />
-              </div>
-            )}
-
-            {GRAPH_NODE_TYPE[entityType] && (
-              <div className="px-4 py-3">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                  Graph Connections
-                </p>
-                <PanelErrorBoundary name="Graph Connections" className="min-h-[60px]">
-                  <Suspense fallback={<Spinner size={SpinnerSize.SMALL} />}>
-                    <GraphConnections
-                      nodeType={GRAPH_NODE_TYPE[entityType] as 'variant'}
-                      nodeId={entityId ?? ''}
-                    />
-                  </Suspense>
-                </PanelErrorBoundary>
               </div>
             )}
 

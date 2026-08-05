@@ -21,7 +21,6 @@ import {
 import type { EntityNodeType, IngestionStage, Sensitivity } from '@/features/documents/api'
 import { AuditRail } from '@/components/AuditRail'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
-import { SearchAroundButton } from '@/components/SearchAroundGraph'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { ObjectSection } from '@/components/ObjectSection'
@@ -112,7 +111,6 @@ export default function DocumentObjectPage() {
       }
       actions={
         <>
-        <SearchAroundButton nodeType="document" nodeId={documentId} />
         <HTMLSelect
           value={row.sensitivity}
           disabled={reclassify.isPending}

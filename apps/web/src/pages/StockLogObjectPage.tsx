@@ -20,7 +20,6 @@ import {
 import { supabase } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
 import type { StockLog } from '@beacon/types'
-import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import { OBJECT_PRESENTATION } from '@/lib/objectPresentation'
@@ -262,11 +261,6 @@ export default function StockLogObjectPage() {
             />
           </Card>
         )}
-
-        {/* ── Graph connections ── */}
-        <Card>
-          <GraphConnections nodeType="stock_log" nodeId={log.id} />
-        </Card>
     </ObjectViewFrame>
   )
 }

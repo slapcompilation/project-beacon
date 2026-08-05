@@ -24,11 +24,9 @@ import { fetchOpenCasesForSupplier } from '@/features/cases/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { cn } from '@/lib/utils'
 import type { Supplier, SupplierContract, ProductVariant } from '@beacon/types'
-import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
 import { ReferencedInDocuments } from '@/components/ReferencedInDocuments'
-import { SearchAroundButton } from '@/components/SearchAroundGraph'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 import { AuditRail } from '@/components/AuditRail'
@@ -328,7 +326,6 @@ export default function SupplierObjectPage() {
       }
       actions={
         <>
-          <SearchAroundButton nodeType="supplier" nodeId={supplierId} />
           <AnchorButton href="/mind?panel=contracts" icon="document" variant="minimal" size="small">View Contracts</AnchorButton>
           <AnchorButton href="/mind?panel=procurement" icon="box" variant="minimal" size="small">Procurement</AnchorButton>
           <AnchorButton href="/mind?panel=suppliers" icon="star" variant="minimal" size="small">Reliability Scorecard</AnchorButton>
@@ -500,11 +497,6 @@ export default function SupplierObjectPage() {
                 : 'unknown'}
             </div>
           )}
-
-          {/* ── Graph connections ── */}
-          <Card>
-            <GraphConnections nodeType="supplier" nodeId={supplierId} />
-          </Card>
 
     </ObjectViewFrame>
   )

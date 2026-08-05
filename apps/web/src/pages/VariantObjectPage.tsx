@@ -29,7 +29,6 @@ import { cn } from '@/lib/utils'
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
 import { forecastForVariant, consumptionUrgency, stockUrgency, evaluateComputed } from '@beacon/reality-graph'
 import { useOntologyComputed } from '@/features/objectTypes/hooks'
-import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { AdviceSlideOver } from '@/features/agents/AdviceSlideOver'
@@ -37,7 +36,6 @@ import { WasteAdviceSlideOver } from '@/features/agents/WasteAdviceSlideOver'
 import { OverstockAdviceSlideOver } from '@/features/agents/OverstockAdviceSlideOver'
 import { ObjectViewFrame, ObjectRail, RailGroup } from '@/components/ObjectViewFrame'
 import { ReferencedInDocuments } from '@/components/ReferencedInDocuments'
-import { SearchAroundButton } from '@/components/SearchAroundGraph'
 import { OBJECT_PRESENTATION, GLOSSARY } from '@/lib/objectPresentation'
 import { Metric } from '@/components/MetricStrip'
 
@@ -589,14 +587,6 @@ export default function VariantObjectPage() {
           {/* ── Documents referencing this variant (ingestion lineage) ── */}
           <ReferencedInDocuments nodeType="variant" nodeId={variantId} />
 
-          {/* ── Graph connections ── */}
-          <Card>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Connections</span>
-              <SearchAroundButton nodeType="variant" nodeId={variantId} />
-            </div>
-            <GraphConnections nodeType="variant" nodeId={variantId} />
-          </Card>
 
     </ObjectViewFrame>
 

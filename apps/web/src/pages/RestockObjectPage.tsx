@@ -36,7 +36,6 @@ import { useCurrency } from '@/hooks/useCurrency'
 import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/utils'
 import type { RestockRequest, RestockStatus, RestockReceive } from '@beacon/types'
-import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectViewFrame } from '@/components/ObjectViewFrame'
@@ -560,11 +559,6 @@ export default function RestockObjectPage() {
             variantId={req.variant_id}
             status={req.status}
           />
-        </Card>
-
-        {/* ── Graph connections ── */}
-        <Card>
-          <GraphConnections nodeType="restock_request" nodeId={req.id} />
         </Card>
     </ObjectViewFrame>
   )

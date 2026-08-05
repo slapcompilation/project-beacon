@@ -15,7 +15,7 @@ export type ObjectPanelEntity =
   | 'shift_handover'
   | 'location'
 
-export type ContextPanelTab = 'detail' | 'copilot' | 'graph'
+export type ContextPanelTab = 'detail' | 'copilot'
 
 /**
  * Scope mode (Phase R1, Network tier).

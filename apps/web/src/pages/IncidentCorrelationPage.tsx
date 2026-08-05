@@ -4,7 +4,7 @@
 //
 // 100% Blueprint — no shadcn primitives, no lucide icons.
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Callout,
@@ -18,7 +18,6 @@ import {
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useActiveIncidents } from '@/features/eye/hooks'
-import { useHotelEdges } from '@/hooks/useHotelEdges'
 import type { ActiveIncidentRow } from '@beacon/types'
 
 // ─── Severity config ──────────────────────────────────────────────────────────
@@ -73,7 +72,7 @@ function MetricBlock({ label, value, sub, highlight }: { label: string; value: s
   )
 }
 
-function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentRow; substituteCount: number }) {
+function IncidentCard({ incident }: { incident: ActiveIncidentRow }) {
   const [expanded, setExpanded] = useState(false)
   const sev = SEVERITY[incident.incident_severity]
 
@@ -216,16 +215,6 @@ function IncidentCard({ incident, substituteCount }: { incident: ActiveIncidentR
                   <Icon icon="truck" size={12} />
                   Supply Signal
                 </div>
-                {substituteCount > 0 && (
-                  <Link
-                    to={`/variant/${incident.variant_id}`}
-                    onClick={(e) => { e.stopPropagation() }}
-                    className="inline-flex items-center gap-1 rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400 hover:bg-violet-500/20 transition-colors"
-                  >
-                    <Icon icon="swap-horizontal" size={10} />
-                    {substituteCount} substitute{substituteCount !== 1 ? 's' : ''}
-                  </Link>
-                )}
               </div>
               {incident.days_since_last_receive != null ? (
                 <div>
@@ -283,18 +272,6 @@ export default function IncidentCorrelationPage() {
   const [domFilter,  setDomFilter]  = useState<DomainFilter>('all')
 
   const { data: incidents  = [], isLoading, error } = useActiveIncidents(windowDays)
-  const { data: hotelEdges = [] } = useHotelEdges()
-
-  // Bidirectional similar_to count per variant
-  const similarCount = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const e of hotelEdges) {
-      if (e.edge_type !== 'similar_to') continue
-      map.set(e.source_id, (map.get(e.source_id) ?? 0) + 1)
-      map.set(e.target_id, (map.get(e.target_id) ?? 0) + 1)
-    }
-    return map
-  }, [hotelEdges])
 
   const filtered = incidents.filter(i => {
     if (sevFilter !== 'all' && i.incident_severity !== sevFilter) return false
@@ -406,7 +383,6 @@ export default function IncidentCorrelationPage() {
                   <IncidentCard
                     key={incident.variant_id}
                     incident={incident}
-                    substituteCount={similarCount.get(incident.variant_id) ?? 0}
                   />
                 ))}
               </div>

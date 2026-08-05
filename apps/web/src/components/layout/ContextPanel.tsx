@@ -9,12 +9,10 @@ import { useAppStore, type ContextPanelTab } from '@/stores/app.store'
 import { CopilotChatView } from '@/features/eye/components/CopilotChatView'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { DetailTabContent } from './context-panel/DetailTab'
-import { GraphTabContent } from './context-panel/GraphTab'
 
 const TABS: { id: ContextPanelTab; label: string; icon: IconName }[] = [
   { id: 'detail',  label: 'Detail',  icon: 'info-sign' },
   { id: 'copilot', label: 'Copilot', icon: 'predictive-analysis' },
-  { id: 'graph',   label: 'Graph',   icon: 'git-branch' },
 ]
 
 function ContextPanelContent() {
@@ -58,7 +56,6 @@ function ContextPanelContent() {
       <div className="flex-1 overflow-hidden">
         {contextPanelTab === 'detail'  && <DetailTabContent />}
         {contextPanelTab === 'copilot' && <CopilotChatView compact />}
-        {contextPanelTab === 'graph'   && <GraphTabContent />}
       </div>
     </>
   )

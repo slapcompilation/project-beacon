@@ -27,7 +27,6 @@ import {
 } from '@/features/eye/hooks'
 import { fetchExpiryBatches } from '@/features/inventory/api'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
-import { useHotelEdges } from '@/hooks/useHotelEdges'
 import { useMonitorPolicy } from '@/features/monitors/hooks'
 import {
   selectExpiryTriggers, selectStockoutTriggers, selectWasteTriggers, selectSupplierTriggers,
@@ -197,8 +196,7 @@ function UrgencyBar({ score }: { score: number }) {
   )
 }
 
-function SignalRow({ signal, rank, substituteCount }: { signal: UnifiedSignal; rank: number; substituteCount: number }) {
-  const hasStockCrisis = signal.badges.some((b) => b.type === 'stockout' || b.type === 'incident')
+function SignalRow({ signal, rank }: { signal: UnifiedSignal; rank: number }) {
   return (
     <Link
       to={signal.objectUrl}
@@ -248,13 +246,6 @@ function SignalRow({ signal, rank, substituteCount }: { signal: UnifiedSignal; r
             .join(' · ')}
         </p>
 
-        {/* Substitute chip — only for stock-crisis variant signals */}
-        {hasStockCrisis && substituteCount > 0 && signal.objectType === 'variant' && (
-          <span className="inline-flex items-center gap-1 rounded border border-violet-500/30 bg-violet-500/10 px-1.5 py-0.5 text-[10px] font-medium text-violet-400">
-            <Icon icon="swap-horizontal" size={10} />
-            {substituteCount} substitute{substituteCount !== 1 ? 's' : ''} available
-          </span>
-        )}
       </div>
     </Link>
   )
@@ -291,19 +282,6 @@ export default function UnifiedSignalsPage() {
     enabled:   !!hotelId,
     staleTime: 5 * 60 * 1000,
   })
-  const { data: hotelEdges  = [] } = useHotelEdges()
-
-  // Build similar_to count map: variant_id → number of substitutes
-  // similar_to edges are bidirectional in semantic intent but stored source→target
-  const similarCount = useMemo(() => {
-    const map = new Map<string, number>()
-    for (const e of hotelEdges) {
-      if (e.edge_type !== 'similar_to') continue
-      map.set(e.source_id, (map.get(e.source_id) ?? 0) + 1)
-      map.set(e.target_id, (map.get(e.target_id) ?? 0) + 1)
-    }
-    return map
-  }, [hotelEdges])
 
   const isLoading = l1 || l2 || l3 || l4 || l5
 
@@ -366,7 +344,6 @@ export default function UnifiedSignalsPage() {
                 key={signal.key}
                 signal={signal}
                 rank={i + 1}
-                substituteCount={similarCount.get(signal.key) ?? 0}
               />
             ))}
           </div>

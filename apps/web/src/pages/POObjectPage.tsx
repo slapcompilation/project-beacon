@@ -28,7 +28,6 @@ import type { IconName } from '@blueprintjs/icons'
 import { supabase } from '@/lib/supabase/client'
 import { usePOLines, usePOInvoices, useUpdatePOStatus, useSupplierContracts } from '@/features/mind/hooks'
 import { poFulfillmentPct, fulfilledLineCount, costVariancePct, isOverdue as poIsOverdue, daysUntilDelivery } from '@beacon/reality-graph'
-import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
 import { ObjectActions } from '@/components/ObjectActions'
 import { canTransition } from '@beacon/reality-graph'
@@ -626,11 +625,6 @@ export default function POObjectPage() {
           title="Agent decisions · order's items"
           emptyHint="No agent decisions on this order's items yet. Restock and discrepancy proposals for its line items surface here."
         />
-
-        {/* ── Graph connections ── */}
-        <Card>
-          <GraphConnections nodeType="purchase_order" nodeId={po.id} />
-        </Card>
     </ObjectViewFrame>
   )
 }
