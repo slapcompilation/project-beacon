@@ -6,13 +6,12 @@
   "types": "./src/index.ts",
   "scripts": {
     "type-check": "tsc --noEmit",
-    "lint": "echo 'reality-graph package — no lint needed'",
+    "lint": "echo 'reality-graph package \u2014 no lint needed'",
     "test": "vitest run",
     "test:watch": "vitest",
     "eval:live": "vitest run src/evals/live/liveJudgment.eval.ts"
   },
   "dependencies": {
-    "@beacon/types": "workspace:*",
     "zod": "^4.3.6"
   },
   "devDependencies": {

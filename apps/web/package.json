@@ -14,7 +14,6 @@
   "dependencies": {
     "@beacon/reality-graph": "workspace:*",
     "@beacon/services": "workspace:*",
-    "@beacon/types": "workspace:*",
     "@beacon/ui": "workspace:*",
     "@blueprintjs/core": "^6.12.1",
     "@blueprintjs/icons": "^6.9.1",

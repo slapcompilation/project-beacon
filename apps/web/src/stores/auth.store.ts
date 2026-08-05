@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AuthSession, UserRole } from '@beacon/types'
+import type { AuthSession, UserRole } from '@beacon/services'
 
 interface AuthState {
   session: AuthSession | null

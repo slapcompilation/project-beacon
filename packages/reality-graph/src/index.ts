@@ -138,3 +138,6 @@ export type { SharedPropertyDef, ResolvedProperty } from './objectTypes/sharedPr
 
 // ── Scenarios — graph-overlay sandbox + non-persistent runner (H2) ──────────
 export { grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES } from './projects/roles'
+
+// Generated from object_types — one interface per registered type.
+export type { OntologyTypes, OntologyTypeName } from './ontology.generated'

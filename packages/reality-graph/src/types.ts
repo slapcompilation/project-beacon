@@ -12,13 +12,11 @@
  *  at compile time (`mirror/ontology/core-concepts.md`). */
 export type NodeType = string
 
-// The edge vocabulary lives in @beacon/types so BOTH packages can name it
-// without a cycle — reality-graph depends on types, never the reverse. It was
-// here, and `types` grew a second, staler union (GraphEdgeType, eight values,
-// one of which the database refuses) precisely because it could not reach this
-// one. Re-exported so the nine importers here are unchanged.
-import type { EdgeType } from '@beacon/types'
-export type { EdgeType }
+/** The api name of a link type — `link_types.api_name`, resolved at runtime.
+ *  A link type is "a relationship between object types" defined in the ontology
+ *  (`mirror/object-link-types/link-types-overview.md`), so the platform cannot
+ *  know the names at compile time and does not need to. */
+export type EdgeType = string
 
 export interface GraphNode {
   id: string

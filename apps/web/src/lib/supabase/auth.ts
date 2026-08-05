@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js'
 import type { AalStatus, IAuthService, MfaEnrollment, MfaFactor, OAuthProvider } from '@beacon/services'
-import type { AuthSession, UserRole } from '@beacon/types'
+import type { AuthSession, UserRole } from '@beacon/services'
 import { supabase } from './client'
 
 export class SupabaseAuthService implements IAuthService {

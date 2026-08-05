@@ -16,7 +16,7 @@ import path from 'node:path'
 import pg from 'pg'
 import { connectionString, SSL } from './db-url.mjs'
 
-const OUT = 'packages/types/src/ontology.generated.ts'
+const OUT = 'packages/reality-graph/src/ontology.generated.ts'
 
 
 const TS_TYPE = { text: 'string', number: 'number', boolean: 'boolean', date: 'string' }
