@@ -167,15 +167,53 @@ Beacon is an **Ontology-Augmented Generation** system. The LLM does not retrieve
 2. **Computes** through deterministic functions (or trained adapters behind the same tool signature)
 3. **Writes** by proposing typed Actions that flow through an audited registry
 
-Three load-bearing layers, all rooted in one ontology:
+**Four** load-bearing layers, all rooted in one ontology — and the names are
+Foundry's, not ours: *"The Ontology models decisions through the four-fold
+integration of **data**, **logic**, **action**, and **security**"*
+(`mirror/architecture-center/ontology-system.md`).
 
 | Layer | Lives in | Job |
 |---|---|---|
 | **Data** | `reality-graph/src/nodes` + `edges` | Typed nodes, named edges, computed properties |
-| **Compute** | `reality-graph/src/tools` | Typed functions, callable identically by humans and LLMs |
-| **Mutation** | `reality-graph/src/actions` | Typed `BeaconAction`s with immutable audit |
+| **Logic** | `reality-graph/src/tools` | Typed functions, callable identically by humans and LLMs |
+| **Action** | `reality-graph/src/actions` | Typed `BeaconAction`s with immutable audit |
+| **Security** | RLS policies, `auth_*()` helpers, project roles | Who may read a node, run a tool, or submit an action — resolved at the moment of interaction |
+
+This table used to read Data / **Compute** / **Mutation** and stop at three.
+Two of those were our words for theirs, and the fourth was missing entirely —
+security sat further down this file as a deployment concern. It is not one: their
+diagram layers the Ontology *above* security, which in turn sits above data,
+logic and actions, and their worked example is that the right to trigger a
+purchase order, the right to run a scenario, and the right to call an LLM are
+three different scopes the ontology reconciles per interaction. That is our
+`decideAutoExecution` gate, our RLS contracts and our project roles — already
+built, previously not named as part of the ontology.
 
 LLMs are glue. They decide *which* component to call. They never do retrieval, math, or writes directly. Drop any layer and the result is unsafe.
+
+**Agents inherit, they do not hold.** *"As these different teams build AI-powered
+agents, they must have security scopes that either inherit from a human user, or
+from the permissions structure of a defined project."* Both halves exist here —
+agent scope inherits the caller, and projects carry roles — which is why an agent
+may never be broader than its invoker.
+
+### Language, Engine, Toolchain
+
+*"The Ontology is not a 'semantic layer'... Rather, the Ontology is a multimodal
+system consisting of dozens of underlying components, which can conceptually be
+grouped into a **Language**, an **Engine**, and **Toolchain**."* Useful for
+saying what `packages/reality-graph` is and what it is not:
+
+- **Language** — the models: objects, links, properties, actions, automations,
+  and the logic that defines how actions operate. Ours: `objectTypes`,
+  `link_types`, `actions`, `automations`.
+- **Engine** — what substantiates the Language: the read path (queries,
+  subscriptions, materializations) and the write path (atomic durable updates,
+  batch mutations, streams, CDC). Ours: Postgres, RLS, the RPC surface.
+- **Toolchain** — using the Ontology *as a backend*: the OSDK plus DevOps
+  tooling for governing production. **This is the thinnest of the three here.**
+  `export_ontology_package` / `install_ontology_package` and the release stages
+  are the beginnings of one; there is no SDK.
 
 ---
 
