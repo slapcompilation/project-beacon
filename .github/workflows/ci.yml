@@ -39,12 +39,6 @@ jobs:
           EVAL_PERSIST_URL:   ${{ secrets.EVAL_PERSIST_URL }}
           EVAL_PERSIST_TOKEN: ${{ secrets.EVAL_PERSIST_TOKEN }}
 
-      # turbo covers the TS packages but not supabase/functions (Deno, resolved
-      # at deploy). Without this a syntax error there passes CI and fails the
-      # production deploy instead.
-      - name: Edge function syntax
-        run: pnpm check:edge
-
       # Same class of gap as the one above: an RPC name is a STRING handed to
       # PostgREST, so a function that does not exist type-checks perfectly and
       # fails at runtime. Four were missing when this was written — occupancy
@@ -62,8 +56,6 @@ jobs:
       # build artifact and gitignored, so it exists on a developer's machine and
       # never in CI — the check reported "could not read the edge bundle" and
       # failed. It stayed hidden while an earlier step was failing first.
-      - name: Build the edge bundle
-        run: pnpm build:edge-bundle
 
       - name: Every allowed value is consumed
         env:

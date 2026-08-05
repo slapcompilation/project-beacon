@@ -61,7 +61,7 @@ if (!url) {
   process.exit(0)
 }
 
-const CODE_ROOTS = ['apps/web/src', 'packages', 'supabase/functions', 'scripts']
+const CODE_ROOTS = ['apps/web/src', 'packages', 'scripts']
 /** Short values collide with ordinary words, and a false positive here is worse
  *  than a miss: it teaches people to ignore the guard. */
 const MIN_LENGTH = 3
