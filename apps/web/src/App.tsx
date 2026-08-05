@@ -43,28 +43,13 @@ const EyeWorkspace   = lazyWithRetry(() => import('@/pages/EyeWorkspace'))
 const MindWorkspace  = lazyWithRetry(() => import('@/pages/MindWorkspace'))
 const OperationsWorkspace = lazyWithRetry(() => import('@/pages/OperationsWorkspace'))
 
-const VariantObjectPage       = lazyWithRetry(() => import('@/pages/VariantObjectPage'))
-const SupplierObjectPage      = lazyWithRetry(() => import('@/pages/SupplierObjectPage'))
-const POObjectPage            = lazyWithRetry(() => import('@/pages/POObjectPage'))
-const RestockObjectPage       = lazyWithRetry(() => import('@/pages/RestockObjectPage'))
-const ProductObjectPage       = lazyWithRetry(() => import('@/pages/ProductObjectPage'))
-const StockLogObjectPage      = lazyWithRetry(() => import('@/pages/StockLogObjectPage'))
-const AlertObjectPage         = lazyWithRetry(() => import('@/pages/AlertObjectPage'))
-const ShiftHandoverObjectPage = lazyWithRetry(() => import('@/pages/ShiftHandoverObjectPage'))
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
 const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/ModelingObjectiveDetailPage'))
 const DeploymentDetailPage        = lazyWithRetry(() => import('@/pages/DeploymentDetailPage'))
-const ProposalObjectPage          = lazyWithRetry(() => import('@/pages/ProposalObjectPage'))
-const PrincipleObjectPage         = lazyWithRetry(() => import('@/pages/PrincipleObjectPage'))
-const ApprovedAnswerObjectPage    = lazyWithRetry(() => import('@/pages/ApprovedAnswerObjectPage'))
-const ConstraintObjectPage        = lazyWithRetry(() => import('@/pages/ConstraintObjectPage'))
 const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
-const CaseObjectPage              = lazyWithRetry(() => import('@/pages/CaseObjectPage'))
 const DocumentsPage               = lazyWithRetry(() => import('@/pages/DocumentsPage'))
-const DocumentObjectPage          = lazyWithRetry(() => import('@/pages/DocumentObjectPage'))
 const ActionChainsPage            = lazyWithRetry(() => import('@/pages/ActionChainsPage'))
-const ActionChainObjectPage       = lazyWithRetry(() => import('@/pages/ActionChainObjectPage'))
 const ScenariosPage               = lazyWithRetry(() => import('@/pages/ScenariosPage'))
 const ScenarioDetailPage          = lazyWithRetry(() => import('@/pages/ScenarioDetailPage'))
 
@@ -109,14 +94,6 @@ function AppRoutes() {
             <Route path="/mind"     element={<MindWorkspace />} />
             <Route path="/operations" element={<OperationsWorkspace />} />
 
-            <Route path="/variant/:variantId"      element={<VariantObjectPage />} />
-            <Route path="/supplier/:supplierId"    element={<SupplierObjectPage />} />
-            <Route path="/po/:poId"                element={<POObjectPage />} />
-            <Route path="/restock/:restockId"      element={<RestockObjectPage />} />
-            <Route path="/product/:productId"      element={<ProductObjectPage />} />
-            <Route path="/log/:logId"              element={<StockLogObjectPage />} />
-            <Route path="/alert/:alertId"          element={<AlertObjectPage />} />
-            <Route path="/handover/:handoverId"    element={<ShiftHandoverObjectPage />} />
             <Route path="/causal-chain"            element={<Navigate to="/graph" replace />} />
             <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
             <Route path="/agent-studio"            element={<Navigate to="/mind?aip=agents" replace />} />
@@ -128,18 +105,11 @@ function AppRoutes() {
             <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
             <Route path="/system-map"                           element={<Navigate to="/mind?aip=system-map" replace />} />
             <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
-            <Route path="/proposals/:proposalId"                element={<ProposalObjectPage />} />
-            <Route path="/principles/:principleId"              element={<PrincipleObjectPage />} />
-            <Route path="/answers/:answerId"                    element={<ApprovedAnswerObjectPage />} />
-            <Route path="/constraints/:constraintId"            element={<ConstraintObjectPage />} />
             <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />
             <Route path="/cases"                                element={<CasesPage />} />
-            <Route path="/cases/:caseId"                        element={<CaseObjectPage />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
-            <Route path="/documents/:documentId"                element={<DocumentObjectPage />} />
             <Route path="/entity-link-suggestions"              element={<Navigate to="/mind?aip=entity-links" replace />} />
             <Route path="/action-chains"                        element={<ActionChainsPage />} />
-            <Route path="/action-chains/:chainId"               element={<ActionChainObjectPage />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioDetailPage />} />
             <Route path="/copilot-config"                       element={<Navigate to="/mind?aip=copilot" replace />} />
