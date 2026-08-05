@@ -72,6 +72,7 @@ export const EDGE_TYPES = [
   'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
   'fulfills', 'log_fulfills_request', 'sourced_from',
   'delivery_sourced_from', 'receipt_sourced_from', 'po_sourced_from',
+  'discrepancy_sourced_from', 'request_sourced_from',
   'recipe_consumes', 'pick_consumes', 'sold', 'ingredient_of', 'transfer_approved_by',
   'line_of', 'line_orders', 'line_fulfills_request', 'discrepancy_of',
   'counts_variant', 'item_of', 'categorised_as', 'allocated_to', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',

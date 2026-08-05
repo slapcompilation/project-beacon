@@ -520,6 +520,9 @@ export type EdgeType =
   | 'delivery_sourced_from'
   | 'receipt_sourced_from'
   | 'po_sourced_from'
+  // 350 — two objects named a supplier and had no link to it
+  | 'discrepancy_sourced_from'
+  | 'request_sourced_from'
   | 'recipe_consumes'
   | 'pick_consumes'
   // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients

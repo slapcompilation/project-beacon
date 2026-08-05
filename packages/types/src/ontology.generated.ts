@@ -97,6 +97,8 @@ export interface DeliveryEvent {
   unit_cost_actual?: number
   notes?: string
   created_at: string
+  qty_variance?: number  // computed
+  unit_cost_variance?: number  // computed
 }
 
 /** Document — An ingested document with page-level provenance.
@@ -363,6 +365,7 @@ export interface PurchaseOrderLine {
   unit_cost: number
   line_total: number
   notes?: string
+  outstanding_qty?: number  // computed
 }
 
 /** Restock Receipt — Stock received against a restock request.
@@ -445,6 +448,7 @@ export interface StockTransfer {
 export interface StocktakeLine {
   system_qty: number
   counted_qty?: number
+  variance?: number  // computed
 }
 
 /** Stocktake Session — A counting round: what was counted, by whom, when.
@@ -488,6 +492,7 @@ export interface SupplierContract {
   is_active: boolean
   created_at: string
   updated_at: string
+  days_until_expiry?: number  // computed
 }
 
 /** User — A person acting in the organization.
@@ -523,6 +528,7 @@ export interface Variant {
   forecast_confidence?: number
   forecast_horizon_days?: number
   forecast_as_of?: string
+  stock_value?: number  // computed
 }
 
 /** Every registered object type, keyed by its api name. */

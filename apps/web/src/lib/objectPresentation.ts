@@ -119,6 +119,8 @@ export const EDGE_LABELS: Record<EdgeType, string> = {
   delivery_sourced_from: 'Delivered by',
   receipt_sourced_from:  'Received from',
   po_sourced_from:       'Ordered from',
+  discrepancy_sourced_from: 'Raised against',
+  request_sourced_from:     'Requested from',
   recipe_consumes:       'Recipe uses',
   sold:                  'Sold',
   ingredient_of:         'Ingredient of',
