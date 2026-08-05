@@ -31,9 +31,12 @@ Two standing rules for the work, both requested explicitly:
   which excludes `sourced_from` from its link_types loop and appends a
   hand-written `SELECT` over `product_variants JOIN products`.
 
-Done through migration 355: the ontology is empty — 43 object types, 37 link
-types, 2 cohorts, 5 tools and 13 records removed. The framework is untouched and
-asserted: tables, grammar, drift and status guards, projection, 30 RLS contracts.
+Done through migration 357: the ontology is empty — 43 object types, 37 link
+types, 2 cohorts, 5 tools and 13 records removed — and so is everything built on
+it. The five Workshop applications went in 357 with the six e2e specs that drove
+them; `module-builder.spec.ts` stays, because it builds an application in the UI
+and passes against an empty ontology. The framework is untouched and asserted:
+tables, grammar, drift and status guards, projection, 30 RLS contracts.
 
 **1. Empty the `EdgeType` union.** 28 files, 175 references, 3 test files. Start
 at `packages/types/src/index.ts`; the exhaustive `Record`s (`EDGE_TYPES`,
@@ -50,6 +53,13 @@ ontology is empty while the vocabulary and domain tables remain.
   longer reaches.
 
 Both are left red on purpose. A guard edited to pass is worth nothing.
+
+One caution learned the hard way in 356: `check:vocabulary` builds its corpus
+from git, not from a directory walk, because the edge bundle is a generated copy
+of `packages/` that lands inside a scanned root and silently defeats every
+`@vocabulary-declaration` marker in it. If this guard ever disagrees between a
+laptop and CI, suspect generated files in the corpus before suspecting the
+database.
 
 **2. De-hardcode `sourced_from`** so `relationship_edges` is genuinely derived
 from `link_types`, as migration 260 claimed it already was.
