@@ -6,11 +6,9 @@ import { NotificationsPanel } from '@/components/NotificationsPanel'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { useKeyboardNav } from '@/hooks/useKeyboardNav'
-import { useSilentAutoAlerts } from '@/features/notifications/hooks'
 
 export function AppLayout() {
   useKeyboardNav()
-  useSilentAutoAlerts()
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-background">

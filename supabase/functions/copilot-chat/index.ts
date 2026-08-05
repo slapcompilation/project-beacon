@@ -18,143 +18,12 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Anthropic from 'https://esm.sh/@anthropic-ai/sdk@0.36.3'
 import { corsHeaders, json, preflight } from '../_shared/http.ts'
 import { isAuthError, verifyAuth } from '../_shared/auth.ts'
-import { runScenarioSimulation } from '../_shared/scenario-sim.ts'
-import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserToolAcross, bindToolArgs, evaluateConstraints, copilotProposalToAction, evaluateBatchApprovals, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
+import { computeCalibration, orgPolicyToCalibrationOptions, evaluateUserToolAcross, bindToolArgs, evaluateConstraints, mergeOrgPolicy } from '../_shared/reality-graph.bundle.mjs'
 
 // ─── Tool definitions for Claude ────────────────────────────────────────────────
 // Each tool maps to a Supabase RPC. The copilot calls these server-side.
 
 const TOOLS: Anthropic.Tool[] = [
-  {
-    name: 'get_shift_intelligence',
-    description: 'Get current shift signals ranked by urgency: depletion risks, waste spikes, dead stock, cost-at-risk items. Use this for "what\'s happening now", "what needs attention", "status overview", "briefing".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        window_days: { type: 'number', description: 'Lookback window in days (default 30)', default: 30 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_waste_radar',
-    description: 'Get variants with abnormal write-off rates (waste spikes above baseline). Use for "waste", "write-offs", "theft", "spoilage", "breakage" questions.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-      required: [],
-    },
-  },
-  {
-    name: 'get_consumption_forecast',
-    description: 'Get depletion predictions for all variants: burn rate, days until zero, confidence bands. Use for "running out", "how long will X last", "stock levels", "forecast".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        days: { type: 'number', description: 'Forecast window in days (default 30)', default: 30 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_active_incidents',
-    description: 'Get cross-domain incidents with severity scores and correlation counts. Use for "problems", "issues", "incidents", "what\'s wrong".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        window_days: { type: 'number', description: 'Lookback window (default 7)', default: 7 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_supplier_reliability',
-    description: 'Get supplier delivery performance scorecards: on-time rate, risk tier, avg delay. Use for "suppliers", "delivery", "late", "vendor performance".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        days: { type: 'number', description: 'Lookback window (default 90)', default: 90 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_variant_intelligence',
-    description: 'Get comprehensive intelligence for a single product variant by ID: stock, trends, forecasts, anomalies, supplier info. Use when user asks about a specific product.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        variant_id: { type: 'string', description: 'The variant UUID' },
-      },
-      required: ['variant_id'],
-    },
-  },
-  {
-    name: 'explain_anomaly',
-    description: 'Get root cause explanation for a stock anomaly on a specific variant. Use for "why is X spiking", "explain the anomaly on X".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        variant_id:   { type: 'string', description: 'The variant UUID' },
-        anomaly_type: { type: 'string', enum: ['waste_spike', 'stock_depletion', 'auto'], description: 'Type of anomaly (default auto-detect)', default: 'auto' },
-      },
-      required: ['variant_id'],
-    },
-  },
-  {
-    name: 'get_team_performance',
-    description: 'Get team member activity and performance metrics: adjustments, accuracy, write-offs per person. Use for "team", "who", "staff performance", shift comparisons.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        window_days: { type: 'number', description: 'Lookback window (default 30)', default: 30 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_stock_pressure',
-    description: 'Get a ranked list of variants under stock pressure: items most likely to run out, considering demand velocity and supply constraints.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-      required: [],
-    },
-  },
-  {
-    name: 'get_dead_stock',
-    description: 'Get items with no movement for an extended period (dead stock). Use for "stale inventory", "not moving", "slow movers".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        idle_days: { type: 'number', description: 'Minimum idle days (default 60)', default: 60 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'get_occupancy_adjusted_forecast',
-    description: 'Get demand forecasts adjusted for upcoming occupancy. Shows how booking forecasts impact each variant\'s depletion timeline. Use for "occupancy impact", "upcoming demand", "high occupancy weekend", "demand spike".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        forecast_days: { type: 'number', description: 'Forward-looking days (default 14)', default: 14 },
-        lookback_days: { type: 'number', description: 'Historical lookback for baseline (default 30)', default: 30 },
-      },
-      required: [],
-    },
-  },
-  {
-    name: 'search_products',
-    description: 'Search for products/variants by name, SKU, or description. Use when the user refers to a product by name and you need its variant_id for other tools.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        query: { type: 'string', description: 'Search text (product name, SKU, or keyword)' },
-      },
-      required: ['query'],
-    },
-  },
   {
     name: 'search_documents',
     description: 'Semantic search across the hotel\'s uploaded documents (contracts, supplier specs, scanned invoices, transcribed calls). Returns the best-matching passages with the document title, page, and text. Use whenever the answer may be written in a document rather than the operational data — e.g. "what\'s the late-delivery penalty in the Premium Spirits contract", "what lead time did we agree with X", "does the agreement allow inter-property transfers", "what does the contract say about minimum order value". Always cite the document title and page in your answer when you use a passage.',
@@ -164,17 +33,6 @@ const TOOLS: Anthropic.Tool[] = [
         query: { type: 'string', description: 'Natural-language question or phrase to search for in the documents' },
       },
       required: ['query'],
-    },
-  },
-  {
-    name: 'get_restock_requests',
-    description: 'Get current restock requests with their status. Use for "pending orders", "restock queue", "what needs ordering".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        status: { type: 'string', description: 'Filter by status: pending, approved, ordered, received, cancelled. Omit for all.', enum: ['pending', 'pending_manager', 'pending_director', 'approved', 'ordered', 'received', 'cancelled'] },
-      },
-      required: [],
     },
   },
   {
@@ -189,69 +47,7 @@ const TOOLS: Anthropic.Tool[] = [
       required: [],
     },
   },
-  {
-    name: 'get_monitor_config',
-    description: 'Get the current detection monitors and their tunable triggers: expiry (days-before-expiry, min € at risk, auto-propose write-offs), stockout (days-until-zero surfacing band), waste (min anomaly score), supplier (max reliability score). Use for "what are my alert thresholds", "which monitors are on", "how is expiry detection configured".',
-    input_schema: { type: 'object' as const, properties: {}, required: [] },
-  },
-  {
-    name: 'tune_monitor',
-    description: 'Change a detection monitor\'s tunable trigger — the operator owns these as data, no redeploy. Use for "alert me 10 days before expiry", "ignore expiring stock under €50", "surface stockouts 21 days out", "only flag suppliers below 4", "turn off waste alerts", "auto-propose write-offs". Requires admin/owner; the change is applied and audited. Only set the fields the operator mentions.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        monitor:               { type: 'string', enum: ['expiry', 'stockout', 'waste', 'supplier'], description: 'Which monitor to tune' },
-        enabled:               { type: 'boolean', description: 'Turn the monitor on/off' },
-        threshold_days:        { type: 'number', description: 'expiry: fire within N days of expiry. stockout: surface within N days of zero stock.' },
-        min_cost_at_risk:      { type: 'number', description: 'expiry only: ignore batches under this € at risk' },
-        auto_propose:          { type: 'boolean', description: 'expiry only: auto-propose write-offs each unattended cycle' },
-        min_anomaly_score:     { type: 'number', description: 'waste only: surface anomalies at/above this score (0–10)' },
-        max_reliability_score: { type: 'number', description: 'supplier only: surface suppliers at/below this reliability score (0–10, lower is worse)' },
-      },
-      required: ['monitor'],
-    },
-  },
   // ─── Action tools (propose, don't auto-execute) ─────────────────────────────
-  {
-    name: 'propose_restock',
-    description: 'Propose a restock request for a variant. Returns a structured proposal for the user to confirm — does NOT auto-execute. Use when user says "order more X", "restock X", "we need more X".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        variant_id: { type: 'string', description: 'The variant UUID to restock' },
-        quantity: { type: 'number', description: 'Quantity to order' },
-        urgency: { type: 'string', enum: ['low', 'medium', 'high'], description: 'Urgency level' },
-        notes: { type: 'string', description: 'Optional notes for the request' },
-      },
-      required: ['variant_id', 'quantity'],
-    },
-  },
-  {
-    name: 'propose_stock_adjustment',
-    description: 'Propose a stock adjustment (add, subtract, or set). Returns a structured proposal for user confirmation. Use for "write off X", "add X to stock", "set X to N".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        variant_id: { type: 'string', description: 'The variant UUID' },
-        action: { type: 'string', enum: ['add', 'subtract', 'set'], description: 'Type of adjustment' },
-        quantity: { type: 'number', description: 'Quantity (positive)' },
-        reason: { type: 'string', description: 'Reason for adjustment (e.g., "breakage", "received delivery", "cycle count correction")' },
-      },
-      required: ['variant_id', 'action', 'quantity', 'reason'],
-    },
-  },
-  {
-    name: 'propose_batch_approval',
-    description: 'Propose batch approval of pending restock requests matching criteria. Returns list for user confirmation. Use for "approve all under $100", "approve pending restocks".',
-    input_schema: {
-      type: 'object' as const,
-      properties: {
-        max_cost: { type: 'number', description: 'Maximum estimated cost to include' },
-        supplier_id: { type: 'string', description: 'Filter to specific supplier UUID' },
-      },
-      required: [],
-    },
-  },
 ]
 
 // ─── Scenario tools (H4) ──────────────────────────────────────────────────────
@@ -276,30 +72,6 @@ const SCENARIO_TOOLS: Anthropic.Tool[] = [
         value: { description: 'New value at the path. Number for policy knobs; null to clear the override.' },
       },
       required: ['path'],
-    },
-  },
-  {
-    name: 'query_simulation_result',
-    description:
-      'Read the cached most-recent simulation for the current scenario (scanned / proposed / auto-executed / queued). ' +
-      'Use to summarize what the overlay would do before suggesting more edits. Returns nulls if it has never been simulated.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-      required: [],
-    },
-  },
-  {
-    name: 'simulate_scenario',
-    description:
-      'Run the intelligence cycle against the current scenario\'s overlay with no-op persistence (nothing touches ' +
-      'real state) and return the result: scanned / proposed / auto-executed / queued. Use after applying overlay ' +
-      'edits to see their effect immediately — you do NOT need the operator to click Simulate. The result is also ' +
-      'cached, so a later query_simulation_result returns the same numbers.',
-    input_schema: {
-      type: 'object' as const,
-      properties: {},
-      required: [],
     },
   },
 ]
@@ -380,8 +152,7 @@ function hardViolationsFor(
   constraints: ConstraintRecordLite[],
 ): ConstraintViolationLite[] {
   if (!hotelId || constraints.length === 0) return []
-  const action = copilotProposalToAction(actionType, params, hotelId)
-  if (!action) return []
+  const action = { type: actionType, ...params, hotelId }
   const violations = evaluateConstraints(action, constraints, { now: new Date() }) as ConstraintViolationLite[]
   return violations.filter((v) => v.severity === 'hard')
 }
@@ -560,139 +331,6 @@ async function executeTool(
         const row = data as { graph_overlay?: unknown } | null
         return JSON.stringify({ ok: true, appliedPath: input.path, graphOverlay: row?.graph_overlay ?? {} })
       }
-      case 'simulate_scenario': {
-        const scenarioId = input.scenario_id ?? selection?.id
-        if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
-        try {
-          const summary = await runScenarioSimulation(supabase, scenarioId)
-          return JSON.stringify({ ok: true, ...summary })
-        } catch (err) {
-          return JSON.stringify({ error: err instanceof Error ? err.message : String(err) })
-        }
-      }
-      case 'query_simulation_result': {
-        const scenarioId = input.scenario_id ?? selection?.id
-        if (!scenarioId) return JSON.stringify({ error: 'no scenario in context' })
-        const { data, error } = await supabase
-          .from('scenarios')
-          .select('last_simulation, last_simulated_at')
-          .eq('id', scenarioId)
-          .maybeSingle() as unknown as {
-            data: { last_simulation: { result?: Record<string, number> } | null; last_simulated_at: string | null } | null
-            error: { message: string } | null
-          }
-        if (error) return JSON.stringify({ error: error.message })
-        const sim = data?.last_simulation
-        if (!sim?.result) return JSON.stringify({ simulated: false, message: 'never simulated — ask the operator to click Simulate' })
-        return JSON.stringify({
-          simulated:    true,
-          ranAt:        data?.last_simulated_at,
-          scanned:      sim.result.scanned,
-          proposed:     sim.result.proposed,
-          autoExecuted: sim.result.autoExecuted,
-          queued:       sim.result.queued,
-        })
-      }
-      case 'get_monitor_config': {
-        const { data, error } = await supabase.rpc('get_org_policy')
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(mergeOrgPolicy(data).monitors)
-      }
-      case 'tune_monitor': {
-        const monitor = input.monitor
-        if (!monitor) return JSON.stringify({ error: 'monitor is required (expiry | stockout | waste | supplier)' })
-        const { data: polData, error: getErr } = await supabase.rpc('get_org_policy')
-        if (getErr) return JSON.stringify({ error: getErr.message })
-        const policy = mergeOrgPolicy(polData)
-        const m = policy.monitors[monitor] as Record<string, unknown>
-        if (typeof input.enabled === 'boolean') m.enabled = input.enabled
-        if (monitor === 'expiry') {
-          if (typeof input.threshold_days   === 'number') m.threshold_days   = input.threshold_days
-          if (typeof input.min_cost_at_risk === 'number') m.min_cost_at_risk = input.min_cost_at_risk
-          if (typeof input.auto_propose     === 'boolean') m.auto_propose    = input.auto_propose
-        } else if (monitor === 'stockout') {
-          if (typeof input.threshold_days === 'number') m.threshold_days = input.threshold_days
-        } else if (monitor === 'waste') {
-          if (typeof input.min_anomaly_score === 'number') m.min_anomaly_score = input.min_anomaly_score
-        } else if (monitor === 'supplier') {
-          if (typeof input.max_reliability_score === 'number') m.max_reliability_score = input.max_reliability_score
-        }
-        // Re-merge to clamp the operator's values into range before persisting.
-        const clamped = mergeOrgPolicy(policy)
-        const { error: setErr } = await supabase.rpc('set_org_policy', { p_policy: clamped })
-        if (setErr) return JSON.stringify({ error: setErr.message, hint: 'tuning a monitor requires admin or owner' })
-        return JSON.stringify({ ok: true, monitor, config: clamped.monitors[monitor] })
-      }
-      case 'get_shift_intelligence': {
-        const { data, error } = await supabase.rpc('get_shift_intelligence', { p_window_days: input.window_days ?? 30 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_waste_radar': {
-        const { data, error } = await supabase.rpc('get_waste_radar')
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_consumption_forecast': {
-        const { data, error } = await supabase.rpc('get_consumption_forecast', { p_days: input.days ?? 30 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_active_incidents': {
-        const { data, error } = await supabase.rpc('get_active_incidents', { p_window_days: input.window_days ?? 7 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_supplier_reliability': {
-        const { data, error } = await supabase.rpc('get_supplier_reliability', { p_days: input.days ?? 90 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_variant_intelligence': {
-        const { data, error } = await supabase.rpc('get_variant_intelligence', { p_variant_id: input.variant_id })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'explain_anomaly': {
-        const { data, error } = await supabase.rpc('explain_anomaly', {
-          p_variant_id:   input.variant_id,
-          p_anomaly_type: input.anomaly_type ?? 'auto',
-        })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_team_performance': {
-        const { data, error } = await supabase.rpc('get_team_performance', { p_window_days: input.window_days ?? 30 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_stock_pressure': {
-        const { data, error } = await supabase.rpc('get_stock_pressure')
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_dead_stock': {
-        const { data, error } = await supabase.rpc('get_dead_stock', { p_idle_days: input.idle_days ?? 60 })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'get_occupancy_adjusted_forecast': {
-        const { data, error } = await supabase.rpc('get_occupancy_adjusted_forecast', {
-          p_forecast_days: input.forecast_days ?? 14,
-          p_lookback_days: input.lookback_days ?? 30,
-        })
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'search_products': {
-        const { data, error } = await supabase
-          .from('product_variants')
-          .select('id, sku, product:products!inner(name, hotel_id)')
-          .or(`sku.ilike.%${input.query}%,products.name.ilike.%${input.query}%`)
-          .limit(10)
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
       case 'search_documents': {
         // Foundry Ontology-Augmented Generation: embed the question, semantic
         // search over chunk summaries, hand the passages back for a cited answer.
@@ -736,96 +374,6 @@ async function executeTool(
           note: passages.length === 0
             ? 'No matching document passages. Say so — do not invent document contents.'
             : 'Answer only from these passages; cite each as (document, p.page).',
-        })
-      }
-      case 'get_restock_requests': {
-        let query = supabase
-          .from('restock_requests')
-          .select('id, variant_id, quantity_needed, estimated_cost, status, notes, created_at, variant:product_variants!inner(sku, product:products!inner(name))')
-          .order('created_at', { ascending: false })
-          .limit(20)
-        if (input.status) {
-          query = query.eq('status', input.status)
-        }
-        const { data, error } = await query
-        if (error) return JSON.stringify({ error: error.message })
-        return JSON.stringify(data)
-      }
-      case 'propose_restock': {
-        // Don't execute — return a structured proposal for the UI to render.
-        const params = {
-          variant_id: input.variant_id,
-          quantity: input.quantity,
-          urgency: input.urgency ?? 'medium',
-          notes: input.notes ?? '',
-        }
-        const hard = hardViolationsFor('REQUEST_RESTOCK', params, hotelId, constraints)
-        if (hard.length > 0) return blockedProposalResult('REQUEST_RESTOCK', params, hard)
-        return JSON.stringify({
-          type: 'action_proposal',
-          action: 'REQUEST_RESTOCK',
-          params,
-          message: 'Restock proposal ready for confirmation.',
-        })
-      }
-      case 'propose_stock_adjustment': {
-        const actionType = input.action === 'subtract' ? 'WRITE_OFF' : 'ADJUST_STOCK'
-        const params = {
-          variant_id: input.variant_id,
-          action: input.action,
-          quantity: input.quantity,
-          reason: input.reason,
-        }
-        const hard = hardViolationsFor(actionType, params, hotelId, constraints)
-        if (hard.length > 0) return blockedProposalResult(actionType, params, hard)
-        return JSON.stringify({
-          type: 'action_proposal',
-          action: actionType,
-          params,
-          message: 'Stock adjustment proposal ready for confirmation.',
-        })
-      }
-      case 'propose_batch_approval': {
-        // Fetch eligible pending requests
-        let query = supabase
-          .from('restock_requests')
-          .select('id, variant_id, estimated_cost, status, variant:product_variants!inner(sku, product:products!inner(name))')
-          .in('status', ['pending', 'pending_manager'])
-        if (input.max_cost) {
-          query = query.lte('estimated_cost', input.max_cost)
-        }
-        const { data, error } = await query
-        if (error) return JSON.stringify({ error: error.message })
-        // A5: the batch path was the one propose_* tool that skipped the
-        // constraint engine — precisely where spend/time-window rules bite.
-        // Evaluate each request as its own APPROVE_RESTOCK; hard violations
-        // drop out of the batch with the reason surfaced to the model.
-        type BatchRow = { id: string; variant_id: string | null; estimated_cost: number | null }
-        // Shared, behavior-eval'd logic (reality-graph evaluateBatchApprovals) —
-        // the fn stays a thin adapter over the graded implementation.
-        const { eligible, blocked } = evaluateBatchApprovals(
-          (data ?? []) as BatchRow[], constraints, hotelId ?? '', new Date(),
-        ) as { eligible: BatchRow[]; blocked: { row: BatchRow; violations: ConstraintViolationLite[] }[] }
-        if (eligible.length === 0 && blocked.length > 0) {
-          return JSON.stringify({
-            type: 'action_proposal', action: 'BATCH_APPROVE', params: { request_ids: [] }, blocked: true,
-            violations: blocked.flatMap((b) => b.violations),
-            message: 'Every eligible request is BLOCKED by a hard house rule. Do NOT propose the batch; explain the limit to the operator.',
-          })
-        }
-        return JSON.stringify({
-          type: 'action_proposal',
-          action: 'BATCH_APPROVE',
-          params: {
-            request_ids: eligible.map((r) => r.id),
-            max_cost: input.max_cost,
-          },
-          requests: eligible,
-          excluded: blocked.length > 0
-            ? blocked.map((b) => ({ request_id: b.row.id, violations: b.violations.map((v) => v.message) }))
-            : undefined,
-          message: `${eligible.length} requests eligible for batch approval` +
-            (blocked.length > 0 ? ` (${blocked.length} excluded by hard house rules — tell the operator why).` : '.'),
         })
       }
       default:
@@ -1089,8 +637,7 @@ function annotateProposals(
   if (records.length === 0 || !hotelId) return proposals
   const now = new Date()
   return proposals.map((p) => {
-    const action = copilotProposalToAction(p.action, p.params, hotelId)
-    if (!action) return p
+    const action = { type: p.action, ...p.params, hotelId }
     const violations = evaluateConstraints(action, records, { now }) as ConstraintViolationLite[]
     return violations.length > 0 ? { ...p, violations } : p
   })

@@ -1,17 +1,12 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { useAuthStore } from '@/stores/auth.store'
 import {
   fetchNotifications,
   markNotificationRead,
   markAllNotificationsRead,
-  autoCreateAlerts,
   fetchNotificationFeedback,
-  fetchAlertPreferences,
-  upsertAlertPreferences,
 } from '../api'
-import type { AlertPreferences } from '@beacon/types'
 
 export type TypeFeedback = {
   type: string
@@ -58,50 +53,8 @@ export function useMarkAllNotificationsRead() {
   })
 }
 
-export function useAlertPreferences() {
-  const hotelId = useAuthStore((s) => s.hotelId)
-  return useQuery({
-    queryKey: ['alert-preferences', hotelId],
-    queryFn:  fetchAlertPreferences,
-    enabled:  !!hotelId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
 
-export function useUpdateAlertPreferences() {
-  const queryClient = useQueryClient()
-  const hotelId = useAuthStore((s) => s.hotelId)
-  return useMutation({
-    mutationFn: (prefs: AlertPreferences) => upsertAlertPreferences(prefs),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['alert-preferences', hotelId] })
-      toast.success('Alert preferences saved')
-    },
-    onError: (err: Error) => {
-      toast.error(`Failed to save preferences: ${err.message}`)
-    },
-  })
-}
 
-export function useAutoAlerts() {
-  const queryClient = useQueryClient()
-  const hotelId = useAuthStore((s) => s.hotelId)
-  return useMutation({
-    mutationFn: ({ daysThreshold, wasteThreshold }: { daysThreshold?: number; wasteThreshold?: number }) =>
-      autoCreateAlerts(daysThreshold, wasteThreshold),
-    onSuccess: (count: number) => {
-      void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
-      if (count === 0) {
-        toast.success('No new alerts — all conditions look good')
-      } else {
-        toast.success(`${String(count)} new alert${count !== 1 ? 's' : ''} created`)
-      }
-    },
-    onError: (err: Error) => {
-      toast.error(`Alert scan failed: ${err.message}`)
-    },
-  })
-}
 
 export function useNotificationFeedback() {
   const hotelId = useAuthStore((s) => s.hotelId)
@@ -141,31 +94,4 @@ export function useUnreadNotificationCount(): number {
  * every INTERVAL_MS thereafter. No toast — background refresh only.
  * Call this from any persistent layout component (e.g. AppLayout).
  */
-const ALERT_REFRESH_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
 
-export function useSilentAutoAlerts() {
-  const queryClient = useQueryClient()
-  const hotelId = useAuthStore((s) => s.hotelId)
-  const ranOnce = useRef(false)
-
-  useEffect(() => {
-    if (!hotelId) return
-
-    const run = () => {
-      // No explicit thresholds — RPC resolves from alert_preferences, then global defaults
-      void autoCreateAlerts().then(() => {
-        void queryClient.invalidateQueries({ queryKey: notificationKeys.all(hotelId) })
-      }).catch(() => { /* silent — don't surface background errors */ })
-    }
-
-    // Run immediately on mount (once per session guard)
-    if (!ranOnce.current) {
-      ranOnce.current = true
-      run()
-    }
-
-    // Then re-run on interval
-    const id = setInterval(run, ALERT_REFRESH_INTERVAL_MS)
-    return () => { clearInterval(id) }
-  }, [hotelId, queryClient])
-}
