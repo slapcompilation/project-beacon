@@ -15,22 +15,10 @@ export interface ObjectPresentation {
   route: string
 }
 
-export const OBJECT_PRESENTATION = {
-  variant:         { icon: 'box', label: 'Variant', home: { label: 'Variant', to: '/objects/variant' }, route: '/objects/variant/' },
-  product:         { icon: 'box', label: 'Product', home: { label: 'Product', to: '/objects/product' }, route: '/objects/product/' },
-  supplier:        { icon: 'shop', label: 'Supplier', home: { label: 'Supplier', to: '/objects/supplier' }, route: '/objects/supplier/' },
-  purchase_order:  { icon: 'truck', label: 'Purchase Order', home: { label: 'Purchase Order', to: '/objects/purchase_order' }, route: '/objects/purchase_order/' },
-  restock_request: { icon: 'box', label: 'Restock Request', home: { label: 'Restock Request', to: '/objects/restock_request' }, route: '/objects/restock_request/' },
-  stock_log:       { icon: 'history', label: 'Stock Log', home: { label: 'Stock Log', to: '/objects/stock_log' }, route: '/objects/stock_log/' },
-  alert:           { icon: 'warning-sign', label: 'Alert', home: { label: 'Alert', to: '/objects/alert' }, route: '/objects/alert/' },
-  proposal:        { icon: 'annotation', label: 'Proposal', home: { label: 'Proposal', to: '/objects/proposal' }, route: '/objects/proposal/' },
-  case:            { icon: 'folder-open', label: 'Case', home: { label: 'Case', to: '/objects/case' }, route: '/objects/case/' },
-  document:        { icon: 'document', label: 'Document', home: { label: 'Document', to: '/objects/document' }, route: '/objects/document/' },
-  constraint:      { icon: 'shield', label: 'Constraint', home: { label: 'Constraint', to: '/objects/constraint' }, route: '/objects/constraint/' },
-  principle:       { icon: 'learning', label: 'Principle', home: { label: 'Principle', to: '/objects/principle' }, route: '/objects/principle/' },
-  approved_answer: { icon: 'bookmark', label: 'Approved Answer', home: { label: 'Approved Answer', to: '/objects/approved_answer' }, route: '/objects/approved_answer/' },
-  action_chain:    { icon: 'link', label: 'Action Chain', home: { label: 'Action Chain', to: '/objects/action_chain' }, route: '/objects/action_chain/' },
-} satisfies Partial<Record<NodeType, ObjectPresentation>>
+// Every entry here named a hospitality object type — variant, purchase_order,
+// stock_log. Object types are registered in the database now, so a code map of
+// them could only ever cover the ones somebody had already written down.
+export const OBJECT_PRESENTATION = {} satisfies Partial<Record<NodeType, ObjectPresentation>>
 
 /** Object-page path for a node, or null when the type has no page. */
 export function objectPath(nodeType: NodeType, id: string): string | null {
@@ -62,47 +50,11 @@ export const GLOSSARY = {
 // Runtime enumerations of the ontology vocabulary. TS unions vanish at
 // runtime; these exhaustive records are how surfaces list every node/edge
 // type — the compiler forces an entry whenever the ontology grows.
-export const NODE_LABELS: Record<NodeType, string> = {
-  hotel:             'Hotel',
-  user:              'User',
-  product:           'Product',
-  variant:           'Variant',
-  stock_log:         'Stock Log',
-  restock_request:   'Restock',
-  stocktake_session: 'Stocktake',
-  stocktake_line:    'Stocktake Line',
-  alert:             'Alert',
-  report:            'Report',
-  supplier:          'Supplier',
-  product_batch:     'Batch',
-  restock_receive:   'Receive',
-  purchase_order:    'Purchase Order',
-  purchase_order_line: 'PO Line',
-  shift_handover:     'Shift Handover',
-  budget_allocation:  'Budget Allocation',
-  gl_account_mapping: 'GL Mapping',
-  po_discrepancy:      'PO Discrepancy',
-  po_invoice:        'Invoice',
-  occupancy_log:     'Occupancy',
-  document:          'Document',
-  proposal:          'Proposal',
-  principle:         'Principle',
-  approved_answer:   'Answer',
-  case:              'Case',
-  constraint:        'Constraint',
-  stock_transfer:    'Transfer',
-  action_chain:      'Action Chain',
-  delivery_event:    'Delivery',
-  location:          'Location',
-  category:          'Category',
-  removal_reason:    'Reason',
-  pick_list:         'Pick List',
-  pick_list_item:    'Pick Item',
-  menu_item:         'Menu Item',
-  menu_item_ingredient: 'Ingredient',
-  event:             'Event',
-  chunk:             'Chunk',
-  entity:            'Entity',
+/** A display label for an object type api name, derived the same way link
+ *  labels are. object_types.label is the authority when a type is registered. */
+export function nodeLabel(apiName: string): string {
+  const words = apiName.replace(/_/g, ' ').trim()
+  return words ? words[0].toUpperCase() + words.slice(1) : apiName
 }
 
 /** A link type's display name. `link_types.label` is the authority and

@@ -11,20 +11,14 @@ import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
-import { AutonomousSection }         from '@/features/settings/sections/AutonomousSection'
-import { CustomFieldsSection }       from '@/features/settings/sections/CustomFieldsSection'
-import { HotelProfileSection }       from '@/features/settings/sections/HotelProfileSection'
 import { WebhooksSection }           from '@/features/settings/sections/WebhooksSection'
 import { DangerZoneSection }         from '@/features/settings/sections/DangerZoneSection'
 
 // ─── Nav config ────────────────────────────────────────────────────────────────
 
 type SectionId =
-  | 'autonomous'
   | 'constraints'
   | 'principles'
-  | 'custom-fields'
-  | 'hotel'
   | 'team'
   | 'webhooks'
   | 'danger'
@@ -39,27 +33,21 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { id: 'autonomous',          label: 'Autonomous Ops',     icon: 'predictive-analysis',     layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'constraints',         label: 'Constraints',        icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'principles',          label: 'Principles',         icon: 'learning',                layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
-  { id: 'custom-fields',     label: 'Custom Fields',    icon: 'horizontal-bar-chart-desc',   layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'hotel',             label: 'Hotel Profile',    icon: 'office',                      layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   { id: 'webhooks',          label: 'Webhooks',         icon: 'notifications-updated',       layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   { id: 'danger',            label: 'GDPR',             icon: 'shield',                      layerDot: 'bg-red-500',    requirePermission: 'can_manage_users' },
 ]
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
-  { dot: 'bg-amber-500',   label: 'Decisions',   ids: ['autonomous', 'constraints', 'principles'] },
-  { dot: 'bg-blue-500',    label: 'Ontology',    ids: ['custom-fields'] },
-  { dot: 'bg-purple-500',  label: 'Platform',    ids: ['hotel', 'webhooks'] },
+  { dot: 'bg-amber-500',   label: 'Decisions',   ids: ['constraints', 'principles'] },
+  { dot: 'bg-blue-500',    label: 'Ontology',    ids: [] },
+  { dot: 'bg-purple-500',  label: 'Platform',    ids: ['webhooks'] },
   { dot: 'bg-red-500',     label: 'Danger',      ids: ['danger'] },
 ]
 
 function renderSection(id: SectionId) {
   switch (id) {
-    case 'autonomous':          return <AutonomousSection />
-    case 'custom-fields':    return <CustomFieldsSection />
-    case 'hotel':            return <HotelProfileSection />
     case 'webhooks':         return <WebhooksSection />
     case 'danger':           return <DangerZoneSection />
   }

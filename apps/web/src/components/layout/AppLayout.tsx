@@ -1,6 +1,5 @@
 import { Outlet } from 'react-router-dom'
 import { GlobalNav } from '@/features/foundryShell/GlobalNav'
-import { ContextPanel } from './ContextPanel'
 import { CommandBar } from '@/components/CommandBar'
 import { NotificationsPanel } from '@/components/NotificationsPanel'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
@@ -22,7 +21,6 @@ export function AppLayout() {
             </div>
           </PanelErrorBoundary>
         </main>
-        <ContextPanel />
       </div>
 
       <CommandBar />

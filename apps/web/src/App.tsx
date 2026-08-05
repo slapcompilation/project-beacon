@@ -67,21 +67,13 @@ function AppRoutes() {
             <Route path="/applications" element={<ApplicationsPage />} />
             <Route path="/mind"     element={<MindWorkspace />} />
 
-            <Route path="/causal-chain"            element={<Navigate to="/graph" replace />} />
-            <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
             <Route path="/agent-studio"            element={<Navigate to="/mind?aip=agents" replace />} />
             <Route path="/agent-studio/:agentName" element={<AgentDetailPage />} />
             <Route path="/tools"                   element={<Navigate to="/mind?aip=tools" replace />} />
             <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
-            <Route path="/modeling-objectives"                  element={<Navigate to="/mind?aip=objectives" replace />} />
-            <Route path="/system-map"                           element={<Navigate to="/mind?aip=system-map" replace />} />
-            <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
-            <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
-            <Route path="/entity-link-suggestions"              element={<Navigate to="/mind?aip=entity-links" replace />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioDetailPage />} />
-            <Route path="/copilot-config"                       element={<Navigate to="/mind?aip=copilot" replace />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/account"       element={<AccountPage />} />
@@ -96,8 +88,6 @@ function AppRoutes() {
             <Route path="/create-workflow" element={<CreateWorkflowGuide />} />
             {/* retired deep links live on as redirects */}
             <Route path="/graph"         element={<Navigate to="/objects" replace />} />
-            <Route path="/events"        element={<Navigate to="/mind?aip=forecast-lab" replace />} />
-            <Route path="/chain"         element={<Navigate to="/mind?aip=system-map" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/objects" replace />} />
         </Routes>

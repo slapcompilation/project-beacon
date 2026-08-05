@@ -9,7 +9,6 @@ import { toast } from 'sonner'
 import { Popover, Menu, MenuItem, MenuDivider, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
 import { ManageFavoritesDialog } from './ManageFavoritesDialog'
-import { ScopeSwitcher } from '@/components/layout/ScopeSwitcher'
 import { PurposeSwitcher } from '@/features/purpose/PurposeSwitcher'
 import { services } from '@/lib/services'
 import { useAppStore } from '@/stores/app.store'
@@ -79,7 +78,6 @@ export function GlobalNav() {
         onSelect={onSelect}
         headerSlot={
           <div className="space-y-1.5">
-            <ScopeSwitcher variant="sidebar" />
             <PurposeSwitcher variant="sidebar" />
             <QuickCreate />
           </div>

@@ -12,7 +12,6 @@
 //      summary; text_full stays as a property)
 //   7. cited_in provenance edges: document -> chunk (page-level)
 //   8. Entity nodes (deduped per hotel/category) + chunk -mentions-> entity
-//   9. entity-extract -> entity_link_suggestions + resolved_to harmonization
 //
 // Stage transitions are FAIL-CLOSED (Foundry data-expectations posture): each
 // milestone asserts its contract and the stage marker refuses to advance
@@ -258,7 +257,7 @@ Deno.serve(async (req: Request) => {
     if (isAuthError(auth)) return auth
     const { supabase } = auth
     // verifyAuth confirmed the header is present + valid; reuse it to call
-    // embed-text / entity-extract as the same authenticated user.
+    // embed-text as the same authenticated user.
     const authHeader = req.headers.get('Authorization') ?? ''
 
     const body = await req.json() as IngestRequest
@@ -536,34 +535,9 @@ Deno.serve(async (req: Request) => {
       .update({ ingestion_stage: stage, updated_at: new Date().toISOString() })
       .eq('id', body.document_id)
 
-    // 7. Contextualize: entity-link suggestion pass over the full chunk text.
-    const exResp = await fetch(`${funcBase}/entity-extract`, {
-      method: 'POST', headers: forward,
-      body: JSON.stringify({ document_id: body.document_id }),
-    })
-    if (!exResp.ok) {
-      const errText = await exResp.text().catch(() => '')
-      return gateFail('contextualized.extract_ok',
-        `entity-extract failed (${String(exResp.status)}): ${errText.slice(0, 300)}. Document settled at embedded.`,
-        'embedded', 502)
-    }
-
-    // A 200 is not the contract. Assert the harmonization pass actually looked
-    // at the entities we just wrote — a green status over zero considered
-    // entities is exactly how resolution stayed dead without anyone noticing.
-    const exBody = await exResp.json().catch(() => null) as { entities_considered?: unknown } | null
-    const considered = exBody?.entities_considered
-    if (typeof considered !== 'number') {
-      return gateFail('contextualized.extract_contract',
-        'entity-extract returned 200 without entities_considered. Document settled at embedded.',
-        'embedded', 502)
-    }
-    const resolvable = [...wanted.values()].filter((e) => e.category === 'supplier' || e.category === 'product').length
-    if (resolvable > 0 && considered === 0) {
-      return gateFail('contextualized.harmonization_ran',
-        `Wrote ${String(resolvable)} resolvable entities but harmonization considered 0. Document settled at embedded.`,
-        'embedded', 502)
-    }
+    // The entity-link suggestion pass lived here. Suggestion review was ours —
+    // "entity link" appears in no Foundry page — so ingestion now settles at
+    // the embedded stage and entities stand on their own.
 
     stage = 'contextualized'
     await supabase

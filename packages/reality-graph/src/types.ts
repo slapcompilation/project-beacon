@@ -2,58 +2,15 @@
 // Every entity in the system is a node; every relationship is an edge.
 // Layer: meta (used by all layers)
 
-export type NodeType =
-  | 'hotel'
-  | 'user'
-  | 'product'
-  | 'variant'
-  | 'stock_log'
-  | 'restock_request'
-  | 'stocktake_session'
-  | 'stocktake_line'
-  | 'alert'
-  | 'report'
-  // Sprint 1 — Reality Graph Core
-  | 'supplier'
-  | 'product_batch'
-  | 'restock_receive'
-  | 'purchase_order'
-  | 'shift_handover'
-  | 'budget_allocation'
-  | 'gl_account_mapping'
-  | 'purchase_order_line'
-  | 'po_discrepancy'
-  | 'po_invoice'
-  | 'occupancy_log'
-  // AIP-native nodes
-  | 'document'
-  | 'proposal'
-  | 'principle'
-  | 'approved_answer'
-  | 'case'
-  | 'constraint'
-  // Network — lateral inter-property moves
-  | 'stock_transfer'
-  // Multi-step BeaconAction sequences batched into one commit (Phase 18.a, renamed H1)
-  | 'action_chain'
-  // Supplier delivery telemetry (powers reliability scoring)
-  | 'delivery_event'
-  // Hotel taxonomy + reference data
-  | 'location'
-  | 'category'
-  | 'removal_reason'
-  // Pick lists (Flow layer batch workflow)
-  | 'pick_list'
-  | 'pick_list_item'
-  // F&B menu engineering
-  | 'menu_item'
-  | 'menu_item_ingredient'
-  // Demand-planner events
-  | 'event'
-  // Doc-ingestion object model (Foundry-exact): a Chunk of a Document, and a
-  // discovered Entity that chunks mention and that resolves to operational nodes.
-  | 'chunk'
-  | 'entity'
+/** The api name of an object type — `object_types.api_name`, resolved at
+ *  runtime, exactly as EdgeType became a link type's api name.
+ *
+ *  This was a union of thirty hospitality nouns (variant, stock_log,
+ *  purchase_order, shift_handover…) plus a handful we called AIP-native and
+ *  audited away. Object types describe a customer's own data — they arrive when
+ *  somebody registers one over a datasource, so the platform cannot know them
+ *  at compile time (`mirror/ontology/core-concepts.md`). */
+export type NodeType = string
 
 // The edge vocabulary lives in @beacon/types so BOTH packages can name it
 // without a cycle — reality-graph depends on types, never the reverse. It was

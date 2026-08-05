@@ -4,16 +4,7 @@ import { persist } from 'zustand/middleware'
 type Theme = 'light' | 'dark' | 'system'
 
 /** Entity types that can be inspected in the sliding ObjectPanel */
-export type ObjectPanelEntity =
-  | 'variant'
-  | 'product'
-  | 'supplier'
-  | 'restock_request'
-  | 'stock_log'
-  | 'alert'
-  | 'purchase_order'
-  | 'shift_handover'
-  | 'location'
+export type ObjectPanelEntity = string
 
 export type ContextPanelTab = 'detail' | 'copilot'
 
