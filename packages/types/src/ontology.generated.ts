@@ -261,7 +261,6 @@ export interface PoDiscrepancy {
   reviewed_at?: string
   review_notes?: string
   detected_at: string
-  supplier_name?: string
 }
 
 /** PO Invoice — An invoice received against a purchase order.
@@ -344,7 +343,6 @@ export interface Proposal {
  *  Code-owned; records live in `purchase_orders`. */
 export interface PurchaseOrder {
   po_number: string
-  supplier_name: string
   status: string
   notes?: string
   total_amount: number
@@ -383,7 +381,6 @@ export interface RestockReceive {
  *  Code-owned; records live in `restock_requests`. */
 export interface RestockRequest {
   quantity_needed: number
-  supplier?: string
   status: string
   date: string
   notes?: string
@@ -483,7 +480,6 @@ export interface Supplier {
 /** Supplier Contract — An agreed price and minimum order for one variant from one supplier, valid between two dates.
  *  Code-owned; records live in `supplier_contracts`. */
 export interface SupplierContract {
-  supplier_name: string
   contracted_price: number
   min_order_qty?: number
   contract_start: string
