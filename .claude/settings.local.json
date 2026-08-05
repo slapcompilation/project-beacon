@@ -93,7 +93,7 @@
       "Bash(ls -la \"C:\\\\Users\\\\pansa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--project-beacon\\\\f30e3466-bbb6-4420-8442-29781972153a\\\\tasks\\\\bn43aza1c.output\")",
       "Bash(npx --yes pnpm --filter @beacon/web dev)",
       "Bash(jobs -l)",
-      "Bash(wc -l /d/project-beacon/packages/reality-graph/src/nodes/*.ts /d/project-beacon/packages/reality-graph/src/actions/*.ts)",
+      "Bash(wc -l /d/project-beacon/packages/ontology/src/nodes/*.ts /d/project-beacon/packages/ontology/src/actions/*.ts)",
       "Bash(cat /d/project-beacon/apps/web/src/features/events/api/*.ts)",
       "mcp__claude_ai_Supabase__list_tables",
       "mcp__claude_ai_Supabase__execute_sql",

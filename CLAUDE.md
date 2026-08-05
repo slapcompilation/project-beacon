@@ -52,12 +52,12 @@ join dataset (`create-link-type.md`). If a design needs a generic table with a
 ```
 apps/web/                44 files. Ontology Manager (/ontology), projects,
                          account, auth, the shell. Vite + React + Blueprint.
-packages/reality-graph/  the ontology model: object types, properties and base
+packages/ontology/       the ontology model: object types, properties and base
                          types, link cardinality, interfaces, shared properties,
-                         object sets and traversal, status, project roles.
-packages/types/          UserRole, AuthSession, EdgeType, generated ontology types.
-packages/services/       IAuthService and the other interface seams.
-packages/ui/             cn().
+                         object sets and traversal, status, project roles, and
+                         the generated per-type interfaces.
+packages/services/       IAuthService and the other interface seams, with the
+                         AuthSession and UserRole they describe.
 supabase/migrations/     390 migrations. The last ~40 are the teardown.
 docs/foundry-reference/  532+ mirrored pages + 4,764 URL slugs. THE SOURCE.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
@@ -129,8 +129,16 @@ Two things we do take from their stack:
 ## TypeScript & code rules
 
 - `any` is forbidden. Strict mode enforced.
-- UI primitives from `@blueprintjs/core` and `@blueprintjs/icons`. No shadcn, no
-  lucide. 4px radius, compact density, tabular numerals for numbers.
+- **Blueprint is Foundry's own framework** and the citation is explicit: "Slate
+  is built on top of the Palantir open source Blueprint framework"
+  (`mirror/slate/concepts-styles.md`). Use `@blueprintjs/core` and
+  `@blueprintjs/icons`; for each component read its **CSS API**, not just the
+  JavaScript one. Colours come from Blueprint's palette, "chosen with WCAG 2.0
+  compliance in mind". No shadcn, no lucide.
+- **No Tailwind.** Slate styles Blueprint with CSS — "like any other website,
+  styles the DOM using CSS" — so ours live in `apps/web/src/styles/globals.css`:
+  Blueprint's palette as tokens, then ~227 hand-written utility rules. There is
+  no build step and no config; add a rule when a surface needs one.
 - Zustand for UI/session only. Server data lives in TanStack Query.
 - **Write less code.** If the same outcome fits in 50 lines instead of 100, that
   is the version that ships.

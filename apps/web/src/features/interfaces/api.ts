@@ -3,7 +3,7 @@
 // operator sees why before they try.
 
 import { supabase } from '@/lib/supabase/client'
-import type { InterfaceDef, InterfacePropertyDef } from '@beacon/reality-graph'
+import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
 
 export interface InterfaceRow {
   id: string

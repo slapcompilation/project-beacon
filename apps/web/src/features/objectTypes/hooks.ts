@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { ObjectTypeDef } from '@beacon/reality-graph'
-import { STATUS_META, isBacked } from '@beacon/reality-graph'
+import type { ObjectTypeDef } from '@beacon/ontology'
+import { STATUS_META, isBacked } from '@beacon/ontology'
 import {
   fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
   setObjectTypeStatus,

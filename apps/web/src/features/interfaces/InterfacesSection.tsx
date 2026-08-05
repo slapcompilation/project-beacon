@@ -8,7 +8,7 @@ import { Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Tag, Tool
 import {
   conformanceErrors, toSlug, validateInterfaceDraft,
   type InterfacePropertyDef, type ObjectTypeDef, type PropertyType,
-} from '@beacon/reality-graph'
+} from '@beacon/ontology'
 import { useInterfaces, useImplementations, useCreateInterface, useDeleteInterface, useSetImplementation } from './hooks'
 import { rowToInterface } from './api'
 

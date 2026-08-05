@@ -6,8 +6,8 @@ import { supabase } from '@/lib/supabase/client'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, OntologyVisibility, Deprecation,
-} from '@beacon/reality-graph'
-import { EMPTY_VIEW_CONFIG, objectTitle } from '@beacon/reality-graph'
+} from '@beacon/ontology'
+import { EMPTY_VIEW_CONFIG, objectTitle } from '@beacon/ontology'
 
 export interface ObjectTypeRow {
   id: string

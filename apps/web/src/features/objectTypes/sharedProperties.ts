@@ -3,7 +3,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { PropertyType, SharedPropertyDef } from '@beacon/reality-graph'
+import type { PropertyType, SharedPropertyDef } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 
 interface Row {

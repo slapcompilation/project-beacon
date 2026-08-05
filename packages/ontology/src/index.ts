@@ -1,4 +1,4 @@
-// @beacon/reality-graph
+// @beacon/ontology
 // Core ontology and four-layer engine for the hotel Reality Graph.
 // This package is the heart of the application — all features plug into it.
 

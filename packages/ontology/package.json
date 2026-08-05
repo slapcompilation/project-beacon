@@ -1,5 +1,5 @@
 {
-  "name": "@beacon/reality-graph",
+  "name": "@beacon/ontology",
   "version": "0.0.1",
   "description": "Core ontology and four-layer engine for the Reality Graph",
   "main": "./src/index.ts",

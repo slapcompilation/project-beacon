@@ -10,7 +10,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { ProjectRole } from '@beacon/reality-graph'
+import type { ProjectRole } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 
 export interface Project {

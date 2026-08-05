@@ -14,7 +14,7 @@ import {
   attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
-} from '@beacon/reality-graph'
+} from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {

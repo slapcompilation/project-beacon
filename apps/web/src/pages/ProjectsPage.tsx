@@ -21,7 +21,7 @@ import {
   Button, Callout, Card, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
   Spinner, SpinnerSize, Tag, TextArea,
 } from '@blueprintjs/core'
-import { toSlug, grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES, type ProjectRole } from '@beacon/reality-graph'
+import { toSlug, grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES, type ProjectRole } from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,

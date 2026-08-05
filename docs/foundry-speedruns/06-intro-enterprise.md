@@ -199,7 +199,7 @@ Every load-bearing capability the course names, with a Beacon verdict.
 
 | # | Foundry capability (course) | Beacon | Where / note |
 |---|---|---|---|
-| C-1 | Ontology as the center — nouns+verbs, semantic layer | ✅ | Reality Graph: typed nodes + named edges, `packages/reality-graph` |
+| C-1 | Ontology as the center — nouns+verbs, semantic layer | ✅ | Reality Graph: typed nodes + named edges, `packages/ontology` |
 | C-2 | Shared world serving humans + AI + systems + governance | ✅ | Dual-callable tools/actions; audit on every Object View |
 | C-3 | **Data pillar** — all modalities → business objects | ✅ | Structured ops nodes; ⚠️ geospatial = maps only; unstructured via doc-ingest |
 | C-4 | **Logic pillar** — rules/ML/optimizers callable by human+AI | ✅ | Logic Tool Registry (basis+confidence+traversableLinks) |
