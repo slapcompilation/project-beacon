@@ -78,4 +78,3 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
-          pnpm db:contracts

@@ -24,7 +24,7 @@ import {
   useUpdateObjectType, useRevisions, useRestoreRevision,
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
-  useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
+  useRecordLinks, useCreateObjectLink, useDeleteObjectLink,
 } from '@/features/objectTypes/hooks'
 import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
@@ -304,7 +304,6 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
   const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id), [linkTypeRows, type.id])
   const create = useCreateObjectRecord()
   const del = useDeleteObjectType()
-  const impact = useTypeImpact(type.id)
   const delRecord = useDeleteObjectRecord(type.id)
 
   const [title, setTitle] = useState('')
@@ -338,19 +337,8 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
           <Button variant="minimal" size="small" icon="history" active={panel === 'history'}
             onClick={() => { setPanel(panel === 'history' ? 'none' : 'history') }}>History</Button>
           <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
-            // The database refuses this outright; say so before the click rather
-            // than surfacing a raised exception as a toast.
             onClick={() => {
-              // Impact analysis before the edit, not a stack trace after it.
-              const breaks = impact.data ?? []
-              const detail = breaks.length === 0
-                ? ''
-                : [
-                    '',
-                    `This will break ${String(breaks.length)} thing(s):`,
-                    ...breaks.map((b) => `  • ${b.artifactKind} "${b.artifactName}" — ${b.detail}`),
-                  ].join(String.fromCharCode(10))
-              if (window.confirm(`Delete the "${type.label}" type and all its records?${detail}`)) del.mutate(type.id)
+              if (window.confirm(`Delete the "${type.label}" type and all its records?`)) del.mutate(type.id)
             }}>
             Delete type
           </Button>

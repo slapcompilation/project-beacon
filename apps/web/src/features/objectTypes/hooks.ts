@@ -13,7 +13,6 @@ import {
   type CreateObjectTypeInput, type CreateObjectRecordInput,
   type UpdateObjectTypeInput, type ObjectTypeRevisionRow,
   type CreateLinkTypeInput, type CreateObjectLinkInput,
-  fetchTypeImpact,
 } from './api'
 
 const keys = {
@@ -221,12 +220,3 @@ export function useDeleteObjectLink(sourceRecordId: string) {
 }
 
 /** Impact of dropping a type, or of dropping the given properties from it. */
-export function useTypeImpact(typeId: string | null, removingKeys?: string[]) {
-  const key = removingKeys ? [...removingKeys].sort().join(',') : '*'
-  return useQuery({
-    queryKey: ['type-impact', typeId ?? '', key] as const,
-    enabled: !!typeId,
-    staleTime: 15_000,
-    queryFn: () => fetchTypeImpact(typeId as string, removingKeys),
-  })
-}

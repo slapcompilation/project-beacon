@@ -395,28 +395,3 @@ export async function deleteObjectLink(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-export interface TypeImpact {
-  artifactKind: string
-  artifactName: string
-  apiName: string
-  detail: string
-}
-
-/** What breaks if this type — or the named properties of it — goes away.
- *  Asked BEFORE the edit; authored_artifact_drift() catches what slips through
- *  after. Never a block: an operator may mean it. */
-export async function fetchTypeImpact(typeId: string, removingKeys?: string[]): Promise<TypeImpact[]> {
-  // The RPC name is data to PostgREST, so it cannot type the result — say the
-  // shape explicitly rather than letting an `any` leak into the caller.
-  const res = await supabase.rpc('object_type_impact', {
-    p_object_type_id: typeId,
-    p_removing_keys: removingKeys ?? null,
-  }) as unknown as {
-    data: { artifact_kind: string; artifact_name: string; api_name: string; detail: string }[] | null
-    error: { message: string } | null
-  }
-  if (res.error) throw new Error(res.error.message)
-  return (res.data ?? []).map((r) => ({
-    artifactKind: r.artifact_kind, artifactName: r.artifact_name, apiName: r.api_name, detail: r.detail,
-  }))
-}
