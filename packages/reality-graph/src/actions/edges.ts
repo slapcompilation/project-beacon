@@ -137,11 +137,10 @@ export function edgesForAction(
       break
 
     case 'RECEIVE_STOCK': {
-      const { logId, receiveId } = result as ReceiveStockResult
-      if (logId) {
-        // stock_log --fulfills--> restock_request
-        push({ ...base, edge_type: 'log_fulfills_request', source_type: 'stock_log', source_id: logId, target_type: 'restock_request', target_id: action.requestId })
-      }
+      const { receiveId } = result as ReceiveStockResult
+      // A log_fulfills_request edge was written here and read by nothing — no
+      // tool, agent or view traversed it, and its backing table held zero rows
+      // after the path had shipped. Removed with the link type in migration 352.
       if (receiveId && action.supplierId) {
         // restock_receive --sourced_from--> supplier
         push({ ...base, edge_type: 'receipt_sourced_from', source_type: 'restock_receive', source_id: receiveId, target_type: 'supplier', target_id: action.supplierId })

@@ -106,12 +106,10 @@ export const NODE_LABELS: Record<NodeType, string> = {
 }
 
 export const EDGE_LABELS: Record<EdgeType, string> = {
-  causes:            'Causes',
   consumes:          'Consumes',
   restocks:          'Restocks',
   fulfills:          'Fulfills',
   reverts:           'Reverts',
-  triggered_alert:   'Triggered alert',
   approved_by:       'Approved by',
   rejected_by:       'Rejected by',
   modified_by:       'Modified by',
@@ -136,9 +134,7 @@ export const EDGE_LABELS: Record<EdgeType, string> = {
   transfer_approved_by:  'Transfer approved by',
   linked_to_po:      'Linked to PO',
   invoiced_by:       'Invoiced by',
-  influenced_by_occupancy: 'Influenced by occupancy',
   influenced_by_principle: 'Influenced by principle',
-  log_fulfills_request:    'Log fulfils request',
   batch_of:          'Batch of',
   discarded_via:     'Discarded via',
   belongs_to_session: 'Session',

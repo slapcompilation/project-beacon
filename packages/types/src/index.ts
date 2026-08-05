@@ -504,18 +504,15 @@ export type GraphNodeType =
 // The edge vocabulary. Mirrors relationship_edges_edge_type_check — the
 // database is the authority and `pnpm check:vocabulary` holds the two together.
 export type EdgeType =
-  | 'causes'
   | 'consumes'
   | 'restocks'
   | 'reverts'
   | 'belongs_to_session'
-  | 'triggered_alert'
   // Sprint 1 — Reality Graph Core
   | 'approved_by'
   | 'rejected_by'
   | 'modified_by'
   | 'fulfills'
-  | 'log_fulfills_request'
   | 'sourced_from'
   | 'delivery_sourced_from'
   | 'receipt_sourced_from'
@@ -543,7 +540,6 @@ export type EdgeType =
   | 'discarded_via'
   | 'linked_to_po'
   | 'invoiced_by'
-  | 'influenced_by_occupancy'
   | 'influenced_by_principle'
   | 'similar_to'
   // AIP-native edges

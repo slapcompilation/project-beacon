@@ -23,8 +23,6 @@ const AUDIT_EDGES: EdgeType[] = ['belongs_to_session']
 
 // Color accent per edge type
 const EDGE_COLOR: Partial<Record<EdgeType, string>> = {
-  causes:          'border-orange-300 bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400',
-  triggered_alert: 'border-red-300 bg-red-50 text-red-700 dark:bg-red-950/30 dark:text-red-400',
   restocks:         'border-blue-300 bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400',
   fulfills:         'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
   approved_by:      'border-emerald-300 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400',
@@ -33,7 +31,6 @@ const EDGE_COLOR: Partial<Record<EdgeType, string>> = {
   sourced_from:     'border-cyan-300 bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400',
   linked_to_po:     'border-cyan-300 bg-cyan-50 text-cyan-700 dark:bg-cyan-950/30 dark:text-cyan-400',
   invoiced_by:      'border-yellow-300 bg-yellow-50 text-yellow-700 dark:bg-yellow-950/30 dark:text-yellow-400',
-  influenced_by_occupancy:  'border-slate-300 bg-slate-50 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400',
   influenced_by_principle: 'border-slate-300 bg-slate-50 text-slate-600 dark:bg-slate-800/30 dark:text-slate-400',
   similar_to:       'border-violet-300 bg-violet-50 text-violet-700 dark:bg-violet-950/30 dark:text-violet-400',
 }

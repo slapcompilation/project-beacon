@@ -292,7 +292,9 @@ function StorySummary({
 
   const corrections    = edges.filter((e) => e.edge_type === 'reverts').length
   const eventCount     = edges.filter((e) => e.edge_type !== 'reverts').length
-  const alertsTriggered = edges.filter((e) => e.edge_type === 'triggered_alert').length
+  // An alertsTriggered count sat here, filtering for triggered_alert edges. It
+  // was always 0 — nothing ever wrote one — so the sentence it fed never
+  // rendered. Removed with the link type in migration 352.
 
   const oldest = edges.reduce<string | null>((oldest, e) => {
     if (!oldest) return e.created_at
@@ -318,10 +320,6 @@ function StorySummary({
 
   if (corrections > 0) {
     sentences.push(`${String(corrections)} correction${corrections !== 1 ? 's' : ''} applied.`)
-  }
-
-  if (alertsTriggered > 0) {
-    sentences.push(`${String(alertsTriggered)} alert${alertsTriggered !== 1 ? 's' : ''} triggered.`)
   }
 
   if (currentStock !== undefined) {

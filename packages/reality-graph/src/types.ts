@@ -68,15 +68,15 @@ export type { EdgeType }
  *  not here is an untyped-edge gap. Kept exhaustive against EdgeType by the
  *  compile-time check below (and `satisfies` guards against typos / stale entries). */
 export const EDGE_TYPES = [
-  'causes', 'consumes', 'restocks', 'reverts',
-  'belongs_to_session', 'triggered_alert', 'approved_by', 'rejected_by', 'modified_by',
-  'fulfills', 'log_fulfills_request', 'sourced_from',
+  'consumes', 'restocks', 'reverts',
+  'belongs_to_session', 'approved_by', 'rejected_by', 'modified_by',
+  'fulfills', 'sourced_from',
   'delivery_sourced_from', 'receipt_sourced_from', 'po_sourced_from',
   'discrepancy_sourced_from', 'request_sourced_from',
   'recipe_consumes', 'pick_consumes', 'sold', 'ingredient_of', 'transfer_approved_by',
   'line_of', 'line_orders', 'line_fulfills_request', 'discrepancy_of',
   'counts_variant', 'item_of', 'categorised_as', 'allocated_to', 'batch_of', 'discarded_via', 'linked_to_po', 'invoiced_by',
-  'influenced_by_occupancy', 'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
+  'influenced_by_principle', 'similar_to', 'transfers', 'proposed_by', 'benchmarks',
   'harmonized_to', 'describes_entity', 'cited_in', 'applies_to', 'derived_from',
   'mentions', 'resolved_to',
 ] as const satisfies readonly EdgeType[]

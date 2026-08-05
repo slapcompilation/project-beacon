@@ -800,10 +800,18 @@ BEGIN
   -- relationships the link_* table is the real store, so an edge with no matching
   -- link row means a writer bypassed the backing and the link table is going
   -- stale. Catch that here rather than discovering it as missing traversals.
-  FOR v_msg IN SELECT unnest(ARRAY[
-    'causes','influenced_by_occupancy','influenced_by_principle','mentions',
-    'linked_to_po','triggered_alert','log_fulfills_request'
-  ]) LOOP
+  -- Derived from link_types, not listed here. The list used to be hardcoded and
+  -- broke the moment four join-backed link types were removed (migration 352) —
+  -- a contract that has to be edited whenever the ontology changes is a contract
+  -- that will be edited wrongly. `object_links` is excluded because it backs
+  -- authored links generically rather than one relationship.
+  FOR v_msg IN
+    SELECT lt.edge_type FROM public.link_types lt
+     WHERE lt.backing_kind = 'join_table'
+       AND lt.backing_table LIKE 'link\_%'
+       AND lt.edge_type IS NOT NULL
+     GROUP BY lt.edge_type
+  LOOP
     EXECUTE format(
       'SELECT count(*) FROM relationship_edges e WHERE e.edge_type = %L
          AND NOT EXISTS (SELECT 1 FROM public.%I l

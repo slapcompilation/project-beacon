@@ -18,7 +18,6 @@ const TRAVERSAL_EDGE_TYPES = [
   'fulfills',
   'sourced_from',
   'linked_to_po',
-  'causes',
   'caused_by',
   'triggered',
   'reverts',
