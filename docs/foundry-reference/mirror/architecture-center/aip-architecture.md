@@ -6,7 +6,7 @@ As described in the [overview of AIP, Foundry, and Apollo](/docs/foundry/archite
 
 The AIP architecture can be summarized into 12 general categories of capability:
 
-![Diagram of AIP architecture, including the 12 general categories of capability.](/docs/resources/foundry/architecture-center/aip-architecture.png)
+![Diagram of AIP architecture, including the 12 general categories of capability.](./images/aip-architecture.png)
 
 1. **Secure LLM integration & access:** Enabling secure access to the full range of commercial LLMs (e.g., GPT, Gemini, Claude, Grok models) and open-source models (e.g., Llama), through Palantir-managed infrastructure that ensures that no transmitted data is retained by third-party providers, and no transmitted data is used for retraining by model providers. Enterprises can also integrate their existing models, whether existing model subscriptions, fine-tuned models, or domain-specific models.
 2. **End-to-end observability:** Providing monitoring tools for every step of AI-driven workflows and agentic processes. This includes fine-grained monitoring for all data flows that feed the Ontology, logging for every action taken by human users or AI agents, and the ability to trace the cascade of chained executions in a workflow. This observability extends to token consumption and other aspects of resource usage.

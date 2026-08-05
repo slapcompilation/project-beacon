@@ -10,13 +10,13 @@ The Ontology is the system at the heart of Palantir’s architecture. The Ontolo
 
 * In military contexts, an ontology can unify the readiness information across forward-deployed forces with the operational processes that underpin reconnaissance and target selection, providing a shared operational world for multinational teams.
 
-![Diagram of how the Ontology connects data sources, logic sources, and systems and actions to analytics & workflows, automations, and products & SDKs.](/docs/resources/foundry/architecture-center/ontology-system.png)
+![Diagram of how the Ontology connects data sources, logic sources, and systems and actions to analytics & workflows, automations, and products & SDKs.](./images/ontology-system.png)
 
 ## How the Ontology models decisions
 
 The Ontology models decisions through the four-fold integration of **data**, **logic**, **action**, and **security**.
 
-![Diagram of how the Ontology is layered above a security layer, in turn above data, logic, and actions.](/docs/resources/foundry/architecture-center/ontology-system-zoom.png)
+![Diagram of how the Ontology is layered above a security layer, in turn above data, logic, and actions.](./images/ontology-system-zoom.png)
 
 **Data** can flow from every conceivable source, such as fragmented ERP estates, homegrown systems of record, CRMs, industrial databases, geospatial repositories, real-time sensors, document stores, and essentially any other digital alcove. The Ontology unifies these disparate data sources into coherent objects, properties, and links; the semantic concepts which enable the full range of stakeholders to interact with and manipulate the information.
 
@@ -42,7 +42,7 @@ As these different teams build AI-powered agents, they must have security scopes
 
 The ability to trigger a purchase order might have granular permissions, while the ability to run a scenario to gauge the impact of a proposed reallocation might be more permissible; the underlying optimizers, or abilities to call LLMs, which manifest into functions which are interactively orchestrated via actions, might have altogether different security scopes. The Ontology’s security system has to reconcile all of these granular policies, at the time of interaction, across tens of thousands of humans and agents.
 
-![Diagram of how the Ontology enables read-write loops.](/docs/resources/foundry/architecture-center/ontology-read-write-loops.png)
+![Diagram of how the Ontology enables read-write loops.](./images/ontology-read-write-loops.png)
 
 ## The Ontology Language, Ontology Engine, and Ontology Toolchain
 
@@ -56,7 +56,7 @@ Rather, the Ontology is a multimodal system consisting of dozens of underlying c
 
 * The **Toolchain** encompasses the entire expressivity of the Language and the power of the Engine, enabling developers to use the Ontology as a backend. Rich, AI-enabled applications for wildfire response, naval logistics, automotive assembly, and countless other use-cases all build upon the Ontology SDK (OSDK), and a rich collection of DevOps tooling designed for the scaled governance of production use cases.
 
-![Table showing "Language", "Engine", and "Toolchain" as rows and "Data", "Logic", "Action", and "Security" as columns.](/docs/resources/foundry/architecture-center/ontology-table.png)
+![Table showing "Language", "Engine", and "Toolchain" as rows and "Data", "Logic", "Action", and "Security" as columns.](./images/ontology-table.png)
 
 ## A digital representation of your world
 

@@ -10,7 +10,7 @@ The standard Palantir architecture consists of three integrated platforms: AIP, 
 
 *AIP* is the generative AI platform, which provides secure connectivity to large language models through the “*k*-LLM” paradigm, a development toolchain for building agents and automations, an array of AI-enabled end user applications, a comprehensive Evals framework for governing AI workflows in production, and more.
 
-![Foundry, AIP, and Apollo make up the Enterprise Operating System.](/docs/resources/foundry/architecture-center/platforms-enterprise-os.png)
+![Foundry, AIP, and Apollo make up the Enterprise Operating System.](./images/platforms-enterprise-os.png)
 
 ## AIP, Foundry, and Apollo: An Enterprise Operating System
 
@@ -26,7 +26,7 @@ Each of these nine capability sets holistically leverage six mesh-wide component
 
 This comprehensive architecture powers AI-enabled care operations at major hospital systems, integrated network planning for major airlines, electric operations and wildfire response for America’s largest utilities, full spectrum military operations across the United States and allied nations, and thousands of other use cases. To solve the world's hardest problems, Palantir's customers use the Enterprise Operating System to connect data, analytics, and AI with mission-critical operations.
 
-![Illustration showing the 9 capability sets and six lateral categories of AIP+Foundry.](/docs/resources/foundry/architecture-center/platforms-capability-sets-categories.png)
+![Illustration showing the 9 capability sets and six lateral categories of AIP+Foundry.](./images/platforms-capability-sets-categories.png)
 
 ## Unified security architecture
 
@@ -38,7 +38,7 @@ At a *platform* level, both Foundry and AIP provide the full range of controls r
 
 These foundational controls are extended by *enterprise security* controls, which enable encryption, audit logging, authorization, and authentication configurations to be deeply integrated with an organization’s existing identity providers, information security tools, and architectural patterns.
 
-![Illustration of platform security architecture: enterprise security, platform security, and infrastructure security.](/docs/resources/foundry/architecture-center/platforms-security-arch.png)
+![Illustration of platform security architecture: enterprise security, platform security, and infrastructure security.](./images/platforms-security-arch.png)
 
 ## Extensibility and interoperability
 
@@ -52,15 +52,15 @@ Other examples can be seen in the Commercial sector, such as Airbus powering an 
 
 The diagram below shows how this works for hospitals building applications on top of the Palantir architecture.
 
-![Illustration of "Palantir for Hospitals" offering.](/docs/resources/foundry/architecture-center/platforms-offering-hospitals.png)
+![Illustration of "Palantir for Hospitals" offering.](./images/platforms-offering-hospitals.png)
 
 Below is an illustration of Palantir's "Warp Speed", an operating system for manufacturing.
 
-![Illustration of "Palantir Warp Speed" offering.](/docs/resources/foundry/architecture-center/platforms-offering-warp-speed.png)
+![Illustration of "Palantir Warp Speed" offering.](./images/platforms-offering-warp-speed.png)
 
 The defense applications below are built on top of the same core architecture as Palantir's commercial offerings, but specialized for some of the world's most demanding and high-stakes use cases.
 
-![Illustration of "Palantir Defense" offering.](/docs/resources/foundry/architecture-center/platforms-offering-defense.png)
+![Illustration of "Palantir Defense" offering.](./images/platforms-offering-defense.png)
 
 ## Pursuing alpha
 
@@ -72,7 +72,7 @@ A successful Palantir deployment is one where the enterprise is pursuing "alpha"
 
 To continue the analogy, the investing concept of "beta" would be the pursuit of low-hanging fruit, like the basic solutions in a one-size-fits-all SaaS deployment. The wide range of capabilities in Palantir’s architecture can support these use cases, but ideally only as byproducts of pursuing alpha.
 
-![Illustration of how Palantir provides products for "alpha".](/docs/resources/foundry/architecture-center/platforms-products-for-alpha.png)
+![Illustration of how Palantir provides products for "alpha".](./images/platforms-products-for-alpha.png)
 
 ## Forward Deployed Engineering
 

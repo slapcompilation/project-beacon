@@ -8,7 +8,7 @@ This includes tools and technologies that span traditional data, analytics, gove
 
 Removing traditional tradeoffs often found with integrated platforms, the goal of the Palantir architecture is to provide a coherent and complete experience while enabling the modularity required to deeply connect with existing (or future) enterprise software platforms.
 
-![Illustration of Palantir platform interoperability.](/docs/resources/foundry/architecture-center/interoperability-layers.png)
+![Illustration of Palantir platform interoperability.](./images/interoperability-layers.png)
 
 ## Data interoperability
 

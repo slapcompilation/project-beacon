@@ -6,7 +6,7 @@ Since its inception, Palantir's software has been shaped by our customers' most 
 
 Palantir’s platforms and offerings are continuously developed through the methodology of Forward Deployed Engineering. This is the human equivalent of backpropagation, in which teams of engineers get as close as possible to a problem while working in concert with core engineering teams to relentlessly synthesize feedback and ship new features.
 
-![Illustration of FDEs sending feedback from the field.](/docs/resources/foundry/architecture-center/overview-fde-feedback.png)
+![Illustration of FDEs sending feedback from the field.](./images/overview-fde-feedback.png)
 
 ## Palantir's platforms
 
@@ -16,7 +16,7 @@ AIP and Foundry collectively consist of 300+ microservices and assets, all runni
 
 Domain-specific offerings, such as those in Defense and Intelligence or the increasingly rich set of applications focused on Hospital Operations, extend the underlying capabilities of AIP and Foundry. This complex orchestration of foundational services and comprehensive operational offerings is only possible through Apollo’s autonomous approach to software delivery.
 
-![Illustration of the relationship between AIP, Foundry, Apollo, and Palantir's products.](/docs/resources/foundry/architecture-center/overview-platforms-and-products.png)
+![Illustration of the relationship between AIP, Foundry, Apollo, and Palantir's products.](./images/overview-platforms-and-products.png)
 
 ## The Ontology system
 
@@ -32,7 +32,7 @@ Multimodal, military-grade security controls encompass the objects, links, actio
 
 [Read more about the Ontology and why it is critical for unlocking the value of AI.](/docs/foundry/architecture-center/ontology-system/)
 
-![Illustration of the Ontology as a layer; above are applications, automation, and agents, below are governance, data services, logic services, and workflow services.](/docs/resources/foundry/architecture-center/overview-ontology-diagram.png)
+![Illustration of the Ontology as a layer; above are applications, automation, and agents, below are governance, data services, logic services, and workflow services.](./images/overview-ontology-diagram.png)
 
 ## Data Services, Logic Services, and Workflow Services
 
@@ -44,7 +44,7 @@ There are hundreds of services that work in concert with the Ontology system, in
 
 All of these capabilities are natively connected with the Language, Engine, and Toolchain that constitute the Ontology system. Together, this enables a wide variety of analytics, applications, AI-driven agents and automations, and custom products to be built atop Palantir's architecture, all of which leverage platform-wide approaches to change management and release management, and which adhere to the security and governance controls configured by administrators.
 
-![Grid of Palantir services and capabilities: the top row has analytics, agents & automations, and product delivery; middle row has Ontology language, Ontology engine, and Ontology toolchain; bottom row has data services, logic services, and workflow services.](/docs/resources/foundry/architecture-center/overview-nine-grid.png)
+![Grid of Palantir services and capabilities: the top row has analytics, agents & automations, and product delivery; middle row has Ontology language, Ontology engine, and Ontology toolchain; bottom row has data services, logic services, and workflow services.](./images/overview-nine-grid.png)
 
 ## Guide to the Architecture Center
 
@@ -57,4 +57,4 @@ This Architecture Center highlights topics that are most relevant for those work
 
 Thanks to the Apollo platform, which orchestrates tens of thousands of releases per week, every deployment is a living environment. Even so, Palantir's commitment to powering our customers’ most important missions means that we want to ensure that stewards and stakeholders of Palantir deployments are always equipped to build, maintain, and scale maximally robust solutions, which can each be counted on to meet their moment.
 
-![Illustration of the industries powered by Palantir, including healthcare, mission planning, manufacturing, supply chain, force management, energy, financial services, logistics, retail, readiness, life sciences, telecommunications, utilities, disaster response, and construction.](/docs/resources/foundry/architecture-center/overview-nine-grid-above.png)
+![Illustration of the industries powered by Palantir, including healthcare, mission planning, manufacturing, supply chain, force management, energy, financial services, logistics, retail, readiness, life sciences, telecommunications, utilities, disaster response, and construction.](./images/overview-nine-grid-above.png)

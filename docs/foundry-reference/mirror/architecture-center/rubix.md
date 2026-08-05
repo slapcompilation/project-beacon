@@ -10,7 +10,7 @@ The Rubix architecture was initially developed to host Palantir’s own software
 
 At the heart of Rubix’s design is a set of uncompromising and interlocking assumptions: mission-critical software must be secure by design, highly available, and capable of rapid evolution.
 
-![Illustration of Rubix: a hardened, autoscaling, high-available implementation of Kubernetes.](/docs/resources/foundry/architecture-center/rubix-k8s.png)
+![Illustration of Rubix: a hardened, autoscaling, high-available implementation of Kubernetes.](./images/rubix-k8s.png)
 
 ## Security
 
@@ -20,7 +20,7 @@ Every workload is securely isolated based on necessary requirements, enabling th
 
 Palantir built the first versions of Rubix to pioneer this secure, autoscaling paradigm with the Spark compute runtime. Today, this now extends across every runtime and service structure within AIP, Foundry, and Apollo, from managing system connections, to data integration, to model management, to application development, to agent building, through to the developer toolchain.
 
-![Illustration of Rubix Security, including a list of core infrastructure security features.](/docs/resources/foundry/architecture-center/rubix-security.png)
+![Illustration of Rubix Security, including a list of core infrastructure security features.](./images/rubix-security.png)
 
 ## High availability
 
