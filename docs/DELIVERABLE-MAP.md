@@ -11,6 +11,57 @@ the system works belongs in `CLAUDE.md` or a guard, not here.
 
 ---
 
+## The teardown — in progress, and the current priority
+
+**Decided 2026-08-05.** The end goal is a **Foundry clone built from Palantir's
+public documentation**. Everything not in that documentation is deleted, whatever
+its row count and whether or not it works today. Packaging the hospitality
+ontology for reinstallation is the documented path
+(`mirror/object-link-types/marketplace-ontology-types.md`) and is deliberately
+**not** taken yet: it belongs after the framework works end to end and there is a
+proven install workflow. Until then a packaged copy would be an unverified
+artifact pretending to be a migration path.
+
+Two standing rules for the work, both requested explicitly:
+
+- **Every ontology change cites its page**, inline, e.g. *"the property that acts
+  as a display name for objects of this type"* — `create-object-type.md`. It
+  exists so a plausible shape cannot become structure.
+- **Never hardcode.** The live example is `rebuild_relationship_edges_view()`,
+  which excludes `sourced_from` from its link_types loop and appends a
+  hand-written `SELECT` over `product_variants JOIN products`.
+
+Done through migration 355: the ontology is empty — 43 object types, 37 link
+types, 2 cohorts, 5 tools and 13 records removed. The framework is untouched and
+asserted: tables, grammar, drift and status guards, projection, 30 RLS contracts.
+
+**1. Empty the `EdgeType` union.** 28 files, 175 references, 3 test files. Start
+at `packages/types/src/index.ts`; the exhaustive `Record`s (`EDGE_TYPES`,
+`EDGE_LABELS`, the GraphConnections colour map) then fail one at a time until
+every consumer is found. **Delete the surfaces rather than repairing them** —
+`useHotelEdges`, `FlowGraph`, `GraphConnections` and `edgesForAction`'s
+provenance writes are domain UI over a domain vocabulary and none survives.
+
+This clears **both currently-red guards at once**, since they share a root: the
+ontology is empty while the vocabulary and domain tables remain.
+- `db:contracts` — `approved_by` and `rejected_by` exist as columns and edge
+  types with nothing backing them.
+- `check:shape` — domain tables like `variant_cost_history` the ontology no
+  longer reaches.
+
+Both are left red on purpose. A guard edited to pass is worth nothing.
+
+**2. De-hardcode `sourced_from`** so `relationship_edges` is genuinely derived
+from `link_types`, as migration 260 claimed it already was.
+
+**3. The 158 domain RPCs and ~40 hand-written computed functions** in
+`reality-graph/src/nodes` — the largest remaining hospitality mass. Replace with
+ontology reads, then delete in the same change: `check:rpcs` and `check:shape`
+report an orphaned caller immediately, and delete-first turns both red at once
+and removes the instrument that proves the cleanup correct.
+
+---
+
 ## Blocked on something outside the code
 
 **Contract reconciliation.** The ΗΛΙΑΚΤΙΔΑ supply contract is ingested and
