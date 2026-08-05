@@ -2,9 +2,6 @@
 // (policy knobs that write to graph_overlay via apply_overlay_edit) + the
 // provenance timeline. Right: simulation result pane (run the cycle against the
 // overlay, no persistence). Promote / archive in the header.
-//
-// The LLM conversation pane that drives these same edits via tool-calling lands
-// in H4 (copilot-chat edge-fn extension).
 
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {

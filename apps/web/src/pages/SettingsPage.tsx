@@ -11,8 +11,6 @@ import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
-import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
-import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { AutonomousSection }         from '@/features/settings/sections/AutonomousSection'
 import { CustomFieldsSection }       from '@/features/settings/sections/CustomFieldsSection'
 import { HotelProfileSection }       from '@/features/settings/sections/HotelProfileSection'
@@ -60,8 +58,6 @@ const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
 function renderSection(id: SectionId) {
   switch (id) {
     case 'autonomous':          return <AutonomousSection />
-    case 'constraints':         return <ConstraintsSection />
-    case 'principles':          return <PrinciplesSection />
     case 'custom-fields':    return <CustomFieldsSection />
     case 'hotel':            return <HotelProfileSection />
     case 'webhooks':         return <WebhooksSection />

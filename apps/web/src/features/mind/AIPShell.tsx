@@ -11,19 +11,14 @@ import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
-import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
-import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { PolicyTab } from './PolicyTab'
 
-const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
 const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
 const StudioLanding             = lazy(() => import('@/features/mind/StudioLanding'))
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const Cohorts                   = lazy(() => import('@/features/objectSets/Cohorts'))
-const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
-const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const ObjectTypesPage           = lazy(() => import('@/pages/ObjectTypesPage'))
 const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
 
@@ -238,27 +233,16 @@ export default function AIPShell({
   )
 }
 
-// Section components (Principles/Constraints) are built for the Settings
-// two-column layout; wrap them in a scrollable padded container here.
-function SectionFrame({ children }: { children: React.ReactNode }) {
-  return <div className="flex-1 overflow-y-auto px-8 py-6 max-w-3xl">{children}</div>
-}
-
 function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
   switch (t) {
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
-    case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
     case 'object-types': return <ObjectTypesPage />
     case 'documents':    return <DocumentsPage />
     case 'cohorts': return <Cohorts />
-    case 'answers':      return <ApprovedAnswersPage />
-    case 'principles':   return <SectionFrame><PrinciplesSection /></SectionFrame>
-    case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
     case 'automations':  return <AutomationsPage />
     case 'scenarios':     return <ScenariosPage />
-    case 'copilot':      return <CopilotConfigPage />
     case 'policy':       return <PolicyTab />
   }
 }

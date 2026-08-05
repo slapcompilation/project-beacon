@@ -105,7 +105,3 @@ export interface ConstraintPayload {
 
 export const documentNode        = { computed: {} } as const
 export const proposalNode        = { computed: {} } as const
-export const principleNode       = { computed: {} } as const
-export const approvedAnswerNode  = { computed: {} } as const
-export const caseNode            = { computed: {} } as const
-export const constraintNode      = { computed: {} } as const

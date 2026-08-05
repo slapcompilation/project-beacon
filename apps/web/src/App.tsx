@@ -32,7 +32,6 @@ const MindWorkspace  = lazyWithRetry(() => import('@/pages/MindWorkspace'))
 
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
-const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
 const DocumentsPage               = lazyWithRetry(() => import('@/pages/DocumentsPage'))
 const ScenariosPage               = lazyWithRetry(() => import('@/pages/ScenariosPage'))
 const ScenarioDetailPage          = lazyWithRetry(() => import('@/pages/ScenarioDetailPage'))
@@ -78,7 +77,6 @@ function AppRoutes() {
             <Route path="/system-map"                           element={<Navigate to="/mind?aip=system-map" replace />} />
             <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
             <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />
-            <Route path="/cases"                                element={<CasesPage />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
             <Route path="/entity-link-suggestions"              element={<Navigate to="/mind?aip=entity-links" replace />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />

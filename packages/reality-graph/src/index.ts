@@ -65,10 +65,6 @@ export {
   // AIP-native nodes
   documentNode,
   proposalNode,
-  principleNode,
-  approvedAnswerNode,
-  caseNode,
-  constraintNode,
 } from './nodes/index'
 export type {
   // AIP-native node payloads
@@ -77,14 +73,6 @@ export type {
   IngestionStage,
   ProposalPayload,
   ProposalStatus,
-  PrinciplePayload,
-  PrincipleCategory,
-  ApprovedAnswerPayload,
-  CasePayload,
-  CaseStatus,
-  ConstraintPayload,
-  ConstraintBucket,
-  ConstraintSeverity,
 } from './nodes/index'
 
 // ── Logic Tool Registry — typed functions, dual-callable by humans + LLMs ────
