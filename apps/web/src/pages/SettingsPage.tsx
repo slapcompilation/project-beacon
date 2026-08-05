@@ -11,16 +11,10 @@ import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth.store'
 import { hasPermission } from '@beacon/types'
-import { TeamSection } from '@/features/team/components/TeamSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
-import { AlertThresholdsSection }    from '@/features/settings/sections/AlertThresholdsSection'
-import { ApprovalThresholdsSection } from '@/features/settings/sections/ApprovalThresholdsSection'
 import { AutonomousSection }         from '@/features/settings/sections/AutonomousSection'
-import { CategoriesSection }         from '@/features/settings/sections/CategoriesSection'
-import { LocationsSection }          from '@/features/settings/sections/LocationsSection'
 import { CustomFieldsSection }       from '@/features/settings/sections/CustomFieldsSection'
-import { MoveReasonsSection }        from '@/features/settings/sections/MoveReasonsSection'
 import { HotelProfileSection }       from '@/features/settings/sections/HotelProfileSection'
 import { WebhooksSection }           from '@/features/settings/sections/WebhooksSection'
 import { DangerZoneSection }         from '@/features/settings/sections/DangerZoneSection'
@@ -28,15 +22,10 @@ import { DangerZoneSection }         from '@/features/settings/sections/DangerZo
 // ─── Nav config ────────────────────────────────────────────────────────────────
 
 type SectionId =
-  | 'alert-thresholds'
-  | 'approval-thresholds'
   | 'autonomous'
   | 'constraints'
   | 'principles'
-  | 'categories'
-  | 'locations'
   | 'custom-fields'
-  | 'move-reasons'
   | 'hotel'
   | 'team'
   | 'webhooks'
@@ -52,42 +41,29 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { id: 'alert-thresholds',    label: 'Alert Thresholds',   icon: 'dashboard',               layerDot: 'bg-orange-500' },
-  { id: 'approval-thresholds', label: 'Approval Thresholds',icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'autonomous',          label: 'Autonomous Ops',     icon: 'predictive-analysis',     layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'constraints',         label: 'Constraints',        icon: 'shield',                  layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
   { id: 'principles',          label: 'Principles',         icon: 'learning',                layerDot: 'bg-amber-500',  requirePermission: 'can_manage_hotels' },
-  { id: 'categories',        label: 'Categories',       icon: 'folder-open',                 layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'locations',         label: 'Locations',        icon: 'map-marker',                  layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
   { id: 'custom-fields',     label: 'Custom Fields',    icon: 'horizontal-bar-chart-desc',   layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
-  { id: 'move-reasons',      label: 'Move Reasons',     icon: 'clipboard',                   layerDot: 'bg-blue-500',   requirePermission: 'can_manage_categories' },
   { id: 'hotel',             label: 'Hotel Profile',    icon: 'office',                      layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
-  { id: 'team',              label: 'Team',             icon: 'people',                      layerDot: 'bg-purple-500', requirePermission: 'can_manage_users' },
   { id: 'webhooks',          label: 'Webhooks',         icon: 'notifications-updated',       layerDot: 'bg-purple-500', requirePermission: 'can_manage_hotels' },
   { id: 'danger',            label: 'GDPR',             icon: 'shield',                      layerDot: 'bg-red-500',    requirePermission: 'can_manage_users' },
 ]
 
 const LAYER_GROUPS: { dot: string; label: string; ids: SectionId[] }[] = [
-  { dot: 'bg-slate-400',   label: 'Insights',    ids: ['alert-thresholds'] },
-  { dot: 'bg-amber-500',   label: 'Flow',        ids: ['approval-thresholds', 'autonomous', 'constraints', 'principles'] },
-  { dot: 'bg-blue-500',    label: 'Inventory',   ids: ['categories', 'locations', 'custom-fields', 'move-reasons'] },
-  { dot: 'bg-purple-500',  label: 'Hotel',       ids: ['hotel', 'team', 'webhooks'] },
+  { dot: 'bg-amber-500',   label: 'Decisions',   ids: ['autonomous', 'constraints', 'principles'] },
+  { dot: 'bg-blue-500',    label: 'Ontology',    ids: ['custom-fields'] },
+  { dot: 'bg-purple-500',  label: 'Platform',    ids: ['hotel', 'webhooks'] },
   { dot: 'bg-red-500',     label: 'Danger',      ids: ['danger'] },
 ]
 
 function renderSection(id: SectionId) {
   switch (id) {
-    case 'alert-thresholds':    return <AlertThresholdsSection />
-    case 'approval-thresholds': return <ApprovalThresholdsSection />
     case 'autonomous':          return <AutonomousSection />
     case 'constraints':         return <ConstraintsSection />
     case 'principles':          return <PrinciplesSection />
-    case 'categories':       return <CategoriesSection />
-    case 'locations':        return <LocationsSection />
     case 'custom-fields':    return <CustomFieldsSection />
-    case 'move-reasons':     return <MoveReasonsSection />
     case 'hotel':            return <HotelProfileSection />
-    case 'team':             return <TeamSection />
     case 'webhooks':         return <WebhooksSection />
     case 'danger':           return <DangerZoneSection />
   }

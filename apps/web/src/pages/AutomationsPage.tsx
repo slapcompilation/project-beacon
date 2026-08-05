@@ -132,7 +132,7 @@ export default function AutomationsPage() {
 
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground">then propose to</span>
-              <HTMLSelect value={effect} onChange={(e) => { setEffect(e.currentTarget.value as AutomationEffect) }}>
+              <HTMLSelect value={effect} onChange={(e) => { setEffect(e.currentTarget.value) }}>
                 {AUTOMATION_EFFECTS.filter((e) => e.subjects.includes('variant')).map((e) => <option key={e.effect} value={e.effect}>{e.label}</option>)}
               </HTMLSelect>
             </div>

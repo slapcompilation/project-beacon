@@ -19,10 +19,8 @@ const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const ApplicationsPage = lazyWithRetry(() => import('@/pages/ApplicationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
-const AuditPage = lazyWithRetry(() => import('@/pages/AuditPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
 const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
-const ProcessMiningPage = lazyWithRetry(() => import('@/pages/ProcessMiningPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ModulePage  = lazyWithRetry(() => import('@/pages/ModulePage'))
@@ -37,7 +35,6 @@ const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailP
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
 const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
 const DocumentsPage               = lazyWithRetry(() => import('@/pages/DocumentsPage'))
-const ActionChainsPage            = lazyWithRetry(() => import('@/pages/ActionChainsPage'))
 const ScenariosPage               = lazyWithRetry(() => import('@/pages/ScenariosPage'))
 const ScenarioDetailPage          = lazyWithRetry(() => import('@/pages/ScenarioDetailPage'))
 
@@ -85,17 +82,14 @@ function AppRoutes() {
             <Route path="/cases"                                element={<CasesPage />} />
             <Route path="/documents"                            element={<DocumentsPage />} />
             <Route path="/entity-link-suggestions"              element={<Navigate to="/mind?aip=entity-links" replace />} />
-            <Route path="/action-chains"                        element={<ActionChainsPage />} />
             <Route path="/scenarios"                            element={<ScenariosPage />} />
             <Route path="/scenarios/:scenarioId"                element={<ScenarioDetailPage />} />
             <Route path="/copilot-config"                       element={<Navigate to="/mind?aip=copilot" replace />} />
 
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/account"       element={<AccountPage />} />
-            <Route path="/audit"         element={<AuditPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/whats-new"     element={<WhatsNewPage />} />
-            <Route path="/process"       element={<ProcessMiningPage />} />
             <Route path="/objects"       element={<ObjectsPage />} />
             <Route path="/projects"      element={<ProjectsPage />} />
             {/* Generic on purpose: a new application must not mean a new route. */}

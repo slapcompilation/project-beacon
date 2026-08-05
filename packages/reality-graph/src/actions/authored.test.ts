@@ -163,11 +163,11 @@ describe('submission criteria failure messages', () => {
 
 describe('the shipped-name collision guard', () => {
   it('covers every action in the registry, not a hand-written subset', () => {
-    // Was twelve names against a registry of forty-two, two of them misspelled
-    // (CREATE_PURCHASE_ORDER, SUBMIT_INVOICE). Thirty-two shipped names were
-    // takeable by an authored action, including CREATE_PO and MATCH_INVOICE.
+    // Was twelve hand-written names against a registry of forty-two, two of
+    // them misspelled. The registry is empty now that no action ships in code,
+    // so what matters is that the list is still DERIVED from it rather than
+    // written out — the derivation is what stopped the drift.
     expect([...SHIPPED_ACTION_NAMES].sort()).toEqual(Object.keys(actionDescriptors).sort())
-    expect(SHIPPED_ACTION_NAMES.length).toBeGreaterThan(40)
   })
 
 })

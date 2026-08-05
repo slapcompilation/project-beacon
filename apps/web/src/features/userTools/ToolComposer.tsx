@@ -6,12 +6,11 @@ import { useMemo, useState } from 'react'
 import {
   Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag,
 } from '@blueprintjs/core'
-import {
+import { emptyGraphReader,
   AGGREGATIONS, subjectProperties, describeUserTool, evaluateUserToolAcross, validateUserTool, toSlug,
   bindToolArgs, shippedAgentToolNames,
   type AggregationFn, type PropertyType, type ToolArgs, type ToolFilter, type ToolParamDef,
 } from '@beacon/reality-graph'
-import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { BUILTIN_SET_LIMIT } from '@/features/objectTypes/api'
 import { useCreateUserTool } from './hooks'
 import Breakdown from './Breakdown'
@@ -20,7 +19,7 @@ import { Field, FilterRow, SubjectSelect } from '@/features/objectSets/FilterRow
 
 /** An authored tool taking a shipped tool's name would be silently ignored in an
  *  agent's registry, where the shipped one wins. Catch it at authoring time. */
-const SHIPPED_TOOL_NAMES = shippedAgentToolNames(makeSupabaseGraphReader())
+const SHIPPED_TOOL_NAMES = shippedAgentToolNames(emptyGraphReader)
 
 export default function ToolComposer({ onDone }: { onDone: () => void }) {
   const create = useCreateUserTool()

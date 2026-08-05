@@ -10,14 +10,11 @@ import { Icon, Spinner, SpinnerSize, Intent, Tag } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { useAgentRunSummaries } from '@/features/agentStudio/hooks'
 import { PrinciplesSection } from '@/features/principles/PrinciplesSection'
 import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { PolicyTab } from './PolicyTab'
 
-const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
-const PendingApprovalsPage      = lazy(() => import('@/pages/PendingApprovalsPage'))
 const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
 const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
@@ -28,12 +25,10 @@ const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
 const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const Cohorts                   = lazy(() => import('@/features/objectSets/Cohorts'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
-const ActionChainsPage          = lazy(() => import('@/pages/ActionChainsPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const ObjectTypesPage           = lazy(() => import('@/pages/ObjectTypesPage'))
-const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
 const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
 
 export type AipTab =
@@ -256,8 +251,6 @@ function SectionFrame({ children }: { children: React.ReactNode }) {
 function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
   switch (t) {
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
-    case 'queue':        return <ReviewQueuePage />
-    case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
     case 'system-map':   return <SystemMapPage />
@@ -271,10 +264,8 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'tools':        return <ToolsPage />
     case 'calibration':  return <DecisionCalibrationPage />
     case 'flywheel':     return <FlywheelPage />
-    case 'monitors':     return <MonitorsTab />
     case 'automations':  return <AutomationsPage />
     case 'scenarios':     return <ScenariosPage />
-    case 'action-chains': return <ActionChainsPage />
     case 'copilot':      return <CopilotConfigPage />
     case 'policy':       return <PolicyTab />
   }
@@ -327,19 +318,9 @@ function badgeIntent(t: AipTab): Intent {
  *  The decision counts come from one server-aggregated RPC (shared with the
  *  topbar) instead of fetching full datasets just to take their length. */
 function useAipCounts(): Partial<Record<AipTab, number>> {
-  const signals   = useAipSignalCounts()
+  // Queue/approval/case counts came from the hospitality signal spine. Agent
+  // pending counts survive because agent runs are ontology-side.
   const summaries = useAgentRunSummaries()
-
-  const q = signals.data?.queue ?? 0
-  const a = signals.data?.approvals ?? 0
-  const c = signals.data?.casesOpen ?? 0
   const agentsPending = (summaries.data ?? []).reduce((s, r) => s + r.pending, 0)
-
-  return {
-    queue:          q,
-    approvals:      a,
-    cases:          c,
-    'entity-links': signals.data?.entityLinks,
-    agents:         agentsPending > 0 ? agentsPending : undefined,
-  }
+  return { agents: agentsPending > 0 ? agentsPending : undefined }
 }

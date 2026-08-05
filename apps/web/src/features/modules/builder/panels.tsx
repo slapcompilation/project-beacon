@@ -9,8 +9,7 @@ import {
   Button, Callout, FormGroup, HTMLSelect, InputGroup, Intent, Switch, TextArea, Tag,
 } from '@blueprintjs/core'
 import { useQuery } from '@tanstack/react-query'
-import { actionDescriptors, buildAuthoredAgentTools, type LogicTool } from '@beacon/reality-graph'
-import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
+import { actionDescriptors, buildAuthoredAgentTools, emptyGraphReader, type LogicTool } from '@beacon/reality-graph'
 import { supabase } from '@/lib/supabase/client'
 import {
   fetchModules,
@@ -55,7 +54,7 @@ function toolArgNames(tool: LogicTool): string[] {
 function useTools() {
   return useQuery({
     queryKey: ['builder-tools'],
-    queryFn: () => Promise.resolve([...buildAuthoredAgentTools(makeSupabaseGraphReader()).values()]),
+    queryFn: () => Promise.resolve([...buildAuthoredAgentTools(emptyGraphReader).values()]),
     staleTime: Infinity,
   })
 }
@@ -550,7 +549,7 @@ function ButtonsPanel({ mod, widget, onChange }: {
   return (
     <Section title="Buttons">
       {buttons.map((b, i) => {
-        const descriptor = b.action ? actionDescriptors[b.action.type as keyof typeof actionDescriptors] : undefined
+        const descriptor = b.action ? actionDescriptors[b.action.type] : undefined
         // Hidden parameters are context the operator never sees; visible ones are
         // form fields. Ambient context (hotel, requestor) is supplied at runtime
         // and deliberately absent here.

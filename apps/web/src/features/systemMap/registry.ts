@@ -47,7 +47,7 @@ export function buildSystemMap(): SystemMapData {
 
   const actionEntries = Object
     .entries(actionDescriptors)
-    .map(([name, descriptor]) => ({ name: name as BeaconAction['type'], descriptor }))
+    .map(([name, descriptor]) => ({ name: name, descriptor }))
 
   const agentUsesTool: Array<{ agent: string; tool: string }> = []
   const agentEmitsAction: Array<{ agent: string; action: string }> = []

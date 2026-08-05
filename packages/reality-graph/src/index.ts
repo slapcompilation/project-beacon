@@ -25,23 +25,7 @@ export type { EdgeRecord, TraversalNode, TraverseOptions } from './engine'
 export type {
   BeaconAction,
   TriggeredBy,
-  ActionResult,
-  ActionSuccess,
-  ActionFailure,
   ValidationResult,
-  EdgeInsert,
-  EdgeContext,
-  MutationResult,
-  RestockRequestResult,
-  StockLogResult,
-  ReceiveStockResult,
-  RevertActionResult,
-  SupplierCreateResult,
-  POCreateResult,
-  InvoiceSubmitResult,
-  TransferCreateResult,
-  TransferApproveResult,
-  PendingApprovalResult,
   ActionField,
   ActionFieldKind,
   ActionDescriptor,
@@ -59,12 +43,8 @@ export type {
   SubmissionCriterion, CriterionFailure,
 } from './actions/authored'
 export {
-  validateAction,
-  edgesForAction,
   actionDescriptors,
   getActionDescriptor,
-  copilotProposalToAction,
-  evaluateBatchApprovals,
   SYSTEM_ACTOR,
   isSystemActor,
   resolveActor,
@@ -111,7 +91,7 @@ export type {
 // Phase A stub: contracts only. Tool implementations land in src/tools/<name>.ts
 // See CLAUDE.md → "The Logic Tool Registry (Compute Layer)".
 // Canonical Studio catalog — single source of truth for the Studio's tool/agent/objective views.
-export { listAllToolDescriptors, listAllAgentSpecs, listAllObjectiveDescriptors, type ObjectiveDescriptor as CatalogObjectiveDescriptor } from './catalog'
+export { emptyGraphReader, listAllToolDescriptors, listAllAgentSpecs, listAllObjectiveDescriptors, type ObjectiveDescriptor as CatalogObjectiveDescriptor } from './catalog'
 export type { LogicTool, ToolResultMeta, ToolScope, ToolCategory, ToolKind } from './tools/index'
 export {
   toolRegistry,
@@ -201,7 +181,6 @@ export {
   principleProvenance,
   principleReasoningSuffix,
 } from './agents/principles'
-export type { MineProcessInput, MineProcessOutput } from './tools/data/mine_process'
 export type { PIIType, Sensitivity } from './governance/pii'
 
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
@@ -259,33 +238,6 @@ export type {
 export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, orgPolicyToCalibrationOptions, LOOP_GOALS, goalProgress, recommendGoalIntervention } from './policy/index'
 export type { OrgPolicy, GoalDef, GoalIntervention, ExpiryMonitorConfig, IntegrationHealthConfig, BottleneckMonitorConfig, BudgetMonitorConfig, CporMonitorConfig } from './policy/index'
 
-export {
-  selectExpiryTriggers,
-  expiryUrgency,
-  expiryHitToWriteOff,
-  parseExpiryTuning,
-  selectStockoutTriggers,
-  stockoutUrgency,
-  selectWasteTriggers,
-  selectSupplierTriggers,
-  supplierUrgency,
-  classifyIntegrationHealth,
-  selectIntegrationHealthAlerts,
-  selectBottleneckTriggers,
-  bottleneckUrgency,
-  selectBudgetTriggers,
-  selectCporTrigger,
-} from './monitors/index'
-export type {
-  ExpiryBatch, ExpiryTriggerHit, ExpiryTuningResult,
-  StockoutReading, StockoutHit,
-  WasteReading, WasteHit,
-  SupplierReading, SupplierHit,
-  IntegrationSourceReading, IntegrationHealthHit,
-  IntegrationHealthStatus, IntegrationSourceKind,
-  BottleneckReading, BottleneckHit,
-  BudgetReading, BudgetHit, CporReading, CporHit,
-} from './monitors/index'
 
 export {
   AUTOMATION_METRICS, AUTOMATION_EFFECTS, COMPARISON_LABELS,

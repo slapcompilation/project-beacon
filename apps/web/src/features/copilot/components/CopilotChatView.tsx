@@ -3,9 +3,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button, Icon, InputGroup, Intent, Spinner, SpinnerSize, Tag } from '@blueprintjs/core'
 import { cn } from '@/lib/utils'
-import { useCopilotChat } from '@/features/eye/hooks'
-import type { ChatMessage } from '@/features/eye/hooks'
-import { CopilotProposalCard } from './CopilotProposalCard'
+import { useCopilotChat } from '@/features/copilot/useCopilotChat'
+import type { ChatMessage } from '@/features/copilot/useCopilotChat'
 import { useCurateAnswer } from '@/features/approvedAnswers/hooks'
 import { useCurrentSelection } from '@/features/copilot/hooks'
 
@@ -101,13 +100,6 @@ function ChatBubble({ message }: { message: ChatMessage }) {
           </div>
         )}
 
-        {message.action_proposals && message.action_proposals.length > 0 && (
-          <div className="space-y-2">
-            {message.action_proposals.map((p, i) => (
-              <CopilotProposalCard key={i} proposal={p} />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   )

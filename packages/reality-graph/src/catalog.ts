@@ -13,7 +13,6 @@ import {
   requestClarificationTool,
   makeComputeDecisionCalibrationTool,
 } from './tools/index'
-import { makeMineProcessTool } from './tools/data/mine_process'
 import {
   objectiveRegistry,
   adapterRegistry,
@@ -23,7 +22,10 @@ import {
   type EvalSuite,
 } from './objectives/index'
 
-const noopGraphReader: GraphReader = {
+/** A reader with nothing behind it. The Supabase implementation read variants,
+ *  stock logs and sister properties, all of which went with the domain; this is
+ *  the seam kept open so tool execution still has a reader to be handed. */
+export const emptyGraphReader: GraphReader = {
   getVariant:              () => Promise.resolve(null),
   getOpenRestockRequests:  () => Promise.resolve([]),
   getStockLogs:            () => Promise.resolve([]),
@@ -39,8 +41,7 @@ const noopGraphReader: GraphReader = {
  *  it to reality-graph — this is the one place the Studio reads from. */
 export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
   return [
-    makeMineProcessTool(noopGraphReader),
-    makeQueryDocumentChunksTool(noopGraphReader),
+    makeQueryDocumentChunksTool(emptyGraphReader),
     requestClarificationTool,
     makeComputeDecisionCalibrationTool({ getResolvedProposals: () => Promise.resolve([]) }),
   ] as LogicTool[]

@@ -14,7 +14,9 @@ export type AutomationSubject = 'variant'
 export type ComparisonOp = 'lt' | 'lte' | 'gt' | 'gte'
 export type AutomationGate = 'review' | 'auto'
 export type AutomationStage = 'sandbox' | 'staging' | 'production'
-export type AutomationEffect = Extract<BeaconAction['type'], 'REQUEST_RESTOCK' | 'TRANSFER_STOCK' | 'WRITE_OFF'>
+/** The api name of the action type the automation submits. Was a union of three
+ *  inventory actions; action types are authored now, so any registered name. */
+export type AutomationEffect = string
 
 export interface AutomationCondition {
   subject: AutomationSubject
@@ -175,21 +177,19 @@ export interface AutomationProposal {
  *  operator's id, or the service identity on the cron path). */
 export interface AutomationContext { requestorId: string }
 
+/** The automation's effect, as a submitted action. The old version hand-built a
+ *  REQUEST_RESTOCK payload from par level and stock on hand; an authored action
+ *  type carries its own parameters, so the subject and the actor are all this
+ *  layer can supply without knowing the domain. */
 function hitToAction(hit: AutomationHit, r: AutomationReading, ctx: AutomationContext): BeaconAction | null {
-  if (hit.effect === 'REQUEST_RESTOCK') {
-    if (!r.hotelId) return null
-    const gap = Math.ceil((r.metrics.par_level ?? 0) - (r.metrics.current_stock ?? 0))
-    return {
-      type: 'REQUEST_RESTOCK',
-      variantId: r.subjectId,
-      quantityNeeded: Math.max(1, gap),
-      urgency: hit.confidence >= 0.85 ? 'high' : hit.confidence >= 0.6 ? 'medium' : 'low',
-      hotelId: r.hotelId,
-      requestorId: ctx.requestorId,
-      notes: `Automation: ${hit.automationName}`,
-    }
+  if (!r.hotelId) return null
+  return {
+    type: hit.effect,
+    subjectId: r.subjectId,
+    hotelId: r.hotelId,
+    requestorId: ctx.requestorId,
+    notes: `Automation: ${hit.automationName}`,
   }
-  return null
 }
 
 /** Production automations → proposals, keyed to the subject they fired on. The

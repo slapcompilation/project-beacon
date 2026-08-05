@@ -94,12 +94,15 @@ describe('validateAutomation', () => {
 describe('automationsToProposals', () => {
   const withHotel: AutomationReading[] = readings.map((r) => ({ ...r, hotelId: 'h1' }))
 
-  it('turns a REQUEST_RESTOCK hit into a typed proposal sized to the gap', () => {
+  it('turns a hit into a proposal carrying the subject and the actor', () => {
+    // The old version asserted a REQUEST_RESTOCK payload sized from par level.
+    // Action types are authored now and carry their own parameters, so what
+    // this layer owes the proposal is the subject, the property and who asked.
     const props = automationsToProposals([base], withHotel, { requestorId: 'u1' })
     expect(props).toHaveLength(1)
     const p = props[0]
     expect(p.subjectId).toBe('v1')
-    expect(p.proposal.action).toMatchObject({ type: 'REQUEST_RESTOCK', variantId: 'v1', hotelId: 'h1', quantityNeeded: 100 })
+    expect(p.proposal.action).toMatchObject({ type: 'REQUEST_RESTOCK', subjectId: 'v1', hotelId: 'h1', requestorId: 'u1' })
     expect(p.proposal.confidence).toBe(0.7)
     expect(p.proposal.provenance[0].ref).toBe('automation:a1')
     expect(p.proposal.reasoning).toContain('Low OJ → restock')
@@ -109,17 +112,10 @@ describe('automationsToProposals', () => {
     expect(automationsToProposals([base], readings, { requestorId: 'u1' })).toEqual([])
   })
 
-  it('does not fire transfer / write-off yet (agent context needed)', () => {
-    const transfer: Automation = { ...base, effect: 'TRANSFER_STOCK' }
-    const writeoff: Automation = { ...base, effect: 'WRITE_OFF' }
-    expect(automationsToProposals([transfer, writeoff], withHotel, { requestorId: 'u1' })).toEqual([])
-  })
-
-  it('clamps quantity to at least 1', () => {
-    const atPar: AutomationReading[] = [{ subject: 'variant', subjectId: 'v9', subjectName: 'x', hotelId: 'h1', metrics: { current_stock: 5, par_level: 5, units_below_par: 1, stock_vs_par_pct: 100 } }]
-    const a: Automation = { ...base, when: { subject: 'variant', metric: 'units_below_par', op: 'gte', value: 0 } }
-    const props = automationsToProposals([a], atPar, { requestorId: 'u1' })
-    expect(props[0].proposal.action).toMatchObject({ type: 'REQUEST_RESTOCK', quantityNeeded: 1 })
+  it('submits whatever action type the automation names', () => {
+    const other: Automation = { ...base, effect: 'SOME_AUTHORED_ACTION' }
+    const props = automationsToProposals([other], withHotel, { requestorId: 'u1' })
+    expect(props[0].proposal.action.type).toBe('SOME_AUTHORED_ACTION')
   })
 })
 

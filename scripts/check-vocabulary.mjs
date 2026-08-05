@@ -182,10 +182,17 @@ const actionDrift = []
 try {
   const { actionDescriptors } = await import('../supabase/functions/_shared/reality-graph.bundle.mjs')
   const registry = Object.keys(actionDescriptors).sort()
-  const body = /shipped text\[\] := ARRAY\[([\s\S]*?)\]/.exec(fns.src)?.[1] ?? ''
+  // An ABSENT array means the guard was never deployed. An array that is present
+  // and empty is correct when nothing ships in code — which is the state since
+  // the BeaconAction union went. Conflating the two (zero names == not
+  // deployed) was a proxy that only held while the registry always had names.
+  const match = /shipped text\[\] := ARRAY\[([\s\S]*?)\]/.exec(fns.src)
+  const body = match?.[1] ?? ''
   const inSql = [...body.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]).sort()
-  if (inSql.length === 0) {
+  if (!match) {
     actionDrift.push('refuse_shipped_action_name has no name array — the collision guard is not deployed')
+  } else if (inSql.length === 0 && registry.length > 0) {
+    actionDrift.push(`the collision guard is empty but ${String(registry.length)} action(s) ship — regenerate it`)
   } else {
     for (const n of registry) if (!inSql.includes(n)) actionDrift.push(`${n} is a shipped action an authored one could take`)
     for (const n of inSql) if (!registry.includes(n)) actionDrift.push(`${n} is guarded but is not an action type`)

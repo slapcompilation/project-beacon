@@ -118,7 +118,7 @@ export function PolicyTab() {
           <SectionHeader icon="flag" title="Auto-execution thresholds" subtitle="Per-action-type confidence floor (0–1). Each shows the proposing agent's earned trust — release + calibration. Action types not listed never auto-execute." />
           <div className="space-y-3">
             {KNOWN_ACTION_TYPES.map((a) => {
-              const current = draft.auto_execution.thresholds[a.type as keyof typeof draft.auto_execution.thresholds]
+              const current = draft.auto_execution.thresholds[a.type]
               const enabled = current != null
               const trust = trustFor(a.type)
 
@@ -165,7 +165,7 @@ export function PolicyTab() {
                       min={0} max={1} stepSize={0.05} minorStepSize={0.01}
                       value={current ?? ''}
                       onValueChange={(n) => {
-                        const k = a.type as keyof typeof draft.auto_execution.thresholds
+                        const k = a.type
                         const valid = Number.isFinite(n) && n >= 0 && n <= 1
                         // Reset to default if blanked, else set the override.
                         const next = Object.fromEntries(

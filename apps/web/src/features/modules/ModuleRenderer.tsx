@@ -15,8 +15,6 @@ import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { useAuthStore } from '@/stores/auth.store'
-import { ActionFormModal } from '@/features/actions/ActionFormModal'
-import type { BeaconAction } from '@beacon/reality-graph'
 import {
   argsReady, resolveArgs, resolveParameters,
   type ActionSpec, type Binding, type ButtonSpec,
@@ -36,7 +34,6 @@ import {
 import { ChartXY } from './ChartXY'
 import { SourceViewer } from './SourceViewer'
 import { EmbeddedObjectView } from './EmbeddedObjectView'
-import { InlineActionForm } from './InlineActionForm'
 import { AdoptionPanel } from './AdoptionPanel'
 import { PromoteDialog } from './PromoteDialog'
 import { usePromotedApps } from './promotions'
@@ -529,8 +526,13 @@ function Widget({ widget, ctx }: { widget: ModuleWidget; ctx: Ctx }) {
           </Callout>
         )
       }
-      return <InlineActionForm actionType={actionType} title={widget.title}
-                               defaults={widget.config.defaults} onDone={() => { dispatch(widget.id, 'click', {}) }} />
+      // The inline action form went with the shipped action layer. Authored
+      // action types get their own renderer when one is built.
+      return (
+        <Callout intent={Intent.WARNING} icon="warning-sign" className="text-xs">
+          <strong>{widget.title || 'This form'}</strong> needs an authored action type.
+        </Callout>
+      )
     }
 
     case 'button_group': {
@@ -933,21 +935,6 @@ function ModuleInstance({ apiName, depth, ancestors, injected, onSharedChange, c
     <>
       {chrome ? chrome(mod, body) : <div className="space-y-4">{body}</div>}
 
-      {pendingAction && params && hotelId && (
-        <ActionFormModal
-          open
-          onClose={() => { setPendingAction(null) }}
-          actionType={pendingAction.type as BeaconAction['type']}
-          context={params.context}
-          initialValues={params.initialValues}
-          disabledFields={params.disabled}
-          dispatchContext={{ hotelId, actorId, triggeredBy: 'user' }}
-          onSuccess={() => {
-            setPendingAction(null)
-            void queryClient.invalidateQueries({ queryKey: ['module-variable'] })
-          }}
-        />
-      )}
 
       {mod.layouts.filter((l) => l.layoutType === 'overlay').map((o) => (
         <Dialog key={o.id} isOpen={ui.openOverlays.includes(o.id)} title={o.title || o.apiName}

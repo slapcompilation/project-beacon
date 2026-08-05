@@ -9,11 +9,10 @@ import { rowToObjectSet, type ObjectSetRow } from '@/features/objectSets/api'
 import {
   fetchBuiltinRecords, fetchObjectRecordsForTypes, rowToObjectType, type ObjectTypeRow,
 } from '@/features/objectTypes/api'
-import { buildAuthoredAgentTools, selectObjectSet, isBacked } from '@beacon/reality-graph'
+import { emptyGraphReader, buildAuthoredAgentTools, selectObjectSet, isBacked } from '@beacon/reality-graph'
 import type {
   ModuleDefinitionKind, ModuleLayoutType, ModuleVariableType, ModuleWidgetType,
 } from '@beacon/reality-graph'
-import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 
 // The vocabulary is defined once, in reality-graph, so the renderer, the
 // builder and the authoring validator cannot disagree about it. They did:
@@ -116,7 +115,7 @@ export async function resolveFunctionVariable(
 ): Promise<Record<string, unknown> | null> {
   const name = variable.definition.toolName
   if (typeof name !== 'string') return null
-  const tool = buildAuthoredAgentTools(makeSupabaseGraphReader()).get(name)
+  const tool = buildAuthoredAgentTools(emptyGraphReader).get(name)
   if (!tool) throw new Error(`Workshop:UnknownTool ${name}`)
   const out = await tool.invoke(args)
   return out as Record<string, unknown>

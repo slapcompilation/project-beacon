@@ -8,13 +8,12 @@ import { useMemo, useState } from 'react'
 import {
   Button, Callout, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NumericInput, Tag, TextArea,
 } from '@blueprintjs/core'
-import {
+import { emptyGraphReader,
   AGENT_CADENCES, compileAgent, describeAuthoredAgent, validateAuthoredAgent,
   buildAuthoredAgentTools, runAuthoredAgent, toSlug,
   type AgentApproval, type AgentCadence, type AgentScope, type AuthoredAgentOutput, type ProcedureStep,
 } from '@beacon/reality-graph'
 import { toolDescriptors } from '@/features/agentStudio/registry'
-import { makeSupabaseGraphReader } from '@/features/agents/graphReader'
 import { AnthropicLLMClient } from '@/features/agents/anthropicLLM'
 import { useAuthoredLogicTools } from '@/features/userTools/hooks'
 import { useCreateUserAgent } from './hooks'
@@ -22,7 +21,7 @@ import { LogicCanvasEditor } from './LogicCanvasEditor'
 
 /** Only tools the runner can actually resolve are offered — a name the operator
  *  can pick is always a tool the model can call. */
-const RUNNABLE = new Set(buildAuthoredAgentTools(makeSupabaseGraphReader()).keys())
+const RUNNABLE = new Set(buildAuthoredAgentTools(emptyGraphReader).keys())
 const SHIPPED = toolDescriptors.filter((t) => RUNNABLE.has(t.name))
   .map((t) => ({ name: t.name, description: t.description, authored: false }))
 
@@ -66,7 +65,7 @@ export default function AgentComposer({ onDone }: { onDone: () => void }) {
       const run = await runAuthoredAgent({
         def: draft,
         llm: new AnthropicLLMClient(),
-        toolRegistry: buildAuthoredAgentTools(makeSupabaseGraphReader(), authored.data ?? []),
+        toolRegistry: buildAuthoredAgentTools(emptyGraphReader, authored.data ?? []),
         situation: situation.trim() || 'Give a general assessment for this scope.',
       })
       setResult({ output: run.output, steps: run.trace.steps.length })

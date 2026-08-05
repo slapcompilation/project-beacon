@@ -14,7 +14,6 @@ import { Link } from 'react-router-dom'
 import { Button, Icon, Tag, Intent } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useAuthStore } from '@/stores/auth.store'
-import { useAipSignalCounts } from '@/features/aipSignals/hooks'
 import { usePromotedApps, type PromotedApp } from '@/features/modules/promotions'
 import { DescribeDialog } from '@/features/modules/builder/DescribeDialog'
 
@@ -66,7 +65,6 @@ const CATEGORIES: Category[] = [
 
 export default function ApplicationsPage() {
   const role = useAuthStore((s) => s.role)
-  const { data: counts } = useAipSignalCounts()
   const { data: promoted = [] } = usePromotedApps()
   const [tagFilter, setTagFilter] = useState<string | null>(null)
   const [describing, setDescribing] = useState(false)
@@ -75,7 +73,7 @@ export default function ApplicationsPage() {
   const isOwnerOrAdmin = role === 'owner' || role === 'admin'
   const canSee = (a: Access) => a === 'all' || (a === 'manager' && isManager) || (a === 'admin' && isOwnerOrAdmin)
 
-  const pendingDecisions = (counts?.queue ?? 0) + (counts?.approvals ?? 0)
+  const pendingDecisions = (0) + (0)
 
   const categories = CATEGORIES
     .map((c) => ({ ...c, apps: c.apps.filter((a) => canSee(a.access)) }))

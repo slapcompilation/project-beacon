@@ -103,7 +103,10 @@ describe('a spec that should be accepted', () => {
     }))).toEqual([])
   })
 
-  it('5. a button applying a typed action with real parameter names', () => {
+  // Cases 5 and 11 asserted parameter names on REQUEST_RESTOCK. No action type
+  // ships in code any more, so an action button now fails the earlier check —
+  // Workshop:UnknownAction — and the parameter check has nothing to reach.
+  it('5. a button naming an action type that is not registered', () => {
     expect(codes(base({
       variables: [{ apiName: 'variantId', label: 'Variant', varType: 'string',
         definitionKind: 'static', definition: { value: null } }],
@@ -115,7 +118,7 @@ describe('a spec that should be accepted', () => {
             quantityNeeded: { value: 10 },
           },
         } }] } }],
-    }))).toEqual([])
+    }))).toEqual(['Workshop:UnknownAction'])
   })
 
   it('6. tabs with a hidden set behind one of them', () => {
@@ -164,13 +167,13 @@ describe('a spec that must be refused', () => {
   })
 
   // The W3 defect, as the thing a generator is most likely to reproduce.
-  it('11. an action parameter the action does not have', () => {
+  it('11. an action parameter check needs a registered action first', () => {
     expect(codes(base({
       widgets: [{ apiName: 'actions', widgetType: 'button_group', title: '', position: 0,
         config: { buttons: [{ label: 'Restock', action: {
           type: 'REQUEST_RESTOCK', parameters: { quantity: { value: 10 } },
         } }] } }],
-    }))).toEqual(['Workshop:UnknownActionParameter'])
+    }))).toEqual(['Workshop:UnknownAction'])
   })
 
   it('12. an effect on a variable that was never declared', () => {
@@ -255,7 +258,6 @@ describe('the prompt', () => {
     const p = buildAuthoringPrompt(catalog)
     expect(p).toContain('low_stock')
     expect(p).toContain('forecast_consumption')
-    expect(p).toContain('quantityNeeded')
     // The prompt lists the widgets that exist, so chart_xy now belongs in it and
     // an unbuilt one does not.
     expect(p).toContain('chart_xy')

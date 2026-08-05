@@ -14,8 +14,7 @@
 // The spec refers to things by API NAME, never by id — a model cannot know a
 // uuid, and asking it to invent one is asking it to hallucinate a foreign key.
 
-import { getActionDescriptor } from '../actions/descriptors'
-import type { BeaconAction } from '../actions/types'
+import { getActionDescriptor, actionDescriptors } from '../actions/descriptors'
 import {
   IMPLEMENTED_DEFINITION_KINDS, IMPLEMENTED_EFFECTS, MODULE_LAYOUT_TYPES,
   MODULE_TRIGGERS, MODULE_VARIABLE_TYPES, MODULE_WIDGET_TYPES, WIDGET_BINDING,
@@ -242,10 +241,8 @@ function validateButtons(w: SpecWidget, _spec: ModuleSpec, varNames: Set<string>
 
   for (const b of buttons) {
     if (!b.action?.type) continue
-    let descriptor
-    try {
-      descriptor = getActionDescriptor(b.action.type as BeaconAction['type'])
-    } catch {
+    const descriptor = getActionDescriptor(b.action.type)
+    if (!descriptor) {
       out.push(problem('Workshop:UnknownAction', `There is no action called "${b.action.type}".`, at))
       continue
     }
@@ -365,15 +362,14 @@ function normaliseConfig(w: SpecWidget): Record<string, unknown> {
  *  description, because everything here is checked afterwards anyway — the
  *  prompt's job is to make a valid answer the easy one. */
 export function buildAuthoringPrompt(catalog: AuthoringCatalog): string {
-  const actions = Object.entries(
-    // Only actions an operator could reasonably drive from a screen.
-    { REQUEST_RESTOCK: true, ADJUST_STOCK: true, WRITE_OFF: true, TRANSFER_STOCK: true },
-  ).map(([type]) => {
-    const d = getActionDescriptor(type as BeaconAction['type'])
-    return `  ${type}: ${d.fields.map((f) => f.name).join(', ')} (the application supplies ${d.contextFields.join(', ')})`
-  }).join('\n')
+  // Every registered action type. This was four hard-coded inventory actions;
+  // authored types come from the registry, so the list grows on its own.
+  const actions = Object.entries(actionDescriptors)
+    .map(([type, d]) =>
+      `  ${type}: ${d.fields.map((f) => f.name).join(', ')} (the application supplies ${d.contextFields.join(', ')})`)
+    .join('\n')
 
-  return `You compose an operational screen for a hotel from a request, and answer ONLY with JSON matching the shape below. Refer to everything you create by its apiName. Do not invent ids.
+  return `You compose an operational screen from a request, and answer ONLY with JSON matching the shape below. Refer to everything you create by its apiName. Do not invent ids.
 
 THE EXACT KEYS. Use these names, camelCase, nothing else:
 {

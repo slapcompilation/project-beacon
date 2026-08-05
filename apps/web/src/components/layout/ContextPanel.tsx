@@ -6,7 +6,7 @@ import { Drawer, Icon } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { cn } from '@/lib/utils'
 import { useAppStore, type ContextPanelTab } from '@/stores/app.store'
-import { CopilotChatView } from '@/features/eye/components/CopilotChatView'
+import { CopilotChatView } from '@/features/copilot/components/CopilotChatView'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { DetailTabContent } from './context-panel/DetailTab'
 

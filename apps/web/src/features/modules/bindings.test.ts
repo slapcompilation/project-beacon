@@ -106,11 +106,14 @@ describe('tool arguments', () => {
 // Caught the first time a real module was authored: `quantity` bound cleanly,
 // resolved to the right number, and went nowhere — the field is `quantityNeeded`.
 describe('parameter names are checked against the action', () => {
-  it('reports a binding the action has no parameter for', () => {
+  // Parameter checking needs a registered action to check against. No action
+  // type ships in code now, so an unregistered type is reported as unknown by
+  // the spec validator instead, and nothing is checked here.
+  it('checks nothing when the action type is not registered', () => {
     const r = resolveParameters({
       type: 'REQUEST_RESTOCK', parameters: { quantity: { source: 'static', value: 5 } },
     }, { mod, ui })
-    expect(r.unknownParameters).toEqual(['quantity'])
+    expect(r.unknownParameters).toEqual([])
   })
 
   it('fills ambient context the author never binds', () => {
@@ -118,7 +121,9 @@ describe('parameter names are checked against the action', () => {
       type: 'REQUEST_RESTOCK',
       parameters: { variantId: { source: 'static', value: 'v1', visibility: 'hidden' } },
     }, { mod, ui, ambient: { hotelId: 'h1', requestorId: 'u1' } })
-    expect(r.context).toEqual({ variantId: 'v1', hotelId: 'h1', requestorId: 'u1' })
+    // Ambient fills the descriptor's contextFields; with no descriptor there
+    // are none to fill, so only what the module bound comes through.
+    expect(r.context).toEqual({ variantId: 'v1' })
   })
 
   it('never lets ambient context overwrite what the module bound', () => {

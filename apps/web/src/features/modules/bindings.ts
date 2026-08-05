@@ -10,7 +10,7 @@
 // event sets a string variable from the row's property (W2). So `variable`
 // covers it, and there is no fourth source to invent.
 
-import { getActionDescriptor, type BeaconAction } from '@beacon/reality-graph'
+import { getActionDescriptor } from '@beacon/reality-graph'
 import type { ModuleDoc } from './api'
 import { scalarValue, type ModuleUiState } from './runtime'
 
@@ -118,7 +118,7 @@ export function resolveParameters(spec: ActionSpec, c: ResolveContext): Resolved
 
 /** The action's descriptor, or null when the type isn't in the registry. */
 function describe(type: string) {
-  try { return getActionDescriptor(type as BeaconAction['type']) } catch { return null }
+  try { return getActionDescriptor(type) } catch { return null }
 }
 
 /** Arguments for a `function`-defined variable — same binding grammar, but a
