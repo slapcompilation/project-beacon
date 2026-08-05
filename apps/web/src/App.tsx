@@ -7,7 +7,6 @@ import { useAuthStore } from '@/stores/auth.store'
 import { AuthGuard } from '@/components/AuthGuard'
 import { AuthProvider } from '@/components/AuthProvider'
 import { ThemeProvider } from '@/components/ThemeProvider'
-import { ScanLayout } from '@/components/layout/ScanLayout'
 import { PwaInstallPrompt } from '@/components/PwaInstallPrompt'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 
@@ -17,14 +16,10 @@ FocusStyleManager.onlyShowFocusOnTabs()
 const LoginPage = lazyWithRetry(() => import('@/pages/LoginPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'))
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
-const BriefingPage = lazyWithRetry(() => import('@/pages/BriefingPage'))
 const ApplicationsPage = lazyWithRetry(() => import('@/pages/ApplicationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const AuditPage = lazyWithRetry(() => import('@/pages/AuditPage'))
-const StocktakePage = lazyWithRetry(() => import('@/pages/StocktakePage'))
-const ScanPage = lazyWithRetry(() => import('@/pages/ScanPage'))
-const LabelsPage = lazyWithRetry(() => import('@/pages/LabelsPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
 const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ProcessMiningPage = lazyWithRetry(() => import('@/pages/ProcessMiningPage'))
@@ -35,13 +30,8 @@ const ModuleBuilderPage  = lazyWithRetry(() => import('@/pages/ModuleBuilderPage
 const ObjectListPage = lazyWithRetry(() => import('@/pages/ObjectListPage'))
 const CreateWorkflowGuide = lazyWithRetry(() => import('@/features/mind/CreateWorkflowGuide'))
 const CustomRecordPage = lazyWithRetry(() => import('@/pages/CustomRecordPage'))
-const SetupWizardPage = lazyWithRetry(() => import('@/pages/SetupWizardPage'))
 
-const FloorWorkspace = lazyWithRetry(() => import('@/pages/FloorWorkspace'))
-const FlowWorkspace  = lazyWithRetry(() => import('@/pages/FlowWorkspace'))
-const EyeWorkspace   = lazyWithRetry(() => import('@/pages/EyeWorkspace'))
 const MindWorkspace  = lazyWithRetry(() => import('@/pages/MindWorkspace'))
-const OperationsWorkspace = lazyWithRetry(() => import('@/pages/OperationsWorkspace'))
 
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
@@ -62,12 +52,7 @@ function PageLoader() {
 }
 
 function RootRedirect() {
-  const role = useAuthStore((s) => s.role)
-  const home =
-    role === 'limited_access' ? '/scan' :
-    role === 'team_member'    ? '/floor' :
-    '/briefing'
-  return <Navigate to={home} replace />
+  return <Navigate to="/objects" replace />
 }
 
 
@@ -86,13 +71,8 @@ function AppRoutes() {
           <Route element={<AuthGuard />}>
             <Route path="/" element={<RootRedirect />} />
 
-            <Route path="/briefing" element={<BriefingPage />} />
             <Route path="/applications" element={<ApplicationsPage />} />
-            <Route path="/floor"    element={<FloorWorkspace />} />
-            <Route path="/flow"     element={<FlowWorkspace />} />
-            <Route path="/eye"      element={<EyeWorkspace />} />
             <Route path="/mind"     element={<MindWorkspace />} />
-            <Route path="/operations" element={<OperationsWorkspace />} />
 
             <Route path="/causal-chain"            element={<Navigate to="/graph" replace />} />
             <Route path="/review-queue"            element={<Navigate to="/mind?aip=queue" replace />} />
@@ -117,8 +97,6 @@ function AppRoutes() {
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/account"       element={<AccountPage />} />
             <Route path="/audit"         element={<AuditPage />} />
-            <Route path="/stocktake"     element={<StocktakePage />} />
-            <Route path="/labels"        element={<LabelsPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/whats-new"     element={<WhatsNewPage />} />
             <Route path="/process"       element={<ProcessMiningPage />} />
@@ -130,45 +108,12 @@ function AppRoutes() {
             <Route path="/objects/:type" element={<ObjectListPage />} />
             <Route path="/objects/:type/:recordId" element={<CustomRecordPage />} />
             <Route path="/create-workflow" element={<CreateWorkflowGuide />} />
-            {/* retired: Reminders folded into Floor · Expiry; Pick Lists lives as a Flow tab */}
-            <Route path="/reminders"     element={<Navigate to="/floor?panel=expiry"  replace />} />
-            <Route path="/pick-lists"    element={<Navigate to="/flow?panel=picklists" replace />} />
-            {/* retired (LEGACY-REDUCTION §C): deep links live on as redirects */}
+            {/* retired deep links live on as redirects */}
             <Route path="/graph"         element={<Navigate to="/objects" replace />} />
             <Route path="/events"        element={<Navigate to="/mind?aip=forecast-lab" replace />} />
             <Route path="/chain"         element={<Navigate to="/mind?aip=system-map" replace />} />
-            <Route path="/pending-scans" element={<Navigate to="/floor?panel=scans" replace />} />
-            <Route path="/menu-mapping"  element={<Navigate to="/briefing" replace />} />
-            <Route path="/fb-intelligence" element={<Navigate to="/eye" replace />} />
-            <Route path="/setup"           element={<SetupWizardPage />} />
-
-            <Route path="/dashboard"        element={<Navigate to="/briefing"                  replace />} />
-            <Route path="/inventory"        element={<Navigate to="/floor?panel=stock"         replace />} />
-            <Route path="/alerts"           element={<Navigate to="/floor?panel=alerts"        replace />} />
-            <Route path="/expiry"           element={<Navigate to="/floor?panel=expiry"        replace />} />
-            <Route path="/timeline"         element={<Navigate to="/flow?panel=timeline"       replace />} />
-            <Route path="/flow-dashboard"   element={<Navigate to="/mind?aip=queue"            replace />} />
-            <Route path="/receive"          element={<Navigate to="/flow?panel=receive"        replace />} />
-            <Route path="/restocks"         element={<Navigate to="/mind?aip=restock-approvals" replace />} />
-            <Route path="/waste-radar"      element={<Navigate to="/eye?panel=waste"           replace />} />
-            <Route path="/occupancy"        element={<Navigate to="/eye?panel=occupancy"       replace />} />
-            <Route path="/reports"          element={<Navigate to="/eye?panel=performance"     replace />} />
-            <Route path="/finance"          element={<Navigate to="/eye?panel=performance"     replace />} />
-            <Route path="/procurement"      element={<Navigate to="/operations?panel=procurement"  replace />} />
-            <Route path="/invoicing"        element={<Navigate to="/operations?panel=intelligence" replace />} />
-            <Route path="/negotiation-prep" element={<Navigate to="/operations?panel=intelligence" replace />} />
-            <Route path="/gl-export"        element={<Navigate to="/operations?panel=gl"           replace />} />
-            <Route path="/purchase-orders"  element={<Navigate to="/operations?panel=procurement"  replace />} />
-            <Route path="/optimize-pars"    element={<Navigate to="/floor?panel=par"           replace />} />
-            <Route path="/leverage"         element={<Navigate to="/operations?panel=leverage"     replace />} />
-            <Route path="/suppliers"        element={<Navigate to="/operations?panel=procurement"  replace />} />
-            <Route path="/team"             element={<Navigate to="/settings?section=team"     replace />} />
-
-            <Route element={<ScanLayout />}>
-              <Route path="/scan" element={<ScanPage />} />
-            </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/briefing" replace />} />
+          <Route path="*" element={<Navigate to="/objects" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

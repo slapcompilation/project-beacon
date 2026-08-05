@@ -521,7 +521,7 @@ function QueueRow({
             variant="minimal"
             icon="annotation"
             disabled={busy}
-            onClick={() => { void navigate(`/variant/${variantId}?refine=${row.id}`) }}
+            onClick={() => { void navigate(`/objects/variant/${variantId}?refine=${row.id}`) }}
           >
             Refine
           </Button>

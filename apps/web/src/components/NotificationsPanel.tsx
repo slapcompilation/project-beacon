@@ -123,7 +123,7 @@ const TYPE_META: Record<NotifType, {
 }
 
 function getNavPath(notif: Notification): string {
-  if (notif.variant_id) return `/variant/${notif.variant_id}`
+  if (notif.variant_id) return `/objects/variant/${notif.variant_id}`
   return TYPE_META[notif.type].fallbackPath
 }
 
@@ -200,7 +200,7 @@ function PanelRow({ notif }: { notif: Notification }) {
               <span className="text-muted-foreground/60">· {notif.dismissed_reason.replace(/_/g, ' ')}</span>
             )}
             <Link
-              to={`/alert/${notif.id}`}
+              to={`/objects/alert/${notif.id}`}
               onClick={(e) => { e.stopPropagation(); close(false) }}
               className="text-primary hover:underline ml-auto"
             >

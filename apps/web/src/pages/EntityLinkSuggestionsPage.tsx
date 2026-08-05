@@ -157,11 +157,11 @@ function SuggestionRow({
 
 function entityPath(type: string, id: string): string {
   switch (type) {
-    case 'variant':         return `/variant/${id}`
-    case 'supplier':        return `/supplier/${id}`
-    case 'product':         return `/product/${id}`
-    case 'purchase_order':  return `/po/${id}`
-    case 'restock_request': return `/restock/${id}`
+    case 'variant':         return `/objects/variant/${id}`
+    case 'supplier':        return `/objects/supplier/${id}`
+    case 'product':         return `/objects/product/${id}`
+    case 'purchase_order':  return `/objects/purchase_order/${id}`
+    case 'restock_request': return `/objects/restock_request/${id}`
     case 'case':            return `/cases/${id}`
     default:                return '#'
   }

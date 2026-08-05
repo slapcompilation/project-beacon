@@ -126,7 +126,7 @@ function RecentPanel() {
           <button
             key={r.id}
             type="button"
-            onClick={() => { void navigate(`/variant/${r.variant_id}`) }}
+            onClick={() => { void navigate(`/objects/variant/${r.variant_id}`) }}
             className="flex w-full items-center justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-surface-2"
           >
             <span className="min-w-0">

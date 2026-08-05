@@ -5,14 +5,11 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Dialog, Icon, InputGroup } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { useProducts } from '@/features/inventory/hooks'
-import { useSuppliers } from '@/features/suppliers/hooks'
 import { useAutoAlerts } from '@/features/notifications/hooks'
 import { useRestockCycle } from '@/features/agents/useRestockCycle'
 import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
 import { hasPermission } from '@beacon/types'
-import { stockUrgency } from '@beacon/reality-graph'
 import { cn } from '@/lib/utils'
 import {
   useQuickSearch, quickHitPath, QUICK_HIT_GROUP, type QuickHit,
@@ -29,28 +26,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { group: 'Floor', icon: 'book',            label: 'Briefing',           path: '/briefing',              shortcut: 'G B' },
-  { group: 'Floor', icon: 'barcode',         label: 'Floor · Stock',      path: '/floor?panel=stock',     shortcut: 'G I' },
-  { group: 'Floor', icon: 'barcode',         label: 'Floor · Scan',       path: '/scan',                  shortcut: 'G S' },
-  { group: 'Floor', icon: 'calendar',        label: 'Floor · Expiry',     path: '/floor?panel=expiry' },
-  { group: 'Floor', icon: 'warning-sign',    label: 'Floor · Alerts',     path: '/floor?panel=alerts' },
-  { group: 'Floor', icon: 'clipboard',       label: 'Floor · Stocktake',  path: '/floor?panel=stocktake', shortcut: 'G T' },
-  { group: 'Floor', icon: 'tag',             label: 'Floor · Labels',     path: '/labels' },
 
-  { group: 'Flow',  icon: 'swap-horizontal', label: 'Flow · Overview',    path: '/flow',                  shortcut: 'G F' },
-  { group: 'Flow',  icon: 'confirm',         label: 'Flow · Receive',     path: '/flow?panel=receive' },
-  { group: 'Flow',  icon: 'truck',           label: 'Flow · Approvals',   path: '/flow?panel=approvals',  shortcut: 'G R' },
-  { group: 'Flow',  icon: 'document',        label: 'Flow · Audit Log',   path: '/audit' },
 
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Signals',     path: '/eye?panel=signals' },
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Incidents',   path: '/eye?panel=incidents' },
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Waste Radar', path: '/eye?panel=waste' },
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Risk Matrix', path: '/eye?panel=risk' },
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Performance', path: '/eye?panel=performance' },
-  { group: 'Insights', icon: 'eye-open',      label: 'Insights · Occupancy',   path: '/eye?panel=occupancy' },
-  { group: 'Insights', icon: 'notifications', label: 'Notifications',          path: '/notifications' },
-  { group: 'Insights', icon: 'flows',         label: 'Process Mining',         path: '/process' },
-  { group: 'Insights', icon: 'cube',          label: 'Objects',                path: '/objects' },
   { group: 'Settings',  icon: 'folder-close', label: 'Projects & access',      path: '/projects' },
 
   { group: 'Decisions', icon: 'predictive-analysis', label: 'Decisions · Review Queue', path: '/review-queue',          shortcut: 'G Q' },
@@ -66,16 +43,6 @@ const NAV_ITEMS: NavItem[] = [
   { group: 'Decisions', icon: 'search-template',     label: 'Decisions · Entity Link Suggestions', path: '/entity-link-suggestions', shortcut: 'G E' },
   { group: 'Decisions', icon: 'link',                label: 'Decisions · Action Chains',       path: '/action-chains',       shortcut: 'G N' },
   { group: 'Decisions', icon: 'chat',                label: 'Decisions · Copilot Config',      path: '/copilot-config',      shortcut: 'G O' },
-  { group: 'Operations', icon: 'shop',           label: 'Operations · Triage',      path: '/operations?panel=triage' },
-  { group: 'Operations', icon: 'truck',          label: 'Operations · Suppliers',   path: '/operations?panel=suppliers' },
-  { group: 'Operations', icon: 'shopping-cart',  label: 'Operations · PO Builder',  path: '/operations?panel=procurement' },
-  { group: 'Operations', icon: 'shopping-cart',  label: 'Operations · PO Dispatch', path: '/operations?panel=dispatch' },
-  { group: 'Operations', icon: 'document',       label: 'Operations · Contracts',   path: '/operations?panel=contracts' },
-  { group: 'Insights', icon: 'bank-account',   label: 'Insights · CPOR',      path: '/eye?panel=cpor' },
-  { group: 'Insights', icon: 'bank-account',   label: 'Insights · Budget',    path: '/eye?panel=budget' },
-  { group: 'Insights', icon: 'shop',           label: 'Insights · F&B Intel', path: '/eye?panel=fb' },
-  { group: 'Insights', icon: 'th',             label: 'Insights · GL Export', path: '/eye?panel=gl' },
-  { group: 'Insights', icon: 'people',         label: 'Insights · Team',      path: '/eye?panel=team' },
   { group: 'Decisions', icon: 'time',        label: 'Forecast Lab',       path: '/mind?aip=forecast-lab' },
   { group: 'Settings',  icon: 'people',      label: 'Team',               path: '/settings?section=team' },
   { group: 'Settings',  icon: 'cog',         label: 'Settings',           path: '/settings' },
@@ -130,8 +97,6 @@ export function CommandBar() {
   const canAdmin = !!role && hasPermission(role, 'can_approve_restocks')
 
   const toggleCopilot = useAppStore((s) => s.toggleCopilot)
-  const { data: products  = [] } = useProducts()
-  const { data: suppliers = [] } = useSuppliers()
   const autoAlerts   = useAutoAlerts()
   const restockCycle = useRestockCycle()
   const runRestockCycle = useCallback(() => {
@@ -154,39 +119,6 @@ export function CommandBar() {
 
   const q = query.trim().toLowerCase()
   const matches = (haystack: string) => !q || haystack.toLowerCase().includes(q)
-
-  const matchedProducts = useMemo(() => {
-    if (!q) return products.slice(0, 5)
-    return products.filter((p) =>
-      matches(p.name) || matches(p.sku) ||
-      p.product_variants.some((v) => matches(v.sku) || matches(v.name))
-    ).slice(0, 8)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, products])
-
-  const matchedVariants = useMemo(() => {
-    if (!q || q.length < 2) return []
-    const hits: { id: string; name: string; productName: string; stock: number; urgency: ReturnType<typeof stockUrgency> }[] = []
-    for (const p of products) {
-      for (const v of p.product_variants) {
-        if (matches(v.name) || matches(v.sku) || matches(p.name)) {
-          hits.push({ id: v.id, name: v.name, productName: p.name, stock: v.current_stock, urgency: stockUrgency(v) })
-          if (hits.length >= 6) break
-        }
-      }
-      if (hits.length >= 6) break
-    }
-    return hits
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, products])
-
-  const matchedSuppliers = useMemo(() => {
-    if (!q) return suppliers.slice(0, 4)
-    return suppliers.filter((s) =>
-      matches(s.name) || matches(s.email ?? '') || matches(s.contact_name ?? '')
-    ).slice(0, 6)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [q, suppliers])
 
   const matchedNav = useMemo(() =>
     NAV_ITEMS.filter((item) => matches(item.label) || matches(item.group)),
@@ -215,9 +147,7 @@ export function CommandBar() {
     return [...by.entries()]
   }, [ontologyHits])
 
-  const totalResults =
-    matchedProducts.length + matchedVariants.length + matchedSuppliers.length + matchedNav.length
-    + ontologyHits.length
+  const totalResults = matchedNav.length + ontologyHits.length
 
   // Keyboard focus index across all visible rows, in render order
   const [focusIdx, setFocusIdx] = useState(0)
@@ -293,72 +223,6 @@ export function CommandBar() {
           </Group>
         ))}
 
-        {matchedVariants.length > 0 && (
-          <Group heading="Variants">
-            {matchedVariants.map((v) => {
-              const idx = action(() => { go(`/variant/${v.id}`) })
-              const urgencyColor =
-                v.urgency === 'critical' ? 'text-red-600 font-semibold' :
-                v.urgency === 'low'      ? 'text-amber-600 font-semibold' :
-                'text-muted-foreground'
-              return (
-                <Row key={v.id} icon="box" onSelect={() => { go(`/variant/${v.id}`) }} focused={focusIdx === idx}>
-                  <span className="block truncate text-xs font-medium">{v.name}</span>
-                  <span className="block truncate text-[10px] text-muted-foreground">{v.productName}</span>
-                  <span className={cn('absolute right-12 text-[10px] tabular-nums', urgencyColor)}>
-                    {v.stock} units
-                  </span>
-                </Row>
-              )
-            })}
-          </Group>
-        )}
-
-        {matchedProducts.length > 0 && (
-          <Group heading={q ? `Products matching "${query}"` : 'Products'}>
-            {matchedProducts.map((p) => {
-              const idx = action(() => { go(`/product/${p.id}`) })
-              const totalStock = p.product_variants.reduce((s, v) => s + v.current_stock, 0)
-              const isOut = totalStock === 0
-              const isLow = !isOut && p.product_variants.some(
-                (v) => v.low_stock_threshold > 0 && v.current_stock <= v.low_stock_threshold
-              )
-              const stockClass = isOut ? 'text-red-600 font-semibold' : isLow ? 'text-amber-600 font-semibold' : 'text-muted-foreground'
-              return (
-                <Row key={p.id} icon="box" onSelect={() => { go(`/product/${p.id}`) }} focused={focusIdx === idx}>
-                  <span className="flex items-center gap-2">
-                    <span className="flex-1 truncate">{p.name}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground">{p.sku}</span>
-                    <span className={cn('text-[10px] tabular-nums', stockClass)}>{totalStock}u</span>
-                  </span>
-                </Row>
-              )
-            })}
-          </Group>
-        )}
-
-        {matchedSuppliers.length > 0 && (
-          <Group heading={q ? `Suppliers matching "${query}"` : 'Suppliers'}>
-            {matchedSuppliers.map((s) => {
-              const idx = action(() => { go(`/supplier/${s.id}`) })
-              return (
-                <Row key={s.id} icon="truck" onSelect={() => { go(`/supplier/${s.id}`) }} focused={focusIdx === idx}>
-                  <span className="flex items-center gap-2">
-                    <span className="flex-1 truncate">{s.name}</span>
-                    {s.contact_name && (
-                      <span className="text-[10px] text-muted-foreground">{s.contact_name}</span>
-                    )}
-                    {s.lead_time_days != null && (
-                      <span className="text-[10px] text-muted-foreground tabular-nums">
-                        {s.lead_time_days}d lead
-                      </span>
-                    )}
-                  </span>
-                </Row>
-              )
-            })}
-          </Group>
-        )}
 
         {Object.entries(navByGroup).map(([group, items]) => (
           <Group key={group} heading={group}>

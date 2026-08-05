@@ -7,10 +7,7 @@ import { MfaChallengeGate } from '@/features/auth/MfaGate'
 import { services } from '@/lib/services'
 
 // Routes restricted to owner or admin only (not team_member or limited_access)
-const ADMIN_ONLY_PREFIXES = ['/settings', '/team', '/chain', '/leverage', '/purchase-orders', '/optimize-pars']
-
-// For limited_access role, the only allowed route is /scan
-const LIMITED_ACCESS_ALLOWED = '/scan'
+const ADMIN_ONLY_PREFIXES = ['/settings']
 
 export function AuthGuard() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -39,18 +36,13 @@ export function AuthGuard() {
     return <MfaChallengeGate onDone={() => { void mfa.refetch() }} onCancel={signOut} />
   }
 
-  // limited_access: redirect everything except /scan back to /scan
-  if (role === 'limited_access' && !pathname.startsWith(LIMITED_ACCESS_ALLOWED)) {
-    return <Navigate to="/scan" replace />
-  }
-
   // admin-only routes: team_member and limited_access are not allowed
   if (
     role !== 'owner' &&
     role !== 'admin' &&
     ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   ) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/objects" replace />
   }
 
   return <AppLayout />

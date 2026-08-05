@@ -321,7 +321,7 @@ function KanbanCard({
           <div className="min-w-0">
             <p className="text-sm font-medium leading-snug truncate">
               <Link
-                to={`/variant/${req.variant_id}`}
+                to={`/objects/variant/${req.variant_id}`}
                 className="hover:underline"
                 onClick={(e) => { e.stopPropagation() }}
               >
@@ -370,7 +370,7 @@ function KanbanCard({
           </p>
           {req.notes && <p className="italic truncate">{req.notes}</p>}
           <Link
-            to={`/restock/${req.id}`}
+            to={`/objects/restock_request/${req.id}`}
             className="inline-flex items-center gap-0.5 text-primary hover:underline"
             onClick={(e) => { e.stopPropagation() }}
           >

@@ -16,20 +16,20 @@ export interface ObjectPresentation {
 }
 
 export const OBJECT_PRESENTATION = {
-  variant:         { icon: 'box',          label: 'Variant',         home: { label: 'Inventory', to: '/floor?panel=stock' },              route: '/variant/' },
-  product:         { icon: 'box',          label: 'Product',         home: { label: 'Inventory', to: '/floor?panel=stock' },              route: '/product/' },
-  supplier:        { icon: 'shop',         label: 'Supplier',        home: { label: 'Suppliers', to: '/operations?panel=suppliers' },     route: '/supplier/' },
-  purchase_order:  { icon: 'truck',        label: 'Purchase Order',  home: { label: 'Purchase Orders', to: '/operations?panel=procurement' }, route: '/po/' },
-  restock_request: { icon: 'box',          label: 'Restock Request', home: { label: 'Restock Requests', to: '/mind?aip=restock-approvals' }, route: '/restock/' },
-  stock_log:       { icon: 'history',      label: 'Stock Log',       home: { label: 'Stock Log', to: '/flow?panel=timeline' },            route: '/log/' },
-  alert:           { icon: 'warning-sign', label: 'Alert',           home: { label: 'Alerts', to: '/floor?panel=alerts' },                route: '/alert/' },
-  proposal:        { icon: 'annotation',   label: 'Proposal',        home: { label: 'Review Queue', to: '/review-queue' },                route: '/proposals/' },
-  case:            { icon: 'folder-open',  label: 'Case',            home: { label: 'Cases', to: '/cases' },                              route: '/cases/' },
-  document:        { icon: 'document',     label: 'Document',        home: { label: 'Documents', to: '/documents' },                      route: '/documents/' },
-  constraint:      { icon: 'shield',       label: 'Constraint',      home: { label: 'Constraints', to: '/settings?section=constraints' }, route: '/constraints/' },
-  principle:       { icon: 'learning',     label: 'Principle',       home: { label: 'Principles', to: '/settings?section=principles' },   route: '/principles/' },
-  approved_answer: { icon: 'bookmark',     label: 'Approved Answer', home: { label: 'Approved Answers', to: '/mind?aip=answers' },        route: '/answers/' },
-  action_chain:    { icon: 'link',         label: 'Action Chain',    home: { label: 'Action Chains', to: '/action-chains' },              route: '/action-chains/' },
+  variant:         { icon: 'box', label: 'Variant', home: { label: 'Variant', to: '/objects/variant' }, route: '/objects/variant/' },
+  product:         { icon: 'box', label: 'Product', home: { label: 'Product', to: '/objects/product' }, route: '/objects/product/' },
+  supplier:        { icon: 'shop', label: 'Supplier', home: { label: 'Supplier', to: '/objects/supplier' }, route: '/objects/supplier/' },
+  purchase_order:  { icon: 'truck', label: 'Purchase Order', home: { label: 'Purchase Order', to: '/objects/purchase_order' }, route: '/objects/purchase_order/' },
+  restock_request: { icon: 'box', label: 'Restock Request', home: { label: 'Restock Request', to: '/objects/restock_request' }, route: '/objects/restock_request/' },
+  stock_log:       { icon: 'history', label: 'Stock Log', home: { label: 'Stock Log', to: '/objects/stock_log' }, route: '/objects/stock_log/' },
+  alert:           { icon: 'warning-sign', label: 'Alert', home: { label: 'Alert', to: '/objects/alert' }, route: '/objects/alert/' },
+  proposal:        { icon: 'annotation', label: 'Proposal', home: { label: 'Proposal', to: '/objects/proposal' }, route: '/objects/proposal/' },
+  case:            { icon: 'folder-open', label: 'Case', home: { label: 'Case', to: '/objects/case' }, route: '/objects/case/' },
+  document:        { icon: 'document', label: 'Document', home: { label: 'Document', to: '/objects/document' }, route: '/objects/document/' },
+  constraint:      { icon: 'shield', label: 'Constraint', home: { label: 'Constraint', to: '/objects/constraint' }, route: '/objects/constraint/' },
+  principle:       { icon: 'learning', label: 'Principle', home: { label: 'Principle', to: '/objects/principle' }, route: '/objects/principle/' },
+  approved_answer: { icon: 'bookmark', label: 'Approved Answer', home: { label: 'Approved Answer', to: '/objects/approved_answer' }, route: '/objects/approved_answer/' },
+  action_chain:    { icon: 'link', label: 'Action Chain', home: { label: 'Action Chain', to: '/objects/action_chain' }, route: '/objects/action_chain/' },
 } satisfies Partial<Record<NodeType, ObjectPresentation>>
 
 /** Object-page path for a node, or null when the type has no page. */

@@ -40,7 +40,7 @@ export function LocationAipPanel({ locationId }: { locationId: string }) {
             {data.variants.slice(0, 12).map((v) => (
               <li key={v.id} className="flex items-center gap-2 text-xs">
                 <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', v.at_risk ? 'bg-amber-400' : 'bg-emerald-500')} />
-                <Link to={`/variant/${v.id}`} className="flex-1 truncate hover:underline">
+                <Link to={`/objects/variant/${v.id}`} className="flex-1 truncate hover:underline">
                   {v.product_name ? <span className="text-muted-foreground/80">{v.product_name} · </span> : null}
                   <span>{v.name}</span>
                 </Link>
@@ -81,7 +81,7 @@ export function LocationAipPanel({ locationId }: { locationId: string }) {
             {data.alerts.slice(0, 10).map((a) => (
               <li key={a.id} className="flex items-center gap-2 text-xs">
                 <Tag minimal className="font-mono !text-[10px]">{a.type}</Tag>
-                <Link to={`/alert/${a.id}`} className="flex-1 truncate text-muted-foreground hover:underline">
+                <Link to={`/objects/alert/${a.id}`} className="flex-1 truncate text-muted-foreground hover:underline">
                   {a.variant_id ? a.variant_id.slice(0, 8) : '—'}
                 </Link>
                 <span className="text-[10px] text-muted-foreground/60 shrink-0">
@@ -125,7 +125,7 @@ function ProposalRow({ p }: { p: ZoneProposal }) {
         <p className="mt-1.5 text-[11px] text-muted-foreground/80 line-clamp-2">{p.reasoning}</p>
       )}
       <div className="mt-2 flex items-center gap-2">
-        <Link to={`/variant/${p.variant_id}?refine=${p.id}`} className="text-[11px] text-primary hover:underline">
+        <Link to={`/objects/variant/${p.variant_id}?refine=${p.id}`} className="text-[11px] text-primary hover:underline">
           Refine →
         </Link>
         <span className="text-[10px] text-muted-foreground/60 ml-auto">
