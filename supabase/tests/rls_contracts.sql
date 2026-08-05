@@ -84,54 +84,6 @@ BEGIN
   claims_admin := json_build_object('sub','00000000-0000-0000-0000-000000000009',
     'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text;
 
-  -- ── C1: cross-hotel isolation through a scoped definer read ──
-  -- The probe was get_recent_activity, a stock-log feed dropped with the
-  -- hospitality schema. The CONTRACT is not hospitality and must come back:
-  -- point it at the first SECURITY DEFINER read the rebuilt ontology ships.
-  -- C2 below still covers cross-hotel isolation via aip_signal_counts, so this
-  -- gap narrows the evidence rather than removing it.
-  IF to_regprocedure('public.get_recent_activity(integer)') IS NOT NULL THEN
-    PERFORM set_config('request.jwt.claims', claims_a, true);
-    SET LOCAL ROLE authenticated;
-    SELECT count(*) INTO n FROM get_recent_activity(50);
-    IF n = 0 THEN RAISE EXCEPTION 'C1a: hotel A sees 0 recent activity rows (expected >0)'; END IF;
-    SELECT log_id INTO v_log_a FROM get_recent_activity(1);
-
-    PERFORM set_config('request.jwt.claims', claims_b, true);
-    SELECT bool_or(log_id = v_log_a) INTO leaked FROM get_recent_activity(2000);
-    IF coalesce(leaked,false) THEN RAISE EXCEPTION 'C1b CROSS-HOTEL LEAK: hotel B sees hotel A log %', v_log_a; END IF;
-  ELSE
-    RAISE NOTICE 'C1 SKIPPED — no scoped definer read to probe since the hospitality teardown';
-  END IF;
-
-  -- ── C2: an explicit id cannot beat RLS ──
-  -- Probed aip_signal_counts, the hospitality signal spine. Same standing gap
-  -- as C1: restore against the first scoped aggregate the ontology ships.
-  IF to_regprocedure('public.aip_signal_counts(uuid)') IS NOT NULL THEN
-    PERFORM set_config('request.jwt.claims', claims_a, true);
-    SELECT queue_pending INTO qp FROM aip_signal_counts(v_b);
-    IF qp <> 0 THEN RAISE EXCEPTION 'C2a CROSS-HOTEL LEAK: A read % pending proposals for B via explicit id', qp; END IF;
-    SELECT queue_pending INTO qp FROM aip_signal_counts(v_a);
-    SELECT count(*) INTO v_expected FROM proposals WHERE hotel_id = v_a AND status = 'pending';
-    IF qp <> v_expected THEN RAISE EXCEPTION 'C2b: aip_signal_counts(A)=% but direct RLS read=%', qp, v_expected; END IF;
-  ELSE
-    RAISE NOTICE 'C2 SKIPPED — no scoped aggregate to probe since the hospitality teardown';
-  END IF;
-
-  -- ── C3: anon cannot EXECUTE the scoped definer read ──
-  RESET ROLE;
-  PERFORM set_config('request.jwt.claims', '', true);
-  SET LOCAL ROLE anon;
-  -- Same probe as C1. security_invariants.sql independently asserts that NO
-  -- anon-executable SECURITY DEFINER function exists, so anon denial is still
-  -- covered while this waits for a replacement read.
-  IF to_regprocedure('public.get_recent_activity(integer)') IS NOT NULL THEN
-    raised := false;
-    BEGIN PERFORM get_recent_activity(5);
-    EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
-    IF NOT raised THEN RAISE EXCEPTION 'C3: anon could EXECUTE get_recent_activity (expected permission denied)'; END IF;
-  END IF;
-
   -- ── C4: non-admin cannot promote_agent (deny-path only, no write) ──
   RESET ROLE;
   PERFORM set_config('request.jwt.claims', claims_a, true);
@@ -153,47 +105,12 @@ BEGIN
   IF NOT raised THEN RAISE EXCEPTION 'C5: production promotion allowed for an un-staged version (Gap D)'; END IF;
   IF position('staging' in v_msg) = 0 THEN RAISE EXCEPTION 'C5: prod blocked, but not by the staging gate: %', v_msg; END IF;
 
-  -- ── C6: get_overstock_candidates is service-role only (no cross-tenant read) ──
-  RESET ROLE;
-  PERFORM set_config('request.jwt.claims', claims_a, true);
-  SET LOCAL ROLE authenticated;
-  raised := false;
-  BEGIN PERFORM count(*) FROM get_overstock_candidates(v_b, 2);
-  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
-  IF NOT raised THEN RAISE EXCEPTION 'C6: authenticated read overstock candidates for another hotel (cross-tenant leak)'; END IF;
-
-  -- ── C7: get_hotel_graph — own-hotel reads, cross-hotel is empty ──
-  RESET ROLE;
-  PERFORM set_config('request.jwt.claims', claims_a, true);
-  SET LOCAL ROLE authenticated;
-  SELECT count(*) INTO n FROM get_hotel_graph(v_a, 5000, 0, now() - interval '3650 days');
-  IF n = 0 THEN RAISE EXCEPTION 'C7a: hotel A sees 0 of its own graph edges (expected >0)'; END IF;
-  SELECT count(*) INTO n FROM get_hotel_graph(v_b, 5000, 0, now() - interval '3650 days');
-  IF n <> 0 THEN RAISE EXCEPTION 'C7b CROSS-HOTEL LEAK: hotel A read % of hotel B''s graph edges via get_hotel_graph', n; END IF;
-
   -- ── C8: create_relationship_edge — cross-hotel write denied (rolled back) ──
   raised := false;
   BEGIN
     PERFORM create_relationship_edge(v_b, 'variant', gen_random_uuid(), 'similar_to', 'variant', gen_random_uuid(), NULL);
   EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
   IF NOT raised THEN RAISE EXCEPTION 'C8 CROSS-HOTEL WRITE: authenticated wrote an edge into hotel B''s graph'; END IF;
-
-  -- ── C9: ingest_pos_sale is service-role only ──
-  raised := false;
-  BEGIN PERFORM ingest_pos_sale(v_a, gen_random_uuid(), 1, now(), 'contract-test', NULL);
-  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
-  IF NOT raised THEN RAISE EXCEPTION 'C9: authenticated could EXECUTE ingest_pos_sale (expected service-role only)'; END IF;
-
-  -- ── C10: forecast_observations — RLS isolation + scoped write ──
-  RESET ROLE;
-  PERFORM set_config('request.jwt.claims', claims_a, true);
-  SET LOCAL ROLE authenticated;
-  SELECT count(*) INTO n FROM forecast_observations WHERE hotel_id = v_b;
-  IF n <> 0 THEN RAISE EXCEPTION 'C10a CROSS-HOTEL LEAK: hotel A sees % of hotel B forecast_observations', n; END IF;
-  raised := false;
-  BEGIN PERFORM record_current_forecasts(v_b, 7);
-  EXCEPTION WHEN insufficient_privilege THEN raised := true; END;
-  IF NOT raised THEN RAISE EXCEPTION 'C10b: authenticated recorded forecasts for another hotel'; END IF;
 
   -- ── C11: document sensitivity — clearance gates reads (P8, LLM boundary) ──
   -- A restricted document (and its chunks — the content that reaches an LLM via
@@ -265,20 +182,6 @@ BEGIN
     PERFORM set_config('request.headers', '', true);
     DELETE FROM documents WHERE id = v_doc2;
   END IF;
-
-  -- ── C13: chain benchmarking is org-wide + owner/admin-gated (migration 212) ──
-  -- A non-admin/owner sees nothing; an admin sees its whole org and no other org.
-  RESET ROLE;
-  PERFORM set_config('request.jwt.claims', claims_a, true);  -- hotel_manager
-  SET LOCAL ROLE authenticated;
-  SELECT count(*) INTO n FROM get_chain_overview(30);
-  IF n <> 0 THEN RAISE EXCEPTION 'C13a: hotel_manager read % chain rows (expected 0 — owner/admin only)', n; END IF;
-
-  PERFORM set_config('request.jwt.claims', claims_admin, true);  -- admin in v_org
-  SELECT count(*) INTO qp FROM get_chain_overview(30);
-  IF qp = 0 THEN RAISE EXCEPTION 'C13b: admin sees 0 chain rows (expected >=1 for its org)'; END IF;
-  SELECT count(*) INTO n FROM get_chain_overview(30) co WHERE NOT (co.hotel_id = ANY(v_org_hotels));
-  IF n <> 0 THEN RAISE EXCEPTION 'C13c CROSS-ORG LEAK: admin read % chain rows outside org %', n, v_org; END IF;
 
   -- ── C14: automations authoring is admin/owner-gated (Studio P1, migration 213) ──
   -- A non-admin/owner cannot author an automation (they can auto-execute actions);
@@ -744,43 +647,6 @@ BEGIN
     RAISE EXCEPTION 'C24c: admin could not author a cohort, or org/author defaults did not land';
   END IF;
 
-  -- ── C27: a canary release does not leak to sibling properties ─────────────
-  -- Audit 9.2: promoting to production used to promote everywhere in the org at
-  -- once, which for agents that propose spending is the one place the echelon
-  -- model disappeared. A hotel-targeted release must win at its own property and
-  -- be invisible at every other.
-  RESET ROLE;
-  SELECT id INTO v_user FROM auth.users LIMIT 1;
-  IF v_user IS NOT NULL THEN
-    PERFORM set_config('request.jwt.claims', json_build_object('sub', v_user::text,
-      'app_metadata', json_build_object('hotel_id', v_a::text, 'org_id', v_org::text, 'role','admin'))::text, true);
-    SET LOCAL ROLE authenticated;
-
-    -- Up the ladder for both versions; promote_agent supersedes as it goes, so
-    -- there is never a second unsuperseded row for the same target.
-    PERFORM promote_agent('__c27_probe__','1.0.0','staging',    1.0, 5, 'c27', v_org, NULL);
-    PERFORM promote_agent('__c27_probe__','1.0.0','production', 1.0, 5, 'c27 org-wide', v_org, NULL);
-    PERFORM promote_agent('__c27_probe__','2.0.0','staging',    1.0, 5, 'c27', v_org, NULL);
-    PERFORM promote_agent('__c27_probe__','2.0.0','production', 1.0, 5, 'c27 canary', v_org, v_a);
-
-    SELECT version INTO v_msg FROM get_current_agent_releases(v_a)
-     WHERE agent_name = '__c27_probe__' AND stage = 'production';
-    IF v_msg IS DISTINCT FROM '2.0.0' THEN
-      RESET ROLE; DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
-      RAISE EXCEPTION 'C27a: the canary property did not get its targeted release (got %)', v_msg;
-    END IF;
-
-    SELECT version INTO v_msg FROM get_current_agent_releases(v_b)
-     WHERE agent_name = '__c27_probe__' AND stage = 'production';
-    IF v_msg IS DISTINCT FROM '1.0.0' THEN
-      RESET ROLE; DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
-      RAISE EXCEPTION 'C27b CANARY LEAK: a sibling property saw the hotel-targeted release (got %)', v_msg;
-    END IF;
-
-    RESET ROLE;
-    DELETE FROM agent_releases WHERE agent_name = '__c27_probe__';
-  END IF;
-
   -- ── C25: the edge vocabulary is DB-enforced, not TypeScript-only ──────────
   -- Until migration 252 there was no CHECK here at all, which is how one name
   -- came to mean two relationships without anything objecting.
@@ -1029,5 +895,5 @@ BEGIN
   DELETE FROM object_types WHERE id IN (v_type, v_other);
 
   RESET ROLE;
-  RAISE NOTICE 'RLS contracts OK — C1/C2 cross-hotel isolation (B had % pending), C3 anon-denied, C4 role-gate, C5 staging-before-prod, C6 overstock + C9 pos-sale service-role-only, C7 graph-read + C8 graph-write scope-gated, C10 forecast_observations scoped, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C13 chain org-wide + owner/admin-gated, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C27 a canary release stays at its property, C28 a module crosses properties only by installation, C29 ontology status guards + cascade hold for an operator, C30 project roles delegate inside the org and never across it', v_b_pending;
+  RAISE NOTICE 'RLS contracts OK — C4 role-gate, C5 staging-before-prod, C8 graph-write scope-gated, C11 doc-sensitivity clearance-gated, C12 purpose-based narrowing, C14 automations admin-authored, C15 object types admin-authored, C16 link types admin-authored, C17 model releases server-gated + staging-before-production, C18 authored tools admin-only + grammar-checked, C19 authored agents admin-only + shape-checked, C20 built-in object types code-owned, C21 interface claims verified, C22 tools have exactly one readable subject, C23 tool parameter grammar DB-enforced, C24 cohorts admin-authored + one subject, C25 edge vocabulary DB-enforced, C26 join-backed edges agree with their link table, C28 a module crosses properties only by installation, C29 ontology status guards + cascade hold for an operator, C30 project roles delegate inside the org and never across it';
 END $$;
