@@ -101,7 +101,6 @@ export interface PropertyDef {
 export interface ObjectTypeDef {
   id: string
   organizationId: string
-  hotelId: string | null
   /** slug, unique per org — the type's stable api name. */
   apiName: string
   label: string
@@ -313,7 +312,6 @@ export function validateViewConfig(
 export interface LinkTypeDef {
   id: string
   organizationId: string
-  hotelId: string | null
   sourceTypeId: string
   targetTypeId: string
   /** slug, unique per source type — the relationship's api name. */

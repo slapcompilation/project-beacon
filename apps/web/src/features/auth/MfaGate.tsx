@@ -15,7 +15,7 @@ function Shell({ title, subtitle, children }: { title: string; subtitle: string;
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold tracking-tight">Beacon</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Hotel Inventory Management</p>
+          <p className="mt-1 text-sm text-muted-foreground">Ontology</p>
         </div>
         <Card>
           <h2 className="text-xl font-semibold">{title}</h2>

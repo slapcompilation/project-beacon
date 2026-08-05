@@ -26,25 +26,6 @@ export function objectPath(nodeType: NodeType, id: string): string | null {
   return p ? `${p.route}${id}` : null
 }
 
-// Property glossary (A10): plain-language definitions the ontology serves as
-// tooltips, so "what does PAR mean?" is answered by the graph, not a training
-// doc. Wire via <Metric info={GLOSSARY.par} …/>.
-export const GLOSSARY = {
-  par:              'The stock level this item should be kept at. Falling below PAR flags it as low; PAR is set per item by the operator.',
-  days_until_zero:  'How many days until stock runs out, projected from the last 30 days of consumption.',
-  consumed_30d:     'Units consumed over the last 30 days — write-offs and reverts excluded.',
-  // stock_value moved onto the ontology in migration 349 — it is a computed
-  // property of `variant` now, and its description travels with the definition.
-  reorder_point:    'The statistically-derived stock level to reorder at: expected demand over the supplier lead time plus a safety buffer for demand swings.',
-  reliability:      'Composite 0–10 score of this supplier over the last 90 days: on-time rate, delays, and cost variance.',
-  on_time_pct:      'Share of this supplier\'s orders delivered by the promised date in the last 90 days.',
-  avg_delay:        'Average days late across this supplier\'s deliveries; the max shows the worst case.',
-  cost_variance:    'How far invoiced prices drift from contracted prices. Positive = paying more than agreed.',
-  total_value:      'The full monetary value of this purchase order across all line items.',
-  line_items:       'Order lines received vs ordered — 100% means the PO is fully delivered.',
-  qty_received:     'Units delivered against this request so far, vs the quantity requested.',
-  confidence:       'How sure the agent is of this proposal (0–1). High-confidence proposals may auto-execute; low ones always wait for a person.',
-} as const
 
 
 // Runtime enumerations of the ontology vocabulary. TS unions vanish at

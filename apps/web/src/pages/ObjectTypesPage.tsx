@@ -17,7 +17,6 @@ import {
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
 } from '@beacon/reality-graph'
 import { useAuthStore } from '@/stores/auth.store'
-import { useActiveHotelId } from '@/hooks/useActiveHotelId'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
   useObjectTypes, useOntologyTypes, useCreateObjectType, useDeleteObjectType,
@@ -183,7 +182,6 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
 }
 
 function TypeBuilder() {
-  const hotelId = useActiveHotelId()
   const create = useCreateObjectType()
   const [label, setLabel] = useState('')
   const [icon, setIcon] = useState<IconName>('cube')
@@ -208,7 +206,7 @@ function TypeBuilder() {
   const submit = () => {
     if (!canSave) return
     create.mutate(
-      { hotelId, apiName, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
+      { apiName, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
       { onSuccess: () => { setLabel(''); setDescription(''); setProps([{ label: '', type: 'text', required: false }]); setComputed([]); setIcon('cube') } },
     )
   }
@@ -298,7 +296,6 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
 }
 
 function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
-  const hotelId = useActiveHotelId()
   const { data: records = [], isLoading } = useObjectRecords(type.id)
   const { data: linkTypeRows = [] } = useLinkTypes()
   const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id), [linkTypeRows, type.id])
@@ -319,7 +316,7 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
   const submit = () => {
     if (!validation.ok) return
-    create.mutate({ objectTypeId: type.id, hotelId, title: title.trim(), data },
+    create.mutate({ objectTypeId: type.id, title: title.trim(), data },
       { onSuccess: () => { setTitle(''); setValues({}) } })
   }
 
@@ -379,7 +376,7 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
                     {type.computedProperties.map((cp) => `${cp.label}: ${formatVal(evaluateComputed(cp, r.data))}`).join(' · ')}
                   </p>
                 )}
-                {linkTypes.length > 0 && <RecordLinks recordId={r.id} linkTypes={linkTypes} hotelId={hotelId} />}
+                {linkTypes.length > 0 && <RecordLinks recordId={r.id} linkTypes={linkTypes} />}
               </div>
               <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER} onClick={() => { delRecord.mutate(r.id) }} />
             </div>
@@ -597,7 +594,6 @@ function HistoryPanel({ type }: { type: ObjectTypeDef }) {
 }
 
 function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[]; linkTypes: LinkTypeDef[] }) {
-  const hotelId = useActiveHotelId()
   const create = useCreateLinkType()
   const del = useDeleteLinkType()
   const [label, setLabel] = useState('')
@@ -608,7 +604,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
 
   const submit = () => {
     if (!validation.ok) return
-    create.mutate({ hotelId, sourceTypeId: type.id, targetTypeId, apiName, label: label.trim() }, { onSuccess: () => { setLabel('') } })
+    create.mutate({ sourceTypeId: type.id, targetTypeId, apiName, label: label.trim() }, { onSuccess: () => { setLabel('') } })
   }
 
   return (
@@ -641,7 +637,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   )
 }
 
-function RecordLinks({ recordId, linkTypes, hotelId }: { recordId: string; linkTypes: LinkTypeDef[]; hotelId: string | null }) {
+function RecordLinks({ recordId, linkTypes }: { recordId: string; linkTypes: LinkTypeDef[] }) {
   const { data: links = [] } = useRecordLinks(recordId)
   const create = useCreateObjectLink(recordId)
   const del = useDeleteObjectLink(recordId)
@@ -654,7 +650,7 @@ function RecordLinks({ recordId, linkTypes, hotelId }: { recordId: string; linkT
 
   const addLink = () => {
     if (!targetId) return
-    create.mutate({ linkTypeId: selectedLt.id, hotelId, sourceRecordId: recordId, targetRecordId: targetId }, { onSuccess: () => { setTargetId('') } })
+    create.mutate({ linkTypeId: selectedLt.id, sourceRecordId: recordId, targetRecordId: targetId }, { onSuccess: () => { setTargetId('') } })
   }
 
   return (

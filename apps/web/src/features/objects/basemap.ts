@@ -9,7 +9,7 @@
 //
 // Two-tier coverage: a world file (planet extract, low zoom) renders everywhere;
 // a detail file (small per-region extract, street-level) takes over above the
-// world's max zoom. Onboarding a hotel in a new region = extract a new bbox.
+// world's max zoom. Covering a new region = extract a new bbox.
 //
 // Configure via env, pointing at the Supabase public bucket (migration 195):
 //   VITE_BASEMAP_PMTILES_URL        detail tiles, e.g. .../basemap/attica-z15.pmtiles
@@ -66,7 +66,7 @@ export async function buildMapStyle(): Promise<string | StyleSpecification | nul
 
   if (WORLD_URL) {
     // World renders below the handoff zoom everywhere; detail takes over above
-    // it (blank outside its bbox at deep zoom — you only zoom deep at hotels).
+    // it (blank outside its bbox at deep zoom, where the detail tier applies).
     style.sources.world = pmtilesSource(WORLD_URL)
     const world = (layers('world', theme, { lang: 'en' }) as Zoomed[]).map((l) => ({
       ...l, id: `w_${l.id}`, maxzoom: Math.min(l.maxzoom ?? WORLD_MAXZOOM, WORLD_MAXZOOM),

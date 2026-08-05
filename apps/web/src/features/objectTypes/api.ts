@@ -12,7 +12,6 @@ import { EMPTY_VIEW_CONFIG, objectTitle } from '@beacon/reality-graph'
 export interface ObjectTypeRow {
   id: string
   organization_id: string
-  hotel_id: string | null
   api_name: string
   label: string
   icon: string
@@ -40,7 +39,7 @@ export interface ObjectTypeRow {
 
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    id: r.id, organizationId: r.organization_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
     properties: r.properties, computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
@@ -91,7 +90,6 @@ export async function fetchObjectTypeCards(): Promise<ObjectTypeCard[]> {
 }
 
 export interface CreateObjectTypeInput {
-  hotelId: string | null
   apiName: string
   label: string
   icon: string
@@ -103,7 +101,7 @@ export interface CreateObjectTypeInput {
 export async function createObjectType(i: CreateObjectTypeInput): Promise<ObjectTypeRow> {
   const { data, error } = await supabase
     .from('object_types')
-    .insert({ hotel_id: i.hotelId, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
+    .insert({ api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
     .select('*')
     .single<ObjectTypeRow>()
   if (error) throw new Error(error.message)
@@ -197,7 +195,6 @@ export async function restoreRevision(rev: ObjectTypeRevisionRow): Promise<Objec
 export interface ObjectRecordRow {
   id: string
   object_type_id: string
-  hotel_id: string | null
   title: string
   data: Record<string, unknown>
   created_at: string
@@ -205,7 +202,7 @@ export interface ObjectRecordRow {
 
 export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRecordRow[]> {
   const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
+    .from('object_records').select('id, object_type_id, title, data, created_at')
     .eq('object_type_id', objectTypeId)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
@@ -217,7 +214,7 @@ export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRe
 export async function fetchObjectRecordsForTypes(typeIds: string[]): Promise<ObjectRecordRow[]> {
   if (typeIds.length === 0) return []
   const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
+    .from('object_records').select('id, object_type_id, title, data, created_at')
     .in('object_type_id', typeIds)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
@@ -247,7 +244,6 @@ export async function fetchBuiltinRecord(
   return {
     id,
     object_type_id: type.id,
-    hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
     title: objectTitle(type, row),
     data: row,
     created_at: typeof row.created_at === 'string' ? row.created_at : '',
@@ -281,7 +277,6 @@ export async function fetchBuiltinRecords(
     return {
       id,
       object_type_id: type.id,
-      hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
       title: objectTitle(type, row),
       data: row,
       created_at: typeof row.created_at === 'string' ? row.created_at : '',
@@ -292,7 +287,7 @@ export async function fetchBuiltinRecords(
 
 export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
   const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
+    .from('object_records').select('id, object_type_id, title, data, created_at')
     .eq('id', id).maybeSingle<ObjectRecordRow>()
   if (error) throw new Error(error.message)
   return data
@@ -300,7 +295,6 @@ export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | n
 
 export interface CreateObjectRecordInput {
   objectTypeId: string
-  hotelId: string | null
   title: string
   data: Record<string, unknown>
 }
@@ -308,8 +302,8 @@ export interface CreateObjectRecordInput {
 export async function createObjectRecord(i: CreateObjectRecordInput): Promise<ObjectRecordRow> {
   const { data, error } = await supabase
     .from('object_records')
-    .insert({ object_type_id: i.objectTypeId, hotel_id: i.hotelId, title: i.title, data: i.data })
-    .select('id, object_type_id, hotel_id, title, data, created_at')
+    .insert({ object_type_id: i.objectTypeId, title: i.title, data: i.data })
+    .select('id, object_type_id, title, data, created_at')
     .single<ObjectRecordRow>()
   if (error) throw new Error(error.message)
   return data
@@ -325,7 +319,6 @@ export async function deleteObjectRecord(id: string): Promise<void> {
 export interface LinkTypeRow {
   id: string
   organization_id: string
-  hotel_id: string | null
   source_object_type_id: string
   target_object_type_id: string
   api_name: string
@@ -334,7 +327,7 @@ export interface LinkTypeRow {
 
 export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    id: r.id, organizationId: r.organization_id,
     sourceTypeId: r.source_object_type_id, targetTypeId: r.target_object_type_id,
     apiName: r.api_name, label: r.label,
   }
@@ -346,11 +339,11 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
   return data as LinkTypeRow[]
 }
 
-export interface CreateLinkTypeInput { hotelId: string | null; sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
+export interface CreateLinkTypeInput { sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
 
 export async function createLinkType(i: CreateLinkTypeInput): Promise<LinkTypeRow> {
   const { data, error } = await supabase.from('link_types')
-    .insert({ hotel_id: i.hotelId, source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
+    .insert({ source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
     .select('*').single<LinkTypeRow>()
   if (error) throw new Error(error.message)
   return data
@@ -382,11 +375,11 @@ export async function fetchLinksForRecord(sourceRecordId: string): Promise<Recor
   })
 }
 
-export interface CreateObjectLinkInput { linkTypeId: string; hotelId: string | null; sourceRecordId: string; targetRecordId: string }
+export interface CreateObjectLinkInput { linkTypeId: string; sourceRecordId: string; targetRecordId: string }
 
 export async function createObjectLink(i: CreateObjectLinkInput): Promise<void> {
   const { error } = await supabase.from('object_links')
-    .insert({ link_type_id: i.linkTypeId, hotel_id: i.hotelId, source_record_id: i.sourceRecordId, target_record_id: i.targetRecordId })
+    .insert({ link_type_id: i.linkTypeId, source_record_id: i.sourceRecordId, target_record_id: i.targetRecordId })
   if (error) throw new Error(error.message)
 }
 

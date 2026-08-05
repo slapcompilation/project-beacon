@@ -1,5 +1,4 @@
 import { createClient, processLock } from '@supabase/supabase-js'
-import { getActivePurposeHeader } from './purposeHeader'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string
@@ -22,14 +21,4 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     lock: processLock,
   },
   // Inject the active access purpose on every request so RLS can narrow reads
-  // by it (purpose-based controls). Only NARROWS — the role clearance still caps.
-  global: {
-    fetch: (input, init) => {
-      const purpose = getActivePurposeHeader()
-      if (!purpose) return fetch(input, init)
-      const headers = new Headers(init?.headers)
-      headers.set('x-beacon-purpose', purpose)
-      return fetch(input, { ...init, headers })
-    },
-  },
 })
