@@ -20,7 +20,6 @@ import {
   type ValidationResult,
 } from '@beacon/reality-graph'
 import { dispatchAction, type DispatchContext } from '@/lib/actions/dispatch'
-import { useApprovedMovementCategories, useApprovedRemovalCategories } from '@/features/ontology/hooks'
 
 type FormValue = string | number | boolean | null
 
@@ -62,15 +61,6 @@ export function ActionFormModal({
   titleOverride, submitLabelOverride, chrome = 'dialog',
 }: ActionFormModalProps) {
   const descriptor = useMemo(() => getActionDescriptor(actionType), [actionType])
-
-  // Dynamic field options from the grown ontology, resolved at open time. Only
-  // fetched when a field actually asks for that source.
-  const needsRemoval  = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_removal_categories'),  [descriptor])
-  const needsMovement = useMemo(() => descriptor.fields.some((f) => f.optionsSource === 'approved_movement_categories'), [descriptor])
-  const hotelId = (context.hotelId as string | undefined) ?? dispatchContext?.hotelId
-  const live = open || chrome === 'inline'
-  const { data: removalCategories  = [] } = useApprovedRemovalCategories(hotelId,  needsRemoval  && live)
-  const { data: movementCategories = [] } = useApprovedMovementCategories(hotelId, needsMovement && live)
 
   const [values, setValues]   = useState<Record<string, FormValue | undefined>>(() =>
     deriveInitial(descriptor, initialValues),
@@ -154,8 +144,8 @@ export function ActionFormModal({
             error={fieldErrors[field.name]}
             disabled={disabledFields?.includes(field.name) ?? false}
             suggestions={
-              field.optionsSource === 'approved_removal_categories' ? removalCategories
-              : field.optionsSource === 'approved_movement_categories' ? movementCategories
+              field.optionsSource === 'approved_removal_categories' ? []
+              : field.optionsSource === 'approved_movement_categories' ? []
               : undefined
             }
             onChange={(v) => { setValues((prev) => ({ ...prev, [field.name]: v })) }}

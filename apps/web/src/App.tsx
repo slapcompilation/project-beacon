@@ -35,8 +35,6 @@ const MindWorkspace  = lazyWithRetry(() => import('@/pages/MindWorkspace'))
 
 const AgentDetailPage         = lazyWithRetry(() => import('@/pages/AgentDetailPage'))
 const ToolDetailPage          = lazyWithRetry(() => import('@/pages/ToolDetailPage'))
-const ModelingObjectiveDetailPage = lazyWithRetry(() => import('@/pages/ModelingObjectiveDetailPage'))
-const DeploymentDetailPage        = lazyWithRetry(() => import('@/pages/DeploymentDetailPage'))
 const CasesPage                   = lazyWithRetry(() => import('@/pages/CasesPage'))
 const DocumentsPage               = lazyWithRetry(() => import('@/pages/DocumentsPage'))
 const ActionChainsPage            = lazyWithRetry(() => import('@/pages/ActionChainsPage'))
@@ -81,8 +79,6 @@ function AppRoutes() {
             <Route path="/tools"                   element={<Navigate to="/mind?aip=tools" replace />} />
             <Route path="/tools/:toolName"         element={<ToolDetailPage />} />
             <Route path="/modeling-objectives"                  element={<Navigate to="/mind?aip=objectives" replace />} />
-            <Route path="/modeling-objectives/:objectiveName"   element={<ModelingObjectiveDetailPage />} />
-            <Route path="/deployments/:deploymentId"            element={<DeploymentDetailPage />} />
             <Route path="/system-map"                           element={<Navigate to="/mind?aip=system-map" replace />} />
             <Route path="/pending-approvals"                    element={<Navigate to="/mind?aip=approvals" replace />} />
             <Route path="/approved-answers"                     element={<Navigate to="/mind?aip=answers" replace />} />

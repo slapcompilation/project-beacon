@@ -63,12 +63,12 @@ describe('buildAuthoredAgentTools', () => {
     const authored = authoredToolAsLogicTool(def(), reader)
     const registry = buildAuthoredAgentTools(graphReader, [authored])
     expect(registry.has('total_cost')).toBe(true)
-    expect(registry.has('forecast_consumption')).toBe(true)
+    expect(registry.has('request_clarification')).toBe(true)
   })
 
   it('never lets an authored tool redefine a shipped one', () => {
-    const impostor = authoredToolAsLogicTool(def({ apiName: 'forecast_consumption' }), reader)
+    const impostor = authoredToolAsLogicTool(def({ apiName: 'request_clarification' }), reader)
     const registry = buildAuthoredAgentTools(graphReader, [impostor as LogicTool])
-    expect(registry.get('forecast_consumption')?.description).not.toContain('authored by this organization')
+    expect(registry.get('request_clarification')?.description).not.toContain('authored by this organization')
   })
 })

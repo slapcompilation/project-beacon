@@ -1,12 +1,12 @@
 // System Map (OAG) — assembles every registered surface into a single graph
 // view. Pure data layer; renders in SystemMapPage.
 
+import { listAllObjectiveDescriptors, type CatalogObjectiveDescriptor as ObjectiveDescriptor } from '@beacon/reality-graph'
 import {
   agentDescriptors,
   toolDescriptors,
   type AgentDescriptor,
 } from '@/features/agentStudio/registry'
-import { objectiveDescriptors, type ObjectiveDescriptor } from '@/features/modelingObjectives/registry'
 import { actionDescriptors, type ActionDescriptor, type BeaconAction, type LogicTool, type ModelAdapter, type ModelingObjective } from '@beacon/reality-graph'
 
 /** Manual map: which Logic Tool delegates to which Modeling Objective.
@@ -32,6 +32,7 @@ export interface SystemMapData {
 }
 
 export function buildSystemMap(): SystemMapData {
+  const objectiveDescriptors = listAllObjectiveDescriptors()
   const objs = objectiveDescriptors.map((d: ObjectiveDescriptor) => ({
     objective: d.objective,
     adapters:  d.adapters,

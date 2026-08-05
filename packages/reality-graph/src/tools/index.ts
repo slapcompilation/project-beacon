@@ -95,66 +95,15 @@ export function listToolsByCategory(category: ToolCategory): ReadonlyArray<Logic
 
 export type { GraphReader, ContractTerms, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './graph_reader'
 export {
-  makeQueryOpenRestockRequestsTool,
-  type QueryOpenRestockRequestsInput,
-  type QueryOpenRestockRequestsOutput,
-} from './data/query_open_restock_requests'
-export {
-  makeQuerySisterPropertyInventoryTool,
-  type QuerySisterPropertyInventoryInput,
-  type QuerySisterPropertyInventoryOutput,
-} from './data/query_sister_property_inventory'
-export {
-  makeForecastConsumptionTool,
-  type ForecastConsumptionInput,
-  type ForecastConsumptionOutput,
-} from './logic/forecast_consumption'
-export {
-  makeScoreForecastAccuracyTool,
-  type ScoreForecastAccuracyInput,
-  type ScoreForecastAccuracyOutput,
-  type ScoreForecastAccuracyDeps,
-} from './logic/score_forecast_accuracy'
-export {
-  makeComputeReorderPointTool,
-  type ComputeReorderPointInput,
-  type ComputeReorderPointOutput,
-} from './logic/compute_reorder_point'
-export {
-  makeComputeDecisionQualityTool,
-  scoreDecisionQuality,
-  type ComputeDecisionQualityInput,
-  type ComputeDecisionQualityOutput,
-  type DecisionQualityScore,
-} from './logic/compute_decision_quality'
-export {
-  makeOccupancyAdjustedForecastTool,
-  type OccupancyAdjustedForecastInput,
-  type OccupancyAdjustedForecastOutput,
-  type OccupancyContext,
-  type OccupancyForecastReader,
-} from './logic/occupancy_adjusted_forecast'
-export {
-  makeRankAlternativeSuppliersTool,
-  type RankAlternativeSuppliersInput,
-  type RankAlternativeSuppliersOutput,
-} from './logic/rank_alternative_suppliers'
-export {
   requestClarificationTool,
   type RequestClarificationInput,
   type RequestClarificationOutput,
 } from './predefined/request_clarification'
 export {
-  makeQueryVariantDocumentsTool,
-  type QueryVariantDocumentsInput,
-  type QueryVariantDocumentsOutput,
-} from './data/query_variant_documents'
-export {
   makeQueryDocumentChunksTool,
   type QueryDocumentChunksInput,
   type QueryDocumentChunksOutput,
 } from './data/query_document_chunks'
-export { makeGetContractTermsTool, type GetContractTermsInput, type GetContractTermsOutput } from './data/get_contract_terms'
 export {
   makeComputeDecisionCalibrationTool,
   type ComputeDecisionCalibrationInput,
@@ -162,9 +111,3 @@ export {
   type CalibrationReader,
   type CalibrationProposalRef,
 } from './logic/compute_decision_calibration'
-export {
-  makeDetectOntologyGapsTool,
-  type DetectOntologyGapsInput,
-  type DetectOntologyGapsOutput,
-  type OntologyReader,
-} from './logic/detect_ontology_gaps'

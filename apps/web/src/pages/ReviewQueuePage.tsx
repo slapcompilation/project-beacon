@@ -38,7 +38,6 @@ import {
   useRejectManyFromQueue,
   useUniqueFilters,
 } from '@/features/agents/useReviewQueue'
-import { useRestockCycle } from '@/features/agents/useRestockCycle'
 
 type Band = 'all' | 'red' | 'yellow' | 'green'
 type SortKey = 'confidence-asc' | 'confidence-desc' | 'newest' | 'oldest'
@@ -76,16 +75,6 @@ export default function ReviewQueuePage() {
   const approve    = useApproveProposalFromQueue()
   const reject     = useRejectProposalFromQueue()
   const rejectMany = useRejectManyFromQueue()
-
-  // Run cycle moved here from the old Mind Overview: scan at-risk stock, run the
-  // restock advisor on each, auto-execute confident proposals, queue the rest.
-  const cycle = useRestockCycle()
-  const runCycle = () => {
-    cycle.mutate(undefined, {
-      onSuccess: (r) => { toast.success(`Cycle: ${String(r.scanned)} scanned · ${String(r.autoExecuted)} auto-executed · ${String(r.queued)} queued`) },
-      onError:   (e) => { toast.error(e.message) },
-    })
-  }
 
   const [band, setBand]               = useState<Band>('all')
   const [agentFilter, setAgentFilter] = useState<string | null>(null)
@@ -184,16 +173,6 @@ export default function ReviewQueuePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="small"
-            icon="play"
-            intent={Intent.PRIMARY}
-            loading={cycle.isPending}
-            onClick={runCycle}
-            title="Scan at-risk stock, run the restock advisor on each, auto-execute confident proposals, queue the rest"
-          >
-            Run cycle
-          </Button>
           <Button
             variant="minimal"
             size="small"

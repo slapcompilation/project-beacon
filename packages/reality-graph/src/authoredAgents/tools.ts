@@ -7,13 +7,7 @@
 
 import type { LogicTool } from '../tools/index'
 import type { GraphReader } from '../tools/graph_reader'
-import { makeQueryOpenRestockRequestsTool } from '../tools/data/query_open_restock_requests'
-import { makeQuerySisterPropertyInventoryTool } from '../tools/data/query_sister_property_inventory'
-import { makeQueryVariantDocumentsTool } from '../tools/data/query_variant_documents'
 import { makeQueryDocumentChunksTool } from '../tools/data/query_document_chunks'
-import { makeForecastConsumptionTool } from '../tools/logic/forecast_consumption'
-import { makeComputeReorderPointTool } from '../tools/logic/compute_reorder_point'
-import { makeRankAlternativeSuppliersTool } from '../tools/logic/rank_alternative_suppliers'
 import { requestClarificationTool } from '../tools/predefined/request_clarification'
 
 /** Executable, reader-backed tools keyed by name. The composer offers these
@@ -21,20 +15,14 @@ import { requestClarificationTool } from '../tools/predefined/request_clarificat
  *  always a tool the model can actually call.
  *
  *  `authored` are the org's own tools (authoredToolAsLogicTool). A shipped tool
- *  always wins a name collision — an org must never be able to redefine what
- *  `forecast_consumption` means for an agent by authoring one. */
+ *  always wins a name collision — an org must never be able to redefine a
+ *  shipped tool's meaning for an agent by authoring one. */
 export function buildAuthoredAgentTools(
   reader: GraphReader,
   authored: ReadonlyArray<LogicTool> = [],
 ): Map<string, LogicTool> {
   const tools = [
-    makeQueryOpenRestockRequestsTool(reader),
-    makeQuerySisterPropertyInventoryTool(reader),
-    makeQueryVariantDocumentsTool(reader),
     makeQueryDocumentChunksTool(reader),
-    makeForecastConsumptionTool(reader),
-    makeComputeReorderPointTool(reader),
-    makeRankAlternativeSuppliersTool(reader),
     requestClarificationTool,
   ] as LogicTool[]
 

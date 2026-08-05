@@ -2,14 +2,9 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { toast } from 'sonner'
 import { Dialog, Icon, InputGroup } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { useAutoAlerts } from '@/features/notifications/hooks'
-import { useRestockCycle } from '@/features/agents/useRestockCycle'
-import { useAuthStore } from '@/stores/auth.store'
 import { useAppStore } from '@/stores/app.store'
-import { hasPermission } from '@beacon/types'
 import { cn } from '@/lib/utils'
 import {
   useQuickSearch, quickHitPath, QUICK_HIT_GROUP, type QuickHit,
@@ -93,20 +88,8 @@ export function CommandBar() {
 
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
-  const role     = useAuthStore((s) => s.role)
-  const canAdmin = !!role && hasPermission(role, 'can_approve_restocks')
 
   const toggleCopilot = useAppStore((s) => s.toggleCopilot)
-  const autoAlerts   = useAutoAlerts()
-  const restockCycle = useRestockCycle()
-  const runRestockCycle = useCallback(() => {
-    restockCycle.mutate(undefined, {
-      onSuccess: (r) => {
-        toast.success(`Restock cycle: ${String(r.autoExecuted)} auto-executed, ${String(r.queued)} queued (${String(r.scanned)} scanned)`)
-      },
-      onError: (err: Error) => { toast.error(err.message) },
-    })
-  }, [restockCycle])
 
   const go = useCallback((path: string) => {
     setOpen(false)
@@ -276,28 +259,6 @@ export function CommandBar() {
           })()}
         </Group>
 
-        {canAdmin && (
-          <Group heading="Admin Actions">
-            {(() => {
-              const idx1 = action(() => { setOpen(false); autoAlerts.mutate({}) })
-              const idx2 = action(() => { setOpen(false); runRestockCycle() })
-              const idx3 = action(() => { go('/floor?panel=stocktake'); toast.info('Begin a new stocktake session') })
-              return (
-                <>
-                  <Row icon="flash" onSelect={() => { setOpen(false); autoAlerts.mutate({}) }} focused={focusIdx === idx1}>
-                    Scan Alerts
-                  </Row>
-                  <Row icon="predictive-analysis" onSelect={() => { setOpen(false); runRestockCycle() }} focused={focusIdx === idx2}>
-                    Run Restock Cycle
-                  </Row>
-                  <Row icon="clipboard" onSelect={() => { go('/floor?panel=stocktake'); toast.info('Begin a new stocktake session') }} focused={focusIdx === idx3}>
-                    Begin Stocktake
-                  </Row>
-                </>
-              )
-            })()}
-          </Group>
-        )}
       </div>
     </Dialog>
   )

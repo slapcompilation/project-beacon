@@ -17,12 +17,10 @@ import { ConstraintsSection } from '@/features/constraints/ConstraintsSection'
 import { PolicyTab } from './PolicyTab'
 
 const ReviewQueuePage           = lazy(() => import('@/pages/ReviewQueuePage'))
-const RestockPage               = lazy(() => import('@/pages/RestockPage'))
 const PendingApprovalsPage      = lazy(() => import('@/pages/PendingApprovalsPage'))
 const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
 const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
-const ModelingObjectivesPage    = lazy(() => import('@/pages/ModelingObjectivesPage'))
 const DecisionCalibrationPage   = lazy(() => import('@/pages/DecisionCalibrationPage'))
 const FlywheelPage              = lazy(() => import('@/pages/FlywheelPage'))
 const StudioLanding             = lazy(() => import('@/features/mind/StudioLanding'))
@@ -34,11 +32,9 @@ const ActionChainsPage          = lazy(() => import('@/pages/ActionChainsPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
 const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
-const OntologyPage              = lazy(() => import('@/pages/OntologyPage'))
 const ObjectTypesPage           = lazy(() => import('@/pages/ObjectTypesPage'))
 const MonitorsTab               = lazy(() => import('@/features/monitors/MonitorsTab'))
 const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
-const ForecastLabPage           = lazy(() => import('@/pages/ForecastLabPage'))
 
 export type AipTab =
   | 'queue' | 'restock-approvals' | 'approvals' | 'cases'
@@ -261,12 +257,10 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
   switch (t) {
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'queue':        return <ReviewQueuePage />
-    case 'restock-approvals': return <RestockPage />
     case 'approvals':    return <PendingApprovalsPage />
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
     case 'system-map':   return <SystemMapPage />
-    case 'ontology':     return <OntologyPage />
     case 'object-types': return <ObjectTypesPage />
     case 'documents':    return <DocumentsPage />
     case 'cohorts': return <Cohorts />
@@ -275,8 +269,6 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'principles':   return <SectionFrame><PrinciplesSection /></SectionFrame>
     case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
-    case 'objectives':   return <ModelingObjectivesPage />
-    case 'forecast-lab': return <ForecastLabPage />
     case 'calibration':  return <DecisionCalibrationPage />
     case 'flywheel':     return <FlywheelPage />
     case 'monitors':     return <MonitorsTab />

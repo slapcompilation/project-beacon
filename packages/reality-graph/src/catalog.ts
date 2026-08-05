@@ -8,28 +8,12 @@
 import type { LogicTool } from './tools/index'
 import type { GraphReader } from './tools/graph_reader'
 import type { AgentSpec } from './agents/index'
-import { StubLLMClient } from './agents/llm'
 import {
-  makeQueryOpenRestockRequestsTool,
-  makeQuerySisterPropertyInventoryTool,
-  makeForecastConsumptionTool,
-  makeComputeReorderPointTool,
-  makeRankAlternativeSuppliersTool,
-  makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
-  makeGetContractTermsTool,
   requestClarificationTool,
-  makeScoreForecastAccuracyTool,
-  makeComputeDecisionQualityTool,
   makeComputeDecisionCalibrationTool,
-  makeDetectOntologyGapsTool,
-  makeOccupancyAdjustedForecastTool,
 } from './tools/index'
-import { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
 import { makeMineProcessTool } from './tools/data/mine_process'
-import { buildRestockAdvisorAgent } from './agents/restock_advisor/index'
-import { buildWasteTriageAgent } from './agents/waste_triage/index'
-import { buildOverstockRebalancerAgent } from './agents/overstock_rebalancer/index'
 import {
   objectiveRegistry,
   adapterRegistry,
@@ -38,7 +22,6 @@ import {
   type ModelAdapter,
   type EvalSuite,
 } from './objectives/index'
-import { registerConsumptionForecast } from './objectives/consumption_forecast/index'
 
 const noopGraphReader: GraphReader = {
   getVariant:              () => Promise.resolve(null),
@@ -56,42 +39,19 @@ const noopGraphReader: GraphReader = {
  *  it to reality-graph — this is the one place the Studio reads from. */
 export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
   return [
-    makeQueryOpenRestockRequestsTool(noopGraphReader),
-    makeQuerySisterPropertyInventoryTool(noopGraphReader),
-    makeForecastConsumptionTool(noopGraphReader),
-    makeComputeReorderPointTool(noopGraphReader),
-    makeRankAlternativeSuppliersTool(noopGraphReader),
-    makeQueryRecentWasteLogsTool(noopGraphReader),
     makeMineProcessTool(noopGraphReader),
-    makeQueryVariantDocumentsTool(noopGraphReader),
     makeQueryDocumentChunksTool(noopGraphReader),
-    makeGetContractTermsTool(noopGraphReader),
     requestClarificationTool,
-    makeScoreForecastAccuracyTool(noopGraphReader),
-    makeComputeDecisionQualityTool(noopGraphReader),
     makeComputeDecisionCalibrationTool({ getResolvedProposals: () => Promise.resolve([]) }),
-    makeDetectOntologyGapsTool({
-      getRemovalReasons:          () => Promise.resolve([]),
-      getKnownRemovalCategories:  () => Promise.resolve([]),
-      getAdditionReasons:         () => Promise.resolve([]),
-      getKnownMovementCategories: () => Promise.resolve([]),
-    }),
-    makeOccupancyAdjustedForecastTool({
-      getStockLogs:        () => Promise.resolve([]),
-      getOccupancyContext: () => Promise.resolve({ series: [], sensitivity: 0 }),
-    }),
   ] as LogicTool[]
 }
 
 /** Every agent that ships, built with no-op deps so the Studio reads its live
  *  metadata (toolset, version, scope, release stage) instead of a stale copy. */
 export function listAllAgentSpecs(): ReadonlyArray<AgentSpec> {
-  const llm = new StubLLMClient([])
-  return [
-    buildRestockAdvisorAgent({ llm, reader: noopGraphReader }),
-    buildWasteTriageAgent({ llm, reader: noopGraphReader }),
-    buildOverstockRebalancerAgent({ llm, reader: noopGraphReader }),
-  ]
+  // Every shipped agent was hospitality and went with the teardown. Authored
+  // agents come from the database, not from here.
+  return []
 }
 
 export interface ObjectiveDescriptor {
@@ -104,7 +64,6 @@ export interface ObjectiveDescriptor {
 /** Every Modeling Objective that ships, with its candidate adapters + eval suite
  *  resolved from the registries — so the Studio can't freeze a stale adapter list. */
 export function listAllObjectiveDescriptors(): ReadonlyArray<ObjectiveDescriptor> {
-  registerConsumptionForecast()   // idempotent — populates the registries
   const byName = new Map<string, ModelAdapter>()
   for (const a of adapterRegistry.values()) byName.set(a.name, a)
   return [...objectiveRegistry.values()].map((objective) => ({

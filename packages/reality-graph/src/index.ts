@@ -4,8 +4,6 @@
 
 // ── Result + Error primitives — used by every fallible function ─────────────
 export type { Result, Ok, Err } from './result'
-export { ok, err, isOk, isErr, mapResult, unwrapOr, andThen } from './result'
-
 export type {
   BeaconError,
   BeaconResult,
@@ -22,12 +20,8 @@ export {
 } from './errors'
 
 export type { Layer, LayerMeta } from './layers'
-export { LAYERS } from './layers'
 export type { NodeType, EdgeType, GraphNode, GraphEdge, LayerDeclaration } from './types'
 export type { EdgeRecord, TraversalNode, TraverseOptions } from './engine'
-export { edgesForNode, outEdges, inEdges, walkRevertChain, hasEdge, groupByEdgeType, traverseGraph, otherSide } from './engine'
-
-// ── Action Registry — every mutation flows through here ───────────────────────
 export type {
   BeaconAction,
   TriggeredBy,
@@ -78,36 +72,6 @@ export {
 
 // ── Node computed properties — logic on nodes, never in UI ────────────────────
 export {
-  variantNode,
-  stockUrgency,
-  daysUntilZero,
-  consumptionUrgency,
-  restockRecommendedQty,
-  forecastForVariant,
-  restockRequestNode,
-  restockFulfillmentPct,
-  totalReceived,
-  remainingQty,
-  restockUrgency,
-  isStale,
-  restockEstimatedCost,
-  purchaseOrderNode,
-  poFulfillmentPct,
-  fulfilledLineCount,
-  costVariancePct,
-  costVarianceAmount,
-  isOverdue,
-  daysOpenSinceSent,
-  daysUntilDelivery,
-  supplierNode,
-  riskLevel,
-  riskLevelFromRow,
-  leadTimeLabel,
-  leadTimeSourceLabel,
-  daysUntilContractExpiry,
-  hasContractExpiringSoon,
-  onTimePctLabel,
-  costVarianceLabel,
   // Network tier — Phase R1
   organizationNode,
   isMultiProperty,
@@ -127,10 +91,6 @@ export {
   constraintNode,
 } from './nodes/index'
 export type {
-  StockUrgency,
-  ConsumptionUrgency,
-  RestockUrgency,
-  SupplierRiskLevel,
   // AIP-native node payloads
   DocumentPayload,
   DocumentSource,
@@ -152,7 +112,6 @@ export type {
 // See CLAUDE.md → "The Logic Tool Registry (Compute Layer)".
 // Canonical Studio catalog — single source of truth for the Studio's tool/agent/objective views.
 export { listAllToolDescriptors, listAllAgentSpecs, listAllObjectiveDescriptors, type ObjectiveDescriptor as CatalogObjectiveDescriptor } from './catalog'
-
 export type { LogicTool, ToolResultMeta, ToolScope, ToolCategory, ToolKind } from './tools/index'
 export {
   toolRegistry,
@@ -160,19 +119,8 @@ export {
   getTool,
   listTools,
   listToolsByCategory,
-  makeQueryOpenRestockRequestsTool,
-  makeQuerySisterPropertyInventoryTool,
-  makeForecastConsumptionTool,
-  makeScoreForecastAccuracyTool,
-  makeComputeReorderPointTool,
-  makeComputeDecisionQualityTool,
-  scoreDecisionQuality,
-  makeOccupancyAdjustedForecastTool,
-  makeRankAlternativeSuppliersTool,
-  makeQueryVariantDocumentsTool,
   makeQueryDocumentChunksTool,
   makeComputeDecisionCalibrationTool,
-  makeDetectOntologyGapsTool,
   requestClarificationTool,
 } from './tools/index'
 export type { GraphReader, ContractTerms, VariantRow, RestockRequestRow, StockLogRow, SupplierRow, HotelRow, DocumentRow, DocumentChunkMatch, PrincipleRecord, MinedProcessResult, ProcessStateStat, ProcessTransitionStat } from './tools/index'
@@ -181,20 +129,6 @@ export type {
   ComputeDecisionCalibrationOutput,
   CalibrationReader,
   CalibrationProposalRef,
-  DetectOntologyGapsInput,
-  DetectOntologyGapsOutput,
-  OntologyReader,
-  ComputeReorderPointInput,
-  ComputeReorderPointOutput,
-  ComputeDecisionQualityInput,
-  ComputeDecisionQualityOutput,
-  DecisionQualityScore,
-  ScoreForecastAccuracyInput,
-  ScoreForecastAccuracyOutput,
-  OccupancyAdjustedForecastInput,
-  OccupancyAdjustedForecastOutput,
-  OccupancyContext,
-  OccupancyForecastReader,
 } from './tools/index'
 
 // ── Decision calibration — reliability math behind trustworthy autonomy ──────
@@ -261,51 +195,13 @@ export {
 
 // ── Agent runtime + LLM adapter ─────────────────────────────────────────────
 export type { LLMClient, LLMCallInput, LLMResponse, LLMMessage, LLMToolCall, LLMToolSpec } from './agents/llm'
-export { StubLLMClient, toolSpec } from './agents/llm'
 export type { BlockDef, BlockContext, RunAgentArgs, AgentRunner } from './agents/runtime'
-export { createBlock, buildRunner, llmCallWithSchema } from './agents/runtime'
-
-// ── Principle injection — operator-feedback half of the learning flywheel ───
 export {
   selectApplicablePrinciples,
   principleProvenance,
   principleReasoningSuffix,
 } from './agents/principles'
-
-// ── First concrete agent: restock_advisor v1 ────────────────────────────────
-export {
-  buildRestockAdvisorAgent,
-  RESTOCK_ADVISOR_TASK_PROMPT,
-  restockExtractVariantBlock,
-  restockExtractSupplierBlock,
-  restockReasonAndProposeBlock,
-  type RestockAdvisorDeps,
-} from './agents/restock_advisor/index'
-
-// ── Second concrete agent: waste_triage v1 ──────────────────────────────────
-export {
-  buildWasteTriageAgent,
-  WASTE_TRIAGE_TASK_PROMPT,
-  wasteExtractVariantBlock,
-  wasteProposeActionsBlock,
-  type WasteTriageDeps,
-} from './agents/waste_triage/index'
-
-// ── Third concrete agent: overstock_rebalancer v1 ───────────────────────────
-export {
-  buildOverstockRebalancerAgent,
-  OVERSTOCK_REBALANCER_TASK_PROMPT,
-  overstockExtractVariantBlock,
-  overstockReasonAndRebalanceBlock,
-  type OverstockRebalancerDeps,
-} from './agents/overstock_rebalancer/index'
-
-// ── Tool factories (re-exported for descriptor introspection) ──────────────
-export { makeQueryRecentWasteLogsTool } from './tools/data/query_recent_waste_logs'
-export { makeMineProcessTool } from './tools/data/mine_process'
 export type { MineProcessInput, MineProcessOutput } from './tools/data/mine_process'
-
-export { scanForPII, sensitivityFromPII, SENSITIVITY_RANK } from './governance/pii'
 export type { PIIType, Sensitivity } from './governance/pii'
 
 // ── Modeling Objectives & Adapters — predictive layer (deferred) ────────────
@@ -330,38 +226,6 @@ export {
   recommendAdapterPromotion,
 } from './objectives/index'
 export type { AdapterEval, PromotionRecommendation } from './objectives/index'
-
-// ── First concrete modeling objective: consumption_forecast ────────────────
-export {
-  CONSUMPTION_FORECAST_OBJECTIVE_NAME,
-  consumptionForecastObjective,
-  consumptionForecastEvalSuite,
-  baselineRolling30dAdapter,
-  seasonalNaiveV1Adapter,
-  ewmaV1Adapter,
-  holtLinearV1Adapter,
-  autoSelectV1Adapter,
-  occupancyV1Adapter,
-  CONSUMPTION_FORECAST_ADAPTERS,
-  registerConsumptionForecast,
-  backtestForecastAdapters,
-  // The accuracy instrument — score N closed windows and aggregate. A single
-  // holdout over few variants is noise; this is what auto-select uses internally.
-  reconstructObservations,
-  scoreForecastAccuracy,
-  rollingCutoffs,
-  type ConsumptionForecastInput,
-  type ConsumptionForecastOutput,
-  type OccupancyInput,
-  type OccupancyPoint,
-  type BacktestCase,
-  type BacktestResult,
-  type AdapterScore,
-  type CohortScore,
-  type CasePrediction,
-} from './objectives/consumption_forecast/index'
-
-// ── Eval primitives — rubric grader (LLM-as-judge) + CI auto-persist ───────
 export {
   gradeWithRubric,
   type RubricCheck,
@@ -392,7 +256,6 @@ export type {
   AgentReleaseContext,
   ActiveAgentReleases,
 } from './constraints/index'
-
 export { DEFAULT_ORG_POLICY, mergeOrgPolicy, orgPolicyToAutoExecPolicy, orgPolicyToCalibrationOptions, LOOP_GOALS, goalProgress, recommendGoalIntervention } from './policy/index'
 export type { OrgPolicy, GoalDef, GoalIntervention, ExpiryMonitorConfig, IntegrationHealthConfig, BottleneckMonitorConfig, BudgetMonitorConfig, CporMonitorConfig } from './policy/index'
 
@@ -466,11 +329,6 @@ export {
 export type {
   AuthoredAgentDef, CompiledAgent, ProcedureStep, AgentApproval, CadenceDef,
 } from './authoredAgents/index'
-export { runAuthoredAgent, authoredAgentOutputSchema } from './authoredAgents/run'
-export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
-
-// The Workshop module vocabulary — one definition for the renderer, the builder
-// and the authoring validator.
 export {
   MODULE_WIDGET_TYPES, MODULE_VARIABLE_TYPES, MODULE_DEFINITION_KINDS,
   IMPLEMENTED_DEFINITION_KINDS, MODULE_LAYOUT_TYPES, MODULE_TRIGGERS,
@@ -491,7 +349,6 @@ export type {
   ModuleSpec, SpecVariable, SpecLayout, SpecWidget, SpecEvent,
   AuthoringCatalog, SpecProblem, RowPayloads,
 } from './authoring/moduleSpec'
-export { authoredToolAsLogicTool, resolveToolGroups, paramsToSchema } from './userTools/asLogicTool'
 export type { AuthoredToolReader } from './userTools/asLogicTool'
 
 export {
@@ -533,21 +390,17 @@ export type {
 
 // Link cardinality, and which backing can express it — Foundry's grammar, not
 // ours. See create-link-type.md.
-export { LINK_CARDINALITIES, CARDINALITY_BACKINGS, canBack, preferredBacking } from './ontology/linkCardinality'
 export type { LinkCardinality } from './ontology/linkCardinality'
 
 // Projects — Foundry's primary security boundary — and the roles granted on
 // them. Discretionary, inside the mandatory org/hotel boundary.
-export { PROJECT_ROLES, ROLE_META, roleAtLeast, canGrant, grantableRoles, effectiveRole } from './projects/roles'
 export type { ProjectRole } from './projects/roles'
 
 // Is this a filled-in document or a blank form? A form that reaches the graph
 // looks like evidence and is not.
-export { detectBlankTemplate } from './documents/blankTemplate'
 export type { TemplateVerdict } from './documents/blankTemplate'
 
 // An extracted entity's name is its identity — so it has to name something.
-export { checkEntityName, isNameableEntity, ENTITY_CATEGORIES } from './documents/entityNames'
 export type { EntityCategory, EntityNameVerdict } from './documents/entityNames'
 
 // Shared properties — one definition reused across object types (gap 3).
@@ -555,15 +408,6 @@ export {
   resolveProperty, resolveProperties, attachProblem, usedBy, INHERITED_FIELDS,
 } from './objectTypes/sharedProperties'
 export type { SharedPropertyDef, ResolvedProperty } from './objectTypes/sharedProperties'
-
-export { runIntelligenceCycle } from './cycles/intelligenceCycle'
-export type {
-  IntelligenceCycleDeps,
-  CycleVariant,
-  CycleOutcome,
-  CycleItem,
-  CycleResult,
-} from './cycles/intelligenceCycle'
 
 // ── Scenarios — graph-overlay sandbox + non-persistent runner (H2) ──────────
 export {
@@ -575,30 +419,8 @@ export type {
   ScenarioGraphOverlay,
   ScenarioSimulationCache,
 } from './scenarios/index'
-export {
-  simulateCycleWithOverlay,
-  diffSimulations,
-} from './scenarios/simulate'
-export type { SimulationDeps } from './scenarios/simulate'
-export type {
-  ScenarioGateway,
-  ScenarioRow,
-  ScenarioSimulationResult,
-} from './scenarios/gateway'
-
-export {
-  makeApplyOverlayEditTool,
-  type ApplyOverlayEditInput,
-  type ApplyOverlayEditOutput,
-} from './tools/scenarios/apply_overlay_edit'
-export {
-  makeSimulateCycleWithOverlayTool,
-  type SimulateCycleWithOverlayInput,
-  type SimulateCycleWithOverlayOutput,
-} from './tools/scenarios/simulate_cycle_with_overlay'
-export {
-  makeQuerySimulationResultTool,
-  type QuerySimulationResultInput,
-  type QuerySimulationResultOutput,
-} from './tools/scenarios/query_simulation_result'
 export * from './lifecycles'
+export { buildAuthoredAgentTools, shippedAgentToolNames } from './authoredAgents/tools'
+export { runAuthoredAgent } from './authoredAgents/run'
+export { authoredToolAsLogicTool } from './userTools/asLogicTool'
+export { grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES } from './projects/roles'

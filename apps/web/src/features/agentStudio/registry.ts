@@ -10,16 +10,6 @@
 import {
   listAllToolDescriptors,
   listAllAgentSpecs,
-  RESTOCK_ADVISOR_TASK_PROMPT,
-  WASTE_TRIAGE_TASK_PROMPT,
-  OVERSTOCK_REBALANCER_TASK_PROMPT,
-  restockExtractVariantBlock,
-  restockExtractSupplierBlock,
-  restockReasonAndProposeBlock,
-  wasteExtractVariantBlock,
-  wasteProposeActionsBlock,
-  overstockExtractVariantBlock,
-  overstockReasonAndRebalanceBlock,
   type BlockDef,
   type LogicTool,
   type AgentCadence,
@@ -67,39 +57,10 @@ interface AgentPresentation {
   evalFile:   string
 }
 
-const AGENT_PRESENTATION = new Map<string, AgentPresentation>([
-  ['restock_advisor', {
-    emits: ['TRANSFER_STOCK', 'REQUEST_RESTOCK'],
-    blocks: [
-      restockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
-      restockExtractSupplierBlock as unknown as BlockDef<unknown, unknown>,
-      restockReasonAndProposeBlock as unknown as BlockDef<unknown, unknown>,
-    ],
-    taskPrompt: RESTOCK_ADVISOR_TASK_PROMPT,
-    invokeFrom: 'Variant page · "Get restock advice"',
-    evalFile:   'packages/reality-graph/src/agents/restock_advisor/eval/restock_advisor.eval.ts',
-  }],
-  ['waste_triage', {
-    emits: ['TRANSFER_STOCK', 'WRITE_OFF'],
-    blocks: [
-      wasteExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
-      wasteProposeActionsBlock as unknown as BlockDef<unknown, unknown>,
-    ],
-    taskPrompt: WASTE_TRIAGE_TASK_PROMPT,
-    invokeFrom: 'Variant page · "Waste triage"',
-    evalFile:   'packages/reality-graph/src/agents/waste_triage/eval/waste_triage.eval.ts',
-  }],
-  ['overstock_rebalancer', {
-    emits: ['TRANSFER_STOCK'],
-    blocks: [
-      overstockExtractVariantBlock as unknown as BlockDef<unknown, unknown>,
-      overstockReasonAndRebalanceBlock as unknown as BlockDef<unknown, unknown>,
-    ],
-    taskPrompt: OVERSTOCK_REBALANCER_TASK_PROMPT,
-    invokeFrom: 'Variant page · "Rebalance overstock"',
-    evalFile:   'packages/reality-graph/src/agents/overstock_rebalancer/eval/overstock_rebalancer.eval.ts',
-  }],
-])
+// Empty since the teardown: all three shipped agents were hospitality. The
+// descriptor below already falls back when a name has no entry, so an agent
+// added later renders from its live AgentSpec with or without a row here.
+const AGENT_PRESENTATION = new Map<string, AgentPresentation>()
 
 export const agentDescriptors: ReadonlyArray<AgentDescriptor> = listAllAgentSpecs().map((spec) => {
   const p = AGENT_PRESENTATION.get(spec.name)
