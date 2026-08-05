@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/osdk-scenario/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/osdk-scenario/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Use scenarios with OSDK
 
@@ -14,7 +14,7 @@ Scenario support is available in both the TypeScript and Python OSDK. The sectio
 * Read and query objects in the context of a scenario.
 * Apply actions and edits within a scenario.
 * Merge a scenario into the main Ontology.
-* List the entities edited within a scenario (TypeScript OSDK only).
+* List the entities edited within a scenario.
 
 ## TypeScript OSDK
 
@@ -171,7 +171,7 @@ for await (
 
 ## Python OSDK
 
-Scenario support is available in Python OSDK version `2.209.0` and later, and is a beta feature: you must run scenario code within an `AllowBetaFeatures` context.
+Scenario support is available in Python OSDK version `2.209.0` and later. Listing edited objects and links requires version `2.221.0` or later. Scenario support is a beta feature: you must run scenario code within an `AllowBetaFeatures` context.
 
 ### Create or attach to a scenario
 
@@ -257,4 +257,84 @@ Review [Merge scenarios](/docs/foundry/ontology/merge-scenario/) for guidance on
 
 ### List edited entities within a scenario
 
-Listing the entities edited within a scenario is not yet supported in the Python OSDK. This capability will be added in a future release. To inspect edited entities today, use the [TypeScript OSDK](#list-edited-entities-within-a-scenario).
+The scenario client exposes methods to discover which objects and links were edited within a scenario. These results return sparse identifiers: only the `object_api_name` and `primary_key` fields are populated. To load full property values, pass the primary keys back through the scenario client.
+
+#### Edited objects
+
+Use `get_edited_entity_types` to discover which object and link types changed, then `get_edited_objects` to page through the edited objects of a given type, or `iterate_edited_objects` to stream them.
+
+```python
+from osdk.ontology.objects import ExampleRestaurant
+
+with AllowBetaFeatures():
+    # Discover which object types and link types were edited in the scenario.
+    edited_types = scenario_client.get_edited_entity_types()
+    print(edited_types.object_types)
+    print(edited_types.link_types)
+
+    # Load a page of edited objects of a given object type.
+    edited_page = scenario_client.get_edited_objects(
+        ExampleRestaurant, page_size=500
+    )
+    for obj in edited_page.data:
+        print(obj.object_api_name, obj.primary_key)
+
+    # Or stream all edited objects of a given object type. The iterator
+    # automatically paginates and deduplicates by primary key.
+    for obj in scenario_client.iterate_edited_objects(
+        ExampleRestaurant, page_size=500
+    ):
+        print(obj.primary_key)
+
+    # Or asynchronously stream all edited objects of a given object type.
+    async for obj in scenario_client.async_iterate_edited_objects(
+        ExampleRestaurant, page_size=500
+    ):
+        print(obj.primary_key)
+```
+
+To load full property values for the edited objects, re-fetch them through the scenario client. Deleted objects may return `None`.
+
+```python
+with AllowBetaFeatures():
+    full = [
+        scenario_client.ontology.objects.ExampleRestaurant.get(obj.primary_key)
+        for obj in edited_page.data
+    ]
+```
+
+#### Edited links
+
+Use `get_edited_link_types`, `get_edited_links`, and `iterate_edited_links` to inspect edited links. Each edited link is returned as a directed triple of `source`, `target`, and `link_type`. Only many-to-many links are returned; edited one-to-many links surface through `get_edited_objects` on the object type that owns the foreign key.
+
+```python
+from osdk.ontology.objects import ExampleRestaurant
+
+with AllowBetaFeatures():
+    # Discover which many-to-many link types for a given object type were edited.
+    edited_link_types = scenario_client.get_edited_link_types(ExampleRestaurant)
+
+    # Load a page of edited links for a given link type.
+    links_page = scenario_client.get_edited_links(
+        ExampleRestaurant, "sisterRestaurants", page_size=200
+    )
+    for link in links_page.data:
+        print(
+            link.source.primary_key,
+            "->",
+            link.target.primary_key,
+            f"({link.link_type})",
+        )
+
+    # Or stream all edited links of a given link type.
+    for link in scenario_client.iterate_edited_links(
+        ExampleRestaurant, "sisterRestaurants"
+    ):
+        print(link.source.primary_key, "->", link.target.primary_key)
+
+    # Or asynchronously stream all edited links of a given link type.
+    async for link in scenario_client.async_iterate_edited_links(
+        ExampleRestaurant, "sisterRestaurants"
+    ):
+        print(link.source.primary_key, "->", link.target.primary_key)
+```

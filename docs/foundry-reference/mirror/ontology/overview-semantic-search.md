@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview-semantic-search/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview-semantic-search/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Semantic search
 
@@ -6,7 +6,7 @@ Semantic search is a way to search for text based on the inherent meaning or con
 
 Semantic search is accomplished using AI models to transform the text into vectors, which are arrays of numbers, and are called "embeddings". If the model is effective, the vectors, each of size N, that are close to each other in N-dimensional space are the ones that have similar underlying or semantic meaning. For example, the embedding vector of “face mask” will be closer to the embedding vector of “face covering” than it is to “respirator.”
 
-![Embeddings visualization.](/docs/resources/foundry/ontology/aip-embeddings-visualization.png)
+![Embeddings visualization.](./images/aip-embeddings-visualization.png)
 
 If the embedded text is then associated with a particular object in the [Ontology](/docs/foundry/ontology/overview/), then your search-driven operational workflows become much more useful. Finding related entities or entities related to a particular search query is simply finding the nearest vectors in N-dimensional space.
 

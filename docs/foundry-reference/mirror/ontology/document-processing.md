@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/document-processing/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/document-processing/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Document processing
 
@@ -18,11 +18,11 @@ Follow the steps outlined below to import PDFs and extract text from PDFs:
 2. [Add the media set to Pipeline Builder](/docs/foundry/pipeline-builder/datasets-add/#add-data-from-foundry-to-pipeline-builder).
 3. Use the **Get Media References** board.
 
-![Get Media References board](/docs/resources/foundry/ontology/get-media-references.png)
+![Get Media References board](./images/get-media-references.png)
 
 4. Use the **Text Extraction** board.
 
-![Text Extraction board](/docs/resources/foundry/ontology/text-extraction.png)
+![Text Extraction board](./images/text-extraction.png)
 
 ## Chunking
 
@@ -56,7 +56,7 @@ We initiate the process by employing the **Chunk String** board, which introduce
 
 The below screenshot of a **Chunk String** board shows a simple strategy which you may alter for use toward your own use case. The below configuration would attempt to return chunks that are roughly 256 characters in size. Effectively, the board splits text on the highest priority separator until each chunk is equal to or smaller than the chunk size. If there are no more highest priority separators to split on and some chunks are still too large, it moves to the next separator until either all the chunks are equal or smaller than the chunk size or there are no more separators to use. Finally, the board will ensure that for each chunk identified, the chunk following has an overlap that covers the last 20 characters of the previous chunk.
 
-![Chunk string board](/docs/resources/foundry/ontology/chunk-string-board.png)
+![Chunk string board](./images/chunk-string-board.png)
 
 |object\_id|object\_text|chunks|
 |---------|--------|-------|
@@ -65,7 +65,7 @@ The below screenshot of a **Chunk String** board shows a simple strategy which y
 
 Next we want each element in the array to have its own row. We will use the **Explode Array with Position** board to transform our dataset to one with six rows. The new column in each of the rows (as seen below) is a struct (map) with two key-value pairs, the position in the array and the element in the array.
 
-![Explode chunks.](/docs/resources/foundry/ontology/explode-chunks.png)
+![Explode chunks.](./images/explode-chunks.png)
 
 |object\_id|object\_text|chunks|chunks\_with\_position|
 |---------|--------|-------|----------------------------------|
@@ -78,8 +78,8 @@ Next we want each element in the array to have its own row. We will use the **Ex
 
 From there, we will pull out the position and the element into their own columns.
 
-![Get chunk position.](/docs/resources/foundry/ontology/get-chunk-position.png)
-![Get chunk.](/docs/resources/foundry/ontology/get-chunk.png)
+![Get chunk position.](./images/get-chunk-position.png)
+![Get chunk.](./images/get-chunk.png)
 
 |object\_id|object\_text|chunks|chunks\_with\_position|position|chunk|
 |---------|--------|-------|----------------------------------|--|--|
@@ -92,11 +92,11 @@ From there, we will pull out the position and the element into their own columns
 
 To create a unique identifier for each chunk, we will convert the chunk position in its array to a string and then concatenate it to the original object ID. We will also drop the unnecessary columns.
 
-![Cast chunk position to string.](/docs/resources/foundry/ontology/cast-chunk-position-to-string.png)
+![Cast chunk position to string.](./images/cast-chunk-position-to-string.png)
 
-![Create chunk\_id.](/docs/resources/foundry/ontology/create-chunk-id.png)
+![Create chunk\_id.](./images/create-chunk-id.png)
 
-![Drop unnecessary object\_text, chunks, position, and chunks\_with\_position columns.](/docs/resources/foundry/ontology/drop-unnecessary-columns.png)
+![Drop unnecessary object\_text, chunks, position, and chunks\_with\_position columns.](./images/drop-unnecessary-columns.png)
 
 |object\_id|chunk|chunk\_id|
 |---------|-----|--|

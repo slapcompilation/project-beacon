@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/search-syntax/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/search-syntax/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Search syntax
 

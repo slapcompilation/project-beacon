@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-augmented-generation/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-augmented-generation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Ontology-augmented generation
 

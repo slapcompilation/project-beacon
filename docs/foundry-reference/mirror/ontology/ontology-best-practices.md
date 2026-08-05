@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/ontology-best-practices/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/ontology-best-practices/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Ontology design: Best practices
 
@@ -37,7 +37,7 @@ Practical considerations should always factor into any decision. Review the sect
 
 ### 1. Domain-driven design
 
-<img width="1280" height="720" alt="1-Domain Design" src="./media/domain-design.png" />
+<img width="1280" height="720" alt="1-Domain Design" src="./images/domain-design.png" />
 
 **The Ontology models the real world, not the source data.**
 
@@ -94,7 +94,7 @@ OrderData                                  Order
 
 ### 2. Don't repeat yourself (rule of three)
 
-<img width="1280" height="720" alt="3-Don't Repeat" src="./media/do-not-repeat.png" />
+<img width="1280" height="720" alt="3-Don't Repeat" src="./images/do-not-repeat.png" />
 
 **If you built the same thing three times, refactor.**
 
@@ -151,7 +151,7 @@ Billing Customer                           Interface: CustomerBase
 
 ### 3. Open for extension, closed for modification
 
-<img width="1280" height="720" alt="2-Open Closed" src="./media/open-closed.png" />
+<img width="1280" height="720" alt="2-Open Closed" src="./images/open-closed.png" />
 
 **Protect core models. Enable builders to extend them.**
 
@@ -210,7 +210,7 @@ Equipment                                  Equipment (unchanged)
 
 ### 4. Composition over deep hierarchies
 
-<img width="1280" height="720" alt="4-Composition" src="./media/composition.png" />
+<img width="1280" height="720" alt="4-Composition" src="./images/composition.png" />
 
 **Favor multiple inheritance via interfaces. Keep things pluggable.**
 

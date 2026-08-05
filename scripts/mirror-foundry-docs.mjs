@@ -58,22 +58,43 @@ async function pageMarkdown(url) {
 
 /** Save every image a page references, next to the page.
  *
- *  The mirror stored markdown only, so `![screenshot](/docs/resources/...)`
- *  pointed at a URL nobody could open offline — and a screenshot is often where
- *  the actual UI shape lives, not the prose. Rewrites the reference to the local
- *  copy so reading the file is enough. */
+ *  A screenshot often carries the UI shape the prose leaves out, so a mirror that
+ *  stores only markdown is a mirror you cannot fully read. Two forms appear, and
+ *  missing the second cost 629 images on the first pass:
+ *
+ *    ![alt](/docs/resources/...)   markdown, absolute
+ *    <img src="./media/x.png">     HTML, RELATIVE TO THE PAGE URL
+ *
+ *  Names are prefixed with the page slug because `./media/overview.png` is not
+ *  unique across pages — two sections would otherwise overwrite each other. */
 async function mirrorImages(md, section) {
   const dir = path.join(MIRROR, section, 'images')
   let out = md
-  for (const m of md.matchAll(/!\[[^\]]*\]\((\/docs\/resources\/[^)\s]+)\)/g)) {
+
+  const refs = [
+    ...md.matchAll(/!\[[^\]]*\]\((\.?\/[^)\s]+\.(?:png|jpe?g|gif|svg|webp))\)/gi),
+    ...md.matchAll(/<img[^>]+src="(\.?\/[^"]+\.(?:png|jpe?g|gif|svg|webp))"/gi),
+  ]
+
+  for (const m of refs) {
     const href = m[1]
+    if (href.startsWith('./images/')) continue          // already mirrored
     const name = href.split('/').pop()
     const target = path.join(dir, name)
     out = out.replaceAll(href, `./images/${name}`)
     if (fs.existsSync(target)) continue
+
+    // `./media/x.png` on the page resolves to the section's resource folder, NOT
+    // to a path under the page. Getting this wrong is silent: the docs site is a
+    // SPA and answers 200 text/html for anything missing, so a wrong URL writes
+    // an HTML error page into a .png. Hence the content-type check below.
+    const abs = href.startsWith('/')
+      ? `https://www.palantir.com${href}`
+      : `https://www.palantir.com/docs/resources/foundry/${section}/${name}`
     try {
-      const res = await fetch(`https://palantir.com${href}`, { headers: { 'user-agent': 'beacon-docs-mirror' } })
+      const res = await fetch(abs, { headers: { 'user-agent': 'beacon-docs-mirror' } })
       if (!res.ok) continue
+      if (!(res.headers.get('content-type') ?? '').startsWith('image/')) continue
       fs.mkdirSync(dir, { recursive: true })
       fs.writeFileSync(target, Buffer.from(await res.arrayBuffer()))
       images += 1

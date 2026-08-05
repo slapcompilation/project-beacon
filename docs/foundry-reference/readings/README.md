@@ -74,6 +74,9 @@ is worth most just before the thing it describes gets built. Nothing here is
 - `slate-styles.md` — Slate's three stylesheet scopes, Blueprint as the substrate,
   static-CSS rules. Decided: Blueprint stays on citation, no Tailwind, tiers wait
   for a widget layer.
+- `ontology-core-concepts.md` — the dataset analogy (object type = dataset, row =
+  object, column = property, join = link type), semantic vs kinetic elements, and
+  the airline diagram showing two link types over the same pair of object types.
 
 One reading against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

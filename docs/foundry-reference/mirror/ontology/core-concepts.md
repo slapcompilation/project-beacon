@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/core-concepts/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/core-concepts/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -25,7 +25,7 @@ The concepts that comprise the Ontology have parallels in the structure of a dat
 
 The diagram below demonstrates how these concepts can come together to create an Ontology. The content below continues to define the different components of the Ontology in more depth.
 
-<img src="./media/airline-ontology.png" alt="Aviation Ontology" height="500" />
+<img src="./images/airline-ontology.png" alt="Aviation Ontology" height="500" />
 
 ## Object type
 
