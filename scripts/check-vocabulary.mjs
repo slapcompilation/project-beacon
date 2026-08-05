@@ -50,8 +50,8 @@
 // static scan. Catching that needs read/write discrimination this guard does not
 // have. If you add a column, ask what QUERIES it — the guard cannot ask for you.
 
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import pg from 'pg'
 import { connectionString, SSL } from './db-url.mjs'
 
@@ -88,29 +88,29 @@ const { rows: declarations } = await client.query(
 // ── 1. Code ──────────────────────────────────────────────────────────────────
 // A file marked @vocabulary-declaration is the vocabulary RESTATED, not a
 // consumer of it, and does not count. See the header for what went wrong.
+// Git decides what is source. Build output is not: the edge bundle is a COPY of
+// packages/ that lands inside a scanned root, and counting it defeated every
+// @vocabulary-declaration marker in reality-graph at once — the marker leads the
+// SOURCE file, and bundling strips it. Asking git generalises the old
+// node_modules/dist/.turbo/coverage list instead of naming one more artifact.
+const sources = execFileSync(
+  'git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', ...CODE_ROOTS],
+  { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+).split('\0').filter((p) => /\.(ts|tsx|mjs|js)$/.test(p))
+
 let code = `${fns.src}\n${pols.src}`
 const declarationFiles = []
-for (const root of CODE_ROOTS) {
-  const walk = (dir) => {
-    for (const e of readdirSync(dir, { withFileTypes: true })) {
-      const p = join(dir, e.name)
-      if (e.isDirectory()) {
-        if (!['node_modules', 'dist', '.turbo', 'coverage'].includes(e.name)) walk(p)
-      } else if (/\.(ts|tsx|mjs|js)$/.test(e.name)) {
-        const src = readFileSync(p, 'utf8')
-        // The marker must lead the file, or this script excludes itself for
-        // explaining the rule.
-        if (src.split('\n', 3).join('\n').includes('@vocabulary-declaration')) {
-          declarationFiles.push(p); continue
-        }
-        // A test asserting the list contains a value is the same restatement as
-        // a constants file — `status.test.ts` kept `example` alive on its own.
-        if (/\.(test|spec)\.|[\\/]evals?[\\/]/.test(p)) { declarationFiles.push(p); continue }
-        code += `\n${src}`
-      }
-    }
+for (const p of sources) {
+  const src = readFileSync(p, 'utf8')
+  // The marker must lead the file, or this script excludes itself for
+  // explaining the rule.
+  if (src.split('\n', 3).join('\n').includes('@vocabulary-declaration')) {
+    declarationFiles.push(p); continue
   }
-  walk(root)
+  // A test asserting the list contains a value is the same restatement as
+  // a constants file — `status.test.ts` kept `example` alive on its own.
+  if (/\.(test|spec)\.|[\\/]evals?[\\/]/.test(p)) { declarationFiles.push(p); continue }
+  code += `\n${src}`
 }
 const inCode = (v) => code.includes(`'${v}'`) || code.includes(`"${v}"`) || code.includes(`\`${v}\``)
 
