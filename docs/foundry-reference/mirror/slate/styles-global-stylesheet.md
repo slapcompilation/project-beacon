@@ -14,7 +14,7 @@ Enabling global stylesheets in your Slate application applies the stylesheets to
 
 If you have the correct permissions on the space the Styles Editor will look like the following:
 
-![globalStylesheets](/docs/resources/foundry/slate/global-stylesheets.png)
+![globalStylesheets](./images/global-stylesheets.png)
 
 :::callout{theme="neutral"}
 The global stylesheets support only CSS and do not support Less.

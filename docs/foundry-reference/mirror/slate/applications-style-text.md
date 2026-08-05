@@ -25,7 +25,7 @@ This guide walks you through styling a text widget.
    ```
 
 <br><br>
-![text-css1](/docs/resources/foundry/slate/text-css1.png) <br><br>
+![text-css1](./images/text-css1.png) <br><br>
 
 4. Add another text widget and enter `Slate is awesome`.
 
@@ -47,7 +47,7 @@ This guide walks you through styling a text widget.
    `sl-markdown` is the element tag, and the code is saying use this styling for all markdown widgets.
 
 7. Add a third text widget. Notice that it styles automatically. <br><br>
-   ![text-css2](/docs/resources/foundry/slate/text-css2.png) <br><br>
+   ![text-css2](./images/text-css2.png) <br><br>
 
 8. Finally, keep the current CSS and add CSS for #w1.
 
@@ -71,4 +71,4 @@ This guide walks you through styling a text widget.
    ```
 
    Notice that this correctly styles w1 differently from the other two widgets. <br><br>
-   ![text-css3](/docs/resources/foundry/slate/text-css3.png) <br><br>
+   ![text-css3](./images/text-css3.png) <br><br>

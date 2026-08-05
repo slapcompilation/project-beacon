@@ -76,7 +76,7 @@ During the initial page load, you will typically see a dark sidebar loading a wh
 
 Note that this is a one-time load and will not persist across page refreshes without the query parameter added. Also note that this is only applicable once the Slate application starts to load, not while the browser is still routing to the application.
 
-![Screenshot of Slate page loading in dark mode.](/docs/resources/foundry/slate/theme-dark-mode.png)
+![Screenshot of Slate page loading in dark mode.](./images/theme-dark-mode.png)
 
 ## Custom fonts
 

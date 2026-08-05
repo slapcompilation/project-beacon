@@ -30,6 +30,36 @@ Four things follow, and each was learned by getting it wrong:
    whose migration claimed it was derived from `link_types`. The claim was false
    for as long as the branch existed.
 
+## How to read a Foundry page
+
+**The failure this prevents:** I read `concepts-styles.md`, took one sentence out
+of it, and built a styling system. The page also described three stylesheet
+scopes, the named-classes pattern, Blueprint's CSS API, a static-CSS rule with
+three escapes, and custom fonts. None of it reached the work.
+
+So, before building anything from a page:
+
+1. **Mirror it, images and all.** `node scripts/mirror-foundry-docs.mjs <section>`
+   downloads referenced images into `mirror/<section>/images/` and rewrites the
+   links. A screenshot often carries the UI shape that the prose leaves out.
+2. **Read every paragraph, and every image.** Not a skim for the sentence that
+   settles the question at hand.
+3. **Follow the sublinks.** A concept page usually has an overview above it and
+   worked examples below. Read those too, then say which pages you read.
+4. **Write the reading down** in `docs/foundry-reference/readings/<topic>.md`:
+   what the pages say with quotes; **what the images add that the prose does not**;
+   what it connects to elsewhere in the docs and in our code; decisions taken; and
+   open questions you could not answer from the page.
+5. **Recite it back before building.** The summary is for alignment on the
+   deliverable, not a formality — this is where a wrong reading gets caught while
+   it is still cheap.
+6. **Separate quote from inference.** Anything not lifted from the page is marked
+   as inference. `object_type_impact` came back on a citation that did not exist.
+
+`readings/` is the memory. Before designing anything, grep it — an answer already
+written down beats re-deriving one, and the "connects to" lines are how a concept
+in one part of the platform is recognised in another.
+
 ### The three-times mistake, so it is not made a fourth
 
 A universal table is not how Foundry stores anything. Deleted in this order,

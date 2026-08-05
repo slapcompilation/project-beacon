@@ -56,7 +56,34 @@ async function pageMarkdown(url) {
   return md
 }
 
-let written = 0, skipped = 0
+/** Save every image a page references, next to the page.
+ *
+ *  The mirror stored markdown only, so `![screenshot](/docs/resources/...)`
+ *  pointed at a URL nobody could open offline — and a screenshot is often where
+ *  the actual UI shape lives, not the prose. Rewrites the reference to the local
+ *  copy so reading the file is enough. */
+async function mirrorImages(md, section) {
+  const dir = path.join(MIRROR, section, 'images')
+  let out = md
+  for (const m of md.matchAll(/!\[[^\]]*\]\((\/docs\/resources\/[^)\s]+)\)/g)) {
+    const href = m[1]
+    const name = href.split('/').pop()
+    const target = path.join(dir, name)
+    out = out.replaceAll(href, `./images/${name}`)
+    if (fs.existsSync(target)) continue
+    try {
+      const res = await fetch(`https://palantir.com${href}`, { headers: { 'user-agent': 'beacon-docs-mirror' } })
+      if (!res.ok) continue
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(target, Buffer.from(await res.arrayBuffer()))
+      images += 1
+    } catch { /* a missing image is not worth failing the page for */ }
+    await new Promise((r) => setTimeout(r, DELAY_MS))
+  }
+  return out
+}
+
+let written = 0, skipped = 0, images = 0
 const failures = []
 
 for (const section of sections) {
@@ -72,7 +99,7 @@ for (const section of sections) {
     const target = targetFor(url, section)
     if (!refresh && fs.existsSync(target)) { skipped += 1; continue }
     try {
-      const md = await pageMarkdown(url)
+      const md = await mirrorImages(await pageMarkdown(url), section)
       const header = `<!-- source: ${url} · mirrored ${today} from Palantir Foundry docs -->\n\n`
       fs.writeFileSync(target, header + md.trimEnd() + '\n')
       written += 1
