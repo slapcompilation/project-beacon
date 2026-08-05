@@ -18,10 +18,7 @@ const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const ObjectTypesPage = lazyWithRetry(() => import('@/pages/ObjectTypesPage'))
-const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
-const ObjectListPage = lazyWithRetry(() => import('@/pages/ObjectListPage'))
-const CustomRecordPage = lazyWithRetry(() => import('@/pages/CustomRecordPage'))
 
 
 
@@ -57,11 +54,8 @@ function AppRoutes() {
 
             <Route path="/account"       element={<AccountPage />} />
             <Route path="/ontology"     element={<ObjectTypesPage />} />
-            <Route path="/objects"       element={<ObjectsPage />} />
             <Route path="/projects"      element={<ProjectsPage />} />
             {/* Generic on purpose: a new application must not mean a new route. */}
-            <Route path="/objects/:type" element={<ObjectListPage />} />
-            <Route path="/objects/:type/:recordId" element={<CustomRecordPage />} />
             {/* retired deep links live on as redirects */}
           </Route>
           <Route path="*" element={<Navigate to="/objects" replace />} />

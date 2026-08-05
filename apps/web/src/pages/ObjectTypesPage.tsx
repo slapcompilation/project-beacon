@@ -6,12 +6,11 @@
 import { useMemo, useState } from 'react'
 import {
   Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
-  NumericInput, Spinner, SpinnerSize, Switch, Tag, TextArea,
+  Spinner, SpinnerSize, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import {
-  PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
-  validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
+  PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateLinkTypeDraft, validateComputedProperty, validateViewConfig,
   attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
@@ -19,11 +18,8 @@ import {
 import { useAuthStore } from '@/stores/auth.store'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useObjectTypes, useOntologyTypes, useCreateObjectType, useDeleteObjectType,
-  useUpdateObjectType, useRevisions, useRestoreRevision,
-  useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
-  useLinkTypes, useCreateLinkType, useDeleteLinkType,
-  useRecordLinks, useCreateObjectLink, useDeleteObjectLink,
+  useObjectTypes, useOntologyTypes, useCreateObjectType, useUpdateObjectType,
+  useCreateLinkType, useDeleteLinkType, useLinkTypes,
 } from '@/features/objectTypes/hooks'
 import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
@@ -89,7 +85,7 @@ export default function ObjectTypesPage() {
           )}
         </section>
 
-        {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
+        {selected && <TypeDetail type={selected} allTypes={linkTargets} />}
 
         <SharedPropertiesSection types={types} />
 
@@ -295,101 +291,34 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
   )
 }
 
-function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
-  const { data: records = [], isLoading } = useObjectRecords(type.id)
+// Edit the live schema. Existing property keys are preserved (records reference
+// them); only newly added properties derive a key from their label. Saving bumps
+// the version + snapshots via the DB triggers.
+/** The selected type's own definition: its properties, and the link types that
+ *  start from it. Both are the Ontology Manager's job — they used to hang off a
+ *  records panel, which is why they went with it. */
+function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
   const { data: linkTypeRows = [] } = useLinkTypes()
-  const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id), [linkTypeRows, type.id])
-  const create = useCreateObjectRecord()
-  const del = useDeleteObjectType()
-  const delRecord = useDeleteObjectRecord(type.id)
-
-  const [title, setTitle] = useState('')
-  const [values, setValues] = useState<Record<string, unknown>>({})
-  const [panel, setPanel] = useState<'none' | 'edit' | 'history'>('none')
-
-  const data = useMemo(() => {
-    const out: Record<string, unknown> = {}
-    for (const p of type.properties) out[p.key] = coerceValue(p.type, values[p.key])
-    return out
-  }, [type.properties, values])
-  const validation = validateRecord(type.properties, { title, data })
-
-  const submit = () => {
-    if (!validation.ok) return
-    create.mutate({ objectTypeId: type.id, title: title.trim(), data },
-      { onSuccess: () => { setTitle(''); setValues({}) } })
-  }
+  const linkTypes = useMemo(
+    () => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id),
+    [linkTypeRows, type.id])
+  const [editing, setEditing] = useState(false)
 
   return (
     <section className="space-y-3 border-t pt-5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
-          <h2 className="text-sm font-semibold">{type.label} records</h2>
-          <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="minimal" size="small" icon="edit" active={panel === 'edit'}
-            onClick={() => { setPanel(panel === 'edit' ? 'none' : 'edit') }}>Edit schema</Button>
-          <Button variant="minimal" size="small" icon="history" active={panel === 'history'}
-            onClick={() => { setPanel(panel === 'history' ? 'none' : 'history') }}>History</Button>
-          <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
-            onClick={() => {
-              if (window.confirm(`Delete the "${type.label}" type and all its records?`)) del.mutate(type.id)
-            }}>
-            Delete type
-          </Button>
-        </div>
+      <div className="flex items-center gap-2">
+        <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
+        <h2 className="text-sm font-semibold">{type.label}</h2>
+        <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
+        <Button variant="minimal" size="small" icon="edit" active={editing} className="ml-auto"
+          onClick={() => { setEditing(!editing) }}>Edit properties</Button>
       </div>
-
-      {panel === 'edit' && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setPanel('none') }} />}
-      {panel === 'history' && <HistoryPanel type={type} />}
-
-      <Card className="space-y-2">
-        <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />
-        {type.properties.map((p) => (
-          <div key={p.key} className="flex items-center gap-2">
-            <label className="text-xs text-muted-foreground w-32 shrink-0">{p.label}{p.required && ' *'}</label>
-            <PropertyInput p={p} value={values[p.key]} onChange={(v) => { setValues((cur) => ({ ...cur, [p.key]: v })) }} />
-          </div>
-        ))}
-        <Button intent={Intent.PRIMARY} size="small" icon="add" disabled={!validation.ok} loading={create.isPending} onClick={submit}>Add record</Button>
-      </Card>
-
+      {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
       <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
-
-      {isLoading ? (
-        <Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading records…</Card>
-      ) : records.length === 0 ? (
-        <Card compact className="text-xs text-muted-foreground">No records yet.</Card>
-      ) : (
-        <Card compact className="!p-0 overflow-hidden divide-y divide-border">
-          {records.map((r) => (
-            <div key={r.id} className="flex items-start gap-3 px-4 py-2.5">
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{r.title}</p>
-                <p className="text-[11px] text-muted-foreground truncate">
-                  {type.properties.map((p) => `${p.label}: ${formatVal(r.data[p.key])}`).join(' · ') || '—'}
-                </p>
-                {type.computedProperties.length > 0 && (
-                  <p className="text-[11px] text-violet-600/80 truncate">
-                    {type.computedProperties.map((cp) => `${cp.label}: ${formatVal(evaluateComputed(cp, r.data))}`).join(' · ')}
-                  </p>
-                )}
-                {linkTypes.length > 0 && <RecordLinks recordId={r.id} linkTypes={linkTypes} />}
-              </div>
-              <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER} onClick={() => { delRecord.mutate(r.id) }} />
-            </div>
-          ))}
-        </Card>
-      )}
     </section>
   )
 }
 
-// Edit the live schema. Existing property keys are preserved (records reference
-// them); only newly added properties derive a key from their label. Saving bumps
-// the version + snapshots via the DB triggers.
 function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => void }) {
   const update = useUpdateObjectType()
   const [label, setLabel] = useState(type.label)
@@ -562,37 +491,6 @@ function ViewBuilder({ properties, computedProperties, config, onChange }: {
   )
 }
 
-function HistoryPanel({ type }: { type: ObjectTypeDef }) {
-  const { data: revisions = [], isLoading } = useRevisions(type.id)
-  const restore = useRestoreRevision()
-
-  return (
-    <Card compact className="!p-0 overflow-hidden divide-y divide-border">
-      {isLoading ? (
-        <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading history…</div>
-      ) : revisions.map((rev) => (
-        <div key={rev.id} className="flex items-center gap-3 px-4 py-2.5">
-          <Tag minimal intent={rev.version === type.version ? Intent.SUCCESS : Intent.NONE} className="tabular-nums shrink-0">v{rev.version}</Tag>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium truncate">{rev.label}</p>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {rev.properties.map((p) => p.label).join(', ') || 'no properties'}
-              {rev.computed_properties.length > 0 && ` · computed: ${rev.computed_properties.map((c) => c.label).join(', ')}`}
-            </p>
-          </div>
-          <span className="text-[10px] text-muted-foreground shrink-0">{new Date(rev.created_at).toLocaleDateString()}</span>
-          {rev.version !== type.version && (
-            <Button variant="minimal" size="small" icon="undo" loading={restore.isPending}
-              onClick={() => { restore.mutate(rev) }}>
-              Restore
-            </Button>
-          )}
-        </div>
-      ))}
-    </Card>
-  )
-}
-
 function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[]; linkTypes: LinkTypeDef[] }) {
   const create = useCreateLinkType()
   const del = useDeleteLinkType()
@@ -635,81 +533,4 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
       </div>
     </Card>
   )
-}
-
-function RecordLinks({ recordId, linkTypes }: { recordId: string; linkTypes: LinkTypeDef[] }) {
-  const { data: links = [] } = useRecordLinks(recordId)
-  const create = useCreateObjectLink(recordId)
-  const del = useDeleteObjectLink(recordId)
-  const [open, setOpen] = useState(false)
-  const [ltId, setLtId] = useState(linkTypes[0]?.id ?? '')
-  // RecordLinks only renders when the type has link types, so [0] is defined.
-  const selectedLt = linkTypes.find((lt) => lt.id === ltId) ?? linkTypes[0]
-  const { data: targetRecords = [] } = useObjectRecords(open ? selectedLt.targetTypeId : null)
-  const [targetId, setTargetId] = useState('')
-
-  const addLink = () => {
-    if (!targetId) return
-    create.mutate({ linkTypeId: selectedLt.id, sourceRecordId: recordId, targetRecordId: targetId }, { onSuccess: () => { setTargetId('') } })
-  }
-
-  return (
-    <div className="mt-1 space-y-1">
-      <div className="flex flex-wrap items-center gap-1">
-        {links.map((l) => (
-          <Tag key={l.id} minimal onRemove={() => { del.mutate(l.id) }} className="!text-[10px]">
-            {l.linkTypeLabel}: {l.targetTitle}
-          </Tag>
-        ))}
-        <Button variant="minimal" size="small" icon="link" onClick={() => { setOpen((o) => !o) }} className="!text-[10px]">Link</Button>
-      </div>
-      {open && (
-        <div className="flex flex-wrap items-center gap-1">
-          <HTMLSelect value={ltId} onChange={(e) => { setLtId(e.currentTarget.value) }}>
-            {linkTypes.map((lt) => <option key={lt.id} value={lt.id}>{lt.label}</option>)}
-          </HTMLSelect>
-          <HTMLSelect value={targetId} onChange={(e) => { setTargetId(e.currentTarget.value) }}>
-            <option value="">Select a record…</option>
-            {targetRecords.map((rec) => <option key={rec.id} value={rec.id}>{rec.title}</option>)}
-          </HTMLSelect>
-          <Button size="small" icon="add" disabled={!targetId} loading={create.isPending} onClick={addLink}>Add</Button>
-        </div>
-      )}
-    </div>
-  )
-}
-
-function PropertyInput({ p, value, onChange }: { p: PropertyDef; value: unknown; onChange: (v: unknown) => void }) {
-  // An embedding is written by the pipeline. Showing an editable box would invite
-  // someone to type into a search index.
-  if (p.type === 'vector') {
-    const dims = Array.isArray(value) ? value.length : 0
-    return (
-      <Tag minimal icon="array-numeric" className="!text-[10px]">
-        {dims > 0 ? `${String(dims)}-dimension embedding` : 'set when the document is processed'}
-      </Tag>
-    )
-  }
-  if (p.type === 'media_reference') {
-    return (
-      <InputGroup value={typeof value === 'string' ? value : ''} placeholder="bucket/path/to/file"
-        leftIcon="paperclip" className="flex-1"
-        onChange={(e) => { onChange(e.currentTarget.value) }} />
-    )
-  }
-  if (p.type === 'boolean') return <Switch checked={value === true} onChange={() => { onChange(value !== true) }} className="mb-0" />
-  if (p.type === 'number') return <NumericInput value={typeof value === 'number' ? value : ''} onValueChange={(v) => { onChange(Number.isFinite(v) ? v : null) }} buttonPosition="none" style={{ width: 140 }} />
-  if (p.type === 'date') return <InputGroup type="date" value={typeof value === 'string' ? value : ''} onChange={(e) => { onChange(e.currentTarget.value) }} />
-  return <InputGroup value={typeof value === 'string' ? value : ''} onChange={(e) => { onChange(e.currentTarget.value) }} className="flex-1" />
-}
-
-function formatVal(v: unknown): string {
-  if (v === null || v === undefined || v === '') return '—'
-  if (typeof v === 'boolean') return v ? 'Yes' : 'No'
-  if (typeof v === 'number') return String(v)
-  if (typeof v === 'string') return v
-  // A vector reads as its shape, never its contents — 1,536 floats in a table
-  // cell is noise that hides every other value in the row.
-  if (Array.isArray(v)) return `${String(v.length)} dimensions`
-  return '—'
 }
