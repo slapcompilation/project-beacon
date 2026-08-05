@@ -9,7 +9,6 @@ import {
 import { toast } from 'sonner'
 import { useOrgPolicy, useSetOrgPolicy, DEFAULT_ORG_POLICY, type OrgPolicy } from './policy'
 import { useCurrentAgentReleases, pickProductionRelease } from '@/features/agentStudio/hooks'
-import { useDecisionCalibration } from '@/features/calibration/hooks'
 import { ACTION_AGENT } from './agentActions'
 
 const KNOWN_ACTION_TYPES: ReadonlyArray<{ type: string; label: string; hint: string }> = [
@@ -37,7 +36,6 @@ export function PolicyTab() {
   const { data, isLoading, isError } = useOrgPolicy()
   const setPolicy = useSetOrgPolicy()
   const releases = useCurrentAgentReleases()
-  const { calibration } = useDecisionCalibration(0)  // all-time → the most resolved samples
   const [draft, setDraft] = useState<OrgPolicy>(DEFAULT_ORG_POLICY)
 
   useEffect(() => {
@@ -76,17 +74,14 @@ export function PolicyTab() {
   // production, and has its stated confidence proven calibrated? Runtime is the
   // real enforcement (fail-closed release gate + calibration veto) — this just
   // makes the evidence visible where the operator sets the floor.
-  const minSamples = draft.auto_execution.min_calibration_samples
   const requireCal = draft.auto_execution.require_calibration
   const trustFor = (actionType: string) => {
     const agent = ACTION_AGENT[actionType]
     if (!agent) return null
     const hasProd = !!pickProductionRelease(releases.data ?? [], agent)
-    const slice = calibration?.byAgent.find((s) => s.key === agent)
-    const resolved = slice?.report.resolved ?? 0
-    const verdict = slice?.report.verdict ?? 'insufficient-data'
-    const proven = !!slice && slice.report.sufficientData && resolved >= minSamples && verdict !== 'overconfident'
-    return { agent, hasProd, verdict, resolved, proven }
+    // Calibration was ours, not Foundry's, and went with it. A production
+    // release is what the gate can still prove.
+    return { agent, hasProd, verdict: 'insufficient-data' as const, resolved: 0, proven: false }
   }
 
   return (

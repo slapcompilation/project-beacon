@@ -20,7 +20,6 @@ const ApplicationsPage = lazyWithRetry(() => import('@/pages/ApplicationsPage'))
 const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const NotificationsPage = lazyWithRetry(() => import('@/pages/NotificationsPage'))
-const WhatsNewPage = lazyWithRetry(() => import('@/pages/WhatsNewPage'))
 const ObjectsPage = lazyWithRetry(() => import('@/pages/ObjectsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const ModulePage  = lazyWithRetry(() => import('@/pages/ModulePage'))
@@ -89,7 +88,6 @@ function AppRoutes() {
             <Route path="/settings"      element={<SettingsPage />} />
             <Route path="/account"       element={<AccountPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/whats-new"     element={<WhatsNewPage />} />
             <Route path="/objects"       element={<ObjectsPage />} />
             <Route path="/projects"      element={<ProjectsPage />} />
             {/* Generic on purpose: a new application must not mean a new route. */}

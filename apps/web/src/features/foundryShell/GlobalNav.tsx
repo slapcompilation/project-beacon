@@ -16,7 +16,6 @@ import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useFavoritesStore } from '@/stores/favorites.store'
 import { useUnreadNotificationCount } from '@/features/notifications/hooks'
-import { useWhatsNew } from '@/features/whatsNew/hooks'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
 // ?aip= tab decides which rail item is active.
@@ -51,7 +50,6 @@ export function GlobalNav() {
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
   const email              = useAuthStore((s) => s.session?.user.email ?? '')
   const notifTotal         = useUnreadNotificationCount()
-  const { hasUnseen }      = useWhatsNew()
   const [manageOpen, setManageOpen] = useState(false)
 
   const onSelect = (id: string) => {
@@ -90,7 +88,6 @@ export function GlobalNav() {
         badges={{
           notifs:    notifTotal,
         }}
-        dots={{ whatsnew: hasUnseen }}
         accountInitials={initialsFromEmail(email)}
         accountMenu={<AccountMenu />}
         onViewAll={(header) => { if (header === 'Files') setManageOpen(true); else void navigate('/applications') }}

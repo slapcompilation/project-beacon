@@ -18,15 +18,11 @@ import { PolicyTab } from './PolicyTab'
 const CasesPage                 = lazy(() => import('@/pages/CasesPage'))
 const AgentStudioPage           = lazy(() => import('@/pages/AgentStudioPage'))
 const ToolsPage                 = lazy(() => import('@/pages/ToolsPage'))
-const DecisionCalibrationPage   = lazy(() => import('@/pages/DecisionCalibrationPage'))
-const FlywheelPage              = lazy(() => import('@/pages/FlywheelPage'))
 const StudioLanding             = lazy(() => import('@/features/mind/StudioLanding'))
 const DocumentsPage             = lazy(() => import('@/pages/DocumentsPage'))
-const EntityLinkSuggestionsPage = lazy(() => import('@/pages/EntityLinkSuggestionsPage'))
 const Cohorts                   = lazy(() => import('@/features/objectSets/Cohorts'))
 const ApprovedAnswersPage       = lazy(() => import('@/pages/ApprovedAnswersPage'))
 const ScenariosPage             = lazy(() => import('@/pages/ScenariosPage'))
-const SystemMapPage             = lazy(() => import('@/pages/SystemMapPage'))
 const CopilotConfigPage         = lazy(() => import('@/pages/CopilotConfigPage'))
 const ObjectTypesPage           = lazy(() => import('@/pages/ObjectTypesPage'))
 const AutomationsPage           = lazy(() => import('@/pages/AutomationsPage'))
@@ -253,17 +249,13 @@ function renderTab(t: AipTab, onNavigate: (t: AipTab) => void) {
     case 'studio':       return <StudioLanding onNavigate={onNavigate} />
     case 'cases':        return <CasesPage />
     case 'agents':       return <AgentStudioPage />
-    case 'system-map':   return <SystemMapPage />
     case 'object-types': return <ObjectTypesPage />
     case 'documents':    return <DocumentsPage />
     case 'cohorts': return <Cohorts />
-    case 'entity-links': return <EntityLinkSuggestionsPage />
     case 'answers':      return <ApprovedAnswersPage />
     case 'principles':   return <SectionFrame><PrinciplesSection /></SectionFrame>
     case 'constraints':  return <SectionFrame><ConstraintsSection /></SectionFrame>
     case 'tools':        return <ToolsPage />
-    case 'calibration':  return <DecisionCalibrationPage />
-    case 'flywheel':     return <FlywheelPage />
     case 'automations':  return <AutomationsPage />
     case 'scenarios':     return <ScenariosPage />
     case 'copilot':      return <CopilotConfigPage />
