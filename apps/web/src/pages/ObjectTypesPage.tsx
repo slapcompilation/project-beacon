@@ -12,7 +12,7 @@ import type { IconName } from '@blueprintjs/icons'
 import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateRecord, coerceValue,
   validateLinkTypeDraft, evaluateComputed, validateComputedProperty, validateViewConfig,
-  STATUS_META, attachProblem, usedBy,
+  attachProblem, usedBy,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
 } from '@beacon/reality-graph'
@@ -25,15 +25,10 @@ import {
   useObjectRecords, useCreateObjectRecord, useDeleteObjectRecord,
   useLinkTypes, useCreateLinkType, useDeleteLinkType,
   useRecordLinks, useCreateObjectLink, useDeleteObjectLink, useTypeImpact,
-  useSetObjectTypeStatus,
 } from '@/features/objectTypes/hooks'
 import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
 } from '@/features/objectTypes/sharedProperties'
-import { PromoteToggle, usePromotions } from '@/features/promotion/api'
-import { StatusControl, StatusTag } from '@/features/ontologyStatus/StatusControl'
-import { useStatuses, useSetStatus } from '@/features/ontologyStatus/api'
-import { ActionTypesSection } from '@/features/actionTypes/ActionTypesSection'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
@@ -88,7 +83,6 @@ export default function ObjectTypesPage() {
                   <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <p className="text-[11px] text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
-                    <StatusTag status={t.status ?? 'experimental'} />
                   </div>
                 </Card>
               ))}
@@ -99,8 +93,6 @@ export default function ObjectTypesPage() {
         {selected && <RecordsPanel type={selected} allTypes={linkTargets} />}
 
         <SharedPropertiesSection types={types} />
-
-        <ActionTypesSection types={types} />
 
         <InterfacesSection types={types} />
       </div>
@@ -317,12 +309,7 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
   const [title, setTitle] = useState('')
   const [values, setValues] = useState<Record<string, unknown>>({})
-  const [panel, setPanel] = useState<'none' | 'edit' | 'history' | 'status'>('none')
-  const status = type.status ?? 'experimental'
-  const meta = STATUS_META[status]
-  const setStatus = useSetObjectTypeStatus()
-  const { data: promotions } = usePromotions()
-  const isPromoted = promotions?.has(`object_type:${type.id}`) ?? false
+  const [panel, setPanel] = useState<'none' | 'edit' | 'history'>('none')
 
   const data = useMemo(() => {
     const out: Record<string, unknown> = {}
@@ -344,20 +331,15 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
           <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
           <h2 className="text-sm font-semibold">{type.label} records</h2>
           <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
-          <StatusTag status={status} />
         </div>
         <div className="flex items-center gap-1">
           <Button variant="minimal" size="small" icon="edit" active={panel === 'edit'}
             onClick={() => { setPanel(panel === 'edit' ? 'none' : 'edit') }}>Edit schema</Button>
           <Button variant="minimal" size="small" icon="history" active={panel === 'history'}
             onClick={() => { setPanel(panel === 'history' ? 'none' : 'history') }}>History</Button>
-          <Button variant="minimal" size="small" icon="lifesaver" active={panel === 'status'}
-            onClick={() => { setPanel(panel === 'status' ? 'none' : 'status') }}>Status</Button>
           <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
             // The database refuses this outright; say so before the click rather
             // than surfacing a raised exception as a toast.
-            disabled={!meta.deletable}
-            title={meta.deletable ? undefined : `${meta.label} — deprecate it first, with a reason and a deadline.`}
             onClick={() => {
               // Impact analysis before the edit, not a stack trace after it.
               const breaks = impact.data ?? []
@@ -377,22 +359,6 @@ function RecordsPanel({ type, allTypes }: { type: ObjectTypeDef; allTypes: Objec
 
       {panel === 'edit' && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setPanel('none') }} />}
       {panel === 'history' && <HistoryPanel type={type} />}
-      {panel === 'status' && (
-        <div className="space-y-2">
-          <StatusControl
-            key={`${type.id}-${status}`}
-            current={status}
-            visibility={type.visibility ?? 'normal'}
-            deprecation={type.deprecation ?? null}
-            replacements={allTypes.filter((t) => t.id !== type.id)
-              .map((t) => ({ apiName: t.apiName, label: t.label }))}
-            visibilityLocked={isPromoted}
-            pending={setStatus.isPending}
-            onSave={(v) => { setStatus.mutate({ id: type.id, ...v }) }} />
-          {/* Promotion is a different axis — a type is active AND promoted. */}
-          <Card compact><PromoteToggle kind="object_type" id={type.id} withEffects /></Card>
-        </div>
-      )}
 
       <Card className="space-y-2">
         <InputGroup placeholder={`${type.label} title`} value={title} onChange={(e) => { setTitle(e.currentTarget.value) }} />
@@ -646,9 +612,6 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const hotelId = useActiveHotelId()
   const create = useCreateLinkType()
   const del = useDeleteLinkType()
-  const { data: statuses } = useStatuses('link_types')
-  const setStatus = useSetStatus('link_types')
-  const [openStatus, setOpenStatus] = useState<string | null>(null)
   const [label, setLabel] = useState('')
   const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
   const apiName = toSlug(label)
@@ -664,34 +627,17 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
     <Card className="space-y-2">
       <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Link types</span>
       {linkTypes.map((lt) => {
-        const st = statuses?.get(lt.id)
         return (
           <div key={lt.id} className="space-y-1.5">
             <div className="flex items-center gap-2 text-xs">
               <Icon icon="link" size={12} className="text-violet-500" />
               <span className="font-medium">{lt.label}</span>
               <span className="text-muted-foreground">→ {labelOf(lt.targetTypeId)}</span>
-              {st && <StatusTag status={st.status} />}
-              <Button variant="minimal" size="small" icon="lifesaver" title="Status"
-                active={openStatus === lt.id} className="ml-auto"
-                onClick={() => { setOpenStatus(openStatus === lt.id ? null : lt.id) }} />
               {/* An active link type cannot be deleted — the database says so,
                   and saying it here beats surfacing the exception as a toast. */}
-              <Button variant="minimal" size="small" icon="cross"
-                disabled={st ? !STATUS_META[st.status].deletable : false}
-                title={st && !STATUS_META[st.status].deletable
-                  ? `${STATUS_META[st.status].label} — deprecate it first.` : undefined}
+              <Button variant="minimal" size="small" icon="cross" className="ml-auto"
                 onClick={() => { del.mutate(lt.id) }} />
             </div>
-            {openStatus === lt.id && st && (
-              <StatusControl
-                key={`${lt.id}-${st.status}`}
-                current={st.status} visibility={st.visibility} deprecation={st.deprecation}
-                replacements={linkTypes.filter((o) => o.id !== lt.id)
-                  .map((o) => ({ apiName: o.apiName, label: o.label }))}
-                pending={setStatus.isPending}
-                onSave={(v) => { setStatus.mutate({ id: lt.id, ...v }) }} />
-            )}
           </div>
         )
       })}

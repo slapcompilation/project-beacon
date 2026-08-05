@@ -179,27 +179,11 @@ for (const key of declared.keys()) {
 // shipped names were takeable by an authored action type. The TypeScript side is
 // derived now; this is what keeps the copy in step.
 const actionDrift = []
-try {
-  const { actionDescriptors } = await import('../supabase/functions/_shared/reality-graph.bundle.mjs')
-  const registry = Object.keys(actionDescriptors).sort()
-  // An ABSENT array means the guard was never deployed. An array that is present
-  // and empty is correct when nothing ships in code — which is the state since
-  // the BeaconAction union went. Conflating the two (zero names == not
-  // deployed) was a proxy that only held while the registry always had names.
-  const match = /shipped text\[\] := ARRAY\[([\s\S]*?)\]/.exec(fns.src)
-  const body = match?.[1] ?? ''
-  const inSql = [...body.matchAll(/'([A-Z_]+)'/g)].map((m) => m[1]).sort()
-  if (!match) {
-    actionDrift.push('refuse_shipped_action_name has no name array — the collision guard is not deployed')
-  } else if (inSql.length === 0 && registry.length > 0) {
-    actionDrift.push(`the collision guard is empty but ${String(registry.length)} action(s) ship — regenerate it`)
-  } else {
-    for (const n of registry) if (!inSql.includes(n)) actionDrift.push(`${n} is a shipped action an authored one could take`)
-    for (const n of inSql) if (!registry.includes(n)) actionDrift.push(`${n} is guarded but is not an action type`)
-  }
-} catch {
-  actionDrift.push('could not read the edge bundle — run `pnpm build:edge-bundle` first')
-}
+// The shipped-action collision check lived here: it compared actionDescriptors
+// in the bundle against the name array in refuse_shipped_action_name(). Both
+// went with the action layer — no action type is defined in code and there is no
+// authored action type table — so there is nothing left to hold together. It
+// returns when action types do.
 
 await client.end()
 

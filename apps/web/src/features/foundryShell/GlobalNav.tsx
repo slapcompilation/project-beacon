@@ -9,12 +9,10 @@ import { toast } from 'sonner'
 import { Popover, Menu, MenuItem, MenuDivider, Icon } from '@blueprintjs/core'
 import { FoundrySidebar } from './FoundrySidebar'
 import { ManageFavoritesDialog } from './ManageFavoritesDialog'
-import { PurposeSwitcher } from '@/features/purpose/PurposeSwitcher'
 import { services } from '@/lib/services'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useFavoritesStore } from '@/stores/favorites.store'
-import { useUnreadNotificationCount } from '@/features/notifications/hooks'
 
 // /mind hosts both Decisions (queue/approvals/cases) and Studio (builders); the
 // ?aip= tab decides which rail item is active.
@@ -48,7 +46,6 @@ export function GlobalNav() {
   const favorites          = useFavoritesStore((s) => s.favorites)
   const filesItems = favorites.map((f) => ({ id: f.id, label: f.label, icon: f.icon, subtitle: f.subtitle }))
   const email              = useAuthStore((s) => s.session?.user.email ?? '')
-  const notifTotal         = useUnreadNotificationCount()
   const [manageOpen, setManageOpen] = useState(false)
 
   const onSelect = (id: string) => {
@@ -78,13 +75,11 @@ export function GlobalNav() {
         onSelect={onSelect}
         headerSlot={
           <div className="space-y-1.5">
-            <PurposeSwitcher variant="sidebar" />
             <QuickCreate />
           </div>
         }
         filesItems={filesItems}
         badges={{
-          notifs:    notifTotal,
         }}
         accountInitials={initialsFromEmail(email)}
         accountMenu={<AccountMenu />}

@@ -12,14 +12,15 @@
 //
 // Pure: the caller fetches records, this decides which ones are in.
 
-import type { ComparisonOp } from '../automations/index'
+/** Ordering comparisons. Lived in automations, which was ours; an object set
+ *  filter needs them regardless of who evaluates it. Equality is added at the
+ *  filter's own op type. */
+export type ComparisonOp = 'lt' | 'lte' | 'gt' | 'gte'
 import type { InterfaceDef } from '../interfaces/index'
 import { interfaceProperties } from '../interfaces/index'
 import type { ObjectTypeDef, PropertyDef, PropertyType } from '../objectTypes/index'
 import { validateTraversals, type SetTraversal } from './traversal'
 import { evaluateComputed } from '../objectTypes/index'
-
-export type { ComparisonOp }
 
 /** What a set is drawn from. A `type` subject runs over one type's records; an
  *  `interface` subject runs over EVERY type implementing it — including types

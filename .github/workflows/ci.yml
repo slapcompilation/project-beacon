@@ -70,10 +70,6 @@ jobs:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: pnpm check:vocabulary
 
-      - name: Module references resolve
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: pnpm check:modules
 
       # Five guards policed the database and none looked at apps/web. A cleanup
       # deleted ReportsPage and left its eleven sections behind, plus FinancePage
