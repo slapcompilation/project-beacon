@@ -1,658 +1,148 @@
 # CLAUDE.md
 
-Guidance for Claude Code working in this repo. The north star is **replicating Palantir AIP** for hospitality. Everything below exists to keep us on that path.
+Guidance for Claude Code working in this repo. The goal is **a Foundry clone
+built from Palantir's public documentation.**
 
-## Stage directive — copy Foundry's structure first
+This file was 658 lines describing a hospitality product — a Reality Graph, a
+Logic Tool registry, an Action registry, three shipped agents, four operator
+layers. All of it is deleted. What follows describes what is actually here.
 
-**Right now we are replicating Foundry's structure faithfully. Tailoring it to hospitality, and simplifying it, is a later pass — not this stage's job.**
+## The rule that produced this state
 
-Where Foundry has a shape for the thing being built, adopt that shape — its decomposition, its names, its limits — before considering a simpler one. The reason is cost, not reverence: a structure retrofitted after five migrations is far more expensive than the same structure adopted once.
+**Everything not in Palantir's documentation is deleted.** Row count, working
+data and effort spent are not arguments. The test is not "does Foundry have
+something like this" — it is **"is ours built the way Foundry builds it"**. A
+half-built version is worse than none, because it looks like a foundation.
 
-When building anything with a Foundry counterpart:
+Four things follow, and each was learned by getting it wrong:
 
-1. **Find it in `docs/foundry-reference/` before designing.** `grep mirror/` for the concept (311 pages of the load-bearing sections); `all-foundry-urls.txt` for the page when the mirror doesn't carry it. The mirror is a dated snapshot (2026-07-23) — re-fetch the page when precision matters.
-2. **Adopt the decomposition, not just the vocabulary.** Foundry's `searchAround` returns an object *set*, not a filtered list. Copying the word while keeping a different shape is the exact failure this rule exists to prevent.
-3. **Copy the limits too.** They encode a reason — traversal depth is capped at 3 because the search fails at runtime beyond it. A limit dropped for convenience is a decision made without the evidence behind it.
-4. **Two similar functionalities means one of them is wrong.** When the system
-   has two ways to do a thing — or you are about to add a second — go to
-   `docs/foundry-reference/` and read how Palantir configures that
-   functionality, then **adopt their configuration**. Do not pick between ours
-   on taste. This is the rule that would have caught the seven-versus-three tool
-   categories, the `EdgeType` union outliving `link_types`, and a hand-written
-   `TrendCell` sitting beside a shared one.
+1. **Cite the page, inline, before you build.** `grep docs/foundry-reference/mirror/`
+   for the concept. Quote the sentence you are relying on. A citation invented
+   after the fact is how `object_type_impact` came back — the phrase "impact
+   analysis" appears in exactly one mirrored page and it is about pipelines.
+2. **A link is not a reading.** `all-foundry-urls.txt` holds 4,764 slugs; the
+   mirror holds the pages. Having the URL proves nothing.
+3. **If the documentation does not cover it, ASK.** The operator has the
+   learn.palantir.com courses and the end-to-end walkthroughs. A plausible shape
+   invented here becomes structure, and structure is expensive.
+4. **Never hardcode.** The named example: `rebuild_relationship_edges_view()`
+   appended a hand-written `product_variants JOIN products` branch to a view
+   whose migration claimed it was derived from `link_types`. The claim was false
+   for as long as the branch existed.
 
-5. **Search the pages, not the URLs.** `all-foundry-urls.txt` is an index of
-   slugs. Concluding "Foundry has no staging releases" because `staging` appears
-   in no URL is wrong — the page is called `release-model`, and it defines the
-   term. `grep -r mirror/` before deciding something is ours; mirror the section
-   first if it is not there.
+### The three-times mistake, so it is not made a fourth
 
-6. **A link is not a reading.** `all-foundry-urls.txt` holds 4,764 slugs and the
-   mirror holds 532 pages — having the URL proves nothing about what the page
-   says. Mirror the section and read it before describing Foundry's behaviour,
-   and quote the sentence you are relying on.
+A universal table is not how Foundry stores anything. Deleted in this order,
+each for the same reason, and each time the next one was kept:
 
-7. **If the documentation does not cover it, ASK — do not infer.** When a
-   capability has no page you can find, say so plainly and ask the operator to
-   search for it. They have access to material we do not: the end-to-end
-   walkthroughs and the learn.palantir.com courses. A plausible shape invented
-   here becomes a migration, and a migration becomes structure.
-
-8. **Say when you're not sure.** If the docs don't clearly answer how Foundry does something, state that plainly and stop rather than inventing a plausible shape — the user will check too. A wrong guess here becomes structure, and structure is what this stage is for.
-
-### How this sits with "no concept without its consumer"
-
-Both rules hold, on different things:
-
-- **Shape that mirrors Foundry** may land ahead of its consumer. That is the point of this stage; the rework it avoids is the whole argument.
-- **Shape we invented** may not. `nodeSet` had no Foundry counterpart *and* no consumer — deleted in #418, re-derived in Tier 1 once four consumers existed. That deletion was right and the rule that produced it stands.
-
-So the test is: **is this Foundry's shape, or ours?** Ours needs a consumer today. Theirs needs a citation.
-
-### What we copy, and what we deliberately don't
-
-**Copy the shape: decomposition, names, limits, cardinality rules, error semantics.** That is what "to the letter" means here.
-
-**Do not copy the substrate.** Foundry's backend is predominantly Java (their error codes — `Phonograph2:SchemaMismatch` — follow Conjure's `Namespace:ErrorName`), with TypeScript/React front-ends. We are not moving to it, and the reason is specific rather than inertia:
-
-> Our TypeScript domain library runs in **both** the browser and the edge functions — `selectObjectSet`, `searchAround`, `evaluateAutomation`, `decideAutoExecution` are one implementation with one test suite, executing identically client- and server-side. Foundry needs generated SDKs to get that across a language boundary. A Java backend would mean a TS client anyway, and then **two implementations of ontology semantics** — the exact drift class the whole ontology arc exists to remove.
-
-Two supporting reasons: Foundry's Java serves a multi-tenant platform with Spark, streaming and custom compute, all of which are already non-goals here — copying the language optimised for needs we have declined is the cargo-culting this directive warns against. And our backend is increasingly Postgres: link types, the `relationship_edges` view, the drift guards and 26 RLS contracts are SQL, which a rewrite would not touch.
-
-Why Java is right *for them* and not for us, so this isn't re-litigated: Foundry's core is **Spark**, and the whole distributed-data stack (Hadoop, Parquet, Iceberg, Flink) is JVM-native — being in-process with it is decisive. Add a 2003 start date, long-lived server processes, hundreds of services across thousands of engineers, and JDBC/Kerberos/SAML enterprise integration. **Every one of those is either a non-goal here or already solved differently.** The only reason that transfers is cross-boundary type safety, and a shared TypeScript package gives us that without generated SDKs.
-
-### Two things we DO take from their stack
-
-**1. Namespaced, typed errors — `Namespace:ErrorName`.** Foundry's failures read `Phonograph2:SchemaMismatch`, `OntologyMetadata:UnreferencedRuleSets`: a service namespace, a specific name, and a payload. Ours are mostly bare strings, which cannot be matched on, counted, or handled differently by a caller. New failures — edge functions, RPC exceptions, action rejections — should name themselves this way. A caller must be able to branch on the error without parsing prose.
-
-**2. Python for modelling, behind the adapter seam.** When a trained model earns its place over a baseline, it arrives as a Python adapter behind `runInference()` — not as a second general-purpose backend language. The seam already exists (`objectives/<name>/adapter.ts`), and `basis` is what changes for callers. Language pluralism exactly where it pays and nowhere else.
-
-### Deliberate divergences
-
-Recorded in `docs/DIVERGENCES.md`, each with the mirrored citation and the condition that undoes it. Choosing not to build something is fine; **quietly building a different shape is not.**
-
-## Where the authority lives, per layer
-
-This file drifts, and it drifts the same way every time: **it restates a
-vocabulary that is really enforced somewhere else.** The `EdgeType` union was the
-authority until `link_types` became one. Tool categories claimed AIP parity
-against a number nobody rechecked. Both read as spec and neither was.
-
-So before trusting a list in this file, check what actually holds it:
-
-| layer | the authority | the guard |
-|---|---|---|
-| Edges / link types | `link_types` rows | `db:contracts` C25, C26 |
-| Object types, status, visibility | `object_types` + its CHECKs | `check:shape`, `check:vocabulary` |
-| Any CHECK vocabulary | the constraint | `check:vocabulary` |
-| Actions | `BeaconAction` in code **and** `user_action_types` rows | `check:shape`, C1–C30 |
-| Workshop modules | `module_*` rows | `check:modules` |
-| RPC names | the database | `check:rpcs` |
-| Web surfaces | the import graph from `main.tsx` | `check:surfaces` |
-| Divergences from Foundry | `docs/DIVERGENCES.md` | the mirrored citation in each row |
-
-**A list in this file that no guard polices is a description, not a rule.** When
-they disagree, the guard is right.
-
-### The guards, and what each one catches
-
-Prose rots; the gates do not. These are executable and run in CI:
-
-| command | catches |
+| deleted | what it was |
 |---|---|
-| `pnpm check:shape` | a table or function nothing reaches |
-| `pnpm check:surfaces` | a web file nothing can reach from `main.tsx` |
-| `pnpm check:vocabulary` | a CHECK value no code, data or declaration consumes — and the shipped-action collision list drifting from the registry |
-| `pnpm check:modules` | a module reference held by name in jsonb that points nowhere |
-| `pnpm check:rpcs` | an RPC name the app calls that does not exist |
-| `pnpm check:edge` | edge functions that do not parse |
-| `pnpm db:contracts` | RLS and security invariants, including cross-hotel scope |
+| `object_links` | one row per link of any type |
+| `relationship_edges_store` | one row per edge of any type |
+| `object_records` | one row per object of any type, properties in jsonb |
 
-**These replaced the documentation that used to claim the same things.** Twelve
-separate stale claims across the docs sent work in the wrong direction in a
-single week — "ingestion stops at ocr" when two documents were fully processed,
-"no cross-artifact search" when a ⌘K palette existed, an `EdgeType` union listing
-four edges the database refuses. A guard cannot go stale without failing.
+Foundry backs an object type with a **datasource**, and where there is not one
+you "select a location to generate a dataset" (`create-object-type.md`) — a real
+table, real columns, per type. Links are backed by object type foreign keys or a
+join dataset (`create-link-type.md`). If a design needs a generic table with a
+`kind` column, it is this mistake again.
 
-## Where the source of truth is
+## What is here
 
-Three things, and nothing else:
+```
+apps/web/                44 files. Ontology Manager (/ontology), projects,
+                         account, auth, the shell. Vite + React + Blueprint.
+packages/reality-graph/  the ontology model: object types, properties and base
+                         types, link cardinality, interfaces, shared properties,
+                         object sets and traversal, status, project roles.
+packages/types/          UserRole, AuthSession, EdgeType, generated ontology types.
+packages/services/       IAuthService and the other interface seams.
+packages/ui/             cn().
+supabase/migrations/     390 migrations. The last ~40 are the teardown.
+docs/foundry-reference/  532+ mirrored pages + 4,764 URL slugs. THE SOURCE.
+docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
+```
 
-1. **`docs/foundry-reference/mirror/`** — 532 mirrored pages. Grep here before
-   designing anything. `node scripts/mirror-foundry-docs.mjs <section>` adds more.
-2. **`docs/foundry-reference/all-foundry-urls.txt`** — 4,764 page slugs. An index
-   of names, *not* content: mirror the section before concluding Foundry lacks
-   something.
-3. **`docs/foundry-deep-dives/`** — 214 PDFs from learn.palantir.com across nine
-   courses, with a summary per course.
+Eleven tables, and every value in every CHECK traces to a page:
 
-Everything else that used to sit in `docs/` was commentary on those, and drifted
-away from them. It is in git history if a decision needs recovering.
+| table | what it holds |
+|---|---|
+| `object_types` | api name, label, properties, status, visibility, title key, source table |
+| `link_types` | the two sides, cardinality, backing |
+| `ontology_interfaces`, `object_type_interfaces` | interfaces and their implementations |
+| `shared_properties` | one definition used by several types |
+| `time_series_properties` | a time series property's declaration |
+| `object_sets` | a saved set with its filters |
+| `projects`, `project_resources`, `project_role_grants` | Compass: owner/editor/viewer/discoverer |
+| `organizations`, `users` | the tenant, and who is in it |
+
+**The ontology has no way to hold an object yet.** `object_types` can describe
+one; nothing stores instances. That is the datasource model, and it is the first
+thing to build.
 
 ## Commands
 
 ```bash
-pnpm install                       # repo root
-pnpm dev                           # all apps
-pnpm --filter @beacon/web dev      # web only
-pnpm type-check
-pnpm lint
-pnpm --filter @beacon/web build
-pnpm format
+pnpm install
+pnpm dev                         # all apps
+pnpm --filter @beacon/web dev
+pnpm turbo lint type-check test  # what CI runs
+pnpm check:rpcs                  # every RPC the app calls exists
+pnpm check:surfaces              # every web file is reachable from main.tsx
+pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
+pnpm gen:ontology                # regenerate types from object_types
 ```
 
-## Repo shape
-
-```
-apps/
-  web/                  Vite + React 18 + TS + Blueprint
-packages/
-  types/                entity + edge types — single source of truth
-  services/             abstract interfaces (IAuthService, …)
-  ui/                   shared primitives
-  hooks/                TanStack Query + graph hooks
-  reality-graph/        ontology, tools, actions, agents, objectives — THE HEART
-  models/               (future) trained-model adapters
-```
-
-`packages/reality-graph` must never import from `apps/web`. It ships independently.
-
----
-
-## The Ontology Is The Product
-
-Beacon is an **Ontology-Augmented Generation** system. The LLM does not retrieve document chunks and write free text. It:
-
-1. **Reads** typed nodes via Logic Tools
-2. **Computes** through deterministic functions (or trained adapters behind the same tool signature)
-3. **Writes** by proposing typed Actions that flow through an audited registry
-
-**Four** load-bearing layers, all rooted in one ontology — and the names are
-Foundry's, not ours: *"The Ontology models decisions through the four-fold
-integration of **data**, **logic**, **action**, and **security**"*
-(`mirror/architecture-center/ontology-system.md`).
-
-| Layer | Lives in | Job |
-|---|---|---|
-| **Data** | `reality-graph/src/nodes` + `edges` | Typed nodes, named edges, computed properties |
-| **Logic** | `reality-graph/src/tools` | Typed functions, callable identically by humans and LLMs |
-| **Action** | `reality-graph/src/actions` | Typed `BeaconAction`s with immutable audit |
-| **Security** | RLS policies, `auth_*()` helpers, project roles | Who may read a node, run a tool, or submit an action — resolved at the moment of interaction |
-
-This table used to read Data / **Compute** / **Mutation** and stop at three.
-Two of those were our words for theirs, and the fourth was missing entirely —
-security sat further down this file as a deployment concern. It is not one: their
-diagram layers the Ontology *above* security, which in turn sits above data,
-logic and actions, and their worked example is that the right to trigger a
-purchase order, the right to run a scenario, and the right to call an LLM are
-three different scopes the ontology reconciles per interaction. That is our
-`decideAutoExecution` gate, our RLS contracts and our project roles — already
-built, previously not named as part of the ontology.
-
-LLMs are glue. They decide *which* component to call. They never do retrieval, math, or writes directly. Drop any layer and the result is unsafe.
-
-**Agents inherit, they do not hold.** *"As these different teams build AI-powered
-agents, they must have security scopes that either inherit from a human user, or
-from the permissions structure of a defined project."* Both halves exist here —
-agent scope inherits the caller, and projects carry roles — which is why an agent
-may never be broader than its invoker.
-
-### Language, Engine, Toolchain
-
-*"The Ontology is not a 'semantic layer'... Rather, the Ontology is a multimodal
-system consisting of dozens of underlying components, which can conceptually be
-grouped into a **Language**, an **Engine**, and **Toolchain**."* Useful for
-saying what `packages/reality-graph` is and what it is not:
-
-- **Language** — the models: objects, links, properties, actions, automations,
-  and the logic that defines how actions operate. Ours: `objectTypes`,
-  `link_types`, `actions`, `automations`.
-- **Engine** — what substantiates the Language: the read path (queries,
-  subscriptions, materializations) and the write path (atomic durable updates,
-  batch mutations, streams, CDC). Ours: Postgres, RLS, the RPC surface.
-- **Toolchain** — using the Ontology *as a backend*: the OSDK plus DevOps
-  tooling for governing production. **This is the thinnest of the three here.**
-  `export_ontology_package` / `install_ontology_package` and the release stages
-  are the beginnings of one; there is no SDK.
-
----
-
-## Data layer — Reality Graph
-
-All data is nodes + typed edges. No bare foreign keys.
-
-**The authority is `link_types`, not this union.** Since migration 256 a link
-type is a row with two named sides, a cardinality and a backing; since 260
-`relationship_edges` is a *projection* over those backings rather than a table.
-The union below is the TypeScript mirror of that vocabulary and drifts if edited
-alone — `pnpm db:contracts` (C25, C26) is what actually holds the two together.
-
-```ts
-// packages/types/src/index.ts — mirrors link_types; the database is the authority
-export type EdgeType =
-  // causal
-  | 'causes' | 'caused_by' | 'triggered'
-  // operational
-  | 'consumes' | 'restocks' | 'fulfills' | 'transfers'
-  // NOTE: `belongs_to_hotel`, `belongs_to_org`, `manages` and `operates` were
-  // listed here and the database REFUSES them — they are absent from
-  // relationship_edges_edge_type_check and have zero rows. Tenancy is not an
-  // edge here; it is the hotel_id / organization_id columns, which is a
-  // deliberate divergence recorded in DIVERGENCES.md.
-  // intelligence + learning
-  | 'proposed_by' | 'approved_by' | 'reverts' | 'similar_to' | 'benchmarks'
-  // documents + provenance
-  | 'describes_entity' | 'cited_in' | 'harmonized_to'
-  // principles + constraints
-  | 'applies_to'
-```
-
-**Logic belongs on nodes, not in UI.** Every derived value lives as a computed property on its node in `packages/reality-graph`:
-
-```ts
-// ✅ on the node
-export const variantNode = {
-  computed: {
-    daysUntilZero: (v, logs) => …,
-    wasteScore:    (v, logs) => …,
-  },
-}
-
-// ❌ in a component
-const daysLeft = useMemo(() => stock / avgUsage, [stock, avgUsage])
-```
-
-### Core node types
-
-Operational: `Variant`, `StockLog`, `RestockRequest`, `PurchaseOrder`, `Supplier`, `Hotel`, `Organization`, `User`.
-
-AIP-native: `Document` (with provenance + page citations), `Proposal` (versioned, with confidence + reasoning + parent_version_id), `Principle` (operator feedback, categorized), `ApprovedAnswer` (curated Q&A, served before fresh LLM calls), `Case` (workflow envelope tying inputs → trace → proposals → outcome), `Constraint` (NL rule, LLM-categorized, applied at trigger points).
-
----
-
-## Compute layer — Logic Tool Registry
-
-A Logic Tool is a named, typed, versioned function. Same signature whether a human, automation, or LLM calls it.
-
-```ts
-export const forecastConsumptionTool = {
-  name: 'forecast_consumption',
-  category: 'logic',          // data | logic | search | mutation | utility | predefined | ui-control
-  kind: 'inproc',             // inproc | remote | container
-  version: '1.0.0',
-  description: 'Projected unit consumption for a variant over N days.',
-  inputSchema:  z.object({ variantId: z.string().uuid(), horizonDays: z.number().int().min(1).max(90) }),
-  outputSchema: z.object({
-    projectedUnits: z.number(),
-    basis:          z.string(),   // 'rolling-30d-avg' | 'prophet-v1' | …
-    confidence:     z.number(),   // 0–1
-  }),
-  examples: [ /* few-shot */ ],
-  traversableLinks: ['consumes', 'restocks'],  // edges the tool may follow
-  invoke: async (input) => { /* deterministic or adapter-backed */ },
-}
-```
-
-### Tool categories — ours, a superset of Foundry's three
-
-Foundry documents **three**: *"AIP Logic leverages three categories of
-Ontology-driven tools — data, logic, and action"* (`mirror/logic/blocks.md`).
-Ours splits further. That is a divergence, not parity, and the extra four earn
-their place by being things the LLM must be told apart: `search` is retrieval
-rather than a query, `mutation` is Foundry's `action`, and `utility`,
-`predefined` and `ui-control` never touch the ontology at all.
-
-| Category | Purpose |
-|---|---|
-| `data` | Fetch / filter / aggregate ontology nodes |
-| `logic` | Pure computation over inputs (forecasting, scoring, ranking) |
-| `search` | Semantic / vector search over nodes or documents |
-| `mutation` | Wrap an Apply Action — the only category allowed to write |
-| `utility` | Format dates, parse text, sanitize strings |
-| `predefined` | Built-in framework helpers (think_step_by_step, request_clarification) |
-| `ui-control` | Surface-level helpers exposed to the operator copilot |
-
-### Rules
-
-- **One file per tool.** Co-locate schema, examples, impl.
-- **Dual-callable.** UI calls `tool.invoke(...)`; agent blocks pick from a registered list. No "LLM-only" variants.
-- **Pure unless `mutation`.** Tools query the graph; only mutation tools write — and only through the Action Registry.
-- **Versioned.** Bump version on input/output/basis change. Every agent run records the version that ran on both the call and the response step, so a number in a proposal is traceable to the implementation that produced it. There is one registry entry per tool name — callers don't select a version, the trace reports it.
-- **Explicit basis + confidence** on every computed result. Without these the operator can't audit and the transparency layer has nothing to render.
-- **`traversableLinks`** declares which edges the tool may follow, and `toolSpec()` appends it to the description the LLM sees — so declaring it constrains the model's plan. It does *not* yet constrain the runtime: there is no graph-traversal primitive to gate. Enforcement has no owner yet. Treat it as a contract with the model, not a sandbox; `docs/DELIVERABLE-MAP.md` carries what is actually queued.
-
----
-
-## Mutation layer — Action Registry (Apply Actions)
-
-Every write flows through `packages/reality-graph/src/actions/`. **No raw `.insert()` / `.update()` in `apps/web`.**
-
-```ts
-export type BeaconAction =
-  | { type: 'ADJUST_STOCK';      variantId: string; delta: number; reason: string }
-  | { type: 'REQUEST_RESTOCK';   variantId: string; quantity: number; urgency: Urgency }
-  | { type: 'WRITE_OFF';         variantId: string; quantity: number; wasteReason: string }
-  | { type: 'APPROVE_RESTOCK';   requestId: string }
-  | { type: 'REJECT_RESTOCK';    requestId: string; reason: string }
-  | { type: 'REVERT_ACTION';     originalId: string; revertReason: string }
-  | { type: 'TRANSFER_STOCK';    fromHotelId: string; toHotelId: string; variantId: string; quantity: number; reason: string }
-  | { type: 'APPROVE_TRANSFER';  transferId: string }
-```
-
-Every action declares:
-
-- **Submission criteria** — validation checked before execution
-- **Side effects** — graph updates, alerts, notifications
-- **Audit entry** — immutable `StockLog` with `triggered_by ∈ {'user', 'ai_proposal_accepted', 'ai_auto_approved', 'automation_threshold', 'revert'}`
-- **Invocation mode** — exactly one of:
-  - `open-form` — modal auto-rendered from the action's schema
-  - `apply-immediately` — one-click when defaults are valid
-
-StockLogs are never edited or deleted. Corrections are compensating transactions (`is_revert: true`, `revert_of: <id>`).
-
-### Two kinds of action type, and where the line is
-
-**Code-defined** `BeaconAction`s are the union above. They stay in code because
-the engine *reasons* about them — revert chains, transfer approval, stock
-arithmetic — and that reasoning needs compile-time exhaustiveness.
-
-**Operator-authored** action types are rows in `user_action_types` (migration
-333), and they edit `object_records`: the half of the ontology that is already
-data. This is Foundry's own scope — an action type is *"a set of changes or edits
-to objects, property values, and links"*.
-
-The four requirements above are **not** waived for them; they are columns:
-`parameters`, `submission_criteria`, `invocation_mode`, `approval_tier`, plus an
-append-only `user_action_log` — Foundry's action log, *"one-to-one with action
-types"*. A row that omits one does not insert.
-
-Two rules keep the two kinds from colliding:
-
-- **A shipped action always wins a name.** `ADJUST_STOCK` cannot be redefined by
-  an organization; the collision is refused at authoring time, not at dispatch.
-- **An authored action may not target a type with a backing datasource.**
-  Writing `stock_logs`, `purchase_orders` and the rest needs a code-defined
-  action, because those carry compensating-transaction semantics a form cannot
-  express. "Backed" is the whole test: Foundry classifies object types by their
-  datasource and has no built-in kind, so `object_types.source_table` is the
-  authority and migration 344 removed the `kind` column that duplicated it.
-
-This was listed as a deliberate divergence until 2026-08-04. It was not one: all
-four requirements are properties of a *definition*, which is why Foundry can
-author action types in Ontology Manager and keep every one. The argument against
-generated types in this file is expressly about a **language boundary**, which
-does not exist inside one TypeScript codebase.
-
----
-
-## Modeling Objectives (when a baseline isn't enough)
-
-When a deterministic baseline (rolling avg, percentile threshold) gets beaten by a trained model on the eval set, the model goes behind a typed **Adapter** in `packages/reality-graph/src/objectives/<name>/`:
-
-- `adapter.ts` exposes `api()` (input/output Tabular columns + Parameters) and `runInference()`
-- Eval suite — datasets, metrics, cohorts
-- Releases — `sandbox → staging → production`. **`staging → production` is
-  Foundry's**: *"a staging release is a release that is staged to become the
-  production release... after testing, an objective owner can mark a staging
-  release as production"* (`mirror/manage-models/release-model.md`). **`sandbox`
-  is ours** — an extra rung below theirs, for something not yet worth staging.
-  Their **objective checks** (`set-up-checks.md`) and **reviews**
-  (`review-model.md`) are the compatibility-check and review-gate concepts
-- Deployments — `live` (real-time) or `batch` (pipeline populates computed properties)
-
-The existing Logic Tool gets a second implementation behind the same signature; `basis` changes from `'rolling-30d-avg'` to `'prophet-v1'`; **callers don't change**.
-
-**No code anywhere talks to a model directly.** It talks to the adapter, wrapped by a Logic Tool.
-
----
-
-## Agents — N small blocks, never one big call
-
-Agents live in `packages/reality-graph/src/agents/<name>/`. They read via tools, propose via actions, produce a trace.
-
-```
-agents/restock_advisor/
-  blocks/
-    extract_variant.ts        sub-LLM: "tomatoes" → typed Variant
-    extract_supplier.ts       sub-LLM (optional)
-    reason_and_propose.ts     main LLM: numbered procedure
-  prompt.ts                   the numbered task prompt
-  eval/                       *.eval.ts with ≥10 historical cases
-  index.ts                    run(input) → { proposals, trace }
-```
-
-### Block rules
-
-- One paragraph system prompt per block
-- One typed input from the prior block, one typed output to the next
-- Narrow tool set — usually one tool for entity-extraction, several for reasoning
-- If a prompt has more than three responsibilities, split it
-- Entity extraction is always its own block — never inline in reasoning
-
-### Task prompts are numbered procedures
-
-The reasoning block reads like training a new analyst:
-
-```
-Given the operator's stockout concern:
-1. Call `query_open_restock_requests`. Confirm no pending request covers the gap.
-2. Call `forecast_consumption` for 7 days to size it.
-3. Call `query_sister_property_inventory`. If a sister has ≥40% of the gap, prefer TRANSFER_STOCK.
-4. Call `rank_alternative_suppliers`. Pick the highest-reliability supplier whose lead time covers the remainder.
-5. Propose TRANSFER_STOCK and/or REQUEST_RESTOCK that closes the gap. Cite each tool result in the rationale.
-6. If confidence < threshold at any step, call `request_clarification` instead.
-```
-
-Not "do your best." Procedural, each step a discrete tool call.
-
-### Each agent declares
-
-- Purpose (one sentence)
-- Scope — `'hotel' | 'organization'`, inherits caller's role; never broader than the invoker
-- Cadence — `on-event | hourly | daily | weekly | monthly`
-- Tool set — bounded
-- Approval boundary — operator | threshold auto-approve | both
-- Release stage — `sandbox | staging | production`
-- Version — semantic; new versions branch-test before merging to main
-- Eval suite — `*.eval.ts` with ≥10 historical cases and a documented pass rate
-
-### Agent → Action contract
-
-Every LLM output is a typed `BeaconAction`. Never raw text passed to a writer. Validation, audit trail, and type migration apply identically to human and agent proposals.
-
-### `request_clarification` is first-class
-
-Below confidence threshold (default `< 0.6`), the agent pauses and asks the operator. It does not emit a low-confidence proposal.
-
-### Chain-of-thought is a product surface
-
-Every run produces an `AgentRunTrace`:
-
-- Numbered steps (AIP debugger style: 09, 10, 11…)
-- Per step: block, tool, input args, return value, thought, token usage
-- Same data structure renders in two surfaces:
-  - **Developer debugger** when iterating
-  - **Operator slide-over** beside the proposal in production
-
-A proposal without a viewable trace is a defect.
-
----
-
-## Eval Suites
-
-Every agent and every non-trivial tool ships an eval suite alongside it.
-
-- **Test cases** — historical inputs with expected outputs or rubrics
-- **Evaluators, in Foundry's vocabulary.** AIP Evals ships **nineteen built-in
-  evaluators** (`mirror/aip-evals/create-suite.md`); we implement three of them
-  through Vitest, plus one custom evaluation function:
-  - **Exact object match** — `expect(out).toEqual(expected)`
-  - **Regex match** / **Keyword checker** — `expect(out).toMatch(pattern)`
-  - **LLM-as-a-judge** — Foundry's built-in returns a boolean on one condition
-  - **Custom evaluation function** — our weighted `gradeWithRubric`. Foundry's own
-    example is a *"custom function rubric grader"* scored against a minimum
-    threshold, which is exactly its shape. Their rule holds: a custom evaluator
-    *"must return at least one Boolean or numeric type as a metric"*.
-- **Pass criteria** decide `Passed`/`Failed` per case — ours is `passThreshold`
-  plus `required: true` checks, which is that concept.
-- **Diff view** — runs of version A vs version B side-by-side on the same cases
-- **Cohorts** — per-hotel / per-region slices flagged when overall pass rate hides a regression
-
-You don't promote an agent or tool to `production` without a green eval at the prior stage.
-
----
-
-## Proposals, Principles, Approved Answers — the learning flywheel
-
-| Node | Source | Used to |
-|---|---|---|
-| `Proposal` | Agent output | Drive operator review queue; track version + parent_version_id; record approve/edit/reject outcome |
-| `Principle` | Operator feedback ("never restock X past 6pm") | Inject into agent system prompts as soft constraints; LLM categorizes into the matching typed bucket |
-| `ApprovedAnswer` | Curated Q&A | Tier-1 lookup — served before any fresh LLM call when the question matches |
-| `Constraint` | NL rule | Hard gate at action submission; LLM categorizes into a typed bucket (`scope`, `threshold`, `time-window`, `actor-role`) |
-
-Operators **refine via NL, not by direct edit** — they instruct the LLM to regenerate, the new Proposal supersedes the old one with a diff against the parent. Per-field edit-and-approve is allowed for terminal corrections.
-
----
-
-## Documents & provenance
-
-Multi-stage ingestion: OCR / Vision / Whisper / SAM → embed → semantic contextualization → typed `describes_entity` / `cited_in` edges to nodes.
-
-A `Document` carries:
-
-- Source + ingestion stage
-- Per-chunk page reference
-- Edges to the entities it describes
-
-Any agent rationale that cites a document **must** include a page-level citation. No vague "per the contract" without `cited_in → page 4`.
-
----
-
-## Operator UX (AIP-shaped, not dashboard-shaped)
-
-The non-negotiables:
-
-- **Confidence-coded review queues** — green ≥0.85, yellow 0.6–0.85, red <0.6
-- **Every proposal carries confidence + reasoning + provenance** (tool chain + cited documents)
-- **Selection-aware copilot** — knows the current Object View and passes that node's id to its tools. One contextually-scoped slide-over, not a global drawer.
-- **Refinement-via-NL** — operator instructs the LLM to re-generate; original Proposal is preserved with a versioned successor
-- **Per-field edit-and-approve** for terminal corrections (not edit-everything-then-save)
-- **Plan versioning with auto-computed diffs** — operator reviews the delta between V_n and V_n+1, never the whole plan
-- **Scenarios** are exploratory and uncommitted — distinct from versions
-- **Action chains** observe state between steps; **Change Log** is the commit boundary for batched writeback
-- **Stakeholder impact rollups** on any action touching multiple hotels or budgets
-- **Empty states explain the cycle** — which nodes were scanned, against what thresholds, when the next run is, what last run produced. "All clear" is never enough.
-
-### Object Views
-
-Every node type has a Full Object View (page) and a Panel Object View (slide-over). Anatomy is uniform: header → metric strip → action bar → body sections → right rail. The right rail always carries the audit log for that node.
-
----
-
-## Constraint engine + auto-execution
-
-Operators author constraints in natural language. The LLM categorizes each into a typed bucket and stores it as a `Constraint` node. At action submission, constraints applicable to the action's `type` + `scope` are evaluated:
-
-- Hard violation → action rejected with the constraint cited
-- Soft violation → action requires a higher approval tier
-- No violation + `confidence × criteria` above the auto-execution threshold → unattended execution with `triggered_by: 'ai_auto_approved'`
-- Otherwise → operator approval
-
-The threshold is per-action-type, configurable per organization. Auto-executed actions still emit a full trace and are visible in the operator review feed, marked for retroactive sampling.
-
-### How the cycle runs unattended
-
-One core loop, two callers:
-
-| Caller | Lives in | Purpose |
-|---|---|---|
-| Operator-triggered | `apps/web/.../useRestockCycle.ts` ("Run cycle" on Command home) | On-demand sweep with the same gate |
-| **Unattended (cron)** | edge fn `intelligence-cycle` + pg_cron `beacon-agent-intelligence-cycle` (daily 07:00 UTC) | Scheduled sweep across every hotel |
-
-Both call **the same** `runIntelligenceCycle()` (in `packages/reality-graph/src/cycles/`), which composes `decideAutoExecution` with the constraint set. Runtime-specific seams (reader, persistence, dispatch) are injected — the web injects a browser Supabase client, the edge fn injects a service-role client. **There is no second gate; if you're tempted to add one, extend `decideAutoExecution` instead.**
-
-The legacy SQL detectors (`auto_propose_restocks`, `auto_create_alerts`, `generate_preemptive_restocks`) read `auth_hotel_id()` — NULL under pg_cron — so they're no-ops on the cron path and were removed from `run_intelligence_cycle()` in migration 144. They remain in-app callable for authenticated users (the web uses two of them). Don't re-wire them into cron.
-
----
-
-## Multi-tenant, multi-echelon
-
-| Tier | Examples | Scope |
-|---|---|---|
-| **Organization** | Marriott, a 12-property group | Portfolio contracts, chain-wide agents, benchmarks |
-| **Hotel** | One property | Day-to-day operations, local stock |
-| **Zone** | F&B outlet, housekeeping cart | Location-resolved counts |
-
-- Every node carries both `organization_id` and `hotel_id`. RLS is scope-aware: `auth_org_id()` alongside `auth_hotel_id()`.
-- Every query / RPC / tool / agent declares its scope. Checked at the boundary, never assumed.
-- Hotel-scoped overrides org-scoped (local arrangement beats master contract).
-- Role hierarchy mirrors the echelon: `org_director > regional_manager > hotel_admin > hotel_manager > team_member`. Higher reads down; writes are scope-gated.
-- **Lateral before external.** Inter-property `TRANSFER_STOCK` is checked before any external procurement.
-- Benchmarking is a property of the network, not a feature. When a tool can compare against siblings, it does.
-
----
-
-## Self-apply — our code meets the same bar
-
-We sell intelligence, derived context, immutable audit. Our own code meets that bar.
-
-1. Every new RPC / trigger / RLS helper ships with a test that exercises it under anonymous, authenticated, cross-org, cross-hotel contexts.
-2. Every migration touching auth, RLS, or graph helpers runs `get_advisors` before being considered done.
-3. Failure modes carry derived context. A stack-depth error without a call chain is a defect, not a Postgres quirk.
-4. Instrument before shipping, not after debugging. Cycles emit metrics. Agent runs log input nodes, tools called, outcome.
-5. Our debug loop is a Beacon cycle: Input → Analyze → Act → Repeat. A patch without prevention is incomplete.
-
-If a bug took longer than ten minutes to root-cause, ask: *what observability would have made this a one-minute fix?* That's the real deliverable, alongside the patch.
-
----
+### The guards, and what is gone
+
+`check:rpcs` and `check:surfaces` remain. Both ask about **real reachability**
+and answer by walking something — the RPC names the app calls, the import graph
+from `main.tsx`.
+
+`check:shape` and `check:vocabulary` are deleted, with `shape_registry`. They
+depended on an allowlist that let a static scan tell "deliberately ahead of its
+runtime" from "dead". **Foundry needs no such table**: the platform indexes
+ontology resources, so "what uses this" is a query against the resource graph.
+Here the ontology is its own registry — `object_types` is the list of what
+exists. Wanting an allowlist is the signal to index instead.
+
+The RLS contract suite is also gone; Foundry handles data contracts another way
+and we take that shape when we reach it. **This has a cost that already
+landed**: `auth_org_id()` kept reading a dropped table for a day, and every
+policy calls it. Nothing static catches that. Until there is a replacement,
+assume RLS is unverified.
+
+## Substrate
+
+TypeScript everywhere, Postgres underneath. **Not Java**, and the reason is
+specific rather than inertia: Foundry's core is Spark and the JVM data stack,
+which are non-goals here. The one thing that transfers — cross-boundary type
+safety — a shared TypeScript package gives us without generated SDKs.
+
+Two things we do take from their stack:
+
+- **Namespaced, typed errors.** `Phonograph2:SchemaMismatch` is a namespace, a
+  name and a payload. A caller must be able to branch without parsing prose.
+- **Python for modelling, behind an adapter seam** — when there is a model, not
+  before.
 
 ## TypeScript & code rules
 
-- `@beacon/types` + Reality Graph types are the only source of truth — never redefine entity shapes locally
-- `any` is forbidden. Strict mode (`noImplicitAny`, `strictNullChecks`) is enforced
-- Computed node properties belong in `packages/reality-graph`, not in components
-- **Raw Supabase mutations are forbidden in `apps/web`** — use the Action Registry
-- **Predictive computation is forbidden in `apps/web`** — use the Logic Tool Registry
-- State split: Zustand only for UI/session. Server data lives in TanStack Query + graph cache. Never duplicate server state in Zustand
-- UI primitives come from `@blueprintjs/core` and `@blueprintjs/icons`. No shadcn, no lucide
-- Numeric cells use tabular numerals. 4px radius. Compact density.
+- `any` is forbidden. Strict mode enforced.
+- UI primitives from `@blueprintjs/core` and `@blueprintjs/icons`. No shadcn, no
+  lucide. 4px radius, compact density, tabular numerals for numbers.
+- Zustand for UI/session only. Server data lives in TanStack Query.
+- **Write less code.** If the same outcome fits in 50 lines instead of 100, that
+  is the version that ships.
+- **Comments stay human.** One short line, present tense, explaining a *why* or
+  a gotcha. No banners, no marketing voice, no restating the code.
 
-### Write less code
+## Adding anything
 
-If the same outcome fits in 50 lines instead of 100, that's the version that ships. Pick the shorter path when it's equally clear. No wrappers that exist only to be wrappers, no intermediate variables used once, no defensive branches for cases that can't happen, no abstractions for a single caller. Prefer composing existing primitives over building new ones.
-
-### Comments stay human
-
-Default to no comment. When a comment is genuinely useful, write it like a coworker leaving a quick note — short, direct, present-tense, no marketing voice.
-
-- One short line max — multi-line explainers belong in the PR description
-- Explain the *why* / a hidden constraint / a gotcha. Never restate what the code obviously does
-- No "Breakthrough feature:", no "Palantir principle:", no congratulatory framing
-- No decorative banners (`// ───── Foo ─────`) — blank lines and clear names do that work
-- File-top docstring (if any): one short sentence on what the file is for
-
-When you edit a file, rewrite or remove AI-flavored comments in the area you touch.
-
----
-
-## Adding features — the checklist
-
-Before code, answer in a top-of-file comment:
-
-0. **Does Foundry have this?** → find it in `docs/foundry-reference/` and mirror its shape (see the stage directive at the top). If the docs don't settle it, say so rather than guessing.
-1. **Layer** — data, compute, mutation, agent, or surface?
-2. **Ontology fit** — which nodes / edges does it use or add?
-3. **Scope** — hotel, organization, or both? How is RLS enforcing it?
-4. **Read or computation?** → typed Logic Tool with `category`, `kind`, `basis`, `confidence`, `traversableLinks`
-5. **Mutation?** → named `BeaconAction` with submission criteria, side effects, audit entry, `open-form` or `apply-immediately`
-6. **Predictive?** → typed adapter behind an objective with eval + releases (only when baseline is beaten)
-7. **Agent?** → purpose, scope, cadence, tool set, approval boundary, release stage, version, eval suite — decomposed into sub-LLM blocks with a numbered task prompt
-8. **Agent surface?** → renders the trace alongside the proposal with confidence + provenance
-9. **Cycle?** → declared cadence, next-run expectation, empty state that explains what was scanned
-
----
-
-## Environment
-
-Copy `.env.example` → `.env`. Vite exposes only `VITE_*` to the client. **Never** put `SUPABASE_SERVICE_ROLE_KEY` in a `VITE_*` var.
+1. **Find it in the mirror first.** Quote the sentence. If it is not there, say
+   so and ask.
+2. **Is ours built the way theirs is?** Not "do they have one".
+3. **What backs it?** An object type has a datasource. A link type has a
+   datasource. If the answer is "a generic table", stop.
+4. **What reaches it?** If nothing does, it is not built yet — and an allowlist
+   is not the answer.

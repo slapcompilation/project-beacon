@@ -133,11 +133,10 @@ function AccountMenu() {
 }
 
 // The retired dock's quick-actions, rehomed as a Foundry-style "+ New" menu.
-// Role-aware: everyone can scan; managers also adjust stock + receive.
 function QuickCreate() {
   const navigate = useNavigate()
   const role = useAuthStore((s) => s.role)
-  const isManager = role != null && role !== 'team_member' && role !== 'limited_access'
+  const isManager = role != null
   const go = (path: string) => () => { void navigate(path) }
 
   return (

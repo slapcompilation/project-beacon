@@ -87,7 +87,7 @@ export class SupabaseAuthService implements IAuthService {
 
   private mapSession(session: Session): AuthSession {
     const appMeta = session.user.app_metadata as {
-      hotel_id?: string
+      org_id?: string
       role?: UserRole
     }
 
@@ -95,8 +95,8 @@ export class SupabaseAuthService implements IAuthService {
       user: {
         id: session.user.id,
         email: session.user.email ?? '',
-        hotel_id: appMeta.hotel_id ?? '',
-        role: appMeta.role ?? 'limited_access',
+        organization_id: appMeta.org_id ?? '',
+        role: appMeta.role ?? 'admin',
       },
       access_token: session.access_token,
       expires_at: session.expires_at ?? 0,

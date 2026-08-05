@@ -7,7 +7,7 @@ interface AuthState {
   isAuthenticated: boolean
   // Derived helpers
   userId: string | null
-  hotelId: string | null
+  organizationId: string | null
   role: UserRole | null
   // Actions
   setSession: (session: AuthSession | null) => void
@@ -20,7 +20,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   isLoading: true, // true on init — resolves once getSession() completes
   isAuthenticated: false,
   userId: null,
-  hotelId: null,
+  organizationId: null,
   role: null,
 
   setSession: (session) =>
@@ -28,7 +28,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       session,
       isAuthenticated: session !== null,
       userId: session?.user.id ?? null,
-      hotelId: session?.user.hotel_id ?? null,
+      organizationId: session?.user.organization_id ?? null,
       role: session?.user.role ?? null,
       isLoading: false,
     }); },
@@ -40,7 +40,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       session: null,
       isAuthenticated: false,
       userId: null,
-      hotelId: null,
+      organizationId: null,
       role: null,
       isLoading: false,
     }); },
