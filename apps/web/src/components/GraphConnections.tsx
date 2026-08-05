@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 import { useNodeEdges } from '@/hooks/useNodeEdges'
 import { otherSide } from '@beacon/reality-graph'
 import type { NodeType, EdgeType } from '@beacon/reality-graph'
-import { objectPath, NODE_LABELS, EDGE_LABELS } from '@/lib/objectPresentation'
+import { objectPath, NODE_LABELS, linkLabel } from '@/lib/objectPresentation'
 
 
 // ─── Edge type display labels ──────────────────────────────────────────────────
@@ -86,7 +86,7 @@ interface GroupProps {
 }
 
 function EdgeGroup({ edgeType, edges = [], nodeId }: GroupProps) {
-  const label = EDGE_LABELS[edgeType]
+  const label = linkLabel(edgeType)
 
   return (
     <div className="flex items-start gap-2">
@@ -153,7 +153,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
     return acc
   }, {})
 
-  const edgeTypes = Object.keys(grouped) as EdgeType[]
+  const edgeTypes = Object.keys(grouped)
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -194,7 +194,7 @@ export function GraphConnections({ nodeType, nodeId, className }: GraphConnectio
                   existing.push(e)
                   return acc
                 }, {})
-              ) as EdgeType[]).map((et) => (
+              )).map((et) => (
                 <EdgeGroup
                   key={et}
                   edgeType={et}

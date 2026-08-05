@@ -16,7 +16,6 @@
 
 export type OntologyGapKind =
   | 'new_category'    // a recurring free-text value that should be a typed enum member
-  | 'new_edge_type'   // a relationship type in the graph that the type system doesn't declare
 // future: 'new_computed_property' | 'new_node_attribute'
 
 export interface OntologyGapEvidence {
@@ -194,55 +193,6 @@ export function detectAdditionCategoryGaps(
     rows.map((r) => ({ reason: r.reason, category: r.movement_category ?? null })),
     { lexicon: ADDITION_LEXICON, targetType: 'StockLog', targetField: 'movement_category', noun: 'stock additions', ...opts },
   )
-}
-
-// ── Edge-type drift detector (a different gap KIND) ─────────────────────────────
-
-export interface EdgeTypeCount {
-  edge_type: string
-  count: number
-}
-
-export interface DetectUntypedEdgeOptions {
-  /** Edge types the type system declares (reality-graph's EDGE_TYPES). */
-  knownEdgeTypes: ReadonlyArray<string>
-  /** Minimum edges before an untyped type is flagged. Default 1. */
-  minSupport?: number
-}
-
-/**
- * Flags relationship types present in the graph that aren't declared in the typed
- * EdgeType union — type-system drift (code writing edges the ontology doesn't
- * know). On a healthy graph this is empty; it fires when an edge type slips in
- * untyped. The fix is a code change (add it to EdgeType), so approval here is a
- * tracked, audited request, not a runtime mutation.
- */
-export function detectUntypedEdgeGaps(
-  counts: ReadonlyArray<EdgeTypeCount>,
-  opts: DetectUntypedEdgeOptions,
-): OntologyGap[] {
-  const minSupport = opts.minSupport ?? 1
-  const known = new Set(opts.knownEdgeTypes)
-  const total = counts.reduce((s, c) => s + c.count, 0)
-  if (total === 0) return []
-
-  const gaps: OntologyGap[] = []
-  for (const { edge_type, count } of counts) {
-    if (known.has(edge_type) || count < minSupport) continue
-    gaps.push({
-      kind: 'new_edge_type',
-      targetType: 'RelationshipEdge',
-      targetField: 'edge_type',
-      proposed: edge_type,
-      rationale:
-        `${String(count)} edges use the relationship type "${edge_type}" but it isn't declared ` +
-        `in the typed EdgeType union — formalize it (or migrate the edges away).`,
-      evidence: { occurrences: count, totalConsidered: total, coverage: count / total, examples: [edge_type] },
-      // A type the data uses but the system doesn't know is an unambiguous gap.
-      confidence: 0.9,
-    })
-  }
-  return gaps.sort((a, b) => b.evidence.occurrences - a.evidence.occurrences)
 }
 
 function classify(reason: string, lexicon: ReadonlyArray<LexiconEntry>): string | null {

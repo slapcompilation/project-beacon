@@ -5,7 +5,7 @@
 // Next step on this road: per-property descriptions/tooltips from the graph.
 
 import type { IconName } from '@blueprintjs/icons'
-import type { NodeType, EdgeType } from '@beacon/reality-graph'
+import type { NodeType } from '@beacon/reality-graph'
 
 export interface ObjectPresentation {
   icon: IconName
@@ -105,48 +105,13 @@ export const NODE_LABELS: Record<NodeType, string> = {
   entity:            'Entity',
 }
 
-export const EDGE_LABELS: Record<EdgeType, string> = {
-  consumes:          'Consumes',
-  restocks:          'Restocks',
-  fulfills:          'Fulfills',
-  reverts:           'Reverts',
-  approved_by:       'Approved by',
-  rejected_by:       'Rejected by',
-  modified_by:       'Modified by',
-  sourced_from:      'Sourced from',
-  delivery_sourced_from: 'Delivered by',
-  receipt_sourced_from:  'Received from',
-  po_sourced_from:       'Ordered from',
-  discrepancy_sourced_from: 'Raised against',
-  request_sourced_from:     'Requested from',
-  recipe_consumes:       'Recipe uses',
-  sold:                  'Sold',
-  ingredient_of:         'Ingredient of',
-  line_of:               'Line of',
-  line_orders:           'Orders',
-  line_fulfills_request: 'Fulfils request',
-  discrepancy_of:        'Discrepancy of',
-  counts_variant:        'Counts',
-  item_of:               'Item of',
-  categorised_as:        'Categorised as',
-  allocated_to:          'Allocated to',
-  pick_consumes:         'Picks',
-  transfer_approved_by:  'Transfer approved by',
-  linked_to_po:      'Linked to PO',
-  invoiced_by:       'Invoiced by',
-  influenced_by_principle: 'Influenced by principle',
-  batch_of:          'Batch of',
-  discarded_via:     'Discarded via',
-  belongs_to_session: 'Session',
-  similar_to:        'Similar to',
-  transfers:         'Transfers',
-  proposed_by:       'Proposed by',
-  benchmarks:        'Benchmarks',
-  harmonized_to:     'Harmonized to',
-  describes_entity:  'Describes',
-  cited_in:          'Cited in',
-  applies_to:        'Applies to',
-  derived_from:      'Derived from',
-  mentions:          'Mentions',
-  resolved_to:       'Resolved to',
+/** A link type's display name. `link_types.label` is the authority and
+ *  useLinkTypes() reads it; this is the fallback for a raw api name arriving
+ *  from an edge row — `line_fulfills_request` reads as "Line fulfills request".
+ *
+ *  It replaces a Record of forty-three hand-written hospitality labels, which
+ *  could only ever name links somebody had already thought of. */
+export function linkLabel(apiName: string): string {
+  const words = apiName.replace(/_/g, ' ').trim()
+  return words ? words[0].toUpperCase() + words.slice(1) : apiName
 }

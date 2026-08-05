@@ -28,7 +28,6 @@ import { cn } from '@/lib/utils'
 import { StockBadge } from '@/features/inventory/components/StockBadge'
 import { ProductFormModal } from '@/features/inventory/components/ProductFormModal'
 import { StockAdjustModal } from '@/features/inventory/components/StockAdjustModal'
-import { StockLogDrawer } from '@/features/inventory/components/StockLogDrawer'
 import { TransferModal } from '@/features/inventory/components/TransferModal'
 import { VoiceAdjustButton } from '@/components/VoiceAdjustButton'
 import { ImportModal } from '@/features/inventory/components/CsvImportModal'
@@ -64,7 +63,6 @@ type Modal =
   | { type: 'add' }
   | { type: 'edit'; product: ProductWithVariants }
   | { type: 'adjust'; product: ProductWithVariants; prefill?: { delta: number; reason: string } }
-  | { type: 'history'; product: ProductWithVariants }
   | { type: 'variants'; product: ProductWithVariants }
   | null
 
@@ -544,12 +542,6 @@ export default function InventoryPage() {
                           onClick={() => { setModal({ type: 'adjust', product }) }}
                         />
                         <MenuItem
-                          icon="history"
-                          text="View History"
-                          disabled={product.product_variants.length === 0}
-                          onClick={() => { setModal({ type: 'history', product }) }}
-                        />
-                        <MenuItem
                           icon="swap-horizontal"
                           text="Transfer Stock"
                           disabled={product.product_variants.length === 0}
@@ -734,9 +726,6 @@ export default function InventoryPage() {
       />
       {modal?.type === 'adjust' && (
         <StockAdjustModal open onClose={() => { setModal(null); }} product={modal.product} prefill={modal.prefill} />
-      )}
-      {modal?.type === 'history' && (
-        <StockLogDrawer open onClose={() => { setModal(null); }} product={modal.product} />
       )}
       <ImportModal open={importOpen} onClose={() => { setImportOpen(false); }} />
       <ConfirmDialog

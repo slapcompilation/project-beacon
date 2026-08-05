@@ -50,7 +50,7 @@
 // static scan. Catching that needs read/write discrimination this guard does not
 // have. If you add a column, ask what QUERIES it — the guard cannot ask for you.
 
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import pg from 'pg'
 import { connectionString, SSL } from './db-url.mjs'
@@ -96,7 +96,9 @@ const { rows: declarations } = await client.query(
 const sources = execFileSync(
   'git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z', ...CODE_ROOTS],
   { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
-).split('\0').filter((p) => /\.(ts|tsx|mjs|js)$/.test(p))
+// `--cached` still lists a file deleted in the working tree but not yet staged,
+// which is an ordinary state mid-edit and must not crash the guard.
+).split('\0').filter((p) => /\.(ts|tsx|mjs|js)$/.test(p) && existsSync(p))
 
 let code = `${fns.src}\n${pols.src}`
 const declarationFiles = []

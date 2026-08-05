@@ -13,8 +13,9 @@ import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import type { DetectOntologyGapsOutput, NodeType } from '@beacon/reality-graph'
 import { actionDescriptors, LIFECYCLES } from '@beacon/reality-graph'
-import { NODE_LABELS, EDGE_LABELS, OBJECT_PRESENTATION } from '@/lib/objectPresentation'
+import { NODE_LABELS, OBJECT_PRESENTATION } from '@/lib/objectPresentation'
 import { useApprovedExtensions, useDecideOntologyGap, useOntologyGaps } from '@/features/ontology/hooks'
+import { useLinkTypes } from '@/features/objectTypes/hooks'
 import type { OntologyProposalRow } from '@/features/ontology/api'
 import { useExportOntologyPackage, useInstallOntologyPackage } from '@/features/ontology/packaging'
 
@@ -112,13 +113,11 @@ function GapCard({
     gap.confidence >= 0.85 ? 'border-l-emerald-500' :
     gap.confidence >= 0.6  ? 'border-l-amber-400'   :
     'border-l-red-500'
-  const isEdge = gap.kind === 'new_edge_type'
-
   return (
     <Card data-testid={`gap-${gap.proposed}`} className={`flex flex-col gap-3 border-l-2 ${border}`}>
       <header className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
-          <Tag minimal intent={Intent.PRIMARY} icon={isEdge ? 'link' : 'plus'}>{isEdge ? 'new edge type' : 'new category'}</Tag>
+          <Tag minimal intent={Intent.PRIMARY} icon="plus">new category</Tag>
           <span className="font-mono text-sm font-semibold">{gap.proposed}</span>
           <Icon icon="arrow-right" size={11} className="text-muted-foreground" />
           <Tag minimal className="font-mono !text-[10px]">{gap.targetType}.{gap.targetField}</Tag>
@@ -133,7 +132,7 @@ function GapCard({
       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
         <span className="tabular-nums">
           <span className="font-semibold text-foreground">{gap.evidence.occurrences.toLocaleString()}</span>
-          {' / '}{gap.evidence.totalConsidered.toLocaleString()} {isEdge ? 'edges' : 'untyped movements'}
+          {' / '}{gap.evidence.totalConsidered.toLocaleString()} untyped movements
         </span>
         <div className="flex-1 h-1.5 rounded-full bg-muted/50 overflow-hidden max-w-[200px]">
           <div className="h-full bg-primary/70 rounded-full" style={{ width: `${String(Math.round(gap.evidence.coverage * 100))}%` }} />
@@ -141,7 +140,7 @@ function GapCard({
         <span className="tabular-nums">{Math.round(gap.evidence.coverage * 100)}% coverage</span>
       </div>
 
-      {!isEdge && gap.evidence.examples.length > 0 && (
+      {gap.evidence.examples.length > 0 && (
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">e.g.</span>
           {gap.evidence.examples.map((ex) => (
@@ -189,12 +188,13 @@ function GrownOntology({ rows }: { rows: OntologyProposalRow[] }) {
   )
 }
 
-// The vocabulary the graph speaks TODAY, read from the live registries — the
-// exhaustive NODE/EDGE label records and the action descriptors. Nothing here
-// is hand-written; when the ontology grows, the compiler grows this page.
+// The vocabulary the graph speaks TODAY. Node types and actions come from the
+// code registries; link types come from the DATABASE, which is their authority
+// — a Record of edge labels here could only name links somebody had already
+// thought of, and went stale the moment an operator created one.
 function VocabularySection() {
   const nodeTypes = Object.entries(NODE_LABELS)
-  const edgeTypes = Object.entries(EDGE_LABELS)
+  const { data: linkTypes = [] } = useLinkTypes()
   const actions = Object.entries(actionDescriptors)
   const pres = OBJECT_PRESENTATION as Partial<Record<NodeType, { icon: import('@blueprintjs/icons').IconName }>>
 
@@ -219,11 +219,13 @@ function VocabularySection() {
       </Card>
 
       <Card compact className="!p-0">
-        <VocabHeader icon="flow-linear" title="Edge types" count={edgeTypes.length} hint="How things connect — every relationship is named, never a bare foreign key." />
+        <VocabHeader icon="flow-linear" title="Link types" count={linkTypes.length} hint="How things connect — every relationship is named, never a bare foreign key." />
         <div className="flex flex-wrap gap-1.5 p-3">
-          {edgeTypes.map(([name, label]) => (
-            <Tag key={name} minimal className="font-mono text-[10px]" title={label}>{name}</Tag>
-          ))}
+          {linkTypes.length === 0
+            ? <span className="text-xs text-muted-foreground">No link types registered yet.</span>
+            : linkTypes.map((lt) => (
+                <Tag key={lt.id} minimal className="font-mono text-[10px]" title={lt.label}>{lt.api_name}</Tag>
+              ))}
         </div>
       </Card>
 

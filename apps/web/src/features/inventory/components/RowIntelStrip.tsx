@@ -7,7 +7,6 @@
 import { Icon } from '@blueprintjs/core'
 import { addDays, format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { WhyButton } from '@/components/WhySheet'
 import { AipRowBadge } from '@/features/aipSignals/AipRowBadge'
 import type { VariantSignalMap } from '@/features/aipSignals/useVariantSignals'
 import { getTotalStock } from '@beacon/types'
@@ -148,13 +147,6 @@ export function RowIntelStrip({
         )
       )}
 
-      {days !== null && days <= 14 && (
-        <WhyButton
-          variantId={primaryVariant.id}
-          variantName={variants.length > 1 ? `${product.name} — ${primaryVariant.name}` : product.name}
-          currentStock={totalStock}
-        />
-      )}
     </div>
   )
 }

@@ -496,85 +496,19 @@ export interface AuthSession {
 
 // ─── Reality Graph ─────────────────────────────────────────────────────────────
 
-export type GraphNodeType =
-  | 'hotel' | 'user' | 'product' | 'variant' | 'stock_log'
-  | 'restock_request' | 'stocktake_session' | 'stocktake_line'
-  | 'alert' | 'report'
-
-// The edge vocabulary. Mirrors relationship_edges_edge_type_check — the
-// database is the authority and `pnpm check:vocabulary` holds the two together.
-export type EdgeType =
-  | 'consumes'
-  | 'restocks'
-  | 'reverts'
-  | 'belongs_to_session'
-  // Sprint 1 — Reality Graph Core
-  | 'approved_by'
-  | 'rejected_by'
-  | 'modified_by'
-  | 'fulfills'
-  | 'sourced_from'
-  | 'delivery_sourced_from'
-  | 'receipt_sourced_from'
-  | 'po_sourced_from'
-  // 350 — two objects named a supplier and had no link to it
-  | 'discrepancy_sourced_from'
-  | 'request_sourced_from'
-  | 'recipe_consumes'
-  | 'pick_consumes'
-  // 288 — the recipe chain: a sale sells a dish, a dish lists ingredients
-  | 'sold'
-  | 'ingredient_of'
-  // 303 — the last grandfathered tables join the ontology
-  | 'counts_variant'
-  | 'item_of'
-  | 'categorised_as'
-  | 'allocated_to'
-  // 294 — purchase-order lines and discrepancies
-  | 'line_of'
-  | 'line_orders'
-  | 'line_fulfills_request'
-  | 'discrepancy_of'
-  | 'transfer_approved_by'
-  | 'batch_of'
-  | 'discarded_via'
-  | 'linked_to_po'
-  | 'invoiced_by'
-  | 'influenced_by_principle'
-  | 'similar_to'
-  // AIP-native edges
-  | 'transfers'
-  | 'proposed_by'
-  | 'benchmarks'
-  | 'harmonized_to'
-  | 'describes_entity'
-  | 'cited_in'
-  | 'applies_to'
-  // Prediction lineage (Q2): a proposal traces to the forecast that sized it.
-  | 'derived_from'
-  // Doc-ingestion Track 2 (Foundry-exact object model): chunk mentions a
-  // discovered Entity; an Entity resolves to a real operational node.
-  | 'mentions'      // many-to-many: chunk -> entity
-  | 'resolved_to'   // entity -> supplier | variant (deterministic exact match)
-
-/** @deprecated Use `EdgeType`. This was a SECOND, staler union: eight values
- *  where the constraint allows forty, and one of the eight —
- *  `belongs_to_hotel` — the database REFUSES. A row carrying `mentions` or
- *  `cited_in` did not fit it at all, so `RelationshipEdge` was quietly wrong
- *  about most real edges. Kept as an alias so its five consumers compile. */
-export type GraphEdgeType = EdgeType
-
-export interface RelationshipEdge {
-  id: string
-  hotel_id: string
-  source_type: GraphNodeType
-  source_id: string
-  edge_type: GraphEdgeType
-  target_type: GraphNodeType
-  target_id: string
-  metadata: Record<string, unknown> | null
-  created_at: string
-}
+/** The api name of a link type — `link_types.api_name`, resolved at runtime.
+ *
+ *  This was a union of forty-three hospitality verbs (`consumes`, `restocks`,
+ *  `sold`, `counts_variant`, …) restating the CHECK constraint in TypeScript.
+ *  CLAUDE.md already said the database was the authority and the union "drifts
+ *  if edited alone"; it drifted anyway, keeping four link types alive in code
+ *  after migration 352 deleted them.
+ *
+ *  Foundry names link types by api name too — a link type is "a relationship
+ *  between object types" defined in the ontology, not in a platform enum
+ *  (`mirror/object-link-types/link-types-overview.md`). Nothing in the platform
+ *  branches on WHICH link it is, so nothing needs them at compile time. */
+export type EdgeType = string
 
 // ─── Eye Layer ────────────────────────────────────────────────────────────────
 

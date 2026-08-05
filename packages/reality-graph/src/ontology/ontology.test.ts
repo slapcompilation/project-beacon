@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { detectAdditionCategoryGaps, detectRemovalCategoryGaps, detectUntypedEdgeGaps, type RemovalReasonRow } from './index'
+import { detectAdditionCategoryGaps, detectRemovalCategoryGaps, type RemovalReasonRow } from './index'
 
 function reasons(...pairs: [string | null, number][]): RemovalReasonRow[] {
   const rows: RemovalReasonRow[] = []
@@ -112,33 +112,6 @@ describe('detectAdditionCategoryGaps', () => {
 
   it('never re-proposes an already-known movement category', () => {
     const gaps = detectAdditionCategoryGaps(adds(['restock received', 10]), { knownCategories: ['receipt'] })
-    expect(gaps).toEqual([])
-  })
-})
-
-describe('detectUntypedEdgeGaps', () => {
-  const KNOWN = ['causes', 'consumes', 'restocks']
-
-  it('flags edge types in the data that the type system does not declare', () => {
-    const gaps = detectUntypedEdgeGaps(
-      [{ edge_type: 'consumes', count: 100 }, { edge_type: 'haunted_by', count: 9 }, { edge_type: 'whispers_to', count: 4 }],
-      { knownEdgeTypes: KNOWN },
-    )
-    expect(gaps.map((g) => g.proposed)).toEqual(['haunted_by', 'whispers_to'])  // ranked by count
-    expect(gaps[0]).toMatchObject({ kind: 'new_edge_type', targetType: 'RelationshipEdge', targetField: 'edge_type' })
-    expect(gaps[0].evidence.totalConsidered).toBe(113)
-  })
-
-  it('is empty on a healthy graph where every edge type is declared', () => {
-    const gaps = detectUntypedEdgeGaps(
-      [{ edge_type: 'causes', count: 50 }, { edge_type: 'restocks', count: 9 }],
-      { knownEdgeTypes: KNOWN },
-    )
-    expect(gaps).toEqual([])
-  })
-
-  it('respects minSupport', () => {
-    const gaps = detectUntypedEdgeGaps([{ edge_type: 'rare_edge', count: 1 }], { knownEdgeTypes: KNOWN, minSupport: 5 })
     expect(gaps).toEqual([])
   })
 })

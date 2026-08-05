@@ -11,13 +11,10 @@
 
 import { z } from 'zod'
 import type { LogicTool } from '../index'
-import { EDGE_TYPES } from '../../types'
 import {
   detectAdditionCategoryGaps,
   detectRemovalCategoryGaps,
-  detectUntypedEdgeGaps,
   type AdditionReasonRow,
-  type EdgeTypeCount,
   type OntologyGap,
   type RemovalReasonRow,
 } from '../../ontology/index'
@@ -35,8 +32,6 @@ export interface OntologyReader {
   getAdditionReasons(hotelId: string | null, sinceDays?: number): Promise<AdditionReasonRow[]>
   /** movement_category values already decided (approved/rejected). */
   getKnownMovementCategories(hotelId: string | null): Promise<string[]>
-  /** Distinct relationship edge types + counts. null hotelId = portfolio. */
-  getEdgeTypeCounts(hotelId: string | null): Promise<EdgeTypeCount[]>
 }
 
 const inputSchema = z.object({
@@ -47,7 +42,7 @@ const inputSchema = z.object({
 })
 
 const gapSchema = z.object({
-  kind: z.enum(['new_category', 'new_edge_type']),
+  kind: z.literal('new_category'),
   targetType: z.string(),
   targetField: z.string(),
   proposed: z.string(),
@@ -105,17 +100,15 @@ export function makeDetectOntologyGapsTool(
       },
     ],
     invoke: async (input) => {
-      const [removalRows, knownRemoval, additionRows, knownMovement, edgeCounts] = await Promise.all([
+      const [removalRows, knownRemoval, additionRows, knownMovement] = await Promise.all([
         reader.getRemovalReasons(input.hotelId, input.sinceDays),
         reader.getKnownRemovalCategories(input.hotelId),
         reader.getAdditionReasons(input.hotelId, input.sinceDays),
         reader.getKnownMovementCategories(input.hotelId),
-        reader.getEdgeTypeCounts(input.hotelId),
       ])
       const gaps: OntologyGap[] = [
         ...detectRemovalCategoryGaps(removalRows,  { knownCategories: knownRemoval,  minSupport: input.minSupport }),
         ...detectAdditionCategoryGaps(additionRows, { knownCategories: knownMovement, minSupport: input.minSupport }),
-        ...detectUntypedEdgeGaps(edgeCounts, { knownEdgeTypes: EDGE_TYPES }),
       ].sort((a, b) => b.evidence.occurrences - a.evidence.occurrences)
       const confidence = gaps.reduce((m, g) => Math.max(m, g.confidence), 0)
       return { gaps, scanned: removalRows.length + additionRows.length, basis: 'reason-lexicon-v1', confidence }

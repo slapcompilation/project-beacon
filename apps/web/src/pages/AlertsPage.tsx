@@ -20,7 +20,6 @@ import {
   SpinnerSize,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { CausalTracePanel } from '@/components/CausalTracePanel'
 import { cn } from '@/lib/utils'
 import { useProducts, useExpiringVariants, useAdjustStock } from '@/features/inventory/hooks'
 import {
@@ -136,12 +135,10 @@ function AlertCard({
   item,
   currency,
   requestedVariantIds,
-  onTrace,
 }: {
   item: AlertItem
   currency: string
   requestedVariantIds: ReadonlySet<string>
-  onTrace?: (notifId: string, title: string) => void
 }) {
   const meta = BAND_META[item.band]
   const isRequested = !!item._variantId && requestedVariantIds.has(item._variantId)
@@ -166,16 +163,6 @@ function AlertCard({
         )}
       </div>
       <div className="flex flex-shrink-0 items-center gap-2">
-        {item._notifId && onTrace && (
-          <Button
-            size="small"
-            variant="minimal"
-            onClick={() => { if (item._notifId) onTrace(item._notifId, item.title) }}
-            title="Explain why this happened"
-          >
-            Why?
-          </Button>
-        )}
         {item.actions.map((a) => {
           const isRestockAction = a.label === 'Request restock'
           if (isRestockAction && isRequested) {
@@ -214,13 +201,11 @@ function LayerSection({
   items,
   currency,
   requestedVariantIds,
-  onTrace,
 }: {
   layer: AlertLayer
   items: AlertItem[]
   currency: string
   requestedVariantIds: ReadonlySet<string>
-  onTrace?: (notifId: string, title: string) => void
 }) {
   if (items.length === 0) return null
   const meta = LAYER_META[layer]
@@ -260,7 +245,6 @@ function LayerSection({
             item={item}
             currency={currency}
             requestedVariantIds={requestedVariantIds}
-            onTrace={onTrace}
           />
         ))}
       </div>
@@ -402,11 +386,6 @@ export default function AlertsPage() {
   const [lastScanTime, setLastScanTime] = useState<Date | null>(null)
   const [configOpen, setConfigOpen] = useState(false)
 
-  const [traceTarget, setTraceTarget] = useState<{ id: string; title: string } | null>(null)
-
-  const handleOpenTrace = useCallback((notifId: string, title: string) => {
-    setTraceTarget({ id: notifId, title })
-  }, [])
 
   const { data: products = [], isLoading: productsLoading } = useProducts()
   const { data: expiring = [], isLoading: expiryLoading }   = useExpiringVariants(90)
@@ -830,21 +809,12 @@ export default function AlertsPage() {
                 items={byLayer.get(layer) ?? []}
                 currency={currency}
                 requestedVariantIds={requestedIds}
-                onTrace={handleOpenTrace}
               />
             ))}
           </div>
         )}
       </div>
 
-      {/* Causal Trace Panel — "Why did this happen?" */}
-      <CausalTracePanel
-        open={!!traceTarget}
-        onClose={() => { setTraceTarget(null) }}
-        rootType="notification"
-        rootId={traceTarget?.id ?? null}
-        title={traceTarget?.title}
-      />
     </div>
   )
 }

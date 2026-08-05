@@ -11,7 +11,7 @@ import { otherSide } from '@beacon/reality-graph'
 import type { NodeType } from '@beacon/reality-graph'
 import { useNodeEdges, type EdgeRow } from '@/hooks/useNodeEdges'
 import { useResolveNodeLabels, type NodeRef } from '@/hooks/useResolveNodeLabels'
-import { NODE_LABELS, EDGE_LABELS, objectPath } from '@/lib/objectPresentation'
+import { NODE_LABELS, linkLabel, objectPath } from '@/lib/objectPresentation'
 
 const W = 900, H = 600, CX = W / 2, CY = H / 2, MAX_NEIGHBORS = 22
 
@@ -109,7 +109,7 @@ function SearchAroundCanvas({ root }: { root: NodeRef }) {
           <g key={`edge-${n.ref.type}:${n.ref.id}`}>
             <line x1={CX} y1={CY} x2={positions[i].x} y2={positions[i].y}
               stroke="#cbd5e1" strokeWidth={1.5}>
-              <title>{EDGE_LABELS[n.edgeType]}</title>
+              <title>{linkLabel(n.edgeType)}</title>
             </line>
           </g>
         ))}
@@ -125,7 +125,7 @@ function SearchAroundCanvas({ root }: { root: NodeRef }) {
               <text x={p.x + dx} y={p.y + 4} textAnchor={anchor} fontSize={12} fill="currentColor">
                 {truncate(labelOf(n.ref))}
               </text>
-              <title>{`${NODE_LABELS[n.ref.type]} · ${EDGE_LABELS[n.edgeType]}`}</title>
+              <title>{`${NODE_LABELS[n.ref.type]} · ${linkLabel(n.edgeType)}`}</title>
             </g>
           )
         })}

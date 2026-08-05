@@ -112,20 +112,6 @@ function makeSupabaseOntologyReader(): OntologyReader {
       for (const r of decided.data) set.add((r as { proposed: string }).proposed)
       return [...set]
     },
-
-    // Tally edge types client-side (PostgREST has no group-by without an RPC).
-    async getEdgeTypeCounts(hotelId) {
-      let q = supabase.from('relationship_edges').select('edge_type').limit(20000)
-      if (hotelId) q = q.eq('hotel_id', hotelId)
-      const { data, error } = await q
-      if (error) throw new Error(error.message)
-      const tally = new Map<string, number>()
-      for (const r of data) {
-        const t = (r as { edge_type: string }).edge_type
-        tally.set(t, (tally.get(t) ?? 0) + 1)
-      }
-      return [...tally.entries()].map(([edge_type, count]) => ({ edge_type, count }))
-    },
   }
 }
 

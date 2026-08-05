@@ -75,7 +75,6 @@ export function listAllToolDescriptors(): ReadonlyArray<LogicTool> {
       getKnownRemovalCategories:  () => Promise.resolve([]),
       getAdditionReasons:         () => Promise.resolve([]),
       getKnownMovementCategories: () => Promise.resolve([]),
-      getEdgeTypeCounts:          () => Promise.resolve([]),
     }),
     makeOccupancyAdjustedForecastTool({
       getStockLogs:        () => Promise.resolve([]),
