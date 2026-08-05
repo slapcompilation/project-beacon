@@ -159,6 +159,9 @@ export interface ComputedPropertyDef {
   fn: ComputedFn
   /** stored-property keys this computed value reads. */
   inputs: string[]
+  /** Same job as PropertyDef.description — a derived value needs explaining more
+   *  than a stored one, since its inputs are not on screen. */
+  description?: string
 }
 
 function parseDate(v: unknown): number | null {

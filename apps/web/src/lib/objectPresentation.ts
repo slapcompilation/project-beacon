@@ -45,7 +45,8 @@ export const GLOSSARY = {
   par:              'The stock level this item should be kept at. Falling below PAR flags it as low; PAR is set per item by the operator.',
   days_until_zero:  'How many days until stock runs out, projected from the last 30 days of consumption.',
   consumed_30d:     'Units consumed over the last 30 days — write-offs and reverts excluded.',
-  stock_value:      'What the current stock is worth: units on hand × unit cost.',
+  // stock_value moved onto the ontology in migration 349 — it is a computed
+  // property of `variant` now, and its description travels with the definition.
   reorder_point:    'The statistically-derived stock level to reorder at: expected demand over the supplier lead time plus a safety buffer for demand swings.',
   reliability:      'Composite 0–10 score of this supplier over the last 90 days: on-time rate, delays, and cost variance.',
   on_time_pct:      'Share of this supplier\'s orders delivered by the promised date in the last 90 days.',

@@ -35,6 +35,16 @@ export function useOntologyTypes() {
   return useQuery({ queryKey: keys.ontology, queryFn: fetchOntologyTypes, staleTime: 30_000 })
 }
 
+/** One computed property's definition, straight from the ontology. Bespoke pages
+ *  used to work out derived values inline — `variant.cost * variant.current_stock`
+ *  sat in a component while GLOSSARY held its explanation elsewhere. The
+ *  definition and the sentence describing it now travel together as data. */
+export function useOntologyComputed(apiName: string, key: string) {
+  const { data: rows = [] } = useOntologyTypes()
+  const row = rows.find((r) => r.api_name === apiName)
+  return row?.computed_properties?.find((c) => c.key === key)
+}
+
 export function useObjectTypeCards() {
   return useQuery({ queryKey: keys.cards, queryFn: fetchObjectTypeCards, staleTime: 30_000 })
 }

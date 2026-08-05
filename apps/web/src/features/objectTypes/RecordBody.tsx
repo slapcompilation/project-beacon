@@ -22,7 +22,9 @@ export function RecordBody({ type, record, links, dense = false, onOpenRecord }:
   const labelOf = (key: string) =>
     type.properties.find((p) => p.key === key)?.label ?? type.computedProperties.find((c) => c.key === key)?.label ?? key
   const isComputed = (key: string) => type.computedProperties.some((c) => c.key === key)
-  const describes = (key: string) => type.properties.find((p) => p.key === key)?.description
+  const describes = (key: string) =>
+    type.properties.find((p) => p.key === key)?.description
+    ?? type.computedProperties.find((c) => c.key === key)?.description
 
   /** Foundry's "property mouseover reveals its definition" — the ontology
    *  answering what a field means, rather than a colleague. */

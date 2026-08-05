@@ -27,7 +27,8 @@ import { useReorderPoint } from '@/features/inventory/hooks/useReorderPoint'
 import { useOccupancyAdjustedForecast } from '@/features/inventory/hooks/useOccupancyAdjustedForecast'
 import { cn } from '@/lib/utils'
 import type { ProductVariant, StockLog, RestockRequest } from '@beacon/types'
-import { forecastForVariant, consumptionUrgency, stockUrgency } from '@beacon/reality-graph'
+import { forecastForVariant, consumptionUrgency, stockUrgency, evaluateComputed } from '@beacon/reality-graph'
+import { useOntologyComputed } from '@/features/objectTypes/hooks'
 import { GraphConnections } from '@/components/GraphConnections'
 import { ObjectActions } from '@/components/ObjectActions'
 import { ObjectAgentActivity } from '@/features/agents/ObjectAgentActivity'
@@ -307,6 +308,9 @@ export default function VariantObjectPage() {
   const wasteAnomaly  = wasteRows.find((r) => r.variant_id === variantId) ?? null
   const forecast      = forecastForVariant(variantId, forecastRows)
 
+  // Above the early returns — hooks run in the same order every render.
+  const stockValue = useOntologyComputed('variant', 'stock_value')
+
   if (loadingVariant) {
     return (
       <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
@@ -347,7 +351,13 @@ export default function VariantObjectPage() {
     stockStatus === 'critical' ? 'red' :
     stockStatus === 'low'      ? 'amber' : 'green'
 
-  const costAtRisk = variant.cost * variant.current_stock
+  // Was `variant.cost * variant.current_stock` here, with its explanation in a
+  // GLOSSARY const elsewhere. Both now live on the ontology as a computed
+  // property (migration 349), so this page reads the definition rather than
+  // restating it.
+  const costAtRisk = stockValue
+    ? evaluateComputed(stockValue, variant as unknown as Record<string, unknown>)
+    : null
 
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
@@ -395,9 +405,9 @@ export default function VariantObjectPage() {
           sub={`${received30} received · ${logsLast30.length} events`}
         />
         <Metric
-          info={GLOSSARY.stock_value}
-          label="Stock Value"
-          value={`€${costAtRisk.toFixed(2)}`}
+          info={stockValue?.description}
+          label={stockValue?.label ?? 'Stock Value'}
+          value={costAtRisk === null ? '—' : `€${costAtRisk.toFixed(2)}`}
           sub={`@ €${variant.cost.toFixed(2)} / unit`}
         />
         {/* Registered time series (5.7) — last point is "what is it now",
