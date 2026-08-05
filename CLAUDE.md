@@ -56,9 +56,22 @@ So, before building anything from a page:
 6. **Separate quote from inference.** Anything not lifted from the page is marked
    as inference. `object_type_impact` came back on a citation that did not exist.
 
-`readings/` is the memory. Before designing anything, grep it — an answer already
-written down beats re-deriving one, and the "connects to" lines are how a concept
-in one part of the platform is recognised in another.
+### The two artifacts that make this work
+
+**`docs/foundry-reference/MAP.md`** — every mirrored page by section and title,
+1,184 of them. A floor plan, not a reading: it answers "does a page about X
+exist, and what is it called", which is the question that keeps going wrong.
+`staging` appears in no URL but `manage-models/release-model` defines it. Grep
+titles here before concluding Foundry lacks something.
+
+**`docs/foundry-reference/readings/`** — our reading of the pages we have
+actually read, with a queue in build order. Grep it before designing anything;
+an answer already written down beats re-deriving one, and the "connects to" lines
+are how a concept met in one part of the platform gets recognised in another.
+
+The corpus is 1,184 pages and the readings are far fewer. That is the normal
+state — the map keeps the unread ones findable, and the queue says which to read
+next and when.
 
 ### The three-times mistake, so it is not made a fourth
 
