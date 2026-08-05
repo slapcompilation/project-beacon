@@ -535,6 +535,11 @@ export type {
   OntologyStatusFields,
 } from './ontology/status'
 
+// Link cardinality, and which backing can express it — Foundry's grammar, not
+// ours. See create-link-type.md.
+export { LINK_CARDINALITIES, CARDINALITY_BACKINGS, canBack, preferredBacking } from './ontology/linkCardinality'
+export type { LinkCardinality } from './ontology/linkCardinality'
+
 // Projects — Foundry's primary security boundary — and the roles granted on
 // them. Discretionary, inside the mandatory org/hotel boundary.
 export { PROJECT_ROLES, ROLE_META, roleAtLeast, canGrant, grantableRoles, effectiveRole } from './projects/roles'
