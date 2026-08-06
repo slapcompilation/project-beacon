@@ -87,6 +87,10 @@ is worth most just before the thing it describes gets built. Nothing here is
 - `ontology-core-concepts.md` — the dataset analogy (object type = dataset, row =
   object, column = property, join = link type), semantic vs kinetic elements, and
   the airline diagram showing two link types over the same pair of object types.
+- `datasets-rid-and-object-storage.md` — what a dataset is (files + transactions +
+  a schema per view), the four transaction types, the 15 field types, RID grammar,
+  the six backend services, and OSv2's enforced data restrictions. Answers all four
+  open questions from `create-object-type.md`.
 
-One reading against 1,184 pages is the honest starting position. `../MAP.md` is
+Six readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

@@ -22,13 +22,13 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/**'
-      - 'supabase/tests/**'
+      - 'scripts/check-datasets.mjs'
       - '.github/workflows/db-migrate.yml'
   push:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
-      - 'supabase/tests/**'
+      - 'scripts/check-datasets.mjs'
       - '.github/workflows/db-migrate.yml'
   workflow_dispatch:
 
@@ -74,7 +74,12 @@ jobs:
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
           pnpm gen:ontology:check
 
-      - name: Data-layer guards
+      # Runs Palantir's own published transaction example against our engine and
+      # compares against the answer the page states, inside a transaction it
+      # rolls back. After applying, not on PRs: a PR that adds a migration and a
+      # check for it would otherwise fail against the un-migrated schema.
+      - name: Dataset view algorithm matches the documented example
         if: github.event_name != 'pull_request'
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
+          pnpm check:datasets

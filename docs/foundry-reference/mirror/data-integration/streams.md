@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/streams/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/streams/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Streams
 
@@ -114,4 +114,4 @@ On the other hand, `EXACTLY_ONCE` semantics provide stronger guarantees and can 
 
 Streaming sources in Foundry currently only support `AT_LEAST_ONCE` semantics for extracts and exports. Streaming pipelines *do* support both `AT_LEAST_ONCE` and `EXACTLY_ONCE` semantics, and this is configurable under the **Build settings** section of Pipeline Builder.
 
-![Configuring streaming semantics](/docs/resources/foundry/data-integration/configuring-streaming-semantics.png)
+![Configuring streaming semantics](./images/configuring-streaming-semantics.png)

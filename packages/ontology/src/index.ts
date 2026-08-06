@@ -141,3 +141,15 @@ export { grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES } from './project
 
 // Generated from object_types — one interface per registered type.
 export type { OntologyTypes, OntologyTypeName } from './ontology.generated'
+
+// The Dataset Layer. The view algorithm and the commit rules are in SQL
+// (migrations 392–394) because a trigger is the only place a rule cannot be
+// walked around; this is the grammar a surface needs to render one.
+export {
+  FIELD_TYPES, NOT_A_BASE_TYPE, TRANSACTION_TYPES, TRANSACTION_STATUSES,
+  validateDatasetSchema, describeField,
+} from './datasets/index'
+export type {
+  FieldType, DatasetField, TransactionType, TransactionStatus,
+  Dataset, DatasetBranch, DatasetTransaction, DatasetFile,
+} from './datasets/index'

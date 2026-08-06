@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/streaming-profiles/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/streaming-profiles/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Streaming profiles
 
@@ -26,11 +26,11 @@ The streaming profile set up interface will differ depending on where you are us
 
 In most cases, when setting up a streaming use case, you will notice a selection box that lists all streaming profiles available to you. For example, in [Pipeline Builder](/docs/foundry/pipeline-builder/overview/), you can see the list of configurable streaming profiles by selecting the build settings next to the **Deploy** button:
 
-![Screenshot of Pipeline Builder Built-in Flink Profiles](/docs/resources/foundry/data-integration/pipeline-builder-built-in-flink-profiles.png)
+![Screenshot of Pipeline Builder Built-in Flink Profiles](./images/pipeline-builder-built-in-flink-profiles.png)
 
 Additionally, Pipeline Builder allows you to combine different aspects of these profiles together with the **Advanced** profile option:
 
-![Screenshot of Pipeline Builder Advanced Flink profile.](/docs/resources/foundry/data-integration/pipeline-builder-advanced-flink-profile.png)
+![Screenshot of Pipeline Builder Advanced Flink profile.](./images/pipeline-builder-advanced-flink-profile.png)
 
 Note that the selection of streaming profiles available to you may differ based on which application you are using and any other security or visibility requirements applied to your working environment.
 

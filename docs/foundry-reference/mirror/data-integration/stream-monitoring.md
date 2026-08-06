@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/stream-monitoring/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/stream-monitoring/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Stream monitoring
 
@@ -124,7 +124,7 @@ To view the metrics underlying a monitor, select the monitor rule in row in the 
 
 Metrics are only available for streaming or time series monitors with a single target scope.
 
-![View stream monitor metrics](/docs/resources/foundry/data-integration/stream-monitoring-metrics.gif)
+![View stream monitor metrics](./images/stream-monitoring-metrics.gif)
 
 ## Monitor notifications
 
@@ -144,10 +144,10 @@ To set PagerDuty alerts:
 4. Copy and paste the integration key into the **Integration Key**.
 5. Select the **Severity** of alerts.
 
-![Monitor notifications](/docs/resources/foundry/data-integration/stream-monitoring-notifications.png)
+![Monitor notifications](./images/stream-monitoring-notifications.png)
 
 ## Firing alerts
 
 You can view firing alerts in the **Troubleshoot alerts** tab of your monitoring view.
 
-![Firing alerts](/docs/resources/foundry/data-integration/stream-monitoring-firing-alerts.png)
+![Firing alerts](./images/stream-monitoring-firing-alerts.png)

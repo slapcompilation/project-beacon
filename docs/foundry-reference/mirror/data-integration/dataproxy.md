@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/dataproxy/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/dataproxy/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # DataProxy
 

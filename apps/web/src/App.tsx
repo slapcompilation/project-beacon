@@ -19,6 +19,7 @@ const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const ObjectTypesPage = lazyWithRetry(() => import('@/pages/ObjectTypesPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
+const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 
 
 
@@ -31,7 +32,7 @@ function PageLoader() {
 }
 
 function RootRedirect() {
-  return <Navigate to="/objects" replace />
+  return <Navigate to="/ontology" replace />
 }
 
 
@@ -55,10 +56,11 @@ function AppRoutes() {
             <Route path="/account"       element={<AccountPage />} />
             <Route path="/ontology"     element={<ObjectTypesPage />} />
             <Route path="/projects"      element={<ProjectsPage />} />
-            {/* Generic on purpose: a new application must not mean a new route. */}
-            {/* retired deep links live on as redirects */}
+            <Route path="/datasets"      element={<DatasetsPage />} />
           </Route>
-          <Route path="*" element={<Navigate to="/objects" replace />} />
+          {/* Was /objects, which the teardown removed — the fallback pointed at
+              a route that no longer exists and rendered nothing. */}
+          <Route path="*" element={<Navigate to="/ontology" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/datasets/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/datasets/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Datasets
 
@@ -89,7 +89,7 @@ Viewing dataset retention policies is in the [beta](/docs/foundry/platform-overv
 
 To view the retention policies that currently apply to a given dataset, navigate to the [dataset details page](/docs/foundry/dataset-preview/overview/#details).
 
-![Retention policies section screenshot](/docs/resources/foundry/data-integration/retention-policies.png)
+![Retention policies section screenshot](./images/retention-policies.png)
 
 ## Branches
 
