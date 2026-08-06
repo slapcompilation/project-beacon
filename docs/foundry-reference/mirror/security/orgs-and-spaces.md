@@ -42,7 +42,7 @@ When setting up a collaboration with an external organization, you likely want t
 
 In the case of a space with multiple organizations, projects inside that space can have any subset of the organizations. For example, if there is a shared space with both the Sky Industries and Sunrise Airline organizations applied, projects inside that space can be created with just Sky Industries or just Sunrise Airline, restricting those projects to only the corresponding organization, or *both* organizations, allowing that project to be accessed by both organizations.
 
-![Multi-organization spaces.](/docs/resources/foundry/security/namespace-org-projects-diagram.png)
+![Multi-organization spaces.](./images/namespace-org-projects-diagram.png)
 
 For more details on setting up a collaboration with an external organization, see [Workflow: Cross-organization collaboration](/docs/foundry/security/cross-organization-collaboration/).
 

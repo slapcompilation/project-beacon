@@ -254,6 +254,11 @@ unambiguously:
 ri.<service>.<instance>.<type>.<locator>
 ```
 
+> **Corrected by `rid-grammar.md`:** the instance segment **can be empty** —
+> `ri.multipass..organization.<uuid>`, and three other services do the same. The
+> `main` in every example below is a property of those services, not of the
+> grammar.
+
 Real examples, each from a page in the mirror:
 
 | RID | from |
@@ -882,11 +887,11 @@ Recited to the operator and agreed 2026-08-06. Built: migrations 391–395,
 `packages/ontology/src/datasets/`, `/datasets`, `scripts/check-datasets.mjs`.
 
 1. **RID is a generated column, not a second identity.**
-   `ri.<service>.main.<type>.<row uuid>`, derived — so it cannot drift, cannot be
-   forged, and needs no backfill. **Only the five attested forms are used**
-   (object-type, object-set, dataset, transaction, folder). project, link-type,
-   shared-property, interface and action-type have no attested form and therefore
-   no RID; the operator is searching for the real ones.
+   `ri.<service>.<instance>.<type>.<row uuid>`, derived — so it cannot drift,
+   cannot be forged, and needs no backfill. **Only attested forms are used.** At
+   the time of writing that was five; the operator then found four more, so see
+   **`rid-grammar.md`** and migration 396 for the current set. Link types and
+   shared properties are still deliberately without one.
 2. **A dataset is a registry row pointing at a real table**, not a table itself,
    and not a universal jsonb store. The justification is Foundry's own sentence:
    the files "are not stored in Foundry itself. Instead, a mapping is maintained

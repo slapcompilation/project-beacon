@@ -91,6 +91,11 @@ is worth most just before the thing it describes gets built. Nothing here is
   a schema per view), the four transaction types, the 15 field types, RID grammar,
   the six backend services, and OSv2's enforced data restrictions. Answers all four
   open questions from `create-object-type.md`.
+- `rid-grammar.md` — which resources actually have a RID, and in what form. The
+  instance segment can be **empty**; a **project is a folder** at the RID level;
+  organizations carry a Marking ID *and* a Resource ID. Link types and shared
+  properties have no attested form and stay without one. **Four of six answers
+  came from screenshots, three appear in no sentence anywhere.**
 
-Six readings against 1,184 pages is the honest starting position. `../MAP.md` is
+Seven readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

@@ -4,11 +4,11 @@
 
 If you have the [appropriate permissions](/docs/foundry/security/projects-and-roles/#create-projects), you can create new Projects by navigating to the Projects landing page and selecting **+ New project** located in the upper right.
 
-<img src="./media/new-project.png" alt="Create new project option" width="250" />
+<img src="./images/new-project.png" alt="Create new project option" width="250" />
 
 Select **Project** to open a **Create new project** pane.
 
-<img src="./media/create-new-project.png" alt="Create new project prompt." width="300" />
+<img src="./images/create-new-project.png" alt="Create new project prompt." width="300" />
 
 Name your Project, add an optional description, and select a location ([**space**](/docs/foundry/security/orgs-and-spaces/#spaces)) where your Project will live. You can also change the default role for users within your Organization.
 
