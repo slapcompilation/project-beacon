@@ -12,9 +12,13 @@
 // Editor role, the Access panel shows an overview of the current groups with
 // Project access."
 //
-// The space picker is deliberately absent — Foundry's "location (space)" is the
-// tenant a project lives in, and ours is the organization, decided by RLS rather
-// than by a dropdown.
+// **Default role** is a standing setting granted to the whole ORGANIZATION, not
+// the creator — the create dialog states its own effect: "Everyone from <org> can
+// see the existence of this project and is granted the <role> role." It is a
+// floor; an explicit grant can only raise it (migration 398).
+//
+// The space picker is still absent. Spaces exist (migration 397) but a project's
+// space is not yet chosen here, so a project's location falls back to /<project>.
 
 import { useState } from 'react'
 import {
@@ -25,7 +29,7 @@ import { toSlug, grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES, type Pro
 import { useAuthStore } from '@/stores/auth.store'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,
-  useGrantRole, useRevokeRole, useProjectResources, useOrgMembers,
+  useGrantRole, useRevokeRole, useSetDefaultRole, useProjectResources, useOrgMembers,
   type Project,
 } from '@/features/projects/api'
 
@@ -88,7 +92,7 @@ function CreatePane({ onDone }: { onDone: () => void }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   // "You can also change the default role for users within your Organization."
-  const [defaultRole, setDefaultRole] = useState<ProjectRole>('owner')
+  const [defaultRole, setDefaultRole] = useState<ProjectRole>('viewer')
   const apiName = toSlug(name)
 
   return (
@@ -99,7 +103,7 @@ function CreatePane({ onDone }: { onDone: () => void }) {
           <InputGroup value={name} placeholder="Bar inventory" onChange={(e) => { setName(e.currentTarget.value) }} />
         </label>
         <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Your role</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Default role</span>
           <HTMLSelect value={defaultRole} onChange={(e) => { setDefaultRole(e.currentTarget.value as ProjectRole) }}>
             {PROJECT_ROLES.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
           </HTMLSelect>
@@ -121,6 +125,10 @@ function CreatePane({ onDone }: { onDone: () => void }) {
         </Button>
         <Button variant="minimal" size="small" onClick={onDone}>Cancel</Button>
         {apiName && <span className="text-[11px] text-muted-foreground font-mono">{apiName}</span>}
+        {/* Foundry's dialog builds this sentence from the selections above. */}
+        <span className="text-[11px] text-muted-foreground/70">
+          Everyone in the organization is granted {ROLE_META[defaultRole].label}.
+        </span>
       </div>
     </Card>
   )
@@ -165,21 +173,24 @@ function ProjectDetails({ project }: { project: Project }) {
         )}
       </Card>
 
-      <AccessPanel projectId={project.id} members={members} myRole={myRole ?? null} canGrant={canGrant} />
+      <AccessPanel projectId={project.id} members={members} myRole={myRole ?? null}
+        canGrant={canGrant} defaultRole={project.defaultRole} />
     </section>
   )
 }
 
 function AccessPanel({
-  projectId, members, myRole, canGrant,
+  projectId, members, myRole, canGrant, defaultRole,
 }: {
   projectId: string
   members: { userId: string; role: ProjectRole; email: string | null }[]
   myRole: ProjectRole | null
   canGrant: boolean
+  defaultRole: ProjectRole | null
 }) {
   const grant = useGrantRole(projectId)
   const revoke = useRevokeRole(projectId)
+  const setDefault = useSetDefaultRole(projectId)
   const { data: people = [] } = useOrgMembers()
   const [userId, setUserId] = useState('')
   const [role, setRole] = useState<ProjectRole>('viewer')
@@ -200,9 +211,25 @@ function AccessPanel({
         </span>
       </div>
 
+      {/* Foundry puts Default role at the top of Manage roles, above the
+          principals, because it is what everyone gets before anyone is named. */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-border px-3 py-2">
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Default role</span>
+        <HTMLSelect minimal disabled={!canGrant} value={defaultRole ?? ''}
+          onChange={(e) => { setDefault.mutate((e.currentTarget.value || null) as ProjectRole | null) }}>
+          <option value="">None</option>
+          {PROJECT_ROLES.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
+        </HTMLSelect>
+        <span className="text-[11px] text-muted-foreground/70">
+          {defaultRole
+            ? `Everyone in the organization is granted ${ROLE_META[defaultRole].label}. A grant below can only raise it.`
+            : 'Nobody gets a role just for being in the organization.'}
+        </span>
+      </div>
+
       {members.length === 0 ? (
         <p className="px-3 py-3 text-xs text-muted-foreground">
-          Nobody has been granted a role yet. Org admins can still administer it.
+          Nobody has been granted a role beyond the default. Org admins can still administer it.
         </p>
       ) : (
         <ul className="divide-y divide-border/30">

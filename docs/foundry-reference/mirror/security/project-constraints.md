@@ -4,7 +4,7 @@
 
 Project constraints allow Project owners to set limits on which markings may or may not be applied on files within a Project. Project constraints prevent users from saving violating files to a Project; learn more about how to [manage Project constraints](/docs/foundry/platform-security-management/manage-project-constraints/). Note that if a dataset violates its Project constraints, it cannot be built until the violation is resolved.
 
-![Project Constraints - Overview](/docs/resources/foundry/security/pmc-1.png)
+![Project Constraints - Overview](./images/pmc-1.png)
 
 The three types of Project constraints are listed below:
 

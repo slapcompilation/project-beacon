@@ -6,13 +6,13 @@ To add a constraint on a Project, you must have an `Owner` role on the Project a
 
 To manage constraints, navigate to the Markings section in the Access panel to the right.
 
-![Project Constraints - Overview](/docs/resources/foundry/platform-security-management/pmc-1.png)
+![Project Constraints - Overview](./images/pmc-1.png)
 
 ## Project constraint violations
 
 After a Project constraint is applied, a dataset could still violate the Project constraint if a violating marking was added somewhere upstream and inherited by a dataset in the Project. This is surfaced by a warning on the dataset that is in violation. If the dataset violates the Project constraints, it cannot be built until the violation is resolved.
 
-![A dataset in a Project is marked with a violation warning.](/docs/resources/foundry/platform-security-management/pmc-violation.png)
+![A dataset in a Project is marked with a violation warning.](./images/pmc-violation.png)
 
 Project constraint violations can be resolved through the following actions:
 

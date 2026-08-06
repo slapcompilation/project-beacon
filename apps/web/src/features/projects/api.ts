@@ -21,6 +21,10 @@ export interface Project {
   /** The containing space's path — the first element of every location inside
    *  this project. Empty while the project has no space. */
   spacePath: string
+  /** Granted to everyone in the organization: "Everyone from <org> can see the
+   *  existence of this project and is granted the <role> role." A floor, not a
+   *  ceiling — an explicit grant can only raise it. */
+  defaultRole: ProjectRole | null
   createdAt: string
 }
 
@@ -48,14 +52,14 @@ export function useProjects() {
     queryKey: keys.all,
     queryFn: async (): Promise<Project[]> => {
       const { data, error } = await supabase.from('projects')
-        .select('id, api_name, name, description, created_at, spaces(path)').order('name')
+        .select('id, api_name, name, description, created_at, default_role, spaces(path)').order('name')
       if (error) throw new Error(error.message)
       return (data as unknown as {
         id: string; api_name: string; name: string; description: string; created_at: string
-        spaces: { path: string } | null
+        default_role: ProjectRole | null; spaces: { path: string } | null
       }[]).map((r) => ({
         id: r.id, apiName: r.api_name, name: r.name, description: r.description,
-        spacePath: r.spaces?.path ?? '', createdAt: r.created_at,
+        spacePath: r.spaces?.path ?? '', defaultRole: r.default_role, createdAt: r.created_at,
       }))
     },
     staleTime: 30_000,
@@ -66,20 +70,18 @@ export function useCreateProject() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (i: { apiName: string; name: string; description: string; defaultRole: ProjectRole | null }) => {
+      // The default role is a standing setting on the project, granted to the
+      // whole organization — the create dialog says so in the sentence it builds
+      // from your selections: "Everyone from <org> can see the existence of this
+      // project and is granted the <role> role." It used to be written here as a
+      // one-time grant to the creator, which is neither.
       const { data, error } = await supabase.from('projects')
-        .insert({ api_name: i.apiName, name: i.name, description: i.description })
+        .insert({
+          api_name: i.apiName, name: i.name, description: i.description,
+          default_role: i.defaultRole,
+        })
         .select('id').single<{ id: string }>()
       if (error) throw new Error(error.message)
-      // Foundry's create pane sets "the default role for users within your
-      // Organization". Ours grants it to the creator, who is the only member
-      // the project has at this point.
-      if (i.defaultRole) {
-        const { data: me } = await supabase.auth.getUser()
-        if (me.user) {
-          await supabase.from('project_role_grants')
-            .insert({ project_id: data.id, user_id: me.user.id, role: i.defaultRole })
-        }
-      }
       return data.id
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Project created') },
@@ -146,6 +148,21 @@ export function useGrantRole(projectId: string) {
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Role granted') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The standing organization-wide grant, editable from Manage roles the way
+ *  Foundry's `Default role` dropdown is. */
+export function useSetDefaultRole(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (role: ProjectRole | null) => {
+      const { error } = await supabase.from('projects')
+        .update({ default_role: role }).eq('id', projectId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Default role updated') },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

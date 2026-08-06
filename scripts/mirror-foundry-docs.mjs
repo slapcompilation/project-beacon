@@ -23,11 +23,17 @@ const DELAY_MS = 400
 
 const args = process.argv.slice(2)
 const refresh = args.includes('--refresh')
-const sections = args.filter((a) => !a.startsWith('--'))
-if (sections.length === 0) {
+// Pages mirrored before mirrorImages handled absolute hrefs kept their
+// /docs/resources/... links and downloaded nothing. --images backfills those
+// without re-fetching a whole section's prose.
+const imagesOnly = args.includes('--images')
+const targets = args.filter((a) => !a.startsWith('--'))
+if (targets.length === 0) {
   console.error('usage: node scripts/mirror-foundry-docs.mjs [--refresh] <section>...')
+  console.error('       node scripts/mirror-foundry-docs.mjs --images <section>/<page>.md...')
   process.exit(2)
 }
+const sections = targets
 
 const all = fs.readFileSync(URLS, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean)
 const today = new Date().toISOString().slice(0, 10)
@@ -73,7 +79,9 @@ async function mirrorImages(md, section) {
 
   const refs = [
     ...md.matchAll(/!\[[^\]]*\]\((\.?\/[^)\s]+\.(?:png|jpe?g|gif|svg|webp))\)/gi),
-    ...md.matchAll(/<img[^>]+src="(\.?\/[^"]+\.(?:png|jpe?g|gif|svg|webp))"/gi),
+    ...md.matchAll(/<img[^>]+src="(\.?\/[^"\s]+\.(?:png|jpe?g|gif|svg|webp))"/gi),
+    // `<img src=./x.png>` — unquoted, which the two above both miss.
+    ...md.matchAll(/<img[^>]+src=(\.?\/[^"'\s>]+\.(?:png|jpe?g|gif|svg|webp))/gi),
   ]
 
   for (const m of refs) {
@@ -106,6 +114,19 @@ async function mirrorImages(md, section) {
 
 let written = 0, skipped = 0, images = 0
 const failures = []
+
+if (imagesOnly) {
+  for (const rel of targets) {
+    const file = path.join(MIRROR, rel)
+    if (!fs.existsSync(file)) { console.error(`  no such page: ${rel}`); continue }
+    const before = fs.readFileSync(file, 'utf8')
+    const after = await mirrorImages(before, rel.split(/[/\\]/)[0])
+    if (after !== before) fs.writeFileSync(file, after)
+    console.log(`  ${rel}`)
+  }
+  console.log(`\nimages ${images}`)
+  process.exit(0)
+}
 
 for (const section of sections) {
   const urls = all.filter((u) => u.includes(`/foundry/${section}/`) || u.endsWith(`/foundry/${section}`))

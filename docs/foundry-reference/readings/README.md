@@ -103,5 +103,12 @@ is worth most just before the thing it describes gets built. Nothing here is
   not a rank ladder like project roles. Spaces are an *enrollment* concern, above
   organizations.
 
-Eight readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `projects-roles-and-portfolios.md` — a project's access requirements are a
+  conjunction the UI spells out (**Roles AND Organizations·Any of AND
+  Markings·All of**); `Default role` is a standing grant to the **organization**,
+  not the creator; project constraints limit which markings *may be applied*, not
+  which you must hold; portfolios are curation, not security. Answers the
+  project-organization subset question, and assesses the missing space RID.
+
+Nine readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

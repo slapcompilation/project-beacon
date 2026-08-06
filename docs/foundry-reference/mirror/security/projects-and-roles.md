@@ -12,7 +12,7 @@ Learn more about [securing a data foundation](/docs/foundry/security/securing-a-
 
 Each Project is a collaborative space that organizes users, files, and folders for a particular purpose. Projects should be designed such that users collaborating within each Project have approximately uniform access to the content, but varied permissions on that content - for example, everyone in your Project may have default Viewer role but only one specific group may have Editor role on all Project resources. Projects enforce security boundaries, which enables work to be contained in a space. Work (transformation, analysis, etc.) is done in a Project, and the output of that work lives alongside its logic within the Project.
 
-![The correct way to set up a project is ensuring a repository and its outputs live together.](/docs/resources/foundry/security/project-containment.png)
+![The correct way to set up a project is ensuring a repository and its outputs live together.](./images/project-containment.png)
 
 Since work and its output must live in the same Project, to reuse or build off of work in other Projects you must use [References](#references).
 
@@ -22,7 +22,7 @@ To make permission management easier, we recommend granting [group](/docs/foundr
 
 Users need `Editor` or `Owner` permissions on a space to create Projects in that space.
 
-<img src="./media/create-projects.png" alt="+ New project option to the top right of the page." width="250">
+<img src="./images/create-projects.png" alt="+ New project option to the top right of the page." width="250">
 
 Space permissions can be managed from the [space settings](/docs/foundry/platform-security-management/manage-orgs-and-spaces/#manage-a-space) page.
 
@@ -44,7 +44,7 @@ After selecting one of the above entry points, the user is presented with a **Re
 
 As mentioned [above](#projects-and-resources), we recommend managing permissions on Projects through groups. In the **Request access** pop-up, users can select to get access to a group with an appropriate role on the Project. For groups that are [managed internally to Foundry](/docs/foundry/platform-security-management/manage-groups/#group-internal-realms), users can pick a group to join, which will route the request to the group administrators for approval. Custom request flows for groups can be configured to help requesting users select the appropriate group to join. You can find more information regarding custom approval access request configuration in the [platform security management documentation](/docs/foundry/platform-security-management/manage-groups/#custom-approvals-access-request-form). Additionally, you can hide groups to prevent users from requesting access to them. Learn how in the [manage groups documentation](/docs/foundry/platform-security-management/manage-groups/#exclude-groups-from-access-request-form).
 
-![Request access flow for Projects.](/docs/resources/foundry/security/project_access_request.gif)
+![Request access flow for Projects.](./images/project_access_request.gif)
 
 For groups that are managed externally to Foundry, users will be presented with a message and URL redirecting them to request access to the necessary group outside the Foundry platform. Learn how to configure this message and URL in the [external group documentation](/docs/foundry/platform-security-management/manage-groups/#group-external-realms).
 
@@ -52,29 +52,29 @@ If there are no groups assigned to the Project, a user can request to be added d
 
 Once users create a request, a message should appear indicating that the request succeeded. View the created request by selecting **View details** on the message, or navigate to the [Approvals inbox](/docs/foundry/approvals/overview/#approvals-inbox) in the Foundry workspace sidebar and select **My requests** from the filter on the left.
 
-<img src="./media/success_message.png" alt="Success message for access request submission." width="350">
+<img src="./images/success_message.png" alt="Success message for access request submission." width="350">
 
 ### File and folder access requests
 
 When users select **Request access** on a file or folder inside a Project, the access request will be submitted on the Project itself (not the specific resource). When reviewing the request, the file or folder where the request was submitted is shown to provide additional context.
 
-![Resource requests access request.](/docs/resources/foundry/security/resource_access_request_request.png)
+![Resource requests access request.](./images/resource_access_request_request.png)
 
 ## Sharing and moving resources
 
 To enforce Projects as a security boundary, we recommend moving resources into Projects that have been permissioned for your use case rather than sharing directly from **Your files**. This allows clarity of access and legibility of who has access to what. The users and groups who have access to your Project can be managed by clicking on the access panel:
 
-![Share and move resources.](/docs/resources/foundry/security/access-panel.gif)
+![Share and move resources.](./images/access-panel.gif)
 
 ## References
 
 Projects are the central security boundary in Foundry, which extends to Foundry’s build system. A build takes in any number of input datasets and produces any number of output datasets. Those inputs and outputs *must* be in the same Project. However, to make a useful pipeline, you will likely want to use datasets from other Projects. When using datasets from other Projects, we recommend applying file references.
 
-![File references as a wrapper for datasets.](/docs/resources/foundry/security/references.png)
+![File references as a wrapper for datasets.](./images/references.png)
 
 Adding a file reference allows you to use an upstream dataset in your project, as long as you have the required [role](#roles) for that use case. Once imported, your colleagues will not need access to the upstream project to see datasets derived in your project, as long as they satisfy any organizations and markings on the dataset.
 
-![Reference to a notional "Flight delays" dataset.](/docs/resources/foundry/security/reference_to_flights.png)
+![Reference to a notional "Flight delays" dataset.](./images/reference_to_flights.png)
 
 In the image above, we referenced the flights dataset from the `Flight Control System [Datasource]` Project in our `Flight Delays [Transform]` Project. If we add a user to our transform Project, they will be able to view the `delays` dataset and build additional transforms on top of it. However, to view the raw `flights` dataset or build any additional transformations on top of it they would still require `Viewer` role on the upstream Project.
 
@@ -98,7 +98,7 @@ From most powerful to least powerful, the default roles in Foundry are: Owner, E
 
 Importantly, like mandatory controls, role grants inherit to child resources. For example, granting a user Viewer on a Project or folder gives them Viewer on all resources contained by that Project or folder. And typically groups of users are granted roles on a Project.
 
-![Flight delay project](/docs/resources/foundry/security/flight-delay-project.png)
+![Flight delay project](./images/flight-delay-project.png)
 
 Learn more about [configuring your Organization's roles](/docs/foundry/platform-security-management/manage-roles/).
 
@@ -106,7 +106,7 @@ Learn more about [configuring your Organization's roles](/docs/foundry/platform-
 
 As mentioned above, we recommend that roles be granted only at the Project level to provide uniform capabilities on all resources within the Project's scope. To enforce this behavior, you can use the toggle to disable folder and file role grants in the **Settings** section in the Project view. When this setting is disabled, role grants can only be granted at the Project level, not at the folder or file level. This toggle can be set by users with the `Owner` role on the Project.
 
-![Advanced settings - roles](/docs/resources/foundry/security/advanced_settings_roles.png)
+![Advanced settings - roles](./images/advanced_settings_roles.png)
 
 If the role grants setting is disabled for Projects already containing resources with role grants, role grants against these individual resources will be removed. Once an existing role grant is removed, it cannot be re-added until the setting is re-enabled. Similarly, if resources with role grants are moved to a Project where the role grants setting is disabled, resource-level role grants will be removed. Users are warned of this behavior when disabling the role grants setting and when moving resources to a Project with a disabled role grant setting.
 
@@ -114,4 +114,4 @@ Additionally, Project link sharing capability will also be removed as link shari
 
 Role grants on folders and files are disabled by default. Space administrators can change the default behavior at the space level. We recommend keeping role grants on folders and files disabled.
 
-![Space settings role grants.](/docs/resources/foundry/security/space-settings-role-grants.png)
+![Space settings role grants.](./images/space-settings-role-grants.png)
