@@ -393,7 +393,34 @@ Removal comes in two flavours, and only one is instant:
    three readings now without being read.
 3. **Scoped sessions** — "pick a subset of pre-defined Markings to access during
    their Foundry session". A user's effective markings are session-scoped, which
-   changes what "a member of all markings" means at query time. Unread.
+   changes what "a member of all markings" means at query time. Unread, **and it
+   is the one unbuilt thing that would change `satisfies_markings`** — everything
+   else deferred below sits beside the implementation rather than inside it.
+
+## Known divergences after 399–403
+
+Stated so they are not rediscovered as bugs:
+
+- **No folders.** Foundry marks "files, folders, and Projects"; our containment is
+  project → dataset with nothing between, so `resource_markings.resource_kind`
+  accepts two values instead of three.
+- **`dataset_inputs` is declared, not derived.** Foundry gets the edge from builds
+  and shows it as *Inputs*; we have no build system, so a user asserts it. The
+  edge is the same relationship — what is missing is the writer.
+- **A stop takes effect on the next read.** Foundry's `stop_propagating` "must
+  propagate along the latest transactions… which requires you to rebuild". Ours
+  resolves on read, so it is immediate — which is the behaviour Foundry already
+  has for directly-applied markings ("you do not need to rebuild datasets
+  downstream").
+- **No audit.** "Markings are intended to allow data protection officers to
+  centrally manage and *audit* exactly who can access any given category of data."
+  We record who applied a marking and when, and nothing about access attempts.
+- **Naming.** `security/markings` calls the remove permission "**Expand Access**";
+  `manage-markings` calls it "**Remove marking**" and reserves *Expand access* for
+  organizations. We follow the more specific page.
+- **Object types are not markable yet.** `resource_markings` is shaped to take
+  them, but `object_types` has no datasource binding, so there is nothing to
+  protect.
 
 ## Decisions taken from this reading
 
@@ -457,6 +484,66 @@ half immediately.
 **M5 — data markings.** `dataset_inputs`, then propagation as a **union over
 inputs** (one marked input marks everything downstream), computed over the
 transactions currently in the view. Deferred until lineage exists.
+
+### Built, 2026-08-06 — migrations 399–403
+
+| | |
+|---|---|
+| **399** | categories, markings, permissions, membership. Immutability triggers, `remove` requires `apply`, `satisfies_markings` |
+| **400** | `resource_markings` (one row per *application*), `effective_file_markings`, `file_marking_origin`, apply/remove guard |
+| **401** | `dataset_inputs`, `dataset_input_marking_stops`, `effective_data_markings`, and the split: `can_read_dataset` vs `can_read_dataset_data` |
+| **402** | `dataset_markings()` — the access panel as one query over the same predicates the policies call |
+| **403** | the two holes below |
+
+`packages/ontology/src/markings/` holds the vocabulary and `accessLevel()`;
+`/datasets` renders the Access requirements panel. `check:datasets` is at 28
+assertions.
+
+Two bugs the build itself surfaced, both caught by an assertion written from a
+quoted sentence rather than from the implementation:
+
+- **`stop_propagating` was filtered at the target, not during traversal.** Gathering
+  every transitive ancestor and then dropping markings stopped *on this dataset*
+  only cuts the last hop — a marking stopped at `clean` still reached `onward`
+  through it. Pruning has to happen while walking, so the recursion carries
+  `(dataset, marking)` pairs and drops one the moment it meets a stopped edge.
+- A plpgsql trigger shared by two tables evaluated `NEW.category_id` for the table
+  that has no such column, because plpgsql plans `a AND b` as one statement.
+
+### The re-read, which is the point of this section
+
+The operator asked for `security/markings` to be read again *against the result*.
+It found two holes. **Both passed every test written in 399–402**, because both
+live in the places that never call the predicates those tests exercise.
+
+**Hole 1 — writing bypassed markings entirely.**
+
+> "Access to a Marking is binary (all-or-nothing). **Regardless of role, a user
+> cannot access a file *in any way*** unless the user satisfies all Marking
+> requirements."
+
+401 put the check in `can_read_dataset`. `can_write_dataset` was still
+organization + role from 395 — so a project Editor who is not a member of a
+marking could not read a dataset and could still **write** it, materialize it, and
+open transactions on it. *In any way* is one phrase and it covers writes.
+
+**Hole 2 — a marked dataset was still listed.**
+
+> "you should use them if you must **hide the existence** of a resource… users who
+> do not have access to the Marking **will not see the marked data in search
+> results or in the Project/folder view**."
+
+Every child table (branches, transactions, schemas, files, inputs) reads through
+`can_read_dataset` and was correct. The `datasets` table's *own* SELECT policy was
+still the bare organization check from 392, so the row appeared in the list — name,
+location and all — to someone failing its file markings. Which is exactly the state
+the page distinguishes from the data-marking one: "**different from** when a user
+cannot discover a resource because they do not meet the file marking requirements."
+Projects had the same gap and are markable in their own right.
+
+The lesson generalises: **a predicate is only as good as the places that call it.**
+Adding a term to `can_read_dataset` looks like securing reads, and does not touch
+the list.
 
 ### One thing to get right in M4
 

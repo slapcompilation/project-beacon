@@ -18,13 +18,14 @@ import {
 import { toast } from 'sonner'
 import {
   describeField, toSlug, TRANSACTION_TYPES, TRANSACTION_STATUSES,
+  MARKING_KINDS, MARKING_KIND_META, MARKING_ORIGIN_META, ACCESS_LEVEL_META, accessLevel,
   type TransactionStatus, type TransactionType,
 } from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProjects } from '@/features/projects/api'
 import {
-  datasetLocation, useBranches, useCreateDataset, useDatasets, useSchema,
-  useTransactions, useView, type Branch, type Dataset,
+  datasetLocation, useBranches, useCreateDataset, useDatasetMarkings, useDatasets,
+  useSchema, useTransactions, useView, type Branch, type Dataset,
 } from '@/features/datasets/api'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
@@ -192,6 +193,8 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
         </dl>
       </Card>
 
+      <AccessRequirements datasetId={dataset.id} />
+
       {/* Columns — name on top, type underneath, as the preview table renders. */}
       <Card compact className="!p-0">
         <PanelHeader icon="th-list" label="Columns" count={schema?.length ?? 0} />
@@ -265,7 +268,71 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
   )
 }
 
-function PanelHeader({ icon, label, count }: { icon: 'info-sign' | 'th-list' | 'history' | 'document'; label: string; count?: number }) {
+/** The access panel, shaped from Foundry's own: one heading, then cards joined
+ *  by AND. The split into File access and Data access is theirs — the second card
+ *  is headed "Additional data markings" because a data marking is a file marking
+ *  that crossed a data dependency, and it gates rows rather than existence. */
+function AccessRequirements({ datasetId }: { datasetId: string }) {
+  const { data: markings = [], isLoading } = useDatasetMarkings(datasetId)
+  const level = accessLevel(markings)
+
+  return (
+    <Card compact className="!p-0">
+      <PanelHeader icon="lock" label="Access requirements" />
+      <div className="px-3 py-2 space-y-2">
+        <p className="text-xs text-muted-foreground">
+          Users must meet <strong>all</strong> of the following requirements to access this dataset.
+        </p>
+        {isLoading ? (
+          <span className="text-xs text-muted-foreground">Loading…</span>
+        ) : (
+          <>
+            {MARKING_KINDS.map((kind, i) => {
+              const of = markings.filter((m) => m.kind === kind)
+              return (
+                <div key={kind}>
+                  {i > 0 && <div className="text-[10px] font-bold tracking-widest text-muted-foreground/60 py-1">AND</div>}
+                  <div className="rounded border border-border">
+                    <div className="flex items-baseline gap-2 px-2 py-1.5 border-b border-border/60">
+                      <span className="text-[11px] font-semibold">{MARKING_KIND_META[kind].label}</span>
+                      {of.length > 0 && <span className="text-[10px] text-muted-foreground">· All of</span>}
+                      <span className="text-[10px] text-muted-foreground/70 ml-auto truncate">
+                        {MARKING_KIND_META[kind].help}
+                      </span>
+                    </div>
+                    {of.length === 0 ? (
+                      <p className="px-2 py-1.5 text-xs text-muted-foreground">None</p>
+                    ) : (
+                      <ul className="px-2 py-1.5 flex flex-wrap gap-1.5">
+                        {of.map((m) => (
+                          <li key={m.markingId}>
+                            <Tag minimal={m.satisfied} intent={m.satisfied ? Intent.NONE : Intent.DANGER}
+                              className="!text-[10px]"
+                              title={`${MARKING_ORIGIN_META[m.origin].help}${m.satisfied ? '' : ' You are not a member of this marking.'}`}>
+                              <Icon icon={MARKING_ORIGIN_META[m.origin].icon} size={10} className="mr-1" />
+                              {m.category}: {m.name}
+                            </Tag>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+            {level !== 'full' && (
+              <p className="text-[11px] text-amber-600">
+                <strong>{ACCESS_LEVEL_META[level].label}.</strong> {ACCESS_LEVEL_META[level].help}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </Card>
+  )
+}
+
+function PanelHeader({ icon, label, count }: { icon: 'info-sign' | 'th-list' | 'history' | 'document' | 'lock'; label: string; count?: number }) {
   return (
     <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
       <Icon icon={icon} size={12} className="text-muted-foreground" />

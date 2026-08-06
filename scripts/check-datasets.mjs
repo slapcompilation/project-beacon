@@ -218,6 +218,95 @@ try {
   const { rows: [own] } = await client.query(
     'select public.can_read_dataset($1) as r, public.can_write_dataset($1) as w', [ds.id])
   check('the owning organization still can', [own.r, own.w], [true, true])
+
+  // ── markings ──────────────────────────────────────────────────────────────
+  // The published behaviour, not ours: file markings gate whether the resource
+  // exists for you; data markings gate only its rows. "the user can detect the
+  // presence of the derived dataset and view the file metadata, but cannot
+  // access the data within."
+  const [{ rows: [cat] }, { rows: [downstream] }] = [
+    await client.query(`insert into public.marking_categories (name) values ('check') returning id`),
+    await client.query(
+      `insert into public.datasets (organization_id, project_id, api_name, name)
+       values ($1,$2,'check_downstream','downstream') returning id`, [org.id, proj.id]),
+  ]
+  const { rows: [pii] } = await client.query(
+    `insert into public.markings (category_id, name) values ($1,'PII') returning id`, [cat.id])
+  await client.query(
+    `insert into public.dataset_inputs (dataset_id, input_dataset_id) values ($1,$2)`,
+    [downstream.id, ds.id])
+
+  const applyAs = async (kind, id) => {
+    await client.query('alter table public.resource_markings disable trigger guard_marking_application')
+    await client.query(
+      `insert into public.resource_markings (marking_id, resource_kind, resource_id) values ($1,$2,$3)`,
+      [pii.id, kind, id])
+    await client.query('alter table public.resource_markings enable trigger guard_marking_application')
+  }
+  const clearMarkings = async () => {
+    await client.query('alter table public.resource_markings disable trigger guard_marking_application')
+    await client.query('delete from public.resource_markings where marking_id=$1', [pii.id])
+    await client.query('alter table public.resource_markings enable trigger guard_marking_application')
+  }
+  const access = async (id) => {
+    const { rows: [a] } = await client.query(
+      'select public.can_read_dataset($1) as meta, public.can_read_dataset_data($1) as data', [id])
+    return [a.meta, a.data]
+  }
+
+  // A file marking on the dataset itself: not a member, so it does not exist.
+  await applyAs('dataset', ds.id)
+  check('an unmet FILE marking denies metadata and data', await access(ds.id), [false, false])
+
+  // The same marking one hop downstream is a DATA marking: metadata survives.
+  check('an unmet DATA marking denies rows but keeps metadata',
+    await access(downstream.id), [true, false])
+
+  // Membership is what satisfies it — and only membership.
+  await client.query(
+    `insert into public.marking_permissions (marking_id, user_id, permission)
+     select $1, id, 'apply' from public.users limit 1`, [pii.id])
+  check('holding "apply" does not grant membership', await access(ds.id), [false, false])
+
+  await client.query(
+    `insert into public.marking_members (marking_id, user_id) select $1, id from public.users limit 1`,
+    [pii.id])
+  // auth.uid() is NULL on this connection, so membership cannot be observed here;
+  // what is checked is that the row landed and nothing else changed.
+  const { rows: [{ n }] } = await client.query(
+    'select count(*)::int as n from public.marking_members where marking_id=$1', [pii.id])
+  check('membership is recorded separately from permissions', n, 1)
+
+  // stop_propagating cuts the edge, and the downstream goes clear.
+  await client.query(
+    `insert into public.dataset_input_marking_stops (dataset_id, input_dataset_id, marking_id)
+     values ($1,$2,$3)`, [downstream.id, ds.id, pii.id])
+  check('stop_propagating clears the data marking downstream',
+    await access(downstream.id), [true, true])
+
+  // A marking on the PROJECT reaches every dataset in it, without a row of its own.
+  await client.query('delete from public.dataset_input_marking_stops')
+  await clearMarkings()
+  await applyAs('project', proj.id)
+  const { rows: origin } = await client.query(
+    `select origin, kind from public.dataset_markings($1)`, [ds.id])
+  check('a project marking reaches its datasets as file_hierarchy',
+    origin.map((r) => [r.kind, r.origin]), [['file', 'file_hierarchy']])
+  check('and it denies the whole resource, not just the rows',
+    await access(ds.id), [false, false])
+
+  // The two holes the re-read found (migration 403). Both passed every earlier
+  // test, because both live where the predicates are not called.
+  const { rows: [w] } = await client.query('select public.can_write_dataset($1) as w', [ds.id])
+  check('an unmet file marking also blocks WRITING — "in any way"', w.w, false)
+
+  const listChecks = await client.query(
+    `select c.relname, position('satisfies_markings' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
+       from pg_policy p join pg_class c on c.oid = p.polrelid
+      where p.polname in ('members read datasets','members read projects') order by c.relname`)
+  check('the list policies hide marked resources, not just the detail reads',
+    listChecks.rows.map((r) => [r.relname, r.guarded]),
+    [['datasets', true], ['projects', true]])
 } finally {
   await client.query('ROLLBACK')
   await client.end()

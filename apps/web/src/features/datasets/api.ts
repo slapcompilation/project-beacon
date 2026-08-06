@@ -12,7 +12,10 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { DatasetField, TransactionStatus, TransactionType } from '@beacon/ontology'
+import type {
+  DatasetField, MarkingKind, MarkingOrigin, ResourceMarking,
+  TransactionStatus, TransactionType,
+} from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 
 export interface Dataset {
@@ -57,6 +60,28 @@ export interface Transaction {
 }
 
 export interface ViewFile { fileId: string; logicalPath: string; rowCount: number }
+
+/** Every marking the dataset demands, tagged with which card it belongs in and
+ *  how it got there. One RPC over the same predicates the RLS policies call, so
+ *  the panel cannot say one thing while the gate does another. */
+export function useDatasetMarkings(datasetId: string | null) {
+  return useQuery({
+    queryKey: ['dataset-markings', datasetId ?? ''],
+    enabled: datasetId !== null,
+    queryFn: async (): Promise<ResourceMarking[]> => {
+      const res: { data: unknown; error: { message: string } | null } =
+        await supabase.rpc('dataset_markings', { p_dataset: datasetId })
+      if (res.error) throw new Error(res.error.message)
+      return (res.data as {
+        marking_id: string; name: string; color: string; category: string
+        kind: MarkingKind; origin: MarkingOrigin; satisfied: boolean
+      }[]).map((r) => ({
+        markingId: r.marking_id, name: r.name, color: r.color, category: r.category,
+        kind: r.kind, origin: r.origin, satisfied: r.satisfied,
+      }))
+    },
+  })
+}
 
 const keys = {
   all: ['datasets'] as const,

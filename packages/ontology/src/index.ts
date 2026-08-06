@@ -153,3 +153,14 @@ export type {
   FieldType, DatasetField, TransactionType, TransactionStatus,
   Dataset, DatasetBranch, DatasetTransaction, DatasetFile,
 } from './datasets/index'
+
+// Markings — the mandatory control. Enforcement is in SQL (399–402); this is the
+// grammar for rendering the access panel.
+export {
+  MARKING_KINDS, MARKING_KIND_META, MARKING_ORIGIN_META, MARKING_PERMISSION_META,
+  ACCESS_LEVEL_META, accessLevel, satisfiesAll,
+} from './markings/index'
+export type {
+  MarkingKind, MarkingOrigin, MarkingPermission, CategoryVisibility,
+  ResourceMarking, AccessLevel,
+} from './markings/index'
