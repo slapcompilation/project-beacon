@@ -138,5 +138,12 @@ is worth most just before the thing it describes gets built. Nothing here is
   object layer. Indexing is what turns a datasource into queryable objects, joined
   on the primary key.
 
-Thirteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `osdk-and-ontology-as-code.md` — application code **never names storage**:
+  `client(Restaurant).where({…})`, object type as a generated value. Foundry
+  supports the ontology living in **code** *or* in the **platform with the types
+  imported** — ours is the second, which `gen:ontology` already does thinly.
+  `Marking` is unsupported in the TypeScript SDK, so markings stay server-side.
+  **O2/O3 are the generated client's input, not its alternative.**
+
+Fourteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
