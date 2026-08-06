@@ -25,12 +25,20 @@ export interface Dataset {
   projectId: string
   projectName: string
   projectApiName: string
+  /** The space's path — the first element of every location below it. Empty
+   *  while a project has no space. */
+  spacePath: string
   createdAt: string
   updatedAt: string
 }
 
-/** "Location, which specifies the filepath location of the dataset." */
-export const datasetLocation = (d: Dataset): string => `/${d.projectApiName}/${d.apiName}`
+/** "Location, which specifies the filepath location of the dataset."
+ *
+ *  Foundry's path starts at the space: "The file path of a Foundry resource…
+ *  indicates the space as the first element of the path: for example,
+ *  `space/project/sub-folder/my-file`." */
+export const datasetLocation = (d: Dataset): string =>
+  `${d.spacePath}/${d.projectApiName}/${d.apiName}`
 
 export interface Branch {
   id: string
@@ -59,12 +67,12 @@ const keys = {
   view: (branch: string) => ['dataset-view', branch] as const,
 }
 
-const SELECT = 'id, rid, api_name, name, description, physical_table, created_at, updated_at, project_id, projects(name, api_name)'
+const SELECT = 'id, rid, api_name, name, description, physical_table, created_at, updated_at, project_id, projects(name, api_name, spaces(path))'
 
 interface DatasetRow {
   id: string; rid: string; api_name: string; name: string; description: string
   physical_table: string | null; created_at: string; updated_at: string; project_id: string
-  projects: { name: string; api_name: string } | null
+  projects: { name: string; api_name: string; spaces: { path: string } | null } | null
 }
 
 const toDataset = (r: DatasetRow): Dataset => ({
@@ -72,6 +80,7 @@ const toDataset = (r: DatasetRow): Dataset => ({
   physicalTable: r.physical_table, createdAt: r.created_at, updatedAt: r.updated_at,
   projectId: r.project_id,
   projectName: r.projects?.name ?? '', projectApiName: r.projects?.api_name ?? '',
+  spacePath: r.projects?.spaces?.path ?? '',
 })
 
 export function useDatasets() {

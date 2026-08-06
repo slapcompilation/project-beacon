@@ -18,6 +18,9 @@ export interface Project {
   apiName: string
   name: string
   description: string
+  /** The containing space's path — the first element of every location inside
+   *  this project. Empty while the project has no space. */
+  spacePath: string
   createdAt: string
 }
 
@@ -45,10 +48,15 @@ export function useProjects() {
     queryKey: keys.all,
     queryFn: async (): Promise<Project[]> => {
       const { data, error } = await supabase.from('projects')
-        .select('id, api_name, name, description, created_at').order('name')
+        .select('id, api_name, name, description, created_at, spaces(path)').order('name')
       if (error) throw new Error(error.message)
-      return (data as { id: string; api_name: string; name: string; description: string; created_at: string }[])
-        .map((r) => ({ id: r.id, apiName: r.api_name, name: r.name, description: r.description, createdAt: r.created_at }))
+      return (data as unknown as {
+        id: string; api_name: string; name: string; description: string; created_at: string
+        spaces: { path: string } | null
+      }[]).map((r) => ({
+        id: r.id, apiName: r.api_name, name: r.name, description: r.description,
+        spacePath: r.spaces?.path ?? '', createdAt: r.created_at,
+      }))
     },
     staleTime: 30_000,
   })

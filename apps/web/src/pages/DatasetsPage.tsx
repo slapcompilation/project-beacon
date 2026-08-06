@@ -96,7 +96,10 @@ function CreatePane({ onDone }: { onDone: () => void }) {
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('')
   const apiName = toSlug(name)
-  const project = projectId || (projects[0]?.id ?? '')
+  const project = projectId || (projects.at(0)?.id ?? '')
+  // Previewed the same way the detail panel renders it, so the two cannot drift.
+  const chosen = projects.find((p) => p.id === project)
+  const location = chosen ? `${chosen.spacePath}/${chosen.apiName}/${apiName}` : ''
 
   return (
     <Card className="space-y-3 !border-violet-400/50">
@@ -130,7 +133,7 @@ function CreatePane({ onDone }: { onDone: () => void }) {
         <Button variant="minimal" size="small" onClick={onDone}>Cancel</Button>
         {apiName && project && (
           <span className="text-[11px] text-muted-foreground font-mono">
-            /{projects.find((p) => p.id === project)?.apiName ?? ''}/{apiName}
+            {location}
           </span>
         )}
         {projects.length === 0 && (

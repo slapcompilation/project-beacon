@@ -97,5 +97,11 @@ is worth most just before the thing it describes gets built. Nothing here is
   properties have no attested form and stay without one. **Four of six answers
   came from screenshots, three appear in no sentence anywhere.**
 
-Seven readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `spaces-and-the-resource-path.md` — a space is the **first element of every
+  resource path**, and its `Path` field (`/Test Space-5adf6d`) is greyed because a
+  rename must not move everything inside it. Space roles are **workflow bundles**,
+  not a rank ladder like project roles. Spaces are an *enrollment* concern, above
+  organizations.
+
+Eight readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

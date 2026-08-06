@@ -315,9 +315,10 @@ instance for a different type. One service, two instance conventions.
 
 ## Open questions
 
-1. **What is a space, as a resource we would build?** It sits above projects,
-   carries the organization set, and owns "one common ontology". We have no
-   equivalent and our Location string is missing its first element.
+1. ~~**What is a space, as a resource we would build?**~~ **Closed** by
+   `spaces-and-the-resource-path.md` and migration 397. The answer is a greyed
+   `Path` field, `/Test Space-5adf6d`, visible in one screenshot and no sentence.
+   No space RID is attested, so a space gets none.
 2. **What is the shared property's own RID?** Its struct fields have RIDs, so it
    almost certainly has one. Not in any page read.
 3. **Does a link type have a RID at all?** Nothing suggests it does; the two-sided
