@@ -391,11 +391,96 @@ Removal comes in two flavours, and only one is instant:
 2. **What is a Restricted View, exactly?** It is the only resource besides a
    dataset from which an inherited marking can be removed, and it has appeared in
    three readings now without being read.
-3. **Scoped sessions** — "pick a subset of pre-defined Markings to access during
-   their Foundry session". A user's effective markings are session-scoped, which
-   changes what "a member of all markings" means at query time. Unread, **and it
-   is the one unbuilt thing that would change `satisfies_markings`** — everything
-   else deferred below sits beside the implementation rather than inside it.
+3. ~~**Scoped sessions**~~ — **read, and the first pass had it backwards.** See
+   the section below.
+
+## Scoped sessions — and a correction
+
+Added after the operator challenged a one-line gloss in the first pass. It was
+built on a summary paragraph in `security/markings` while the authoritative page,
+`administration/configure-scoped-sessions`, **was not mirrored and had not been
+read.** That is the "a link is not a reading" rule, broken.
+
+Page now read in full, with `new_scoped_session_dialog.png` and
+`scoped_session_login_example.png`.
+
+### What it actually is
+
+A scoped session is an **admin-authored preset** — created under a tab literally
+labelled **Session presets** — holding a name, an optional description, and a set
+of markings. The dialog's footer states the invariant:
+
+> "People will only have access to these markings in this scoped session.
+> **Scoped sessions do not grant people membership to any markings.**"
+
+And selection is gated by membership, so a session can only ever be a subset of
+what you already hold:
+
+> "**Only users who are members of all the Markings selected in the scoped
+> session** will be able to choose this scoped session."
+
+The user picks a **session**, not markings. `scoped_session_login_example.png` is
+a list of named sessions with a right-hand panel headed **Marking access** — "In
+this scoped session, you will only have access to the following markings" — and a
+**Choose scoped session** button.
+
+### The correction, and it is not cosmetic
+
+The first pass said: *"a user's effective markings are session-scoped, which
+changes what 'a member of all markings' means at query time."* That describes a
+**narrowing of the membership set**. It is not what the page says:
+
+> "Users will be able to see anything that has **one or more** of the Markings
+> included in the scoped session. Also, users will be able to see **anything that
+> does not have a Marking**."
+>
+> "After selecting the `SARS-CoV-2 B.1.1.529 Genome mapping` scoped session, Anya
+> would only have access to projects, folders, and files that **have no Markings on
+> them** or have **either the `B.1.1.529` and/or `SARS-CoV-2` Markings** on them."
+
+**That filter is disjunctive**, and the base marking check is conjunctive. They are
+two different mechanisms stacked, not one mechanism reconfigured:
+
+```
+visible  =  member of EVERY marking on the resource          (unchanged)
+         AND ( no session
+               OR the resource has no markings
+               OR the resource carries ≥1 marking in the session )
+```
+
+The two readings give different answers, which is how you know it matters. Take a
+resource marked `{A, B}`, a user who is a member of both, and a session `{A}`:
+
+- **membership-narrowing** (what I claimed) → effective memberships become `{A}`,
+  the resource still demands `B`, so it is **hidden**
+- **what the page describes** → the conjunctive check still passes on `{A,B}`, and
+  the resource carries `A` which is in the session, so it is **visible**
+
+The purpose explains the shape. It is not a privilege restriction:
+
+> "Scoped sessions improve platform security by reducing the chances of
+> **accidental cross-pollination of work across different purposes**… the
+> intermingling of data could compromise the validity of their research."
+
+A workstream filter, not a permission narrowing — which is exactly why unmarked
+resources stay visible and why one matching marking is enough.
+
+### What that means for us
+
+Better than the first pass implied. **`satisfies_markings` does not change.**
+Scoped sessions are a separate, purely additive predicate that can be built at any
+time without touching 399–403:
+
+- `scoped_sessions` (name, description, organization) + `scoped_session_markings`
+- selectable only if the caller is a member of **all** its markings
+- a session id on the request, and one extra disjunctive term in the read policies
+- two settings: **Allow no scoped session** (grantable to all, to selected groups,
+  or to all except selected groups) and **Always show selector**
+- disabled by default; "Scoped sessions function across both the Foundry file
+  system **and ontology workspaces**"
+
+Not built. Nothing in it is blocked, and nothing already built is wrong because of
+it — which was not true of the claim it replaces.
 
 ## Known divergences after 399–403
 
