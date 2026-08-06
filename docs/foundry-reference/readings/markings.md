@@ -44,7 +44,7 @@ The asymmetry is enforced, not merely described:
 An Owner can give away any role they hold. An Owner cannot take a marking off.
 That is the whole point of the two-control design.
 
-### The one rule that separates a marking from a tag
+### Inheritance — and the precise version, which is not "two kinds of marking"
 
 > "Markings are **inherited** along both the file hierarchy and direct dependencies
 > and propagate through transform and analysis logic. All resources derived from a
@@ -52,16 +52,69 @@ That is the whole point of the two-control design.
 > explicitly removed. **Unlike role-based access, which is based on where data
 > lives in the platform, Markings travel with the data.**"
 
-Two inheritance paths, named:
+A first reading takes that as "two inheritance paths". True, but it misses the
+part that decides how any of this is built. **A marking is applied in exactly one
+place. What it *becomes* depends on the route it took to reach you:**
 
 - **File hierarchy** — "If a Project or folder has a Marking, **every file or
   folder within it inherits** the Marking. This means that restricting access to a
-  Project or folder always restricts access to everything inside it."
-- **Data dependency** — "If a dataset has a file Marking, **every dataset that
-  depends on it inherits** that Marking and the inherited Marking is known as a
-  **data marking**."
+  Project or folder always restricts access to everything inside it." It arrives
+  still a **file marking**.
+- **Data dependency** — "**If a dataset has a *file* Marking**, every dataset that
+  depends on it inherits that Marking **and the inherited Marking is known as a
+  *data marking*.**"
 
-Both are immediate and both are described as dangerous, in the same words:
+That second sentence is the one that matters, and it is easy to read past. **A data
+marking is what a file marking becomes when it crosses a data dependency.** Not a
+second kind of marking — the same marking, arriving by a different route, landing
+in a *different requirement bucket* with *different consequences*. Which is why the
+access panel has "File markings" and "**Additional** data markings", and why one of
+them gates metadata while the other gates rows (§ below).
+
+So a marking on a resource is in one of **three** states, and the UI distinguishes
+all three:
+
+| state | which card | icon |
+|---|---|---|
+| applied directly here | **File markings** | plain shield |
+| inherited via the file hierarchy | **File markings** | shield with a **folder sidecar** |
+| inherited via a data dependency | **Additional data markings** | shield with a **data-lineage sidecar** |
+
+`marking-file-inheritance.png` and `file_hierarchy_marking.png` are the two
+complementary cases, same marking, same panel:
+
+```
+flight_alerts (in a marked folder)   passengers (derived from a marked input)
+  File markings · All of               File markings
+    [folder] Information: PII            None · No constraints set · Optional
+  Additional data markings             Additional data markings · All of
+    None                                 [lineage] Information: PII
+```
+
+The tooltip on the second names the provenance outright: "**This marking is
+inherited from an input to this dataset.**"
+
+### What the diagrams add
+
+`markings-project.png` — "Security marking added to project" → "Access restricted
+to everything inside project". The right-hand panel does **not** redraw the shield
+on each file; a single Marking chip has a **brace spanning the whole container**.
+The marking lives on the container and *reaches* the contents — it is not copied
+onto them. That is a modelling instruction: store the application once, resolve
+the effective set on read.
+
+`markings-dataset.png` — "Security marking added to dataset" → "Dependent datasets
+inherit security marking". **Two** upstream datasets feed one downstream, and the
+marking is applied to only one of them. After: the marked input carries a shield,
+the downstream carries a shield, the *unmarked* input carries none — and the edge
+from the marked parent is drawn **bold** while the edge from the unmarked parent is
+drawn **faded**.
+
+**So data-marking inheritance is a union over inputs, not a requirement on all of
+them.** One marked input is enough to mark everything downstream. The prose says
+"every dataset that depends on it inherits"; the diagram says which edges carry it.
+
+Both routes are immediate, and both are described as dangerous in the same words:
 
 > "Applying a Marking is considered a **sensitive action**, since the Marking will
 > **immediately** be inherited along all file and data dependencies. This could
@@ -98,6 +151,35 @@ Note also the project constraint appearing inline as "No constraints set ·
 Optional" — the *limit on what may be applied* sits in the same card as the
 *requirement*, and they are different things.
 
+## The file/data access split, named by the UI itself
+
+The panel is not four loose cards. `data_dependecies_message.png` shows it is
+**two named sections**, and the second one states its own scope:
+
+> **Data access requirements**
+> "People must meet these **additional** requirements **propagated from data
+> upstream** in order to access **data in this file**."
+> MARKINGS · All of → `[lineage] Information: PII`
+
+And the header badge popover (`marking-file-inheritance.png`, `markings-data-missing.png`)
+splits under the same two headings:
+
+```
+File access          Data access
+  Organizations        Markings · All of
+    Sky Industries       [lineage] Information: PII
+```
+
+So the conjunction partitions:
+
+| section | requirements | gates |
+|---|---|---|
+| **File access** | Roles **AND** Organizations·Any of **AND** File markings·All of | whether the resource **exists** for you, and its metadata |
+| **Data access** | Additional data markings·All of | whether you can **read the rows** |
+
+That is why they are separate cards rather than one list: they are enforced at
+different moments against different things.
+
 ## The failure mode is not "denied" — it is "metadata yes, data no"
 
 This is the most valuable thing in the reading, and it is only in a screenshot.
@@ -123,6 +205,22 @@ But the preview reads:
 And one field changes tellingly: where the accessible dataset offers "**Calculate
 row count**", this one says "***Row count not available***". A row count is a data
 read, so it is gone with the data.
+
+`marking-file-inheritance.png` pushes it further than is comfortable. The user who
+cannot read a single row **can read the entire schema**, on the Columns tab:
+
+```
+tail_num string · col_id_index integer · flight_id string · carrier_code string
+passport_id long · first_name string · last_name string · age long
+membership_status string · phone_number string · credit_card string
+credit_card_provider string · employment string · address_latitude · address_longitude
+```
+
+They can see that this dataset has a `credit_card` and a `passport_id` column
+without being able to see one value in either. **Column names are metadata, and
+data markings do not protect metadata.** That is a deliberate line, and anyone
+building this has to draw it in the same place or discover the difference the hard
+way.
 
 **This is the object-type/object split from `object-permissioning`, one layer
 down.** There it was "To see an object type, you must have View permissions on the
@@ -299,30 +397,72 @@ Removal comes in two flavours, and only one is instant:
 
 ## Decisions taken from this reading
 
-2026-08-06. **Nothing built.** The reasoning matters more than the outcome:
-
 **A marking without inheritance is a tag.** Every quoted property that makes a
-marking worth having — "travel with the data", "immediately inherited along all
-file and data dependencies", "restricting access to a Project always restricts
-access to everything inside it" — is inheritance. Building the vocabulary and the
-apply action without it would produce a coloured label that looks like a security
-control, which is worse than none.
+marking worth having is inheritance. The vocabulary and an apply action on their
+own produce a coloured label that looks like a security control.
 
-What markings need first, in order:
+### A correction to the first pass
 
-1. **Lineage.** Data markings inherit along data dependencies, and we have no
-   `derived from` edge — the same gap `datasets-rid-and-object-storage` found
-   waiting on Data Lifetime. Two features now block on it.
-2. **A resource hierarchy with real containment.** File-hierarchy inheritance needs
-   folders; we have space → project → resource and nothing between.
-3. **Groups.** Every marking permission screenshot grants to "a user **or group**",
-   and the recommended pattern throughout Compass is groups. We have users only.
-4. **The file/data access split.** `can_read_dataset` currently gates the registry
-   row and the physical rows with one predicate. Foundry gates them separately —
-   that is exactly what "metadata yes, data no" is. This is the seam markings plug
-   into, and it is cheap to separate **once there is a second reason for the two to
-   differ**. Not before: two identical predicates is speculative generality.
+The first version of this reading concluded that *all* of markings blocks on
+lineage, on the grounds that building only file markings would misdescribe the
+result. **Re-reading the inheritance section against the screenshots, that is
+wrong.** Foundry does not treat file and data markings as two halves of one
+feature — it gives them **separate requirement cards, separate icons, separate
+enforcement points, and separate section headings** (File access vs Data access).
+And `file_hierarchy_marking.png` shows a resource sitting in the state
+`File markings: PII · Additional data markings: None` — a perfectly ordinary,
+complete configuration.
 
-The order is not negotiable in the sense that (1) gates the half of markings that
-matters. Doing markings before lineage means building file markings only, and
-calling the result "markings" would misdescribe it.
+So file markings are a **complete feature that does not need lineage**, and the
+correct split is:
+
+| | needs | status |
+|---|---|---|
+| **File markings** | containment (space → project → resource) — **we have this** | buildable now |
+| **Data markings** | a `derived from` edge between datasets — we have none | blocked |
+
+Data markings still block on lineage, and so does Data Lifetime. But that no longer
+blocks the whole feature.
+
+### The build, in order
+
+**M1 — vocabulary.** `marking_categories` (name, description, `category_type`
+defaulting to `conjunctive`, `visibility` ∈ visible/hidden, optional single-org
+restriction) and `markings` (category, name, colour). Both **non-deletable** and
+markings **non-movable between categories**, per the two callouts. Visibility lives
+on the category and cannot be set per marking.
+
+**M2 — permissions and membership, deliberately separate.**
+`marking_permissions(marking, principal, permission ∈ manage|apply|remove)` and
+`marking_members(marking, user)`. Two rules to enforce, both quoted: a permission
+**never** implies membership, and *remove* requires *apply*. Groups do not exist
+here yet, so principals are users; the column should be shaped so a group can be a
+principal later.
+
+**M3 — application, and effective file markings.** `resource_markings(marking,
+resource_kind, resource_id)` records the **one place** a marking was applied —
+`markings-project.png` draws a single brace over a container rather than copying
+the shield onto every file, which is the instruction to resolve on read rather than
+materialise. Then `effective_file_markings(resource)` = applied here ∪ inherited
+from its project ∪ inherited from its space. Applying needs *apply* on the marking
+**and** Owner on the resource; that is two permissions from two systems.
+
+**M4 — the file/data access split.** `can_read_dataset` currently gates the
+registry row and the physical rows with one predicate. Split it: metadata requires
+Roles ∧ Organizations ∧ **file markings**; rows additionally require **data
+markings**. The condition I set last time for doing this — "once there is a second
+reason for the two to differ" — is now met, because file markings supply the first
+half immediately.
+
+**M5 — data markings.** `dataset_inputs`, then propagation as a **union over
+inputs** (one marked input marks everything downstream), computed over the
+transactions currently in the view. Deferred until lineage exists.
+
+### One thing to get right in M4
+
+Column names are metadata. A user denied by a data marking must still see the
+schema — `marking-file-inheritance.png` shows exactly that, down to a visible
+`credit_card` column. Hiding the schema would be *more* restrictive than Foundry
+and would break the documented "detect the presence… and view the file metadata"
+behaviour. Property-level protection is a different feature
+(`object-permissioning/property-security-markings`, unread).

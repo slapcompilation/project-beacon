@@ -110,10 +110,12 @@ is worth most just before the thing it describes gets built. Nothing here is
   which you must hold; portfolios are curation, not security. Answers the
   project-organization subset question, and assesses the missing space RID.
 
-- `markings.md` — the mandatory control, and the one rule that makes it one:
-  **a marking without inheritance is a tag**. File markings and data markings are
-  separate requirement cards; the failure mode is "metadata yes, data no", not
-  "denied". Nothing built — markings block on lineage, and so does Data Lifetime.
+- `markings.md` — the mandatory control. **A data marking is what a file marking
+  becomes when it crosses a data dependency** — same marking, different route,
+  different requirement bucket. The panel splits into **File access** (roles, orgs,
+  file markings → gates metadata) and **Data access** (data markings → gates rows),
+  so the failure mode is "metadata yes, data no", not "denied". File markings are
+  buildable now; only data markings block on lineage.
 
 Ten readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
