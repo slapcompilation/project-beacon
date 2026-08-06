@@ -479,8 +479,45 @@ time without touching 399–403:
 - disabled by default; "Scoped sessions function across both the Foundry file
   system **and ontology workspaces**"
 
-Not built. Nothing in it is blocked, and nothing already built is wrong because of
-it — which was not true of the claim it replaces.
+### Built — migration 404
+
+Four tables, each traceable to the Control Panel screenshots:
+`organization_scoped_session_settings` (the three toggles, all off by default —
+"scoped sessions are disabled by default"), `scoped_sessions` +
+`scoped_session_markings` (the **Session presets** tab), and
+`user_scoped_session` (which one the caller is in).
+
+`passes_scoped_session(uuid[])` is the disjunctive filter, ANDed alongside
+`satisfies_markings` in `can_read_dataset`, `can_write_dataset`, and the
+`datasets` and `projects` list policies. `can_choose_scoped_session` enforces
+"only users who are members of **all** the Markings selected in the scoped
+session will be able to choose this scoped session", and it is also the WITH
+CHECK on a user picking their own.
+
+Two behaviours worth stating because they are easy to get wrong in the other
+direction:
+
+- **Unchosen and not allowed to go unscoped is an *empty* session, not an absent
+  one.** Foundry forces the dialog at login; server-side the equivalent is to
+  fail closed — unmarked resources still visible, marked ones not. Treating it as
+  "no session" would let a user skip scoping by never choosing.
+- **A session that stops being selectable** (membership changed underneath) also
+  degrades to an empty session rather than silently unscoping.
+
+### Divergences
+
+- **Ours is per user, Foundry's is per login.** We have no login-time session
+  state, so two tabs share a session where Foundry's would not.
+- **"Allow no scoped session" is one boolean.** Foundry grants it "for all users,
+  for members of select groups only, or for all users except members of selected
+  groups"; we have no groups.
+- **No maximum classification.** The unscoped caption reads "access to all
+  markings they are a member of **and their maximum classification**" — CBAC,
+  which we do not have.
+- **Applied to file markings only.** That is what the page describes: "projects,
+  folders, and files that have no Markings on them". Whether a session should also
+  narrow *data* markings is stated nowhere. Leaving it out cannot widen access —
+  data markings still gate rows on their own — so it fails safe. **Open question.**
 
 ## Known divergences after 399–403
 

@@ -300,6 +300,49 @@ try {
   const { rows: [w] } = await client.query('select public.can_write_dataset($1) as w', [ds.id])
   check('an unmet file marking also blocks WRITING — "in any way"', w.w, false)
 
+  // ── scoped sessions ───────────────────────────────────────────────────────
+  // The filter is DISJUNCTIVE where the marking check is conjunctive, and the
+  // two give different answers — which is the whole reason it is tested.
+  await clearMarkings()
+  const { rows: [sess] } = await client.query(
+    `insert into public.scoped_sessions (organization_id, name) values ($1,'focus') returning id`,
+    [org.id])
+  await client.query(
+    `insert into public.scoped_session_markings (scoped_session_id, marking_id) values ($1,$2)`,
+    [sess.id, pii.id])
+  await client.query(
+    `insert into public.organization_scoped_session_settings (organization_id, enabled, allow_no_session)
+     values ($1, false, false)`, [org.id])
+
+  const passes = async (ms) => {
+    const { rows: [p] } = await client.query(
+      'select public.passes_scoped_session($1::uuid[]) as p', [ms])
+    return p.p
+  }
+  check('disabled: nothing is filtered', await passes([pii.id]), true)
+
+  await client.query(
+    'update public.organization_scoped_session_settings set enabled=true where organization_id=$1',
+    [org.id])
+  // Nobody has chosen a session and none is allowed, so this is the empty-session
+  // case: unmarked resources still visible, marked ones not.
+  check('an UNMARKED resource stays visible under a session', await passes([]), true)
+  check('a marking outside the session is filtered out', await passes([pii.id]), false)
+
+  await client.query(
+    'update public.organization_scoped_session_settings set allow_no_session=true where organization_id=$1',
+    [org.id])
+  check('"no scoped session" restores full marking access', await passes([pii.id]), true)
+
+  // The distinction that makes this a different mechanism: a resource marked
+  // {A,B} under a session {A} is VISIBLE (it carries A) — narrowing the
+  // membership set would have hidden it on B.
+  const { rows: [{ overlaps, disjoint }] } = await client.query(
+    `select array[$1::uuid,$2::uuid] && array[$1::uuid] as overlaps,
+            array[$2::uuid] && array[$1::uuid] as disjoint`, [pii.id, cat.id])
+  check('a resource marked {A,B} matches a session {A} by overlap', overlaps, true)
+  check('a resource sharing no marking with the session does not', disjoint, false)
+
   const listChecks = await client.query(
     `select c.relname, position('satisfies_markings' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
        from pg_policy p join pg_class c on c.oid = p.polrelid
