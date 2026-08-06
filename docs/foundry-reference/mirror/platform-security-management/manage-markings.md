@@ -4,7 +4,7 @@
 
 Markings are managed in the Foundry Settings under the Markings section. Markings are then applied on resources across the platform.
 
-![Manage marking](/docs/resources/foundry/platform-security-management/manage-markings.png)
+![Manage marking](./images/manage-markings.png)
 
 ## Create Marking categories
 
@@ -16,11 +16,11 @@ Administrative users can create Markings and Marking categories and control thei
 
 If you are an administrative user with the necessary permissions, you can create Marking categories in the Marking section of Platform Settings by clicking the **New marking category** button.
 
-![new-marking-category](/docs/resources/foundry/platform-security-management/markings-4.png)
+![new-marking-category](./images/markings-4.png)
 
 When you create a Marking category, you can set the [category visibility](#category-visibility) and assign category permissions. By default, the category creator will be an administrator. The category creator can choose to remove themselves as the creator and add another administrator instead.
 
-![new-marking-details](/docs/resources/foundry/platform-security-management/markings-5.png)
+![new-marking-details](./images/markings-5.png)
 
 ### Category visibility
 
@@ -28,7 +28,7 @@ Marking visibility is assigned on a per-category basis, with the exception of th
 
 In most cases, the names and descriptions of Markings and categories are not sensitive information and should be visible even to users who do not have Marking access. This behavior is determined by the category visibility, which is `Visible` by default.
 
-![new-marking-category-visibility](/docs/resources/foundry/platform-security-management/markings-6.png)
+![new-marking-category-visibility](./images/markings-6.png)
 
 If the category visibility is set to `Visible`, all users in the Organization can see the existence of the category and its Markings in the Marking interface. If users fail to meet Marking permissions, they will not see the existence of the Marking or category.
 
@@ -48,7 +48,7 @@ Users can have permissions that designate how they interact with Marking categor
 * **Category Administrators:** Users who can change the description and permissions for the category and create Markings in the category.
 * **Category Viewers:** Users who can see the existence of the category and all the Markings within it.
 
-![marking-permissions](/docs/resources/foundry/platform-security-management/markings-7.png)
+![marking-permissions](./images/markings-7.png)
 
 ### Restrict categories by Organization
 
@@ -62,11 +62,11 @@ Once created, markings cannot be deleted or moved to a different category.
 
 If you are an administrative users with the necessary permissions, you can create new Markings in the Marking section of Platform Settings by clicking the **New marking** button. You can then assign Marking Administrators and Marking Removers.
 
-![marking-creation](/docs/resources/foundry/platform-security-management/create_marking.png)
+![marking-creation](./images/create_marking.png)
 
 When you create Markings from within Foundry, you are automatically granted "Manage permissions" access. We recommend assigning different team members these permissions on new Markings. That way, you can avoid relying on a single administrator to manage all Markings permissions.
 
-![create-new-marking](/docs/resources/foundry/platform-security-management/markings-8.png)
+![create-new-marking](./images/markings-8.png)
 
 ### Marking permissions
 
@@ -83,7 +83,7 @@ When you create a new Marking, you can add users and groups with different level
 
 All the permissions above are distinct and do not automatically provide users with membership permissions. For example, a user can have “Apply marking” and "Manage permissions" access on a Marking and not be a member of the Marking. In that situation, the users could apply the Marking to files, folders, and Projects in the platform and manage the Marking, but they could not see the data marked with that Marking.
 
-![marking-permissions](/docs/resources/foundry/platform-security-management/markings-9.png)
+![marking-permissions](./images/markings-9.png)
 
 ### Grant Markings to users
 
@@ -91,7 +91,7 @@ Markings are granted globally to users. When a user is granted a Marking, the us
 
 If Marking permissions are granted to a group, then a new user to the group will inherit those permissions.
 
-![add-marking-group-member](/docs/resources/foundry/platform-security-management/markings-10.png)
+![add-marking-group-member](./images/markings-10.png)
 
 ## Apply Markings
 
@@ -118,7 +118,7 @@ If you notice a mistake after applying the Marking (for example, a large group o
 
 In the example below, the DOB column was removed and the `stop_propagating` syntax was applied on the ontology `passengers` dataset. The PII marking was applied on the raw `passenger` dataset and only propagated to the clean `passenger` dataset.
 
-![applying-marking-dataset](/docs/resources/foundry/platform-security-management/markings-11.png)
+![applying-marking-dataset](./images/markings-11.png)
 
 ## Remove Markings
 
@@ -132,7 +132,7 @@ To remove a Marking, you must have permission to both apply and remove the speci
 
 Removing a Marking directly from a file, folder, or Project will immediately remove the Marking from any dependencies that inherited the Marking. You do not need to rebuild datasets downstream after directly removing a Marking since the Marking will immediately be removed downstream. The following notional example shows a directly-applied `PII` Marking.
 
-![remove-marking](/docs/resources/foundry/platform-security-management/markings-12.png)
+![remove-marking](./images/markings-12.png)
 
 ### Remove an inherited Marking
 
@@ -151,7 +151,7 @@ To remove an inherited Marking from a dataset, use the `stop_propagating` syntax
 
 In the notional example below, the DOB column was removed and the `stop_propagating` syntax was applied on the Ontology *passengers* dataset to stop the PII marking from propagating further downstream.
 
-![remove-inherited-markings-flow](/docs/resources/foundry/platform-security-management/markings-13.png)
+![remove-inherited-markings-flow](./images/markings-13.png)
 
 ## Investigate marking inheritance
 
@@ -165,13 +165,13 @@ To view a file's marking, select it and open the resource panel. Look under the 
 
 A marking inherited along the file hierarchy is indicated by a folder sidecar icon.
 
-![file\_hierarchy\_marking\_message](/docs/resources/foundry/platform-security-management/file_hierarchy_marking_message.png)
+![file\_hierarchy\_marking\_message](./images/file_hierarchy_marking_message.png)
 
 To figure out at which point in the file hierarchy the Marking originates, traverse the file hierarchy in the Foundry workspace. In the notional example below, we can verify the **flight data** folder as having PII Marking having traversed the file hierarchy starting from the original file and that of the folder resource. Access information is shown on the resource sidebar.
 
-![file\_hierarchy\_marking](/docs/resources/foundry/platform-security-management/file_hierarchy_marking.png)
+![file\_hierarchy\_marking](./images/file_hierarchy_marking.png)
 
-![file\_hierarchy\_folder](/docs/resources/foundry/platform-security-management/file_hierarchy_folder.png)
+![file\_hierarchy\_folder](./images/file_hierarchy_folder.png)
 
 ### Investigate data dependencies
 
@@ -181,24 +181,24 @@ As Markings are applied at the [file level](/docs/foundry/platform-security-mana
 
 Using the Data lineage application, click **Legend > Permissions type: Data access in datasets**. Then expand all upstream nodes of the data lineage and traverse the data lineage to see where a Marking originated. A marking inherited along a data dependency is indicated by a data lineage sidecar icon.
 
-![data\_dependencies\_message](/docs/resources/foundry/platform-security-management/data_dependecies_message.png)
+![data\_dependencies\_message](./images/data_dependecies_message.png)
 
 In the following example screenshots below, the `employee_sensitive` dataset is where the PII Marking originates:
 
-![data\_lineage\_legend](/docs/resources/foundry/platform-security-management/data_lineage_legend.png)
+![data\_lineage\_legend](./images/data_lineage_legend.png)
 
-![data\_lineage\_expand](/docs/resources/foundry/platform-security-management/data_lineage_expand.png)
+![data\_lineage\_expand](./images/data_lineage_expand.png)
 
-![data\_lineage\_marking](/docs/resources/foundry/platform-security-management/data_lineage_marking.png)
+![data\_lineage\_marking](./images/data_lineage_marking.png)
 
 To get the full picture about when a Marking was specifically introduced, look at the transactions on the file of interest. Open the specific file and navigate to the **Compare** tab to compare different transactions from both branches and timestamps to learn what security and logic changes happened over time.
 
-![comparing\_transactions](/docs/resources/foundry/platform-security-management/comparing_transactions.png)
+![comparing\_transactions](./images/comparing_transactions.png)
 
 At the bottom of the transaction comparison tool, you can see both the logic and security changes which will help you figure out exactly when a Marking was introduced or removed. The example below shows a new input was added which introduced the PII Marking:
 
-![comparing\_marking\_added](/docs/resources/foundry/platform-security-management/comparing_marking_added.png)
+![comparing\_marking\_added](./images/comparing_marking_added.png)
 
 The example below shows PII Marking being removed due to an input being dropped from the logic:
 
-![comparing\_marking\_removed](/docs/resources/foundry/platform-security-management/comparing_marking_removed.png)
+![comparing\_marking\_removed](./images/comparing_marking_removed.png)

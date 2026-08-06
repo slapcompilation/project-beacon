@@ -110,5 +110,10 @@ is worth most just before the thing it describes gets built. Nothing here is
   which you must hold; portfolios are curation, not security. Answers the
   project-organization subset question, and assesses the missing space RID.
 
-Nine readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `markings.md` — the mandatory control, and the one rule that makes it one:
+  **a marking without inheritance is a tag**. File markings and data markings are
+  separate requirement cards; the failure mode is "metadata yes, data no", not
+  "denied". Nothing built — markings block on lineage, and so does Data Lifetime.
+
+Ten readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

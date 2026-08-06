@@ -20,28 +20,28 @@ Markings are **inherited** along both the file hierarchy and direct dependencies
 
 A file may inherit a marking via a containing Project or folder. If a Project or folder has a Marking, every file or folder within it inherits the Marking. This means that restricting access to a Project or folder always restricts access to everything inside it.
 
-![markings-project](/docs/resources/foundry/security/markings-project.png)
+![markings-project](./images/markings-project.png)
 
-![markings-folder](/docs/resources/foundry/security/markings-folder.png)
+![markings-folder](./images/markings-folder.png)
 
 The following screenshot shows a `PII` Marking on a notional dataset that is inherited along the file hierarchy.
 
-![marking-file-inheritance](/docs/resources/foundry/security/marking-file-inheritance.png)
+![marking-file-inheritance](./images/marking-file-inheritance.png)
 
 #### Data dependency
 
 Restricting access to a dataset always restricts access to any data derived from it. This is because a dataset file may inherit a Marking from a dataset it depends on, like an upstream dataset. If a dataset has a file Marking, every dataset that depends on it inherits that Marking and the inherited Marking is known as a data marking.
 
-![markings-dataset](/docs/resources/foundry/security/markings-dataset.png)
+![markings-dataset](./images/markings-dataset.png)
 
 The following screenshot shows a `PII` Marking on a notional dataset that is inherited along a data dependency.
 
-![markings-requirements](/docs/resources/foundry/security/markings-0.png)
+![markings-requirements](./images/markings-0.png)
 
 Note that a user may fulfill file access requirements without meeting the data access requirements inherited from upstream datasets. In this scenario, the user can detect the presence of the derived dataset and view the file metadata, but cannot access the data within the file dataset, as demonstrated in the screenshot below.
 This is different from when a user cannot discover a resource because they do not meet the file marking requirements.
 
-![Error message indicating no access to a marking.](/docs/resources/foundry/security/markings-data-missing.png)
+![Error message indicating no access to a marking.](./images/markings-data-missing.png)
 
 Applying a Marking is considered a sensitive action, since the Marking will **immediately** be inherited along all file and data dependencies. This could unintentionally lock out other users downstream. Review how to [apply markings](/docs/foundry/platform-security-management/manage-markings/#apply-markings) safely before using them.
 
@@ -82,7 +82,7 @@ In this case, the data tiers are hierarchical, and users who have access to the 
 
 Within Foundry, data with identifiers (marked with the `Identifiable Data` Marking) is transformed into de-identified data (marked with the `De-identified Data` Marking) by removing the identifier fields. The Marking manager or data owner reviews any changes in the transform logic to ensure that all identifiers are absent from the de-identified data. Additional complex transforms generate synthetic data which is marked with the `Synthetic Data` Marking. At each of these transformation stages, shown with notional data in the following screenshot, the previous Marking is removed and a Marking highlighting the updated state of the data is added.
 
-![data-transformation-markings](/docs/resources/foundry/security/markings-1.png)
+![data-transformation-markings](./images/markings-1.png)
 
 ### Example: Protect investigation data
 
@@ -91,7 +91,7 @@ Case investigation data is particularly sensitive, as with anti-money laundering
 * Data pertaining to a particular case, including resources, images, datasets, other evidence, is marked with a unique `Case - xxxxxx` Marking where `xxxxxx` represents the case number.
 * Only investigators who are investigators for a particular case are granted access to the case Marking. An investigator may have access to multiple cases at a given time, but such access would be distinguished by individual Markings.
 
-![case-markings](/docs/resources/foundry/security/markings-2.png)
+![case-markings](./images/markings-2.png)
 
 ### Example: Protect banking data
 
@@ -100,7 +100,7 @@ In a hypothetical bank, each team or department exercises full control over the 
 * Assume that the Consumer Finance team and the Marketing team give the Internal Compliance team access to, respectively, the `Consumer Finance` and `Marketing` Markings. Then, the Internal Compliance team can verify that data is being used appropriately for pre-approved workflows and conduct a quarterly audit.
 * The results of the quarterly audit are captured in a report with the `Internal Compliance` Marking, with the other two Markings removed. These audit results can only be accessed by the Internal Compliance team. If the Internal Compliance team wants to share the quarterly audit report with the DPO (Data Protection Office), the Internal Compliance team can grant the DPO access to the `Internal Compliance` Marking so that the DPO can review the compliance report.
 
-![team-markings](/docs/resources/foundry/security/markings-3.png)
+![team-markings](./images/markings-3.png)
 
 Review the [management documentation](/docs/foundry/platform-security-management/manage-markings/) on how to configure markings.
 
@@ -108,16 +108,16 @@ Review the [management documentation](/docs/foundry/platform-security-management
 
 [Scoped sessions](/docs/foundry/administration/configure-scoped-sessions/) enable a user to pick a subset of pre-defined Markings to access during their Foundry session to create a visual separation between different types of work. If scoped sessions are enabled for your Organization, you might have to pick a scoped session after you log into Foundry, restricting your access in Foundry to only the subset of Markings in the scoped session.
 
-![scoped session login example](/docs/resources/foundry/security/scoped_session_login_example.png)
+![scoped session login example](./images/scoped_session_login_example.png)
 
 After you select a scoped session, there will be a workspace banner showing the name of the scoped session.
 
-![scoped session workspace banner](/docs/resources/foundry/security/scoped_session_banner.png)
+![scoped session workspace banner](./images/scoped_session_banner.png)
 
 If you have access to multiple scoped sessions, you can hover over the workspace banner and select **Change scoped session**. This will bring up the scoped session dialog seen at login and allow you to choose a scoped session. If you pick a different scoped session than the current scoped session, the page will refresh, and you will be restricted to the new scoped session you picked.
 
-![change scoped session](/docs/resources/foundry/security/change_scoped_session.png)
+![change scoped session](./images/change_scoped_session.png)
 
 Some users might have access to the **No scoped session** option. This option allows a user to bypass the scoped session restriction and have access to all of their Markings.
 
-![no scoped session](/docs/resources/foundry/security/no_scoped_session_example.png)
+![no scoped session](./images/no_scoped_session_example.png)
