@@ -418,43 +418,27 @@ try {
   // product unless something runs as it.
   await client.query('SAVEPOINT rls')
   await client.query('SET LOCAL ROLE authenticated')
-  // A savepoint per probe: the first failure aborts the transaction, so without
-  // one a single recursive policy would mask every table after it.
-  const asUser = async (label, sql) => {
-    await client.query(`SAVEPOINT p_${label}`)
-    try { await client.query(sql); await client.query(`RELEASE SAVEPOINT p_${label}`); return true }
+  // Derived, not enumerated. The first version of this listed 21 table names by
+  // hand — an allowlist, in the one check that exists because allowlists miss
+  // things. Asking the catalog means a table added tomorrow is covered without
+  // anyone remembering to add it.
+  const { rows: guarded } = await client.query(
+    `select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace
+      where n.nspname = 'public' and c.relkind = 'r' and c.relrowsecurity
+      order by c.relname`)
+  const broken = []
+  for (const { relname } of guarded) {
+    await client.query('SAVEPOINT probe')
+    try { await client.query(`select 1 from public.${relname} limit 1`); await client.query('RELEASE SAVEPOINT probe') }
     catch (err) {
-      await client.query(`ROLLBACK TO SAVEPOINT p_${label}`)
-      return err.message.split('\n')[0]
+      await client.query('ROLLBACK TO SAVEPOINT probe')
+      broken.push(relname + ': ' + err.message.split(String.fromCharCode(10))[0])
     }
-  }
-  const reads = {
-    datasets:            await asUser('datasets', 'select count(*) from public.datasets'),
-    projects:            await asUser('projects', 'select count(*) from public.projects'),
-    object_types:        await asUser('object_types', 'select count(*) from public.object_types'),
-    dataset_branches:    await asUser('branches', 'select count(*) from public.dataset_branches'),
-    dataset_transactions:await asUser('transactions', 'select count(*) from public.dataset_transactions'),
-    dataset_inputs:      await asUser('inputs', 'select count(*) from public.dataset_inputs'),
-    object_type_datasources: await asUser('bindings', 'select count(*) from public.object_type_datasources'),
-    markings:            await asUser('markings', 'select count(*) from public.markings'),
-    scoped_sessions:     await asUser('sessions', 'select count(*) from public.scoped_sessions'),
-    marking_categories:  await asUser('cats', 'select count(*) from public.marking_categories'),
-    marking_permissions: await asUser('perms', 'select count(*) from public.marking_permissions'),
-    marking_members:     await asUser('members', 'select count(*) from public.marking_members'),
-    resource_markings:   await asUser('resmark', 'select count(*) from public.resource_markings'),
-    dataset_schemas:     await asUser('schemas', 'select count(*) from public.dataset_schemas'),
-    dataset_files:       await asUser('files', 'select count(*) from public.dataset_files'),
-    spaces:              await asUser('spaces', 'select count(*) from public.spaces'),
-    link_types:          await asUser('links', 'select count(*) from public.link_types'),
-    object_sets:         await asUser('sets', 'select count(*) from public.object_sets'),
-    shared_properties:   await asUser('shared', 'select count(*) from public.shared_properties'),
-    ontology_interfaces: await asUser('ifaces', 'select count(*) from public.ontology_interfaces'),
   }
   await client.query('RESET ROLE')
   await client.query('ROLLBACK TO SAVEPOINT rls')
-  const broken = Object.entries(reads).filter(([, v]) => v !== true)
-  check('every RLS-guarded table is readable as `authenticated` (no policy recursion)',
-    broken.map(([t, e]) => `${t}: ${e}`), [])
+  check('every RLS-guarded table readable as `authenticated` — '
+    + String(guarded.length) + ' found in the catalog, none enumerated', broken, [])
 
   // The property the old structural check was proxying for, tested directly.
   //
