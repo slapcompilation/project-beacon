@@ -452,6 +452,11 @@ And a closed list of types that **cannot** be a primary key: **Geopoint, Geoshap
 Arrays, Time series properties, Real number types (decimal, double, float)**. The
 stated reason is "to encourage Ontology modeling best practices."
 
+> **Corrected by `properties-and-keys.md`:** this is what OSv2 *blocks*, and
+> eligibility is **three-valued**, not two. `properties-overview` adds a
+> **Discouraged** tier — `Date`, `Timestamp`, `Boolean`, `Byte`, `Long` — each
+> with its reason. Only **`String`, `Integer`, `Short`** are unreservedly valid.
+
 **Property values:**
 
 - "data type coherence between datasource schema and object type schema **on every

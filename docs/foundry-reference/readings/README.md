@@ -128,5 +128,12 @@ is worth most just before the thing it describes gets built. Nothing here is
   contract and a direct-only removal constraint. The Access panel confirms
   migration 401's File/Data split verbatim, from a second independent page.
 
-Twelve readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `properties-and-keys.md` — a property is a **column**, a property value a
+  **field**. Primary-key eligibility is **three-valued**: only `String`, `Integer`,
+  `Short` are unreservedly valid, with a **Discouraged** tier that carries its own
+  reasons. `Marking` is a property base type — row-level marking security, at the
+  object layer. Indexing is what turns a datasource into queryable objects, joined
+  on the primary key.
+
+Thirteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
