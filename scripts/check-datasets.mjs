@@ -406,11 +406,61 @@ try {
   check('a MAP column disqualifies a backing datasource',
     rejected?.includes('Ontology:UnsupportedColumnType') ?? false, true)
 
+  // ── the path this whole script was blind to ───────────────────────────────
+  // Everything above runs as the connection owner, and RLS is bypassed for
+  // superusers. So a policy could be infinitely recursive and every assertion
+  // above would still pass — which is exactly what happened: migration 403 put
+  // effective_file_markings into the datasets policy, that function reads
+  // `datasets`, and `select * from datasets` became "stack depth limit exceeded"
+  // for every real user while this script stayed green.
+  //
+  // `authenticated` is the role PostgREST connects as. Nothing verifies the
+  // product unless something runs as it.
+  await client.query('SAVEPOINT rls')
+  await client.query('SET LOCAL ROLE authenticated')
+  // A savepoint per probe: the first failure aborts the transaction, so without
+  // one a single recursive policy would mask every table after it.
+  const asUser = async (label, sql) => {
+    await client.query(`SAVEPOINT p_${label}`)
+    try { await client.query(sql); await client.query(`RELEASE SAVEPOINT p_${label}`); return true }
+    catch (err) {
+      await client.query(`ROLLBACK TO SAVEPOINT p_${label}`)
+      return err.message.split('\n')[0]
+    }
+  }
+  const reads = {
+    datasets:            await asUser('datasets', 'select count(*) from public.datasets'),
+    projects:            await asUser('projects', 'select count(*) from public.projects'),
+    object_types:        await asUser('object_types', 'select count(*) from public.object_types'),
+    dataset_branches:    await asUser('branches', 'select count(*) from public.dataset_branches'),
+    dataset_transactions:await asUser('transactions', 'select count(*) from public.dataset_transactions'),
+    dataset_inputs:      await asUser('inputs', 'select count(*) from public.dataset_inputs'),
+    object_type_datasources: await asUser('bindings', 'select count(*) from public.object_type_datasources'),
+    markings:            await asUser('markings', 'select count(*) from public.markings'),
+    scoped_sessions:     await asUser('sessions', 'select count(*) from public.scoped_sessions'),
+    marking_categories:  await asUser('cats', 'select count(*) from public.marking_categories'),
+    marking_permissions: await asUser('perms', 'select count(*) from public.marking_permissions'),
+    marking_members:     await asUser('members', 'select count(*) from public.marking_members'),
+    resource_markings:   await asUser('resmark', 'select count(*) from public.resource_markings'),
+    dataset_schemas:     await asUser('schemas', 'select count(*) from public.dataset_schemas'),
+    dataset_files:       await asUser('files', 'select count(*) from public.dataset_files'),
+    spaces:              await asUser('spaces', 'select count(*) from public.spaces'),
+    link_types:          await asUser('links', 'select count(*) from public.link_types'),
+    object_sets:         await asUser('sets', 'select count(*) from public.object_sets'),
+    shared_properties:   await asUser('shared', 'select count(*) from public.shared_properties'),
+    ontology_interfaces: await asUser('ifaces', 'select count(*) from public.ontology_interfaces'),
+  }
+  await client.query('RESET ROLE')
+  await client.query('ROLLBACK TO SAVEPOINT rls')
+  const broken = Object.entries(reads).filter(([, v]) => v !== true)
+  check('every RLS-guarded table is readable as `authenticated` (no policy recursion)',
+    broken.map(([t, e]) => `${t}: ${e}`), [])
+
   const listChecks = await client.query(
-    `select c.relname, position('satisfies_markings' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
+    `select c.relname, position('resource_file_access' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
        from pg_policy p join pg_class c on c.oid = p.polrelid
       where p.polname in ('members read datasets','members read projects') order by c.relname`)
-  check('the list policies hide marked resources, not just the detail reads',
+  check('the list policies compose the one definition of file access',
     listChecks.rows.map((r) => [r.relname, r.guarded]),
     [['datasets', true], ['projects', true]])
 } finally {
