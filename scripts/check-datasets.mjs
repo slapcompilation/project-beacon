@@ -343,6 +343,69 @@ try {
   check('a resource marked {A,B} matches a session {A} by overlap', overlaps, true)
   check('a resource sharing no marking with the session does not', disjoint, false)
 
+  // ── the datasource binding (O1) ───────────────────────────────────────────
+  // "Note that a single datasource can only be used to back one object type."
+  await client.query(`select set_config('request.jwt.claims', $1, true)`, [claims])
+  const [{ rows: [ot1] }, { rows: [ot2] }] = [
+    await client.query(
+      `insert into public.object_types (organization_id, api_name, label)
+       values ($1,'check_one','One') returning id`, [org.id]),
+    await client.query(
+      `insert into public.object_types (organization_id, api_name, label)
+       values ($1,'check_two','Two') returning id`, [org.id]),
+  ]
+  await client.query(
+    `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+     values ($1,$2,$3)`, [ot1.id, ds.id, main.id])
+
+  let clash = null
+  try {
+    await client.query('SAVEPOINT o1')
+    await client.query(
+      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+       values ($1,$2,$3)`, [ot2.id, ds.id, main.id])
+  } catch (err) { clash = err.message }
+  await client.query('ROLLBACK TO SAVEPOINT o1')
+  check('one datasource cannot back two object types',
+    clash?.includes('Phonograph2:DatasetAndBranchAlreadyRegistered') ?? false, true)
+
+  // A different branch of the same dataset IS a different datasource — which is
+  // what the error name says, and the reason the key is the pair.
+  await client.query(
+    `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+     values ($1,$2,$3)`, [ot2.id, ds.id, feat.id])
+  const { rows: [{ bound }] } = await client.query(
+    'select count(*)::int as bound from public.object_type_datasources where dataset_id=$1', [ds.id])
+  check('a second branch of the same dataset is a second datasource', bound, 2)
+
+  // "A backing datasource for an object type may not contain MapType or
+  //  StructType columns."
+  const { rows: [structDs] } = await client.query(
+    `insert into public.datasets (organization_id, project_id, api_name, name)
+     values ($1,$2,'check_struct','struct') returning id`, [org.id, proj.id])
+  const { rows: [structBr] } = await client.query(
+    `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`,
+    [structDs.id])
+  const { rows: [structTxn] } = await client.query(
+    `insert into public.dataset_transactions (dataset_id, branch_id, txn_type, status, committed_at)
+     values ($1,$2,'SNAPSHOT','COMMITTED', now()) returning id`, [structDs.id, structBr.id])
+  await client.query(
+    `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
+    [structDs.id, structTxn.id, JSON.stringify([
+      { name: 'ok', type: 'STRING' },
+      { name: 'nope', type: 'MAP', mapKeyType: { type: 'STRING' }, mapValueType: { type: 'LONG' } },
+    ])])
+  let rejected = null
+  try {
+    await client.query('SAVEPOINT o1b')
+    await client.query(
+      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+       values ($1,$2,$3)`, [ot1.id, structDs.id, structBr.id])
+  } catch (err) { rejected = err.message }
+  await client.query('ROLLBACK TO SAVEPOINT o1b')
+  check('a MAP column disqualifies a backing datasource',
+    rejected?.includes('Ontology:UnsupportedColumnType') ?? false, true)
+
   const listChecks = await client.query(
     `select c.relname, position('satisfies_markings' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
        from pg_policy p join pg_class c on c.oid = p.polrelid

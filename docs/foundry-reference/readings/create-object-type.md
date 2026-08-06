@@ -365,5 +365,40 @@ it is *Affecting*.
 
 ## Decisions
 
-Recited to the operator 2026-08-07. Build map below; nothing built from this
-reading yet.
+Recited to the operator 2026-08-07 and agreed. **O1 built — migration 405.**
+
+`object_type_datasources` replaces `object_types.source_table`, with:
+
+- **`UNIQUE (dataset_id, branch_id)`**, raising the documented
+  `Phonograph2:DatasetAndBranchAlreadyRegistered`. The **branch is part of the
+  key** because the error names both — a datasource is a dataset *on a branch*,
+  not a dataset. That is a superset of the prose rule, and it is asserted in both
+  directions so a later simplification to `UNIQUE(dataset_id)` would be a visible
+  change rather than a silent one.
+- **≤ 70 per object type**, per the MDO page.
+- **MAP/STRUCT columns disqualify a datasource**, matching "may not contain
+  `MapType` or `StructType` columns" and the two field types `base-types`
+  excludes.
+- the tenant check restated inside the trigger, since nothing else enforces it.
+
+### What retiring `source_table` cost, and why it was worth it
+
+It gated three RLS policies: an object type could only be authored, updated or
+deleted when `source_table IS NULL`. After 405 that clause would have inverted
+into *no object type with a datasource can be edited*. Rewritten to org + admin
+or project editor, which is what `ontology-permissions` describes.
+
+And it exposed a graveyard. `objectTypes/api.ts` and `hooks.ts` still queried
+**`object_records`, `object_type_revisions` and `object_links`** — all three
+dropped in migrations 382/385/387. Roughly half of each file had been calling
+tables that do not exist, and nothing caught it: `check:surfaces` walks the import
+graph at **file** granularity, and the file was legitimately reachable.
+
+Deleted: 122 lines of record code, the revisions block, the object-links block,
+`fetchObjectTypeCards` (selected `object_records(count)`), `fetchOntologyTypes`
+and `isBacked` — the last two encoded the authored-versus-built-in split the
+teardown had already rejected in principle but never removed in code.
+
+**The lesson is a guard gap, not a cleanup.** A file can be reachable while half
+its exports are dead. Nothing in CI asks whether an exported function's table
+still exists.

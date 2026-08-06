@@ -18,7 +18,7 @@ import {
 import { useAuthStore } from '@/stores/auth.store'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useObjectTypes, useOntologyTypes, useCreateObjectType, useUpdateObjectType,
+  useObjectTypes, useCreateObjectType, useUpdateObjectType,
   useCreateLinkType, useDeleteLinkType, useLinkTypes,
 } from '@/features/objectTypes/hooks'
 import {
@@ -35,10 +35,9 @@ export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
   const { data: rows = [], isLoading } = useObjectTypes()
   const types = useMemo(() => rows.map(rowToObjectType), [rows])
-  // Link endpoints span the WHOLE ontology (migration 223), so an authored type
-  // can point at a built-in one — a Maintenance Request belongs to a Variant.
-  const { data: ontologyRows = [] } = useOntologyTypes()
-  const linkTargets = useMemo(() => ontologyRows.map(rowToObjectType), [ontologyRows])
+  // Link endpoints are just object types — there is no authored-versus-built-in
+  // split to bridge any more (migration 405).
+  const linkTargets = types
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = types.find((t) => t.id === selectedId) ?? null
 

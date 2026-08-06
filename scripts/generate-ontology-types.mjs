@@ -34,7 +34,10 @@ function emit(types) {
   for (const t of types) {
     const props = [...(t.properties ?? []), ...(t.computed ?? []).map((c) => ({ ...c, type: 'number', computed: true }))]
     lines.push(`/** ${t.label}${t.description ? ` — ${t.description}` : ''}`)
-    lines.push(` *  ${t.source_table ? `Code-owned; records live in \`${t.source_table}\`.` : 'Operator-authored.'} */`)
+    // A type is described by what backs it, not by who wrote it: "Foundry
+    // classifies object types by their datasource and has no notion of a
+    // built-in one" (migration 405).
+    lines.push(` *  ${t.datasources > 0 ? `Backed by ${String(t.datasources)} datasource(s).` : 'No backing datasource yet.'} */`)
     lines.push(`export interface ${pascal(t.api_name)} {`)
     for (const p of props) {
       const ts = TS_TYPE[p.type] ?? 'unknown'
@@ -65,11 +68,13 @@ if (!url) {
 const client = new pg.Client({ connectionString: url, ssl: SSL })
 await client.connect()
 const { rows } = await client.query(`
-  SELECT api_name, label, description, source_table,
-         properties, computed_properties AS computed
-  FROM object_types
-  WHERE enabled
-  ORDER BY api_name`)
+  SELECT t.api_name, t.label, t.description,
+         t.properties, t.computed_properties AS computed,
+         (SELECT count(*) FROM object_type_datasources d WHERE d.object_type_id = t.id)::int
+           AS datasources
+  FROM object_types t
+  WHERE t.enabled
+  ORDER BY t.api_name`)
 await client.end()
 
 const next = emit(rows)

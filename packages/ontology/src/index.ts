@@ -92,7 +92,7 @@ export {
 export type { InterfaceDef, InterfacePropertyDef } from './interfaces/index'
 
 export {
-  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, parseGeopoint, formatGeopoint, canBeTitleKey, isBacked, objectTitle, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
+  PROPERTY_TYPES, RESERVED_PROPERTY_KEYS, parseGeopoint, formatGeopoint, canBeTitleKey, objectTitle, COMPUTED_FNS, EMPTY_VIEW_CONFIG, toSlug,
   validateObjectTypeDraft, validateRecord, coerceValue, validateLinkTypeDraft,
   evaluateComputed, validateComputedProperty, resolveViewConfig, validateViewConfig,
 } from './objectTypes/index'

@@ -56,12 +56,6 @@ export const formatGeopoint = (lat: number, lng: number): string => `${String(la
 
 export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE.includes(t)
 
-/** True when the type has a backing datasource — a code-owned table rather than
- *  object_records. Foundry classifies object types by their datasource and has
- *  no notion of a built-in one, so this replaced `kind` in migration 344. */
-export const isBacked = (t: { sourceTable?: string | null }): boolean =>
-  t.sourceTable != null
-
 /** The display name for one record, resolved the way Foundry defines it: the
  *  title key is "the property that acts as a display name for objects of this
  *  type". Authored records instead carry a NOT NULL `title` column, which is the
@@ -107,11 +101,6 @@ export interface ObjectTypeDef {
   icon: string
   description: string
   properties: PropertyDef[]
-  /** The backing datasource, and the whole of what separates the two halves of
-   *  the ontology. NULL = records live in object_records, which is Foundry's
-   *  "object type with no datasource"; set = a code-owned table. Ask through
-   *  {@link isBacked} rather than testing it inline. */
-  sourceTable?: string | null
   /** Property whose value titles a record — Foundry requires a title key per
    *  object type. NULL where no single column reads as one (a stock log's title
    *  comes from a join, not a column). */

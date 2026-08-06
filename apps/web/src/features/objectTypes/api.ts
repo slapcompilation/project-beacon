@@ -1,4 +1,4 @@
-// object_types + object_records CRUD. Config-as-data ontology (P2): written
+// object_types CRUD, and the datasources that back them.
 // directly under RLS. org + author come from column defaults (auth_org_id /
 // auth.uid), so the client sends only the definition / the record.
 
@@ -7,7 +7,7 @@ import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, OntologyVisibility, Deprecation,
 } from '@beacon/ontology'
-import { EMPTY_VIEW_CONFIG, objectTitle } from '@beacon/ontology'
+import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
 
 export interface ObjectTypeRow {
   id: string
@@ -21,10 +21,6 @@ export interface ObjectTypeRow {
   view_config: ViewConfigDef | null
   enabled: boolean
   version: number
-  /** The backing datasource, and the only thing that separates the two halves
-   *  of the ontology: NULL means the records live in object_records (Foundry's
-   *  "object type with no datasource"); set means a code-owned table. */
-  source_table: string | null
   title_key: string | null
   /** Developmental state (migration 321). Anything new starts experimental. */
   status: OntologyStatus
@@ -44,7 +40,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
     properties: r.properties, computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
-    sourceTable: r.source_table, titleKey: r.title_key,
+    titleKey: r.title_key,
     status: r.status, visibility: r.visibility,
     deprecation: r.deprecation_reason && r.deprecation_deadline
       ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
@@ -52,41 +48,14 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   }
 }
 
-/** Authored types only — what the operator owns and can edit. The built-in
- *  registrations (migration 223) are code-owned and would otherwise appear as
- *  empty editable types in the browser and the type editor. */
+/** Every object type. There is no authored-versus-built-in split: "Foundry
+ *  classifies object types by their datasource and has no notion of a built-in
+ *  one", so the two readers that used to differ now agree. */
 export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
   const { data, error } = await supabase.from('object_types').select('*')
-    .is('source_table', null).order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRow[]
-}
-
-/** The WHOLE ontology — authored types plus the built-in registrations. Used
- *  where the point is the ontology itself: the canvas, and link-type endpoints
- *  (a Maintenance Request may now link to a Variant). */
-export async function fetchOntologyTypes(): Promise<ObjectTypeRow[]> {
-  const { data, error } = await supabase.from('object_types').select('*')
-    .order('source_table', { ascending: true, nullsFirst: true })
-    .order('label', { ascending: true })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRow[]
-}
-
-// For the /objects browser: each custom type + how many records it holds.
-export interface ObjectTypeCard { id: string; apiName: string; label: string; icon: string; count: number }
-
-export async function fetchObjectTypeCards(): Promise<ObjectTypeCard[]> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .select('id, api_name, label, icon, object_records(count)')
-    .is('source_table', null)
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  interface Row { id: string; api_name: string; label: string; icon: string; object_records: { count: number }[] | null }
-  return (data as unknown as Row[]).map((r) => ({
-    id: r.id, apiName: r.api_name, label: r.label, icon: r.icon, count: r.object_records?.[0]?.count ?? 0,
-  }))
+  return data as ObjectTypeRow[]
 }
 
 export interface CreateObjectTypeInput {
@@ -154,168 +123,6 @@ export async function updateObjectType(i: UpdateObjectTypeInput): Promise<Object
   return data
 }
 
-export interface ObjectTypeRevisionRow {
-  id: string
-  object_type_id: string
-  version: number
-  label: string
-  icon: string
-  description: string
-  properties: PropertyDef[]
-  computed_properties: ComputedPropertyDef[]
-  view_config: ViewConfigDef | null
-  changed_by_user_id: string | null
-  created_at: string
-}
-
-export async function fetchRevisions(objectTypeId: string): Promise<ObjectTypeRevisionRow[]> {
-  const { data, error } = await supabase
-    .from('object_type_revisions')
-    .select('*')
-    .eq('object_type_id', objectTypeId)
-    .order('version', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRevisionRow[]
-}
-
-/** Restore = write the old snapshot's schema back onto the live row. The bump
- *  trigger mints a NEW version and snapshots it — history is never rewritten. */
-export async function restoreRevision(rev: ObjectTypeRevisionRow): Promise<ObjectTypeRow> {
-  return await updateObjectType({
-    id: rev.object_type_id,
-    label: rev.label,
-    icon: rev.icon,
-    description: rev.description,
-    properties: rev.properties,
-    computedProperties: rev.computed_properties,
-    viewConfig: rev.view_config ?? EMPTY_VIEW_CONFIG,
-  })
-}
-
-export interface ObjectRecordRow {
-  id: string
-  object_type_id: string
-  title: string
-  data: Record<string, unknown>
-  created_at: string
-}
-
-export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRecordRow[]> {
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, title, data, created_at')
-    .eq('object_type_id', objectTypeId)
-    .order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectRecordRow[]
-}
-
-/** Records for several types in one read — what an interface-targeted tool needs,
- *  since its record set spans every implementer. */
-export async function fetchObjectRecordsForTypes(typeIds: string[]): Promise<ObjectRecordRow[]> {
-  if (typeIds.length === 0) return []
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, title, data, created_at')
-    .in('object_type_id', typeIds)
-    .order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectRecordRow[]
-}
-
-/** A built-in type's record, read from its backing table and shaped like an
- *  object_records row so the generated view consumes it unchanged.
- *
- *  Goes through PostgREST under the caller's JWT, so each table's own RLS still
- *  decides what is visible — never a service-role shortcut. */
-export async function fetchBuiltinRecord(
-  type: ObjectTypeDef, id: string,
-): Promise<ObjectRecordRow | null> {
-  if (!type.sourceTable) return null
-  // The table name is data, so PostgREST can't type this — say so explicitly
-  // rather than letting an `any` leak into the record shape.
-  const { data, error } = await supabase
-    .from(type.sourceTable).select('*').eq('id', id).maybeSingle() as unknown as {
-      data: Record<string, unknown> | null
-      error: { message: string } | null
-    }
-  if (error) throw new Error(error.message)
-  if (!data) return null
-
-  const row = data
-  return {
-    id,
-    object_type_id: type.id,
-    title: objectTitle(type, row),
-    data: row,
-    created_at: typeof row.created_at === 'string' ? row.created_at : '',
-  }
-}
-
-/** How many rows a set will read from one built-in table. Sets are answered in
- *  the browser, so this is the honest ceiling rather than a silent one — the
- *  caller is told when it bites instead of reporting a confident partial count. */
-export const BUILTIN_SET_LIMIT = 1000
-
-/** A built-in type's records, shaped like object_records rows so a set reads
- *  authored and code-owned types identically. Registration (migration 223) has
- *  named the backing table since G1; nothing consumed it in bulk until sets did.
- *
- *  Under the caller's JWT, so each table's own RLS decides what is visible. */
-export async function fetchBuiltinRecords(
-  type: ObjectTypeDef,
-): Promise<{ rows: ObjectRecordRow[]; truncated: boolean }> {
-  if (!type.sourceTable) return { rows: [], truncated: false }
-  const { data, error } = await supabase
-    .from(type.sourceTable).select('*').limit(BUILTIN_SET_LIMIT) as unknown as {
-      data: Record<string, unknown>[] | null
-      error: { message: string } | null
-    }
-  if (error) throw new Error(error.message)
-
-  const raw = data ?? []
-  const rows = raw.map((row) => {
-    const id = typeof row.id === 'string' ? row.id : ''
-    return {
-      id,
-      object_type_id: type.id,
-      title: objectTitle(type, row),
-      data: row,
-      created_at: typeof row.created_at === 'string' ? row.created_at : '',
-    }
-  })
-  return { rows, truncated: raw.length === BUILTIN_SET_LIMIT }
-}
-
-export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, title, data, created_at')
-    .eq('id', id).maybeSingle<ObjectRecordRow>()
-  if (error) throw new Error(error.message)
-  return data
-}
-
-export interface CreateObjectRecordInput {
-  objectTypeId: string
-  title: string
-  data: Record<string, unknown>
-}
-
-export async function createObjectRecord(i: CreateObjectRecordInput): Promise<ObjectRecordRow> {
-  const { data, error } = await supabase
-    .from('object_records')
-    .insert({ object_type_id: i.objectTypeId, title: i.title, data: i.data })
-    .select('id, object_type_id, title, data, created_at')
-    .single<ObjectRecordRow>()
-  if (error) throw new Error(error.message)
-  return data
-}
-
-export async function deleteObjectRecord(id: string): Promise<void> {
-  const { error } = await supabase.from('object_records').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-}
-
-// ── Link types + links (P2.3) ────────────────────────────────────────────────
-
 export interface LinkTypeRow {
   id: string
   organization_id: string
@@ -354,37 +161,42 @@ export async function deleteLinkType(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-export interface RecordLink { id: string; linkTypeLabel: string; targetRecordId: string; targetTitle: string }
+// ── Backing datasources (migration 405) ─────────────────────────────────────
+// "In order to populate property values for objects of this type with data, you
+// must add a backing datasource." A datasource is a dataset ON A BRANCH, and one
+// may back only one object type.
 
-export async function fetchLinksForRecord(sourceRecordId: string): Promise<RecordLink[]> {
-  const { data, error } = await supabase.from('object_links')
-    .select('id, target_record_id, link_types(label)')
-    .eq('source_record_id', sourceRecordId)
-  if (error) throw new Error(error.message)
-  interface Row { id: string; target_record_id: string; link_types: { label: string } | { label: string }[] | null }
-  const rows = data as unknown as Row[]
-  const ids = [...new Set(rows.map((r) => r.target_record_id))]
-  const titles = new Map<string, string>()
-  if (ids.length > 0) {
-    const { data: recs } = await supabase.from('object_records').select('id, title').in('id', ids)
-    for (const rec of (recs ?? []) as { id: string; title: string }[]) titles.set(rec.id, rec.title)
-  }
-  return rows.map((r) => {
-    const lt = Array.isArray(r.link_types) ? r.link_types[0] : r.link_types
-    return { id: r.id, linkTypeLabel: lt?.label ?? 'link', targetRecordId: r.target_record_id, targetTitle: titles.get(r.target_record_id) ?? '(record)' }
-  })
+export interface ObjectTypeDatasource {
+  id: string
+  datasetId: string
+  branchId: string
+  datasetName: string
+  branchName: string
 }
 
-export interface CreateObjectLinkInput { linkTypeId: string; sourceRecordId: string; targetRecordId: string }
+export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
+  const { data, error } = await supabase.from('object_type_datasources')
+    .select('id, dataset_id, branch_id, datasets(name), dataset_branches(name)')
+    .eq('object_type_id', objectTypeId)
+  if (error) throw new Error(error.message)
+  return (data as unknown as {
+    id: string; dataset_id: string; branch_id: string
+    datasets: { name: string } | null; dataset_branches: { name: string } | null
+  }[]).map((r) => ({
+    id: r.id, datasetId: r.dataset_id, branchId: r.branch_id,
+    datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
+  }))
+}
 
-export async function createObjectLink(i: CreateObjectLinkInput): Promise<void> {
-  const { error } = await supabase.from('object_links')
-    .insert({ link_type_id: i.linkTypeId, source_record_id: i.sourceRecordId, target_record_id: i.targetRecordId })
+export async function addObjectTypeDatasource(
+  i: { objectTypeId: string; datasetId: string; branchId: string },
+): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources')
+    .insert({ object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId })
   if (error) throw new Error(error.message)
 }
 
-export async function deleteObjectLink(id: string): Promise<void> {
-  const { error } = await supabase.from('object_links').delete().eq('id', id)
+export async function removeObjectTypeDatasource(id: string): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources').delete().eq('id', id)
   if (error) throw new Error(error.message)
 }
-

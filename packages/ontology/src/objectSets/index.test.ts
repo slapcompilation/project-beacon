@@ -8,7 +8,7 @@ import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } 
 const batchType: ObjectTypeDef = {
   id: 't1', organizationId: 'o1', 
   apiName: 'batch', label: 'Batch', icon: 'box', description: '',
-  sourceTable: null, titleKey: null, viewConfig: EMPTY_VIEW_CONFIG,
+  titleKey: null, viewConfig: EMPTY_VIEW_CONFIG,
   enabled: true, version: 1,
   properties: [
     { key: 'lot',    label: 'Lot',    type: 'text',   required: true },
