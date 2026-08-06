@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-ontology-objects-from-gaia/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-ontology-objects-from-gaia/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Create Ontology objects from Gaia
 
@@ -10,7 +10,7 @@ Made available through Palantir's [Defense OSDK](/docs/defense-osdk/api), the MI
 If *both* interfaces are available on your enrollment, implement the MILSTD 2525C Symbol interface instead of the Gaia Milsym Creatable interface.
 :::
 
-![A Gaia map's Create shape window in the left panel is displayed, where a user can tag a shape drawn on a map as an object within an object type in their Ontology.](/docs/resources/foundry/object-link-types/create-shape.png)
+![A Gaia map's Create shape window in the left panel is displayed, where a user can tag a shape drawn on a map as an object within an object type in their Ontology.](./images/create-shape.png)
 
 :::callout{theme="warning"}
 To create Ontology objects from a Gaia map, your enrollment must use both Foundry and Gotham.
@@ -63,7 +63,7 @@ To install the Gaia Geoshape Creatable interface from Marketplace:
 7. Select the **Shared properties** tab under **Inputs** in the left panel to map the `Geoshape` shared property from your ontology to your new interface.
 8. Select **Next** to launch the installation window's **Content** page.
 
-![The Gaia Geoshape Creatable interface's Shared properties page is displayed, where a user configures shared properties to include in their interface.](/docs/resources/foundry/object-link-types/map-geoshape-creatable-inputs-as-spts.png)
+![The Gaia Geoshape Creatable interface's Shared properties page is displayed, where a user configures shared properties to include in their interface.](./images/map-geoshape-creatable-inputs-as-spts.png)
 
 9. Optionally toggle on **Prefix Ontology entities** and insert a valid prefix. Note that your prefix may not contain certain special characters, such as parentheses or brackets.
 10. Choose which **Ontology schema migrations** to enable on the right side of your screen. You can reference additional schema management information within the existing [object edits and materializations documentation](/docs/foundry/object-edits/schema-migrations/).
@@ -103,7 +103,7 @@ You can configure additional columns in your dataset or restricted view based on
 
 Select the **New** button in your Project to upload an existing file, such as a `.csv`, or use [Fusion](/docs/foundry/fusion/overview/) to create a standalone dataset or a dataset that backs your restricted view. If you use a dataset to back your object type, you can skip the restricted view creation instructions below and proceed to [create your object type](#create-an-object-type-and-ensure-it-integrates-with-gotham).
 
-![Users can select the New button from their Project to upload data as a .csv or create a new Fusion sheet to store data which will back a restricted view.](/docs/resources/foundry/object-link-types/create-new-dataset-upload-fusion.png)
+![Users can select the New button from their Project to upload data as a .csv or create a new Fusion sheet to store data which will back a restricted view.](./images/create-new-dataset-upload-fusion.png)
 
 :::callout{theme="success"}
 You can reference additional restricted view creation instructions in Foundry's [security](/docs/foundry/security/restricted-views/#create-restricted-views) and [object permissions](/docs/foundry/object-permissioning/configuring-rv-access-controls/) documentation.
@@ -111,7 +111,7 @@ You can reference additional restricted view creation instructions in Foundry's 
 
 Your restricted view should contain a [granular policy](/docs/foundry/security/restricted-views/#compose-a-granular-policy) that restricts user access to the data contained in the view based on their [classification access](/docs/foundry/security/classification-based-access-controls/). Compose the granular policy as the first step in the **Create '{restricted view}'** window.
 
-![An example restricted view policy is displayed.](/docs/resources/foundry/object-link-types/create-restricted-view.png)
+![An example restricted view policy is displayed.](./images/create-restricted-view.png)
 
 :::callout{theme="warning"}
 If an object contains a CBAC or mandatory marking property to restrict its access, then Foundry creates objects using the CBAC or mandatory markings it inherits from the Gaia map and will *not* apply group restrictions defined in the map's security and sharing settings.
@@ -162,7 +162,7 @@ Once you configure your restricted view, launch [Ontology Manager](/docs/foundry
 4. Set `Object ID` as the **Primary Key** and `Name` as the **Title**.
 5. Ensure `Classification`'s **Property** is an array of strings and `Geoshape`'s **Property** is geoshape. You will only need to validate the former if a restricted view backs your object type.
 
-![Ontology Manager's Create a new object type window is displayed, where a user can set an object type's Primary Key and Title as well as configure properties.](/docs/resources/foundry/object-link-types/object-type-classification-array.png)
+![Ontology Manager's Create a new object type window is displayed, where a user can set an object type's Primary Key and Title as well as configure properties.](./images/object-type-classification-array.png)
 
 6. Select **Create**, as you will generate and configure action types *after* object type creation.
 
@@ -176,7 +176,7 @@ If you are using a dataset to back your object type that does *not* contain a `C
 2. Update the **Base type** dropdown menus to contain `Mandatory control` and `CBAC Marking`, respectively.
 3. Configure the property's **Max Classification**.
 
-<img src="./media/map-classification-spt.png" alt="The Property editor window is displayed, where a user can map properties as shared property types" width=400>
+<img src="./images/map-classification-spt.png" alt="The Property editor window is displayed, where a user can map properties as shared property types" width=400>
 
 :::callout{theme="warning"}
 Contact your Palantir Support if you are unable to select **Mandatory control** as the base type for `Classification`, as **Mandatory control** markings are not generally available across all Foundry enrollments.
@@ -184,7 +184,7 @@ Contact your Palantir Support if you are unable to select **Mandatory control** 
 
 4. Scroll to the bottom of the window to the **Shared property** section and use the dropdown menu to assign `Classification` as a shared property.
 
-![Assign a shared property through the Shared property section of the Property editor window.](/docs/resources/foundry/object-link-types/assign-classification-spt.png)
+![Assign a shared property through the Shared property section of the Property editor window.](./images/assign-classification-spt.png)
 
 Repeat steps 1 and 4 above for your `Geoshape` property, as you will *not* need to configure its mandatory control markings or classification.
 
@@ -216,7 +216,7 @@ If you are unable to select the **New** button in **Action types**, then you can
 3. Select **Auto-generated primary key** from the **Or create a new object with** dropdown menu.
 4. Select **Add property** to add all your existing properties to the action type, then choose **Next** to configure your action type's metadata.
 
-![The Create a new action type window is displayed, where a user can map action parameters used as action inputs.](/docs/resources/foundry/object-link-types/configure-create-or-modify-action-type-properties.png)
+![The Create a new action type window is displayed, where a user can map action parameters used as action inputs.](./images/configure-create-or-modify-action-type-properties.png)
 
 :::callout{theme="neutral"}
 You will only need to map a `Classification` property if a restricted view backs your object type.
@@ -234,7 +234,7 @@ Next, you will configure your action type's **Rules** and **Parameters** by foll
    * Ensure the `Geoshape` property's type is either `Geoshape` or `String` from the **Type** dropdown menu on the right side of the screen.
    * Ensure the **Disabled** option is selected in the **General** panel so a user cannot manually configure the location of a `Geoshape`.
 
-![Ontology Manager's Create object window is displayed, where a user can map properties in the Rules panel to create a rule.](/docs/resources/foundry/object-link-types/configure-create-object-type.png)
+![Ontology Manager's Create object window is displayed, where a user can map properties in the Rules panel to create a rule.](./images/configure-create-object-type.png)
 
 3. Select your `Classification` property from the **Form content** panel on the left side of your screen and verify that its **Type** is `Mandatory control`. You will only need to configure a `Classification` property if a restricted view backs your object type.
 4. Select **Back to Form** and remove `Object Id` from **Form content** by selecting the **X** icon on the far right side of the **Object Id** panel. Foundry will automatically generate a unique ID for each object created from Gaia.
@@ -249,7 +249,7 @@ The final step in creating and configuring your object type in Ontology Manager 
 3. Select **Choose an option** > **Replace existing** to map your ontology's `Geoshape` shared property type to the object type implementing the interface.
 4. Select **Confirm** to close the **Implement an interface** window and **Save** the newly configured interface to your ontology.
 
-![Ontology Manager's Interfaces window displays the Gaia Geoshape Creatable interface after it has been implemented on an object type.](/docs/resources/foundry/object-link-types/implemented-gaia-geoshape-creatable-interface.png)
+![Ontology Manager's Interfaces window displays the Gaia Geoshape Creatable interface after it has been implemented on an object type.](./images/implemented-gaia-geoshape-creatable-interface.png)
 
 ## Create an object type that implements the Gaia Geopoint Creatable interface
 
@@ -280,7 +280,7 @@ To create an object type that implements the MILSTD 2525C Symbol interface, you 
 
 When [configuring an action type to enable object creation](#create-and-configure-an-action-type-to-enable-object-creation-in-gaia), ensure you map *at least* the `Classification`, `Symbol Anchor Points`, and `SIDC` properties in the **Create a new action type** window before you select **Next**.
 
-![The Create a new action type window is displayed for an object type implementing the MILSTD 2525C Symbol interface, where a user can map action parameters used as action inputs.](/docs/resources/foundry/object-link-types/configure-milsym-action-type-properties.png)
+![The Create a new action type window is displayed for an object type implementing the MILSTD 2525C Symbol interface, where a user can map action parameters used as action inputs.](./images/configure-milsym-action-type-properties.png)
 
 Select the green **Save** button at the top of the screen to publish incremental changes to your ontology before proceeding.
 
@@ -289,12 +289,12 @@ Next, you will configure your action type's **Rules** and **Parameters** by foll
 1. Select **Rules** from the left side of the screen.
 2. Select the arrow icon to the right of your `Classification` property to **Configure parameter**.
 
-![The Rules panel in an action type's creation window displays properties mapped as action type inputs.](/docs/resources/foundry/object-link-types/configure-milsym-action-type.png)
+![The Rules panel in an action type's creation window displays properties mapped as action type inputs.](./images/configure-milsym-action-type.png)
 
 3. If the `Classification` property on your object type is fulfilled by the shared property type, then you should toggle on **Disabled** in the **General** section to ensure the object created automatically inherits its classification markings from your Gaia map. If you want to manually set the classification markings on creation, then do not toggle on **Disabled**.
 4. Select **Add** under **Set a parameter max classification** to ensure the action type's maximum classification matches the object type's maximum classification.
 
-![The action form's Classification parameter is displayed, where a user can validate its Type, Disable its editing, and configure its maximum classification.](/docs/resources/foundry/object-link-types/configure-milsym-classification-parameter.png)
+![The action form's Classification parameter is displayed, where a user can validate its Type, Disable its editing, and configure its maximum classification.](./images/configure-milsym-classification-parameter.png)
 
 5. Select the green **Save** button at the top of the screen to publish the action type to your ontology.
 
@@ -324,18 +324,18 @@ To register your ontology, object types, and action types, launch Gaia's admin a
 To locate and copy your ontology's RID and API name, navigate to Ontology Manager and choose **Ontology configuration** from the bottom of its left panel to launch the **Ontology metadata** window.
 :::
 
-![The Gaia admin application's and Control Panel extension's Ontology Config panel.](/docs/resources/foundry/object-link-types/gaia-admin-app-ontology-config.png)
+![The Gaia admin application's and Control Panel extension's Ontology Config panel.](./images/gaia-admin-app-ontology-config.png)
 
 3. Locate the **Foundry Object Creation Config** panel and select **Show** (admin application)/**Override** (Control Panel extension).
 4. Select **Add** at the bottom of your enrollment's existing object and action type list.
 5. Copy and paste the RIDs for all three object types and their supporting action types into three separate **Object type rid** and **Action type rid** text boxes, respectively.
 6. Select **Preview and save** in the top right ribbon (admin application)/**Save for {Organization}** in the bottom right corner (Control Panel extension).
 
-![The Gaia admin application's and Control Panel extension's Foundry Object Creation Config panel.](/docs/resources/foundry/object-link-types/gaia-admin-app-foundry-object-creation-config.png)
+![The Gaia admin application's and Control Panel extension's Foundry Object Creation Config panel.](./images/gaia-admin-app-foundry-object-creation-config.png)
 
 You can access your object type's RID from the **Overview** window in Ontology Manager. Select the clipboard icon to copy the RID. Additionally, you can access your action type's RID by selecting **Create {object type name}** in the **Action types** section of the **Overview** window. The action type's RID can also be copied through the clipboard icon.
 
-![You can copy the RID of both your object type and action type from the Overview window of Ontology Manager.](/docs/resources/foundry/object-link-types/combined-object-action-rid-copy.png)
+![You can copy the RID of both your object type and action type from the Overview window of Ontology Manager.](./images/combined-object-action-rid-copy.png)
 
 Next, you will launch Gotham's Gaia application to create objects from shapes you draw, points you drop, and tactical graphics you configure on a map using its **Add to map** menu.
 
@@ -361,28 +361,28 @@ Before you begin, review the [entry points for creating objects](#entry-points-t
 
 With your Gaia map open, select the object icon from the menu in the top left region of your map to switch from **Draw annotation** to **Create object** mode.
 
-![Gaia's toolbar is displayed.](/docs/resources/foundry/object-link-types/select-object-map-tool-bar.png)
+![Gaia's toolbar is displayed.](./images/select-object-map-tool-bar.png)
 
 Next, select a shape to draw from the right side of the same menu. When you finish drawing your shape, the **Create shape** window will appear in Gaia's left panel. Follow the steps below to configure your shape and save it to your ontology as an object:
 
 1. Search for and select your object from the **Object type** dropdown menu. If you selected an object type from the tool bar's dropdown menu on your map canvas, then Gaia will automatically populate the **Create shape**'s dropdown menu with that value.
 2. Complete the required fields in the action form, such as `Category` and `Name`, for your object before you select **Finish**.
 
-![A polygon is drawn on a Gaia map, where a user can geotag it to an object type.](/docs/resources/foundry/object-link-types/draw-polygon.png)
+![A polygon is drawn on a Gaia map, where a user can geotag it to an object type.](./images/draw-polygon.png)
 
 Once you save your shape as an object, it will render as one of the **Layers** in Gaia's left panel. You can select the object's name to launch the **Selection** panel on the right side of your screen, where you can view its properties and customize its appearance.
 
-![Users can view a shape's object data on a Gaia map after it is drawn.](/docs/resources/foundry/object-link-types/gaia-map-drawn-object-view.png)
+![Users can view a shape's object data on a Gaia map after it is drawn.](./images/gaia-map-drawn-object-view.png)
 
 You can also view your object in Foundry's [Object Explorer](/docs/foundry/object-explorer/overview/).
 
-![Users can view their drawn objects within Foundry's Object Explorer.](/docs/resources/foundry/object-link-types/view-drawn-object-in-foundry-oe.png)
+![Users can view their drawn objects within Foundry's Object Explorer.](./images/view-drawn-object-in-foundry-oe.png)
 
 #### Edit an existing shape object
 
 To edit an existing shape object, hover your cursor over the object in the left panel and choose **Edit selection** to launch the **Edit shape** window, which you can also access by double-clicking the object on your map.
 
-![Users can edit an object on their Gaia map by selecting the pencil icon to launch the Edit shape window in the left panel.](/docs/resources/foundry/object-link-types/edit-object.png)
+![Users can edit an object on their Gaia map by selecting the pencil icon to launch the Edit shape window in the left panel.](./images/edit-object.png)
 
 Select and drag any vertex to adjust the shape, or select a point within the shape's boundary to drag the shape to another location on your map. When you are finished making changes, choose **Finish** at the bottom of the **Edit shape** window.
 
@@ -392,7 +392,7 @@ Before you begin, review the [entry points for creating objects](#entry-points-t
 
 With your Gaia map open, select the down arrow to render the symbol **Search** menu, where you can choose an available symbol to drop anywhere on your map. If you select one of the available **Tactical Graphics** symbols, then you will only be able to create an object within an object type that implements the [MILSTD 2525C Symbol interface](#create-an-object-type-that-implements-the-milstd-2525c-symbol-interface). Gaia will automatically populate the **Coordinates** input box based on your map's coordinate system preference.
 
-![The symbol selection in Gaia's tool bar is displayed.](/docs/resources/foundry/object-link-types/create-geopoint-from-tool-bar.png)
+![The symbol selection in Gaia's tool bar is displayed.](./images/create-geopoint-from-tool-bar.png)
 
 :::callout{theme="success"}
 Select **File** > **Preferences** > **Coordinate system** from Gaia's top ribbon to update the default coordinate system.
@@ -416,11 +416,11 @@ Before you begin, review the [entry points for creating objects](#entry-points-t
 
 [Similar to adding a new geopoint to tag as an object](#drop-a-new-point-on-your-gaia-map-and-tag-it-to-an-object-type), select the down arrow to render the symbol **Search** menu, where you can choose an available tactical graphic to drop anywhere on your map. Type the name of your desired tactical graphic in the **Search symbols...** input box, such as `Brigade Support Area`.
 
-![Gaia's symbol search window enables a user to search for a symbol or tactical graphic to add to their map.](/docs/resources/foundry/object-link-types/search-for-tactical-graphic.png)
+![Gaia's symbol search window enables a user to search for a symbol or tactical graphic to add to their map.](./images/search-for-tactical-graphic.png)
 
 The **Create symbol** window will appear in Gaia's left panel, and you can follow the same [shape creation instructions](#draw-a-new-shape-on-your-gaia-map-and-tag-it-to-an-object-type) above to add your tactical graphic to the map and tag it to an object type.
 
-![A Gaia map displays a tactical graphic drawn and saved on a map canvas.](/docs/resources/foundry/object-link-types/draw-tactical-graphic.png)
+![A Gaia map displays a tactical graphic drawn and saved on a map canvas.](./images/draw-tactical-graphic.png)
 
 #### Edit an existing tactical graphic object
 
@@ -432,6 +432,6 @@ In Gaia, an *annotation* is a shape, point, or symbol that is local to your curr
 
 To tag an existing annotation as an object, double-click the annotation on your map or hover your cursor over the annotation's pencil icon in the **Layers** tab of the left panel to launch the shape, point, or symbol edit window. Next, select **Promote to object**, choose your object type from the **Object type** dropdown menu, and complete the action form in the shape, point, or symbol edit window.
 
-![A Gaia map displays an annotation that a user promotes to an object through the left panel.](/docs/resources/foundry/object-link-types/promote-annotation.png)
+![A Gaia map displays an annotation that a user promotes to an object through the left panel.](./images/promote-annotation.png)
 
 To learn more about the various methods you can use to add data *from* your ontology *to* Gotham, review the existing [geospatial data integration documentation](/docs/foundry/geospatial/add-ontology-data-to-gaia/).

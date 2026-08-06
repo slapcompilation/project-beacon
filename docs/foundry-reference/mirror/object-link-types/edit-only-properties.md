@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-only-properties/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-only-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Edit-only properties
 
@@ -21,7 +21,7 @@ When working with edit-only properties, keep the following in mind:
 4. Under the **Data** section, toggle on the **Edit-only property** toggle and choose a dataset to permission to (if you have more than one dataset backing the object type).
 5. **Save** your changes to create the edit-only property.
 
-<img src="./media/edit_only_property.png" alt="Edit-only property" width="300" />
+<img src="./images/edit_only_property.png" alt="Edit-only property" width="300" />
 
 ### Mapping edit-only properties to dataset columns
 

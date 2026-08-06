@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/allow-editing/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/allow-editing/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Allow users to edit objects and links
 

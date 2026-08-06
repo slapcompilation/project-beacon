@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/struct-main-fields/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/struct-main-fields/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Struct main fields \[Beta]
 
@@ -27,15 +27,15 @@ Use struct main fields when:
 3. Select the struct property to configure from your object type's **Properties** tab.
 4. Choose the field to designate from the **Struct fields** section of the **General** tab that appears in the property editor panel on the right.
 
-<img src="./media/struct-main-fields-sidebar-location.png" alt="Main fields configuration location" width="400">
+<img src="./images/struct-main-fields-sidebar-location.png" alt="Main fields configuration location" width="400">
 
 5. Toggle on **Struct main field** in the **Edit {propertyName} struct field** popup window before you select **Confirm**. You can designate multiple main fields and reorder them for clarity by clicking and dragging a field's panel.
 
-<img src="./media/struct-main-fields-toggle.png" alt="Struct main field toggle" width="450">
+<img src="./images/struct-main-fields-toggle.png" alt="Struct main field toggle" width="450">
 
 6. **Save** your changes. Configured main fields display a **Struct main field** tag in the **Struct fields** list.
 
-<img src="./media/struct-main-fields-tags.png" alt="Struct main field tags" width="400">
+<img src="./images/struct-main-fields-tags.png" alt="Struct main field tags" width="400">
 
 ## How struct main fields appear in applications
 
@@ -53,11 +53,11 @@ You can map any struct field to an interface property. When implementing an inte
 
 For example, if an interface requires a `String` property called `cityName`, you can fulfill it using a struct property's `city` field. The interface picker displays all available struct fields with their types, allowing you to choose the appropriate field.
 
-<img src="./media/struct-main-fields-interface-picker.png" alt="Selecting a struct field to map to an interface property" width="700">
+<img src="./images/struct-main-fields-interface-picker.png" alt="Selecting a struct field to map to an interface property" width="700">
 
 After mapping a struct field to an interface property, the implementation shows the struct property and the specific field being used.
 
-<img src="./media/struct-main-fields-interface-mapped.png" alt="Mapped struct field to interface property" width="700">
+<img src="./images/struct-main-fields-interface-mapped.png" alt="Mapped struct field to interface property" width="700">
 
 Main fields are indicated with a **Struct main field** tag in the picker, making them easy to identify. However, you can select any field from the struct regardless of whether it is designated as a main field.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-properties/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Edit object type properties
 
@@ -14,13 +14,13 @@ From within the property editor, in the properties pane, hover over the property
 
 From within the property editor, in the properties pane, hover over the property you want to unmap and select **Unlink property**. To link the property to a new column, hover over the property and select **Map to a column**.
 
-![Mapping to a column](/docs/resources/foundry/object-link-types/edit-object-type-map-to-column.png)
+![Mapping to a column](./images/edit-object-type-map-to-column.png)
 
 ### Edit a property type’s metadata
 
 You can edit metadata for a property type by selecting the property type, as shown in the image below.
 
-<img src="./media/edit-object-type-property-metadata.png" alt="Edit property metadata" width="500" />
+<img src="./images/edit-object-type-property-metadata.png" alt="Edit property metadata" width="500" />
 
 The available options for editing property metadata are clustered into four different tabs which give access to the following configurations:
 
@@ -64,6 +64,6 @@ You can select multiple properties in the property editor by holding the **Cmd/C
 * Changing visibility.
 * Adding/removing value formatting.
 
-![Edit property metadata](/docs/resources/foundry/object-link-types/edit-object-type-bulk-edit-multiple-properties.png)
+![Edit property metadata](./images/edit-object-type-bulk-edit-multiple-properties.png)
 
 You can also bulk edit some of the above fields from outside of the property editor, by selecting the **Properties** page from the sidebar of an object type view. Simply select the checkboxes next to the properties you want to edit and a new row will appear at the top of the table with options for bulk editing.

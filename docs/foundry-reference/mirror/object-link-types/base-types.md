@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/base-types/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/base-types/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Base types
 
@@ -58,11 +58,11 @@ The media reference includes the following:
 
 Object types with media reference properties are backed by a dataset. The backing dataset must include a media reference column, which will map to the media reference property. This column type is specifically designed to store media reference values and ensures proper integration between your ontology objects and media sets.
 
-![A media reference property's source.](/docs/resources/foundry/object-link-types/media-reference-source.png)
+![A media reference property's source.](./images/media-reference-source.png)
 
 Additionally, a media reference property must have a **media source**, which can be configured in the **Capabilities** tab of the object type. This media source should be the media set that the media references point to.
 
-![Media reference properties in the "Capabilities" tab.](/docs/resources/foundry/object-link-types/media-reference-media-source.png)
+![Media reference properties in the "Capabilities" tab.](./images/media-reference-media-source.png)
 
 ### Structs
 

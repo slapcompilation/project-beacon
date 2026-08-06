@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/derived-properties/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/derived-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Configure derived properties
 
@@ -26,7 +26,7 @@ To configure a derived property on an object type, follow the steps below.
 
 From the **Properties** tab of your object type, select **New property** or click on an existing property to edit it. This opens the property configuration side panel.
 
-<img src="./media/configure-derived-property-source-tab.png" alt="Property source tab with derived properties option." width="400" />
+<img src="./images/configure-derived-property-source-tab.png" alt="Property source tab with derived properties option." width="400" />
 
 ### 2. Navigate to the Source tab
 
@@ -44,7 +44,7 @@ In the **Linked objects** section, select a link type from the dropdown. This de
 * After selecting a link type, you can optionally add additional link types to traverse multiple levels of connections (up to 3 levels).
 * Use **Add linked object** to traverse through another level of linked objects.
 
-<img src="./media/configure-derived-property-link-selection.png" alt="Selecting a link type for the derived property." width="400" />
+<img src="./images/configure-derived-property-link-selection.png" alt="Selecting a link type for the derived property." width="400" />
 
 ### 5. Configure aggregation (if needed)
 
@@ -69,7 +69,7 @@ After selecting a link type (and aggregation if needed), choose which property f
 * The dropdown menu shows all available properties from the final object type in your link chain.
 * For **Count** aggregation, you do not need to select a property as objects are automatically counted.
 
-<img src="./media/configure-derived-property-aggregation.png" alt="Selecting an aggregation type for the derived property." width="400" />
+<img src="./images/configure-derived-property-aggregation.png" alt="Selecting an aggregation type for the derived property." width="400" />
 
 ### 7. Configure collection limit (for collect aggregations)
 
@@ -84,7 +84,7 @@ For example:
 * A `Department` object type could derive "Project names" by traversing through `Employee` objects to their linked `Project` objects.
 * The link chain would be: Department → Employee → Project
 
-<img src="./media/configure-multi-hop-link.png" alt="Configure multi hop derived property." width="400" />
+<img src="./images/configure-multi-hop-link.png" alt="Configure multi hop derived property." width="400" />
 
 To configure multi-hop:
 

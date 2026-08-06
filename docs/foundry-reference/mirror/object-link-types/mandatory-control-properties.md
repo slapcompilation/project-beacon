@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/mandatory-control-properties/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/mandatory-control-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Mandatory control properties
 
@@ -97,6 +97,6 @@ Similarly, if packaging an action type with a classification based mandatory con
 
 When installing the product, you will be prompted to select the allowed markings or max classification for each mandatory control property. The selected values will be set as allowed markings or max classification of the mandatory control properties upon install.
 
-<img src="./media/marking-inputs-install.png" alt="Selecting mandatory control inputs during Marketplace install" width="800" />
+<img src="./images/marking-inputs-install.png" alt="Selecting mandatory control inputs during Marketplace install" width="800" />
 
 Note that packaging multiple mandatory control properties and/or parameters with the same values would results in only one mandatory control input being declared.

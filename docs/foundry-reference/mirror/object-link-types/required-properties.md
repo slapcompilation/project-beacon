@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/required-properties/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/required-properties/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Required properties
 
@@ -23,7 +23,7 @@ When working with required properties, keep the following in mind:
 
 Note that if there is any null value currently set on the backing column for the property, the reindex will fail. To fix this, you must either update the backing datasource to no longer have nulls in the column, or unset the property as required.
 
-<img src="./media/required_property.png" alt="Required property toggled in configuration pane." width="500" />
+<img src="./images/required_property.png" alt="Required property toggled in configuration pane." width="500" />
 
 ### Required properties that allow empty arrays
 
@@ -31,7 +31,7 @@ You can configure your required property to allow empty arrays. This means that 
 
 It is important to note that Actions will write an empty array to any property that is mapped to a parameter, but the parameter is not set. This means that if you have a required property that allows empty arrays, and you leave the parameter blank in an Action, the Action will succeed and write an empty array to the property. If you do not want this behavior and want to enforce that users always set a value for this property via Actions, you should not allow empty arrays on your required property.
 
-<img src="./media/advanced_required_property.png" alt="Advanced required property configuration" width="500" />
+<img src="./images/advanced_required_property.png" alt="Advanced required property configuration" width="500" />
 
 ### Required properties for object types with multiple backing datasources
 

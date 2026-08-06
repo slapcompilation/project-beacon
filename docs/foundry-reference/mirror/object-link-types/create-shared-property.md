@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-shared-property/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-shared-property/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Create a shared property
 
@@ -8,15 +8,15 @@ To access the page, follow the steps below:
 
 1. Select the **Shared properties** menu option in Ontology Manager.
 
-<img src="./media/shared-property-menu-option.png" alt="Shared properties page in Ontology Manager" width="800" />
+<img src="./images/shared-property-menu-option.png" alt="Shared properties page in Ontology Manager" width="800" />
 
 2. Once on the shared property page, select **New shared property** at the top right.
 
-<img src="./media/new-shared-property-button.png" alt="Create shared property button" width="800" />
+<img src="./images/new-shared-property-button.png" alt="Create shared property button" width="800" />
 
 3. This will open the shared property creation modal, where you can configure the name, description, type, and other metadata to create the shared property.
 
-<img src="./media/create-shared-property-modal.png" alt="Create shared property modal" width="500" />
+<img src="./images/create-shared-property-modal.png" alt="Create shared property modal" width="500" />
 
 A shared property can be configured with a subset of regular property metadata:
 

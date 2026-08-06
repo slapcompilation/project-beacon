@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/value-formatting/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Add value formatting
 
 **Value formatting** refers to applying a special formatter to the value of a property, transforming the raw value to a more readable version. In the image below, the left-hand side (**Before**) shows the `weight` and `value` columns without any formatting. The right-hand side (**After**) has a unit (“kg”) applied to the `weight` column and the `value` column is displayed in a more compact form with a currency sign (“$100K”). These are both examples of numeric formatting. The Ontology also supports date and time formatting, as well as user ID formatting, resource RID formatting, and artifact GID formatting.
 
-<img src="./media/value-formatting-numeric-formatting-example.png" alt="Value formatting example" width="600"/>
+<img src="./images/value-formatting-numeric-formatting-example.png" alt="Value formatting example" width="600"/>
 
 ## Supported value formatting
 
@@ -23,7 +23,7 @@ In the property editor:
 1. Select the property to which you want to add value formatting.
 2. On the right hand side panel of the properties pane, you will see a type of formatting depending on the base type of the property (value formatting, numeric formatting, date and time formatting, etc.). Toggle on the formatting.
 
-<img src="./media/value-formatting-toggle.png" alt="Value formatting toggle" width="500" />
+<img src="./images/value-formatting-toggle.png" alt="Value formatting toggle" width="500" />
 
 3. Additional formatting options are available for numeric formatting and date and time formatting, as described below:
    * [Numeric formatting options](#numeric-formatting-options)
@@ -32,7 +32,7 @@ In the property editor:
 
 ### Numeric formatting options
 
-<img src="./media/value-formatting-numeric-formatting.png" alt="Numeric formatting options" width="500"/>
+<img src="./images/value-formatting-numeric-formatting.png" alt="Numeric formatting options" width="500"/>
 
 | Name                   | Description | Usage |
 | ---                    | --- | --- |
@@ -48,7 +48,7 @@ In the property editor:
 
 ### Date and time formatting options
 
-<img src="./media/value-formatting-date-formatting.png" alt="Date and time formatting options" width="500" />
+<img src="./images/value-formatting-date-formatting.png" alt="Date and time formatting options" width="500" />
 
 |Name   |Description    |Example    |
 |---    |---    |---    |
@@ -63,7 +63,7 @@ In the property editor:
 When formatting **Relative to now**, applications will only format in relative terms up to 24 hours ago. After this, it will render in **Date and time (short)** form with the day of the week: `Wed, Jul 22, 2020, 1:00 PM`.
 :::
 
-<img src="./media/value-formatting-relative-to-now.png" alt="Relative to now" width="300" />
+<img src="./images/value-formatting-relative-to-now.png" alt="Relative to now" width="300" />
 
 #### Time zones
 

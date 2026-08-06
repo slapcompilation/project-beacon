@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-link-type/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-link-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Create a link type
 
@@ -8,12 +8,12 @@ We recommend creating and configuring a new link type with the guided helper out
 
 Navigate to Ontology Manager. To access the link type creation helper, choose one of the following methods:
 
-* Select **New** from the top right corner, then select **Link type**. <br><br> <img src="./media/create-new-link-type.png" width=400 alt="Select Link type option from the New dropdown menu."> <br><br>
+* Select **New** from the top right corner, then select **Link type**. <br><br> <img src="./images/create-new-link-type.png" width=400 alt="Select Link type option from the New dropdown menu."> <br><br>
 
 * In the left sidebar, select **Link types** under **Resources**. Then, select **New link type** in the top right corner of the **Link types** page.
 
 * Navigate to an object type you want to link, then select **Create new link type** from within the link type graph on the object type’s **Overview** page. <br><br>
-  ![Create a new link type](/docs/resources/foundry/object-link-types/create-new-link-type-button.png) <br><br>
+  ![Create a new link type](./images/create-new-link-type-button.png) <br><br>
 
 ## Configure a new link type
 
@@ -45,7 +45,7 @@ In the examples below, assume that there are two object types that are related t
 * *Many-to-many cardinality:* This indicates that one `Aircraft` can be linked to many `Flights`, and one `Flight` can be linked to many `Aircraft`.
 
 3. Select **Next** to proceed to the next step. <br><br>
-   ![Select the link type relationship type in the creation dialog](/docs/resources/foundry/object-link-types/create-link-relationship-type.png) <br><br>
+   ![Select the link type relationship type in the creation dialog](./images/create-link-relationship-type.png) <br><br>
 
 ### Define link resources
 
@@ -68,7 +68,7 @@ For example, the `Tail Number` property is the primary key on the `Aircraft` obj
    * The primary key of the object type is auto-selected since there is only one primary key for each object type (`Tail Number` for the `Aircraft` object type).
 
 5. Select **Next** to continue. <br><br>
-   ![Select the link resources using a foreign key relationship type.](/docs/resources/foundry/object-link-types/create-link-foreign-key.png) <br><br>
+   ![Select the link resources using a foreign key relationship type.](./images/create-link-foreign-key.png) <br><br>
 
 #### Join table dataset relationship type
 
@@ -83,7 +83,7 @@ A many-to-many cardinality, which requires a backing datasource, is required to 
    * It is now possible to automatically generate a join table for new link types. The **Generate join table** option will create a dataset with the correct schema based on the primary keys of the two object types you have selected. This means that you can get started faster if you have user edit-backed data, or if you want to provide production data later on.
 5. Select which columns in the link type’s backing datasource map to the primary keys of each of the linked object types.
 6. Select **Next** to continue. <br><br>
-   ![Select link type relationship type](/docs/resources/foundry/object-link-types/create-link-dataset.png) <br><br>
+   ![Select link type relationship type](./images/create-link-dataset.png) <br><br>
 
 #### Backing object relationship type
 
@@ -91,7 +91,7 @@ Before creating the object-backed link, ensure that the [prerequisite](#prerequi
 
 1. Select the object types created in the prerequisites to represent your desired link type. The objects on the left and right represent the two entities that will be linked together. The object in the middle serves as the intermediary and provides additional metadata about the connection between the two entities, and backs the link.
 2. If there are multiple links between the objects on the left and right and the intermediary object in the middle, use the dropdown menus to select the desired links between the left and right objects and the intermediary object. <br><br>
-   ![Select the link resources using an object-backed link.](/docs/resources/foundry/object-link-types/oblt-link-dialog.png) <br><br>
+   ![Select the link resources using an object-backed link.](./images/oblt-link-dialog.png) <br><br>
 
 ### Define link type names
 
@@ -107,13 +107,13 @@ Before creating the object-backed link, ensure that the [prerequisite](#prerequi
      * Not be a reserved keyword.
    * [Learn more about API names.](/docs/foundry/functions/api-objects-links/)
 4. Select **Next** to proceed. <br><br>
-   ![Name the link type](/docs/resources/foundry/object-link-types/create-link-api.png) <br><br>
+   ![Name the link type](./images/create-link-api.png) <br><br>
 
 ### Save location
 
 In the final step, choose a project to save this link type to. Then, **Submit**. After completing these steps, your new link type will be created, but not yet saved.
 
-<img src="./media/create-link-type-save-location-step.png" alt="New link type Save location step." width="500" />
+<img src="./images/create-link-type-save-location-step.png" alt="New link type Save location step." width="500" />
 
 ### Save change to ontology
 
@@ -125,7 +125,7 @@ Object-backed link types expand on many-to-one cardinality link types, providing
 
 For object-backed links, in addition to the `Aircraft` and `Flight` objects, assume an additional object type for the `Flight Manifest`. With an object-backed link, you can have the `Flight Manifest` object type that links the `Aircraft` and `Flight` objects. Unlike a foreign key or data-set backed link, this `Flight Manifest` object can contain additional properties such as `Pilot` and `First Mate` to provide additional metadata on the link.
 
-![Object-backed link overview.](/docs/resources/foundry/object-link-types/oblt_overview.png)
+![Object-backed link overview.](./images/oblt_overview.png)
 
 ### Prerequisites for creating an object-backed link type
 

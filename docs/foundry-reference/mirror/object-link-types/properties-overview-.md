@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/properties-overview// · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/properties-overview// · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Properties
 

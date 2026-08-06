@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/property-reducers/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/property-reducers/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Property reducers \[Beta]
 
@@ -62,12 +62,12 @@ Reducers function on struct arrays based on a specific **field** within the stru
 4. Choose the **Interaction** tab in the property editor panel that opens on the right.
 5. Scroll to the **Reduce array** section.
 
-<img src="./media/property-reducers-interactions-tab.png" alt="Property sidebar with Interactions tab" width="800">
+<img src="./images/property-reducers-interactions-tab.png" alt="Property sidebar with Interactions tab" width="800">
 
 6. Select **Add array reducer**.
 7. Select your desired [reducer option](#supported-base-types) based on the property's base type.
 
-<img src="./media/property-reducers-add-reducer-section.png" alt="Add reducer section" width="600" />
+<img src="./images/property-reducers-add-reducer-section.png" alt="Add reducer section" width="600" />
 
 8. **Save** your changes.
 
@@ -115,7 +115,7 @@ You can configure multiple reducers to handle tie-breaking scenarios:
 
 The fallback reducer *only* applies when the primary reducer results in multiple items. The primary reducer is always evaluated first, and only items that tie on the primary criteria are further reduced by the fallback reducer. This reduction behavior is repeated for any additional configured reducers.
 
-<img src="./media/property-reducers-struct-configuration.png" alt="Struct array reducer configuration" width="600" />
+<img src="./images/property-reducers-struct-configuration.png" alt="Struct array reducer configuration" width="600" />
 
 ## How reducers appear in applications
 
@@ -142,7 +142,7 @@ Use property reducers to ensure an array property can implement non-array interf
 
 The `Equipment` object type can implement the `Asset` interface because the reducer allows its `maintenanceHistory` array property to be represented as a single `Date` value. When users view an `Equipment` object through the `Asset` interface, they see only the most recent maintenance date.
 
-<img src="./media/property-reducers-interface-implementation.png" alt="Interface implementation via reducer" width="700" />
+<img src="./images/property-reducers-interface-implementation.png" alt="Interface implementation via reducer" width="700" />
 
 :::callout{theme="warning"}
 When using a reduced array value on an object type to satisfy an interface property that is a parameter of an [interface action](/docs/foundry/action-types/actions-on-interfaces/), the action will return an error when called on objects of that type. However, you can still use the interface action for objects that do not implement the interface through a reduced array value.
@@ -172,7 +172,7 @@ With the `streetName` field configured as the main field and most recent `dateCo
 
 As an example, with both a struct main field and property reducer configured, you can use the `locations` property to fulfill a *single* string property from an interface, such as `Event street name` from the notional `Event` interface in the image below.
 
-<img src="./media/property-reducers-combination-single-string.png" alt="Single string implementation via reducer and main field" width="700">
+<img src="./images/property-reducers-combination-single-string.png" alt="Single string implementation via reducer and main field" width="700">
 
 When you configure both a struct main field and a property reducer, the transformation:
 

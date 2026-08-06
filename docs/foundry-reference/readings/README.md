@@ -74,6 +74,9 @@ is worth most just before the thing it describes gets built. Nothing here is
 - `slate-styles.md` — Slate's three stylesheet scopes, Blueprint as the substrate,
   static-CSS rules. Decided: Blueprint stays on citation, no Tailwind, tiers wait
   for a widget layer.
+- `create-object-type.md` — the creation sequence, the three primary-key warnings,
+  base types including arrays, and an Overview page carrying ID/API/RID, status,
+  visibility, **index status** and **edits**.
 - `object-permissioning.md` — **dynamic security is object and property security
   policies**: row, column and cell-level, evaluated per instance, decoupled from
   the datasource. Ontology permissions live in Compass projects.
