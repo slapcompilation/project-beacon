@@ -6,7 +6,7 @@ Quiver has a range of settings to configure the display and format in your analy
 
 To open the settings panel, click the cog icon in the [side panels](/docs/foundry/quiver/analysis-toolbars/#side-panels) bar.
 
-<img alt="Screenshot of settings options" src="./media/howto-settings-example.png" width="350px">
+<img alt="Screenshot of settings options" src="./images/howto-settings-example.png" width="350px">
 
 ## Personal default settings
 
@@ -36,7 +36,7 @@ Applying your personal default settings to an existing analysis will overwrite e
 
   Note that to assign a specific color to each bar in a bar chart, you first need to segment your series by the same property that you grouped by.
 
-![Object set global settings](/docs/resources/foundry/quiver/howto-settings-object-set-global-settings.gif)
+![Object set global settings](./images/howto-settings-object-set-global-settings.gif)
 
 ## Time series tooltips settings
 
@@ -78,8 +78,8 @@ Applying your personal default settings to an existing analysis will overwrite e
 
 Choose your preferred view mode so your analysis always opens to your preference. Select the view mode settings toggle in the top right corner of your analysis to learn about new features in a given mode and compare between canvas and graph capabilities. Then select your preferred mode.
 
-![The view mode settings toggle in the view mode selector.](/docs/resources/foundry/quiver/analysis-settings-view-mode-toggle.png)
+![The view mode settings toggle in the view mode selector.](./images/analysis-settings-view-mode-toggle.png)
 
-![The view mode preference selection dialog.](/docs/resources/foundry/quiver/analysis-settings-view-mode-options.png)
+![The view mode preference selection dialog.](./images/analysis-settings-view-mode-options.png)
 
 If you choose the **Auto-select** option, new analyses will default to [canvas mode](/docs/foundry/quiver/analysis-canvas/) when the first data you add is related to [time series](/docs/foundry/quiver/timeseries-overview/). All other data types will default to [graph mode](/docs/foundry/quiver/analysis-graph/).

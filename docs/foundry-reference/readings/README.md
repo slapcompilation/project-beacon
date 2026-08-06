@@ -117,5 +117,11 @@ is worth most just before the thing it describes gets built. Nothing here is
   so the failure mode is "metadata yes, data no", not "denied". File markings are
   buildable now; only data markings block on lineage.
 
-Ten readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `control-panel-and-banners.md` — settings are grouped by **scope** (user /
+  platform / enrollment / organization / space), not by feature; a settings page
+  is title + subtitle + tabs + one-toggle-per-card. **Three banners share one
+  slot above everything, including the sidebar** — CBAC beats static, and the
+  scoped-session workspace banner is a *control*, not text.
+
+Eleven readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
