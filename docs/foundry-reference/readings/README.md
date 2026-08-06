@@ -123,5 +123,10 @@ is worth most just before the thing it describes gets built. Nothing here is
   slot above everything, including the sidebar** — CBAC beats static, and the
   scoped-session workspace banner is a *control*, not text.
 
-Eleven readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `data-lineage.md` — **object types are nodes in the same graph as datasets**,
+  and link types are its edges. Marking simulation gives a four-state output
+  contract and a direct-only removal constraint. The Access panel confirms
+  migration 401's File/Data split verbatim, from a second independent page.
+
+Twelve readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
