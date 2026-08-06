@@ -456,13 +456,38 @@ try {
   check('every RLS-guarded table is readable as `authenticated` (no policy recursion)',
     broken.map(([t, e]) => `${t}: ${e}`), [])
 
-  const listChecks = await client.query(
-    `select c.relname, position('resource_file_access' in pg_get_expr(p.polqual, p.polrelid)) > 0 as guarded
-       from pg_policy p join pg_class c on c.oid = p.polrelid
-      where p.polname in ('members read datasets','members read projects') order by c.relname`)
-  check('the list policies compose the one definition of file access',
-    listChecks.rows.map((r) => [r.relname, r.guarded]),
-    [['datasets', true], ['projects', true]])
+  // The property the old structural check was proxying for, tested directly.
+  //
+  // It used to grep the policy text for the literal 'resource_file_access' — an
+  // allowlist wearing a different hat, and exactly what CLAUDE.md says not to do.
+  // It also could not tell a policy that composes the right function from one
+  // that composes it wrongly. What actually matters is that THE LIST AGREES WITH
+  // THE DETAIL: a resource you cannot read must not appear in the list, and one
+  // you can must.
+  await clearMarkings()
+  const listedAs = async () => {
+    await client.query('SAVEPOINT lst')
+    await client.query('SET LOCAL ROLE authenticated')
+    const { rows } = await client.query('select id from public.datasets where id = $1', [ds.id])
+    await client.query('RESET ROLE')
+    await client.query('ROLLBACK TO SAVEPOINT lst')
+    return rows.length
+  }
+  const [{ rows: [before] }, listedBefore] = [
+    await client.query('select public.can_read_dataset($1) as r', [ds.id]),
+    await listedAs(),
+  ]
+  check('unmarked: the list and the detail agree', [listedBefore === 1, before.r], [true, true])
+
+  await applyAs('dataset', ds.id)
+  const [{ rows: [after] }, listedAfter] = [
+    await client.query('select public.can_read_dataset($1) as r', [ds.id]),
+    await listedAs(),
+  ]
+  check('marked and not a member: the list and the detail still agree',
+    [listedAfter === 0, after.r], [true, false])
+  await clearMarkings()
+
 } finally {
   await client.query('ROLLBACK')
   await client.end()

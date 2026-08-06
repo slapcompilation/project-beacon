@@ -164,6 +164,58 @@ work at all; it is what the object-layer work is *for*.
 So: **O2 → O3, then extend `gen:ontology` from interfaces into a client.** No fork
 to take, and nothing to empty.
 
+## A correction the operator caught
+
+I applied "wanting an allowlist is the signal to index instead" to `check:tables`
+and **exempted my own work from it**. Categorising `check:datasets`' 40 assertions:
+
+| kind | count | verdict |
+|---|---|---|
+| **behavioural** — execute, compare to a documented answer | 35 | keep, grow |
+| **liveness** — every guarded table readable as `authenticated` | 1 | keep; it found the outage |
+| **structural** — grep the policy text for a literal function name | 1 | **the allowlist instinct** |
+
+And migration 407 contains a hand-written list of seven function names, justified
+in the words CLAUDE.md warns about — "listed explicitly rather than inferred, so
+adding one without adding it here is a visible omission."
+
+Both had strictly better behavioural equivalents:
+
+- *"the list policies compose `resource_file_access`"* → **the list agrees with the
+  detail**: a dataset you cannot read must not appear in `select from datasets`,
+  and one you can must. That tests the property rather than the spelling, and it
+  catches a policy that composes the right function *wrongly* — which the grep
+  could not.
+- 407's SECURITY DEFINER list → already redundant with the liveness probe. A
+  resolver left with invoker rights and called from a policy **recurses**, and the
+  probe fails. The list detected what the probe prevents.
+
+`check:datasets` now has **no structural assertions at all** — every one executes
+behaviour. 41 assertions.
+
+### And the deeper half of the question: is the ontology the right registry?
+
+Yes, for one of the two things `check:datasets` does, and it is not the one it does
+today.
+
+- **Engine conformance** — does the view algorithm match the published example, do
+  the commit rules hold, does RLS actually work. This tests *machinery*. The
+  ontology knows nothing about `SNAPSHOT` semantics; a bespoke suite is right, and
+  it is the part that keeps catching real bugs.
+- **Content well-formedness** — does every object type have a primary key, does
+  every property map to a column that exists in its datasource's schema, does any
+  bound datasource carry a `MAP` column. **That is ontology linting**, and today it
+  is scattered into triggers (405) and one assertion here.
+
+It is scattered because **the ontology cannot yet answer those questions** —
+properties are a jsonb blob with no api name, no base type, no column mapping.
+After O2/O3 each becomes a *query against the ontology* rather than a bespoke
+assertion, and the trigger in 405 becomes a lint rule.
+
+So the trajectory is: `check:datasets` shrinks toward engine conformance and
+liveness, and content checks migrate into the ontology as it becomes able to hold
+them. Same direction as everything else here — **O2/O3 are the enabling step.**
+
 ## Open questions
 
 1. **The application-scoped token.** "scoped only to the ontological entities you
