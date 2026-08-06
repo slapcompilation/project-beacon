@@ -211,6 +211,86 @@ carry its own chrome preference.
   not navigation, but it is a top strip, and the two need reconciling explicitly
   rather than silently.
 
+## The chrome model — corrected by the operator, and it changes the build
+
+I asked whether to build a global top bar. The question was malformed, and three
+operator screenshots plus one documentation page settle it:
+
+**There is no universal top bar. The sidebar is the only universal chrome, and
+every application owns the strip above its own content.**
+
+`getting-started/orientation-and-nav` is the evidence from the docs side. It
+describes the shell exhaustively — a numbered legend with **five sections**, all
+sidebar — and never mentions a top bar:
+
+> "The sidebar is your **constant companion** in the platform and **the starting
+> point for navigation**."
+
+And the operator's captures are the evidence from the product side. Three
+applications, three completely different top strips:
+
+| application | its top strip |
+|---|---|
+| **Object Explorer** | browser-style **tabs** — `Search: "fresh air"`, `Fresh Air Inc`, `+` — with `Explorations ▾` and `Lists ▾` at the right |
+| **Marketplace** | a **breadcrumb** — `Marketplace › Palantir Learning Store › Deep Dive: Creating Your First Ontology › Draft 1.1.0` — plus `Search products…`, `Installations`, `Help` |
+| **Data Lineage** | a **title + branch selector** (`master`), a gear, build-status chips `↻0 ✓14 ✗0`, `Save as ▾`, and beneath it a graph toolbar (Tools, Layout, Undo/redo, Clean, Select, Expand, Color, Find, Remove, Align, Flow, …) |
+
+Nothing is shared between them but the sidebar to their left. Which is why a
+corpus-wide grep for "tab bar" finds nothing: **there is no such platform
+concept to document.**
+
+**This is our existing rule, arriving from the other direction.** "One chrome (the
+sidebar); pages own headers" and "each application owns its own top bar" are the
+same statement. The rule was never in tension with Foundry; my framing was.
+
+So the build changes:
+
+- **Do not build a global tab bar.** It is Object Explorer's, and only its.
+- **Each surface keeps owning its header**, which is what `/datasets`,
+  `/ontology` and `/projects` already do.
+- **The banner is the one genuinely global strip**, and it is not navigation — it
+  is a security indicator, configured per organization, rendered above everything
+  including the sidebar. That is the only thing that belongs above the app.
+
+### What the Marketplace capture adds
+
+The install form asks for **Install location** → **Namespace** → **Ontology**, in
+that order, and the Ontology field is *disabled* until a namespace is chosen:
+"Please select a namespace first". Permissions → Roles reads "No namespace
+selected".
+
+That is `orgs-and-spaces`' "a space is a high-level container of projects, **with
+one common ontology**" made operable: **the ontology is a property of the space**,
+and you cannot name one before naming the other. Also confirms *namespace* is
+still the label in-product where the docs have rebranded to *space*.
+
+And the Install location help text restates the project model exactly:
+"Compass resources from the installation will be saved in this new project. By
+default, the project will only be modifiable by you. To grant more users access,
+you can edit the project settings in the **Access panel** after installation."
+
+### What the Data Lineage capture adds — two things we need
+
+**1. The primary key and title key are rendered as icons on the property list.**
+The right-hand panel for `[Demo] [OFT] Airline` shows `Properties (12)` with
+`Carrier Name` carrying a **bookmark** icon and `IATA` carrying a **key** icon.
+Our `object_types` still has no primary key at all; this is what it looks like
+once it does.
+
+The same panel carries `481 objects`, `7 dependents`, `Ontology: Clear Process
+Solutions Ontology`, `API name: DemoOftAirline` with a copy button, and **Linked
+object types (2)** listing `[Demo] [OFT] Route` and `[Demo] [OFT] Aircraft`.
+
+**2. Data Lineage is a real application, and it is the thing two features block
+on.** The graph colours nodes by kind with a counted legend — `Uploaded Dataset
+(5)`, `Pipeline Builder Dataset (11)`, `Object type (1)` — so **object types are
+nodes in the same graph as datasets**, and the edges run
+`airlines.dat → raw/airlines → clean/airlines → openflights…`. Bottom tabs:
+`Preview`, `SQL scratchpad`, `History`, `Code`, `Build timeline`, `Data health`.
+
+`data-lineage/` is 20 pages and includes **`see-impact-marking-changes`**, which
+is precisely the data-marking propagation question left open in `markings.md`.
+
 ## Open questions
 
 1. **Precedence between the workspace banner and the static/CBAC banner.** Stated
@@ -223,4 +303,17 @@ carry its own chrome preference.
 
 ## Decisions
 
-None yet — this reading exists to settle the build shape before writing any of it.
+2026-08-06, with the operator.
+
+1. **No global top bar.** Each application owns its own; the sidebar is the only
+   universal chrome. This is our existing "pages own headers" rule, confirmed
+   rather than overturned.
+2. **The banner is the one global strip**, above everything including the
+   sidebar, because it is a security indicator rather than navigation. One
+   component with a precedence chain, so CBAC can be added later as a producer.
+3. **Object Explorer's tab bar is not built.** It is that application's chrome
+   and appears in no mirrored page; building it from a screenshot would be
+   inventing tab persistence, open-vs-replace semantics, and the relationship to
+   Explorations and Lists.
+
+Nothing written yet.
