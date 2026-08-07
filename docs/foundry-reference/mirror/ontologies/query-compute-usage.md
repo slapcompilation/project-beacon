@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/query-compute-usage/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/query-compute-usage/ · mirrored 2026-08-07 from Palantir Foundry docs -->
 
 # Compute usage with Ontology queries
 

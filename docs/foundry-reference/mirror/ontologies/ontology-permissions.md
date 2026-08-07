@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/ontology-permissions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/ontology-permissions/ · mirrored 2026-08-07 from Palantir Foundry docs -->
 
 # Ontology permissions
 
@@ -20,7 +20,7 @@ Migrating to projects does not change who has access to the backing datasource. 
 
 Consider an object type called `Building` saved as a file in project `A`. Your ability to view, edit, or manage `Building` depends on your role in project `A`. If you are an `Editor` in project `A`, you can edit the `Building` object type. To view specific `Building` objects (like `Empire State Building`), you need the `Viewer` role on the object type and either access to the backing datasource or access granted through [object and property security policies](/docs/foundry/object-permissioning/managing-object-security/#object-and-property-security-policies), depending on how the object type's security is configured.
 
-![Ontology resources in a project.](/docs/resources/foundry/object-permissioning/ontology-in-project.png)
+![Ontology resources in a project.](./images/ontology-in-project.png)
 
 If you only have viewing rights for the object type, you can only see information such as schema and contact information, not the actual data. If you need help understanding the permissions required, review the Compass project side panel.
 
@@ -71,7 +71,7 @@ File classifications are not ontology-specific — they apply to all files. The 
 * **At install time:** each installed file takes the classification of the target project. If the target project's classification is lower than the classification of the Marketplace store, the installing user must hold declassify permissions on those markings.
 * **On upgrade:** file classifications are not changed. The classifications set at install time can be edited manually, and those manual edits persist through later upgrades.
 
-![Marketplace prompts for declassify permissions when the source and target project carry different classification markings.](/docs/resources/foundry/object-permissioning/ontology-in-projects-marketplace-file-classifications.png)
+![Marketplace prompts for declassify permissions when the source and target project carry different classification markings.](./images/ontology-in-projects-marketplace-file-classifications.png)
 
 ## Previous permission models
 

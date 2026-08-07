@@ -6,7 +6,7 @@
 
 The most basic units in the platform are [**resources**](/docs/foundry/getting-started/projects-and-resources/), which are analogous to a *file* in a traditional filesystem. You can store resources in [**projects**](/docs/foundry/getting-started/projects-and-resources/), which are collaborative spaces that organize people, resources, and folders for a particular purpose. The **Files** page allows you to browse, share, secure, and organize your resources and projects in one place.
 
-![Compass landing page with quick filters and file list.](/docs/resources/foundry/compass/compass-files-landing-page.png)
+![Compass landing page with quick filters and file list.](./images/compass-files-landing-page.png)
 
 To find your resources, select **Files** in the workspace navigation sidebar. At the top of the page, you can use tabs to navigate between [**Portfolios**](/docs/foundry/security/portfolios/), [**Projects**](/docs/foundry/getting-started/projects-and-resources/), **Your files** (visible only to you), and [**Shared with you**](/docs/foundry/compass/move-and-share-resources/).
 
@@ -16,7 +16,7 @@ You can further refine the file list using the **Filters** panel in the left sid
 
 When you open a project dashboard, you can view the following areas: **Files**, **Autosaved**, **References** (file and external), **Trash**, and **Sensitive Data Scanner**.
 
-![Project dashboard showing the Files, Autosaved, References, and Trash areas.](/docs/resources/foundry/compass/project-dashboard.png)
+![Project dashboard showing the Files, Autosaved, References, and Trash areas.](./images/project-dashboard.png)
 
 * **Files:** A collection of all resources within a project. Pinned resources appear at the top for quick access.
 * **Autosaved:** Resources created within the project that were automatically saved without a designated location.

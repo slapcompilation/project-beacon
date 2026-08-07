@@ -175,5 +175,15 @@ is worth most just before the thing it describes gets built. Nothing here is
   and an object type is live only when its **index** finishes. Carries the S1–S7
   implementation map.
 
-Eighteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `compass-branching-and-views.md` — Compass is the filesystem (**Space → Project
+  → Folder → Resource**, and the UI calls a Space a *Namespace*); Global Branching
+  **replaces** the edit-session/version pair I had invented — branch from `main`,
+  rebase per resource, and a proposal where **each resource is a task with its own
+  approval**; Object Views are standard (derived) or configured (Workshop), in Full
+  and Panel form factors. Carries the complete Ontology Manager resource list,
+  which is **bigger than we knew**: Groups, Value types and Functions are ontology
+  resources too. **Capabilities remains unanswered** — the suggested page is a
+  generative-AI stub.
+
+Nineteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
