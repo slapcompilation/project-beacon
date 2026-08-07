@@ -167,5 +167,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   **deleted `check:rpcs`** — a wrong name is now a compile error. Object types
   wait for one to exist.
 
-Seventeen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `deep-dive-ontology.md` — the learn.palantir.com course read to the word with
+  every screenshot parsed field by field. **The Ontology is a resource you select
+  between** and we have no table for it; an object type BELONGS to one. Also: a
+  link type has **two separately-named ends**, an action's declared property set
+  IS the edit permission, saving is a **session** with errors-block/warnings-don't,
+  and an object type is live only when its **index** finishes. Carries the S1–S7
+  implementation map.
+
+Eighteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
