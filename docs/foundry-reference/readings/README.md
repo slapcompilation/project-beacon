@@ -194,5 +194,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   primitive living in a project. Plus the object type Overview's seven sections,
   of which **Dependents** is the resource index we have no equivalent of.
 
-Twenty readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `materializations-links-media-and-rids.md` — a **materialization** writes the
+  ontology back out as a dataset (schema from **property API names**, gated on
+  edits, not creatable on a branch); link-type **status gates deletion and API
+  name changes** and the key-mapping rules are real constraints; **interfaces
+  constrain LINKS too**, not only properties; cleanup has six **computable
+  flags**; and the RID spec from `palantir/resource-identifier` — which found a
+  latent defect in our own `rid_locator()`, since **dots are legal in a locator**.
+
+Twenty-one readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

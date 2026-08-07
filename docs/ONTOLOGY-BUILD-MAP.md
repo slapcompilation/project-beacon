@@ -1,6 +1,6 @@
 # The ontology build map
 
-What to build, in order, from four readings. **Everything here is quoted or
+What to build, in order, from five readings. **Everything here is quoted or
 read off a screenshot.** Anything I could not attest is in the open questions at
 the end, not in the map.
 
@@ -8,6 +8,7 @@ Readings this consolidates:
 - `foundry-reference/readings/deep-dive-ontology.md`
 - `foundry-reference/readings/compass-branching-and-views.md`
 - `foundry-reference/readings/capabilities-value-types-and-groups.md`
+- `foundry-reference/readings/materializations-links-media-and-rids.md`
 - `foundry-reference/readings/create-object-type.md`, `properties-and-keys.md`,
   `spaces-and-the-resource-path.md`, `rid-grammar.md`
 
@@ -33,7 +34,16 @@ datasets.
 
 `ontologies(id, space_id UNIQUE, organization_id, api_name, label, description,
 rid)`, then `ontology_id` on `object_types`, `link_types`, `shared_properties`,
-`ontology_interfaces`.
+`ontology_interfaces`. The RID form is attested:
+**`ri.ontology.main.ontology.<id>`** (`ontology-sdk/add-osdk-to-bootstrapped-repository`).
+
+**Ships with a correction.** The RID spec
+(`github.com/palantir/resource-identifier`) gives the locator as
+`[a-zA-Z0-9\-\._]+` — **dots are legal in a locator**. `rid_locator()`
+(migration 391) is `split_part(p_rid, '.', 5)`, which truncates such a locator to
+its first segment. Every locator we generate is a uuid so nothing is broken
+today, but the function is wrong against the grammar it claims to implement: it
+must take everything after the fourth separator.
 
 **API-name uniqueness moves from per-org to per-ontology.** That is what the
 course's `[OFT]` prefix works around: *"the object types include an OFT prefix to
@@ -83,6 +93,19 @@ suffix is **derived from cardinality, never stored**. Replaces the single
 
 Join method is one of two: **Foreign key** or **Dataset**.
 
+**Status is a gate, and both rules are enforceable** (`edit-link-types`): "link
+types with an `active` status **cannot be deleted**", and "you **cannot change
+the API name** for link types with an `active` status".
+
+**The key-mapping rules are constraints, not advice.** Many-to-many: "the columns
+in the backing datasource **must map to the primary keys** of the object types",
+and a type mismatch "**will prevent you from saving**". Any other cardinality:
+"the key of one of the object types must map to the **Primary key** of that
+object type, **ensuring that the 'one' side of the Cardinality is unique**".
+
+Visibility has stated behaviour: `prominent` "will prompt applications to **show
+this link type first**"; `hidden` "will **not appear** in user applications".
+
 ### B3 · Type groups
 
 > "Object type groups are a **classification primitive** that help users better
@@ -119,6 +142,42 @@ Attested slots:
 **The set of capabilities is open** (see Q1) — so the table stores the capability
 as a value and validates the *slot's type constraint*, rather than hardcoding a
 column per capability.
+
+`map/events` confirms the event slots from the other side — "Configured in
+Ontology Manager, event objects contain **start and end timestamp properties**" —
+and draws the boundary: an **event object** is configured on the object type,
+a **timeline geometry** per-map in the Layers panel. The ontology owns the first.
+
+The media slot names a **media set**, which has "a **schema type**… such as
+documents, images, or audio" and "a **primary format**… that all files in the
+media set must be". Two constraints from `media-in-ontology`: media uploaded in
+an action form is "only uploaded… **upon successful form submission**", and
+"**Media reference lists are not supported** as a property type on an object".
+
+### B5 · Interface link type constraints
+
+> "An **interface link type constraint** defines an object-to-object relationship
+> **common across all object types implementing an interface**… concrete link
+> types on the object type are used to **fulfill** interface link type
+> constraints."
+
+Four parameters: **link target type** (an interface *or* an object type),
+**target**, **cardinality** (`ONE` | `MANY`), and whether the link is
+**required** for implementation.
+
+Our interfaces constrain only properties. This is the other half, and it is why
+`ontology_interfaces.properties jsonb` needs the same treatment O2 gave object
+types — a constraint table, with links beside properties.
+
+### B6 · Type classes
+
+> "Apply **type classes** as **additional metadata that can be interpreted by
+> applications**."
+
+The open extension point. It appears on object types and link types, and it is
+where un-migratable legacy group names went. One small table
+`type_classes(resource_kind, resource_id, key, value)`, because three separate
+pages now depend on it existing.
 
 ---
 
@@ -225,7 +284,29 @@ And **indexing is a modification**: it belongs inside a branch (Phase D), shows
 as `Indexed 5 days ago` on a proposal task, and needs approval to merge when the
 resource is protected.
 
-### E3 · Value types
+### E3 · Materializations
+
+> "materializations of indexed data from the Ontology that contains the **latest
+> state of each object by combining data from both input datasources and user
+> edits**."
+
+The loop closes: dataset → object type → **materialized dataset**. Gated on
+`edits_enabled` — "Navigate to the **Materializations** tab by **toggling the
+Edits configuration**", which is why that rail entry was greyed out in the deep
+dive screenshot.
+
+- **Multiple** materializations per object type, each able to cover **a subset of
+  the properties**.
+- Propagation is **automatic** ("latency of a few minutes") or **periodic**
+  ("whenever the input datasources have new data or **every 6 hours**").
+- **The schema comes from the ontology**: "the **API Name** metadata of each
+  property is used as the schema of the materialized dataset."
+- Retention is fixed: "**only the latest snapshot is guaranteed**".
+- Reserved metadata columns are `__`-prefixed (`__is_deleted`, `__patch_offset`).
+- **Not creatable or editable on a branch**, though branch changes do write
+  through.
+
+### E4 · Value types
 
 > "**semantic wrappers around a field type** that include metadata and
 > constraints."
@@ -245,7 +326,33 @@ Array→size) · **Regex**, **RID**, **UUID** (String) · **Uniqueness**, **Nest
 
 ---
 
-## Phase F — dependents
+## Phase F — semantic search, cleanup, dependents
+
+### F1 · Semantic search
+
+> "AI models transform the text into vectors… called '**embeddings**'… Finding
+> related entities… is simply **finding the nearest vectors** in N-dimensional
+> space."
+
+A `vector` property (already one of our 22 base types) plus nearest-neighbour.
+**pgvector is already installed.** Two documented paths — a Palantir-provided
+model or a custom one.
+
+### F2 · Cleanup
+
+Three verbs — **Snooze** (per-user), **Deprecate** (with a deadline, "shown as
+deprecated in every context that displays object type status"), **Delete**
+("remove associated data from object storage") — and six **computable flags**:
+past deprecation date · trashed datasource · datasource not updated in *[x]*
+days · description missing · display name matches a regex (default
+`[test|deprecated]`) · deindexed. Flags are per-user configurable with a priority
+order, and "deprecation and deletion are **staged the same way as normal Ontology
+modifications**".
+
+Every one of those flags is a query we can already write. This is
+`ontology_violations()` grown a second severity: *not wrong, but probably dead*.
+
+### F3 · Dependents
 
 > Section 5 of the object type Overview: dependent **kinds** with counts —
 > Workshop 9, Function 2, Graph Template 1, Quiver Dashboard 1, Use cases 1,
@@ -284,62 +391,79 @@ everything.
 
 ---
 
+## Also in scope
+
+These were "deferred" in the first map. They are not — they are just later, and
+each has a stated dependency that puts it there.
+
+**G1 · Object Views.** Standard views "**automatically reflect an object type's
+configuration**… available for all object types **without any configuration**",
+and "remain accessible **even after** a configured Object View is built". Two
+form factors, **Full** and **Panel** ("intended for integration with other
+applications"). We already generate ours from a registry — that is the standard
+half. The configured half is a Workshop artefact and lands once there is
+Workshop-equivalent authoring.
+
+**G2 · Functions.** An ontology resource (8,944 in one screenshot), in the
+sidebar, and an action's alternative to rules — "you can instead back your action
+**with a function**". But "Modifications to the function can only be made within
+the **Functions Code Repository**", which we have no counterpart for.
+**`@beacon/platform` is the nearest thing we have** — 44 functions already
+exposed as typed values. The gap is *authoring*, not calling, so this waits on a
+decision about where function code lives.
+
+**G3 · Compass, the rest of it.** `folders` is A2 because the path needs it. The
+others are independent and each is small: **Portfolios** ("groupings of projects…
+into a use case or area of interest"), **Tags** (namespace-qualified —
+`[Governance] Example Category: Example Tag`), **Trash** ("available for recovery
+or permanent deletion"), **References** (file and external — "resources that
+**flow into** the project"), **Pinned**, **Promoted items**. F2 already depends
+on one: its "**Trashed datasource**" flag is a Compass query.
+
+---
+
 # Open questions
 
-## Blocking — I would ask before building the phase
+## Blocking — I would ask before building that phase
 
-**Q1 · The full set of capabilities.** The Capabilities tab has **no page of its
-own**; Geospatial, Event and media source are assembled from five consumers
-(`map/integrate-objects`, `map/integrate-searcharounds`, `map/selection`,
-`map/events`, `object-link-types/base-types`). If a canonical list exists I have
-not found it. *Blocks B4's vocabulary, not its shape.*
+**Q1 · The canonical set of Capabilities sections.** Still open after reading
+`map/events`, `functions/media`, `media-overview` and `media-in-ontology`. The
+tab has **no page of its own**; Geospatial, Event and media source are assembled
+from five consumers, all of them Map or media. *Blocks B4's vocabulary, not its
+shape — the table stores the capability as a value, so a missing one is a row,
+not a migration.*
 
-**Q2 · Action parameters and submission criteria in detail.** I have the concept
-— a common input form, renameable fields, default values, hidden fields, choices
-"entered manually or **derived from a dataset**", and "who can invoke the action
-at all" — but not the field-level definition. `action-types/submission-criteria`
-and the parameter pages are mirrored and unread. *Blocks C's detail.*
+**Q2 · How a branch stores a working change.** A copy of each changed resource,
+or a delta? Foundry shows `189 edits` and a per-resource diff either way. Both
+work; the choice is structural and hard to reverse. *Blocks D1.*
 
-**Q3 · How a branch stores a working change.** Foundry shows `189 edits` and a
-per-resource diff, but no page read says whether a branch holds a copy of each
-changed resource or a delta. Either works; the choice is structural and hard to
-reverse. *Blocks D1.*
+**Q3 · RID forms for five resource kinds.** Attested: ontology
+(`ri.ontology.main.ontology.<id>`), object type, type group, folder, dataset,
+transaction, media set/item/view, object set, source, scenario. **Unattested:
+link type, shared property, action type, interface, value type.** The RID *spec*
+is now known exactly, so the risk is only in the `<type>` segment's spelling.
+*Blocks nothing outright — but a RID that has to be renamed later is a stored
+generated column across every row.*
 
-## Non-blocking — would improve the work but a sensible default exists
+## Non-blocking — a sensible default exists
 
-**Q4 · RID forms not yet attested.** Object type (`ri.ontology.main.object-type.…`)
-and type group (`ri.ontology.main.type-group.…`) are confirmed from screenshots.
-**Ontology itself, value type, link type, shared property, action type** are not.
+**Q4 · Object type `ID` vs `API name`.** Both exist and differ
+(`generated-6a437f16-8843-4b82-8…` vs `Generated59a386a3ddbf…`). No page read
+states the relationship, or which one a link resolves against.
 
-**Q5 · Object type `ID` vs `API name`.** Both exist and differ
-(`generated-6a437f16-8843-4b82-8…` vs `Generated59a386a3ddbf…`). The ID looks
-generated and stable; the API name looks derived from the label. No page states
-the relationship or which one links resolve against.
+**Q5 · Ontology configuration** — the bottom-left settings entry.
+`type-groups` references it for legacy group migration; nothing describes it in
+full.
 
-**Q6 · "Semantic search 🧪"** — a sidebar entry in one Ontology Manager version,
-flask-marked, explained nowhere read.
+**Q6 · Where function code lives** — G2's dependency, and a product decision
+rather than a documentation gap.
 
-**Q7 · Ontology configuration** — the bottom-left settings entry. `type-groups`
-references it for legacy migration; nothing describes it in full.
+## Closed by this round
 
-**Q8 · Health issues / Cleanup** — two permanent sidebar entries. Health issues
-is now clearly related to index-time validation failure (E3), but
-`ontology-manager/cleanup.md` is mirrored and unread.
-
-**Q9 · Materializations** — a rail entry in the deep dive, greyed out for that
-object type. Unread.
-
-**Q10 · Interfaces and shared properties as branch-protectable resources.** Both
-are in the protected-five, so both need whatever D1 gives object types. Our
-interfaces still carry `properties jsonb`, which O2 removed from object types —
-the same fix is owed there.
-
-## Deliberately deferred, not open
-
-- **Functions** (8,944 in one screenshot) are an ontology resource, but
-  "Modifications to the function can only be made within the **Functions Code
-  Repository**" — a separate system we have no counterpart for.
-- **Object Views** are Workshop-built; standard views are derived and we already
-  generate ours from a registry.
-- **Portfolios, tags, Trash, References, Pinned, promoted status** are Compass
-  features orthogonal to the ontology. Only **folders** (A2) is on the path.
+- ~~Capabilities is undocumented~~ → it is, through five consumers (B4).
+- ~~Materializations~~ → E3, fully specified.
+- ~~Semantic search~~ → F1; a `vector` property and nearest-neighbour.
+- ~~Health issues / Cleanup~~ → F2, six computable flags.
+- ~~Value type constraints~~ → E4, the full vocabulary by base type.
+- ~~The Ontology's own RID~~ → `ri.ontology.main.ontology.<id>`.
+- ~~Interfaces owe the O2 treatment~~ → B5, and they constrain **links** too.
