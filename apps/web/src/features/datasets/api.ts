@@ -17,6 +17,8 @@ import type {
   TransactionStatus, TransactionType,
 } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
+import { datasetMarkings, datasetView } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 
 export interface Dataset {
   id: string
@@ -69,10 +71,8 @@ export function useDatasetMarkings(datasetId: string | null) {
     queryKey: ['dataset-markings', datasetId ?? ''],
     enabled: datasetId !== null,
     queryFn: async (): Promise<ResourceMarking[]> => {
-      const res: { data: unknown; error: { message: string } | null } =
-        await supabase.rpc('dataset_markings', { p_dataset: datasetId })
-      if (res.error) throw new Error(res.error.message)
-      return (res.data as {
+      const rows = await client(datasetMarkings).executeFunction({ p_dataset: datasetId as string })
+      return (rows as unknown as {
         marking_id: string; name: string; color: string; category: string
         kind: MarkingKind; origin: MarkingOrigin; satisfied: boolean
       }[]).map((r) => ({
@@ -173,13 +173,9 @@ export function useView(branchId: string | null) {
     queryKey: keys.view(branchId ?? ''),
     enabled: branchId !== null,
     queryFn: async (): Promise<ViewFile[]> => {
-      // The RPC has no generated type — its shape is the RETURNS TABLE of
-      // dataset_view, which check:rpcs proves exists.
-      const res: { data: unknown; error: { message: string } | null } =
-        await supabase.rpc('dataset_view', { p_branch: branchId })
-      if (res.error) throw new Error(res.error.message)
-      return (res.data as { file_id: string; logical_path: string; row_count: number }[])
-        .map((r) => ({ fileId: r.file_id, logicalPath: r.logical_path, rowCount: r.row_count }))
+      // The row shape is the RETURNS TABLE of dataset_view, generated from it.
+      const rows = await client(datasetView).executeFunction({ p_branch: branchId as string })
+      return rows.map((r) => ({ fileId: r.file_id, logicalPath: r.logical_path, rowCount: r.row_count }))
     },
   })
 }

@@ -100,10 +100,13 @@ This is the fork I would have got wrong by guessing.
 and the Ontology Manager surface. That is path 2 exactly: the platform holds the
 entities, code is *generated from* them, and the generation input is committed.
 
-**And we already do a thin version of it.** `gen:ontology` reads `object_types` and
-writes `ontology.generated.ts`; `gen:ontology:check` fails CI when it is stale. The
-committed generated file *is* the lock file. The machinery is right; it is simply
-under-built — it emits interfaces and nothing else.
+**And we already do a thin version of it.** `gen:ontology` read `object_types` and
+wrote `ontology.generated.ts`; `gen:ontology:check` failed CI when it was stale.
+The committed generated file *is* the lock file.
+
+*(Superseded 2026-08-07: that generator was broken — it queried the `properties`
+column dropped in 408 — and its output was empty. Replaced by `gen:client`; see
+[the-generated-client.md](the-generated-client.md).)*
 
 ### And the SDK regenerates on change
 
@@ -161,7 +164,7 @@ properties are a jsonb blob.
 The question "should we generate?" turns out not to compete with the object-layer
 work at all; it is what the object-layer work is *for*.
 
-So: **O2 → O3, then extend `gen:ontology` from interfaces into a client.** No fork
+So: **O2 → O3, then extend the generator from interfaces into a client.** No fork
 to take, and nothing to empty.
 
 ## A correction the operator caught

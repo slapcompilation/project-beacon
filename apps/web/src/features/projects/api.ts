@@ -12,6 +12,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { ProjectRole } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
+import { projectRole } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 
 export interface Project {
   id: string
@@ -126,10 +128,8 @@ export function useMyProjectRole(projectId: string | null) {
     queryKey: keys.myRole(projectId ?? ''),
     enabled: !!projectId,
     queryFn: async (): Promise<ProjectRole | null> => {
-      const res = await supabase.rpc('project_role', { p_project: projectId }) as unknown as
-        { data: ProjectRole | null; error: { message: string } | null }
-      if (res.error) throw new Error(res.error.message)
-      return res.data
+      const role = await client(projectRole).executeFunction({ p_project: projectId as string })
+      return role as ProjectRole | null
     },
     staleTime: 30_000,
   })

@@ -141,7 +141,7 @@ is worth most just before the thing it describes gets built. Nothing here is
 - `osdk-and-ontology-as-code.md` — application code **never names storage**:
   `client(Restaurant).where({…})`, object type as a generated value. Foundry
   supports the ontology living in **code** *or* in the **platform with the types
-  imported** — ours is the second, which `gen:ontology` already does thinly.
+  imported** — ours is the second, which `gen:client` now does for real.
   `Marking` is unsupported in the TypeScript SDK, so markings stay server-side.
   **O2/O3 are the generated client's input, not its alternative.**
 - `ontology-linting.md` — where a rule about the ontology belongs, in strict
@@ -160,5 +160,12 @@ is worth most just before the thing it describes gets built. Nothing here is
   audit, a turbo-cached skip, a role reset that leaked privilege, and an audit
   that never proved it could report.
 
-Sixteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `the-generated-client.md` — the OSDK page in full plus three images. The SDK's
+  three sections (object types / action types / functions) and the fact that its
+  contents are **curated and saved**, not projected. Built the functions+actions
+  half: 47 typed entities derived from EXECUTE-granted-to-`authenticated`, which
+  **deleted `check:rpcs`** — a wrong name is now a compile error. Object types
+  wait for one to exist.
+
+Seventeen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

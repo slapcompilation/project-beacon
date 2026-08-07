@@ -32,13 +32,6 @@ jobs:
 
       - run: pnpm turbo lint type-check test
 
-      # An RPC name is a STRING handed to
-      # PostgREST, so a function that does not exist type-checks perfectly and
-      # fails at runtime. Four were missing when this was written — occupancy
-      # ingestion had never worked.
-      - name: Every called RPC exists
-        run: pnpm check:rpcs
-
       # Five guards policed the database and none looked at apps/web. A cleanup
       # deleted ReportsPage and left its eleven sections behind, plus FinancePage
       # whose route had become a redirect — 2,503 lines surviving the very sweep

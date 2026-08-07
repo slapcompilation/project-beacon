@@ -7,14 +7,13 @@
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
-    "check:rpcs": "node scripts/check-rpcs.mjs",
     "check:surfaces": "node scripts/check-surfaces.mjs",
     "db": "node scripts/db.mjs",
     "db:status": "node scripts/db.mjs --status",
     "db:migrate": "node scripts/db.mjs --migrate",
     "db:baseline": "node scripts/db.mjs --baseline",
-    "gen:ontology": "node scripts/generate-ontology-types.mjs",
-    "gen:ontology:check": "node scripts/generate-ontology-types.mjs --check"
+    "gen:client": "node scripts/generate-client.mjs",
+    "gen:client:check": "node scripts/generate-client.mjs --check"
   },
   "devDependencies": {
     "pg": "^8.22.0",

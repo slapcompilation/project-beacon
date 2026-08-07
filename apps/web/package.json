@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@beacon/ontology": "workspace:*",
+    "@beacon/platform": "workspace:*",
     "@beacon/services": "workspace:*",
     "@blueprintjs/core": "^6.12.1",
     "@blueprintjs/icons": "^6.9.1",

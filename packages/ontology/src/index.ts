@@ -142,7 +142,6 @@ export type { SharedPropertyDef, ResolvedProperty } from './objectTypes/sharedPr
 export { grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES } from './projects/roles'
 
 // Generated from object_types — one interface per registered type.
-export type { OntologyTypes, OntologyTypeName } from './ontology.generated'
 
 // The Dataset Layer. The view algorithm and the commit rules are in SQL
 // (migrations 392–394) because a trigger is the only place a rule cannot be

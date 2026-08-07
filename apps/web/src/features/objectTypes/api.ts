@@ -3,6 +3,8 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
+import { saveObjectType as saveObjectTypeAction, objectTypeProblems, type Json } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, OntologyVisibility, Deprecation,
@@ -115,13 +117,10 @@ export async function saveObjectType(
   i: { id?: string; apiName?: string; label: string; icon: string; description: string
        properties: PropertyDef[] },
 ): Promise<string> {
-  const res: { data: unknown; error: { message: string } | null } =
-    await supabase.rpc('save_object_type', {
-      p_object_type: { id: i.id ?? null, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description },
-      p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)),
-    })
-  if (res.error) throw new Error(res.error.message)
-  return res.data as string
+  return client(saveObjectTypeAction).applyAction({
+    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description },
+    p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
+  })
 }
 
 export async function deleteObjectType(id: string): Promise<void> {
@@ -173,10 +172,8 @@ export async function updateObjectType(i: UpdateObjectTypeInput): Promise<string
 export interface ObjectTypeProblem { scope: 'object_type' | 'property'; subject: string; problem: string }
 
 export async function fetchObjectTypeProblems(id: string): Promise<ObjectTypeProblem[]> {
-  const res: { data: unknown; error: { message: string } | null } =
-    await supabase.rpc('object_type_problems', { p_object_type: id })
-  if (res.error) throw new Error(res.error.message)
-  return res.data as ObjectTypeProblem[]
+  const rows = await client(objectTypeProblems).executeFunction({ p_object_type: id })
+  return rows as ObjectTypeProblem[]
 }
 
 export interface LinkTypeRow {

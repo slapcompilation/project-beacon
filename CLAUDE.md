@@ -133,18 +133,25 @@ pnpm install
 pnpm dev                         # all apps
 pnpm --filter @beacon/web dev
 pnpm turbo lint type-check test  # what CI runs
-pnpm check:rpcs                  # every RPC the app calls exists
 pnpm check:surfaces              # every web file is reachable from main.tsx
 pnpm check:platform              # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
-pnpm gen:ontology                # regenerate types from object_types
+pnpm gen:client                  # regenerate the typed client from the platform
 ```
 
 ### The guards, and what is gone
 
-`check:rpcs` and `check:surfaces` remain. Both ask about **real reachability**
-and answer by walking something — the RPC names the app calls, the import graph
-from `main.tsx`.
+`check:surfaces` remains. It asks about **real reachability** and answers by
+walking the import graph from `main.tsx`.
+
+**`check:rpcs` is deleted, and how matters.** It regexed `.rpc('name')` out of
+source and looked the name up in `pg_proc` — a reference check done by string
+matching, because the boundary was untyped. The fix was to remove the boundary:
+`pnpm gen:client` generates a typed value per platform entity, so
+`client(datasetView).executeFunction({…})` fails to *compile* when the name is
+wrong, with a "Did you mean" suggestion. **A guard whose job the compiler can do
+should be deleted, not maintained.** `check:surfaces` is the same category and
+goes the same way once object surfaces are generated.
 
 `check:platform` (was `check:datasets`) is the third, and it is a different kind:
 it **runs the algorithm and compares against the answer the documentation
