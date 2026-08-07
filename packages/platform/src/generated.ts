@@ -33,16 +33,15 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
- *  One save for an object type and its properties, because create-object-type
- *  states the completeness contract as one list over both. Invoker rights:
- *  the RLS policies decide.
+ *  One save for an object type and its properties, into a named ontology.
+ *  Invoker rights: the RLS policies decide.
  */
 export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json },
   string
 >
 
-// ── FUNCTIONS (44) ───────────────────────────────────────────────────
+// ── FUNCTIONS (45) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
@@ -201,6 +200,16 @@ export const datasetViewTransactionsFrom = { apiName: 'dataset_view_transactions
 >
 
 /**
+ *  The caller organization's ontology when it has exactly one. Raises rather
+ *  than guessing when there are none or several — the Ontology Manager picker
+ *  is a choice, and a silent wrong guess writes to the wrong ontology.
+ */
+export const defaultOntology = { apiName: 'default_ontology', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string
+>
+
+/**
  *  The file markings of every transitive input, arriving here as data
  *  markings. A union over inputs: one marked input marks everything
  *  downstream.
@@ -257,7 +266,7 @@ export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'func
 
 /**
  *  Every well-formedness violation in the ontology, as rows. The linting half
- *  of what check:datasets was doing by assertion — see
+ *  of what check:platform was doing by assertion — see
  *  superrepo/core-concepts "Ontology linting".
  */
 export const ontologyViolations = { apiName: 'ontology_violations', kind: 'function' } as FunctionType<
@@ -331,7 +340,9 @@ export const resourceLocation = { apiName: 'resource_location', kind: 'function'
 >
 
 /**
- *  The <locator> segment of a RID, as a uuid. NULL when the RID is malformed.
+ *  The <locator> of a RID: everything after the fourth separator, because the
+ *  locator may itself contain dots (palantir/resource-identifier). NULL when
+ *  malformed or not a uuid.
  */
 export const ridLocator = { apiName: 'rid_locator', kind: 'function' } as FunctionType<
   { p_rid: string },

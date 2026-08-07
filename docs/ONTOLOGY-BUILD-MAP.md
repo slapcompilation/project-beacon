@@ -28,7 +28,7 @@ datasets.
 
 ## Phase A — the container
 
-### A1 · `ontologies`, one per space
+### A1 · `ontologies`, one per space — **BUILT** (migrations 412–414)
 
 > "value types are associated with a **space** in the platform. **A space can
 > hold a single ontology.**" — `value-types-overview`
@@ -38,7 +38,13 @@ rid)`, then `ontology_id` on `object_types`, `link_types`, `shared_properties`,
 `ontology_interfaces`. The RID form is attested:
 **`ri.ontology.main.ontology.<id>`** (`ontology-sdk/add-osdk-to-bootstrapped-repository`).
 
-**Ships with a correction.** The RID spec
+**Built 2026-08-07** as 412 (the table, `ontology_id` on the four resource
+tables via a composite FK, API names per-ontology, the `rid_locator` fix), 413
+(`default_ontology()` and every write path naming its ontology) and 414 (an
+ontology must live in a space its organization actually serves — a hole the
+end-to-end verification found).
+
+**Shipped with a correction.** The RID spec
 (`github.com/palantir/resource-identifier`) gives the locator as
 `[a-zA-Z0-9\-\._]+` — **dots are legal in a locator**. `rid_locator()`
 (migration 391) is `split_part(p_rid, '.', 5)`, which truncates such a locator to
