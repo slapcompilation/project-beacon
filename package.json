@@ -9,7 +9,6 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "check:rpcs": "node scripts/check-rpcs.mjs",
     "check:surfaces": "node scripts/check-surfaces.mjs",
-    "check:platform": "node scripts/check-platform.mjs",
     "db": "node scripts/db.mjs",
     "db:status": "node scripts/db.mjs --status",
     "db:migrate": "node scripts/db.mjs --migrate",

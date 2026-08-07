@@ -22,13 +22,13 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/**'
-      - 'scripts/check-platform.mjs'
+      - 'packages/platform/**'
       - '.github/workflows/db-migrate.yml'
   push:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
-      - 'scripts/check-platform.mjs'
+      - 'packages/platform/**'
       - '.github/workflows/db-migrate.yml'
   workflow_dispatch:
 
@@ -78,8 +78,8 @@ jobs:
       # compares against the answer the page states, inside a transaction it
       # rolls back. After applying, not on PRs: a PR that adds a migration and a
       # check for it would otherwise fail against the un-migrated schema.
-      - name: Dataset view algorithm matches the documented example
+      # The engine tests build a fixture and roll back; the audits read the
+      # database as it is. Both skip cleanly without the secret.
+      - name: Platform tests and audits
         if: github.event_name != 'pull_request'
-        run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
-          pnpm check:platform
+        run: pnpm --filter @beacon/platform test

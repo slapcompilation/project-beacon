@@ -1,0 +1,21 @@
+{
+  "name": "@beacon/platform",
+  "version": "0.0.1",
+  "private": true,
+  "description": "What the database platform guarantees, checked against the answers Palantir publishes",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "echo 'platform package — no lint needed'",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.7"
+  }
+}

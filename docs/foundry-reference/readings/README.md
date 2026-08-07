@@ -152,5 +152,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   applied migrations are immutable and run once — and the `dataset_current_schema`
   tie-break bug the first lint assertion found.
 
-Fifteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `tests-audits-and-checks.md` — three mechanisms were all called "checks": a
+  **test** builds a fixture and proves the code, an **audit** builds nothing and
+  reads the system you have, a **reference check** is a type error found late.
+  `check:datasets` held all three. Records the split (`@beacon/platform`,
+  `rls_violations()`), and the four traps found doing it — a silently skipped
+  audit, a turbo-cached skip, a role reset that leaked privilege, and an audit
+  that never proved it could report.
+
+Sixteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
