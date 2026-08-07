@@ -7,13 +7,12 @@ import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } 
 
 const batchType: ObjectTypeDef = {
   id: 't1', organizationId: 'o1', 
-  apiName: 'batch', label: 'Batch', icon: 'box', description: '',
-  titleKey: null, viewConfig: EMPTY_VIEW_CONFIG,
+  apiName: 'batch', label: 'Batch', icon: 'box', description: '', viewConfig: EMPTY_VIEW_CONFIG,
   enabled: true, version: 1,
   properties: [
-    { key: 'lot',    label: 'Lot',    type: 'text',   required: true },
-    { key: 'units',  label: 'Units',  type: 'number', required: false },
-    { key: 'expiry', label: 'Expiry', type: 'text',   required: false },
+    { key: 'lot', apiName: 'lot',    label: 'Lot',    type: 'string',   required: true },
+    { key: 'units', apiName: 'units',  label: 'Units',  type: 'integer', required: false },
+    { key: 'expiry', apiName: 'expiry', label: 'Expiry', type: 'string',   required: false },
   ],
   computedProperties: [],
 }
@@ -95,7 +94,7 @@ describe('validateSetDefinition', () => {
   it('rejects a parameter no filter reads', () => {
     const errs = validateSetDefinition({
       ...base,
-      parameters: [{ key: 'cutoff', label: 'Cutoff', type: 'number', required: true }],
+      parameters: [{ key: 'cutoff', label: 'Cutoff', type: 'integer', required: true }],
     }, subject)
     expect(errs[0]).toContain("isn't used by any filter")
   })

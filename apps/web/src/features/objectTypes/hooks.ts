@@ -14,16 +14,18 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { STATUS_META } from '@beacon/ontology'
 import {
-  fetchObjectTypes, createObjectType, deleteObjectType, setObjectTypeStatus, updateObjectType,
+  fetchObjectTypes, saveObjectType, deleteObjectType, setObjectTypeStatus, updateObjectType,
+  fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
-  type CreateObjectTypeInput, type UpdateObjectTypeInput, type CreateLinkTypeInput,
+  type UpdateObjectTypeInput, type CreateLinkTypeInput,
 } from './api'
 
 const keys = {
   types: ['object-types'] as const,
   linkTypes: ['link-types'] as const,
   datasources: (typeId: string) => ['object-type-datasources', typeId] as const,
+  problems: (typeId: string) => ['object-type-problems', typeId] as const,
 }
 
 export function useObjectTypes() {
@@ -41,9 +43,19 @@ export function useOntologyComputed(apiName: string, key: string) {
 export function useCreateObjectType() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: CreateObjectTypeInput) => createObjectType(input),
+    mutationFn: (input: Parameters<typeof saveObjectType>[0]) => saveObjectType(input),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.types }); toast.success('Object type created') },
     onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The `❗4 errors` badge. Asked of the database, because that is where the
+ *  completeness contract lives. */
+export function useObjectTypeProblems(typeId: string | null) {
+  return useQuery({
+    queryKey: keys.problems(typeId ?? ''),
+    queryFn: () => fetchObjectTypeProblems(typeId as string),
+    enabled: !!typeId,
   })
 }
 

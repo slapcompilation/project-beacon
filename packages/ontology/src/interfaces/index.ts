@@ -87,5 +87,9 @@ export function typesConforming(
 /** The interface's own properties as PropertyDefs, so a tool composer can offer
  *  interface-level fields without knowing which implementer it will run on. */
 export function interfaceProperties(iface: InterfaceDef): PropertyDef[] {
-  return iface.properties.map((p) => ({ key: p.key, label: p.label, type: p.type, required: true }))
+  // Synthesised, not stored: an interface property is not a row in
+  // object_type_properties, so the row-only fields are blank.
+  return iface.properties.map((p) => ({
+    key: p.key, label: p.label, apiName: p.key, type: p.type, required: true,
+  }))
 }

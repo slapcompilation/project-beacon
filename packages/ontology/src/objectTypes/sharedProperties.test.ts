@@ -8,15 +8,15 @@ import type { PropertyDef } from './index'
 const cost: SharedPropertyDef = {
   id: 'sp1', organizationId: 'org', apiName: 'cost', label: 'Cost',
   description: 'What it cost us, in the property currency.',
-  baseType: 'number', visibility: 'prominent',
+  baseType: 'integer', visibility: 'prominent',
 }
 const shared = new Map([['cost', cost]])
 
 const attached: PropertyDef = {
-  key: 'unit_cost', label: 'Unit cost', type: 'number', required: true, shared: 'cost',
+  key: 'unit_cost', apiName: 'unit_cost', label: 'Unit cost', type: 'integer', required: true, sharedPropertyId: 'cost',
 }
 const loose: PropertyDef = {
-  key: 'note', label: 'Note', type: 'text', required: false,
+  key: 'note', apiName: 'note', label: 'Note', type: 'string', required: false,
 }
 
 describe('resolveProperty', () => {
@@ -31,7 +31,7 @@ describe('resolveProperty', () => {
     expect(r.label).toBe('Cost')
     expect(r.description).toBe(cost.description)
     expect(r.visibility).toBe('prominent')
-    expect(r.type).toBe('number')
+    expect(r.type).toBe('integer')
   })
 
   it('keeps `required` per object type', () => {
@@ -43,16 +43,16 @@ describe('resolveProperty', () => {
 
   it('leaves an unattached property entirely alone', () => {
     const r = resolveProperty(loose, shared)
-    expect(r).toMatchObject({ key: 'note', label: 'Note', type: 'text', shared: null })
+    expect(r).toMatchObject({ key: 'note', apiName: 'note', label: 'Note', type: 'string', sharedPropertyId: null })
     expect(r.visibility).toBe('normal')
   })
 
   it('falls back to the property when the definition is missing', () => {
     // The database refuses this, but a stale client read should render the
     // property rather than blank fields.
-    const r = resolveProperty({ ...attached, shared: 'gone' }, shared)
+    const r = resolveProperty({ ...attached, sharedPropertyId: 'gone' }, shared)
     expect(r.label).toBe('Unit cost')
-    expect(r.type).toBe('number')
+    expect(r.type).toBe('integer')
   })
 
   it('resolves a whole list', () => {

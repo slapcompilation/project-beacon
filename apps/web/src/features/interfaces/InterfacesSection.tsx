@@ -6,13 +6,13 @@
 import { useState } from 'react'
 import { Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, Tag, Tooltip } from '@blueprintjs/core'
 import {
-  conformanceErrors, toSlug, validateInterfaceDraft,
+  conformanceErrors, toSlug, validateInterfaceDraft, PROPERTY_TYPES,
   type InterfacePropertyDef, type ObjectTypeDef, type PropertyType,
 } from '@beacon/ontology'
 import { useInterfaces, useImplementations, useCreateInterface, useDeleteInterface, useSetImplementation } from './hooks'
 import { rowToInterface } from './api'
 
-const TYPES: PropertyType[] = ['text', 'number', 'boolean', 'date']
+const TYPES: PropertyType[] = PROPERTY_TYPES.map((t) => t.value)
 
 export default function InterfacesSection({ types }: { types: ObjectTypeDef[] }) {
   const interfaces = useInterfaces()
@@ -22,7 +22,7 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
   const setImpl = useSetImplementation()
 
   const [label, setLabel] = useState('')
-  const [props, setProps] = useState<InterfacePropertyDef[]>([{ key: '', label: '', type: 'text' }])
+  const [props, setProps] = useState<InterfacePropertyDef[]>([{ key: '', label: '', type: 'string' }])
 
   const draft = { apiName: toSlug(label), label, properties: props.map((p) => ({ ...p, key: toSlug(p.label) })) }
   const errors = validateInterfaceDraft(draft)
@@ -93,13 +93,13 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
         ))}
         <div className="flex items-center gap-2">
           <Button size="small" variant="minimal" icon="add"
-            onClick={() => { setProps([...props, { key: '', label: '', type: 'text' }]) }}>Add property</Button>
+            onClick={() => { setProps([...props, { key: '', label: '', type: 'string' }]) }}>Add property</Button>
           <Button size="small" intent={Intent.PRIMARY} icon="floppy-disk" loading={create.isPending}
             disabled={errors.length > 0}
             onClick={() => {
               create.mutate(
                 { apiName: toSlug(label), label: label.trim(), description: '', properties: draft.properties },
-                { onSuccess: () => { setLabel(''); setProps([{ key: '', label: '', type: 'text' }]) } },
+                { onSuccess: () => { setLabel(''); setProps([{ key: '', label: '', type: 'string' }]) } },
               )
             }}>
             Create interface

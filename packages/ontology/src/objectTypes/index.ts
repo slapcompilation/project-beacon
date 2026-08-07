@@ -1,37 +1,90 @@
-// Reality Graph — user-authored object types (Studio P2, "Ontology authoring").
-// Foundry's Ontology Manager, as data: an operator defines a new kind of thing
-// (a "Maintenance Request", a "Guest Complaint") with typed properties, then
-// creates records of it — all without a code deploy. The engine reads these
-// user-defined types alongside the code substrate (Variant, Supplier, …).
+// Object types and their properties — Foundry's Ontology Manager, as data.
 //
-// Discipline (mirrors P1 + STUDIO-AUTHORING-PLAN): a bounded typed grammar
-// (property types are a closed set), validated before persistence, versioned,
-// admin/owner-authored, scope-gated.
+// "A property of an object type is the schema definition of a characteristic of a
+// real-world entity or event." Analogous to a COLUMN, as a property value is to a
+// field (`object-link-types/properties-overview`).
+//
+// The vocabulary below mirrors SQL (migration 408). It is restated here because
+// it must cross a language boundary, and `check:datasets` asserts the two agree —
+// a conformance test, not an allowlist: two implementations of one documented
+// fact, compared.
 
 import type { Deprecation, OntologyStatus, OntologyVisibility } from '../ontology/status'
 
+/** The twenty-two base types from properties-overview's table. A closed set —
+ *  an unknown value is a typo, not an extension. */
 export type PropertyType =
-  | 'text' | 'number' | 'boolean' | 'date'
-  // Foundry's advanced base types. Two of the nine, because two have consumers:
-  // a chunk needs a vector to be searched, and a document needs a media
-  // reference to be shown beside the chunk that cites it.
-  | 'media_reference' | 'vector' | 'geopoint'
+  | 'string' | 'integer' | 'short' | 'date' | 'timestamp' | 'boolean' | 'byte' | 'long'
+  | 'float' | 'double' | 'decimal' | 'vector' | 'array' | 'struct' | 'media_reference'
+  | 'time_series' | 'geotemporal_series' | 'attachment' | 'geopoint' | 'geoshape'
+  | 'marking' | 'cipher'
 
 export const PROPERTY_TYPES: { value: PropertyType; label: string; help: string }[] = [
-  { value: 'text',    label: 'Text',    help: 'Free text — names, notes, descriptions.' },
-  { value: 'number',  label: 'Number',  help: 'A numeric value.' },
-  { value: 'boolean', label: 'Yes / No', help: 'A true/false flag.' },
-  { value: 'date',    label: 'Date',    help: 'A calendar date.' },
-  { value: 'media_reference', label: 'Media', help: 'A file — a PDF, image or recording. Points at the stored item rather than copying it.' },
-  { value: 'vector',  label: 'Vector',  help: 'An embedding, for semantic search. Stored, never typed by hand.' },
-  { value: 'geopoint', label: 'Location', help: 'A point on the map, as latitude,longitude.' },
+  { value: 'string',    label: 'String',    help: 'Text. The safest primary key.' },
+  { value: 'integer',   label: 'Integer',   help: 'A whole number, 32 bits.' },
+  { value: 'short',     label: 'Short',     help: 'A whole number, 16 bits.' },
+  { value: 'long',      label: 'Long',      help: 'A whole number, 64 bits.' },
+  { value: 'byte',      label: 'Byte',      help: 'A whole number, 8 bits.' },
+  { value: 'float',     label: 'Float',     help: 'An approximate decimal, 32 bits.' },
+  { value: 'double',    label: 'Double',    help: 'An approximate decimal, 64 bits.' },
+  { value: 'decimal',   label: 'Decimal',   help: 'An exact decimal.' },
+  { value: 'boolean',   label: 'Boolean',   help: 'True or false.' },
+  { value: 'date',      label: 'Date',      help: 'A calendar date.' },
+  { value: 'timestamp', label: 'Timestamp', help: 'A point in time.' },
+  { value: 'array',     label: 'Array',     help: 'Several values of one type. Cannot contain nulls.' },
+  { value: 'struct',    label: 'Struct',    help: 'Named fields grouped into one value. No nesting, no array fields.' },
+  { value: 'geopoint',  label: 'Geopoint',  help: 'A point on the map, as latitude,longitude.' },
+  { value: 'geoshape',  label: 'Geoshape',  help: 'A polygon or line.' },
+  { value: 'media_reference', label: 'Media reference', help: 'Points at a media item rather than copying it.' },
+  { value: 'attachment', label: 'Attachment', help: 'A file stored on the object.' },
+  { value: 'time_series', label: 'Time series', help: 'A series of points over time.' },
+  { value: 'geotemporal_series', label: 'Geotemporal series', help: 'A track through space and time.' },
+  { value: 'vector',    label: 'Vector',    help: 'An embedding, for semantic search. Written by a pipeline, never typed.' },
+  { value: 'cipher',    label: 'Cipher',    help: 'A value encrypted with Cipher.' },
+  { value: 'marking',   label: 'Marking',   help: 'A mandatory control property. Secures every other property in the same datasource.' },
 ]
 
-/** Foundry: Media Reference, Vector, Time Series, Geotemporal Series, Attachment,
- *  Geoshape, Struct and Marking are valid as NEITHER title key NOR primary key
- *  (`mirror/object-link-types/properties-overview.md`). Of the two we have, both
- *  are in that set — a title is something a person reads, and neither is. */
-export const TITLE_KEY_INELIGIBLE: ReadonlyArray<PropertyType> = ['media_reference', 'vector']
+/** yes | discouraged | no. Three tiers, not two — only `no` is a constraint. */
+export type KeyEligibility = 'yes' | 'discouraged' | 'no'
+
+const PK_YES: ReadonlyArray<PropertyType> = ['string', 'integer', 'short']
+const PK_DISCOURAGED: ReadonlyArray<PropertyType> = ['date', 'timestamp', 'boolean', 'byte', 'long']
+
+export function primaryKeyEligibility(t: PropertyType): KeyEligibility {
+  if (PK_YES.includes(t)) return 'yes'
+  if (PK_DISCOURAGED.includes(t)) return 'discouraged'
+  return 'no'
+}
+
+/** The documented reason, which is the whole value of the middle tier — a
+ *  warning without its reason is just an obstacle. */
+export function primaryKeyAdvice(t: PropertyType): string | null {
+  switch (t) {
+    case 'date': case 'timestamp':
+      return 'Time values are inappropriate as primary keys, due to potentially unexpected collisions / uniqueness based on the storage format differing from the display format. In most cases, use String instead.'
+    case 'boolean':
+      return 'Boolean limits your object type to two object instances.'
+    case 'byte':
+      return 'Byte properties can only be assigned in Actions via an Integer parameter, so in most cases use Integer instead.'
+    case 'long':
+      return 'Long has representational issues in Javascript, so not all frontend libraries and code work well with Long values greater than 1e15. In most cases, use String instead.'
+    default:
+      return null
+  }
+}
+
+/** A separate axis, and not the complement: fourteen base types can title an
+ *  object where three can key one. */
+export const TITLE_KEY_INELIGIBLE: ReadonlyArray<PropertyType> = [
+  'vector', 'struct', 'media_reference', 'time_series', 'geotemporal_series',
+  'attachment', 'geoshape', 'marking',
+]
+
+/** "there are a number of reserved keywords that cannot be used for API names" */
+export const RESERVED_API_NAMES: ReadonlyArray<string> = [
+  'ontology', 'object', 'property', 'link', 'relation', 'rid',
+  'primaryKey', 'typeId', 'ontologyObject',
+]
 
 /** Foundry: "Geopoint values are stored as a comma-separated string in the
  *  format `latitude,longitude` (for example, `57.64911,10.40744`)." Copied
@@ -64,11 +117,20 @@ export const canBeTitleKey = (t: PropertyType): boolean => !TITLE_KEY_INELIGIBLE
  *  The only surface allowed to answer this question. Three call sites used to
  *  answer it differently — two by guessing the first text property — so a record
  *  could be titled one way in a list and another in a set. */
+export function titleKeyOf(type: { properties: PropertyDef[] }): PropertyDef | null {
+  return type.properties.find((p) => p.isTitleKey === true) ?? null
+}
+
+export function primaryKeyOf(type: { properties: PropertyDef[] }): PropertyDef | null {
+  return type.properties.find((p) => p.isPrimaryKey === true) ?? null
+}
+
 export function objectTitle(
-  type: { titleKey?: string | null; label: string },
+  type: { properties: PropertyDef[]; label: string },
   row: Record<string, unknown>,
 ): string {
-  const keyed = type.titleKey ? row[type.titleKey] : undefined
+  const tk = titleKeyOf(type)
+  const keyed = tk ? row[tk.apiName] ?? row[tk.key] : undefined
   // Dates and numbers title perfectly well — a stock log is "when it happened".
   if (keyed != null && keyed !== '') return String(keyed)
   if (typeof row.title === 'string' && row.title !== '') return row.title
@@ -77,19 +139,38 @@ export function objectTitle(
   return id === '' ? type.label : `${type.label} ${id.slice(0, 8)}`
 }
 
+/** Used for two things, deliberately: a stored row in object_type_properties, and
+ *  a synthesised property that has no row — an interface field, a computed value.
+ *  The row-only fields are therefore optional, and a caller that needs a real row
+ *  asks through {@link primaryKeyOf} / {@link titleKeyOf} rather than reading the
+ *  flags raw. */
 export interface PropertyDef {
-  /** api name — a slug, unique within the type. Never changes when a shared
-   *  property is attached; downstream workflows are bound to it. */
+  id?: string
+  /** "primarily used to reference objects of this type when configuring a user
+   *  application" — and "any change to the property ID will break the
+   *  application". Never regenerate one. */
   key: string
   label: string
+  /** camelCase, unique within the object type, never a reserved keyword. This is
+   *  what a generated client exposes. */
+  apiName: string
   type: PropertyType
   required: boolean
-  /** api_name of the shared property this inherits its metadata from, if any.
-   *  See sharedProperties.ts — attached, label/type/description/visibility come
-   *  from the definition and are not editable here. */
-  shared?: string | null
+  /** A column in a backing datasource, or `user_input` — the creation wizard
+   *  offers both as a Source. */
+  source?: 'column' | 'user_input'
+  backingColumn?: string | null
+  /** Which of the object type's datasources. NULL on the primary key, which
+   *  "must exist in every input datasource". */
+  datasourceId?: string | null
+  /** The shared property this inherits its metadata from. A real reference now,
+   *  not an api-name string in jsonb. */
+  sharedPropertyId?: string | null
   description?: string
   visibility?: 'prominent' | 'normal' | 'hidden'
+  isPrimaryKey?: boolean
+  isTitleKey?: boolean
+  position?: number
 }
 
 export interface ObjectTypeDef {
@@ -101,10 +182,6 @@ export interface ObjectTypeDef {
   icon: string
   description: string
   properties: PropertyDef[]
-  /** Property whose value titles a record — Foundry requires a title key per
-   *  object type. NULL where no single column reads as one (a stock log's title
-   *  comes from a join, not a column). */
-  titleKey?: string | null
   /** Derived values computed from stored properties at read time (P2.4). */
   computedProperties: ComputedPropertyDef[]
   /** How records of this type present (P3). Empty config → standard view. */
@@ -182,11 +259,14 @@ export function evaluateComputed(def: ComputedPropertyDef, data: Record<string, 
   return def.fn === 'days_until' ? Math.floor((d - now.getTime()) / DAY_MS) : Math.floor((now.getTime() - d) / DAY_MS)
 }
 
+/** Whether a base type belongs to the family a computed function consumes. */
+export const acceptsInput = (family: 'number' | 'date', t: PropertyType): boolean =>
+  family === 'number' ? NUMERIC.includes(t) : t === 'date' || t === 'timestamp'
+
 export function validateComputedProperty(draft: ComputedPropertyDef, properties: PropertyDef[]): Validation {
   const errors: string[] = []
   if (!draft.label.trim()) errors.push('Every computed property needs a label.')
   if (!SLUG_RE.test(draft.key)) errors.push(`Computed "${draft.label}" has an invalid key — use lower_snake_case.`)
-  else if (RESERVED_PROPERTY_KEYS.has(draft.key)) errors.push(`"${draft.key}" is a reserved key.`)
   else if (properties.some((p) => p.key === draft.key)) errors.push(`"${draft.key}" clashes with a stored property.`)
   const fn = COMPUTED_FNS.find((f) => f.value === draft.fn)
   if (!fn) return { ok: false, errors: [...errors, 'Unknown function.'] }
@@ -196,20 +276,47 @@ export function validateComputedProperty(draft: ComputedPropertyDef, properties:
   for (const key of draft.inputs) {
     const prop = properties.find((p) => p.key === key)
     if (!prop) errors.push(`Input "${key}" is not a property of this type.`)
-    else if (prop.type !== fn.inputType) errors.push(`${fn.label} needs ${fn.inputType} inputs, but "${prop.label}" is ${prop.type}.`)
+    // A family, not a single type: `integer`, `long`, `decimal` and three more
+    // are all numeric. Comparing to one name rejected every valid input.
+    else if (!acceptsInput(fn.inputType, prop.type)) {
+      errors.push(`${fn.label} needs ${fn.inputType} inputs, but "${prop.label}" is ${prop.type}.`)
+    }
   }
   return { ok: errors.length === 0, errors }
 }
 
 // Keys the record envelope already owns — a property can't shadow them.
-export const RESERVED_PROPERTY_KEYS = new Set([
-  'id', 'title', 'type', 'created_at', 'updated_at', 'organization_id', 'hotel_id', 'object_type_id',
-])
-
+// Three spellings, and the page is explicit that they differ. An object type's
+// API name must "Begin with an uppercase character... written in PascalCase...
+// unique across all object types... between 1 and 100 characters"; a property's
+// must "Begin with a lowercase character... written in camelCase... unique
+// across all properties belonging to the same object type". A property ID is
+// looser again: "lowercase or uppercase letters, numbers, dashes, and
+// underscores. Should start with a letter."
+const TYPE_API_RE = /^[A-Z][A-Za-z0-9]{0,99}$/
+const PROP_API_RE = /^[a-z][A-Za-z0-9]{0,99}$/
+const PROP_ID_RE  = /^[A-Za-z][A-Za-z0-9_-]*$/
+// Computed properties and link types keep the old spelling; neither casing is
+// settled by a page I have read.
 const SLUG_RE = /^[a-z][a-z0-9_]*$/
+
+const words = (input: string): string[] =>
+  input.trim().split(/[^A-Za-z0-9]+/).filter(Boolean)
 
 export function toSlug(input: string): string {
   return input.trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+}
+
+/** A label to a property API name. */
+export function toCamel(input: string): string {
+  const [first, ...rest] = words(input.toLowerCase())
+  if (first === undefined) return ''
+  return first + rest.map((w) => w[0].toUpperCase() + w.slice(1)).join('')
+}
+
+/** A label to an object type API name. */
+export function toPascal(input: string): string {
+  return words(input.toLowerCase()).map((w) => w[0].toUpperCase() + w.slice(1)).join('')
 }
 
 export type ObjectTypeDraft = Pick<ObjectTypeDef, 'apiName' | 'label' | 'properties'>
@@ -219,16 +326,44 @@ export interface Validation { ok: boolean; errors: string[] }
 export function validateObjectTypeDraft(draft: ObjectTypeDraft): Validation {
   const errors: string[] = []
   if (!draft.label.trim()) errors.push('Label is required.')
-  if (!SLUG_RE.test(draft.apiName)) errors.push('API name must be lower_snake_case (letters, digits, underscores; starting with a letter).')
+  if (!TYPE_API_RE.test(draft.apiName)) {
+    errors.push('API name must be PascalCase — a letter first, letters and digits only, up to 100 characters.')
+  }
 
-  const seen = new Set<string>()
+  // "these property fields must not be empty: Property ID, Property display
+  // name, Backing column, Property API name, Title key, Primary key". The two
+  // keys are checked over the set, the rest per property.
+  const ids = new Set<string>()
+  const apiNames = new Set<string>()
   for (const p of draft.properties) {
-    if (!p.label.trim()) { errors.push('Every property needs a label.'); continue }
-    if (!SLUG_RE.test(p.key)) { errors.push(`Property "${p.label}" has an invalid key — use lower_snake_case.`); continue }
-    if (RESERVED_PROPERTY_KEYS.has(p.key)) { errors.push(`"${p.key}" is a reserved key.`); continue }
-    if (seen.has(p.key)) { errors.push(`Duplicate property key "${p.key}".`); continue }
-    seen.add(p.key)
+    if (!p.label.trim()) { errors.push('Every property needs a display name.'); continue }
+    if (!PROP_ID_RE.test(p.key)) { errors.push(`Property "${p.label}" has an invalid ID — a letter first, then letters, digits, dashes or underscores.`); continue }
+    if (ids.has(p.key)) { errors.push(`Duplicate property ID "${p.key}".`); continue }
+    ids.add(p.key)
+
+    if (!PROP_API_RE.test(p.apiName)) {
+      errors.push(`Property "${p.label}" needs a camelCase API name.`)
+    } else if (RESERVED_API_NAMES.includes(p.apiName)) {
+      errors.push(`"${p.apiName}" is a reserved API name.`)
+    } else if (apiNames.has(p.apiName)) {
+      errors.push(`Duplicate property API name "${p.apiName}".`)
+    }
+    apiNames.add(p.apiName)
+
     if (!PROPERTY_TYPES.some((t) => t.value === p.type)) errors.push(`Property "${p.label}" has an unknown type.`)
+    // "A backing datasource for an object type may not contain MapType or
+    // StructType columns" is the datasource's rule; this is the property's:
+    // a column-sourced property names the column it reads.
+    if ((p.source ?? 'column') === 'column' && !(p.backingColumn ?? '').trim()) {
+      errors.push(`Property "${p.label}" needs a backing column, or a source of user input.`)
+    }
+  }
+
+  if (draft.properties.length > 0) {
+    const pk = draft.properties.find((p) => p.isPrimaryKey)
+    if (!pk) errors.push('A primary key is required.')
+    else if (!pk.required) errors.push(`The primary key "${pk.label}" must be required — a nullable key is not a key.`)
+    if (!draft.properties.some((p) => p.isTitleKey)) errors.push('A title key is required.')
   }
   return { ok: errors.length === 0, errors }
 }
@@ -334,10 +469,10 @@ export function validateRecord(properties: PropertyDef[], draft: RecordDraft): V
     const empty = raw === undefined || raw === null || raw === ''
     if (p.required && empty) { errors.push(`${p.label} is required.`); continue }
     if (empty) continue
-    if (p.type === 'number' && typeof raw !== 'number') errors.push(`${p.label} must be a number.`)
+    if (NUMERIC.includes(p.type) && typeof raw !== 'number') errors.push(`${p.label} must be a number.`)
     if (p.type === 'boolean' && typeof raw !== 'boolean') errors.push(`${p.label} must be true or false.`)
     if (p.type === 'date' && !(typeof raw === 'string' && !Number.isNaN(Date.parse(raw)))) errors.push(`${p.label} must be a valid date.`)
-    if (p.type === 'text' && typeof raw !== 'string') errors.push(`${p.label} must be text.`)
+    if (TEXTUAL.includes(p.type) && typeof raw !== 'string') errors.push(`${p.label} must be text.`)
     if (p.type === 'media_reference' && !(typeof raw === 'string' && raw.includes('/'))) {
       errors.push(`${p.label} must point at a stored file, as bucket/path.`)
     }
@@ -351,21 +486,26 @@ export function validateRecord(properties: PropertyDef[], draft: RecordDraft): V
   return { ok: errors.length === 0, errors }
 }
 
+/** The base types that carry a JavaScript number, and those that carry a string.
+ *  Named once because six types are numeric where the old vocabulary had one. */
+export const NUMERIC: ReadonlyArray<PropertyType> =
+  ['integer', 'short', 'long', 'byte', 'float', 'double', 'decimal']
+export const TEXTUAL: ReadonlyArray<PropertyType> = ['string', 'cipher']
+
 /** Coerce a raw form value (usually a string) into the property's type, or null
  *  when it can't be represented. Used before validateRecord + persistence. */
 export function coerceValue(type: PropertyType, raw: unknown): unknown {
   if (raw === undefined || raw === null || raw === '') return null
+  if (NUMERIC.includes(type)) {
+    const n = typeof raw === 'number' ? raw : Number(raw)
+    return Number.isFinite(n) ? n : null
+  }
+  if (TEXTUAL.includes(type)) return typeof raw === 'string' ? raw : String(raw)
   switch (type) {
-    case 'number': {
-      const n = typeof raw === 'number' ? raw : Number(raw)
-      return Number.isFinite(n) ? n : null
-    }
     case 'boolean':
       return typeof raw === 'boolean' ? raw : raw === 'true' ? true : raw === 'false' ? false : null
     case 'date':
       return typeof raw === 'string' && !Number.isNaN(Date.parse(raw)) ? raw : null
-    case 'text':
-      return typeof raw === 'string' ? raw : String(raw)
     // A media reference is a POINTER, not the file: "media references enable you
     // to use a media item in Foundry without having to make copies of the media
     // item itself." Ours is `bucket/path`, which is what the storage client takes.

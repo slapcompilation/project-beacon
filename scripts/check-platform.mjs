@@ -1,14 +1,23 @@
-// The dataset view algorithm, checked against the example Palantir publishes.
+// The platform engine, checked against the examples Palantir publishes: the
+// dataset view algorithm, marking propagation, scoped sessions, and RLS as the
+// role the product runs as.
 //
 // `data-integration/datasets#example-of-transaction-types` gives a four-step
 // history and states the resulting view, then adds a fifth step and states it
 // again. That is a specification with its own answer key, so the check is to run
-// it and compare — not to assert what our implementation happens to do.
+// it and compare — not to assert what our implementation happens to do. Every
+// section below has that shape.
+//
+// It was `check:datasets` until the ontology could answer for its own content.
+// It cannot live in the migrations that own these algorithms: those are
+// immutable once applied and run once, so an assertion moved into one would
+// never run again anywhere it had already been applied. A regression test has
+// to be continuous, and this is where continuous lives.
 //
 // Everything runs inside one transaction that is ROLLED BACK, so the check
 // leaves nothing behind and can run against any database it can reach.
 //
-//   node scripts/check-datasets.mjs
+//   node scripts/check-platform.mjs
 
 import pg from 'pg'
 import { connectionString, SSL } from './db-url.mjs'
@@ -56,7 +65,7 @@ async function commit(ds, branch, type, files, parent) {
 await client.query('BEGIN')
 try {
   const { rows: [org] } = await client.query(
-    `insert into public.organizations (name) values ('check-datasets') returning id`)
+    `insert into public.organizations (name) values ('check-platform') returning id`)
   const { rows: [proj] } = await client.query(
     `insert into public.projects (organization_id, api_name, name) values ($1,'check','Check') returning id`,
     [org.id])
@@ -206,7 +215,7 @@ try {
   // not run — so it has to carry the organization check itself. It did not, and
   // an admin of any other tenant passed. Migration 395.
   const { rows: [other] } = await client.query(
-    `insert into public.organizations (name) values ('check-datasets other') returning id`)
+    `insert into public.organizations (name) values ('check-platform other') returning id`)
   await client.query(`select set_config('request.jwt.claims', $1, true)`,
     [JSON.stringify({ app_metadata: { role: 'admin', org_id: other.id } })])
   const { rows: [cross] } = await client.query(
@@ -343,68 +352,21 @@ try {
   check('a resource marked {A,B} matches a session {A} by overlap', overlaps, true)
   check('a resource sharing no marking with the session does not', disjoint, false)
 
-  // ── the datasource binding (O1) ───────────────────────────────────────────
-  // "Note that a single datasource can only be used to back one object type."
+  // ── the ontology's own content ────────────────────────────────────────────
+  // These used to be assertions here: one datasource cannot back two object
+  // types, a MAP column disqualifies a backing datasource. Both are now the
+  // ontology's to answer — `ontology_violations()` (migration 410), which is
+  // Foundry's own shape: "Ontology linting is a second established pattern:
+  // Ontology owners... write linters that check the entity definitions."
+  //
+  // So this asks the one question a bespoke fixture cannot: is the ONTOLOGY WE
+  // ACTUALLY HAVE well-formed? A property naming a column its datasource lost,
+  // a schema that gained a STRUCT after it was bound — drift that no fixture
+  // reproduces because it arrives with real data.
   await client.query(`select set_config('request.jwt.claims', $1, true)`, [claims])
-  const [{ rows: [ot1] }, { rows: [ot2] }] = [
-    await client.query(
-      `insert into public.object_types (organization_id, api_name, label)
-       values ($1,'check_one','One') returning id`, [org.id]),
-    await client.query(
-      `insert into public.object_types (organization_id, api_name, label)
-       values ($1,'check_two','Two') returning id`, [org.id]),
-  ]
-  await client.query(
-    `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
-     values ($1,$2,$3)`, [ot1.id, ds.id, main.id])
-
-  let clash = null
-  try {
-    await client.query('SAVEPOINT o1')
-    await client.query(
-      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
-       values ($1,$2,$3)`, [ot2.id, ds.id, main.id])
-  } catch (err) { clash = err.message }
-  await client.query('ROLLBACK TO SAVEPOINT o1')
-  check('one datasource cannot back two object types',
-    clash?.includes('Phonograph2:DatasetAndBranchAlreadyRegistered') ?? false, true)
-
-  // A different branch of the same dataset IS a different datasource — which is
-  // what the error name says, and the reason the key is the pair.
-  await client.query(
-    `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
-     values ($1,$2,$3)`, [ot2.id, ds.id, feat.id])
-  const { rows: [{ bound }] } = await client.query(
-    'select count(*)::int as bound from public.object_type_datasources where dataset_id=$1', [ds.id])
-  check('a second branch of the same dataset is a second datasource', bound, 2)
-
-  // "A backing datasource for an object type may not contain MapType or
-  //  StructType columns."
-  const { rows: [structDs] } = await client.query(
-    `insert into public.datasets (organization_id, project_id, api_name, name)
-     values ($1,$2,'check_struct','struct') returning id`, [org.id, proj.id])
-  const { rows: [structBr] } = await client.query(
-    `insert into public.dataset_branches (dataset_id, name) values ($1,'master') returning id`,
-    [structDs.id])
-  const { rows: [structTxn] } = await client.query(
-    `insert into public.dataset_transactions (dataset_id, branch_id, txn_type, status, committed_at)
-     values ($1,$2,'SNAPSHOT','COMMITTED', now()) returning id`, [structDs.id, structBr.id])
-  await client.query(
-    `insert into public.dataset_schemas (dataset_id, transaction_id, fields) values ($1,$2,$3::jsonb)`,
-    [structDs.id, structTxn.id, JSON.stringify([
-      { name: 'ok', type: 'STRING' },
-      { name: 'nope', type: 'MAP', mapKeyType: { type: 'STRING' }, mapValueType: { type: 'LONG' } },
-    ])])
-  let rejected = null
-  try {
-    await client.query('SAVEPOINT o1b')
-    await client.query(
-      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
-       values ($1,$2,$3)`, [ot1.id, structDs.id, structBr.id])
-  } catch (err) { rejected = err.message }
-  await client.query('ROLLBACK TO SAVEPOINT o1b')
-  check('a MAP column disqualifies a backing datasource',
-    rejected?.includes('Ontology:UnsupportedColumnType') ?? false, true)
+  const { rows: violations } = await client.query('select * from public.ontology_violations()')
+  check(`the live ontology is well-formed${violations.length ? ` — ${violations.map((v) => `${v.object_type}/${v.subject}: ${v.problem}`).join('; ')}` : ''}`,
+    violations.length, 0)
 
   // ── the path this whole script was blind to ───────────────────────────────
   // Everything above runs as the connection owner, and RLS is bypassed for
@@ -477,5 +439,5 @@ try {
   await client.end()
 }
 
-console.log(failures === 0 ? '\ncheck-datasets: ok' : `\ncheck-datasets: ${failures} failure(s)`)
+console.log(failures === 0 ? '\ncheck-platform: ok' : `\ncheck-platform: ${failures} failure(s)`)
 process.exit(failures === 0 ? 0 : 1)

@@ -144,6 +144,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   imported** — ours is the second, which `gen:ontology` already does thinly.
   `Marking` is unsupported in the TypeScript SDK, so markings stay server-side.
   **O2/O3 are the generated client's input, not its alternative.**
+- `ontology-linting.md` — where a rule about the ontology belongs, in strict
+  order: constraint, then partial index, then trigger, then `ontology_violations()`
+  for what reads two tables or drifts later. Foundry names the pattern
+  ("Ontology owners... write linters that check the entity definitions").
+  Records why the engine assertions **cannot** move into their migrations —
+  applied migrations are immutable and run once — and the `dataset_current_schema`
+  tie-break bug the first lint assertion found.
 
-Fourteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+Fifteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

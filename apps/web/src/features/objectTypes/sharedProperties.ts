@@ -39,7 +39,9 @@ export function useSharedProperties() {
 /** Keyed by api_name — what `resolveProperty` folds into a property. */
 export function useSharedPropertyMap(): Map<string, SharedPropertyDef> {
   const { data = [] } = useSharedProperties()
-  return new Map(data.map((d) => [d.apiName, d]))
+  // Keyed by id: `object_type_properties.shared_property_id` is a foreign key
+  // now, not the api name the jsonb used to carry.
+  return new Map(data.map((d) => [d.id, d]))
 }
 
 export function useCreateSharedProperty() {

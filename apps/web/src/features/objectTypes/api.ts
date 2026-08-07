@@ -9,6 +9,51 @@ import type {
 } from '@beacon/ontology'
 import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
 
+/** One row of `object_type_properties` (migration 408). Properties left the
+ *  object type's jsonb because Foundry gives each its own ID, API name, base
+ *  type, source and backing column — none of which a blob can be asked about. */
+export interface PropertyRow {
+  id: string
+  property_id: string
+  display_name: string
+  api_name: string
+  description: string
+  base_type: PropertyDef['type']
+  source: 'column' | 'user_input'
+  datasource_id: string | null
+  backing_column: string | null
+  shared_property_id: string | null
+  required: boolean
+  visibility: 'prominent' | 'normal' | 'hidden'
+  position: number
+  is_primary_key: boolean
+  is_title_key: boolean
+}
+
+export function rowToProperty(r: PropertyRow): PropertyDef {
+  return {
+    id: r.id, key: r.property_id, label: r.display_name, apiName: r.api_name,
+    type: r.base_type, description: r.description, required: r.required,
+    source: r.source, backingColumn: r.backing_column,
+    datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
+    visibility: r.visibility, position: r.position,
+    isPrimaryKey: r.is_primary_key, isTitleKey: r.is_title_key,
+  }
+}
+
+export function propertyToRow(p: PropertyDef, position: number) {
+  return {
+    property_id: p.key, display_name: p.label, api_name: p.apiName,
+    description: p.description ?? '', base_type: p.type,
+    source: p.source ?? 'column',
+    datasource_id: p.datasourceId ?? null,
+    backing_column: p.source === 'user_input' ? null : p.backingColumn ?? null,
+    shared_property_id: p.sharedPropertyId ?? null,
+    required: p.required, visibility: p.visibility ?? 'normal', position,
+    is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
+  }
+}
+
 export interface ObjectTypeRow {
   id: string
   organization_id: string
@@ -16,12 +61,11 @@ export interface ObjectTypeRow {
   label: string
   icon: string
   description: string
-  properties: PropertyDef[]
+  object_type_properties: PropertyRow[]
   computed_properties: ComputedPropertyDef[] | null
   view_config: ViewConfigDef | null
   enabled: boolean
   version: number
-  title_key: string | null
   /** Developmental state (migration 321). Anything new starts experimental. */
   status: OntologyStatus
   visibility: OntologyVisibility
@@ -37,10 +81,11 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
     id: r.id, organizationId: r.organization_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
-    properties: r.properties, computedProperties: r.computed_properties ?? [],
+    properties: [...r.object_type_properties]
+      .sort((a, b) => a.position - b.position).map(rowToProperty),
+    computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
-    titleKey: r.title_key,
     status: r.status, visibility: r.visibility,
     deprecation: r.deprecation_reason && r.deprecation_deadline
       ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
@@ -52,29 +97,31 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
  *  classifies object types by their datasource and has no notion of a built-in
  *  one", so the two readers that used to differ now agree. */
 export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
-  const { data, error } = await supabase.from('object_types').select('*')
+  const { data, error } = await supabase.from('object_types')
+    .select('*, object_type_properties(*)')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return data as ObjectTypeRow[]
 }
 
-export interface CreateObjectTypeInput {
-  apiName: string
-  label: string
-  icon: string
-  description: string
-  properties: PropertyDef[]
-  computedProperties: ComputedPropertyDef[]
-}
 
-export async function createObjectType(i: CreateObjectTypeInput): Promise<ObjectTypeRow> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .insert({ api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
-    .select('*')
-    .single<ObjectTypeRow>()
-  if (error) throw new Error(error.message)
-  return data
+
+/** One call, because the completeness contract is one list over the type and its
+ *  properties: "To save a new object type, these object type fields must not be
+ *  empty… And these property fields must not be empty…" A client that wrote the
+ *  type first and its properties second would pass through the state that list
+ *  forbids, and stay there if the second write failed. */
+export async function saveObjectType(
+  i: { id?: string; apiName?: string; label: string; icon: string; description: string
+       properties: PropertyDef[] },
+): Promise<string> {
+  const res: { data: unknown; error: { message: string } | null } =
+    await supabase.rpc('save_object_type', {
+      p_object_type: { id: i.id ?? null, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description },
+      p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)),
+    })
+  if (res.error) throw new Error(res.error.message)
+  return res.data as string
 }
 
 export async function deleteObjectType(id: string): Promise<void> {
@@ -112,15 +159,24 @@ export interface UpdateObjectTypeInput {
   viewConfig: ViewConfigDef
 }
 
-export async function updateObjectType(i: UpdateObjectTypeInput): Promise<ObjectTypeRow> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .update({ label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties, view_config: i.viewConfig })
+export async function updateObjectType(i: UpdateObjectTypeInput): Promise<string> {
+  const { error } = await supabase.from('object_types')
+    .update({ computed_properties: i.computedProperties, view_config: i.viewConfig })
     .eq('id', i.id)
-    .select('*')
-    .single<ObjectTypeRow>()
   if (error) throw new Error(error.message)
-  return data
+  return saveObjectType(i)
+}
+
+/** Every reason this type cannot be saved — the `❗4 errors` badge's contents.
+ *  The rule lives in `object_type_problems()`; restating it here is how the two
+ *  drift. */
+export interface ObjectTypeProblem { scope: 'object_type' | 'property'; subject: string; problem: string }
+
+export async function fetchObjectTypeProblems(id: string): Promise<ObjectTypeProblem[]> {
+  const res: { data: unknown; error: { message: string } | null } =
+    await supabase.rpc('object_type_problems', { p_object_type: id })
+  if (res.error) throw new Error(res.error.message)
+  return res.data as ObjectTypeProblem[]
 }
 
 export interface LinkTypeRow {

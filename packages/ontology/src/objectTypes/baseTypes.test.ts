@@ -1,18 +1,45 @@
 import { describe, it, expect } from 'vitest'
 import {
-  PROPERTY_TYPES, canBeTitleKey, coerceValue, validateRecord,
+  PROPERTY_TYPES, primaryKeyEligibility, primaryKeyAdvice,
+  canBeTitleKey, coerceValue, validateRecord,
   parseGeopoint, formatGeopoint,
   type PropertyDef,
 } from './index'
 
-describe('the advanced base types', () => {
-  it('are offered alongside the four originals', () => {
-    expect(PROPERTY_TYPES.map((t) => t.value))
-      .toEqual(['text', 'number', 'boolean', 'date', 'media_reference', 'vector', 'geopoint'])
+describe('the base types', () => {
+  it('offers exactly the vocabulary the database accepts', () => {
+    // Membership, not order — the picker groups by family, `property_base_types()`
+    // does not. A type the picker offers but the CHECK rejects cannot be saved.
+    expect(PROPERTY_TYPES.map((t) => t.value).sort()).toEqual([
+      'array', 'attachment', 'boolean', 'byte', 'cipher', 'date', 'decimal',
+      'double', 'float', 'geopoint', 'geoshape', 'geotemporal_series', 'integer',
+      'long', 'marking', 'media_reference', 'short', 'string', 'struct',
+      'time_series', 'timestamp', 'vector',
+    ])
+  })
+
+  it('primary-key eligibility is three-valued, not a yes/no', () => {
+    // "Only string, integer, and short types are recommended"; five more are
+    // permitted with a stated reason; the rest cannot be a primary key at all.
+    for (const t of ['string', 'integer', 'short'] as const) {
+      expect(primaryKeyEligibility(t)).toBe('yes')
+    }
+    for (const t of ['date', 'timestamp', 'boolean', 'byte', 'long'] as const) {
+      expect(primaryKeyEligibility(t)).toBe('discouraged')
+      expect(primaryKeyAdvice(t)).toBeTruthy()
+    }
+    expect(primaryKeyEligibility('vector')).toBe('no')
+    expect(primaryKeyAdvice('string')).toBeNull()
+  })
+
+  it('every offered type has a verdict', () => {
+    for (const t of PROPERTY_TYPES) {
+      expect(['yes', 'discouraged', 'no']).toContain(primaryKeyEligibility(t.value))
+    }
   })
 
   it('title only where Foundry allows it — geopoint may, the other two may not', () => {
-    expect(canBeTitleKey('text')).toBe(true)
+    expect(canBeTitleKey('string')).toBe(true)
     expect(canBeTitleKey('date')).toBe(true)
     expect(canBeTitleKey('geopoint')).toBe(true)
     expect(canBeTitleKey('media_reference')).toBe(false)
@@ -79,8 +106,8 @@ describe('parseGeopoint', () => {
 
 describe('validateRecord for the new types', () => {
   const props: PropertyDef[] = [
-    { key: 'scan', label: 'Scan', type: 'media_reference', required: false },
-    { key: 'emb',  label: 'Embedding', type: 'vector', required: false },
+    { key: 'scan', apiName: 'scan', label: 'Scan', type: 'media_reference', required: false },
+    { key: 'emb', apiName: 'emb',  label: 'Embedding', type: 'vector', required: false },
   ]
 
   it('accepts a well-formed record', () => {

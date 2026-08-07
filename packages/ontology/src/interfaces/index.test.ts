@@ -5,8 +5,8 @@ import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 const iface: InterfaceDef = {
   id: 'i1', organizationId: 'o1', apiName: 'serviceable', label: 'Serviceable', description: '',
   properties: [
-    { key: 'room', label: 'Room', type: 'text' },
-    { key: 'cost', label: 'Cost', type: 'number' },
+    { key: 'room', label: 'Room', type: 'string' },
+    { key: 'cost', label: 'Cost', type: 'integer' },
   ],
 }
 
@@ -19,9 +19,9 @@ function type(label: string, props: ObjectTypeDef['properties']): ObjectTypeDef 
 }
 
 const conforming = type('Maintenance Request', [
-  { key: 'room', label: 'Room', type: 'text', required: true },
-  { key: 'cost', label: 'Cost', type: 'number', required: false },
-  { key: 'urgent', label: 'Urgent', type: 'boolean', required: false },  // extra is fine
+  { key: 'room', apiName: 'room', label: 'Room', type: 'string', required: true },
+  { key: 'cost', apiName: 'cost', label: 'Cost', type: 'integer', required: false },
+  { key: 'urgent', apiName: 'urgent', label: 'Urgent', type: 'boolean', required: false },  // extra is fine
 ])
 
 describe('conformance', () => {
@@ -31,20 +31,20 @@ describe('conformance', () => {
   })
 
   it('rejects a type missing a required property', () => {
-    const missing = type('Cleaning Task', [{ key: 'room', label: 'Room', type: 'text', required: true }])
+    const missing = type('Cleaning Task', [{ key: 'room', apiName: 'room', label: 'Room', type: 'string', required: true }])
     expect(conformanceErrors(missing, iface).join()).toContain('missing "Cost"')
   })
 
   it('rejects a type whose property is the wrong type — polymorphism must not lie', () => {
     const wrong = type('Inspection', [
-      { key: 'room', label: 'Room', type: 'text', required: true },
-      { key: 'cost', label: 'Cost', type: 'text', required: false },
+      { key: 'room', apiName: 'room', label: 'Room', type: 'string', required: true },
+      { key: 'cost', apiName: 'cost', label: 'Cost', type: 'string', required: false },
     ])
-    expect(conformanceErrors(wrong, iface).join()).toContain('is text, but Serviceable requires number')
+    expect(conformanceErrors(wrong, iface).join()).toContain('is string, but Serviceable requires integer')
   })
 
   it('filters a set to the types that genuinely conform', () => {
-    const other = type('Room', [{ key: 'floor', label: 'Floor', type: 'number', required: false }])
+    const other = type('Room', [{ key: 'floor', apiName: 'floor', label: 'Floor', type: 'integer', required: false }])
     expect(typesConforming([conforming, other], iface).map((t) => t.label)).toEqual(['Maintenance Request'])
   })
 })
@@ -59,7 +59,7 @@ describe('validateInterfaceDraft', () => {
   })
 
   it('rejects duplicate property keys', () => {
-    const dup = { ...iface, properties: [...iface.properties, { key: 'room', label: 'Room 2', type: 'text' as const }] }
+    const dup = { ...iface, properties: [...iface.properties, { key: 'room', label: 'Room 2', type: 'string' as const }] }
     expect(validateInterfaceDraft(dup).join()).toContain('Duplicate property')
   })
 })

@@ -10,10 +10,11 @@ import {
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import {
-  PROPERTY_TYPES, COMPUTED_FNS, toSlug, validateObjectTypeDraft, validateLinkTypeDraft, validateComputedProperty, validateViewConfig,
-  attachProblem, usedBy,
+  PROPERTY_TYPES, COMPUTED_FNS, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
+  validateComputedProperty, validateViewConfig, attachProblem, usedBy,
+  acceptsInput, primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
-  type ComputedFn, type ComputedPropertyDef, type ViewConfigDef,
+  type ComputedFn, type ComputedPropertyDef, type ViewConfigDef, type SharedPropertyDef,
 } from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
 import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
@@ -28,8 +29,128 @@ import InterfacesSection from '@/features/interfaces/InterfacesSection'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
-interface PropertyDraft { label: string; type: PropertyType; required: boolean }
 interface ComputedRow { label: string; fn: ComputedFn; inputs: string[] }
+
+/** A draft property. `key` is the property ID; it is stable once saved, so only
+ *  new rows derive one from the label. */
+type PropertyDraft = PropertyDef & { isNew?: boolean }
+
+const newProperty = (): PropertyDraft => ({
+  key: '', apiName: '', label: '', type: 'string', required: false,
+  source: 'column', backingColumn: '', isNew: true,
+})
+
+const draftId = (p: PropertyDraft) => (p.isNew ? toSlug(p.label) : p.key)
+
+/** Drafts to what the save takes. New rows get their ID and API name from the
+ *  label; existing ones keep theirs, because "the property ID and API name...
+ *  will remain unchanged so as to not break existing downstream workflows". */
+function draftsToProperties(drafts: PropertyDraft[]): PropertyDef[] {
+  return drafts.filter((p) => p.label.trim()).map((p) => ({
+    ...p,
+    key: draftId(p),
+    apiName: p.apiName || toCamel(p.label),
+    label: p.label.trim(),
+    backingColumn: p.source === 'user_input' ? null : p.backingColumn || toSlug(p.label),
+  }))
+}
+
+/** The Properties step: two pickers over a Source -> Property table, which is
+ *  how the wizard screenshot lays it out. Both designations are unique per type,
+ *  so they are pickers rather than per-row checkboxes. */
+function PropertyRows({ drafts, onChange, sharedMap }: {
+  drafts: PropertyDraft[]
+  onChange: (next: PropertyDraft[]) => void
+  sharedMap: Map<string, SharedPropertyDef>
+}) {
+  const named = drafts.filter((p) => p.label.trim())
+  const setProp = (i: number, patch: Partial<PropertyDraft>) => {
+    onChange(drafts.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
+  }
+  const designate = (field: 'isPrimaryKey' | 'isTitleKey', id: string) => {
+    onChange(drafts.map((p) => ({ ...p, [field]: draftId(p) === id })))
+  }
+  const pk = named.find((p) => p.isPrimaryKey)
+  const tk = named.find((p) => p.isTitleKey)
+  const advice = pk ? primaryKeyAdvice(pk.type) : null
+
+  return (
+    <div className="space-y-1.5">
+      <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
+
+      <div className="flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Primary key</span>
+          <HTMLSelect value={pk ? draftId(pk) : ''} onChange={(e) => { designate('isPrimaryKey', e.currentTarget.value) }}>
+            <option value="">Select...</option>
+            {named.filter((p) => primaryKeyEligibility(p.type) !== 'no')
+              .map((p) => <option key={draftId(p)} value={draftId(p)}>{p.label}</option>)}
+          </HTMLSelect>
+        </label>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</span>
+          <HTMLSelect value={tk ? draftId(tk) : ''} onChange={(e) => { designate('isTitleKey', e.currentTarget.value) }}>
+            <option value="">Select...</option>
+            {named.filter((p) => canBeTitleKey(p.type))
+              .map((p) => <option key={draftId(p)} value={draftId(p)}>{p.label}</option>)}
+          </HTMLSelect>
+        </label>
+      </div>
+      {advice && <p className="text-[11px] text-amber-600 max-w-2xl">{advice}</p>}
+
+      {drafts.map((p, i) => {
+        const def = p.sharedPropertyId ? sharedMap.get(p.sharedPropertyId) : undefined
+        // "Direct edits to property metadata that is inherited from the shared
+        // property will be disabled." `required` stays the object type's to decide.
+        return (
+          <div key={i} className="flex flex-wrap items-center gap-2">
+            {def && <Icon icon="globe" size={12} className="text-violet-500 shrink-0" title={`Inherits from "${def.apiName}"`} />}
+            {p.isPrimaryKey && <Icon icon="key" size={12} className="text-violet-500 shrink-0" title="Primary key" />}
+            {p.isTitleKey && <Icon icon="bookmark" size={12} className="text-violet-500 shrink-0" title="Title key" />}
+            <InputGroup size="small" placeholder="Property label" value={def?.label ?? p.label} disabled={!!def}
+              onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[150px]" />
+            <InputGroup size="small" placeholder={toCamel(p.label) || 'apiName'} value={p.apiName}
+              title="camelCase, unique within this object type"
+              onChange={(e) => { setProp(i, { apiName: e.currentTarget.value }) }} className="min-w-[110px] max-w-[130px] font-mono" />
+            <HTMLSelect value={def?.baseType ?? p.type} disabled={!!def}
+              onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
+              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value} title={t.help}>{t.label}</option>)}
+            </HTMLSelect>
+            {/* "A property's source can be User input / actions rather than a
+                dataset column" - so not every property is backed by data. */}
+            <HTMLSelect value={p.source ?? 'column'} title="Where the values come from"
+              onChange={(e) => { setProp(i, { source: e.currentTarget.value as 'column' | 'user_input' }) }}>
+              <option value="column">Datasource column</option>
+              <option value="user_input">User input / actions</option>
+            </HTMLSelect>
+            {(p.source ?? 'column') === 'column' && (
+              <InputGroup size="small" placeholder={toSlug(p.label) || 'column'} value={p.backingColumn ?? ''}
+                title="The column in the backing datasource"
+                onChange={(e) => { setProp(i, { backingColumn: e.currentTarget.value }) }} className="min-w-[100px] max-w-[130px] font-mono" />
+            )}
+            <HTMLSelect value={p.sharedPropertyId ?? ''} title="Inherit this property's metadata from a shared definition"
+              onChange={(e) => { setProp(i, { sharedPropertyId: e.currentTarget.value || null }) }}>
+              <option value="">Not shared</option>
+              {[...sharedMap.values()].map((d) => (
+                <option key={d.id} value={d.id}
+                  disabled={!!attachProblem({ ...p, key: p.key || 'x' }, d)}>
+                  {d.label} ({d.baseType})
+                </option>
+              ))}
+            </HTMLSelect>
+            <Checkbox checked={p.required} label="Required" disabled={p.isPrimaryKey}
+              title={p.isPrimaryKey ? 'A nullable key is not a key' : undefined}
+              onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
+            <Button variant="minimal" size="small" icon="cross"
+              onClick={() => { onChange(drafts.filter((_, idx) => idx !== i)) }} />
+          </div>
+        )
+      })}
+      <Button variant="minimal" size="small" icon="add"
+        onClick={() => { onChange([...drafts, newProperty()]) }}>Add property</Button>
+    </div>
+  )
+}
 
 export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
@@ -103,7 +224,7 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
   const del = useDeleteSharedProperty()
   const [label, setLabel] = useState('')
   const [description, setDescription] = useState('')
-  const [baseType, setBaseType] = useState<PropertyType>('text')
+  const [baseType, setBaseType] = useState<PropertyType>('string')
   const apiName = toSlug(label)
 
   return (
@@ -150,7 +271,7 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
         <Card compact className="!p-0">
           <ul className="divide-y divide-border/30">
             {defs.map((d) => {
-              const consumers = usedBy(d.apiName, types)
+              const consumers = usedBy(d.id, types)
               return (
                 <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
                   <Icon icon="globe" size={11} className="text-violet-500 shrink-0" />
@@ -178,16 +299,15 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
 
 function TypeBuilder() {
   const create = useCreateObjectType()
+  const sharedMap = useSharedPropertyMap()
   const [label, setLabel] = useState('')
   const [icon, setIcon] = useState<IconName>('cube')
   const [description, setDescription] = useState('')
-  const [props, setProps] = useState<PropertyDraft[]>([{ label: '', type: 'text', required: false }])
+  const [props, setProps] = useState<PropertyDraft[]>([newProperty()])
   const [computed, setComputed] = useState<ComputedRow[]>([])
 
-  const apiName = toSlug(label)
-  const properties: PropertyDef[] = props
-    .filter((p) => p.label.trim())
-    .map((p) => ({ key: toSlug(p.label), label: p.label.trim(), type: p.type, required: p.required }))
+  const apiName = toPascal(label)
+  const properties = draftsToProperties(props)
   const computedProperties: ComputedPropertyDef[] = computed
     .filter((c) => c.label.trim())
     .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
@@ -195,14 +315,11 @@ function TypeBuilder() {
   const computedErrors = computedProperties.flatMap((cp) => validateComputedProperty(cp, properties).errors)
   const canSave = validation.ok && computedErrors.length === 0
 
-  const setProp = (i: number, patch: Partial<PropertyDraft>) =>
-    { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
-
   const submit = () => {
     if (!canSave) return
     create.mutate(
-      { apiName, label: label.trim(), icon, description: description.trim(), properties, computedProperties },
-      { onSuccess: () => { setLabel(''); setDescription(''); setProps([{ label: '', type: 'text', required: false }]); setComputed([]); setIcon('cube') } },
+      { apiName, label: label.trim(), icon, description: description.trim(), properties },
+      { onSuccess: () => { setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube') } },
     )
   }
 
@@ -222,20 +339,7 @@ function TypeBuilder() {
       </div>
       <TextArea placeholder="Description (optional)" value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
 
-      <div className="space-y-1.5">
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
-        {props.map((p, i) => (
-          <div key={i} className="flex flex-wrap items-center gap-2">
-            <InputGroup size="small" placeholder="Property label" value={p.label} onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
-            <HTMLSelect value={p.type} onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
-              {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-            </HTMLSelect>
-            <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
-            <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
-          </div>
-        ))}
-        <Button variant="minimal" size="small" icon="add" onClick={() => { setProps((cur) => [...cur, { label: '', type: 'text', required: false }]) }}>Add property</Button>
-      </div>
+      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap} />
 
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
@@ -256,7 +360,7 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
       <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Computed properties</span>
       {rows.map((row, i) => {
         const fnDef = COMPUTED_FNS.find((f) => f.value === row.fn)
-        const eligible = fnDef ? properties.filter((p) => p.type === fnDef.inputType) : []
+        const eligible = fnDef ? properties.filter((p) => acceptsInput(fnDef.inputType, p.type)) : []
         return (
           <div key={i} className="flex flex-wrap items-center gap-2">
             <InputGroup size="small" placeholder="Computed label (e.g. Days open)" value={row.label} onChange={(e) => { set(i, { label: e.currentTarget.value }) }} className="min-w-[150px]" />
@@ -324,20 +428,13 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
   const [icon, setIcon] = useState<IconName>(type.icon as IconName)
   const [description, setDescription] = useState(type.description)
   const sharedMap = useSharedPropertyMap()
-  const [props, setProps] = useState<(PropertyDef & { isNew?: boolean })[]>(type.properties)
+  const [props, setProps] = useState<PropertyDraft[]>(type.properties)
   const [computed, setComputed] = useState<ComputedRow[]>(
     type.computedProperties.map((c) => ({ label: c.label, fn: c.fn, inputs: c.inputs })),
   )
   const [viewConfig, setViewConfig] = useState<ViewConfigDef>(type.viewConfig)
 
-  // `shared` travels with the property — dropping it here would silently detach
-  // every inheriting property on the next save.
-  const properties: PropertyDef[] = props
-    .filter((p) => p.label.trim())
-    .map((p) => ({
-      key: p.isNew ? toSlug(p.label) : p.key, label: p.label.trim(),
-      type: p.type, required: p.required, shared: p.shared ?? null,
-    }))
+  const properties = draftsToProperties(props)
   const computedProperties: ComputedPropertyDef[] = computed
     .filter((c) => c.label.trim())
     .map((c) => ({ key: toSlug(c.label), label: c.label.trim(), fn: c.fn, inputs: c.inputs }))
@@ -347,9 +444,6 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
   const viewErrors = validateViewConfig(viewConfig, { properties, computedProperties }).errors
     .filter((e) => e.includes('title') || e.includes('more than one'))
   const canSave = validation.ok && computedErrors.length === 0 && viewErrors.length === 0
-
-  const setProp = (i: number, patch: Partial<PropertyDef>) =>
-    { setProps((cur) => cur.map((p, idx) => (idx === i ? { ...p, ...patch } : p))) }
 
   const save = () => {
     if (!canSave) return
@@ -383,42 +477,7 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
       </div>
       <TextArea value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
 
-      <div className="space-y-1.5">
-        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Properties</span>
-        {props.map((p, i) => {
-          const def = p.shared ? sharedMap.get(p.shared) : undefined
-          // "Direct edits to property metadata that is inherited from the shared
-          // property will be disabled." An editable copy is the drift this exists
-          // to remove. `required` stays the object type's to decide.
-          return (
-            <div key={i} className="flex flex-wrap items-center gap-2">
-              {def && <Icon icon="globe" size={12} className="text-violet-500 shrink-0" title={`Inherits from "${def.apiName}"`} />}
-              <InputGroup size="small" value={def?.label ?? p.label} disabled={!!def}
-                onChange={(e) => { setProp(i, { label: e.currentTarget.value }) }} className="flex-1 min-w-[160px]" />
-              <HTMLSelect value={def?.baseType ?? p.type} disabled={!!def}
-                onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
-                {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-              </HTMLSelect>
-              <HTMLSelect value={p.shared ?? ''} title="Inherit this property's metadata from a shared definition"
-                onChange={(e) => { setProp(i, { shared: e.currentTarget.value || null }) }}>
-                <option value="">Not shared</option>
-                {[...sharedMap.values()].map((d) => (
-                  <option key={d.apiName} value={d.apiName}
-                    disabled={!!attachProblem({ ...p, key: p.key || 'x' }, d)}>
-                    {d.label} ({d.baseType})
-                  </option>
-                ))}
-              </HTMLSelect>
-              <Checkbox checked={p.required} label="Required" onChange={() => { setProp(i, { required: !p.required }) }} className="mb-0" />
-              <Button variant="minimal" size="small" icon="cross" onClick={() => { setProps((cur) => cur.filter((_, idx) => idx !== i)) }} />
-            </div>
-          )
-        })}
-        <Button variant="minimal" size="small" icon="add"
-          onClick={() => { setProps((cur) => [...cur, { key: '', label: '', type: 'text', required: false, isNew: true }]) }}>
-          Add property
-        </Button>
-      </div>
+      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap} />
 
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 

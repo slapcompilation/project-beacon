@@ -43,8 +43,9 @@ export function subjectLabel(s: SetSubject): string {
 /** Schema properties plus computed ones — a set can filter on a computed value
  *  exactly like a stored one. */
 export function allProperties(type: ObjectTypeDef): PropertyDef[] {
+  // A computed value is derived at read time, so it has no column and no row.
   const computed: PropertyDef[] = type.computedProperties.map((c) => ({
-    key: c.key, label: c.label, type: 'number', required: false,
+    key: c.key, label: c.label, apiName: c.key, type: 'integer', required: false,
   }))
   return [...type.properties, ...computed]
 }
@@ -210,13 +211,13 @@ export function validateSetDefinition(draft: SetDefinition, subject: SetSubject 
     // A required parameter always supplies the value, so its literal is never
     // read — only check the fallback when the caller may omit the argument.
     const literalIsRead = f.param === undefined || byParam.get(f.param)?.required === false
-    if (literalIsRead && p.type === 'number' && typeof f.value !== 'number') {
+    if (literalIsRead && p.type === 'integer' && typeof f.value !== 'number') {
       errors.push(`Filter on "${p.label}" needs a number`)
     }
     if (literalIsRead && p.type === 'boolean' && typeof f.value !== 'boolean') {
       errors.push(`Filter on "${p.label}" needs true or false`)
     }
-    if ((p.type === 'text' || p.type === 'boolean') && f.op !== 'eq' && f.op !== 'neq') {
+    if ((p.type === 'string' || p.type === 'boolean') && f.op !== 'eq' && f.op !== 'neq') {
       errors.push(`"${p.label}" can only be compared with is / is not`)
     }
   }
@@ -245,7 +246,7 @@ export function bindSetArgs(
       if (p.required) errors.push(`Missing required argument "${p.key}" (${p.label})`)
       return { ...f, value: f.value }   // authored fallback
     }
-    if (p.type === 'number') {
+    if (p.type === 'integer') {
       const n = Number(given)
       if (!Number.isFinite(n)) { errors.push(`"${p.key}" must be a number`); return f }
       return { ...f, value: n }

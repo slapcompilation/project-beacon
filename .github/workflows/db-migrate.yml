@@ -22,13 +22,13 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/**'
-      - 'scripts/check-datasets.mjs'
+      - 'scripts/check-platform.mjs'
       - '.github/workflows/db-migrate.yml'
   push:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
-      - 'scripts/check-datasets.mjs'
+      - 'scripts/check-platform.mjs'
       - '.github/workflows/db-migrate.yml'
   workflow_dispatch:
 
@@ -82,4 +82,4 @@ jobs:
         if: github.event_name != 'pull_request'
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
-          pnpm check:datasets
+          pnpm check:platform

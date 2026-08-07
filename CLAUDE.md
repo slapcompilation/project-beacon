@@ -110,7 +110,9 @@ Eleven tables, and every value in every CHECK traces to a page:
 
 | table | what it holds |
 |---|---|
-| `object_types` | api name, label, properties, status, visibility, title key, source table |
+| `object_types` | api name (PascalCase), label, status, visibility |
+| `object_type_properties` | one row per property: api name, base type, source, backing column, the two key designations |
+| `object_type_datasources` | which dataset and branch backs a type |
 | `link_types` | the two sides, cardinality, backing |
 | `ontology_interfaces`, `object_type_interfaces` | interfaces and their implementations |
 | `shared_properties` | one definition used by several types |
@@ -119,9 +121,10 @@ Eleven tables, and every value in every CHECK traces to a page:
 | `projects`, `project_resources`, `project_role_grants` | Compass: owner/editor/viewer/discoverer |
 | `organizations`, `users` | the tenant, and who is in it |
 
-**The ontology has no way to hold an object yet.** `object_types` can describe
-one; nothing stores instances. That is the datasource model, and it is the first
-thing to build.
+**The ontology has no way to hold an object yet.** A type can now describe one
+completely — properties are rows, the primary key and title key are designations
+on them, and each names the datasource column it reads. What is missing is the
+step that turns that description into stored instances.
 
 ## Commands
 
@@ -132,6 +135,7 @@ pnpm --filter @beacon/web dev
 pnpm turbo lint type-check test  # what CI runs
 pnpm check:rpcs                  # every RPC the app calls exists
 pnpm check:surfaces              # every web file is reachable from main.tsx
+pnpm check:platform              # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
 pnpm gen:ontology                # regenerate types from object_types
 ```
@@ -142,6 +146,30 @@ pnpm gen:ontology                # regenerate types from object_types
 and answer by walking something — the RPC names the app calls, the import graph
 from `main.tsx`.
 
+`check:platform` (was `check:datasets`) is the third, and it is a different kind:
+it **runs the algorithm and compares against the answer the documentation
+prints**. `data-integration/datasets#example-of-transaction-types` states the
+view after each of five transactions; markings, scoped sessions and the
+datasource binding each state their outcome the same way. Nothing in it is
+structural — no grep for a function name, no list of tables. The guarded-table
+list is derived from `pg_class WHERE relrowsecurity`.
+
+**It runs at least one pass as `authenticated`.** Connecting as the DB owner
+bypasses RLS, which is how two infinite recursions sat in production while every
+guard stayed green. A policy may not read the table it guards.
+
+It cannot move into the migrations that own those algorithms: **applied
+migrations are immutable and run once**, so an assertion placed in one would
+never run again where it had already been applied. Migration assertions prove a
+change at the moment it lands; this proves it still holds.
+
+**Ontology content is not its job.** "Does every object type have a primary key,
+does every property name a column its datasource actually has" is
+`ontology_violations()` — a query against the ontology, which is Foundry's own
+shape ("Ontology owners... write linters that check the entity definitions",
+`superrepo/core-concepts.md`). `check:platform` asks it one question: **is the
+ontology we actually have well-formed?**
+
 `check:shape` and `check:vocabulary` are deleted, with `shape_registry`. They
 depended on an allowlist that let a static scan tell "deliberately ahead of its
 runtime" from "dead". **Foundry needs no such table**: the platform indexes
@@ -150,10 +178,10 @@ Here the ontology is its own registry — `object_types` is the list of what
 exists. Wanting an allowlist is the signal to index instead.
 
 The RLS contract suite is also gone; Foundry handles data contracts another way
-and we take that shape when we reach it. **This has a cost that already
-landed**: `auth_org_id()` kept reading a dropped table for a day, and every
-policy calls it. Nothing static catches that. Until there is a replacement,
-assume RLS is unverified.
+and we take that shape when we reach it. **This had a cost that landed**:
+`auth_org_id()` kept reading a dropped table for a day, and every policy calls
+it. Nothing static catches that — the replacement is `check:platform`'s
+`authenticated` pass, which reads every RLS-guarded table in the catalog.
 
 ## Substrate
 

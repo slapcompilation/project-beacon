@@ -27,13 +27,17 @@ export interface SharedPropertyDef {
  *  `required` are the object type's own; the rest may be inherited. */
 export interface ResolvedProperty {
   key: string
+  /** Never inherited. "the property ID and API name of the object-specific
+   *  property will remain unchanged so as to not break existing downstream
+   *  workflows." */
+  apiName: string
   label: string
   type: PropertyType
   required: boolean
   description: string
   visibility: 'prominent' | 'normal' | 'hidden'
   /** The definition it inherits from, when it has one. */
-  shared: string | null
+  sharedPropertyId: string | null
 }
 
 /** Fields the object type may no longer edit while attached. Foundry: "direct
@@ -48,11 +52,12 @@ export const INHERITED_FIELDS = ['label', 'type', 'description', 'visibility'] a
 export function resolveProperty(
   p: PropertyDef, shared: ReadonlyMap<string, SharedPropertyDef>,
 ): ResolvedProperty {
-  const def = p.shared ? shared.get(p.shared) : undefined
+  const def = p.sharedPropertyId ? shared.get(p.sharedPropertyId) : undefined
   return {
     key: p.key,
+    apiName: p.apiName,
     required: p.required,
-    shared: p.shared ?? null,
+    sharedPropertyId: p.sharedPropertyId ?? null,
     label:       def?.label ?? p.label,
     type:        def?.baseType ?? p.type,
     description: def?.description ?? p.description ?? '',
@@ -81,7 +86,7 @@ export function attachProblem(p: PropertyDef, def: SharedPropertyDef): string | 
 /** Object types whose properties inherit from this definition — what changing
  *  it will move, and what stops it being deleted. */
 export function usedBy<T extends { label: string; properties: PropertyDef[] }>(
-  apiName: string, types: T[],
+  sharedPropertyId: string, types: T[],
 ): T[] {
-  return types.filter((t) => t.properties.some((p) => p.shared === apiName))
+  return types.filter((t) => t.properties.some((p) => p.sharedPropertyId === sharedPropertyId))
 }
