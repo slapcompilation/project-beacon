@@ -83,7 +83,7 @@ already builds a path; it has no folder level to walk.
 
 ## Phase B — the object type, completed
 
-### B1 · The metadata the Overview shows
+### B1 · The metadata the Overview shows — **BUILT** (415)
 
 From the annotated screenshot, exhaustively: **plural name · aliases[] · point of
 contact · contributors · id** (distinct from api_name — `generated-6a437f16-…`
@@ -92,7 +92,7 @@ track_edit_history**.
 
 `index_status` is **branch-aware** — the field reads `Not indexed on branch`.
 
-### B2 · Link ends
+### B2 · Link ends — **BUILT** (417)
 
 A link type is **two named ends**, each with its own API name and visibility:
 
@@ -101,9 +101,18 @@ A link type is **two named ends**, each with its own API name and visibility:
 | `Flight Alert → Flight` | "Each Flight Alert has **one** Flight" | `FlightAlert.`**`oftFlight`**`.get()` |
 | `Flight → Flight Alert` | "Each Flight has **many** Flight Alerts" | `oftFlight.`**`FlightAlerts2`**`.all()` |
 
-`link_type_ends(link_type_id, side, api_name, visibility)`; the `.get()`/`.all()`
-suffix is **derived from cardinality, never stored**. Replaces the single
-`api_name` on `link_types`.
+**Built as two columns, not a child table — a deliberate change from this
+plan.** The screenshot puts the RID on the *link type* and both sections inside
+its own Overview; neither end is separately addressable, so a child table would
+imply the end is a resource. It is a direction. `link_types` already carried
+`source_api_name`/`target_api_name` half-built; 417 completes the pair with
+`source_visibility`/`target_visibility` and derives the accessor via
+`link_accessor(link, side)` — `.get()` where that side sees one, `.all()` where
+it sees many, **never stored**.
+
+417 also deleted four columns belonging to no page: `backing_hotel_column`,
+`backing_time_column` (hospitality) and `edge_type`, `projected` (the old
+reality-graph edge model).
 
 Join method is one of two: **Foreign key** or **Dataset**.
 
@@ -120,7 +129,7 @@ object type, **ensuring that the 'one' side of the Cardinality is unique**".
 Visibility has stated behaviour: `prominent` "will prompt applications to **show
 this link type first**"; `hidden` "will **not appear** in user applications".
 
-### B3 · Type groups
+### B3 · Type groups — **BUILT** (416)
 
 > "Object type groups are a **classification primitive** that help users better
 > search and explore their ontology."
@@ -135,7 +144,7 @@ this link type first**"; `hidden` "will **not appear** in user applications".
 Detail panel is **Content · Display · Permissions**; membership is editable from
 either end; it is a search and filter facet.
 
-### B4 · Capabilities
+### B4 · Capabilities — **BUILT** (415)
 
 **Capabilities is what type classes became.** `metadata-typeclasses` carries a
 column reading *"Configure in **Capabilities** page of object type"*, and:

@@ -41,7 +41,7 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (45) ───────────────────────────────────────────────────
+// ── FUNCTIONS (47) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
@@ -119,6 +119,16 @@ export const canWriteDataset = { apiName: 'can_write_dataset', kind: 'function' 
 export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'function' } as FunctionType<
   { p_dataset: string },
   boolean
+>
+
+/**
+ *  The slot-based Capabilities vocabulary, from metadata-typeclasses (the
+ *  page it replaces) and the Geospatial panel screenshot. Time series is the
+ *  other panel shape and lives in time_series_properties.
+ */
+export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { capability: string; slot: string; accepts: string[]; note: string }[]
 >
 
 /**
@@ -242,6 +252,16 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_min: string },
   boolean
+>
+
+/**
+ *  The generated accessor for one end of a link type: .get() where that side
+ *  sees one, .all() where it sees many. Derived from cardinality so the two
+ *  can never disagree.
+ */
+export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as FunctionType<
+  { p_link: string; p_side: string },
+  string
 >
 
 /**
