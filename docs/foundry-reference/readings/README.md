@@ -185,5 +185,14 @@ is worth most just before the thing it describes gets built. Nothing here is
   resources too. **Capabilities remains unanswered** — the suggested page is a
   generative-AI stub.
 
-Nineteen readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `capabilities-value-types-and-groups.md` — **an Ontology belongs to a SPACE,
+  one per space** (found in a value-types aside, and it settles where the
+  container lives). **Capabilities** is where an object type nominates which of
+  its properties fulfil a platform capability — assembled from five consumers
+  because the tab has no page of its own. **Value types** are semantic wrappers
+  with constraints that run at INDEX time; **type groups** are a classification
+  primitive living in a project. Plus the object type Overview's seven sections,
+  of which **Dependents** is the resource index we have no equivalent of.
+
+Twenty readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
