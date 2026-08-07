@@ -1,6 +1,6 @@
 # The ontology build map
 
-What to build, in order, from five readings. **Everything here is quoted or
+What to build, in order, from six readings. **Everything here is quoted or
 read off a screenshot.** Anything I could not attest is in the open questions at
 the end, not in the map.
 
@@ -9,6 +9,7 @@ Readings this consolidates:
 - `foundry-reference/readings/compass-branching-and-views.md`
 - `foundry-reference/readings/capabilities-value-types-and-groups.md`
 - `foundry-reference/readings/materializations-links-media-and-rids.md`
+- `foundry-reference/readings/capabilities-typeclasses-and-branching.md`
 - `foundry-reference/readings/create-object-type.md`, `properties-and-keys.md`,
   `spaces-and-the-resource-path.md`, `rid-grammar.md`
 
@@ -51,6 +52,13 @@ avoid any naming conflicts with any similar types found in your ontology."*
 
 Carries the Ontology picker (which is a space picker), and the `Ontology:` field
 on every object type's Overview.
+
+**A second reason, from release management:** *"**Spaces** are a flexible
+primitive… that allow for **environment separation**… Development, Test,
+Production, **each represented as a 'space'**."* So one-ontology-per-space is
+also what gives each environment its own ontology. Branching works *within* an
+environment; promotion *between* them is Marketplace. They are "**complementary
+solutions to different problems**", and only the latter offers rollback.
 
 ### A2 · `folders`
 
@@ -123,36 +131,56 @@ either end; it is a search and filter facet.
 
 ### B4 · Capabilities
 
-An object type **nominates** which of its properties fulfil a platform
-capability. The shape is `(object_type, capability, slot, property)`.
+**Capabilities is what type classes became.** `metadata-typeclasses` carries a
+column reading *"Configure in **Capabilities** page of object type"*, and:
 
-`object_type_capabilities(object_type_id, capability, slot, property_id)` with a
-unique key on the first three.
+> "object types now have a **Capabilities** page to configure features
+> **historically defined as type classes**. The configuration of **all supported
+> type classes will move to the Capabilities page**."
 
-Attested slots:
+That is why the tab has no page of its own — it is a migration target, and the
+predecessor's table enumerates its contents.
 
-| capability | slot | constraint stated |
-|---|---|---|
-| geospatial | `radius` | "any **numeric** property measured in meters" |
-| geospatial | `h3_cell` | "a **string** property contains H3 cell IDs" |
-| geospatial | `track_latitude`, `track_longitude` | "must be **numeric time series** properties" |
-| event | `event_start_time`, `event_end_time` | "**timestamp** properties" |
-| media | `media_source` | "the media set that the media references point to" |
+**A capability is a panel** (icon · title · one-line description · *Learn more* ·
+collapse), and there are **two shapes**:
 
-**The set of capabilities is open** (see Q1) — so the table stores the capability
-as a value and validates the *slot's type constraint*, rather than hardcoding a
+**Slot-based** — named slots, each a `Choose a property ▾`. Geospatial, verbatim
+from the screenshot:
+
+| slot | stated constraint |
+|---|---|
+| **Altitude** | "Numeric (or numeric time series) property specifying altitude/elevation… in meters" |
+| **Radius** | "Numeric property specifying the radius in meters… **must also have a 'Geopoint' property** indicating the center of the circle" |
+| **H3 cell** | "**String property, or array of strings**, containing H3 cell IDs" |
+| **Track Latitude** / **Track Longitude** | "**Time series property**, representing the Object's Latitude / Longitude" |
+
+`object_type_capabilities(object_type_id, capability, slot, property_id)`, unique
+on the first three, with the slot's type constraint validated rather than a
 column per capability.
 
-`map/events` confirms the event slots from the other side — "Configured in
-Ontology Manager, event objects contain **start and end timestamp properties**" —
-and draws the boundary: an **event object** is configured on the object type,
-a **timeline geometry** per-map in the Layers panel. The ontology owns the first.
+The **Event** slots come from the same table: `event_id` ("globally unique across
+all event objects"), `event_start_time`, `event_end_time` ("a time value, e.g. a
+`TIMESTAMP`"), `event_description` ("**required** if the event object type will be
+used for annotation writeback"), `event_root_object_id`, `event_linked_series_id`
+("**String arrays as well as single strings** are supported").
 
-The media slot names a **media set**, which has "a **schema type**… such as
-documents, images, or audio" and "a **primary format**… that all files in the
-media set must be". Two constraints from `media-in-ontology`: media uploaded in
-an action form is "only uploaded… **upon successful form submission**", and
-"**Media reference lists are not supported** as a property type on an object".
+**List-based** — a table with its own columns, not slots. **Time series** is
+`Time series properties [n]` with **+ Add property** / **Analyze**, columns
+**PROPERTY NAME · TIME SERIES SYNC · BASE FORMATTER**.
+
+**We already have `time_series_properties` (12 columns).** It *is* the
+list-shaped capability, built before I knew it was one. What it owes: a **sync**
+reference and a **base formatter**, plus the fields the type-class table names —
+`timeseries_id` ("the **only** type class that is **required** for your object to
+be discoverable in Quiver"), `measure`, `units`, `internal_interpolation`
+("how Quiver **infers series values between adjacent data points**"),
+`root_object_id`, `is_enum`, `is_deprecated`.
+
+The **media** slot names the media set the references point to.
+
+Setup flow, for the record: *Capabilities (**beneath Observability**) → panel →
+Get started → object type property → time series sync → Standard time series
+property → Add property*.
 
 ### B5 · Interface link type constraints
 
@@ -171,13 +199,18 @@ types — a constraint table, with links beside properties.
 
 ### B6 · Type classes
 
-> "Apply **type classes** as **additional metadata that can be interpreted by
-> applications**."
+> "Type classes can be applied to **properties, link types, and action types**."
 
-The open extension point. It appears on object types and link types, and it is
-where un-migratable legacy group names went. One small table
-`type_classes(resource_kind, resource_id, key, value)`, because three separate
-pages now depend on it existing.
+**Not to object types directly** — the legacy group type class went on "the
+**primary key property** of an object type", which is how an object-level fact
+was expressed through a property. Two user-set fields, **Kind** and **Name**.
+
+Inert application metadata, **with one exception**: "With the exception of the
+`analyzer` type class kind, **which affects indexing behavior**…"
+
+`type_classes(resource_kind ∈ property|link_type|action_type, resource_id, kind,
+name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
+`searchable`) and now owns what `analyzer.not_indexed` used to.
 
 ---
 
@@ -215,8 +248,28 @@ protection *forces* it.
 > "You can **only branch from the main ontology**, also known as `main` branch."
 
 `ontology_branches(id, ontology_id, name, title, description, created_by,
-status)` — `main` always exists — plus per-resource change tracking so a branch
-can answer "what did I touch".
+status)` — `main` always exists.
+
+**How a branch stores a change is settled:** *"For true conflicts — **where the
+same property of the same resource was edited on both `main` and your branch**"*
+— so state is **per-resource, per-field**, not a whole-resource copy, which could
+not tell a conflicting edit from a neighbouring one. Confirmed from the other
+side: *"Removing a resource from a branch **returns its state to the version of
+the resource on the `main` branch**."* A resource is either on the branch with
+its changed fields, or not on it and therefore main's.
+
+**And an asymmetry:** *"creating or deleting Foundry resources on a branch **will
+affect `main`**. **This does not apply to ontology resources**: you can create,
+modify, or delete entities on the branch without affecting `main`."*
+
+**Lifecycle — four states, and Merged is terminal.** Active (self-loop on
+activity) → Merged / Archived ("archiving is always **manual**") / Inactive
+(after a configurable idle period; "ontology resources are **de-indexed**…
+Builds… will **immediately fail**"). Inactive returns to Active by "manually
+activate **or action on branch or action on proposal**", and can merge or archive
+directly. Archived restores to Active. Defaults: **35 days** to inactive, **7
+more** to data deletion, set per-space. Recovery needs "a **no-op change**… to
+trigger re-indexing".
 
 **Rebase:** take main's changes; conflicts resolve **per resource** with three
 choices — *Use Main branch changes* · *Keep current branch changes* · a **custom
@@ -241,7 +294,29 @@ which is what the quote above requires.
 **Merge checks are a separate column from approval.** The screenshot shows a row
 that is `Auto-approved` and still carries a red ✕.
 
+**Proposal states: Open · Merged · Closed.** And the rule that shapes the schema:
+*"A **single rejection from any user**… will cause the resource's changes to be
+`Rejected`. This will **prevent the entire proposal from merging**."*
+
+Merging offers three build options — **all affected / modified only / none** —
+and *"You **cannot currently revert a partially-failed merge**."*
+
 ### D3 · Protection
+
+**Branch roles are not resource permissions**, and the separation is worth
+copying: *"Branch roles control access to **branch management actions only** and
+**do not grant permissions to edit resources** on the branch."* `Owner` (≥1, the
+creator by default) manages metadata, roles, organizations, archive/restore and a
+**Do not merge** setting.
+
+And merge rights are deliberately **wider** than edit rights: *"**Any user who can
+view a proposal can merge it**… The person who merges may be submitting changes
+to resources that **they cannot edit themselves. This is by design**… merging only
+applies **pre-authored and approved** changes."*
+
+Approval policies are set at the **project** level and satisfied either
+"**Automatically**, when the contributor's own permissions cover the policy" or
+"**Through review**".
 
 Exactly five resource types are protectable — **object, action, link, interface,
 shared property** — and explicitly **not** type groups, **not** rule sets ("the
@@ -426,24 +501,13 @@ on one: its "**Trashed datasource**" flag is a Compass query.
 
 ## Blocking — I would ask before building that phase
 
-**Q1 · The canonical set of Capabilities sections.** Still open after reading
-`map/events`, `functions/media`, `media-overview` and `media-in-ontology`. The
-tab has **no page of its own**; Geospatial, Event and media source are assembled
-from five consumers, all of them Map or media. *Blocks B4's vocabulary, not its
-shape — the table stores the capability as a value, so a missing one is a row,
-not a migration.*
-
-**Q2 · How a branch stores a working change.** A copy of each changed resource,
-or a delta? Foundry shows `189 edits` and a per-resource diff either way. Both
-work; the choice is structural and hard to reverse. *Blocks D1.*
-
-**Q3 · RID forms for five resource kinds.** Attested: ontology
+**Q1 · RID forms for five resource kinds.** Attested: ontology
 (`ri.ontology.main.ontology.<id>`), object type, type group, folder, dataset,
 transaction, media set/item/view, object set, source, scenario. **Unattested:
 link type, shared property, action type, interface, value type.** The RID *spec*
-is now known exactly, so the risk is only in the `<type>` segment's spelling.
-*Blocks nothing outright — but a RID that has to be renamed later is a stored
-generated column across every row.*
+is now known exactly (`palantir/resource-identifier`), so the only unknown is the
+`<type>` segment's spelling. *Weakly blocking — a RID that has to be renamed
+later is a stored generated column across every row.*
 
 ## Non-blocking — a sensible default exists
 
@@ -458,7 +522,16 @@ full.
 **Q6 · Where function code lives** — G2's dependency, and a product decision
 rather than a documentation gap.
 
-## Closed by this round
+## Closed by the last two rounds
+
+- ~~The canonical Capabilities list~~ → **B4.** Capabilities is what type classes
+  became; `metadata-typeclasses` enumerates it, and
+  `geospatial-time-series-ontology` shows the page rendered — including a
+  **second panel shape** I had not modelled.
+- ~~How a branch stores a working change~~ → **D1.** Per-resource, **per-field**:
+  conflicts are "the same **property** of the same resource… edited on both".
+
+## Closed earlier
 
 - ~~Capabilities is undocumented~~ → it is, through five consumers (B4).
 - ~~Materializations~~ → E3, fully specified.

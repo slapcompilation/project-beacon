@@ -202,5 +202,16 @@ is worth most just before the thing it describes gets built. Nothing here is
   flags**; and the RID spec from `palantir/resource-identifier` — which found a
   latent defect in our own `rid_locator()`, since **dots are legal in a locator**.
 
-Twenty-one readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `capabilities-typeclasses-and-branching.md` — **Capabilities is what type
+  classes became** ("all supported type classes will move to the Capabilities
+  page"), so its predecessor's table enumerates it; and it has **two panel
+  shapes** — slot-based (Geospatial) and list-based (Time series, which is our
+  existing `time_series_properties`). Branch state is **per-resource, per-field**
+  — a conflict is "the same **property** of the same resource edited on both".
+  Four branch states with Merged terminal; one rejection blocks a whole proposal;
+  branch roles are **not** resource permissions. And spaces are the
+  **environment-separation** primitive, so one-ontology-per-space also gives
+  dev/test/prod their own.
+
+Twenty-two readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
