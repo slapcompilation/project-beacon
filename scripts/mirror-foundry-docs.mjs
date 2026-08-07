@@ -23,11 +23,17 @@ const DELAY_MS = 400
 
 const args = process.argv.slice(2)
 const refresh = args.includes('--refresh')
-const sections = args.filter((a) => !a.startsWith('--'))
-if (sections.length === 0) {
+// Pages mirrored before mirrorImages handled absolute hrefs kept their
+// /docs/resources/... links and downloaded nothing. --images backfills those
+// without re-fetching a whole section's prose.
+const imagesOnly = args.includes('--images')
+const targets = args.filter((a) => !a.startsWith('--'))
+if (targets.length === 0) {
   console.error('usage: node scripts/mirror-foundry-docs.mjs [--refresh] <section>...')
+  console.error('       node scripts/mirror-foundry-docs.mjs --images <section>/<page>.md...')
   process.exit(2)
 }
+const sections = targets
 
 const all = fs.readFileSync(URLS, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean)
 const today = new Date().toISOString().slice(0, 10)
@@ -56,8 +62,71 @@ async function pageMarkdown(url) {
   return md
 }
 
-let written = 0, skipped = 0
+/** Save every image a page references, next to the page.
+ *
+ *  A screenshot often carries the UI shape the prose leaves out, so a mirror that
+ *  stores only markdown is a mirror you cannot fully read. Two forms appear, and
+ *  missing the second cost 629 images on the first pass:
+ *
+ *    ![alt](/docs/resources/...)   markdown, absolute
+ *    <img src="./media/x.png">     HTML, RELATIVE TO THE PAGE URL
+ *
+ *  Names are prefixed with the page slug because `./media/overview.png` is not
+ *  unique across pages — two sections would otherwise overwrite each other. */
+async function mirrorImages(md, section) {
+  const dir = path.join(MIRROR, section, 'images')
+  let out = md
+
+  const refs = [
+    ...md.matchAll(/!\[[^\]]*\]\((\.?\/[^)\s]+\.(?:png|jpe?g|gif|svg|webp))\)/gi),
+    ...md.matchAll(/<img[^>]+src="(\.?\/[^"\s]+\.(?:png|jpe?g|gif|svg|webp))"/gi),
+    // `<img src=./x.png>` — unquoted, which the two above both miss.
+    ...md.matchAll(/<img[^>]+src=(\.?\/[^"'\s>]+\.(?:png|jpe?g|gif|svg|webp))/gi),
+  ]
+
+  for (const m of refs) {
+    const href = m[1]
+    if (href.startsWith('./images/')) continue          // already mirrored
+    const name = href.split('/').pop()
+    const target = path.join(dir, name)
+    out = out.replaceAll(href, `./images/${name}`)
+    if (fs.existsSync(target)) continue
+
+    // `./media/x.png` on the page resolves to the section's resource folder, NOT
+    // to a path under the page. Getting this wrong is silent: the docs site is a
+    // SPA and answers 200 text/html for anything missing, so a wrong URL writes
+    // an HTML error page into a .png. Hence the content-type check below.
+    const abs = href.startsWith('/')
+      ? `https://www.palantir.com${href}`
+      : `https://www.palantir.com/docs/resources/foundry/${section}/${name}`
+    try {
+      const res = await fetch(abs, { headers: { 'user-agent': 'beacon-docs-mirror' } })
+      if (!res.ok) continue
+      if (!(res.headers.get('content-type') ?? '').startsWith('image/')) continue
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(target, Buffer.from(await res.arrayBuffer()))
+      images += 1
+    } catch { /* a missing image is not worth failing the page for */ }
+    await new Promise((r) => setTimeout(r, DELAY_MS))
+  }
+  return out
+}
+
+let written = 0, skipped = 0, images = 0
 const failures = []
+
+if (imagesOnly) {
+  for (const rel of targets) {
+    const file = path.join(MIRROR, rel)
+    if (!fs.existsSync(file)) { console.error(`  no such page: ${rel}`); continue }
+    const before = fs.readFileSync(file, 'utf8')
+    const after = await mirrorImages(before, rel.split(/[/\\]/)[0])
+    if (after !== before) fs.writeFileSync(file, after)
+    console.log(`  ${rel}`)
+  }
+  console.log(`\nimages ${images}`)
+  process.exit(0)
+}
 
 for (const section of sections) {
   const urls = all.filter((u) => u.includes(`/foundry/${section}/`) || u.endsWith(`/foundry/${section}`))
@@ -72,7 +141,7 @@ for (const section of sections) {
     const target = targetFor(url, section)
     if (!refresh && fs.existsSync(target)) { skipped += 1; continue }
     try {
-      const md = await pageMarkdown(url)
+      const md = await mirrorImages(await pageMarkdown(url), section)
       const header = `<!-- source: ${url} · mirrored ${today} from Palantir Foundry docs -->\n\n`
       fs.writeFileSync(target, header + md.trimEnd() + '\n')
       written += 1

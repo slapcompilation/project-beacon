@@ -76,8 +76,7 @@ export default defineConfig({
         manualChunks: {
           'react-vendor':     ['react', 'react-dom', 'react-router-dom'],
           'query-vendor':     ['@tanstack/react-query'],
-          'blueprint-vendor': ['@blueprintjs/core', '@blueprintjs/icons', '@blueprintjs/select', '@blueprintjs/table', '@blueprintjs/datetime2'],
-          'chart-vendor':     ['recharts'],
+          'blueprint-vendor': ['@blueprintjs/core', '@blueprintjs/icons'],
         },
       },
     },

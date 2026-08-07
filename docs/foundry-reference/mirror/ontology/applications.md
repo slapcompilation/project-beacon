@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/applications/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/applications/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Ontology-aware applications
 
@@ -24,7 +24,7 @@ For example, the `Airport` object type object view might provide the following i
 * Embedded `Airport Covid Response` workflow
 * Link to a `Root-Cause Analysis` of a `Flight delay` event related to the `Airport`
 
-![Object View Hub Example](/docs/resources/foundry/ontology/object-apps-object-view-hub.png)
+![Object View Hub Example](./images/object-apps-object-view-hub.png)
 
 ### Object Explorer
 
@@ -32,13 +32,13 @@ For example, the `Airport` object type object view might provide the following i
 
 The exploration view is a set of preset and configurable visualizations (such as charts or maps) that the user can further leverage to drill-down into specific subsets of objects. Object Explorer requires no pre-configuration and is geared towards less technical users.
 
-![Object Explorer](/docs/resources/foundry/ontology/object-apps-oe.png)
+![Object Explorer](./images/object-apps-oe.png)
 
 ### Quiver
 
 [**Quiver**](/docs/foundry/quiver/overview/) enables advanced analytical workflows in the Ontology layer through a visual point-and-click interface and a powerful charting library. Quiver can be used to support anything from simple linear drill-down analyses to highly-branched and complex analyses with aggregations and statistical functions. Quiver also supports native time series analysis. Quiver analyses can be templatized into read-only dashboards for broader consumption.
 
-![Quiver](/docs/resources/foundry/ontology/object-apps-quiver.png)
+![Quiver](./images/object-apps-quiver.png)
 
 ### Workshop
 
@@ -48,11 +48,11 @@ By leveraging high-quality [Layouts](/docs/foundry/workshop/concepts-layouts/) a
 
 *Workshop Editor View*
 
-![Workshop Editor View](/docs/resources/foundry/ontology/object-apps-workshop-editor-view.png)
+![Workshop Editor View](./images/object-apps-workshop-editor-view.png)
 
 *Final Workshop Module*
 
-![Final Workshop Module](/docs/resources/foundry/ontology/object-apps-workshop-module.png)
+![Final Workshop Module](./images/object-apps-workshop-module.png)
 
 ### Slate
 
@@ -60,23 +60,23 @@ By leveraging high-quality [Layouts](/docs/foundry/workshop/concepts-layouts/) a
 
 *Slate Editor View*
 
-![Slate Editor View](/docs/resources/foundry/ontology/object-apps-slate-editor-view.png)
+![Slate Editor View](./images/object-apps-slate-editor-view.png)
 
 *Slate Application View*
 
-![Slate Application View](/docs/resources/foundry/ontology/object-apps-slate-app-view.png)
+![Slate Application View](./images/object-apps-slate-app-view.png)
 
 ### Carbon
 
 [**Carbon**](/docs/foundry/carbon/overview/) enables combining multiple resources or applications in Foundry to create highly curated *workspaces* for operational users. By allowing you to combine analytical results such as dashboards, applications built in Workshop or Slate, and out-of-the-box capabilities such as Object Views and Object Explorer, Carbon enables workflow builders to perform the "last mile" of customization to create a highly tailored and usable experience for end users.
 
-![Carbon workspace](/docs/resources/foundry/ontology/carbon-workspace.png)
+![Carbon workspace](./images/carbon-workspace.png)
 
 ### Map
 
 The [**Map**](/docs/foundry/map/overview/) application allows you to bring together and analyze objects and other data in a geospatial context.
 
-![Map Application](/docs/resources/foundry/ontology/map-overview.png)
+![Map Application](./images/map-overview.png)
 
 ## Application comparison
 

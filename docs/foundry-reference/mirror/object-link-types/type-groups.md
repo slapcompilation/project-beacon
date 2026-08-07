@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/type-groups/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/type-groups/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Object type groups
 
@@ -8,17 +8,17 @@ Object type groups are a classification primitive that help users better search 
 
 Groups are created and managed via the groups menu, accessible in the Ontology Manager sidebar.
 
-![Choose or add a new group](/docs/resources/foundry/object-link-types/groups-menu.png)
+![Choose or add a new group](./images/groups-menu.png)
 
 Groups can also be added directly to object types by selecting **Edit groups** in the object type overview page.
 
-![add a group to an object type](/docs/resources/foundry/object-link-types/group-add-to-object.png)
+![add a group to an object type](./images/group-add-to-object.png)
 
 ## Group search and discovery
 
 Groups are searchable in [Ontology Manager's **Search** bar and **Search** bar dialog](/docs/foundry/ontology-manager/navigation/#header-search-bar). The table of object types in Ontology Manager supports displaying and filtering by group. Groups are also displayed on the [Object Explorer home page](/docs/foundry/object-explorer/getting-started/#group-exploration-b-c-d).
 
-![Filter By Group](/docs/resources/foundry/object-link-types/object-type-groups-add.png)
+![Filter By Group](./images/object-type-groups-add.png)
 
 ## Group permissions
 

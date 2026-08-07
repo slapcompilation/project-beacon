@@ -1,6 +1,6 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
-![data integration overview](/docs/resources/foundry/data-integration/1-Data.svg)
+![data integration overview](./images/1-Data.svg)
 
 # Data connectivity and integration
 

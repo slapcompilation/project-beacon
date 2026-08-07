@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/enable-gotham-integration/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/enable-gotham-integration/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Enable Gotham integration through type mapping
 
@@ -15,7 +15,7 @@ If your enrollment contains Map Rendering Service (MRS), then you do *not* need 
 
 If you are able to locate and select **Object search**, then your enrollment contains MRS.
 
-![The Data sources tab in Gaia's left panel displays Object search as an indicator of MRS installation.](/docs/resources/foundry/object-link-types/gaia-mrs-installation-indicator.png)
+![The Data sources tab in Gaia's left panel displays Object search as an indicator of MRS installation.](./images/gaia-mrs-installation-indicator.png)
 
 ***
 
@@ -43,7 +43,7 @@ To integrate data in your Foundry Ontology with Gotham, you will first need to t
 3. Select **Capabilities** within the object type's left-hand panel.
 4. Scroll down to the **Gotham Integration** panel and toggle on `Allow objects of this type to be accessed from Gotham applications`.
 
-![A user can toggle on Gotham Integration for an Object Type from Foundry's Ontology Manager application.](/docs/resources/foundry/object-link-types/enable-gotham-mapping.png)
+![A user can toggle on Gotham Integration for an Object Type from Foundry's Ontology Manager application.](./images/enable-gotham-mapping.png)
 
 :::callout{theme="neutral" title="Note"}
 Type mapped objects must contain a `geopoint` property to display on a Gaia map. The property can be native to the object type's backing dataset(s) or derived from a latitude/longitude pair or `geopoint` using Pipeline Builder's [create Ontology geopoint](/docs/foundry/pb-functions-expression/createOntologyGeopointV1/) transform feature.
@@ -68,7 +68,7 @@ Foundry automatically type maps all shared properties to make them available in 
 4. Select the green **Save** button on the right side of the top ribbon of your screen and review.
 5. Review the changes made to your object type and select **Save to ontology**.
 
-![A user can create a new object type or take over an existing when integrating their Foundry and Gotham ontology using a Criteria panel which enables them to select the object type's parent category.](/docs/resources/foundry/object-link-types/ontology-manager-gotham-integration-view.png)
+![A user can create a new object type or take over an existing when integrating their Foundry and Gotham ontology using a Criteria panel which enables them to select the object type's parent category.](./images/ontology-manager-gotham-integration-view.png)
 
 After you save your changes to the Ontology, scroll back up to the **Gotham Integration** section of the **Capabilities** page of your object type. You will now see a `Gotham URI` assigned to the object type and be able to view the `Installation status` reported by Gotham.
 

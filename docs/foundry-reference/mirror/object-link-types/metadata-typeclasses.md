@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-typeclasses/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-typeclasses/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Type classes
 
@@ -12,7 +12,7 @@ The chart below provides a list of known type classes. The columns in this chart
 * The **Type** column indicates whether the type class is applied to a property, link type (formerly known as relation), or action type.
 * The **Kind** and **Name** columns contain string values from two user-defined fields that are set when adding a type class in the Ontology Manager. These values are used by Foundry products to label a type class.
 
-<img src="./media/typeclasses-kind-name.png" alt="Add Type Class - Kind and Name fields" width="300" />
+<img src="./images/typeclasses-kind-name.png" alt="Add Type Class - Kind and Name fields" width="300" />
 
 * The **Description** column describes the intended behavior of user applications when interacting with a property value, link, or action for which the listed type class has been added.
   * [Object Explorer](/docs/foundry/object-views/overview/) is an application that consumes `hubble` type classes.

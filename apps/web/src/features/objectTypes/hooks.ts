@@ -1,48 +1,61 @@
+// Object types, link types, and the datasources that back them.
+//
+// Halved by migration 405. Everything to do with object_records,
+// object_type_revisions and object_links went with the tables themselves
+// (migrations 382/385/387) — those hooks had been querying dropped tables since,
+// invisibly, because check:surfaces walks the import graph at file granularity
+// and the file was still reachable.
+//
+// The authored-versus-built-in split went too: "Foundry classifies object types
+// by their datasource and has no notion of a built-in one", so the two readers
+// that used to differ now agree.
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import type { ObjectTypeDef } from '@beacon/reality-graph'
+import { STATUS_META } from '@beacon/ontology'
 import {
-  fetchObjectTypes, fetchOntologyTypes, fetchObjectTypeCards, createObjectType, deleteObjectType,
-  updateObjectType, fetchRevisions, restoreRevision,
-  fetchObjectRecords, fetchObjectRecordsForTypes, fetchObjectRecord, fetchBuiltinRecord,
-  createObjectRecord, deleteObjectRecord,
+  fetchObjectTypes, saveObjectType, deleteObjectType, setObjectTypeStatus, updateObjectType,
+  fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
-  fetchLinksForRecord, createObjectLink, deleteObjectLink,
-  type CreateObjectTypeInput, type CreateObjectRecordInput,
-  type UpdateObjectTypeInput, type ObjectTypeRevisionRow,
-  type CreateLinkTypeInput, type CreateObjectLinkInput,
-  fetchTypeImpact,
+  fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
+  type UpdateObjectTypeInput, type CreateLinkTypeInput,
 } from './api'
 
 const keys = {
   types: ['object-types'] as const,
-  ontology: ['ontology-types'] as const,
-  cards: ['object-type-cards'] as const,
-  records: (typeId: string) => ['object-records', typeId] as const,
   linkTypes: ['link-types'] as const,
-  recordLinks: (recordId: string) => ['record-links', recordId] as const,
-  revisions: (typeId: string) => ['object-type-revisions', typeId] as const,
+  datasources: (typeId: string) => ['object-type-datasources', typeId] as const,
+  problems: (typeId: string) => ['object-type-problems', typeId] as const,
 }
 
 export function useObjectTypes() {
   return useQuery({ queryKey: keys.types, queryFn: fetchObjectTypes, staleTime: 30_000 })
 }
 
-/** The whole ontology — authored plus built-in registrations. */
-export function useOntologyTypes() {
-  return useQuery({ queryKey: keys.ontology, queryFn: fetchOntologyTypes, staleTime: 30_000 })
-}
-
-export function useObjectTypeCards() {
-  return useQuery({ queryKey: keys.cards, queryFn: fetchObjectTypeCards, staleTime: 30_000 })
+/** One computed property's definition, straight from the ontology — so the value
+ *  and the sentence explaining it travel together as data. */
+export function useOntologyComputed(apiName: string, key: string) {
+  const { data: rows = [] } = useObjectTypes()
+  const row = rows.find((r) => r.api_name === apiName)
+  return row?.computed_properties?.find((c) => c.key === key)
 }
 
 export function useCreateObjectType() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: CreateObjectTypeInput) => createObjectType(input),
+    mutationFn: (input: Parameters<typeof saveObjectType>[0]) => saveObjectType(input),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.types }); toast.success('Object type created') },
     onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** The `❗4 errors` badge. Asked of the database, because that is where the
+ *  completeness contract lives. */
+export function useObjectTypeProblems(typeId: string | null) {
+  return useQuery({
+    queryKey: keys.problems(typeId ?? ''),
+    queryFn: () => fetchObjectTypeProblems(typeId as string),
+    enabled: !!typeId,
   })
 }
 
@@ -55,60 +68,14 @@ export function useDeleteObjectType() {
   })
 }
 
-export function useObjectRecords(typeId: string | null) {
-  return useQuery({
-    queryKey: keys.records(typeId ?? ''),
-    queryFn: () => fetchObjectRecords(typeId ?? ''),
-    enabled: !!typeId,
-    staleTime: 15_000,
-  })
-}
-
-export function useObjectRecordsForTypes(typeIds: string[]) {
-  const key = [...typeIds].sort().join(',')
-  return useQuery({
-    queryKey: ['object-records-multi', key] as const,
-    queryFn: () => fetchObjectRecordsForTypes(typeIds),
-    staleTime: 15_000,
-  })
-}
-
-/** A record of any type — built-ins read from their backing table, authored
- *  ones from object_records. One hook so the generated view needs no branch. */
-export function useOntologyRecord(type: ObjectTypeDef | undefined, recordId: string | null) {
-  return useQuery({
-    queryKey: ['ontology-record', type?.id ?? '', recordId ?? ''] as const,
-    queryFn: () => (type && type.kind === 'builtin'
-      ? fetchBuiltinRecord(type, recordId ?? '')
-      : fetchObjectRecord(recordId ?? '')),
-    enabled: !!type && !!recordId,
-    staleTime: 15_000,
-  })
-}
-
-export function useObjectRecord(recordId: string | null) {
-  return useQuery({
-    queryKey: ['object-record', recordId ?? ''],
-    queryFn: () => fetchObjectRecord(recordId ?? ''),
-    enabled: !!recordId,
-    staleTime: 15_000,
-  })
-}
-
-export function useCreateObjectRecord() {
+export function useSetObjectTypeStatus() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (input: CreateObjectRecordInput) => createObjectRecord(input),
-    onSuccess: (_d, v) => { void qc.invalidateQueries({ queryKey: keys.records(v.objectTypeId) }); toast.success('Record added') },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-export function useDeleteObjectRecord(typeId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => deleteObjectRecord(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.records(typeId) }) },
+    mutationFn: (i: Parameters<typeof setObjectTypeStatus>[0]) => setObjectTypeStatus(i),
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: keys.types })
+      toast.success(`Status set to ${STATUS_META[v.status].label}`)
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
@@ -117,33 +84,9 @@ export function useUpdateObjectType() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: UpdateObjectTypeInput) => updateObjectType(input),
-    onSuccess: (_d, v) => {
+    onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.types })
-      void qc.invalidateQueries({ queryKey: keys.cards })
-      void qc.invalidateQueries({ queryKey: keys.revisions(v.id) })
-      toast.success('Saved — new version snapshotted')
-    },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-export function useRevisions(typeId: string | null) {
-  return useQuery({
-    queryKey: keys.revisions(typeId ?? ''),
-    queryFn: () => fetchRevisions(typeId ?? ''),
-    enabled: !!typeId,
-    staleTime: 15_000,
-  })
-}
-
-export function useRestoreRevision() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (rev: ObjectTypeRevisionRow) => restoreRevision(rev),
-    onSuccess: (_d, rev) => {
-      void qc.invalidateQueries({ queryKey: keys.types })
-      void qc.invalidateQueries({ queryKey: keys.revisions(rev.object_type_id) })
-      toast.success(`Restored v${String(rev.version)} as a new version`)
+      toast.success('Saved')
     },
     onError: (e: Error) => { toast.error(e.message) },
   })
@@ -171,35 +114,39 @@ export function useDeleteLinkType() {
   })
 }
 
-export function useRecordLinks(recordId: string) {
-  return useQuery({ queryKey: keys.recordLinks(recordId), queryFn: () => fetchLinksForRecord(recordId), staleTime: 15_000 })
-}
+// ── Backing datasources ──────────────────────────────────────────────────────
 
-export function useCreateObjectLink(sourceRecordId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (input: CreateObjectLinkInput) => createObjectLink(input),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.recordLinks(sourceRecordId) }); toast.success('Linked') },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-export function useDeleteObjectLink(sourceRecordId: string) {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: string) => deleteObjectLink(id),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.recordLinks(sourceRecordId) }) },
-    onError: (e: Error) => { toast.error(e.message) },
-  })
-}
-
-/** Impact of dropping a type, or of dropping the given properties from it. */
-export function useTypeImpact(typeId: string | null, removingKeys?: string[]) {
-  const key = removingKeys ? [...removingKeys].sort().join(',') : '*'
+export function useObjectTypeDatasources(objectTypeId: string | null) {
   return useQuery({
-    queryKey: ['type-impact', typeId ?? '', key] as const,
-    enabled: !!typeId,
-    staleTime: 15_000,
-    queryFn: () => fetchTypeImpact(typeId as string, removingKeys),
+    queryKey: keys.datasources(objectTypeId ?? ''),
+    enabled: objectTypeId !== null,
+    queryFn: () => fetchObjectTypeDatasources(objectTypeId ?? ''),
+  })
+}
+
+export function useAddObjectTypeDatasource(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { datasetId: string; branchId: string }) =>
+      addObjectTypeDatasource({ objectTypeId, ...i }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
+      toast.success('Backing datasource added')
+    },
+    // The database raises Phonograph2:DatasetAndBranchAlreadyRegistered and the
+    // two limit errors by name; showing them verbatim beats a generic failure.
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useRemoveObjectTypeDatasource(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => removeObjectTypeDatasource(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
+      toast.success('Backing datasource removed')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
   })
 }

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-link-types/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-link-types/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Edit link types
 
@@ -21,11 +21,11 @@ The following changes will unregister and reregister (or delete) the backing dat
 
 When you try to save any of these changes, you will be warned about the potential impact on user applications.
 
-<img src="./media/edit-link-type-warning-reindex.png" alt="Warning: Reindexing will make objects unavailable" width="500" />
+<img src="./images/edit-link-type-warning-reindex.png" alt="Warning: Reindexing will make objects unavailable" width="500" />
 
 For example, if a link type is used in a search around in a Workshop application, that Workshop application will be broken until the reindex completes. You can track the progress of the reindex for a link type in the **Phonograph** pane of its **Datasources** page.
 
-<img src="./media/edit-link-type-phonograph-track-reindex.png" alt="Tracking reindex in Phonograph" width="500" />
+<img src="./images/edit-link-type-phonograph-track-reindex.png" alt="Tracking reindex in Phonograph" width="500" />
 
 [Learn more about Object Storage v1 (Phonograph).](/docs/foundry/object-databases/object-storage-v1/)
 
@@ -41,7 +41,7 @@ Object Storage v1 (Phonograph) will **not** automatically unregister the backing
 
 When you try to save any changes that risk erasing the edits history, you will be warned about the potential impact on edits.
 
-<img src="./media/edit-link-type-warning-edit-impact.png" alt="Warning about impact on edits" width="500" />
+<img src="./images/edit-link-type-warning-edit-impact.png" alt="Warning about impact on edits" width="500" />
 
 Now that you understand the considerations in editing existing link types, you can safely make your changes.
 
@@ -58,29 +58,29 @@ You can always change the link type you are working on by selecting the link typ
 
 ### Delete a link type
 
-You can delete an object type by selecting the ![...](/docs/resources/foundry/object-link-types/three-dots.png) (three dots) icon at the top right of the link type view sidebar (see image below) and then selecting the **Delete** option from the dropdown. A dialog will pop up to confirm you want to stage the link type for deletion.
+You can delete an object type by selecting the ![...](./images/three-dots.png) (three dots) icon at the top right of the link type view sidebar (see image below) and then selecting the **Delete** option from the dropdown. A dialog will pop up to confirm you want to stage the link type for deletion.
 
 * Note that the deletion of the link type only takes effect after you save your changes, and will break any views or applications referencing the object type.
 * Note that link types with an `active` status cannot be deleted. Read more about [statuses](/docs/foundry/object-link-types/metadata-statuses/).
 
-<img src="./media/edit-link-type-delete-link-type.png" alt="Delete link type" width="500" />
+<img src="./images/edit-link-type-delete-link-type.png" alt="Delete link type" width="500" />
 
 ### Change a backing datasource
 
 You can change a backing datasource:
 
 1. Navigate to the **Datasources** page of the link type view.
-2. Select the ![pen](/docs/resources/foundry/object-link-types/pen.png) **Select** icon next to the existing datasource. This will allow you to browse and select available datasources in Foundry.
+2. Select the ![pen](./images/pen.png) **Select** icon next to the existing datasource. This will allow you to browse and select available datasources in Foundry.
 
 :::callout{theme="warning" title="Warning"}
 Changing the backing datasource of a link type will remove any connection between columns in the old datasource and the keys that define your link type. Keys will be automatically remapped for you **only if** you change to a new datasource with the **same schema** as the old datasource. Otherwise, you will need to remap the keys to the new datasource.
 :::
 
-![Select backing datasource](/docs/resources/foundry/object-link-types/edit-link-type-change-backing-datasource-annotated.png)
+![Select backing datasource](./images/edit-link-type-change-backing-datasource-annotated.png)
 
 ### Edit a link type’s metadata
 
-<img src="./media/edit-link-type-metadata-new-overview.png" alt="Edit link type metadata" width="500" />
+<img src="./images/edit-link-type-metadata-new-overview.png" alt="Edit link type metadata" width="500" />
 
 1. **Status:** Select the existing status at the top of the link type pane to open a dropdown of available statuses. Select from the `deprecated`, `experimental`, and `active` statuses.
    * Read more about [statuses](/docs/foundry/object-link-types/metadata-statuses/).

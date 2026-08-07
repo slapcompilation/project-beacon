@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-shared-property/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-shared-property/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Edit shared properties
 
@@ -6,7 +6,7 @@
 
 You can edit metadata for a shared property by first selecting the shared property to edit from the **Shared property** page of the Ontology Manager.
 
-<img src="./media/edit-shared-property.png" alt="Edit shared property metadata" width="500" />
+<img src="./images/edit-shared-property.png" alt="Edit shared property metadata" width="500" />
 
 The available options for editing shared property metadata are clustered into four different tabs: **General**, **Display**, **Interaction**, and **Details**. These tabs contain the following configurations:
 
@@ -27,11 +27,11 @@ To delete a shared property, complete the following steps:
 1. Navigate to the **Shared property** page of the Ontology Manager.
 2. Select one or more shared properties for deletion, then select **Delete property**.
 
-<img src="./media/delete-shared-property-button.png" alt="Delete shared property" width="500" />
+<img src="./images/delete-shared-property-button.png" alt="Delete shared property" width="500" />
 
 3. Confirm the delete action in the modal.
 
-<img src="./media/delete-shared-property-modal.png" alt="Confirm shared property deletion" width="500" />
+<img src="./images/delete-shared-property-modal.png" alt="Confirm shared property deletion" width="500" />
 
 4. Select **Save** in the upper right.
 

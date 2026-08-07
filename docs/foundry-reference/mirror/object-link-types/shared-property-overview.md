@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/shared-property-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/shared-property-overview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Shared properties
 
@@ -10,4 +10,4 @@ Shared properties can be [created directly](/docs/foundry/object-link-types/crea
 
 Shared properties on objects are denoted with a globe icon next to their name.
 
-<img src="./media/shared-property-menu-option.png" alt="Shared properties page in Ontology Manager" width="800" />
+<img src="./images/shared-property-menu-option.png" alt="Shared properties page in Ontology Manager" width="800" />

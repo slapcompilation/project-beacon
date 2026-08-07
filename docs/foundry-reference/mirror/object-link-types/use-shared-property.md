@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/use-shared-property/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/use-shared-property/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Use shared properties on object types
 
@@ -7,7 +7,7 @@ To update a property on an object type to a shared property, complete the follow
 1. Navigate to the object type in the Ontology Manager.
 2. Select the property on the panel that you want to update, then scroll down to the **Shared Property** section of the configuration.
 
-<img src="./media/convert-shared-property.png" alt="Using a shared property" width="500" />
+<img src="./images/convert-shared-property.png" alt="Using a shared property" width="500" />
 
 3. Use the dropdown menu to select an existing shared property to use, or convert the property to a new shared property with the [shared property creation](/docs/foundry/object-link-types/create-shared-property/) modal.
 
@@ -21,6 +21,6 @@ The property will then display as a shared property. To persist the use of the s
 
 To detach a property from a shared property, use the same property panel on an object type in the Ontology Manager and select **Detach**.
 
-<img src="./media/detach-shared-property.png" alt="Detach a shared property" width="500" />
+<img src="./images/detach-shared-property.png" alt="Detach a shared property" width="500" />
 
 Doing so will remove the association between the property and the shared property.

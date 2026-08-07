@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/views/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/views/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Views
 
@@ -14,7 +14,7 @@ Additionally, Views can only be used with datasets that have a schema, since Vie
 Views built over incremental datasets should not be used as incremental inputs in downstream transforms. When Views are read incrementally, the deduplication is done within the incrementally read transaction range and not across the entire View.
 :::
 
-![A diagram of how Views are built.](/docs/resources/foundry/data-integration/views-overview.png)
+![A diagram of how Views are built.](./images/views-overview.png)
 
 Some primary use cases for views include the following:
 
@@ -26,7 +26,7 @@ Some primary use cases for views include the following:
 
 To create a new View, open **Files** from the left workspace navigation panel, then find your desired Project or folder. Once there, select **New > View** in the top right to create a new View within the current Project or folder:
 
-![Create a new View in a Project or folder.](/docs/resources/foundry/data-integration/views-create-new.png)
+![Create a new View in a Project or folder.](./images/views-create-new.png)
 
 Choose a name and location for the View, then proceed with configuration. When the View is created, a build schedule will be automatically created in the background that will rebuild the View any time the backing datasets update. If you want to immediately read the View after creating or modifying it, you must build the View manually.
 
@@ -42,7 +42,7 @@ If you add or remove columns from a backing dataset, the View may fail with a `V
 
 One or more backing datasets are required to construct a View. After initial configuration, a View's backing datasets can be modified by navigating to **Details > Dataset view settings**.
 
-![Select backing datasets for a View.](/docs/resources/foundry/data-integration/views-select-backing-datasets.png)
+![Select backing datasets for a View.](./images/views-select-backing-datasets.png)
 
 ### Add a primary key
 
@@ -54,7 +54,7 @@ Once the primary key is set, it cannot be modified without creating a new View.
 
 To add a primary key, select one or more columns which, when combined, will form the primary key. The column(s) must not contain null values.
 
-![Add a primary key to a View.](/docs/resources/foundry/data-integration/views-primary-key.png)
+![Add a primary key to a View.](./images/views-primary-key.png)
 
 If you do not add a primary key during initial configuration, you can do so later by navigating to **Details > Dataset view settings**.
 
@@ -70,11 +70,11 @@ You can also optionally specify a deletion column, which must contain Boolean va
 
 Duplicate primary keys are resolved *before* the deletion column is used to exclude rows. Therefore, only the value of the deletion column in the “latest” row for a given primary key matters.
 
-![Example of deduplication and deletion for a single backing dataset.](/docs/resources/foundry/data-integration/views-pkey-example-single.png)
+![Example of deduplication and deletion for a single backing dataset.](./images/views-pkey-example-single.png)
 
 Deduplication and deletion is performed across all of the backing datasets:
 
-![Example of deduplication and deletion for two backing datasets.](/docs/resources/foundry/data-integration/views-pkey-example-union.png)
+![Example of deduplication and deletion for two backing datasets.](./images/views-pkey-example-union.png)
 
 Deduplication and deletion is implemented with a combination of the following:
 
@@ -92,7 +92,7 @@ If updates to the backing datasets require a full rebuild of the projection, con
 
 ### Use Views
 
-![The Data Lineage of a View.](/docs/resources/foundry/data-integration/views-lineage.png)
+![The Data Lineage of a View.](./images/views-lineage.png)
 
 Views are visible in Foundry like regular Foundry datasets and can be used anywhere that regular datasets can be used. The only exception to this is that Views are not valid transform outputs (though they are valid transform inputs). An example use case for Views is to create a union of multiple datasets efficiently, using a primary key to ensure the resulting View has data uniqueness.
 
@@ -108,10 +108,10 @@ Removing Markings with Views may not be enabled on your Foundry enrollment. Cont
 
 You can use Views to stop propagating Markings on datasets backing the View. You can do this by navigating to **Dataset view settings** in the **Details** tab of the View, then selecting **Edit > Manage marking propagation**.
 
-![Edit dataset View settings.](/docs/resources/foundry/data-integration/dataset-view-settings-edit.png)
+![Edit dataset View settings.](./images/dataset-view-settings-edit.png)
 
 Only users with `Remove Marking` permissions will be able to stop propagation of the Marking. Changes to Marking propagation will take effect when any updates to the backing dataset occurs.
 
-![The remove Markings interface in a dataset View.](/docs/resources/foundry/data-integration/views-unmarking.png)
+![The remove Markings interface in a dataset View.](./images/views-unmarking.png)
 
 Review our [guidance on removing Markings](/docs/foundry/building-pipelines/remove-inherited-markings/) for more information.

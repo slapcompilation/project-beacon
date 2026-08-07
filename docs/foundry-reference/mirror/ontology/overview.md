@@ -1,6 +1,6 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
-![Ontology overview header image.](/docs/resources/foundry/ontology/ontology-overview-header.png)
+![Ontology overview header image.](./images/ontology-overview-header.png)
 
 # Ontology building
 

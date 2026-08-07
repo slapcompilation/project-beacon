@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-value-type/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-value-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Create a value type
 
@@ -9,16 +9,16 @@ Follow the steps below to create a value type to use across your platform [space
 3. Select **Create New Value Type** from the upper right corner.
 4. Provide a clear name, description, and unique API name for your value type.
 
-<img src="./media/value-type-create-metadata.png" alt="Value type metadata creation" width="500" />
+<img src="./images/value-type-create-metadata.png" alt="Value type metadata creation" width="500" />
 
 5. Choose a [base type](/docs/foundry/object-link-types/base-types/) for your value type.
 6. (Optional) Define a constraint for your value type. Validators can be regular expressions for `String` types, enums, ranges, or other validation methods depending on the base type.
    For a full list of constraints supported by base type, review our [value type constraints](/docs/foundry/object-link-types/value-type-constraints/) documentation.
 
-<img src="./media/value-type-create-constraint.png" alt="Value type constraint creation" width="500" />
+<img src="./images/value-type-create-constraint.png" alt="Value type constraint creation" width="500" />
 
 7. (Optional but recommended) Provide an example preview value for your value type.
 
-<img src="./media/value-type-create-preview.png" alt="Value type preview creation" width="500" />
+<img src="./images/value-type-create-preview.png" alt="Value type preview creation" width="500" />
 
 8. Save your value type.

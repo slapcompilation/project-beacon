@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-render-hints/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-render-hints/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Render hints
 
@@ -8,7 +8,7 @@ Many render hints are tied to reindex performance for an object type. For instan
 
 You can select and deselect render hints in the properties pane of the property editor (see image below).
 
-![Render hints](/docs/resources/foundry/object-link-types/render-hints.png)
+![Render hints](./images/render-hints.png)
 
 The following table shares the **Name** and **Description** for each of the available render hints. The table also provides information on two technical aspects of render hints: "Adds raw index?" and "Requires reindex?" (described below).
 

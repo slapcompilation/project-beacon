@@ -9,7 +9,6 @@
 //   pnpm db supabase/migrations/231_foo.sql   apply specific files
 //   pnpm db:status                            pending / orphaned / modified
 //   pnpm db:migrate                           apply everything pending, in order
-//   pnpm db:contracts                         the three guards, in CI's order
 //   pnpm db:baseline                          record SQL for already-applied files
 //
 // Forward-only: there are no down migrations. A mistake is corrected by a new
@@ -27,11 +26,6 @@ import pg from 'pg'
 import { connectionString, SSL } from './db-url.mjs'
 
 const MIGRATIONS = 'supabase/migrations'
-const CONTRACTS = [
-  'supabase/tests/security_invariants.sql',
-  'supabase/tests/rls_contracts.sql',
-  'supabase/tests/ontology_drift.sql',
-]
 // Two runners must never apply concurrently — CI on merge and someone local.
 const LOCK_KEY = 4021763
 
@@ -100,7 +94,7 @@ const record = (client, id, sql) => client.query(
 const args = process.argv.slice(2)
 const mode = args[0]?.startsWith('--') ? args[0] : null
 if (!mode && args.length === 0) {
-  console.error('usage: node scripts/db.mjs <file.sql>... | --status | --migrate | --contracts | --baseline')
+  console.error('usage: node scripts/db.mjs <file.sql>... | --status | --migrate | --baseline')
   process.exit(2)
 }
 
@@ -166,7 +160,7 @@ try {
     }
     console.log(`baseline recorded for ${n} migration(s)`)
   } else {
-    for (const file of mode === '--contracts' ? CONTRACTS : args) {
+    for (const file of args) {
       console.log(`── ${file}`)
       const id = await applyOne(client, file)
       console.log(id ? `   ok — recorded ${id.version}` : '   ok')

@@ -1,29 +1,79 @@
-// object_types + object_records CRUD. Config-as-data ontology (P2): written
+// object_types CRUD, and the datasources that back them.
 // directly under RLS. org + author come from column defaults (auth_org_id /
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import type { ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef } from '@beacon/reality-graph'
-import { EMPTY_VIEW_CONFIG } from '@beacon/reality-graph'
+import { saveObjectType as saveObjectTypeAction, objectTypeProblems, type Json } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
+import type {
+  ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
+  OntologyStatus, OntologyVisibility, Deprecation,
+} from '@beacon/ontology'
+import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
+
+/** One row of `object_type_properties` (migration 408). Properties left the
+ *  object type's jsonb because Foundry gives each its own ID, API name, base
+ *  type, source and backing column — none of which a blob can be asked about. */
+export interface PropertyRow {
+  id: string
+  property_id: string
+  display_name: string
+  api_name: string
+  description: string
+  base_type: PropertyDef['type']
+  source: 'column' | 'user_input'
+  datasource_id: string | null
+  backing_column: string | null
+  shared_property_id: string | null
+  required: boolean
+  visibility: 'prominent' | 'normal' | 'hidden'
+  position: number
+  is_primary_key: boolean
+  is_title_key: boolean
+}
+
+export function rowToProperty(r: PropertyRow): PropertyDef {
+  return {
+    id: r.id, key: r.property_id, label: r.display_name, apiName: r.api_name,
+    type: r.base_type, description: r.description, required: r.required,
+    source: r.source, backingColumn: r.backing_column,
+    datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
+    visibility: r.visibility, position: r.position,
+    isPrimaryKey: r.is_primary_key, isTitleKey: r.is_title_key,
+  }
+}
+
+export function propertyToRow(p: PropertyDef, position: number) {
+  return {
+    property_id: p.key, display_name: p.label, api_name: p.apiName,
+    description: p.description ?? '', base_type: p.type,
+    source: p.source ?? 'column',
+    datasource_id: p.datasourceId ?? null,
+    backing_column: p.source === 'user_input' ? null : p.backingColumn ?? null,
+    shared_property_id: p.sharedPropertyId ?? null,
+    required: p.required, visibility: p.visibility ?? 'normal', position,
+    is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
+  }
+}
 
 export interface ObjectTypeRow {
   id: string
   organization_id: string
-  hotel_id: string | null
   api_name: string
   label: string
   icon: string
   description: string
-  properties: PropertyDef[]
+  object_type_properties: PropertyRow[]
   computed_properties: ComputedPropertyDef[] | null
   view_config: ViewConfigDef | null
   enabled: boolean
   version: number
-  /** authored = operator-defined, records in object_records.
-   *  builtin  = code-owned registration; records live in source_table. */
-  kind: 'authored' | 'builtin'
-  source_table: string | null
-  title_key: string | null
+  /** Developmental state (migration 321). Anything new starts experimental. */
+  status: OntologyStatus
+  visibility: OntologyVisibility
+  deprecation_reason: string | null
+  deprecation_deadline: string | null
+  replaced_by: string | null
   created_by_user_id: string | null
   created_at: string
   updated_at: string
@@ -31,73 +81,66 @@ export interface ObjectTypeRow {
 
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    id: r.id, organizationId: r.organization_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
-    properties: r.properties, computedProperties: r.computed_properties ?? [],
+    properties: [...r.object_type_properties]
+      .sort((a, b) => a.position - b.position).map(rowToProperty),
+    computedProperties: r.computed_properties ?? [],
     viewConfig: r.view_config ?? EMPTY_VIEW_CONFIG,
     enabled: r.enabled, version: r.version,
-    kind: r.kind, sourceTable: r.source_table, titleKey: r.title_key,
+    status: r.status, visibility: r.visibility,
+    deprecation: r.deprecation_reason && r.deprecation_deadline
+      ? { reason: r.deprecation_reason, deadline: r.deprecation_deadline, replacedBy: r.replaced_by }
+      : null,
   }
 }
 
-/** Authored types only — what the operator owns and can edit. The built-in
- *  registrations (migration 223) are code-owned and would otherwise appear as
- *  empty editable types in the browser and the type editor. */
+/** Every object type. There is no authored-versus-built-in split: "Foundry
+ *  classifies object types by their datasource and has no notion of a built-in
+ *  one", so the two readers that used to differ now agree. */
 export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
-  const { data, error } = await supabase.from('object_types').select('*')
-    .eq('kind', 'authored').order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRow[]
-}
-
-/** The WHOLE ontology — authored types plus the built-in registrations. Used
- *  where the point is the ontology itself: the canvas, and link-type endpoints
- *  (a Maintenance Request may now link to a Variant). */
-export async function fetchOntologyTypes(): Promise<ObjectTypeRow[]> {
-  const { data, error } = await supabase.from('object_types').select('*')
-    .order('kind', { ascending: true }).order('label', { ascending: true })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRow[]
-}
-
-// For the /objects browser: each custom type + how many records it holds.
-export interface ObjectTypeCard { id: string; apiName: string; label: string; icon: string; count: number }
-
-export async function fetchObjectTypeCards(): Promise<ObjectTypeCard[]> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .select('id, api_name, label, icon, object_records(count)')
-    .eq('kind', 'authored')
+  const { data, error } = await supabase.from('object_types')
+    .select('*, object_type_properties(*)')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
-  interface Row { id: string; api_name: string; label: string; icon: string; object_records: { count: number }[] | null }
-  return (data as unknown as Row[]).map((r) => ({
-    id: r.id, apiName: r.api_name, label: r.label, icon: r.icon, count: r.object_records?.[0]?.count ?? 0,
-  }))
+  return data as ObjectTypeRow[]
 }
 
-export interface CreateObjectTypeInput {
-  hotelId: string | null
-  apiName: string
-  label: string
-  icon: string
-  description: string
-  properties: PropertyDef[]
-  computedProperties: ComputedPropertyDef[]
-}
 
-export async function createObjectType(i: CreateObjectTypeInput): Promise<ObjectTypeRow> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .insert({ hotel_id: i.hotelId, api_name: i.apiName, label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties })
-    .select('*')
-    .single<ObjectTypeRow>()
-  if (error) throw new Error(error.message)
-  return data
+
+/** One call, because the completeness contract is one list over the type and its
+ *  properties: "To save a new object type, these object type fields must not be
+ *  empty… And these property fields must not be empty…" A client that wrote the
+ *  type first and its properties second would pass through the state that list
+ *  forbids, and stay there if the second write failed. */
+export async function saveObjectType(
+  i: { id?: string; apiName?: string; label: string; icon: string; description: string
+       properties: PropertyDef[] },
+): Promise<string> {
+  return client(saveObjectTypeAction).applyAction({
+    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description },
+    p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
+  })
 }
 
 export async function deleteObjectType(id: string): Promise<void> {
   const { error } = await supabase.from('object_types').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+/** Retire a type instead of deleting it. The database refuses a deprecation
+ *  with no reason or deadline, and refuses to delete anything active — this is
+ *  the surface that makes both reachable. */
+export async function setObjectTypeStatus(
+  i: { id: string; status: OntologyStatus; visibility: OntologyVisibility; deprecation: Deprecation | null },
+): Promise<void> {
+  const { error } = await supabase.from('object_types').update({
+    status: i.status,
+    visibility: i.visibility,
+    deprecation_reason:   i.status === 'deprecated' ? i.deprecation?.reason ?? null : null,
+    deprecation_deadline: i.status === 'deprecated' ? i.deprecation?.deadline ?? null : null,
+    replaced_by:          i.status === 'deprecated' ? i.deprecation?.replacedBy ?? null : null,
+  }).eq('id', i.id)
   if (error) throw new Error(error.message)
 }
 
@@ -115,195 +158,27 @@ export interface UpdateObjectTypeInput {
   viewConfig: ViewConfigDef
 }
 
-export async function updateObjectType(i: UpdateObjectTypeInput): Promise<ObjectTypeRow> {
-  const { data, error } = await supabase
-    .from('object_types')
-    .update({ label: i.label, icon: i.icon, description: i.description, properties: i.properties, computed_properties: i.computedProperties, view_config: i.viewConfig })
+export async function updateObjectType(i: UpdateObjectTypeInput): Promise<string> {
+  const { error } = await supabase.from('object_types')
+    .update({ computed_properties: i.computedProperties, view_config: i.viewConfig })
     .eq('id', i.id)
-    .select('*')
-    .single<ObjectTypeRow>()
   if (error) throw new Error(error.message)
-  return data
+  return saveObjectType(i)
 }
 
-export interface ObjectTypeRevisionRow {
-  id: string
-  object_type_id: string
-  version: number
-  label: string
-  icon: string
-  description: string
-  properties: PropertyDef[]
-  computed_properties: ComputedPropertyDef[]
-  view_config: ViewConfigDef | null
-  changed_by_user_id: string | null
-  created_at: string
+/** Every reason this type cannot be saved — the `❗4 errors` badge's contents.
+ *  The rule lives in `object_type_problems()`; restating it here is how the two
+ *  drift. */
+export interface ObjectTypeProblem { scope: 'object_type' | 'property'; subject: string; problem: string }
+
+export async function fetchObjectTypeProblems(id: string): Promise<ObjectTypeProblem[]> {
+  const rows = await client(objectTypeProblems).executeFunction({ p_object_type: id })
+  return rows as ObjectTypeProblem[]
 }
-
-export async function fetchRevisions(objectTypeId: string): Promise<ObjectTypeRevisionRow[]> {
-  const { data, error } = await supabase
-    .from('object_type_revisions')
-    .select('*')
-    .eq('object_type_id', objectTypeId)
-    .order('version', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectTypeRevisionRow[]
-}
-
-/** Restore = write the old snapshot's schema back onto the live row. The bump
- *  trigger mints a NEW version and snapshots it — history is never rewritten. */
-export async function restoreRevision(rev: ObjectTypeRevisionRow): Promise<ObjectTypeRow> {
-  return await updateObjectType({
-    id: rev.object_type_id,
-    label: rev.label,
-    icon: rev.icon,
-    description: rev.description,
-    properties: rev.properties,
-    computedProperties: rev.computed_properties,
-    viewConfig: rev.view_config ?? EMPTY_VIEW_CONFIG,
-  })
-}
-
-export interface ObjectRecordRow {
-  id: string
-  object_type_id: string
-  hotel_id: string | null
-  title: string
-  data: Record<string, unknown>
-  created_at: string
-}
-
-export async function fetchObjectRecords(objectTypeId: string): Promise<ObjectRecordRow[]> {
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
-    .eq('object_type_id', objectTypeId)
-    .order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectRecordRow[]
-}
-
-/** Records for several types in one read — what an interface-targeted tool needs,
- *  since its record set spans every implementer. */
-export async function fetchObjectRecordsForTypes(typeIds: string[]): Promise<ObjectRecordRow[]> {
-  if (typeIds.length === 0) return []
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
-    .in('object_type_id', typeIds)
-    .order('created_at', { ascending: false })
-  if (error) throw new Error(error.message)
-  return data as ObjectRecordRow[]
-}
-
-/** A built-in type's record, read from its backing table and shaped like an
- *  object_records row so the generated view consumes it unchanged.
- *
- *  Goes through PostgREST under the caller's JWT, so each table's own RLS still
- *  decides what is visible — never a service-role shortcut. */
-export async function fetchBuiltinRecord(
-  type: ObjectTypeDef, id: string,
-): Promise<ObjectRecordRow | null> {
-  if (!type.sourceTable) return null
-  // The table name is data, so PostgREST can't type this — say so explicitly
-  // rather than letting an `any` leak into the record shape.
-  const { data, error } = await supabase
-    .from(type.sourceTable).select('*').eq('id', id).maybeSingle() as unknown as {
-      data: Record<string, unknown> | null
-      error: { message: string } | null
-    }
-  if (error) throw new Error(error.message)
-  if (!data) return null
-
-  const row = data
-  // Provisional title: the first text property. G2 replaces this with the
-  // explicit title key Foundry requires on every object type.
-  const titleKey = type.properties.find((p) => p.type === 'text')?.key
-  const raw = titleKey ? row[titleKey] : undefined
-  const title = typeof raw === 'string' && raw !== '' ? raw : `${type.label} ${id.slice(0, 8)}`
-
-  return {
-    id,
-    object_type_id: type.id,
-    hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
-    title,
-    data: row,
-    created_at: typeof row.created_at === 'string' ? row.created_at : '',
-  }
-}
-
-/** How many rows a set will read from one built-in table. Sets are answered in
- *  the browser, so this is the honest ceiling rather than a silent one — the
- *  caller is told when it bites instead of reporting a confident partial count. */
-export const BUILTIN_SET_LIMIT = 1000
-
-/** A built-in type's records, shaped like object_records rows so a set reads
- *  authored and code-owned types identically. Registration (migration 223) has
- *  named the backing table since G1; nothing consumed it in bulk until sets did.
- *
- *  Under the caller's JWT, so each table's own RLS decides what is visible. */
-export async function fetchBuiltinRecords(
-  type: ObjectTypeDef,
-): Promise<{ rows: ObjectRecordRow[]; truncated: boolean }> {
-  if (!type.sourceTable) return { rows: [], truncated: false }
-  const { data, error } = await supabase
-    .from(type.sourceTable).select('*').limit(BUILTIN_SET_LIMIT) as unknown as {
-      data: Record<string, unknown>[] | null
-      error: { message: string } | null
-    }
-  if (error) throw new Error(error.message)
-
-  const raw = data ?? []
-  const titleKey = type.titleKey ?? type.properties.find((p) => p.type === 'text')?.key
-  const rows = raw.map((row) => {
-    const id = typeof row.id === 'string' ? row.id : ''
-    const t = titleKey ? row[titleKey] : undefined
-    return {
-      id,
-      object_type_id: type.id,
-      hotel_id: typeof row.hotel_id === 'string' ? row.hotel_id : null,
-      title: typeof t === 'string' && t !== '' ? t : `${type.label} ${id.slice(0, 8)}`,
-      data: row,
-      created_at: typeof row.created_at === 'string' ? row.created_at : '',
-    }
-  })
-  return { rows, truncated: raw.length === BUILTIN_SET_LIMIT }
-}
-
-export async function fetchObjectRecord(id: string): Promise<ObjectRecordRow | null> {
-  const { data, error } = await supabase
-    .from('object_records').select('id, object_type_id, hotel_id, title, data, created_at')
-    .eq('id', id).maybeSingle<ObjectRecordRow>()
-  if (error) throw new Error(error.message)
-  return data
-}
-
-export interface CreateObjectRecordInput {
-  objectTypeId: string
-  hotelId: string | null
-  title: string
-  data: Record<string, unknown>
-}
-
-export async function createObjectRecord(i: CreateObjectRecordInput): Promise<ObjectRecordRow> {
-  const { data, error } = await supabase
-    .from('object_records')
-    .insert({ object_type_id: i.objectTypeId, hotel_id: i.hotelId, title: i.title, data: i.data })
-    .select('id, object_type_id, hotel_id, title, data, created_at')
-    .single<ObjectRecordRow>()
-  if (error) throw new Error(error.message)
-  return data
-}
-
-export async function deleteObjectRecord(id: string): Promise<void> {
-  const { error } = await supabase.from('object_records').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-}
-
-// ── Link types + links (P2.3) ────────────────────────────────────────────────
 
 export interface LinkTypeRow {
   id: string
   organization_id: string
-  hotel_id: string | null
   source_object_type_id: string
   target_object_type_id: string
   api_name: string
@@ -312,7 +187,7 @@ export interface LinkTypeRow {
 
 export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id, hotelId: r.hotel_id,
+    id: r.id, organizationId: r.organization_id,
     sourceTypeId: r.source_object_type_id, targetTypeId: r.target_object_type_id,
     apiName: r.api_name, label: r.label,
   }
@@ -324,11 +199,11 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
   return data as LinkTypeRow[]
 }
 
-export interface CreateLinkTypeInput { hotelId: string | null; sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
+export interface CreateLinkTypeInput { sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
 
 export async function createLinkType(i: CreateLinkTypeInput): Promise<LinkTypeRow> {
   const { data, error } = await supabase.from('link_types')
-    .insert({ hotel_id: i.hotelId, source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
+    .insert({ source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
     .select('*').single<LinkTypeRow>()
   if (error) throw new Error(error.message)
   return data
@@ -339,62 +214,42 @@ export async function deleteLinkType(id: string): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
-export interface RecordLink { id: string; linkTypeLabel: string; targetRecordId: string; targetTitle: string }
+// ── Backing datasources (migration 405) ─────────────────────────────────────
+// "In order to populate property values for objects of this type with data, you
+// must add a backing datasource." A datasource is a dataset ON A BRANCH, and one
+// may back only one object type.
 
-export async function fetchLinksForRecord(sourceRecordId: string): Promise<RecordLink[]> {
-  const { data, error } = await supabase.from('object_links')
-    .select('id, target_record_id, link_types(label)')
-    .eq('source_record_id', sourceRecordId)
+export interface ObjectTypeDatasource {
+  id: string
+  datasetId: string
+  branchId: string
+  datasetName: string
+  branchName: string
+}
+
+export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
+  const { data, error } = await supabase.from('object_type_datasources')
+    .select('id, dataset_id, branch_id, datasets(name), dataset_branches(name)')
+    .eq('object_type_id', objectTypeId)
   if (error) throw new Error(error.message)
-  interface Row { id: string; target_record_id: string; link_types: { label: string } | { label: string }[] | null }
-  const rows = data as unknown as Row[]
-  const ids = [...new Set(rows.map((r) => r.target_record_id))]
-  const titles = new Map<string, string>()
-  if (ids.length > 0) {
-    const { data: recs } = await supabase.from('object_records').select('id, title').in('id', ids)
-    for (const rec of (recs ?? []) as { id: string; title: string }[]) titles.set(rec.id, rec.title)
-  }
-  return rows.map((r) => {
-    const lt = Array.isArray(r.link_types) ? r.link_types[0] : r.link_types
-    return { id: r.id, linkTypeLabel: lt?.label ?? 'link', targetRecordId: r.target_record_id, targetTitle: titles.get(r.target_record_id) ?? '(record)' }
-  })
-}
-
-export interface CreateObjectLinkInput { linkTypeId: string; hotelId: string | null; sourceRecordId: string; targetRecordId: string }
-
-export async function createObjectLink(i: CreateObjectLinkInput): Promise<void> {
-  const { error } = await supabase.from('object_links')
-    .insert({ link_type_id: i.linkTypeId, hotel_id: i.hotelId, source_record_id: i.sourceRecordId, target_record_id: i.targetRecordId })
-  if (error) throw new Error(error.message)
-}
-
-export async function deleteObjectLink(id: string): Promise<void> {
-  const { error } = await supabase.from('object_links').delete().eq('id', id)
-  if (error) throw new Error(error.message)
-}
-
-export interface TypeImpact {
-  artifactKind: string
-  artifactName: string
-  apiName: string
-  detail: string
-}
-
-/** What breaks if this type — or the named properties of it — goes away.
- *  Asked BEFORE the edit; authored_artifact_drift() catches what slips through
- *  after. Never a block: an operator may mean it. */
-export async function fetchTypeImpact(typeId: string, removingKeys?: string[]): Promise<TypeImpact[]> {
-  // The RPC name is data to PostgREST, so it cannot type the result — say the
-  // shape explicitly rather than letting an `any` leak into the caller.
-  const res = await supabase.rpc('object_type_impact', {
-    p_object_type_id: typeId,
-    p_removing_keys: removingKeys ?? null,
-  }) as unknown as {
-    data: { artifact_kind: string; artifact_name: string; api_name: string; detail: string }[] | null
-    error: { message: string } | null
-  }
-  if (res.error) throw new Error(res.error.message)
-  return (res.data ?? []).map((r) => ({
-    artifactKind: r.artifact_kind, artifactName: r.artifact_name, apiName: r.api_name, detail: r.detail,
+  return (data as unknown as {
+    id: string; dataset_id: string; branch_id: string
+    datasets: { name: string } | null; dataset_branches: { name: string } | null
+  }[]).map((r) => ({
+    id: r.id, datasetId: r.dataset_id, branchId: r.branch_id,
+    datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
   }))
+}
+
+export async function addObjectTypeDatasource(
+  i: { objectTypeId: string; datasetId: string; branchId: string },
+): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources')
+    .insert({ object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId })
+  if (error) throw new Error(error.message)
+}
+
+export async function removeObjectTypeDatasource(id: string): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources').delete().eq('id', id)
+  if (error) throw new Error(error.message)
 }

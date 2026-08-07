@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/branching/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/branching/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Branching
 
@@ -12,7 +12,7 @@ At a high level, **branching** allows you to take a fork in the road and work on
 
 How to use a branching workflow to make changes to data pipeline code in Foundry:
 
-![branching example](/docs/resources/foundry/data-integration/branching-example.png)
+![branching example](./images/branching-example.png)
 
 1. **Create a branch**. In Foundry, the **`master` branch** refers to the primary data pipeline. When you want to work on your own changes, you create your own branch, which creates an environment for you to experiment and test out ideas without worrying about affecting the `master` branch.
 2. **Create commits**. Within your branch, you can make changes to data transformations. Changes, which include additions and removals, are called **commits**. Your commits are tracked so that there’s a clear history of all the changes you’ve done on your branch.

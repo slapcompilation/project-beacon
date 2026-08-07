@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/reset-stream/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/reset-stream/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Reset stream
 
@@ -19,10 +19,10 @@ To reset a stream, follow the instructions below:
 2. Select the **Details** tab.
 3. In the **Stream Settings** section, select **Reset stream**.
 
-<img alt="Stream connection details." src="./media/reset-stream-open.png">
+<img alt="Stream connection details." src="./images/reset-stream-open.png">
 
 4. You will be redirected to the stream reset page. On this page, you can optionally update the schema, throughput, or configuration values. If you only want to clear data from the stream, leave those sections unchanged.
 
-<img alt="Stream connection reset view." src="./media/reset-stream-page.png">
+<img alt="Stream connection reset view." src="./images/reset-stream-page.png">
 
 5. Select **Reset stream** to initiate the stream reset.

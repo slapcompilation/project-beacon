@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/virtual-tables/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/virtual-tables/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Virtual tables
 
@@ -6,7 +6,7 @@
 
 A virtual table acts as a pointer to a table in a source system outside of Foundry. Virtual tables abstract away the underlying source system and storage formats, enabling you to build workflows that combine data from different source systems seamlessly. Virtual tables can also be combined with datasets stored in Foundry as part of a flexible architecture where data need not be consolidated in one place. You can also create new virtual tables as outputs from Foundry data transformations, enabling workflows where storage is fully external and Foundry handles orchestration, security, and other functions.
 
-![Virtual tables diagram](/docs/resources/foundry/data-integration/tables-diagram.png)
+![Virtual tables diagram](./images/tables-diagram.png)
 
 A virtual table is defined by:
 
@@ -87,7 +87,7 @@ The matrix below provides an overview of the key capabilities available for virt
 
 Sources supporting virtual tables are set up in the [Data Connection](/docs/foundry/data-connection/overview/) application. Select the source that you want to use, then navigate to the **Virtual tables** tab in the source configuration. Follow the [source-documentation](/docs/foundry/data-integration/source-type-overview/) and any requirements listed there for using virtual tables.
 
-![virtual table registration](/docs/resources/foundry/data-integration/virtual_tables_registration.png)
+![virtual table registration](./images/virtual_tables_registration.png)
 
 ### Create virtual tables
 
@@ -97,13 +97,13 @@ All supported sources allow you register individual tables from the source syste
 
 To register a virtual table, select **Create virtual table** in the **Virtual tables** tab in the source. Browse available tables and select the table to register. Unless you choose a different location, the virtual table will be created in the default output folder of the source.
 
-![virtual table manual registration](/docs/resources/foundry/data-integration/virtual_tables_manual_reg.png)
+![virtual table manual registration](./images/virtual_tables_manual_reg.png)
 
 #### Bulk registration
 
 When working with tabular source types such as [Databricks](/docs/foundry/available-connectors/databricks/), [BigQuery](/docs/foundry/available-connectors/bigquery/), and [Snowflake](/docs/foundry/available-connectors/snowflake/), you will be able to **bulk register** multiple virtual tables at once. To begin, select one or more external tables from the left panel. Use the right panel to change where your new virtual tables will be saved, or update their names. Note that changing the name of a virtual table in Foundry does not change the table name in the source.
 
-![virtual table bulk registration](/docs/resources/foundry/data-integration/virtual_tables_bulk_reg.png)
+![virtual table bulk registration](./images/virtual_tables_bulk_reg.png)
 
 #### Auto-registration
 
@@ -111,19 +111,19 @@ When enabling **auto-registration**, you create a new Foundry [project](/docs/fo
 
 To enable auto-registration, you must have [project creation permissions](/docs/foundry/security/projects-and-roles/#create-projects) in Foundry.
 
-![Virtual table auto registration screen](/docs/resources/foundry/data-integration/virtual_tables_auto_reg.png)
+![Virtual table auto registration screen](./images/virtual_tables_auto_reg.png)
 
 The project is managed by Foundry, and users cannot manually create or update resources in it. Virtual tables registered in this project can be imported into other projects for use in workflow development.
 
 Enabling auto-registration allows setting permissions and access to the project, which can later be managed by the project owner using the access sidebar.
 
-![Resources screenshot showing virtual table project](/docs/resources/foundry/data-integration/virtual_tables_project.png)
+![Resources screenshot showing virtual table project](./images/virtual_tables_project.png)
 
 ##### Tag filtering for Databricks sources
 
 When configuring auto-registration for Databricks sources, you have the option of specifying a list of table tags to filter by. Only tables that have at least one of these tags set in the Databricks [`TABLE_TAGS` ↗](https://docs.databricks.com/aws/en/sql/language-manual/information-schema/table_tags) system table will be registered.
 
-![Virtual table auto registration tag filtering.](/docs/resources/foundry/data-integration/virtual-tables-registration-table-tags.png)
+![Virtual table auto registration tag filtering.](./images/virtual-tables-registration-table-tags.png)
 
 ### Virtual tables in Code Repositories
 
@@ -149,7 +149,7 @@ This includes:
 * **Incremental:** If supported, you can configure incremental pipelines with the table, so downstream builds process only new or changed data instead of reprocessing all rows.
 * **Versioning:** If supported, the table provides versioning, allowing Foundry to detect updates and skip unnecessary downstream builds when the data has not changed.
 
-![Virtual table details.](/docs/resources/foundry/data-integration/virtual-table-details.png)
+![Virtual table details.](./images/virtual-table-details.png)
 
 ## Update detection for virtual table inputs
 
@@ -177,7 +177,7 @@ To enable update detection for a virtual table input, follow these instructions:
 
 Once enabled, you can use the virtual table input as a [schedule trigger](/docs/foundry/building-pipelines/create-schedule/) for downstream tables and datasets. Any objects backed by the virtual table will reindex automatically when source updates are detected.
 
-<img src="./media/virtual-tables-update-detection.png" alt="Enabling update detection in the left panel." width="400"/>
+<img src="./images/virtual-tables-update-detection.png" alt="Enabling update detection in the left panel." width="400"/>
 
 ## Configure objects backed by virtual tables
 

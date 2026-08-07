@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/models/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/models/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Models in the Ontology
 

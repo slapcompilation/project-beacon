@@ -4,7 +4,7 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'tailwind.config.ts', 'vite.config.ts', 'vitest.config.ts', 'playwright.config.ts', 'e2e'] },
+  { ignores: ['dist', 'vite.config.ts', 'vitest.config.ts'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.strictTypeChecked],
     files: ['**/*.{ts,tsx}'],

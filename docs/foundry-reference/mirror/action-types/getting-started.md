@@ -30,7 +30,7 @@ Note that for a user to be able to take an action defined in an action type conf
 
 We start by creating a new action type for changing the ticket's priority. In the Ontology Manager, select **Action type** on the left sidebar, then choose **New Action type** at the top right of the view.
 
-![Create a new action type](/docs/resources/foundry/action-types/actions_wizard.png)
+![Create a new action type](./images/actions_wizard.png)
 
 The creation wizard allows you to configure the most important features of an action type. Enter a **Display name** for your action type. Next, select the **Change object(s)** option and set it to **Modify**. From the following dropdown, select the `Demo Ticket` object type and add the `Priority` property by selecting **Add property**. Finally, select **Create** in the bottom right.
 
@@ -40,17 +40,17 @@ You can now see the full detailed view of your action type. You can make additio
 
 Select the **Forms** tab to get an overview of the parameters. The `Ticket` and `Priority` parameter have already been created based by the **Rule**.
 
-![Actions form](/docs/resources/foundry/action-types/actions_form.png)
+![Actions form](./images/actions_form.png)
 
 Select the `Priority` parameter to limit the values it can take on. Change the constraints from **User input** to **Multiple choice**. This will allow you to pick what values can be chosen for this parameter. Add `P0`, `P1` and `P2` as options. If you applied your action to an object now, you could change the priority of a ticket to `P0`, `P1`, or `P2`. You will now add submission criteria that will restrict you to only changing the priority for open tickets.
 
-![Priority parameter](/docs/resources/foundry/action-types/actions_constraints.png)
+![Priority parameter](./images/actions_constraints.png)
 
 ## Add submission criteria
 
 Open the submission criteria section in the **Security & Submission Criteria** tab from the sidebar. Create a new condition by selecting **Condition** in the **Execution** section. Using the **Parameter** condition template, set a condition on the `Ticket` object parameter's `Status` property. Using the `is` operator, you can then do an exact string comparison between the ticket status and the specific value `Open`.
 
-![Submission criteria](/docs/resources/foundry/action-types/actions_submission_criteria.png)
+![Submission criteria](./images/actions_submission_criteria.png)
 
 Add a failure message so users can see why an action has failed. Your action definition is now complete, and you can configure it to show up next to the Object View in Object Explorer.
 
@@ -58,16 +58,16 @@ Add a failure message so users can see why an action has failed. Your action def
 
 Go to **Demo Ticket One** and edit its Object View. Add a new widget to the top, and choose the **Actions** widget. In the sidebar, select **Add Item.** Copy and paste the action RID from the Ontology Manager and paste it into the Action RID field. Name the label "Change Ticket Priority".
 
-![Add the action to an Object View](/docs/resources/foundry/action-types/getting_started_add_RID.png)
+![Add the action to an Object View](./images/getting_started_add_RID.png)
 
 By default, the action form will show every parameter as a field in the action form, including the `Ticket` parameter. Additionally, an action does not know that it should fill the current object in for the `Ticket` parameter. We will configure the action form to hide the ticket field (so the user cannot change the status of a different ticket), and set its value to the current object.
 Under **Default value**, select **Add Item**. Type the parameter ID for the `Ticket` parameter—in this tutorial, we set it to `ticket`. Change the value type to **Environment variable** and select **Current object**. Finally, change the display option to **Hidden**.
 
-![Configure the action form](/docs/resources/foundry/action-types/getting_started_configure_action_form.png)
+![Configure the action form](./images/getting_started_configure_action_form.png)
 
 You will now see the action button on the preview page:
 
-![Action button on Preview page](/docs/resources/foundry/action-types/getting_started_preview_page.png)
+![Action button on Preview page](./images/getting_started_preview_page.png)
 
 You can now save and publish the Object View.
 
@@ -75,11 +75,11 @@ You can now save and publish the Object View.
 
 Visit an open ticket and select the **Change Ticket Priority** button we configured. You should see the action form appear over the view. Clicking into the **Priority** field will show the single selected submission criterion we configured on the parameter:
 
-![Changing ticket priority with action](/docs/resources/foundry/action-types/getting_started_apply_action.png)
+![Changing ticket priority with action](./images/getting_started_apply_action.png)
 
 Pick a priority and select submit. The form will disappear and the object view will update with the new priority. Our submission criteria said that it should not be possible to run this action on a closed ticket—if we open Demo Ticket Two, which is closed, we see the following:
 
-![Submission criteria prevents action from running on closed ticket](/docs/resources/foundry/action-types/getting_started_testing_validation.png)
+![Submission criteria prevents action from running on closed ticket](./images/getting_started_testing_validation.png)
 
 ## Resolve conflicting user edits (actions) and datasource updates
 

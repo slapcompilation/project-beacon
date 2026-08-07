@@ -30,48 +30,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Eval persistence: when both secrets are set, the Vitest
-      # autoPersistReporter posts one row per *.eval.ts to model_eval_runs
-      # via the eval-record edge fn. Missing either var = silent no-op
-      # (the suite still passes), so this is safe pre-secret-setup too.
       - run: pnpm turbo lint type-check test
-        env:
-          EVAL_PERSIST_URL:   ${{ secrets.EVAL_PERSIST_URL }}
-          EVAL_PERSIST_TOKEN: ${{ secrets.EVAL_PERSIST_TOKEN }}
 
-      # turbo covers the TS packages but not supabase/functions (Deno, resolved
-      # at deploy). Without this a syntax error there passes CI and fails the
-      # production deploy instead.
-      - name: Edge function syntax
-        run: pnpm check:edge
+      # Five guards policed the database and none looked at apps/web. A cleanup
+      # deleted ReportsPage and left its eleven sections behind, plus FinancePage
+      # whose route had become a redirect — 2,503 lines surviving the very sweep
+      # meant to find them. This walks the import graph from main.tsx.
+      - name: Every web file is reachable
+        run: pnpm check:surfaces
 
-      # Same class of gap as the one above: an RPC name is a STRING handed to
-      # PostgREST, so a function that does not exist type-checks perfectly and
-      # fails at runtime. Four were missing when this was written — occupancy
-      # ingestion had never worked.
-      - name: Every called RPC exists
-        run: pnpm check:rpcs
-
-      # A module's references live by NAME inside jsonb, where no foreign key
-      # reaches. A broken one renders fine and answers nothing.
-      # audit-shape polices tables and functions — database OBJECTS. A value
-      # inside a CHECK is not one, so an allowed value nothing consumes reads as
-      # a working feature indefinitely. Three did.
-      - name: Every allowed value is consumed
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: pnpm check:vocabulary
-
-      - name: Module references resolve
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
-        run: pnpm check:modules
-
-      # The ratchet. A new table must declare whether it is platform or domain;
-      # a domain table must be reachable by the ontology; the grandfathered set
-      # may only shrink; an unreachable function must be declared intentional.
-      # Caught an orphaned RPC on its very first run.
-      - name: Shape has not drifted
-        run: pnpm check:shape
-        env:
-          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

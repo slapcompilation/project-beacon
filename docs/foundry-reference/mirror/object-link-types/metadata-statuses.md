@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-statuses/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/metadata-statuses/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Statuses
 
 Every object type, property, link type, action, or interface in the Ontology has a **status** that indicates developmental state. An ontological resource's status can be either active, experimental, deprecated, or example; object types can also be classified as [promoted](#promoted-status-object-types-only). Status metadata helps Ontology-editing users to know what resources are being actively relied on by user applications. These statuses are viewable in [**Object Explorer**](/docs/foundry/object-explorer/overview/), [**Object Views**](/docs/foundry/object-views/overview/), and [**Workshop**](/docs/foundry/workshop/overview/) to provide more information about which object types are intended for use in user applications.
 
-<img src="./media/statuses-active.png" alt="Active status" width="400" />
+<img src="./images/statuses-active.png" alt="Active status" width="400" />
 
 The status can take on one of five values:
 
@@ -34,7 +34,7 @@ Key characteristics of the `promoted` status include:
   * Only users with the `Ontology Owner` role on the ontology level can directly apply the `promoted` status.
   * Other users must submit a proposal for review and approval by an `Ontology Owner` on the ontology level to apply the status.
 
-<img src="./media/promoted-example.png" alt="Promoted Object Type Example" width="400"/>
+<img src="./images/promoted-example.png" alt="Promoted Object Type Example" width="400"/>
 
 ## Operations that are not allowed
 
@@ -58,7 +58,7 @@ When changing a resource to the `deprecated` status, you will be prompted to:
 
 These statuses are viewable in Object Explorer, Object Views, and Workshop to provide more information about which object types are intended for use in user applications.
 
-<img src="./media/edit-status-change-status.png" alt="Change status" width="400" />
+<img src="./images/edit-status-change-status.png" alt="Change status" width="400" />
 
 The Ontology Manager ensures status consistency between an object type and its related properties or link types. For example, if an object type is changed from `active` to `experimental`, all of its properties will be marked `experimental` as well.
 
@@ -89,7 +89,7 @@ The application changes statuses in order to prevent invalid states. If a foreig
 
 When changing an object type from `experimental` to `active`, there is the option to also apply the `active` status to all properties on the object type:
 
-<img src="./media/edit-status-apply-active-annotated.png" alt="Apply active status" width="400" />
+<img src="./images/edit-status-apply-active-annotated.png" alt="Apply active status" width="400" />
 
 When you change an object type to `example`, all of its properties will automatically become `example` also.
 
@@ -99,7 +99,7 @@ Statuses across properties of an object type can also be edited in bulk from the
 
 Statuses across object types can also be edited in bulk from the home page object view page by selecting the checkboxes of the object types to edit and selecting the **Edit status** button at the top right of the table.
 
-<img src="./media/edit-status-bulk-edit.png" alt="Bulk edit object types" width="400" />
+<img src="./images/edit-status-bulk-edit.png" alt="Bulk edit object types" width="400" />
 
 ## Troubleshooting
 
