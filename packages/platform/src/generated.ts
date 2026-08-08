@@ -41,8 +41,23 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (47) ───────────────────────────────────────────────────
+// ── FUNCTIONS (51) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
+
+/**
+ *  Every property this action type can write. "Because we have only defined
+ *  one action that touches only the Root Cause property, this is the only
+ *  property that users can edit."
+ */
+export const actionEditableProperties = { apiName: 'action_editable_properties', kind: 'function' } as FunctionType<
+  { p_action: string },
+  { object_type: string; property: string; rule_kind: string }[]
+>
+
+export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; targets: string; note: string }[]
+>
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
   Record<string, never>,
@@ -78,6 +93,11 @@ export const canManageMarking = { apiName: 'can_manage_marking', kind: 'function
   boolean
 >
 
+export const canReadActionType = { apiName: 'can_read_action_type', kind: 'function' } as FunctionType<
+  { p_action: string },
+  boolean
+>
+
 /**
  *  FILE access: same organization, and a member of every file marking. Gates
  *  the registry row, the schema and the transaction history — not the rows.
@@ -103,6 +123,11 @@ export const canRemoveMarking = { apiName: 'can_remove_marking', kind: 'function
 
 export const canSeeMarkingCategory = { apiName: 'can_see_marking_category', kind: 'function' } as FunctionType<
   { p_category: string },
+  boolean
+>
+
+export const canWriteActionType = { apiName: 'can_write_action_type', kind: 'function' } as FunctionType<
+  { p_action: string },
   boolean
 >
 

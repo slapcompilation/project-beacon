@@ -229,7 +229,7 @@ name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
 
 ---
 
-## Phase C — action types
+## Phase C — action types — **BUILT** (418)
 
 > "Action types… refer to predefined operations that you can perform on objects
 > within your data model. These actions can **create, modify, and delete
@@ -246,9 +246,16 @@ name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
 **The declared property set is the edit permission.** That sentence is the whole
 design: nothing else may write.
 
-Rules can also "send a Foundry notification… invoke a webhook… or create and
-delete other objects", or the action can be "backed **with a function**". Build
-`modify` first; the rest are the same table.
+**Built as seven rule kinds of the twelve** `rules.md` lists — create/modify/
+create-or-modify/delete object, create/delete link, and the function rule. The
+five `…of interface` variants wait on B5; the three side-effect rules
+(notification, webhook, schedule) each name a system we have no counterpart for,
+so they are absent rather than stubbed.
+
+`action_editable_properties(action)` makes the design sentence answerable: every
+property an action can write, and nothing else can.
+
+No RID column — an action type's form is unattested, same call as B2.
 
 ---
 
