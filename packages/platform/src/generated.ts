@@ -41,7 +41,7 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (51) ───────────────────────────────────────────────────
+// ── FUNCTIONS (54) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -78,6 +78,16 @@ export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionTy
   string
 >
 
+/**
+ *  Every field both this branch and main have moved since the branch recorded
+ *  its base. Everything not listed auto-resolves on rebase, which is what
+ *  Global Branching does.
+ */
+export const branchConflicts = { apiName: 'branch_conflicts', kind: 'function' } as FunctionType<
+  { p_branch: string },
+  { resource_kind: string; resource_id: string; field: string; base_value: Json; branch_value: Json; main_value: Json }[]
+>
+
 export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
   boolean
@@ -85,6 +95,11 @@ export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' 
 
 export const canChooseScopedSession = { apiName: 'can_choose_scoped_session', kind: 'function' } as FunctionType<
   { p_session: string },
+  boolean
+>
+
+export const canManageBranch = { apiName: 'can_manage_branch', kind: 'function' } as FunctionType<
+  { p_branch: string },
   boolean
 >
 
@@ -118,6 +133,11 @@ export const canReadDatasetData = { apiName: 'can_read_dataset_data', kind: 'fun
 
 export const canRemoveMarking = { apiName: 'can_remove_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
+  boolean
+>
+
+export const canSeeBranch = { apiName: 'can_see_branch', kind: 'function' } as FunctionType<
+  { p_branch: string },
   boolean
 >
 
