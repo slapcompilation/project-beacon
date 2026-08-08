@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/overview/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Object Views
 
@@ -13,7 +13,7 @@ There are two types of object views:
 
 Standard Object Views exist alongside configured Object Views as a first-class viewing option. While standard Object Views display by default when no configured Object View is created, they remain accessible even after a configured Object View is built. Users can toggle between standard and configured Object Views at any time based on their needs.
 
-![A standard Object View's full and panel form factors are displayed.](/docs/resources/foundry/object-views/standard-full-and-panel-object-view.png)
+![A standard Object View's full and panel form factors are displayed.](./images/standard-full-and-panel-object-view.png)
 
 ## Object View form factors
 
@@ -32,10 +32,10 @@ A configured full Object View for a `Patient` object might include:
 
 This configured full Object View could serve as an exhaustive resource for all relevant information about a patient, facilitating better-informed healthcare decisions and personalized care planning.
 
-![Full patient Object View example.](/docs/resources/foundry/object-views/overview-full-object-view.png)
+![Full patient Object View example.](./images/overview-full-object-view.png)
 
 The configured panel Object View for the same `Patient` object may only show the demographic and vital information, so when it appears in other applications it provides users with easy access to the most critical data for their workflow.
 
-![Panel patient Object View example.](/docs/resources/foundry/object-views/overview-panel-object-view.gif)
+![Panel patient Object View example.](./images/overview-panel-object-view.gif)
 
 [Learn more about object types and the concepts behind Ontology-based data modeling.](/docs/foundry/ontology/core-concepts/)

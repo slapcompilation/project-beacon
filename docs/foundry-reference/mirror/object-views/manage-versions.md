@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/manage-versions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/manage-versions/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Object View versioning
 
@@ -17,7 +17,7 @@ After editing the Object View, you can save changes by selecting the **Save** bu
 
 Disabling **Automatically publish new versions** will display two separate buttons for saving and publishing. The **Save** button will save both tab and workshop module changes, and the **Publish** button will publish both of these changes to the user.
 
-<img src="./media/object-view-save-publish.png" alt="The 'Save and publish' Object View button." width="300">
+<img src="./images/object-view-save-publish.png" alt="The 'Save and publish' Object View button." width="300">
 
 As you edit the Workshop module, it will be periodically auto-saved like any other Workshop module, but these changes will not be visible to users until the Object View is published.
 
@@ -33,4 +33,4 @@ To view a list of prior versions of the Object View, select the blue Object View
 * Prior published versions will show a grey checkmark.
 * Versions that were never published will not have a checkmark.
 
-<img src="./media/object-view-edit-history.png" alt="The Object View edit history panel." width="500">
+<img src="./images/object-view-edit-history.png" alt="The Object View edit history panel." width="500">

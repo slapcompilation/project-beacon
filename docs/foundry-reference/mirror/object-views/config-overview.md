@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-overview/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Configured Object View overview
 
@@ -6,7 +6,7 @@ Configured Object Views are customizable, reusable representations of object dat
 
 Foundry creates a [standard Object View](/docs/foundry/object-views/standard-object-views/) for all object types by default. When you create a configured Object View, it becomes the default view for users, though they can switch back to the standard Object View through a toggle button packaged with the Object View. Additionally, users can hover over the ellipsis drawer icon in an Object View rendered in Palantir applications that use their own custom header, such as Gaia or Vertex, to toggle between standard and configured views.
 
-![The standard and configured Object View toggle in an application is displayed.](/docs/resources/foundry/object-views/toggle-core-custom-view-in-selection.png)
+![The standard and configured Object View toggle in an application is displayed.](./images/toggle-core-custom-view-in-selection.png)
 
 :::callout{theme="neutral"}
 The ability to toggle between standard and configured Object Views is not yet available in Workshop.
@@ -31,14 +31,14 @@ There are many ways to access configured Object View configuration.
 
 The Object Views for an object type can be previewed in the **Object views** tab in Ontology Manager. In the header, you can select and pin a default display object to preview. You can also preview the full and panel form factors, and test how the Object View appears in light and dark mode. Editing the configured Object View can be accessed using the **Edit** option in the right side of the header.
 
-![Editing an Object View from Ontology Manager.](/docs/resources/foundry/object-views/ontology-manager-object-view-edit.png)
+![Editing an Object View from Ontology Manager.](./images/ontology-manager-object-view-edit.png)
 
 In Object Explorer, an object type's configured Object View can be accessed when viewing an object by selecting **More > Advanced > Edit object view**.
 
-![Editing an Object View from Object Explorer.](/docs/resources/foundry/object-views/object-explorer-object-view-edit.png)
+![Editing an Object View from Object Explorer.](./images/object-explorer-object-view-edit.png)
 
 When viewing a panel Object View within an application, configuration can be accessed by hovering over the dropdown ellipsis and selecting **Edit**. The dropdown only appears for users with permission to edit the Object View.
 
-<img src="./media/panel-object-view-edit.gif" alt="Editing a panel Object View." width="300">
+<img src="./images/panel-object-view-edit.gif" alt="Editing a panel Object View." width="300">
 
 These edit entry points lead to the configured Object View editor, where the Object View tabs can be managed, and content can be edited with all the standard features of a Workshop module. Once published, edits will apply to all objects of the object type. For more editing information, refer to the [full Object View configuration](/docs/foundry/object-views/config-object-views/) and [panel Object View configuration](/docs/foundry/object-views/config-panel-views/).

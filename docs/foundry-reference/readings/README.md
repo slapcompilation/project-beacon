@@ -213,5 +213,16 @@ is worth most just before the thing it describes gets built. Nothing here is
   **environment-separation** primitive, so one-ontology-per-space also gives
   dev/test/prod their own.
 
-Twenty-two readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `object-edits-and-security.md` — answers three of the four phase-E questions.
+  An instance is identified by its **primary key value**; instances live as an
+  **ephemeral index over a durable merged dataset** (datasource ⊕ edit log),
+  which is machinery we mostly have; and object state is a **replay of an
+  instruction log** with a fifteen-row published answer key, exactly like the
+  dataset transaction example. Conflict resolution is **per datasource**, not per
+  object type — a correction to the map. Plus object/property security policies,
+  which **decouple object access from datasource access** (the course describes
+  the legacy model), and the `NOT`-condition warning that applies to our scoped
+  sessions too.
+
+Twenty-three readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.

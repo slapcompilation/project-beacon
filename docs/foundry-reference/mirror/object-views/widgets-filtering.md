@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-filtering/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-filtering/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Filtering
 
@@ -16,10 +16,10 @@ Apart from these core Filtering Widgets, which are dedicated to filtering only, 
 
 **Common Issues and Notes:**
 
-* In order to activate filters to apply across different widgets on a single tab of an Object View, or even across tabs, **you have to mark the checkbox of “cross-filtering”** on the right-bar editor, under “Settings”. Filters will not apply in tabs that were not marked with this checkbox. <br><img src="./media/cross-section-filtering.png" alt="Cross-section filtering enabled" height="500"/>
+* In order to activate filters to apply across different widgets on a single tab of an Object View, or even across tabs, **you have to mark the checkbox of “cross-filtering”** on the right-bar editor, under “Settings”. Filters will not apply in tabs that were not marked with this checkbox. <br><img src="./images/cross-section-filtering.png" alt="Cross-section filtering enabled" height="500"/>
 
 * In order to have a filter applied **across different tabs**, make sure that the “filterSet value“ under the tab Settings has an identical text value across all tabs you wish to filter across. This value is case-sensitive.
-  * In that case, the filters that use the same filterSet value will be affected by the same active filters. For example, if Tab A and Tab B share the same filterSet value, any filters applied on Tab A will be applied on Tab B and vice versa. <br><img src="./media/filter-across-tabs.png" alt="Filter across tabs" height="500"/>
+  * In that case, the filters that use the same filterSet value will be affected by the same active filters. For example, if Tab A and Tab B share the same filterSet value, any filters applied on Tab A will be applied on Tab B and vice versa. <br><img src="./images/filter-across-tabs.png" alt="Filter across tabs" height="500"/>
 
 * In all filter configurations, you will select a Linked Object to the object that you’re currently editing, and not the object that you are editing itself.
   * Example: If you’re configuring the Object View of an “Airport”, with “Flights” connected to it, you would probably have different visuals on flights (timelines, charts, list of all flights in a table), and would want to set your filters on different properties of “Flights” (e.g. filter per airline, filter per date, filter per origin city).
@@ -35,7 +35,7 @@ The multiselect filter allows users to filter the Object View by multiple values
 
 Once configured, this is how it looks:
 
-![multiselect-filter](/docs/resources/foundry/object-views/widgets_hp-multi-select-filter-1.gif)
+![multiselect-filter](./images/widgets_hp-multi-select-filter-1.gif)
 
 ### Configuration
 
@@ -59,7 +59,7 @@ This filter enables having one or more filters with a single-selection dropdown 
 
 Once configured, this is how it looks:
 
-![Dropdown Filter](/docs/resources/foundry/object-views/widgets_hp-dropdown-filter.gif)
+![Dropdown Filter](./images/widgets_hp-dropdown-filter.gif)
 
 ### Configuration
 
@@ -106,7 +106,7 @@ This is a rigid filter; once configured by the Object View Editor, there is no c
 Note that the button changes color as you select or unselect it. You can add an [Active Filters](#active-filters) to make the state visually clear.
 
 Once configured, this is how it looks:
-![Button Filter](/docs/resources/foundry/object-views/widgets_hp-buttons-filter.gif)
+![Button Filter](./images/widgets_hp-buttons-filter.gif)
 
 ### Configuration
 
@@ -155,7 +155,7 @@ Once configured, any widget in the Object View is affected once a date range is 
 Note that you should insert the object ID of the object that you want to filter down, which is usually a Linked Object to the object that you are currently configuring.
 
 Once configured, this is how it looks:
-![Date Range Filter](/docs/resources/foundry/object-views/widgets_hp-daterange-filter.gif)
+![Date Range Filter](./images/widgets_hp-daterange-filter.gif)
 
 ### Configuration
 
@@ -176,7 +176,7 @@ This widget enables a high degree of choice, but also higher complexity for the 
 
 Once configured, this is how it looks:
 
-![Linked Object Filter Sidebar.gif](/docs/resources/foundry/object-views/widgets_hp-filter-sidebar.gif)
+![Linked Object Filter Sidebar.gif](./images/widgets_hp-filter-sidebar.gif)
 
 ### Configuration
 
@@ -245,7 +245,7 @@ For each default filter, you need to configure the following:
   * **Date Range:** offers a toggle with 2 options - exact dates (“from 1\1\2019 to 31\12\2019”) or relative to current time (“Last Month” or “Between two years ago and one year ago”). The configuration itself is done with a standard calendar datepicker.
 * \[Optional] **Filter Label:** An internal label for documentation, will not appear anywhere for the user. Optional.
 
-<img src="./media/widgets_hp-filter-container.png" alt="Configuring Filter Container" height="700"/>
+<img src="./images/widgets_hp-filter-container.png" alt="Configuring Filter Container" height="700"/>
 
 **Cross-filtering settings:**
 
@@ -285,7 +285,7 @@ Active Filter is a useful visual indication for the user to understand which fil
 
 Once configured, it will look like the interactive widget below, with a filter icon to the left. In this example, it is affected by the different filter widgets:
 
-![filter-summary](/docs/resources/foundry/object-views/widgets_hu-filter-summary-1.gif)
+![filter-summary](./images/widgets_hu-filter-summary-1.gif)
 
 ## Configuration
 

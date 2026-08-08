@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-profiles/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-profiles/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Configure profiles
 
@@ -17,25 +17,25 @@ Object Explorer is powered by a service called `Hubble`. To use a group as a pro
 Newly-created profiles may take up to five minutes to become available in the Object View editor.
 :::
 
-<img alt="Configure Object View profile" src="./media/custom-object-views_profiles_multipass_ui.png"/>
+<img alt="Configure Object View profile" src="./images/custom-object-views_profiles_multipass_ui.png"/>
 
 ### Assign a profile to an Object View
 
 Profiles are assigned on a tab level, meaning that for each tab you can assign specific profiles. To add a profile to a tab, access the editor sidebar, click on a tab in the **Tab** settings, select **Visibility**, and click **Add a profile**.
 
-![Add a profile to Object View tab](/docs/resources/foundry/object-views/add-profile-to-object-view-tab.png)
+![Add a profile to Object View tab](./images/add-profile-to-object-view-tab.png)
 
 ### Switch profiles as a user
 
 Once you add a profile to an Object View, you can switch between profiles. Select the profile type in the Object View header to access a dropdown menu containing available profiles. You can find the same dropdown menu by clicking **Viewing Object As:** at the top of the Object View.
 
-![switch profile view in Object View](/docs/resources/foundry/object-views/switch-object-view-profiles.png)
+![switch profile view in Object View](./images/switch-object-view-profiles.png)
 
 ### Switch profiles as an editor
 
 You can also access different profiles when editing an Object View. Doing so will allow you to see which tabs are visible to each profile.
 
-![switch profile view as an editor in Object View](/docs/resources/foundry/object-views/switch-profile-view-editor.png)
+![switch profile view as an editor in Object View](./images/switch-profile-view-editor.png)
 
 ### Set a default profile for a user
 
