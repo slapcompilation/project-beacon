@@ -60,7 +60,7 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (57) ───────────────────────────────────────────────────
+// ── FUNCTIONS (59) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -198,6 +198,15 @@ export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'f
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,
   { capability: string; slot: string; accepts: string[]; note: string }[]
+>
+
+/**
+ *  The message shown when this criterion fails: its own if it is root-level,
+ *  otherwise its root ancestor's.
+ */
+export const criterionFailureMessage = { apiName: 'criterion_failure_message', kind: 'function' } as FunctionType<
+  { p_node: string },
+  string
 >
 
 /**
@@ -465,6 +474,16 @@ export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'functio
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  The ten operators submission-criteria names, with the descriptions the
+ *  page gives. `arity` is what "operators are pre-filtered to only show a
+ *  selection valid for the parameter" means.
+ */
+export const submissionOperators = { apiName: 'submission_operators', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { operator: string; arity: string; note: string }[]
 >
 
 /**
