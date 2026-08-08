@@ -259,7 +259,7 @@ No RID column — an action type's form is unattested, same call as B2.
 
 ---
 
-## Phase D — branches and proposals
+## Phase D — branches and proposals — **BUILT** (419–420)
 
 This **replaces** the edit-session/version pair in my first map. That was
 invented from `save-changes` alone; branching is the real mechanism, and
@@ -297,7 +297,7 @@ trigger re-indexing".
 choices — *Use Main branch changes* · *Keep current branch changes* · a **custom
 change** that dissolves the conflict.
 
-### D2 · Proposals
+### D2 · Proposals — **BUILT** (420)
 
 > "**Each ontology resource is considered an individual task.**"
 >

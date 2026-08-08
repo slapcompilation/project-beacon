@@ -9,8 +9,16 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (3) ────────────────────────────────────────────────
+// ── ACTION TYPES (5) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
+
+/**
+ *  Opens a proposal and snapshots one task per resource the branch changed.
+ */
+export const createProposal = { apiName: 'create_proposal', kind: 'action' } as ActionType<
+  { p_branch: string; p_name: string; p_description?: string },
+  string
+>
 
 /**
  *  Create the dataset's real table in the datasets schema from the schema on
@@ -20,6 +28,17 @@ import type { ActionType, FunctionType, Json } from './client'
 export const datasetMaterialize = { apiName: 'dataset_materialize', kind: 'action' } as ActionType<
   { p_dataset: string; p_transaction: string },
   string
+>
+
+/**
+ *  Merges a proposal when nothing blocks it, and retires its branch.
+ *  Deliberately does NOT check who is merging beyond visibility: "the person
+ *  who merges may be submitting changes to resources that they cannot edit
+ *  themselves. This is by design."
+ */
+export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as ActionType<
+  { p_proposal: string },
+  void
 >
 
 /**
@@ -41,7 +60,7 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (54) ───────────────────────────────────────────────────
+// ── FUNCTIONS (57) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -143,6 +162,11 @@ export const canSeeBranch = { apiName: 'can_see_branch', kind: 'function' } as F
 
 export const canSeeMarkingCategory = { apiName: 'can_see_marking_category', kind: 'function' } as FunctionType<
   { p_category: string },
+  boolean
+>
+
+export const canSeeProposal = { apiName: 'can_see_proposal', kind: 'function' } as FunctionType<
+  { p_proposal: string },
   boolean
 >
 
@@ -378,6 +402,16 @@ export const propertyBaseTypes = { apiName: 'property_base_types', kind: 'functi
   string[]
 >
 
+/**
+ *  Every reason this proposal cannot merge. Empty means it can. Approval and
+ *  merge checks are separate reasons — a task can be approved and still fail
+ *  its check.
+ */
+export const proposalBlockers = { apiName: 'proposal_blockers', kind: 'function' } as FunctionType<
+  { p_proposal: string },
+  { scope: string; subject: string; reason: string }[]
+>
+
 export const reservedApiNames = { apiName: 'reserved_api_names', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
@@ -431,6 +465,16 @@ export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'functio
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  Derived, never stored. "A single rejection from any user… will cause the
+ *  resource's changes to be Rejected", so rejection dominates approval
+ *  regardless of order or count.
+ */
+export const taskApprovalStatus = { apiName: 'task_approval_status', kind: 'function' } as FunctionType<
+  { p_task: string },
+  string
 >
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
