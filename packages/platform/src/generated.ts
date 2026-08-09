@@ -157,7 +157,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (64) ───────────────────────────────────────────────────
+// ── FUNCTIONS (66) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -181,12 +181,33 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 >
 
 /**
+ *  "users must be a member or guest member of at least one organization
+ *  applied to a Project" — this is that sentence. Note it is false for a NULL
+ *  organization, where the old IS NOT DISTINCT FROM comparison was true for a
+ *  session that had none.
+ */
+export const authInOrg = { apiName: 'auth_in_org', kind: 'function' } as FunctionType<
+  { p_org: string },
+  boolean
+>
+
+/**
  *  Current user's organization scope. Mirrors auth_hotel_id(). JWT claim
  *  takes precedence; falls back to parent org of hotel.
  */
 export const authOrgId = { apiName: 'auth_org_id', kind: 'function' } as FunctionType<
   Record<string, never>,
   string
+>
+
+/**
+ *  Every organization this session can meet an access requirement with: the
+ *  one primary membership plus any guest memberships. Read from the token —
+ *  the access token hook derives both from the database at issue.
+ */
+export const authOrgIds = { apiName: 'auth_org_ids', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionType<
