@@ -18,7 +18,7 @@ Exploration and analysis in Quiver are performed through the use of cards, which
 
 Every card in Quiver takes zero or more inputs, and produces an output of a specific type, for example `object set`, `time series`, `categorical chart`, `number`, etc. Together, these types form Quiver’s [data model](/docs/foundry/quiver/analysis-data-model/), and define how cards can be chained together.
 
-Cards can be configured in the editor panel by selecting the <img alt="Settings icon" src="./media/howto-gear.png" width="30px"> icon in the top-right corner of the card.
+Cards can be configured in the editor panel by selecting the <img alt="Settings icon" src="./images/howto-gear.png" width="30px"> icon in the top-right corner of the card.
 
 ## Canvas and graph
 

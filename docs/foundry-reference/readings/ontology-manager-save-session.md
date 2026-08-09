@@ -1171,6 +1171,70 @@ So it is a **third save-blocking class**, alongside errors and the confirmation
 gate — and it partially answers Question 5. `object-edits/schema-migrations.md`
 is unread and now clearly load-bearing.
 
+### 13.6 Question 1 — Quiver is the platform's one worked example, and it is server-side
+
+`quiver/core-concepts.md` describes the same three-layer model the Ontology
+Manager has, and unlike every other page in the corpus it says **where the middle
+layer lives and how it is addressed**:
+
+> Quiver analyses are saved manually by clicking the Save button in the top right of the application. A version history is also provided, allowing you to view or revert your analysis to previous saved versions. Additionally, in between each Save action, Quiver auto-saves your "working" state (storing it in the `state` URL variable, for example `state=j05na7mun3`). This allows you to refresh your page and get back your exact analysis state even if you have not saved. Note that if you are sharing a URL link with the `state` variable set, this will open that working state rather than the latest analysis version.
+
+Four things are stated outright, and the fourth is the one that decides it:
+
+1. The working state is **auto-saved**, continuously, between explicit saves.
+2. It **survives a page refresh** — `get back your exact analysis state even if
+   you have not saved`.
+3. It is addressed by an **opaque handle** in the URL, `state=j05na7mun3`.
+4. That handle is **shareable**, and following it opens *someone else's working
+   state* rather than the saved version.
+
+A ten-character token cannot encode an analysis, and a second person opening a
+link cannot be served state that only ever existed in the first person's browser.
+**The `state` variable is a key to something held on the server.** This is the
+only page in 1,766 that describes the mechanism rather than the behaviour.
+
+The history menu is the same shape as the Ontology Manager's, which is what makes
+the analogy structural rather than verbal — an unsaved row carrying a **count**,
+sitting above numbered saved versions in one list:
+
+> History … Analysis History … Versions … 15 unsaved changes … v8 Chris Fri, Oct 27, 2023, 1:25 PM Current … v7 … v6 … v2 Tom
+> — quiver/images/howto-analysis-history-menu.png
+
+Two details in that screenshot are worth having. The saved versions are
+**sequential integers** authored by different users (`v8` Chris, `v2` Tom), which
+corroborates Slate's `THEIRS (V16)` and settles that a version is an integer, not
+a timestamp. And the unsaved row carries **no author and no timestamp** while
+every saved version carries both — because it is yours, so attribution would be
+redundant. That reframes the Ontology Manager's own unsaved entry (§10.3,
+`review-restore-entity-history-button.png`): its avatar and `Now` are the *same
+row* rendered by a more talkative application, not evidence of anything.
+
+**Where Quiver must NOT be copied.** Its concurrency model is the opposite of the
+Ontology Manager's:
+
+> If multiple users are working on the same analysis at the same time, they are able to work independently without interference, however saving changes will overwrite each others saved changes.
+
+Last-write-wins, with no merge at all. The Ontology Manager has `Update`,
+conflicts and keep-or-override (§6), so it is the more careful product and
+Quiver's save semantics do not transfer. Only the storage shape does.
+
+**Verdict.** No page states where the *Ontology Manager's* working state lives,
+so this is not a quotation and must not be cited as one. But three independent
+lines now point the same way:
+
+- Foundry's one documented working state is server-held and survives a refresh.
+- Foundry says `in memory … cleared on refresh` explicitly when it means that
+  (§13.4), and does not say it here.
+- The Ontology Manager's working state survives into a `Save to new branch`, a
+  rebase reload, and an attributed history entry — none of which a browser-local
+  buffer participates in.
+
+**Inference, and it is the one this phase is built on: server-side.** Not
+Quiver's URL-handle addressing, though — no `state` parameter appears in any of
+the 56 screenshots, and the Ontology Manager attributes an unsaved entry to a
+user rather than to a link. Combined with §13.2, the shape is **one working state
+per (user, branch)**.
+
 ---
 
 ## Connects to
@@ -1264,7 +1328,18 @@ is unread and now clearly load-bearing.
    Foundry states browser-memory drafts explicitly when that is what it means,
    and the Ontology Manager does not. Also searched and found nothing: Pipeline
    Builder, Workshop, Slate, Quiver, Data Lineage, global branching, and the
-   nine deep-dive courses. **Still the one question that blocks the phase.**
+   nine deep-dive courses.
+
+   **RESOLVED as far as the corpus allows — §13.6.** Still not *stated* for the
+   Ontology Manager, and it must never be cited as though it were. But
+   `quiver/core-concepts.md` documents the one working state in the platform
+   whose mechanism is described, and it is server-held, auto-saved, survives a
+   refresh, and is addressed by a shareable handle. With the AIP Analyst contrast
+   and the three Ontology Manager behaviours a browser buffer cannot perform,
+   **the phase is built on server-side, one working state per (user, branch)**,
+   declared as inference in the migration header. What would still overturn it:
+   any course screen showing unsaved ontology edits lost on refresh, or absent on
+   a second machine.
 
 2. ~~**Is the working state scoped per branch?**~~ **ANSWERED — yes.** §13.2.
    Unsaved changes belong to a branch and are destroyed with it, said in two
