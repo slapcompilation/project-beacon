@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (11) ────────────────────────────────────────────────
+// ── ACTION TYPES (14) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -53,6 +53,16 @@ export const datasetMaterialize = { apiName: 'dataset_materialize', kind: 'actio
 >
 
 /**
+ *  Stage a deletion. The review dialog shows a deleted resource as an entry
+ *  with a Deleted pill, so it is reviewable and discardable like any other
+ *  change, and the row survives until save.
+ */
+export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string },
+  string
+>
+
+/**
  *  Discard one entry, or all of them. Per entry and not per field, because
  *  that is the only granularity the Review edits dialog offers.
  */
@@ -83,6 +93,15 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
+ *  Stage a link type into my working state. Flat — every field is a column —
+ *  so save_working_state applies it through the generic arm.
+ */
+export const saveLinkType = { apiName: 'save_link_type', kind: 'action' } as ActionType<
+  { p_link: Json },
+  string
+>
+
+/**
  *  Stage an object type and its properties into my working state. Returns the
  *  id it will have — the row does not exist until save_working_state runs,
  *  which is why the object type Overview shows RID as "Set on save".
@@ -93,9 +112,21 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
 >
 
 /**
+ *  Stage a shared property into my working state. One definition used by
+ *  several object types, so a change here is felt by all of them — which is
+ *  the argument for it going through a review dialog rather than straight
+ *  through.
+ */
+export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'action' } as ActionType<
+  { p_property: Json },
+  string
+>
+
+/**
  *  Apply my working state to the ontology, bump its version and clear the
- *  state. A section the entry never mentions — properties, datasources — is
- *  left as it stands: the working state is a diff, so absent means unedited.
+ *  state. An object type goes through apply_object_type so its sections
+ *  travel with it; every other kind is a flat row, each value cast back to
+ *  its column type. A section the entry never mentions is left as it stands.
  *  Errors caused by this save block it and nothing lands.
  */
 export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' } as ActionType<
@@ -126,7 +157,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (63) ───────────────────────────────────────────────────
+// ── FUNCTIONS (64) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -445,6 +476,16 @@ export const objectState = { apiName: 'object_state', kind: 'function' } as Func
 export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'function' } as FunctionType<
   { p_object_type: string },
   { scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  A column's type, for casting a jsonb ->> back into it. The working state
+ *  stores values as jsonb; every column that is not text needs the cast the
+ *  catalogue names.
+ */
+export const ontologyColumnType = { apiName: 'ontology_column_type', kind: 'function' } as FunctionType<
+  { p_table: string; p_column: string },
+  string
 >
 
 /**

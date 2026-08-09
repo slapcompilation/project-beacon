@@ -3,7 +3,10 @@
 // auth.uid), so the client sends only the definition / the record.
 
 import { supabase } from '@/lib/supabase/client'
-import { saveObjectType as saveObjectTypeAction, objectTypeProblems, type Json } from '@beacon/platform'
+import {
+  saveObjectType as saveObjectTypeAction, objectTypeProblems,
+  saveLinkType as saveLinkTypeAction, deleteOntologyResource, type Json,
+} from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
@@ -206,17 +209,19 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
 
 export interface CreateLinkTypeInput { sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
 
-export async function createLinkType(i: CreateLinkTypeInput): Promise<LinkTypeRow> {
-  const { data, error } = await supabase.from('link_types')
-    .insert({ source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId, api_name: i.apiName, label: i.label })
-    .select('*').single<LinkTypeRow>()
-  if (error) throw new Error(error.message)
-  return data
+/** Staged, not written. The row appears in the ontology on save — until then it
+ *  is an entry in the Review edits dialog like any other change. */
+export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
+  return client(saveLinkTypeAction).applyAction({
+    p_link: {
+      source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId,
+      api_name: i.apiName, label: i.label,
+    } as unknown as Json,
+  })
 }
 
 export async function deleteLinkType(id: string): Promise<void> {
-  const { error } = await supabase.from('link_types').delete().eq('id', id)
-  if (error) throw new Error(error.message)
+  await client(deleteOntologyResource).applyAction({ p_kind: 'link_type', p_id: id })
 }
 
 // ── Backing datasources (migration 405) ─────────────────────────────────────

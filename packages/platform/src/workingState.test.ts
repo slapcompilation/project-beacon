@@ -158,6 +158,60 @@ describe.skipIf(noDb)('the working state', () => {
     expect(live.rows[0].label).toBe('Won')
   })
 
+  // ── the other resource kinds ───────────────────────────────────────────────
+  // The generic arm of save_working_state was dead until a flat resource used
+  // it: it fed `jsonb ->> key`, which is text, into columns of every type.
+  // Object types never reached it because they route through apply_object_type.
+
+  it('stages and saves a flat resource through the generic arm', async () => {
+    const id = (await db.query(
+      `select public.save_shared_property($1::jsonb) as id`,
+      [JSON.stringify({ api_name: 'cost', label: 'Cost', base_type: 'double' })])).rows[0].id as string
+    expect(await count('select count(*) n from public.shared_properties where id = $1', [id])).toBe(0)
+    await db.query('select public.save_working_state()')
+    const live = await db.query('select base_type from public.shared_properties where id = $1', [id])
+    // A uuid ontology_id and a text base_type through the same code path.
+    expect(live.rows[0].base_type).toBe('double')
+  })
+
+  it('changes only the fields an edit named', async () => {
+    const id = (await db.query(
+      `select id from public.shared_properties where api_name = 'cost'`)).rows[0].id as string
+    await db.query(`select public.save_shared_property($1::jsonb)`,
+      [JSON.stringify({ id, label: 'Unit cost' })])
+    await db.query('select public.save_working_state()')
+    const live = await db.query(
+      'select api_name, label, base_type from public.shared_properties where id = $1', [id])
+    expect(live.rows[0]).toMatchObject({ api_name: 'cost', label: 'Unit cost', base_type: 'double' })
+  })
+
+  it('holds a deletion until save, and gives it back on discard', async () => {
+    const id = (await db.query(
+      `select id from public.shared_properties where api_name = 'cost'`)).rows[0].id as string
+
+    await db.query(`select public.delete_ontology_resource('shared_property', $1)`, [id])
+    expect(await count('select count(*) n from public.shared_properties where id = $1', [id])).toBe(1)
+
+    await db.query(`select public.discard_working_state('shared_property', $1)`, [id])
+    expect(await count('select count(*) n from public.shared_properties where id = $1', [id])).toBe(1)
+
+    await db.query(`select public.delete_ontology_resource('shared_property', $1)`, [id])
+    await db.query('select public.save_working_state()')
+    expect(await count('select count(*) n from public.shared_properties where id = $1', [id])).toBe(0)
+  })
+
+  it('refuses to stage a deletion for something never saved', async () => {
+    const id = (await db.query(
+      `select public.save_shared_property($1::jsonb) as id`,
+      [JSON.stringify({ api_name: 'unsaved', label: 'Unsaved', base_type: 'string' })])).rows[0].id as string
+    // Deleting an unsaved creation is a discard; calling it a deletion would
+    // stage a delete for a row that will never exist.
+    const why = await refused(db, () =>
+      db.query(`select public.delete_ontology_resource('shared_property', $1)`, [id]))
+    expect(why).toMatch(/NotSavedYet/)
+    await db.query(`select public.discard_working_state('shared_property', $1)`, [id])
+  })
+
   // The claim a migration assertion cannot make, because it only ever has one
   // user: unsaved work is not "available for others" until it is saved.
   it('is invisible to anybody else', async () => {

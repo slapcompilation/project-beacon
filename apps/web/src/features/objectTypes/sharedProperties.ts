@@ -5,6 +5,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { PropertyType, SharedPropertyDef } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
+import { saveSharedProperty, deleteOntologyResource, type Json } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 
 interface Row {
   id: string
@@ -47,13 +49,17 @@ export function useSharedPropertyMap(): Map<string, SharedPropertyDef> {
 export function useCreateSharedProperty() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (i: { apiName: string; label: string; description: string; baseType: PropertyType }) => {
-      const { error } = await supabase.from('shared_properties').insert({
-        api_name: i.apiName, label: i.label, description: i.description, base_type: i.baseType,
-      })
-      if (error) throw new Error(error.message)
+    mutationFn: (i: { apiName: string; label: string; description: string; baseType: PropertyType }) =>
+      client(saveSharedProperty).applyAction({
+        p_property: {
+          api_name: i.apiName, label: i.label, description: i.description, base_type: i.baseType,
+        } as unknown as Json,
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: key })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — save to add it to the ontology')
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: key }); toast.success('Shared property created') },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
@@ -62,16 +68,17 @@ export function useCreateSharedProperty() {
 export function useUpdateSharedProperty() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (i: { id: string; label: string; description: string; visibility: SharedPropertyDef['visibility'] }) => {
-      const { error } = await supabase.from('shared_properties')
-        .update({ label: i.label, description: i.description, visibility: i.visibility, updated_at: new Date().toISOString() })
-        .eq('id', i.id)
-      if (error) throw new Error(error.message)
-    },
+    mutationFn: (i: { id: string; label: string; description: string; visibility: SharedPropertyDef['visibility'] }) =>
+      client(saveSharedProperty).applyAction({
+        p_property: {
+          id: i.id, label: i.label, description: i.description, visibility: i.visibility,
+        } as unknown as Json,
+      }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: key })
       void qc.invalidateQueries({ queryKey: ['object-types'] })
-      toast.success('Updated everywhere it is used')
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — this moves every object type using it on save')
     },
     onError: (e: Error) => { toast.error(e.message) },
   })
@@ -80,12 +87,15 @@ export function useUpdateSharedProperty() {
 export function useDeleteSharedProperty() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (id: string) => {
-      // The database refuses this while any object type still inherits from it.
-      const { error } = await supabase.from('shared_properties').delete().eq('id', id)
-      if (error) throw new Error(error.message)
+    // The database refuses this while any object type still inherits from it —
+    // on save, now, rather than on the click.
+    mutationFn: (id: string) =>
+      client(deleteOntologyResource).applyAction({ p_kind: 'shared_property', p_id: id }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: key })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged for deletion — save to apply it')
     },
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: key }); toast.success('Shared property deleted') },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
