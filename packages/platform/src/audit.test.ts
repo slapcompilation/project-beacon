@@ -33,6 +33,45 @@ describe.skipIf(noDb)('the live system', () => {
     expect(found.map((v) => `${v.object_type}/${v.subject}: ${v.problem}`)).toEqual([])
   })
 
+  // Sign-in was broken for a day and every guard stayed green, because the
+  // thing that broke it lived on `auth.users` — outside `public`, where no
+  // audit of ours looked. The teardown dropped `profiles`; the trigger that
+  // wrote to it survived, because a trigger is not a foreign key and nothing
+  // cascades.
+  //
+  // This asks the question directly rather than through a proxy: the token
+  // grant updates auth.users, so if that update raises, nobody can log in.
+  it('lets a user sign in', async () => {
+    await db.query('BEGIN')
+    try {
+      // What GoTrue does on grant. Rolled back — the assertion is that it runs.
+      await db.query('update auth.users set last_sign_in_at = now()')
+    } finally {
+      await db.query('ROLLBACK')
+    }
+  })
+
+  it('gives every account the organization its policies are scoped by', async () => {
+    // auth_org_id() reads app_metadata.org_id and nothing else. Without it a
+    // sign-in succeeds into an application where every policy returns nothing.
+    const { rows } = await db.query(
+      `select email from auth.users
+        where not (coalesce(raw_app_meta_data, '{}'::jsonb) ? 'org_id')
+           or raw_app_meta_data ? 'hotel_id'`)
+    expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
+  })
+
+  it('has no trigger on auth.users', async () => {
+    // Nothing of ours belongs there, and what did was invisible to every other
+    // audit until it locked everyone out.
+    const { rows } = await db.query(
+      `select t.tgname from pg_trigger t
+         join pg_class c on c.oid = t.tgrelid
+         join pg_namespace s on s.oid = c.relnamespace
+        where s.nspname = 'auth' and c.relname = 'users' and not t.tgisinternal`)
+    expect((rows as { tgname: string }[]).map((r) => r.tgname)).toEqual([])
+  })
+
   it('lets the role the product connects as read every table it guards', async () => {
     const { rows } = await db.query('select * from public.rls_violations()')
     const found = rows as { relation: string; problem: string }[]
