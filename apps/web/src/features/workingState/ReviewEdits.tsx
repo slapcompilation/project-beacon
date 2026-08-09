@@ -15,7 +15,8 @@ import {
 } from '@blueprintjs/core'
 import {
   useWorkingState, useSaveWorkingState, useDiscardWorkingState,
-  type WorkingEntry, type ResourceKind,
+  useWorkingStateConflicts, useUpdateWorkingState,
+  type WorkingEntry, type ResourceKind, type Conflict, type Choice, type Resolution,
 } from './api'
 
 const KIND_LABEL: Record<ResourceKind, string> = {
@@ -92,15 +93,84 @@ function Entry({ entry }: { entry: WorkingEntry }) {
   )
 }
 
+/** What somebody else moved while I was editing.
+ *
+ *  "You can choose between keeping the changes in the latest version of the
+ *   Ontology or overriding them with the changes in your working state."
+ *
+ *  The fields are listed, but the choice is one pair of buttons for the whole
+ *  resource — that asymmetry is the screenshot's, not ours. */
+function ConflictPanel({ conflicts, onResolved }: {
+  conflicts: Conflict[]
+  onResolved: () => void
+}) {
+  const update = useUpdateWorkingState()
+  const [choices, setChoices] = useState<Record<string, Choice>>({})
+
+  // One group per resource, because that is the unit a decision applies to.
+  const groups = new Map<string, Conflict[]>()
+  for (const c of conflicts) {
+    const key = `${c.resource_kind}:${c.resource_id}`
+    groups.set(key, [...(groups.get(key) ?? []), c])
+  }
+  const undecided = [...groups.keys()].filter((k) => !(k in choices))
+
+  const apply = () => {
+    const resolutions: Resolution[] = [...groups.keys()].map((k) => {
+      const [kind, id] = k.split(':') as [ResourceKind, string]
+      return { resource_kind: kind, resource_id: id, choice: choices[k] }
+    })
+    update.mutate(resolutions, { onSuccess: onResolved })
+  }
+
+  return (
+    <Callout intent={Intent.WARNING} icon="git-merge" title={
+      `${conflicts.length} field${conflicts.length === 1 ? '' : 's'} changed by someone else`
+    } className="!mb-3">
+      <p className="text-[11px] mb-2">
+        The ontology was saved by another user since you began. Choose per resource, then Update —
+        this changes your working state only, never the ontology.
+      </p>
+      {[...groups.entries()].map(([key, fields]) => (
+        <div key={key} className="mb-2 last:mb-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[11px] font-semibold flex-1">
+              {KIND_LABEL[fields[0].resource_kind]} · {key.split(':')[1].slice(0, 8)}
+            </span>
+            <Button size="small" variant={choices[key] === 'latest' ? 'solid' : 'minimal'}
+              onClick={() => { setChoices({ ...choices, [key]: 'latest' }) }}>Use latest</Button>
+            <Button size="small" variant={choices[key] === 'mine' ? 'solid' : 'minimal'}
+              onClick={() => { setChoices({ ...choices, [key]: 'mine' }) }}>Keep my changes</Button>
+          </div>
+          {fields.map((c) => (
+            <div key={c.field} className="flex items-center gap-2 pl-2 py-0.5">
+              <span className="text-[11px] w-32 shrink-0 text-muted-foreground">{c.field}</span>
+              <Tag minimal className="!text-[10px]">theirs: {show(c.theirs)}</Tag>
+              <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">mine: {show(c.mine)}</Tag>
+            </div>
+          ))}
+        </div>
+      ))}
+      <Button size="small" intent={Intent.WARNING} icon="refresh" className="mt-1"
+        disabled={undecided.length > 0} loading={update.isPending}
+        title={undecided.length > 0 ? 'Every resource needs a choice' : undefined}
+        onClick={apply}>Update</Button>
+    </Callout>
+  )
+}
+
 /** The header control: a running count, and the button that ends the session. */
 export function SaveControl() {
   const { data: entries = [] } = useWorkingState()
+  const { data: conflicts = [] } = useWorkingStateConflicts()
   const [reviewing, setReviewing] = useState(false)
   const save = useSaveWorkingState()
   const discard = useDiscardWorkingState()
 
   if (entries.length === 0) return null
   const count = entries.length
+  // "While errors need to be handled in order to save" — a stale entry is one.
+  const blocked = conflicts.length > 0
 
   return (
     <>
@@ -108,8 +178,12 @@ export function SaveControl() {
         <Button variant="minimal" size="small" onClick={() => { setReviewing(true) }}>
           {count} unsaved {count === 1 ? 'change' : 'changes'}
         </Button>
-        <Button size="small" intent={Intent.PRIMARY} icon="floppy-disk" loading={save.isPending}
-          onClick={() => { save.mutate() }}>Save</Button>
+        <Button size="small" intent={blocked ? Intent.WARNING : Intent.PRIMARY}
+          icon={blocked ? 'git-merge' : 'floppy-disk'} loading={save.isPending}
+          title={blocked ? 'Someone else saved since you began — review and update first' : undefined}
+          onClick={() => { if (blocked) setReviewing(true); else save.mutate() }}>
+          {blocked ? 'Review' : 'Save'}
+        </Button>
       </div>
 
       <Dialog isOpen={reviewing} onClose={() => { setReviewing(false) }}
@@ -121,6 +195,9 @@ export function SaveControl() {
               an error stops the whole save and nothing is written.
             </span>
           </Callout>
+          {blocked && (
+            <ConflictPanel conflicts={conflicts} onResolved={() => { setReviewing(false) }} />
+          )}
           <div className="space-y-2">
             {entries.map((e) => <Entry key={e.id} entry={e} />)}
           </div>
@@ -133,6 +210,7 @@ export function SaveControl() {
             </Button>
             <Button variant="minimal" onClick={() => { setReviewing(false) }}>Close</Button>
             <Button intent={Intent.PRIMARY} icon="floppy-disk" loading={save.isPending}
+              disabled={blocked} title={blocked ? 'Resolve the conflicts above first' : undefined}
               onClick={() => { save.mutate(undefined, { onSuccess: () => { setReviewing(false) } }) }}>
               Save changes
             </Button>

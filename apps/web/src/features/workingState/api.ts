@@ -10,7 +10,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
-import { saveWorkingState, discardWorkingState, workingStateConflicts } from '@beacon/platform'
+import {
+  saveWorkingState, discardWorkingState, workingStateConflicts, updateWorkingState,
+  type Json,
+} from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
 export type ResourceKind =
@@ -56,12 +59,40 @@ export function useWorkingState() {
   })
 }
 
+export interface Conflict {
+  resource_kind: ResourceKind
+  resource_id: string
+  field: string
+  base_value: unknown
+  mine: unknown
+  theirs: unknown
+}
+
 /** Fields somebody else moved while I was editing. Empty is the normal case —
  *  everything that does not overlap merges without asking. */
 export function useWorkingStateConflicts() {
   return useQuery({
     queryKey: [...KEY, 'conflicts'],
-    queryFn: () => client(workingStateConflicts).executeFunction({}),
+    queryFn: async (): Promise<Conflict[]> =>
+      (await client(workingStateConflicts).executeFunction({})) as unknown as Conflict[],
+  })
+}
+
+/** The dialog lists the fields but offers one pair of buttons per entity, so a
+ *  choice is per resource. */
+export type Choice = 'latest' | 'mine'
+export interface Resolution { resource_kind: ResourceKind; resource_id: string; choice: Choice }
+
+export function useUpdateWorkingState() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (resolutions: Resolution[]) =>
+      client(updateWorkingState).applyAction({ p_resolutions: resolutions as unknown as Json }),
+    onSuccess: () => {
+      invalidateAll(qc)
+      toast.success('Updated to the latest ontology')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
   })
 }
 

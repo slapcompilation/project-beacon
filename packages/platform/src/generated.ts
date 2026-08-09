@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (10) ────────────────────────────────────────────────
+// ── ACTION TYPES (11) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -112,6 +112,18 @@ export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' 
 export const stageChange = { apiName: 'stage_change', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_fields: Json; p_branch?: string; p_operation?: string },
   string
+>
+
+/**
+ *  Pull the latest ontology into my working state. Re-bases every staged
+ *  field to what the ontology holds now; a resolution of latest drops my
+ *  value for the fields we both moved, mine keeps it as an override. One
+ *  choice per resource, because the conflict dialog offers one pair of
+ *  buttons per entity even though it lists the fields.
+ */
+export const updateWorkingState = { apiName: 'update_working_state', kind: 'action' } as ActionType<
+  { p_resolutions?: Json; p_branch?: string },
+  number
 >
 
 // ── FUNCTIONS (63) ───────────────────────────────────────────────────

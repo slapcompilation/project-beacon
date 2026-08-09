@@ -118,6 +118,46 @@ describe.skipIf(noDb)('the working state', () => {
     expect(live.rows[0].label).toBe('Flight Leg')
   })
 
+  // ── Update: the way out of a stale save ───────────────────────────────────
+  // "You can choose between keeping the changes in the latest version of the
+  //  Ontology or overriding them with the changes in your working state."
+
+  const resolve = (choice: 'latest' | 'mine') =>
+    db.query('select public.update_working_state($1::jsonb) n',
+      [JSON.stringify([{ resource_kind: 'object_type', resource_id: type, choice }])])
+
+  it('needs no decision for a field only they moved', async () => {
+    await db.query(`select public.stage_change('object_type', $1, '{"label":"Mine"}'::jsonb)`, [type])
+    await db.query(`update public.object_types set description = 'theirs' where id = $1`, [type])
+    // The auto-merge, and the whole reason a base is stored.
+    expect(await count('select public.update_working_state() n')).toBe(0)
+  })
+
+  it('refuses to merge a field we both moved without one', async () => {
+    await db.query(`update public.object_types set label = 'Theirs' where id = $1`, [type])
+    const why = await refused(db, () => db.query('select public.update_working_state()'))
+    expect(why).toMatch(/UnresolvedConflicts/)
+  })
+
+  it('keeps my changes as an override, without clobbering their other fields', async () => {
+    expect(Number((await resolve('mine')).rows[0].n)).toBe(1)
+    expect(await count('select count(*) n from public.working_state_conflicts()')).toBe(0)
+    await db.query('select public.save_working_state()')
+    const live = await db.query('select label, description from public.object_types where id = $1', [type])
+    expect(live.rows[0].label).toBe('Mine')
+    expect(live.rows[0].description).toBe('theirs')
+  })
+
+  it('drops my value on latest, and removes an entry with nothing left', async () => {
+    await db.query(`select public.stage_change('object_type', $1, '{"label":"Doomed"}'::jsonb)`, [type])
+    await db.query(`update public.object_types set label = 'Won' where id = $1`, [type])
+    await resolve('latest')
+    expect(await count('select count(*) n from public.working_state_changes')).toBe(0)
+    // Taking latest changes my working state, never the ontology.
+    const live = await db.query('select label from public.object_types where id = $1', [type])
+    expect(live.rows[0].label).toBe('Won')
+  })
+
   // The claim a migration assertion cannot make, because it only ever has one
   // user: unsaved work is not "available for others" until it is saved.
   it('is invisible to anybody else', async () => {

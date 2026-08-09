@@ -396,6 +396,38 @@ gave for an object type and its properties. **Fifth time this shape has appeared
 (395, 403, 412, 414, 424) and the first four were all found the same way — the
 owner connection bypasses RLS and shows none of it.
 
+### E0b · The save session — **BUILT** (426–429)
+
+The layer between an edit and the ontology, which we had never had: every
+surface wrote straight through.
+
+> "Any changes you make in the Ontology Manager are stored **locally in a
+> work-in-progress state**. For these Ontology changes to be available for
+> others and reflected in user-facing applications, **you must save your
+> changes**."
+
+Shaped like `branch_resource_changes` because it is that thing one level down —
+419 overlays a branch on main, this overlays a **user on a branch**. The base is
+captured on first touch and never re-read, which is what lets a save auto-merge:
+
+> "Workshop **auto-merges changes that do not overlap**. A change is only flagged
+> as a merge conflict when the **same** widget, variable, section, or layout
+> position was edited on both `main` and your branch."
+
+| migration | what it added |
+|---|---|
+| 426 | `working_state_changes`, `stage_change`, `working_state_conflicts`, `discard_working_state`, `save_working_state`, `ontologies.version` |
+| 427 | `save_object_type` stages · `apply_object_type` writes · properties and datasources travel inside the entry |
+| 428 | an absent section means unchanged — a one-field edit had been deleting every property |
+| 429 | `update_working_state`: re-base, resolve per entity, `latest` or `mine` |
+
+**Where it is deliberately narrower than Foundry.** Saving onto a branch raises
+`BranchSaveNotImplemented` rather than pretending. Rebase-time's third option —
+"navigate directly to that resource and apply **custom changes**" — has no
+button, though editing the resource by hand already does it. Conflicts on
+properties are entity-level, not per property, which asks too often and never
+loses an edit.
+
 ### E1 · Instances, and edits beside them — **BUILT** (422)
 
 > "**Each row** of data in the backing datasource will produce **one object**…
