@@ -28,6 +28,7 @@ import {
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
 import { OntologyPicker, OntologySummary } from '@/features/ontologies/OntologyPicker'
 import { useOntologies } from '@/features/ontologies/api'
+import { SaveControl } from '@/features/workingState/ReviewEdits'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -183,12 +184,16 @@ export default function ObjectTypesPage() {
     <div className="flex-1 overflow-y-auto">
       <div className="px-8 py-6 max-w-4xl space-y-6">
         <header className="space-y-3">
-          <div>
-            <h1 className="text-xl font-semibold">Object types</h1>
-            <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-              Define a kind of thing with typed properties, backed by a datasource. Every one belongs
-              to an ontology, and a space holds a single ontology.
-            </p>
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <h1 className="text-xl font-semibold">Object types</h1>
+              <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
+                Define a kind of thing with typed properties, backed by a datasource. Every one belongs
+                to an ontology, and a space holds a single ontology.
+              </p>
+            </div>
+            {/* Edits land here first and reach the ontology only on save. */}
+            <SaveControl />
           </div>
           <OntologyPicker value={ontology?.id ?? null} onChange={setOntologyId} />
           {ontology && <OntologySummary ontology={ontology} />}

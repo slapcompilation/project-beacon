@@ -9,8 +9,18 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (6) ────────────────────────────────────────────────
+// ── ACTION TYPES (10) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
+
+/**
+ *  Write an object type and its properties to the ontology. Called by
+ *  save_working_state and by nothing else — a surface that calls this
+ *  directly has skipped the session.
+ */
+export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } as ActionType<
+  { p_object_type: Json; p_properties: Json; p_datasources?: Json },
+  string
+>
 
 /**
  *  Opens a proposal and snapshots one task per resource the branch changed.
@@ -43,6 +53,15 @@ export const datasetMaterialize = { apiName: 'dataset_materialize', kind: 'actio
 >
 
 /**
+ *  Discard one entry, or all of them. Per entry and not per field, because
+ *  that is the only granularity the Review edits dialog offers.
+ */
+export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
+  { p_kind?: string; p_id?: string; p_branch?: string },
+  number
+>
+
+/**
  *  Merges a proposal when nothing blocks it, and retires its branch.
  *  Deliberately does NOT check who is merging beyond visibility: "the person
  *  who merges may be submitting changes to resources that they cannot edit
@@ -64,15 +83,38 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
- *  One save for an object type and its properties, into a named ontology.
- *  Invoker rights: the RLS policies decide.
+ *  Stage an object type and its properties into my working state. Returns the
+ *  id it will have — the row does not exist until save_working_state runs,
+ *  which is why the object type Overview shows RID as "Set on save".
  */
 export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json },
   string
 >
 
-// ── FUNCTIONS (61) ───────────────────────────────────────────────────
+/**
+ *  Apply my working state to the ontology, bump its version and clear the
+ *  state. A section the entry never mentions — properties, datasources — is
+ *  left as it stands: the working state is a diff, so absent means unedited.
+ *  Errors caused by this save block it and nothing lands.
+ */
+export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' } as ActionType<
+  { p_branch?: string },
+  number
+>
+
+/**
+ *  Put an edit in my working state instead of writing it through. Captures
+ *  the base on first touch only — re-reading it would silently adopt someone
+ *  else's save as my starting point and the conflict would disappear rather
+ *  than be shown.
+ */
+export const stageChange = { apiName: 'stage_change', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string; p_fields: Json; p_branch?: string; p_operation?: string },
+  string
+>
+
+// ── FUNCTIONS (63) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -394,6 +436,16 @@ export const objectTypeProblems = { apiName: 'object_type_problems', kind: 'func
 >
 
 /**
+ *  A resource as jsonb, in the shape the Review edits dialog shows it — for
+ *  an object type that includes its properties, which the dialog renders as a
+ *  section inside the type's entry rather than as entries of their own.
+ */
+export const ontologyResourceRow = { apiName: 'ontology_resource_row', kind: 'function' } as FunctionType<
+  { p_kind: string; p_id: string },
+  Json
+>
+
+/**
  *  Every well-formedness violation in the ontology, as rows. The linting half
  *  of what check:platform was doing by assertion — see
  *  superrepo/core-concepts "Ontology linting".
@@ -539,5 +591,15 @@ export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function
 export const userToolParamsValid = { apiName: 'user_tool_params_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
+>
+
+/**
+ *  Every field both I and someone else have moved since I started. Everything
+ *  not listed auto-merges: "Workshop auto-merges changes that do not
+ *  overlap." The rows here are what the Update-and-merge dialog asks about.
+ */
+export const workingStateConflicts = { apiName: 'working_state_conflicts', kind: 'function' } as FunctionType<
+  { p_branch?: string },
+  { resource_kind: string; resource_id: string; field: string; base_value: Json; mine: Json; theirs: Json }[]
 >
 
