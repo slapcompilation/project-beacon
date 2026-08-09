@@ -70,6 +70,14 @@ So, before building anything from a page:
 are ordered and stateful; parallel builders would collide on the ledger and the
 ordering *is* the design.
 
+**Scheduling: observe on a timer, never build on one.** `doc-drift.yml` runs
+weekly; the audits run in CI. Nothing that writes a migration runs unattended,
+and the reason is specific rather than caution — **applied migrations are
+immutable and run once**, so an unreviewed one can only be corrected forward,
+never edited. The recitation gate says the same thing from the other side: if a
+human reads the Decisions block before building, the build step cannot be
+autonomous by construction.
+
 **A reading is never built from until a human has read its Decisions block.**
 That block is where an invented mechanism has to declare itself, and reciting
 before building is what has caught the expensive mistakes here while they were
@@ -157,6 +165,7 @@ pnpm dev                         # all apps
 pnpm --filter @beacon/web dev
 pnpm turbo lint type-check test  # what CI runs
 pnpm check:readings              # every citation traces to a mirrored page
+pnpm check:doc-drift             # has a page we built from changed upstream?
 pnpm check:surfaces              # every web file is reachable from main.tsx
 pnpm check:platform              # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration

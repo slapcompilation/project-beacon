@@ -13,6 +13,30 @@ Readings this consolidates:
 - `foundry-reference/readings/create-object-type.md`, `properties-and-keys.md`,
   `spaces-and-the-resource-path.md`, `rid-grammar.md`
 
+## The irreversibility gate
+
+**Almost everything here is cheap to change.** The ontology holds zero object
+types and every table is empty, so a wrong CHECK vocabulary, a wrong column, a
+wrong trigger message costs one migration. Submission criteria went from a flat
+list to a tree in a single file with no data to migrate.
+
+So rigour is not spent uniformly. It is spent here:
+
+| decision | why it is expensive |
+|---|---|
+| **A stored generated column** — a RID's `<type>` segment | rewrites every row, and external systems hold the string. This is why link types and action types have **no RID column**: the form is unattested, and a missing RID is a gap while a wrong one is a lie in every row. |
+| **A table's grain** — what one row means | conflict resolution is per *datasource*, not per object type. Getting that backwards is not an ALTER. |
+| **A uniqueness scope** | API names moved from per-organization to per-ontology while empty. Once populated, the same move means resolving collisions in someone's data. |
+| **The identity of an object instance** | the primary key *value*, not a synthetic id. Everything downstream keys on it. |
+| **The shape of an append-only log** | `object_edits` cannot be rewritten by design, so a column added later has no history to backfill into. |
+| **Anything holding a client's data** | once a client dataset is materialised, the shape is theirs, not ours. |
+
+**Only these get a second opinion, and the second opinion is the operator's.**
+Everything else ships and gets corrected forward.
+
+The review question is one sentence, not a re-reading: *which sentence is this
+design resting on — show me it.* That is what has actually caught things here.
+
 ## What already exists
 
 32 tables. The substrate is real and verified: **datasets** (files,
