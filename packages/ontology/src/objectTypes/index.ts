@@ -9,7 +9,7 @@
 // a conformance test, not an allowlist: two implementations of one documented
 // fact, compared.
 
-import type { Deprecation, OntologyStatus, OntologyVisibility } from '../ontology/status'
+import type { Deprecation, ObjectTypeStatus, OntologyVisibility } from '../ontology/status'
 
 /** The twenty-two base types from properties-overview's table. A closed set —
  *  an unknown value is a typo, not an extension. */
@@ -195,7 +195,7 @@ export interface ObjectTypeDef {
   /** Developmental state, and where the type surfaces. Foundry's; see
    *  ontology/status.ts. Optional on the type so a caller building a draft
    *  need not restate the defaults the database applies. */
-  status?: OntologyStatus
+  status?: ObjectTypeStatus
   visibility?: OntologyVisibility
   deprecation?: Deprecation | null
 }

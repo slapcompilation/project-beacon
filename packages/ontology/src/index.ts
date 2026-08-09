@@ -106,16 +106,11 @@ export type {
 
 // Developmental state — Foundry's status + visibility, one definition.
 export {
-  ONTOLOGY_STATUSES, ONTOLOGY_VISIBILITIES,
+  ONTOLOGY_STATUSES, OBJECT_TYPE_STATUSES, ONTOLOGY_VISIBILITIES,
   STATUS_META, VISIBILITY_META, linkStatusFromEnds, statusChangeProblem,
 } from './ontology/status'
-// Compass resource status — a separate axis from the one above.
-export {
-  PROMOTABLE_KINDS, RESOURCE_STATUSES, PROMOTABLE_LABELS, promotionEffects,
-} from './ontology/promotion'
-export type { PromotableKind, ResourceStatus } from './ontology/promotion'
 export type {
-  OntologyStatus, OntologyVisibility, OntologyStatusMeta, Deprecation,
+  OntologyStatus, ObjectTypeStatus, OntologyVisibility, OntologyStatusMeta, Deprecation,
   OntologyStatusFields,
 } from './ontology/status'
 

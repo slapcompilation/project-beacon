@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
-import { ONTOLOGY_STATUSES, STATUS_META, linkStatusFromEnds, statusChangeProblem } from './status'
-import { RESOURCE_STATUSES, PROMOTABLE_KINDS, promotionEffects } from './promotion'
+import { ONTOLOGY_STATUSES, OBJECT_TYPE_STATUSES, STATUS_META, linkStatusFromEnds, statusChangeProblem } from './status'
 
 describe('ontology status vocabulary', () => {
-  it('carries developmental state only — promotion is a different axis', () => {
+  it('is four values for every kind, and five for object types alone', () => {
+    // "The status can take on one of five values" — and "The `promoted` status
+    // applies only to object types. It is not available for properties, link
+    // types, action types or interfaces." So the common list has four, and the
+    // object type list extends it rather than the other way round.
     expect([...ONTOLOGY_STATUSES]).toEqual(['active', 'experimental', 'deprecated', 'example'])
-    // `promoted` looked like a fifth value and is Compass's. Keeping it here made
-    // it exclusive with `active`, so promoting meant no longer saying it was
-    // in use. See migration 327.
-    expect(ONTOLOGY_STATUSES).not.toContain('promoted')
+    expect([...OBJECT_TYPE_STATUSES]).toEqual(['promoted', 'active', 'experimental', 'deprecated', 'example'])
   })
 
   it('lets only experimental be renamed, and refuses to delete what is in use', () => {
@@ -19,21 +19,12 @@ describe('ontology status vocabulary', () => {
   })
 })
 
-describe('resource status', () => {
-  it('has exactly one value, which is theirs', () => {
-    // "Currently, the only available status is Promoted." Absence is the
-    // default state, so there is no 'none' to model.
-    expect([...RESOURCE_STATUSES]).toEqual(['promoted'])
-  })
-
-  it('names all three effects at the point of decision', () => {
-    for (const kind of PROMOTABLE_KINDS) {
-      const effects = promotionEffects(kind)
-      expect(effects).toHaveLength(3)
-      expect(effects.join(' ')).toMatch(/search/i)
-      expect(effects.join(' ')).toMatch(/checkmark/i)
-      expect(effects.join(' ')).toMatch(/catalog/i)
-    }
+describe('promoted', () => {
+  it('inherits the protections of active', () => {
+    // "Promoted object types inherit similar operational protections of the
+    // active status, such as restrictions on deletion" — and for API names.
+    expect(STATUS_META.promoted.deletable).toBe(false)
+    expect(STATUS_META.promoted.renamable).toBe(false)
   })
 })
 

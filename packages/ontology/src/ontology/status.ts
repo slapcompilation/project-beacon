@@ -13,14 +13,20 @@
 // the guards. This is the one place TypeScript states them, so a picker and a
 // badge cannot disagree about what the values are.
 
-// `promoted` is NOT here. It looked like a fifth status because the ontology
-// page lists it among five values, but Compass owns it — a separate, binary axis
-// over any resource, so a type is `active` AND promoted rather than one or the
-// other. See migration 327 and `promotion.ts`.
+// `promoted` IS a status — the fifth value, object types only. An earlier pass
+// (327) read it as Compass's curation flag, a real but different concept, and
+// the statuses page overrules that: "Object types support a special `promoted`
+// status", set from the same dropdown, exclusive with the others. It is absent
+// from this list because the list is what EVERY resource kind accepts:
+// "The `promoted` status applies only to object types. It is not available for
+// properties, link types, action types or interfaces."
 export const ONTOLOGY_STATUSES = [
   'active', 'experimental', 'deprecated', 'example',
 ] as const
 export type OntologyStatus = typeof ONTOLOGY_STATUSES[number]
+
+export const OBJECT_TYPE_STATUSES = ['promoted', ...ONTOLOGY_STATUSES] as const
+export type ObjectTypeStatus = typeof OBJECT_TYPE_STATUSES[number]
 
 export const ONTOLOGY_VISIBILITIES = ['prominent', 'normal', 'hidden'] as const
 export type OntologyVisibility = typeof ONTOLOGY_VISIBILITIES[number]
@@ -37,7 +43,15 @@ export interface OntologyStatusMeta {
   renamable: boolean
 }
 
-export const STATUS_META: Record<OntologyStatus, OntologyStatusMeta> = {
+export const STATUS_META: Record<ObjectTypeStatus, OntologyStatusMeta> = {
+  promoted: {
+    label: 'Promoted',
+    // "a core, trusted resource that has been vetted by an ontology owner",
+    // inheriting active's protections. Setting it makes visibility prominent —
+    // the database trigger does that, so the picker only needs to say it will.
+    help: 'A core, trusted resource vetted by an ontology owner. Promoting makes it prominent automatically.',
+    intent: 'success', deletable: false, renamable: false,
+  },
   active: {
     label: 'Active',
     help: 'Actively in use. Breaking changes will not be made — it cannot be deleted or renamed.',
