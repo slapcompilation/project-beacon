@@ -37,32 +37,32 @@ When all of the conflicts are resolved and you are satisfied with the JSON chang
 
 In this example, User A modifies a Y value in a chart:
 
-![merge-chart-edit1](/docs/resources/foundry/slate/merge-chart-edit1.png)
+![merge-chart-edit1](./images/merge-chart-edit1.png)
 
 Then, User B modifies the color of a series in the same widget:
 
-![merge-chart-edit2](/docs/resources/foundry/slate/merge-chart-edit2.png)
+![merge-chart-edit2](./images/merge-chart-edit2.png)
 
 After user A saves and user B saves, user B will see the following prompt:
 
-![merge-prompt](/docs/resources/foundry/slate/merge-prompt.png)
+![merge-prompt](./images/merge-prompt.png)
 
 If user B selects the **Merge...** button, they will see the merge interface. In this initial view, a comparison (also known as a "diff") of the entire Slate application is displayed. User B can select a specific element using the menu on the left.
 
-![merge-json-initial](/docs/resources/foundry/slate/merge-json-initial.png)
+![merge-json-initial](./images/merge-json-initial.png)
 
 Navigating to the element with the conflict focuses on just those changes. Note that none of the changes from user B are merged yet; user B must copy the changes that they want to retain to the merge result pane.
 
-![merge-json-conflict](/docs/resources/foundry/slate/merge-json-conflict.png)
+![merge-json-conflict](./images/merge-json-conflict.png)
 
 After user B copies the changes that they want to retain to the merge result pane, it might look like this:
 
-![merge-json-pick](/docs/resources/foundry/slate/merge-json-pick.png)
+![merge-json-pick](./images/merge-json-pick.png)
 
 When satisfied with the content of the merge result pane, user B selects **Mark as resolved**.
 
 When user B resolves all conflicts and selects **Preview the final result**, user B will see a visual preview of the merged application:
 
-![merge-preview](/docs/resources/foundry/slate/merge-preview.png)
+![merge-preview](./images/merge-preview.png)
 
 Note that the merged Slate application has attributes from both changes.

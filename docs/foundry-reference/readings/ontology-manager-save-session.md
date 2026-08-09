@@ -1041,6 +1041,138 @@ the images first, not last.
 
 ---
 
+## 13 — A second pass, on four pages outside this section
+
+Added after the operator supplied four more URLs against Questions 1–3. The
+useful finding is that **the other authoring applications document what the
+Ontology Manager leaves silent**, and they agree with each other.
+
+### 13.1 Workshop state saving is a different concept — it does not apply
+
+`workshop/state-saving.md` is about a *module consumer* deliberately preserving
+their own view:
+
+> State saving is a powerful Workshop feature that allows module consumers to store the current state of their work within a module and then either return to that saved state or share the saved state with other users.
+
+It is opt-in per variable, produces a **named Compass resource** with a chosen
+location (`User home folder`, `Any Compass location`), and is shareable as a
+link. That is a deliberate named save, not an implicit editing buffer. It tells
+us Foundry's habit — durable, shareable user state becomes a Compass resource —
+and nothing about the working state. **Not evidence for Question 1.**
+
+`autopilot/workbench.md` uses "state" in a third sense again — a Kanban stage:
+
+> States represent distinct stages in your automation workflow. Each state corresponds to a column in the Kanban board and a node on the graph, and defines where objects are in their lifecycle.
+
+Unrelated. Recorded so the next reader does not re-check it.
+
+### 13.2 Question 2 — the working state is scoped to a branch. Answered.
+
+Three pages in three applications say the same thing, and one says it as a
+consequence severe enough to warrant a warning callout:
+
+> Branch resets cannot be undone. After resetting, all changes on you original branch will be lost, including saved and unsaved changes.
+
+— `pipeline-builder/branches-propose-a-change.md`
+
+> Unsaved Workshop edits are not preserved through a rebase. Save your changes to the branch before starting the rebase; any in-progress edits that have not been saved will be lost.
+
+— `workshop/branching-integration.md`
+
+together with the Ontology Manager's own rebase sentence from §1 — a branch's
+saved changes being *reloaded into* the working state. Unsaved changes belong to
+a branch, are enumerated alongside saved ones, and die with it.
+
+**Inference, marked:** if unsaved changes are lost by *resetting a branch*, then
+switching branches cannot silently carry them across — but no page says what
+switching does, so the specific question of swap-versus-follow stays in
+Questions.
+
+### 13.3 Question 3 — auto-merge what does not overlap. Answered, and it vindicates 419.
+
+`workshop/branching-integration.md` states the rule the Ontology Manager pages
+only imply:
+
+> A change is marked as a merge conflict when it is edited on both `main` and the branch.
+
+> Workshop auto-merges changes that do not overlap. A change is only flagged as a merge conflict when the same widget, variable, section, or layout position was edited on both `main` and your branch; for those, you must pick a version manually as described below.
+
+**That is a three-way merge with element-level conflict units** — auto-resolution
+of non-overlapping edits is only possible against a base. Migration 419 is the
+same algorithm with *field* as the element. Not finer-than-documented after all;
+the same shape at the granularity the Ontology Manager's own diff already renders
+(§10.2).
+
+Slate is the outlier, and its screenshot explains why rather than contradicting
+the above. `slate/applications-merging.md` says:
+
+> When a merge conflict is identified, Slate will not attempt merge changes within an element and will contain the other user's changes by default.
+
+and its worked example is exactly Question 3's test — User A edits a Y value,
+User B edits a series colour, same widget, conflict. But the merge screenshot
+shows three panes labelled
+
+> THEIRS (V16) … RESULT … MINE (UNSAVED CHANGES)
+> — slate/images/merge-json-conflict.png
+
+and `MINE` differs from `THEIRS` on **both** lines: `orange` versus `#8F398F`,
+and `2` versus `22`. User B never touched the Y value — B's copy simply predates
+A's change from `2` to `22`. **A two-way diff cannot distinguish "I edited this"
+from "I am behind here"**, so every differing line reads as a conflict and the
+only safe default is to take the other side. Slate is coarse because it has no
+base, not because element-level is the platform rule.
+
+`THEIRS (V16)` is also the corpus's plainest evidence for optimistic concurrency
+on an integer version, which `deep-dive-ontology.md` left open as S3.
+
+Pipeline Builder agrees on units and adds vocabulary:
+
+> Merge conflicts are changes that were made to the base branch in the time since you created a branch from it.
+
+> Rebasing in Pipeline Builder allows you to combine your unpublished changes in your local branch with the latest published changes on your remote branch.
+
+### 13.4 Question 1 — still not stated, but the silence is now informative
+
+No page in 1,760 says where the Ontology Manager's working state is held. What
+the second pass adds is a **contrast**: there is exactly one page in the corpus
+that describes browser-local draft state, and it says so without ambiguity:
+
+> By default, the AIP Analyst widget keeps draft chat state in memory while the user's browser tab remains open. This lets the widget retain conversation history, context items, and tool results when it is hidden and shown again within the same Workshop module, such as when the widget is placed in a tab or collapsible section. Refreshing or closing the browser tab clears this unsaved draft state.
+
+— `aip-analyst/workshop-widget.md`
+
+**When Foundry means a draft held in browser memory and lost on refresh, it
+says so.** The
+Ontology Manager says `stored locally in a work-in-progress state` and then
+describes that state surviving into a review dialog, an attributed history
+timeline, a save-to-new-branch, and a rebase reload.
+
+There is also a precedent for per-user state on a shared server-side resource:
+
+> Marking changes as reviewed is user-specific. When you mark changes as reviewed, it only applies to your user. Other users can independently mark the same changes as reviewed without affecting your review status.
+
+— `pipeline-builder/branches-approve-a-change.md`
+
+**Counter-evidence, stated so it is not buried:** the two "unsaved changes are
+lost through a rebase/reset" sentences in §13.2 are *ambiguous*, and can be read
+the other way — edits might be lost precisely because they were client-side and
+the page reloaded. This reading does not resolve that. Question 1 stands.
+
+### 13.5 Question 6 — the Migrations tab is named after all. Answered.
+
+The agent reported it appears in no sentence in the corpus. It does, outside both
+sections searched:
+
+> In addition to displaying a warning, Ontology Manager will present a **Migrations** tab in the **Review changes** interface when the user wants to save their changes to the Ontology. Ontology Manager will block the user from saving changes until they define a migration for the breaking change. This prevents the change from breaking other workflows.
+
+— `object-edits/schema-migrations.md`
+
+So it is a **third save-blocking class**, alongside errors and the confirmation
+gate — and it partially answers Question 5. `object-edits/schema-migrations.md`
+is unread and now clearly load-bearing.
+
+---
+
 ## Connects to
 
 - **`readings/compass-branching-and-views.md`** — recorded that Global Branching
@@ -1122,21 +1254,32 @@ the images first, not last.
    inside a server-rendered history timeline), so the two signals conflict.
    **The learn.palantir.com courses would settle this in one screen.**
 
-2. **Is the working state scoped per branch?** `blocks: the working-state phase`.
-   If I have unsaved edits on `main` and switch to a branch, do they follow me,
-   stay behind, or block the switch? The rebase sentence proves a branch's saved
-   changes can be *loaded into* the working state, which hints at one state per
-   branch, but nothing says it. Searched `branch selector`, `switch branch`,
-   `branch` in all of `ontology-manager/` and `ontologies/`.
+   **Revised after the second pass (§13.4), in two directions.** The screenshot
+   half of this is weaker than first written: `review-restore-history-button.png`
+   is the history of **saved** changes, so its avatars and dates say nothing
+   about the working state, and only `review-restore-entity-history-button.png`
+   bears on it — where the avatar and `Now` are both knowable client-side
+   anyway. Treat the screenshots as **neutral**, not as server-side evidence.
+   What replaces them is a contrast: `aip-analyst/workshop-widget.md` shows that
+   Foundry states browser-memory drafts explicitly when that is what it means,
+   and the Ontology Manager does not. Also searched and found nothing: Pipeline
+   Builder, Workshop, Slate, Quiver, Data Lineage, global branching, and the
+   nine deep-dive courses. **Still the one question that blocks the phase.**
 
-3. **What exactly is a conflict compared against — the field, the entity, or the
-   whole resource snapshot?** `blocks: the merge phase`. The banner counts
-   entities, the sentence says `For each` over entities, the panels display
-   fields, and the rebase page says resources. If two users edit two *different*
-   fields of the same object type, is that a conflict? Under an entity-level rule
-   it is; under a field-level rule it is not; under the `easily and safely merge`
-   banner it plausibly is not. The pages support both. Migration 419 already
-   assumes field-level, so this may be a correction we need to make.
+2. ~~**Is the working state scoped per branch?**~~ **ANSWERED — yes.** §13.2.
+   Unsaved changes belong to a branch and are destroyed with it, said in two
+   applications. What remains is narrower and does not block: *switching*
+   branches with edits pending — follow, stay, or refuse — is described nowhere.
+
+3. ~~**What exactly is a conflict compared against?**~~ **ANSWERED — auto-merge
+   what does not overlap, conflict on what does.** §13.3. Workshop states the
+   rule outright and it is a three-way merge at element granularity, which is
+   migration 419's algorithm with *field* as the element. Slate's coarser
+   behaviour is explained by its two-way diff, not by a platform rule. **419
+   needs no correction.** The narrower open question, which does not block: is
+   *field* the right element for an object type, or should co-edits of two
+   properties on one type conflict as one entity? The Ontology Manager renders
+   its diff per field, so field is the defensible default.
 
 4. **Which destructive changes demand name-typing and which demand
    count-typing — or has one replaced the other?** `blocks: the warnings phase`.

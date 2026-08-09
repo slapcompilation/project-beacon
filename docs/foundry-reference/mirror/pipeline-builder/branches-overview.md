@@ -6,7 +6,7 @@ Version control with branching is widely used throughout Foundry and is a key pa
 
 Pipeline Builder refers to each unique version of a pipeline workflow as a pipeline *branch* (similar to a branch in Git), with one branch serving as **main**.
 
-![Screenshot of the branches view in Pipeline Builder.](/docs/resources/foundry/pipeline-builder/pb-branch-selector.png)
+![Screenshot of the branches view in Pipeline Builder.](./images/pb-branch-selector.png)
 
 A **branch** is a copy of the pipeline on which a user can iterate without saving back to the main pipeline. Branches in Pipeline Builder are analogous to code branches in a Git repository; users work within their own branches to make edits and test changes without the risk of negatively affecting the pipeline. Every pipeline workflow starts with one **main** branch, and users can create additional branches from the main branch when they want to collaborate. Once users are happy with changes in their branch, they can propose to merge the branch into the **main** branch.
 
@@ -14,7 +14,7 @@ A **branch** is a copy of the pipeline on which a user can iterate without savin
 
 When creating a branch, you can select a Pipeline Builder branch or a [global branch](/docs/foundry/global-branching/overview/). Global branches allow you to make changes to multiple applications on a single branch, while Pipeline Builder branches are scoped to the pipeline you are working on. Note that object types created in Pipeline Builder are not modifiable in Ontology Manager on a branch.
 
-![Creating a branch in Pipeline Builder.](/docs/resources/foundry/pipeline-builder/global-pipeline-builder-branches-create.png)
+![Creating a branch in Pipeline Builder.](./images/global-pipeline-builder-branches-create.png)
 
 :::callout{theme="neutral" title="Working with Code Repositories branches"}
 You can create a Pipeline Builder branch with the same name as a Code Repositories branch to have your Pipeline Builder transforms read input datasets from that matching branch. This allows you to iterate on both your Pipeline Builder pipeline and your Code Repositories transforms together on a shared branch name. You can also configure [fallback branches](/docs/foundry/pipeline-builder/branches-fallback-branches/) in Pipeline Builder to control which branch is used when an input dataset has not been built on the current branch, functioning the same way as [authoring fallbacks in Code Repositories](/docs/foundry/code-repositories/branch-settings/#fallback-branches).
@@ -26,7 +26,7 @@ Learn more about [branching workflows in Foundry](/docs/foundry/data-integration
 
 To manage branches, navigate to the top toolbar and select **Manage branches** under **Settings**.
 
-<img src="./media/branches-setting.png" alt="The Manage branches option under Settings." width="450">
+<img src="./images/branches-setting.png" alt="The Manage branches option under Settings." width="450">
 
 ### Active branches
 
@@ -36,7 +36,7 @@ In the **Active branches** tab, view all currently active branches, or choose to
 
 In this tab, enable **Require proposals...** to protect one or more branches by preventing users from making direct changes to the specified branch or branches. This option requires users to make a change to a separate branch before it can be merged into any of the protected branches.
 
-![Screenshot of where to configure multiple protected branches.](/docs/resources/foundry/pipeline-builder/branches-multiple-protected.png)
+![Screenshot of where to configure multiple protected branches.](./images/branches-multiple-protected.png)
 
 Choose to **Require at least one approval...** to add another layer of protection with an additional user approval of the proposed change before it can be merged into the main branch. Valid approvers are users with `Edit` permissions for the pipeline who did not contribute to the proposed change. Learn more about multiple protected branches in the [documentation on branch protection](/docs/foundry/pipeline-builder/branches-protected-branches/).
 
