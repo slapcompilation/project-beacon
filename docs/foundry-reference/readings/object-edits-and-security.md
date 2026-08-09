@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — how user edits are applied, and object security policies
 
 Read to answer the four open questions before phase E. **Three are answered
@@ -35,7 +39,7 @@ should never generate a random ID or GUID."
 >
 > "the Funnel service owns and manages several Foundry datasets, including a
 > **merged dataset that combines data coming from datasources and user edits**.
-> The merged dataset is automatically built."
+> The merged dataset is automatically built…"
 
 So there are three layers, and only two are durable:
 
@@ -88,7 +92,8 @@ Among the cases it settles:
 - **T6** — an unedited property receives a datasource update "and it **is
   applied**"; edited ones are not.
 - **T9** — `Create object` yields `col1 = null, col2 = null` even though the
-  datasource has values, because create "**ignores all datasource data**".
+  datasource has values, because the create "ignores all datasource data"
+  (the flowchart, `object-edits/images/object-edits-visibility-flowchart.png`).
 - **T12** — the row disappears but the object survives, "as it was **last
   created by a user edit**".
 - **T14** — "any `Modify object` Action call **will fail**" on a deleted object.
@@ -103,7 +108,7 @@ That table is a conformance test, exactly like
 And there is no undo:
 
 > "Data already containing user edits can **only be updated via additional user
-> edits**. There is no mechanism to directly undo a single user edit."
+> edits**. There is no mechanism to directly undo a single user edit…"
 
 Wiping them all is a **schema migration** — the `drop all edits` instruction.
 
@@ -114,8 +119,8 @@ I had this wrong in the build map, which said per object type.
 > "Conflict resolution strategies are configured at the object type level…
 > **Each datasource of the object type can have different resolution
 > strategies.** For example, for an object type backed by two datasources, one
-> datasource can use `Apply user edits (default)` while the other can use
-> `Apply most recent value`."
+> datasource can use `Apply user edits (default)` while the other datasource
+> can use `Apply most recent value`…"
 
 Two strategies:
 
@@ -164,7 +169,7 @@ object data" — and this page names that as the **legacy** model:
 > "If your enrollment uses the legacy **datasource-derived permissions model**,
 > users still require `Viewer` permissions on the backing data source… **Because
 > datasource-derived permissions defeat the decoupling that object security
-> policies provide, we recommend migrating to project-based permissions.**"
+> policies provide, we recommend migrating to project-based permissions**…"
 
 **Three levels, and the failure mode differs:**
 
@@ -175,7 +180,7 @@ object data" — and this page names that as the **legacy** model:
 | both together | **cell-level** | — |
 
 > "By default, object security policies are applied to **all** properties. When a
-> property security policy includes a property, the user must pass **both**."
+> property security policy includes a property, the user must pass **both**…"
 
 **Three restrictions, all enforceable:**
 

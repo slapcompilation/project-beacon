@@ -7,6 +7,7 @@
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
+    "check:readings": "node scripts/check-readings.mjs",
     "check:surfaces": "node scripts/check-surfaces.mjs",
     "db": "node scripts/db.mjs",
     "db:status": "node scripts/db.mjs --status",

@@ -32,6 +32,12 @@ jobs:
 
       - run: pnpm turbo lint type-check test
 
+      # A plausible quote reads exactly like a real one, and CLAUDE.md's
+      # founding failure was an invented citation. The mirror is on disk, so
+      # this is mechanical rather than a matter of review.
+      - name: Every citation traces to a mirrored page
+        run: pnpm check:readings
+
       # Five guards policed the database and none looked at apps/web. A cleanup
       # deleted ReportsPage and left its eleven sections behind, plus FinancePage
       # whose route had become a redirect — 2,503 lines surviving the very sweep
