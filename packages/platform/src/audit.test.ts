@@ -51,13 +51,75 @@ describe.skipIf(noDb)('the live system', () => {
     }
   })
 
-  it('gives every account the organization its policies are scoped by', async () => {
-    // auth_org_id() reads app_metadata.org_id and nothing else. Without it a
-    // sign-in succeeds into an application where every policy returns nothing.
+  // The token hook runs on the sign-in path, so it is the same hazard as the
+  // trigger that locked everyone out — a raise here is a lockout. These ask
+  // whether it is safe to have switched on, for every account that exists.
+  it('derives a token for every account without raising', async () => {
+    // The assertion is that this completes. A raise here is a lockout, and it
+    // must survive claims shaped in ways GoTrue does not usually send.
     const { rows } = await db.query(
-      `select email from auth.users
-        where not (coalesce(raw_app_meta_data, '{}'::jsonb) ? 'org_id')
-           or raw_app_meta_data ? 'hotel_id'`)
+      `select u.email,
+              public.custom_access_token_hook(
+                jsonb_build_object('user_id', u.id::text, 'claims', '{}'::jsonb))
+                -> 'claims' -> 'app_metadata' ->> 'org_id' as derived
+         from auth.users u`)
+    expect((rows as unknown[]).length).toBeGreaterThan(0)
+  })
+
+  // An onboarded account must come out scoped. Not every account is onboarded —
+  // one that never has been legitimately gets no organization, which is why
+  // this asks about public.users rather than about auth.users.
+  it('derives an organization for every onboarded account', async () => {
+    const { rows } = await db.query(
+      `select p.email from public.users p
+        where public.custom_access_token_hook(
+                jsonb_build_object('user_id', p.id::text, 'claims', '{}'::jsonb))
+                -> 'claims' -> 'app_metadata' ->> 'org_id' is null`)
+    expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
+  })
+
+  // Until the hook is switched on, the static claim is the only one there is.
+  // While both exist they must agree, or flipping the switch silently re-scopes
+  // somebody. When the static claim is finally stripped this becomes vacuous.
+  it('derives the same organization the static claim already carries', async () => {
+    const { rows } = await db.query(
+      `select u.email from auth.users u
+        where coalesce(u.raw_app_meta_data, '{}'::jsonb) ? 'org_id'
+          and (u.raw_app_meta_data ->> 'org_id') is distinct from
+              (public.custom_access_token_hook(
+                 jsonb_build_object('user_id', u.id::text, 'claims', '{}'::jsonb))
+                 -> 'claims' -> 'app_metadata' ->> 'org_id')`)
+    expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
+  })
+
+  it('lets GoTrue call the token hook, and nobody else', async () => {
+    const { rows } = await db.query(
+      `select has_function_privilege('supabase_auth_admin',
+                'public.custom_access_token_hook(jsonb)', 'EXECUTE') as gotrue,
+              has_function_privilege('authenticated',
+                'public.custom_access_token_hook(jsonb)', 'EXECUTE') as authed`)
+    const r = (rows as { gotrue: boolean; authed: boolean }[])[0]
+    // Without the grant, enabling the hook breaks sign-in for everyone.
+    expect(r.gotrue).toBe(true)
+    expect(r.authed).toBe(false)
+  })
+
+  // The invariant is a biconditional, not "everyone has an org". 430 asserted
+  // the latter and that assertion is what handed two unonboarded accounts a
+  // claim to an organization they have no record in.
+  it('gives nobody a claim to an organization they have no record in', async () => {
+    const { rows } = await db.query(
+      `select a.email from auth.users a
+        where (coalesce(a.raw_app_meta_data, '{}'::jsonb) ? 'hotel_id')
+           or ((coalesce(a.raw_app_meta_data, '{}'::jsonb) ? 'org_id')
+               and not exists (select 1 from public.users p
+                                where p.id = a.id and p.organization_id is not null))`)
+    expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
+  })
+
+  it('has an organization for every onboarded user', async () => {
+    const { rows } = await db.query(
+      'select email from public.users where organization_id is null')
     expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
   })
 
