@@ -176,6 +176,10 @@ export interface PropertyDef {
 export interface ObjectTypeDef {
   id: string
   organizationId: string
+  /** The ontology it belongs to. "A space can hold a single ontology", and an
+   *  object type never moves between them — its API name is unique per ontology
+   *  and its RID resolves inside one. */
+  ontologyId?: string
   /** slug, unique per org — the type's stable api name. */
   apiName: string
   label: string

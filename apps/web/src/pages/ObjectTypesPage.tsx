@@ -26,6 +26,8 @@ import {
   useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
 } from '@/features/objectTypes/sharedProperties'
 import InterfacesSection from '@/features/interfaces/InterfacesSection'
+import { OntologyPicker, OntologySummary } from '@/features/ontologies/OntologyPicker'
+import { useOntologies } from '@/features/ontologies/api'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -155,9 +157,20 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
 export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
   const { data: rows = [], isLoading } = useObjectTypes()
-  const types = useMemo(() => rows.map(rowToObjectType), [rows])
+  const allTypes = useMemo(() => rows.map(rowToObjectType), [rows])
+
+  // Which ontology we are looking at. Nothing below is global: an object type
+  // belongs to exactly one, and its API name is only unique within it.
+  const { data: ontologies = [] } = useOntologies()
+  const [ontologyId, setOntologyId] = useState<string | null>(null)
+  const ontology = ontologies.find((o) => o.id === ontologyId) ?? ontologies.at(0) ?? null
+  const types = useMemo(
+    () => (ontology ? allTypes.filter((t) => t.ontologyId === ontology.id) : allTypes),
+    [allTypes, ontology],
+  )
+
   // Link endpoints are just object types — there is no authored-versus-built-in
-  // split to bridge any more (migration 405).
+  // split to bridge any more (migration 405). A link stays inside one ontology.
   const linkTargets = types
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = types.find((t) => t.id === selectedId) ?? null
@@ -169,15 +182,19 @@ export default function ObjectTypesPage() {
   return (
     <div className="flex-1 overflow-y-auto">
       <div className="px-8 py-6 max-w-4xl space-y-6">
-        <header>
-          <h1 className="text-xl font-semibold">Object types</h1>
-          <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-            Define a new kind of thing with typed properties — a Maintenance Request, a Guest Complaint,
-            an Asset — then create records of it. No code deploy; the ontology grows as data.
-          </p>
+        <header className="space-y-3">
+          <div>
+            <h1 className="text-xl font-semibold">Object types</h1>
+            <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
+              Define a kind of thing with typed properties, backed by a datasource. Every one belongs
+              to an ontology, and a space holds a single ontology.
+            </p>
+          </div>
+          <OntologyPicker value={ontology?.id ?? null} onChange={setOntologyId} />
+          {ontology && <OntologySummary ontology={ontology} />}
         </header>
 
-        <TypeBuilder />
+        <TypeBuilder ontologyId={ontology?.id ?? null} />
 
         <section className="space-y-2">
           <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Your object types</h2>
@@ -297,7 +314,7 @@ function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
   )
 }
 
-function TypeBuilder() {
+function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const create = useCreateObjectType()
   const sharedMap = useSharedPropertyMap()
   const [label, setLabel] = useState('')
@@ -318,7 +335,7 @@ function TypeBuilder() {
   const submit = () => {
     if (!canSave) return
     create.mutate(
-      { apiName, label: label.trim(), icon, description: description.trim(), properties },
+      { apiName, label: label.trim(), icon, description: description.trim(), properties, ontologyId },
       { onSuccess: () => { setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube') } },
     )
   }
@@ -346,7 +363,9 @@ function TypeBuilder() {
       {label.trim() !== '' && !canSave && (
         <ul className="text-[11px] text-red-600 list-disc pl-4">{[...validation.errors, ...computedErrors].map((e) => <li key={e}>{e}</li>)}</ul>
       )}
-      <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave} loading={create.isPending} onClick={submit}>Create object type</Button>
+      <Button intent={Intent.PRIMARY} icon="tick" disabled={!canSave || !ontologyId}
+        title={ontologyId ? undefined : 'Create an ontology first — every object type belongs to one'}
+        loading={create.isPending} onClick={submit}>Create object type</Button>
     </Card>
   )
 }

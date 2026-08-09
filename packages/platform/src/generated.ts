@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (5) ────────────────────────────────────────────────
+// ── ACTION TYPES (6) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -17,6 +17,18 @@ import type { ActionType, FunctionType, Json } from './client'
  */
 export const createProposal = { apiName: 'create_proposal', kind: 'action' } as ActionType<
   { p_branch: string; p_name: string; p_description?: string },
+  string
+>
+
+/**
+ *  Create a space and attach the caller's organization to it, in one call.
+ *  Two separate writes cannot work: `insert into spaces … returning id` is
+ *  REFUSED outright, because Postgres applies the SELECT policy to a
+ *  RETURNING clause and that policy reads through space_organizations — a row
+ *  that does not exist until the space does.
+ */
+export const createSpace = { apiName: 'create_space', kind: 'action' } as ActionType<
+  { p_name: string; p_description?: string },
   string
 >
 

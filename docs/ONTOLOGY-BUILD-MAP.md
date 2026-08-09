@@ -373,6 +373,29 @@ forces `Create and save to branch`.
 
 ## Phase E — object storage
 
+### E0 · The picker, so any of A–D can be reached — **BUILT** (424–425)
+
+Four phases of schema had no surface at all: `grep -rn "ontolog" apps/web/src`
+matched nothing, so creating an object type raised `Ontology:NoOntology` with no
+way to answer it. `features/ontologies/` is the answer — the drop-down "**to
+select between different Ontologies (if more than one is available)**", showing
+the display name over the folder path as the screenshot does, and creating the
+first one when there is none.
+
+Two bugs the surface only had because it wrote in two steps, both found by
+running its own sequence as `authenticated`:
+
+| what the surface did | what happens |
+|---|---|
+| `insert into spaces … returning id` | **refused** — Postgres folds the SELECT policy into a RETURNING clause, and that policy reads through `space_organizations`, which cannot exist yet |
+| `insert into space_organizations (space_id)` | **refused** — the WITH CHECK compares `organization_id` to `auth_org_id()`, and a missing column is NULL |
+
+`create_space(name, description)` does both writes and generates the id itself,
+so nothing is read back through a policy that is not yet true. Same answer 409
+gave for an object type and its properties. **Fifth time this shape has appeared**
+(395, 403, 412, 414, 424) and the first four were all found the same way — the
+owner connection bypasses RLS and shows none of it.
+
 ### E1 · Instances, and edits beside them — **BUILT** (422)
 
 > "**Each row** of data in the backing datasource will produce **one object**…

@@ -59,6 +59,7 @@ export function propertyToRow(p: PropertyDef, position: number) {
 export interface ObjectTypeRow {
   id: string
   organization_id: string
+  ontology_id: string
   api_name: string
   label: string
   icon: string
@@ -81,7 +82,7 @@ export interface ObjectTypeRow {
 
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id,
+    id: r.id, organizationId: r.organization_id, ontologyId: r.ontology_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
     properties: [...r.object_type_properties]
       .sort((a, b) => a.position - b.position).map(rowToProperty),
@@ -115,10 +116,14 @@ export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
  *  forbids, and stay there if the second write failed. */
 export async function saveObjectType(
   i: { id?: string; apiName?: string; label: string; icon: string; description: string
-       properties: PropertyDef[] },
+       properties: PropertyDef[]
+       /** Which ontology this type is being created in. Required on create when
+        *  the organization has more than one — `default_ontology()` refuses to
+        *  guess, because a silent wrong guess writes to the wrong ontology. */
+       ontologyId?: string | null },
 ): Promise<string> {
   return client(saveObjectTypeAction).applyAction({
-    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description },
+    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description, ontology_id: i.ontologyId ?? null },
     p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
   })
 }
