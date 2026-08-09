@@ -224,5 +224,21 @@ is worth most just before the thing it describes gets built. Nothing here is
   the legacy model), and the `NOT`-condition warning that applies to our scoped
   sessions too.
 
-Twenty-three readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `ontology-manager-save-session.md` — the whole `ontology-manager/` section (10
+  pages, all 56 images) plus the branching pages. **The working state is a second
+  layer above the branch, confirmed three ways** — `Save to new branch` builds a
+  branch *out of* an existing working state, and a rebase loads a branch's saved
+  changes back *into* it. An entry is a **resource**; the diff inside it is
+  **per field**, struck-through-old beside green-new, nested three deep. The
+  conflict *decision* is per **entity** (`Use latest` / `Keep my changes`) while
+  the *display* is per field — three granularities across three surfaces, and
+  419's per-field merge is finer than anything documented. Errors block the save
+  and warnings do not, but **no page enumerates the errors**: two exist only as
+  pixels, twelve coded names are scattered across other pages. A restore writes
+  into the working state rather than committing. Export/import operate on the
+  working state, not the saved ontology. Seven corpus contradictions logged,
+  every one being prose that fell behind its own screenshots — including
+  `_index`/`overview` being the same file.
+
+Twenty-four readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,183 stay findable in the meantime.
