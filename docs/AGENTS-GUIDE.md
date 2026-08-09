@@ -72,10 +72,15 @@ Deterministic, no model involved, and they are the cheapest guards you have:
 
 | workflow | when | asks |
 |---|---|---|
+| `ci.yml` | push + PR | `lint type-check test`, then `check:readings` and `check:surfaces` |
+| `db-migrate.yml` | push + PR | applies pending migrations, then runs the `@beacon/platform` suite against the real database — the audits live there |
 | `doc-drift.yml` | Mondays 06:17 | has a page we quoted changed upstream? |
-| `db-contracts.yml` | on DB changes + daily | do the RLS contracts still hold? |
-| `web-smoke.yml` | on push | does the app still load and sign in? |
-| `pnpm turbo lint type-check test` | on push | includes the 76 platform tests |
+| `deploy-verify.yml` | push | does the deployed build answer? |
+
+`db-migrate.yml` is the one doing the heavy lifting: the platform suite includes
+the live-system audits — sign-in works, no trigger on `auth.users`, nobody holds
+a claim to an organization they have no record in, the ontology is well-formed —
+and those run against the real database rather than a fixture.
 
 **`doc-drift.yml` only fires on the default branch.** It is on
 `feat/ontology-status` and will not run on its schedule until that merges to
