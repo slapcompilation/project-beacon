@@ -151,6 +151,9 @@ importers:
 
   packages/platform:
     devDependencies:
+      '@beacon/ontology':
+        specifier: workspace:*
+        version: link:../ontology
       '@types/node':
         specifier: ^22.10.5
         version: 22.20.1

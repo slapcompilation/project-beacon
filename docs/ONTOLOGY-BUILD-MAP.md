@@ -519,6 +519,39 @@ on one: its "**Trashed datasource**" flag is a Compass query.
 
 ---
 
+# QA findings (2026-08-08)
+
+A sweep across the whole build, checked against the pages.
+
+**Clean:** no table with policies but RLS off, none with RLS on and no policy,
+none granted to `authenticated` without RLS, no `SECURITY DEFINER` function
+missing `SET search_path`, no policy negating a membership check (the failure
+mode `object-security-policies` warns about), no unvalidated foreign keys, and
+all three audits at zero.
+
+**Fixed:** `TRUNCATE` was granted to `anon` and `authenticated` on all 49 public
+tables by Supabase's default ACL, and **TRUNCATE is not subject to RLS** — see
+423. `grant_violations()` now watches it continuously.
+
+**Fixed:** the property vocabulary existed twice — SQL and TypeScript — with
+nothing checking they agreed. `vocabulary.test.ts` now asserts both against the
+published table type by type, rather than against each other.
+
+**Verified against `properties-overview#supported-property-types`:** all 22 base
+types, and both eligibility rules, match the page exactly in both
+implementations.
+
+**Open, not fixed:**
+
+- **An array property does not declare its element type.** `base-types` says
+  "all base types may be used in arrays… **excluding the `Vector` and `Time
+  series` types**", and `properties-overview` adds "if the inner type of the
+  `Array` is not a valid title property, the `Array` property also cannot be
+  used as the title property". Neither rule is expressible without an element
+  type, and we have no column for one.
+- **61 foreign keys have no index on the referencing column.** Not a correctness
+  bug; it makes cascade deletes and joins scan. Worth doing before there is data.
+
 # Open questions
 
 ## Blocking — I would ask before building that phase
