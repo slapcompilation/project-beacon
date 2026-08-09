@@ -60,7 +60,7 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
   string
 >
 
-// ── FUNCTIONS (59) ───────────────────────────────────────────────────
+// ── FUNCTIONS (61) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -327,6 +327,15 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
   string
 >
 
+/**
+ *  Privileges an application role holds that no policy can restrain. TRUNCATE
+ *  is the dangerous one: row-level security does not apply to it.
+ */
+export const grantViolations = { apiName: 'grant_violations', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { relation: string; grantee: string; privilege: string; problem: string }[]
+>
+
 export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_min: string },
   boolean
@@ -350,6 +359,16 @@ export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as Fu
 export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
+>
+
+/**
+ *  Resolves one object from its datasource row and its edit log, following
+ *  the four-step decision in object-edits/how-edits-applied. Checked against
+ *  that page's T0–T14 table in @beacon/platform.
+ */
+export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
+  { properties: Json; deleted: boolean }[]
 >
 
 /**

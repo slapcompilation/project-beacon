@@ -39,6 +39,14 @@ describe.skipIf(noDb)('the live system', () => {
     expect(found.map((v) => `${v.relation}: ${v.problem}`)).toEqual([])
   })
 
+  // TRUNCATE is not subject to row-level security, so a policy cannot restrain
+  // it. Supabase's default ACL granted it on all 49 public tables until 423.
+  it('grants the app role nothing a policy cannot restrain', async () => {
+    const { rows } = await db.query('select * from public.grant_violations()')
+    const found = rows as { relation: string; grantee: string; privilege: string }[]
+    expect(found.map((v) => `${v.grantee} has ${v.privilege} on ${v.relation}`)).toEqual([])
+  })
+
   it('is guarding enough tables for that answer to mean anything', async () => {
     // A probe that silently covered nothing would report clean forever.
     const { rows: [c] } = await db.query(

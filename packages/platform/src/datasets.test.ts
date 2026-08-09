@@ -8,6 +8,7 @@
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { noDb, connect, rollback, fixture, view, commit, refused, type Fixture } from './harness'
+import { checkAnswerKey } from './answerKey'
 
 describe.skipIf(noDb)('the dataset engine', () => {
   let db: pg.Client
@@ -22,29 +23,29 @@ describe.skipIf(noDb)('the dataset engine', () => {
   })
   afterAll(async () => { await rollback(db) })
 
+  // The table, transcribed. Each row is one of the page's numbered steps and the
+  // view it states afterwards; the runner turns each into its own `it`.
   describe('the published example', () => {
-    it('replays the four stated steps to the stated answer', async () => {
-      // "1. SNAPSHOT contains files A and B"
-      txn.t1 = await commit(db, f.datasetId, f.branchId, 'SNAPSHOT', ['A', 'B'])
-      expect(await view(db, f.branchId)).toEqual(['A', 'B'])
-
-      // "2. APPEND adds file C"
-      txn.t2 = await commit(db, f.datasetId, f.branchId, 'APPEND', ['C'], txn.t1)
-      expect(await view(db, f.branchId)).toEqual(['A', 'B', 'C'])
-
-      // "3. UPDATE modifies file A to have different contents, A'
-      //  4. DELETE removes file B"
-      txn.t3 = await commit(db, f.datasetId, f.branchId, 'UPDATE', ['A'], txn.t2)
-      txn.t4 = await commit(db, f.datasetId, f.branchId, 'DELETE', ['B'], txn.t3)
-      // "At this point, the current dataset view would contain A' and C."
-      expect(await view(db, f.branchId)).toEqual(['A', 'C'])
-    })
-
-    it('a fifth SNAPSHOT replaces everything', async () => {
-      // "If we added a fifth SNAPSHOT transaction containing file D, the current
-      //  dataset view would then only contain D."
-      txn.t5 = await commit(db, f.datasetId, f.branchId, 'SNAPSHOT', ['D'], txn.t4)
-      expect(await view(db, f.branchId)).toEqual(['D'])
+    checkAnswerKey<{ type: string; files: string[]; key: string }, string[]>({
+      source: 'data-integration/datasets#example-of-transaction-types',
+      steps: [
+        { at: '1', input: { type: 'SNAPSHOT', files: ['A', 'B'], key: 't1' },
+          expected: ['A', 'B'], because: 'SNAPSHOT contains files A and B' },
+        { at: '2', input: { type: 'APPEND', files: ['C'], key: 't2' },
+          expected: ['A', 'B', 'C'], because: 'APPEND adds file C' },
+        { at: '3', input: { type: 'UPDATE', files: ['A'], key: 't3' },
+          expected: ['A', 'B', 'C'], because: "UPDATE modifies file A to have different contents, A'" },
+        { at: '4', input: { type: 'DELETE', files: ['B'], key: 't4' },
+          expected: ['A', 'C'], because: 'DELETE removes file B — "the current dataset view would contain A\' and C"' },
+        { at: '5', input: { type: 'SNAPSHOT', files: ['D'], key: 't5' },
+          expected: ['D'], because: '"a fifth SNAPSHOT transaction containing file D… would then only contain D"' },
+      ],
+      run: async ({ type, files, key }) => {
+        // Each step commits on top of the last, which is what a history is.
+        txn[key] = await commit(db, f.datasetId, f.branchId, type, files, txn.previous)
+        txn.previous = txn[key]
+        return view(db, f.branchId)
+      },
     })
 
     it('has as many views as SNAPSHOT transactions', async () => {

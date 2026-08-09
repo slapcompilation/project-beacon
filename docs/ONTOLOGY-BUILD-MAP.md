@@ -349,7 +349,7 @@ forces `Create and save to branch`.
 
 ## Phase E — object storage
 
-### E1 · Instances, and edits beside them
+### E1 · Instances, and edits beside them — **BUILT** (422)
 
 > "**Each row** of data in the backing datasource will produce **one object**…
 > **Each column typically maps to a property**."

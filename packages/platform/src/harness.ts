@@ -51,14 +51,17 @@ export async function asAuthenticated<T>(client: pg.Client, fn: () => Promise<T>
 
 export interface Fixture {
   orgId: string
+  spaceId: string
   projectId: string
   datasetId: string
   branchId: string
   claims: string
 }
 
-/** An organization, a project, a dataset and its master branch — plus a JWT for
- *  the explicit function checks, which read the claim rather than the role. */
+/** An organization, a space it serves, a project, a dataset and its master
+ *  branch — plus a JWT for the explicit function checks, which read the claim
+ *  rather than the role. The space is here because an ontology lives in one
+ *  (migration 412) and must be one its organization actually serves (414). */
 export async function fixture(client: pg.Client, slug: string): Promise<Fixture> {
   const one = async (sql: string, params: unknown[] = []) => {
     const { rows } = await client.query(sql, params)
@@ -66,6 +69,11 @@ export async function fixture(client: pg.Client, slug: string): Promise<Fixture>
   }
   const org = await one(
     `insert into public.organizations (name) values ($1) returning id`, [slug])
+  const space = await one(
+    `insert into public.spaces (name) values ($1) returning id`, [slug])
+  await client.query(
+    `insert into public.space_organizations (space_id, organization_id) values ($1,$2)`,
+    [space.id, org.id])
   const proj = await one(
     `insert into public.projects (organization_id, api_name, name) values ($1,$2,$2) returning id`,
     [org.id, slug])
@@ -78,7 +86,8 @@ export async function fixture(client: pg.Client, slug: string): Promise<Fixture>
   const claims = JSON.stringify({ app_metadata: { role: 'admin', org_id: org.id } })
   await client.query(`select set_config('request.jwt.claims', $1, true)`, [claims])
 
-  return { orgId: org.id, projectId: proj.id, datasetId: ds.id, branchId: branch.id, claims }
+  return { orgId: org.id, spaceId: space.id, projectId: proj.id,
+           datasetId: ds.id, branchId: branch.id, claims }
 }
 
 /** The view, as the paths a reader would see. */
