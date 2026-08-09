@@ -32,23 +32,23 @@ The top bar has three main functionalities. It allows users to search for Ontolo
 
 The sidebar provides easy navigation to different resources, pages, or applications within Ontology Manager.
 
-![Ontology Manager annotated view.](/docs/resources/foundry/ontology-manager/oma-navigation-annotated.png)
+![Ontology Manager annotated view.](./images/oma-navigation-annotated.png)
 
 ### Discover
 
 The Discover view offers a highly customizable landing page tailored to your preferences. By default, the Discover view showcases favorite object types, recently-viewed object types, and favorite groups.
 
-![Ontology Manager Discover view.](/docs/resources/foundry/ontology-manager/oma-discover-view.png)
+![Ontology Manager Discover view.](./images/oma-discover-view.png)
 
 In case the user is new to the Ontology, two specialized sections will be presented: one which displays all object types that were recently modified within that Ontology, and one for all prominent object types.
 
-![Ontology Manager Fallback sections.](/docs/resources/foundry/ontology-manager/oma-fallback-sections.png)
+![Ontology Manager Fallback sections.](./images/oma-fallback-sections.png)
 
 The Discover view provides the flexibility to configure the sections that appear on the page and control the number of items displayed within each section. The available sections include "Recently viewed object types," "Favorite object types," and "Favorite groups." Additionally, you have the option to add a separate section for a specific group, allowing you to explore all object types within that group.
 
-![Ontology Manager Customize homepage feature.](/docs/resources/foundry/ontology-manager/oma-customize-homepage.png)
+![Ontology Manager Customize homepage feature.](./images/oma-customize-homepage.png)
 
-![Ontology Manager Group section.](/docs/resources/foundry/ontology-manager/oma-type-group-section.png)
+![Ontology Manager Group section.](./images/oma-type-group-section.png)
 
 ### Object type view
 
@@ -57,7 +57,7 @@ Selecting an object type brings up the object type view, which has the following
 * Sidebar with page selections (on the left in the image below)
 * Selected page (on the right in the image below)
 
-![Object type view.](/docs/resources/foundry/ontology-manager/oma-user-interface-object-type-view.png)
+![Object type view.](./images/oma-user-interface-object-type-view.png)
 
 The **Overview** page of an object type has the following sections, as numbered in the image below:
 
@@ -69,31 +69,31 @@ The **Overview** page of an object type has the following sections, as numbered 
 6. Data
 7. Usage
 
-![Object type overview page.](/docs/resources/foundry/ontology-manager/oma-user-interface-overview-annotated.png)
+![Object type overview page.](./images/oma-user-interface-overview-annotated.png)
 
 ### Property editor view
 
 Select a property from the **Properties** section of an object type’s **Overview** page to open the property editor view of the application.
 
-![Property editor interface.](/docs/resources/foundry/ontology-manager/oma-user-interface-property-editor-v2.png)
+![Property editor interface.](./images/oma-user-interface-property-editor-v2.png)
 
 ### Link type view
 
 Selecting a link type from the link type graph of an object type’s **Overview** tab (see image below) opens the link type view (with **Overview** and **Datasources** pages).
 
-![Link type view.](/docs/resources/foundry/ontology-manager/oma-user-interface-link-type.png)
+![Link type view.](./images/oma-user-interface-link-type.png)
 
 ### Action type view
 
 Selecting an action type from the action type section of an object type’s **Overview** tab opens the action type view, with further access to the **Overview**, **Logic** and **Observability** pages.
 
-![Action type view.](/docs/resources/foundry/ontology-manager/oma-user-interface-action-type.png)
+![Action type view.](./images/oma-user-interface-action-type.png)
 
 #### View action metrics and monitoring rules
 
 The **Observability** tab shows the near real-time [usage of the action](/docs/foundry/action-types/action-metrics/) over the last 30 days as well as any [monitoring rules](/docs/foundry/monitoring-views/overview/) and their status defined for the action. [Review action rules](/docs/foundry/monitoring-views/rules-reference/#action-rules) for detailed action monitoring rule configuration options.
 
-![Action observability tab view.](/docs/resources/foundry/ontology-manager/oma-user-interface-action-type-observability-tab.png)
+![Action observability tab view.](./images/oma-user-interface-action-type-observability-tab.png)
 
 ### Function type view
 
@@ -111,10 +111,10 @@ By default, the latest version of the function is displayed. To view other versi
 
 Modifications to the function can only be made within the Functions Code Repository. To navigate to the repository, use the **Open in Code Repository** button found in the top right-hand corner of the entity view.
 
-![Function type view.](/docs/resources/foundry/ontology-manager/oma-user-interface-function-type.png)
+![Function type view.](./images/oma-user-interface-function-type.png)
 
 #### View function metrics and monitoring rules
 
 The **Observability** tab shows the near real-time [usage of the function](/docs/foundry/functions/function-metrics/) over the last 30 days as well as any [monitoring rules](/docs/foundry/monitoring-views/overview/) and their status defined for the function. [Review function rules](/docs/foundry/monitoring-views/rules-reference/#function-rules) for detailed function monitoring rule configuration options.
 
-![Function observability tab view.](/docs/resources/foundry/ontology-manager/oma-user-interface-function-type-observability-tab.png)
+![Function observability tab view.](./images/oma-user-interface-function-type-observability-tab.png)
