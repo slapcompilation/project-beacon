@@ -169,7 +169,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (70) ───────────────────────────────────────────────────
+// ── FUNCTIONS (71) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -667,6 +667,18 @@ export const roleRank = { apiName: 'role_rank', kind: 'function' } as FunctionTy
 export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'function' } as FunctionType<
   { p_markings: string[] },
   boolean
+>
+
+/**
+ *  Jump-to object search: titles only, from the index, across up to 250
+ *  visible object types in the documented priority
+ *  (promoted/active-prominent, active, experimental; deprecated and hidden
+ *  excluded). Definer because the objects schema takes no grants;
+ *  auth_in_ontology() gates every type.
+ */
+export const searchObjects = { apiName: 'search_objects', kind: 'function' } as FunctionType<
+  { p_query: string; p_limit?: number },
+  { object_type_id: string; object_type_label: string; primary_key: string; title: string }[]
 >
 
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<

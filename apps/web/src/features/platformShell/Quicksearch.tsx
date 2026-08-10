@@ -12,6 +12,7 @@
 // is "Quicksearch respects all existing permissions in the platform".
 
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Button, Dialog, Icon, InputGroup } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useNavigate } from 'react-router-dom'
@@ -21,6 +22,8 @@ import { useDatasets, datasetLocation } from '@/features/datasets/api'
 import { useProjects } from '@/features/projects/api'
 import { useAppStore } from '@/stores/app.store'
 import { ALL_APPS, titleForPath } from './apps'
+import { searchObjects } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 
 /** The modifier this OS renders in the hint. The handler accepts both. */
 export const MOD = typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent) ? '⌘' : 'Ctrl+'
@@ -59,19 +62,41 @@ export function Quicksearch({ onClose }: { onClose: () => void }) {
   }), [recents])
 
   const q = query.trim().toLowerCase()
+
+  // Object INSTANCES come from the server: their titles live in the index
+  // (migration 443), scoped to the documented 250-type cap and status priority.
+  const { data: objectHits = [] } = useQuery({
+    queryKey: ['quicksearch-objects', q],
+    enabled: q.length >= 2,
+    staleTime: 10_000,
+    retry: false,
+    queryFn: async (): Promise<Hit[]> => {
+      // A failed search is an empty list — the dialog must never break on it.
+      try {
+        const rows = await client(searchObjects).executeFunction({ p_query: q, p_limit: 5 }) as unknown as
+          { object_type_id: string; object_type_label: string; primary_key: string; title: string }[]
+        return rows.map((r) => hit(`obj:${r.object_type_id}:${r.primary_key}`, 'cube-add',
+          r.title, r.object_type_label, 'Objects', `/ontology/object-types?type=${r.object_type_id}`))
+      } catch {
+        return []
+      }
+    },
+  })
+
   const shown = useMemo(() => {
     if (!q) return recentHits.slice(0, TOTAL)
     const perKind = new Map<Kind, number>()
     const out: Hit[] = []
-    for (const h of candidates) {
+    for (const h of [...candidates, ...objectHits]) {
       const n = perKind.get(h.kind) ?? 0
-      if (n >= PER_KIND || !h.term.includes(q)) continue
+      // Server hits already matched; client candidates match here.
+      if (n >= PER_KIND || (!h.key.startsWith('obj:') && !h.term.includes(q))) continue
       perKind.set(h.kind, n + 1)
       out.push(h)
       if (out.length >= TOTAL) break
     }
     return out
-  }, [q, candidates, recentHits])
+  }, [q, candidates, objectHits, recentHits])
 
   const go = (h: Hit | undefined) => { if (h) { onClose(); void navigate(h.path) } }
 
