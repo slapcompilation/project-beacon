@@ -118,6 +118,20 @@ describe.skipIf(noDb)('the working state', () => {
     expect(live.rows[0].label).toBe('Flight Leg')
   })
 
+  it('keeps the datasource bound through a save that never mentions one', async () => {
+    // The stager was stamping an empty datasources section into every entry,
+    // and the save read empty as unbind-them-all. 428 fixed the save half;
+    // 440 fixed the stager half after a struct-property fixture hit the FK.
+    const before = await count(
+      'select count(*) n from public.object_type_datasources where object_type_id = $1', [type])
+    expect(before).toBe(1)
+    await db.query(`select public.save_object_type($1::jsonb, null)`,
+      [JSON.stringify({ id: type, api_name: 'Flight', label: 'Flight Leg' })])
+    await db.query('select public.save_working_state()')
+    expect(await count(
+      'select count(*) n from public.object_type_datasources where object_type_id = $1', [type])).toBe(1)
+  })
+
   // ── Update: the way out of a stale save ───────────────────────────────────
   // "You can choose between keeping the changes in the latest version of the
   //  Ontology or overriding them with the changes in your working state."

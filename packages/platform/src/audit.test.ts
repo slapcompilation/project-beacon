@@ -123,6 +123,24 @@ describe.skipIf(noDb)('the live system', () => {
     expect((rows as { email: string }[]).map((r) => r.email)).toEqual([])
   })
 
+  // The watchdog cron job died of the teardown and watched nothing for four
+  // days — its function was dropped, and the job kept firing at a ghost. The
+  // durable form of that watchdog is this: every scheduled job must call only
+  // functions that exist. Found by the first nightly foundry-gap run.
+  it('has no scheduled job calling a function that does not exist', async () => {
+    const { rows } = await db.query(`
+      select j.jobname, m.fn
+        from cron.job j
+       cross join lateral (
+         select (regexp_matches(j.command, '([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', 'g'))[1] as fn
+       ) m
+       where j.active
+         and m.fn <> 'select'
+         and not exists (select 1 from pg_proc p where p.proname = m.fn)`)
+    expect((rows as { jobname: string; fn: string }[])
+      .map((r) => `${r.jobname} calls ${r.fn}()`)).toEqual([])
+  })
+
   it('has no trigger on auth.users', async () => {
     // Nothing of ours belongs there, and what did was invisible to every other
     // audit until it locked everyone out.

@@ -102,9 +102,10 @@ export const saveLinkType = { apiName: 'save_link_type', kind: 'action' } as Act
 >
 
 /**
- *  Stage an object type and its properties into my working state. Returns the
- *  id it will have — the row does not exist until save_working_state runs,
- *  which is why the object type Overview shows RID as "Set on save".
+ *  Stage an object type and its properties into my working state. Sections
+ *  enter the entry only when supplied — an absent section means unedited, and
+ *  an invented empty one would mean delete-all on save. Returns the id it
+ *  will have; the row does not exist until save_working_state runs.
  */
 export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json },
