@@ -159,7 +159,9 @@ function ConflictPanel({ conflicts, onResolved }: {
   )
 }
 
-/** The header control: a running count, and the button that ends the session. */
+/** The header's save area, and the dialog behind it. With unsaved work the
+ *  header reads `1 edit … Discard … Save`; with none there is nothing to show,
+ *  so it renders nothing at all (§6.2, §10.4). */
 export function SaveControl() {
   const { data: entries = [] } = useWorkingState()
   const { data: conflicts = [] } = useWorkingStateConflicts()
@@ -176,8 +178,11 @@ export function SaveControl() {
     <>
       <div className="flex items-center gap-2">
         <Button variant="minimal" size="small" onClick={() => { setReviewing(true) }}>
-          {count} unsaved {count === 1 ? 'change' : 'changes'}
+          {count} edit{count === 1 ? '' : 's'}
         </Button>
+        <Button variant="minimal" size="small" loading={discard.isPending}
+          title="Throw away every unsaved change"
+          onClick={() => { discard.mutate(undefined) }}>Discard</Button>
         <Button size="small" intent={blocked ? Intent.WARNING : Intent.PRIMARY}
           icon={blocked ? 'git-merge' : 'floppy-disk'} loading={save.isPending}
           title={blocked ? 'Someone else saved since you began — review and update first' : undefined}

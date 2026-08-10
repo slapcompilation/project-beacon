@@ -22,6 +22,15 @@ interface AppState {
    *  (④) have no star surface yet, so there is no second list. */
   favoriteApps: string[]
   toggleFavoriteApp: (path: string) => void
+  /** Which ontology Ontology Manager is pointed at. The id only — the row is
+   *  server state and gets resolved from it. */
+  omaOntologyId: string | null
+  setOmaOntology: (id: string) => void
+  /** Object types whose detail was opened, newest first — Discover's
+   *  "Recently viewed object types". Same pattern as `recents`, its own list
+   *  because it is the application's history, not the platform's. */
+  omaRecentTypes: string[]
+  pushOmaRecentType: (id: string) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -42,6 +51,12 @@ export const useAppStore = create<AppState>()(
             ? s.favoriteApps.filter((p) => p !== path)
             : [...s.favoriteApps, path],
         }))
+      },
+      omaOntologyId: null,
+      setOmaOntology: (id) => { set({ omaOntologyId: id }) },
+      omaRecentTypes: [],
+      pushOmaRecentType: (id) => {
+        set((s) => ({ omaRecentTypes: [id, ...s.omaRecentTypes.filter((x) => x !== id)].slice(0, RECENT_LIMIT) }))
       },
     }),
     { name: 'beacon-app' },

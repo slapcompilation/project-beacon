@@ -46,7 +46,8 @@ export function Quicksearch({ onClose }: { onClose: () => void }) {
   const candidates: Hit[] = useMemo(() => [
     ...ALL_APPS.map((a) => hit(`app:${a.path}`, a.icon, a.name, a.tagline, 'Apps', a.path)),
     // An object type answers to both its label and its API name; both are titles.
-    ...objectTypes.map((t) => hit(`ot:${t.id}`, 'cube', t.label, t.api_name, 'Objects', '/ontology', `${t.label} ${t.api_name}`)),
+    ...objectTypes.map((t) => hit(`ot:${t.id}`, 'cube', t.label, t.api_name, 'Objects',
+      `/ontology/object-types?type=${t.id}`, `${t.label} ${t.api_name}`)),
     ...datasets.map((d) => hit(`ds:${d.id}`, 'database', d.name, datasetLocation(d), 'Datasets', '/datasets')),
     ...projects.map((p) => hit(`pj:${p.id}`, 'folder-close', p.name, p.apiName, 'Files', '/projects')),
   ], [objectTypes, datasets, projects])

@@ -66,6 +66,10 @@ export interface ObjectTypeRow {
   label: string
   icon: string
   description: string
+  rid: string | null
+  /** Other names this type answers to — what the header search means by
+   *  "Search by name, RID, aliases…". */
+  aliases: string[] | null
   object_type_properties: PropertyRow[]
   computed_properties: ComputedPropertyDef[] | null
   view_config: ViewConfigDef | null
@@ -185,6 +189,8 @@ export async function fetchObjectTypeProblems(id: string): Promise<ObjectTypePro
 
 export interface LinkTypeRow {
   id: string
+  /** A link type belongs to one ontology, like everything else here. */
+  ontology_id: string
   source_object_type_id: string
   target_object_type_id: string
   api_name: string
@@ -205,7 +211,9 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
   return data as LinkTypeRow[]
 }
 
-export interface CreateLinkTypeInput { sourceTypeId: string; targetTypeId: string; apiName: string; label: string }
+export interface CreateLinkTypeInput {
+  sourceTypeId: string; targetTypeId: string; apiName: string; label: string; ontologyId: string
+}
 
 /** Staged, not written. The row appears in the ontology on save — until then it
  *  is an entry in the Review edits dialog like any other change. */
@@ -213,7 +221,7 @@ export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
   return client(saveLinkTypeAction).applyAction({
     p_link: {
       source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId,
-      api_name: i.apiName, label: i.label,
+      api_name: i.apiName, label: i.label, ontology_id: i.ontologyId,
     } as unknown as Json,
   })
 }

@@ -18,9 +18,16 @@ const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
-const ObjectTypesPage = lazyWithRetry(() => import('@/pages/ObjectTypesPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
+
+// Ontology Manager: its own chrome, and its resource pages inside it.
+const OmaLayout = lazyWithRetry(() => import('@/features/ontologyManager/OmaLayout'))
+const DiscoverPage = lazyWithRetry(() => import('@/pages/ontology/DiscoverPage'))
+const ObjectTypesPage = lazyWithRetry(() => import('@/pages/ontology/ObjectTypesPage'))
+const SharedPropertiesPage = lazyWithRetry(() => import('@/pages/ontology/SharedPropertiesPage'))
+const LinkTypesPage = lazyWithRetry(() => import('@/pages/ontology/LinkTypesPage'))
+const InterfacesPage = lazyWithRetry(() => import('@/pages/ontology/InterfacesPage'))
 
 
 
@@ -49,7 +56,14 @@ function AppRoutes() {
             {/* "Home: Return to your organization's landing page." */}
             <Route path="/"          element={<HomePage />} />
             <Route path="/account"   element={<AccountPage />} />
-            <Route path="/ontology"  element={<ObjectTypesPage />} />
+            <Route path="/ontology"  element={<OmaLayout />}>
+              {/* "The Discover view offers a highly customizable landing page." */}
+              <Route index element={<DiscoverPage />} />
+              <Route path="object-types"      element={<ObjectTypesPage />} />
+              <Route path="shared-properties" element={<SharedPropertiesPage />} />
+              <Route path="link-types"        element={<LinkTypesPage />} />
+              <Route path="interfaces"        element={<InterfacesPage />} />
+            </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />
           </Route>

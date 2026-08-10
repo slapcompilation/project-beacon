@@ -1,34 +1,31 @@
-// Object Types (Studio P2.1) — Foundry's Ontology Manager, starter. Author a new
-// kind of thing with typed properties, then create records of it. Config-as-data:
-// the type + its records are rows, no code deploy. Types are admin/owner-authored;
-// records can be created by any org member (RLS enforces both).
+// The Object types page: author a kind of thing with typed properties, backed by
+// a datasource. One of Ontology Manager's resource pages (§6.9) — the ontology
+// it belongs to, the save session and the search all live in the chrome above.
 
 import { useMemo, useState } from 'react'
 import {
-  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
+  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent,
   Spinner, SpinnerSize, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
+import { useSearchParams } from 'react-router-dom'
 import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
-  validateComputedProperty, validateViewConfig, attachProblem, usedBy,
+  validateComputedProperty, validateViewConfig, attachProblem,
   acceptsInput, primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef, type SharedPropertyDef,
 } from '@beacon/ontology'
-import { useAuthStore } from '@/stores/auth.store'
-import { rowToObjectType, rowToLinkType } from '@/features/objectTypes/api'
+import { useAppStore } from '@/stores/app.store'
+import { rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useObjectTypes, useCreateObjectType, useUpdateObjectType,
+  useCreateObjectType, useUpdateObjectType,
   useCreateLinkType, useDeleteLinkType, useLinkTypes,
 } from '@/features/objectTypes/hooks'
-import {
-  useSharedProperties, useSharedPropertyMap, useCreateSharedProperty, useDeleteSharedProperty,
-} from '@/features/objectTypes/sharedProperties'
-import InterfacesSection from '@/features/interfaces/InterfacesSection'
-import { OntologyPicker, OntologySummary } from '@/features/ontologies/OntologyPicker'
-import { useOntologies } from '@/features/ontologies/api'
-import { SaveControl } from '@/features/workingState/ReviewEdits'
+import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
+import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
+import { SectionHead } from '@/features/ontologyManager/OmaLayout'
+import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
 import { useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
@@ -157,56 +154,40 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
 }
 
 export default function ObjectTypesPage() {
-  const role = useAuthStore((s) => s.role)
-  const { data: rows = [], isLoading } = useObjectTypes()
-  const allTypes = useMemo(() => rows.map(rowToObjectType), [rows])
+  const { ontology, isLoading: loadingOntology } = useOmaOntology()
+  const { types, isLoading } = useOmaTypes()
   // A saved type is not live until its index builds. The count is the moment.
   const { data: indexes } = useIndexStatuses()
   const reindex = useReindex()
+  const pushRecent = useAppStore((s) => s.pushOmaRecentType)
 
-  // Which ontology we are looking at. Nothing below is global: an object type
-  // belongs to exactly one, and its API name is only unique within it.
-  const { data: ontologies = [] } = useOntologies()
-  const [ontologyId, setOntologyId] = useState<string | null>(null)
-  const ontology = ontologies.find((o) => o.id === ontologyId) ?? ontologies.at(0) ?? null
-  const types = useMemo(
-    () => (ontology ? allTypes.filter((t) => t.ontologyId === ontology.id) : allTypes),
-    [allTypes, ontology],
-  )
-
-  // Link endpoints are just object types — there is no authored-versus-built-in
-  // split to bridge any more (migration 405). A link stays inside one ontology.
-  const linkTargets = types
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  // The open type travels in the URL, so a Discover card, a search hit and a
+  // shared link all land on the same thing.
+  const [params, setParams] = useSearchParams()
+  const selectedId = params.get('type')
   const selected = types.find((t) => t.id === selectedId) ?? null
+  const openType = (id: string) => {
+    if (id === selectedId) { setParams({}); return }
+    setParams({ type: id })
+    pushRecent(id)
+  }
 
-  if (role !== 'owner' && role !== 'admin') {
-    return <NonIdealState icon="shield" title="Object type authoring is available to admin and owner roles" />
+  if (!ontology && !loadingOntology) {
+    return <div className="oma-page max-w-2xl"><NoOntologyCallout /></div>
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="px-8 py-6 max-w-4xl space-y-6">
-        <header className="space-y-3">
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <h1 className="text-xl font-semibold">Object types</h1>
-              <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-                Define a kind of thing with typed properties, backed by a datasource. Every one belongs
-                to an ontology, and a space holds a single ontology.
-              </p>
-            </div>
-            {/* Edits land here first and reach the ontology only on save. */}
-            <SaveControl />
-          </div>
-          <OntologyPicker value={ontology?.id ?? null} onChange={setOntologyId} />
-          {ontology && <OntologySummary ontology={ontology} />}
-        </header>
+    <div className="oma-page">
+      <SectionHead title="Object types" count={types.length} />
+      <p className="text-sm text-muted-foreground max-w-2xl mb-5">
+        Define a kind of thing with typed properties, backed by a datasource. Every one belongs to
+        this ontology, and its API name is unique within it.
+      </p>
 
+      <div className="max-w-4xl space-y-6">
         <TypeBuilder ontologyId={ontology?.id ?? null} />
 
         <section className="space-y-2">
-          <h2 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Your object types</h2>
           {isLoading ? (
             <Card compact className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner size={SpinnerSize.SMALL} />Loading…</Card>
           ) : types.length === 0 ? (
@@ -216,7 +197,7 @@ export default function ObjectTypesPage() {
               {types.map((t) => (
                 <Card key={t.id} interactive compact
                   className={selectedId === t.id ? '!border-violet-400' : ''}
-                  onClick={() => { setSelectedId(selectedId === t.id ? null : t.id) }}>
+                  onClick={() => { openType(t.id) }}>
                   <div className="flex items-center gap-2">
                     <Icon icon={t.icon as IconName} size={14} className="text-violet-500" />
                     <span className="text-sm font-semibold">{t.label}</span>
@@ -244,95 +225,10 @@ export default function ObjectTypesPage() {
           )}
         </section>
 
-        {selected && <TypeDetail type={selected} allTypes={linkTargets} />}
-
-        <SharedPropertiesSection types={types} />
-
-        <InterfacesSection types={types} />
+        {/* Link endpoints are just object types, and a link stays in one ontology. */}
+        {selected && <TypeDetail type={selected} allTypes={types} />}
       </div>
     </div>
-  )
-}
-
-/** One definition of `cost`, used by several object types. Foundry: "update
- *  metadata in one place instead of on each object type" — so editing here moves
- *  every type that inherits it, which is the whole point and worth showing. */
-function SharedPropertiesSection({ types }: { types: ObjectTypeDef[] }) {
-  const { data: defs = [] } = useSharedProperties()
-  const create = useCreateSharedProperty()
-  const del = useDeleteSharedProperty()
-  const [label, setLabel] = useState('')
-  const [description, setDescription] = useState('')
-  const [baseType, setBaseType] = useState<PropertyType>('string')
-  const apiName = toSlug(label)
-
-  return (
-    <section className="space-y-2 border-t pt-5">
-      <div className="flex items-center gap-2">
-        <Icon icon="globe" size={14} className="text-violet-500" />
-        <h2 className="text-sm font-semibold">Shared properties</h2>
-        <Tag minimal className="!text-[10px]">{defs.length}</Tag>
-      </div>
-      <p className="text-[11px] text-muted-foreground max-w-2xl">
-        One definition used by several object types. The metadata is shared — the data is not;
-        each type still stores its own values. Editing a definition moves every property that
-        inherits from it.
-      </p>
-
-      <Card compact className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 flex-1 min-w-40">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Name</span>
-          <InputGroup size="small" value={label} placeholder="Cost"
-            onChange={(e) => { setLabel(e.currentTarget.value) }} />
-        </label>
-        <label className="flex flex-col gap-1 flex-1 min-w-56">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Description</span>
-          <InputGroup size="small" value={description} placeholder="What it cost us, in the property currency"
-            onChange={(e) => { setDescription(e.currentTarget.value) }} />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Base type</span>
-          <HTMLSelect value={baseType} onChange={(e) => { setBaseType(e.currentTarget.value as PropertyType) }}>
-            {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-          </HTMLSelect>
-        </label>
-        <Button size="small" icon="add" intent={Intent.PRIMARY} loading={create.isPending}
-          disabled={!apiName || defs.some((d) => d.apiName === apiName)}
-          onClick={() => {
-            create.mutate({ apiName, label: label.trim(), description: description.trim(), baseType },
-              { onSuccess: () => { setLabel(''); setDescription('') } })
-          }}>
-          Create
-        </Button>
-      </Card>
-
-      {defs.length > 0 && (
-        <Card compact className="!p-0">
-          <ul className="divide-y divide-border/30">
-            {defs.map((d) => {
-              const consumers = usedBy(d.id, types)
-              return (
-                <li key={d.id} className="flex items-center gap-2 px-3 py-2 text-xs">
-                  <Icon icon="globe" size={11} className="text-violet-500 shrink-0" />
-                  <span className="font-medium">{d.label}</span>
-                  <span className="font-mono text-[10px] text-muted-foreground">{d.apiName}</span>
-                  <Tag minimal className="!text-[9px]">{d.baseType}</Tag>
-                  <span className="flex-1 truncate text-muted-foreground">{d.description}</span>
-                  <Tag minimal intent={consumers.length > 0 ? Intent.PRIMARY : Intent.NONE} className="!text-[9px]"
-                    title={consumers.map((t) => t.label).join(', ') || 'Not used by any object type yet'}>
-                    {consumers.length} type{consumers.length === 1 ? '' : 's'}
-                  </Tag>
-                  <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
-                    disabled={consumers.length > 0}
-                    title={consumers.length > 0 ? `Used by ${consumers.map((t) => t.label).join(', ')} — detach it there first.` : undefined}
-                    onClick={() => { del.mutate(d.id) }} />
-                </li>
-              )
-            })}
-          </ul>
-        </Card>
-      )}
-    </section>
   )
 }
 
@@ -593,6 +489,8 @@ function ViewBuilder({ properties, computedProperties, config, onChange }: {
 function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[]; linkTypes: LinkTypeDef[] }) {
   const create = useCreateLinkType()
   const del = useDeleteLinkType()
+  // A link never crosses an ontology, and every type here is in the open one.
+  const { ontology } = useOmaOntology()
   const [label, setLabel] = useState('')
   const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
   const apiName = toSlug(label)
@@ -600,8 +498,10 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const labelOf = (id: string) => allTypes.find((t) => t.id === id)?.label ?? '?'
 
   const submit = () => {
-    if (!validation.ok) return
-    create.mutate({ sourceTypeId: type.id, targetTypeId, apiName, label: label.trim() }, { onSuccess: () => { setLabel('') } })
+    if (!validation.ok || !ontology) return
+    create.mutate(
+      { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(), ontologyId: ontology.id },
+      { onSuccess: () => { setLabel('') } })
   }
 
   return (

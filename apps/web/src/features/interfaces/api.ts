@@ -7,6 +7,10 @@ import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
 
 export interface InterfaceRow {
   id: string
+  /** An interface belongs to one ontology — the column is NOT NULL, so a list
+   *  that ignored it would show another ontology's shapes. */
+  ontology_id: string
+  rid: string | null
   api_name: string
   label: string
   description: string
@@ -43,11 +47,17 @@ export interface CreateInterfaceInput {
   label: string
   description: string
   properties: InterfacePropertyDef[]
+  /** The ontology the manager is pointed at. Left out, the column default calls
+   *  `default_ontology()`, which raises rather than guessing when there are two. */
+  ontologyId: string
 }
 
 export async function createInterface(i: CreateInterfaceInput): Promise<InterfaceRow> {
   const { data, error } = await supabase.from('ontology_interfaces')
-    .insert({ api_name: i.apiName, label: i.label, description: i.description, properties: i.properties })
+    .insert({
+      api_name: i.apiName, label: i.label, description: i.description,
+      properties: i.properties, ontology_id: i.ontologyId,
+    })
     .select('*').single<InterfaceRow>()
   if (error) throw new Error(error.message)
   return data
