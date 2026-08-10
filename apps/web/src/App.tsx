@@ -16,6 +16,7 @@ FocusStyleManager.onlyShowFocusOnTabs()
 const LoginPage = lazyWithRetry(() => import('@/pages/LoginPage'))
 const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'))
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
+const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const ObjectTypesPage = lazyWithRetry(() => import('@/pages/ObjectTypesPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
@@ -29,10 +30,6 @@ function PageLoader() {
       <Spinner size={SpinnerSize.LARGE} intent={Intent.PRIMARY} />
     </div>
   )
-}
-
-function RootRedirect() {
-  return <Navigate to="/ontology" replace />
 }
 
 
@@ -49,18 +46,14 @@ function AppRoutes() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/auth/callback" element={<AuthCallbackPage />} />
           <Route element={<AuthGuard />}>
-            <Route path="/" element={<RootRedirect />} />
-
-
-
-            <Route path="/account"       element={<AccountPage />} />
-            <Route path="/ontology"     element={<ObjectTypesPage />} />
-            <Route path="/projects"      element={<ProjectsPage />} />
-            <Route path="/datasets"      element={<DatasetsPage />} />
+            {/* "Home: Return to your organization's landing page." */}
+            <Route path="/"          element={<HomePage />} />
+            <Route path="/account"   element={<AccountPage />} />
+            <Route path="/ontology"  element={<ObjectTypesPage />} />
+            <Route path="/projects"  element={<ProjectsPage />} />
+            <Route path="/datasets"  element={<DatasetsPage />} />
           </Route>
-          {/* Was /objects, which the teardown removed — the fallback pointed at
-              a route that no longer exists and rendered nothing. */}
-          <Route path="*" element={<Navigate to="/ontology" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

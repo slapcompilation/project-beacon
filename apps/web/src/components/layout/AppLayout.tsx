@@ -1,26 +1,30 @@
-import { Outlet } from 'react-router-dom'
-import { GlobalNav } from '@/features/foundryShell/GlobalNav'
+import { useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { PlatformSidebar } from '@/features/platformShell/PlatformSidebar'
+import { titleForPath } from '@/features/platformShell/apps'
 import { ServiceWorkerUpdatePrompt } from '@/components/ServiceWorkerUpdatePrompt'
 import { PanelErrorBoundary } from '@/components/PanelErrorBoundary'
-import { useKeyboardNav } from '@/hooks/useKeyboardNav'
+import { useAppStore } from '@/stores/app.store'
 
 export function AppLayout() {
-  useKeyboardNav()
+  const { pathname } = useLocation()
+  const pushRecent = useAppStore((s) => s.pushRecent)
+
+  // Recent is client-side: nothing on the server records a visit yet.
+  useEffect(() => {
+    if (titleForPath(pathname)) pushRecent(pathname)
+  }, [pathname, pushRecent])
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
-
-      <div className="flex flex-1 overflow-hidden">
-        <GlobalNav />
-        <main className="flex-1 overflow-y-auto">
-          <PanelErrorBoundary name="Page" className="h-full">
-            <div className="page-fade h-full">
-              <Outlet />
-            </div>
-          </PanelErrorBoundary>
-        </main>
-      </div>
-
+    <div className="platform-shell">
+      <PlatformSidebar />
+      <main className="platform-main">
+        <PanelErrorBoundary name="Page" className="h-full">
+          <div className="page-fade h-full">
+            <Outlet />
+          </div>
+        </PanelErrorBoundary>
+      </main>
       <ServiceWorkerUpdatePrompt />
     </div>
   )

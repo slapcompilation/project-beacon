@@ -4,7 +4,7 @@
 
 Applications Portal is a tool for discovering and accessing all apps in Foundry. This includes both (1) core Foundry platform apps and (2) trusted custom apps that admins promote to Applications Portal.
 
-![Applications Portal](/docs/resources/foundry/app-building/apps-portal.png)
+![Applications Portal](./images/apps-portal.png)
 
 ### Navigate to Applications Portal
 
@@ -12,11 +12,11 @@ You can open Applications Portal by selecting the **Applications Portal** icon i
 
 You can "pin" your favorite apps to the left sidebar for easy access. Select the star icon next to the application's name from the Applications Portal or when you're editing the application. Once pinned, a section called **Promoted Apps** will appear in the Foundry sidebar with a list of your favorite promoted apps.
 
-<img src="./media/apps-portal-sidebar-promoted.png" alt="Sidebar Promoted App" width="300" />
+<img src="./images/apps-portal-sidebar-promoted.png" alt="Sidebar Promoted App" width="300" />
 
 Permissions for Applications Portal are based on [filesystem permissions](/docs/foundry/security/projects-and-roles/#request-access-to-a-project). If you have the Discoverer role, you will be prompted to [request access](/docs/foundry/security/projects-and-roles/#request-access-to-a-project).
 
-![Promoted Apps](/docs/resources/foundry/app-building/apps-portal-promoted-apps.png)
+![Promoted Apps](./images/apps-portal-promoted-apps.png)
 
 ## Applications Portal modes
 
@@ -56,7 +56,7 @@ Un-promoting a promoted application is also done using the promotion UI, by sele
 
 You can change the resource that a promotion references to release new applications in a controlled manner.
 
-<img src="./media/apps-portal-promotion-ui.png" alt="Applications Portal Promotion Workflow" width="300"/>
+<img src="./images/apps-portal-promotion-ui.png" alt="Applications Portal Promotion Workflow" width="300"/>
 
 ## Categorization in Applications Portal
 
