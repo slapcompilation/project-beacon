@@ -42,7 +42,7 @@ export function AuthGuard() {
     role !== 'admin' &&
     ADMIN_ONLY_PREFIXES.some((prefix) => pathname.startsWith(prefix))
   ) {
-    return <Navigate to="/objects" replace />
+    return <Navigate to="/" replace />
   }
 
   return <AppLayout />

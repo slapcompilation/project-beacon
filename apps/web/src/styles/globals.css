@@ -370,6 +370,162 @@
   .elevated-lg{ box-shadow: var(--shadow-lg); }
 }
 
+/* ── Platform chrome ─────────────────────────────────────────────────────────
+ * Two chromes nest: the platform's is dark and always left, the application's
+ * is light and lives to its right (readings/home-and-navigation.md §1). The
+ * values below are read off the screenshots in §5.1 and named for their nearest
+ * Blueprint token; the rail carries no blue — selection is a lighter block. */
+:root {
+  --platform-sidebar-bg:    #1c2127;  /* Dark Gray2 */
+  --platform-sidebar-row:   #2f343c;  /* Dark Gray4 — hover and active */
+  --platform-sidebar-label: #f6f7f9;  /* Light Gray5 */
+  --platform-sidebar-muted: #8f99a8;  /* Gray3 — icons, hints, section headers */
+  --platform-sidebar-rule:  #252a31;  /* Dark Gray3 */
+  --platform-welcome: linear-gradient(90deg, #5c8ad8 0%, #2d72d2 38%, #1544de 100%);
+}
+
+@media all {
+  .platform-shell { display:flex; height:100vh; overflow:hidden; }
+  .platform-main  { display:flex; flex-direction:column; flex:1 1 0%; min-width:0; overflow:hidden; }
+
+  .platform-sidebar {
+    display:flex; flex-direction:column; flex-shrink:0; width:240px;
+    background:var(--platform-sidebar-bg); color:var(--platform-sidebar-label);
+    user-select:none;
+  }
+  .platform-sidebar.is-collapsed { width:56px; }
+
+  .platform-head { display:flex; align-items:center; flex-shrink:0; height:48px; padding:0 12px; }
+  .platform-mark {
+    display:flex; align-items:center; justify-content:center;
+    width:24px; height:24px; border-radius:4px; background:#2d72d2; flex-shrink:0;
+  }
+  .platform-collapse {
+    display:flex; margin-left:auto; padding:0; border:0; background:none; cursor:pointer;
+    color:var(--platform-sidebar-muted);
+  }
+  .platform-collapse:hover { color:var(--platform-sidebar-label); }
+
+  .platform-nav  { flex:1 1 0%; overflow-y:auto; padding:4px 0; }
+  .platform-foot { flex-shrink:0; padding:4px 0; border-top:1px solid var(--platform-sidebar-rule); }
+  .platform-group + .platform-group {
+    margin-top:4px; padding-top:4px; border-top:1px solid var(--platform-sidebar-rule);
+  }
+
+  .platform-row {
+    display:flex; align-items:center; gap:12px; width:100%;
+    padding:7px 14px; border:0; background:none; cursor:pointer;
+    font:inherit; font-size:13px; text-align:left; color:var(--platform-sidebar-label);
+    transition:background-color .12s;
+  }
+  .platform-row:hover, .platform-row.is-active { background:var(--platform-sidebar-row); }
+  .platform-row .bp6-icon { color:var(--platform-sidebar-muted); flex-shrink:0; }
+  .platform-row.is-active .bp6-icon { color:var(--platform-sidebar-label); }
+  .platform-row-label { flex:1 1 0%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .platform-avatar {
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:20px; height:20px; border-radius:9999px;
+    background:var(--platform-sidebar-row); color:var(--platform-sidebar-label);
+    font-size:9px; font-weight:600;
+  }
+
+  .platform-sidebar.is-collapsed .platform-mark,
+  .platform-sidebar.is-collapsed .platform-row-label { display:none; }
+  .platform-sidebar.is-collapsed .platform-head,
+  .platform-sidebar.is-collapsed .platform-row { justify-content:center; padding-left:0; padding-right:0; }
+  .platform-sidebar.is-collapsed .platform-collapse { margin:0; }
+
+  /* Narrow viewports get the icon rail whatever the toggle says. */
+  @media (max-width:880px) {
+    .platform-sidebar, .platform-sidebar.is-collapsed { width:56px; }
+    .platform-mark, .platform-row-label, .platform-collapse { display:none; }
+    .platform-head, .platform-row { justify-content:center; padding-left:0; padding-right:0; }
+  }
+}
+
+/* ── The landing page (§2.2) and the Applications Portal (§4) ──────────────── */
+@media all {
+  .home-page { flex:1 1 0%; overflow-y:auto; }
+  .home-grid {
+    display:grid; grid-template-columns:255px minmax(0,1fr); gap:40px;
+    max-width:1360px; padding:32px 40px 64px;
+  }
+  .home-toc { position:sticky; top:32px; align-self:start; }
+  .home-toc-label {
+    font-size:11px; font-weight:600; letter-spacing:.09em;
+    color:hsl(var(--muted-foreground));
+  }
+  .home-toc-link {
+    display:flex; gap:8px; width:100%; margin-top:12px; padding:0;
+    border:0; background:none; cursor:pointer; text-align:left;
+    font:inherit; font-size:14px; line-height:1.35; color:hsl(var(--muted-foreground));
+  }
+  .home-toc-link.is-active { color:hsl(var(--foreground)); }
+
+  .home-welcome {
+    margin-bottom:28px; padding:22px 28px; border-radius:8px;
+    background:var(--platform-welcome); color:#fff;
+  }
+  .home-welcome-title { font-size:19px; font-weight:600; }
+  .home-welcome-sub   { font-size:13px; margin-top:4px; opacity:.92; }
+
+  .home-section + .home-section { margin-top:28px; }
+  .home-section-title { font-size:18px; font-weight:600; margin-bottom:12px; }
+  /* Fixed three columns: a short row leaves the cell empty, it does not centre. */
+  .home-app-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .home-app-card {
+    display:flex; align-items:center; gap:14px; padding:14px 16px;
+    border:1px solid hsl(var(--border)); border-radius:6px;
+    background:hsl(var(--card)); box-shadow:var(--shadow-sm); text-decoration:none;
+    transition:border-color .12s, box-shadow .12s;
+  }
+  .home-app-card:hover { border-color:hsl(var(--primary) / .5); box-shadow:var(--shadow-md); }
+  .home-app-name    { display:block; font-size:15px; font-weight:600; color:hsl(var(--primary)); }
+  .home-app-tagline { display:block; font-size:13px; margin-top:2px; color:hsl(var(--muted-foreground)); }
+
+  /* The one place an arbitrary hue appears (§5.5) — the app's icon tile. */
+  .app-tile {
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    width:40px; height:40px; border-radius:6px;
+  }
+
+  .portal-body { display:flex; height:420px; margin:0; padding:0; }
+  .portal-rail {
+    width:210px; flex-shrink:0; margin:0; padding:8px; list-style:none; overflow-y:auto;
+    border-right:1px solid hsl(var(--border));
+  }
+  .portal-rail-row {
+    display:flex; align-items:center; gap:8px; width:100%; padding:6px 8px;
+    border:1px solid transparent; border-radius:4px; background:none; cursor:pointer;
+    font:inherit; font-size:13px; text-align:left; color:hsl(var(--foreground));
+  }
+  .portal-rail-row:hover { background:hsl(var(--muted)); }
+  /* Selection in the portal is a blue border on a white fill, not a fill (§5.2). */
+  .portal-rail-row.is-active { border-color:hsl(var(--primary)); color:hsl(var(--primary)); }
+  .portal-count { margin-left:auto; font-size:11px; color:hsl(var(--muted-foreground)); }
+
+  .portal-apps { flex:1 1 0%; overflow-y:auto; padding-bottom:12px; }
+  .portal-band {
+    display:flex; align-items:center; gap:8px; padding:6px 16px; background:hsl(var(--muted));
+    font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+    color:hsl(var(--muted-foreground));
+  }
+  .portal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:12px 16px; }
+  .portal-app {
+    display:flex; align-items:flex-start; gap:12px; padding:8px;
+    border:0; border-radius:6px; background:none; cursor:pointer; text-align:left; font:inherit;
+  }
+  .portal-app:hover { background:hsl(var(--muted)); }
+  .portal-app-name  { display:block; font-size:14px; font-weight:600; color:hsl(var(--foreground)); }
+  .portal-app-blurb { display:block; font-size:12px; margin-top:2px; line-height:1.4; color:hsl(var(--muted-foreground)); }
+
+  @media (max-width:900px) {
+    .home-grid { grid-template-columns:minmax(0,1fr); padding:24px; }
+    .home-toc { display:none; }
+    .home-app-grid, .portal-grid { grid-template-columns:minmax(0,1fr); }
+  }
+}
+
 /* ── Scrollbar — thin and unobtrusive ───────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;

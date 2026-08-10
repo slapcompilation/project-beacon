@@ -240,5 +240,21 @@ is worth most just before the thing it describes gets built. Nothing here is
   every one being prose that fell behind its own screenshots — including
   `_index`/`overview` being the same file.
 
-Twenty-four readings against 1,184 pages is the honest starting position. `../MAP.md` is
-how the other 1,183 stay findable in the meantime.
+- `home-and-navigation.md` — **there are two chromes and they nest**: a dark platform
+  sidebar down the left (always, suppressible only by `embedded=true`) plus each
+  application's own light top bar and sidebar. The platform landing page is
+  *configuration* — `/narrative` by default, or a Slate dashboard or Carbon workspace,
+  with per-group overrides — and **not one word of the only screenshot of it appears
+  in any mirrored sentence**, so §2.2 is read entirely off pixels. Foundry's primary
+  button is **green, not blue**; blue is links and selection; the sidebar carries no
+  blue at all. Favourites group headers are unstable across eight labels in six
+  sources, so the invariant (uppercase header · `View all` · items, hidden when
+  empty) is what is buildable. Extends `ontology-manager-save-session.md` §10.8 with a
+  fourth sidebar capture, the `Value types` placement and the **ontology switcher**
+  above it; confirms §10.9 independently. **`MAP.md` is stale — 19 of 55 mirrored
+  sections are missing from it, including the three this reading needed most**, and
+  grepping it for `home`/`landing`/`orientation` returns nothing.
+
+Twenty-five readings against 1,184 pages is the honest starting position. `../MAP.md` is
+how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
+are missing from it (see `home-and-navigation.md` §7.8).
