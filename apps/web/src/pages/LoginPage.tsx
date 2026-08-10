@@ -1,19 +1,23 @@
-// Layer: Floor — Authentication entry point.
+// The platform's login screen (readings/home-and-navigation.md §8.1).
+//
+// The SCREEN is Foundry's — dark page, mark, welcome title, bordered card,
+// icon-prefixed inputs, full-width blue action. The FLOW is not: theirs is
+// email → Next → passkey, ours is email+password in one step, so nothing here
+// splits into two.
 //
 // Values are read straight from the DOM via FormData on submit (not react-hook-
 // form), so browser/password-manager autofill — which sets the input value
 // without firing a React onChange — is captured reliably. Validated with zod.
-//
-// 100% Blueprint — no shadcn primitives, no lucide icons.
 
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Button, Card, FormGroup, InputGroup, Intent } from '@blueprintjs/core'
+import { Button, FormGroup, InputGroup, Intent } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import type { OAuthProvider } from '@beacon/services'
 import { services } from '@/lib/services'
+import { AuthScreen } from '@/features/auth/AuthScreen'
 import { formString, zodFieldErrors } from '@/lib/forms'
 
 // Only render OAuth buttons for providers the operator has configured (and
@@ -39,7 +43,7 @@ const resetSchema = z.object({
 
 // ─── Login form ───────────────────────────────────────────────────────────────
 
-function LoginForm({ onForgotPassword, onMfaRequired }: { onForgotPassword: () => void; onMfaRequired: () => void }) {
+function LoginForm({ onMfaRequired }: { onMfaRequired: () => void }) {
   const navigate = useNavigate()
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -66,7 +70,7 @@ function LoginForm({ onForgotPassword, onMfaRequired }: { onForgotPassword: () =
         onMfaRequired()
         return
       }
-      void navigate('/floor', { replace: true })
+      void navigate('/', { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Sign in failed'
       if (message.toLowerCase().includes('invalid login')) {
@@ -81,29 +85,18 @@ function LoginForm({ onForgotPassword, onMfaRequired }: { onForgotPassword: () =
   }
 
   return (
+    // Labelless, icon-prefixed inputs: a person glyph on the filled email field,
+    // a lock on the outlined password field (§8.1).
     <form onSubmit={(e) => { void onSubmit(e) }} noValidate>
-      <FormGroup
-        label="Email"
-        labelFor="email"
-        intent={errors.email ? Intent.DANGER : Intent.NONE}
-        helperText={errors.email}
-      >
-        <InputGroup id="email" name="email" type="email" autoComplete="username" autoFocus placeholder="you@hotel.com"
+      <FormGroup intent={errors.email ? Intent.DANGER : Intent.NONE} helperText={errors.email}>
+        <InputGroup id="email" name="email" type="email" autoComplete="username" autoFocus
+          leftIcon="person" placeholder="Email" aria-label="Email"
           intent={errors.email ? Intent.DANGER : Intent.NONE} />
       </FormGroup>
 
-      <FormGroup
-        label="Password"
-        labelFor="password"
-        intent={errors.password ? Intent.DANGER : Intent.NONE}
-        helperText={errors.password}
-        labelInfo={
-          <Button variant="minimal" size="small" intent={Intent.PRIMARY} onClick={onForgotPassword}>
-            Forgot password?
-          </Button>
-        }
-      >
+      <FormGroup intent={errors.password ? Intent.DANGER : Intent.NONE} helperText={errors.password}>
         <InputGroup id="password" name="password" type="password" autoComplete="current-password"
+          className="auth-input-outline" leftIcon="lock" placeholder="Password" aria-label="Password"
           intent={errors.password ? Intent.DANGER : Intent.NONE} />
       </FormGroup>
 
@@ -140,29 +133,23 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
 
   if (sent) {
     return (
-      <div className="space-y-4 text-center">
-        <p className="text-sm text-muted-foreground">
-          If an account exists for that email, a reset link is on its way.
-        </p>
+      <>
+        <p className="auth-instruction">If an account exists for that email, a reset link is on its way.</p>
         <Button fill onClick={onBack}>Back to sign in</Button>
-      </div>
+      </>
     )
   }
 
   return (
-    <form onSubmit={(e) => { void onSubmit(e) }} noValidate className="space-y-2">
-      <FormGroup
-        label="Email"
-        labelFor="reset-email"
-        intent={error ? Intent.DANGER : Intent.NONE}
-        helperText={error}
-      >
-        <InputGroup id="reset-email" name="email" type="email" autoComplete="email" autoFocus placeholder="you@hotel.com"
+    <form onSubmit={(e) => { void onSubmit(e) }} noValidate>
+      <FormGroup intent={error ? Intent.DANGER : Intent.NONE} helperText={error}>
+        <InputGroup id="reset-email" name="email" type="email" autoComplete="email" autoFocus
+          leftIcon="person" placeholder="Email" aria-label="Email"
           intent={error ? Intent.DANGER : Intent.NONE} />
       </FormGroup>
 
       <Button type="submit" fill intent={Intent.PRIMARY} loading={submitting}>Send reset link</Button>
-      <Button type="button" variant="minimal" fill onClick={onBack} disabled={submitting}>Back to sign in</Button>
+      <Button type="button" variant="minimal" fill className="mt-2" onClick={onBack} disabled={submitting}>Back to sign in</Button>
     </form>
   )
 }
@@ -182,18 +169,14 @@ function OAuthButtons() {
   }
 
   return (
-    <div className="mt-4">
-      <div className="flex items-center gap-2 my-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-      </div>
-      <div className="space-y-2">
-        {providers.map((p) => (
-          <Button key={p} fill icon={PROVIDER_META[p].icon} onClick={() => { void onClick(p) }}>
-            {PROVIDER_META[p].label}
-          </Button>
-        ))}
-      </div>
-    </div>
+    <>
+      <div className="auth-divider"><span />or<span /></div>
+      {providers.map((p) => (
+        <Button key={p} fill className="mt-2" icon={PROVIDER_META[p].icon} onClick={() => { void onClick(p) }}>
+          {PROVIDER_META[p].label}
+        </Button>
+      ))}
+    </>
   )
 }
 
@@ -210,7 +193,7 @@ function MfaChallengeForm({ onCancel }: { onCancel: () => void }) {
       const totp = (await services.auth.listMfaFactors()).find((f) => f.status === 'verified')
       if (!totp) throw new Error('No authenticator enrolled')
       await services.auth.verifyTotp(totp.id, code.trim())
-      void navigate('/floor', { replace: true })
+      void navigate('/', { replace: true })
     } catch {
       toast.error('That code didn’t match — try again')
       setSubmitting(false)
@@ -218,21 +201,16 @@ function MfaChallengeForm({ onCancel }: { onCancel: () => void }) {
   }
 
   return (
-    <div className="space-y-3">
-      <InputGroup
-        value={code}
-        onValueChange={setCode}
-        placeholder="123456"
-        autoFocus
-        autoComplete="one-time-code"
-        inputMode="numeric"
-        maxLength={6}
-      />
-      <Button fill intent={Intent.PRIMARY} loading={submitting} disabled={code.trim().length < 6} onClick={() => { void submit() }}>
+    <>
+      <InputGroup className="auth-input-outline" leftIcon="lock" value={code} onValueChange={setCode}
+        placeholder="123456" aria-label="Authentication code" autoFocus
+        autoComplete="one-time-code" inputMode="numeric" maxLength={6} />
+      <Button fill className="mt-3" intent={Intent.PRIMARY} loading={submitting}
+        disabled={code.trim().length < 6} onClick={() => { void submit() }}>
         Verify
       </Button>
-      <Button fill variant="minimal" disabled={submitting} onClick={onCancel}>Cancel</Button>
-    </div>
+      <Button fill className="mt-2" variant="minimal" disabled={submitting} onClick={onCancel}>Cancel</Button>
+    </>
   )
 }
 
@@ -252,27 +230,25 @@ export default function LoginPage() {
     setView('login')
   }
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Beacon</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Hotel Inventory Management</p>
-        </div>
+  // The screenshot's outside-the-card link is `Need help?`; ours is the reset
+  // link, which the prose puts on this page anyway ("below the login form").
+  // There is no support portal to point a second link at.
+  const footer = view === 'login' && (
+    <Button variant="minimal" size="small" intent={Intent.PRIMARY} onClick={() => { setView('forgot') }}>
+      Forgot password?
+    </Button>
+  )
 
-        <Card>
-          <h2 className="text-xl font-semibold">{title}</h2>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">{subtitle}</p>
-          {view === 'login' && (
-            <>
-              <LoginForm onForgotPassword={() => { setView('forgot') }} onMfaRequired={() => { setView('mfa') }} />
-              <OAuthButtons />
-            </>
-          )}
-          {view === 'forgot' && <ForgotPasswordForm onBack={() => { setView('login') }} />}
-          {view === 'mfa' && <MfaChallengeForm onCancel={() => { void cancelMfa() }} />}
-        </Card>
-      </div>
-    </div>
+  return (
+    <AuthScreen heading={title} instruction={subtitle} footer={footer}>
+      {view === 'login' && (
+        <>
+          <LoginForm onMfaRequired={() => { setView('mfa') }} />
+          <OAuthButtons />
+        </>
+      )}
+      {view === 'forgot' && <ForgotPasswordForm onBack={() => { setView('login') }} />}
+      {view === 'mfa' && <MfaChallengeForm onCancel={() => { void cancelMfa() }} />}
+    </AuthScreen>
   )
 }
