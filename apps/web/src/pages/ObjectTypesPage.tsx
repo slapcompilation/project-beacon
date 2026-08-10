@@ -29,6 +29,7 @@ import InterfacesSection from '@/features/interfaces/InterfacesSection'
 import { OntologyPicker, OntologySummary } from '@/features/ontologies/OntologyPicker'
 import { useOntologies } from '@/features/ontologies/api'
 import { SaveControl } from '@/features/workingState/ReviewEdits'
+import { useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -159,6 +160,9 @@ export default function ObjectTypesPage() {
   const role = useAuthStore((s) => s.role)
   const { data: rows = [], isLoading } = useObjectTypes()
   const allTypes = useMemo(() => rows.map(rowToObjectType), [rows])
+  // A saved type is not live until its index builds. The count is the moment.
+  const { data: indexes } = useIndexStatuses()
+  const reindex = useReindex()
 
   // Which ontology we are looking at. Nothing below is global: an object type
   // belongs to exactly one, and its API name is only unique within it.
@@ -220,6 +224,19 @@ export default function ObjectTypesPage() {
                   <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{t.apiName}</p>
                   <div className="flex items-center gap-1.5 mt-1">
                     <p className="text-[11px] text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
+                    {(() => {
+                      const ix = indexes?.get(t.id)
+                      if (ix?.status === 'success') {
+                        return <Tag minimal intent={Intent.SUCCESS} className="!text-[10px]">{ix.objectCount ?? 0} objects</Tag>
+                      }
+                      if (ix?.status === 'failed') {
+                        return <Tag minimal intent={Intent.DANGER} className="!text-[10px]" title={ix.error ?? undefined}>index failed</Tag>
+                      }
+                      return <Tag minimal className="!text-[10px]" title="Only once the indexing pipeline completes will objects be visible">not indexed</Tag>
+                    })()}
+                    <Button variant="minimal" size="small" icon="refresh" title="Full reindex"
+                      loading={reindex.isPending && reindex.variables === t.id}
+                      onClick={(e) => { e.stopPropagation(); reindex.mutate(t.id) }} />
                   </div>
                 </Card>
               ))}

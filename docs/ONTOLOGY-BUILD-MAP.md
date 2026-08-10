@@ -447,7 +447,7 @@ which is the whole model in three sentences:
 
 Both values stored; one chosen per property.
 
-### E2 · The index
+### E2 · The index — **BUILT** (442)
 
 > "**Only once this indexing pipeline completes successfully** will you be able
 > to see your new objects."

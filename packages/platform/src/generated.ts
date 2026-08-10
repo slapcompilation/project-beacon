@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (14) ────────────────────────────────────────────────
+// ── ACTION TYPES (15) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -69,6 +69,17 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
   { p_kind?: string; p_id?: string; p_branch?: string },
   number
+>
+
+/**
+ *  Full reindex of one object type: the current datasource view merged with
+ *  the edit log through object_state(), written to a real table in the
+ *  objects schema. Failure is recorded on object_type_indexes, not raised —
+ *  the save already succeeded, and the error is the job details.
+ */
+export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } as ActionType<
+  { p_object_type: string },
+  unknown
 >
 
 /**
@@ -158,7 +169,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (68) ───────────────────────────────────────────────────
+// ── FUNCTIONS (70) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -479,6 +490,11 @@ export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' 
   boolean
 >
 
+export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_limit?: number },
+  Json[]
+>
+
 /**
  *  The generated accessor for one end of a link type: .get() where that side
  *  sees one, .all() where it sees many. Derived from cardinality so the two
@@ -586,6 +602,11 @@ export const projectRole = { apiName: 'project_role', kind: 'function' } as Func
 export const propertyBaseTypes = { apiName: 'property_base_types', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
+>
+
+export const propertyColumnType = { apiName: 'property_column_type', kind: 'function' } as FunctionType<
+  { p_base_type: string },
+  string
 >
 
 /**
