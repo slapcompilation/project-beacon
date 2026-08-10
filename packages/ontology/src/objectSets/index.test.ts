@@ -6,7 +6,7 @@ import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 import { isMember, selectObjectSet, validateSetDefinition, describeSetFilters } from './index'
 
 const batchType: ObjectTypeDef = {
-  id: 't1', organizationId: 'o1', 
+  id: 't1', 
   apiName: 'batch', label: 'Batch', icon: 'box', description: '', viewConfig: EMPTY_VIEW_CONFIG,
   enabled: true, version: 1,
   properties: [

@@ -6,7 +6,7 @@ import {
 import type { PropertyDef } from './index'
 
 const cost: SharedPropertyDef = {
-  id: 'sp1', organizationId: 'org', apiName: 'cost', label: 'Cost',
+  id: 'sp1', apiName: 'cost', label: 'Cost',
   description: 'What it cost us, in the property currency.',
   baseType: 'integer', visibility: 'prominent',
 }

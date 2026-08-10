@@ -25,7 +25,6 @@ export interface InterfacePropertyDef {
 
 export interface InterfaceDef {
   id: string
-  organizationId: string
   apiName: string
   label: string
   description: string

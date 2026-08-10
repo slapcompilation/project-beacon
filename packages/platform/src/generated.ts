@@ -158,7 +158,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (66) ───────────────────────────────────────────────────
+// ── FUNCTIONS (68) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -182,6 +182,16 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 >
 
 /**
+ *  May this session SEE the ontology: some organization I am a member or
+ *  guest of is in its space's list. "Users need permission from at least one
+ *  organization to access this space."
+ */
+export const authInOntology = { apiName: 'auth_in_ontology', kind: 'function' } as FunctionType<
+  { p_ontology: string },
+  boolean
+>
+
+/**
  *  "users must be a member or guest member of at least one organization
  *  applied to a Project" — this is that sentence. Note it is false for a NULL
  *  organization, where the old IS NOT DISTINCT FROM comparison was true for a
@@ -189,6 +199,15 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
  */
 export const authInOrg = { apiName: 'auth_in_org', kind: 'function' } as FunctionType<
   { p_org: string },
+  boolean
+>
+
+/**
+ *  May this session WRITE in the ontology (role checks apply on top): my
+ *  primary organization is in its space's list. Guests read; members write.
+ */
+export const authMemberOfOntology = { apiName: 'auth_member_of_ontology', kind: 'function' } as FunctionType<
+  { p_ontology: string },
   boolean
 >
 

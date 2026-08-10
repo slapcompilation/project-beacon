@@ -106,7 +106,6 @@ export interface ObjectSetDef extends SetDefinition {
    *  type, not the subject's — traversal changes the type of the set. */
   traversals: SetTraversal[]
   id: string
-  organizationId: string
   hotelId: string | null
   name: string
   /** Stable identifier a consumer refers to, unique per organization. */

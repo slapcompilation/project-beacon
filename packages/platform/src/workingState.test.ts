@@ -234,7 +234,9 @@ describe.skipIf(noDb)('the working state', () => {
 
     await db.query('reset role')
     const org = (await db.query(
-      'select organization_id from public.ontologies where id = $1', [ont])).rows[0].organization_id
+      `select so.organization_id from public.ontologies o
+         join public.space_organizations so on so.space_id = o.space_id
+        where o.id = $1`, [ont])).rows[0].organization_id
     await member(db, org as string, `ws-other-${Date.now()}@beacon.test`)
     await db.query('set local role authenticated')
 

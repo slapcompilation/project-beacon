@@ -61,7 +61,6 @@ export function propertyToRow(p: PropertyDef, position: number) {
 
 export interface ObjectTypeRow {
   id: string
-  organization_id: string
   ontology_id: string
   api_name: string
   label: string
@@ -85,7 +84,7 @@ export interface ObjectTypeRow {
 
 export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id, ontologyId: r.ontology_id,
+    id: r.id, ontologyId: r.ontology_id,
     apiName: r.api_name, label: r.label, icon: r.icon, description: r.description,
     properties: [...r.object_type_properties]
       .sort((a, b) => a.position - b.position).map(rowToProperty),
@@ -186,7 +185,6 @@ export async function fetchObjectTypeProblems(id: string): Promise<ObjectTypePro
 
 export interface LinkTypeRow {
   id: string
-  organization_id: string
   source_object_type_id: string
   target_object_type_id: string
   api_name: string
@@ -195,7 +193,7 @@ export interface LinkTypeRow {
 
 export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
   return {
-    id: r.id, organizationId: r.organization_id,
+    id: r.id,
     sourceTypeId: r.source_object_type_id, targetTypeId: r.target_object_type_id,
     apiName: r.api_name, label: r.label,
   }

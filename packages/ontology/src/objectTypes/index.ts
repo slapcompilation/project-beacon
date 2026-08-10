@@ -175,7 +175,6 @@ export interface PropertyDef {
 
 export interface ObjectTypeDef {
   id: string
-  organizationId: string
   /** The ontology it belongs to. "A space can hold a single ontology", and an
    *  object type never moves between them — its API name is unique per ontology
    *  and its RID resolves inside one. */
@@ -439,7 +438,6 @@ export function validateViewConfig(
 
 export interface LinkTypeDef {
   id: string
-  organizationId: string
   sourceTypeId: string
   targetTypeId: string
   /** slug, unique per source type — the relationship's api name. */

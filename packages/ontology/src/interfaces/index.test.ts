@@ -3,7 +3,7 @@ import { conformanceErrors, implementsInterface, typesConforming, validateInterf
 import { EMPTY_VIEW_CONFIG, type ObjectTypeDef } from '../objectTypes/index'
 
 const iface: InterfaceDef = {
-  id: 'i1', organizationId: 'o1', apiName: 'serviceable', label: 'Serviceable', description: '',
+  id: 'i1', apiName: 'serviceable', label: 'Serviceable', description: '',
   properties: [
     { key: 'room', label: 'Room', type: 'string' },
     { key: 'cost', label: 'Cost', type: 'integer' },
@@ -12,7 +12,7 @@ const iface: InterfaceDef = {
 
 function type(label: string, props: ObjectTypeDef['properties']): ObjectTypeDef {
   return {
-    id: label, organizationId: 'o1', apiName: label.toLowerCase(),
+    id: label, apiName: label.toLowerCase(),
     label, icon: 'cube', description: '', properties: props,
     computedProperties: [], viewConfig: EMPTY_VIEW_CONFIG, enabled: true, version: 1,
   }

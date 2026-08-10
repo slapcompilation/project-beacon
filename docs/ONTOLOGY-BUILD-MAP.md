@@ -670,14 +670,14 @@ later is a stored generated column across every row.*
 
 ## Non-blocking — a sensible default exists
 
-- **Shared ontologies** (`ontologies/shared-ontologies.md`: "allows multiple
-  organizations to collaborate… whereas an ontology is private to one
-  organization"). Every resource table hardcodes `organization_id NOT NULL`, so
-  cross-org sharing is currently inexpressible. This is the same decision as
-  the pending gate item on `ontologies.organization_id`: inherit-from-space
-  would express it nearly for free, a scalar forecloses it. **Operator question
-  standing: is cross-organization sharing ever a Beacon requirement, or a
-  permanent divergence to record?**
+- **Shared ontologies — DECIDED and BUILT (441).** The operator chose
+  inherit-from-space. `organization_id` is gone from `ontologies` and every
+  resource table; organizations resolve through `space_organizations`, exactly
+  as `orgs-and-spaces` puts it: "that restriction will apply to the projects in
+  the space **as well as the associated ontology**". Listed organizations
+  collaborate (read AND write, roles apply); guests read; outsiders see
+  nothing. `object_sets` gained its missing `ontology_id`. Ontology API names
+  are now enrollment-unique (inference, recorded in 441's header).
 
 **Q4 · Object type `ID` vs `API name`.** Both exist and differ
 (`generated-6a437f16-8843-4b82-8…` vs `Generated59a386a3ddbf…`). No page read

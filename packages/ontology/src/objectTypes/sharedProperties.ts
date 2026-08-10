@@ -14,7 +14,6 @@ import type { PropertyDef, PropertyType } from './index'
 
 export interface SharedPropertyDef {
   id: string
-  organizationId: string
   apiName: string
   label: string
   description: string

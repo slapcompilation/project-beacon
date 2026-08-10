@@ -10,7 +10,6 @@ import { client } from '@/lib/supabase/ontologyClient'
 
 interface Row {
   id: string
-  organization_id: string
   api_name: string
   label: string
   description: string
@@ -19,7 +18,7 @@ interface Row {
 }
 
 const toDef = (r: Row): SharedPropertyDef => ({
-  id: r.id, organizationId: r.organization_id, apiName: r.api_name,
+  id: r.id, apiName: r.api_name,
   label: r.label, description: r.description, baseType: r.base_type,
   visibility: r.visibility,
 })
