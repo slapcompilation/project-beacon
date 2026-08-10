@@ -794,6 +794,89 @@ connector; in the current design it is a sibling.
 
 ---
 
+## 8. The dedicated screens (second pass, operator-directed)
+
+Added after the operator pointed at `getting-started/overview` and
+`orientation-and-nav` with the correction that the sidebar is *navigation into
+the depths*, not an app list. Two screens the first pass did not absorb.
+
+### 8.1 The login screen
+
+`login.md` documents passkey/SSO flows; the screen itself is
+`getting-started/images/sign-up-step.png`:
+
+- The page is **dark** — same near-black as the platform sidebar (~Dark Gray2),
+  not a light page with a card.
+- Centered column: a small grey logo **mark** (no wordmark), then a large white
+  serif-weight title:
+
+> Welcome to AIP
+> — getting-started/images/sign-up-step.png
+
+- Below, a **bordered dark card** (1px grey border, rounded, transparent-dark
+  fill): heading `Sign in`, one grey instruction line, then **icon-prefixed
+  inputs** — a person glyph in a filled dark input, a lock glyph in an outlined
+  input — and a **full-width blue button**:
+
+> Sign in … One-time password … Next
+> — getting-started/images/sign-up-step.png
+
+  The button reads muted blue (~Blueprint Blue1 `#184A90`–Blue2 `#215DB0` at
+  this disabled state).
+- Bottom-right, OUTSIDE the card, a blue link:
+
+> Need help?
+> — getting-started/images/sign-up-step.png
+
+- Prose places account recovery on this page too: "use the **Reset passkey**
+  option found on the login page **below the login form**".
+
+**Inference for ours:** the flow (email → Next → passkey) is passkey-shaped;
+ours is email+password in one step. The SCREEN transfers — dark page, mark,
+white welcome title, bordered card, icon inputs, full-width blue action,
+help/reset links below — the flow does not.
+
+### 8.2 Quicksearch
+
+`quicksearch.md` is unusually complete prose:
+
+> Access Quicksearch from the **Search** icon in the left sidebar, or use `Cmd+J` (macOS) or `Ctrl+J` (Windows).
+
+> **Jump-to mode:** Provides a short list of personalized results to directly navigate users to the main types of available content: platform applications, custom applications, objects, datasets, and other resources.
+
+> **Search only on titles:** Jump-to mode only searches on titles of apps, resources, and objects. To search additional fields and metadata, use the full results mode.
+
+> **Permissions:** Quicksearch respects all existing permissions in the platform.
+
+The dialog itself (`getting-started/images/quicksearch-dropdown.png`): a **dark
+dialog** (~Dark Gray3) over the page. Top row: magnifier + the query, `Clear`
+and `×` right. Beneath, a **blue-bordered row**:
+
+> All search results for 'auto' … ⏎ to see all results
+> — getting-started/images/quicksearch-dropdown.png
+
+Then a grey-caps section header:
+
+> JUMP TO … Highlighted samples from your results
+> — getting-started/images/quicksearch-dropdown.png
+
+Each result row: **[icon] [bold white name] [grey path or kind]**, and a
+right-aligned rounded **kind pill** — `Apps`, `Files`, `Datasets` — dark grey
+fill, light label. The dialog footer is a **hotkeys bar**:
+
+> HOTKEYS … ⌘ + J Open Quicksearch … ↑ / ↓ Move in list … ⏎ select item
+> — getting-started/images/quicksearch-dropdown.png
+
+The 250-object-type cap and the Active>Prominent>Normal>Experimental priority
+are stated in a callout; deprecated and hidden types are not searched.
+
+### 8.3 The section illustrations are not app icons
+
+`getting-started/images/{Datasets,Objects,Get-Started}.svg` are line-art
+illustrations (white ground, black strokes, pale blue `#d9f0ff` accents) used
+as documentation section art. The application icons in the screenshots are the
+coloured tiles of §5.5. Nothing here to adopt as an icon set.
+
 ## 7. Contradictions and instabilities found
 
 Seven. Every one is prose lagging behind its own screenshots, or one page lagging

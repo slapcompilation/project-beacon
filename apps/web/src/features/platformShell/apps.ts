@@ -65,6 +65,10 @@ export const AUDIENCES: AppAudience[] = [
   },
 ]
 
+/** Every app, flat — what the portal stars, the sidebar favourites and
+ *  Quicksearch's `Apps` kind all read. */
+export const ALL_APPS: PlatformApp[] = AUDIENCES.flatMap((a) => a.apps)
+
 const TITLES = new Map<string, string>([
   ['/', 'Home'],
   ['/account', 'Account'],

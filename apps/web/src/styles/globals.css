@@ -381,6 +381,8 @@
   --platform-sidebar-label: #f6f7f9;  /* Light Gray5 */
   --platform-sidebar-muted: #8f99a8;  /* Gray3 — icons, hints, section headers */
   --platform-sidebar-rule:  #252a31;  /* Dark Gray3 */
+  --platform-card-border:   #404854;  /* Dark Gray5 — the login card's 1px edge */
+  --platform-star:          #f0a72b;  /* Gold, filled favourite (§5.1) */
   --platform-welcome: linear-gradient(90deg, #5c8ad8 0%, #2d72d2 38%, #1544de 100%);
 }
 
@@ -422,6 +424,17 @@
   .platform-row .bp6-icon { color:var(--platform-sidebar-muted); flex-shrink:0; }
   .platform-row.is-active .bp6-icon { color:var(--platform-sidebar-label); }
   .platform-row-label { flex:1 1 0%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .platform-hint { flex-shrink:0; font-size:11px; color:var(--platform-sidebar-muted); }
+  /* A favourites group: uppercase header, `·`, `View all`, then items (§3.3). */
+  .platform-section {
+    display:flex; align-items:center; gap:4px; padding:8px 14px 2px;
+    font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase;
+    color:var(--platform-sidebar-muted);
+  }
+  .platform-section button {
+    padding:0; border:0; background:none; cursor:pointer; font:inherit; color:inherit;
+  }
+  .platform-section button:hover { color:var(--platform-sidebar-label); }
   .platform-avatar {
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
     width:20px; height:20px; border-radius:9999px;
@@ -430,6 +443,8 @@
   }
 
   .platform-sidebar.is-collapsed .platform-mark,
+  .platform-sidebar.is-collapsed .platform-section,
+  .platform-sidebar.is-collapsed .platform-hint,
   .platform-sidebar.is-collapsed .platform-row-label { display:none; }
   .platform-sidebar.is-collapsed .platform-head,
   .platform-sidebar.is-collapsed .platform-row { justify-content:center; padding-left:0; padding-right:0; }
@@ -438,8 +453,114 @@
   /* Narrow viewports get the icon rail whatever the toggle says. */
   @media (max-width:880px) {
     .platform-sidebar, .platform-sidebar.is-collapsed { width:56px; }
-    .platform-mark, .platform-row-label, .platform-collapse { display:none; }
+    .platform-mark, .platform-row-label, .platform-collapse,
+    .platform-section, .platform-hint { display:none; }
     .platform-head, .platform-row { justify-content:center; padding-left:0; padding-right:0; }
+  }
+}
+
+/* ── The login screen (§8.1) ─────────────────────────────────────────────────
+ * The one page that is dark whatever the theme: it stands on the platform
+ * chrome's ground, not the application's. Blueprint's inputs and buttons are
+ * light by default, so this dresses their CSS API rather than the JS one. */
+@media all {
+  .auth-page {
+    display:flex; align-items:center; justify-content:center; min-height:100vh; padding:24px;
+    background:var(--platform-sidebar-bg); color:var(--platform-sidebar-label);
+  }
+  .auth-column { width:100%; max-width:520px; }
+  .auth-mark   { width:32px; height:32px; margin:0 auto 18px; }
+  .auth-title  { margin-bottom:30px; font-size:34px; font-weight:700; text-align:center; color:#fff; }
+
+  .auth-card {
+    padding:24px 26px;
+    border:1px solid var(--platform-card-border); border-radius:8px;
+    background:rgb(255 255 255 / .02);
+  }
+  .auth-heading     { font-size:22px; font-weight:600; color:#fff; }
+  .auth-instruction { margin:6px 0 18px; font-size:13px; color:var(--platform-sidebar-muted); }
+  .auth-footer      { margin-top:10px; text-align:right; }
+
+  .auth-divider {
+    display:flex; align-items:center; gap:8px; margin:18px 0 4px;
+    font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--platform-sidebar-muted);
+  }
+  .auth-divider span { flex:1 1 0%; height:1px; background:var(--platform-card-border); }
+
+  /* Blueprint's own `.bp6-input-group .bp6-input:first-child` sets the icon
+     inset; matching its specificity is what makes the wider glyph gap stick. */
+  .auth-card .bp6-input-group .bp6-input {
+    height:44px; padding-left:46px; color:var(--platform-sidebar-label);
+    background:var(--platform-sidebar-row); box-shadow:none;
+  }
+  .auth-card .bp6-input::placeholder     { color:var(--platform-sidebar-muted); opacity:1; }
+  .auth-card .bp6-input-group .bp6-icon  { margin:14px; color:var(--platform-sidebar-label); }
+  /* The password field is outlined where the email field is filled. */
+  .auth-card .auth-input-outline .bp6-input {
+    background:transparent; box-shadow:0 0 0 1px var(--platform-card-border) inset;
+  }
+  .auth-card .bp6-button { height:42px; }
+  .auth-card .bp6-button:not(.bp6-intent-primary):not(.bp6-minimal) {
+    color:var(--platform-sidebar-label); background:transparent;
+    box-shadow:0 0 0 1px var(--platform-card-border) inset;
+  }
+  .auth-card .bp6-form-group:not(.bp6-intent-danger) .bp6-form-helper-text {
+    color:var(--platform-sidebar-muted);
+  }
+  .auth-footer .bp6-button { height:auto; }
+}
+
+/* ── Quicksearch, jump-to mode (§8.2) ──────────────────────────────────────── */
+@media all {
+  /* It drops from the top like a dropdown, not centred like a dialog. */
+  .quicksearch-portal .bp6-dialog-container { align-items:flex-start; padding-top:9vh; }
+  .bp6-dialog.quicksearch {
+    padding-bottom:0; background:var(--platform-sidebar-rule);
+    color:var(--platform-sidebar-label); border-radius:6px; overflow:hidden;
+  }
+  .qs-top { padding:6px 8px; border-bottom:1px solid var(--platform-sidebar-bg); }
+  .quicksearch .bp6-input-group .bp6-input {
+    height:40px; padding-left:42px; color:var(--platform-sidebar-label);
+    background:transparent; box-shadow:none;
+  }
+  .quicksearch .bp6-input::placeholder { color:var(--platform-sidebar-muted); opacity:1; }
+  .quicksearch .bp6-input-group .bp6-icon { color:var(--platform-sidebar-muted); margin:12px; }
+  .quicksearch .bp6-button { color:var(--platform-sidebar-muted); }
+  .quicksearch .bp6-button:hover { color:var(--platform-sidebar-label); background:var(--platform-sidebar-row); }
+
+  .qs-head {
+    display:flex; justify-content:space-between; padding:6px 14px;
+    background:var(--platform-sidebar-bg);
+    font-size:11px; letter-spacing:.07em; color:var(--platform-sidebar-muted);
+  }
+  .qs-list { max-height:390px; margin:0; padding:4px 0; list-style:none; overflow-y:auto; }
+  .qs-row {
+    display:flex; align-items:center; gap:8px; width:100%; padding:7px 14px;
+    border:0; background:none; cursor:pointer; font:inherit; font-size:13px; text-align:left;
+    color:var(--platform-sidebar-label);
+  }
+  .qs-row.is-active { background:var(--platform-sidebar-row); }
+  .qs-row .bp6-icon { flex-shrink:0; color:var(--platform-sidebar-muted); }
+  .qs-name   { font-weight:600; white-space:nowrap; }
+  .qs-detail {
+    flex:1 1 0%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    color:var(--platform-sidebar-muted);
+  }
+  .qs-pill {
+    flex-shrink:0; padding:2px 9px; border-radius:9999px;
+    background:var(--platform-sidebar-row); color:var(--platform-sidebar-label); font-size:11px;
+  }
+  .qs-none { padding:14px; text-align:center; font-size:13px; color:var(--platform-sidebar-muted); }
+
+  .qs-hotkeys {
+    display:flex; align-items:center; gap:16px; padding:8px 14px;
+    border-top:1px solid var(--platform-sidebar-bg); background:var(--platform-sidebar-bg);
+    font-size:11px; color:var(--platform-sidebar-muted);
+  }
+  .qs-hotkeys kbd {
+    padding:1px 5px; border-radius:3px; background:var(--platform-sidebar-row);
+    color:var(--platform-sidebar-label); font-family:inherit;
   }
 }
 
@@ -511,11 +632,19 @@
     color:hsl(var(--muted-foreground));
   }
   .portal-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:12px 16px; }
+  .portal-app-row { display:flex; align-items:center; }
   .portal-app {
-    display:flex; align-items:flex-start; gap:12px; padding:8px;
+    display:flex; align-items:flex-start; gap:12px; flex:1 1 0%; min-width:0; padding:8px;
     border:0; border-radius:6px; background:none; cursor:pointer; text-align:left; font:inherit;
   }
   .portal-app:hover { background:hsl(var(--muted)); }
+  /* "A star appears on hover at the card's right" (§4); a filled one stays. */
+  .portal-star {
+    display:flex; flex-shrink:0; padding:6px; border:0; background:none; cursor:pointer;
+    color:hsl(var(--muted-foreground)); opacity:0; transition:opacity .12s;
+  }
+  .portal-app-row:hover .portal-star, .portal-star:focus-visible, .portal-star.is-on { opacity:1; }
+  .portal-star.is-on .bp6-icon { color:var(--platform-star); }
   .portal-app-name  { display:block; font-size:14px; font-weight:600; color:hsl(var(--foreground)); }
   .portal-app-blurb { display:block; font-size:12px; margin-top:2px; line-height:1.4; color:hsl(var(--muted-foreground)); }
 

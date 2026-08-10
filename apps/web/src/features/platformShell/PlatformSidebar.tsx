@@ -2,10 +2,9 @@
 // application rendered to its right (readings/home-and-navigation.md §1, §3).
 //
 // Only entries that lead somewhere real are here. Omitted, and why:
-//   §1  Search / Notifications / What's New — no quicksearch index, no
-//       notification feed, no release notes to read.
-//   §3  favourited Applications and Files — there is no starring mechanism yet,
-//       so both groups would render their empty state forever.
+//   §1  Notifications / What's New — no notification feed, no release notes.
+//   §3  favourited Files — nothing stars a resource yet, so the group would
+//       render its empty state forever. Applications favourites are here.
 //   §5  AIP Assist, Support, Other Workspaces — nothing behind any of them.
 
 import { useEffect, useState, type ReactElement } from 'react'
@@ -17,8 +16,9 @@ import { cn } from '@/lib/utils'
 import { services } from '@/lib/services'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
-import { titleForPath } from './apps'
+import { ALL_APPS, titleForPath } from './apps'
 import { ApplicationsPortal } from './ApplicationsPortal'
+import { Quicksearch, MOD } from './Quicksearch'
 
 export function PlatformSidebar() {
   const navigate = useNavigate()
@@ -26,13 +26,18 @@ export function PlatformSidebar() {
   const collapsed = useAppStore((s) => s.sidebarCollapsed)
   const toggle = useAppStore((s) => s.toggleSidebar)
   const recents = useAppStore((s) => s.recents)
+  const favorites = useAppStore((s) => s.favoriteApps)
   const email = useAuthStore((s) => s.session?.user.email ?? '')
   const [portalOpen, setPortalOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
-  // "Open and collapse the sidebar with... Cmd+O (macOS) or Ctrl+O (Windows)."
+  // Cmd/Ctrl+O collapses the sidebar; Cmd/Ctrl+J opens Quicksearch (§3, §8.2).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'o') { e.preventDefault(); toggle() }
+      if (!(e.ctrlKey || e.metaKey)) return
+      const key = e.key.toLowerCase()
+      if (key === 'o') { e.preventDefault(); toggle() }
+      if (key === 'j') { e.preventDefault(); setSearchOpen(true) }
     }
     window.addEventListener('keydown', onKey)
     return () => { window.removeEventListener('keydown', onKey) }
@@ -73,6 +78,8 @@ export function PlatformSidebar() {
       <nav className="platform-nav">
         <div className="platform-group">
           <Row icon="home" label="Home" collapsed={collapsed} active={pathname === '/'} onClick={go('/')} />
+          <Row icon="search" label="Search…" hint={`${MOD}J`} collapsed={collapsed}
+            onClick={() => { setSearchOpen(true) }} />
         </div>
         <div className="platform-group">
           <Row icon="history" label="Recent" collapsed={collapsed} popover={recentMenu} />
@@ -81,6 +88,21 @@ export function PlatformSidebar() {
           <Row icon="grid-view" label="Applications" collapsed={collapsed}
             onClick={() => { setPortalOpen(true) }} />
         </div>
+
+        {/* Section ③ — starred applications. Absent when empty, the way
+            Foundry's favourites groups are. */}
+        {favorites.length > 0 && (
+          <div className="platform-group">
+            <div className="platform-section">
+              <span>Applications</span>
+              <button type="button" onClick={() => { setPortalOpen(true) }}>· View all</button>
+            </div>
+            {ALL_APPS.filter((a) => favorites.includes(a.path)).map((app) => (
+              <Row key={app.path} icon={app.icon} label={app.name} collapsed={collapsed}
+                active={pathname.startsWith(app.path)} onClick={go(app.path)} />
+            ))}
+          </div>
+        )}
       </nav>
 
       <div className="platform-foot">
@@ -90,15 +112,19 @@ export function PlatformSidebar() {
       </div>
 
       <ApplicationsPortal isOpen={portalOpen} onClose={() => { setPortalOpen(false) }} />
+      {/* Mounted only while open — its four hooks should not fetch on every page. */}
+      {searchOpen && <Quicksearch onClose={() => { setSearchOpen(false) }} />}
     </aside>
   )
 }
 
-function Row({ icon, avatar, label, active = false, collapsed, onClick, popover }: {
+function Row({ icon, avatar, label, hint, active = false, collapsed, onClick, popover }: {
   icon?: IconName
   /** The Account row is the user's initials in a circle, not an icon (§3.2). */
   avatar?: string
   label: string
+  /** Keyboard hints render inline, right-aligned (§3.2). */
+  hint?: string
   active?: boolean
   collapsed: boolean
   onClick?: () => void
@@ -111,6 +137,7 @@ function Row({ icon, avatar, label, active = false, collapsed, onClick, popover 
       className={cn('platform-row', active && 'is-active')}>
       {avatar ? <span className="platform-avatar">{avatar}</span> : icon && <Icon icon={icon} size={16} />}
       <span className="platform-row-label">{label}</span>
+      {hint && <span className="platform-hint">{hint}</span>}
     </button>
   )
 

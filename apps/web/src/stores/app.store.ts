@@ -18,6 +18,10 @@ interface AppState {
    *  surface never shows up here under its old name. */
   recents: string[]
   pushRecent: (path: string) => void
+  /** Starred applications, by path — the sidebar's section ③. Files favourites
+   *  (④) have no star surface yet, so there is no second list. */
+  favoriteApps: string[]
+  toggleFavoriteApp: (path: string) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -30,6 +34,14 @@ export const useAppStore = create<AppState>()(
       recents: [],
       pushRecent: (path) => {
         set((s) => ({ recents: [path, ...s.recents.filter((p) => p !== path)].slice(0, RECENT_LIMIT) }))
+      },
+      favoriteApps: [],
+      toggleFavoriteApp: (path) => {
+        set((s) => ({
+          favoriteApps: s.favoriteApps.includes(path)
+            ? s.favoriteApps.filter((p) => p !== path)
+            : [...s.favoriteApps, path],
+        }))
       },
     }),
     { name: 'beacon-app' },

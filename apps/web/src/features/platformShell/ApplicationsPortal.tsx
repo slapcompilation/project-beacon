@@ -3,18 +3,23 @@
 // (readings/home-and-navigation.md §4). A counted rail of categories on the
 // left, rows of [icon tile] name / description on the right.
 //
-// Promoted apps, tag filters, search and the star are all absent: they need a
-// promotion workflow and a favourites store, and neither exists yet.
+// Promoted apps, tag filters and search are absent: they need a promotion
+// workflow, which does not exist yet. The star does — "select the star icon next
+// to the application's name from the Applications Portal" — and it fills the
+// sidebar's section ③.
 
 import { useState } from 'react'
 import { Dialog, DialogBody, Icon } from '@blueprintjs/core'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/stores/app.store'
 import { AUDIENCES } from './apps'
 
 export function ApplicationsPortal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const navigate = useNavigate()
   const [category, setCategory] = useState('all')
+  const favorites = useAppStore((s) => s.favoriteApps)
+  const toggleFavorite = useAppStore((s) => s.toggleFavoriteApp)
   const shown = category === 'all' ? AUDIENCES : AUDIENCES.filter((a) => a.id === category)
   const total = AUDIENCES.reduce((n, a) => n + a.apps.length, 0)
 
@@ -45,17 +50,27 @@ export function ApplicationsPortal({ isOpen, onClose }: { isOpen: boolean; onClo
             <section key={a.id}>
               <div className="portal-band">{a.title}<span className="portal-count">{a.apps.length}</span></div>
               <div className="portal-grid">
-                {a.apps.map((app) => (
-                  <button key={app.path} type="button" className="portal-app" onClick={open(app.path)}>
-                    <span className="app-tile" style={{ background: `${app.tint}1f` }}>
-                      <Icon icon={app.icon} size={18} color={app.tint} />
-                    </span>
-                    <span>
-                      <span className="portal-app-name">{app.name}</span>
-                      <span className="portal-app-blurb">{app.blurb}</span>
-                    </span>
-                  </button>
-                ))}
+                {a.apps.map((app) => {
+                  const starred = favorites.includes(app.path)
+                  return (
+                    <div key={app.path} className="portal-app-row">
+                      <button type="button" className="portal-app" onClick={open(app.path)}>
+                        <span className="app-tile" style={{ background: `${app.tint}1f` }}>
+                          <Icon icon={app.icon} size={18} color={app.tint} />
+                        </span>
+                        <span>
+                          <span className="portal-app-name">{app.name}</span>
+                          <span className="portal-app-blurb">{app.blurb}</span>
+                        </span>
+                      </button>
+                      <button type="button" className={cn('portal-star', starred && 'is-on')}
+                        aria-label={`${starred ? 'Unstar' : 'Star'} ${app.name}`}
+                        onClick={() => { toggleFavorite(app.path) }}>
+                        <Icon icon={starred ? 'star' : 'star-empty'} size={14} />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </section>
           ))}
