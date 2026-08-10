@@ -9,8 +9,31 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (15) ────────────────────────────────────────────────
+// ── ACTION TYPES (18) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
+
+/**
+ *  Apply an action: validate required parameters, run create/modify/delete
+ *  rules in order, append to the edit log with the action recorded on each
+ *  edit. The next index build merges the result. Criteria evaluation and the
+ *  other four rule kinds refuse by name rather than half-working. Invoker —
+ *  the edit lands through object_edits' own policy.
+ */
+export const applyAction = { apiName: 'apply_action', kind: 'action' } as ActionType<
+  { p_action_type: string; p_parameters?: Json; p_primary_key?: string },
+  number
+>
+
+/**
+ *  Write an action type and its three components. Called by
+ *  save_working_state and nothing else. Children are replaced wholesale —
+ *  nothing outside the action references them by id — with natural keys
+ *  (parameter api_name, criteria client keys) mapped to fresh uuids on land.
+ */
+export const applyActionType = { apiName: 'apply_action_type', kind: 'action' } as ActionType<
+  { p_action: Json; p_parameters?: Json; p_rules?: Json; p_criteria?: Json },
+  string
+>
 
 /**
  *  Write an object type and its properties to the ontology. Called by
@@ -104,6 +127,16 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
+ *  Stage an action type — rules, parameters and criteria travel inside the
+ *  entry, absent sections mean unedited. Returns the id it will have; the row
+ *  exists after save_working_state.
+ */
+export const saveActionType = { apiName: 'save_action_type', kind: 'action' } as ActionType<
+  { p_action: Json },
+  string
+>
+
+/**
  *  Stage a link type into my working state. Flat — every field is a column —
  *  so save_working_state applies it through the generic arm.
  */
@@ -136,10 +169,9 @@ export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'acti
 
 /**
  *  Apply my working state to the ontology, bump its version and clear the
- *  state. An object type goes through apply_object_type so its sections
- *  travel with it; every other kind is a flat row, each value cast back to
- *  its column type. A section the entry never mentions is left as it stands.
- *  Errors caused by this save block it and nothing lands.
+ *  state. Object types and action types go through their writers so their
+ *  sections travel; every other kind is a flat row. Absent sections mean
+ *  unedited. Errors caused by this save block it and nothing lands.
  */
 export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' } as ActionType<
   { p_branch?: string },
