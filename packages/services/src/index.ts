@@ -1,4 +1,5 @@
-export type { IAuthService, OAuthProvider, AalStatus, MfaFactor, MfaEnrollment } from './auth/interface'
+export type { IAuthService, OAuthProvider, AalStatus, MfaFactor, MfaEnrollment,
+  AuthSession, UserRole } from './auth/interface'
 export type { IRealtimeService, RealtimeEvent, RealtimePayload } from './realtime/interface'
 export type { IStorageService } from './storage/interface'
 export type { IRepository } from './db/interface'

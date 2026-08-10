@@ -3,11 +3,10 @@
 // operator sees why before they try.
 
 import { supabase } from '@/lib/supabase/client'
-import type { InterfaceDef, InterfacePropertyDef } from '@beacon/reality-graph'
+import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
 
 export interface InterfaceRow {
   id: string
-  organization_id: string
   api_name: string
   label: string
   description: string
@@ -22,7 +21,7 @@ export interface ImplementationRow {
 
 export function rowToInterface(r: InterfaceRow): InterfaceDef {
   return {
-    id: r.id, organizationId: r.organization_id, apiName: r.api_name,
+    id: r.id, apiName: r.api_name,
     label: r.label, description: r.description, properties: r.properties,
   }
 }

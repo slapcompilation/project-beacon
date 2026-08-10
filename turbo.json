@@ -19,6 +19,12 @@
       "dependsOn": ["^build"],
       "outputs": [],
       "env": ["EVAL_PERSIST_URL", "EVAL_PERSIST_TOKEN", "GITHUB_SHA", "GIT_COMMIT"]
+    },
+    "@beacon/platform#test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "cache": false,
+      "env": ["SUPABASE_DB_URL"]
     }
   }
 }

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/change-data-capture/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/change-data-capture/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Change data capture (CDC)
 
@@ -85,20 +85,20 @@ The above examples provide a high level explanation of what may be required to e
 
 Now, you can configure a source in Data Connection that connects to the system from which you want to capture changelogs. Continuing with our example, set up a connection using the Microsoft SQL Server connector, as shown below:
 
-![A new source page for CDC data in Data Connection.](/docs/resources/foundry/data-integration/cdc-new-sql-server-source.png)
+![A new source page for CDC data in Data Connection.](./images/cdc-new-sql-server-source.png)
 
 ### Create a change data capture sync
 
 On the source overview page, you will find an empty table of **CDC Syncs**.
 
-![The CDC Syncs section on the overview page of an example Microsoft SQL Server source, outlined in a red rectangle. ](/docs/resources/foundry/data-integration/cdc-data-connection-source-overview.png)
+![The CDC Syncs section on the overview page of an example Microsoft SQL Server source, outlined in a red rectangle. ](./images/cdc-data-connection-source-overview.png)
 
 Select **Create CDC sync** to add a new change data capture sync. Specify the table you wish to sync, and the following information will be automatically derived by the connector:
 
 * The schema for the output streaming dataset.
 * Changelog metadata, including primary key columns, ordering columns, and a deletion column.
 
-![The new sync configuration page, with sections to edit the tables, schema, and primary key.](/docs/resources/foundry/data-integration/cdc-data-connection-new-sync.png)
+![The new sync configuration page, with sections to edit the tables, schema, and primary key.](./images/cdc-data-connection-new-sync.png)
 
 As with other streams, you must specify the expected [throughput](/docs/foundry/data-integration/streams/#partitions) at creation. The throughput cannot be changed after sync creation; ensure that your stream is configured to support the expected volume of changelog data. The default volume is 5MB/s, which is typically more than required for most change data capture workflows. Since changes in relational databases are often produced at “human scale”, the volume and frequency of changes is much smaller than what is possible with “machine scale” sensor or equipment data.
 
@@ -114,7 +114,7 @@ After starting the output stream, changelog data should begin flowing and appear
 
 Foundry's CDC implementation leverages the open-source platform [Debezium ↗](https://debezium.io/) to read data source logs. You can configure the Debezium connection and engine properties for an individual source directly from the Data Connection interface. First, navigate to the created source that you want to configure. Then select **CDC syncs** from the top right. Select the **CDC settings** section to expand the configuration options.
 
-![The CDC settings section on the CDC syncs page of a Microsoft SQL Server source.](/docs/resources/foundry/data-integration/cdc-settings.png)
+![The CDC settings section on the CDC syncs page of a Microsoft SQL Server source.](./images/cdc-settings.png)
 
 Foundry’s default CDC configuration is designed to provide a frictionless setup and minimize disruptions on your source systems. However, we strongly recommend reviewing the [specific default behaviors](#default-cdc-behavior) for your connector, particularly its [snapshot mode](#snapshot-mode-considerations), to ensure these defaults align with your data requirements.
 
@@ -139,11 +139,11 @@ Streams with changelog metadata will display two views into the data:
 * A **live view** showing the fully expanded list of changelog entries.
 * An **archive view** where the data is resolved according to the resolution strategy and collapsed down to the current latest view of the data.
 
-![The dropdown menu to switch between live and archive views, located in the upper left corner of the page.](/docs/resources/foundry/data-integration/cdc-live-archive-view-on-stream.png)
+![The dropdown menu to switch between live and archive views, located in the upper left corner of the page.](./images/cdc-live-archive-view-on-stream.png)
 
 The schema will display changelog metadata as a primary key resolution strategy in the details view.
 
-![Streaming change data capture schema with resolution strategy. ](/docs/resources/foundry/data-integration/cdc-dataset-schema-primary-key-resolution.png)
+![Streaming change data capture schema with resolution strategy. ](./images/cdc-dataset-schema-primary-key-resolution.png)
 
 :::callout{theme="neutral"}
 Streams currently use the ordering column to perform resolution. This means that data will be resolved in the archive according to the provided ordering column, even if the data was received out of order. This behavior differs from the behavior of changelog data in the Foundry Ontology, which indexes data based on the order of arrival in the stream used to back the object type.
@@ -190,7 +190,7 @@ This configuration prepares the data for proper resolution when synced to the On
 
 If your input stream lacks changelog metadata or if the metadata columns were modified during transformations, you can still use the **Key By** board to apply changelog metadata to your output(s). This allows you to treat any dataset as a CDC stream, enabling powerful data integration and real-time update capabilities.
 
-![The Key By board in Pipeline Builder. ](/docs/resources/foundry/data-integration/cdc-builder-key-by-board.png)
+![The Key By board in Pipeline Builder. ](./images/cdc-builder-key-by-board.png)
 
 ## Change data capture in the Ontology
 

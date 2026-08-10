@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-properties-links/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Properties and links
 
@@ -10,7 +10,7 @@ This category also includes widgets to present statistics, metrics or KPIs that 
 
 The **Properties** widget displays properties of an object or a linked object. A tab containing this widget is created as the default Object View for any newly defined object type.
 
-![Properties widget](/docs/resources/foundry/object-views/widgets_hu-properties.png)
+![Properties widget](./images/widgets_hu-properties.png)
 
 ### Properties widget configuration
 
@@ -30,7 +30,7 @@ There are several settings that affect the display in the Properties Widget:
 * Type classes: This allows you to define type classes to properties, which would affect their functionality.
 * Make a property editable: If you wish to make a property editable, set up an [action type](/docs/foundry/action-types/overview/) or an [inline action](/docs/foundry/action-types/inline-edits/).
 
-<img src="./media/widgets_hu-properties-oma.png" alt="Properties in Ontology Manager" height="500"/>
+<img src="./images/widgets_hu-properties-oma.png" alt="Properties in Ontology Manager" height="500"/>
 
 #### Configuration of the Properties widget itself
 
@@ -80,7 +80,7 @@ The **Property Cards** widget lets you visualize cards with properties and aggre
 
 Use the Property Cards widget to display important properties (numeric, timestamps, dates, strings, etc.), aggregations, statistics, metrics, KPIs, and any other key information for the current object or for objects linked to it.
 
-![Property cards](/docs/resources/foundry/object-views/widgets_property-cards.png)
+![Property cards](./images/widgets_property-cards.png)
 
 * This widget is affected by filters, which apply to any aggregations of linked objects.
 * The Property Cards widget supports a rich UI for [conditional formatting](/docs/foundry/object-link-types/conditional-formatting/) and [value formatting](/docs/foundry/object-link-types/value-formatting/), including both global (based on ontology-level configurations in the ontology editor) and local override options.
@@ -107,7 +107,7 @@ overall layout of all cards within the widget.
 * Once all property and aggregation cards are configured, use the layout configuration to determine styling of background, size, style, alignment and icon style of cards in display.
 * If you wish to use different types of visual configurations for different cards, consider adding a new widget instance for each different configuration.
 
-<img height="500" alt="Property cards config" src="./media/widgets_property-cards-config.png">
+<img height="500" alt="Property cards config" src="./images/widgets_property-cards-config.png">
 
 #### Common issues and notes
 
@@ -129,7 +129,7 @@ See an example below, which includes 3 steps:
 * Moving to all Linked Flights;
 * Moving to all Linked Objects of one of these Flights: Aircraft, Destination Airport, all related Post-Flight Reviews.
 
-![Links widget](/docs/resources/foundry/object-views/widgets_hu-links.png)
+![Links widget](./images/widgets_hu-links.png)
 
 ### Links widget configuration
 
@@ -147,7 +147,7 @@ See an example below, which includes 3 steps:
 
 The **Edit History** widget displays a list view with the history of all edits made for the current object in view. If the object has never been edited or the subset of selected columns (more below) has no edits, this widget will display a `No Edits` message.
 
-<img src="./media/widgets_hu-edits-history.png" alt="Edit history" />
+<img src="./images/widgets_hu-edits-history.png" alt="Edit history" />
 
 ### Edit History configuration
 

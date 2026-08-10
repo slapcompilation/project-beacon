@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/builds/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/builds/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Builds
 
@@ -75,15 +75,15 @@ Builds in Foundry implement **branching** to support collaboration workflows on 
 
 Live logs provide real-time visibility into running jobs, allowing you to monitor how jobs are progressing and inspect long-running tasks such as streams or compute modules.
 
-![The live logs view in the Builds application.](/docs/resources/foundry/data-integration/live-logs-overview.png)
+![The live logs view in the Builds application.](./images/live-logs-overview.png)
 
 You can access live logs through the Builds application. Select the **View live** button in the top right corner of the log viewer when viewing a job to start generating.
 
-![The "View live" option from the log viewer page of a job in the Builds application.](/docs/resources/foundry/data-integration/live-logs-build-page.png)
+![The "View live" option from the log viewer page of a job in the Builds application.](./images/live-logs-build-page.png)
 
 A key feature of live logs is built-in color coding by log level, making it easier to identify and prioritize warnings and errors:
 
-![Examples of various color coding indicators in a live logs feed.](/docs/resources/foundry/data-integration/live-logs-color-coding.png)
+![Examples of various color coding indicators in a live logs feed.](./images/live-logs-color-coding.png)
 
 * **Info:** Blue
 * **Fatal/Error:** Red
@@ -92,11 +92,11 @@ A key feature of live logs is built-in color coding by log level, making it easi
 
 Additionally, safe parameters and parameters are visible as a JSON block, providing a structured and readable format for your data.
 
-![The "Format as JSON" option from the live logs feed.](/docs/resources/foundry/data-integration/live-logs-json.png)
+![The "Format as JSON" option from the live logs feed.](./images/live-logs-json.png)
 
 You can stop the live log feed at any point by selecting **Pause** from the top right of the interface, and resume from the same location.
 
-![The "Pause" option from the live logs feed.](/docs/resources/foundry/data-integration/live-logs-pause.png)
+![The "Pause" option from the live logs feed.](./images/live-logs-pause.png)
 
 Note that the time range selection does not apply to live logs, since they are streamed in real-time from the job.
 

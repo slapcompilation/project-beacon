@@ -4,7 +4,7 @@
 
 User edits can be enabled and disabled using the **Edits** toggle in the **Datasources** tab of the Ontology Manager, as shown in the screenshot below.
 
-![Object Edits toggle](/docs/resources/foundry/object-edits/edits.png)
+![Object Edits toggle](./images/edits.png)
 
 ## Edit objects via Actions
 
@@ -24,7 +24,7 @@ In some circumstances, it may be desirable to discard all existing user edits in
 
 Object Storage v2 offers a [schema migration framework](/docs/foundry/object-edits/schema-migrations/) for migrating user edits. The ["drop all edits"](/docs/foundry/object-edits/schema-migrations/#list-of-supported-schema-migrations-in-osv2) instruction can be used to discard all existing user edits on an object type. This migration instruction can be applied by clicking the **Delete edits** button in the **Edits** section of the **Datasources** tab in the Ontology Manager.
 
-![Delete Object Edits ](/docs/resources/foundry/object-edits/drop_edits.png)
+![Delete Object Edits ](./images/drop_edits.png)
 
 Object Storage v1 (Phonograph) does not have schema migration support, but removing the writeback dataset configuration from the object type will delete all the existing user edits and can be used as a workaround.
 
@@ -94,7 +94,7 @@ With this strategy, the final state of an object is always determined by the use
 
 Refer to the flow chart below to determine the latest state of your objects based on user edits and datasource updates.
 
-![Object Edits Flowchart](/docs/resources/foundry/object-edits/object-edits-visibility-flowchart.png)
+![Object Edits Flowchart](./images/object-edits-visibility-flowchart.png)
 
 The table below shows how the state of a specific object would be updated after receiving user edits and input datasource updates, following the "user edits always win" conflict resolution strategy.
 
@@ -126,7 +126,7 @@ Conflict resolution strategies are configured at the object type level and are o
 
 Users can configure this option in the Ontology Manager, under the **Datasources** section. Each datasource of the object type can have different resolution strategies. For example, for an object type backed by two datasources, one datasource can use `Apply user edits (default)` while the other datasource can use `Apply most recent value`. The `Apply most recent value` option requires that the datasource contains a property with the timestamp type; the date property type will not work for this option. The timestamp property is used to compare and decide whether a user edit should be applied. The timestamp property must be in Coordinated Universal Time (UTC).
 
-![edits conflict resolution configuration](/docs/resources/foundry/object-edits/edits-conflict-resolution-configuration.png)
+![edits conflict resolution configuration](./images/edits-conflict-resolution-configuration.png)
 
 #### Behavior
 
@@ -140,7 +140,7 @@ If an edit updates properties across multiple datasources, then whether those ed
 
 Refer to the updated flow chart below to determine the latest state of your objects based on user edits and datasource updates.
 
-![Object Edits Flowchart Most Recent Value](/docs/resources/foundry/object-edits/object-edits-visibility-flowchart-most-recent-strategy.png)
+![Object Edits Flowchart Most Recent Value](./images/object-edits-visibility-flowchart-most-recent-strategy.png)
 
 The following example illustrates this behavior. Assume there are two objects for a `Ticket` object type with the following data in the backing datasource, where the `Apply most recent value` option is enabled.
 

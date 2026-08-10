@@ -14,9 +14,9 @@ When a state is saved, Workshop is preserving two things: (1) the current values
 
 The following screenshots display an example of state saving. In this case, a module builder has configured state saving to preserve Object Set Filter variable output by the Filter List, which will save the user’s selected filtering criteria for high- and medium-priority unactioned alerts from NYC airports. The module builder has also configured the active Object Set variable output by the Object Table widget, which will save the currently highlighted alert in the table and then displayed in the Object View widget on the right-side of this module. Once this state is saved, the module consumer can easily return to this specific view of NYC flight alerts in the future or share the view with other users as a link.
 
-![State Saving: Save Dialog](/docs/resources/foundry/workshop/state_saving_1.png)
+![State Saving: Save Dialog](./images/state_saving_1.png)
 
-![State Saving: Saved State](/docs/resources/foundry/workshop/state_saving_2.png)
+![State Saving: Saved State](./images/state_saving_2.png)
 
 ## How to enable state saving
 
@@ -28,15 +28,15 @@ In Workshop’s Edit Mode, a builder user can enable state saving with the follo
 
 ### Toggle on state saving
 
-Open the **Settings** panel by selecting the settings icon (![Gear icon](/docs/resources/foundry/workshop/settings-gear-icon.png)). Within this panel, enable the **Enable State Saving** toggle as seen below.
+Open the **Settings** panel by selecting the settings icon (![Gear icon](./images/settings-gear-icon.png)). Within this panel, enable the **Enable State Saving** toggle as seen below.
 
-![State Saving: Configuration Panel](/docs/resources/foundry/workshop/state_saving_config.png)
+![State Saving: Configuration Panel](./images/state_saving_config.png)
 
 ### Configure state saving for variables
 
 Open the Variables panel and enable state saving for variables which should have their state saved. To do so, select a variable and then navigate to the settings tab and add an external ID to the variable. The screenshot below shows an example of enabling state saving for an `Object Set Filter` variable output by a Filter List widget, which will save the user’s selected filtering criteria:
 
-![Enabling state saving for an object set filter variable](/docs/resources/foundry/workshop/state_saving_configuring_filters_variable.png)
+![Enabling state saving for an object set filter variable](./images/state_saving_configuring_filters_variable.png)
 
 For more information about configuring object set filter variables, including default filters and filter value extraction, see [Object set filter variables](/docs/foundry/workshop/object-set-filter-variables/).
 

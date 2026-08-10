@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-provided-drivers/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-provided-drivers/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Palantir-provided drivers for JDBC sources
 
@@ -15,7 +15,7 @@ If you want to upload your own JDBC driver to Foundry, review the documentation 
 3. Choose to run the source capabilities on a [Foundry worker](/docs/foundry/data-connection/core-concepts/#foundry-worker) or on an [agent worker](/docs/foundry/data-connection/core-concepts/#agent-worker).
 
 4. Select **Documentation ↗** to review official documentation for the driver source. <br><br>
-   ![The documentation link in a Foundry-provided driver source configuration page](/docs/resources/foundry/data-integration/foundry-provided-drivers-docs-link.png) <br><br>
+   ![The documentation link in a Foundry-provided driver source configuration page](./images/foundry-provided-drivers-docs-link.png) <br><br>
 
 5. Follow the additional configuration prompts to continue the setup of your connector using the information in the sections below.
 
@@ -33,7 +33,7 @@ You can add [properties ↗](https://docs.oracle.com/en/java/javase/11/docs/api/
 
 Hover over the name of a `Required` or `Recommended` property to visit the official documentation page for the selected driver.
 
-![A link to documentation appears in a tooltip when hovered over the driver name.](/docs/resources/foundry/data-integration/foundry-provided-drivers-jdbc-property-docs-tooltip.png)
+![A link to documentation appears in a tooltip when hovered over the driver name.](./images/foundry-provided-drivers-jdbc-property-docs-tooltip.png)
 
 ## Configure Foundry-provided driver syncs
 
@@ -43,7 +43,7 @@ A single SQL query can be executed per sync. This query should produce a table o
 
 Exceptionally, this query can invoke stored procedures that produce data as a result. [Read below](#stored-procedures) for more details.
 
-![The SQL Query input on the Edit syncs page for a JDBC connector.](/docs/resources/foundry/data-integration/jdbc-sql-query.png)
+![The SQL Query input on the Edit syncs page for a JDBC connector.](./images/jdbc-sql-query.png)
 
 ## Configuration options for CData-provided drivers
 
@@ -62,7 +62,7 @@ You can force the driver to perform a no-operation test connection, even when on
 `ConnectOnOpen: true` can be the reason the connection fail when the credentials used to connect are very scoped down and are not allowed perform the no-operation command used for the test connection.
 :::
 
-![CData driver with ConnectOnOpen configured.](/docs/resources/foundry/data-integration/cdata-connectonopen.png)
+![CData driver with ConnectOnOpen configured.](./images/cdata-connectonopen.png)
 
 ### Certificate authentication
 
@@ -77,13 +77,13 @@ To connect using a certificate, you must define the following JDBC properties in
 
 To transform the certificate file into Base64 format on a Windows machine, use the following command: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("\path\to\file.pfx"))`
 
-![Microsoft Exchange driver with private certificate authentication configured.](/docs/resources/foundry/data-integration/exchange-driver-certificate.png)
+![Microsoft Exchange driver with private certificate authentication configured.](./images/exchange-driver-certificate.png)
 
 ### Stored procedures
 
 Some CData drivers connecting to file-based source systems like [Amazon Marketplace](/docs/foundry/available-connectors/amazon-marketplace/) or [Microsoft OneDrive](/docs/foundry/available-connectors/microsoft-onedrive/) rely on the ability to invoke stored procedures to ingest data.
 
-![Microsoft OneDriver sync extracting a file using a stored procedure.](/docs/resources/foundry/data-integration/onedrive-downloadfile-procedure.png)
+![Microsoft OneDriver sync extracting a file using a stored procedure.](./images/onedrive-downloadfile-procedure.png)
 
 Running the stored procedure will produce a table where the file content is stored as a Base64 encoded string. You can decode it in a downstream data transformation, for example in Pipeline Builder using a [Base64 decode](/docs/foundry/pb-functions-expression/base64DecodeV1/) board.
 
@@ -103,13 +103,13 @@ To use OAuth 2.0 authentication:
    * The specifics of how to register a custom OAuth application will depend on each external system. For [GitHub ↗](https://github.com/), for example, navigate to **Settings > Developer Settings > OAuth Apps**. Then select **New OAuth App**.
 
 3. Copy the generated **OAuth client id** and **OAuth client secret** and paste them in your source configuration JDBC properties. <br><br>
-   ![Github source configuration using OAuth 2.0 authentication.](/docs/resources/foundry/data-integration/github-oauth20-source-configuration.png) <br><br>
+   ![Github source configuration using OAuth 2.0 authentication.](./images/github-oauth20-source-configuration.png) <br><br>
 
 4. Once the configuration is saved, navigate to the source overview page. Select **Authorize** in the top banner labeled **Authorization required to start using this source** to start the OAuth flow. <br><br>
-   ![Github source ready for authorization.](/docs/resources/foundry/data-integration/github-auhorization-required.png) <br><br>
+   ![Github source ready for authorization.](./images/github-auhorization-required.png) <br><br>
 
    You can renew or revoke authorization from the right-side panel on the source overview page. <br><br>
-   ![Revoke OAuth 2.0 authorization for a Github source.](/docs/resources/foundry/data-integration/github-revoke-oauth-authorization.png) <br><br>
+   ![Revoke OAuth 2.0 authorization for a Github source.](./images/github-revoke-oauth-authorization.png) <br><br>
 
 :::callout{theme="neutral"}
 Starting, renewing, or revoking the OAuth flow requires the `Owner` role on the source by default. Users with only `Viewer` or `Editor` will see a permission denied error when selecting **Authorize**. If you need to grant these operations without granting full `Owner` permissions, define a custom role that includes the source administration operations.

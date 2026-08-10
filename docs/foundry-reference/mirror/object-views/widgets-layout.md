@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-layout/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-layout/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Layout
 
@@ -48,7 +48,7 @@ Once you add the Vertical Stack Container widget, the configuration enables you 
 * To align the Vertical Stack Container next to other widgets, go to “Format” tab in the configuration and select a Left/Right alignment, instead of the default “Full Width”.
 * Choose the order of the tabs by using the up/down arrows next to each tab under “Settings” in the configuration. This also allows you to delete tabs or replace the widget within each tab.
 
-<img src="./media/widgets_hu-vertical-stack.png" alt="Vertical stack container" height="400"/>
+<img src="./images/widgets_hu-vertical-stack.png" alt="Vertical stack container" height="400"/>
 
 ## Tabbed Container
 
@@ -62,7 +62,7 @@ The Tabbed Container is just a container of other widgets, and has no stand-alon
 * The name of each tab is the title of the widget on that tab, which appears under “Format” in the configuration.
 * Choose the order of the tabs by using the up/down arrows next to each tab under “Settings” in the configuration. This also allows you to delete tabs or replace the widget within each tab.
 
-<img src="./media/widgets_hu-tabs.png" alt="tabs" height="400"/>
+<img src="./images/widgets_hu-tabs.png" alt="tabs" height="400"/>
 
 **Common Issues and Notes:**
 
@@ -149,8 +149,8 @@ After completing these three steps, your Conditional Container should be set up 
 
 This widget enables adding rich text as a part of an Object View layout. It provides a plain text editor, based on the Markdown lightweight rich text formatting syntax (`markdown-it` library). As an addition, this widget allows templating of object properties values as part of the text.
 
-![markdown hubble plugin 1](/docs/resources/foundry/object-views/widgets_markdown-hubble-plugin-1.png)
-![markdown hubble plugin 2](/docs/resources/foundry/object-views/widgets_markdown-hubble-plugin-2.png)
+![markdown hubble plugin 1](./images/widgets_markdown-hubble-plugin-1.png)
+![markdown hubble plugin 2](./images/widgets_markdown-hubble-plugin-2.png)
 
 ### Configuration
 

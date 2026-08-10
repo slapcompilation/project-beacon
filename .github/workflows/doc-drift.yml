@@ -1,0 +1,45 @@
+# The mirror is a dated snapshot and Palantir edits their documentation.
+#
+# A migration comment quoting a sentence that no longer exists is worse than one
+# with no citation, because it looks verified. This re-fetches the pages our
+# readings actually quote — 75 of 1,758, derived rather than maintained — and
+# fails if any has changed.
+#
+# Weekly, not daily: the docs do not move that fast, and 75 fetches a day at
+# somebody else's expense is not neighbourly. Monday morning, off the hour,
+# because every scheduled job in the world fires at :00.
+#
+# It never rewrites the mirror. A changed page is a decision — did Foundry
+# change, or were we wrong — and that needs the reading open beside it.
+
+name: Upstream doc drift
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: doc-drift
+  cancel-in-progress: false
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Which pages the build rests on, so a failure names them even if the
+      # fetch step falls over.
+      - name: The pages we build from
+        run: pnpm check:doc-drift --list
+
+      - name: Have any of them changed upstream?
+        run: pnpm check:doc-drift

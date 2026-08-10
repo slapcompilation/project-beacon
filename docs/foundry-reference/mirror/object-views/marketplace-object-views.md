@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/marketplace-object-views/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/marketplace-object-views/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Add Object Views to a Marketplace product
 
@@ -14,4 +14,4 @@ To add an Object View to a product, first [create a product](/docs/foundry/found
 
 Once you have selected an Object View, you can select which tabs you would like to include in your product.
 
-![Add Object View tabs.](/docs/resources/foundry/object-views/marketplace-add-tabs.png)
+![Add Object View tabs.](./images/marketplace-add-tabs.png)

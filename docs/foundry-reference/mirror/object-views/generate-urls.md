@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/generate-urls/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/generate-urls/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Generate Object View URLs
 

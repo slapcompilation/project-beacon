@@ -1,0 +1,264 @@
+import { describe, it, expect } from 'vitest'
+import {
+  validateObjectTypeDraft,
+  objectTitle,
+  validateRecord,
+  coerceValue,
+  toSlug,
+  validateLinkTypeDraft,
+  evaluateComputed,
+  validateComputedProperty,
+  resolveViewConfig,
+  validateViewConfig,
+  type PropertyDef,
+  type ObjectTypeDraft,
+  type LinkTypeDraft,
+  type ComputedPropertyDef,
+} from './index'
+
+const props: PropertyDef[] = [
+  { key: 'room', apiName: 'room', label: 'Room', type: 'string', required: true },
+  { key: 'urgent', apiName: 'urgent', label: 'Urgent', type: 'boolean', required: false },
+  { key: 'reported_on', apiName: 'reported_on', label: 'Reported on', type: 'date', required: false },
+  { key: 'cost', apiName: 'cost', label: 'Cost', type: 'integer', required: false },
+]
+
+describe('validateObjectTypeDraft', () => {
+  // A complete draft: the two keys designated, every property backed by a column.
+  const complete = [
+    { key: 'request_id', apiName: 'requestId', label: 'Request ID', type: 'string' as const,
+      required: true, backingColumn: 'request_id', isPrimaryKey: true },
+    { key: 'summary', apiName: 'summary', label: 'Summary', type: 'string' as const,
+      required: false, backingColumn: 'summary', isTitleKey: true },
+  ]
+  const draft: ObjectTypeDraft = { apiName: 'MaintenanceRequest', label: 'Maintenance Request', properties: complete }
+
+  it('accepts a well-formed type', () => {
+    expect(validateObjectTypeDraft(draft).errors).toEqual([])
+  })
+
+  // "Begin with an uppercase character... written in PascalCase" for an object
+  // type; "Begin with a lowercase character... written in camelCase" for a
+  // property. The two are different rules, and we used to apply one to both.
+  it('wants PascalCase on the type and camelCase on its properties', () => {
+    expect(validateObjectTypeDraft({ ...draft, apiName: 'maintenance_request' }).ok).toBe(false)
+    expect(validateObjectTypeDraft({ ...draft, apiName: 'Maintenance Request' }).ok).toBe(false)
+    const r = validateObjectTypeDraft({
+      ...draft, properties: [{ ...complete[0], apiName: 'RequestId' }, complete[1]],
+    })
+    expect(r.errors.join(' ')).toContain('camelCase')
+  })
+
+  it('rejects a reserved API name', () => {
+    const r = validateObjectTypeDraft({
+      ...draft, properties: [{ ...complete[0], apiName: 'rid' }, complete[1]],
+    })
+    expect(r.errors.join(' ')).toContain('reserved')
+  })
+
+  it('rejects duplicate property IDs', () => {
+    const r = validateObjectTypeDraft({ ...draft, properties: [complete[0], { ...complete[0] }] })
+    expect(r.errors.join(' ')).toContain('Duplicate')
+  })
+
+  // The completeness contract, which is stated over the type and its properties
+  // as one list: "Property ID, Property display name, Backing column, Property
+  // API name, Title key, Primary key".
+  it('wants both keys, and a backing column for every column-sourced property', () => {
+    expect(validateObjectTypeDraft({ ...draft, properties: [complete[1]] }).errors.join(' '))
+      .toContain('primary key')
+    expect(validateObjectTypeDraft({ ...draft, properties: [complete[0]] }).errors.join(' '))
+      .toContain('title key')
+    const noColumn = validateObjectTypeDraft({
+      ...draft, properties: [complete[0], { ...complete[1], backingColumn: '' }],
+    })
+    expect(noColumn.errors.join(' ')).toContain('backing column')
+    // ...unless it is not read from one at all.
+    const byHand = validateObjectTypeDraft({
+      ...draft,
+      properties: [complete[0], { ...complete[1], backingColumn: null, source: 'user_input' as const }],
+    })
+    expect(byHand.errors).toEqual([])
+  })
+
+  it('refuses a nullable primary key', () => {
+    const r = validateObjectTypeDraft({
+      ...draft, properties: [{ ...complete[0], required: false }, complete[1]],
+    })
+    expect(r.errors.join(' ')).toContain('not a key')
+  })
+
+  it('rejects an empty label', () => {
+    expect(validateObjectTypeDraft({ ...draft, label: '  ' }).ok).toBe(false)
+  })
+})
+
+describe('validateRecord', () => {
+  it('accepts a record with the required field set', () => {
+    expect(validateRecord(props, { title: 'Leaky tap', data: { room: '204' } }).ok).toBe(true)
+  })
+  it('flags a missing required property', () => {
+    const r = validateRecord(props, { title: 'x', data: {} })
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('Room is required')
+  })
+  it('flags a wrong-typed value', () => {
+    const r = validateRecord(props, { title: 'x', data: { room: '204', cost: 'lots' } })
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('Cost must be a number')
+  })
+  it('requires a title', () => {
+    expect(validateRecord(props, { title: '', data: { room: '204' } }).ok).toBe(false)
+  })
+})
+
+describe('coerceValue', () => {
+  it('coerces number strings, blanks to null, keeps booleans', () => {
+    expect(coerceValue('integer', '42')).toBe(42)
+    expect(coerceValue('integer', '')).toBeNull()
+    expect(coerceValue('integer', 'nope')).toBeNull()
+    expect(coerceValue('boolean', 'true')).toBe(true)
+    expect(coerceValue('date', '2026-07-24')).toBe('2026-07-24')
+    expect(coerceValue('date', 'not-a-date')).toBeNull()
+  })
+})
+
+describe('validateLinkTypeDraft', () => {
+  const draft: LinkTypeDraft = { apiName: 'belongs_to_room', label: 'Belongs to room', sourceTypeId: 's1', targetTypeId: 't1' }
+  it('accepts a well-formed link type', () => {
+    expect(validateLinkTypeDraft(draft).ok).toBe(true)
+  })
+  it('requires both a source and target type', () => {
+    expect(validateLinkTypeDraft({ ...draft, targetTypeId: '' }).ok).toBe(false)
+    expect(validateLinkTypeDraft({ ...draft, sourceTypeId: '' }).ok).toBe(false)
+  })
+  it('rejects a non-slug api name', () => {
+    expect(validateLinkTypeDraft({ ...draft, apiName: 'Belongs To' }).ok).toBe(false)
+  })
+})
+
+describe('evaluateComputed', () => {
+  const now = new Date('2026-07-24T00:00:00Z')
+  it('sums and multiplies number inputs', () => {
+    expect(evaluateComputed({ key: 'total', label: 'Total', fn: 'sum', inputs: ['a', 'b'] }, { a: 3, b: 4 })).toBe(7)
+    expect(evaluateComputed({ key: 'p', label: 'P', fn: 'product', inputs: ['a', 'b'] }, { a: 3, b: 4 })).toBe(12)
+  })
+  it('computes a difference and returns null on missing inputs', () => {
+    expect(evaluateComputed({ key: 'd', label: 'D', fn: 'difference', inputs: ['a', 'b'] }, { a: 10, b: 4 })).toBe(6)
+    expect(evaluateComputed({ key: 'd', label: 'D', fn: 'difference', inputs: ['a', 'b'] }, { a: 10 })).toBeNull()
+  })
+  it('computes days since / until a date', () => {
+    expect(evaluateComputed({ key: 's', label: 'S', fn: 'days_since', inputs: ['when'] }, { when: '2026-07-20' }, now)).toBe(4)
+    expect(evaluateComputed({ key: 'u', label: 'U', fn: 'days_until', inputs: ['when'] }, { when: '2026-07-27' }, now)).toBe(3)
+    expect(evaluateComputed({ key: 's', label: 'S', fn: 'days_since', inputs: ['when'] }, { when: 'nope' }, now)).toBeNull()
+  })
+})
+
+describe('validateComputedProperty', () => {
+  const props: PropertyDef[] = [
+    { key: 'a', apiName: 'a', label: 'A', type: 'integer', required: false },
+    { key: 'b', apiName: 'b', label: 'B', type: 'integer', required: false },
+    { key: 'when', apiName: 'when', label: 'When', type: 'date', required: false },
+  ]
+  const ok: ComputedPropertyDef = { key: 'total', label: 'Total', fn: 'sum', inputs: ['a', 'b'] }
+  it('accepts a valid computed property', () => {
+    expect(validateComputedProperty(ok, props).ok).toBe(true)
+  })
+  it('rejects a difference without exactly two inputs', () => {
+    expect(validateComputedProperty({ ...ok, fn: 'difference', inputs: ['a'] }, props).ok).toBe(false)
+  })
+  it('rejects a number fn fed a date input', () => {
+    const r = validateComputedProperty({ ...ok, inputs: ['when'] }, props)
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('number inputs')
+  })
+  it('rejects an input that is not a property', () => {
+    expect(validateComputedProperty({ ...ok, inputs: ['nope'] }, props).ok).toBe(false)
+  })
+})
+
+describe('resolveViewConfig', () => {
+  const type = {
+    properties: props,   // room, urgent, reported_on, cost
+    computedProperties: [{ key: 'days_open', label: 'Days open', fn: 'days_since', inputs: ['reported_on'] }] as ComputedPropertyDef[],
+  }
+  it('derives a standard view when no config: everything in one section', () => {
+    const v = resolveViewConfig(type, null)
+    expect(v.prominent).toEqual([])
+    expect(v.sections).toHaveLength(1)
+    expect(v.sections[0].title).toBe('Properties')
+    expect(new Set(v.sections[0].keys)).toEqual(new Set(['room', 'urgent', 'reported_on', 'cost', 'days_open']))
+  })
+  it('keeps configured placement and sweeps the rest into Details', () => {
+    const v = resolveViewConfig(type, { prominent: ['days_open', 'cost'], sections: [{ title: 'Where', keys: ['room'] }] })
+    expect(v.prominent).toEqual(['days_open', 'cost'])
+    expect(v.sections[0]).toEqual({ title: 'Where', keys: ['room'] })
+    expect(v.sections[1].title).toBe('Details')
+    expect(new Set(v.sections[1].keys)).toEqual(new Set(['urgent', 'reported_on', 'cost', 'days_open']))
+  })
+  it('drops keys that no longer exist on the type', () => {
+    const v = resolveViewConfig(type, { prominent: ['ghost'], sections: [{ title: 'X', keys: ['ghost'] }] })
+    expect(v.prominent).toEqual([])
+    expect(v.sections).toHaveLength(1) // only the sweep section
+  })
+})
+
+describe('validateViewConfig', () => {
+  const type = { properties: props, computedProperties: [] as ComputedPropertyDef[] }
+  it('accepts valid config', () => {
+    expect(validateViewConfig({ prominent: ['cost'], sections: [{ title: 'Where', keys: ['room'] }] }, type).ok).toBe(true)
+  })
+  it('rejects unknown keys and duplicate placement', () => {
+    const r = validateViewConfig({ prominent: ['nope'], sections: [{ title: 'A', keys: ['room'] }, { title: 'B', keys: ['room'] }] }, type)
+    expect(r.ok).toBe(false)
+    expect(r.errors.join(' ')).toContain('nope')
+    expect(r.errors.join(' ')).toContain('more than one section')
+  })
+})
+
+describe('toSlug', () => {
+  it('slugifies a label', () => {
+    expect(toSlug('Guest Complaint!')).toBe('guest_complaint')
+    expect(toSlug('  Room 204 ')).toBe('room_204')
+  })
+})
+
+describe('objectTitle', () => {
+  it('uses the title key — the property Foundry says names the object', () => {
+    expect(objectTitle({ properties: [{ key: 'po_number', apiName: 'po_number', label: 'T', type: 'string', required: false, isTitleKey: true }], label: 'Purchase order' },
+      { id: 'abc', po_number: 'PO-1042' })).toBe('PO-1042')
+  })
+
+  it('titles on dates and numbers, not only text', () => {
+    // A stock log has no name column; when it happened is the handle.
+    expect(objectTitle({ properties: [{ key: 'timestamp', apiName: 'timestamp', label: 'T', type: 'string', required: false, isTitleKey: true }], label: 'Stock log' },
+      { id: 'x', timestamp: '2026-08-04T09:00:00Z' })).toBe('2026-08-04T09:00:00Z')
+    expect(objectTitle({ properties: [{ key: 'floor', apiName: 'floor', label: 'T', type: 'string', required: false, isTitleKey: true }], label: 'Room' }, { id: 'x', floor: 3 })).toBe('3')
+  })
+
+  it('falls back to the record title — authored records always carry one', () => {
+    expect(objectTitle({ properties: [], label: 'Incident' },
+      { id: 'abc12345678', title: 'Lift stuck on 4' })).toBe('Lift stuck on 4')
+  })
+
+  it('skips an empty title-key value rather than showing a blank name', () => {
+    expect(objectTitle({ properties: [{ key: 'notes', apiName: 'notes', label: 'T', type: 'string', required: false, isTitleKey: true }], label: 'Line' },
+      { id: 'abcdef1234', notes: '', title: 'from record' })).toBe('from record')
+  })
+
+  it('names the type and the id when nothing in the row names the row', () => {
+    // The four relational line types reach here: parent id, variant id, numbers.
+    expect(objectTitle({ properties: [], label: 'PO line' },
+      { id: 'abcdef1234567', ordered_qty: 5 })).toBe('PO line abcdef12')
+  })
+
+  it('does not trail a bare space when the row has no id', () => {
+    expect(objectTitle({ properties: [], label: 'PO line' }, {})).toBe('PO line')
+  })
+
+  it('never guesses a text property — the bug migration 346 removed', () => {
+    // `supplier_name` is text and would have been picked by the old guess.
+    expect(objectTitle({ properties: [], label: 'Line' },
+      { id: 'aaaabbbbcccc', supplier_name: 'Ada Foods' })).toBe('Line aaaabbbb')
+  })
+})

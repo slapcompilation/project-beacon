@@ -8,21 +8,21 @@ Review unsaved changes made to the Ontology globally:
 
 From the homepage sidebar, select **Unsaved changes** to view a list of all unsaved changes made by you.
 
-![Unsaved changes button](/docs/resources/foundry/ontology-manager/review-restore-unsaved-changes-button.png)
+![Unsaved changes button](./images/review-restore-unsaved-changes-button.png)
 
 Review saved changes made to the Ontology globally:
 
 Select the **History** tab in the homepage sidebar to view a list of all saved Ontology changes with details on when the changes were made and the user who applied them.
 
-![History button](/docs/resources/foundry/ontology-manager/review-restore-history-button.png)
+![History button](./images/review-restore-history-button.png)
 
-By default, the list of changes are collapsed. You can select the ![down arrow](/docs/resources/foundry/ontology-manager/down-arrow.png) (down arrow) on any change to view details.
+By default, the list of changes are collapsed. You can select the ![down arrow](./images/down-arrow.png) (down arrow) on any change to view details.
 
 ## Filter changes made to the Ontology globally
 
 In the **Ontology history** page, you have the option to hide changes to object and link types that you do not have access to view. If this option is not enabled, you will be able to see that a change was made to the Ontology but will not be able to view additional details.
 
-<img src="./media/review-restore-hide-changes.png" alt="Hide items you cannot see" width="600"/>
+<img src="./images/review-restore-hide-changes.png" alt="Hide items you cannot see" width="600"/>
 
 Each entry in the edits history corresponds to a single instance of a user saving changes. You also have the option to consolidate the view by merging changes that have been made by the same author into a single entry.
 
@@ -33,7 +33,7 @@ To review changes made to an Ontology resource, select the **History** tab in th
 * The unsaved changes you made to the resource.
 * All saved changes that were made to the resource with details on when the changes were made and the user who applied them.
 
-<img src="./media/review-restore-entity-history-button.png" alt="Entity history button" width="600"/>
+<img src="./images/review-restore-entity-history-button.png" alt="Entity history button" width="600"/>
 
 At the bottom left of an Ontology resource view, a footer states when the resource was last edited and by which user.
 
@@ -41,7 +41,7 @@ At the bottom left of an Ontology resource view, a footer states when the resour
 
 Follow the steps below to restore an object type to an older version:
 
-1. Select the restore button ![restore button](/docs/resources/foundry/ontology-manager/restore-button.png) (anti-clockwise arrow)
+1. Select the restore button ![restore button](./images/restore-button.png) (anti-clockwise arrow)
 2. Select **Confirm**.
 
 :::callout{theme="warning" title="Warning"}

@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/conditional-formatting/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 **Conditional formatting** enables the configuration of rules for any property and dictates how that property’s values will be rendered (e.g. coloring, alignment, etc.) in user facing applications. When you configure conditional formatting in the Ontology Manager, the formatting rules will apply in Object Explorer, Object Views, Quiver, and Workshop.
 
-<img src="./media/conditional-formatting-cond-form-example.png" alt="Example" width="600"/>
+<img src="./images/conditional-formatting-cond-form-example.png" alt="Example" width="600"/>
 
 For the example `Aircraft` object type in Object Explorer, pictured above, the `type` and `wifi` properties have their values in colored boxes that are applied based on certain conditions. The main benefit of adding these is to make information easier to understand quickly. If an analyst was looking for all “A320” planes without wifi in “JFK”, just by glancing at the results above, we could tell that “Q-AAY” is the plane we’re after.
 
@@ -10,11 +10,11 @@ Let’s take a look at how these conditions are applied.
 
 * For property `wifi`, we assign green if the value of the property is “true” for each object in the table, and red if it is “false."
 
-<img src="./media/conditional-formatting-wifi-rules.png" alt="Example rules" width="250"/>
+<img src="./images/conditional-formatting-wifi-rules.png" alt="Example rules" width="250"/>
 
 * For property `type`, we assign colors based on exact match between “A320”, “A321” and “A330”.
 
-<img src="./media/conditional-formatting-type-rules.png" alt="Example type colors" width="250"/>
+<img src="./images/conditional-formatting-type-rules.png" alt="Example type colors" width="250"/>
 
 ## Add conditional formatting
 
@@ -23,16 +23,16 @@ In the property editor:
 1. Select the property to which you want to add conditional formatting.
 2. You will see conditional formatting on the properties pane; select the **Add a rule** button.
 
-<img src="./media/conditional-formatting-cond-form-oma.png" alt="Add a rule" width="600"/>
+<img src="./images/conditional-formatting-cond-form-oma.png" alt="Add a rule" width="600"/>
 
 1. Click on the newly created default rule to open the **Edit conditional formatting rule** editor. [Read on for more information about the components of the Rule editor](#edit-rules-using-the-rule-editor).
 2. Modify the rule.
 
-<img src="./media/conditional-formatting-rule.png" alt="Modifying a rule" width="600"/>
+<img src="./images/conditional-formatting-rule.png" alt="Modifying a rule" width="600"/>
 
 ## Edit rules using the Rule editor
 
-<img src="./media/conditional-formatting-rule-editor-string.png" alt="Rule editor" width="700"/>
+<img src="./images/conditional-formatting-rule-editor-string.png" alt="Rule editor" width="700"/>
 
 |Label   |Description    |Usage  |
 |---    |---    |---    |
@@ -53,7 +53,7 @@ In the property editor:
 
 2. You will see conditional formatting on the properties pane; select the **Copy rules** button to open the **Copy rule** dialog.
 
-<img src="./media/conditional-formatting-copy-rule-select-annotated.png" alt="Property editor" width="600"/>
+<img src="./images/conditional-formatting-copy-rule-select-annotated.png" alt="Property editor" width="600"/>
 
 3. Select the properties to which you want to copy the conditional formatting rules.
 
@@ -61,7 +61,7 @@ In the property editor:
 If the properties you are copying to already have their own conditional formatting rules, they will be overwritten by the new rules.
 :::
 
-<img src="./media/conditional-formatting-copy-rule.png" alt="Copy rule" width="600"/>
+<img src="./images/conditional-formatting-copy-rule.png" alt="Copy rule" width="600"/>
 
 Copied rules will continue referencing their original properties. For example, if a rule states that `wifi` values should appear green when “true,” and that rule is copied to the `customer experience` property, values of the `customer experience` property will also be green when the object’s `wifi` value is “true.” To change the property a rule references, simply select the rule and choose a new property from the **Property** dropdown in the rule editor.
 

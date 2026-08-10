@@ -1,4 +1,17 @@
-import type { AuthSession } from '@beacon/types'
+/** Platform roles. Resource roles (owner/editor/viewer/discoverer) live on a
+ *  project grant, which is Compass's model, not this one. */
+export type UserRole = 'owner' | 'admin'
+
+export interface AuthSession {
+  user: {
+    id: string
+    email: string
+    organization_id: string
+    role: UserRole
+  }
+  access_token: string
+  expires_at: number
+}
 
 /** Supabase provider slugs: 'azure' is Microsoft. */
 export type OAuthProvider = 'google' | 'azure'

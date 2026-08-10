@@ -14,11 +14,22 @@ export function connectionString() {
   return url.toString()
 }
 
+// Walk up from the caller's directory: the migration runner runs at the repo
+// root and the platform tests run inside their own package, and both want the
+// same file. Finding nothing stays silent — CI has the environment variable and
+// no .env.local at all.
 function readEnvLocal() {
-  const file = path.join(process.cwd(), '.env.local')
-  if (!fs.existsSync(file)) return null
-  const line = fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith('SUPABASE_DB_URL='))
-  return line ? line.slice('SUPABASE_DB_URL='.length).trim() : null
+  let dir = process.cwd()
+  for (;;) {
+    const file = path.join(dir, '.env.local')
+    if (fs.existsSync(file)) {
+      const line = fs.readFileSync(file, 'utf8').split(/\r?\n/).find((l) => l.startsWith('SUPABASE_DB_URL='))
+      return line ? line.slice('SUPABASE_DB_URL='.length).trim() : null
+    }
+    const up = path.dirname(dir)
+    if (up === dir) return null
+    dir = up
+  }
 }
 
 /** Supabase's chain is not in node's trust store; sslmode=require meant

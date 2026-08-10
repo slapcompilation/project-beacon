@@ -61,7 +61,7 @@ LLM-callable you reach for AIP Logic separately. Beacon Logic Tools are **dual-c
 the same typed signature serves UI, automation, and agent. One registry, not two paths.
 
 No gaps. The only thing Beacon doesn't expose is an in-platform *IDE + OSDK generation* loop, because
-our tools are authored directly in `packages/reality-graph` (code-as-ontology) — that's our stance, not
+our tools are authored directly in `packages/ontology` (code-as-ontology) — that's our stance, not
 a missing feature (deep-dive session 3 confirmed no downgrade).
 
 ## Mandatory-step ledger

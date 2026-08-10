@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-object-type/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/edit-object-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Edit object types
 
@@ -7,6 +7,8 @@ Editing an object type and its properties can have **application-breaking conseq
 :::
 
 ## Potential breaking changes
+
+**Writeback** is the process of persisting user edits on Ontology objects to a durable Foundry dataset. This dataset is known as a writeback dataset. In [Object Storage v1 (Phonograph)](/docs/foundry/object-databases/object-storage-v1/), you must configure a writeback dataset for an object type, or for a many-to-many link type with a join table. This is required before the object type or link type can receive user edits. Learn more about how writeback datasets compare to [materialized datasets](/docs/foundry/object-edits/materializations/#comparison-of-writeback-datasets-and-materialized-datasets) in Object Storage v2.
 
 ### Object type without writeback
 
@@ -20,11 +22,11 @@ The following changes will unregister and reregister (or delete) the backing dat
 
 When you try to save any of these changes, you will be warned about the potential impact on user applications.
 
-<img src="./media/edit-object-type-warning-reindex.png" alt="Warning: Reindexing will make objects unavailable" width="500" />
+<img src="./images/edit-object-type-warning-reindex.png" alt="Warning: Reindexing will make objects unavailable" width="500" />
 
 For example, if an object type is used in a Workshop application, that Workshop application will be broken until the reindex completes. You can track the progress of the reindex for an object type in the **Phonograph** pane of its **Datasources** page.
 
-<img src="./media/edit-object-type-phonograph-track-reindex.png" alt="Tracking reindex in Phonograph" width="500" />
+<img src="./images/edit-object-type-phonograph-track-reindex.png" alt="Tracking reindex in Phonograph" width="500" />
 
 [Learn more about Object Storage v1 (Phonograph).](/docs/foundry/object-databases/object-storage-v1/)
 
@@ -45,11 +47,11 @@ Object Storage v1 (Phonograph) will **not** automatically unregister the backing
 
 The properties pane in the property editor highlights whether a field has ever received edits.
 
-<img src="./media/edit-object-type-properties-pane.png" alt="Properties pane" width="500" />
+<img src="./images/edit-object-type-properties-pane.png" alt="Properties pane" width="500" />
 
 Furthermore, when you try to save any changes that risk erasing the edit history, you will be warned about the potential impact on edits.
 
-<img src="./media/edit-object-type-warning-edit-impact.png" alt="Warning about impact on edits" width="500" />
+<img src="./images/edit-object-type-warning-edit-impact.png" alt="Warning about impact on edits" width="500" />
 
 Now that you understand the considerations in editing existing object types and properties, you can safely make your changes.
 
@@ -66,29 +68,29 @@ You can always change the object type you are working on by selecting the object
 
 ### Delete an object type
 
-You can delete an object type by selecting the ![...](/docs/resources/foundry/object-link-types/three-dots.png) (three dots) icon at the top right of the object type view sidebar (see image below) and then selecting the **Delete** option from the dropdown. A dialog will pop up to confirm you want to stage the object type and all of its associated link types for deletion.
+You can delete an object type by selecting the ![...](./images/three-dots.png) (three dots) icon at the top right of the object type view sidebar (see image below) and then selecting the **Delete** option from the dropdown. A dialog will pop up to confirm you want to stage the object type and all of its associated link types for deletion.
 
 * Note that the deletion of the object type only takes effect after you save your changes, and will break any views or applications referencing the object type.
 * Object types with an `active` status cannot be deleted. [Read more about statuses.](/docs/foundry/object-link-types/metadata-statuses/)
 
-<img src="./media/edit-object-type-delete-object-type.png" alt="Delete object type" width="500" />
+<img src="./images/edit-object-type-delete-object-type.png" alt="Delete object type" width="500" />
 
 ### Change a backing datasource
 
 You can change a backing datasource with the following steps:
 
 1. Navigate to the property editor by selecting **Edit property mapping** at the top of the **Properties** page of an object type.
-2. Select the ![pen](/docs/resources/foundry/object-link-types/pen.png) **Replace** button at the top of the **Datasources** pane. This will allow you to browse and select available datasources in Foundry.
+2. Select the ![pen](./images/pen.png) **Replace** button at the top of the **Datasources** pane. This will allow you to browse and select available datasources in Foundry.
 
 :::callout{theme="warning" title="Warning"}
 Changing the backing datasource of an object type will remove any connection between columns in the old datasource and the object type’s properties. Properties will be automatically remapped for you **only if** you change to a new datasource with the **same schema** as the old datasource. Otherwise, you will need to remap the object type’s properties to the new datasource.
 :::
 
-![Backing datasource](/docs/resources/foundry/object-link-types/edit-object-type-backing-datasource.png)
+![Backing datasource](./images/edit-object-type-backing-datasource.png)
 
 ### Edit an object type’s metadata
 
-![Edit object type metadata](/docs/resources/foundry/object-link-types/edit-object-type-metadata-annotated.png)
+![Edit object type metadata](./images/edit-object-type-metadata-annotated.png)
 
 1. **Icon:** Select the default icon to customize the icon and color of the object type that will appear in user applications when a user views an object of this type.
 2. **Display names and description:** Select into the existing display names or description to edit the text.

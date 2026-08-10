@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/create-object-type/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/create-object-type/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Create an object type
 
@@ -7,6 +7,10 @@ The primary way to create and configure a new object type is with a [**guided st
 After creating a new object type, you can [change the API name](#configure-api-names) from the assigned default.
 
 This page also contains [troubleshooting](#troubleshooting) information on the new object type creation process.
+
+:::callout{theme="neutral"}
+If you want a programmatic way of creating an object type, use a [SuperRepo](/docs/foundry/superrepo/overview/). SuperRepos define object types in code with [Ontology-as-code](/docs/foundry/superrepo/core-concepts/#ontology-as-code), and object types created in the Ontology Manager can be [imported](/docs/foundry/superrepo/core-concepts/#importing) into a SuperRepo.
+:::
 
 ## Create a new object type with the helper
 
@@ -23,11 +27,11 @@ This page also contains [troubleshooting](#troubleshooting) information on the n
 
 To create a new object type, select the **Create your first object type** option from the Ontology Manager homepage or choose **New > Create object type** located on top right on the same page.
 
-<img src="./media/create-object-type-new-object-type.png" alt="Select object type from the New dropdown menu." width="300" />
+<img src="./images/create-object-type-new-object-type.png" alt="Select object type from the New dropdown menu." width="300" />
 
 The **Create new object type** helper will appear.
 
-<img src="./media/create-object-type-datasource-step.png" alt="New object type datasource step." width="500" />
+<img src="./images/create-object-type-datasource-step.png" alt="New object type datasource step." width="500" />
 
 ### Choosing a backing datasource
 
@@ -39,7 +43,7 @@ A backing datasource for an object type may not contain `MapType` or `StructType
 
 If you do not have an existing datasource containing data for the object type, you can choose to continue without an existing datasource and select a location to generate a dataset for permissions. This option is not available if you are using Object Storage v1. As permissions of the objects of a type are determined by the location of their backing datasources, you will be prompted to choose a location to which you want to save an empty dataset.
 
-<img src="./media/create-object-type-choose-new-datasource-location.png" alt="New object type datasource location" width="500" />
+<img src="./images/create-object-type-choose-new-datasource-location.png" alt="New object type datasource location" width="500" />
 
 ### Object type metadata
 
@@ -51,7 +55,7 @@ In this step, provide the following information regarding your new object type:
 * **Description:** Explanatory text for anyone accessing the objects of this type in user applications. For example, users searching in Object Explorer will view the description of the object type in their search results.
 * **Groups:** Choose whether this object type will be part of any groups. This is a mechanism for organizing your ontology, making it easier to filter for the object types you want to work with later.
 
-<img src="./media/create-object-type-metadata-step.png" alt="New object type metadata step." width="500" />
+<img src="./images/create-object-type-metadata-step.png" alt="New object type metadata step." width="500" />
 
 ### Create properties for the object type
 
@@ -61,7 +65,7 @@ Every object type requires at least one property. This is because object types n
 
 Note that property types that require advanced configuration, such as media, cannot be generated as part of the bootstrapping wizard and must be added after you have exited it.
 
-<img src="./media/create-object-type-properties-step.png" alt="New object type properties step" width="500" />
+<img src="./images/create-object-type-properties-step.png" alt="New object type properties step" width="500" />
 
 ### Configure the primary key and title key
 
@@ -74,7 +78,7 @@ As part of the **Properties** step you need to choose a primary key and title ke
 
 A list of supported property types can be found in the [object type properties documentation](/docs/foundry/object-link-types/properties-overview/#supported-property-types).
 
-<img src="./media/create-object-type-configure-keys-helper.png" alt="New object type" width="500" />
+<img src="./images/create-object-type-configure-keys-helper.png" alt="New object type" width="500" />
 
 :::callout{theme="warning"}
 Be sure to check your backing datasources for duplicates before assigning a primary key. The primary key you select must be unique for every record in the datasource. If your ontology is using [Object Storage v2](/docs/foundry/object-backend/overview/), a duplicate primary key will cause [Funnel batch pipeline](/docs/foundry/object-indexing/funnel-batch-pipelines/) errors leading to a build failure. If you are using Object Storage v1 (Phonograph), an update will appear as successful; however, the duplicate primary keys can cause unexpected changes to your ontology.
@@ -90,7 +94,7 @@ You can optionally generate a standard set of actions to edit objects of this ty
 
 Note that you can still make edits to these actions or create new additional actions even if you have finalized the object type and exited the helper.
 
-<img src="./media/create-object-type-actions-step.png" alt="New object type Actions step" width="500" />
+<img src="./images/create-object-type-actions-step.png" alt="New object type Actions step" width="500" />
 
 This step is not available if you are using Object Storage v1.
 
@@ -98,7 +102,7 @@ This step is not available if you are using Object Storage v1.
 
 In the final step, choose a project to save this object type to. Then, select **Create**. Selecting **Create** will only stage your changes and **will not save** them.
 
-<img src="./media/create-object-type-save-location-step.png" alt="New object type Save location step." width="500" />
+<img src="./images/create-object-type-save-location-step.png" alt="New object type Save location step." width="500" />
 
 ### Save change to ontology
 
@@ -133,7 +137,7 @@ On the **Overview** page’s metadata section, you can edit the object type’s 
 7. **Icon:** Select the default icon from the object type view’s sidebar to customize the icon and color of the object type; this icon and color will be displayed in user applications when a user views an object of this type.
 8. **Backing datasource:** The source of the data used as property values for objects of this type.
 
-![Overview page](/docs/resources/foundry/object-link-types/create-object-type-new-object-overview-page-annotated.png)
+![Overview page](./images/create-object-type-new-object-overview-page-annotated.png)
 
 ***
 
@@ -145,11 +149,11 @@ On the **Overview** page’s metadata section, you can edit the object type’s 
 * Create a new group by typing the name of that group.
 * Remove a group from your object type.
 
-<img src="./media/object-type-groups-create.png" alt="Choose or add a new object type group" width="450" />
+<img src="./images/object-type-groups-create.png" alt="Choose or add a new object type group" width="450" />
 
 Groups are searchable in the [Ontology Manager's **Search** bar and **Search** bar dialog](/docs/foundry/ontology-manager/navigation/#header-search-bar). The table of object types in the Ontology Manager supports displaying and filtering by group. Groups are also displayed on the [Object Explorer home page](/docs/foundry/object-explorer/getting-started/#group-exploration-b-c-d).
 
-<img src="./media/object-type-groups-add.png" alt="Add a new object type group" width="300" />
+<img src="./images/object-type-groups-add.png" alt="Add a new object type group" width="300" />
 
 :::callout{theme="warning" title="Warning"}
 Groups as labels in object type metadata replace the previous method of adding `oe_home_page_object_type_group` type class to the primary key property; this previous method is no longer available.
@@ -165,13 +169,13 @@ In order to populate property values for objects of this type with data, you mus
 * Then, select the **Add a backing datasource** button as shown in the image below. This will allow you to select any of the available datasources in Foundry as a backing datasource.
   * Note that a single datasource can only be used to back one object type.
 
-![Edit backing dataset](/docs/resources/foundry/object-link-types/create-object-type-edit-backing-dataset.png)
+![Edit backing dataset](./images/create-object-type-edit-backing-dataset.png)
 
 ### Add a new property
 
 From within the property editor, select **Add** in the **Properties** pane on the right side of the screen. This will add a new property to the object type.
 
-![Add a new property](/docs/resources/foundry/object-link-types/create-object-type-add-new-property.png)
+![Add a new property](./images/create-object-type-add-new-property.png)
 
 ### Map a single property to data
 
@@ -185,7 +189,7 @@ It is possible to map properties to columns in a backing datasource in any of th
 
 In the datasource pane on the left side of the screen (see image below), you can see all of the columns of the datasource. Hover over the column you want to map and select the **Add as a new property** button to create a new property mapped to this column. The property ID, display name, and base type will be inferred from the name of the column.
 
-![Add as a new property](/docs/resources/foundry/object-link-types/create-object-type-add-as-a-new-property.png)
+![Add as a new property](./images/create-object-type-add-as-a-new-property.png)
 
 #### Map a column to an existing property
 
@@ -195,7 +199,7 @@ In the datasource pane on the left side of the screen, you can see all of the co
 
 In the properties pane on the right side of the screen, hover over the property you want to map to a column and select **Map to a column**. This will open a dropdown from which you can select the column you want to map to your property.
 
-![Map a property to a column](/docs/resources/foundry/object-link-types/create-object-type-map-property-to-column.png)
+![Map a property to a column](./images/create-object-type-map-property-to-column.png)
 
 ### Map all unmapped columns as new properties
 
@@ -203,13 +207,13 @@ Next to the datasource name in the datasource pane, you will find an **Add all u
 
 * Once a property’s ID is saved and the property is referenced in user applications, **any** change to the property ID will break the application.
 
-![Add all unmapped columns as new properties](/docs/resources/foundry/object-link-types/create-object-type-add-all-unmapped-columns-as-new-properties.png)
+![Add all unmapped columns as new properties](./images/create-object-type-add-all-unmapped-columns-as-new-properties.png)
 
 ### Configure the primary key and title key
 
 Now that you've created your new object type, added a backing datasource, and mapped it to new properties, you still need to configure the primary key and title key before being able to save your object type. You can navigate to the property metadata pane in the property editor (see image below) to set a property as the primary key and title key:
 
-<img src="./media/create-object-type-configure-keys-manual.png" alt="Configure primary key and title key" width="500" />
+<img src="./images/create-object-type-configure-keys-manual.png" alt="Configure primary key and title key" width="500" />
 
 * **Primary key:** The property that acts as a unique identifier for each instance of an object type. Each row in the backing datasource must have a different value for this property.
   * For example, the value of the `employee ID` property will be used to identify “Melissa Chang“ as a unique (notional) employee within the organization.
@@ -242,7 +246,7 @@ Object type API names follow functional coding standards. An object type’s API
 * Be unique across all object types.
 * Be between 1 and 100 characters long.
 
-<img src="./media/create-object-type-api.png" alt="Object type API" width="500" />
+<img src="./images/create-object-type-api.png" alt="Object type API" width="500" />
 
 A property’s API name must:
 
@@ -251,7 +255,7 @@ A property’s API name must:
 * Be unique across all properties belonging to the same object type.
 * Be between 1 and 100 characters long.
 
-<img src="./media/create-object-type-property-type-api.png" alt="Property type API" width="500" />
+<img src="./images/create-object-type-property-type-api.png" alt="Property type API" width="500" />
 
 ## Troubleshooting
 

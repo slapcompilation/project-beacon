@@ -22,13 +22,13 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/**'
-      - 'supabase/tests/**'
+      - 'packages/platform/**'
       - '.github/workflows/db-migrate.yml'
   push:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
-      - 'supabase/tests/**'
+      - 'packages/platform/**'
       - '.github/workflows/db-migrate.yml'
   workflow_dispatch:
 
@@ -69,13 +69,17 @@ jobs:
 
       # A generated file nobody regenerates is worse than none: it looks
       # authoritative and is quietly wrong.
-      - name: Ontology types are current
+      - name: The generated client matches the platform
         run: |
           if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
-          pnpm gen:ontology:check
+          pnpm gen:client:check
 
-      - name: Data-layer guards
+      # Runs Palantir's own published transaction example against our engine and
+      # compares against the answer the page states, inside a transaction it
+      # rolls back. After applying, not on PRs: a PR that adds a migration and a
+      # check for it would otherwise fail against the un-migrated schema.
+      # The engine tests build a fixture and roll back; the audits read the
+      # database as it is. Both skip cleanly without the secret.
+      - name: Platform tests and audits
         if: github.event_name != 'pull_request'
-        run: |
-          if [ -z "$SUPABASE_DB_URL" ]; then exit 0; fi
-          pnpm db:contracts
+        run: pnpm --filter @beacon/platform test

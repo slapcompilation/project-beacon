@@ -6,11 +6,9 @@
   "types": "./src/index.ts",
   "scripts": {
     "type-check": "tsc --noEmit",
-    "lint": "echo 'services package — no lint needed'"
+    "lint": "echo 'services package \u2014 no lint needed'"
   },
-  "dependencies": {
-    "@beacon/types": "workspace:*"
-  },
+  "dependencies": {},
   "devDependencies": {
     "typescript": "^5.7.3"
   }

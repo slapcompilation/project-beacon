@@ -14,15 +14,15 @@ The tool aims to help Ontology editors determine the safety of deleting an objec
 
 The view can be accessed from the home page of the Ontology cleanup tool.
 
-![Access the tool from the home page](/docs/resources/foundry/ontology-manager/cleanup-navigation-from-homepage.png)
+![Access the tool from the home page](./images/cleanup-navigation-from-homepage.png)
 
 When you opt to **Start cleanup**, the tool may take time to find cleanup candidates based on the size of your Ontology.
 
-![Start cleanup button](/docs/resources/foundry/ontology-manager/cleanup-start-cleanup-button.png)
+![Start cleanup button](./images/cleanup-start-cleanup-button.png)
 
 The resulting list of object types operates similarly to the other pages accessed from the home page that display lists. The list can be filtered to specific flags or an object type group that you are responsible for. You can also customize which columns are displayed in the table.
 
-![Cleanup filters](/docs/resources/foundry/ontology-manager/cleanup-filters.png)
+![Cleanup filters](./images/cleanup-filters.png)
 
 By default, the table is sorted by the highest priority among the flags that an object type triggers.
 
@@ -30,7 +30,7 @@ By default, the table is sorted by the highest priority among the flags that an 
 
 Here is an example where we have filtered down to the “Planning” workflow, a workflow that was being developed but never released.
 
-![Cleanup filter example](/docs/resources/foundry/ontology-manager/cleanup-filter-example.png)
+![Cleanup filter example](./images/cleanup-filter-example.png)
 
 Select the three object types using the in-line checkboxes.
 
@@ -44,17 +44,17 @@ Once you act on an object type in your queue, it disappears from the queue. Use 
 
 Deprecation and deletion are staged the same way as normal Ontology modifications. In the example above, the “Work Item” object type has objects with user edits, so it can be deprecated, while the other two deleted. Selecting **Save** in the top right enables saving the changes directly to the Ontology or creating a proposal to request review from another user.
 
-![Cleanup staging example](/docs/resources/foundry/ontology-manager/cleanup-staging-example.png)
+![Cleanup staging example](./images/cleanup-staging-example.png)
 
 ## Configure Ontology cleanup
 
 The cleanup page contains a subpage that allows you to customize the flags used and their respective priority.
 
-![Cleanup configuration navigation](/docs/resources/foundry/ontology-manager/cleanup-configuration-navigation.png)
+![Cleanup configuration navigation](./images/cleanup-configuration-navigation.png)
 
 You can configure flag settings on this page, with a choice of using either the default set or custom flags.
 
-![Cleanup configuration view](/docs/resources/foundry/ontology-manager/cleanup-configuration-view.png)
+![Cleanup configuration view](./images/cleanup-configuration-view.png)
 
 Like snoozing object types from the queue, this is an individual customization that does not affect other Ontology editors.
 

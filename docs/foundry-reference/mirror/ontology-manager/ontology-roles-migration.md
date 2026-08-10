@@ -69,7 +69,7 @@ The migration wizard will appear with the following steps.
 
 1. **Choose resources:** Choose all the object types, link types, or action types on which you wish to apply the same roles. The image below displays the interface for choosing resources in the migration wizard:
 
-![Bulk migration.](/docs/resources/foundry/ontology-manager/oma-migration-wizard-choose-resources.png)
+![Bulk migration.](./images/oma-migration-wizard-choose-resources.png)
 
 2. **Related resources:** This step is shown only if there are related resources (link types or action types) that can be migrated.
 3. **Assign roles:** You can manually set the groups/users and the default role you want to assign to these Object types. The roles migrator cannot suggest roles in bulk for now. We strongly recommend using **user groups** over **users** when granting roles.
@@ -109,13 +109,13 @@ The migration wizard will appear with two suggested role options: **Datasource r
 
 The image below shows the roles suggestion in the migration wizard:
 
-![Migrating one resource roles suggestion.](/docs/resources/foundry/ontology-manager/oma-migrating-one-resource-roles-suggestions.png)
+![Migrating one resource roles suggestion.](./images/oma-migrating-one-resource-roles-suggestions.png)
 
 Choose the desired role suggestions, review the suggested [Ontology roles](/docs/foundry/object-permissioning/ontology-permissions-legacy/#ontology-roles) and the default role for the object type, then make modifications if necessary. Next, view the summary, acknowledge the implication, and complete the migration to apply the roles.
 
 The image below shows how to assign roles in the migration wizard:
 
-![Migrating one resource assign roles.](/docs/resources/foundry/ontology-manager/oma-migrating-one-resource-assign-roles.png)
+![Migrating one resource assign roles.](./images/oma-migrating-one-resource-assign-roles.png)
 
 ##### Exceptions
 
@@ -148,6 +148,6 @@ Object Explorer will also update the permission checks for editing Object Views 
 
 If Foundry failed to automatically detect the object types an Ontology Edit Function is editing, the action will fail after submission with the following error.
 
-![Functions provenance error.](/docs/resources/foundry/ontology-manager/functions-provenance-error.png)
+![Functions provenance error.](./images/functions-provenance-error.png)
 
 To resolve this error, follow the steps explained in the [Functions documentation](/docs/foundry/functions/edits-overview/).

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontology/why-ontology/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontology/why-ontology/ · mirrored 2026-08-05 from Palantir Foundry docs -->
 
 # Why create an Ontology?
 
@@ -15,7 +15,7 @@ Palantir models each operational decision as comprising four components:
 * **[Action](#action):** The orchestration and execution of the chosen decision.
 * **[Security](#security):** The assurance that the decision complies with operational policies.
 
-![At a fundamental level, every decision is comprised of data (the information used to make a decision), logic (the process of evaluating a decision), and action (the execution of the decision) — all of which must be governed by security to ensure decisions are made safely and consistently.](/docs/resources/foundry/ontology/why-ontology-overview.png)
+![At a fundamental level, every decision is comprised of data (the information used to make a decision), logic (the process of evaluating a decision), and action (the execution of the decision) — all of which must be governed by security to ensure decisions are made safely and consistently.](./images/why-ontology-overview.png)
 
 The Ontology integrates these four elements into a scalable, dynamic, collaborative resource which enables decision-making, informed by the ever-changing conditions and needs of your organization.
 
@@ -27,7 +27,7 @@ The Ontology integrates this data into a full-scale, full-fidelity semantic repr
 
 The Ontology safely captures the decision data produced by operational users as they carry out daily work, whether in supply chains, hospital systems, customer service centers, or elsewhere. This includes decisions made at the edge, captured through the lightweight [Embedded Ontology ↗](https://blog.palantir.com/osdk-and-mobile-applications-building-with-the-embedded-ontology-668432da6572). The end-to-end "decision lineage" of when a given decision was made, atop which version of enterprise data, and through which application, is automatically captured and securely accessible to both human developers and agents. Together, these data resources can power AI-driven learning at scale and continuously refine short-term and long-term agentic memory.
 
-![The Ontology integrates all modalities of data into a full-scale, full-fidelity semantic representation that captures the constantly evolving reality of the enterprise and serves as the foundation for human-agent workflows.](/docs/resources/foundry/ontology/why-ontology-data.png)
+![The Ontology integrates all modalities of data into a full-scale, full-fidelity semantic representation that captures the constantly evolving reality of the enterprise and serves as the foundation for human-agent workflows.](./images/why-ontology-data.png)
 
 ### Logic
 
@@ -39,7 +39,7 @@ The Ontology enables the full set of logic assets — the calculations and proce
 
 The Ontology’s flexible "logic binding" paradigm provides a consistent interface for constructing workflows that incorporate and combine heterogeneous logic assets from different environments (such as on-premises data centers, enterprise cloud environments, SaaS environments, or the Palantir platform itself). This enables the introduction of agent-driven reasoning into decision-making contexts with diverse sets of logic, which were previously the exclusive domain of human users.
 
-![The Ontology enables users to construct workflows that incorporate tribal knowledge and combine heterogeneous logic assets. Ultimately, this means that agents can be securely introduced into increasingly complex decision-making contexts.](/docs/resources/foundry/ontology/why-ontology-logic.png)
+![The Ontology enables users to construct workflows that incorporate tribal knowledge and combine heterogeneous logic assets. Ultimately, this means that agents can be securely introduced into increasingly complex decision-making contexts.](./images/why-ontology-logic.png)
 
 ### Action
 
@@ -49,7 +49,7 @@ The Ontology natively models actions within a cohesive, decision-centric model o
 
 Uniting data within a semantic model and combining it with the logic required to evaluate decisions is valuable, but ultimately limited unless the executed decisions can be synchronized with operational systems in a way that *compounds*, with each decision informing the next in a shared lineage. The Ontology enables human and agent actions to be safely staged as scenarios, governed with the same granular access controls as data and logic primitives, and securely written back to every enterprise substrate (transactional systems, edge devices, custom applications, and so on).
 
-![The Ontology natively models actions within a cohesive, decision-centric model of the enterprise, enabling human and AI-driven actions to be safely staged as scenarios, governed with the same access controls as data and logic primitives, and securely written back to every enterprise substrate.](/docs/resources/foundry/ontology/why-ontology-action.png)
+![The Ontology natively models actions within a cohesive, decision-centric model of the enterprise, enabling human and AI-driven actions to be safely staged as scenarios, governed with the same access controls as data and logic primitives, and securely written back to every enterprise substrate.](./images/why-ontology-action.png)
 
 ### Security
 
@@ -69,7 +69,7 @@ As detailed telemetry is generated by agents, the security and transmission of t
 
 The Ontology brings together data, logic, action, and security into a decision-centric model of the enterprise, which can be jointly leveraged by both humans and agents. From data integration to application building to end user workflows, the platform's modular architecture enables human users and agents to query, reason, and act across a shared operational foundation.
 
-![The Ontology cohesively governs human-agent activity in a decision-centric model of the enterprise, enabling role-, marking-, and purpose-based policies to be dynamically computed at runtime, applied consistently across every human and agent interaction with data, logic, and action primitives, and extended seamlessly to tool invocations, agent memory, and telemetry logs.](/docs/resources/foundry/ontology/why-ontology-security.png)
+![The Ontology cohesively governs human-agent activity in a decision-centric model of the enterprise, enabling role-, marking-, and purpose-based policies to be dynamically computed at runtime, applied consistently across every human and agent interaction with data, logic, and action primitives, and extended seamlessly to tool invocations, agent memory, and telemetry logs.](./images/why-ontology-security.png)
 
 ## Example of an operational workflow
 
@@ -81,7 +81,7 @@ In this scenario, Onyx Incorporated, a fictional manufacturer of medical equipme
 
 Imagine that Onyx is faced with an unexpected disruption with one of their major suppliers, which provides the key raw materials needed to produce surgical masks. Given the tight production schedules across Onyx’s manufacturing plants and the escalating demand from customers for surgical masks, this disruption could create serious issues with fulfilling outstanding customer orders. To respond, Onyx’s operational teams have decided to use Palantir's [AI FDE](/docs/foundry/ai-fde/overview/) to connect a wide array of data sources, logic assets, and systems of action into their enterprise ontology.
 
-![Onyx’s ontology brings together all decision-making elements necessary to navigate this raw materials disruption: It provides full visibility into revenue impact for each shortage to inform prioritization, allows for agentic recommendations and resolutions which account for the enterprise’s operational reality, and drives writeback and continuous learning to not only keep systems current, but also optimize future decisions.](/docs/resources/foundry/ontology/why-ontology-onyx-decision.png)
+![Onyx’s ontology brings together all decision-making elements necessary to navigate this raw materials disruption: It provides full visibility into revenue impact for each shortage to inform prioritization, allows for agentic recommendations and resolutions which account for the enterprise’s operational reality, and drives writeback and continuous learning to not only keep systems current, but also optimize future decisions.](./images/why-ontology-onyx-decision.png)
 
 ### Gaining visibility into the problem
 
@@ -91,7 +91,7 @@ Onyx’s ontology provides real-time, end-to-end visibility into the operations 
 
 While operational users can easily navigate the Ontology through [Workshop](/docs/foundry/workshop/overview/)- and [SDK](/docs/foundry/ontology-sdk/overview/)-driven applications, the inclusion of agentic capabilities is a force multiplier for Onyx Incorporated. Agents leveraging both open-source and proprietary LLMs can navigate across supplier information, stock levels, real-time production metrics, shipping manifests, and customer feedback all contained within the organization’s ontology. Importantly, all agentic activity is controlled with the same security policies that govern human usage, ensuring that Onyx engineers always have precise control over what the LLMs can query, recommend, and act upon. Each constructed and deployed agent can be treated like a new team member that is gradually granted a wider purview as Onyx team members gain confidence in its performance.
 
-![Onyx’s ontology integrates data from the organization’s vital systems, synthesizing it into semantic objects and links which provide real-time, end-to-end visibility into operations and allow both leadership and on-the-ground users to rapidly assess the full impact of the disruption.](/docs/resources/foundry/ontology/why-ontology-onyx-data.png)
+![Onyx’s ontology integrates data from the organization’s vital systems, synthesizing it into semantic objects and links which provide real-time, end-to-end visibility into operations and allow both leadership and on-the-ground users to rapidly assess the full impact of the disruption.](./images/why-ontology-onyx-data.png)
 
 ### Building simulations and designing solutions
 
@@ -103,7 +103,7 @@ Even more valuable for the Onyx team is that fleets of agents can securely lever
 
 In this case, Onyx has created a tuned agent, "Disruption Bot", that can use a set of Ontology-driven tools to scan across the full range of enterprise data sources, the after-action reports on prior courses of action taken in similar situations, and the potentially applicable material reallocation models. Thanks to the rich, dense context provided through the Ontology, Disruption Bot is able to surface a novel reallocation plan, which uses a newer model that the supply chain analysts had not yet considered. With the consequences of the plan safely staged in a scenario, the agent’s proposed decision is handed off to a human analyst for final review.
 
-![The Ontology securely surfaces Onyx’s logic assets — from machine learning to optimization models — as AI-ready tools, providing rich, dense context for human-agent teaming.](/docs/resources/foundry/ontology/why-ontology-onyx-logic.png)
+![The Ontology securely surfaces Onyx’s logic assets — from machine learning to optimization models — as AI-ready tools, providing rich, dense context for human-agent teaming.](./images/why-ontology-onyx-logic.png)
 
 ### Executing decisions and taking action
 
@@ -111,13 +111,13 @@ With a viable plan to address the material shortage identified, Onyx needs to ra
 
 The Ontology provides the guardrails needed for AI to safely take action within permitted boundaries. Alongside data and logic, actions can be automatically surfaced as tools for all types of agents. The scope of an action can be limited to simply reflecting a given change (such as an edit to an object or the creation of a new object) in the Ontology itself; or can write back to single or multiple systems. In this case, Onyx has granted Disruption Bot and a few other production AI agents access to a small set of actions. In the default case, these actions (like changing the status of a work order or pushing a reallocation plan) can only be staged by the AI, before being handed off to a human for final review. However, with the granular logging and operational instrumentation provided by the Ontology (and the wider Palantir platform), Onyx is able to carefully choose whether any trusted, well-tested AI processes can automatically close the action loop without human review. As conditions evolve, the latitude given to AI can be expanded or contracted, with any change instantly reflected across all Ontology-driven workflows.
 
-![The Ontology allows Onyx to automatically surface actions as tools for AI-driven agents and automations while providing the necessary guardrails for AI to safely take action within predetermined boundaries.](/docs/resources/foundry/ontology/why-ontology-onyx-actions.png)
+![The Ontology allows Onyx to automatically surface actions as tools for AI-driven agents and automations while providing the necessary guardrails for AI to safely take action within predetermined boundaries.](./images/why-ontology-onyx-actions.png)
 
 ### Learning from decisions
 
 What comes after the immediate crisis is past? With data, logic, action, and security all connected into Onyx’s ontology, the organization can conduct powerful decision-centric learning. The human-agent teaming that produced a specific solution to the material shortage also revealed generalizable workflows, which the organization will want to memorialize and surface in the future. Every data element, logic asset, and action assessed is captured in an end-to-end decision lineage, which serves as rich, contextual fuel for optimizing the performance of AI. The aggregate decisions made by thousands of users and agents throughout Ontology can be securely leveraged as training data when fine-tuning models, and can be distilled into targeted principles that are called upon during agent prompting. The tribal knowledge that has been traditionally trapped in the seams of workflows can be illuminated by AI to improve the operation of the entire enterprise.
 
-![The Ontology captures updates to every data element, logic asset, and action as decisions are securely made — which serves as rich, contextual fuel for optimizing the performance of humans and agents over time.](/docs/resources/foundry/ontology/why-ontology-onyx-learning.png)
+![The Ontology captures updates to every data element, logic asset, and action as decisions are securely made — which serves as rich, contextual fuel for optimizing the performance of humans and agents over time.](./images/why-ontology-onyx-learning.png)
 
 ## Onward with the Ontology
 

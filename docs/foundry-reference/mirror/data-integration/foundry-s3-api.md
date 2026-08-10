@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-s3-api/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-integration/foundry-s3-api/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # S3-compatible API for Foundry datasets
 
@@ -6,7 +6,7 @@ The S3-compatible API for Foundry datasets allows you to interact with Foundry d
 
 Foundry exposes a subset of the [Amazon Simple Storage Service (S3) API ↗](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html), allowing you to interact with Foundry datasets using clients that know how to speak to S3 storage services. Examples include the AWS CLI, AWS SDKs, Hadoop S3 filesystem, and Cyberduck.
 
-![S3-compatible API for Foundry datasets](/docs/resources/foundry/data-integration/foundry-s3-api.png)
+![S3-compatible API for Foundry datasets](./images/foundry-s3-api.png)
 
 The S3 API is not fully implemented as not all S3 concepts map naturally to concepts in Foundry. For example, creation and deletion of buckets (which represent Foundry datasets) is not currently supported; datasets should be created in Foundry ahead of using the API. However, the majority of file read/write/delete workflows are supported, including multipart uploads. See [Supported actions](#supported-actions) for a list of which S3 actions are supported.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-app-sidebar/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Configure the applications sidebar
 
@@ -12,13 +12,13 @@ In the example below, you can see an `Airport` object. The body tab includes pri
 * A Slate application used to manage the airport’s passengers capacity; and
 * A dedicated application for airport COVID response.
 
-![Application sidebar in Object View](/docs/resources/foundry/object-views/application-sidebar-object-view.png)
+![Application sidebar in Object View](./images/application-sidebar-object-view.png)
 
 ## Set up the applications sidebar
 
 The applications sidebar is an optional, opt-in addition per Object View. The sidebar is not visible to users until you add a group to it. The **Add new group** option can be found under the **Sidebar** tab or by expanding the sidebar itself (as shown in the image below). Once a builder adds applications and/or actions and publishes that version, the sidebar will be displayed to end users. The sidebar will not be displayed if it only contains an empty group or groups.
 
-![Add new application sidebar group in Object View](/docs/resources/foundry/object-views/add-application-sidebar-groups.png)
+![Add new application sidebar group in Object View](./images/add-application-sidebar-groups.png)
 
 Once you add applications and/or actions and publish your changes, the sidebar will be displayed to users. The sidebar will not be displayed if it only contains an empty group or groups.
 
@@ -50,7 +50,7 @@ The sidebar has a dedicated configuration for each group and application card in
 
 6. Add new groups
 
-<img src="./media/configuring-applications-sidebar_applications-sidebar-config.png" alt="Applications Sidebar Config" width="500" />
+<img src="./images/configuring-applications-sidebar_applications-sidebar-config.png" alt="Applications Sidebar Config" width="500" />
 
 ## Add/change an application in the sidebar
 

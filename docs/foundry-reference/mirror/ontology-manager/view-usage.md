@@ -17,7 +17,7 @@ There are two places in the Ontology Manager to view object type and link type u
 
 * A usage graph on the **Overview** tab: High-level summary of usage over the last 30 days, enabling Ontology users to quickly understand the implications of making a breaking change to this resource.
 
-![Usage graph on the overview tab](/docs/resources/foundry/ontology-manager/oma-user-interface-overview-usage.png)
+![Usage graph on the overview tab](./images/oma-user-interface-overview-usage.png)
 
 :::callout{theme="warning" title="Warning"}
 If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it’s possible that internal tables may not have been configured. Contact your Palantir representative for more information.
@@ -25,7 +25,7 @@ If you see “No usage for the last 30 days” in the usage graph when you would
 
 * A dedicated **Usage** tab: Detailed usage metrics for resources. Users can see, over the last 30 days, who has used each object type, when, and in which Foundry applications. The feature is intended to help Ontology users make Ontology changes more safely by providing a clearer understanding of a change's impact. The **Usage** tab can also be accessed by clicking **See more** on the usage graph in the **Overview** tab.
 
-![Usage tab](/docs/resources/foundry/ontology-manager/oma-user-interface-usage-tab.png)
+![Usage tab](./images/oma-user-interface-usage-tab.png)
 
 ## Enabling Ontology usage
 

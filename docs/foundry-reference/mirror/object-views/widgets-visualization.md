@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-visualization/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-visualization/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Visualization
 
@@ -12,9 +12,9 @@ In addition to a table view, a simple list view and a card view are also availab
 
 Example for Linked Object View (Table) without a Filter Sidebar, and with a Filter Sidebar:
 
-![Linked Object View Table without filter sidebar](/docs/resources/foundry/object-views/widgets_linked-object-view-without-sidebar.png)
+![Linked Object View Table without filter sidebar](./images/widgets_linked-object-view-without-sidebar.png)
 
-![Linked Object View Table with Filter sidebar](/docs/resources/foundry/object-views/widgets_linked-object-view-with-sidebar.png)
+![Linked Object View Table with Filter sidebar](./images/widgets_linked-object-view-with-sidebar.png)
 
 ### Configuration
 
@@ -57,7 +57,7 @@ This widget can include one or more types of objects linked to the current objec
 
 For a graph timeline, use the [Grouped Events Timeline and Table](#grouped-events-timeline-and-table) widget.
 
-![Timeline](/docs/resources/foundry/object-views/widgets_timeline.png)
+![Timeline](./images/widgets_timeline.png)
 
 ### Configuration
 
@@ -106,7 +106,7 @@ Grouped events are plotted on separate parallel lines, with each line including 
 
 This widget can include one or more types of objects linked to the current object directly, or through a linked object. It can also display the same event by different date properties (examples below).
 
-![Grouped Events Timeline and Table](/docs/resources/foundry/object-views/widgets_hu-grouped-events-table.gif)
+![Grouped Events Timeline and Table](./images/widgets_hu-grouped-events-table.gif)
 
 ### Configuration
 

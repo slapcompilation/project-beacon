@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/widgets-apps-files/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/widgets-apps-files/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Apps and Files
 
@@ -185,7 +185,7 @@ For filters grouped by object type send:
 
 This widget shows a single large inline preview of a media file, given an attachment property or a property that is a URL of some type of media (image, PDF, etc.).
 
-![media preview](/docs/resources/foundry/object-views/widgets_hu-media-preview.png)
+![media preview](./images/widgets_hu-media-preview.png)
 
 ### Configuration
 
@@ -195,15 +195,15 @@ Alternatively, the Media Preview widget can also be used to display existing med
 
 1. **Upload media to Foundry:** Datasets can be used as a way to store a collection of arbitrary files. To create such a dataset, you can begin by uploading the files to a folder and, in the pop-up that appears, selecting **Bundle all files as a single dataset**. If you're only uploading a single file, this option will appear as **Upload to a dataset without a schema**.
 
-![upload files as dataset](/docs/resources/foundry/object-views/widgets_hu-upload-files.png)
+![upload files as dataset](./images/widgets_hu-upload-files.png)
 
 Once this dataset has been created, you can add additional files as needed. To do so, click **Import** on the top right of the dataset preview.
 
-![import additional files](/docs/resources/foundry/object-views/widgets_hu-import-additional-files.png)
+![import additional files](./images/widgets_hu-import-additional-files.png)
 
 In the dialog that appears, select additional files to upload.
 
-![upload additional files](/docs/resources/foundry/object-views/widgets_hu-upload-additional-files.png)
+![upload additional files](./images/widgets_hu-upload-additional-files.png)
 
 2. **Add a URL column:** In the backing dataset of the current object in view, add a new column that contains the URL of the media file for each corresponding row. The URL should be of the format: `https://{my-foundry-url}/foundry-data-proxy/api/web/dataproxy/datasets/{dataset rid}/transactions/{transaction rid}/{filename}` OR `https://{my-foundry-url}/foundry-data-proxy/api/web/dataproxy/datasets/{dataset rid}/views/{branch name}/{filename}`
    * Example: `https://{my-foundry-url}/foundry-data-proxy/api/web/dataproxy/datasets/ri.foundry.main.dataset.39ce332b-1d74-40ca-be35-5a5b48459a9a/transactions/ri.foundry.main.transaction.00000000-0000-30d2-8067-4b5d9c819f4c/sample-doc.pdf`
@@ -223,7 +223,7 @@ Other parameters to configure:
 
 The Hyperlinks widget creates a button that works as a simple link to a webpage. You can add any number of links to an object view and each can be either static (that is, the same link for all objects instances) or dynamic per-object link.
 
-![Hyperlink.png](/docs/resources/foundry/object-views/widgets_hyperlink.png)
+![Hyperlink.png](./images/widgets_hyperlink.png)
 
 ### Configuration
 
@@ -251,7 +251,7 @@ The Hyperlinks widget creates a button that works as a simple link to a webpage.
 
 The Linked Files widget enables users to link the object in view to a file, either by browsing with a resource selector to select a file already in Foundry, or by uploading a new file to Foundry from their local machine.
 
-![Linked files](/docs/resources/foundry/object-views/widgets_hu-linked-compass-resources.png)
+![Linked files](./images/widgets_hu-linked-compass-resources.png)
 
 ### Configuration
 

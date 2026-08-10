@@ -1,5 +1,5 @@
 // FoundrySidebar — Phase 1 of the AIP visual-parity roadmap
-// (docs/AIP-UX-RESTRUCTURE.md §0.4). A faithful replica of Foundry's expanded
+// A faithful replica of Foundry's expanded
 // left sidebar: a dark, ~240px, 5-section vertical rail, mapped to Beacon's
 // surfaces. Presentational only — the preview page drives state; wiring it in as
 // the global nav (retiring the bottom CommandDock) is the next step, after the

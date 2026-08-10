@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-views/config-tabs/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-views/config-tabs/ · mirrored 2026-08-08 from Palantir Foundry docs -->
 
 # Configure tabs
 
@@ -17,20 +17,20 @@ Some tabs were built with the **Legacy** builder, which allowed you to create si
 
 You can add a tab from two places within the editor: the **Tabs** section of the Object View editor sidebar, or the **Add tab** button in the tab list on the Object View preview itself. Either option will allow you to select the tab type of your choice.
 
-![Add new tab in Object View](/docs/resources/foundry/object-views/add-new-tab.png)
+![Add new tab in Object View](./images/add-new-tab.png)
 
 ### Delete a tab
 
 You can delete a tab from the list of tabs within the Object View editor sidebar. You can also click into the tab in the editor sidebar, navigate to **Advanced** , and click **Delete tab**.
 
-![Delete a tab in Object View with editor sidebar](/docs/resources/foundry/object-views/delete-tab-in-editor-sidebar.png)
-![Delete a tab in Object View with Advanced settings](/docs/resources/foundry/object-views/delete-tab-in-advanced-settings.png)
+![Delete a tab in Object View with editor sidebar](./images/delete-tab-in-editor-sidebar.png)
+![Delete a tab in Object View with Advanced settings](./images/delete-tab-in-advanced-settings.png)
 
 ### Move a tab
 
 Move a tab using the Object View editor sidebar list of tabs. Click the up or down arrows to rearrange their order in the Object View preview.
 
-![Move tabs in Object View editor sidebar](/docs/resources/foundry/object-views/move-tabs.png)
+![Move tabs in Object View editor sidebar](./images/move-tabs.png)
 
 ## Configure tab settings
 
@@ -44,7 +44,7 @@ A tab can be conditionally shown to viewing users in several ways. One method is
 
 Here is an example of how these conditions may appear:
 
-![Configure tab visibility with property values and link visibility](/docs/resources/foundry/object-views/tab-visibility.png)
+![Configure tab visibility with property values and link visibility](./images/tab-visibility.png)
 
 ### Tab settings
 
@@ -57,4 +57,4 @@ Other general tab settings that you may configure include:
 
 Here is an example of configured tab settings:
 
-![Edit tab settings on Object View](/docs/resources/foundry/object-views/tab-settings.png)
+![Edit tab settings on Object View](./images/tab-settings.png)

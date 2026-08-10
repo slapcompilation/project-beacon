@@ -11,7 +11,7 @@ If your downstream applications cannot be updated at the same time as interface 
 
 From the **Properties** tab of the interface configuration, choose **New property**. This will open an interface property configuration side panel.
 
-<img src="./media/edit-interface-properties.png" alt="Edit interface properties." width="800" />
+<img src="./images/edit-interface-properties.png" alt="Edit interface properties." width="800" />
 
 The available options for editing property metadata are clustered into four different tabs which give access to the following configurations:
 
@@ -47,13 +47,13 @@ From the **Action type constraints** tab, select **Create new action type constr
 
 From the **Properties** tab, select **...** next to the property you wish to remove from the interface. Alternatively, open the interface property side panel and select the trash icon in the upper right corner.
 
-<img src="./media/remove-property-from-interface.png" alt="Remove property from an interface." width="800" />
+<img src="./images/remove-property-from-interface.png" alt="Remove property from an interface." width="800" />
 
 ## Remove or edit link type constraints
 
 From the **Link type constraint** tab, select **...** next to the link type constraint you wish to edit or remove from the interface.
 
-<img src="./media/remove-link-type-constraint.png" alt="Remove or edit a link type constraint." width="800" />
+<img src="./images/remove-link-type-constraint.png" alt="Remove or edit a link type constraint." width="800" />
 
 If editing a constraint, you can update the metadata as you would if you were [creating the link type constraint](/docs/foundry/interfaces/create-interface/#create-interface-link-types-optional) for the first time.
 

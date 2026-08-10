@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-link-types/marketplace-ontology-types/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-link-types/marketplace-ontology-types/ · mirrored 2026-08-06 from Palantir Foundry docs -->
 
 # Add object and link types to a Marketplace product
 
@@ -27,7 +27,7 @@ To add an object type to a product, first [create a product](/docs/foundry/found
 
 You will then be prompted to choose an object type. After selecting an object type, you will see recommendations for linked object types that you may want to add to your product.
 
-![add object type](/docs/resources/foundry/object-link-types/marketplace-add-object-type-dialog.png)
+![add object type](./images/marketplace-add-object-type-dialog.png)
 
 ## Add link types to products
 
@@ -35,11 +35,11 @@ To add a link type to a product, first [create a product](/docs/foundry/foundry-
 
 You will then be prompted to choose a link type as below.
 
-![add link type](/docs/resources/foundry/object-link-types/marketplace-add-link-type-dialog.png)
+![add link type](./images/marketplace-add-link-type-dialog.png)
 
 While you can select link types directly, we recommend first adding your object types and then selecting relevant links via the [information panel](/docs/foundry/foundry-devops/create-products/#add-outputs) as below.
 
-![add link type via panel](/docs/resources/foundry/object-link-types/marketplace-add-link-type-panel.png)
+![add link type via panel](./images/marketplace-add-link-type-panel.png)
 
 ## Add shared properties to products
 
@@ -47,7 +47,7 @@ To add a shared property type to a product, first [create a product](/docs/found
 
 You will then be prompted to choose a shared property.
 
-![Add a shared property to a Marketplace product.](/docs/resources/foundry/object-link-types/marketplace-add-shared-property-dialog.png)
+![Add a shared property to a Marketplace product.](./images/marketplace-add-shared-property-dialog.png)
 
 ## Add interface types to products
 
@@ -55,4 +55,4 @@ To add an interface type to a product, first [create a product](/docs/foundry/fo
 
 You will then be prompted to choose an interface.
 
-![Add an interface type to a Marketplace product.](/docs/resources/foundry/object-link-types/marketplace-add-interface-dialog.png)
+![Add an interface type to a Marketplace product.](./images/marketplace-add-interface-dialog.png)

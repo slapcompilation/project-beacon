@@ -11,7 +11,7 @@ Ontology schema definitions are stored in a [JSON file ↗](https://en.wikipedia
 * If you prefer to make Ontology edits in code, you can bypass the Ontology Manager interface by exporting the Ontology JSON file, editing the JSON file directly in a code editor or text editor, and then importing the modified Ontology JSON file back into the platform.
 * If you’d like to copy the working state of one Ontology to another Ontology, you can export the Ontology’s current state as a JSON file and then import the copied JSON back into the platform (making any desired changes to the JSON in a code editor).
 
-![Edit ontology JSON](/docs/resources/foundry/ontology-manager/import-export-edit-ontology-json.png)
+![Edit ontology JSON](./images/import-export-edit-ontology-json.png)
 
 ## Export
 

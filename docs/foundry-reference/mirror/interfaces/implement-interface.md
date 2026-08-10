@@ -19,31 +19,31 @@ Follow the steps below to implement an interface with an object type.
 
 First, navigate to the object type in Ontology Manager and open the **Interfaces** tab. Select **+ Implement new interface** in the top right corner of the page.
 
-<img src="./media/implement-from-object-type.png" alt="Implement an interface from an object type." width="800" />
+<img src="./images/implement-from-object-type.png" alt="Implement an interface from an object type." width="800" />
 
 In the dialog that appears, select the interface to implement.
 
-<img src="./media/implement-select-interface.png" alt="Select interface to implement." width="800" />
+<img src="./images/implement-select-interface.png" alt="Select interface to implement." width="800" />
 
 Alternatively, navigate to the interface overview page and select **+ New** in the **Implementations** section.
 
-<img src="./media/implement-from-interface-overview.png" alt="Implement an interface from the interface overview." width="800" />
+<img src="./images/implement-from-interface-overview.png" alt="Implement an interface from the interface overview." width="800" />
 
 Then, select the object type to implement the interface.
 
-<img src="./media/implement-select-object-type.png" alt="Select interface to implement." width="800" />
+<img src="./images/implement-select-object-type.png" alt="Select interface to implement." width="800" />
 
 ### 2. Map local properties
 
 To implement an interface, an object type must declare a mapping of existing object properties onto the required interface properties. If an interface property is marked as **optional**, mapping may be skipped.
 
-<img src="./media/implement-map-properties.png" alt="Map properties between the interface and the implementing object type." width="800" />
+<img src="./images/implement-map-properties.png" alt="Map properties between the interface and the implementing object type." width="800" />
 
 ### 3. Map link type constraints
 
 If any required [link type constraints](/docs/foundry/interfaces/interface-link-types-overview/) are declared on the interface, you must select a link type on the object type that satisfies each required link type constraint. You can also optionally provide a link mapping for any non-required link type constraints. You can choose an existing link type or create a new one to satisfy each constraint.
 
-<img src="./media/implement-link-type-constraint.png" alt="Map link types to fulfill link type constraints." width="800" />
+<img src="./images/implement-link-type-constraint.png" alt="Map link types to fulfill link type constraints." width="800" />
 
 ### 4. Map action type constraints
 
@@ -63,29 +63,29 @@ Follow the steps below to implement an interface on an [object type output](/doc
 
 Select the object type output that you would like to implement an interface, then select the **Edit** option.
 
-<img src="./media/implement-interface-object-type-output-edit.png" alt="Edit object type output." width="800" />
+<img src="./images/implement-interface-object-type-output-edit.png" alt="Edit object type output." width="800" />
 
 ### 2. Select the interface to implement
 
 Select **Implement interface**.
 
-<img src="./media/implement-interface-pipeline-builder-implement-button.png" alt="Select Implement interface." width="800" />
+<img src="./images/implement-interface-pipeline-builder-implement-button.png" alt="Select Implement interface." width="800" />
 
 Then, select the interface to implement and choose **Implement and go to mapping**.
 
-<img src="./media/implement-interface-pipeline-builder-selection.png" alt="Interface selection and go to mapping." width="800" />
+<img src="./images/implement-interface-pipeline-builder-selection.png" alt="Interface selection and go to mapping." width="800" />
 
 ### 3. Map local properties
 
 To implement an interface, an object type must contain the interface's shared properties **or** declare a mapping of existing object properties onto the interface shared properties. Shared properties that are present on both the interface and object type will be automatically mapped. Any shared properties that are not on the object type will require you to manually input a mapping to satisfy the interface definition.
 
-<img src="./media/implement-interface-pipeline-builder-mapping.png" alt="Map local properties." width="800" />
+<img src="./images/implement-interface-pipeline-builder-mapping.png" alt="Map local properties." width="800" />
 
 ### 4. Review implemented interfaces
 
 You can view the interfaces implemented by this object type output from the output type configuration panel.
 
-<img src="./media/implement-interface-pipeline-builder-review.png" alt="Review implemented interfaces." width="800" />
+<img src="./images/implement-interface-pipeline-builder-review.png" alt="Review implemented interfaces." width="800" />
 
 :::callout{theme="neutral"}
 Pipeline Builder does not currently support link type constraint or action type constraint mapping when implementing an interface. If your interface contains required link type constraints or required action type constraints, you must implement the interface through Ontology Manager.
