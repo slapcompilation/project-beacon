@@ -10,6 +10,7 @@ import { client } from '@/lib/supabase/ontologyClient'
 
 interface Row {
   id: string
+  ontology_id: string
   api_name: string
   label: string
   description: string
@@ -17,8 +18,12 @@ interface Row {
   visibility: 'prominent' | 'normal' | 'hidden'
 }
 
-const toDef = (r: Row): SharedPropertyDef => ({
-  id: r.id, apiName: r.api_name,
+/** A definition plus the ontology it belongs to. `shared_properties.ontology_id`
+ *  is NOT NULL, so "all shared properties" is never the right list to show. */
+export interface SharedProperty extends SharedPropertyDef { ontologyId: string }
+
+const toDef = (r: Row): SharedProperty => ({
+  id: r.id, ontologyId: r.ontology_id, apiName: r.api_name,
   label: r.label, description: r.description, baseType: r.base_type,
   visibility: r.visibility,
 })
@@ -28,7 +33,7 @@ const key = ['shared-properties'] as const
 export function useSharedProperties() {
   return useQuery({
     queryKey: key,
-    queryFn: async (): Promise<SharedPropertyDef[]> => {
+    queryFn: async (): Promise<SharedProperty[]> => {
       const { data, error } = await supabase.from('shared_properties').select('*').order('label')
       if (error) throw new Error(error.message)
       return (data as Row[]).map(toDef)
@@ -48,10 +53,11 @@ export function useSharedPropertyMap(): Map<string, SharedPropertyDef> {
 export function useCreateSharedProperty() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (i: { apiName: string; label: string; description: string; baseType: PropertyType }) =>
+    mutationFn: (i: { apiName: string; label: string; description: string; baseType: PropertyType; ontologyId: string }) =>
       client(saveSharedProperty).applyAction({
         p_property: {
           api_name: i.apiName, label: i.label, description: i.description, base_type: i.baseType,
+          ontology_id: i.ontologyId,
         } as unknown as Json,
       }),
     onSuccess: () => {

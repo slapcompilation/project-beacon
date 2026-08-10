@@ -5,14 +5,15 @@
 // drop-down to select between different Ontologies (if more than one is
 // available)." The screenshot shows the display name over the folder it lives
 // in — `Palantir (Unmarked) Ontology` above `Palantir (Unmarked)` — so it is two
-// lines, not one.
+// lines, not one, and it sits above the sidebar's own entries with a folder
+// icon and a vertical double-caret (readings/home-and-navigation.md §6.3).
 //
 // Selecting an ontology is selecting a space, because a space holds exactly one.
 
 import { useState } from 'react'
 import {
   Button, Callout, Card, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
-  InputGroup, Intent, Tag,
+  InputGroup, Intent, Menu, MenuDivider, MenuItem, Popover, Tag,
 } from '@blueprintjs/core'
 import { toSlug } from '@beacon/ontology'
 import {
@@ -29,47 +30,51 @@ export function OntologyPicker({ value, onChange }: {
   // index signature would claim otherwise.
   const selected = ontologies.find((o) => o.id === value) ?? ontologies.at(0)
 
-  // Nothing to pick. An object type cannot be created without one, so this is
-  // the first thing to do rather than an empty dropdown.
-  if (!isLoading && ontologies.length === 0) {
-    return (
-      <>
-        <Callout intent={Intent.PRIMARY} icon="cube" title="No ontology yet">
-          <p className="text-[11px] mb-2">
-            A space holds a single ontology, and every object type belongs to one. Create a
-            space and its ontology before defining types.
-          </p>
-          <Button size="small" icon="add" intent={Intent.PRIMARY}
-            onClick={() => { setCreating(true) }}>Create an ontology</Button>
-        </Callout>
-        <NewOntologyDialog isOpen={creating} onClose={() => { setCreating(false) }} />
-      </>
-    )
-  }
+  const menu = (
+    <Menu>
+      <MenuDivider title="Ontology" />
+      {ontologies.map((o) => (
+        <MenuItem key={o.id} icon="cube" text={o.label} label={o.spacePath || o.spaceName}
+          active={o.id === selected?.id} onClick={() => { onChange(o.id) }} />
+      ))}
+      {ontologies.length === 0 && <MenuItem disabled text="None yet" />}
+      {/* A space holds a single ontology, so a new one needs a new space. */}
+      <MenuItem icon="add" text="New ontology…" onClick={() => { setCreating(true) }} />
+    </Menu>
+  )
 
   return (
     <>
-      <div className="flex items-end gap-2">
-        <label className="flex flex-col gap-1 min-w-56">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Ontology
+      <Popover fill content={menu} placement="bottom-start">
+        <button type="button" className="oma-switcher" disabled={isLoading}
+          aria-label={`Ontology: ${selected?.label ?? 'none'}`}>
+          <Icon icon="folder-close" size={14} />
+          <span className="oma-switcher-name">
+            <span className="oma-switcher-label">{selected?.label ?? 'No ontology'}</span>
+            <span className="oma-switcher-space">{selected?.spacePath ?? '—'}</span>
           </span>
-          <HTMLSelect value={selected?.id ?? ''} disabled={isLoading}
-            onChange={(e) => { onChange(e.currentTarget.value) }}>
-            {ontologies.map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
-          </HTMLSelect>
-        </label>
-        {/* The folder the picker shows underneath the name. */}
-        {selected && (
-          <div className="flex items-center gap-1.5 pb-1.5 text-[11px] text-muted-foreground">
-            <Icon icon="folder-close" size={12} />
-            <span className="font-mono">{selected.spacePath || selected.spaceName}</span>
-          </div>
-        )}
-        <Button variant="minimal" size="small" icon="add" className="mb-0.5"
-          title="A space holds a single ontology, so a new one needs a new space"
-          onClick={() => { setCreating(true) }} />
-      </div>
+          <Icon icon="double-caret-vertical" size={14} />
+        </button>
+      </Popover>
+      <NewOntologyDialog isOpen={creating} onClose={() => { setCreating(false) }} />
+    </>
+  )
+}
+
+/** Nothing to pick. An object type cannot be created without an ontology, so
+ *  this is the first thing to do rather than an empty page. */
+export function NoOntologyCallout() {
+  const [creating, setCreating] = useState(false)
+  return (
+    <>
+      <Callout intent={Intent.PRIMARY} icon="cube" title="No ontology yet">
+        <p className="text-[11px] mb-2">
+          A space holds a single ontology, and every object type belongs to one. Create a
+          space and its ontology before defining types.
+        </p>
+        <Button size="small" icon="add" intent={Intent.PRIMARY}
+          onClick={() => { setCreating(true) }}>Create an ontology</Button>
+      </Callout>
       <NewOntologyDialog isOpen={creating} onClose={() => { setCreating(false) }} />
     </>
   )

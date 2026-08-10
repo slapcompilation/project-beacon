@@ -14,7 +14,11 @@ import { rowToInterface } from './api'
 
 const TYPES: PropertyType[] = PROPERTY_TYPES.map((t) => t.value)
 
-export default function InterfacesSection({ types }: { types: ObjectTypeDef[] }) {
+export default function InterfacesSection({ types, ontologyId }: {
+  types: ObjectTypeDef[]
+  /** An interface belongs to one ontology; this is the one the manager is on. */
+  ontologyId: string
+}) {
   const interfaces = useInterfaces()
   const impls = useImplementations()
   const create = useCreateInterface()
@@ -39,7 +43,7 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
         </p>
       </div>
 
-      {(interfaces.data ?? []).map((row) => {
+      {(interfaces.data ?? []).filter((row) => row.ontology_id === ontologyId).map((row) => {
         const iface = rowToInterface(row)
         return (
           <div key={row.id} className="rounded border px-2 py-1.5 space-y-1">
@@ -98,7 +102,7 @@ export default function InterfacesSection({ types }: { types: ObjectTypeDef[] })
             disabled={errors.length > 0}
             onClick={() => {
               create.mutate(
-                { apiName: toSlug(label), label: label.trim(), description: '', properties: draft.properties },
+                { apiName: toSlug(label), label: label.trim(), description: '', properties: draft.properties, ontologyId },
                 { onSuccess: () => { setLabel(''); setProps([{ key: '', label: '', type: 'string' }]) } },
               )
             }}>

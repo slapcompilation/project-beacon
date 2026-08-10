@@ -73,6 +73,11 @@ const TITLES = new Map<string, string>([
   ['/', 'Home'],
   ['/account', 'Account'],
   ...AUDIENCES.flatMap((a) => a.apps.map((app): [string, string] => [app.path, app.name])),
+  // Ontology Manager's own pages, so Recent can name one rather than dropping it.
+  ['/ontology/object-types', 'Object types'],
+  ['/ontology/shared-properties', 'Shared Properties'],
+  ['/ontology/link-types', 'Link types'],
+  ['/ontology/interfaces', 'Interfaces'],
 ])
 
 /** A path we can name. Recent lists nothing else — an unnamed row is a dead row. */
