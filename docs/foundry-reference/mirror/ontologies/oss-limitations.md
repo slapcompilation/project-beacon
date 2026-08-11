@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/ontologies/oss-limitations/ · mirrored 2026-08-07 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/ontologies/oss-limitations/ · mirrored 2026-08-11 from Palantir Foundry docs -->
 
 # Object Set Service limitations
 
