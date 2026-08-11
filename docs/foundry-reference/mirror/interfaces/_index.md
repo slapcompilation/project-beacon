@@ -4,7 +4,7 @@
 
 An **interface** is an Ontology type that describes the shape of an object type and its capabilities. Interfaces allow for consistent modeling of and interaction with object types that share a common shape. For example, a `Facility` interface may include `Facility Name` and `Location` properties. `Facility` could be implemented by object types such as `Airport`, `Manufacturing Plant`, or `Maintenance Hangar`, which could each contain additional type-specific properties.
 
-<img src="./media/interface-example.png" alt="An example of a `Facility` interface." width="800" />
+<img src="./images/interface-example.png" alt="An example of a `Facility` interface." width="800" />
 
 By using the `Facility` interface, workflows can interact with `Airport`, `Manufacturing Plant`, and `Maintenance Hangar` object types, either in aggregate or independently, without needing to know specific details about those object types. Additionally, if new object types that implement the `Facility` interface are introduced, the workflow will be immediately compatible with the new object types without additional refactors.
 
@@ -26,7 +26,7 @@ By contrast, interfaces are abstract; they have schemas defined by interface pro
 
 Stylistically, interfaces are visually distinguished from object types in the platform by having dashed lines around their icons.
 
-<img src="./media/interface-icon-example.png" alt="Example interface icon" width="100" />
+<img src="./images/interface-icon-example.png" alt="Example interface icon" width="100" />
 
 ## Interface permissions
 

@@ -10,7 +10,7 @@ First, open Ontology Manager and navigate to the object with the interface imple
 
 Select the **...** icon and choose **Remove interface** to delete the implementation of the interface from this object type.
 
-<img src="./media/remove-interface-implementation.png" alt="Remove interface implementation." width="800" />
+<img src="./images/remove-interface-implementation.png" alt="Remove interface implementation." width="800" />
 
 Select **Save** in the upper right corner to update the Ontology.
 
@@ -18,6 +18,6 @@ Select **Save** in the upper right corner to update the Ontology.
 
 Select the dropdown menu to update the property or link type used to implement the interface.
 
-<img src="./media/update-interface-implementation-mapping.png" alt="Update interface implementation mapping" width="800" />
+<img src="./images/update-interface-implementation-mapping.png" alt="Update interface implementation mapping" width="800" />
 
 Select **Save** in the upper right corner to update the Ontology.
