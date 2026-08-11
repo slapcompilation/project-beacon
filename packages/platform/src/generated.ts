@@ -201,7 +201,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (73) ───────────────────────────────────────────────────
+// ── FUNCTIONS (74) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -540,6 +540,11 @@ export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' 
 export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } as FunctionType<
   { p_object_type: string; p_limit?: number },
   Json[]
+>
+
+export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'function' } as FunctionType<
+  { p_interface: string },
+  string[]
 >
 
 /**
