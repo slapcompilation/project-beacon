@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (20) ────────────────────────────────────────────────
+// ── ACTION TYPES (21) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -128,6 +128,17 @@ export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as Ac
 >
 
 /**
+ *  "Only a constraint change mints one." The new constraint set lands as a
+ *  fresh version in one call, so a version can never be half-written; earlier
+ *  versions stay readable for consumers that pin (function repositories do;
+ *  the ontology does not).
+ */
+export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 'action' } as ActionType<
+  { p_value_type: string; p_constraints?: Json },
+  number
+>
+
+/**
  *  Every RLS-guarded table that the role PostgREST connects as cannot read.
  *  Derived from pg_class, never enumerated. Found the recursion in migration
  *  403 that no other guard could see.
@@ -221,7 +232,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (74) ───────────────────────────────────────────────────
+// ── FUNCTIONS (75) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -799,6 +810,17 @@ export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function
  */
 export const userToolParamsValid = { apiName: 'user_tool_params_valid', kind: 'function' } as FunctionType<
   { p: Json },
+  boolean
+>
+
+/**
+ *  Does a value satisfy the value type's CURRENT constraint — the ontology
+ *  never pins a version. NULL conforms (requiredness is the property's
+ *  concern). Nested and element recurse through the self-edge, capped at
+ *  depth 10 by declared invention.
+ */
+export const valueConforms = { apiName: 'value_conforms', kind: 'function' } as FunctionType<
+  { p_value: Json; p_value_type: string; p_depth?: number },
   boolean
 >
 
