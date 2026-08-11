@@ -8,6 +8,7 @@
 // table: the header's Save control is what lands the action in the ontology.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAppStore } from '@/stores/app.store'
 import { toast } from 'sonner'
 import type { ObjectTypeStatus, PropertyType } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
@@ -120,6 +121,7 @@ export function useSaveActionType() {
       p_action: {
         id: d.id ?? null, api_name: d.apiName, label: d.label, description: d.description,
         ontology_id: d.ontologyId, parameters: d.parameters, rules: d.rules,
+        project_id: d.id ? null : useAppStore.getState().omaProjectId,
       } as unknown as Json,
     }),
     onSuccess: () => {

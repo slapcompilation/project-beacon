@@ -19,7 +19,7 @@ We recommend orchestrating bulk downloads in Foundry by creating materialized da
 
 Navigate to the **Materializations** tab by toggling the [**Edits** configuration](/docs/foundry/object-edits/how-edits-applied/) in the **Datasources** tab in Ontology Manager. On the **Materializations** tab, you can create materialized object datasets or object restricted views with various configurations depending on [input datasource types](/docs/foundry/object-permissioning/managing-object-security/#object-input-data-sources). Note that Materializations will update automatically and cannot be built manually from Dataset Preview.
 
-![Materializations landing page](/docs/resources/foundry/object-edits/materializations.png)
+![Materializations landing page](./images/materializations.png)
 
 ## Comparison of writeback datasets and materialized datasets
 
@@ -38,9 +38,9 @@ OSv1 (Phonograph) writeback datasets and OSv2 materialized datasets handle build
   * To have user edits reflected in the materialized datasets as soon as [edits are applied](/docs/foundry/object-edits/how-edits-applied/), users can enable **automatic** propagation of user edits. This mode propagates user edits to the configured materialized datasets automatically (with a latency of a few minutes). This may incur additional cost as more frequent builds may occur depending on the frequency of new user edits.
   * If the latency of user edit propagation to materialized datasets is not critical, users can reduce costs by configuring **periodic** builds. In this mode, materialized datasets are rebuilt whenever the input datasources have new data or every 6 hours.
 
-![Creating a new output dataset](/docs/resources/foundry/object-edits/materializations-2.png)
+![Creating a new output dataset](./images/materializations-2.png)
 
-![Existing output datasets](/docs/resources/foundry/object-edits/materializations-3.png)
+![Existing output datasets](./images/materializations-3.png)
 
 ### Retention of writeback and materialized datasets
 
@@ -67,17 +67,17 @@ OSv1 (Phonograph) does not allow materializing [restricted views](/docs/foundry/
 
 In OSv2, users can configure both regular datasets or restricted views as materialized resources for object types that are [granularly permissioned](/docs/foundry/object-permissioning/configuring-rv-access-controls/#use-restricted-views-to-back-object-types) using restricted views as an input datasource, as shown below.
 
-![Materialized resource type selection](/docs/resources/foundry/object-edits/materializations-4.png)
+![Materialized resource type selection](./images/materializations-4.png)
 
 In the case of an object type having [multiple input datasources](/docs/foundry/object-permissioning/multi-datasource-objects/), users can configure their materialized datasets by selecting which input datasources they would like to materialize data from. If an input datasource is not selected, object type properties mapped from that input datasource will not be reflected in the materialized dataset. If some of the input datasources are restricted views, users have two options:
 
 * Users can select one of the restricted view resources to materialize as a [restricted view](/docs/foundry/security/restricted-views/#restricted-views). An example configuration is shown below.
 
-![Materialized restricted views](/docs/resources/foundry/object-edits/materializations-5.png)
+![Materialized restricted views](./images/materializations-5.png)
 
 * Users can select multiple input datasources, but in that case they can only materialize ontology data as a [Foundry dataset](/docs/foundry/data-integration/datasets/). This limitation exists because different restricted view input datasources can have [different policy configurations](/docs/foundry/security/restricted-views/#restricted-view-policies), and restricted views do not currently support setting column-level policies. An example configuration is shown below.
 
-![Materialized datasets with RV source](/docs/resources/foundry/object-edits/materializations-6.png)
+![Materialized datasets with RV source](./images/materializations-6.png)
 
 ### Materializing datasets from restricted views
 
@@ -91,7 +91,7 @@ We will use the following terms for explanatory purposes:
 
 The diagram below demonstrates the relationship between the backing dataset, restricted view, and object type.
 
-![An example of a backing dataset with discretionary controls.](/docs/resources/foundry/object-edits/materializing-from-rv-term-definition.png)
+![An example of a backing dataset with discretionary controls.](./images/materializing-from-rv-term-definition.png)
 
 With these definitions in mind, we will now cover what a user requires to create a new materialized dataset and view its transaction. Note that these are two separate steps.
 
@@ -99,35 +99,35 @@ In order to create a new materialized dataset, the user requires permission to p
 
 If these conditions are met, the user will have the option to create a new materialized dataset, as shown in the example below.
 
-<img src="./media/creating-materialized-dataset.png" alt="An example setup where the user has discretionary controls and is able to create a materialized dataset." width="500">
+<img src="./images/creating-materialized-dataset.png" alt="An example setup where the user has discretionary controls and is able to create a materialized dataset." width="500">
 
 If these conditions are not met, the user will not have this option. In the following example, the user does not have the necessary discretionary controls and therefore cannot create a materialized dataset.
 
-<img src="./media/materializing-dataset-with-no-discretionary-roles.png" alt="An example setup where the user does not have discretionary controls." width="500">
+<img src="./images/materializing-dataset-with-no-discretionary-roles.png" alt="An example setup where the user does not have discretionary controls." width="500">
 
 To view the materialized dataset's transaction, the user must be able to view the transaction of the backing dataset. In other words, the user must satisfy the mandatory controls of the backing dataset's transaction as well.
 
 This is demonstrated in the following diagram, where we can see the backing dataset, restricted view, the object type, and the materialized dataset. The markings from the backing dataset, which are severed in the restricted view, get propagated to the materialized dataset. This means that the user needs to satisfy this marking to view the transaction.
 
-![An example of a materialized dataset carrying provenance from the backing dataset.](/docs/resources/foundry/object-edits/materialized-dataset-carrying-provenance-from-backing-dataset.png)
+![An example of a materialized dataset carrying provenance from the backing dataset.](./images/materialized-dataset-carrying-provenance-from-backing-dataset.png)
 
 For OSv2 object types, if the object type contains properties of type [mandatory control](/docs/foundry/object-link-types/mandatory-control-properties/), the materialized dataset also requires the user to satisfy all mandatory controls on `Allowed markings`, `Allowed organizations` and `Max classification`. Provenance is carried over from the backing dataset as described above, and the mandatory controls defined at the object type are also enforced for object types containing properties of type mandatory control.
 
 Below is a diagram of a backing dataset with one marking, a materialized dataset with two markings coming from the backing dataset, and a marking that is configured in the object type.
 
-![picture of lineage to demonstrate object type mandatory controls propagation](/docs/resources/foundry/object-edits/materialized-dataset-with-object-type-provenance.png)
+![picture of lineage to demonstrate object type mandatory controls propagation](./images/materialized-dataset-with-object-type-provenance.png)
 
 The backing dataset contains the following marking:
 
-<img src="./media/backing-dataset-marking.png" alt="picture of backing dataset with a marking" width="500">
+<img src="./images/backing-dataset-marking.png" alt="picture of backing dataset with a marking" width="500">
 
 In the object type configuration, we can configure a property of type mandatory control with another marking, as shown below.
 
-<img src="./media/object-type-mandatory-control-property.png" alt="An example of an object type property of type mandatory control." width="500">
+<img src="./images/object-type-mandatory-control-property.png" alt="An example of an object type property of type mandatory control." width="500">
 
 As a result of this configuration, the materialized dataset will carry provenance from both the backing dataset and the object type, which contains a property of type mandatory control.
 
-<img src="./media/materialized-dataset-with-ot-dataset-provenance.png" alt="An example of a materialized dataset carrying provenance from the backing dataset." width="500">
+<img src="./images/materialized-dataset-with-ot-dataset-provenance.png" alt="An example of a materialized dataset carrying provenance from the backing dataset." width="500">
 
 ### Materializing datasets from restricted view restrictions
 

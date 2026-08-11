@@ -129,10 +129,11 @@ export async function saveObjectType(
        /** Which ontology this type is being created in. Required on create when
         *  the organization has more than one — `default_ontology()` refuses to
         *  guess, because a silent wrong guess writes to the wrong ontology. */
-       ontologyId?: string | null },
+       ontologyId?: string | null
+       projectId?: string | null },
 ): Promise<string> {
   return client(saveObjectTypeAction).applyAction({
-    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description, ontology_id: i.ontologyId ?? null },
+    p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description, ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null },
     p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
   })
 }
@@ -216,6 +217,7 @@ export async function fetchLinkTypes(): Promise<LinkTypeRow[]> {
 
 export interface CreateLinkTypeInput {
   sourceTypeId: string; targetTypeId: string; apiName: string; label: string; ontologyId: string
+  projectId?: string | null
 }
 
 /** Staged, not written. The row appears in the ontology on save — until then it
@@ -225,6 +227,7 @@ export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
     p_link: {
       source_object_type_id: i.sourceTypeId, target_object_type_id: i.targetTypeId,
       api_name: i.apiName, label: i.label, ontology_id: i.ontologyId,
+      project_id: i.projectId ?? null,
     } as unknown as Json,
   })
 }

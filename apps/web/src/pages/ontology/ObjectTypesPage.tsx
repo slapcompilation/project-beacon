@@ -243,6 +243,7 @@ export default function ObjectTypesPage() {
 }
 
 function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
+  const projectId = useAppStore((s) => s.omaProjectId)
   const create = useCreateObjectType()
   const sharedMap = useSharedPropertyMap()
   const [label, setLabel] = useState('')
@@ -263,7 +264,7 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const submit = () => {
     if (!canSave) return
     create.mutate(
-      { apiName, label: label.trim(), icon, description: description.trim(), properties, ontologyId },
+      { apiName, label: label.trim(), icon, description: description.trim(), properties, ontologyId, projectId },
       { onSuccess: () => { setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube') } },
     )
   }
@@ -501,6 +502,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const del = useDeleteLinkType()
   // A link never crosses an ontology, and every type here is in the open one.
   const { ontology } = useOmaOntology()
+  const projectId = useAppStore((s) => s.omaProjectId)
   const [label, setLabel] = useState('')
   const [targetTypeId, setTargetTypeId] = useState(allTypes.find((t) => t.id !== type.id)?.id ?? type.id)
   const apiName = toSlug(label)
@@ -510,7 +512,7 @@ function LinkTypesSection({ type, allTypes, linkTypes }: { type: ObjectTypeDef; 
   const submit = () => {
     if (!validation.ok || !ontology) return
     create.mutate(
-      { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(), ontologyId: ontology.id },
+      { sourceTypeId: type.id, targetTypeId, apiName, label: label.trim(), ontologyId: ontology.id, projectId },
       { onSuccess: () => { setLabel('') } })
   }
 

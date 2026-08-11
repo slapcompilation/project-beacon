@@ -33,6 +33,7 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
+import { useProjects } from '@/features/projects/api'
 import { OntologyPicker } from '@/features/ontologies/OntologyPicker'
 import { SaveControl } from '@/features/workingState/ReviewEdits'
 import { OmaSearch } from './OmaSearch'
@@ -85,6 +86,7 @@ export default function OmaLayout() {
       <div className="oma-body">
         <aside className="oma-side">
           <OntologyPicker value={ontologyId} onChange={setOntology} />
+          <OmaProjectPicker />
           <nav className="oma-nav">
             <NavRow icon="compass" label="Discover" path="/ontology" end />
             <div className="oma-rule" />
@@ -144,5 +146,24 @@ export function SectionHead({ title, count, seeAll }: { title: string; count?: n
       {count !== undefined && <Tag minimal className="!text-[10px]">{count}</Tag>}
       <span className="ml-auto">{seeAll}</span>
     </div>
+  )
+}
+
+
+/** "Ontology resources are saved into a project" — new resources land in the
+ *  project chosen here, and the database refuses a create without one while
+ *  the ontology's toggle requires it. */
+function OmaProjectPicker() {
+  const { data: projects = [] } = useProjects()
+  const projectId = useAppStore((s) => s.omaProjectId)
+  const setProject = useAppStore((s) => s.setOmaProject)
+  return (
+    <label className="oma-project-picker">
+      <span className="oma-project-label">Project</span>
+      <select value={projectId ?? ''} onChange={(e) => { setProject(e.currentTarget.value || null) }}>
+        <option value="">Select a project…</option>
+        {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select>
+    </label>
   )
 }
