@@ -24,6 +24,7 @@ export interface PropertyRow {
   api_name: string
   description: string
   base_type: PropertyDef['type']
+  array_element_type: PropertyDef['type'] | null
   source: 'column' | 'user_input'
   datasource_id: string | null
   backing_column: string | null
@@ -38,7 +39,8 @@ export interface PropertyRow {
 export function rowToProperty(r: PropertyRow): PropertyDef {
   return {
     id: r.id, key: r.property_id, label: r.display_name, apiName: r.api_name,
-    type: r.base_type, description: r.description, required: r.required,
+    type: r.base_type, arrayElementType: r.array_element_type ?? undefined,
+    description: r.description, required: r.required,
     source: r.source, backingColumn: r.backing_column,
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
     visibility: r.visibility, position: r.position,
@@ -50,6 +52,7 @@ export function propertyToRow(p: PropertyDef, position: number) {
   return {
     property_id: p.key, display_name: p.label, api_name: p.apiName,
     description: p.description ?? '', base_type: p.type,
+    array_element_type: p.type === 'array' ? p.arrayElementType ?? null : null,
     source: p.source ?? 'column',
     datasource_id: p.datasourceId ?? null,
     backing_column: p.source === 'user_input' ? null : p.backingColumn ?? null,

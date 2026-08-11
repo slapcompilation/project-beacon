@@ -92,7 +92,7 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Title</span>
           <HTMLSelect value={tk ? draftId(tk) : ''} onChange={(e) => { designate('isTitleKey', e.currentTarget.value) }}>
             <option value="">Select...</option>
-            {named.filter((p) => canBeTitleKey(p.type))
+            {named.filter((p) => canBeTitleKey(p.type === 'array' ? (p.arrayElementType ?? p.type) : p.type))
               .map((p) => <option key={draftId(p)} value={draftId(p)}>{p.label}</option>)}
           </HTMLSelect>
         </label>
@@ -117,6 +117,16 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
               onChange={(e) => { setProp(i, { type: e.currentTarget.value as PropertyType }) }}>
               {PROPERTY_TYPES.map((t) => <option key={t.value} value={t.value} title={t.help}>{t.label}</option>)}
             </HTMLSelect>
+            {p.type === 'array' && !def && (
+              // "All base types may be used in arrays… excluding the Vector and
+              // Time series types" — and never another array.
+              <HTMLSelect value={p.arrayElementType ?? ''} title="Element type"
+                onChange={(e) => { setProp(i, { arrayElementType: e.currentTarget.value as PropertyType }) }}>
+                <option value="">Element…</option>
+                {PROPERTY_TYPES.filter((t) => !['array', 'vector', 'time_series'].includes(t.value))
+                  .map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </HTMLSelect>
+            )}
             {/* "A property's source can be User input / actions rather than a
                 dataset column" - so not every property is backed by data. */}
             <HTMLSelect value={p.source ?? 'column'} title="Where the values come from"
