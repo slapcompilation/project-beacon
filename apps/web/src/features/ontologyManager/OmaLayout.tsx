@@ -8,7 +8,7 @@
 // The dark rail to the left is the platform's and stays; everything here is the
 // application's, and light (§5.1). Two chromes, nested — that is the point.
 //
-// The sidebar screenshot (§6.3) inventories fourteen entries. Four lead
+// The sidebar screenshot (§6.3) inventories fourteen entries. Five lead
 // somewhere. OMITTED BY NAME, with what would have to exist first:
 //   Unsaved changes  — the save session lives in the top bar instead, where the
 //                      count and its buttons already are (§10.8 puts it here too).
@@ -16,7 +16,6 @@
 //   History          — `object_edits` and `branch_resource_changes` exist; no reader.
 //   Properties       — a flat index of every property across types; nothing builds
 //                      it. It is also the one entry with no count in the screenshot.
-//   Action types     — `action_types` and its four child tables exist; no surface.
 //   Groups           — `type_groups` and `object_type_group_members` exist; no surface.
 //   Value types      — nothing behind it.
 //   Functions        — nothing behind it.

@@ -100,6 +100,7 @@ export function useUpdateWorkingState() {
 function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
   void qc.invalidateQueries({ queryKey: KEY })
   void qc.invalidateQueries({ queryKey: ['object-types'] })
+  void qc.invalidateQueries({ queryKey: ['action-types'] })
   void qc.invalidateQueries({ queryKey: ['ontologies'] })
   void qc.invalidateQueries({ queryKey: ['object-type-indexes'] })
 }

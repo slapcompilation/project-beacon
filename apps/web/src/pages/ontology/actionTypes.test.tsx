@@ -1,0 +1,131 @@
+// The Action types page: what the ontology holds, what a builder stages, and
+// what the form asks for before an action runs.
+
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+interface Chain extends PromiseLike<{ data: unknown[]; error: null }> {
+  select: () => Chain; order: () => Chain; is: () => Chain; eq: () => Chain
+}
+
+const db = vi.hoisted(() => {
+  const rule = (kind: string) => ({
+    id: `r-${kind}`, kind, position: 0, object_type_id: 'ot1',
+    link_type_id: null, function_name: null, action_type_rule_properties: [],
+  })
+  const rows: Record<string, unknown[]> = {
+    ontologies: [{
+      id: 'ont1', rid: null, api_name: 'production', label: 'Production Ontology',
+      description: '', space_id: 'sp1', spaces: { name: 'Production', path: '/Production' },
+    }],
+    object_types: [{
+      id: 'ot1', ontology_id: 'ont1', api_name: 'Aircraft', label: 'Aircraft', icon: 'cube',
+      description: '', rid: null, aliases: [],
+      object_type_properties: [{
+        id: 'p1', property_id: 'tail', display_name: 'Tail', api_name: 'tail', description: '',
+        base_type: 'string', source: 'column', datasource_id: null, backing_column: 'tail',
+        shared_property_id: null, required: true, visibility: 'normal', position: 0,
+        is_primary_key: true, is_title_key: true,
+      }],
+      computed_properties: null, view_config: null, enabled: true, version: 1,
+      status: 'experimental', visibility: 'normal', deprecation_reason: null,
+      deprecation_deadline: null, replaced_by: null, created_by_user_id: null,
+      created_at: '', updated_at: '',
+    }],
+    action_types: [{
+      id: 'at1', ontology_id: 'ont1', api_name: 'ground-aircraft', label: 'Ground aircraft',
+      description: '', status: 'experimental', created_at: '',
+      action_type_rules: [rule('modify_object')],
+      action_type_parameters: [{
+        id: 'pa1', api_name: 'reason', display_name: 'Reason', description: '',
+        base_type: 'string', object_type_id: null,
+        required: true, exposed: true, editable: true, position: 0,
+      }],
+    }],
+  }
+  return { rows, staged: [] as unknown[] }
+})
+
+vi.mock('@/lib/supabase/client', () => {
+  const make = (table: string): Chain => {
+    const p = Promise.resolve({ data: db.rows[table] ?? [], error: null })
+    const chain: Chain = {
+      select: () => chain, order: () => chain, is: () => chain, eq: () => chain,
+      then: p.then.bind(p),
+    }
+    return chain
+  }
+  return { supabase: { from: make } }
+})
+
+// The rule vocabulary comes from the database, so the picker's contents are it.
+vi.mock('@/lib/supabase/ontologyClient', () => ({
+  client: (entity: { apiName: string }) => ({
+    executeFunction: () => Promise.resolve(
+      entity.apiName === 'action_rule_kinds'
+        ? ['create_object', 'modify_object', 'delete_object', 'create_link', 'function']
+            .map((kind) => ({ kind, targets: 'object_type',
+              executable: !['create_link', 'function'].includes(kind), note: `note for ${kind}` }))
+        : [],
+    ),
+    applyAction: (args: unknown) => {
+      if (entity.apiName === 'save_action_type') { db.staged.push(args); return Promise.resolve('at2') }
+      if (entity.apiName === 'apply_action') return Promise.resolve(1)
+      return Promise.resolve({ status: 'success', object_count: 2, error: null })
+    },
+  }),
+}))
+
+import ActionTypesPage from './ActionTypesPage'
+
+afterEach(() => { cleanup(); db.staged.length = 0 })
+
+const renderPage = () => render(
+  <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
+    <MemoryRouter><ActionTypesPage /></MemoryRouter>
+  </QueryClientProvider>,
+)
+
+describe('Action types', () => {
+  it('lists an action with what its rules do', async () => {
+    renderPage()
+    expect(await screen.findByText('Ground aircraft')).toBeDefined()
+    expect(screen.getByText('ground-aircraft')).toBeDefined()
+    expect(screen.getByText('modify Aircraft')).toBeDefined()
+    expect(screen.getByText('1 param')).toBeDefined()
+  })
+
+  it('stages the whole action — label, api name, parameter and rule', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.type(await screen.findByPlaceholderText(/^Label/), 'Ground aircraft')
+    await user.type(screen.getByPlaceholderText('Display name'), 'Reason')
+    const target = await screen.findByRole('option', { name: 'Aircraft' })
+    await user.selectOptions(target.closest('select') as HTMLSelectElement, 'ot1')
+    await user.click(screen.getByRole('button', { name: /Create action type/ }))
+
+    expect(db.staged).toHaveLength(1)
+    const { p_action: a } = db.staged[0] as { p_action: Record<string, unknown> }
+    expect(a.api_name).toBe('ground-aircraft')
+    expect(a.parameters).toEqual([expect.objectContaining({ api_name: 'reason', required: true })])
+    expect(a.rules).toEqual([expect.objectContaining({ kind: 'create_object', object_type_id: 'ot1' })])
+  })
+
+  it('refuses the four kinds apply_action cannot run, in the picker', async () => {
+    renderPage()
+    expect((await screen.findByRole('option', { name: 'create link' })).hasAttribute('disabled')).toBe(true)
+    expect(screen.getByRole('option', { name: 'modify object' }).hasAttribute('disabled')).toBe(false)
+  })
+
+  it('asks the form for the exposed parameters, and for a target when a rule modifies', async () => {
+    const user = userEvent.setup()
+    renderPage()
+    await user.click(await screen.findByRole('button', { name: 'Apply' }))
+    expect(await screen.findByText(/Reason/)).toBeDefined()
+    expect(screen.getByText(/Target primary key/)).toBeDefined()
+    expect(screen.getByPlaceholderText('The object this action edits')).toBeDefined()
+  })
+})

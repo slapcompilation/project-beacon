@@ -77,6 +77,7 @@ const TITLES = new Map<string, string>([
   ['/ontology/object-types', 'Object types'],
   ['/ontology/shared-properties', 'Shared Properties'],
   ['/ontology/link-types', 'Link types'],
+  ['/ontology/action-types', 'Action types'],
   ['/ontology/interfaces', 'Interfaces'],
 ])
 
