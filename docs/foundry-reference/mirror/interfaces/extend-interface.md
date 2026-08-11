@@ -12,11 +12,11 @@ To extend an interface, follow the steps below.
 
 3. From the interface extensions page, select **Add extension**.
 
-<img src="./media/extend-interface.png" alt="Add an extension to an interface." width="800" />
+<img src="./images/extend-interface.png" alt="Add an extension to an interface." width="800" />
 
 4. From the dropdown menu, select the interface to extend from your current interface.
 
-<img src="./media/confirm-extension.png" alt="Confirm interface extension." width="500" />
+<img src="./images/confirm-extension.png" alt="Confirm interface extension." width="500" />
 
 5. In the confirmation dialog, review the shared properties, link type constraints, and action type constraints that will be added to the interface extension and select **Confirm**.
 
@@ -24,4 +24,4 @@ To extend an interface, follow the steps below.
 
 You can also remove an extension to decouple one interface from another. This action will remove all inherited shared properties from the interface, remove all inherited link type constraints, remove all inherited action type constraints, and disassociate the extending interface from the base interface.
 
-<img src="./media/remove-interface-extension.png" alt="Remove an existing interface extension." width="800" />
+<img src="./images/remove-interface-extension.png" alt="Remove an existing interface extension." width="800" />

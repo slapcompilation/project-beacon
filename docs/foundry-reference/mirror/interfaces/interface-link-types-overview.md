@@ -4,7 +4,7 @@
 
 An interface link type constraint defines an object-to-object relationship common across all object types implementing an interface. Users can specify a description for the link and an API name for the link type to use as a reference in code. When an object implements an interface with an interface link type constraint, concrete link types on the object type are used to fulfill interface link type constraints.
 
-<img src="./media/create-link-type-constraint-modal.png" alt="Interface link type creation." width="500" />
+<img src="./images/create-link-type-constraint-modal.png" alt="Interface link type creation." width="500" />
 
 As shown in the example above, to model the relationship between a facility and the airlines it serves, the `Facility` interface declares an optional one-to-many link type constraint between any object that implements the `Facility` interface and the `Airline` object type. This means that if the implementing object type (for example `Airport`) has a concrete link type to the `Airlines` object type, that link can be accessed through the interface link type API name.
 

@@ -255,6 +255,21 @@ is worth most just before the thing it describes gets built. Nothing here is
   sections are missing from it, including the three this reading needed most**, and
   grepping it for `home`/`landing`/`orientation` returns nothing.
 
-Twenty-five readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `interfaces-phase.md` — **the whole `interfaces/` section, all 32 images**, as the
+  spec that replaces our two-table stub. An interface is the one ontology type with
+  **no datasource**. Local and shared properties are **two separate lists**, and
+  required/optional lives on the interface property, not the implementation. The
+  implementation mapping is **five options, not one** — the prose says "map an
+  existing property" while the screenshot's menu also offers *choose backing
+  column*, *create edit-only property*, *replace existing* and *skip*. Extensions
+  are n:m and transitive; link and action type constraints each have a full field
+  list only the modals give. `searchable` caps implementers at **50, versus 1,000
+  when off**. Interfaces have **no visibility field** — ours is undocumented and
+  should go — and **four statuses, not five** (`promoted` is object-types-only, said
+  outright). Nine contradictions logged, including `_index` = `overview` again, and
+  a whole `Interface action control` card that appears in **no sentence in the
+  corpus**.
+
+Twenty-six readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
