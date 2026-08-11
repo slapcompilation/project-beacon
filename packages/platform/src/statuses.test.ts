@@ -85,6 +85,19 @@ describe.skipIf(noDb)('status coupling', () => {
     await db.query(`update public.object_types set status='active' where id = $1`, [tb])
   })
 
+  // ── 460: promotion sets prominence ─────────────────────────────────────────
+  it('sets visibility to prominent when an ontology owner promotes', async () => {
+    const ont = (await one(`select ontology_id from public.object_types where id = $1`, [tb])).ontology_id
+    const uid = (await one(`select auth.uid() as id`)).id
+    await db.query(`insert into public.ontology_role_grants (ontology_id, user_id, role)
+                    values ($1,$2,'owner')`, [ont, uid])
+    const t = (await one(`insert into public.object_types (ontology_id, api_name, label, status, visibility)
+                          values ($1,'StatusPromo','Promo','active','normal') returning id`, [ont])).id
+    await db.query(`update public.object_types set status='promoted' where id = $1`, [t])
+    expect((await one('select visibility from public.object_types where id = $1', [t])).visibility)
+      .toBe('prominent')
+  })
+
   it('lets a foreign-key property pull its link, and never cascades active', async () => {
     const t1 = (await one(`select ontology_id from public.object_types where id = $1`, [ta]))
     const c = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
