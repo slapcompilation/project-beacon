@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (21) ────────────────────────────────────────────────
+// ── ACTION TYPES (22) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -54,6 +54,18 @@ export const applyInterface = { apiName: 'apply_interface', kind: 'action' } as 
 export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json; p_datasources?: Json },
   string
+>
+
+/**
+ *  Write the latest indexed state of the object type into the output dataset:
+ *  one SNAPSHOT transaction, schema from the properties' API names plus
+ *  __is_deleted, prior transactions deleted because only the latest snapshot
+ *  is guaranteed. Called by the surface; the automatic/periodic propagation
+ *  modes are stored configuration, not a timer.
+ */
+export const buildMaterialization = { apiName: 'build_materialization', kind: 'action' } as ActionType<
+  { p_materialization: string },
+  number
 >
 
 /**
@@ -232,7 +244,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (75) ───────────────────────────────────────────────────
+// ── FUNCTIONS (76) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -688,6 +700,11 @@ export const propertyBaseTypes = { apiName: 'property_base_types', kind: 'functi
 >
 
 export const propertyColumnType = { apiName: 'property_column_type', kind: 'function' } as FunctionType<
+  { p_base_type: string },
+  string
+>
+
+export const propertyDatasetFieldType = { apiName: 'property_dataset_field_type', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
 >
