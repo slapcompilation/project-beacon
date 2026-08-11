@@ -270,6 +270,22 @@ is worth most just before the thing it describes gets built. Nothing here is
   a whole `Interface action control` card that appears in **no sentence in the
   corpus**.
 
-Twenty-six readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `value-types.md` — the six value-type pages as the **E4 spec**, and the whole public
+  documentation is under 100 lines of prose against five screenshots, four of which
+  carry a field no sentence names. A value type is **space-scoped, not ontology-scoped**
+  (and the Default ontology has none because it *has no space*); its base type is
+  immutable from save; **a version is minted by a constraint change and nothing else**,
+  while name/description/apiName mutate freely. **The ontology never pins** — non-breaking
+  versions auto-propagate to every use — but **code repositories do**, and two versions
+  of one value type cannot coexist in a repo. Eight constraint kinds, two of which
+  (**Nested**, **Element constraints**) make the value type graph **self-referential**.
+  `use-value-type.md` lists three binders; the corpus attests **seven**. Enforcement is
+  **index-time** in the ontology (the whole object type fails) and **null-on-cast** in
+  Builder — action-submission enforcement is *not* attested, and `mandatory-control-properties.md`
+  proves Palantir writes that clause when it applies. Image-only: a **Failure validation
+  message** field, a per-value-type **Usage tab**, `Length` as the UI name for Range on a
+  String, and case-sensitive-by-default enums.
+
+Twenty-seven readings against 1,184 pages is the honest starting position. `../MAP.md` is
 how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
