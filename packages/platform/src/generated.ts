@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (22) ────────────────────────────────────────────────
+// ── ACTION TYPES (23) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -115,6 +115,17 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
   { p_kind?: string; p_id?: string; p_branch?: string },
   number
+>
+
+/**
+ *  Insert an implementation and its per-property resolutions in one
+ *  transaction, so 450's commit-time conformance judges the whole claim
+ *  instead of refusing a bare row. Mappings name interface properties by
+ *  natural key.
+ */
+export const implementInterface = { apiName: 'implement_interface', kind: 'action' } as ActionType<
+  { p_object_type: string; p_interface: string; p_mappings?: Json },
+  string
 >
 
 /**

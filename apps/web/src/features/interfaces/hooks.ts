@@ -2,7 +2,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   fetchInterfaces, fetchImplementations, createInterface, deleteInterface,
-  addImplementation, removeImplementation, type CreateInterfaceInput,
+  addImplementation, removeImplementation, stageInterfaceClauses,
+  type CreateInterfaceInput, type MappingDraft,
 } from './api'
 
 const keys = {
@@ -45,13 +46,43 @@ export function useDeleteInterface() {
   })
 }
 
-/** Toggling an implementation can fail on the conformance trigger — the error
- *  text names exactly which property is missing or mistyped. */
-export function useSetImplementation() {
+/** Clause edits stage into the same working-state entry as the rest of the
+ *  interface; the extension guards have their say when the save applies. */
+export function useStageClauses() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ objectTypeId, interfaceId, on }: { objectTypeId: string; interfaceId: string; on: boolean }) =>
-      on ? addImplementation(objectTypeId, interfaceId) : removeImplementation(objectTypeId, interfaceId),
+    mutationFn: ({ id, patch }: { id: string; patch: Parameters<typeof stageInterfaceClauses>[1] }) =>
+      stageInterfaceClauses(id, patch),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.interfaces })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — save to apply it')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** Implementing goes through the wizard's mappings; the conformance trigger
+ *  still has the last word, and its error names the offending property. */
+export function useImplement() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ objectTypeId, interfaceId, mappings }: {
+      objectTypeId: string; interfaceId: string; mappings: MappingDraft[]
+    }) => addImplementation(objectTypeId, interfaceId, mappings),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.implementations })
+      toast.success('Implementation declared')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useUnimplement() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ objectTypeId, interfaceId }: { objectTypeId: string; interfaceId: string }) =>
+      removeImplementation(objectTypeId, interfaceId),
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.implementations }) },
     onError: (e: Error) => { toast.error(e.message) },
   })

@@ -34,7 +34,10 @@ const db = vi.hoisted(() => {
       description: '', status: 'experimental', created_at: '',
       action_type_rules: [], action_type_parameters: [],
     }],
-    ontology_interfaces: [{ id: 'if1', ontology_id: 'ont1', rid: null, api_name: 'Roomed', label: 'Roomed', description: '', interface_properties: [] }],
+    ontology_interfaces: [{
+      id: 'if1', ontology_id: 'ont1', rid: null, api_name: 'Roomed', label: 'Roomed', description: '',
+      interface_properties: [], interface_link_constraints: [], interface_action_constraints: [], extensions: [],
+    }],
     object_type_indexes: [{ object_type_id: 'ot1', status: 'success', error: null, object_count: 12, indexed_at: '' }],
   }
   return { rows }

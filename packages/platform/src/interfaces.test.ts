@@ -214,6 +214,29 @@ describe.skipIf(noDb)('interfaces', () => {
         where object_type_id = $1 and interface_id = $2`, [type, iface])).toBe(1)
   })
 
+  // ── 455: the writer lands the claim whole ──────────────────────────────────
+  it('implements through the writer, mappings and row in one call', async () => {
+    const other = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
+                              values ($1,'Written','Written') returning id`, [ont])).id
+    await db.query(
+      `insert into public.interface_properties
+         (interface_id, property_id, display_name, api_name, base_type, required)
+       values ($1,'w_id','W Id','wId','string',true)`, [other])
+    // Unknown property refuses by name; the subtransaction takes the row with it.
+    const err = await refused(db, () => db.query(
+      `select public.implement_interface($1,$2,$3::jsonb)`,
+      [type, other, JSON.stringify([{ property_id: 'nope', resolution: 'edit_only' }])]))
+    expect(err).toContain('Ontology:NoSuchInterfaceProperty')
+    // The real claim lands and conforms.
+    await db.query(`select public.implement_interface($1,$2,$3::jsonb)`,
+      [type, other, JSON.stringify([{ property_id: 'w_id', resolution: 'choose_existing', object_property_id: pid }])])
+    await db.query('set constraints all immediate')
+    await db.query('set constraints all deferred')
+    expect(await count(
+      `select count(*) n from public.interface_implementation_mappings
+        where object_type_id = $1 and interface_id = $2`, [type, other])).toBe(1)
+  })
+
   // ── 450: the searchable caps ───────────────────────────────────────────────
   it('refuses to flip searchable on past 50 implementers', async () => {
     // An interface with no required properties conforms trivially, so volume
