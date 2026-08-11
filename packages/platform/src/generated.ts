@@ -201,7 +201,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (71) ───────────────────────────────────────────────────
+// ── FUNCTIONS (73) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -504,6 +504,16 @@ export const effectiveFileMarkings = { apiName: 'effective_file_markings', kind:
 >
 
 /**
+ *  One node of the submission criteria tree, depth first. A condition it
+ *  cannot evaluate raises by name — the gate never silently passes what it
+ *  cannot parse.
+ */
+export const evalCriterion = { apiName: 'eval_criterion', kind: 'function' } as FunctionType<
+  { p_node: string; p_action: string; p_params: Json },
+  unknown
+>
+
+/**
  *  direct = applied on this resource; file_hierarchy = inherited from its
  *  project. Foundry renders the second with a folder sidecar icon on the
  *  chip.
@@ -721,6 +731,16 @@ export const searchObjects = { apiName: 'search_objects', kind: 'function' } as 
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  NULL when the action's criteria hold for these parameters; otherwise the
+ *  failure message to show. The form can ask before submitting;
+ *  apply_action() asks regardless.
+ */
+export const submissionCriteriaVerdict = { apiName: 'submission_criteria_verdict', kind: 'function' } as FunctionType<
+  { p_action_type: string; p_parameters?: Json },
+  string
 >
 
 /**
