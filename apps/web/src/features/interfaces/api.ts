@@ -14,7 +14,8 @@ export interface InterfaceRow {
   api_name: string
   label: string
   description: string
-  properties: InterfacePropertyDef[]
+  /** Rows since migration 450 — the jsonb array is gone. */
+  interface_properties: { property_id: string; display_name: string; base_type: InterfacePropertyDef['type'] }[]
 }
 
 export interface ImplementationRow {
@@ -26,12 +27,16 @@ export interface ImplementationRow {
 export function rowToInterface(r: InterfaceRow): InterfaceDef {
   return {
     id: r.id, apiName: r.api_name,
-    label: r.label, description: r.description, properties: r.properties,
+    label: r.label, description: r.description,
+    properties: r.interface_properties.map((p) => ({
+      key: p.property_id, label: p.display_name, type: p.base_type,
+    })),
   }
 }
 
 export async function fetchInterfaces(): Promise<InterfaceRow[]> {
-  const { data, error } = await supabase.from('ontology_interfaces').select('*').order('label')
+  const { data, error } = await supabase.from('ontology_interfaces')
+    .select('*, interface_properties(property_id, display_name, base_type)').order('label')
   if (error) throw new Error(error.message)
   return data as InterfaceRow[]
 }
@@ -53,14 +58,26 @@ export interface CreateInterfaceInput {
 }
 
 export async function createInterface(i: CreateInterfaceInput): Promise<InterfaceRow> {
+  // The interface first, then its property rows — migration 450 made
+  // properties a table. The session treatment (staging both as one entry)
+  // is queued as the interfaces half of 444.
   const { data, error } = await supabase.from('ontology_interfaces')
     .insert({
       api_name: i.apiName, label: i.label, description: i.description,
-      properties: i.properties, ontology_id: i.ontologyId,
+      ontology_id: i.ontologyId,
     })
-    .select('*').single<InterfaceRow>()
+    .select('id').single<{ id: string }>()
   if (error) throw new Error(error.message)
-  return data
+  const rows = i.properties.map((p, idx) => ({
+    interface_id: data.id, property_id: p.key, display_name: p.label,
+    api_name: p.key, base_type: p.type, position: idx,
+  }))
+  if (rows.length > 0) {
+    const { error: pe } = await supabase.from('interface_properties').insert(rows)
+    if (pe) throw new Error(pe.message)
+  }
+  const full = await fetchInterfaces()
+  return full.find((r) => r.id === data.id) as InterfaceRow
 }
 
 export async function deleteInterface(id: string): Promise<void> {
