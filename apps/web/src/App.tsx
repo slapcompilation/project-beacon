@@ -20,6 +20,7 @@ const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
+const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
 
 // Ontology Manager: its own chrome, and its resource pages inside it.
 const OmaLayout = lazyWithRetry(() => import('@/features/ontologyManager/OmaLayout'))
@@ -68,6 +69,7 @@ function AppRoutes() {
             </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />
+            <Route path="/value-types" element={<ValueTypesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

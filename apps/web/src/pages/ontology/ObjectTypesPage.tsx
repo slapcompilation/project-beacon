@@ -5,7 +5,7 @@
 import { useMemo, useState } from 'react'
 import {
   Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent,
-  Spinner, SpinnerSize, Tag, TextArea,
+  Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useSearchParams } from 'react-router-dom'
@@ -23,6 +23,8 @@ import {
   useCreateLinkType, useDeleteLinkType, useLinkTypes,
 } from '@/features/objectTypes/hooks'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
+import { useEditsEnabled } from '@/features/objectTypes/materializations'
+import { DatasourcesTab, MaterializationsTab } from '@/features/objectTypes/TypeConfigTabs'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
@@ -354,6 +356,9 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
     () => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id),
     [linkTypeRows, type.id])
   const [editing, setEditing] = useState(false)
+  // "Navigate to the Materializations tab by toggling the Edits configuration
+  // in the Datasources tab" — the tab exists only while the toggle is on.
+  const { data: editsEnabled = false } = useEditsEnabled(type.id)
 
   return (
     <section className="space-y-3 border-t pt-5">
@@ -364,8 +369,17 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Button variant="minimal" size="small" icon="edit" active={editing} className="ml-auto"
           onClick={() => { setEditing(!editing) }}>Edit properties</Button>
       </div>
-      {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
-      <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
+      <Tabs id={`type-${type.id}`} vertical animate={false} renderActiveTabPanelOnly>
+        <Tab id="overview" title="Overview" icon="desktop" panel={
+          <div className="space-y-3">
+            {editing && <SchemaEditor key={`${type.id}-v${String(type.version)}`} type={type} onDone={() => { setEditing(false) }} />}
+            <LinkTypesSection type={type} allTypes={allTypes} linkTypes={linkTypes} />
+          </div>
+        } />
+        <Tab id="datasources" title="Datasources" icon="database" panel={<DatasourcesTab type={type} />} />
+        {editsEnabled &&
+          <Tab id="materializations" title="Materializations" icon="export" panel={<MaterializationsTab type={type} />} />}
+      </Tabs>
     </section>
   )
 }
