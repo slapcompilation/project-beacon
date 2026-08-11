@@ -3,6 +3,8 @@
 // operator sees why before they try.
 
 import { supabase } from '@/lib/supabase/client'
+import { saveInterface, deleteOntologyResource, type Json } from '@beacon/platform'
+import { client } from '@/lib/supabase/ontologyClient'
 import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
 
 export interface InterfaceRow {
@@ -57,32 +59,23 @@ export interface CreateInterfaceInput {
   ontologyId: string
 }
 
-export async function createInterface(i: CreateInterfaceInput): Promise<InterfaceRow> {
-  // The interface first, then its property rows — migration 450 made
-  // properties a table. The session treatment (staging both as one entry)
-  // is queued as the interfaces half of 444.
-  const { data, error } = await supabase.from('ontology_interfaces')
-    .insert({
+/** Staged, not written — the whole contract is one working-state entry (451),
+ *  so it appears in Review edits and lands on save like every other resource. */
+export async function createInterface(i: CreateInterfaceInput): Promise<string> {
+  return client(saveInterface).applyAction({
+    p_interface: {
       api_name: i.apiName, label: i.label, description: i.description,
       ontology_id: i.ontologyId,
-    })
-    .select('id').single<{ id: string }>()
-  if (error) throw new Error(error.message)
-  const rows = i.properties.map((p, idx) => ({
-    interface_id: data.id, property_id: p.key, display_name: p.label,
-    api_name: p.key, base_type: p.type, position: idx,
-  }))
-  if (rows.length > 0) {
-    const { error: pe } = await supabase.from('interface_properties').insert(rows)
-    if (pe) throw new Error(pe.message)
-  }
-  const full = await fetchInterfaces()
-  return full.find((r) => r.id === data.id) as InterfaceRow
+      properties: i.properties.map((p, idx) => ({
+        property_id: p.key, display_name: p.label, api_name: p.key,
+        base_type: p.type, position: idx,
+      })),
+    } as unknown as Json,
+  })
 }
 
 export async function deleteInterface(id: string): Promise<void> {
-  const { error } = await supabase.from('ontology_interfaces').delete().eq('id', id)
-  if (error) throw new Error(error.message)
+  await client(deleteOntologyResource).applyAction({ p_kind: 'interface', p_id: id })
 }
 
 export async function addImplementation(objectTypeId: string, interfaceId: string): Promise<void> {
