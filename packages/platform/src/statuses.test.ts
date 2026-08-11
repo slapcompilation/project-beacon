@@ -55,10 +55,10 @@ describe.skipIf(noDb)('status coupling', () => {
       .toBe('experimental')
   })
 
-  it('refuses a link status the matrix forbids', async () => {
+  it('refuses a link status the matrix forbids, by the printed name', async () => {
     expect(await refused(db, () =>
       db.query(`update public.link_types set status='active' where id = $1`, [lt])))
-      .toContain('Ontology:LinkStatusDisagrees')
+      .toContain('OntologyMetadata:ConflictBetweenLinkTypeStatusAndObjectTypeStatus')
   })
 
   it('carries the documentation down when an endpoint deprecates', async () => {
@@ -69,5 +69,43 @@ describe.skipIf(noDb)('status coupling', () => {
       'select status, deprecation_reason from public.link_types where id = $1', [lt])
     expect(row.status).toBe('deprecated')
     expect(row.deprecation_reason).toBeTruthy()
+  })
+
+  // ── 458: properties have statuses, and pull their links ────────────────────
+  it('pulls properties along when the type turns example, and starts new ones experimental', async () => {
+    const pid = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, backing_column)
+       values ($1,'name','Name','name','string','column','name') returning id`, [tb])).id
+    expect((await one('select status from public.object_type_properties where id = $1', [pid])).status)
+      .toBe('experimental')
+    await db.query(`update public.object_types set status='example' where id = $1`, [tb])
+    expect((await one('select status from public.object_type_properties where id = $1', [pid])).status)
+      .toBe('example')
+    await db.query(`update public.object_types set status='active' where id = $1`, [tb])
+  })
+
+  it('lets a foreign-key property pull its link, and never cascades active', async () => {
+    const t1 = (await one(`select ontology_id from public.object_types where id = $1`, [ta]))
+    const c = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
+                          values ($1,'StatusC','C','active') returning id`, [t1.ontology_id])).id
+    const d = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
+                          values ($1,'StatusD','D','active') returning id`, [t1.ontology_id])).id
+    const fk = (await one(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, display_name, api_name, base_type, source, backing_column, status)
+       values ($1,'d_id','D Id','dId','string','column','d_id','active') returning id`, [c])).id
+    const link = (await one(
+      `insert into public.link_types
+         (ontology_id, api_name, label, source_object_type_id, target_object_type_id,
+          cardinality, backing_kind, backing_object_type_id, backing_column, status)
+       values ($1,'status_cd','C to D',$2,$3,'many_to_one','foreign_key',$2,'d_id','active')
+       returning id`, [t1.ontology_id, c, d])).id
+    await db.query(`update public.object_type_properties set status='experimental' where id = $1`, [fk])
+    expect((await one('select status from public.link_types where id = $1', [link])).status)
+      .toBe('experimental')
+    await db.query(`update public.object_type_properties set status='active' where id = $1`, [fk])
+    expect((await one('select status from public.link_types where id = $1', [link])).status)
+      .toBe('experimental')
   })
 })

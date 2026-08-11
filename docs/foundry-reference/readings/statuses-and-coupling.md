@@ -90,17 +90,42 @@ object type's status change, not a trigger.
 the property rows that already travel in `p_properties` / the `properties`
 section — no new session arm.
 
-## 4 — Questions
+## 4 — Questions, and their answers (2026-08-12)
 
-**Q1.** May a property be `active` while its object type is `experimental`?
-The page prints a matrix for links but none for properties; the
-prevent-invalid-states paragraph argues both ways. Not buildable as a guard
-without an answer.
+**Q1. ANSWERED — by the page's own tail.** The Troubleshooting section prints
+exactly two conflict errors, and neither is between a property and its own
+object type:
 
-**Q2.** Does deprecating a property demand anything of the columns that read
-it (materializations name property subsets by `property_ids`)? No page in the
-mirror says.
+> If you receive the error `OntologyMetadata:ConflictBetweenLinkTypeStatusAndPropertyTypeStatus`, there is a conflict between the status on a link type and the status on a property.
+> — object-link-types/metadata-statuses.md
 
-**Q3.** `shared_properties` are outside the enumeration — do they carry status
-at all? `shared-property-metadata.md` should settle it before that column is
-ever added.
+> If you receive the error `OntologyMetadata:ConflictBetweenLinkTypeStatusAndObjectTypeStatus`, there is a conflict between the status on a link type and the status of one of its associated object types.
+> — object-link-types/metadata-statuses.md
+
+So no property-vs-own-type guard exists, and the error names are Foundry's
+own — 457's invented `Ontology:LinkStatusDisagrees` is corrected to the
+printed name in 458. The same tail also upgrades part of D3 from inference to
+quote:
+
+> When you change an object type to `example`, all of its properties will automatically become `example` also.
+> — object-link-types/metadata-statuses.md
+
+**Q2. ASSESSED, not page-answered.** No page couples a property's status to
+materializations. Status is metadata ("Status metadata helps Ontology-editing
+users to know what resources are being actively relied on") — display and the
+two couplings are its entire behavior, so materializations keep serving
+deprecated properties until the property is deleted, which 447 already guards.
+*Inference, marked.*
+
+**Q3. ANSWERED — by deliberate absence.** All four pages the operator pointed
+at (`shared-property-overview`, `create-shared-property`,
+`edit-shared-property`, `use-shared-property`) mention status nowhere, and
+shared properties are outside the page's enumeration. Shared properties carry
+no status; our schema already matches, and no column is added.
+
+## 5 — Built
+
+458 (the column, the trio, the session pass, both cascades, the guard under
+Foundry's printed names) and 459 (the cascade respects the matrix — deprecated
+endpoints win over experimental/example pulls, a collision the regression
+suite caught on its first run).
