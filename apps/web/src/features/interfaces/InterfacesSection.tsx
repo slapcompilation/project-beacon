@@ -8,15 +8,18 @@ import {
   Button, Card, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
   InputGroup, Intent, Tag,
 } from '@blueprintjs/core'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   toSlug, toCamel, toPascal, validateInterfaceDraft, PROPERTY_TYPES,
-  type InterfacePropertyDef, type ObjectTypeDef, type PropertyType,
+  type InterfacePropertyDef, type ObjectTypeDef, type PropertyDef, type PropertyType,
 } from '@beacon/ontology'
 import {
   useInterfaces, useImplementations, useCreateInterface, useDeleteInterface,
   useImplement, useUnimplement, useStageClauses,
 } from './hooks'
 import { rowToInterface, type InterfaceRow, type MappingDraft } from './api'
+import { saveObjectType } from '@/features/objectTypes/api'
 
 const TYPES: PropertyType[] = PROPERTY_TYPES.map((t) => t.value)
 
@@ -97,6 +100,39 @@ export default function InterfacesSection({ types, ontologyId }: {
   )
 }
 
+/** The creation half of choose_backing_column and edit_only: stage the new
+ *  properties onto the implementing type, full list travelling as always. */
+function useStageCreatedProperties() {
+  const qc = useQueryClient()
+  return (type: ObjectTypeDef, props: InterfaceRow['interface_properties'], drafts: MappingDraft[]) => {
+    const created: PropertyDef[] = drafts
+      .filter((d) => (d.resolution === 'choose_backing_column' || d.resolution === 'edit_only')
+        && !type.properties.some((tp) => tp.key === d.property_id))
+      .map((d) => {
+        const p = props.find((x) => x.property_id === d.property_id)
+        if (!p) return null
+        return {
+          key: p.property_id, apiName: toCamel(p.display_name), label: p.display_name,
+          type: p.base_type, required: p.required,
+          source: d.resolution === 'edit_only' ? 'user_input' as const : 'column' as const,
+          backingColumn: d.resolution === 'edit_only' ? null : d.backing_column,
+          // A new column-backed property reads the datasource its siblings do.
+          datasourceId: type.properties.find((tp) => tp.datasourceId)?.datasourceId ?? null,
+        }
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
+    if (created.length === 0) return
+    void saveObjectType({
+      id: type.id, label: type.label, icon: type.icon, description: type.description,
+      properties: [...type.properties, ...created],
+    }).then(() => {
+      void qc.invalidateQueries({ queryKey: ['object-types'] })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success(`${String(created.length)} propert${created.length === 1 ? 'y' : 'ies'} staged on ${type.label} — save to add them`)
+    }).catch((e: unknown) => { toast.error(e instanceof Error ? e.message : String(e)) })
+  }
+}
+
 /** The interface's properties, own and inherited — the conformance obligation
  *  "includes the inherited clause". */
 function contractProperties(row: InterfaceRow, all: InterfaceRow[]): InterfaceRow['interface_properties'] {
@@ -112,13 +148,15 @@ function contractProperties(row: InterfaceRow, all: InterfaceRow[]): InterfaceRo
   return out
 }
 
-/** The wizard's five menu items, per interface property. choose_backing_column
- *  and edit_only store a declared intent — creating the property on the type is
- *  the object type editor's half, still open. */
+/** The wizard's five menu items, per interface property. "choose_backing_column
+ *  and edit_only create a property on the implementing type at apply time; that
+ *  creation is the surface's job" — so submitting stages those properties onto
+ *  the type, and they land with the next save. */
 function MappingWizard({ type, row, all, onClose }: {
   type: ObjectTypeDef; row: InterfaceRow; all: InterfaceRow[]; onClose: () => void
 }) {
   const implement = useImplement()
+  const stageProps = useStageCreatedProperties()
   const props = contractProperties(row, all)
   const [drafts, setDrafts] = useState<MappingDraft[]>(() => props.map((p) => {
     // Prefill: an existing property with the same name and base type maps itself.
@@ -182,7 +220,7 @@ function MappingWizard({ type, row, all, onClose }: {
           onClick={() => {
             implement.mutate(
               { objectTypeId: type.id, interfaceId: row.id, mappings: drafts },
-              { onSuccess: onClose })
+              { onSuccess: () => { stageProps(type, props, drafts); onClose() } })
           }}>
           Implement
         </Button>
