@@ -175,13 +175,20 @@ describe.skipIf(noDb)('actions', () => {
 
   it('lets only experimental rename', async () => {
     await db.query(`update public.action_types set api_name = 'escalate-2' where id = $1`, [action])
-    // action_types carries no deprecation_reason/deadline — unlike its three
-    // siblings. A schema asymmetry worth the gap agent's attention; the status
-    // alone is enough to exercise the rename rule.
-    await db.query(`update public.action_types set status='deprecated' where id = $1`, [action])
+    await db.query(
+      `update public.action_types set status='deprecated',
+         deprecation_reason='Superseded', deprecation_deadline=current_date + 30 where id = $1`, [action])
     expect(await refused(db, () =>
       db.query(`update public.action_types set api_name = 'renamed' where id = $1`, [action]))).toMatch(/ApiNameIsFixed/)
-    await db.query(`update public.action_types set status = 'experimental' where id = $1`, [action])
+    await db.query(`update public.action_types set status = 'experimental',
+      deprecation_reason = null, deprecation_deadline = null where id = $1`, [action])
+  })
+
+  // ── 456: a deprecated action documents itself ─────────────────────────────
+  it('refuses an undocumented deprecation', async () => {
+    expect(await refused(db, () =>
+      db.query(`update public.action_types set status='deprecated' where id = $1`, [action])))
+      .toMatch(/deprecation_documented/)
   })
 
   // ── 448: arrays declare their element ─────────────────────────────────────
