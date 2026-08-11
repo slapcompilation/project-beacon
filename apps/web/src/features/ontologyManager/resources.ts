@@ -16,8 +16,9 @@ import { useObjectTypes, useLinkTypes } from '@/features/objectTypes/hooks'
 import { rowToObjectType } from '@/features/objectTypes/api'
 import { useSharedProperties } from '@/features/objectTypes/sharedProperties'
 import { useInterfaces } from '@/features/interfaces/hooks'
+import { useActionTypes } from '@/features/actionTypes/api'
 
-export type OmaKind = 'Object type' | 'Shared property' | 'Link type' | 'Interface'
+export type OmaKind = 'Object type' | 'Shared property' | 'Link type' | 'Action type' | 'Interface'
 
 export interface OmaResource {
   key: string
@@ -36,6 +37,7 @@ export const RESOURCE_NAV: { kind: OmaKind; label: string; icon: IconName; path:
   { kind: 'Object type', label: 'Object types', icon: 'cube', path: '/ontology/object-types' },
   { kind: 'Shared property', label: 'Shared Properties', icon: 'globe', path: '/ontology/shared-properties' },
   { kind: 'Link type', label: 'Link types', icon: 'arrows-horizontal', path: '/ontology/link-types' },
+  { kind: 'Action type', label: 'Action types', icon: 'take-action', path: '/ontology/action-types' },
   { kind: 'Interface', label: 'Interfaces', icon: 'layers', path: '/ontology/interfaces' },
 ]
 
@@ -72,7 +74,9 @@ export function useOmaResources(): OmaResource[] {
   const { data: shared = [] } = useSharedProperties()
   const { data: linkRows = [] } = useLinkTypes()
   const { data: ifaceRows = [] } = useInterfaces()
-  const oid = ontology?.id
+  const oid = ontology?.id ?? null
+  // Already scoped by the query — action_types.ontology_id is NOT NULL.
+  const { data: actionRows = [] } = useActionTypes(oid)
 
   return useMemo(() => {
     const res = (kind: OmaKind, key: string, label: string, apiName: string, path: string, extra = ''): OmaResource =>
@@ -85,10 +89,12 @@ export function useOmaResources(): OmaResource[] {
         res('Shared property', `sp:${s.id}`, s.label, s.apiName, '/ontology/shared-properties')),
       ...linkRows.filter((l) => l.ontology_id === oid).map((l) =>
         res('Link type', `lt:${l.id}`, l.label, l.api_name, '/ontology/link-types')),
+      ...actionRows.map((a) =>
+        res('Action type', `at:${a.id}`, a.label, a.api_name, '/ontology/action-types')),
       ...ifaceRows.filter((i) => i.ontology_id === oid).map((i) =>
         res('Interface', `if:${i.id}`, i.label, i.api_name, '/ontology/interfaces', i.rid ?? '')),
     ]
-  }, [typeRows, shared, linkRows, ifaceRows, oid])
+  }, [typeRows, shared, linkRows, actionRows, ifaceRows, oid])
 }
 
 export const countOf = (resources: OmaResource[], kind: OmaKind) =>

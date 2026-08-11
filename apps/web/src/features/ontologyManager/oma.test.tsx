@@ -29,6 +29,11 @@ const db = vi.hoisted(() => {
     object_types: [type('ot1', 'Aircraft', 'Every airframe in the fleet', ['Plane']), type('ot2', 'Flight', '', [])],
     shared_properties: [{ id: 'sp1', ontology_id: 'ont1', api_name: 'cost', label: 'Cost', description: '', base_type: 'number', visibility: 'normal' }],
     link_types: [{ id: 'lt1', ontology_id: 'ont1', source_object_type_id: 'ot1', target_object_type_id: 'ot2', api_name: 'flies', label: 'Flies' }],
+    action_types: [{
+      id: 'at1', ontology_id: 'ont1', api_name: 'ground-aircraft', label: 'Ground aircraft',
+      description: '', status: 'experimental', created_at: '',
+      action_type_rules: [], action_type_parameters: [],
+    }],
     ontology_interfaces: [{ id: 'if1', ontology_id: 'ont1', rid: null, api_name: 'roomed', label: 'Roomed', description: '', properties: [] }],
     object_type_indexes: [{ object_type_id: 'ot1', status: 'success', error: null, object_count: 12, indexed_at: '' }],
   }
@@ -56,6 +61,7 @@ import DiscoverPage from '@/pages/ontology/DiscoverPage'
 import ObjectTypesPage from '@/pages/ontology/ObjectTypesPage'
 import SharedPropertiesPage from '@/pages/ontology/SharedPropertiesPage'
 import LinkTypesPage from '@/pages/ontology/LinkTypesPage'
+import ActionTypesPage from '@/pages/ontology/ActionTypesPage'
 import InterfacesPage from '@/pages/ontology/InterfacesPage'
 import { useAuthStore } from '@/stores/auth.store'
 
@@ -73,6 +79,7 @@ const renderOma = (at = '/ontology') => {
             <Route path="object-types" element={<ObjectTypesPage />} />
             <Route path="shared-properties" element={<SharedPropertiesPage />} />
             <Route path="link-types" element={<LinkTypesPage />} />
+            <Route path="action-types" element={<ActionTypesPage />} />
             <Route path="interfaces" element={<InterfacesPage />} />
           </Route>
         </Routes>
@@ -85,7 +92,7 @@ describe('Ontology Manager chrome', () => {
   it('counts this ontology in the sidebar, under its switcher', async () => {
     renderOma()
     expect(await screen.findByRole('button', { name: /Ontology: Production Ontology/ })).toBeDefined()
-    for (const [label, count] of [['Object types', '2'], ['Shared Properties', '1'], ['Link types', '1'], ['Interfaces', '1']]) {
+    for (const [label, count] of [['Object types', '2'], ['Shared Properties', '1'], ['Link types', '1'], ['Action types', '1'], ['Interfaces', '1']]) {
       const row = await screen.findByRole('link', { name: new RegExp(`^${label}`) })
       expect(within(row).getByText(count)).toBeDefined()
     }
@@ -105,6 +112,7 @@ describe('Ontology Manager chrome', () => {
     ['/ontology/object-types', 'Object types', 'Aircraft'],
     ['/ontology/shared-properties', 'Shared Properties', 'Cost'],
     ['/ontology/link-types', 'Link types', 'Flies'],
+    ['/ontology/action-types', 'Action types', 'Ground aircraft'],
     ['/ontology/interfaces', 'Interfaces', 'Roomed'],
   ])('%s renders its resources', async (path, title, row) => {
     renderOma(path)

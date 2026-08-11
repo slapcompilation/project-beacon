@@ -214,9 +214,14 @@ export const actionEditableProperties = { apiName: 'action_editable_properties',
   { object_type: string; property: string; rule_kind: string }[]
 >
 
+/**
+ *  The seven rule kinds (action-types/rules.md), what each targets, and
+ *  whether apply_action() can run it today. The five interface kinds and
+ *  three side-effect kinds are deliberately absent, as 418 records.
+ */
 export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
-  { kind: string; targets: string; note: string }[]
+  { kind: string; targets: string; executable: boolean; note: string }[]
 >
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
