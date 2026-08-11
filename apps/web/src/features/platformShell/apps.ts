@@ -61,6 +61,14 @@ export const AUDIENCES: AppAudience[] = [
         icon: 'cube',
         tint: '#7961db',
       },
+      {
+        name: 'Value Types Manager',
+        tagline: 'Declare reusable semantic types',
+        blurb: 'Author a value type per space — a base type plus a constraint, versioned — and bind it to properties in Ontology Manager.',
+        path: '/value-types',
+        icon: 'tag',
+        tint: '#00a396',
+      },
     ],
   },
 ]
