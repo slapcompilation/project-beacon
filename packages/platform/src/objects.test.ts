@@ -29,8 +29,8 @@ describe.skipIf(noDb)('an object with edits', () => {
     db = await connect()
     f = await fixture(db, 'platform_obj')
     const { rows: [ont] } = await db.query(
-      `insert into public.ontologies (space_id, api_name, label)
-       values ($1,'objtest','Object test') returning id`, [f.spaceId])
+      `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
+       values ($1,'objtest','Object test',false) returning id`, [f.spaceId])
     const { rows: [t] } = await db.query(
       `insert into public.object_types (ontology_id, api_name, label, edits_enabled)
        values ($1,'Ticket','Ticket',true) returning id`, [(ont as { id: string }).id])

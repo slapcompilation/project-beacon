@@ -706,6 +706,9 @@
   .oma-nav { padding:8px; }
   .oma-group-title { padding:10px 8px 4px; font-size:12px; font-weight:600; }
   .oma-rule { height:1px; margin:8px 0; background:hsl(var(--border)); }
+  .oma-project-picker { display:flex; flex-direction:column; gap:2px; padding:6px 10px 2px; }
+  .oma-project-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:hsl(var(--muted-foreground)); }
+  .oma-project-picker select { font-size:12px; padding:3px 6px; border:1px solid hsl(var(--border)); border-radius:4px; background:hsl(var(--background)); color:inherit; }
   .oma-row {
     display:flex; align-items:center; gap:10px; width:100%; padding:6px 8px;
     border-radius:4px; font-size:13px; color:hsl(var(--foreground)); text-decoration:none;

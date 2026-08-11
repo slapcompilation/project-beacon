@@ -3,6 +3,7 @@
 // operator sees why before they try.
 
 import { supabase } from '@/lib/supabase/client'
+import { useAppStore } from '@/stores/app.store'
 import { saveInterface, deleteOntologyResource, type Json } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 import type { InterfaceDef, InterfacePropertyDef } from '@beacon/ontology'
@@ -65,7 +66,7 @@ export async function createInterface(i: CreateInterfaceInput): Promise<string> 
   return client(saveInterface).applyAction({
     p_interface: {
       api_name: i.apiName, label: i.label, description: i.description,
-      ontology_id: i.ontologyId,
+      ontology_id: i.ontologyId, project_id: useAppStore.getState().omaProjectId,
       properties: i.properties.map((p, idx) => ({
         property_id: p.key, display_name: p.label, api_name: p.key,
         base_type: p.type, position: idx,

@@ -2,6 +2,7 @@
 // property on an object type points at one by api_name (migration 329).
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAppStore } from '@/stores/app.store'
 import { toast } from 'sonner'
 import type { PropertyType, SharedPropertyDef } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
@@ -57,7 +58,7 @@ export function useCreateSharedProperty() {
       client(saveSharedProperty).applyAction({
         p_property: {
           api_name: i.apiName, label: i.label, description: i.description, base_type: i.baseType,
-          ontology_id: i.ontologyId,
+          ontology_id: i.ontologyId, project_id: useAppStore.getState().omaProjectId,
         } as unknown as Json,
       }),
     onSuccess: () => {

@@ -244,7 +244,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (76) ───────────────────────────────────────────────────
+// ── FUNCTIONS (78) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -391,6 +391,11 @@ export const canSeeBranch = { apiName: 'can_see_branch', kind: 'function' } as F
 
 export const canSeeMarkingCategory = { apiName: 'can_see_marking_category', kind: 'function' } as FunctionType<
   { p_category: string },
+  boolean
+>
+
+export const canSeePlaced = { apiName: 'can_see_placed', kind: 'function' } as FunctionType<
+  { p_project: string },
   boolean
 >
 
@@ -648,6 +653,11 @@ export const ontologyColumnType = { apiName: 'ontology_column_type', kind: 'func
 export const ontologyResourceRow = { apiName: 'ontology_resource_row', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string },
   Json
+>
+
+export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as FunctionType<
+  { p_ontology: string },
+  string
 >
 
 /**
