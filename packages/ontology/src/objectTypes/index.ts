@@ -155,6 +155,9 @@ export interface PropertyDef {
    *  what a generated client exposes. */
   apiName: string
   type: PropertyType
+  /** "All base types may be used in arrays… excluding the Vector and Time
+   *  series types." Required exactly when type is array; never nested. */
+  arrayElementType?: PropertyType
   required: boolean
   /** A column in a backing datasource, or `user_input` — the creation wizard
    *  offers both as a Source. */
