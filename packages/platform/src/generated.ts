@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (18) ────────────────────────────────────────────────
+// ── ACTION TYPES (20) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -32,6 +32,17 @@ export const applyAction = { apiName: 'apply_action', kind: 'action' } as Action
  */
 export const applyActionType = { apiName: 'apply_action_type', kind: 'action' } as ActionType<
   { p_action: Json; p_parameters?: Json; p_rules?: Json; p_criteria?: Json },
+  string
+>
+
+/**
+ *  Write an interface and its three clauses plus extensions. Called by
+ *  save_working_state and nothing else. Properties and constraints upsert by
+ *  natural key because implementations reference them by id; extensions
+ *  replace as a set through the guards.
+ */
+export const applyInterface = { apiName: 'apply_interface', kind: 'action' } as ActionType<
+  { p_interface: Json; p_properties?: Json; p_link_constraints?: Json; p_action_constraints?: Json; p_extends?: Json },
   string
 >
 
@@ -137,6 +148,15 @@ export const saveActionType = { apiName: 'save_action_type', kind: 'action' } as
 >
 
 /**
+ *  Stage an interface whole — properties, both constraint clauses and
+ *  extensions travel inside the entry; absent sections mean unedited.
+ */
+export const saveInterface = { apiName: 'save_interface', kind: 'action' } as ActionType<
+  { p_interface: Json },
+  string
+>
+
+/**
  *  Stage a link type into my working state. Flat — every field is a column —
  *  so save_working_state applies it through the generic arm.
  */
@@ -169,9 +189,9 @@ export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'acti
 
 /**
  *  Apply my working state to the ontology, bump its version and clear the
- *  state. Object types and action types go through their writers so their
- *  sections travel; every other kind is a flat row. Absent sections mean
- *  unedited. Errors caused by this save block it and nothing lands.
+ *  state. Object types, action types and interfaces go through their writers
+ *  so their sections travel; every other kind is a flat row. Absent sections
+ *  mean unedited. Errors caused by this save block it and nothing lands.
  */
 export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' } as ActionType<
   { p_branch?: string },

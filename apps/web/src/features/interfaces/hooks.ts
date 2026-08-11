@@ -22,7 +22,11 @@ export function useCreateInterface() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: CreateInterfaceInput) => createInterface(input),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.interfaces }); toast.success('Interface created') },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.interfaces })
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged — save to add it to the ontology')
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
@@ -34,7 +38,8 @@ export function useDeleteInterface() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.interfaces })
       void qc.invalidateQueries({ queryKey: keys.implementations })
-      toast.success('Interface deleted')
+      void qc.invalidateQueries({ queryKey: ['working-state'] })
+      toast.success('Staged for deletion — save to apply it')
     },
     onError: (e: Error) => { toast.error(e.message) },
   })
