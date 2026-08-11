@@ -9,7 +9,7 @@
 // a conformance test, not an allowlist: two implementations of one documented
 // fact, compared.
 
-import type { Deprecation, ObjectTypeStatus, OntologyVisibility } from '../ontology/status'
+import type { Deprecation, ObjectTypeStatus, OntologyStatus, OntologyVisibility } from '../ontology/status'
 
 /** The twenty-two base types from properties-overview's table. A closed set —
  *  an unknown value is a typo, not an extension. */
@@ -174,6 +174,14 @@ export interface PropertyDef {
   isPrimaryKey?: boolean
   isTitleKey?: boolean
   position?: number
+  /** "Every object type, property, link type, action, or interface in the
+   *  Ontology has a status" — same vocabulary as the rest, without promoted
+   *  ("object types only"). Optional so drafts need not carry one; the
+   *  database defaults new rows to experimental. */
+  status?: OntologyStatus
+  deprecationReason?: string | null
+  deprecationDeadline?: string | null
+  replacedBy?: string | null
 }
 
 export interface ObjectTypeDef {

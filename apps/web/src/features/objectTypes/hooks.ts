@@ -13,6 +13,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { STATUS_META } from '@beacon/ontology'
+import { supabase } from '@/lib/supabase/client'
 import {
   fetchObjectTypes, saveObjectType, deleteObjectType, setObjectTypeStatus, updateObjectType,
   fetchObjectTypeProblems,
@@ -76,6 +77,22 @@ export function useSetObjectTypeStatus() {
       void qc.invalidateQueries({ queryKey: keys.types })
       toast.success(`Status set to ${STATUS_META[v.status].label}`)
     },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** "There is the option to also apply the `active` status to all properties
+ *  on the object type" — an option at activation time, never a cascade
+ *  (active never cascades on its own). */
+export function useApplyActiveToProperties(typeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('object_type_properties')
+        .update({ status: 'active' }).eq('object_type_id', typeId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.types }) },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

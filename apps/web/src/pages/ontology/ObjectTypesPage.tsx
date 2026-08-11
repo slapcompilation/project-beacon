@@ -4,8 +4,8 @@
 
 import { useMemo, useState } from 'react'
 import {
-  Button, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent,
-  Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
+  Button, Card, Checkbox, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
+  InputGroup, Intent, Spinner, SpinnerSize, Tab, Tabs, Tag, TextArea,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useSearchParams } from 'react-router-dom'
@@ -13,14 +13,16 @@ import {
   PROPERTY_TYPES, COMPUTED_FNS, toSlug, toCamel, toPascal, validateObjectTypeDraft, validateLinkTypeDraft,
   validateComputedProperty, validateViewConfig, attachProblem,
   acceptsInput, primaryKeyEligibility, primaryKeyAdvice, canBeTitleKey,
+  STATUS_META, OBJECT_TYPE_STATUSES, ONTOLOGY_STATUSES,
   type PropertyType, type PropertyDef, type ObjectTypeDef, type LinkTypeDef,
   type ComputedFn, type ComputedPropertyDef, type ViewConfigDef, type SharedPropertyDef,
+  type ObjectTypeStatus, type OntologyStatus,
 } from '@beacon/ontology'
 import { useAppStore } from '@/stores/app.store'
 import { rowToLinkType } from '@/features/objectTypes/api'
 import {
-  useCreateObjectType, useUpdateObjectType,
-  useCreateLinkType, useDeleteLinkType, useLinkTypes,
+  useCreateObjectType, useUpdateObjectType, useSetObjectTypeStatus,
+  useApplyActiveToProperties, useCreateLinkType, useDeleteLinkType, useLinkTypes,
 } from '@/features/objectTypes/hooks'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { useEditsEnabled } from '@/features/objectTypes/materializations'
@@ -107,6 +109,26 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
         // property will be disabled." `required` stays the object type's to decide.
         return (
           <div key={i} className="flex flex-wrap items-center gap-2">
+            {/* "Every… property… has a status." New rows start experimental in
+                the database; the select appears once the row exists. */}
+            {!p.isNew && p.status && (
+              <>
+                <HTMLSelect value={p.status} title={STATUS_META[p.status].help}
+                  onChange={(e) => { setProp(i, { status: e.currentTarget.value as OntologyStatus }) }}>
+                  {ONTOLOGY_STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+                </HTMLSelect>
+                {p.status === 'deprecated' && (
+                  <>
+                    <InputGroup size="small" placeholder="Why it is being deprecated"
+                      value={p.deprecationReason ?? ''}
+                      onChange={(e) => { setProp(i, { deprecationReason: e.currentTarget.value }) }} />
+                    <InputGroup size="small" type="date" title="When it is expected to be deleted"
+                      value={p.deprecationDeadline ?? ''}
+                      onChange={(e) => { setProp(i, { deprecationDeadline: e.currentTarget.value }) }} />
+                  </>
+                )}
+              </>
+            )}
             {def && <Icon icon="globe" size={12} className="text-violet-500 shrink-0" title={`Inherits from "${def.apiName}"`} />}
             {p.isPrimaryKey && <Icon icon="key" size={12} className="text-violet-500 shrink-0" title="Primary key" />}
             {p.isTitleKey && <Icon icon="bookmark" size={12} className="text-violet-500 shrink-0" title="Title key" />}
@@ -366,6 +388,7 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Icon icon={type.icon as IconName} size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{type.label}</h2>
         <Tag minimal className="!text-[10px] tabular-nums">v{type.version}</Tag>
+        <StatusControl type={type} />
         <Button variant="minimal" size="small" icon="edit" active={editing} className="ml-auto"
           onClick={() => { setEditing(!editing) }}>Edit properties</Button>
       </div>
@@ -381,6 +404,75 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
           <Tab id="materializations" title="Materializations" icon="export" panel={<MaterializationsTab type={type} />} />}
       </Tabs>
     </section>
+  )
+}
+
+/** "Select the dropdown next to the current status. Select the new status."
+ *  Deprecating prompts for the documentation; activating offers the
+ *  apply-to-all-properties option — both from metadata-statuses. */
+function StatusControl({ type }: { type: ObjectTypeDef }) {
+  const set = useSetObjectTypeStatus()
+  const bulkActive = useApplyActiveToProperties(type.id)
+  const [pending, setPending] = useState<ObjectTypeStatus | null>(null)
+  const [reason, setReason] = useState('')
+  const [deadline, setDeadline] = useState('')
+  const [replacedBy, setReplacedBy] = useState('')
+  const [alsoProps, setAlsoProps] = useState(true)
+  const current = type.status ?? 'experimental'
+  const meta = STATUS_META[current]
+
+  const apply = (status: ObjectTypeStatus, deprecation: ObjectTypeDef['deprecation'] | null) => {
+    set.mutate({ id: type.id, status, visibility: type.visibility ?? 'normal', deprecation: deprecation ?? null }, {
+      onSuccess: () => {
+        if (status === 'active' && alsoProps) bulkActive.mutate()
+        setPending(null)
+      },
+    })
+  }
+
+  return (
+    <>
+      <Tag minimal intent={meta.intent} className="!text-[10px]" title={meta.help}>{meta.label}</Tag>
+      <HTMLSelect minimal value={current} onChange={(e) => {
+        const s = e.currentTarget.value as ObjectTypeStatus
+        if (s === current) return
+        if (s === 'deprecated' || (s === 'active' && current === 'experimental')) { setPending(s); return }
+        apply(s, null)
+      }}>
+        {OBJECT_TYPE_STATUSES.map((s) => <option key={s} value={s}>{STATUS_META[s].label}</option>)}
+      </HTMLSelect>
+
+      <Dialog isOpen={pending === 'deprecated'} onClose={() => { setPending(null) }} title="Deprecate object type" style={{ width: 420 }}>
+        <DialogBody>
+          <div className="space-y-2">
+            <TextArea fill placeholder="Why it is being deprecated" value={reason}
+              onChange={(e) => { setReason(e.currentTarget.value) }} />
+            <InputGroup type="date" value={deadline} title="When it is expected to be deleted from the system"
+              onChange={(e) => { setDeadline(e.currentTarget.value) }} />
+            <InputGroup placeholder="Replaced by (optional)" value={replacedBy}
+              onChange={(e) => { setReplacedBy(e.currentTarget.value) }} />
+          </div>
+        </DialogBody>
+        <DialogFooter actions={<>
+          <Button onClick={() => { setPending(null) }}>Cancel</Button>
+          <Button intent={Intent.PRIMARY} disabled={!reason.trim() || !deadline} loading={set.isPending}
+            onClick={() => { apply('deprecated', { reason: reason.trim(), deadline, replacedBy: replacedBy.trim() || null }) }}>
+            Deprecate
+          </Button>
+        </>} />
+      </Dialog>
+
+      <Dialog isOpen={pending === 'active'} onClose={() => { setPending(null) }} title="Set status to Active" style={{ width: 420 }}>
+        <DialogBody>
+          <Checkbox checked={alsoProps} onChange={(e) => { setAlsoProps(e.currentTarget.checked) }}
+            label="Also apply the active status to all properties on the object type" />
+        </DialogBody>
+        <DialogFooter actions={<>
+          <Button onClick={() => { setPending(null) }}>Cancel</Button>
+          <Button intent={Intent.PRIMARY} loading={set.isPending} onClick={() => { apply('active', null) }}>Apply</Button>
+        </>} />
+      </Dialog>
+    </>
   )
 }
 

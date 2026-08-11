@@ -10,7 +10,7 @@ import {
 import { client } from '@/lib/supabase/ontologyClient'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
-  OntologyStatus, OntologyVisibility, Deprecation,
+  OntologyStatus, ObjectTypeStatus, OntologyVisibility, Deprecation,
 } from '@beacon/ontology'
 import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
 
@@ -34,6 +34,11 @@ export interface PropertyRow {
   position: number
   is_primary_key: boolean
   is_title_key: boolean
+  /** Migration 458 — the same vocabulary as every resource, minus promoted. */
+  status: 'active' | 'experimental' | 'deprecated' | 'example'
+  deprecation_reason: string | null
+  deprecation_deadline: string | null
+  replaced_by: string | null
 }
 
 export function rowToProperty(r: PropertyRow): PropertyDef {
@@ -45,6 +50,8 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
     visibility: r.visibility, position: r.position,
     isPrimaryKey: r.is_primary_key, isTitleKey: r.is_title_key,
+    status: r.status, deprecationReason: r.deprecation_reason,
+    deprecationDeadline: r.deprecation_deadline, replacedBy: r.replaced_by,
   }
 }
 
@@ -59,6 +66,14 @@ export function propertyToRow(p: PropertyDef, position: number) {
     shared_property_id: p.sharedPropertyId ?? null,
     required: p.required, visibility: p.visibility ?? 'normal', position,
     is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
+    // Absent means unchanged: the session's status pass only touches rows
+    // whose payload carries the key, so drafts without one change nothing.
+    ...(p.status ? {
+      status: p.status,
+      deprecation_reason: p.status === 'deprecated' ? p.deprecationReason ?? null : null,
+      deprecation_deadline: p.status === 'deprecated' ? p.deprecationDeadline ?? null : null,
+      replaced_by: p.status === 'deprecated' ? p.replacedBy ?? null : null,
+    } : {}),
   }
 }
 
@@ -147,7 +162,7 @@ export async function deleteObjectType(id: string): Promise<void> {
  *  with no reason or deadline, and refuses to delete anything active — this is
  *  the surface that makes both reachable. */
 export async function setObjectTypeStatus(
-  i: { id: string; status: OntologyStatus; visibility: OntologyVisibility; deprecation: Deprecation | null },
+  i: { id: string; status: ObjectTypeStatus; visibility: OntologyVisibility; deprecation: Deprecation | null },
 ): Promise<void> {
   const { error } = await supabase.from('object_types').update({
     status: i.status,
