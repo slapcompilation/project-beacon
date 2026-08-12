@@ -101,10 +101,18 @@ describe.skipIf(noDb)('the branch overlay', () => {
   })
 
   it('refuses the merge while approval is missing, by the check name', async () => {
+    // 462 auto-approves an unprotected change the proposer could make
+    // directly, so only a PROTECTED resource still waits for review here.
+    const proj = (await one(`insert into public.projects (organization_id, space_id, api_name, name)
+                             values ($1,(select space_id from public.ontologies where id = $2),'unappr','Unapproved') returning id`,
+      [org, ont])).id
+    await db.query(`insert into public.project_role_grants (project_id, user_id, role, organization_id)
+                    values ($1,$2,'owner',$3)`, [proj, u1, org])
+    const t = (await one(`insert into public.object_types (ontology_id, project_id, api_name, label, status)
+                          values ($1,$2,'FlowB','B','active') returning id`, [ont, proj])).id
+    await db.query(`update public.object_types set protected = true where id = $1`, [t])
     const b = (await one(`insert into public.ontology_branches (ontology_id, name, title)
                           values ($1,'unapproved','Unapproved') returning id`, [ont])).id
-    const t = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
-                          values ($1,'FlowB','B','active') returning id`, [ont])).id
     await db.query(`select public.stage_change('object_type', $1, $2::jsonb, $3, 'modified')`,
       [t, JSON.stringify({ label: 'B renamed' }), b])
     await db.query('select public.save_working_state($1)', [b])
@@ -136,6 +144,52 @@ describe.skipIf(noDb)('the branch overlay', () => {
     const row = await one('select status, visibility from public.object_types where id = $1', [t])
     expect(row.status).toBe('promoted')
     expect(row.visibility).toBe('prominent')
+  })
+
+  // ── 462: protection makes main read-only ───────────────────────────────────
+  it('protects a placed resource: main refuses, the approved branch route lands', async () => {
+    const proj = (await one(`insert into public.projects (organization_id, space_id, api_name, name)
+                             values ($1,(select space_id from public.ontologies where id = $2),'guarded','Guarded') returning id`,
+      [org, ont])).id
+    await db.query(`insert into public.project_role_grants (project_id, user_id, role, organization_id)
+                    values ($1,$2,'owner',$3), ($1,$4,'viewer',$3)`, [proj, u1, org, u2])
+    const t = (await one(`insert into public.object_types (ontology_id, project_id, api_name, label, status)
+                          values ($1,$2,'Guarded','Guarded','active') returning id`, [ont, proj])).id
+    await db.query(`update public.object_types set protected = true where id = $1`, [t])
+
+    expect(await refused(db, () =>
+      db.query(`update public.object_types set label = 'direct' where id = $1`, [t])))
+      .toContain('Branching:ResourceIsProtected')
+
+    const b = (await one(`insert into public.ontology_branches (ontology_id, name, title)
+                          values ($1,'guarded','Guarded') returning id`, [ont])).id
+    await db.query(`select public.stage_change('object_type', $1, $2::jsonb, $3, 'modified')`,
+      [t, JSON.stringify({ label: 'via branch' }), b])
+    await db.query('select public.save_working_state($1)', [b])
+    const pr = (await one(`select public.create_proposal($1, 'Guarded', '') as id`, [b])).id
+    const tk = (await one(`select id, auto_approved from public.proposal_tasks where proposal_id = $1`, [pr]))
+    expect((tk as unknown as { auto_approved: boolean }).auto_approved).toBe(false)
+    await asUser(u2)
+    await db.query(`insert into public.proposal_reviews (task_id, user_id, decision)
+                    values ($1,$2,'approved')`, [tk.id, u2])
+    await asUser(u1)
+    await db.query('select public.merge_proposal($1)', [pr])
+    expect((await one('select label from public.object_types where id = $1', [t])).label)
+      .toBe('via branch')
+  })
+
+  it('auto-approves an unprotected change the proposer could make directly', async () => {
+    const t = (await one(`insert into public.object_types (ontology_id, api_name, label, status)
+                          values ($1,'AutoOk','Auto','active') returning id`, [ont])).id
+    const b = (await one(`insert into public.ontology_branches (ontology_id, name, title)
+                          values ($1,'auto-ok','Auto ok') returning id`, [ont])).id
+    await db.query(`select public.stage_change('object_type', $1, $2::jsonb, $3, 'modified')`,
+      [t, JSON.stringify({ label: 'auto merged' }), b])
+    await db.query('select public.save_working_state($1)', [b])
+    const pr = (await one(`select public.create_proposal($1, 'Auto ok', '') as id`, [b])).id
+    await db.query('select public.merge_proposal($1)', [pr])
+    expect((await one('select label from public.object_types where id = $1', [t])).label)
+      .toBe('auto merged')
   })
 
   it('refuses a save onto a non-active branch', async () => {
