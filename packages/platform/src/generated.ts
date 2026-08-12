@@ -267,7 +267,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (78) ───────────────────────────────────────────────────
+// ── FUNCTIONS (80) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -778,6 +778,11 @@ export const resourceLocation = { apiName: 'resource_location', kind: 'function'
   string
 >
 
+export const resourceProject = { apiName: 'resource_project', kind: 'function' } as FunctionType<
+  { p_kind: string; p_id: string },
+  unknown
+>
+
 /**
  *  The <locator> of a RID: everything after the fourth separator, because the
  *  locator may itself contain dots (palantir/resource-identifier). NULL when
@@ -840,9 +845,12 @@ export const submissionOperators = { apiName: 'submission_operators', kind: 'fun
 >
 
 /**
- *  Derived, never stored. "A single rejection from any user… will cause the
- *  resource's changes to be Rejected", so rejection dominates approval
- *  regardless of order or count.
+ *  Derived, never stored — which is also why "proposals linked to that policy
+ *  will be refreshed and have their status reevaluated" costs nothing: the
+ *  policy is read at ask time. Rejection dominates. Custom policy on a
+ *  protected resource counts eligible non-contributor approvals; the default
+ *  policy takes one user with edit permissions; unprotected auto-approves
+ *  when the contributor's own permissions covered it.
  */
 export const taskApprovalStatus = { apiName: 'task_approval_status', kind: 'function' } as FunctionType<
   { p_task: string },
@@ -851,6 +859,11 @@ export const taskApprovalStatus = { apiName: 'task_approval_status', kind: 'func
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
   { p_base_type: string },
+  boolean
+>
+
+export const userCanEditResource = { apiName: 'user_can_edit_resource', kind: 'function' } as FunctionType<
+  { p_user: string; p_project: string },
   boolean
 >
 
