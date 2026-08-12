@@ -197,6 +197,8 @@ export interface SaveSetInput {
   projectId: string
   kind: 'exploration' | 'list'
   filters: ExplorerFilter[]
+  /** "Only save N selected" — a list built from ticked rows. */
+  primaryKeys?: string[]
 }
 
 export function useSaveObjectSet() {
@@ -206,6 +208,7 @@ export function useSaveObjectSet() {
       client(saveObjectSet).applyAction({ p_set: {
         name: i.name, description: i.description, subject_type_id: i.subjectTypeId,
         project_id: i.projectId, set_kind: i.kind, filters: i.filters,
+        ...(i.primaryKeys ? { primary_keys: i.primaryKeys } : {}),
       } as unknown as Json }),
     onSuccess: (_, i) => {
       void qc.invalidateQueries({ queryKey: ['explorer', 'saved-sets'] })
