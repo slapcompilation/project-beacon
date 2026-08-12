@@ -83,7 +83,7 @@ export function useOmaTypes(): { types: ObjectTypeDef[]; isLoading: boolean } {
 export function useOmaResources(): OmaResource[] {
   const { ontology } = useOmaOntology()
   const { data: typeRows = [] } = useObjectTypes()
-  const { data: shared = [] } = useSharedProperties()
+  const { data: shared } = useSharedProperties()
   const { data: linkRows } = useLinkTypes()
   const { data: ifaceRows } = useInterfaces()
   const oid = ontology?.id ?? null

@@ -1,7 +1,9 @@
 // Shared property CRUD. Definitions are org-scoped and admin-authored; a
 // property on an object type points at one by api_name (migration 329).
 
+import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useComposeBranch } from '@/features/branching/api'
 import { useAppStore } from '@/stores/app.store'
 import { toast } from 'sonner'
 import type { PropertyType, SharedPropertyDef } from '@beacon/ontology'
@@ -32,20 +34,25 @@ const toDef = (r: Row): SharedProperty => ({
 const key = ['shared-properties'] as const
 
 export function useSharedProperties() {
-  return useQuery({
+  const q = useQuery({
     queryKey: key,
-    queryFn: async (): Promise<SharedProperty[]> => {
+    // Raw rows out of the query so the branch overlay (column-shaped fields)
+    // composes BEFORE the def mapping — composing camelCase defs would corrupt.
+    queryFn: async (): Promise<Row[]> => {
       const { data, error } = await supabase.from('shared_properties').select('*').order('label')
       if (error) throw new Error(error.message)
-      return (data as Row[]).map(toDef)
+      return data as Row[]
     },
     staleTime: 30_000,
   })
+  const compose = useComposeBranch<Row>('shared_property', { visibility: 'normal', description: '' })
+  const data = useMemo(() => compose(q.data ?? []).map(toDef), [q.data, compose])
+  return { ...q, data }
 }
 
 /** Keyed by api_name — what `resolveProperty` folds into a property. */
 export function useSharedPropertyMap(): Map<string, SharedPropertyDef> {
-  const { data = [] } = useSharedProperties()
+  const { data } = useSharedProperties()
   // Keyed by id: `object_type_properties.shared_property_id` is a foreign key
   // now, not the api name the jsonb used to carry.
   return new Map(data.map((d) => [d.id, d]))
