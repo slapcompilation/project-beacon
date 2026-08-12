@@ -230,5 +230,44 @@ alongside CBAC, static, and the scoped-session workspace banner.
 
 ## Decisions
 
-Recited to the operator 2026-08-06. Plan below; nothing built from this reading
-yet.
+First recited to the operator 2026-08-06; the plan was never written down, and
+the platform moved under it — the datasource binding now exists (405/409), so
+the **Defines an object type** indicator is drawable; materializations (453)
+added a second dataset↔ontology edge in the reverse direction; branches and the
+Object Explorer's visibility conventions shipped. Refreshed 2026-08-12 and
+re-recited; approved the same day.
+
+1. **One graph, four edge sources, one reader.** `lineage_graph(p_kind, p_id,
+   p_up, p_down)` walks: dataset ← dataset (`dataset_inputs`), dataset → object
+   type (`object_type_datasources` — the Defines-an-object-type indicator),
+   object type ↔ object type (`link_types`, exposed on the link-icon expansion
+   as `elements-reference` draws it), and object type → dataset
+   (`object_type_materializations`). Depth-limited per the chevron behaviour
+   ("define the number of levels"). Visibility is the platform's: datasets by
+   project access, object types by `auth_in_ontology`, hidden never appears.
+2. **Node facts, not 24 colorings.** The payload carries only facts we store:
+   resource kind, the latest committed transaction's type ("Append or
+   Snapshot"), **out-of-date with parent** (a direct parent built after me —
+   the *ancestor* variant needs a transitive-closure cost no page explains and
+   stays recorded, open question 3), row count, and the object-type indicator.
+   Colorings beyond these wait for their facts to exist.
+3. **Marking simulation is the phase's product.**
+   `simulate_marking_changes(p_dataset, p_add, p_remove)` answers with the four
+   documented states per reachable dataset — Simulated changes applied / Access
+   affected / Access unaffected / No visible transactions — by re-deriving each
+   dataset's data markings under the hypothesis and diffing. The direct-only
+   removal constraint refuses by name, on what `file_marking_origin()` already
+   returns.
+4. **The surface is an SVG layered DAG, no graph library** — ancestors left,
+   root centre, descendants right, chevrons expanding by level, node details in
+   a Blueprint panel, and simulation mode adds the fourth banner ("Security
+   simulation active — marking changes are hypothetical") full-width, per
+   `control-panel-and-banners`.
+5. **Deferred whole**: Data source nodes (Data Connection unread), Artifacts
+   (none exist here), saved graphs / snapshots / share links / SVG export,
+   fallback branches, the histogram rail, stop-propagating-via-code, and
+   per-user permissions coloring (wants a user picker and as-that-user
+   evaluation; recorded).
+
+Slices: **L1** the engine (graph reader + the staleness fact), **L2** the
+surface (canvas + node details), **L3** the simulation (function + mode + banner).
