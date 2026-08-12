@@ -1,0 +1,163 @@
+// Object Explorer's data: the E1 engine functions through the typed client,
+// plus the metadata the home page arranges (groups, index counts).
+//
+// Filters travel in the documented grammar (generate-urls.md) — the same jsonb
+// the engine validates, so a filter the UI builds is a filter a saved
+// exploration can hold.
+
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase/client'
+import { client } from '@/lib/supabase/ontologyClient'
+import {
+  aggregateObjectSet, countObjectSet, evaluateObjectSet, histogramObjectSet, searchObjects,
+  type Json,
+} from '@beacon/platform'
+
+// ── the documented filter grammar, as types ────────────────────────────────
+
+export type FilterValue =
+  | { type: 'textFilter'; text: string }
+  | { type: 'valuesFilter'; values: string[] }
+  | { type: 'numberRangeFilter'; min?: number; max?: number }
+  | { type: 'dateRangeFilter'; dateRangeFilter: { start?: string; end?: string } }
+
+export type ExplorerFilter =
+  | { type: 'propertyFilter'; propertyType: string; value: FilterValue }
+  | { type: 'linkFilter'; linkType: string; value: { type: 'presenceFilter'; matchType: 'MUST_HAVE' | 'MUST_NOT_HAVE' } }
+
+export interface SortSpec { property: string; direction: 'asc' | 'desc' }
+
+export interface AggregateRow {
+  group_value: string | null
+  object_count: number
+  sum: number | null
+  average: number | null
+  min: number | null
+  max: number | null
+  property_count: number
+  unique_count: number
+}
+
+export interface HistogramBucket { bucket_min: number; bucket_max: number; object_count: number }
+
+export type ObjectRow = Record<string, unknown>
+
+// ── metadata ───────────────────────────────────────────────────────────────
+
+export interface IndexInfo { object_type_id: string; status: string; object_count: number | null }
+
+export function useIndexCounts() {
+  return useQuery({
+    queryKey: ['explorer', 'index-counts'],
+    queryFn: async (): Promise<IndexInfo[]> => {
+      const { data, error } = await supabase.from('object_type_indexes')
+        .select('object_type_id, status, object_count')
+      if (error) throw new Error(error.message)
+      return data as IndexInfo[]
+    },
+    staleTime: 30_000,
+  })
+}
+
+export interface TypeGroup {
+  id: string
+  name: string
+  description: string
+  object_type_group_members: { object_type_id: string }[]
+}
+
+export function useTypeGroups() {
+  return useQuery({
+    queryKey: ['explorer', 'type-groups'],
+    queryFn: async (): Promise<TypeGroup[]> => {
+      const { data, error } = await supabase.from('type_groups')
+        .select('id, name, description, object_type_group_members(object_type_id)')
+        .order('name')
+      if (error) throw new Error(error.message)
+      return data as TypeGroup[]
+    },
+    staleTime: 30_000,
+  })
+}
+
+// ── the engine ─────────────────────────────────────────────────────────────
+
+const filterKey = (filters: ExplorerFilter[]) => JSON.stringify(filters)
+
+export function useObjectSetCount(typeId: string | null, filters: ExplorerFilter[]) {
+  return useQuery({
+    queryKey: ['explorer', 'count', typeId, filterKey(filters)],
+    enabled: typeId !== null,
+    queryFn: async (): Promise<number> => {
+      return client(countObjectSet).executeFunction({
+        p_object_type: typeId as string, p_filters: filters as unknown as Json })
+    },
+  })
+}
+
+export function useObjectSetRows(
+  typeId: string | null, filters: ExplorerFilter[], sort: SortSpec[], limit = 100,
+) {
+  return useQuery({
+    queryKey: ['explorer', 'rows', typeId, filterKey(filters), JSON.stringify(sort), limit],
+    enabled: typeId !== null,
+    queryFn: async (): Promise<ObjectRow[]> => {
+      const rows = await client(evaluateObjectSet).executeFunction({
+        p_object_type: typeId as string, p_filters: filters as unknown as Json,
+        p_sort: sort as unknown as Json, p_limit: limit, p_offset: 0 })
+      return rows as ObjectRow[]
+    },
+  })
+}
+
+export function useObjectSetAggregate(
+  typeId: string | null, filters: ExplorerFilter[], groupBy: string | null,
+  aggProperty: string | null = null, limit = 5,
+) {
+  return useQuery({
+    queryKey: ['explorer', 'agg', typeId, filterKey(filters), groupBy, aggProperty, limit],
+    enabled: typeId !== null,
+    queryFn: async (): Promise<AggregateRow[]> => {
+      const rows = await client(aggregateObjectSet).executeFunction({
+        p_object_type: typeId as string, p_filters: filters as unknown as Json,
+        p_group_by: groupBy ?? undefined, p_agg_property: aggProperty ?? undefined,
+        p_sort_by: 'count', p_desc: true, p_limit: limit })
+      return rows as AggregateRow[]
+    },
+  })
+}
+
+export function useObjectSetHistogram(
+  typeId: string | null, filters: ExplorerFilter[], property: string | null, buckets = 20,
+) {
+  return useQuery({
+    queryKey: ['explorer', 'hist', typeId, filterKey(filters), property, buckets],
+    enabled: typeId !== null && property !== null,
+    queryFn: async (): Promise<HistogramBucket[]> => {
+      const rows = await client(histogramObjectSet).executeFunction({
+        p_object_type: typeId as string, p_filters: filters as unknown as Json,
+        p_property: property as string, p_buckets: buckets })
+      return rows as HistogramBucket[]
+    },
+  })
+}
+
+export interface SearchHit {
+  object_type_id: string
+  object_type_label: string
+  primary_key: string
+  title: string
+}
+
+/** The global bar: object instances by title (443's documented cap and
+ *  priority), debounce owned by the caller. */
+export function useGlobalSearch(query: string) {
+  return useQuery({
+    queryKey: ['explorer', 'search', query],
+    enabled: query.trim().length > 0,
+    queryFn: async (): Promise<SearchHit[]> => {
+      const rows = await client(searchObjects).executeFunction({ p_query: query, p_limit: 8 })
+      return rows as SearchHit[]
+    },
+  })
+}

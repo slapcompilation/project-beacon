@@ -658,6 +658,67 @@
   }
 }
 
+/* ── Object Explorer ───────────────────────────────────────────────────────── */
+.explorer-page { flex:1 1 0%; overflow-y:auto; padding:28px 40px 64px; max-width:1360px; }
+.explorer-headline { font-size:24px; font-weight:600; }
+.explorer-sub { font-size:13px; color:hsl(var(--muted-foreground)); margin:4px 0 16px; }
+.explorer-search { max-width:640px; }
+.explorer-search-menu { min-width:420px; max-height:320px; overflow-y:auto; }
+.explorer-group { margin-top:26px; }
+.explorer-group-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.explorer-card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+.explorer-card {
+  display:flex; align-items:center; gap:10px; padding:10px 12px; text-align:left;
+  border:1px solid hsl(var(--border)); border-radius:6px; background:hsl(var(--card));
+  cursor:pointer; font:inherit; transition:border-color .12s, box-shadow .12s;
+}
+.explorer-card:hover { border-color:#7961db80; box-shadow:var(--shadow-sm); }
+.explorer-card-name { flex:1; font-size:14px; font-weight:500; min-width:0;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.explorer-preview { display:flex; flex-direction:column; gap:14px; padding:16px; }
+.explorer-preview-label { font-size:11px; font-weight:600; letter-spacing:.07em;
+  text-transform:uppercase; color:hsl(var(--muted-foreground)); }
+.explorer-preview-row { display:flex; align-items:center; justify-content:space-between; }
+
+.exploration-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.exploration-title { font-size:19px; font-weight:600; }
+.exploration-filterbar { display:flex; align-items:center; flex-wrap:wrap; gap:6px;
+  padding:8px 10px; border:1px solid hsl(var(--border)); border-radius:6px;
+  background:hsl(var(--card)); margin-bottom:14px; }
+.exploration-body { display:grid; grid-template-columns:minmax(0,1fr) 250px; gap:16px; }
+.exploration-charts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px; align-content:start; }
+.chart-card { border:1px solid hsl(var(--border)); border-radius:6px;
+  background:hsl(var(--card)); padding:10px 12px; min-height:120px; }
+.chart-card-header { display:flex; align-items:center; justify-content:space-between;
+  font-size:13px; margin-bottom:8px; }
+.chart-card-add { display:flex; align-items:center; justify-content:center; gap:8px;
+  color:hsl(var(--muted-foreground)); border-style:dashed; cursor:pointer; font:inherit; }
+.listogram-row { display:flex; align-items:center; gap:8px; width:100%; padding:2px 4px;
+  border:0; background:none; cursor:pointer; font:inherit; font-size:12px; border-radius:4px; }
+.listogram-row:hover { background:#7961db14; }
+.listogram-value { flex:0 1 auto; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.listogram-count { margin-left:auto; color:hsl(var(--muted-foreground)); }
+.listogram-bar { height:10px; border-radius:2px; background:#7961db; flex-shrink:0; }
+.histogram { display:flex; align-items:flex-end; gap:2px; height:96px; }
+.histogram-bar { flex:1; min-width:3px; background:#7961db; border:0; border-radius:2px 2px 0 0;
+  cursor:pointer; padding:0; }
+.histogram-bar:hover { background:#5642a6; }
+.histogram-axis { display:flex; justify-content:space-between; font-size:10px;
+  color:hsl(var(--muted-foreground)); margin-top:4px; }
+.exploration-rail { display:flex; flex-direction:column; gap:6px; }
+.rail-card { display:flex; align-items:center; gap:8px; font-size:12px; padding:7px 10px;
+  border:1px solid hsl(var(--border)); border-radius:5px; background:hsl(var(--card)); }
+.results-scroll { overflow-x:auto; border:1px solid hsl(var(--border)); border-radius:6px; }
+.results-table { width:100%; border-collapse:collapse; font-size:12px; }
+.results-table th { text-align:left; padding:6px 10px; border-bottom:1px solid hsl(var(--border));
+  background:hsl(var(--muted) / .4); white-space:nowrap; }
+.results-table td { padding:6px 10px; border-bottom:1px solid hsl(var(--border)); white-space:nowrap; }
+.results-th { display:flex; align-items:center; gap:4px; border:0; background:none;
+  cursor:pointer; font:inherit; font-weight:600; padding:0; }
+.results-th:disabled { cursor:default; color:hsl(var(--muted-foreground)); }
+.filter-popover { padding:12px; width:240px; }
+
 /* ── Ontology Manager's own chrome (§6) ──────────────────────────────────────
  * The application chrome: a light top bar and a light sidebar, inside the
  * platform's dark rail. Colours come from the theme tokens rather than the
