@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/audit-log-categories/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/audit-log-categories/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Audit log categories
 

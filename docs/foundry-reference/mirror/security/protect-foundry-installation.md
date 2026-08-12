@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/protect-foundry-installation/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/protect-foundry-installation/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Protecting your self-hosted Foundry installation
 

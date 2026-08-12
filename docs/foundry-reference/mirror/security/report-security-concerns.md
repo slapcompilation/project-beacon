@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/report-security-concerns/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/report-security-concerns/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Reporting security concerns
 

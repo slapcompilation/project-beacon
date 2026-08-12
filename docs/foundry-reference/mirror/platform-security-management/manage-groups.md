@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-groups/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-groups/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage groups
 
 In the **Platform Settings** section of the sidebar, select **Groups**. Choose a group to view its details in a dashboard view.
 
-![Manage groups](/docs/resources/foundry/platform-security-management/manage-group-members.png)
+![Manage groups](./images/manage-group-members.png)
 
 You can view a variety of information about the selected group:
 
@@ -57,7 +57,7 @@ For example, adding the following group attributes results in the below custom r
 * Key: `access-request: Team`
 * Value: `blue`
 
-![Example of custom access request flow resulting from group attribute setting](/docs/resources/foundry/platform-security-management/custom-access-request.png)
+![Example of custom access request flow resulting from group attribute setting](./images/custom-access-request.png)
 
 Custom access request forms are particularly useful for Projects with multiple groups, as they provide a streamlined and intuitive access request process to improve the administrator and user experience.
 
@@ -67,11 +67,11 @@ By default, all groups with a role in a Project appear in the access request for
 
 To configure which groups should be excluded from the access request flow for a Project, navigate to the **Access panel > Settings > Project access request**.
 
-![Navigating to excluded groups](/docs/resources/foundry/platform-security-management/manage-excluded-groups.png)
+![Navigating to excluded groups](./images/manage-excluded-groups.png)
 
 If you are an `Owner` on a Project, select the **Manage** button, then choose the groups to hide from the request flow. If you are not an `Owner` on the Project, you will see a **View** button that allows you to see which groups are excluded, but you will not be able to make any changes.
 
-![Select groups to excluded groups from access request flow](/docs/resources/foundry/platform-security-management/excluded-groups.png)
+![Select groups to excluded groups from access request flow](./images/excluded-groups.png)
 
 Excluding groups is a per-Project setting, offering flexibility. A group can be excluded from most Projects but included in specific ones. Users can request access to the group in those specific Projects. If approved, they will gain access to all Projects where the group has a role.
 
@@ -85,23 +85,23 @@ Custom policies are in the [beta](/docs/foundry/platform-overview/development-li
 
 Users with `Manage membership` or `Manage Permissions` permissions on the group can configure custom policies that will be applied to any [access requests](/docs/foundry/approvals/overview/#requests) that result in membership requests for the select group. That can be configured through the **Membership Approval** section as shown below:
 
-![Manage group Approvals policy](/docs/resources/foundry/platform-security-management/manage-group-policy.png)
+![Manage group Approvals policy](./images/manage-group-policy.png)
 
 If a group has custom policies configured, then any access request that results in a request to that group will be affected. The custom policy will apply to the `Group membership` subtask to add members to the specific group. For an access request to be approved, all subtasks must be approved. Approval policies are communicated both when requesting access and when reviewing existing access requests.
 
-![Custom policy Approvals access request](/docs/resources/foundry/platform-security-management/custom-policy-approval.png)
+![Custom policy Approvals access request](./images/custom-policy-approval.png)
 
 ## Project access
 
 Select **Project access** next to the **Details** tab to view Project access details for the selected group.
 
-![Group Project access](/docs/resources/foundry/platform-security-management/group-project-access.png)
+![Group Project access](./images/group-project-access.png)
 
 The **Project access** view allows a group administrator to see all the Projects that a group has access to and the specific Project roles granted to the group. This view is especially helpful when deciding to add or remove users from a group because you can see how access will change.
 
 The **Show inherited permissions** toggle is `on` by default and will transverse all nested groups to find what Projects the group has access to. If you turn this toggle `off`, then the list will only show Projects where the group was directly applied.
 
-![Project access tab](/docs/resources/foundry/platform-security-management/project-access-tab.png)
+![Project access tab](./images/project-access-tab.png)
 
 ## Rename a group
 
@@ -115,11 +115,11 @@ Users with `Manage membership` permissions can rename groups. When a user rename
 
 You can specify contact details for a group to serve as the point of contact. Users in the `manage permissions` group can manage permissions. Users can define whether the group should be contacted through Foundry Issues or by a given email.
 
-<img src="./media/set-contact-details.png" alt="Set contact details for a group" width="550" />
+<img src="./images/set-contact-details.png" alt="Set contact details for a group" width="550" />
 
 Setting contact details for a group can be useful if you want to set a group as a Project point of contact in the Project resource sidebar. The Project point of contact can be set by Project owners by selecting **Add** under the **Project point of contact** section in the Project overview.
 
-<img src="./media/project-contact.png" alt="Set contact details for a Project" width="550" />
+<img src="./images/project-contact.png" alt="Set contact details for a Project" width="550" />
 
 ## Apply group permissions
 
@@ -127,13 +127,13 @@ Access the **Group Permissions** view from the **Group details** dashboard. User
 
 Granting group permissions is particularly useful when assigning permissions for Projects, since administrators can see what Projects a group has access to via the Project access tab mentioned above. We recommend a Project setup with at least three groups, one for each default role: Viewer, Editor, and Owner. You should set the Project default role to Discoverer.
 
-![Group Project roles](/docs/resources/foundry/platform-security-management/group-project-roles.png)
+![Group Project roles](./images/group-project-roles.png)
 
 ## Restricted View group name policies
 
 When creating a Restricted View that uses a *Group name* as one of the policy terms, you need to specify the realm of the group so it can match the group name accordingly. You can check the group realm in the **Platform Settings > Groups** interface and change the realm name at the bottom of the Restricted View rule editor.
 
-![Restricted view groups](/docs/resources/foundry/platform-security-management/restricted-view-groups.png)
+![Restricted view groups](./images/restricted-view-groups.png)
 
 ## Realms
 
@@ -151,15 +151,15 @@ External realms cannot be modified in Foundry and exist in a read-only state. Op
 
 Since external realm groups are in a read-only state, users will not be able to request access to join external realm groups in Foundry. However, in [Control Panel](/docs/foundry/administration/overview/), you can configure the message a user receives when trying to request access to an external realm group. Navigate to **Control Panel > Authentication > Your SSO > SAML > Manage > Attribute mapping > External group management** to set a custom message and URL for the external realm. Only users in the same realm as the external realm will see the custom message and URL. Below is an example where an administrator added a message and link to their internal Jira instance.
 
-![Create a custom message in Control Panel](/docs/resources/foundry/platform-security-management/external-realm-group-cp.png)
+![Create a custom message in Control Panel](./images/external-realm-group-cp.png)
 
 After a custom message is configured, you will see this message in Platform Settings when viewing all groups in that external realm.
 
-![View custom message in Platform Settings](/docs/resources/foundry/platform-security-management/external-realm-group-message.png)
+![View custom message in Platform Settings](./images/external-realm-group-message.png)
 
 Users will see the message when they try to request access to a Project that grants a role to this group.
 
-![external group request access](/docs/resources/foundry/platform-security-management/external_group_request_access.png)
+![external group request access](./images/external_group_request_access.png)
 
 Lastly, you can use external realm groups for Organization assignment at login. Often, the information obtained via customer SSO becomes the input for triaging users into different Organizations at login.
 

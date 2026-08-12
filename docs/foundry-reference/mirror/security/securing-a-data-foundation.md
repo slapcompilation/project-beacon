@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/securing-a-data-foundation/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/securing-a-data-foundation/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Securing a data foundation
 
@@ -14,7 +14,7 @@ A key part of designing a data foundation is deciding which projects need to be 
 
 Depending on your Foundry instance, you will be able create projects and/or groups at the same time. The goal is to have three groups per project, each mapped to a default role (for example, a `Viewer`). We want our projects to all be discoverable by other users in our Organization, so we will set the Projects’ default role to `Discoverer` and we will not add Markings to the Project. Also, in each Project we will create a code repository where our transformations will live. Below is our final setup for the **Flight Delays \[Transform]** Project.
 
-![Flight delay project](/docs/resources/foundry/security/flight-delay-project.png)
+![Flight delay project](./images/flight-delay-project.png)
 
 ## Project references
 
@@ -24,11 +24,11 @@ Before we can use data from another Project we need to create a reference to it 
 
 Below is what it will look like when we add Project references to the *flights* dataset in the **Flight Control System \[Datasource]** Project to our **Flight Delays \[Transform]** Project.
 
-![Project references](/docs/resources/foundry/security/project-references.png)
+![Project references](./images/project-references.png)
 
 After writing all our transformations, below is what our final production pipeline looks like.
 
-![Flight alert pipeline data lineage view](/docs/resources/foundry/security/flight-alert-pipeline-data-lineage-view.png)
+![Flight alert pipeline data lineage view](./images/flight-alert-pipeline-data-lineage-view.png)
 
 Since our pipeline covers 3 Projects, we can give users specific Role access separately for each Project.
 
@@ -36,11 +36,11 @@ For example, we will add our first operational user, Eric, to the *Aviation \[On
 
 Below is what the resource access for Eric looks like.
 
-![Flight alert pipeline permissions view for first user.](/docs/resources/foundry/security/flight-alert-pipeline-permissions-view1.png)
+![Flight alert pipeline permissions view for first user.](./images/flight-alert-pipeline-permissions-view1.png)
 
 Eric’s colleague, Linda, is the one who will maintain the production pipeline. So Linda is added to the corresponding Owner and Editor groups for all 3 Projects. Breaking your pipeline into discrete Projects and groups is the easiest to maintain long term.
 
-![Flight alert pipeline permissions view for second user.](/docs/resources/foundry/security/flight-alert-pipeline-permissions-view2.png)
+![Flight alert pipeline permissions view for second user.](./images/flight-alert-pipeline-permissions-view2.png)
 
 ## Sharing data
 

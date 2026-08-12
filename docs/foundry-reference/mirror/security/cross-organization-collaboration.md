@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/cross-organization-collaboration/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/cross-organization-collaboration/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Cross-Organization collaboration
 
@@ -20,7 +20,7 @@ You can rename an Organization any time after its creation in [Control Panel's](
 
 Review the [Organization documentation](/docs/foundry/security/orgs-and-spaces/) to determine whether creating a new Organization is the right choice for your use case.
 
-![Creating an Organization](/docs/resources/foundry/security/create-organization.png)
+![Creating an Organization](./images/create-organization.png)
 
 ### Configure collaborations
 
@@ -28,7 +28,7 @@ Collaboration enables users from different organizations to share their data and
 
 In our example, we will make both Sky Industries and Sunrise Airlines mutually discoverable and allow users and groups from both organizations to see each other.
 
-![Adding collaborations](/docs/resources/foundry/security/collaboration-example.png)
+![Adding collaborations](./images/collaboration-example.png)
 
 ### Create a private space and Ontology
 
@@ -58,17 +58,17 @@ We need to grant both Sunrise Airlines and Sky Industries administrators roles o
 In most cases, creating a shared space is self-service for `Enrollment Administrators`, and the associated [shared Ontology](/docs/foundry/ontologies/shared-ontologies/#shared-ontologies) will be created automatically. If you are unable to create a shared space, contact Palantir Support.
 :::
 
-![Creating spaces](/docs/resources/foundry/security/cross-org-collab-0.png)
+![Creating spaces](./images/cross-org-collab-0.png)
 
 ## Create a shared Project
 
 The Sunrise Airline developers will create their own data foundations in their private Sunrise Airline space, similar to what we did for the Sky Industries’ Flight Alerting Inbox application and data foundation. After Sunrise Airline developers build their shareable maintenance dataset, a Sky Industries and/or Sunrise Airline administrator would create a shared Project in the shared space. During or after the Project creation, the administrator will apply both the Sky Industries and Sunrise Airline Organizations to the Project. To do so, you must have the `Apply organization` permission for both Sky Industries and Sunrise Airline Organizations. This is managed in the [Foundry Settings tab](/docs/foundry/platform-security-management/manage-orgs-and-spaces/).
 
-![Create a shared Project](/docs/resources/foundry/security/cross-org-collab-1.png)
+![Create a shared Project](./images/cross-org-collab-1.png)
 
 Following the same template as other Projects, we will create three new groups to manage permission on this shared Project. Each group should be visible to both Sunrise Airline and Sky Industries.
 
-![Create groups for shared Project](/docs/resources/foundry/security/cross-org-collab-2.png)
+![Create groups for shared Project](./images/cross-org-collab-2.png)
 
 ## Remove inherited organizations
 
@@ -88,7 +88,7 @@ We recommend reviewing the documentation on how to [remove inherited markings an
 
 In the example below, the Sky Industries developer filtered the input `aircraft` dataset down to only the Sunrise Airline aircraft and then stopped inheriting the Sky Industries Organization.
 
-![Remove inherited Organizations](/docs/resources/foundry/security/remove-inherited-organizations.png)
+![Remove inherited Organizations](./images/remove-inherited-organizations.png)
 
 After the transform is built, the output `aircraft` dataset will be visible to both the Sunrise Airline and the Sky Industries Organizations. Similarly, Sunrise Airline developers can do the same for data they want to pull into the shared Project. Once both developers have completed sharing their Organizations’ data, they can begin working on the joint application using these shared datasets.
 

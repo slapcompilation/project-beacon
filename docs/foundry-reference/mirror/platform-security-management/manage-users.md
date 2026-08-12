@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-users/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-users/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage users
 
 Access the user administration page by going to **Account > Settings** in the navigation sidebar. Then, select **Users** in the **Platform Settings** section of the sidebar.
 
-![Manage users](/docs/resources/foundry/platform-security-management/manage-users.png)
+![Manage users](./images/manage-users.png)
 
 From here, you can view different information about users within Foundry:
 

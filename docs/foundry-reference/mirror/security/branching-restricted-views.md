@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/branching-restricted-views/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/branching-restricted-views/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Branching restricted views
 
@@ -57,9 +57,9 @@ To protect the restricted view `main` branch, navigate to the resource in the fi
 
 When the `main` branch of a restricted view is protected, editing its policy or markings on `main` requires users to go through a global branch on save.
 
-![When the main branch of a restricted view is protected, you must make changes on a branch.](/docs/resources/foundry/security/branching-restricted-views-protected.png)
+![When the main branch of a restricted view is protected, you must make changes on a branch.](./images/branching-restricted-views-protected.png)
 
-![Users must create a new branch to save their changes.](/docs/resources/foundry/security/branching-restricted-views-save-to-new-branch.png)
+![Users must create a new branch to save their changes.](./images/branching-restricted-views-save-to-new-branch.png)
 
 ### Reviewer experience
 
@@ -69,15 +69,15 @@ Once a proposal is created, reviewers can be added to the restricted view in the
 
 Select **Manage** to add reviewers and view the approval policies that must be satisfied before the proposal can be merged.
 
-![The Approval policies panel, showing the reviewers required to approve the restricted view before it can be merged.](/docs/resources/foundry/security/branching-restricted-views-manage-approvals.png)
+![The Approval policies panel, showing the reviewers required to approve the restricted view before it can be merged.](./images/branching-restricted-views-manage-approvals.png)
 
 When a restricted view has changes awaiting review, a banner at the top of the page displays the number of approvals satisfied. Reviewers can select **Start review** to open the **Compare** tab and view a side-by-side comparison of `main` versus the branch changes. They can then approve or reject the changes by selecting the **Your review** option.
 
-![The Compare tab showing a side-by-side comparison of the main branch and current branch, with the Your review menu open to approve or reject the changes.](/docs/resources/foundry/security/branching-restricted-views-approve-changes.png)
+![The Compare tab showing a side-by-side comparison of the main branch and current branch, with the Your review menu open to approve or reject the changes.](./images/branching-restricted-views-approve-changes.png)
 
 Once all required approvals are satisfied, the changes are approved and the proposal can be merged for this resource.
 
-![A banner indicating that all required approvals are satisfied and the changes are approved for the restricted view.](/docs/resources/foundry/security/branching-restricted-views-approved-changes.png)
+![A banner indicating that all required approvals are satisfied and the changes are approved for the restricted view.](./images/branching-restricted-views-approved-changes.png)
 
 ## Rebasing and conflict resolution
 
@@ -85,11 +85,11 @@ Rebasing is required when `main` has been modified since your branch was created
 
 A banner appears at the top of the restricted view prompting you to rebase your branch with the latest changes.
 
-![A banner on a branched restricted view indicating that a new version of the restricted view exists on the main branch, with an option to start a rebase.](/docs/resources/foundry/security/branching-restricted-views-rebase-required.png)
+![A banner on a branched restricted view indicating that a new version of the restricted view exists on the main branch, with an option to start a rebase.](./images/branching-restricted-views-rebase-required.png)
 
 To rebase your branch, select **Start rebase** in the banner. The **Compare** tab opens with the rebase in progress, showing a side-by-side comparison of the main branch and current branch versions. For each change, select **Keep this version** on either the **Base** (main branch) or **Comparison** (current branch) column, then select **Rebase and save** to apply your selections.
 
-![The Compare tab with a rebase in progress, showing a comparison between the main branch and current branch versions with the option to keep either version and rebase and save.](/docs/resources/foundry/security/branching-restricted-views-rebase-in-progress.png)
+![The Compare tab with a rebase in progress, showing a comparison between the main branch and current branch versions with the option to keep either version and rebase and save.](./images/branching-restricted-views-rebase-in-progress.png)
 
 :::callout{theme="neutral"}
 If both rebasing and approval are required, the rebase must be resolved before reviewers can review the changes.
