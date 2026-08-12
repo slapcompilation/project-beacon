@@ -18,7 +18,7 @@ import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resource
 export default function SharedPropertiesPage() {
   const { ontology, isLoading } = useOmaOntology()
   const { types } = useOmaTypes()
-  const { data: all = [] } = useSharedProperties()
+  const { data: all } = useSharedProperties()
   const create = useCreateSharedProperty()
   const del = useDeleteSharedProperty()
   const [label, setLabel] = useState('')
