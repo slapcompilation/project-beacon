@@ -31,6 +31,19 @@ describe.skipIf(noDb)('the exploration engine', () => {
   beforeAll(async () => {
     db = await connect()
     f = await fixture(db, 'explore475')
+    // Saving into a project reads the caller's project role, which needs a
+    // real user behind the claims — the bare fixture claims carry none.
+    const usr = (await one('select gen_random_uuid() as id')).id
+    await db.query(
+      `insert into auth.users (id, instance_id, aud, role, email)
+       values ($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2)`,
+      [usr, `explore475-${Date.now()}@beacon.test`])
+    await db.query(`insert into public.users (id, email, role, organization_id)
+                    values ($1,$2,'admin',$3)`, [usr, `explore475-${Date.now()}@beacon.test`, f.orgId])
+    await db.query(`insert into public.project_role_grants (project_id, user_id, role, organization_id)
+                    values ($1,$2,'owner',$3)`, [f.projectId, usr, f.orgId])
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: usr, app_metadata: { role: 'admin', org_id: f.orgId } })])
     const ont = (await one(
       `insert into public.ontologies (space_id, api_name, label, require_resources_in_project)
        values ($1,'explore475','Explore',false) returning id`, [f.spaceId])).id
@@ -225,13 +238,38 @@ describe.skipIf(noDb)('the exploration engine', () => {
     const { rows } = await db.query('select ontology_id from public.object_types where id=$1', [flight])
     const ont = (rows[0] as { ontology_id: string }).ontology_id
     await db.query(
-      `insert into public.object_sets (ontology_id, name, api_name, subject_type_id, filters)
-       values ($1,'Delayed','delayed_475',$2,$3::jsonb)`,
-      [ont, flight, JSON.stringify([{ type: 'propertyFilter', propertyType: 'status',
+      `insert into public.object_sets (ontology_id, project_id, name, api_name, subject_type_id, filters)
+       values ($1,$2,'Delayed','delayed_475',$3,$4::jsonb)`,
+      [ont, f.projectId, flight, JSON.stringify([{ type: 'propertyFilter', propertyType: 'status',
         value: { type: 'valuesFilter', values: ['delayed'] } }])])
     expect(await refused(db, () => db.query(
-      `insert into public.object_sets (ontology_id, name, api_name, subject_type_id, filters)
-       values ($1,'Bad','bad_475',$2,'[{"type":"nonsense"}]'::jsonb)`, [ont, flight])))
+      `insert into public.object_sets (ontology_id, project_id, name, api_name, subject_type_id, filters)
+       values ($1,$2,'Bad','bad_475',$3,'[{"type":"nonsense"}]'::jsonb)`, [ont, f.projectId, flight])))
       .toContain('object_sets_filters_check')
+  })
+
+  it('saves a dynamic exploration and a static list, and only one follows the world', async () => {
+    const save = async (kind: string, name: string) => (await one(
+      'select public.save_object_set($1::jsonb) as id',
+      [JSON.stringify({ name, subject_type_id: flight, project_id: f.projectId,
+        set_kind: kind, filters: [{ type: 'propertyFilter', propertyType: 'distance',
+          value: { type: 'numberRangeFilter', min: 1000 } }] })])).id
+    const size = async (id: string) =>
+      Number((await one('select public.object_set_size($1) as n', [id])).n)
+
+    const exploration = await save('exploration', 'Long flights')
+    const list = await save('list', 'Long flights snapshot')
+    expect(await size(exploration)).toBe(2)
+    expect(await size(list)).toBe(2)
+
+    // A new long flight arrives: "updates with new results" versus "will not
+    // change unless manually updated".
+    await db.query(`update public.object_types set edits_enabled=true where id=$1`, [flight])
+    await db.query(
+      `insert into public.object_edits (object_type_id, primary_key, instruction, properties)
+       values ($1,'F9','create','{"flight_id":"F9","distance":9000}'::jsonb)`, [flight])
+    await reindex(flight)
+    expect(await size(exploration)).toBe(3)
+    expect(await size(list)).toBe(2)
   })
 })

@@ -5,7 +5,7 @@
 // results, and a count badge that always agrees with the rows.
 
 import { useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import {
   Button, ButtonGroup, HTMLSelect, Icon, InputGroup, Menu, MenuItem,
   NonIdealState, Popover, Spinner, Tag,
@@ -17,6 +17,7 @@ import {
   useObjectSetAggregate, useObjectSetCount, useObjectSetHistogram, useObjectSetRows,
   type ExplorerFilter, type SortSpec,
 } from './api'
+import { SaveDialog } from './SaveDialog'
 
 /** A jsonb cell, printed: null and undefined show as a dash, structures as JSON. */
 const cell = (v: unknown): string => {
@@ -49,12 +50,16 @@ function describe(f: ExplorerFilter): string {
 
 export default function ExplorationPage() {
   const { typeId = '' } = useParams()
+  const location = useLocation()
   const { data: types = [] } = useObjectTypes()
   const type = types.find((t) => t.id === typeId) ?? null
 
-  const [filters, setFilters] = useState<ExplorerFilter[]>([])
+  // A saved exploration reopens with its filters (SavedSetPage passes them).
+  const initial = (location.state as { filters?: ExplorerFilter[] } | null)?.filters ?? []
+  const [filters, setFilters] = useState<ExplorerFilter[]>(initial)
   const [sort, setSort] = useState<SortSpec[]>([])
   const [perspective, setPerspective] = useState<'explore' | 'results'>('explore')
+  const [saving, setSaving] = useState(false)
 
   const props = useMemo(() => (type?.object_type_properties ?? [])
     .filter((p) => p.visibility !== 'hidden')
@@ -90,7 +95,10 @@ export default function ExplorationPage() {
           <Button icon="th" active={perspective === 'results'}
             onClick={() => { setPerspective('results') }}>Results</Button>
         </ButtonGroup>
+        <Button intent="primary" icon="floppy-disk" onClick={() => { setSaving(true) }}>Save</Button>
       </div>
+      <SaveDialog isOpen={saving} onClose={() => { setSaving(false) }}
+        subjectTypeId={type.id} filters={filters} />
 
       <div className="exploration-filterbar">
         {filters.map((f, i) => (

@@ -5,11 +5,13 @@
 // the engine validates, so a filter the UI builds is a filter a saved
 // exploration can hold.
 
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import {
-  aggregateObjectSet, countObjectSet, evaluateObjectSet, histogramObjectSet, searchObjects,
+  aggregateObjectSet, countObjectSet, evaluateObjectSet, histogramObjectSet,
+  objectSetRows, objectSetSize, saveObjectSet, searchObjects,
   type Json,
 } from '@beacon/platform'
 
@@ -159,5 +161,77 @@ export function useGlobalSearch(query: string) {
       const rows = await client(searchObjects).executeFunction({ p_query: query, p_limit: 8 })
       return rows as SearchHit[]
     },
+  })
+}
+
+// ── saved sets: dynamic Explorations, static Lists ─────────────────────────
+
+export interface SavedSet {
+  id: string
+  name: string
+  description: string
+  set_kind: 'exploration' | 'list'
+  subject_type_id: string | null
+  project_id: string
+  filters: ExplorerFilter[]
+}
+
+export function useSavedSets() {
+  return useQuery({
+    queryKey: ['explorer', 'saved-sets'],
+    queryFn: async (): Promise<SavedSet[]> => {
+      const { data, error } = await supabase.from('object_sets')
+        .select('id, name, description, set_kind, subject_type_id, project_id, filters')
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      return data as SavedSet[]
+    },
+    staleTime: 30_000,
+  })
+}
+
+export interface SaveSetInput {
+  name: string
+  description: string
+  subjectTypeId: string
+  projectId: string
+  kind: 'exploration' | 'list'
+  filters: ExplorerFilter[]
+}
+
+export function useSaveObjectSet() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: SaveSetInput): Promise<string> =>
+      client(saveObjectSet).applyAction({ p_set: {
+        name: i.name, description: i.description, subject_type_id: i.subjectTypeId,
+        project_id: i.projectId, set_kind: i.kind, filters: i.filters,
+      } as unknown as Json }),
+    onSuccess: (_, i) => {
+      void qc.invalidateQueries({ queryKey: ['explorer', 'saved-sets'] })
+      toast.success(`Saved ${i.kind === 'list' ? 'list' : 'exploration'} "${i.name}"`)
+    },
+    onError: (e) => { toast.error(e.message) },
+  })
+}
+
+export function useSavedSetRows(setId: string | null, limit = 100) {
+  return useQuery({
+    queryKey: ['explorer', 'saved-rows', setId, limit],
+    enabled: setId !== null,
+    queryFn: async (): Promise<ObjectRow[]> => {
+      const rows = await client(objectSetRows).executeFunction({
+        p_set: setId as string, p_limit: limit, p_offset: 0 })
+      return rows as ObjectRow[]
+    },
+  })
+}
+
+export function useSavedSetSize(setId: string | null) {
+  return useQuery({
+    queryKey: ['explorer', 'saved-size', setId],
+    enabled: setId !== null,
+    queryFn: async (): Promise<number> =>
+      client(objectSetSize).executeFunction({ p_set: setId as string }),
   })
 }

@@ -12,7 +12,7 @@ import {
 import type { IconName } from '@blueprintjs/icons'
 import { useObjectTypes } from '@/features/objectTypes/hooks'
 import type { ObjectTypeRow } from '@/features/objectTypes/api'
-import { useGlobalSearch, useIndexCounts, useTypeGroups } from './api'
+import { useGlobalSearch, useIndexCounts, useSavedSets, useTypeGroups } from './api'
 
 const typeIcon = (t: ObjectTypeRow): IconName => (t.icon || 'cube') as IconName
 
@@ -21,6 +21,7 @@ export default function ExplorerHome() {
   const { data: types = [] } = useObjectTypes()
   const { data: groups = [] } = useTypeGroups()
   const { data: counts = [] } = useIndexCounts()
+  const { data: savedSets = [] } = useSavedSets()
   const [query, setQuery] = useState('')
   const [preview, setPreview] = useState<ObjectTypeRow | null>(null)
   const { data: hits = [] } = useGlobalSearch(query)
@@ -87,6 +88,26 @@ export default function ExplorerHome() {
           placeholder="Search object types and properties..."
           value={query} onChange={(e) => { setQuery(e.currentTarget.value) }} />
       </Popover>
+
+      {savedSets.length > 0 && (
+        <section className="explorer-group">
+          <h2 className="explorer-group-title">
+            My Explorations & Lists <Tag minimal round>{savedSets.length}</Tag>
+          </h2>
+          <div className="explorer-card-grid">
+            {savedSets.map((set) => (
+              <button key={set.id} type="button" className="explorer-card"
+                onClick={() => { void navigate(`/explorer/saved/${set.id}`) }}>
+                <span className="app-tile" style={{ background: '#7961db1f' }}>
+                  <Icon icon={set.set_kind === 'list' ? 'th-list' : 'search-template'} size={18} color="#7961db" />
+                </span>
+                <span className="explorer-card-name">{set.name}</span>
+                <Tag minimal>{set.set_kind === 'list' ? 'List' : 'Exploration'}</Tag>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {sections.map((s) => (
         <section key={s.name} className="explorer-group">
