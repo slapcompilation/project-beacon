@@ -6,7 +6,7 @@ import {
 import type { ResourceMarking } from './index'
 
 const mk = (over: Partial<ResourceMarking> = {}): ResourceMarking => ({
-  markingId: 'm', name: 'PII', color: '#394B59', category: 'Information',
+  markingId: 'm', name: 'PII', category: 'Information',
   kind: 'file', origin: 'direct', satisfied: true, ...over,
 })
 

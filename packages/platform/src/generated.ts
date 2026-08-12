@@ -495,14 +495,9 @@ export const datasetHistoryFrom = { apiName: 'dataset_history_from', kind: 'func
   { transaction_id: string; txn_type: string; committed_at: string; seq: number }[]
 >
 
-/**
- *  Every marking a dataset demands, tagged with which card it belongs in
- *  (file/data) and how it got there. Reads the same predicates the RLS
- *  policies do, so the panel cannot drift from the gate.
- */
 export const datasetMarkings = { apiName: 'dataset_markings', kind: 'function' } as FunctionType<
   { p_dataset: string },
-  { marking_id: string; name: string; color: string; category: string; kind: string; origin: string; satisfied: boolean }[]
+  { marking_id: string; name: string; category: string; kind: string; origin: string; satisfied: boolean }[]
 >
 
 /**

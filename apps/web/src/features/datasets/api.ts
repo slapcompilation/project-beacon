@@ -73,10 +73,10 @@ export function useDatasetMarkings(datasetId: string | null) {
     queryFn: async (): Promise<ResourceMarking[]> => {
       const rows = await client(datasetMarkings).executeFunction({ p_dataset: datasetId as string })
       return (rows as unknown as {
-        marking_id: string; name: string; color: string; category: string
+        marking_id: string; name: string; category: string
         kind: MarkingKind; origin: MarkingOrigin; satisfied: boolean
       }[]).map((r) => ({
-        markingId: r.marking_id, name: r.name, color: r.color, category: r.category,
+        markingId: r.marking_id, name: r.name, category: r.category,
         kind: r.kind, origin: r.origin, satisfied: r.satisfied,
       }))
     },
