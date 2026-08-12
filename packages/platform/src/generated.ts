@@ -204,53 +204,28 @@ export const satisfyActionConstraint = { apiName: 'satisfy_action_constraint', k
   void
 >
 
-/**
- *  Stage an action type — rules, parameters and criteria travel inside the
- *  entry, absent sections mean unedited. Returns the id it will have; the row
- *  exists after save_working_state.
- */
 export const saveActionType = { apiName: 'save_action_type', kind: 'action' } as ActionType<
-  { p_action: Json },
+  { p_action: Json; p_branch?: string },
   string
 >
 
-/**
- *  Stage an interface whole — properties, both constraint clauses and
- *  extensions travel inside the entry; absent sections mean unedited.
- */
 export const saveInterface = { apiName: 'save_interface', kind: 'action' } as ActionType<
-  { p_interface: Json },
+  { p_interface: Json; p_branch?: string },
   string
 >
 
-/**
- *  Stage a link type into my working state. Flat — every field is a column —
- *  so save_working_state applies it through the generic arm.
- */
 export const saveLinkType = { apiName: 'save_link_type', kind: 'action' } as ActionType<
-  { p_link: Json },
+  { p_link: Json; p_branch?: string },
   string
 >
 
-/**
- *  Stage an object type and its properties into my working state. Sections
- *  enter the entry only when supplied — an absent section means unedited, and
- *  an invented empty one would mean delete-all on save. Returns the id it
- *  will have; the row does not exist until save_working_state runs.
- */
 export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as ActionType<
-  { p_object_type: Json; p_properties: Json },
+  { p_object_type: Json; p_properties: Json; p_branch?: string },
   string
 >
 
-/**
- *  Stage a shared property into my working state. One definition used by
- *  several object types, so a change here is felt by all of them — which is
- *  the argument for it going through a review dialog rather than straight
- *  through.
- */
 export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'action' } as ActionType<
-  { p_property: Json },
+  { p_property: Json; p_branch?: string },
   string
 >
 

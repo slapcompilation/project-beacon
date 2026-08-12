@@ -8,6 +8,7 @@ import {
   saveLinkType as saveLinkTypeAction, deleteOntologyResource, type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
+import { useAppStore } from '@/stores/app.store'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, ObjectTypeStatus, OntologyVisibility, Deprecation,
@@ -150,6 +151,7 @@ export async function saveObjectType(
   return client(saveObjectTypeAction).applyAction({
     p_object_type: { id: i.id ?? null, api_name: i.apiName ?? null, label: i.label, icon: i.icon, description: i.description, ontology_id: i.ontologyId ?? null, project_id: i.projectId ?? null },
     p_properties: i.properties.map((p, idx) => propertyToRow(p, idx)) as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }
 
@@ -244,6 +246,7 @@ export async function createLinkType(i: CreateLinkTypeInput): Promise<string> {
       api_name: i.apiName, label: i.label, ontology_id: i.ontologyId,
       project_id: i.projectId ?? null,
     } as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }
 

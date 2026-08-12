@@ -14,6 +14,8 @@ import { useAppStore } from '@/stores/app.store'
 import { useOntologies, type Ontology } from '@/features/ontologies/api'
 import { useObjectTypes, useLinkTypes } from '@/features/objectTypes/hooks'
 import { rowToObjectType } from '@/features/objectTypes/api'
+import { useBranchChanges } from '@/features/branching/api'
+import { overlayRows } from '@/features/branching/overlay'
 import { useSharedProperties } from '@/features/objectTypes/sharedProperties'
 import { useInterfaces } from '@/features/interfaces/hooks'
 import { useActionTypes } from '@/features/actionTypes/api'
@@ -61,10 +63,20 @@ export function useOmaOntology(): { ontology: Ontology | null; isLoading: boolea
 export function useOmaTypes(): { types: ObjectTypeDef[]; isLoading: boolean } {
   const { ontology } = useOmaOntology()
   const { data: rows = [], isLoading } = useObjectTypes()
-  const types = useMemo(
-    () => rows.filter((r) => r.ontology_id === ontology?.id).map(rowToObjectType),
-    [rows, ontology?.id],
-  )
+  const branchId = useAppStore((s) => s.omaBranchId)
+  const { data: changes = [] } = useBranchChanges(branchId)
+  const types = useMemo(() => {
+    const mine = rows.filter((r) => r.ontology_id === ontology?.id)
+    // On a branch, the list shows the branch's version: 461's overlay
+    // composed over main. Created rows carry empty sections until the merge.
+    const composed = branchId === null ? mine : overlayRows(mine, changes, 'object_type', {
+      ontology_id: ontology?.id ?? '', object_type_properties: [], computed_properties: [],
+      view_config: null, enabled: true, version: 0, status: 'experimental',
+      visibility: 'normal', icon: 'cube', description: '',
+      deprecation_reason: null, deprecation_deadline: null, replaced_by: null,
+    } as Partial<typeof mine[number]>)
+    return composed.map(rowToObjectType)
+  }, [rows, ontology?.id, branchId, changes])
   return { types, isLoading }
 }
 
