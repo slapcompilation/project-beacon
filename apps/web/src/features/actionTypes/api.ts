@@ -8,7 +8,9 @@
 // table: the header's Save control is what lands the action in the ontology.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useAppStore } from '@/stores/app.store'
+import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import type { ObjectTypeStatus, PropertyType } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
@@ -68,7 +70,7 @@ export interface ActionTypeRow {
 const KEY = ['action-types'] as const
 
 export function useActionTypes(ontologyId: string | null) {
-  return useQuery({
+  const q = useQuery({
     queryKey: [...KEY, ontologyId],
     enabled: ontologyId !== null,
     staleTime: 30_000,
@@ -81,6 +83,12 @@ export function useActionTypes(ontologyId: string | null) {
       return data as ActionTypeRow[]
     },
   })
+  // On a branch the list shows the branch's version (461's overlay).
+  const compose = useComposeBranch<ActionTypeRow>('action_type', {
+    action_type_rules: [], action_type_parameters: [], status: 'experimental',
+  })
+  const data = useMemo(() => compose(q.data ?? []), [q.data, compose])
+  return { ...q, data }
 }
 
 /** The rule vocabulary, with the note the picker shows. Asked of the database so

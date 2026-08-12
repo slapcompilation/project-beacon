@@ -11,7 +11,7 @@ import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resource
 export default function InterfacesPage() {
   const { ontology, isLoading } = useOmaOntology()
   const { types } = useOmaTypes()
-  const { data: rows = [] } = useInterfaces()
+  const { data: rows } = useInterfaces()
 
   if (!ontology) {
     return <div className="oma-page max-w-2xl">{isLoading ? null : <NoOntologyCallout />}</div>

@@ -10,8 +10,10 @@
 // by their datasource and has no notion of a built-in one", so the two readers
 // that used to differ now agree.
 
+import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useComposeBranch } from '@/features/branching/api'
 import { STATUS_META } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
 import {
@@ -19,7 +21,7 @@ import {
   fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
-  type UpdateObjectTypeInput, type CreateLinkTypeInput,
+  type UpdateObjectTypeInput, type CreateLinkTypeInput, type LinkTypeRow,
 } from './api'
 
 const keys = {
@@ -110,7 +112,11 @@ export function useUpdateObjectType() {
 }
 
 export function useLinkTypes() {
-  return useQuery({ queryKey: keys.linkTypes, queryFn: fetchLinkTypes, staleTime: 30_000 })
+  const q = useQuery({ queryKey: keys.linkTypes, queryFn: fetchLinkTypes, staleTime: 30_000 })
+  // On a branch the list shows the branch's version (461's overlay).
+  const compose = useComposeBranch<LinkTypeRow>('link_type', {})
+  const data = useMemo(() => compose(q.data ?? []), [q.data, compose])
+  return { ...q, data }
 }
 
 export function useCreateLinkType() {

@@ -46,7 +46,7 @@ const VALUE_INPUT: Partial<Record<PropertyType, string>> = {
 export default function ActionTypesPage() {
   const { ontology, isLoading } = useOmaOntology()
   const { types } = useOmaTypes()
-  const { data: actions = [] } = useActionTypes(ontology?.id ?? null)
+  const { data: actions } = useActionTypes(ontology?.id ?? null)
   const [applying, setApplying] = useState<ActionTypeRow | null>(null)
 
   if (!ontology) {

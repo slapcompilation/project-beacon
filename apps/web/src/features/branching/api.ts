@@ -2,6 +2,7 @@
 // "An ontology proposal is analogous to a Pull Request in a version control
 // system." (ontologies/review-ontology-proposals)
 
+import { useCallback } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
@@ -10,6 +11,8 @@ import {
   taskApprovalStatus, branchConflicts, rebaseBranch, type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
+import { useAppStore } from '@/stores/app.store'
+import { overlayRows } from './overlay'
 
 const keys = {
   branches: (ont: string) => ['ontology-branches', ont] as const,
@@ -158,6 +161,21 @@ export function useReview() {
     onSuccess: () => { void qc.invalidateQueries() },
     onError: (e: Error) => { toast.error(e.message) },
   })
+}
+
+/** Compose a resource list with the active branch's overlay — the identity
+ *  function on main. Feature hooks call this so every list shows the
+ *  branch's version while one is active. */
+export function useComposeBranch<T extends { id: string }>(
+  kind: string, createdDefaults: Partial<T>,
+): (rows: T[]) => T[] {
+  const branchId = useAppStore((s) => s.omaBranchId)
+  const { data: changes = [] } = useBranchChanges(branchId)
+  return useCallback(
+    (rows: T[]) => (branchId === null ? rows : overlayRows(rows, changes, kind, createdDefaults)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- defaults are a literal
+    [branchId, changes, kind],
+  )
 }
 
 /** True conflicts: "the same property of the same resource was edited on both

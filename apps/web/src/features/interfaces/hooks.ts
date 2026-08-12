@@ -1,9 +1,11 @@
+import { useMemo } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useComposeBranch } from '@/features/branching/api'
 import { toast } from 'sonner'
 import {
   fetchInterfaces, fetchImplementations, createInterface, deleteInterface,
   addImplementation, removeImplementation, stageInterfaceClauses,
-  type CreateInterfaceInput, type MappingDraft,
+  type CreateInterfaceInput, type MappingDraft, type InterfaceRow,
 } from './api'
 
 const keys = {
@@ -12,7 +14,13 @@ const keys = {
 }
 
 export function useInterfaces() {
-  return useQuery({ queryKey: keys.interfaces, queryFn: fetchInterfaces, staleTime: 30_000 })
+  const q = useQuery({ queryKey: keys.interfaces, queryFn: fetchInterfaces, staleTime: 30_000 })
+  const compose = useComposeBranch<InterfaceRow>('interface', {
+    interface_properties: [], interface_link_constraints: [],
+    interface_action_constraints: [], extensions: [],
+  })
+  const data = useMemo(() => compose(q.data ?? []), [q.data, compose])
+  return { ...q, data }
 }
 
 export function useImplementations() {
