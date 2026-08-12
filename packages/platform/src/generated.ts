@@ -274,7 +274,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (81) ───────────────────────────────────────────────────
+// ── FUNCTIONS (86) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -300,6 +300,16 @@ export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
   Record<string, never>,
   string
+>
+
+/**
+ *  One shape for listogram, Single Statistic and Statistics Table:
+ *  group_value plus Count/Sum/Average/Min/Max/Property Count/Unique Count.
+ *  Unique count is exact, not estimated.
+ */
+export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
+  { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
 >
 
 /**
@@ -465,6 +475,14 @@ export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' }
 >
 
 /**
+ *  The Results count over the same WHERE the rows use.
+ */
+export const countObjectSet = { apiName: 'count_object_set', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_filters?: Json },
+  number
+>
+
+/**
  *  The message shown when this criterion fails: its own if it is root-level,
  *  otherwise its root ancestor's.
  */
@@ -587,6 +605,15 @@ export const evalCriterion = { apiName: 'eval_criterion', kind: 'function' } as 
 >
 
 /**
+ *  The exploration engine's row reader: documented filters in, index rows out
+ *  as jsonb, hidden properties stripped, multi-sort applied in order.
+ */
+export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_filters?: Json; p_sort?: Json; p_limit?: number; p_offset?: number },
+  Json[]
+>
+
+/**
  *  direct = applied on this resource; file_hierarchy = inherited from its
  *  project. Foundry renders the second with a folder sidecar icon on the
  *  chip.
@@ -608,6 +635,15 @@ export const grantViolations = { apiName: 'grant_violations', kind: 'function' }
 export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_min: string },
   boolean
+>
+
+/**
+ *  Histogram buckets over a numeric or date property of the filtered set;
+ *  bounds from the data, bucket count from the caller.
+ */
+export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_filters?: Json; p_property?: string; p_buckets?: number },
+  { bucket_min: number; bucket_max: number; object_count: number }[]
 >
 
 export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } as FunctionType<
@@ -633,6 +669,15 @@ export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' 
 export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as FunctionType<
   { p_link: string; p_side: string },
   string
+>
+
+/**
+ *  The filter grammar generate-urls.md prints: propertyFilter with seven
+ *  value kinds, at most one linkFilter carrying a presenceFilter.
+ */
+export const objectSetFiltersValid = { apiName: 'object_set_filters_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
 >
 
 /**
