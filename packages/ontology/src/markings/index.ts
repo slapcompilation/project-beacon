@@ -24,7 +24,6 @@ export type CategoryVisibility = 'visible' | 'hidden'
 export interface ResourceMarking {
   markingId: string
   name: string
-  color: string
   category: string
   kind: MarkingKind
   origin: MarkingOrigin

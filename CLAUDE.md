@@ -137,7 +137,10 @@ docs/foundry-reference/  532+ mirrored pages + 4,764 URL slugs. THE SOURCE.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
-Eleven tables, and every value in every CHECK traces to a page:
+The core began as eleven tables; the platform now holds ~65 (datasets and
+transactions, markings, value types, interfaces, actions, branches and
+proposals, the working state). The rule is unchanged — every value in every
+CHECK traces to a page — and the original core is still the map's spine:
 
 | table | what it holds |
 |---|---|
