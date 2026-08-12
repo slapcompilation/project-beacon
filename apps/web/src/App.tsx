@@ -29,6 +29,7 @@ const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
 const ExplorerHome = lazyWithRetry(() => import('@/features/explorer/ExplorerHome'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
 const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
+const LineagePage = lazyWithRetry(() => import('@/features/lineage/LineagePage'))
 
 // Ontology Manager: its own chrome, and its resource pages inside it.
 const OmaLayout = lazyWithRetry(() => import('@/features/ontologyManager/OmaLayout'))
@@ -84,6 +85,8 @@ function AppRoutes() {
             <Route path="/explorer" element={<ExplorerHome />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
+            <Route path="/lineage" element={<LineagePage />} />
+            <Route path="/lineage/:kind/:id" element={<LineagePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
