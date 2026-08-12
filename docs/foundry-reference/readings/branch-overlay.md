@@ -120,19 +120,82 @@ save-to-branch path exists after slice 1). Custom approval policies
 (nothing here runs on a timer by design); the build-options dialog at merge
 (no pipeline builds exist to trigger).
 
-## 6 — Questions
+## 6 — Questions, answered by the images (2026-08-12)
 
-**Q1.** Does Foundry run save-blocking validation on a BRANCH save, or only
-at merge? Not attested on any page read. Slice 1 validates what an overlay
-can (CHECK-level shape at entry time) and leaves `ontology_violations()` to
-the merge, where the tables exist to ask. *Inference, marked.*
+**Q1. ANSWERED — validation runs on the branch, not only at merge.** The
+Review-changes dialog on a branch carries the full tab set — `All changes ·
+Warnings · Errors · Migrations · Conflicts` — and its rebase variant adds
+`Indexing on branch` and says outright:
 
-**Q2.** "Checks will run on each resource" — the checks named for ontology
-resources are the rebase/conflict check and approvals. Whether more exist
-(naming collisions with main, for instance) is unattested; collisions surface
-at merge as apply errors under D2 regardless.
+> Rebase in progress. The changes previously saved on the branch have been restored in the 'All changes' tab. Resolve all conflicts and errors before saving and finishing the rebase.
+> — ontologies/images/review-rebase-changes.png
+
+The OMA header on a branch shows `3 edits · ❗1 · ⧉1` with **Finish rebase**
+gated on the counts (`current-employee-example.png`). So D-correction: branch
+save runs the SAME violations gate a main save does. The overlay is validated
+by **composing it**: apply the entries inside a savepoint, ask
+`ontology_violations()`, roll the savepoint back, then stamp the entries
+saved — the rollback-assertions pattern the migrations already use.
+
+**Q2. ANSWERED — the checks are named, verbatim, in the checks popover:**
+
+> Ontology does not have errors · Object type does not have validation errors · Object type has conflicts with the main branch · Changes are approved
+> — global-branching/images/proposal-page-checks.png
+
+with a `Rebase ↗` link on the conflict line. `proposal_blockers()` should say
+these words.
 
 **Q3.** The ontology proposal is "automatically created" when a Global
 Branching proposal includes ontology changes. We have no second proposal
 kind — 420's `ontology_proposals` IS the one object. Nothing to build unless
 a non-ontology branching surface ever exists.
+
+## 7 — What the images add that the prose does not
+
+- **Branch creation** (`create-new-branch-dialog.png`): name ("Do not include
+  sensitive information"), an **Ontology** select — "Only this ontology will
+  be editable on this branch" — and Branch security (creator becomes Owner,
+  org list). A branch is per-ontology by construction.
+- **The save split button** (`save-to-ontology.png`): "Save to ontology" with
+  a dropdown carrying "Save to new branch". For protected resources the
+  primary becomes "Create and save to branch", the branch-name input is
+  prefilled kebab-case, and the ontology select is greyed: "Foundry branches
+  for an ontology can only be created in the same ontology"
+  (`modify-protected-object.png`).
+- **Rebase mechanics**: the button is **Start rebase**; Main branch updates
+  splits **Related changes** ("directly impact the ontology resources
+  modified on the current branch") from **Other changes**
+  (`ontology-main-branch-updates-page.png`); conflicts resolve per resource
+  as Use Main / Keep current / custom ("Using custom changes" + Change
+  selection); **Cancel rebase** exists; the empty state is "Branch is up to
+  date".
+- **The proposal page** (`ontology-proposal-overview.png`): a three-step
+  stepper — Prepared ✓ → Reviewed (4/4 tasks approved) ✓ → Merge proposal —
+  plus "**Datasource branch:** Test-Branch-YAWXfb" (the ontology branch pairs
+  with a dataset branch), suggested reviewers, per-task comments, and a
+  Changelog that is the branch timeline grouped by author and hour.
+- **Preview status** counts: cannot be indexed / in progress / ready for
+  preview, per object type, with the type's status pill beside it.
+- **Merge history** (`merge-history.png`): "Past merge attempts", a banner
+  ("The last merge attempt was successful"), and per-resource outcome tags
+  (Created / Modified) grouped under "Ontology entities [5]".
+- **Policies rendered**: default policy verbatim — "Approval required from at
+  least one user with edit permissions to the file." — and a custom one —
+  "Approval required from at least 2 users in the following: <group> AND
+  Reviewers cannot approve changes to files they have contributed to in the
+  proposed branch." — with "Reset policy to default…", the project's
+  "Automatically protect all new files" toggle, and per-resource "N of M
+  policies satisfied" with per-user Not reviewed / Approved rows.
+- **Retention is Control Panel configuration**: "Global Branch retention
+  policy" with two numeric fields — Branch inactivity days, Branch data
+  deletion days (`branch-retention-policy.png`).
+- **The taskbar popover** (`branch-taskbar-review-button.png`) reads like a
+  pull request: "Open · <user> wants to merge into ⎇ Main from ⎇ <branch>",
+  task rows with reviewers, Auto-approved / Awaiting approval, per-row check
+  ✓/✗, and Merge proposal enabling only when all checks pass.
+- **The legacy split is visible**: the OMA branch selector has two tabs,
+  "Foundry branches | Ontology branches" (`branch-selector.png`).
+- **On-branch OMA chrome**: the sidebar gains Proposals, Main branch updates
+  (blue-dot indicator) and Branch history; deletions travel as tasks tagged
+  `Deleted`; a task for a deleted link renders "No visible changes or
+  modified attributes are not supported in the history view yet."
