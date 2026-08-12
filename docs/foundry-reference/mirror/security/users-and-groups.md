@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/users-and-groups/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/users-and-groups/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Users and groups
 
@@ -8,7 +8,7 @@ Access to Foundry is managed via one or more *identity providers*, which give Fo
 
 A **user** is an authenticated individual with access to Foundry. A user is typically defined by an external identity provider (e.g. an Active Directory system). A user has **attributes** which is public, structured information about the user.
 
-![User profile](/docs/resources/foundry/security/user-profile.png)
+![User profile](./images/user-profile.png)
 
 Learn more about [managing users](/docs/foundry/platform-security-management/manage-users/).
 

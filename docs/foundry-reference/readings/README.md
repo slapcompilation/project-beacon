@@ -306,6 +306,16 @@ is worth most just before the thing it describes gets built. Nothing here is
   PROPERTY VISIBILITY, and that availability is base-type-dependent (Long text
   greyed for a date).
 
-Thirty-one readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
+- `security-phase.md` — 13 core pages + the deep-dive course, 22 images closely,
+  25 ops/enterprise pages consciously deferred. The mandatory/discretionary
+  model is BUILT already; the three gaps are **groups** (the missing grant
+  target), **granular policies + restricted views** (one grammar — eight
+  comparisons, documented weights, compiled to a query — stored as a resource
+  that can back an object type), and the **Check access** panel. Image finds:
+  a FIFTH simulation legend state (`Unknown`), Row-level policies as its own
+  settings section, the three-permission marking model confirmed. CBAC
+  deferred whole; the two deprecated settings never to be built.
+
+Thirty-two readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
 how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).

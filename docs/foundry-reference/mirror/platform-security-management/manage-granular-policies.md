@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-granular-policies/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-granular-policies/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage granular policies
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/classification-based-access-controls/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/classification-based-access-controls/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Classification-based Access Controls
 
@@ -34,7 +34,7 @@ The components of an entire classification are combined conjunctively. This mean
 
 Consider a simple configuration where there is a single category and two classification markings. The following simple configuration has two users: Martha Washington (`mwashington`) and John Adams (`jadams`).
 
-![classification-example](/docs/resources/foundry/security/classification-example.png)
+![classification-example](./images/classification-example.png)
 
 The `mwashington` user belongs to both the `GBR` and `CAN` classification marking groups. The user `jadams` belongs to the `GBR` group only. The `RELEASE TO` category is disjunctive, meaning that users must have access at least one marking. In a disjunctive category, a user who has access to one marking from the classification marking can view data even if it is also labeled with other markings from the same category. This means that data classified with `GBR`, `CAN` can be viewed by either `mwashington` or `jadams` because both users have access to at least one of those markings.
 
@@ -49,13 +49,13 @@ Data classifications apply to certain types of files, such as datasets. Data cla
 * The resource's file classification, if it has been set.
 * The data classifications of all upstream [data dependencies](/docs/foundry/security/markings/#data-dependency).
 
-![This image exhibits an example of data classification inheritance and interactions with file classification. It shows how data classification is automatically derived and set as the file classification in upstream raw datasets. It also shows how data classification is inherited for derived datasets and is automatically set as the 'highest' data classification from all input data classification values.](/docs/resources/foundry/security/file-data-classifications-inheritance.png)
+![This image exhibits an example of data classification inheritance and interactions with file classification. It shows how data classification is automatically derived and set as the file classification in upstream raw datasets. It also shows how data classification is inherited for derived datasets and is automatically set as the 'highest' data classification from all input data classification values.](./images/file-data-classifications-inheritance.png)
 
 This means the data classification is always at least as strict as the file classification and the data classifications of all of the upstream data dependencies.
 
 File, data, and project classification are communicated in the Palantir platform alongside other applicable access requirements. Unlike data classification, which is automatically inherited, file classification can be edited in the resource sidebar as shown below.
 
-![This image is a platform screenshot that shows where Project, file and data classifications are displayed on the resource sidebar.](/docs/resources/foundry/security/file-data-class-screenshot.png)
+![This image is a platform screenshot that shows where Project, file and data classifications are displayed on the resource sidebar.](./images/file-data-class-screenshot.png)
 
 A new non-derived dataset with no input upstream datasets requires the creating user to set a file classification.
 
@@ -63,11 +63,11 @@ A new non-derived dataset with no input upstream datasets requires the creating 
 
 Project classifications control who is able to discover a project and access the resources inside of it. In order to access a resource, a user must satisfy the resource's project classification and the resource's file and data classification. All projects in environments that use classification markings are required to have a project classification. A classification must be selected on project creation. Note that classifications can be updated, but not removed.
 
-![The project classification displayed in a project.](/docs/resources/foundry/security/project-classification.png)
+![The project classification displayed in a project.](./images/project-classification.png)
 
 Project classifications do not affect the data classification of datasets in a project, so project classifications are not inherited along data dependencies. If there are derived downstream datasets in other projects, only the *data* classification is inherited. This is different from the behavior of project markings, which are inherited by downstream datasets.
 
-![A diagram demonstrating that project classification is not inherited along data dependencies, so derived downstream datasets in other projects do not inherit project classification.](/docs/resources/foundry/security/max-class-diagram.png)
+![A diagram demonstrating that project classification is not inherited along data dependencies, so derived downstream datasets in other projects do not inherit project classification.](./images/max-class-diagram.png)
 
 ### Project maximum classification
 
@@ -77,6 +77,6 @@ Project maximum classifications are equal to the project classification by defau
 
 Removing a project's max classification may be required to add object or link types to a project. Note though that if an object or link type is in a project, it will fail to materialize if it lacks a file classification.
 
-![A project's maximum classification is displayed under the project classification as the allowed marking limit.](/docs/resources/foundry/security/project-max-classification.png)
+![A project's maximum classification is displayed under the project classification as the allowed marking limit.](./images/project-max-classification.png)
 
 If a higher classification is added as a file classification on an upstream dataset in a different project and inherited as a data marking by a dataset within that project, that data marking will violate the project maximum classification. If this happens, the data will continue to be protected by the higher classification, but a warning will be displayed and it will not be possible to build the dataset or any downstream resources in the project until the violation is resolved. This violation can be resolved by fixing the classification on the upstream dataset and removing that upstream dataset as an input and rebuilding the dataset, or by updating the project's maximum classification. This is the same behavior as [project constraint violations](/docs/foundry/platform-security-management/manage-project-constraints/#project-constraint-violations).

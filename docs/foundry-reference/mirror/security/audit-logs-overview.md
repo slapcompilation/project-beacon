@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/audit-logs-overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/audit-logs-overview/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Audit logs
 
@@ -131,7 +131,7 @@ To export audit logs, you will need the `audit-export:orchestrate-v3` operation 
 
 To set up audit log exports to a Foundry dataset, follow the steps below:
 
-![Export audit logs to Foundry using Control Panel.](/docs/resources/foundry/security/audit3-export-control-panel.png)
+![Export audit logs to Foundry using Control Panel.](./images/audit3-export-control-panel.png)
 
 1. Navigate to **[Control Panel](/docs/foundry/administration/control-panel/)**.
 2. In the top toolbar, confirm the relevant **Organization** is selected from the dropdown menu.

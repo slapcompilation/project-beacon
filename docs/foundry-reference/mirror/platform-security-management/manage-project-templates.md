@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-project-templates/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-project-templates/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage Project templates
 
@@ -14,21 +14,21 @@ Currently, Project templates support the configuration of roles, groups, Marking
 
 Space owners can create, edit and delete Project templates. Administering Project templates can be done on a per-space level by navigating to **Control Panel > Project templates** and selecting the desired **Space** in the dropdown at the top of the page.
 
-![The Project template option on the spaces action dropdown.](/docs/resources/foundry/platform-security-management/project-template-page.png)
+![The Project template option on the spaces action dropdown.](./images/project-template-page.png)
 
 Select **Create template** on the top right of the **Project templates** page to create a new template. This will open the Project template creation wizard, where you can define the template name, description, variables, roles, Markings, and other information.
 
-![The "Create template" option in the Project template page.](/docs/resources/foundry/platform-security-management/create-template-button.png)
+![The "Create template" option in the Project template page.](./images/create-template-button.png)
 
 ### Variables
 
 Template creation supports the use of variables to parametrize things like names for groups and Markings. Variables are defined at the time of template deployment (at Project creation) in the **Variables** section of the template creation wizard.
 
-![The "Variables" section during template creation.](/docs/resources/foundry/platform-security-management/project-template-variables.png)
+![The "Variables" section during template creation.](./images/project-template-variables.png)
 
 This is especially helpful because Project templates support the configuration of new groups and Markings, which are automatically created at the time of template deployment and Project creation. For example, a variable called `project name` can be used to create groups which follow the convention `project name` + `role`.
 
-![The "New group" option under the "Project roles" section during template creation.](/docs/resources/foundry/platform-security-management/project-roles-template-creation.png)
+![The "New group" option under the "Project roles" section during template creation.](./images/project-roles-template-creation.png)
 
 ### Roles
 
@@ -36,7 +36,7 @@ Setting a **Default role** grants a role on the created project for users who sa
 
 It is common practice to set up viewer, editor, and owner groups, with the owner group having manage permissions on the viewer and editor groups. This can be accomplished in Project templates. Create the desired groups, then give the owner group permissions to the other groups.
 
-![New groups, with the option to manage other new groups.](/docs/resources/foundry/platform-security-management/project-template-groups-managing-groups.png)
+![New groups, with the option to manage other new groups.](./images/project-template-groups-managing-groups.png)
 
 ### Markings
 
@@ -44,7 +44,7 @@ New or existing Markings can be applied to the Project upon creation. All users 
 
 [Project constraints](/docs/foundry/security/project-constraints/) can be specified as part of the template. If **Allowed markings** is selected, any new Markings will automatically be allowed. New Markings cannot be specified in **Prohibited markings**.
 
-![Configuring Markings in the "Markings" tab of the Project template creation wizard.](/docs/resources/foundry/platform-security-management/project-template-configure-markings.png)
+![Configuring Markings in the "Markings" tab of the Project template creation wizard.](./images/project-template-configure-markings.png)
 
 ## Project deployment
 

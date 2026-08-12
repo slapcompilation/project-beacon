@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-roles// · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/manage-roles// · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage roles
 
 Roles are managed in the Foundry Settings under the Roles section.
 
-![manage roles](/docs/resources/foundry/platform-security-management/manage-roles.png)
+![manage roles](./images/manage-roles.png)
 
 ## Customizing the default roles
 
@@ -30,7 +30,7 @@ You can create your own entirely new custom role. You might want to create your 
 
 To create your own custom role, simply click “New Role”, and you’ll be prompted with the New Role dialog:
 
-![Create custom role](/docs/resources/foundry/platform-security-management/create-custom-role.png)
+![Create custom role](./images/create-custom-role.png)
 
 You can “Include” other roles. For the new Merger role above, we’ve included the Viewer role, meaning all permissions granted by Viewer will be granted in the Merger role. Once created, you can customize this role with additional operations.
 
@@ -40,7 +40,7 @@ You can only edit default roles (e.g. Viewer) for a custom [role set](#role-sets
 
 For example, if you’d like all Editors on your instance to be able to change the default branch of repositories, you can simply edit the Editor role to include this operation.
 
-![Editing default roles](/docs/resources/foundry/platform-security-management/change-role.gif)
+![Editing default roles](./images/change-role.gif)
 
 ### Sample custom roles
 
@@ -80,7 +80,7 @@ Every enrollment will have at least three default role sets: Project defaults (O
 
 Role administrators must have `Manage roles and role sets` permissions on the Organization for which they are managing roles. This permission is granted in Control Panel under the Organization Administrator role. Only an administrator with this permission may create new role sets for the organization and customize existing roles in the role sets that belong to the Organization.
 
-![Screenshot of organization permissions](/docs/resources/foundry/platform-security-management/organization-permissions.png)
+![Screenshot of organization permissions](./images/organization-permissions.png)
 
 To customize roles for a given Organization, an administrator should first create a new role set.
 
@@ -89,13 +89,13 @@ To do so:
 1. Enter **Platform Settings** and click **Create role set** under the Roles section located on the top right.
 2. Complete the new role set form.
 
-![Screenshot of Create role set dialog](/docs/resources/foundry/platform-security-management/create-role-set.png)
+![Screenshot of Create role set dialog](./images/create-role-set.png)
 
 When creating a new role set, the administrator is required to copy roles from an existing role set. The administrator then only has to make relevant changes from an existing role set.
 
 Additionally, when copying the Project default role set or another role set that depends on the Project default role set, the newly copied role set will be automatically updated with any role updates to the Project default role set. As Foundry development continues, new roles may be added by Palantir; receiving these permission updates automatically can reduce future administrative work.
 
-![Screenshot of creating a new role set from existing](/docs/resources/foundry/platform-security-management/new-role-set-from-existing.png)
+![Screenshot of creating a new role set from existing](./images/new-role-set-from-existing.png)
 
 After creation of the role set above, any administrator who has the `Manage roles and role sets` permission on Org B will be able to edit this new role set.
 
@@ -103,9 +103,9 @@ After creation of the role set above, any administrator who has the `Manage role
 
 The visibility of role sets is determined by Organization discoverability. Organization discoverability is managed in the **Organization** section under **Platform Settings**.
 
-![Screenshot of Organization Discoverability](/docs/resources/foundry/platform-security-management/organization-discovery.png)
+![Screenshot of Organization Discoverability](./images/organization-discovery.png)
 
-![Screenshot of Organization Discoverability configuration](/docs/resources/foundry/platform-security-management/discovery-configuration.png)
+![Screenshot of Organization Discoverability configuration](./images/discovery-configuration.png)
 
 In the above example, Org B’s owned role sets are visible to only Org A and Org D, because they are mutually discoverable (in this case, the first column toggle is selected for all 3 rows). Org B and Org C users cannot see each other's role sets. Allowing users from mutually discoverable Organizations to see each other's role sets facilitates cross-Organization collaboration. For instance, in a Project with both Org A and Org B applied to it, an administrator may want users from both Org A and Org B to receive custom roles defined only by Org B.
 
@@ -115,19 +115,19 @@ Role sets can only be applied at the space level. All the Projects, folders, and
 
 1. Access the **Space management** page in [Control Panel](/docs/foundry/administration/enrollments-and-organizations/).
 
-![The Space management page in Control Panel](/docs/resources/foundry/platform-security-management/control-panel-create-space.png)
+![The Space management page in Control Panel](./images/control-panel-create-space.png)
 
 2. Pick the role set during the space creation dialog, shown below.
 
-![Space creation dialog](/docs/resources/foundry/platform-security-management/create-space-dialog.png)
+![Space creation dialog](./images/create-space-dialog.png)
 
 3. An existing role set can also be replaced with a new one in space settings under the **Role sets** card, shown below.
 
-![A screenshot of making an edit in the space settings](/docs/resources/foundry/platform-security-management/roles-card-space-settings.png)
+![A screenshot of making an edit in the space settings](./images/roles-card-space-settings.png)
 
 If an administrator replaces the current role set on a space with a new role set, each current role must be mapped to the replacement role. Below is an example of the mapping dialog when updating a role set on an existing space.
 
-![A screenshot of a mapping dialog for updating a role set on an existing space](/docs/resources/foundry/platform-security-management/mapping-dialog.png)
+![A screenshot of a mapping dialog for updating a role set on an existing space](./images/mapping-dialog.png)
 
 When complete, all role grants throughout the space will be updated to their new replacement role.
 

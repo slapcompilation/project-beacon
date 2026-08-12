@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/cover-pages/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/cover-pages/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Cover pages
 
@@ -8,4 +8,4 @@ Project owners are encouraged to add documentation to describe the Project's goa
 
 Cover pages can be configured by Project owners to be discoverable by all users in the Project's organization, even in cases when a Project has markings applied to it. Users without access to the Project or its files can still discover and view the Project's cover page. This can be useful for Projects containing sensitive data and applications, as the discoverable cover page enables relevant users to find the Project and request access if appropriate.
 
-![Screenshot of an example cover page and associated settings](/docs/resources/foundry/security/cover-page.png)
+![Screenshot of an example cover page and associated settings](./images/cover-page.png)

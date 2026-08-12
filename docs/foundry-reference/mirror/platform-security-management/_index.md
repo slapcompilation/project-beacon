@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Manage organizations and spaces
 
@@ -6,7 +6,7 @@
 
 Organization permissions should be managed via [Control Panel](/docs/foundry/administration/enrollments-and-organizations-access/). Further Organization configuration is managed in the Foundry Settings tab.
 
-![Manage organization](/docs/resources/foundry/platform-security-management/manage-organizations.png)
+![Manage organization](./images/manage-organizations.png)
 
 ### Organization permissions
 
@@ -41,7 +41,7 @@ Configuration options to disable home folders are in the [beta](/docs/foundry/pl
 
 Spaces settings are managed in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-access/) on the **Space management** page of enrollment settings.
 
-![The Space management tab in Control panel.](/docs/resources/foundry/platform-security-management/control-panel-create-space.png)
+![The Space management tab in Control panel.](./images/control-panel-create-space.png)
 
 ### Create a space
 
@@ -58,7 +58,7 @@ As part of space creation, you will be asked to specify the following settings:
 
 If you are an enrollment admin but are not able to create a new space, it may be because your enrollment is not suitable or you have hit a quota limit; contact Palantir Support for more information.
 
-![Spaces settings page.](/docs/resources/foundry/platform-security-management/space-settings.png)
+![Spaces settings page.](./images/space-settings.png)
 
 ### Manage a space
 
@@ -67,7 +67,7 @@ From the **Actions** dropdown menu, you can **Manage** the settings of a space. 
 * **Maven identifier:** Uniquely identifies resources published from this space.
 * **Project inherited roles:** roles that all projects in the space inherit. These role grants appear in the Compass side panel for the project in this space. There are two inheritance role grant pickers, one for regular projects and one for locked marketplace projects.
 
-![Space inheritance grants.](/docs/resources/foundry/platform-security-management/space-inheritance-role-grants.png)
+![Space inheritance grants.](./images/space-inheritance-role-grants.png)
 
 From the **Space permissions** page in Control Panel, you can set the roles users have in the space. Each space comes with a set of default roles and the ability to create custom roles for greater flexibility in managing permissions. For each role, you can open the workflows dropdown menu to view the permissions granted with the role. Select a role to view the role grants in the panel on the right, where you can add or remove users.
 
@@ -77,7 +77,7 @@ To create a custom role, select **+ New role** in the top right of the page, the
 Custom roles are "frozen", meaning that new workflows added to default roles will not automatically apply to custom roles. To include new workflows in a custom role, select **Edit role** and add them manually.
 :::
 
-![Spaces permissions page.](/docs/resources/foundry/platform-security-management/space-permissions.png)
+![Spaces permissions page.](./images/space-permissions.png)
 
 Legacy spaces might provide additional configuration settings. Below is a description of those settings:
 

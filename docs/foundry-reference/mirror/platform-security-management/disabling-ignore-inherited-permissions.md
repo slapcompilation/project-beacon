@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-ignore-inherited-permissions/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-ignore-inherited-permissions/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Migrate from and disable "Ignore inherited permissions" setting \[Planned deprecation]
 
@@ -26,13 +26,13 @@ Below is a summary of the steps to take to migrate away from the "Ignore inherit
 
 Go to the Upgrade Assistant application in Foundry and navigate to a specific folder or file where "Ignore inherited permissions" is enabled. Select the folder or file to start the migration process.
 
-![The Upgrade Assistant application, with a notice to disable the Ignore inherited permissions setting.](/docs/resources/foundry/platform-security-management/upgrade-assistant.png)
+![The Upgrade Assistant application, with a notice to disable the Ignore inherited permissions setting.](./images/upgrade-assistant.png)
 
 ### 2. Complete required updates
 
 If you see an “Update required” notice, select **Update**. Doing so will separate this process of disabling the "Ignore inherited permissions" setting from the additional requirement of disabling and migrating from the "Propagate view requirements" setting. Learn more about this [additional required migration](/docs/foundry/platform-security-management/disabling-propagate-view-requirements/).
 
-![An update is required for a folder or file with an active "Ignore inherited permissions" setting.](/docs/resources/foundry/platform-security-management/ignore-inherited-permissions-update-required.png)
+![An update is required for a folder or file with an active "Ignore inherited permissions" setting.](./images/ignore-inherited-permissions-update-required.png)
 
 ### 3. Choose how to migrate
 
@@ -84,7 +84,7 @@ After completing the migration, be sure to disable "Ignore inherited permissions
 You will not be able to re-enable the "Ignore inherited permissions" setting after disabling it.
 :::
 
-![Toggle off the Ignore inherited permissions setting from the right side panel of the filesystem view.](/docs/resources/foundry/platform-security-management/disable-iip.png)
+![Toggle off the Ignore inherited permissions setting from the right side panel of the filesystem view.](./images/disable-iip.png)
 
 ### 6. Confirm action is complete
 

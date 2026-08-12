@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/security/restricted-views/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/security/restricted-views/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Restricted views
 
@@ -6,7 +6,7 @@
 
 Users interact with restricted view resources in Foundry, and restricted views are powered by granular policies. Restricted views limit dataset access to only the rows that a user has permission to see. A restricted view is built on top of a backing dataset and cannot be used as an input for transforms. The *policy* for a restricted view determines the specific rows a user can see. It is typically defined by a user with the Owner role upon creation of the restricted view. After creation, the restricted view can be used as the backing data source for an object type in your Ontology. For example, if one row represents one object, the restricted view controls what objects users can see based on the object type it backs.
 
-![The data lineage shows how a restricted view is built from a backing dataset.](/docs/resources/foundry/security/restricted-views-0.png)
+![The data lineage shows how a restricted view is built from a backing dataset.](./images/restricted-views-0.png)
 
 ## Restricted view policies
 
@@ -22,7 +22,7 @@ When referencing a user, group, or Organization, the policy requires the unique 
 
 In the example below, the restricted view policy includes two rules that can be applied:
 
-![The restricted view policy editor shows two rules that can be applied.](/docs/resources/foundry/security/restricted-views-1.png)
+![The restricted view policy editor shows two rules that can be applied.](./images/restricted-views-1.png)
 
 Learn more about [designing granular policies](/docs/foundry/platform-security-management/manage-granular-policies/#design-granular-policies), including recommendations and best practices. You can also review information on [user attributes](/docs/foundry/platform-security-management/manage-granular-policies/#user-attributes), [policy comparisons](/docs/foundry/platform-security-management/manage-granular-policies/#policy-comparisons), and [policy limitations](/docs/foundry/platform-security-management/manage-granular-policies/#policy-limitations).
 
@@ -36,7 +36,7 @@ After you've determined the design of your restricted view policy, make any pipe
 
 Users with an Owner role or the necessary permissions can create restricted views downstream of a dataset with a right-click contextual action:
 
-![Users can create a restricted view by right-clicking a dataset resource.](/docs/resources/foundry/security/restricted-views-2.png)
+![Users can create a restricted view by right-clicking a dataset resource.](./images/restricted-views-2.png)
 
 The restricted view creation dialog has the following steps:
 
@@ -49,19 +49,19 @@ The restricted view creation dialog has the following steps:
 
 Name your restricted view and select a save location. Typically, you will want to save your restricted view in a different Project from the input dataset. This ensures users consuming the restricted view can have View permissions on the downstream Project. Alternatively, you can save the restricted view in the same Project as the input dataset. Use [Markings](/docs/foundry/security/markings/) to protect the [input dataset](#review-access-requirements).
 
-![The interface allows you to name and save your restricted view.](/docs/resources/foundry/security/restricted-views-3.png)
+![The interface allows you to name and save your restricted view.](./images/restricted-views-3.png)
 
 ### Compose a granular policy
 
 You can create rule-based policies using **user attributes**, **column names**, and **specific values**. See [restricted view policies](#restricted-view-policies) for more information.
 
-![The policy editor allows you to compose a restricted view policy.](/docs/resources/foundry/security/restricted-views-4.png)
+![The policy editor allows you to compose a restricted view policy.](./images/restricted-views-4.png)
 
 ### Review access requirements
 
 Users that should only access sensitive data through a restricted view should not have access to the upstream dataset. In this step, you can review the access requirements for both the dataset and the restricted view you are creating. If you have appropriate Marking permissions, you can remove inherited Markings from the restricted view and/or apply Markings to the upstream dataset.
 
-![The interface displays the access requirements for your restricted view.](/docs/resources/foundry/security/restricted-views-5.png)
+![The interface displays the access requirements for your restricted view.](./images/restricted-views-5.png)
 
 ### Summary
 
@@ -69,7 +69,7 @@ The summary presents the final proposed access controls for both the dataset and
 
 When the restricted view is created, a build schedule will be automatically created in the background that will rebuild anytime the input dataset updates.
 
-![The summary view presents the final proposed access controls.](/docs/resources/foundry/security/restricted-views-6.png)
+![The summary view presents the final proposed access controls.](./images/restricted-views-6.png)
 
 Review the [management documentation](/docs/foundry/platform-security-management/manage-restricted-views/) on how to use restricted views to back object types.
 
@@ -87,11 +87,11 @@ Follow these steps to create a Marking-backed restricted view:
 1. Prepare a dataset with one or more Marking columns that will be secured as a restricted view. Each cell must contain a STRING ARRAY of Marking IDs. Learn more about the [expected format of the upstream dataset](#expected-format-of-the-upstream-dataset).
 2. Annotate each Marking column by going to the COLUMNS tab of the Dataset Preview interface, selecting the column, selecting "Add typeclasses", and entering **marking\_type.mandatory**. This step is not necessary for granular permissions to work, but some interfaces in Foundry use this as a hint to render the column more appropriately.
 
-![The interface shows how to add type classes to a column.](/docs/resources/foundry/security/rv-type-class.png)
+![The interface shows how to add type classes to a column.](./images/rv-type-class.png)
 
 3. Create the restricted view off of the dataset. The left side of the policy rule should be “user’s Markings”. For the right side, select “Columns” and select the Marking column. If you have multiple columns, create a rule for each one and combine them with AND or OR rules as desired.
 
-![The policy editor displays a marking-based organization policy rule.](/docs/resources/foundry/security/marking_org_policy.png)
+![The policy editor displays a marking-based organization policy rule.](./images/marking_org_policy.png)
 
 ### Expected format of the upstream dataset
 

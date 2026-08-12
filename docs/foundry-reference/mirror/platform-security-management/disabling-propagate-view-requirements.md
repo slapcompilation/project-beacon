@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/platform-security-management/disabling-propagate-view-requirements/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Migrate from and disable the "Propagate view requirements" setting \[Planned deprecation]
 
@@ -25,7 +25,7 @@ Below is a summary of the steps to take to migrate away from the "Propagate view
 
 Go to the Upgrade Assistant application in Foundry and select a specific project where "Propagate view requirements" is enabled to start the migration process.
 
-![upgrade-assistant](/docs/resources/foundry/platform-security-management/upgrade-assistant-pvr.png)
+![upgrade-assistant](./images/upgrade-assistant-pvr.png)
 
 ### 2. Choose how to migrate the selected Project
 
@@ -63,15 +63,15 @@ However, the Project may not necessarily be the correct place to apply the Marki
 
 In the example below, a sensitive dataset in a Project with an enabled "Propagate view requirements" setting does not have a Marking applied to it. However, the sensitive dataset is actually derived from an upstream dataset.
 
-![The sensitive data comes from an upstream dataset, as shown in the Data Lineage graph.](/docs/resources/foundry/platform-security-management/pvr-migration-example-data-lineage.png)
+![The sensitive data comes from an upstream dataset, as shown in the Data Lineage graph.](./images/pvr-migration-example-data-lineage.png)
 
 **Approach 1 (Incorrect):** If you apply a Marking directly to the sensitive data in this Project, the upstream data would not be correctly marked; this would impact security legibility.
 
-![A Marking was applied directly to the sensitive data in the Project.](/docs/resources/foundry/platform-security-management/pvr-migration-marking-applied-downstream.png)
+![A Marking was applied directly to the sensitive data in the Project.](./images/pvr-migration-marking-applied-downstream.png)
 
 **Approach 2 (Recommended):** If you instead apply a Marking to the *upstream* data, then the Marking will automatically propagate to the data in this Project; both datasets would be correctly marked.
 
-![A Marking was applied to the upstream dataset and propagated to the downstream sensitive data.](/docs/resources/foundry/platform-security-management/pvr-migration-marking-applied-upstream.png)
+![A Marking was applied to the upstream dataset and propagated to the downstream sensitive data.](./images/pvr-migration-marking-applied-upstream.png)
 
 If any sensitive data in your Project should be protected by a Marking, we recommend securing that data as far upstream as possible to ensure that the sensitive data is consistently secured wherever it appears in the platform. Be sure to take appropriate upstream action before returning to your Project and continuing the migration.
 
@@ -122,7 +122,7 @@ After [completing the migration](#3-complete-migration) as many times as needed 
 You will not be able to re-enable the "Propagate view requirements" setting after disabling it.
 :::
 
-![Disable the Propagate view requirements setting for a Project.](/docs/resources/foundry/platform-security-management/disable_pvr.png)
+![Disable the Propagate view requirements setting for a Project.](./images/disable_pvr.png)
 
 ### 5. Confirm action is complete
 
