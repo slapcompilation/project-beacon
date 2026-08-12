@@ -38,28 +38,38 @@ export default function HomePage() {
     <div className="home-page">
       <div className="home-grid">
         <nav className="home-toc">
-          {/* The square above NAVIGATION (§2.2 region b) — a line-drawn
-              beacon on the same slate surface as the welcome panel. */}
+          {/* The square above NAVIGATION (§2.2 region b) — a glass hexagon
+              holding a chip core: one structured cell of a larger lattice. */}
           <svg className="home-toc-art" viewBox="0 0 200 200" role="img" aria-label="Beacon">
             <defs>
-              <pattern id="home-art-grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="1" cy="1" r="1" fill="#22303e" />
-              </pattern>
+              <linearGradient id="home-art-field" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#8a5a9c" />
+                <stop offset="45%" stopColor="#6d4fc4" />
+                <stop offset="100%" stopColor="#5646a8" />
+              </linearGradient>
+              <linearGradient id="home-art-core" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f2c14b" />
+                <stop offset="100%" stopColor="#d99a10" />
+              </linearGradient>
             </defs>
-            <rect width="200" height="200" rx="8" fill="#141a21" />
-            <rect width="200" height="200" rx="8" fill="url(#home-art-grid)" />
-            {/* the tower */}
-            <path d="M100 62 86 148 h28 L100 62z" fill="none" stroke="#8b98a5" strokeWidth="2" strokeLinejoin="round" />
-            <path d="M91 118h18M94 92h12" stroke="#8b98a5" strokeWidth="1.5" />
-            <path d="M60 148h80" stroke="#2e3d4d" strokeWidth="2" strokeLinecap="round" />
-            {/* the light, and its signal */}
-            <circle cx="100" cy="52" r="4.5" fill="#2d72d2" />
-            <path d="M112 40a17 17 0 0 1 0 24" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" />
-            <path d="M120 31a29 29 0 0 1 0 42" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" opacity=".55" />
-            <path d="M128 22a41 41 0 0 1 0 60" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" opacity=".3" />
-            <path d="M88 40a17 17 0 0 0 0 24" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" />
-            <path d="M80 31a29 29 0 0 0 0 42" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" opacity=".55" />
-            <path d="M72 22a41 41 0 0 0 0 60" fill="none" stroke="#2d72d2" strokeWidth="2" strokeLinecap="round" opacity=".3" />
+            <rect width="200" height="200" rx="8" fill="url(#home-art-field)" />
+            <ellipse cx="100" cy="170" rx="46" ry="8" fill="#000" opacity=".22" />
+            {/* the glass shell */}
+            <path d="M100 38 153.7 69 v62 L100 162 46.3 131 v-62 Z"
+              fill="#ffffff" fillOpacity=".14" stroke="#d7c6f5" strokeWidth="2.5" strokeLinejoin="round" />
+            <path d="M100 50 143.3 75 v50 L100 150 56.7 125 v-50 Z"
+              fill="none" stroke="#f3eefc" strokeWidth="5" strokeLinejoin="round" opacity=".9" />
+            {/* the chip core */}
+            <path d="M100 62 132.9 81 v38 L100 138 67.1 119 v-38 Z"
+              fill="url(#home-art-core)" stroke="#caa50f" strokeWidth="1.5" strokeLinejoin="round" />
+            <g fill="none" stroke="#a87a08" strokeWidth="4" strokeLinecap="round" opacity=".55">
+              <path d="M100 68v16" />
+              <path d="M100 116v16" />
+              <path d="M80 92h20v16" />
+              <path d="M120 108h-20v-16" />
+              <path d="M124 88v10h-10" />
+              <path d="M76 112v-10h10" />
+            </g>
           </svg>
           <span className="home-toc-label">NAVIGATION</span>
           {AUDIENCES.map((a) => (
@@ -75,8 +85,8 @@ export default function HomePage() {
           <div className="home-welcome">
             <p className="home-welcome-title">Welcome to Beacon.</p>
             <p className="home-welcome-sub">
-              One place for your team's shared definitions and the data behind them —
-              versioned, reviewed before changes land, and visible only to the people you choose.
+              Beacon is where your team defines its world: the things you work with,
+              the data behind them, and who can see or change what.
             </p>
           </div>
 
