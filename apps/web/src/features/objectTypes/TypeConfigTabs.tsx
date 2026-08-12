@@ -3,11 +3,13 @@
 // the Datasources tab in Ontology Manager." (object-edits/materializations)
 
 import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Button, Callout, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon,
   InputGroup, Intent, Radio, RadioGroup, Switch, Tag,
 } from '@blueprintjs/core'
 import type { ObjectTypeDef } from '@beacon/ontology'
+import { supabase } from '@/lib/supabase/client'
 import { useDatasets, useBranches } from '@/features/datasets/api'
 import {
   useObjectTypeDatasources, useAddObjectTypeDatasource, useRemoveObjectTypeDatasource,
@@ -16,6 +18,81 @@ import {
   useMaterializations, useEditsEnabled, useSetEditsEnabled,
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
 } from '@/features/objectTypes/materializations'
+
+/** The Security tab: the two requirement cards the screenshot shows —
+ *  "A user must meet all of the following requirements to view/edit the
+ *  definition of this resource" — derived from the live model, never
+ *  restated: placement (454), the space's organizations (441), and any
+ *  markings on the resource. */
+export function SecurityTab({ type }: { type: ObjectTypeDef }) {
+  const { data } = useQuery({
+    queryKey: ['type-security', type.id],
+    queryFn: async () => {
+      const [proj, ont, marks] = await Promise.all([
+        supabase.from('object_types').select('project_id, protected, projects(name)').eq('id', type.id).single(),
+        supabase.from('ontologies').select('space_id, spaces(name, space_organizations(organizations(name)))')
+          .eq('id', type.ontologyId ?? '').single(),
+        supabase.from('resource_markings').select('markings(name)')
+          .eq('resource_kind', 'object_type').eq('resource_id', type.id),
+      ])
+      const p = proj.data as unknown as { project_id: string | null; protected: boolean; projects: { name: string } | null } | null
+      const o = ont.data as unknown as { spaces: { name: string; space_organizations: { organizations: { name: string } | null }[] } | null } | null
+      const m = (marks.data ?? []) as unknown as { markings: { name: string } | null }[]
+      return {
+        projectName: p?.projects?.name ?? null,
+        isProtected: p?.protected ?? false,
+        orgs: (o?.spaces?.space_organizations ?? []).map((x) => x.organizations?.name ?? '?'),
+        markings: m.map((x) => x.markings?.name ?? '?'),
+      }
+    },
+  })
+
+  const Req = ({ title, lines }: { title: string; lines: React.ReactNode }) => (
+    <div className="rounded border p-3 space-y-2 flex-1 min-w-[260px]">
+      <h3 className="text-xs font-semibold text-center">{title}</h3>
+      <p className="text-[11px] text-muted-foreground text-center">
+        A user must meet <b>all</b> of the following requirements to {title === 'View object type' ? 'view' : 'edit'} the definition of this resource.
+      </p>
+      {lines}
+    </div>
+  )
+  const Clause = ({ label, items }: { label: string; items: string[] }) => (
+    <div className="rounded border px-2 py-1.5">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{label}</span>
+      {items.length === 0
+        ? <p className="text-[11px]">None</p>
+        : items.map((x) => <p key={x} className="text-[11px]">{x}</p>)}
+    </div>
+  )
+  const And = () => <p className="text-[10px] text-muted-foreground text-center">AND</p>
+
+  if (!data) return null
+  return (
+    <div className="flex flex-wrap gap-3">
+      <Req title="View object type" lines={<>
+        <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
+          items={[data.projectName ? 'Viewer permissions — any role on the project' : 'Not placed in a project — visible to the ontology']} />
+        <And />
+        <Clause label="Organizations · Any of" items={data.orgs} />
+        <And />
+        <Clause label="Markings" items={data.markings} />
+      </>} />
+      <Req title="Edit object type" lines={<>
+        <Clause label={data.projectName ? `Project · ${data.projectName}` : 'Placement'}
+          items={[data.projectName ? 'Editor permissions on the project, or an organization administrator' : 'An organization administrator']} />
+        <And />
+        <Clause label="Organizations · Any of" items={data.orgs} />
+        <And />
+        <Clause label="Markings" items={data.markings} />
+        {data.isProtected && <>
+          <And />
+          <Clause label="Branch protection"
+            items={['Protected — changes must be made on a branch and approved before merging']} />
+        </>}
+      </>} />
+    </div>
+  )
+}
 
 // "In order to populate property values for objects of this type with data,
 // you must add a backing datasource." A datasource is a dataset on a branch.
