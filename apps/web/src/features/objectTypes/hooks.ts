@@ -150,7 +150,7 @@ export function useObjectTypeDatasources(objectTypeId: string | null) {
 export function useAddObjectTypeDatasource(objectTypeId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (i: { datasetId: string; branchId: string }) =>
+    mutationFn: (i: { datasetId?: string; branchId?: string; restrictedViewId?: string }) =>
       addObjectTypeDatasource({ objectTypeId, ...i }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })

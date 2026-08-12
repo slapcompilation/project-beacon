@@ -27,6 +27,7 @@ import {
   datasetLocation, useBranches, useCreateDataset, useDatasetMarkings, useDatasets,
   useSchema, useTransactions, useView, type Branch, type Dataset,
 } from '@/features/datasets/api'
+import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
 const STATUS_META = new Map(TRANSACTION_STATUSES.map((t) => [t.value, t]))
@@ -150,6 +151,10 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
   const { data: transactions = [] } = useTransactions(dataset.id)
   const { data: schema } = useSchema(dataset.id)
   const [branchId, setBranchId] = useState<string | null>(null)
+  // "Users with an Owner role or the necessary permissions can create
+  // restricted views downstream of a dataset" — Foundry's right-click
+  // contextual action, here a header button.
+  const [creatingRv, setCreatingRv] = useState(false)
   // .at() rather than [0]: the index signature lies about emptiness, and every
   // `branch?.` below then reads as dead code to the linter.
   const branch: Branch | null = branches.find((b) => b.id === branchId) ?? branches.at(0) ?? null
@@ -163,6 +168,10 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
         <Icon icon="th" size={15} className="text-violet-500" />
         <h2 className="text-sm font-semibold">{dataset.name}</h2>
         <span className="text-[11px] text-muted-foreground font-mono">{datasetLocation(dataset)}</span>
+        <Button size="small" variant="outlined" icon="eye-off"
+          onClick={() => { setCreatingRv(true) }}>
+          Create restricted view
+        </Button>
         {branches.length > 0 && (
           <span className="flex items-center gap-1 ml-auto">
             <Icon icon="git-branch" size={12} className="text-muted-foreground" />
@@ -194,6 +203,11 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
       </Card>
 
       <AccessRequirements datasetId={dataset.id} />
+
+      {creatingRv && (
+        <CreateRestrictedViewDialog datasetId={dataset.id} datasetName={dataset.name}
+          onClose={() => { setCreatingRv(false) }} />
+      )}
 
       {/* Columns — name on top, type underneath, as the preview table renders. */}
       <Card compact className="!p-0">
