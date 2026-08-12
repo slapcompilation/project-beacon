@@ -738,6 +738,18 @@
 .lineage-legend > span { display:flex; align-items:center; gap:5px; }
 .lineage-swatch-flow { width:18px; height:0; border-top:2px solid #8a9ba8; }
 .lineage-swatch-link { width:18px; height:0; border-top:2px dashed #7961db; }
+/* The simulation's four documented states, colored as the screenshot has them. */
+.sim-banner { display:flex; align-items:center; gap:10px; margin-bottom:12px;
+  padding:8px 14px; border-radius:6px; background:#2d72d2; color:#fff; font-size:13px; }
+.lineage-node.sim-simulated_changes_applied { border-color:#db2c6f; border-width:2px; background:#db2c6f14; }
+.lineage-node.sim-access_affected { border-color:#2d72d2; border-width:2px; background:#2d72d214; }
+.lineage-node.sim-access_unaffected { opacity:.55; }
+.lineage-node.sim-no_visible_transactions { border-style:dashed; opacity:.55; }
+.sim-swatch { width:12px; height:12px; border-radius:3px; border:2px solid transparent; display:inline-block; }
+.sim-swatch.sim-simulated_changes_applied { border-color:#db2c6f; background:#db2c6f14; }
+.sim-swatch.sim-access_affected { border-color:#2d72d2; background:#2d72d214; }
+.sim-swatch.sim-access_unaffected { border-color:#8a9ba8; opacity:.55; }
+.sim-swatch.sim-no_visible_transactions { border-color:#8a9ba8; border-style:dashed; opacity:.55; }
 
 /* ── Ontology Manager's own chrome (§6) ──────────────────────────────────────
  * The application chrome: a light top bar and a light sidebar, inside the

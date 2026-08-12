@@ -8,12 +8,13 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Button, Callout, Drawer, Icon, InputGroup, NonIdealState, Spinner, Tag,
+  Button, Callout, Checkbox, Drawer, Icon, InputGroup, NonIdealState, Spinner, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
 import { useObjectTypes } from '@/features/objectTypes/hooks'
 import {
-  useDatasetPicks, useLineageGraph, type LineageEdge, type LineageNode,
+  useAllMarkings, useDatasetPicks, useDirectMarkings, useLineageGraph, useSimulateMarkings,
+  type LineageEdge, type LineageNode, type SimState,
 } from './api'
 
 const COL_W = 280
@@ -73,6 +74,9 @@ function LineageCanvas({ kind, id }: { kind: 'dataset' | 'object_type'; id: stri
   const [up, setUp] = useState(2)
   const [down, setDown] = useState(2)
   const [selected, setSelected] = useState<LineageNode | null>(null)
+  // Simulation mode: hypothetical marking changes, drawn as the four states.
+  const [simTarget, setSimTarget] = useState<LineageNode | null>(null)
+  const [simStates, setSimStates] = useState<Map<string, SimState> | null>(null)
   const { data: graph, isLoading, error } = useLineageGraph(kind, id, up, down)
 
   // Depth columns: ancestors negative, root zero, descendants positive.
@@ -105,8 +109,28 @@ function LineageCanvas({ kind, id }: { kind: 'dataset' | 'object_type'; id: stri
     return `M ${x1} ${y1} C ${mid} ${y1}, ${mid} ${y2}, ${x2} ${y2}`
   }
 
+  const simClass = (n: LineageNode): string => {
+    if (!simStates || n.kind !== 'dataset') return ''
+    const st = simStates.get(n.id)
+    return st ? ` sim-${st}` : ''
+  }
+
   return (
     <div className="explorer-page">
+      {/* The fourth banner producer — a mode, not text (the reading's image). */}
+      {simStates && (
+        <div className="sim-banner">
+          <Icon icon="shield" size={14} />
+          <span>Security simulation active — marking changes are hypothetical</span>
+          <span className="flex-1" />
+          <Button size="small" variant="outlined" onClick={() => { setSimStates(null) }}>
+            Clear changes
+          </Button>
+          <Button size="small" variant="outlined" onClick={() => {
+            setSimStates(null); setSimTarget(null)
+          }}>Exit simulation</Button>
+        </div>
+      )}
       <div className="exploration-header">
         <Button variant="minimal" icon="arrow-left" onClick={() => { void navigate('/lineage') }} />
         <Icon icon="data-lineage" size={18} color="#2d72d2" />
@@ -144,7 +168,7 @@ function LineageCanvas({ kind, id }: { kind: 'dataset' | 'object_type'; id: stri
             if (!p) return null
             return (
               <button key={`${n.kind}:${n.id}`} type="button"
-                className={`lineage-node ${n.depth === 0 ? 'is-root' : ''}`}
+                className={`lineage-node ${n.depth === 0 ? 'is-root' : ''}${simClass(n)}`}
                 style={{ left: p.x, top: p.y, width: NODE_W, height: NODE_H }}
                 onClick={() => { setSelected(n) }}>
                 <Icon icon={n.kind === 'dataset' ? 'database' : (n.icon || 'cube') as IconName}
@@ -168,6 +192,14 @@ function LineageCanvas({ kind, id }: { kind: 'dataset' | 'object_type'; id: stri
         <span><span className="lineage-swatch-flow" /> data flow</span>
         <span><span className="lineage-swatch-link" /> link type</span>
         <span><Icon icon="outdated" size={12} color="#c87619" /> out-of-date with parent</span>
+        {simStates && (
+          <>
+            <span><span className="sim-swatch sim-simulated_changes_applied" /> Simulated changes applied</span>
+            <span><span className="sim-swatch sim-access_affected" /> Access affected</span>
+            <span><span className="sim-swatch sim-access_unaffected" /> Access unaffected</span>
+            <span><span className="sim-swatch sim-no_visible_transactions" /> No visible transactions</span>
+          </>
+        )}
       </div>
 
       <Drawer isOpen={selected !== null} onClose={() => { setSelected(null) }}
@@ -175,13 +207,25 @@ function LineageCanvas({ kind, id }: { kind: 'dataset' | 'object_type'; id: stri
         {selected && <NodeDetails node={selected} onFocus={() => {
           setSelected(null)
           void navigate(`/lineage/${selected.kind}/${selected.id}`)
-        }} />}
+        }} onSimulate={selected.kind === 'dataset' ? () => {
+          setSimTarget(selected); setSelected(null)
+        } : undefined} />}
+      </Drawer>
+
+      <Drawer isOpen={simTarget !== null && simStates === null}
+        onClose={() => { setSimTarget(null) }}
+        size="360px" title={simTarget ? `Simulate markings — ${simTarget.label}` : ''}>
+        {simTarget && (
+          <SimulatePanel dataset={simTarget} onResult={(states) => { setSimStates(states) }} />
+        )}
       </Drawer>
     </div>
   )
 }
 
-function NodeDetails({ node, onFocus }: { node: LineageNode; onFocus: () => void }) {
+function NodeDetails({ node, onFocus, onSimulate }: {
+  node: LineageNode; onFocus: () => void; onSimulate?: () => void
+}) {
   const facts: [string, string | null][] = [
     ['Kind', node.kind === 'dataset' ? 'Dataset' : 'Object type'],
     ['API name', node.api_name],
@@ -207,6 +251,55 @@ function NodeDetails({ node, onFocus }: { node: LineageNode; onFocus: () => void
         </div>
       ))}
       <Button intent="primary" fill icon="locate" onClick={onFocus}>Focus lineage here</Button>
+      {onSimulate && (
+        <Button fill icon="shield" onClick={onSimulate}>Simulate access requirements</Button>
+      )}
+    </div>
+  )
+}
+
+/** "Markings that are already applied on a dataset will appear as selected.
+ *  To simulate Marking removal, uncheck the box." Nothing is written. */
+function SimulatePanel({ dataset, onResult }: {
+  dataset: LineageNode
+  onResult: (states: Map<string, SimState>) => void
+}) {
+  const { data: all = [] } = useAllMarkings()
+  const { data: direct = [] } = useDirectMarkings(dataset.id)
+  const simulate = useSimulateMarkings()
+  const [checked, setChecked] = useState<Set<string> | null>(null)
+  const current = checked ?? new Set(direct)
+
+  const run = () => {
+    const add = [...current].filter((m) => !direct.includes(m))
+    const remove = direct.filter((m) => !current.has(m))
+    simulate.mutate({ datasetId: dataset.id, add, remove }, {
+      onSuccess: (rows) => {
+        onResult(new Map(rows.map((r) => [r.dataset_id, r.state])))
+      },
+    })
+  }
+
+  return (
+    <div className="explorer-preview">
+      <p className="text-xs text-muted-foreground">
+        Check a marking to simulate applying it; uncheck a selected one to simulate
+        removal. Nothing is written — the graph shows what would change.
+      </p>
+      {all.map((m) => (
+        <Checkbox key={m.id} checked={current.has(m.id)}
+          labelElement={<span>{m.name} <Tag minimal className="!text-[10px]">{m.category}</Tag></span>}
+          onChange={(e) => {
+            const next = new Set(current)
+            if (e.currentTarget.checked) next.add(m.id); else next.delete(m.id)
+            setChecked(next)
+          }} />
+      ))}
+      {all.length === 0 && <p className="text-xs text-muted-foreground">No markings exist yet.</p>}
+      {simulate.error && <Callout intent="danger" className="!text-[11px]">{simulate.error.message}</Callout>}
+      <Button intent="primary" fill icon="play" loading={simulate.isPending} onClick={run}>
+        Simulate changes
+      </Button>
     </div>
   )
 }
