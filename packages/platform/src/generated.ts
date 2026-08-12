@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (28) ────────────────────────────────────────────────
+// ── ACTION TYPES (29) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -148,6 +148,17 @@ export const implementInterface = { apiName: 'implement_interface', kind: 'actio
 export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } as ActionType<
   { p_object_type: string },
   unknown
+>
+
+/**
+ *  One lineage graph over datasets and object types: dataset inputs,
+ *  datasource bindings, materializations as flow edges, link types as
+ *  relations. Depth-limited each way, capped at 300 nodes with a truncated
+ *  flag, visibility enforced per node with the caller's claims.
+ */
+export const lineageGraph = { apiName: 'lineage_graph', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string; p_up?: number; p_down?: number },
+  Json
 >
 
 /**
