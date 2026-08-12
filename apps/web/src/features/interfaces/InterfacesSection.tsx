@@ -53,7 +53,7 @@ export default function InterfacesSection({ types, ontologyId }: {
         </p>
       </div>
 
-      {(interfaces.data ?? []).filter((row) => row.ontology_id === ontologyId).map((row) => {
+      {interfaces.data.filter((row) => row.ontology_id === ontologyId).map((row) => {
         const iface = rowToInterface(row)
         return (
           <div key={row.id} className="rounded border px-2 py-1.5 space-y-1">
@@ -84,7 +84,7 @@ export default function InterfacesSection({ types, ontologyId }: {
                 )
               })}
             </div>
-            <ContractPanel row={row} all={(interfaces.data ?? []).filter((r) => r.ontology_id === ontologyId)} types={types} />
+            <ContractPanel row={row} all={interfaces.data.filter((r) => r.ontology_id === ontologyId)} types={types} />
           </div>
         )
       })}
@@ -93,7 +93,7 @@ export default function InterfacesSection({ types, ontologyId }: {
         props={props} setProps={setProps} draft={draft} errors={errors} />
 
       {wizard && (
-        <MappingWizard type={wizard.type} row={wizard.row} all={interfaces.data ?? []}
+        <MappingWizard type={wizard.type} row={wizard.row} all={interfaces.data}
           onClose={() => { setWizard(null) }} />
       )}
     </Card>

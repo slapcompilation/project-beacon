@@ -31,7 +31,7 @@ function withAncestors(id: string, all: InterfaceRow[]): string[] {
 }
 
 export function InterfacesTab({ type }: { type: ObjectTypeDef }) {
-  const { data: interfaces = [] } = useInterfaces()
+  const { data: interfaces } = useInterfaces()
   const { data: impls = [] } = useImplementations()
   const mine = impls.filter((i) => i.object_type_id === type.id)
 
@@ -57,7 +57,7 @@ function InterfaceActions({ type, iface, all }: {
   const ids = useMemo(() => withAncestors(iface.id, all), [iface.id, all])
   const { data: constraints = [] } = useActionConstraints(ids)
   const { data: satisfactions = [] } = useSatisfactions(type.id)
-  const { data: actions = [] } = useActionTypes(iface.ontology_id)
+  const { data: actions } = useActionTypes(iface.ontology_id)
 
   return (
     <div className="space-y-1.5">

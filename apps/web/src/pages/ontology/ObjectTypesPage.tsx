@@ -374,7 +374,7 @@ function ComputedBuilder({ properties, rows, onChange }: { properties: PropertyD
  *  start from it. Both are the Ontology Manager's job — they used to hang off a
  *  records panel, which is why they went with it. */
 function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectTypeDef[] }) {
-  const { data: linkTypeRows = [] } = useLinkTypes()
+  const { data: linkTypeRows } = useLinkTypes()
   const linkTypes = useMemo(
     () => linkTypeRows.map(rowToLinkType).filter((lt) => lt.sourceTypeId === type.id),
     [linkTypeRows, type.id])

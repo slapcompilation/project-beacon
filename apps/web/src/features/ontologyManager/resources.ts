@@ -84,11 +84,11 @@ export function useOmaResources(): OmaResource[] {
   const { ontology } = useOmaOntology()
   const { data: typeRows = [] } = useObjectTypes()
   const { data: shared = [] } = useSharedProperties()
-  const { data: linkRows = [] } = useLinkTypes()
-  const { data: ifaceRows = [] } = useInterfaces()
+  const { data: linkRows } = useLinkTypes()
+  const { data: ifaceRows } = useInterfaces()
   const oid = ontology?.id ?? null
   // Already scoped by the query — action_types.ontology_id is NOT NULL.
-  const { data: actionRows = [] } = useActionTypes(oid)
+  const { data: actionRows } = useActionTypes(oid)
 
   return useMemo(() => {
     const res = (kind: OmaKind, key: string, label: string, apiName: string, path: string, extra = ''): OmaResource =>

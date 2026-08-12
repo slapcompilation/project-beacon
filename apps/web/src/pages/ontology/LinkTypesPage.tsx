@@ -13,7 +13,7 @@ import { typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManage
 export default function LinkTypesPage() {
   const { ontology, isLoading } = useOmaOntology()
   const { types } = useOmaTypes()
-  const { data: rows = [] } = useLinkTypes()
+  const { data: rows } = useLinkTypes()
 
   if (!ontology) {
     return <div className="oma-page max-w-2xl">{isLoading ? null : <NoOntologyCallout />}</div>
