@@ -50,11 +50,13 @@ export function useReindex() {
   return useMutation({
     mutationFn: (objectTypeId: string) =>
       client(indexObjectType).applyAction({ p_object_type: objectTypeId }),
-    onSuccess: (row) => {
+    onSuccess: (row, objectTypeId) => {
       void qc.invalidateQueries({ queryKey: ['object-type-indexes'] })
       const r = row as { status: string; object_count: number | null; error: string | null }
       if (r.status === 'success') {
         toast.success(`Indexed — ${r.object_count ?? 0} object${r.object_count === 1 ? '' : 's'}`)
+        // The search index is derived from this one; it follows, fire-and-forget.
+        void supabase.functions.invoke('search-index', { body: { objectTypeId } })
       } else {
         toast.error(`Index failed: ${r.error ?? 'see job details'}`)
       }
