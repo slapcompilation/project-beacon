@@ -265,7 +265,7 @@ function ContractPanel({ row, all, types }: {
   const addAction = () => {
     stage.mutate({ id: row.id, patch: { action_constraints: [
       ...row.interface_action_constraints,
-      { api_name: toSlug(actionName), display_name: actionName.trim(), description: '', required: true },
+      { api_name: toCamel(actionName), display_name: actionName.trim(), description: '', required: true },
     ] } }, { onSuccess: () => { setActionName('') } })
   }
   const dropAction = (apiName: string) => {

@@ -246,7 +246,7 @@ describe.skipIf(noDb)('interfaces', () => {
                               values ($1,'Actionable','Actionable') returning id`, [ont])).id
     const ac = (await one(`insert into public.interface_action_constraints
                              (interface_id, api_name, display_name, required)
-                           values ($1,'do-thing','Do thing',true) returning id`, [other])).id
+                           values ($1,'doThing','Do thing',true) returning id`, [other])).id
     const pc = (await one(`insert into public.interface_action_parameter_constraints
                              (constraint_id, api_name, display_name, base_type, required)
                            values ($1,'title','Title','string',true) returning id`, [ac])).id
