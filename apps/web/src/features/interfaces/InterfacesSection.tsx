@@ -18,7 +18,8 @@ import {
   useInterfaces, useImplementations, useCreateInterface, useDeleteInterface,
   useImplement, useUnimplement, useStageClauses,
 } from './hooks'
-import { rowToInterface, type InterfaceRow, type MappingDraft } from './api'
+import { rowToInterface, type ActionConstraintRow, type InterfaceRow, type MappingDraft } from './api'
+import { ActionConstraintDialog } from './ActionConstraintDialog'
 import { saveObjectType } from '@/features/objectTypes/api'
 
 const TYPES: PropertyType[] = PROPERTY_TYPES.map((t) => t.value)
@@ -243,7 +244,7 @@ function ContractPanel({ row, all, types }: {
   const [linkName, setLinkName] = useState('')
   const [cardinality, setCardinality] = useState<'ONE' | 'MANY'>('ONE')
   const [target, setTarget] = useState('')
-  const [actionName, setActionName] = useState('')
+  const [editingAction, setEditingAction] = useState<ActionConstraintRow | 'new' | null>(null)
   const nameOf = (id: string | null) =>
     all.find((i) => i.id === id)?.label ?? types.find((t) => t.id === id)?.label ?? '?'
 
@@ -261,12 +262,6 @@ function ContractPanel({ row, all, types }: {
   const dropLink = (apiName: string) => {
     stage.mutate({ id: row.id, patch: {
       link_constraints: row.interface_link_constraints.filter((c) => c.api_name !== apiName) } })
-  }
-  const addAction = () => {
-    stage.mutate({ id: row.id, patch: { action_constraints: [
-      ...row.interface_action_constraints,
-      { api_name: toCamel(actionName), display_name: actionName.trim(), description: '', required: true },
-    ] } }, { onSuccess: () => { setActionName('') } })
   }
   const dropAction = (apiName: string) => {
     stage.mutate({ id: row.id, patch: {
@@ -323,15 +318,26 @@ function ContractPanel({ row, all, types }: {
             {row.interface_action_constraints.map((c) => (
               <div key={c.api_name} className="flex items-center gap-2">
                 <Icon icon="take-action" size={11} className="text-violet-500" />
-                <span>{c.display_name}</span>
+                <button type="button" className="hover:underline" onClick={() => { setEditingAction(c) }}>
+                  {c.display_name}
+                </button>
+                {(c.interface_action_parameter_constraints?.length ?? 0) > 0 && (
+                  <Tag minimal className="!text-[10px]">
+                    {c.interface_action_parameter_constraints?.length} parameter{c.interface_action_parameter_constraints?.length === 1 ? '' : 's'}
+                  </Tag>
+                )}
+                <Tag minimal className="!text-[10px]">{c.required ? 'Required' : 'Optional'}</Tag>
                 <Button variant="minimal" size="small" icon="cross" onClick={() => { dropAction(c.api_name) }} />
               </div>
             ))}
-            <div className="flex items-center gap-1.5">
-              <InputGroup size="small" placeholder="Expected action (e.g. Retire)" value={actionName}
-                onChange={(e) => { setActionName(e.currentTarget.value) }} style={{ width: 180 }} />
-              <Button size="small" icon="add" disabled={!actionName.trim()} onClick={addAction} />
-            </div>
+            <Button size="small" variant="minimal" icon="add" onClick={() => { setEditingAction('new') }}>
+              Create new
+            </Button>
+            {editingAction !== null && (
+              <ActionConstraintDialog row={row}
+                existing={editingAction === 'new' ? null : editingAction}
+                onClose={() => { setEditingAction(null) }} />
+            )}
           </div>
 
           <div className="space-y-1">

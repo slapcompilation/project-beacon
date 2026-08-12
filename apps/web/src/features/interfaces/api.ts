@@ -18,11 +18,24 @@ export interface LinkConstraintRow {
   target_object_type_id: string | null
 }
 
+export interface ParameterConstraintDraft {
+  api_name: string
+  display_name: string
+  base_type: string
+  is_list: boolean
+  required: boolean
+  position?: number
+}
+
 export interface ActionConstraintRow {
   api_name: string
   display_name: string
   description: string
   required: boolean
+  interface_action_parameter_constraints?: ParameterConstraintDraft[]
+  /** Present only when this save should touch the parameters — absent means
+   *  unchanged, per element, like every clause. */
+  parameters?: ParameterConstraintDraft[]
 }
 
 export interface InterfaceRow {
@@ -67,7 +80,7 @@ export async function fetchInterfaces(): Promise<InterfaceRow[]> {
     .select(`*,
       interface_properties(property_id, display_name, base_type, required, pk_constraint, position),
       interface_link_constraints(api_name, display_name, required, cardinality, target_kind, target_interface_id, target_object_type_id),
-      interface_action_constraints(api_name, display_name, description, required),
+      interface_action_constraints(api_name, display_name, description, required, interface_action_parameter_constraints(api_name, display_name, base_type, is_list, required, position)),
       extensions:interface_extensions!interface_extensions_interface_id_fkey(parent_interface_id)`)
     .order('label')
   if (error) throw new Error(error.message)
