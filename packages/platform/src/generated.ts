@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (27) ────────────────────────────────────────────────
+// ── ACTION TYPES (28) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -219,6 +219,16 @@ export const saveLinkType = { apiName: 'save_link_type', kind: 'action' } as Act
   string
 >
 
+/**
+ *  Save the current exploration as a dynamic Exploration or a static List,
+ *  into a project the caller can edit. A list without an explicit selection
+ *  snapshots the filtered results at this moment.
+ */
+export const saveObjectSet = { apiName: 'save_object_set', kind: 'action' } as ActionType<
+  { p_set: Json },
+  string
+>
+
 export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json; p_branch?: string },
   string
@@ -274,7 +284,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (86) ───────────────────────────────────────────────────
+// ── FUNCTIONS (88) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -678,6 +688,24 @@ export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as Fu
 export const objectSetFiltersValid = { apiName: 'object_set_filters_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
+>
+
+/**
+ *  A saved set's objects: an exploration re-evaluates its filters; a list
+ *  resolves its stored membership through the same engine path.
+ */
+export const objectSetRows = { apiName: 'object_set_rows', kind: 'function' } as FunctionType<
+  { p_set: string; p_limit?: number; p_offset?: number },
+  Json[]
+>
+
+/**
+ *  How many objects a saved set holds right now — live for an exploration,
+ *  stored for a list.
+ */
+export const objectSetSize = { apiName: 'object_set_size', kind: 'function' } as FunctionType<
+  { p_set: string },
+  number
 >
 
 /**

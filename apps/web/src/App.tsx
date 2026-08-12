@@ -28,6 +28,7 @@ const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
 // Object Explorer: the search-and-analysis surface over the object index.
 const ExplorerHome = lazyWithRetry(() => import('@/features/explorer/ExplorerHome'))
 const ExplorationPage = lazyWithRetry(() => import('@/features/explorer/ExplorationPage'))
+const SavedSetPage = lazyWithRetry(() => import('@/features/explorer/SavedSetPage'))
 
 // Ontology Manager: its own chrome, and its resource pages inside it.
 const OmaLayout = lazyWithRetry(() => import('@/features/ontologyManager/OmaLayout'))
@@ -81,6 +82,7 @@ function AppRoutes() {
             <Route path="/value-types" element={<ValueTypesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/explorer" element={<ExplorerHome />} />
+            <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
