@@ -40,6 +40,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
       {
+        name: 'Data Lineage',
+        tagline: 'See how data flows',
+        blurb: 'One graph over datasets and object types: inputs, datasource bindings, materializations and links, with staleness at a glance.',
+        path: '/lineage',
+        icon: 'data-lineage',
+        tint: '#2d72d2',
+      },
+      {
         name: 'Projects',
         tagline: 'Manage access controls',
         blurb: 'The security boundary: grant owner, editor, viewer or discoverer on a project and everything inside it.',

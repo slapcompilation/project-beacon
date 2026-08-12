@@ -719,6 +719,26 @@
 .results-th:disabled { cursor:default; color:hsl(var(--muted-foreground)); }
 .filter-popover { padding:12px; width:240px; }
 
+/* ── Data Lineage ──────────────────────────────────────────────────────────── */
+.lineage-scroll { overflow:auto; border:1px solid hsl(var(--border)); border-radius:8px;
+  background:hsl(var(--muted) / .25); max-height:calc(100vh - 220px); }
+.lineage-canvas { position:relative; }
+.lineage-edges { position:absolute; inset:0; pointer-events:none; }
+.lineage-edge-flow { fill:none; stroke:#8a9ba8; stroke-width:1.5; }
+.lineage-edge-link { fill:none; stroke:#7961db; stroke-width:1.5; stroke-dasharray:5 4; opacity:.7; }
+.lineage-node { position:absolute; display:flex; align-items:center; gap:8px; padding:0 12px;
+  border:1px solid hsl(var(--border)); border-radius:6px; background:hsl(var(--card));
+  cursor:pointer; font:inherit; font-size:13px; text-align:left;
+  box-shadow:var(--shadow-sm); transition:border-color .12s; }
+.lineage-node:hover { border-color:#2d72d280; }
+.lineage-node.is-root { border-color:#2d72d2; border-width:2px; }
+.lineage-node-label { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lineage-legend { display:flex; gap:18px; align-items:center; margin-top:10px;
+  font-size:11px; color:hsl(var(--muted-foreground)); }
+.lineage-legend > span { display:flex; align-items:center; gap:5px; }
+.lineage-swatch-flow { width:18px; height:0; border-top:2px solid #8a9ba8; }
+.lineage-swatch-link { width:18px; height:0; border-top:2px dashed #7961db; }
+
 /* ── Ontology Manager's own chrome (§6) ──────────────────────────────────────
  * The application chrome: a light top bar and a light sidebar, inside the
  * platform's dark rail. Colours come from the theme tokens rather than the
