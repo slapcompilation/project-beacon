@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/search-objects/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/search-objects/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Search for objects
 
@@ -16,7 +16,7 @@ The page is divided into tabs **(B)**:
 
 This search results page also contains a [sidebar](#navigate-using-the-sidebar) (**F** below).
 
-![Searching](/docs/resources/foundry/object-explorer/OE_search_results_general_annotated.png)
+![Searching](./images/OE_search_results_general_annotated.png)
 
 ## Navigate using the sidebar
 
@@ -24,7 +24,7 @@ These results are all categorized by their type. The navigation menu to the left
 
 Selecting the title of any section will also filter you to results of that type. This will also show you all of the results of that type in the event that there are more than the default number shown when in the **All results** view (indicated by **1** in the image below).
 
-<img src="./media/OE_search_results_sidebar_annotated.png" alt="Sidebar" width="200"/>
+<img src="./images/OE_search_results_sidebar_annotated.png" alt="Sidebar" width="200"/>
 
 * The first item, **All results** (shown as **1** in the image above), displays a sample of matches for each category. This is active by default when landing on the page.
 * Next are **“Object type filters” (2)**. Clicking on any of them will show a longer list of matches for the specific object type. Clicking on **“View X other filters >”** at the bottom of the section will switch the tab from “All” to “Objects”, where you can explore the full list of object results and filters.
@@ -52,4 +52,4 @@ For matches on individual objects (**2** in the image above), hovering over the 
 
 Example: If you search for the airport “SFO”, you can hover over the result and start an exploration on flights arriving at the airport.
 
-![Search Around](/docs/resources/foundry/object-explorer/OE_search_results_search_around.png)
+![Search Around](./images/OE_search_results_search_around.png)

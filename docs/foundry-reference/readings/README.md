@@ -286,6 +286,19 @@ is worth most just before the thing it describes gets built. Nothing here is
   message** field, a per-value-type **Usage tab**, `Length` as the UI name for Range on a
   String, and case-sensitive-by-default enums.
 
-Twenty-seven readings against 1,184 pages is the honest starting position. `../MAP.md` is
+- `object-explorer.md` — **the whole 17-page section plus all 90 images**
+  (re-mirrored; the old mirror had stripped every one), as the spec for the
+  surface that proves object types, links and actions are real. The app is
+  internally **hubble**; everything operates on the **object set**; an
+  Exploration is a **dynamic** object set and a List a **static** one — and
+  `generate-urls.md` attests both as `ri.object-set.main.*` RIDs. Charts are
+  per-property aggregations, one per **prominent** property by default; hidden
+  types and properties never appear anywhere in OE. Layouts are filesystem
+  resources with a `Path` but no attested RID; search stands on five Lucene
+  analyzers behind **Searchable/Sortable render hints**
+  (`metadata-render-hints.md`, mirrored, unread). Verified against the live
+  left-nav: 17 of 17.
+
+Thirty readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
 how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).

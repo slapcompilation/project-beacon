@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/compare-object-sets/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/compare-object-sets/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Compare object sets
 
@@ -16,23 +16,23 @@ To use Comparison Mode:
 
 Below, we are comparing flights from New York City to an existing exploration for all flights departing California.
 
-![Enter Comparison View](/docs/resources/foundry/object-explorer/comparison_enter.png)
+![Enter Comparison View](./images/comparison_enter.png)
 
 To define a new object set on-the-fly for comparison (a process known as "dynamic filtering"), select **Create new set of Flights** as seen in the comparison dropdown in the image above.
 
 This brings up a view that allows us to define and edit the object set, or change the color used for the comparison set:
 
-![Comparison Dynamic Filtering](/docs/resources/foundry/object-explorer/comparison_dynamic.png)
+![Comparison Dynamic Filtering](./images/comparison_dynamic.png)
 
 Once you enter the comparison mode, all of the charts in the layout will change to show the results from each of the compared sets side-by-side. This allows us to see how things compare, such as the most common arrival airports for flights from NYC versus CA, or aircraft registrations. All the functionality of OE is retained in this comparison view, for instance the ability to filter using the charts, the ability to see the results in the table view, actions, export, and so on.
 
-![Comparison Generic](/docs/resources/foundry/object-explorer/comparison_generic.png)
+![Comparison Generic](./images/comparison_generic.png)
 
 ## Filtering
 
 As mentioned above, you can jointly apply filters on these compared sets to narrow down the comparison view. For example, you may only want to see flights on an A321 airplane in the comparison in order to see how New York’s cancelled flights compare to those from California. This can be done in the same way as you normally would in OE by applying the filter from the search bar (as shown below) or directly from the chart.
 
-![Comparison Filtering](/docs/resources/foundry/object-explorer/comparison_filter.png)
+![Comparison Filtering](./images/comparison_filter.png)
 
 ## Collaboration
 
@@ -40,7 +40,7 @@ As mentioned above, you can jointly apply filters on these compared sets to narr
 
 These Comparison Views can be saved and shared just like Explorations by clicking the **Save** button in the top-right. When saving the view, you will be prompted for a name, and you can also provide an optional description and/or a custom save location.
 
-<img src="./media/comparison_save.png" alt="Save Comparison" width="300"/>
+<img src="./images/comparison_save.png" alt="Save Comparison" width="300"/>
 
 ### Sharing Comparison Views
 
@@ -50,4 +50,4 @@ To share your comparison, simply select the **Share** button to the left of the 
 
 These saved Comparisons can be searched for using the main OE search bar on the home page.
 
-![Comparison Search Results](/docs/resources/foundry/object-explorer/comparison_search_result.png)
+![Comparison Search Results](./images/comparison_search_result.png)
