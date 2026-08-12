@@ -38,39 +38,6 @@ export default function HomePage() {
     <div className="home-page">
       <div className="home-grid">
         <nav className="home-toc">
-          {/* The square above NAVIGATION (§2.2 region b) — a glass hexagon
-              holding a chip core: one structured cell of a larger lattice. */}
-          <svg className="home-toc-art" viewBox="0 0 200 200" role="img" aria-label="Beacon">
-            <defs>
-              <linearGradient id="home-art-field" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#8a5a9c" />
-                <stop offset="45%" stopColor="#6d4fc4" />
-                <stop offset="100%" stopColor="#5646a8" />
-              </linearGradient>
-              <linearGradient id="home-art-core" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f2c14b" />
-                <stop offset="100%" stopColor="#d99a10" />
-              </linearGradient>
-            </defs>
-            <rect width="200" height="200" rx="8" fill="url(#home-art-field)" />
-            <ellipse cx="100" cy="170" rx="46" ry="8" fill="#000" opacity=".22" />
-            {/* the glass shell */}
-            <path d="M100 38 153.7 69 v62 L100 162 46.3 131 v-62 Z"
-              fill="#ffffff" fillOpacity=".14" stroke="#d7c6f5" strokeWidth="2.5" strokeLinejoin="round" />
-            <path d="M100 50 143.3 75 v50 L100 150 56.7 125 v-50 Z"
-              fill="none" stroke="#f3eefc" strokeWidth="5" strokeLinejoin="round" opacity=".9" />
-            {/* the chip core */}
-            <path d="M100 62 132.9 81 v38 L100 138 67.1 119 v-38 Z"
-              fill="url(#home-art-core)" stroke="#caa50f" strokeWidth="1.5" strokeLinejoin="round" />
-            <g fill="none" stroke="#a87a08" strokeWidth="4" strokeLinecap="round" opacity=".55">
-              <path d="M100 68v16" />
-              <path d="M100 116v16" />
-              <path d="M80 92h20v16" />
-              <path d="M120 108h-20v-16" />
-              <path d="M124 88v10h-10" />
-              <path d="M76 112v-10h10" />
-            </g>
-          </svg>
           <span className="home-toc-label">NAVIGATION</span>
           {AUDIENCES.map((a) => (
             <button key={a.id} type="button"
@@ -83,11 +50,36 @@ export default function HomePage() {
 
         <div>
           <div className="home-welcome">
-            <p className="home-welcome-title">Welcome to Beacon.</p>
-            <p className="home-welcome-sub">
-              Beacon is where your team defines its world: the things you work with,
-              the data behind them, and who can see or change what.
-            </p>
+            <svg className="home-welcome-art" viewBox="28 28 144 144" role="img" aria-hidden>
+              <defs>
+                <linearGradient id="home-art-core" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f2c14b" />
+                  <stop offset="100%" stopColor="#d99a10" />
+                </linearGradient>
+              </defs>
+              <ellipse cx="100" cy="168" rx="44" ry="7" fill="#000" opacity=".2" />
+              <path d="M100 38 153.7 69 v62 L100 162 46.3 131 v-62 Z"
+                fill="#ffffff" fillOpacity=".14" stroke="#d7c6f5" strokeWidth="2.5" strokeLinejoin="round" />
+              <path d="M100 50 143.3 75 v50 L100 150 56.7 125 v-50 Z"
+                fill="none" stroke="#f3eefc" strokeWidth="5" strokeLinejoin="round" opacity=".9" />
+              <path d="M100 62 132.9 81 v38 L100 138 67.1 119 v-38 Z"
+                fill="url(#home-art-core)" stroke="#caa50f" strokeWidth="1.5" strokeLinejoin="round" />
+              <g fill="none" stroke="#a87a08" strokeWidth="4" strokeLinecap="round" opacity=".55">
+                <path d="M100 68v16" />
+                <path d="M100 116v16" />
+                <path d="M80 92h20v16" />
+                <path d="M120 108h-20v-16" />
+                <path d="M124 88v10h-10" />
+                <path d="M76 112v-10h10" />
+              </g>
+            </svg>
+            <div>
+              <p className="home-welcome-title">Welcome to Beacon.</p>
+              <p className="home-welcome-sub">
+                Beacon is where your team defines its world: the things you work with,
+                the data behind them, and who can see or change what.
+              </p>
+            </div>
           </div>
 
           {AUDIENCES.map((a) => (

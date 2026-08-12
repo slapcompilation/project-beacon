@@ -572,7 +572,6 @@
     max-width:1360px; padding:32px 40px 64px;
   }
   .home-toc { position:sticky; top:32px; align-self:start; }
-  .home-toc-art{width:100%;max-width:210px;border:1px solid #4a3d78;border-radius:8px;display:block;margin-bottom:14px}
 .home-toc-label {
     font-size:11px; font-weight:600; letter-spacing:.09em;
     color:hsl(var(--muted-foreground));
@@ -585,10 +584,12 @@
   .home-toc-link.is-active { color:hsl(var(--foreground)); }
 
   .home-welcome {
-    margin-bottom:28px; padding:20px 24px; border-radius:8px;
-    background:#141a21; border:1px solid #2e3d4d; border-left:3px solid #2d72d2;
-    color:#e6edf3;
+    display:flex; align-items:center; gap:22px;
+    margin-bottom:28px; padding:16px 26px; border-radius:10px;
+    background:linear-gradient(115deg, #8a5a9c, #6d4fc4 48%, #5646a8);
+    border:1px solid #4a3d78; color:#fff;
   }
+  .home-welcome-art { width:86px; flex-shrink:0; }
   .home-welcome-title { font-size:19px; font-weight:600; }
   .home-welcome-sub   { font-size:13px; margin-top:4px; opacity:.92; }
 
