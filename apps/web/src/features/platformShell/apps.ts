@@ -87,6 +87,7 @@ const TITLES = new Map<string, string>([
   ['/ontology/link-types', 'Link types'],
   ['/ontology/action-types', 'Action types'],
   ['/ontology/interfaces', 'Interfaces'],
+  ['/ontology/proposals', 'Proposals'],
 ])
 
 /** A path we can name. Recent lists nothing else — an unnamed row is a dead row. */

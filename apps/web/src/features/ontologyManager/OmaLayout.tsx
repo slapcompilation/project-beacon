@@ -12,7 +12,6 @@
 // somewhere. OMITTED BY NAME, with what would have to exist first:
 //   Unsaved changes  — the save session lives in the top bar instead, where the
 //                      count and its buttons already are (§10.8 puts it here too).
-//   Proposals        — `ontology_proposals` holds rows; nothing opens or reviews one.
 //   History          — `object_edits` and `branch_resource_changes` exist; no reader.
 //   Properties       — a flat index of every property across types; nothing builds
 //                      it. It is also the one entry with no count in the screenshot.
@@ -26,10 +25,16 @@
 
 import { useEffect, useState } from 'react'
 import {
-  Button, Icon, Menu, MenuDivider, MenuItem, NonIdealState, Popover, Tag,
+  Button, Dialog, DialogBody, DialogFooter, Icon, InputGroup, Intent, Menu,
+  MenuDivider, MenuItem, NonIdealState, Popover, Tag,
 } from '@blueprintjs/core'
 import type { IconName } from '@blueprintjs/icons'
-import { NavLink, Outlet } from 'react-router-dom'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { toSlug } from '@beacon/ontology'
+import { supabase } from '@/lib/supabase/client'
+import { useBranches, useBranchChanges, useProposals, useCreateProposal } from '@/features/branching/api'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -37,7 +42,7 @@ import { useProjects } from '@/features/projects/api'
 import { OntologyPicker } from '@/features/ontologies/OntologyPicker'
 import { SaveControl } from '@/features/workingState/ReviewEdits'
 import { OmaSearch } from './OmaSearch'
-import { RESOURCE_NAV, countOf, useOmaResources } from './resources'
+import { RESOURCE_NAV, countOf, useOmaResources, useOmaOntology } from './resources'
 
 /** What the OS renders in the hint; the handler takes either. */
 const MOD = typeof navigator !== 'undefined' && /Mac/i.test(navigator.userAgent) ? '⌘ ' : 'Ctrl '
@@ -89,6 +94,7 @@ export default function OmaLayout() {
           <OmaProjectPicker />
           <nav className="oma-nav">
             <NavRow icon="compass" label="Discover" path="/ontology" end />
+            <NavRow icon="people" label="Proposals" path="/ontology/proposals" />
             <div className="oma-rule" />
             <p className="oma-group-title">Resources</p>
             {RESOURCE_NAV.map((r) => (
@@ -104,6 +110,7 @@ export default function OmaLayout() {
       </div>
 
       {searching && <OmaSearch resources={resources} onClose={() => { setSearching(false) }} />}
+      <BranchTaskbar />
     </div>
   )
 }
@@ -120,20 +127,123 @@ function NavRow({ icon, label, path, count, end = false }: {
   )
 }
 
-/** "navigate between or create new branches" (§6.2). `ontology_branches` is a
- *  real table with real policies and no rows: nothing creates or opens one yet,
- *  and Main is the ontology itself rather than a row in it. */
+/** The branch selector: Main, your branches, and Create new branch — the
+ *  screenshot's dropdown, minus the legacy "Ontology branches" tab (we have
+ *  one branch kind). */
 function BranchControl() {
+  const { ontology } = useOmaOntology()
+  const branchId = useAppStore((s) => s.omaBranchId)
+  const setBranch = useAppStore((s) => s.setOmaBranch)
+  const { data: branches = [] } = useBranches(ontology?.id ?? null)
+  const [creating, setCreating] = useState(false)
+  const current = branches.find((b) => b.id === branchId)
+
   return (
-    <Popover placement="bottom-end" content={
-      <Menu>
-        <MenuDivider title="Branch" />
-        <MenuItem icon="git-branch" text="Main" active disabled />
-        <MenuItem disabled text="No branch surface yet — every edit is on main" />
-      </Menu>
-    }>
-      <Button variant="minimal" size="small" icon="git-branch" endIcon="caret-down" text="Main" />
-    </Popover>
+    <>
+      <Popover placement="bottom-end" content={
+        <Menu>
+          <MenuItem icon="add" text="Create new branch" onClick={() => { setCreating(true) }} />
+          <MenuDivider />
+          <MenuItem icon="git-branch" text="Main" label="Default" active={branchId === null}
+            onClick={() => { setBranch(null) }} />
+          {branches.length > 0 && <MenuDivider title="Your branches" />}
+          {branches.map((b) => (
+            <MenuItem key={b.id} icon="git-branch" text={b.title}
+              label={b.status !== 'active' ? b.status : undefined}
+              active={b.id === branchId} onClick={() => { setBranch(b.id) }} />
+          ))}
+        </Menu>
+      }>
+        <Button variant="minimal" size="small" icon="git-branch" endIcon="caret-down"
+          text={current?.title ?? 'Main'} />
+      </Popover>
+      <CreateBranchDialog isOpen={creating} onClose={() => { setCreating(false) }} />
+    </>
+  )
+}
+
+function CreateBranchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const { ontology } = useOmaOntology()
+  const setBranch = useAppStore((s) => s.setOmaBranch)
+  const qc = useQueryClient()
+  const [title, setTitle] = useState('')
+  const create = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from('ontology_branches')
+        .insert({ ontology_id: ontology?.id ?? '', name: toSlug(title).replace(/_/g, '-'), title: title.trim() })
+        .select('id').single()
+      if (error) throw new Error(error.message)
+      return (data as { id: string }).id
+    },
+    onSuccess: (id) => {
+      void qc.invalidateQueries({ queryKey: ['ontology-branches'] })
+      setBranch(id)
+      onClose()
+      setTitle('')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose} title="Create new branch" icon="git-new-branch" style={{ width: 420 }}>
+      <DialogBody>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Branch name</span>
+          <InputGroup placeholder="A short descriptive name for this branch" value={title}
+            onChange={(e) => { setTitle(e.currentTarget.value) }} />
+          <span className="text-[11px] text-muted-foreground">Do not include sensitive information</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground mt-2">
+          Only this ontology will be editable on this branch.
+        </p>
+      </DialogBody>
+      <DialogFooter actions={<>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button intent={Intent.PRIMARY} disabled={!title.trim()} loading={create.isPending}
+          onClick={() => { create.mutate() }}>Create</Button>
+      </>} />
+    </Dialog>
+  )
+}
+
+/** "The branch taskbar is displayed as a blue bar at the bottom of supported
+ *  applications" — branch name, the modified-resource count, and the proposal
+ *  actions. */
+function BranchTaskbar() {
+  const branchId = useAppStore((s) => s.omaBranchId)
+  const setBranch = useAppStore((s) => s.setOmaBranch)
+  const { ontology } = useOmaOntology()
+  const { data: branches = [] } = useBranches(ontology?.id ?? null)
+  const { data: changes = [] } = useBranchChanges(branchId)
+  const { data: proposals = [] } = useProposals(ontology?.id ?? null)
+  const createProposal = useCreateProposal()
+  const navigate = useNavigate()
+  if (branchId === null) return null
+  const branch = branches.find((b) => b.id === branchId)
+  const open = proposals.find((p) => p.branch_id === branchId && p.status === 'open')
+
+  return (
+    <div className="oma-taskbar">
+      <Tag minimal className="!text-[10px]">Beta</Tag>
+      <span className="ml-auto" />
+      <Button variant="minimal" size="small" icon="git-branch" endIcon="caret-down"
+        className="!text-white" onClick={() => { setBranch(null) }}
+        title="Back to Main" text={branch?.title ?? 'branch'} />
+      <Tag icon="folder-close" minimal className="!text-[10px] !text-white">{changes.length}</Tag>
+      {open ? (
+        <Button size="small" icon="git-pull" className="!text-white" variant="minimal"
+          onClick={() => { void navigate(`/ontology/proposals?p=${open.id}`) }}>View proposal</Button>
+      ) : (
+        <Button size="small" icon="git-pull" variant="minimal" className="!text-white"
+          loading={createProposal.isPending}
+          disabled={changes.length === 0}
+          title={changes.length === 0 ? 'This branch has changed nothing' : undefined}
+          onClick={() => {
+            createProposal.mutate(
+              { branchId, name: `Proposal for foundry branch: ${branch?.title ?? ''}` },
+              { onSuccess: () => { void navigate('/ontology/proposals') } })
+          }}>Create proposal</Button>
+      )}
+    </div>
   )
 }
 

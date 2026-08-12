@@ -26,8 +26,12 @@ interface AppState {
    *  server state and gets resolved from it. */
   omaOntologyId: string | null
   omaProjectId: string | null
+  /** The branch Ontology Manager is on. NULL is main — "the main ontology,
+   *  also known as main branch". */
+  omaBranchId: string | null
   setOmaOntology: (id: string) => void
   setOmaProject: (id: string | null) => void
+  setOmaBranch: (id: string | null) => void
   /** Object types whose detail was opened, newest first — Discover's
    *  "Recently viewed object types". Same pattern as `recents`, its own list
    *  because it is the application's history, not the platform's. */
@@ -56,8 +60,10 @@ export const useAppStore = create<AppState>()(
       },
       omaOntologyId: null,
       omaProjectId: null,
-      setOmaOntology: (id) => { set({ omaOntologyId: id }) },
+      omaBranchId: null,
+      setOmaOntology: (id) => { set({ omaOntologyId: id, omaBranchId: null }) },
       setOmaProject: (id) => { set({ omaProjectId: id }) },
+      setOmaBranch: (id) => { set({ omaBranchId: id }) },
       omaRecentTypes: [],
       pushOmaRecentType: (id) => {
         set((s) => ({ omaRecentTypes: [id, ...s.omaRecentTypes.filter((x) => x !== id)].slice(0, RECENT_LIMIT) }))
