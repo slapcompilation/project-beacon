@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/save-explorations/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/save-explorations/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Save explorations
 
@@ -8,7 +8,7 @@ You can save and share your work in Object Explorer as an **Exploration**. A sav
 
 To save an exploration, select the blue **Save** button in the top-right of the screen. You will also be prompted for some metadata information to save such as a title for your exploration.
 
-![Save Exploration](/docs/resources/foundry/object-explorer/explorations_saved_exploration.png)
+![Save Exploration](./images/explorations_saved_exploration.png)
 
 Explorations can either be saved as **Private** or **Public**.
 
@@ -25,8 +25,8 @@ Sharing your exploration will not share access to the underlying objects, so any
 
 Saved explorations will show up in your [Search Results](/docs/foundry/object-explorer/search-objects/) if you use the global search bar on the [Object Explorer Home Page](/docs/foundry/object-explorer/getting-started/).
 
-![Explorations Search Results](/docs/resources/foundry/object-explorer/explorations_explorations_search_result.png)
+![Explorations Search Results](./images/explorations_explorations_search_result.png)
 
 You can also access saved explorations via the **Explorations** dropdown on the top navigation bar. The dropdown menu also has a built-in text search and common filter options to further narrow down the explorations displayed.
 
-<img src="./media/explorations_explorations_dropdown_all.png" alt="All Explorations" width="300"/>        <img src="./media/explorations_explorations_dropdown_created.png" alt="Explorations Created by Me" width="300"/>
+<img src="./images/explorations_explorations_dropdown_all.png" alt="All Explorations" width="300"/>        <img src="./images/explorations_explorations_dropdown_created.png" alt="Explorations Created by Me" width="300"/>

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/analyze-sql/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/analyze-sql/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Analyze objects using SQL \[Beta]
 
@@ -20,11 +20,11 @@ Follow the steps below to use analyze using SQL:
 2. Select **Analyze using SQL** in the top right menu to open the adjustable preview panel.
 3. In the **Code** tab, write a read-only query on the dataset.
 
-![Example usage of the "Analyze using SQL" feature.](/docs/resources/foundry/object-explorer/analyze-sql-example.png)
+![Example usage of the "Analyze using SQL" feature.](./images/analyze-sql-example.png)
 
 You can search for any object type in your query by typing its name. An autocomplete window will appear, allowing you to quickly select and autofill the full RID of the object type.
 
-![An example of object RID autofilling](/docs/resources/foundry/object-explorer/object-rid-autofill.png)
+![An example of object RID autofilling](./images/object-rid-autofill.png)
 
 Alternatively, you can use the object type's API name with the following syntax:
 
@@ -32,7 +32,7 @@ Alternatively, you can use the object type's API name with the following syntax:
 `ontologyApiName`.`objectTypeApiName`
 ```
 
-![An example of object API name querying.](/docs/resources/foundry/object-explorer/object-api-name-query.png)
+![An example of object API name querying.](./images/object-api-name-query.png)
 
 To query a many-to-many link type, you can use the link type's RID enclosed by backticks (`` `RID` ``).
 
@@ -45,7 +45,7 @@ Analyze using SQL works by querying the backing datasource or the materializatio
 
 The code editor will display a warning if you attempt to query Ontology inputs that do not meet these requirements.
 
-![A sample code editor warning stating that the object type needs materialization.](/docs/resources/foundry/object-explorer/object-needs-materialization-warning.png)
+![A sample code editor warning stating that the object type needs materialization.](./images/object-needs-materialization-warning.png)
 
 :::callout{theme="neutral"}
 Queries cannot mix tabular sources (such as datasets, tables, or restricted views) and Ontology inputs within the same query.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/getting-started/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/getting-started/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -11,7 +11,7 @@ From this view, user can perform the following primary actions:
 * Previewing a specific object type **(E)**.
 * Selecting a specific object type for exploration **(F)**.
 
-<img src="./media/home_general.png" alt="Object Explorer home page"/>
+<img src="./images/home_general.png" alt="Object Explorer home page"/>
 
 ## Global search bar (A)
 
@@ -21,7 +21,7 @@ The global search bar performs searches across all of the Ontology. It can be us
 If the Ontology contains more than 250 object types that a user may discover, the keyword search will be limited to the first 250 object types. To search a specific object type or a group of object types you must leverage the functionality described [below](#group-exploration-b-c-d).
 :::
 
-<img src="./media/home_search_bar.png" alt="Global search bar"/>
+<img src="./images/home_search_bar.png" alt="Global search bar"/>
 
 These searches bring back results where the search terms **(1)** match the following:
 
@@ -40,7 +40,7 @@ All object types accessible to a user are displayed under the search bar in [con
 
 Object type groupings are also reflected in the global search bar. Preconfigured groups are available in the left side tab, and custom groups can be quickly configured under **Object types**. Selecting an object type group here allows you to perform searches on a more refined set of object types before selecting one for exploration.
 
-<img src="./media/home_object_type_groupings.png" alt="Object Type Groups"/>
+<img src="./images/home_object_type_groupings.png" alt="Object Type Groups"/>
 
 ### Explore object type groups on a graph (D)
 
@@ -48,21 +48,21 @@ The graph is designed to help users explore the Ontology and understand the conn
 
 Click on the **Graph** icon to view the group graph, which displays the links within the object types in the group and links to other object type groups **(1)**. In this view, you can also remove the object type groups **(2)** and change the layout of the graph **(3)**.
 
-<img src="./media/home_object_type_group_graph.png" alt="Object type group graph"/>
+<img src="./images/home_object_type_group_graph.png" alt="Object type group graph"/>
 
 Click on a link symbol (<->) to show the type of links between the object types **(4)**.
 
-<img src="./media/home_object_type_graph_link.png" alt="Object type graph link"/>
+<img src="./images/home_object_type_graph_link.png" alt="Object type graph link"/>
 
 Select a single object to view a menu **(5)** that allows you to explore the [object type preview](#preview-object-types-e) or start an exploration.
 
-<img src="./media/home_object_type_graph_menu.png" alt="Object type graph menu"/>
+<img src="./images/home_object_type_graph_menu.png" alt="Object type graph menu"/>
 
 ## Preview object types (E)
 
 Click on an object preview to access a quick view of an object type (without moving into the more comprehensive exploration page). In the preview, find information about the object type **(1)**, including the description, properties, and linked object types. Click **Start Exploration** **(2)** to start a new Exploration of the object type.
 
-<img src="./media/home_object_type_preview.png" alt="Object type preview" width="400"/>
+<img src="./images/home_object_type_preview.png" alt="Object type preview" width="400"/>
 
 ### Add object type as favorite (F)
 
@@ -72,7 +72,7 @@ Object types can be added as a favorite by clicking the star icon on their card 
 Favorites will also be shown in the full list of “All object types” at the bottom of the interface.
 :::
 
-<img src="./media/home_fav.png" alt="Explorer"/>
+<img src="./images/home_fav.png" alt="Explorer"/>
 
 ### Explorations & lists (G)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-explorer/filter-results/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-explorer/filter-results/ · mirrored 2026-08-12 from Palantir Foundry docs -->
 
 # Filter results
 
@@ -8,7 +8,7 @@ Once you have started a [search](/docs/foundry/object-explorer/search-objects/),
 
 The search bar is the central hub for filtering the current set of objects. Click into the search bar to expose the search menu. From there, a few filtering options are available:
 
-![Search](/docs/resources/foundry/object-explorer/explore_search.png)
+![Search](./images/explore_search.png)
 
 ### Filtering by properties (of the main object type)
 
@@ -18,7 +18,7 @@ The search bar is the central hub for filtering the current set of objects. Clic
 
 In the search menu, you can find a list of all properties **(B)** (and optionally their descriptions) sorted alphabetically.
 
-![Search](/docs/resources/foundry/object-explorer/explore_search_filtered.png)
+![Search](./images/explore_search_filtered.png)
 
 Type in the search bar **(A)** to search for specific property types. When the desired property is selected, a pop-over will you allow to chose values to filter on for that property. The input experience varies based on the type of the property (numeric, text, date, etc.). For text properties (e.g. language), options can be filtered by typing in the pill.
 
@@ -34,7 +34,7 @@ Keyword searches are supported across all of an object type's properties or a sp
 
 To perform a keyword search on a property, select a text property, type your query, and use the Enter key or switch to the "Keyword" tab in the filter chart.
 
-![Keyword](/docs/resources/foundry/object-explorer/explore_keyword_property.png)
+![Keyword](./images/explore_keyword_property.png)
 
 By default, keyword searches match on the exact word or phrase and do not match on prefixes or suffixes. To perform a prefix search, see the **"Starts with"** modifier below.
 
@@ -50,11 +50,11 @@ For a given search term, three options are available to modify the query. For co
 
 Selecting “And” or “Or” will add a new search term to your existing query connected by the corresponding logical operator. After adding a new term, click on a term to edit it.
 
-![Adding a new term](/docs/resources/foundry/object-explorer/new_search_term.png)
+![Adding a new term](./images/new_search_term.png)
 
 Search terms and logical operators can be nested to perform more complicated queries. See below for an example of a nested AND within an OR. Also note that modifiers for a given search term display in a compact view when not being edited.
 
-![Nested Keywords](/docs/resources/foundry/object-explorer/nested_search_terms.png)
+![Nested Keywords](./images/nested_search_terms.png)
 
 Click on an “And”/“Or" tag to flip the operator. Note that if operators on two adjacent levels become the same, the filter will simplify to a single level of nesting.
 
@@ -66,16 +66,16 @@ To search for objects that have a particular link, select the "Has Link" option,
 
 > Example: “Flights with an associated delay event.”
 
-![Flights with a delay](/docs/resources/foundry/object-explorer/has_link.png)
+![Flights with a delay](./images/has_link.png)
 
 To search for objects whose linked objects have a specific property, select the relation in the left side of the search menu panel. From there, choose a property type to filter.
 
 > Example: “Flights on an Aircraft that were manufactured in 2018.”
 
-![Flights property search](/docs/resources/foundry/object-explorer/linked_to_property.png)
+![Flights property search](./images/linked_to_property.png)
 
 It is also possible to search for objects that have links to other specific objects. For example, after selecting a link choose the option "Filter by Airline". This opens a filter for links to specific objects. Linked objects are displayed by their title in the resulting listogram.
 
 > Example: "Flights operated by a particular airline."
 
-![Flights linked to airline](/docs/resources/foundry/object-explorer/linked_to_object.png)
+![Flights linked to airline](./images/linked_to_object.png)
