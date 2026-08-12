@@ -86,7 +86,10 @@ describe.skipIf(noDb)('interfaces', () => {
           target_kind: 'object_type', target_object_type_id: type },
       ],
       action_constraints: [
-        { api_name: 'retire', display_name: 'Retire', description: 'Retire the thing.' },
+        // Optional, deliberately: 467 enforces satisfactions for REQUIRED
+        // action constraints at commit, and this suite implements the
+        // interface without mapping any action.
+        { api_name: 'retire', display_name: 'Retire', description: 'Retire the thing.', required: false },
       ],
     })])).id
     expect(await count('select count(*) n from public.working_state_changes')).toBe(1)
@@ -235,6 +238,51 @@ describe.skipIf(noDb)('interfaces', () => {
     expect(await count(
       `select count(*) n from public.interface_implementation_mappings
         where object_type_id = $1 and interface_id = $2`, [type, other])).toBe(1)
+  })
+
+  // ── 467: action constraints declare their parameters ───────────────────────
+  it('validates action-constraint mappings the way the page lists', async () => {
+    const other = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
+                              values ($1,'Actionable','Actionable') returning id`, [ont])).id
+    const ac = (await one(`insert into public.interface_action_constraints
+                             (interface_id, api_name, display_name, required)
+                           values ($1,'do-thing','Do thing',true) returning id`, [other])).id
+    const pc = (await one(`insert into public.interface_action_parameter_constraints
+                             (constraint_id, api_name, display_name, base_type, required)
+                           values ($1,'title','Title','string',true) returning id`, [ac])).id
+    const act = (await one(`insert into public.action_types (ontology_id, api_name, label)
+                            values ($1,'do-thing-on-ticket','Do thing') returning id`, [ont])).id
+    const ap = (await one(`insert into public.action_type_parameters
+                             (action_type_id, api_name, display_name, base_type, required)
+                           values ($1,'title','Title','string',true) returning id`, [act])).id
+
+    // A required action constraint without a satisfaction refuses at commit.
+    const err = await refused(db, async () => {
+      await db.query(`select public.implement_interface($1,$2,'[]'::jsonb)`, [type, other])
+      await db.query('set constraints all immediate')
+    })
+    expect(err).toContain('OntologyMetadata:ActionConstraintNotSatisfied')
+
+    // Satisfied + required parameter mapped: the whole claim conforms.
+    await db.query(`select public.implement_interface($1,$2,'[]'::jsonb)`, [type, other])
+    await db.query(`insert into public.interface_action_satisfactions
+                      (object_type_id, interface_id, constraint_id, action_type_id)
+                    values ($1,$2,$3,$4)`, [type, other, ac, act])
+    await db.query(`insert into public.interface_action_parameter_mappings
+                      (object_type_id, interface_id, constraint_id, parameter_constraint_id, action_parameter_id)
+                    values ($1,$2,$3,$4,$5)`, [type, other, ac, pc, ap])
+    await db.query('set constraints all immediate')
+    await db.query('set constraints all deferred')
+
+    // An incompatible type refuses by name.
+    const pc2 = (await one(`insert into public.interface_action_parameter_constraints
+                              (constraint_id, api_name, display_name, base_type, required)
+                            values ($1,'when','When','timestamp',false) returning id`, [ac])).id
+    expect(await refused(db, () => db.query(
+      `insert into public.interface_action_parameter_mappings
+         (object_type_id, interface_id, constraint_id, parameter_constraint_id, action_parameter_id)
+       values ($1,$2,$3,$4,$5)`, [type, other, ac, pc2, ap])))
+      .toContain('OntologyMetadata:IncompatibleParameterType')
   })
 
   // ── 450: the searchable caps ───────────────────────────────────────────────
