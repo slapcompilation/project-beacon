@@ -18,6 +18,7 @@ const ResetPasswordPage = lazyWithRetry(() => import('@/pages/ResetPasswordPage'
 const AuthCallbackPage = lazyWithRetry(() => import('@/pages/AuthCallbackPage'))
 const HomePage = lazyWithRetry(() => import('@/pages/HomePage'))
 const AccountPage = lazyWithRetry(() => import('@/pages/AccountPage'))
+const SettingsPage = lazyWithRetry(() => import('@/pages/SettingsPage'))
 const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
@@ -67,6 +68,7 @@ function AppRoutes() {
             {/* "Home: Return to your organization's landing page." */}
             <Route path="/"          element={<HomePage />} />
             <Route path="/account"   element={<AccountPage />} />
+            <Route path="/settings"  element={<SettingsPage />} />
             <Route path="/ontology"  element={<OmaLayout />}>
               {/* "The Discover view offers a highly customizable landing page." */}
               <Route index element={<DiscoverPage />} />

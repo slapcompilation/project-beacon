@@ -106,6 +106,10 @@ export function PlatformSidebar() {
       </nav>
 
       <div className="platform-foot">
+        {/* Foundry reaches Platform Settings via Account > Settings; ours is a
+            sibling row because the Account row navigates rather than menus. */}
+        <Row icon="cog" label="Settings" collapsed={collapsed}
+          active={pathname.startsWith('/settings')} onClick={go('/settings')} />
         <Row avatar={initials(email)} label="Account" collapsed={collapsed}
           active={pathname.startsWith('/account')} onClick={go('/account')} />
         <Row icon="log-out" label="Sign out" collapsed={collapsed} onClick={() => { void signOut() }} />

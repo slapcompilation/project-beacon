@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (91) ───────────────────────────────────────────────────
+// ── FUNCTIONS (93) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -331,6 +331,11 @@ export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'fu
 export const aggregateObjectSet = { apiName: 'aggregate_object_set', kind: 'function' } as FunctionType<
   { p_object_type: string; p_filters?: Json; p_group_by?: string; p_agg_property?: string; p_sort_by?: string; p_desc?: boolean; p_limit?: number },
   { group_value: string; object_count: number; sum: number; average: number; min: number; max: number; property_count: number; unique_count: number }[]
+>
+
+export const authGroupIds = { apiName: 'auth_group_ids', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**
@@ -651,6 +656,11 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 export const grantViolations = { apiName: 'grant_violations', kind: 'function' } as FunctionType<
   Record<string, never>,
   { relation: string; grantee: string; privilege: string; problem: string }[]
+>
+
+export const hasGroupPermission = { apiName: 'has_group_permission', kind: 'function' } as FunctionType<
+  { p_group: string; p_permission: string },
+  boolean
 >
 
 export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' } as FunctionType<
