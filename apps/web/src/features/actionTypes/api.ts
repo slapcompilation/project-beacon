@@ -123,6 +123,7 @@ export function useSaveActionType() {
         ontology_id: d.ontologyId, parameters: d.parameters, rules: d.rules,
         project_id: d.id ? null : useAppStore.getState().omaProjectId,
       } as unknown as Json,
+      p_branch: useAppStore.getState().omaBranchId ?? undefined,
     }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: KEY })

@@ -60,6 +60,7 @@ export function useCreateSharedProperty() {
           api_name: i.apiName, label: i.label, description: i.description, base_type: i.baseType,
           ontology_id: i.ontologyId, project_id: useAppStore.getState().omaProjectId,
         } as unknown as Json,
+        p_branch: useAppStore.getState().omaBranchId ?? undefined,
       }),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: key })

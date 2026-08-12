@@ -102,6 +102,7 @@ export async function createInterface(i: CreateInterfaceInput): Promise<string> 
         base_type: p.type, position: idx,
       })),
     } as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }
 
@@ -122,6 +123,7 @@ export async function stageInterfaceClauses(
 ): Promise<string> {
   return client(saveInterface).applyAction({
     p_interface: { id, ...patch } as unknown as Json,
+    p_branch: useAppStore.getState().omaBranchId ?? undefined,
   })
 }
 

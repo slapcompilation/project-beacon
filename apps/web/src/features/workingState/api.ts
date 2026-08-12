@@ -15,6 +15,7 @@ import {
   type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
+import { useAppStore } from '@/stores/app.store'
 
 export type ResourceKind =
   | 'object_type' | 'link_type' | 'shared_property'
@@ -108,7 +109,10 @@ function invalidateAll(qc: ReturnType<typeof useQueryClient>) {
 export function useSaveWorkingState() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: () => client(saveWorkingState).applyAction({}),
+    // On a branch, the save is the branch save — validation composed, main
+    // untouched (461). On main it is what it always was.
+    mutationFn: () => client(saveWorkingState).applyAction(
+      { p_branch: useAppStore.getState().omaBranchId ?? undefined }),
     onSuccess: (n) => {
       invalidateAll(qc)
       toast.success(n === 1 ? '1 resource saved to the ontology' : `${n} resources saved to the ontology`)
