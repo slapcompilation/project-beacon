@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (23) ────────────────────────────────────────────────
+// ── ACTION TYPES (24) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -54,6 +54,17 @@ export const applyInterface = { apiName: 'apply_interface', kind: 'action' } as 
 export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } as ActionType<
   { p_object_type: Json; p_properties: Json; p_datasources?: Json },
   string
+>
+
+/**
+ *  The arm dispatch save_working_state has always run, extracted once: a main
+ *  save applies the caller's entries, a branch compose applies the overlay
+ *  plus the composer's entries, a merge applies the overlay. Callers own
+ *  validation, version bumps and cleanup.
+ */
+export const applyOneChange = { apiName: 'apply_one_change', kind: 'action' } as ActionType<
+  { p_kind: string; p_id: string; p_op: string; p_fields: Json; p_ont: string },
+  void
 >
 
 /**
@@ -140,10 +151,10 @@ export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } 
 >
 
 /**
- *  Merges a proposal when nothing blocks it, and retires its branch.
- *  Deliberately does NOT check who is merging beyond visibility: "the person
- *  who merges may be submitting changes to resources that they cannot edit
- *  themselves. This is by design."
+ *  Merges a proposal: blockers, then the branch's overlay through the same
+ *  arms a main save uses, then the violations delta — atomically, in one
+ *  transaction. Deliberately does NOT check who is merging beyond visibility:
+ *  "merging only applies pre-authored and approved changes."
  */
 export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as ActionType<
   { p_proposal: string },
@@ -222,10 +233,11 @@ export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'acti
 >
 
 /**
- *  Apply my working state to the ontology, bump its version and clear the
- *  state. Object types, action types and interfaces go through their writers
- *  so their sections travel; every other kind is a flat row. Absent sections
- *  mean unedited. Errors caused by this save block it and nothing lands.
+ *  Save the working state. On main: apply, validate the delta, bump the
+ *  version, clear the entries. On a branch: validate the same way against the
+ *  COMPOSED overlay (rolled back), then promote the entries into
+ *  branch_resource_changes — main's tables are never touched, the
+ *  total-overlay rule for ontology resources.
  */
 export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' } as ActionType<
   { p_branch?: string },
