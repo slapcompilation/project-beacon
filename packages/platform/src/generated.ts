@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (90) ───────────────────────────────────────────────────
+// ── FUNCTIONS (91) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -928,6 +928,16 @@ export const searchVisibleTypes = { apiName: 'search_visible_types', kind: 'func
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  Rehearse a marking change before applying it: the four documented states
+ *  per downstream dataset, with removals allowed only on directly-applied
+ *  markings. Hypothetical — nothing is written.
+ */
+export const simulateMarkingChanges = { apiName: 'simulate_marking_changes', kind: 'function' } as FunctionType<
+  { p_dataset: string; p_add?: string[]; p_remove?: string[] },
+  Json
 >
 
 /**
