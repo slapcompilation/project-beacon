@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (93) ───────────────────────────────────────────────────
+// ── FUNCTIONS (104) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -338,6 +338,11 @@ export const authGroupIds = { apiName: 'auth_group_ids', kind: 'function' } as F
   string[]
 >
 
+export const authGroupNames = { apiName: 'auth_group_names', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
 /**
  *  May this session SEE the ontology: some organization I am a member or
  *  guest of is in its space's list. "Users need permission from at least one
@@ -357,6 +362,11 @@ export const authInOntology = { apiName: 'auth_in_ontology', kind: 'function' } 
 export const authInOrg = { apiName: 'auth_in_org', kind: 'function' } as FunctionType<
   { p_org: string },
   boolean
+>
+
+export const authMarkingIds = { apiName: 'auth_marking_ids', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**
@@ -526,6 +536,11 @@ export const datasetBranchSchema = { apiName: 'dataset_branch_schema', kind: 'fu
   Json
 >
 
+export const datasetCurrentFields = { apiName: 'dataset_current_fields', kind: 'function' } as FunctionType<
+  { p_dataset: string },
+  Json
+>
+
 export const datasetFieldSqlType = { apiName: 'dataset_field_sql_type', kind: 'function' } as FunctionType<
   { f: Json },
   string
@@ -656,6 +671,46 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 export const grantViolations = { apiName: 'grant_violations', kind: 'function' } as FunctionType<
   Record<string, never>,
   { relation: string; grantee: string; privilege: string; problem: string }[]
+>
+
+export const granularComparisonCheck = { apiName: 'granular_comparison_check', kind: 'function' } as FunctionType<
+  { p_comp: Json; p_fields: Json },
+  unknown
+>
+
+export const granularComparisonSql = { apiName: 'granular_comparison_sql', kind: 'function' } as FunctionType<
+  { p_comp: Json; p_fields: Json; p_alias: string },
+  string
+>
+
+/**
+ *  Validates a granular policy against the backing dataset's schema: the
+ *  eight comparisons with their arity, the 1/1,000/3,000 weights capped under
+ *  10,000, at most ten comparisons, at least one user attribute, and no NOT.
+ */
+export const granularPolicyCheck = { apiName: 'granular_policy_check', kind: 'function' } as FunctionType<
+  { p_policy: Json; p_fields: Json },
+  void
+>
+
+/**
+ *  "The template is converted into a query": the validated policy compiled to
+ *  a WHERE fragment over the backing dataset's materialized table, caller
+ *  attributes as function calls evaluated at query time.
+ */
+export const granularPolicySql = { apiName: 'granular_policy_sql', kind: 'function' } as FunctionType<
+  { p_policy: Json; p_fields: Json; p_alias: string },
+  string
+>
+
+export const granularTermShape = { apiName: 'granular_term_shape', kind: 'function' } as FunctionType<
+  { p_term: Json; p_fields: Json },
+  { kind: string; is_collection: boolean; is_marking: boolean }[]
+>
+
+export const granularTermSql = { apiName: 'granular_term_sql', kind: 'function' } as FunctionType<
+  { p_term: Json; p_fields: Json; p_alias: string },
+  unknown
 >
 
 export const hasGroupPermission = { apiName: 'has_group_permission', kind: 'function' } as FunctionType<
@@ -887,6 +942,20 @@ export const resourceLocation = { apiName: 'resource_location', kind: 'function'
 export const resourceProject = { apiName: 'resource_project', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string },
   unknown
+>
+
+export const restrictedViewMarkings = { apiName: 'restricted_view_markings', kind: 'function' } as FunctionType<
+  { p_view: string },
+  string[]
+>
+
+/**
+ *  The policy gate for one object type, or NULL when it is not
+ *  restricted-view-backed. The index stays whole; this is the only door.
+ */
+export const restrictedViewPredicate = { apiName: 'restricted_view_predicate', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  string
 >
 
 /**

@@ -266,33 +266,40 @@ export async function deleteLinkType(id: string): Promise<void> {
 // must add a backing datasource." A datasource is a dataset ON A BRANCH, and one
 // may back only one object type.
 
+/** A dataset on a branch, or a restricted view — never both (migration 484). */
 export interface ObjectTypeDatasource {
   id: string
-  datasetId: string
-  branchId: string
+  datasetId: string | null
+  branchId: string | null
+  restrictedViewId: string | null
   datasetName: string
   branchName: string
+  restrictedViewName: string
 }
 
 export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
   const { data, error } = await supabase.from('object_type_datasources')
-    .select('id, dataset_id, branch_id, datasets(name), dataset_branches(name)')
+    .select('id, dataset_id, branch_id, restricted_view_id, datasets(name), dataset_branches(name), restricted_views(name)')
     .eq('object_type_id', objectTypeId)
   if (error) throw new Error(error.message)
   return (data as unknown as {
-    id: string; dataset_id: string; branch_id: string
+    id: string; dataset_id: string | null; branch_id: string | null; restricted_view_id: string | null
     datasets: { name: string } | null; dataset_branches: { name: string } | null
+    restricted_views: { name: string } | null
   }[]).map((r) => ({
-    id: r.id, datasetId: r.dataset_id, branchId: r.branch_id,
+    id: r.id, datasetId: r.dataset_id, branchId: r.branch_id, restrictedViewId: r.restricted_view_id,
     datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
+    restrictedViewName: r.restricted_views?.name ?? '',
   }))
 }
 
 export async function addObjectTypeDatasource(
-  i: { objectTypeId: string; datasetId: string; branchId: string },
+  i: { objectTypeId: string; datasetId?: string; branchId?: string; restrictedViewId?: string },
 ): Promise<void> {
   const { error } = await supabase.from('object_type_datasources')
-    .insert({ object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId })
+    .insert(i.restrictedViewId
+      ? { object_type_id: i.objectTypeId, restricted_view_id: i.restrictedViewId }
+      : { object_type_id: i.objectTypeId, dataset_id: i.datasetId, branch_id: i.branchId })
   if (error) throw new Error(error.message)
 }
 

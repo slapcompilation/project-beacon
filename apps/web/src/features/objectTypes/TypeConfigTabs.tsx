@@ -18,6 +18,7 @@ import {
   useMaterializations, useEditsEnabled, useSetEditsEnabled,
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
 } from '@/features/objectTypes/materializations'
+import { useRestrictedViews } from '@/features/restrictedViews/api'
 
 /** The Security tab: the two requirement cards the screenshot shows —
  *  "A user must meet all of the following requirements to view/edit the
@@ -95,14 +96,18 @@ export function SecurityTab({ type }: { type: ObjectTypeDef }) {
 }
 
 // "In order to populate property values for objects of this type with data,
-// you must add a backing datasource." A datasource is a dataset on a branch.
+// you must add a backing datasource." A datasource is a dataset on a branch —
+// or a restricted view: "set a restricted view as the backing dataset in the
+// Ontology Manager" (manage-restricted-views).
 export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const { data: sources = [] } = useObjectTypeDatasources(type.id)
   const add = useAddObjectTypeDatasource(type.id)
   const remove = useRemoveObjectTypeDatasource(type.id)
   const { data: datasets = [] } = useDatasets()
+  const { data: restrictedViews = [] } = useRestrictedViews()
   const [datasetId, setDatasetId] = useState('')
-  const { data: branches = [] } = useBranches(datasetId || null)
+  const isRv = datasetId.startsWith('rv:')
+  const { data: branches = [] } = useBranches(!datasetId || isRv ? null : datasetId)
   const [branchId, setBranchId] = useState('')
   const { data: editsEnabled = false } = useEditsEnabled(type.id)
   const setEdits = useSetEditsEnabled(type.id)
@@ -111,9 +116,12 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
     <div className="space-y-3">
       {sources.map((s) => (
         <div key={s.id} className="flex items-center gap-2 text-xs">
-          <Icon icon="database" size={12} className="text-violet-500" />
-          <span className="font-medium">{s.datasetName}</span>
-          <Tag minimal className="!text-[10px]">{s.branchName}</Tag>
+          <Icon icon={s.restrictedViewId ? 'eye-off' : 'database'} size={12} className="text-violet-500" />
+          <span className="font-medium">{s.restrictedViewId ? s.restrictedViewName : s.datasetName}</span>
+          {s.restrictedViewId
+            ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
+                title="Each user sees only the objects the view's policy allows.">restricted view</Tag>
+            : <Tag minimal className="!text-[10px]">{s.branchName}</Tag>}
           <Button variant="minimal" size="small" icon="cross" className="ml-auto"
             onClick={() => { remove.mutate(s.id) }} />
         </div>
@@ -127,13 +135,23 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
         <HTMLSelect value={datasetId} onChange={(e) => { setDatasetId(e.currentTarget.value); setBranchId('') }}>
           <option value="">Dataset…</option>
           {datasets.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+          {restrictedViews.length > 0 && (
+            <optgroup label="Restricted views">
+              {restrictedViews.map((v) => <option key={v.id} value={`rv:${v.id}`}>{v.name}</option>)}
+            </optgroup>
+          )}
         </HTMLSelect>
-        <HTMLSelect value={branchId} disabled={!datasetId} onChange={(e) => { setBranchId(e.currentTarget.value) }}>
-          <option value="">Branch…</option>
-          {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </HTMLSelect>
-        <Button size="small" icon="add" disabled={!datasetId || !branchId}
-          onClick={() => { add.mutate({ datasetId, branchId }); setDatasetId(''); setBranchId('') }}>
+        {!isRv && (
+          <HTMLSelect value={branchId} disabled={!datasetId} onChange={(e) => { setBranchId(e.currentTarget.value) }}>
+            <option value="">Branch…</option>
+            {branches.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+          </HTMLSelect>
+        )}
+        <Button size="small" icon="add" disabled={!datasetId || (!isRv && !branchId)}
+          onClick={() => {
+            add.mutate(isRv ? { restrictedViewId: datasetId.slice(3) } : { datasetId, branchId })
+            setDatasetId(''); setBranchId('')
+          }}>
           Add datasource
         </Button>
       </div>
