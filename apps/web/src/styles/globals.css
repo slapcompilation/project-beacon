@@ -572,7 +572,7 @@
     max-width:1360px; padding:32px 40px 64px;
   }
   .home-toc { position:sticky; top:32px; align-self:start; }
-  .home-toc-art{width:100%;max-width:210px;border:3px solid #f0883e;border-radius:12px;display:block;margin-bottom:14px}
+  .home-toc-art{width:100%;max-width:210px;border:1px solid #2e3d4d;border-radius:8px;display:block;margin-bottom:14px}
 .home-toc-label {
     font-size:11px; font-weight:600; letter-spacing:.09em;
     color:hsl(var(--muted-foreground));
@@ -585,8 +585,9 @@
   .home-toc-link.is-active { color:hsl(var(--foreground)); }
 
   .home-welcome {
-    margin-bottom:28px; padding:22px 28px; border-radius:8px;
-    background:var(--platform-welcome); color:#fff;
+    margin-bottom:28px; padding:20px 24px; border-radius:8px;
+    background:#141a21; border:1px solid #2e3d4d; border-left:3px solid #2d72d2;
+    color:#e6edf3;
   }
   .home-welcome-title { font-size:19px; font-weight:600; }
   .home-welcome-sub   { font-size:13px; margin-top:4px; opacity:.92; }
