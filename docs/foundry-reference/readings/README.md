@@ -299,6 +299,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   (`metadata-render-hints.md`, mirrored, unread). Verified against the live
   left-nav: 17 of 17.
 
-Thirty readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
+- `render-hints.md` — the one-page prerequisite `object-explorer.md` named. Ten
+  per-property hints; **Searchable is the parent of five** (Selectable, Sortable,
+  Low cardinality, leading wildcards, regex); six add a second raw index and
+  require a reindex; the image shows the pane sits between TYPE CLASSES and
+  PROPERTY VISIBILITY, and that availability is base-type-dependent (Long text
+  greyed for a date).
+
+Thirty-one readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
 how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
