@@ -62,6 +62,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#7961db',
       },
       {
+        name: 'Branching',
+        tagline: 'Safely build, test, and merge changes',
+        blurb: 'Branches and proposals: experiment without affecting Main, then review and merge through approvals.',
+        path: '/branches',
+        icon: 'git-branch',
+        tint: '#634dbf',
+      },
+      {
         name: 'Value Types Manager',
         tagline: 'Declare reusable semantic types',
         blurb: 'Author a value type per space — a base type plus a constraint, versioned — and bind it to properties in Ontology Manager.',

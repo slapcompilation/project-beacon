@@ -45,6 +45,41 @@ export function useBranches(ontologyId: string | null) {
   })
 }
 
+/** Every branch, merged included — "Merged branches… are only accessible
+ *  from the Global Branching application", which is this list's caller. */
+export function useAllBranches(ontologyId: string | null) {
+  return useQuery({
+    queryKey: ['ontology-branches-all', ontologyId ?? ''],
+    enabled: ontologyId !== null,
+    queryFn: async (): Promise<BranchRow[]> => {
+      const { data, error } = await supabase.from('ontology_branches')
+        .select('id, name, title, status, created_at')
+        .eq('ontology_id', ontologyId ?? '')
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      return data as BranchRow[]
+    },
+  })
+}
+
+/** Archive ("always manual" — and it closes the open proposal, 474) and
+ *  restore. The lifecycle guard has the last word on legal transitions. */
+export function useSetBranchStatus() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { branchId: string; status: 'active' | 'archived' }) => {
+      const { error } = await supabase.from('ontology_branches')
+        .update({ status: i.status }).eq('id', i.branchId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries()
+      toast.success(v.status === 'archived' ? 'Branch archived — its open proposal is closed' : 'Branch restored')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
 /** The taskbar's modified-resource panel: what this branch changed. */
 export function useBranchChanges(branchId: string | null) {
   return useQuery({

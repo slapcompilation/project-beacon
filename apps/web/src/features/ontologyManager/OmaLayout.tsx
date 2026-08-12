@@ -34,7 +34,7 @@ import { toast } from 'sonner'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toSlug } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBranchConflicts } from '@/features/branching/api'
+import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBranchConflicts, useSetBranchStatus } from '@/features/branching/api'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -153,6 +153,7 @@ function BranchControl() {
   const setBranch = useAppStore((s) => s.setOmaBranch)
   const { data: branches = [] } = useBranches(ontology?.id ?? null)
   const [creating, setCreating] = useState(false)
+  const [waking, setWaking] = useState<{ id: string; title: string; status: string } | null>(null)
   const current = branches.find((b) => b.id === branchId)
 
   return (
@@ -167,7 +168,8 @@ function BranchControl() {
           {branches.map((b) => (
             <MenuItem key={b.id} icon="git-branch" text={b.title}
               label={b.status !== 'active' ? b.status : undefined}
-              active={b.id === branchId} onClick={() => { setBranch(b.id) }} />
+              active={b.id === branchId}
+              onClick={() => { if (b.status === 'active') setBranch(b.id); else setWaking(b) }} />
           ))}
         </Menu>
       }>
@@ -175,7 +177,41 @@ function BranchControl() {
           text={current?.title ?? 'Main'} />
       </Popover>
       <CreateBranchDialog isOpen={creating} onClose={() => { setCreating(false) }} />
+      {waking && <WakeBranchDialog branch={waking} onClose={() => { setWaking(null) }} />}
     </>
+  )
+}
+
+/** The warning the docs show when opening a resource on a non-active branch,
+ *  verbatim per state. Closing it still switches — "you can continue
+ *  interacting with the resource, although this is not recommended." */
+function WakeBranchDialog({ branch, onClose }: {
+  branch: { id: string; title: string; status: string }
+  onClose: () => void
+}) {
+  const setBranch = useAppStore((s) => s.setOmaBranch)
+  const setStatus = useSetBranchStatus()
+  const archived = branch.status === 'archived'
+  return (
+    <Dialog isOpen onClose={() => { setBranch(branch.id); onClose() }}
+      title={archived ? 'This branch is archived' : 'This branch is inactive'} style={{ width: 440 }}>
+      <DialogBody>
+        <p className="text-sm">The branch you are viewing has been {archived ? 'archived' : 'marked as inactive'}.</p>
+        <p className="text-sm mt-2">
+          {archived ? 'Restore' : 'Activate'} the branch before making changes to prevent data deletion
+          and allow indexing to take place.
+        </p>
+      </DialogBody>
+      <DialogFooter actions={
+        <Button intent={Intent.SUCCESS} icon="tick-circle" loading={setStatus.isPending}
+          onClick={() => {
+            setStatus.mutate({ branchId: branch.id, status: 'active' },
+              { onSuccess: () => { setBranch(branch.id); onClose() } })
+          }}>
+          {archived ? 'Restore branch' : 'Activate branch'}
+        </Button>
+      } />
+    </Dialog>
   )
 }
 
