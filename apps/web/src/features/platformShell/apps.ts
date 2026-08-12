@@ -1,7 +1,7 @@
 // The applications this platform actually has, grouped by audience the way the
 // home page groups them — Data Ops / Analytics / Operations (§2.2 of
-// readings/home-and-navigation.md). We have two of the three groups; Analytics
-// is absent because no application answers to it yet.
+// readings/home-and-navigation.md). All three groups exist now: Object
+// Explorer is the first application that answers to Analytics.
 //
 // Two descriptions per app, on purpose: "the same app carries different
 // one-liners on different surfaces" (§7.5), so the card and the portal each say
@@ -46,6 +46,20 @@ export const AUDIENCES: AppAudience[] = [
         path: '/projects',
         icon: 'folder-close',
         tint: '#c87619',
+      },
+    ],
+  },
+  {
+    id: 'analytics',
+    title: 'Applications for Analytics',
+    apps: [
+      {
+        name: 'Object Explorer',
+        tagline: 'Search and analyze objects',
+        blurb: 'Filter object sets, aggregate them as charts, and read the results as a table over the live index.',
+        path: '/explorer',
+        icon: 'search-template',
+        tint: '#7961db',
       },
     ],
   },

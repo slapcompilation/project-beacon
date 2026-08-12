@@ -35,6 +35,13 @@ export interface PropertyRow {
   position: number
   is_primary_key: boolean
   is_title_key: boolean
+  /** Render hints (migration 475): searchable is the parent — sortable and
+   *  selectable require it. Strings sort only when sortable; numeric and date
+   *  always do. */
+  searchable: boolean
+  sortable: boolean
+  selectable: boolean
+  analyzer: string
   /** Migration 458 — the same vocabulary as every resource, minus promoted. */
   status: 'active' | 'experimental' | 'deprecated' | 'example'
   deprecation_reason: string | null
