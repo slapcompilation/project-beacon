@@ -184,6 +184,23 @@ describe.skipIf(noDb)('actions', () => {
       deprecation_reason = null, deprecation_deadline = null where id = $1`, [action])
   })
 
+  // ── 469: rules compile in order ───────────────────────────────────────────
+  it('refuses the unsupported rule combinations by their own words', async () => {
+    const a2 = (await one(`insert into public.action_types (ontology_id, api_name, label)
+                           values ($1,'rule-order','Rule order') returning id`, [ont])).id
+    const probe = async (rows: string) => await refused(db, async () => {
+      await db.query(`insert into public.action_type_rules (action_type_id, kind, position, object_type_id)
+                      values ${rows}`, [a2, type])
+      await db.query('set constraints all immediate')
+    })
+    expect(await probe(`($1,'create_object',0,$2), ($1,'create_object',1,$2)`))
+      .toContain('created twice in one form submission')
+    expect(await probe(`($1,'modify_object',0,$2), ($1,'create_object',1,$2)`))
+      .toContain('modified before they are added')
+    expect(await probe(`($1,'delete_object',0,$2), ($1,'create_object',1,$2)`))
+      .toContain('deleted before they are added or modified')
+  })
+
   // ── 456: a deprecated action documents itself ─────────────────────────────
   it('refuses an undocumented deprecation', async () => {
     expect(await refused(db, () =>
