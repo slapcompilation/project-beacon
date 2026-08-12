@@ -151,13 +151,17 @@ export interface SearchHit {
   title: string
 }
 
-/** The global bar: object instances by title (443's documented cap and
- *  priority), debounce owned by the caller. */
+/** The global bar: OpenSearch first — real Lucene, the documented syntax
+ *  verbatim — falling back to the Postgres title reader (443) when the
+ *  cluster is unreachable (the free tier sleeps after a quiet day). */
 export function useGlobalSearch(query: string) {
   return useQuery({
     queryKey: ['explorer', 'search', query],
     enabled: query.trim().length > 0,
     queryFn: async (): Promise<SearchHit[]> => {
+      const res: { data: unknown; error: unknown } = await supabase.functions.invoke('search-query', {
+        body: { query, limit: 8 } })
+      if (res.error === null && res.data !== null) return (res.data as { hits: SearchHit[] }).hits
       const rows = await client(searchObjects).executeFunction({ p_query: query, p_limit: 8 })
       return rows as SearchHit[]
     },

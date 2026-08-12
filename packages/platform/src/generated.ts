@@ -284,7 +284,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (88) ───────────────────────────────────────────────────
+// ── FUNCTIONS (90) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -773,6 +773,11 @@ export const ontologyViolations = { apiName: 'ontology_violations', kind: 'funct
   { object_type: string; scope: string; subject: string; problem: string }[]
 >
 
+export const opensearchAnalyzer = { apiName: 'opensearch_analyzer', kind: 'function' } as FunctionType<
+  { p_analyzer: string },
+  string
+>
+
 /**
  *  Disjunctive: passes when there is no session, when the resource has no
  *  markings, or when the resource carries at least one of the session's
@@ -897,6 +902,16 @@ export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'functio
 export const searchObjects = { apiName: 'search_objects', kind: 'function' } as FunctionType<
   { p_query: string; p_limit?: number },
   { object_type_id: string; object_type_label: string; primary_key: string; title: string }[]
+>
+
+/**
+ *  The caller's searchable types in quicksearch's documented priority order
+ *  (443) — the query-side edge function's scope, evaluated with the caller's
+ *  own claims.
+ */
+export const searchVisibleTypes = { apiName: 'search_visible_types', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type_id: string; object_type_label: string; index_table: string; title_property: string; primary_key_property: string }[]
 >
 
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
