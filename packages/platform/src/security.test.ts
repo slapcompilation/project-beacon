@@ -41,12 +41,21 @@ describe.skipIf(noDb)('access', () => {
   beforeAll(async () => {
     db = await connect()
     f = await fixture(db, 'platform_sec')
+    // 472: creating a marking takes a Category Administrator, and the creator
+    // seed needs a real auth.uid() — the harness claims carry no sub.
+    const { rows: [au] } = await db.query(`
+      insert into auth.users (id, instance_id, aud, role, email)
+      values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000',
+              'authenticated', 'authenticated', 'sec-cat@beacon.test') returning id`)
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: (au as { id: string }).id, app_metadata: { role: 'admin', org_id: f.orgId } })])
     const { rows: [c] } = await db.query(
       `insert into public.marking_categories (name) values ('platform_sec') returning id`)
     categoryId = (c as { id: string }).id
     const { rows: [m] } = await db.query(
       `insert into public.markings (category_id, name) values ($1,'PII') returning id`, [categoryId])
     markingId = (m as { id: string }).id
+    await db.query(`select set_config('request.jwt.claims', $1, true)`, [f.claims])
     const { rows: [d] } = await db.query(
       `insert into public.datasets (organization_id, project_id, api_name, name)
        values ($1,$2,'platform_sec_down','downstream') returning id`, [f.orgId, f.projectId])

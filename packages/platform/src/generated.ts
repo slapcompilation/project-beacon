@@ -274,7 +274,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (80) ───────────────────────────────────────────────────
+// ── FUNCTIONS (81) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -618,6 +618,11 @@ export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } a
 export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'function' } as FunctionType<
   { p_interface: string },
   string[]
+>
+
+export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' } as FunctionType<
+  { p_category: string },
+  boolean
 >
 
 /**
