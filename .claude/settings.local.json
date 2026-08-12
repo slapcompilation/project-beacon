@@ -108,7 +108,25 @@
       "Bash(git checkout *)",
       "Bash(git pull *)",
       "Bash(git stash *)",
-      "Bash(git rebase *)"
+      "Bash(git rebase *)",
+      "Bash(node scripts/mirror-foundry-docs.mjs ontology-manager)",
+      "Bash(node scripts/mirror-foundry-docs.mjs --images ontology-manager/save-changes.md ontology-manager/restore-changes.md ontology-manager/export-import.md ontology-manager/navigation.md ontology-manager/cleanup.md ontology-manager/view-usage.md ontology-manager/ontology-roles-migration.md ontology-manager/_index.md)",
+      "Bash(node scripts/db.mjs \"C:/Users/pansa/AppData/Local/Temp/claude/d--project-beacon/246d994e-1571-41a4-8767-0096b4ede11e/scratchpad/p.sql\")",
+      "Bash(ls \"/c/Program Files \\(x86\\)/Microsoft/Edge/Application/msedge.exe\" \"/c/Program Files/Google/Chrome/Application/chrome.exe\" 2>/dev/null)",
+      "Bash('/c/Program Files \\(x86\\)/Microsoft/Edge/Application/msedge.exe' --headless=new --disable-gpu --hide-scrollbars --window-size=1440,900 '--screenshot=C:\\\\Users\\\\pansa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--project-beacon\\\\246d994e-1571-41a4-8767-0096b4ede11e\\\\scratchpad\\\\shell-portal.png' --virtual-time-budget=6000 'http://localhost:5199/shell-preview.html#portal')",
+      "Bash('/c/Program Files \\(x86\\)/Microsoft/Edge/Application/msedge.exe' --headless=new --disable-gpu --hide-scrollbars --window-size=1440,900 '--screenshot=C:\\\\Users\\\\pansa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--project-beacon\\\\246d994e-1571-41a4-8767-0096b4ede11e\\\\scratchpad\\\\shell-dark-collapsed.png' --virtual-time-budget=6000 'http://localhost:5199/shell-preview.html#dark,collapsed')",
+      "Bash('/c/Program Files \\(x86\\)/Microsoft/Edge/Application/msedge.exe' --headless=new --disable-gpu --hide-scrollbars --window-size=760,900 '--screenshot=C:\\\\Users\\\\pansa\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--project-beacon\\\\246d994e-1571-41a4-8767-0096b4ede11e\\\\scratchpad\\\\shell-narrow.png' --virtual-time-budget=6000 http://localhost:5199/shell-preview.html)",
+      "Bash(awk '{print $2}')",
+      "Bash(xargs -r kill)",
+      "Bash(npx vitest *)",
+      "Bash(taskkill //F //PID 10180)",
+      "Bash(pnpm test *)",
+      "Bash(grep -rn \"values \\(\\\\$1,'\" src/actions.test.ts src/objects.test.ts src/workingState.test.ts)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(echo \"gh exit:$?\")",
+      "Bash(pnpm vitest *)",
+      "Bash(node scripts/mirror-foundry-docs.mjs --help)",
+      "Bash(node scripts/mirror-foundry-docs.mjs ontologies)"
     ]
   }
 }
