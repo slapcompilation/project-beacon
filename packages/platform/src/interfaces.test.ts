@@ -240,6 +240,37 @@ describe.skipIf(noDb)('interfaces', () => {
         where object_type_id = $1 and interface_id = $2`, [type, other])).toBe(1)
   })
 
+  // ── 467: the session travels nested parameter constraints ─────────────────
+  it('lands parameter constraints staged inside an action-constraint element', async () => {
+    const i2 = (await one(`select public.save_interface($1::jsonb) as id`, [JSON.stringify({
+      api_name: 'Paramful', label: 'Paramful', ontology_id: ont,
+      properties: [{ property_id: 'p_id', display_name: 'P Id', api_name: 'pId',
+        base_type: 'string', required: true, position: 0 }],
+      action_constraints: [{
+        api_name: 'createThing', display_name: 'Create thing', required: false,
+        parameters: [
+          { api_name: 'subject', display_name: 'Subject', base_type: 'string', required: true, position: 0 },
+          { api_name: 'about', display_name: 'About', base_type: 'object_reference', required: false, position: 1 },
+        ],
+      }],
+    })])).id
+    await db.query('select public.save_working_state()')
+    expect(await count(
+      `select count(*) n from public.interface_action_parameter_constraints pc
+        join public.interface_action_constraints ac on ac.id = pc.constraint_id
+       where ac.interface_id = $1`, [i2])).toBe(2)
+    // A re-save that omits `parameters` leaves them standing (absent = unchanged).
+    await db.query(`select public.save_interface($1::jsonb)`, [JSON.stringify({
+      id: i2,
+      action_constraints: [{ api_name: 'createThing', display_name: 'Create thing renamed', required: false }],
+    })])
+    await db.query('select public.save_working_state()')
+    expect(await count(
+      `select count(*) n from public.interface_action_parameter_constraints pc
+        join public.interface_action_constraints ac on ac.id = pc.constraint_id
+       where ac.interface_id = $1`, [i2])).toBe(2)
+  })
+
   // ── 467: action constraints declare their parameters ───────────────────────
   it('validates action-constraint mappings the way the page lists', async () => {
     const other = (await one(`insert into public.ontology_interfaces (ontology_id, api_name, label)
