@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (24) ────────────────────────────────────────────────
+// ── ACTION TYPES (25) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -229,6 +229,16 @@ export const saveObjectType = { apiName: 'save_object_type', kind: 'action' } as
  */
 export const saveSharedProperty = { apiName: 'save_shared_property', kind: 'action' } as ActionType<
   { p_property: Json },
+  string
+>
+
+/**
+ *  "Save to new branch from the save dialog": create the branch in the
+ *  working state's ontology, move the caller's unsaved entries onto it, and
+ *  run the branch save. Atomic — a failed save rolls the branch back too.
+ */
+export const saveToNewBranch = { apiName: 'save_to_new_branch', kind: 'action' } as ActionType<
+  { p_name: string; p_title?: string },
   string
 >
 

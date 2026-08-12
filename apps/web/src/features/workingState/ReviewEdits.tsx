@@ -11,8 +11,12 @@
 
 import { useState } from 'react'
 import {
-  Button, Callout, Card, Dialog, DialogBody, DialogFooter, Intent, Tag,
+  Button, Callout, Card, Dialog, DialogBody, DialogFooter, InputGroup, Intent,
+  Menu, MenuItem, Popover, Tag,
 } from '@blueprintjs/core'
+import { toSlug } from '@beacon/ontology'
+import { useAppStore } from '@/stores/app.store'
+import { useSaveToNewBranch } from '@/features/branching/api'
 import {
   useWorkingState, useSaveWorkingState, useDiscardWorkingState,
   useWorkingStateConflicts, useUpdateWorkingState,
@@ -166,6 +170,7 @@ export function SaveControl() {
   const { data: entries = [] } = useWorkingState()
   const { data: conflicts = [] } = useWorkingStateConflicts()
   const [reviewing, setReviewing] = useState(false)
+  const [branching, setBranching] = useState(false)
   const save = useSaveWorkingState()
   const discard = useDiscardWorkingState()
 
@@ -189,7 +194,21 @@ export function SaveControl() {
           onClick={() => { if (blocked) setReviewing(true); else save.mutate() }}>
           {blocked ? 'Review' : 'Save'}
         </Button>
+        {/* The split the screenshot shows: "Save to ontology ▾ → Save to new
+            branch". Yours-alone changes become a branch, and main is untouched. */}
+        {!blocked && (
+          <Popover placement="bottom-end" content={
+            <Menu>
+              <MenuItem icon="git-new-branch" text="Save to new branch"
+                onClick={() => { setBranching(true) }} />
+            </Menu>
+          }>
+            <Button size="small" intent={Intent.PRIMARY} icon="caret-down" title="Save options" />
+          </Popover>
+        )}
       </div>
+
+      <SaveToBranchDialog isOpen={branching} onClose={() => { setBranching(false) }} />
 
       <Dialog isOpen={reviewing} onClose={() => { setReviewing(false) }}
         title={`Review edits (${count})`} icon="edit" style={{ width: 640 }}>
@@ -223,5 +242,40 @@ export function SaveControl() {
         } />
       </Dialog>
     </>
+  )
+}
+
+/** "Select Save to new branch from the save dialog to create a separate
+ *  branch with those changes." Atomic on the server: branch + move + save. */
+function SaveToBranchDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const saveToBranch = useSaveToNewBranch()
+  const setBranch = useAppStore((s) => s.setOmaBranch)
+  const [title, setTitle] = useState('')
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose} title="Save to new branch" icon="git-new-branch" style={{ width: 420 }}>
+      <DialogBody>
+        <label className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Branch name</span>
+          <InputGroup placeholder="A short descriptive name for this branch" value={title}
+            onChange={(e) => { setTitle(e.currentTarget.value) }} />
+          <span className="text-[11px] text-muted-foreground">Do not include sensitive information</span>
+        </label>
+        <p className="text-[11px] text-muted-foreground mt-2">
+          Your unsaved changes move onto the new branch; main is untouched until a proposal merges.
+        </p>
+      </DialogBody>
+      <DialogFooter actions={<>
+        <Button onClick={onClose}>Cancel</Button>
+        <Button intent={Intent.PRIMARY} icon="git-new-branch" disabled={!title.trim()}
+          loading={saveToBranch.isPending}
+          onClick={() => {
+            saveToBranch.mutate(
+              { name: toSlug(title).replace(/_/g, '-'), title: title.trim() },
+              { onSuccess: (id) => { setBranch(id); onClose(); setTitle('') } })
+          }}>
+          Create and save to branch
+        </Button>
+      </>} />
+    </Dialog>
   )
 }
