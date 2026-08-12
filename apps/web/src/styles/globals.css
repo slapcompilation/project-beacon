@@ -710,6 +710,7 @@
   .oma-project-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:hsl(var(--muted-foreground)); }
   .oma-project-picker select { font-size:12px; padding:3px 6px; border:1px solid hsl(var(--border)); border-radius:4px; background:hsl(var(--background)); color:inherit; }
   /* "displayed as a blue bar at the bottom of supported applications" */
+  .oma-dot { width:8px; height:8px; border-radius:50%; background:#2d72d2; margin-left:auto; }
   .oma-taskbar { position:fixed; bottom:0; left:0; right:0; z-index:30; display:flex; align-items:center; gap:8px; padding:4px 12px; background:#184a90; color:#fff; }
   .oma-taskbar .bp5-button, .oma-taskbar .bp5-button .bp5-icon { color:#fff !important; }
   .oma-taskbar .bp5-tag { background:rgba(255,255,255,.15); color:#fff; }

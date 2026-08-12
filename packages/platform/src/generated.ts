@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (26) ────────────────────────────────────────────────
+// ── ACTION TYPES (27) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -169,6 +169,17 @@ export const mergeProposal = { apiName: 'merge_proposal', kind: 'action' } as Ac
  */
 export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 'action' } as ActionType<
   { p_value_type: string; p_constraints?: Json },
+  number
+>
+
+/**
+ *  Finish rebase and save: apply the per-resource choices (Use Main deletes
+ *  the branch row; Keep current refreshes its baseline to main's present),
+ *  drop rows whose main resource is gone, stamp last_rebased_at. Auto-resolve
+ *  is free in a field-level overlay — untouched fields never collide.
+ */
+export const rebaseBranch = { apiName: 'rebase_branch', kind: 'action' } as ActionType<
+  { p_branch: string; p_resolutions?: Json },
   number
 >
 
