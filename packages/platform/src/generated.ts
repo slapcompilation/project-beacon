@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (25) ────────────────────────────────────────────────
+// ── ACTION TYPES (26) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -180,6 +180,17 @@ export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 
 export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as ActionType<
   Record<string, never>,
   { relation: string; problem: string }[]
+>
+
+/**
+ *  The Actions sub-tab's writer: the satisfaction and its
+ *  Configure-parameters mappings in one transaction, so 467's commit-time
+ *  completeness judges the whole. Re-satisfying replaces the mappings
+ *  wholesale.
+ */
+export const satisfyActionConstraint = { apiName: 'satisfy_action_constraint', kind: 'action' } as ActionType<
+  { p_object_type: string; p_interface: string; p_constraint: string; p_action_type: string; p_mappings?: Json },
+  void
 >
 
 /**
