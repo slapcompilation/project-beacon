@@ -110,6 +110,7 @@ export const ALL_APPS: PlatformApp[] = AUDIENCES.flatMap((a) => a.apps)
 const TITLES = new Map<string, string>([
   ['/', 'Home'],
   ['/account', 'Account'],
+  ['/settings', 'Settings'],
   ...AUDIENCES.flatMap((a) => a.apps.map((app): [string, string] => [app.path, app.name])),
   // Ontology Manager's own pages, so Recent can name one rather than dropping it.
   ['/ontology/object-types', 'Object types'],

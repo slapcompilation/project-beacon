@@ -30,10 +30,13 @@ export interface Project {
   createdAt: string
 }
 
+/** One grant row: a user or a group, never both (migration 481). */
 export interface ProjectMember {
-  userId: string
+  userId: string | null
+  groupId: string | null
   role: ProjectRole
-  email: string | null
+  /** Email for a user, name for a group; null until resolvable. */
+  label: string | null
   grantedAt: string
 }
 
@@ -100,20 +103,29 @@ export function useProjectMembers(projectId: string | null) {
     queryFn: async (): Promise<ProjectMember[]> => {
       // NO EMBED. user_id points at auth.users, which PostgREST does not expose,
       // so `users:user_id(email)` 404s the whole request — the same trap that
-      // once took out the StockLog page for everyone. Two reads instead.
+      // once took out the StockLog page for everyone. Follow-up reads instead.
       const { data, error } = await supabase.from('project_role_grants')
-        .select('user_id, role, granted_at').eq('project_id', projectId ?? '')
+        .select('user_id, group_id, role, granted_at').eq('project_id', projectId ?? '')
       if (error) throw new Error(error.message)
-      const rows = data as { user_id: string; role: ProjectRole; granted_at: string }[]
+      const rows = data as {
+        user_id: string | null; group_id: string | null; role: ProjectRole; granted_at: string
+      }[]
       if (rows.length === 0) return []
 
-      const { data: people } = await supabase.from('users')
-        .select('id, email').in('id', rows.map((r) => r.user_id))
-      const emailById = new Map((people as { id: string; email: string }[] | null ?? [])
-        .map((u) => [u.id, u.email]))
+      const userIds = rows.flatMap((r) => r.user_id ? [r.user_id] : [])
+      const groupIds = rows.flatMap((r) => r.group_id ? [r.group_id] : [])
+      const labelById = new Map<string, string>()
+      if (userIds.length > 0) {
+        const { data: people } = await supabase.from('users').select('id, email').in('id', userIds)
+        for (const u of (people as { id: string; email: string }[] | null ?? [])) labelById.set(u.id, u.email)
+      }
+      if (groupIds.length > 0) {
+        const { data: gs } = await supabase.from('groups').select('id, name').in('id', groupIds)
+        for (const g of (gs as { id: string; name: string }[] | null ?? [])) labelById.set(g.id, g.name)
+      }
       return rows.map((r) => ({
-        userId: r.user_id, role: r.role, grantedAt: r.granted_at,
-        email: emailById.get(r.user_id) ?? null,
+        userId: r.user_id, groupId: r.group_id, role: r.role, grantedAt: r.granted_at,
+        label: labelById.get(r.user_id ?? r.group_id ?? '') ?? null,
       }))
     },
     staleTime: 15_000,
@@ -138,13 +150,17 @@ export function useMyProjectRole(projectId: string | null) {
 export function useGrantRole(projectId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (i: { userId: string; role: ProjectRole }) => {
+    mutationFn: async (i: { userId?: string; groupId?: string; role: ProjectRole }) => {
       // The database refuses a grant above the granter's own role
       // (Projects:GrantExceedsRole). The picker only offers what is grantable,
       // so this is the belt to that braces.
-      const { error } = await supabase.from('project_role_grants')
-        .upsert({ project_id: projectId, user_id: i.userId, role: i.role },
-                { onConflict: 'project_id,user_id' })
+      const { error } = i.groupId
+        ? await supabase.from('project_role_grants')
+            .upsert({ project_id: projectId, group_id: i.groupId, role: i.role },
+                    { onConflict: 'project_id,group_id' })
+        : await supabase.from('project_role_grants')
+            .upsert({ project_id: projectId, user_id: i.userId, role: i.role },
+                    { onConflict: 'project_id,user_id' })
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Role granted') },
@@ -170,9 +186,10 @@ export function useSetDefaultRole(projectId: string) {
 export function useRevokeRole(projectId: string) {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (userId: string) => {
-      const { error } = await supabase.from('project_role_grants').delete()
-        .eq('project_id', projectId).eq('user_id', userId)
+    mutationFn: async (principal: { userId?: string; groupId?: string }) => {
+      let q = supabase.from('project_role_grants').delete().eq('project_id', projectId)
+      q = principal.groupId ? q.eq('group_id', principal.groupId) : q.eq('user_id', principal.userId ?? '')
+      const { error } = await q
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.members(projectId) }); toast.success('Access removed') },

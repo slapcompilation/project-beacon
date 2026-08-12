@@ -32,6 +32,7 @@ import {
   useGrantRole, useRevokeRole, useSetDefaultRole, useProjectResources, useOrgMembers,
   type Project,
 } from '@/features/projects/api'
+import { useGroups } from '@/features/groups/api'
 
 export default function ProjectsPage() {
   const { data: projects = [], isLoading } = useProjects()
@@ -183,7 +184,7 @@ function AccessPanel({
   projectId, members, myRole, canGrant, defaultRole,
 }: {
   projectId: string
-  members: { userId: string; role: ProjectRole; email: string | null }[]
+  members: { userId: string | null; groupId: string | null; role: ProjectRole; label: string | null }[]
   myRole: ProjectRole | null
   canGrant: boolean
   defaultRole: ProjectRole | null
@@ -192,13 +193,17 @@ function AccessPanel({
   const revoke = useRevokeRole(projectId)
   const setDefault = useSetDefaultRole(projectId)
   const { data: people = [] } = useOrgMembers()
-  const [userId, setUserId] = useState('')
+  const { data: groups = [] } = useGroups()
+  const [principal, setPrincipal] = useState('')
   const [role, setRole] = useState<ProjectRole>('viewer')
 
   // "Each role can assign other users the same or lesser role." An org admin
   // bootstrapping has no project role, so they may grant anything.
   const offerable = canGrant && myRole === null ? [...PROJECT_ROLES] : grantableRoles(myRole)
   const unassigned = people.filter((p) => !members.some((m) => m.userId === p.id))
+  // "Access to Projects and resources are usually granted to groups rather
+  // than individual users." — so groups sit in the same picker.
+  const ungrantedGroups = groups.filter((g) => !members.some((m) => m.groupId === g.id))
 
   return (
     <Card compact className="!p-0">
@@ -234,15 +239,16 @@ function AccessPanel({
       ) : (
         <ul className="divide-y divide-border/30">
           {members.map((m) => (
-            <li key={m.userId} className="flex items-center gap-2 px-3 py-1.5 text-xs">
-              <Icon icon="person" size={11} className="text-muted-foreground" />
-              <span className="flex-1 truncate">{m.email ?? m.userId}</span>
+            <li key={m.userId ?? m.groupId} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+              <Icon icon={m.groupId ? 'people' : 'person'} size={11} className="text-muted-foreground" />
+              <span className="flex-1 truncate">{m.label ?? m.userId ?? m.groupId}</span>
               <Tag minimal className="!text-[9px] uppercase" title={ROLE_META[m.role].help}>
                 {ROLE_META[m.role].label}
               </Tag>
               {canGrant && (
                 <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER}
-                  title="Remove access" onClick={() => { revoke.mutate(m.userId) }} />
+                  title="Remove access"
+                  onClick={() => { revoke.mutate({ userId: m.userId ?? undefined, groupId: m.groupId ?? undefined }) }} />
               )}
             </li>
           ))}
@@ -253,9 +259,18 @@ function AccessPanel({
         <div className="flex flex-wrap items-end gap-2 border-t border-border px-3 py-3">
           <label className="flex flex-col gap-1 flex-1 min-w-48">
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Grant to</span>
-            <HTMLSelect value={userId} onChange={(e) => { setUserId(e.currentTarget.value) }}>
-              <option value="">Pick someone…</option>
-              {unassigned.map((p) => <option key={p.id} value={p.id}>{p.email}</option>)}
+            <HTMLSelect value={principal} onChange={(e) => { setPrincipal(e.currentTarget.value) }}>
+              <option value="">Pick a user or a group…</option>
+              {ungrantedGroups.length > 0 && (
+                <optgroup label="Groups">
+                  {ungrantedGroups.map((g) => <option key={g.id} value={`g:${g.id}`}>{g.name}</option>)}
+                </optgroup>
+              )}
+              {unassigned.length > 0 && (
+                <optgroup label="Users">
+                  {unassigned.map((p) => <option key={p.id} value={`u:${p.id}`}>{p.email}</option>)}
+                </optgroup>
+              )}
             </HTMLSelect>
           </label>
           <label className="flex flex-col gap-1">
@@ -264,8 +279,13 @@ function AccessPanel({
               {offerable.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
             </HTMLSelect>
           </label>
-          <Button size="small" icon="add" loading={grant.isPending} disabled={!userId}
-            onClick={() => { grant.mutate({ userId, role }, { onSuccess: () => { setUserId('') } }) }}>
+          <Button size="small" icon="add" loading={grant.isPending} disabled={!principal}
+            onClick={() => {
+              const [kind, id] = principal.split(':')
+              grant.mutate(
+                { userId: kind === 'u' ? id : undefined, groupId: kind === 'g' ? id : undefined, role },
+                { onSuccess: () => { setPrincipal('') } })
+            }}>
             Grant
           </Button>
           <p className="text-[11px] text-muted-foreground w-full">{ROLE_META[role].help}</p>
