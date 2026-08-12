@@ -16,18 +16,20 @@ import {
 } from '@beacon/ontology'
 import {
   useInterfaces, useImplementations, useCreateInterface, useDeleteInterface,
-  useImplement, useUnimplement, useStageClauses,
+  useImplement, useUnimplement,
 } from './hooks'
-import { rowToInterface, type ActionConstraintRow, type InterfaceRow, type MappingDraft } from './api'
-import { ActionConstraintDialog } from './ActionConstraintDialog'
+import { rowToInterface, type InterfaceRow, type MappingDraft } from './api'
 import { saveObjectType } from '@/features/objectTypes/api'
 
 const TYPES: PropertyType[] = PROPERTY_TYPES.map((t) => t.value)
 
-export default function InterfacesSection({ types, ontologyId }: {
+export default function InterfacesSection({ types, ontologyId, onOpen }: {
   types: ObjectTypeDef[]
   /** An interface belongs to one ontology; this is the one the manager is on. */
   ontologyId: string
+  /** Opens the interface's own page — Overview, Properties, Extensions and
+   *  both constraint clauses live there now. */
+  onOpen?: (id: string) => void
 }) {
   const interfaces = useInterfaces()
   const impls = useImplementations()
@@ -85,7 +87,14 @@ export default function InterfacesSection({ types, ontologyId }: {
                 )
               })}
             </div>
-            <ContractPanel row={row} all={interfaces.data.filter((r) => r.ontology_id === ontologyId)} types={types} />
+            <Button variant="minimal" size="small" icon="panel-stats" className="!text-[11px]"
+              onClick={() => { onOpen?.(row.id) }}>
+              Contract
+              {(row.interface_link_constraints.length + row.interface_action_constraints.length + row.extensions.length) > 0 &&
+                <Tag minimal className="!text-[10px] ml-1">
+                  {row.interface_link_constraints.length + row.interface_action_constraints.length + row.extensions.length}
+                </Tag>}
+            </Button>
           </div>
         )
       })}
@@ -227,146 +236,6 @@ function MappingWizard({ type, row, all, onClose }: {
         </Button>
       </>} />
     </Dialog>
-  )
-}
-
-/** The contract's other two clauses, and what this interface extends.
- *  Link constraints "describe expected link capabilities"; action constraints
- *  "describe expected action capabilities that implementing object types can
- *  satisfy with concrete action types" (action-types/actions-on-interfaces). */
-function ContractPanel({ row, all, types }: {
-  row: InterfaceRow
-  all: InterfaceRow[]
-  types: ObjectTypeDef[]
-}) {
-  const [open, setOpen] = useState(false)
-  const stage = useStageClauses()
-  const [linkName, setLinkName] = useState('')
-  const [cardinality, setCardinality] = useState<'ONE' | 'MANY'>('ONE')
-  const [target, setTarget] = useState('')
-  const [editingAction, setEditingAction] = useState<ActionConstraintRow | 'new' | null>(null)
-  const nameOf = (id: string | null) =>
-    all.find((i) => i.id === id)?.label ?? types.find((t) => t.id === id)?.label ?? '?'
-
-  const addLink = () => {
-    // The full set travels — the apply deletes what a listed clause omits.
-    const [kind, id] = target.split(':')
-    stage.mutate({ id: row.id, patch: { link_constraints: [
-      ...row.interface_link_constraints,
-      { api_name: toCamel(linkName), display_name: linkName.trim(), required: true, cardinality,
-        target_kind: kind as 'interface' | 'object_type',
-        target_interface_id: kind === 'interface' ? id : null,
-        target_object_type_id: kind === 'object_type' ? id : null },
-    ] } }, { onSuccess: () => { setLinkName(''); setTarget('') } })
-  }
-  const dropLink = (apiName: string) => {
-    stage.mutate({ id: row.id, patch: {
-      link_constraints: row.interface_link_constraints.filter((c) => c.api_name !== apiName) } })
-  }
-  const dropAction = (apiName: string) => {
-    stage.mutate({ id: row.id, patch: {
-      action_constraints: row.interface_action_constraints.filter((c) => c.api_name !== apiName) } })
-  }
-  const parents = row.extensions.map((e) => e.parent_interface_id)
-  const setParents = (next: string[]) => { stage.mutate({ id: row.id, patch: { extends: next } }) }
-
-  return (
-    <div className="pt-1">
-      <Button variant="minimal" size="small" icon={open ? 'chevron-down' : 'chevron-right'}
-        onClick={() => { setOpen(!open) }} className="!text-[11px]">
-        Contract
-        {(row.interface_link_constraints.length > 0 || row.interface_action_constraints.length > 0 || parents.length > 0) &&
-          <Tag minimal className="!text-[10px] ml-1">
-            {row.interface_link_constraints.length + row.interface_action_constraints.length + parents.length}
-          </Tag>}
-      </Button>
-      {open && (
-        <div className="pl-5 pt-1 space-y-2 text-[11px]">
-          <div className="space-y-1">
-            <span className="font-semibold text-muted-foreground uppercase text-[10px] tracking-wide">Link constraints</span>
-            {row.interface_link_constraints.map((c) => (
-              <div key={c.api_name} className="flex items-center gap-2">
-                <Icon icon="link" size={11} className="text-violet-500" />
-                <span>{c.display_name}</span>
-                <Tag minimal className="!text-[10px]">{c.cardinality}</Tag>
-                <span className="text-muted-foreground">→ {nameOf(c.target_interface_id ?? c.target_object_type_id)}</span>
-                <Button variant="minimal" size="small" icon="cross" onClick={() => { dropLink(c.api_name) }} />
-              </div>
-            ))}
-            <div className="flex items-center gap-1.5">
-              <InputGroup size="small" placeholder="Link name" value={linkName}
-                onChange={(e) => { setLinkName(e.currentTarget.value) }} style={{ width: 140 }} />
-              <HTMLSelect value={cardinality} onChange={(e) => { setCardinality(e.currentTarget.value as 'ONE' | 'MANY') }}>
-                <option value="ONE">ONE</option>
-                <option value="MANY">MANY</option>
-              </HTMLSelect>
-              <HTMLSelect value={target} onChange={(e) => { setTarget(e.currentTarget.value) }}>
-                <option value="">Target…</option>
-                <optgroup label="Interfaces">
-                  {all.map((i) => <option key={i.id} value={`interface:${i.id}`}>{i.label}</option>)}
-                </optgroup>
-                <optgroup label="Object types">
-                  {types.map((t) => <option key={t.id} value={`object_type:${t.id}`}>{t.label}</option>)}
-                </optgroup>
-              </HTMLSelect>
-              <Button size="small" icon="add" disabled={!linkName.trim() || !target} onClick={addLink} />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <span className="font-semibold text-muted-foreground uppercase text-[10px] tracking-wide">Action constraints</span>
-            {row.interface_action_constraints.map((c) => (
-              <div key={c.api_name} className="flex items-center gap-2">
-                <Icon icon="take-action" size={11} className="text-violet-500" />
-                <button type="button" className="hover:underline" onClick={() => { setEditingAction(c) }}>
-                  {c.display_name}
-                </button>
-                {(c.interface_action_parameter_constraints?.length ?? 0) > 0 && (
-                  <Tag minimal className="!text-[10px]">
-                    {c.interface_action_parameter_constraints?.length} parameter{c.interface_action_parameter_constraints?.length === 1 ? '' : 's'}
-                  </Tag>
-                )}
-                <Tag minimal className="!text-[10px]">{c.required ? 'Required' : 'Optional'}</Tag>
-                <Button variant="minimal" size="small" icon="cross" onClick={() => { dropAction(c.api_name) }} />
-              </div>
-            ))}
-            <Button size="small" variant="minimal" icon="add" onClick={() => { setEditingAction('new') }}>
-              Create new
-            </Button>
-            {editingAction !== null && (
-              <ActionConstraintDialog row={row}
-                existing={editingAction === 'new' ? null : editingAction}
-                onClose={() => { setEditingAction(null) }} />
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <span className="font-semibold text-muted-foreground uppercase text-[10px] tracking-wide">Extends</span>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {parents.map((p) => (
-                <Tag key={p} minimal className="!text-[10px]"
-                  onRemove={() => { setParents(parents.filter((x) => x !== p)) }}>
-                  {nameOf(p)}
-                </Tag>
-              ))}
-              <HTMLSelect value="" onChange={(e) => {
-                const v = e.currentTarget.value
-                if (v) setParents([...parents, v])
-              }}>
-                <option value="">Extend…</option>
-                {all.filter((i) => i.id !== row.id && !parents.includes(i.id)
-                  && !i.extensions.some((x) => x.parent_interface_id === row.id))
-                  .map((i) => <option key={i.id} value={i.id}>{i.label}</option>)}
-              </HTMLSelect>
-            </div>
-            <p className="text-muted-foreground">
-              An interface inherits the properties of the interface it extends; deeper cycles and
-              name collisions are refused when the save applies.
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
   )
 }
 
