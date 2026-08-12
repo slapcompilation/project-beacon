@@ -7,7 +7,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import {
   saveToNewBranch, createProposal, mergeProposal, proposalBlockers,
-  taskApprovalStatus,
+  taskApprovalStatus, branchConflicts, rebaseBranch, type Json,
 } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
@@ -156,6 +156,37 @@ export function useReview() {
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries() },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** True conflicts: "the same property of the same resource was edited on both
+ *  main and your branch". */
+export function useBranchConflicts(branchId: string | null) {
+  return useQuery({
+    queryKey: ['branch-conflicts', branchId ?? ''],
+    enabled: branchId !== null,
+    queryFn: () => client(branchConflicts).executeFunction({ p_branch: branchId ?? '' }),
+  })
+}
+
+export interface RebaseResolution {
+  resource_kind: string
+  resource_id: string
+  choice: 'main' | 'branch'
+}
+
+/** "Finish rebase and save" — choices applied, baselines refreshed. */
+export function useRebaseBranch() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { branchId: string; resolutions: RebaseResolution[] }) =>
+      client(rebaseBranch).applyAction({
+        p_branch: i.branchId, p_resolutions: i.resolutions as unknown as Json }),
+    onSuccess: () => {
+      void qc.invalidateQueries()
+      toast.success('Branch is up to date')
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

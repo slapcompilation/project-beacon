@@ -34,7 +34,7 @@ import { toast } from 'sonner'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { toSlug } from '@beacon/ontology'
 import { supabase } from '@/lib/supabase/client'
-import { useBranches, useBranchChanges, useProposals, useCreateProposal } from '@/features/branching/api'
+import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBranchConflicts } from '@/features/branching/api'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -95,6 +95,7 @@ export default function OmaLayout() {
           <nav className="oma-nav">
             <NavRow icon="compass" label="Discover" path="/ontology" end />
             <NavRow icon="people" label="Proposals" path="/ontology/proposals" />
+            <MainBranchUpdatesRow />
             <div className="oma-rule" />
             <p className="oma-group-title">Resources</p>
             {RESOURCE_NAV.map((r) => (
@@ -123,6 +124,22 @@ function NavRow({ icon, label, path, count, end = false }: {
       <Icon icon={icon} size={14} />
       <span className="oma-row-label">{label}</span>
       {count !== undefined && <span className="oma-count">{count}</span>}
+    </NavLink>
+  )
+}
+
+/** "When there are new changes from main, a blue indicator appears on the
+ *  Main branch updates tab" — the entry exists only on a branch. */
+function MainBranchUpdatesRow() {
+  const branchId = useAppStore((s) => s.omaBranchId)
+  const { data: conflicts = [] } = useBranchConflicts(branchId)
+  if (branchId === null) return null
+  return (
+    <NavLink to="/ontology/main-branch-updates"
+      className={({ isActive }) => cn('oma-row', isActive && 'is-active')}>
+      <Icon icon="git-merge" size={14} />
+      <span className="oma-row-label">Main branch updates</span>
+      {conflicts.length > 0 && <span className="oma-dot" />}
     </NavLink>
   )
 }

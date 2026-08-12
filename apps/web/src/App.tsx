@@ -22,6 +22,7 @@ const ProjectsPage = lazyWithRetry(() => import('@/pages/ProjectsPage'))
 const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
 const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage'))
+const MainBranchUpdatesPage = lazyWithRetry(() => import('@/pages/ontology/MainBranchUpdatesPage'))
 
 // Ontology Manager: its own chrome, and its resource pages inside it.
 const OmaLayout = lazyWithRetry(() => import('@/features/ontologyManager/OmaLayout'))
@@ -68,6 +69,7 @@ function AppRoutes() {
               <Route path="action-types"      element={<ActionTypesPage />} />
               <Route path="interfaces"        element={<InterfacesPage />} />
               <Route path="proposals"         element={<ProposalsPage />} />
+              <Route path="main-branch-updates" element={<MainBranchUpdatesPage />} />
             </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />
