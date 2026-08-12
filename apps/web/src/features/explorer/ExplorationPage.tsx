@@ -18,6 +18,8 @@ import {
   type ExplorerFilter, type SortSpec,
 } from './api'
 import { SaveDialog } from './SaveDialog'
+import { ActionsMenu } from './ActionsMenu'
+import { ExportMenu } from './ExportMenu'
 
 /** A jsonb cell, printed: null and undefined show as a dash, structures as JSON. */
 const cell = (v: unknown): string => {
@@ -60,6 +62,7 @@ export default function ExplorationPage() {
   const [sort, setSort] = useState<SortSpec[]>([])
   const [perspective, setPerspective] = useState<'explore' | 'results'>('explore')
   const [saving, setSaving] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
 
   const props = useMemo(() => (type?.object_type_properties ?? [])
     .filter((p) => p.visibility !== 'hidden')
@@ -75,6 +78,12 @@ export default function ExplorationPage() {
   }, [charts, props])
 
   const { data: count } = useObjectSetCount(type?.id ?? null, filters)
+  const pkProp = props.find((p) => p.is_primary_key)?.property_id ?? ''
+  // "The current set of selected objects ... (or all objects, if none are
+  // selected) is passed directly to the form."
+  const { data: loadedRows = [] } = useObjectSetRows(type?.id ?? null, filters, [], 1001)
+  const loadedPks = loadedRows.map((r) => cell(r[pkProp])).filter((k) => k !== '—')
+  const actionTargets = selected.size > 0 ? [...selected] : loadedPks
 
   if (!type) return <NonIdealState icon="search" title="No such object type" />
 
@@ -87,7 +96,9 @@ export default function ExplorationPage() {
         <Link to="/explorer" className="text-muted-foreground"><Icon icon="arrow-left" /></Link>
         <Icon icon={(type.icon || 'cube') as IconName} size={18} color="#7961db" />
         <h1 className="exploration-title">{type.label}</h1>
-        <Tag minimal round intent="primary">{count ?? '…'} Results</Tag>
+        {selected.size > 0
+          ? <Tag round intent="primary" onRemove={() => { setSelected(new Set()) }}>{selected.size} Selected</Tag>
+          : <Tag minimal round intent="primary">{count ?? '…'} Results</Tag>}
         <span className="flex-1" />
         <ButtonGroup>
           <Button icon="timeline-bar-chart" active={perspective === 'explore'}
@@ -95,10 +106,12 @@ export default function ExplorationPage() {
           <Button icon="th" active={perspective === 'results'}
             onClick={() => { setPerspective('results') }}>Results</Button>
         </ButtonGroup>
+        <ActionsMenu ontologyId={type.ontology_id} objectTypeId={type.id} targets={actionTargets} />
+        <ExportMenu rows={loadedRows} pks={actionTargets} typeLabel={type.label} props={props} />
         <Button intent="primary" icon="floppy-disk" onClick={() => { setSaving(true) }}>Save</Button>
       </div>
       <SaveDialog isOpen={saving} onClose={() => { setSaving(false) }}
-        subjectTypeId={type.id} filters={filters} />
+        subjectTypeId={type.id} filters={filters} selectedPks={[...selected]} />
 
       <div className="exploration-filterbar">
         {filters.map((f, i) => (
@@ -136,7 +149,8 @@ export default function ExplorationPage() {
             titleKey={props.find((p) => p.is_title_key)?.property_id ?? props.at(0)?.property_id ?? ''} />
         </div>
       ) : (
-        <ResultsTable type={type.id} props={props} filters={filters} sort={sort} setSort={setSort} />
+        <ResultsTable type={type.id} props={props} filters={filters} sort={sort} setSort={setSort}
+          pkProp={pkProp} selected={selected} setSelected={setSelected} />
       )}
     </div>
   )
@@ -270,12 +284,15 @@ function PreviewRail({ type, filters, titleKey }: {
 
 // ── the Results perspective ────────────────────────────────────────────────
 
-function ResultsTable({ type, props, filters, sort, setSort }: {
+function ResultsTable({ type, props, filters, sort, setSort, pkProp, selected, setSelected }: {
   type: string
   props: PropertyRow[]
   filters: ExplorerFilter[]
   sort: SortSpec[]
   setSort: (s: SortSpec[]) => void
+  pkProp: string
+  selected: Set<string>
+  setSelected: (s: Set<string>) => void
 }) {
   const { data: rows = [], isLoading } = useObjectSetRows(type, filters, sort, 100)
   // Strings sort only with the render hint; numeric and date always do.
@@ -293,6 +310,7 @@ function ResultsTable({ type, props, filters, sort, setSort }: {
       <table className="results-table">
         <thead>
           <tr>
+            <th />
             {props.map((p) => {
               const at = sort.findIndex((s) => s.property === p.property_id)
               return (
@@ -314,13 +332,24 @@ function ResultsTable({ type, props, filters, sort, setSort }: {
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
-            <tr key={i}>
-              {props.map((p) => (
-                <td key={p.property_id}>{cell(r[p.property_id])}</td>
-              ))}
-            </tr>
-          ))}
+          {rows.map((r, i) => {
+            const pk = cell(r[pkProp])
+            return (
+              <tr key={i}>
+                <td>
+                  <input type="checkbox" checked={selected.has(pk)}
+                    onChange={(e) => {
+                      const next = new Set(selected)
+                      if (e.currentTarget.checked) next.add(pk); else next.delete(pk)
+                      setSelected(next)
+                    }} />
+                </td>
+                {props.map((p) => (
+                  <td key={p.property_id}>{cell(r[p.property_id])}</td>
+                ))}
+              </tr>
+            )
+          })}
         </tbody>
       </table>
       {rows.length === 0 && <NonIdealState icon="th" title="No objects match these filters" />}

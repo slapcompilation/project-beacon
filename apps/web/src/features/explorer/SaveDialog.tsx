@@ -9,11 +9,12 @@ import { Button, Dialog, DialogBody, DialogFooter, HTMLSelect, InputGroup, Radio
 import { useProjects } from '@/features/projects/api'
 import { useSaveObjectSet, type ExplorerFilter } from './api'
 
-export function SaveDialog({ isOpen, onClose, subjectTypeId, filters }: {
+export function SaveDialog({ isOpen, onClose, subjectTypeId, filters, selectedPks = [] }: {
   isOpen: boolean
   onClose: () => void
   subjectTypeId: string
   filters: ExplorerFilter[]
+  selectedPks?: string[]
 }) {
   const { data: projects = [] } = useProjects()
   const save = useSaveObjectSet()
@@ -21,10 +22,12 @@ export function SaveDialog({ isOpen, onClose, subjectTypeId, filters }: {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState('')
+  const [scope, setScope] = useState<'selected' | 'all'>('all')
 
   const submit = () => {
     save.mutate(
-      { name, description, subjectTypeId, projectId, kind, filters },
+      { name, description, subjectTypeId, projectId, kind, filters,
+        primaryKeys: kind === 'list' && scope === 'selected' ? selectedPks : undefined },
       { onSuccess: () => { onClose(); setName(''); setDescription('') } })
   }
 
@@ -38,6 +41,13 @@ export function SaveDialog({ isOpen, onClose, subjectTypeId, filters }: {
           <Radio value="list"
             labelElement={<span><b>List</b> — save current results as a static list matching filters at this moment</span>} />
         </RadioGroup>
+        {kind === 'list' && selectedPks.length > 0 && (
+          <RadioGroup className="mt-2" selectedValue={scope}
+            onChange={(e) => { setScope(e.currentTarget.value as 'selected' | 'all') }}>
+            <Radio value="selected" label={`Only save ${selectedPks.length} selected`} />
+            <Radio value="all" label="Save all objects in results" />
+          </RadioGroup>
+        )}
         <div className="space-y-2 mt-3">
           <InputGroup placeholder="Name" value={name}
             onChange={(e) => { setName(e.currentTarget.value) }} />
