@@ -221,7 +221,7 @@ Setup flow, for the record: *Capabilities (**beneath Observability**) → panel 
 Get started → object type property → time series sync → Standard time series
 property → Add property*.
 
-### B5 · Interface link type constraints
+### B5 · Interface link type constraints — **BUILT** (450)
 
 > "An **interface link type constraint** defines an object-to-object relationship
 > **common across all object types implementing an interface**… concrete link
@@ -232,9 +232,10 @@ Four parameters: **link target type** (an interface *or* an object type),
 **target**, **cardinality** (`ONE` | `MANY`), and whether the link is
 **required** for implementation.
 
-Our interfaces constrain only properties. This is the other half, and it is why
-`ontology_interfaces.properties jsonb` needs the same treatment O2 gave object
-types — a constraint table, with links beside properties.
+Built in 450: `interface_link_constraints` carries the four parameters, with
+`interface_action_satisfactions` and `interface_action_parameter_mappings`
+beside it. (This section once read as future work — the 2026-08-13 gap run
+caught the missing marker.)
 
 ### B6 · Type classes
 
@@ -272,9 +273,10 @@ design: nothing else may write.
 
 **Built as seven rule kinds of the twelve** `rules.md` lists — create/modify/
 create-or-modify/delete object, create/delete link, and the function rule. The
-five `…of interface` variants wait on B5; the three side-effect rules
-(notification, webhook, schedule) each name a system we have no counterpart for,
-so they are absent rather than stubbed.
+five `…of interface` variants waited on B5, which 450 has since built — they
+are unblocked now, just unbuilt; the three side-effect rules (notification,
+webhook, schedule) each name a system we have no counterpart for, so they are
+absent rather than stubbed.
 
 `action_editable_properties(action)` makes the design sentence answerable: every
 property an action can write, and nothing else can.
@@ -632,16 +634,15 @@ published table type by type, rather than against each other.
 types, and both eligibility rules, match the page exactly in both
 implementations.
 
-**Open, not fixed:**
+**Both fixed since** (the 2026-08-13 gap run caught this section lagging):
 
-- **An array property does not declare its element type.** `base-types` says
-  "all base types may be used in arrays… **excluding the `Vector` and `Time
-  series` types**", and `properties-overview` adds "if the inner type of the
-  `Array` is not a valid title property, the `Array` property also cannot be
-  used as the title property". Neither rule is expressible without an element
-  type, and we have no column for one.
-- **61 foreign keys have no index on the referencing column.** Not a correctness
-  bug; it makes cascade deletes and joins scan. Worth doing before there is data.
+- ~~An array property does not declare its element type.~~ Fixed in 448:
+  `array_element_type` with three CHECKs (`array_declares_element`,
+  `array_element_allowed` excluding vector and time series, `array_not_nested`).
+- ~~61 foreign keys have no index on the referencing column.~~ Retired in 464;
+  the security phase then accrued twelve new unindexed FKs, retired again in
+  487. The standing floor lives in `packages/platform/src/catalog.test.ts`
+  (both checks, every CI run) — a migration asserts only at its own landing.
 
 # Open questions
 
