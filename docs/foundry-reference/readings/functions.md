@@ -185,6 +185,48 @@ every piece that shape needs.
    Marketplace packaging, live preview, per-version resource configuration,
    consistent snapshots, and Workshop/Slate/Quiver consumption.
 
+## Built (2026-08-14) — slice F1, the artifact half: migrations 501–502
+
+Shipped and asserted: `functions` with the four documented api-name rules,
+`function_versions` immutable after creation carrying source + typed
+signature + declared imports, `signature_breaks()` implementing the page's
+published list of breaking changes (dropped, moved, retyped, newly-required
+inputs, output changes) with numeric widening staying compatible, a major
+bump enforced rather than warned, latest-STABLE resolution for api-named
+queries, and placement standing in for the repository-Viewer gate. Seven
+standing regressions in `functions.test.ts`. `502` gives the exploration
+readers their api-name form, because the client says `client(Aircraft)`.
+
+### The execution half is BLOCKED, and the constraint is measured
+
+The runtime design in decision 1 — a Deno worker inside an edge function
+with permissions denied — **cannot be built on this platform.** Probed live
+(`supabase-edge-runtime-1.74.3, compatible with Deno v2.1.4`):
+
+- `Worker` — **undefined.** A deployed function cannot spawn a nested
+  isolate.
+- `EdgeRuntime` exists but `EdgeRuntime.userWorkers` — **undefined.** The
+  platform's own user-worker API is not exposed to deployed functions.
+- `plv8`, `plrust`, `plpython3u` — **not available** in `pg_available_extensions`.
+  There is no in-database isolate either.
+
+Without an isolate boundary, untrusted code cannot be contained in-process:
+shadowing `fetch` and `Deno` as parameter names does not hold, because
+`({}).constructor.constructor('return this')()` recovers the global. Any
+in-process runner would therefore let a published function reach the network
+and exfiltrate whatever the host can read. That is not a sandbox, and
+shipping one would be exactly the half-built foundation CLAUDE.md's opening
+rule forbids — so the runner and the probe were deleted rather than left
+deployed, and this section stands in their place.
+
+**The one isolation unit this platform has is the deployed edge function
+itself.** So the faithful execution model is: *publishing a function deploys
+it* — its own isolate, invoked per execution, which is exactly what "executed
+on the server side in an isolated environment" means here, using the
+platform's real isolation rather than a simulation of one. That needs the
+Management API and a token held server-side, and is a decision for the
+operator (open question 5).
+
 ## Open questions
 
 1. The function RID form — same shape as Q1, and answerable from the same
@@ -201,3 +243,17 @@ every piece that shape needs.
    for F1 — enough to write, type-check and publish one function. A real
    repository (branches, PRs, CI) is a product we do not have and is not
    proposed.
+5. **How execution lands, given the measured constraint above.** Three
+   honest options, in fidelity order:
+   a. **Publish deploys** — each published version becomes its own edge
+      function, the platform's real isolate. Most faithful; needs a
+      Management API token held server-side, and costs seconds per publish
+      plus a function-count quota.
+   b. **A separate runner function** that executes user code, accepting that
+      it is NOT sandboxed from the network, and constraining risk by who may
+      publish (project Owner) plus an audit trail. Faithful in shape,
+      dishonest about isolation unless stated loudly.
+   c. **Artifact-only** — F1 as it stands ships, execution waits for a
+      runtime that can isolate. Nothing false, nothing running.
+   I propose (a): it is the only one where "executed on the server side in
+   an isolated environment" is literally true here.

@@ -311,7 +311,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (121) ───────────────────────────────────────────────────
+// ── FUNCTIONS (129) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -559,6 +559,11 @@ export const countObjectSet = { apiName: 'count_object_set', kind: 'function' } 
   number
 >
 
+export const countObjectSetByApiName = { apiName: 'count_object_set_by_api_name', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_api_name: string; p_filters?: Json },
+  number
+>
+
 /**
  *  The message shown when this criterion fails: its own if it is root-level,
  *  otherwise its root ancestor's.
@@ -706,6 +711,15 @@ export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'functi
 >
 
 /**
+ *  The exploration reader addressed the way the generated client addresses
+ *  it: by api name. Every gate the id form carries still applies.
+ */
+export const evaluateObjectSetByApiName = { apiName: 'evaluate_object_set_by_api_name', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_api_name: string; p_filters?: Json; p_limit?: number },
+  Json[]
+>
+
+/**
  *  direct = applied on this resource; file_hierarchy = inherited from its
  *  project. Foundry renders the second with a folder sidecar icon on the
  *  chip.
@@ -717,6 +731,26 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
   { p_folder: string },
+  boolean
+>
+
+export const functionLatestVersion = { apiName: 'function_latest_version', kind: 'function' } as FunctionType<
+  { p_function: string },
+  string
+>
+
+export const functionSignatureValid = { apiName: 'function_signature_valid', kind: 'function' } as FunctionType<
+  { p_sig: Json },
+  boolean
+>
+
+export const functionToRun = { apiName: 'function_to_run', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_api_name: string },
+  Json
+>
+
+export const functionTypeValid = { apiName: 'function_type_valid', kind: 'function' } as FunctionType<
+  { p_type: string },
   boolean
 >
 
@@ -1111,6 +1145,16 @@ export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions',
 >
 
 /**
+ *  The documented breaking changes between two signatures: dropped, moved,
+ *  retyped or newly-required inputs, and output changes. Widening a numeric
+ *  input is not a break.
+ */
+export const signatureBreaks = { apiName: 'signature_breaks', kind: 'function' } as FunctionType<
+  { p_old: Json; p_new: Json },
+  string[]
+>
+
+/**
  *  Rehearse a marking change before applying it: the four documented states
  *  per downstream dataset, with removals allowed only on directly-applied
  *  markings. Hypothetical — nothing is written.
@@ -1165,6 +1209,11 @@ export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'func
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
   { p_base_type: string },
+  boolean
+>
+
+export const typeWidens = { apiName: 'type_widens', kind: 'function' } as FunctionType<
+  { p_from: string; p_to: string },
   boolean
 >
 
