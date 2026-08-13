@@ -151,3 +151,22 @@ Decisions 1–4 shipped as recited. What the build added to the reading:
   question 2 as the same future slice.
 - 491 is the new FK's index — caught by catalog.test.ts within the hour of
   490 landing, the gap-run floor doing exactly its job.
+
+## Built (2026-08-13) — slice two: migration 492, PR #555
+
+Open question 2 answered by the audit it demanded. Of 20 org-gated tables
+and 36 policies, the read-half fold landed in four places:
+
+- `resource_file_access` is the chokepoint — its org arm carries BOTH
+  projects and datasets, so one line covers the quote's Projects and files.
+- users and groups took ADDITIVE SELECT policies; permissive policies OR
+  together, so every write-bearing original stayed byte-identical.
+- `custom_access_token_hook` now mints group-guest orgs into guest_org_ids —
+  both principals reach the claims, token-time snapshot like role and org.
+- Roles stayed discretionary: a guest passes the organization requirement
+  and nothing else; writes refuse, restricted views still take a role,
+  markings still take membership — asserted.
+
+Tag categories and collections are Compass surfaces we do not have: absent,
+not stubbed. The remaining item from this reading is enrollment-wide
+principal discovery (the guest picker adds by ID until then).
