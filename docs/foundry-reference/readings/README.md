@@ -316,6 +316,17 @@ is worth most just before the thing it describes gets built. Nothing here is
   settings section, the three-permission marking model confirmed. CBAC
   deferred whole; the two deprecated settings never to be built.
 
-Thirty-two readings against 1,784 mirrored pages is the honest running position. `../MAP.md` is
-how the other 1,159 stay findable in the meantime — with the caveat that 19 sections
+- `enrollments-and-organizations.md` — the four enrollment/organization pages
+  + six screenshots, read because two security-phase follow-ups point here.
+  The load-bearing find: **an organization IS a marking** ("The default
+  Organization markings for new Projects and groups…"; the Guest membership
+  card manages who can view files "marked with this organization"), with
+  primary membership (exactly one) and guests (users or groups). Decisions:
+  no enrollment table (the deployment IS the enrollment), a backing marking
+  per org in a system category (ours), organization_guests as a principal
+  pair, `organization_marking_ids` binding to primary+guest org markings;
+  guest reach into RLS org-gates is deliberately a later slice.
+
+Thirty-three readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
+how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
