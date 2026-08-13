@@ -215,9 +215,9 @@ shadowing `fetch` and `Deno` as parameter names does not hold, because
 `({}).constructor.constructor('return this')()` recovers the global. Any
 in-process runner would therefore let a published function reach the network
 and exfiltrate whatever the host can read. That is not a sandbox, and
-shipping one would be the "half-built version that looks like a foundation"
-CLAUDE.md warns about — so the runner and the probe were deleted rather than
-left deployed, and this section stands in their place.
+shipping one would be exactly the half-built foundation CLAUDE.md's opening
+rule forbids — so the runner and the probe were deleted rather than left
+deployed, and this section stands in their place.
 
 **The one isolation unit this platform has is the deployed edge function
 itself.** So the faithful execution model is: *publishing a function deploys
