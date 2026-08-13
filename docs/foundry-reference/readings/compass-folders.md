@@ -132,6 +132,25 @@ Collections (`data-catalog.md`):
    resource-graph index the teardown noted), project usage, portfolios,
    media-set upload, and the access graph (already on the security ledger).
 
+## Built (2026-08-13) — slice C1: migrations 497–498, PR #559
+
+Decisions 2–5 shipped as recited: `folders` with the attested RID and the
+cycle/cross-project guards; placement as a column beside project_id on
+datasets, restricted views and project_resources, each guarded to its own
+project; move-out Owner-gated with cross-project moves landing at the new
+root; markings flowing resource → folder chain → project by restating
+`effective_file_markings` once (all seven consumers inherit) and teaching
+the apply guard the two new kinds; trash as a timestamp with the chain
+evaluated at read time and restore-in-place. Surface: the Files card on the
+project page (tree, filing, trash with restore and permanent delete).
+
+Build-time find, worth its own line: the fixture's owner applied a marking
+they were not a MEMBER of and went blind to the file they had just marked —
+399's "a holder can classify data they cannot read", demonstrated. Every
+subsequent step no-opped silently and two assertions passed vacuously on
+NULLs before the first loud failure. Assertions that depend on visibility
+now assert rowcounts, not absence of error.
+
 ## Open questions
 
 1. Datasets and restricted views sit outside `project_resources` (they

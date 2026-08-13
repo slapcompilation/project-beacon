@@ -33,6 +33,7 @@ import {
   type Project,
 } from '@/features/projects/api'
 import { useGroups } from '@/features/groups/api'
+import { FilesCard } from '@/features/compass/FilesCard'
 
 export default function ProjectsPage() {
   const { data: projects = [], isLoading } = useProjects()
@@ -173,6 +174,8 @@ function ProjectDetails({ project }: { project: Project }) {
           </ul>
         )}
       </Card>
+
+      <FilesCard projectId={project.id} />
 
       <AccessPanel projectId={project.id} members={members} myRole={myRole ?? null}
         canGrant={canGrant} defaultRole={project.defaultRole} />
