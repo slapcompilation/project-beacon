@@ -28,6 +28,7 @@ import {
   useSchema, useTransactions, useView, type Branch, type Dataset,
 } from '@/features/datasets/api'
 import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
+import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
 const STATUS_META = new Map(TRANSACTION_STATUSES.map((t) => [t.value, t]))
@@ -203,6 +204,8 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
       </Card>
 
       <AccessRequirements datasetId={dataset.id} />
+      {/* "On a Project, folder, or file … select Access > Check access." */}
+      <CheckAccessPanel kind="dataset" resourceId={dataset.id} />
 
       {creatingRv && (
         <CreateRestrictedViewDialog datasetId={dataset.id} datasetName={dataset.name}
