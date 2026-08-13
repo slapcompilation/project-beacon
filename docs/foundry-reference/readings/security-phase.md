@@ -303,3 +303,46 @@ violations."
    scoped sessions now or when a policy first needs it?
 3. The fifth simulation legend state (`Unknown`) — which datasets earn it? No
    prose anywhere; screenshot only.
+
+## Built (2026-08-13) — migrations 481–486, PRs #545–#547
+
+All three slices shipped as decided above; read-time evaluation won open
+question 1 by construction.
+
+- **S1 (481–482, #545)**: groups, nested members with expiration honored at
+  evaluation, the two group-level bounds enforced by trigger, the two
+  administrative permissions creator-seeded, group grants folded transitively
+  into project_role(). Multipass is the error namespace.
+- **S2 (483–485, #546)**: the grammar as jsonb with the eight comparisons,
+  the documented weights, the ten-comparison cap and the
+  at-least-one-user-attribute floor; NOT refused outright. restricted_views
+  with severed markings behind the remove permission. The compiler emits the
+  caller's attributes as function calls; the index stays whole and
+  object_set_where carries the gate for every reader; indexed_objects and
+  quicksearch take it directly. Restricted-view-backed types are excluded
+  from OpenSearch scope AND their documents never leave Postgres.
+- **S3 (486, #547)**: check_access with the panel's two halves, the granting
+  group named in the role clause; test_restricted_view answers as a named
+  user through the same compiled predicate via an exception-safe claims swap.
+  Surfaces: CheckAccessPanel on the dataset page, PolicyEditorDialog with the
+  three documented tabs.
+
+Recorded narrowings and follow-ups, all marked ours:
+
+- `authorized_group_ids` and `organization_marking_ids` compile fail-closed
+  (empty) until scoped sessions bind the former and organizations are backed
+  by markings for the latter — an absent attribute must grant nothing.
+- A restricted view backs an object type alone; mixing with an open
+  datasource is refused (merged index rows cannot be re-attributed).
+- The policy composer builds flat rule lists; the grammar and validator
+  accept one nested group, and the JSON tab shows whatever is stored.
+- Who may open Check access / Test policy (org admin or project Owner) is our
+  gate; the page shows the panel, not its opening permission.
+- `marking_permissions` still takes user principals only — groups exist now
+  (481), so the 399 comment about a future principal ref is actionable.
+- The user registry (public.users) holds owner/admin rows only; group
+  members and grant pickers list those until it widens into the full
+  manage-users shape. The dead `user_org_memberships` read it replaced was a
+  teardown zombie that left every picker empty.
+- The access graph, emulation mode, and Data Lineage permissions coloring
+  from checking-permissions remain unbuilt, recorded in section 6.
