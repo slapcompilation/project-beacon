@@ -327,6 +327,17 @@ is worth most just before the thing it describes gets built. Nothing here is
   pair, `organization_marking_ids` binding to primary+guest org markings;
   guest reach into RLS org-gates is deliberately a later slice.
 
-Thirty-three readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
+- `builds-and-schedules.md` — the pipeline layer, read because it is the
+  largest structural absence left (dataset_inputs declares, nothing
+  computes). The three nouns: a Build computes datasets, jobs carry the
+  work through seven documented states, JobSpecs pair declared InputSpecs
+  with logic; schedules run builds on triggers (five-field cron time
+  triggers + four event types + arbitrary AND/OR nesting), with
+  Succeeded/Ignored/Failed history and pause-resets-observation. Decisions:
+  SQL logic with Postgres standing in for Spark (442's precedent),
+  InputSpecs ARE dataset_inputs, staleness = inputs' transactions + JobSpec
+  version, two slices (B1 engine, B2 schedules).
+
+Thirty-four readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
