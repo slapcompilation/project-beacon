@@ -129,3 +129,25 @@ already carries retention timers as a recorded leftover.
 2. Guest reach into the org-gated RLS policies (the "can view Projects,
    files…" half) — which policies fold guests first, and does discovery
    (Compass listing) come before data visibility?
+
+## Built (2026-08-13) — slice one: migrations 490–491, PR #553
+
+Decisions 1–4 shipped as recited. What the build added to the reading:
+
+- `organization_guests` already existed — user-only, empty, feeding the
+  JWT's `guest_org_ids` through `custom_access_token_hook`. Extended to the
+  principal pair rather than recreated. The hook stays user-only on purpose:
+  claims reach is the org-gate half (open question 2), so a guest GROUP
+  crosses marking checks immediately (table-derived) but not the claims-based
+  org gates until that slice lands.
+- Membership in an org marking is derived inside `marking_member()` — primary
+  via public.users, guests via the table, groups via the closure — never
+  materialized as marking_members rows.
+- The category-administrator gate learned the two system paths (no caller;
+  `pg_trigger_depth() > 1`) so provisioning is a system act; direct user
+  mints in the system category still refuse, asserted.
+- The Guest membership surface adds foreign principals by ID: registries are
+  org-siloed under RLS, so enrollment-wide discovery is recorded beside open
+  question 2 as the same future slice.
+- 491 is the new FK's index — caught by catalog.test.ts within the hour of
+  490 landing, the gap-run floor doing exactly its job.
