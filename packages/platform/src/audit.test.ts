@@ -127,12 +127,15 @@ describe.skipIf(noDb)('the live system', () => {
   // days — its function was dropped, and the job kept firing at a ghost. The
   // durable form of that watchdog is this: every scheduled job must call only
   // functions that exist. Found by the first nightly foundry-gap run.
+  // The regex escaping is doubled on purpose: template literals eat single
+  // backslashes, and this test passed vacuously until the first real cron
+  // job (495) made the pattern actually parse.
   it('has no scheduled job calling a function that does not exist', async () => {
     const { rows } = await db.query(`
       select j.jobname, m.fn
         from cron.job j
        cross join lateral (
-         select (regexp_matches(j.command, '([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', 'g'))[1] as fn
+         select (regexp_matches(j.command, '([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(', 'g'))[1] as fn
        ) m
        where j.active
          and m.fn <> 'select'

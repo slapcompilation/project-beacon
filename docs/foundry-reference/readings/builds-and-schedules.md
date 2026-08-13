@@ -182,6 +182,38 @@ canonical configurations, including the AND-of-time-and-event gotcha:
    logs, multi-output jobs, Data Connection syncs and exports and health
    checks as job kinds (each names a system we do not have).
 
+## Built (2026-08-13) — slice B1: migrations 493–494, PR #557
+
+Decisions 1–4 shipped as recited, with three build-time findings:
+
+- `run_build` is SECURITY INVOKER — forced by Postgres (SET ROLE is illegal
+  in a definer function) and better for it: the logic executes with its
+  author's own rights, so RLS bounds every input read and a transform can
+  reach nothing its author could not already call by hand. The one
+  privileged step, the physical-table swap, is a guarded definer helper.
+- The plan-walk allowlist needed dataset_view's own plumbing
+  (dataset_files/transactions/branches) — the CTEs inline it into the plan.
+- dataset_view replays from the branch HEAD through parent_transaction_id:
+  an APPEND without a parent silently orphans the chain (zero rows, no
+  error). The engine was right; the first fixture lied.
+
+## Built (2026-08-13) — slice B2: migrations 495–496, PR #558
+
+Decision 5 shipped as recited: the trigger grammar as jsonb (five-field cron
+with the four core tokens, L and # refused by name; the four event types
+verbatim; arbitrary AND/OR nesting), the pg_cron minute hand carrying only
+the heartbeat while every documented semantic lives in run_schedules where
+it is testable, the three run outcomes with Ignored meaning a build was not
+created, events sticky until the run consumes them, pause forgetting
+everything observed, and the schedules panel on Data Lineage. Scope ships
+user mode (the 486 claims swap); project mode is stored and recorded,
+waiting on a service execution identity. The matcher implements the page's
+odd dom/dow OR rule, asserted against the page's own example. Build-time
+finds: schedule_runs.ran_at takes clock_timestamp (now() freezes inside one
+transaction and unorders history), and the audit suite's cron-job check had
+passed vacuously for its whole life — the first real cron job made its
+regex actually parse, and it did not.
+
 ## Open questions
 
 1. The plan-walk validation of logic SQL is entirely ours — if the operator

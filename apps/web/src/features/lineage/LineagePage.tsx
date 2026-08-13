@@ -16,6 +16,7 @@ import {
   useAllMarkings, useDatasetPicks, useDirectMarkings, useLineageGraph, useSimulateMarkings,
   type LineageEdge, type LineageNode, type SimState,
 } from './api'
+import { SchedulesPanel } from '@/features/builds/SchedulesPanel'
 
 const COL_W = 280
 const NODE_W = 220
@@ -64,6 +65,11 @@ function RootPicker() {
             </button>
           ))}
         </div>
+      </section>
+      {/* "Schedules can be edited, managed, and updated in the schedule
+          sidebar of the Data lineage application." */}
+      <section className="explorer-group">
+        <SchedulesPanel />
       </section>
     </div>
   )
