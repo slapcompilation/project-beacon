@@ -350,8 +350,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   RETURN edits that only a function-backed action applies, semver with six
   published breaking-change checks, and execution reads with the END USER's
   permissions. Foundry's own TSv2 consumption syntax is our generated
-  client's shape already. Decisions: SQL logic (493's precedent, marked
-  ours), queries first then edits, no RID until attested.
+  client's shape already. Decisions (REVISED on the operator's correction —
+  build it the way Foundry builds it): the logic is TypeScript in an
+  isolated Deno worker with no ambient permissions, reaching the ontology
+  only through the injected generated client, which the host mediates with
+  the CALLER's JWT; declared ontology imports are the sandbox; queries
+  first, then edit batches; semver with the six checks refusing rather than
+  warning; no RID until attested.
 
 Thirty-six readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
