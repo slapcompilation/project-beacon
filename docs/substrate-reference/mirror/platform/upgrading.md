@@ -1,0 +1,244 @@
+<!-- source: https://supabase.com/docs/guides/platform/upgrading · mirrored 2026-08-13 from Supabase docs -->
+
+# Upgrading
+
+Supabase ships fast and we try to add all new features to existing projects wherever possible. In some cases, access to new features require upgrading or migrating your Supabase project. It is recommended to upgrade Postgres version to get access to the latest features and fixes.
+
+For scaling your compute size, refer to the [Compute and Disk page](https://supabase.com/docs/guides/platform/compute-and-disk).
+
+## How we upgrade
+
+The process remains the same for Postgres major and minor version upgrades, as other features and services are also upgraded at the same time.
+
+Note: Free projects will move to the latest minor version when their paused project is restored. Paid projects can't be paused.
+
+The upgrade process is as follows:
+
+1. Use the "Upgrade project" button on the [General settings](https://supabase.com/dashboard/project/_/settings/general) page of your dashboard.
+2. An estimate of the time to upgrade is shown and anything that needs to be addressed before you are eligible to upgrade is shown as a warning. Ensure you have reviewed the [caveats](#caveats) section of this document before executing the upgrade.
+3. Your project is taken offline and the Dashboard shows the upgrade status.
+4. Behind the scenes, a new instance is created running the latest version of Supabase.
+5. Your data is copied to the new instance and upgraded using `pg_upgrade`.
+6. If the upgrade should fail, your original database would be brought back up online and be able to service requests.
+7. When the upgrade succeeds, a [pg\_basebackup](https://www.postgresql.org/docs/current/app-pgbasebackup.html) is taken and, once complete, your project is available in the Dashboard.
+
+A Supabase project is deployed with a GP3 disk type by default, which will give \~100Mbps when upgrading. Changing the [disk type (or increasing IOPS/Throughput)](https://supabase.com/docs/guides/platform/compute-and-disk) will reduce the time to upgrade.
+
+Using the size of your database, you can use this metric to derive an approximation of the downtime window necessary for the upgrade. During this window, you should plan for your database and associated services to be unavailable.
+
+## Upgrade pre-requisites
+
+When upgrading, a notification will inform you about what is blocking the upgrade process. You need to follow the pre-requisites for the upgrade to successfully complete:
+
+1. Projects with read-replicas can't be upgraded. You need to delete the replicas and re-create them after upgrade completes.
+2. `pg_upgrade` does not support upgrading of databases containing `reg*` data types referencing system OIDs. You need to modify the data to not use `reg*` data types before upgrade.
+3. Logical replication slots must be dropped.
+4. Deprecated/unsupported extensions must be dropped. Extensions can have dependencies, make sure you backup that data to restore it after the upgrade, with the updated extension version.
+
+Newer versions of services can break functionality or change the performance characteristics you rely on. If your project is eligible for an upgrade, you will be able to find your current service versions from within [the Supabase dashboard](https://supabase.com/dashboard/project/_/settings/general).
+
+Breaking changes are generally only present in major version upgrades of Postgres and PostgREST. You can find their respective release notes at:
+
+- [Postgres](https://www.postgresql.org/docs/release/)
+- [PostgREST](https://github.com/PostgREST/postgrest/releases)
+
+If you are upgrading from a significantly older version, you will need to consider the release notes for any intermediary releases as well.
+
+## Pre-upgrade best practices
+
+1. Make sure to discuss with your teams a suitable maintenance window as upgrading involves downtime, this will be crucial for minimising the impact.
+2. For smaller databases, we recommend taking a logical backup of the data using [pg\_dump](https://www.postgresql.org/docs/current/app-pgdump.html) utility. This is to ensure you have sufficient backup before upgrading.
+3. For larger databases, ensure that a recent backup is in the [Backups](https://supabase.com/dashboard/project/_/database/backups/scheduled) page in the Dashboard.
+4. Reduce the size of the data and the number of objects in the database. The time to upgrade highly depends on these factors, and can influence downtime. For example: Archiving data which is not actively used, dropping unused indexes, running vacuum etc. See the [Inspect](https://supabase.com/docs/reference/cli/supabase-inspect-db) command in the Supabase CLI for a detailed report on space that can be gained, as well as the [pg\_repack](https://supabase.com/docs/guides/database/extensions/pg_repack) documentation.
+
+## Post-upgrade best practices
+
+1. Supabase performs extensive pre- and post-upgrade validations to ensure that the database has been correctly upgraded. However, you should plan for your own application-level validations, as there might be changes you might not have anticipated, and this should be budgeted for when planning your downtime window.
+2. Analyze logs for any new slow-running queries that may have emerged post-upgrade. This is possible due to the change in data structure during upgrade.
+3. Verify extension versions, and look for the extensions you need to upgrade.
+
+## Caveats
+
+### Custom roles with md5 passwords
+
+The md5 hashing method has [known weaknesses](https://en.wikipedia.org/wiki/MD5#Security) that make it unsuitable for cryptography.
+As such, we are deprecating md5 in favor of [scram-sha-256](https://www.postgresql.org/docs/current/auth-password.html), which is the default and most secure authentication method used in the latest Postgres versions.
+
+We automatically migrate Supabase-managed roles' passwords to scram-sha-256 during the upgrade process, but you will need to manually migrate the passwords of any custom roles you have created, else you won't be able to connect using them after the upgrade.
+
+To identify roles using the md5 hashing method and migrate their passwords, you can use the following SQL statements after the upgrade:
+
+```sql
+-- List roles using md5 hashing method
+SELECT
+  rolname
+FROM pg_authid
+WHERE rolcanlogin = true
+  AND rolpassword LIKE 'md5%';
+
+-- Migrate a role's password to scram-sha-256
+ALTER ROLE <role_name> WITH PASSWORD '<password>';
+```
+
+### Database size reduction
+
+As part of the upgrade process, maintenance operations such as [vacuuming](https://www.postgresql.org/docs/current/routine-vacuuming.html#ROUTINE-VACUUMING) are also executed. This can result in a reduction in the reported database size.
+
+### Disk sizing
+
+When upgrading, the Supabase platform will "right-size" your disk based on the current size of the database. For example, if your database is 100GB in size, and you have a 200GB disk, the upgrade will reduce the disk size to 120GB (1.2x the size of your database).
+
+### Time limits
+
+When a project is paused, users have a 1-year window to restore the project on the platform from within Supabase Studio.
+
+The restore window exists because backups are only retained for a limited period, and platform changes may not be backwards compatible with older backups. Unlike active projects, static backups can't be updated to accommodate such changes.
+
+During the restore window a paused project can be restored to the platform with a single button click from [Studio's dashboard page](https://supabase.com/dashboard/projects).
+
+![Project Paused: 90 Days Remaining](https://supabase.com/docs/img/guides/platform/paused-90-day.png)
+
+After the restore window, you can download your project's backup file, and Storage objects from the project dashboard. You can restore the data in the following ways:
+
+- [Restore a backup to a new Supabase project](https://supabase.com/docs/guides/platform/migrating-within-supabase/dashboard-restore)
+- [Restore a backup locally](https://supabase.com/docs/guides/local-development/restoring-downloaded-backup)
+
+![Project Paused: Download Backup](https://supabase.com/docs/img/guides/platform/paused-dl-backup.png)
+
+If you upgrade to a paid plan while your project is paused, any expired one-click restore options are reenabled. Since the backup was taken outside the backwards compatibility window, it may fail to restore. If you have a problem restoring your backup after upgrading, contact [Support](https://supabase.com/support).
+
+![Project Paused: Paid Tier Restore](https://supabase.com/docs/img/guides/platform/paused-paid-tier.png)
+
+## Specific upgrade notes
+
+### Upgrading to Postgres 17
+
+In projects using Postgres 17, the following extensions are deprecated:
+
+- `plcoffee`
+- `plls`
+- `plv8`
+- `timescaledb`
+- `pgjwt`
+
+Projects planning to upgrade from Postgres 15 to Postgres 17 need to first disable these extensions in the [Supabase Dashboard](https://supabase.com/dashboard/project/_/database/extensions).
+
+Note: `pgjwt` was enabled by default on every Supabase project up until Postgres 17. If you weren't explicitly using `pgjwt` in your project, it's most likely safe to disable.
+
+Existing projects on lower versions of Postgres are not impacted, and the extensions will continue to be supported on projects using Postgres 15, until the end of life of Postgres 15 on the Supabase platform.
+
+### `pg_cron` usage
+
+[pg\_cron](https://github.com/citusdata/pg_cron#viewing-job-run-details) does not automatically clean up historical records. This can lead to extremely large `cron.job_run_details` tables if the records are not regularly pruned; you should clean unnecessary records from this table before an upgrade.
+
+During the Supabase project upgrade, the `pg_cron` extension gets dropped and recreated. Before this process, the `cron.job_run_details` table is duplicated to avoid losing historical logs. The instantaneous disk pressure created by duplicating an extremely large details table can cause at best unnecessary performance degradation, or at worst, upgrade process failures.
+
+### Upgrading to pg\_graphql 1.6.0
+
+Starting with pg\_graphql 1.6.0, GraphQL introspection is disabled by default. After the upgrade, queries to `__schema` and `__type` will return an error unless introspection is explicitly enabled. See the [pg\_graphql configuration docs](https://supabase.github.io/pg_graphql/configuration/#introspection) for full details.
+
+This affects tools that rely on introspection:
+
+- Studio's GraphQL inspector (GraphiQL)
+- External GraphiQL or GraphQL Playground
+- Code generators (e.g. `graphql-codegen`)
+- Relay compiler
+- Any tool that calls `__schema` or `__type` directly
+
+Regular data queries (e.g. `accountCollection`, `insertIntoAccountCollection`) are not affected.
+
+To re-enable introspection on a schema, run the following SQL in the SQL editor:
+
+```sql
+comment on schema public is e'@graphql({"introspection": true})';
+```
+
+If your schema already has a comment with other directives (e.g. `inflect_names`), combine the keys — setting a new comment overwrites the old one:
+
+```sql
+comment on schema public is e'@graphql({"inflect_names": true, "introspection": true})';
+```
+
+To verify introspection is enabled:
+
+```sql
+select graphql.resolve('{ __schema { queryType { name } } }');
+```
+
+Existing projects on pg\_graphql 1.5.x are not impacted unless they choose to upgrade.
+
+### Ltree indexes require reindexing after upgrade
+
+*Applies when upgrading to Postgres 15.18 or 17.10.*
+
+Caution: You are affected only if you have indexes on `ltree` columns and your database uses a multibyte encoding or a non-`libc` collation provider.
+
+After upgrading, indexes on `ltree` columns that were built under the previous version can return incomplete results until the index is rebuilt. For example, label searches silently miss rows that are present. This affects databases using a multibyte encoding, such as UTF-8, or a non-`libc` collation provider such as ICU or builtin.
+
+To mitigate this issue:
+
+1. Check whether your database needs reindexing:
+
+   ```sql
+   select
+     pg_encoding_to_char(encoding) as encoding,
+     pg_encoding_max_length(encoding) as max_bytes_per_char, -- 1 = single-byte, >1 = multibyte
+     datlocprovider as collation_provider, -- 'c' libc, 'i' icu, 'b' builtin
+     (pg_encoding_max_length(encoding) > 1 or datlocprovider != 'c') as reindex_required
+   from pg_database
+   where datname = current_database();
+   ```
+
+   If `reindex_required` is `false`, such as a single-byte encoding like LATIN1 with `libc` collation, no action is needed.
+
+2. If `reindex_required` is `true`, find the affected indexes:
+
+   ```sql
+   select schemaname, tablename, indexname
+   from pg_indexes
+   where
+     indexname in (
+       select c.relname
+       from
+         pg_index as i
+         join pg_class as c on i.indexrelid = c.oid
+         join pg_attribute as a on a.attrelid = i.indrelid and a.attnum = ANY(i.indkey)
+         join pg_type as t on a.atttypid = t.oid
+       where t.typname in ('ltree', '_ltree')
+     );
+   ```
+
+3. Reindex each affected index. `REINDEX INDEX CONCURRENTLY` runs online with no downtime:
+
+   ```sql
+   REINDEX INDEX CONCURRENTLY <index_name>;
+   ```
+
+### Custom operator selectivity estimators
+
+*Applies when upgrading to Postgres 15.18 or 17.10.*
+
+Attaching a non-built-in (extension- or user-provided) selectivity estimator function to an operator now requires superuser. Existing operators continue to work — the check only fires when an operator is (re)created, most commonly during `pg_dump` / `pg_restore`, a logical restore, or a branch.
+
+Because Supabase database roles are not superusers, recreating such an operator on your behalf (for example during a restore or branch) can fail with:
+
+```
+ERROR: must be superuser to specify a non-built-in restriction estimator function
+```
+
+Most projects are not affected. To check whether your database has any user-defined operators that reference a non-built-in estimator:
+
+```sql
+SELECT n.nspname AS schema, o.oprname AS operator
+FROM pg_operator o
+JOIN pg_namespace n ON o.oprnamespace = n.oid
+WHERE n.nspname NOT IN ('pg_catalog', 'information_schema')
+  AND ((o.oprrest <> 0 AND o.oprrest::oid >= 10000)
+    OR (o.oprjoin <> 0 AND o.oprjoin::oid >= 10000))
+  AND NOT EXISTS (
+    SELECT 1 FROM pg_depend d
+    WHERE d.classid = 'pg_operator'::regclass AND d.objid = o.oid AND d.deptype = 'e'
+  );
+```
+
+If this returns no rows, your project is unaffected.

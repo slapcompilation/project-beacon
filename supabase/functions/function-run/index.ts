@@ -19,10 +19,23 @@ import { GUEST_HARNESS } from './guest.ts'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? ''
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 
-// "Functions are limited to **60 seconds** of elapsed run time by default."
+// Foundry's budget, bounded by what this substrate actually gives us.
+//
+// Foundry: "Functions are limited to **60 seconds** of elapsed run time by
+// default" and serverless functions get 1024 MiB. Our runtime is smaller and
+// the numbers are not negotiable (substrate-reference/mirror/functions/limits):
+//   "Maximum Memory: 256MB" — for the whole worker, host included
+//   "Maximum CPU Time: 2s ... does not include async I/O"
+//   "Request idle timeout: 150s"
+//
+// So the isolate gets a fraction of the worker's memory, leaving room for the
+// host and the WASM engine itself; the wall-clock deadline stays under the
+// idle timeout so a hung function returns our error rather than a gateway
+// 504. The 2-second CPU ceiling is the platform's and cannot be raised —
+// compute-heavy guest code dies there no matter what we set, which is
+// recorded in the reading rather than papered over.
 const TIME_LIMIT_MS = 60_000
-// "Serverless … functions have 1024 Mebibytes of memory usage by default."
-const MEMORY_LIMIT = 1024 * 1024 * 1024
+const MEMORY_LIMIT = 128 * 1024 * 1024
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
