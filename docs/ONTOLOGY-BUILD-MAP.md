@@ -281,7 +281,9 @@ absent rather than stubbed.
 `action_editable_properties(action)` makes the design sentence answerable: every
 property an action can write, and nothing else can.
 
-No RID column — an action type's form is unattested, same call as B2.
+~~No RID column — an action type's form is unattested, same call as B2.~~
+RID added in 488 (Q1 answered): existence attested by action-log's
+`Action type RID` field, token inferred and marked.
 
 ---
 
@@ -661,13 +663,19 @@ implementations.
 
 ## Blocking — I would ask before building that phase
 
-**Q1 · RID forms for five resource kinds.** Attested: ontology
-(`ri.ontology.main.ontology.<id>`), object type, type group, folder, dataset,
-transaction, media set/item/view, object set, source, scenario. **Unattested:
-link type, shared property, action type, interface, value type.** The RID *spec*
-is now known exactly (`palantir/resource-identifier`), so the only unknown is the
-`<type>` segment's spelling. *Weakly blocking — a RID that has to be renamed
-later is a stored generated column across every row.*
+**Q1 · RID forms for five resource kinds — ANSWERED (488, 2026-08-13).** The
+operator supplied eight pages; they attest *existence* for every remaining
+kind verbatim — link-type-metadata and interface-metadata ("An automatically
+generated unique identifier for every resource"), action-log ("Action type
+RID"), struct-shared-properties (struct fields keep RIDs across promotion),
+value-type-constraints (rid-ness is a constraint kind). A full-corpus sweep
+(1,800+ pages) prints no form for the four that were still missing, so the
+type token follows the thrice-used inference (`object-set`, `type-group`,
+`interface`): `ri.ontology.main.<kebab-kind>.<uuid>`, marked in each column
+comment. Interfaces already had theirs; 488 adds link-type, shared-property,
+action-type and value-type. Nothing external references RID values yet, so a
+wrong token is a cheap generated-column re-add — the rename-across-every-row
+risk begins only when RIDs are exported.
 
 ## Non-blocking — a sensible default exists
 
