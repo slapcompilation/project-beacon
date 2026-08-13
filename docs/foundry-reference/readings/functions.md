@@ -265,6 +265,17 @@ every object and link type that was loaded".
 | guest reaching the host | `fetch: undefined`, `Deno: undefined`, guest globals = `client` alone |
 | guest reading an UNDECLARED object type | `Functions:UndeclaredImport`, though the caller had permission |
 
+**Corrected after the substrate mirror landed (2026-08-14):** the memory
+limit was set to 1 GiB from memory of Foundry's serverless default. This
+platform allows **256MB for the whole worker**
+(`substrate-reference/mirror/functions/limits.md`), so the isolate now takes
+128MB and leaves the rest to the host. The same page states the ceiling
+Foundry has no equivalent for — "Maximum CPU Time: 2s … does not include
+async I/O" — so a compute-heavy function dies there whatever deadline we set;
+I/O-bound ones are unaffected. It also says plainly that "Web Worker API (or
+Node `vm` API) are not available", which is the sentence that would have
+saved the design cycle spent discovering it by probe.
+
 Two build-time finds: a promise must not cross the boundary (the first
 attempt deadlocked until the guest settled its own result into a plain
 global and the host drained the microtask queue), and the deploy bundler

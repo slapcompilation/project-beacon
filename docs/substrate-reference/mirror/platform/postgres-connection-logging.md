@@ -1,0 +1,71 @@
+<!-- source: https://supabase.com/docs/guides/platform/postgres-connection-logging · mirrored 2026-08-13 from Supabase docs -->
+
+# Postgres connection logging
+
+Enable or disable Postgres connection logging for audit and compliance.
+
+For security monitoring and compliance audits, Postgres can log connection lifecycle events to your project's [Postgres logs](https://supabase.com/docs/guides/monitoring-and-debugging/logs#postgres), including events such as `connection received`, `connection authenticated`, and `connection authorized`.
+
+## Default behavior
+
+By default, Supabase sets `log_connections` to off for new projects and you must enable it first. This behavior matches common managed Postgres defaults and reduces log volume from high-frequency connection events.
+
+Existing projects may retain different settings depending on plan and compliance configuration:
+
+- **Team, Enterprise, and HIPAA organizations** — Connection logging is typically enabled to support audit requirements.
+- **HIPAA projects** — Supabase enables connection logging when a project is marked as high compliance. The [Security Advisor](https://supabase.com/dashboard/project/_/advisors/security) warns if connection logging is later disabled.
+
+## Compliance considerations
+
+Note: If you need connection audit evidence for SOC 2 or other compliance programs, you must enable it explicitly.
+
+Connection logging supports audit and monitoring controls required by some compliance programs:
+
+- **HIPAA** — High-compliance projects should keep connection logging enabled. See the [shared responsibility model for healthcare data](https://supabase.com/docs/guides/deployment/shared-responsibility-model#managing-healthcare-data) and [HIPAA compliance guide](https://supabase.com/docs/guides/security/hipaa-compliance).
+- **SOC 2** — Users who need connection audit evidence should enable logging and retain logs according to their own policies. See the [SOC 2 compliance guide](https://supabase.com/docs/guides/security/soc-2-compliance).
+
+Disabling connection logging does not affect other Supabase logging (for example, [Platform Audit Logs](https://supabase.com/docs/guides/security/platform-audit-logs), [Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs), or [pgAudit](https://supabase.com/docs/guides/monitoring-and-debugging/logs#configuring-pgauditlog)).
+
+## Manage connection logging via the dashboard
+
+You can configure connection logging from the **Log connections** setting in the [Database Settings](https://supabase.com/dashboard/project/_/database/settings) section of the Dashboard.
+
+Ensure that you have [Owner or Admin permissions](https://supabase.com/docs/guides/platform/access-control#manage-team-members) for the project.
+
+Note: Connection events appear in Postgres logs. In the [Logs Explorer](https://supabase.com/dashboard/project/_/logs-explorer), connection lifecycle messages may be hidden by default to reduce noise. Use the connection logs filter in the sidebar to show or hide them.
+
+## Manage connection logging via the Management API
+
+You can also manage connection logging using the [Management API](https://supabase.com/docs/reference/api/v1-update-postgres-config):
+
+```bash
+# Get your access token from https://supabase.com/dashboard/account/tokens
+export SUPABASE_ACCESS_TOKEN="your-access-token"
+export PROJECT_REF="your-project-ref"
+
+# Get current Postgres config
+curl -X GET "https://api.supabase.com/v1/projects/$PROJECT_REF/config/database/postgres" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN"
+
+# Enable connection logging
+curl -X PUT "https://api.supabase.com/v1/projects/$PROJECT_REF/config/database/postgres" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "log_connections": true
+  }'
+
+# Disable connection logging
+curl -X PUT "https://api.supabase.com/v1/projects/$PROJECT_REF/config/database/postgres" \
+  -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "log_connections": false
+  }'
+```
+
+To verify the setting, use the SQL Editor:
+
+```sql
+show log_connections;
+```

@@ -1,0 +1,121 @@
+<!-- source: https://supabase.com/docs/guides/storage/serving/downloads · mirrored 2026-08-13 from Supabase docs -->
+
+# Serving assets from Storage
+
+Serving assets from Storage
+
+## Public buckets
+
+As mentioned in the [Buckets Fundamentals](https://supabase.com/docs/guides/storage/buckets/fundamentals) all files uploaded in a public bucket are publicly accessible and benefit a high CDN cache HIT ratio.
+
+You can access them by using this conventional URL:
+
+```
+https://[project_id].supabase.co/storage/v1/object/public/[bucket]/[asset-name]
+```
+
+You can also use the Supabase SDK `getPublicUrl` to generate this URL for you
+
+```js
+import { createClient } from '@supabase/supabase-js'
+const supabase = createClient('your_project_url', 'your_supabase_api_key')
+
+// ---cut---
+const { data } = supabase.storage.from('bucket').getPublicUrl('filePath.jpg')
+
+console.log(data.publicUrl)
+```
+
+### Downloading
+
+If you want the browser to start an automatic download of the asset instead of trying serving it, you can add the `?download` query string parameter.
+
+By default it will use the asset name to save the file on disk. You can optionally pass a custom name to the `download` parameter as following: `?download=customname.jpg`
+
+#### Programmatic downloads with query parameters
+
+When using the SDK's `download()` method, you can pass additional query parameters to customize the download behavior:
+
+**JavaScript**
+
+```js
+import { createClient } from '@supabase/supabase-js'
+const supabase = createClient('your_project_url', 'your_supabase_api_key')
+
+// ---cut---
+// Download with custom filename
+const { data, error } = await supabase.storage.from('avatars').download('avatar1.png', {
+  download: 'my-custom-name.png',
+})
+```
+
+**Dart**
+
+```dart
+// Download with additional query parameters
+final response = await supabase.storage
+  .from('avatars')
+  .download(
+    'avatar1.png',
+    queryParams: {
+      'download': 'my-custom-name.png',
+    },
+  );
+```
+
+[Reference.](https://supabase.com/docs/reference/dart/storage-from-download)
+
+**Swift**
+
+```swift
+// Download with additional query parameters
+let response = try await supabase.storage
+  .from("avatars")
+  .download(
+    path: "avatar1.png",
+    queryItems: [
+      URLQueryItem(name: "download", value: "my-custom-name.png")
+    ]
+  )
+```
+
+[Reference.](https://supabase.com/docs/reference/swift/storage-from-download)
+
+## Private buckets
+
+Assets stored in a non-public bucket are considered private and are not accessible via a public URL like the public buckets.
+
+You can access them only by:
+
+- Signing a time limited URL on the Server, for example with Edge Functions.
+- with a GET request the URL `https://[project_id].supabase.co/storage/v1/object/authenticated/[bucket]/[asset-name]` and the user Authorization header
+
+### Signing URLs
+
+Note: Storage signed URLs are signed with a dedicated internal key that is separate from your project's Auth JWT signing key. Each project has its own signing key.
+
+Because signed URLs use this separate key, they are not affected by:
+
+- Rotating or revoking Auth JWT legacy secret or signing key
+- Disabling legacy keys in the dashboard
+- Switching from HS256 to asymmetric (ES256) signing key
+
+Signed URLs remain valid until their expiry time regardless of any Auth key changes.
+
+If you need to revoke signed URLs, [contact Supabase support](https://supabase.com/dashboard/support/new?projectRef=).
+
+You can sign a time-limited URL that you can share to your users by invoking the `createSignedUrl` method on the SDK.
+
+```js
+import { createClient } from '@supabase/supabase-js'
+const supabase = createClient('your_project_url', 'your_supabase_api_key')
+
+// ---cut---
+const { data, error } = await supabase.storage
+  .from('bucket')
+  .createSignedUrl('private-document.pdf', 3600)
+
+if (data) {
+  console.log(data.signedUrl)
+}
+```
