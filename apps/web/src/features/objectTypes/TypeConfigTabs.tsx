@@ -19,6 +19,7 @@ import {
   useCreateMaterialization, useSetPropagation, useRebuildMaterialization,
 } from '@/features/objectTypes/materializations'
 import { useRestrictedViews } from '@/features/restrictedViews/api'
+import { PolicyEditorDialog } from '@/features/restrictedViews/PolicyEditorDialog'
 
 /** The Security tab: the two requirement cards the screenshot shows —
  *  "A user must meet all of the following requirements to view/edit the
@@ -111,6 +112,8 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const [branchId, setBranchId] = useState('')
   const { data: editsEnabled = false } = useEditsEnabled(type.id)
   const setEdits = useSetEditsEnabled(type.id)
+  const [editingRv, setEditingRv] = useState<string | null>(null)
+  const editingView = restrictedViews.find((v) => v.id === editingRv) ?? null
 
   return (
     <div className="space-y-3">
@@ -122,10 +125,17 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
             ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
                 title="Each user sees only the objects the view's policy allows.">restricted view</Tag>
             : <Tag minimal className="!text-[10px]">{s.branchName}</Tag>}
+          {s.restrictedViewId && (
+            <Button variant="minimal" size="small" icon="edit" title="Edit policy / View JSON / Test policy"
+              onClick={() => { setEditingRv(s.restrictedViewId) }} />
+          )}
           <Button variant="minimal" size="small" icon="cross" className="ml-auto"
             onClick={() => { remove.mutate(s.id) }} />
         </div>
       ))}
+      {editingView && (
+        <PolicyEditorDialog view={editingView} onClose={() => { setEditingRv(null) }} />
+      )}
       {sources.length === 0 && (
         <p className="text-xs text-muted-foreground">
           In order to populate property values for objects of this type with data, you must add a backing datasource.

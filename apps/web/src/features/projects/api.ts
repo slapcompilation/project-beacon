@@ -213,30 +213,20 @@ export function useProjectResources(projectId: string | null) {
   })
 }
 
-/** Who can be granted a role. A project is ORG-scoped, so the candidates come
- *  from user_org_memberships (readable org-wide) rather than public.users, which
- *  is gated `hotel_id = auth_hotel_id()` and would have offered only the people
- *  at whichever property the operator happens to be looking at.
- *
- *  Emails come from that hotel-scoped table on a best-effort basis, so a
- *  colleague at another property shows as an id until they are resolvable.
- *  Better a grantable id than an unofferable person. */
+/** Who can be granted a role: the organization's user registry, which RLS
+ *  already scopes to the caller's org. This read `user_org_memberships` until
+ *  2026-08-13 — a table the teardown deleted — so every picker built on it
+ *  listed nobody. The registry currently holds owner/admin rows only
+ *  (users_role_check); widening it into the full Multipass-style user list is
+ *  recorded in the security reading. */
 export function useOrgMembers() {
   return useQuery({
     queryKey: ['org-members-for-grants'],
     queryFn: async (): Promise<{ id: string; email: string }[]> => {
-      const { data, error } = await supabase.from('user_org_memberships')
-        .select('user_id').limit(500)
+      const { data, error } = await supabase.from('users')
+        .select('id, email').order('email').limit(500)
       if (error) throw new Error(error.message)
-      const ids = [...new Set((data as { user_id: string }[]).map((r) => r.user_id))]
-      if (ids.length === 0) return []
-
-      const { data: people } = await supabase.from('users').select('id, email').in('id', ids)
-      const emailById = new Map((people as { id: string; email: string }[] | null ?? [])
-        .map((u) => [u.id, u.email]))
-      return ids
-        .map((id) => ({ id, email: emailById.get(id) ?? id }))
-        .sort((a, b) => a.email.localeCompare(b.email))
+      return data as { id: string; email: string }[]
     },
     staleTime: 60_000,
   })

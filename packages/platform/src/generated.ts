@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (104) ───────────────────────────────────────────────────
+// ── FUNCTIONS (106) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -508,6 +508,16 @@ export const canWriteDatasetData = { apiName: 'can_write_dataset_data', kind: 'f
 export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' } as FunctionType<
   Record<string, never>,
   { capability: string; slot: string; accepts: string[]; note: string }[]
+>
+
+/**
+ *  The Check access panel: Access requirements (organization, markings, roles
+ *  with their source) and Additional data requirements (markings inherited
+ *  through lineage), verdict per clause, for any named user.
+ */
+export const checkAccess = { apiName: 'check_access', kind: 'function' } as FunctionType<
+  { p_kind: string; p_id: string; p_user: string },
+  { section: string; requirement: string; detail: string; satisfied: boolean }[]
 >
 
 /**
@@ -1050,6 +1060,16 @@ export const submissionOperators = { apiName: 'submission_operators', kind: 'fun
 export const taskApprovalStatus = { apiName: 'task_approval_status', kind: 'function' } as FunctionType<
   { p_task: string },
   string
+>
+
+/**
+ *  Test policy, as a named user: total rows in the input's current view
+ *  versus rows the policy would show them — evaluated through the same
+ *  compiled predicate the readers use.
+ */
+export const testRestrictedView = { apiName: 'test_restricted_view', kind: 'function' } as FunctionType<
+  { p_view: string; p_user: string },
+  { visible_rows: number; total_rows: number }[]
 >
 
 export const titleKeyEligible = { apiName: 'title_key_eligible', kind: 'function' } as FunctionType<
