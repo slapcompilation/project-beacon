@@ -151,6 +151,27 @@ live. Every subsequent step no-opped silently and two assertions passed
 vacuously on NULLs before the first loud failure. Assertions that depend on
 visibility now assert rowcounts, not absence of error.
 
+## Built (2026-08-14) — slice C2: migrations 499–500, PR #562
+
+Decision 1's catalog half shipped as recited: tag categories org-visible
+with their tags (deletion cannot be undone and strips every resource, per
+the page), collections admin-curated and org-readable, the Promoted flag on
+projects, folders, datasets and restricted views behind the curator
+stand-in, and a personal project provisioned for every user — hidden from
+everyone else by a RESTRICTIVE policy, because the permissive read and
+admin-write policies OR together and any one of them would have leaked it.
+Surfaces: the Tags section in Settings, the Data Catalog page (collections,
+tag filters, promoted-first with the checkmark), and the catalog entry in
+the portal.
+
+Two build-time finds: the restrictive-policy lesson above, and a name
+collision — 499's flag gate was created as guard_promotion, the SAME name as
+the ontology STATUS gate from 454/460/461, and CREATE OR REPLACE silently
+rewrote live machinery until 23 tests failed. 500 restored the original
+verbatim and renamed ours guard_promoted_flag. Grep pg_proc for the name
+before creating any function; the resource_project collision was caught
+pre-flight the same hour, this one was not.
+
 ## Open questions
 
 1. Datasets and restricted views sit outside `project_resources` (they

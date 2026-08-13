@@ -70,6 +70,14 @@ export const AUDIENCES: AppAudience[] = [
     title: 'Applications for Analytics',
     apps: [
       {
+        name: 'Data Catalog',
+        tagline: 'Curated data for every audience',
+        blurb: 'Collections group the most useful files for a topic or audience; Promoted items surface first, and tags filter the rest.',
+        path: '/catalog',
+        icon: 'endorsed',
+        tint: '#7961db',
+      },
+      {
         name: 'Object Explorer',
         tagline: 'Search and analyze objects',
         blurb: 'Filter object sets, aggregate them as charts, and read the results as a table over the live index.',
