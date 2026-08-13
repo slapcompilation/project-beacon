@@ -197,35 +197,46 @@ queries, and placement standing in for the repository-Viewer gate. Seven
 standing regressions in `functions.test.ts`. `502` gives the exploration
 readers their api-name form, because the client says `client(Aircraft)`.
 
-### The execution half is BLOCKED, and the constraint is measured
+### The execution half: an isolate DOES exist here — measured, after a wrong call
 
-The runtime design in decision 1 — a Deno worker inside an edge function
-with permissions denied — **cannot be built on this platform.** Probed live
-(`supabase-edge-runtime-1.74.3, compatible with Deno v2.1.4`):
+**Correction, 2026-08-14.** This section first recorded "no isolate is
+available on this platform" and blocked the runtime on it. That was wrong,
+and the operator was right to challenge it. What I had actually measured was
+two mechanisms — nested `Worker`, and an in-database V8 — and I generalised
+from their absence to a claim about the platform. The generalisation did not
+follow.
 
-- `Worker` — **undefined.** A deployed function cannot spawn a nested
-  isolate.
-- `EdgeRuntime` exists but `EdgeRuntime.userWorkers` — **undefined.** The
-  platform's own user-worker API is not exposed to deployed functions.
-- `plv8`, `plrust`, `plpython3u` — **not available** in `pg_available_extensions`.
-  There is no in-database isolate either.
+Measured on `supabase-edge-runtime-1.74.3` (compatible with Deno v2.1.4):
 
-Without an isolate boundary, untrusted code cannot be contained in-process:
-shadowing `fetch` and `Deno` as parameter names does not hold, because
-`({}).constructor.constructor('return this')()` recovers the global. Any
-in-process runner would therefore let a published function reach the network
-and exfiltrate whatever the host can read. That is not a sandbox, and
-shipping one would be exactly the half-built foundation CLAUDE.md's opening
-rule forbids — so the runner and the probe were deleted rather than left
-deployed, and this section stands in their place.
+| primitive | result |
+|---|---|
+| `Worker` (nested isolate) | undefined |
+| `EdgeRuntime.userWorkers` | undefined |
+| `plv8` / `plrust` / `plpython3u` | absent from `pg_available_extensions` |
+| **`WebAssembly`** | **present — a module compiled, instantiated and RAN** |
+| **`npm:quickjs-emscripten`** | **imports; `getQuickJS` is a function** |
 
-**The one isolation unit this platform has is the deployed edge function
-itself.** So the faithful execution model is: *publishing a function deploys
-it* — its own isolate, invoked per execution, which is exactly what "executed
-on the server side in an isolated environment" means here, using the
-platform's real isolation rather than a simulation of one. That needs the
-Management API and a token held server-side, and is a decision for the
-operator (open question 5).
+So the runtime is a **JS engine compiled to WebAssembly** (QuickJS), which is
+a stronger sandbox than the Deno worker originally proposed: a WASM module
+has linear memory and *no* ambient anything — no `fetch`, no `Deno`, no host
+`globalThis` — and can only call functions the host explicitly injects. The
+recovery trick that defeats in-process shadowing
+(`({}).constructor.constructor('return this')()`) reaches only the guest
+engine's own global, which holds nothing. QuickJS also carries an interrupt
+handler and a memory ceiling, so the documented 60-second limit and a memory
+bound are enforceable rather than aspirational.
+
+This also lands us on Foundry's **recommended** execution mode rather than
+its discouraged one. `functions-deployed.md` names both: *deployed*, a
+long-lived container where "you can only run a single function version at a
+time", and *serverless*, "leveraging on-demand resources", which "enable[s]
+different versions of a single function to be executed on demand, making
+upgrades safer" and is what Palantir recommends. An isolate spun up per
+execution is the serverless shape, and it fits the latest-stable resolution
+501 already built.
+
+**Lesson recorded:** absence of the two mechanisms I thought of is not
+absence of the capability. Probe the capability, not my first two guesses.
 
 ## Open questions
 
@@ -243,17 +254,9 @@ operator (open question 5).
    for F1 — enough to write, type-check and publish one function. A real
    repository (branches, PRs, CI) is a product we do not have and is not
    proposed.
-5. **How execution lands, given the measured constraint above.** Three
-   honest options, in fidelity order:
-   a. **Publish deploys** — each published version becomes its own edge
-      function, the platform's real isolate. Most faithful; needs a
-      Management API token held server-side, and costs seconds per publish
-      plus a function-count quota.
-   b. **A separate runner function** that executes user code, accepting that
-      it is NOT sandboxed from the network, and constraining risk by who may
-      publish (project Owner) plus an audit trail. Faithful in shape,
-      dishonest about isolation unless stated loudly.
-   c. **Artifact-only** — F1 as it stands ships, execution waits for a
-      runtime that can isolate. Nothing false, nothing running.
-   I propose (a): it is the only one where "executed on the server side in
+5. ~~How execution lands, given the measured constraint.~~ **ANSWERED by
+   the probe above**: a QuickJS-on-WebAssembly isolate per execution —
+   Foundry's recommended serverless shape — with the host mediating every
+   ontology call under the caller's JWT. No Management API token, no
+   per-function deployment, no quota.
    an isolated environment" is literally true here.
