@@ -338,6 +338,13 @@ is worth most just before the thing it describes gets built. Nothing here is
   InputSpecs ARE dataset_inputs, staleness = inputs' transactions + JobSpec
   version, two slices (B1 engine, B2 schedules).
 
-Thirty-four readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
+- `compass-folders.md` — the filesystem: folders organize and never gate
+  (Foundry deprecated the one setting that made them a boundary), markings
+  flow through the folder chain, move-out takes Owner, trash restores in
+  place, and the catalog layer (tags/collections/Promoted) sits above.
+  Decisions: placement is a column beside project_id, trash is a timestamp,
+  two slices (C1 tree, C2 catalog).
+
+Thirty-five readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
