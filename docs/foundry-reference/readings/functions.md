@@ -238,6 +238,39 @@ execution is the serverless shape, and it fits the latest-stable resolution
 **Lesson recorded:** absence of the two mechanisms I thought of is not
 absence of the capability. Probe the capability, not my first two guesses.
 
+### Built (2026-08-14) — the execution half: migrations 501–502 + `function-run`
+
+The isolate is **QuickJS compiled to WebAssembly** (`npm:quickjs-emscripten`,
+the asyncified variant), one per execution — Foundry's serverless shape. The
+guest holds exactly one capability, `__hostCall`; every ontology read it
+makes is performed by the host with the CALLER's JWT, so RLS decides what
+the code sees. The documented 60-second limit is a QuickJS interrupt
+handler, and the serverless memory default a runtime memory limit.
+
+The authoring contract is the pages', not mine:
+`export default async function name(client, ...inputs)`, the client first
+and the declared inputs positionally (`typescript-v2-getting-started.md`
+requires the default export; `query-functions.md` prints the signature);
+`client(Aircraft).where({...}).aggregate({ $select: { $count: "unordered" } })`
+and `client(X).fetchOne(pk)` are the printed v2 call shapes. Each declared
+object type is injected as a guest global — the pages' "code bindings…for
+every object and link type that was loaded".
+
+**Verified live**, not asserted, against the seeded `[Example Data] Aircraft`:
+
+| probe | result |
+|---|---|
+| a published function counting by model | `200 {"value":1}` — real data through the mediated client |
+| a missing required input | refused before the isolate starts |
+| guest reaching the host | `fetch: undefined`, `Deno: undefined`, guest globals = `client` alone |
+| guest reading an UNDECLARED object type | `Functions:UndeclaredImport`, though the caller had permission |
+
+Two build-time finds: a promise must not cross the boundary (the first
+attempt deadlocked until the guest settled its own result into a plain
+global and the host drained the microtask queue), and the deploy bundler
+only carries statically imported modules — a worker referenced by runtime
+URL never uploads.
+
 ## Open questions
 
 1. The function RID form — same shape as Q1, and answerable from the same
