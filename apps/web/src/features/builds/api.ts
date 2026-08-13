@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import { jobSpecFresh, runBuild } from '@beacon/platform'
+import type { Json } from '@beacon/platform'
 
 export interface JobSpec {
   id: string
@@ -181,5 +182,123 @@ export function useBuildJobs(buildId: string | null) {
       }))
     },
     staleTime: 10_000,
+  })
+}
+
+// ── schedules ───────────────────────────────────────────────────────────────
+// "Schedules can be edited, managed, and updated in the schedule sidebar of
+// the Data lineage application." (data-integration/schedules)
+
+export interface ScheduleTrigger {
+  type: 'time' | 'event' | 'and' | 'or'
+  cron?: string
+  timezone?: string
+  event?: string
+  dataset_id?: string
+  schedule_id?: string
+  triggers?: ScheduleTrigger[]
+}
+
+export interface Schedule {
+  id: string
+  name: string
+  targetDatasetIds: string[]
+  buildType: 'single' | 'full'
+  trigger: ScheduleTrigger
+  paused: boolean
+  lastRunAt: string | null
+}
+
+export interface ScheduleRun {
+  id: string
+  ranAt: string
+  outcome: 'Succeeded' | 'Ignored' | 'Failed'
+  error: string | null
+}
+
+const scheduleKeys = {
+  all: ['schedules'] as const,
+  runs: (id: string) => ['schedule-runs', id] as const,
+}
+
+export function useSchedules() {
+  return useQuery({
+    queryKey: scheduleKeys.all,
+    queryFn: async (): Promise<Schedule[]> => {
+      const { data, error } = await supabase.from('schedules')
+        .select('id, name, target_dataset_ids, build_type, trigger, paused, last_run_at')
+        .order('name')
+      if (error) throw new Error(error.message)
+      return (data as unknown as {
+        id: string; name: string; target_dataset_ids: string[]; build_type: 'single' | 'full'
+        trigger: ScheduleTrigger; paused: boolean; last_run_at: string | null
+      }[]).map((r) => ({
+        id: r.id, name: r.name, targetDatasetIds: r.target_dataset_ids,
+        buildType: r.build_type, trigger: r.trigger, paused: r.paused, lastRunAt: r.last_run_at,
+      }))
+    },
+    staleTime: 15_000,
+  })
+}
+
+export function useScheduleRuns(scheduleId: string | null) {
+  return useQuery({
+    queryKey: scheduleKeys.runs(scheduleId ?? ''),
+    enabled: !!scheduleId,
+    queryFn: async (): Promise<ScheduleRun[]> => {
+      const { data, error } = await supabase.from('schedule_runs')
+        .select('id, ran_at, outcome, error')
+        .eq('schedule_id', scheduleId ?? '')
+        .order('ran_at', { ascending: false }).limit(20)
+      if (error) throw new Error(error.message)
+      return (data as { id: string; ran_at: string; outcome: ScheduleRun['outcome']; error: string | null }[])
+        .map((r) => ({ id: r.id, ranAt: r.ran_at, outcome: r.outcome, error: r.error }))
+    },
+    staleTime: 10_000,
+  })
+}
+
+export function useCreateSchedule() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: {
+      name: string; targetDatasetIds: string[]
+      buildType: 'single' | 'full'; trigger: ScheduleTrigger
+    }) => {
+      const { error } = await supabase.from('schedules').insert({
+        name: i.name, target_dataset_ids: i.targetDatasetIds,
+        build_type: i.buildType, trigger: i.trigger as unknown as Json,
+      })
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: scheduleKeys.all }); toast.success('Schedule saved') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useSetSchedulePaused() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (i: { id: string; paused: boolean }) => {
+      const { error } = await supabase.from('schedules').update({ paused: i.paused }).eq('id', i.id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: (_d, i) => {
+      void qc.invalidateQueries({ queryKey: scheduleKeys.all })
+      toast.success(i.paused ? 'Schedule paused — observed events forgotten' : 'Schedule resumed')
+    },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useDeleteSchedule() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('schedules').delete().eq('id', id)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: scheduleKeys.all }); toast.success('Schedule deleted') },
+    onError: (e: Error) => { toast.error(e.message) },
   })
 }

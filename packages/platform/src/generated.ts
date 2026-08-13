@@ -311,7 +311,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (114) ───────────────────────────────────────────────────
+// ── FUNCTIONS (119) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -561,6 +561,16 @@ export const countObjectSet = { apiName: 'count_object_set', kind: 'function' } 
 export const criterionFailureMessage = { apiName: 'criterion_failure_message', kind: 'function' } as FunctionType<
   { p_node: string },
   string
+>
+
+export const cronFieldMatches = { apiName: 'cron_field_matches', kind: 'function' } as FunctionType<
+  { p_field: string; p_value: number; p_min: number; p_max: number },
+  boolean
+>
+
+export const cronMatches = { apiName: 'cron_matches', kind: 'function' } as FunctionType<
+  { p_cron: string; p_tz: string; p_at: string },
+  boolean
 >
 
 /**
@@ -1045,6 +1055,21 @@ export const roleRank = { apiName: 'role_rank', kind: 'function' } as FunctionTy
  */
 export const satisfiesMarkings = { apiName: 'satisfies_markings', kind: 'function' } as FunctionType<
   { p_markings: string[] },
+  boolean
+>
+
+export const scheduleObserve = { apiName: 'schedule_observe', kind: 'function' } as FunctionType<
+  { p_trigger: Json; p_state: Json },
+  Json
+>
+
+export const scheduleSatisfied = { apiName: 'schedule_satisfied', kind: 'function' } as FunctionType<
+  { p_trigger: Json; p_state: Json; p_at: string },
+  boolean
+>
+
+export const scheduleTriggerValid = { apiName: 'schedule_trigger_valid', kind: 'function' } as FunctionType<
+  { p: Json },
   boolean
 >
 
