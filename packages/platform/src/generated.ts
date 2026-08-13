@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (106) ───────────────────────────────────────────────────
+// ── FUNCTIONS (108) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -742,6 +742,11 @@ export const histogramObjectSet = { apiName: 'histogram_object_set', kind: 'func
   { bucket_min: number; bucket_max: number; object_count: number }[]
 >
 
+export const holdsMarkingPermission = { apiName: 'holds_marking_permission', kind: 'function' } as FunctionType<
+  { p_marking: string; p_user: string; p_permission: string },
+  boolean
+>
+
 export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } as FunctionType<
   { p_object_type: string; p_limit?: number },
   Json[]
@@ -765,6 +770,11 @@ export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' 
 export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as FunctionType<
   { p_link: string; p_side: string },
   string
+>
+
+export const markingMember = { apiName: 'marking_member', kind: 'function' } as FunctionType<
+  { p_marking: string; p_user: string },
+  boolean
 >
 
 /**

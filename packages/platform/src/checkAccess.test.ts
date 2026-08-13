@@ -120,6 +120,20 @@ describe.skipIf(noDb)('the access checker', () => {
     expect(c.satisfied).toBe(true)
   })
 
+  it('membership granted to a group satisfies the clause too (489)', async () => {
+    // Re-grant through the group instead: "If Marking permissions are granted
+    // to a group, then a new user to the group will inherit those permissions."
+    await db.query(`delete from public.marking_members where marking_id=$1 and user_id=$2`,
+      [marking, member])
+    let c = await clause('Marking through lineage%')
+    expect(c.satisfied).toBe(false)
+    const grp = (await one(`select g.id from public.groups g where g.name='Access Leads 486'`)).id
+    await db.query(`insert into public.marking_members (marking_id, group_id) values ($1,$2)`,
+      [marking, grp])
+    c = await clause('Marking through lineage%')
+    expect(c.satisfied).toBe(true)
+  })
+
   it('Test policy answers per named user through the real predicate', async () => {
     const r = (await db.query('select * from public.test_restricted_view($1,$2)', [rv, member]))
       .rows[0] as { visible_rows: string; total_rows: string }
