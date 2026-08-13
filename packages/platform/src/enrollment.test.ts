@@ -89,6 +89,36 @@ describe.skipIf(noDb)('an organization is a marking', () => {
     expect(await satisfies(homeMarking)).toBe(true)
   })
 
+  it('a guest views the host org read-only — projects, files, users, groups (492)', async () => {
+    await db.query(`select set_config('request.jwt.claims', $1, true)`,
+      [JSON.stringify({ sub: visitor, app_metadata: {
+        role: 'admin', org_id: awayOrg, guest_org_ids: [f.orgId] } })])
+    const seen = await (async () => {
+      await db.query('savepoint guest_probe')
+      await db.query('set local role authenticated')
+      try {
+        const p = Number((await one('select count(*) as n from public.projects where id=$1', [f.projectId])).n)
+        const d = Number((await one('select count(*) as n from public.datasets where id=$1', [f.datasetId])).n)
+        const wrote = await db.query(`update public.projects set name='stolen' where id=$1`, [f.projectId])
+        return { p, d, wrote: wrote.rowCount ?? 0 }
+      } finally {
+        await db.query('reset role')
+        await db.query('rollback to savepoint guest_probe')
+      }
+    })()
+    expect(seen.p).toBe(1)
+    expect(seen.d).toBe(1)
+    expect(seen.wrote).toBe(0)
+  })
+
+  it('the token hook mints group-guest orgs into the claims (492)', async () => {
+    const hooked = (await one(
+      `select public.custom_access_token_hook(jsonb_build_object('user_id', $1::text, 'claims', '{}'::jsonb)) as h`,
+      [visitor])).h as unknown as { claims: { app_metadata: { guest_org_ids: string[] } } }
+    // The visitor rides the guest group from the previous test.
+    expect(hooked.claims.app_metadata.guest_org_ids).toContain(f.orgId)
+  })
+
   it('the compiler binds organization_marking_ids instead of failing closed', async () => {
     const r = await one(
       `select public.granular_policy_sql('{"match":"all","rules":[
