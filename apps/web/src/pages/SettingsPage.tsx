@@ -23,6 +23,9 @@ import {
   useGrantGroupPermission, useRevokeGroupPermission,
   type Group, type GroupPermission,
 } from '@/features/groups/api'
+import {
+  useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest,
+} from '@/features/organization/api'
 
 const PERMISSION_META: Record<GroupPermission, { label: string; help: string }> = {
   manage_permissions: {
@@ -45,9 +48,88 @@ export default function SettingsPage() {
             Platform Settings — what the organization shares, as opposed to the Account page's personal preferences.
           </p>
         </header>
+        <OrganizationSection />
         <GroupsSection />
       </div>
     </div>
+  )
+}
+
+// The Organization permissions surface, Guest membership half: "Manage
+// members of other organizations who can view projects and files marked with
+// this organization." Registries are org-siloed, so a foreign principal is
+// added by its ID; enrollment-wide discovery is the next slice.
+function OrganizationSection() {
+  const { data: org } = useMyOrganization()
+  const { data: guests = [] } = useOrgGuests()
+  const add = useAddOrgGuest()
+  const remove = useRemoveOrgGuest()
+  const isAdmin = useAuthStore((s) => s.role === 'owner' || s.role === 'admin')
+  const [kind, setKind] = useState<'user' | 'group'>('user')
+  const [principalId, setPrincipalId] = useState('')
+
+  if (!org) return null
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Icon icon="office" size={14} className="text-muted-foreground" />{org.name}
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
+          The organization is a marking{org.markingName ? <> — <Tag minimal className="!text-[10px]">{org.markingName}</Tag></> : null}.
+          New projects and groups are restricted to its members by default; guests below can see what it marks.
+        </p>
+      </div>
+
+      <Card compact className="!p-0">
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
+          <Icon icon="following" size={12} className="text-muted-foreground" />
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Guest membership</span>
+          <Tag minimal className="!text-[10px]">{guests.length}</Tag>
+          <span className="text-[11px] text-muted-foreground/70 ml-1">
+            Members of other organizations who can view what this organization marks.
+          </span>
+        </div>
+        {guests.length === 0 ? (
+          <p className="px-3 py-3 text-xs text-muted-foreground">No guests. Only members see what this organization marks.</p>
+        ) : (
+          <ul className="divide-y divide-border/30">
+            {guests.map((g) => (
+              <li key={g.id} className="flex items-center gap-2 px-3 py-1.5 text-xs">
+                <Icon icon={g.userId ? 'person' : 'people'} size={11} className="text-muted-foreground" />
+                <span className="flex-1 truncate">{g.label}</span>
+                {isAdmin && (
+                  <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER}
+                    title="Remove guest" onClick={() => { remove.mutate(g.id) }} />
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+        {isAdmin && (
+          <div className="flex flex-wrap items-end gap-2 border-t border-border px-3 py-3">
+            <label className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kind</span>
+              <HTMLSelect value={kind} onChange={(e) => { setKind(e.currentTarget.value as 'user' | 'group') }}>
+                <option value="user">User</option>
+                <option value="group">Group</option>
+              </HTMLSelect>
+            </label>
+            <label className="flex flex-col gap-1 flex-1 min-w-64">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {kind === 'user' ? 'User ID' : 'Group ID'} (from the other organization)
+              </span>
+              <InputGroup value={principalId} placeholder="00000000-0000-0000-0000-000000000000"
+                onChange={(e) => { setPrincipalId(e.currentTarget.value) }} />
+            </label>
+            <Button size="small" icon="add" loading={add.isPending} disabled={!principalId.trim()}
+              onClick={() => { add.mutate({ kind, principalId: principalId.trim() }, { onSuccess: () => { setPrincipalId('') } }) }}>
+              Add guest
+            </Button>
+          </div>
+        )}
+      </Card>
+    </section>
   )
 }
 

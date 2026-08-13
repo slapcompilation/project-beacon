@@ -295,7 +295,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (108) ───────────────────────────────────────────────────
+// ── FUNCTIONS (109) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -393,6 +393,11 @@ export const authOrgId = { apiName: 'auth_org_id', kind: 'function' } as Functio
  *  the access token hook derives both from the database at issue.
  */
 export const authOrgIds = { apiName: 'auth_org_ids', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const authOrgMarkingIds = { apiName: 'auth_org_marking_ids', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
 >
