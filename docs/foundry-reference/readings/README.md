@@ -345,6 +345,14 @@ is worth most just before the thing it describes gets built. Nothing here is
   Decisions: placement is a column beside project_id, trash is a timestamp,
   two slices (C1 tree, C2 catalog).
 
-Thirty-five readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
+- `functions.md` — typed, versioned server logic on the Ontology: queries
+  are the read-only subset ('cannot have any side effects'), edit functions
+  RETURN edits that only a function-backed action applies, semver with six
+  published breaking-change checks, and execution reads with the END USER's
+  permissions. Foundry's own TSv2 consumption syntax is our generated
+  client's shape already. Decisions: SQL logic (493's precedent, marked
+  ours), queries first then edits, no RID until attested.
+
+Thirty-six readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
