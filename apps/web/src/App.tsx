@@ -26,6 +26,7 @@ const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage
 const MainBranchUpdatesPage = lazyWithRetry(() => import('@/pages/ontology/MainBranchUpdatesPage'))
 const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
 const BuildsPage = lazyWithRetry(() => import('@/pages/BuildsPage'))
+const CatalogPage = lazyWithRetry(() => import('@/pages/CatalogPage'))
 
 // Object Explorer: the search-and-analysis surface over the object index.
 const ExplorerHome = lazyWithRetry(() => import('@/features/explorer/ExplorerHome'))
@@ -86,6 +87,7 @@ function AppRoutes() {
             <Route path="/value-types" element={<ValueTypesPage />} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/builds" element={<BuildsPage />} />
+            <Route path="/catalog" element={<CatalogPage />} />
             <Route path="/explorer" element={<ExplorerHome />} />
             <Route path="/explorer/saved/:setId" element={<SavedSetPage />} />
             <Route path="/explorer/:typeId" element={<ExplorationPage />} />

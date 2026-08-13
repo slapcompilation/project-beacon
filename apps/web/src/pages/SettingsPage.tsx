@@ -26,6 +26,9 @@ import {
 import {
   useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest,
 } from '@/features/organization/api'
+import {
+  useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
+} from '@/features/compass/catalogApi'
 
 const PERMISSION_META: Record<GroupPermission, { label: string; help: string }> = {
   manage_permissions: {
@@ -50,6 +53,7 @@ export default function SettingsPage() {
         </header>
         <OrganizationSection />
         <GroupsSection />
+        <TagsSection />
       </div>
     </div>
   )
@@ -441,5 +445,73 @@ function ExpirationCard({ group }: { group: Group }) {
         </div>
       </div>
     </Card>
+  )
+}
+
+
+// "You can manage tags and tag categories in the **Tags** section of
+// Platform Settings." Tags never gate — deleting removes them from every
+// resource, and nothing about visibility changes.
+function TagsSection() {
+  const { data: categories = [] } = useTagCategories()
+  const { data: tags = [] } = useTags()
+  const createCategory = useCreateTagCategory()
+  const createTag = useCreateTag()
+  const del = useDeleteTagEntity()
+  const isAdmin = useAuthStore((s) => s.role === 'owner' || s.role === 'admin')
+  const [newCategory, setNewCategory] = useState('')
+  const [newTag, setNewTag] = useState('')
+  const [inCategory, setInCategory] = useState('')
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold flex items-center gap-2">
+          <Icon icon="tag" size={14} className="text-muted-foreground" />Tags
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5 max-w-2xl">
+          Structured metadata for categorization and discovery — tags never add or imply security.
+        </p>
+      </div>
+      {categories.map((c) => (
+        <Card key={c.id} compact className="!py-2">
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <span className="font-semibold">{c.name}</span>
+            {tags.filter((t) => t.categoryId === c.id).map((t) => (
+              <Tag key={t.id} minimal
+                onRemove={isAdmin ? () => { del.mutate({ table: 'tags', id: t.id }) } : undefined}>
+                {t.name}
+              </Tag>
+            ))}
+            {isAdmin && (
+              <Button variant="minimal" size="small" icon="trash" intent={Intent.DANGER}
+                title="Delete category — removed from all resources, cannot be undone"
+                onClick={() => { del.mutate({ table: 'tag_categories', id: c.id }) }} />
+            )}
+          </div>
+        </Card>
+      ))}
+      {isAdmin && (
+        <div className="flex flex-wrap items-center gap-2">
+          <InputGroup size="small" value={newCategory} placeholder="New tag category…"
+            onChange={(e) => { setNewCategory(e.currentTarget.value) }} />
+          <Button size="small" icon="add" loading={createCategory.isPending} disabled={!newCategory.trim()}
+            onClick={() => { createCategory.mutate(newCategory.trim(), { onSuccess: () => { setNewCategory('') } }) }}>
+            Category
+          </Button>
+          <HTMLSelect value={inCategory} onChange={(e) => { setInCategory(e.currentTarget.value) }}>
+            <option value="">In category…</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </HTMLSelect>
+          <InputGroup size="small" value={newTag} placeholder="New tag…"
+            onChange={(e) => { setNewTag(e.currentTarget.value) }} />
+          <Button size="small" icon="add" loading={createTag.isPending}
+            disabled={!newTag.trim() || !inCategory}
+            onClick={() => { createTag.mutate({ categoryId: inCategory, name: newTag.trim() }, { onSuccess: () => { setNewTag('') } }) }}>
+            Tag
+          </Button>
+        </div>
+      )}
+    </section>
   )
 }

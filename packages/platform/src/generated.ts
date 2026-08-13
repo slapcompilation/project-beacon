@@ -311,7 +311,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (120) ───────────────────────────────────────────────────
+// ── FUNCTIONS (121) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -544,6 +544,11 @@ export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' }
 export const checkAccess = { apiName: 'check_access', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_user: string },
   { section: string; requirement: string; detail: string; satisfied: boolean }[]
+>
+
+export const compassProjectOf = { apiName: 'compass_project_of', kind: 'function' } as FunctionType<
+  { p_kind: string; p_id: string },
+  string
 >
 
 /**
