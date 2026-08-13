@@ -146,10 +146,10 @@ project page (tree, filing, trash with restore and permanent delete).
 
 Build-time find, worth its own line: the fixture's owner applied a marking
 they were not a MEMBER of and went blind to the file they had just marked —
-399's "a holder can classify data they cannot read", demonstrated. Every
-subsequent step no-opped silently and two assertions passed vacuously on
-NULLs before the first loud failure. Assertions that depend on visibility
-now assert rowcounts, not absence of error.
+migration 399's own permissions-are-not-membership design, demonstrated
+live. Every subsequent step no-opped silently and two assertions passed
+vacuously on NULLs before the first loud failure. Assertions that depend on
+visibility now assert rowcounts, not absence of error.
 
 ## Open questions
 
