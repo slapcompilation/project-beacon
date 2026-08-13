@@ -29,6 +29,7 @@ import {
 } from '@/features/datasets/api'
 import { CreateRestrictedViewDialog } from '@/features/restrictedViews/CreateRestrictedViewDialog'
 import { CheckAccessPanel } from '@/features/security/CheckAccessPanel'
+import { TransformCard } from '@/features/builds/TransformCard'
 
 const TYPE_META = new Map(TRANSACTION_TYPES.map((t) => [t.value, t]))
 const STATUS_META = new Map(TRANSACTION_STATUSES.map((t) => [t.value, t]))
@@ -202,6 +203,8 @@ function DatasetDetails({ dataset }: { dataset: Dataset }) {
             mono={dataset.physicalTable !== null} />
         </dl>
       </Card>
+
+      <TransformCard datasetId={dataset.id} />
 
       <AccessRequirements datasetId={dataset.id} />
       {/* "On a Project, folder, or file … select Access > Check access." */}

@@ -40,6 +40,14 @@ export const AUDIENCES: AppAudience[] = [
         tint: '#2d72d2',
       },
       {
+        name: 'Builds',
+        tagline: 'Compute datasets from their inputs',
+        blurb: 'JobSpecs pair declared inputs with one SQL SELECT; a build runs the jobs, locks each output with a transaction, and skips what is fresh.',
+        path: '/builds',
+        icon: 'play',
+        tint: '#2d72d2',
+      },
+      {
         name: 'Data Lineage',
         tagline: 'See how data flows',
         blurb: 'One graph over datasets and object types: inputs, datasource bindings, materializations and links, with staleness at a glance.',
