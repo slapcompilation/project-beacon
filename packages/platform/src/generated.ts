@@ -311,7 +311,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (119) ───────────────────────────────────────────────────
+// ── FUNCTIONS (120) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -708,6 +708,11 @@ export const evaluateObjectSet = { apiName: 'evaluate_object_set', kind: 'functi
 export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_marking: string },
   string
+>
+
+export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
+  { p_folder: string },
+  boolean
 >
 
 /**
