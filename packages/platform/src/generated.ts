@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (29) ────────────────────────────────────────────────
+// ── ACTION TYPES (31) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -105,6 +105,11 @@ export const createSpace = { apiName: 'create_space', kind: 'action' } as Action
  *  can_write_dataset first.
  */
 export const datasetMaterialize = { apiName: 'dataset_materialize', kind: 'action' } as ActionType<
+  { p_dataset: string; p_transaction: string },
+  string
+>
+
+export const datasetRematerialize = { apiName: 'dataset_rematerialize', kind: 'action' } as ActionType<
   { p_dataset: string; p_transaction: string },
   string
 >
@@ -205,6 +210,17 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
+ *  One build: resolve the job set (single or full), refuse cycles, skip the
+ *  fresh unless forced, run jobs in dependency order as the caller, lock each
+ *  output with a real transaction, abort dependents on failure. NULL means
+ *  everything was fresh and no build was created.
+ */
+export const runBuild = { apiName: 'run_build', kind: 'action' } as ActionType<
+  { p_targets: string[]; p_force?: boolean; p_build_type?: string },
+  string
+>
+
+/**
  *  The Actions sub-tab's writer: the satisfaction and its
  *  Configure-parameters mappings in one transaction, so 467's commit-time
  *  completeness judges the whole. Re-satisfying replaces the mappings
@@ -295,7 +311,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (109) ───────────────────────────────────────────────────
+// ── FUNCTIONS (114) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -415,6 +431,11 @@ export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionTy
 export const branchConflicts = { apiName: 'branch_conflicts', kind: 'function' } as FunctionType<
   { p_branch: string },
   { resource_kind: string; resource_id: string; field: string; base_value: Json; branch_value: Json; main_value: Json }[]
+>
+
+export const buildFieldOf = { apiName: 'build_field_of', kind: 'function' } as FunctionType<
+  { p_pg_type: string },
+  Json
 >
 
 export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' } as FunctionType<
@@ -765,6 +786,26 @@ export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'funct
 export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' } as FunctionType<
   { p_category: string },
   boolean
+>
+
+export const jobSpecFresh = { apiName: 'job_spec_fresh', kind: 'function' } as FunctionType<
+  { p_spec: string },
+  boolean
+>
+
+export const jobSpecInputState = { apiName: 'job_spec_input_state', kind: 'function' } as FunctionType<
+  { p_spec: string },
+  Json
+>
+
+export const jobSpecQuery = { apiName: 'job_spec_query', kind: 'function' } as FunctionType<
+  { p_spec: string },
+  string
+>
+
+export const jobSpecQueryText = { apiName: 'job_spec_query_text', kind: 'function' } as FunctionType<
+  { p_output: string; p_logic: string },
+  string
 >
 
 /**
