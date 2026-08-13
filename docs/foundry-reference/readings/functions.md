@@ -129,41 +129,61 @@ The overview page shows
 
 ## Decisions I had to make (mine, not Palantir's, unless quoted)
 
-1. **The logic is SQL, as it is for transforms** — 493's precedent, one step
-   further. A function is a named, typed, versioned SQL expression over the
-   ontology's indexed objects; TypeScript and Python execution are the JVM/
-   sidecar stack CLAUDE.md rules out. Marked as ours, loudly: Foundry's
-   functions are a code-repository product, and this is the shape that
-   survives our substrate.
-2. **Queries first, edits second.** F1 builds the read-only subset the page
-   defines — parameters, one SELECT-expression body, a scalar/object-set
-   return — because "they cannot have any side effects" is a rule a
-   validator can hold. Edit functions (F2) return an edit BATCH that only a
-   function-backed action applies; the object-search caveat then holds by
-   construction, since nothing is written during the call.
-3. **Versioning is the JobSpec pattern, plus semver**: `functions` +
-   `function_versions` (major/minor/patch/prerelease, immutable after
-   creation), with the six documented breaking-change checks run against the
-   previous version's signature at publish. The check WARNS on widening and
-   REFUSES on the rest — Foundry warns; ours refuses because we have no
-   human release-review step, marked.
-4. **Execution runs as the caller** — SECURITY INVOKER, exactly as 493
-   settled, so "the permissions of the end user running the function
-   determine which objects are loaded" holds without new machinery. The
-   plan-walk sandbox restricts base relations to the declared object types'
-   index tables.
-5. **API names take the page's four rules verbatim** (lowerCamelCase, <100
-   chars, no leading digits, unique per ontology), and a query resolved by
-   API name resolves to its latest version, per the page.
-6. **No RID column yet.** A full-corpus sweep prints no
-   `ri.…function…` anywhere — the same evidence bar Q1 used. Existence is
-   likely (manage-functions searches "by … RID"), so this is recorded as the
-   next Q1-style question rather than invented.
-7. **Recorded, not built**: webhooks/external functions, language models and
-   semantic search, streaming, notifications, Marketplace packaging, the
-   sidecar Python runtime, live preview, per-version resource configuration
-   (timeouts/memory as tunables), consistent snapshots, and Workshop/Slate/
-   Quiver consumption (those products do not exist here).
+**Revised 2026-08-14, on the operator's correction: build it the way Foundry
+builds it.** The first draft made the logic SQL — an expression compiled by
+Postgres, the way 493's transforms work. That was a shortcut, and the wrong
+one: it changes what a function *is*. Foundry's functions are **code**,
+"executed on the server side in an isolated environment", and we already own
+every piece that shape needs.
+
+1. **The logic is TypeScript, executed server-side in an isolated
+   environment** — the page's own sentence, not an analogy. The runtime is a
+   Deno **Worker** spawned inside a Supabase edge function with no ambient
+   permissions: no env, no file system, and **no network of its own**. This
+   is not a new substrate; `supabase/functions/` already runs Deno, and
+   CLAUDE.md rules out the JVM, not TypeScript — TypeScript is Foundry's own
+   first language for functions.
+2. **The ontology reaches the code through the generated client, and only
+   through it.** Foundry generates "code bindings" from imported object and
+   link types; `pnpm gen:client` already generates exactly that, and the
+   page's own consumption example is our call shape verbatim. Inside the
+   worker the injected `client` does not fetch: it posts each call to the
+   host, which performs it with the **caller's JWT**. So user code holds a
+   capability, never a connection — and "the permissions of the end user
+   running the function determine which objects are loaded" is enforced by
+   RLS on a real request rather than by our own re-implementation.
+3. **Imports are declared, like a repository's ontology imports.** A
+   function declares which object types and link types it uses (the page:
+   code bindings are generated "for every object and link type that was
+   loaded", from the repository's imports); the host refuses a mediated call
+   naming anything undeclared. That is the sandbox, and it is the honest
+   equivalent of Foundry's project-level imports.
+4. **Queries first, edits second.** F1 builds the read-only subset — "they
+   cannot have any side effects" — which is enforceable here precisely
+   because the worker cannot reach anything the host does not mediate, and
+   the host refuses writes for a query. F2's edit functions RETURN an edit
+   batch; only a function-backed action applies it, so the documented
+   object-search caveat holds by construction.
+5. **Versioning is semver, immutable, with the six published checks**:
+   `functions` + `function_versions` carrying the source, the typed
+   signature and the declared imports. Foundry *warns* on breaking changes;
+   ours **refuses** without a major bump, because we have no human
+   release-review step. Marked as stricter than documented.
+6. **API names take the page's four rules verbatim** (lowerCamelCase, <100
+   chars, no leading digits, unique per ontology), and an API-named query
+   resolves to its latest version, per the page.
+7. **Limits are the page's numbers**: 60 seconds elapsed by default, and the
+   worker is terminated at the deadline — a limit the isolate enforces,
+   which a SQL expression could never have honoured.
+8. **No RID column yet.** A full-corpus sweep prints no `ri.…function…`
+   anywhere — the same evidence bar Q1 used. Existence is likely
+   (manage-functions searches "by … RID"), so this is recorded as the next
+   Q1-style question rather than invented.
+9. **Recorded, not built**: Python as the second language (CLAUDE.md already
+   reserves it for modelling behind an adapter seam), webhooks and external
+   functions, language models and semantic search, streaming, notifications,
+   Marketplace packaging, live preview, per-version resource configuration,
+   consistent snapshots, and Workshop/Slate/Quiver consumption.
 
 ## Open questions
 
@@ -176,3 +196,8 @@ The overview page shows
 3. Function-backed actions (F2's consumer) touch `action_types`' function
    rule, which 418 built and left pointing at nothing. Confirm F2 should
    wire that rule rather than invent a second execution path.
+4. Authoring surface: Foundry's is a code repository with checks and a
+   publish step. Ours will be an editor in Ontology Manager's Functions tab
+   for F1 — enough to write, type-check and publish one function. A real
+   repository (branches, PRs, CI) is a product we do not have and is not
+   proposed.
