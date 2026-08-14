@@ -138,13 +138,13 @@ And a warning we should obey by *not* copying it:
 ## Questions
 
 1. ~~Does an object dataset have its own status, or is it the build's?~~
-   **Answered from the documentation** — see
-   `ontology-backend-architecture.md`. Index status is defined twice as "the
-   status of the last reindex", so a status row is a **projection of the last
-   job**, not an independent state. The same reading applies here: the object
-   dataset's `Up to date` chip reports its last build. The chip's own wording
-   appears only in the screenshot and has no prose vocabulary to trace, so it
-   is displayed, not stored.
+   **Answered, after a wrong first answer** — see
+   `ontology-backend-architecture.md`. I first cited the Phonograph page, which
+   is OSv1 and in planned deprecation. **OSv2 has no scalar status to
+   reconcile**: "a dedicated pipeline graph that shows the status of various
+   jobs in a Funnel pipeline" is the surface, and the truth is the job's state.
+   So the object dataset's `Up to date` chip reports its last build and needs
+   no column, which is the same conclusion by a better route.
 2. **What does `automatic` watch, exactly?** "whenever updates to objects are
    detected" — an index build completing is the obvious signal here, but an
    edit applied without a reindex is also an update to objects. I propose both.
