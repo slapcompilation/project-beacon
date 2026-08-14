@@ -266,4 +266,13 @@ for (const section of sections) {
 
 console.log(`\nwritten ${written} · skipped ${skipped} (already mirrored) · failed ${failures.length}`)
 for (const f of failures) console.log(`  ${f}`)
+
+// The map is the artifact CLAUDE.md tells you to grep before concluding
+// Foundry lacks something, so it has to match what was just written. It was
+// maintained by hand until it described half the corpus.
+if (written > 0) {
+  const { execFileSync } = await import('node:child_process')
+  execFileSync(process.execPath, ['scripts/build-map.mjs'], { stdio: 'inherit' })
+}
+
 process.exit(failures.length > 0 ? 1 : 0)
