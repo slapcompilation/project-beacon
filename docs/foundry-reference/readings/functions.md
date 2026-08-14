@@ -484,3 +484,134 @@ One transaction, after the function returns, or nothing.
    single Run function card and the rule is exclusive, so yes — but nothing
    states a function cannot call another published function, and F1 has no
    mechanism for that.
+
+---
+
+# Addendum III (2026-08-14) — Q2 and Q3 answered, and a bug found on the way
+
+Pages read: `action-types/rules.md` (re-read in full),
+`monitoring-views/rules-reference.md` and `foundry-rules/core-concepts.md` +
+`foundry-rules/object-model.md` (both newly mirrored — 35 pages),
+`functions/function-metrics.md`, `action-types/action-metrics.md`,
+`functions/edits-generate-id.md`.
+
+**Two of the five links are a different sense of the word "rule".** Foundry
+Rules is a business-rules workflow product where "Rules are standard objects"
+with a logic property and a proposal review flow; monitoring rules are alerting
+thresholds per resource. Neither bears on action-type rules. Saying so rather
+than quietly finding something.
+
+## Q3 — answered verbatim, with the reason
+
+> "**Function rule:** Can be used to reference an Ontology edit function whose
+> inputs are derived from parameters of the action. When this rule is present,
+> no other rule may be configured since function code alone is capable of
+> handling everything that other rules can do."
+
+— `action-types/rules.md`, rule 7 of twelve.
+
+One function rule per action, exclusive. 418 already enforces the exclusivity;
+what was missing was the *reason*, and it is published: function code
+subsumes every other rule kind. So a function-backed action needs no rule
+composition and none should be built.
+
+## Q2 — answered, and object types are the whole answer
+
+The published failure vocabulary names the unit exactly:
+
+> "**Undeclared object types edited error:** The function execution attempts to
+> update, create or delete an object whose object type is not declared in the
+> function spec."
+
+— `functions/function-metrics.md`.
+
+**Object type, not link type.** That aligns with the earlier "Currently, the
+provenance consists only of the object types that the action may edit at
+runtime", and `rules.md` explains why the gap is not a gap for us:
+
+> "To create or delete one-to-many or one-to-one links, object rules need to be
+> used and the foreign key property on the object needs to be modified."
+
+> "For foreign key links, one has to use **Modify object** rule to explicitly
+> modify the foreign key property."
+
+A foreign-key link edit **is** an object edit, so object-type provenance covers
+it completely. Only many-to-many links are true link edits, and those need a
+link instance store we do not have. Provenance is object types, and for our
+backing model that is not a simplification — it is the whole surface.
+
+## Two published failure vocabularies, and two entries that exist only for us
+
+`functions/function-metrics.md` lists ten function failure types and
+`action-types/action-metrics.md` lists eight action failure types. Two of the
+action ones are function-backed-only:
+
+> "**Function failure:** The action failed because the underlying function
+> failed. This failure mode is only possible for function-backed actions."
+
+> "**User-facing function failure:** The function backing the action threw an
+> error intended to be displayed to the user. This failure mode is only
+> possible for function-backed actions."
+
+So the action must distinguish *the function broke* from *the function
+deliberately told the user something*. That is a real branch in apply, not a
+nicety, and the monitoring page confirms it is the branch operators filter on:
+the non-user-facing action rule tracks failures "excluding failures caused by
+user-facing errors thrown by function-backed action code".
+
+The function list also gives us `Invalid inputs error`, `Invalid output error`
+and `Data loading not allowed error` — F1's `Functions:UndeclaredImport` is the
+last of those, now with a published name to sit beside.
+
+## A published limit
+
+> "**Scale limit failure:** The action affected more than the permitted limit
+> of object types (by default, usually 10,000)."
+
+and, from `object-backend/overview.md`:
+
+> "Increased user edit throughput, enabling up to 10,000 objects to be edited
+> in a single Action."
+
+The overview's wording is the precise one — **10,000 objects per action**. A
+returned edit batch larger than that is refused.
+
+## A bug found while reading, unrelated to F2
+
+`rules.md` lists four value sources a rule property may take: **From
+parameter**, **Object parameter property**, **Static value**, **Current
+User/Time**. 418 admits all four in its CHECK, including
+`object_parameter_property`:
+
+> "**Object parameter property:** A property of an existing object reference
+> parameter. The property type of the object parameter needs to match the
+> property type it is mapped to."
+
+But `apply_action`'s CASE handles `parameter`, `static`, `current_user` and
+`current_time`, and falls through to `ELSE NULL`. So a rule that declares
+`object_parameter_property` **silently writes NULL into the property** instead
+of refusing. A declarable value that produces a wrong answer is worse than one
+that refuses; this is CLAUDE.md's vocabulary-ahead-of-its-runtime case (our
+phrase, not Palantir's), and it should at minimum raise rather than write NULL.
+
+Recorded here rather than fixed, because it is not F2 — but F2 touches
+`apply_action`, so it is cheap to fix in the same pass if you want it.
+
+## Decisions, updated
+
+Everything from Addendum II stands. Three additions:
+
+10. **Provenance stays object-types-only, and is no longer marked as an
+    inference** — the failure type names object types, and FK link edits are
+    object edits by `rules.md`'s own instruction.
+11. **Apply distinguishes two function failures**: a function that threw a
+    user-facing error surfaces that message; any other failure is a function
+    failure. Both fail the action, and both are named.
+12. **The batch is capped at 10,000 objects**, the published limit, refused by
+    name rather than truncated.
+
+## Questions
+
+None outstanding for F2. The three from Addendum II are closed: Q1 by the
+flowchart's own `Instructions: Delete / Create / (Modification)` labels, Q2 and
+Q3 above.
