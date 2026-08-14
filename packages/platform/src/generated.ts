@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (33) ────────────────────────────────────────────────
+// ── ACTION TYPES (34) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -33,6 +33,17 @@ export const applyAction = { apiName: 'apply_action', kind: 'action' } as Action
 export const applyActionType = { apiName: 'apply_action_type', kind: 'action' } as ActionType<
   { p_action: Json; p_parameters?: Json; p_rules?: Json; p_criteria?: Json },
   string
+>
+
+/**
+ *  Writes the edit batch an Ontology edit function returned, in one
+ *  transaction: the published ObjectEdit variants become object_edits
+ *  instructions, an edit outside the version's provenance fails the action,
+ *  and link edits are refused by name.
+ */
+export const applyFunctionEdits = { apiName: 'apply_function_edits', kind: 'action' } as ActionType<
+  { p_action_type: string; p_edits: Json },
+  number
 >
 
 /**
@@ -322,8 +333,17 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (130) ───────────────────────────────────────────────────
+// ── FUNCTIONS (133) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
+
+/**
+ *  Objects editable in one action: "enabling up to 10,000 objects to be
+ *  edited in a single Action" (object-backend/overview).
+ */
+export const actionEditLimit = { apiName: 'action_edit_limit', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  number
+>
 
 /**
  *  Every property this action type can write. "Because we have only defined
@@ -335,14 +355,19 @@ export const actionEditableProperties = { apiName: 'action_editable_properties',
   { object_type: string; property: string; rule_kind: string }[]
 >
 
+export const actionFunctionToRun = { apiName: 'action_function_to_run', kind: 'function' } as FunctionType<
+  { p_action_type: string },
+  Json
+>
+
 /**
- *  The seven rule kinds (action-types/rules.md), what each targets, and
- *  whether apply_action() can run it today. The five interface kinds and
- *  three side-effect kinds are deliberately absent, as 418 records.
+ *  The seven rule kinds (action-types/rules.md), what each targets, whether
+ *  it can be applied, and which runtime applies it. The five interface kinds
+ *  and three side-effect kinds are deliberately absent, as 418 records.
  */
 export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
-  { kind: string; targets: string; executable: boolean; note: string }[]
+  { kind: string; targets: string; executable: boolean; runtime: string; note: string }[]
 >
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
@@ -742,6 +767,11 @@ export const fileMarkingOrigin = { apiName: 'file_marking_origin', kind: 'functi
 
 export const folderInTrash = { apiName: 'folder_in_trash', kind: 'function' } as FunctionType<
   { p_folder: string },
+  boolean
+>
+
+export const functionEditsValid = { apiName: 'function_edits_valid', kind: 'function' } as FunctionType<
+  { p_sig: Json; p_edits: Json },
   boolean
 >
 

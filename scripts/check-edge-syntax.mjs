@@ -28,10 +28,14 @@ import { tmpdir } from 'node:os'
 const ROOT = 'supabase/functions'
 const slash = (p) => p.replace(/\\/g, '/')
 
-const fns = readdirSync(ROOT, { withFileTypes: true })
-  .filter((d) => d.isDirectory() && !d.name.startsWith('_'))
+const dirs = readdirSync(ROOT, { withFileTypes: true })
+  .filter((d) => d.isDirectory())
   .map((d) => join(ROOT, d.name))
-  .filter((d) => existsSync(join(d, 'index.ts')))
+// A function is a directory with an index.ts. An underscore directory is
+// shared code — deployed with whoever imports it, never on its own.
+const base = (d) => slash(d).split('/').pop()
+const fns = dirs.filter((d) => existsSync(join(d, 'index.ts')) && !base(d).startsWith('_'))
+const shared = dirs.filter((d) => base(d).startsWith('_'))
 
 if (fns.length === 0) {
   console.error(`no edge functions found — is the path still ${ROOT}/?`)
@@ -41,7 +45,7 @@ if (fns.length === 0) {
 // ── §1 does it parse ────────────────────────────────────────────────────────
 // Every .ts in the directory, not just the entry: a helper module is deployed
 // and run, so a syntax error in it breaks the same way.
-const files = fns.flatMap((d) =>
+const files = [...fns, ...shared].flatMap((d) =>
   readdirSync(d).filter((f) => f.endsWith('.ts')).map((f) => slash(join(d, f))))
 
 const out = mkdtempSync(join(tmpdir(), 'edge-parse-'))
@@ -65,6 +69,8 @@ const importsOf = (file) => [...readFileSync(file, 'utf8')
   .map((m) => slash(resolve(dirname(file), m[1])))
 
 const orphans = []
+/** Everything any function's index.ts reaches, shared code included. */
+const reachable = new Set()
 for (const dir of fns) {
   const entry = slash(join(dir, 'index.ts'))
   const seen = new Set([entry])
@@ -75,8 +81,16 @@ for (const dir of fns) {
       if (hit !== undefined && !seen.has(slash(hit))) { seen.add(slash(hit)); queue.push(hit) }
     }
   }
+  for (const f of seen) reachable.add(slash(resolve(f)))
   const here = readdirSync(dir).filter((f) => f.endsWith('.ts')).map((f) => slash(join(dir, f)))
   orphans.push(...here.filter((f) => !seen.has(slash(resolve(f)))).filter((f) => !seen.has(f)))
+}
+// Shared code nothing imports ships nowhere at all.
+for (const dir of shared) {
+  for (const f of readdirSync(dir).filter((f) => f.endsWith('.ts'))) {
+    const abs = slash(resolve(join(dir, f)))
+    if (!reachable.has(abs)) orphans.push(slash(join(dir, f)))
+  }
 }
 
 if (orphans.length > 0) {
