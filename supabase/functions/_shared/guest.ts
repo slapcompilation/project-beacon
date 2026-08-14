@@ -52,6 +52,73 @@ globalThis.client = function (entity) {
   return __objectSet(apiName, {})
 }
 
+// The edit batch. "For the edits created in a function to actually be applied,
+// Ontology edit functions must be configured as a function-backed Action" — so
+// this collects and nothing more. The batch never writes; it returns the
+// published ObjectEdit variants and the action decides.
+//
+// v2 semantics, which are the ones that matter here: "Subsequent access to the
+// lastName property value of employee later in the same function execution will
+// NOT reflect the changes that you make when calling update on the edit batch."
+// The batch is write-only, so no read path is touched and no pending-edit
+// overlay is needed.
+function __ref(target) {
+  // Either a loaded instance or "{ $apiName, $primaryKey }" — the page prints
+  // both forms and treats them the same.
+  if (target === null || typeof target !== 'object') {
+    throw new Error('an edit names an object instance or { $apiName, $primaryKey }')
+  }
+  var apiName = target.$apiName || target.apiName
+  var primaryKey = target.$primaryKey
+  if (!apiName) throw new Error('an edit names an object type')
+  if (primaryKey === undefined || primaryKey === null) {
+    throw new Error('an edit names a primary key')
+  }
+  return { objectType: String(apiName), primaryKey: String(primaryKey) }
+}
+
+globalThis.createEditBatch = function () {
+  var edits = []
+  return {
+    // "you must specify a value for its primary key and can optionally
+    // initialize any other properties"
+    create: function (type, properties) {
+      var apiName = typeof type === 'string' ? type : type.apiName
+      var props = Object.assign({}, properties)
+      var pk = props.$primaryKey
+      delete props.$primaryKey
+      if (pk === undefined || pk === null) {
+        throw new Error('create needs a $primaryKey for ' + apiName)
+      }
+      edits.push({ addObject: { objectType: String(apiName), primaryKey: String(pk), properties: props } })
+      return this
+    },
+    update: function (target, properties) {
+      var r = __ref(target)
+      edits.push({ modifyObject: { objectType: r.objectType, primaryKey: r.primaryKey, properties: properties || {} } })
+      return this
+    },
+    delete: function (target) {
+      var r = __ref(target)
+      edits.push({ deleteObject: __ref(target) })
+      return this
+    },
+    // "For many-to-many links, the link and unlink methods are available"; a
+    // one-to-one or one-to-many link is edited with update on the foreign key,
+    // so these two only ever describe many-to-many — which this platform has
+    // no instance store for, and the action refuses them by name.
+    link: function (a, linkName, b) {
+      edits.push({ addLink: { linkTypeApiNameAtoB: String(linkName), aSideObject: __ref(a), bSideObject: __ref(b) } })
+      return this
+    },
+    unlink: function (a, linkName, b) {
+      edits.push({ deleteLink: { linkTypeApiNameAtoB: String(linkName), aSideObject: __ref(a), bSideObject: __ref(b) } })
+      return this
+    },
+    getEdits: function () { return edits.slice() },
+  }
+}
+
 // The result is settled INSIDE the isolate and left in a plain global. The
 // host then reads a string, never a promise: __hostCall is asyncified, so a
 // function that only awaits ontology reads completes as soon as the host

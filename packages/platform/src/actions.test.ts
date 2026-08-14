@@ -119,8 +119,14 @@ describe.skipIf(noDb)('actions', () => {
   })
 
   // ── 446: the registry says what executes ──────────────────────────────────
-  it('has exactly three executable kinds, said by the registry', async () => {
-    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(3)
+  // 509 split the fact this used to assert. `executable` is now "can be
+  // applied at all" and a function rule is — by the action runtime, which owns
+  // the isolate. What apply_action can run is the SQL-runtime subset, and that
+  // is still three.
+  it('has exactly three kinds apply_action can run, said by the registry', async () => {
+    expect(await count(
+      `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(3)
+    expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(4)
     expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(7)
   })
 

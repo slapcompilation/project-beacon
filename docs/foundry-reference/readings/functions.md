@@ -615,3 +615,46 @@ Everything from Addendum II stands. Three additions:
 None outstanding for F2. The three from Addendum II are closed: Q1 by the
 flowchart's own `Instructions: Delete / Create / (Modification)` labels, Q2 and
 Q3 above.
+
+## Built (2026-08-14) — F2: migrations 509–512, PR pending
+
+Decisions 1–12 shipped as recited, with four build-time findings.
+
+- **The session writer could not carry a function rule.** 509 gave the rule a
+  version, an auto-upgrade flag and an input mapping; `apply_action_type` (444)
+  inserts six columns and none of the three were among them. A function-backed
+  action could be assembled by hand and by nothing else — CLAUDE.md's fourth
+  question, "what reaches it?", answered late. 511 extends the writer, taken
+  from `pg_get_functiondef` rather than retyped.
+
+- **I clobbered the submission-criteria gate.** 449 wired it into
+  `apply_action` by patching the live definition in place; 509 restated the
+  function in full from **446's** body, which predates that patch, and the gate
+  silently vanished. Nothing static caught it — `actions.test.ts` did, on the
+  next run, because it asks the behaviour rather than the text. 512 re-applies
+  449's patch to whatever is live. **The rule this repeats: restate from
+  `pg_get_functiondef`, never from the migration that first created the
+  function.** A function accumulates patches and the oldest source is the least
+  true. Same lesson as `object_set_where`, learned again.
+
+- **`executable` had to split.** 446 defined it as "whether apply_action() can
+  run it", and the surface's rule picker disables `NOT executable`. A function
+  rule is executable but not in SQL, so the registry now answers two questions:
+  `executable` (can it be applied at all) and `runtime` (which runtime does it).
+  `apply_action` refuses anything whose runtime is not `sql` by name.
+
+- **The isolate is now shared.** `_shared/isolate.ts` and `_shared/ontology.ts`
+  are imported by both `function-run` and the new `action-apply`, rather than
+  the runner existing twice. `check:edge` grew to parse `_`-prefixed
+  directories and to require that shared files be reachable from some
+  function's `index.ts` — shared code nothing imports ships nowhere at all.
+
+**Not verified at runtime.** The SQL half is exercised by
+`editFunctions.test.ts` (11 cases, and the batch literals it feeds
+`apply_function_edits` are the exact shapes `createEditBatch` emits, so the two
+halves are pinned together). But `action-apply` has **not been deployed or
+executed**: this session has no Supabase access token and no Deno, so neither a
+deploy nor a local isolate run was possible. The edge half parses and passes
+the reachability gate and nothing more. F1's live verification stands, but the
+refactor that moved its isolate into `_shared` has not been re-verified against
+the running function.
