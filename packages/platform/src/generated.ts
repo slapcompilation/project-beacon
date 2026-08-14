@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (31) ────────────────────────────────────────────────
+// ── ACTION TYPES (33) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -210,13 +210,19 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
- *  One build: resolve the job set (single or full), refuse cycles, skip the
- *  fresh unless forced, run jobs in dependency order as the caller, lock each
- *  output with a real transaction, abort dependents on failure. NULL means
- *  everything was fresh and no build was created.
+ *  One build: resolve the job set (manual or upstream), refuse cycles, skip
+ *  the fresh unless forced, run jobs in dependency order as the caller. A job
+ *  whose inputs another unfinished build is rewriting stays WAITING and the
+ *  build stays RUNNING — the queue the page describes. NULL means everything
+ *  was fresh and no build was created.
  */
 export const runBuild = { apiName: 'run_build', kind: 'action' } as ActionType<
-  { p_targets: string[]; p_force?: boolean; p_build_type?: string },
+  { p_targets: string[]; p_force?: boolean; p_build_type?: string; p_schedule?: string; p_abort_on_failure?: boolean },
+  string
+>
+
+export const runBuildJob = { apiName: 'run_build_job', kind: 'action' } as ActionType<
+  { p_job: string },
   string
 >
 
@@ -288,6 +294,11 @@ export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' 
   number
 >
 
+export const settleBuild = { apiName: 'settle_build', kind: 'action' } as ActionType<
+  { p_build: string },
+  string
+>
+
 /**
  *  Put an edit in my working state instead of writing it through. Captures
  *  the base on first touch only — re-reading it would silently adopt someone
@@ -311,7 +322,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (129) ───────────────────────────────────────────────────
+// ── FUNCTIONS (130) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -840,6 +851,15 @@ export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'funct
 export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' } as FunctionType<
   { p_category: string },
   boolean
+>
+
+/**
+ *  The unfinished build whose output is one of this job's inputs, or NULL. A
+ *  job with one waits rather than reading data that is about to change.
+ */
+export const jobBlockedBy = { apiName: 'job_blocked_by', kind: 'function' } as FunctionType<
+  { p_job: string },
+  string
 >
 
 export const jobSpecFresh = { apiName: 'job_spec_fresh', kind: 'function' } as FunctionType<
