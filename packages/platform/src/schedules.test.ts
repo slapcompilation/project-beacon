@@ -71,7 +71,7 @@ describe.skipIf(noDb)('schedules', () => {
     await db.query(
       `insert into public.job_specs (output_dataset_id, logic_sql)
        values ($1, 'SELECT city FROM sched495_ds')`, [clean])
-    await db.query('select public.run_build($1::uuid[], false, $2)', [[clean], 'single'])
+    await db.query('select public.run_build($1::uuid[], false, $2)', [[clean], 'manual'])
 
     sched = (await one(
       `insert into public.schedules (name, target_dataset_ids, trigger)

@@ -46,6 +46,60 @@ function targetFor(url, section) {
   return path.join(MIRROR, section, `${slug === '' ? '_index' : slug.replace(/\//g, '-')}.md`)
 }
 
+/** The API reference is a different animal, and worth the extra code.
+ *
+ *  Its pages carry no prose — they carry the SPEC, at page.content.endpoint:
+ *  request and response schemas, field descriptions, and the enums. That is
+ *  where Foundry publishes vocabulary the user documentation only gestures at.
+ *  Build status is the case that forced this: `data-integration/builds.md`
+ *  enumerates the job states and never lists a build's, so ours were inferred
+ *  from the job states and two of the four were wrong. `builds/get-build`
+ *  states them outright.
+ *
+ *  Rendered to markdown rather than stored as JSON, because a reading quotes
+ *  sentences and check:readings greps them back — descriptions are written
+ *  verbatim for exactly that reason. */
+function renderEndpoint(ep) {
+  const out = []
+  const verb = Object.keys(ep.operationType ?? {}).find((k) => k !== 'type') ?? ep.operationType?.type
+  out.push(`\`${String(verb).toUpperCase()} ${ep.path}\``, '')
+  if (ep.description) out.push(ep.description.trim(), '')
+  if (ep.scopes?.length > 0) out.push(`Scopes: ${ep.scopes.map((s) => `\`${s.name}\``).join(', ')}`, '')
+
+  const field = (n, depth) => {
+    const pad = '  '.repeat(depth)
+    const t = n.type?.type ?? 'unknown'
+    const items = n.type?.enumType?.items
+    const bits = [`\`${n.name}\``, t.replace(/Type$/, '')]
+    if (n.required === true) bits.push('required')
+    out.push(`${pad}- ${bits.join(' · ')}`)
+    if (items?.length > 0) out.push(`${pad}  one of ${items.map((i) => `\`${i}\``).join(', ')}`)
+    if (n.description) {
+      // One line per description, quotable as written.
+      out.push(`${pad}  "${String(n.description).trim().replace(/\s*\n\s*/g, ' ')}"`)
+    }
+    for (const c of n.children ?? []) field(c, depth + 1)
+  }
+  const section = (title, nodes) => {
+    if (!nodes || nodes.length === 0) return
+    out.push(`## ${title}`, '')
+    for (const n of nodes) field(n, 0)
+    out.push('')
+  }
+  section('Path parameters', ep.pathParameters)
+  section('Query parameters', ep.queryParameters)
+  section('Request', ep.request?.body ? [ep.request.body] : null)
+  section('Response', ep.response?.body ? [ep.response.body] : null)
+  if (ep.errorResponses?.length > 0) {
+    out.push('## Errors', '')
+    for (const e of ep.errorResponses) {
+      out.push(`- \`${e.name}\` (${e.errorCode})${e.description ? ` — "${e.description.trim()}"` : ''}`)
+    }
+    out.push('')
+  }
+  return out.join('\n')
+}
+
 async function pageMarkdown(url) {
   const res = await fetch(url, { headers: { 'user-agent': 'beacon-docs-mirror' } })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -55,11 +109,21 @@ async function pageMarkdown(url) {
   if (at === -1) throw new Error('no __NEXT_DATA__ — the docs site changed shape')
   const start = html.indexOf('>', at) + 1
   const end = html.indexOf('</script>', start)
-  const md = JSON.parse(html.slice(start, end))?.props?.pageProps?.markdown
-  if (typeof md !== 'string' || md.trim() === '') {
-    throw new Error('no pageProps.markdown — the docs site changed shape')
+  const props = JSON.parse(html.slice(start, end))?.props?.pageProps
+  const md = props?.markdown
+  if (typeof md === 'string' && md.trim() !== '') return md
+
+  // The API reference puts it one level down, under a typed wrapper.
+  const page = props?.page
+  const content = page?.content
+  const title = page?.title ? `# ${page.title}\n\n` : ''
+  if (content?.type === 'markdown' && content.markdown?.trim() !== '') {
+    return title + content.markdown
   }
-  return md
+  if (content?.type === 'endpoint' && content.endpoint) {
+    return title + renderEndpoint(content.endpoint)
+  }
+  throw new Error('no page markdown or endpoint — the docs site changed shape')
 }
 
 /** Save every image a page references, next to the page.

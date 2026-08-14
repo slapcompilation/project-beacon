@@ -24,7 +24,7 @@ describe.skipIf(noDb)('the build engine', () => {
   const one = async (sql: string, p: unknown[] = []) =>
     (await db.query(sql, p)).rows[0] as Record<string, string>
 
-  const build = async (targets: string[], force = false, type = 'single') =>
+  const build = async (targets: string[], force = false, type = 'manual') =>
     (await one('select public.run_build($1::uuid[], $2, $3) as b', [targets, force, type])).b
 
   const jobState = async (buildId: string) =>
@@ -128,7 +128,7 @@ describe.skipIf(noDb)('the build engine', () => {
        values ($1, 'SELECT city, total / 0 AS boom FROM builds493_clean')`, [onward])
     rawHead = await commit(db, f.datasetId, f.branchId, 'APPEND', ['again.parquet'], rawHead)
 
-    const b = await build([onward], false, 'full')
+    const b = await build([onward], false, 'upstream')
     const states = (await db.query(
       `select state from public.build_jobs where build_id=$1 order by state`, [b]))
       .rows.map((r) => (r as { state: string }).state)
@@ -145,7 +145,7 @@ describe.skipIf(noDb)('the build engine', () => {
       `insert into public.dataset_inputs (dataset_id, input_dataset_id)
        select $1, d.id from public.datasets d where d.api_name = 'builds493_onward'`, [f.datasetId])
     const err = await refused(db, () =>
-      db.query(`select public.run_build(array[$1]::uuid[], true, 'full')`, [clean]))
+      db.query(`select public.run_build(array[$1]::uuid[], true, 'upstream')`, [clean]))
     expect(err).toContain('Builds:CycleDetected')
   })
 })
