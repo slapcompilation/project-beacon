@@ -345,3 +345,140 @@ a certainty.
 3. Does the operator's course material show the Builds application's queue,
    or a build sitting in `Queued`? One screenshot would settle both of the
    above.
+
+---
+
+# Addendum II (2026-08-14) — the API reference answers both questions, and falsifies a decision
+
+The operator asked me to crawl rather than proceed on inference. The answers
+were not in the prose corpus at all: `api/` was **unmirrored**, all 1,243
+pages of it, because its pages carry no `pageProps.markdown`. They carry the
+**spec** — request and response schemas, field descriptions and enums — at
+`page.content.endpoint`. `scripts/mirror-foundry-docs.mjs` now renders that
+shape, and `api/v2/orchestration-v2-resources` (28 pages) is mirrored.
+
+**This is where Foundry publishes vocabulary the user documentation only
+gestures at.** Every finding below is a quote from a mirrored page, not an
+inference.
+
+## Answer to Q1: there is no queued build status, because queuing is not a build status
+
+> `status` · enum · required
+> one of `RUNNING`, `SUCCEEDED`, `FAILED`, `CANCELED`
+> "The status of the build."
+
+— `api/v2/orchestration-v2-resources/builds-get-build.md`, the `Build` response.
+
+Four values, and `QUEUED` is not among them. So **Decision 2 of Addendum I was
+wrong**: adding a `QUEUED` build status would have invented a token that
+contradicts the published API.
+
+A queued build is `RUNNING`. The waiting lives one level down, on the job:
+
+> `jobStatus` · enum · required
+> one of `WAITING`, `RUNNING`, `SUCCEEDED`, `FAILED`, `CANCELED`, `DID_NOT_RUN`
+
+and `startedTime` is documented as
+
+> "The time this job started waiting for the dependencies to be resolved."
+
+— `api/v2/orchestration-v2-resources/jobs-get-job.md`.
+
+A job's clock starts when it begins **waiting**, and `WAITING` is a first-class
+status. That is the same shape the Builds screenshot showed from the other
+side: the Gantt legend's `Queued` is a *job* bar, and the per-job timeline
+reads `Started job → Waited for resources → Running → Finished`.
+
+**So the mechanism is smaller than I proposed and invents nothing**: a build
+whose inputs another build is rewriting stays `RUNNING` with its jobs
+`WAITING`. We already have `WAITING` in `build_jobs.state`.
+
+## Answer to Q2: staleness is consulted when the build runs
+
+`forceBuild` is documented as
+
+> "Whether to ignore staleness information when running the build."
+
+— `builds-create-build.md`, and identically in `schedules-create-schedule.md`,
+`schedules-replace-schedule.md`, `schedules-get-schedule.md` and the two
+schedule-version pages.
+
+The phrase is **"when running the build"**, repeated verbatim in six places,
+not "when creating" or "when submitting". A build that waits and then runs
+consults staleness at the moment it runs. I proposed re-evaluating; the
+wording supports it. *Not airtight* — no page states it for the queued case
+specifically — but it is the reading the published field name carries.
+
+`DID_NOT_RUN` is the corroboration: Foundry keeps a job row for a target it
+decided not to compute. *Inference*: that is the fresh-and-skipped case.
+
+## Three places our vocabulary is simply wrong
+
+493 derived build statuses from the job states because no page published
+them. The page exists; two of our four tokens are wrong, and so are both
+build types.
+
+| ours | published | source |
+|---|---|---|
+| `builds.status = 'COMPLETED'` | `SUCCEEDED` | `builds-get-build.md` |
+| `builds.status = 'ABORTED'` | `CANCELED` | `builds-get-build.md` |
+| `p_build_type = 'single'` | `manual` — "Manually specify all datasets to build." | `builds-create-build.md` |
+| `p_build_type = 'full'` | `upstream` — "Target the specified datasets along with all upstream datasets except the ignored datasets." | `builds-create-build.md` |
+
+`COMPLETED` and `ABORTED` are the *job* tokens from `data-integration/builds.md`.
+Builds and jobs have **different vocabularies**, and we collapsed them.
+
+`connecting`, which B1 recorded as "not built" for lack of a shape, is now
+fully specified: "All datasets between the input datasets (exclusive) and the
+target datasets (inclusive) except for the datasets to ignore", with
+`inputRids`, `targetRids` and `ignoredRids`.
+
+## What else the spec publishes that we do not have
+
+Quotes, all from `builds-get-build.md` / `builds-create-build.md`:
+
+- `abortOnFailure` — "If any job in the build is unsuccessful, immediately
+  finish the build by cancelling all other jobs." This is the prose page's
+  "Optionally, a build can be configured to abort all non-dependent jobs at
+  the same time", as a real field.
+- `retryCount` — "The number of retry attempts for failed Jobs within the
+  Build. A Job's failure is not considered final until all retries have been
+  attempted" — with `retryBackoffDuration` {value, unit}.
+- `fallbackBranches` — "The branches to retrieve JobSpecs from if no JobSpec
+  is found on the target branch."
+- `scheduleRid` — "Schedule RID of the Schedule that triggered this build. If
+  a user triggered the build, Schedule RID will be empty." This is the
+  screenshot's `Started by: Build schedule`.
+- `branchName`, `createdTime`, `createdBy`, `finishedTime`, `jobRids`.
+- Cancel is asynchronous: "The build's status will not update immediately …
+  the build is expected to be canceled soon."
+
+## Revised decisions
+
+1. **No new build status.** Decision 2 of Addendum I is withdrawn.
+2. **Correct the vocabulary first**: `COMPLETED`→`SUCCEEDED`,
+   `ABORTED`→`CANCELED`, `single`→`manual`, `full`→`upstream`. Every value
+   now traces to a page, which is the standing rule.
+3. **Queuing is job-level waiting.** Resolution detects that another
+   unfinished build outputs a dataset that is an input to one of our jobs,
+   and that job stays `WAITING` instead of running. The build is `RUNNING`
+   throughout, and finishes when its jobs do.
+4. **The minute hand advances waiting jobs**, under the 486 claims swap, as
+   `builds.created_by`. Unchanged from Addendum I, and still ours: Foundry
+   drains with infrastructure we do not have.
+5. **Staleness is re-evaluated when a waiting job runs**, on the wording of
+   `forceBuild`. Marked as strongly indicated rather than stated.
+6. **`scheduleRid` and `abortOnFailure` come along**, because both are one
+   column and both are already true of our engine in prose form.
+7. **Still recorded, not built**: retries with backoff, `fallbackBranches`,
+   `connecting` targets, `ignoredRids`, `notificationsEnabled`,
+   `DID_NOT_RUN` job rows for fresh targets, and Cancel build.
+
+## Questions that remain
+
+1. **Does a job wait, or does the build refuse?** "may be queued" still
+   leaves Foundry room to reject rather than wait. I build waiting.
+2. **`DID_NOT_RUN` = fresh-and-skipped is inference.** Ours deletes fresh
+   targets from the jobset entirely and returns NULL when all are fresh
+   ("Ignored"), so Foundry keeps a row where we keep none. Recorded as a
+   structural difference, not corrected here.
