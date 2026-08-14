@@ -182,8 +182,35 @@ minute hand that already ran schedules.
 
 Open question 1 is answered by building: the reindex is **its own build**,
 separate from the transforms feeding it, and contention queuing orders the two.
-Question 2 stands — `index_status` and the build's status can still disagree,
-and nothing yet makes one a projection of the other.
+
+**Question 2 is answered by the documentation, in two places.**
+
+> "**Index status:** The status of the last reindex of the object type and its
+> backing datasources. It can be `success`, `failed`, or `not started`."
+
+— `object-link-types/object-type-metadata`.
+
+> "The Phonograph section of the **Datasources** tab of an object type or link
+> type displays the status of the last reindex to be started. The status can be
+> `success`, `in progress`, or `failed`."
+
+— `object-databases/object-storage-v1`.
+
+"The status of the last reindex" — twice, in both spellings. Index status is a
+**projection of the last reindex job**, never an independent state. Now that a
+reindex *is* a build job, the job is what it projects from.
+
+**And that exposes a justification of 442's that has expired.** 442 omitted a
+running state and said why: "No 'running': the build is synchronous here, so
+the spinner is the pending call, not a stored state." That was true when a
+reindex could only run inline. **513 made it asynchronous** — a contended index
+job now sits in `WAITING` while another build finishes — so a reindex genuinely
+is in progress with nothing able to say so. The OSv1 page publishes exactly
+that value.
+
+Note the two published spellings are a third instance of the two-vocabularies
+pattern: the metadata view says `not started` where the Datasources view says
+`in progress`. Ours currently carries the metadata three.
 
 **The mistake, because it was live.** `run_stale_indexes` selected
 `ot.organization_id`, and `object_types` has no such column — a type reaches

@@ -137,12 +137,14 @@ And a warning we should obey by *not* copying it:
 
 ## Questions
 
-1. **Does an object dataset have its own status, or is it the build's?** The
-   image shows `Status: Up to date` on the row. That is the same disagreement
-   left open for `index_status` in `ontology-backend-architecture.md` — two
-   places that can claim a state. I propose one answer for both: the build is
-   the truth and the row's status is a projection of its latest job. Worth
-   settling before either is built on.
+1. ~~Does an object dataset have its own status, or is it the build's?~~
+   **Answered from the documentation** — see
+   `ontology-backend-architecture.md`. Index status is defined twice as "the
+   status of the last reindex", so a status row is a **projection of the last
+   job**, not an independent state. The same reading applies here: the object
+   dataset's `Up to date` chip reports its last build. The chip's own wording
+   appears only in the screenshot and has no prose vocabulary to trace, so it
+   is displayed, not stored.
 2. **What does `automatic` watch, exactly?** "whenever updates to objects are
    detected" — an index build completing is the obvious signal here, but an
    edit applied without a reindex is also an update to objects. I propose both.
