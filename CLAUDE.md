@@ -90,19 +90,55 @@ screenshot. It found a real misquote the first time it ran.
 ### The two artifacts that make this work
 
 **`docs/foundry-reference/MAP.md`** — every mirrored page by section and title,
-1,184 of them. A floor plan, not a reading: it answers "does a page about X
+2,284 of them. A floor plan, not a reading: it answers "does a page about X
 exist, and what is it called", which is the question that keeps going wrong.
 `staging` appears in no URL but `manage-models/release-model` defines it. Grep
 titles here before concluding Foundry lacks something.
+
+**It is generated, and that is not a detail.** It was maintained by hand and
+drifted to 1,184 pages across 36 sections while the mirror held 2,284 across
+82 — so the one artifact whose job is answering "does a page about X exist"
+was answering *no* for half the corpus, which reads as "Foundry lacks this".
+`node scripts/build-map.mjs` rebuilds it, and the mirror script runs that
+after every fetch. Never hand-edit it.
 
 **`docs/foundry-reference/readings/`** — our reading of the pages we have
 actually read, with a queue in build order. Grep it before designing anything;
 an answer already written down beats re-deriving one, and the "connects to" lines
 are how a concept met in one part of the platform gets recognised in another.
 
-The corpus is 1,184 pages and the readings are far fewer. That is the normal
-state — the map keeps the unread ones findable, and the queue says which to read
-next and when.
+The corpus is 2,284 mirrored pages against 4,803 known URLs — **47% of the
+documentation is not on disk**, and the biggest hole is `api/` (1,131 pages).
+The readings are far fewer still. That is the normal state — the map keeps the
+unread ones findable, and the queue says which to read next and when.
+
+**Refresh the index before trusting any answer about what exists.**
+`node scripts/mirror-foundry-docs.mjs --urls` re-derives `all-foundry-urls.txt`
+from the sitemap and *unions* it with what is there. The list was frozen for
+two weeks, and the refresh turned up 39 unknown pages — one of which,
+`functions/python-user-facing-error`, falsified code that had already shipped.
+
+### Two vocabularies for one idea, which is the live trap
+
+Foundry names the same concept differently for different audiences, and taking
+the wrong one is how `builds.status` ended up holding `COMPLETED` and `ABORTED`
+— the **job** tokens — for months. Three confirmed pairs:
+
+| concept | Ontology Manager / prose | public API |
+|---|---|---|
+| a build finishing | (unpublished) | `RUNNING SUCCEEDED FAILED CANCELED` |
+| a job's state | `WAITING RUN_PENDING RUNNING ABORT_PENDING ABORTED FAILED COMPLETED` | `WAITING RUNNING SUCCEEDED FAILED CANCELED DID_NOT_RUN` |
+| an entity's status | `active experimental deprecated example` + `promoted` | `ACTIVE ENDORSED EXPERIMENTAL DEPRECATED` |
+
+Neither side is wrong; they describe the same thing to a person and to a
+program. **Decide which audience a column serves and say so in the migration.**
+We build Ontology Manager, so ontology metadata takes the prose vocabulary and
+the orchestration ledgers take the API's.
+
+**`api/` publishes what the prose omits.** Its pages carry no
+`pageProps.markdown` — they carry the spec at `page.content.endpoint`, with
+request and response schemas, field descriptions and **enums**. It has
+falsified our CHECK constraints twice. Grep it before inferring a value.
 
 ### The three-times mistake, so it is not made a fourth
 
@@ -134,9 +170,9 @@ packages/platform/       the engine tested against the documentation's own
                          printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     506 migrations. 355 is where the ontology was emptied;
+supabase/migrations/     513 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
-docs/foundry-reference/  1,809 mirrored pages + 4,764 URL slugs. THE SOURCE.
+docs/foundry-reference/  2,284 mirrored pages of 4,803 known URLs. THE SOURCE.
 docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
