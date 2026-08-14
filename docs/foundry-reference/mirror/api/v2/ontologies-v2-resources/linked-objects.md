@@ -1,0 +1,5 @@
+<!-- source: https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/linked-objects/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+
+# Linked Object basics
+
+A Linked Object describes a object that is linked to another object.
