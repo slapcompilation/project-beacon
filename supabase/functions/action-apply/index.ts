@@ -90,7 +90,10 @@ Deno.serve(async (req) => {
   // threw an error intended to be displayed to the user."
   if (out.kind === 'timeout') return reply(504, { error: 'Actions:FunctionFailure — 60 seconds' })
   if (out.kind === 'unsettled') return reply(504, { error: 'Actions:FunctionFailure — the function never returned' })
-  if (out.kind === 'execution') {
+  // Only what the author deliberately threw is user-facing. A plain bug is a
+  // function failure, and reporting it as the author's message would put a
+  // stack trace in front of an operator.
+  if (out.kind === 'userFacing') {
     return reply(400, { error: 'Actions:UserFacingFunctionFailure', detail: out.error })
   }
   if (out.kind !== 'ok') {

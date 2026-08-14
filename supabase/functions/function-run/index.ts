@@ -77,6 +77,7 @@ Deno.serve(async (req) => {
   if (out.kind === 'unsettled') return reply(504, { error: 'Functions:DidNotSettle — the function never returned' })
   if (out.kind === 'source') return reply(400, { error: 'Functions:SourceFailed', detail: out.error })
   if (out.kind === 'isolate') return reply(500, { error: 'Functions:IsolateFailed', detail: out.error })
+  if (out.kind === 'userFacing') return reply(400, { error: 'Functions:UserFacingError', detail: out.error })
   if (out.kind === 'execution') return reply(400, { error: 'Functions:ExecutionFailed', detail: out.error })
   return reply(200, { value: out.value, version: fn.version })
 })

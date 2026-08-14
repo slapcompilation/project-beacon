@@ -37,7 +37,7 @@ export interface RunOutcome {
   value: unknown
   error: string | null
   /** Which of our named failures this was, when it failed. */
-  kind: 'ok' | 'source' | 'execution' | 'timeout' | 'isolate' | 'unsettled'
+  kind: 'ok' | 'source' | 'execution' | 'userFacing' | 'timeout' | 'isolate' | 'unsettled'
 }
 
 /**
@@ -108,11 +108,15 @@ export async function runFunction(
     runtime.executePendingJobs()
 
     const handle = ctx.getProp(ctx.global, '__state')
-    const state = ctx.dump(handle) as { done: boolean; value: string | null; error: string | null }
+    const state = ctx.dump(handle) as
+      { done: boolean; value: string | null; error: string | null; userFacing?: boolean }
     handle.dispose()
 
     if (!state.done) return { value: null, error: 'the function never returned', kind: 'unsettled' }
-    if (state.error !== null) return { value: null, error: state.error, kind: 'execution' }
+    if (state.error !== null) {
+      // An author's UserFacingError is a different outcome from a bug.
+      return { value: null, error: state.error, kind: state.userFacing === true ? 'userFacing' : 'execution' }
+    }
     return { value: JSON.parse(state.value ?? 'null'), error: null, kind: 'ok' }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

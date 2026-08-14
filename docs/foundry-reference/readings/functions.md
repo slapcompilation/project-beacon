@@ -658,3 +658,24 @@ deploy nor a local isolate run was possible. The edge half parses and passes
 the reachability gate and nothing more. F1's live verification stands, but the
 refactor that moved its isolate into `_shared` has not been re-verified against
 the running function.
+
+## Corrected (2026-08-14) — UserFacingError, found by crawling
+
+The crawl that followed F2 refreshed the URL index from the sitemap for the
+first time, and `functions/python-user-facing-error` **was not in the index at
+all** before that. It names the mechanism F2 had guessed at:
+
+> "When running functions in other parts of the platform, such as Workshop or
+> actions, you may want to throw an error with a detailed message. To do so,
+> throw a `UserFacingError`."
+
+F2 mapped *every* thrown error to `Actions:UserFacingFunctionFailure`, so a
+plain bug was reported as though the author had written it for the operator.
+The distinction is the author's and is made in code — the guest now exposes
+`UserFacingError`, the isolate reports a distinct outcome for it, and only
+that becomes the user-facing failure. Anything else is a function failure.
+
+Build-time trap, recorded because it has now bitten twice: the guest harness
+lives inside a `String.raw` template, so a backtick anywhere in it — including
+inside a comment — ends the template and breaks the deploy. `check:edge`
+caught it before the commit, which is what it was restored for.
