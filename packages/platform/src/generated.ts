@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (34) ────────────────────────────────────────────────
+// ── ACTION TYPES (36) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -155,6 +155,11 @@ export const implementInterface = { apiName: 'implement_interface', kind: 'actio
   string
 >
 
+export const indexJobSpec = { apiName: 'index_job_spec', kind: 'action' } as ActionType<
+  { p_type: string },
+  string
+>
+
 /**
  *  Full reindex of one object type: the current datasource view merged with
  *  the edit log through object_state(), written to a real table in the
@@ -234,6 +239,16 @@ export const runBuild = { apiName: 'run_build', kind: 'action' } as ActionType<
 
 export const runBuildJob = { apiName: 'run_build_job', kind: 'action' } as ActionType<
   { p_job: string },
+  string
+>
+
+/**
+ *  One build whose jobs index object types. Foundry indexes through build
+ *  jobs; a job waits for any unfinished build rewriting its datasources. NULL
+ *  means every index was fresh.
+ */
+export const runIndexBuild = { apiName: 'run_index_build', kind: 'action' } as ActionType<
+  { p_types: string[]; p_force?: boolean },
   string
 >
 
@@ -333,7 +348,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (133) ───────────────────────────────────────────────────
+// ── FUNCTIONS (134) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -481,6 +496,11 @@ export const canApplyMarking = { apiName: 'can_apply_marking', kind: 'function' 
 
 export const canChooseScopedSession = { apiName: 'can_choose_scoped_session', kind: 'function' } as FunctionType<
   { p_session: string },
+  boolean
+>
+
+export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
+  { p_type: string },
   boolean
 >
 

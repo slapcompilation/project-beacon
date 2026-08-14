@@ -168,3 +168,38 @@ state in `object_state()` and never expose it as a dataset.
    `index_status`; a build has a status; those can disagree. I propose the build
    is the source of truth and `index_status` becomes a projection of it, but I
    have not found a page that settles it.
+
+## Built (2026-08-15) — migrations 513–514
+
+Decisions 1–3 shipped as recited. An index job is a `job_specs` row whose
+output is an object type, run by the engine 493–508 already ships: it carries
+the seven job states, settles through `settle_build`, obeys `job_spec_fresh`,
+and `job_blocked_by` learned that an index job's inputs are its type's
+datasources — so a reindex queues behind the build rewriting the data it is
+about to read, which was free. The four-job collapse stays and says so in the
+migration. `run_stale_indexes` implements both published arms and hangs off the
+minute hand that already ran schedules.
+
+Open question 1 is answered by building: the reindex is **its own build**,
+separate from the transforms feeding it, and contention queuing orders the two.
+Question 2 stands — `index_status` and the build's status can still disagree,
+and nothing yet makes one a projection of the other.
+
+**The mistake, because it was live.** `run_stale_indexes` selected
+`ot.organization_id`, and `object_types` has no such column — a type reaches
+its organization through its project. `run_schedules` calls it and pg_cron runs
+that every minute, so from the moment 513 applied, the whole heartbeat raised
+and **schedules stopped with it**: both calls share one command string, and the
+first statement aborts it. Roughly four minutes of production outage, ended by
+514.
+
+What let it through is worth keeping. 513's assertions checked that the wiring
+*existed* — that `run_schedules` mentions `run_stale_indexes`, that the
+constraints are present — and never ran the query. **A bad column name is
+invisible to a text search.** The standing suite caught it on the next run, and
+caught it from the *schedules* tests rather than the new ones, because those
+call the heartbeat for real.
+
+So: an assertion that greps a function body proves the edit landed, not that
+the function works. At least one assertion per migration has to execute the
+thing. 514's do.
