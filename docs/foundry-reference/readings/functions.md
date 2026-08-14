@@ -649,15 +649,28 @@ Decisions 1–12 shipped as recited, with four build-time findings.
   directories and to require that shared files be reachable from some
   function's `index.ts` — shared code nothing imports ships nowhere at all.
 
-**Not verified at runtime.** The SQL half is exercised by
-`editFunctions.test.ts` (11 cases, and the batch literals it feeds
-`apply_function_edits` are the exact shapes `createEditBatch` emits, so the two
-halves are pinned together). But `action-apply` has **not been deployed or
-executed**: this session has no Supabase access token and no Deno, so neither a
-deploy nor a local isolate run was possible. The edge half parses and passes
-the reachability gate and nothing more. F1's live verification stands, but the
-refactor that moved its isolate into `_shared` has not been re-verified against
-the running function.
+**Verified live (2026-08-15), after a wrong claim.** I first reported this
+unverifiable because `.env.local` held no `SUPABASE_ACCESS_TOKEN` — but the
+Supabase CLI carries its own credential store and was already authenticated
+and linked. Checking one place and generalising was the error; `supabase
+projects list` settles it in a second.
+
+Both functions deployed, and the deploy uploaded all four files including the
+three `_shared` ones, which is the reachability model `check:edge` encodes.
+
+- `function-run` on the refactored isolate: `{"value":0,"version":"2.0.0"}` —
+  F1's path still works through `_shared/isolate.ts`.
+- `action-apply` on a real function-backed action: `{"edits":1,"version":
+  "1.0.0"}`, and the batch landed as one `object_edits` row — `modify`,
+  `N-E2E-1`, `{"status":"grounded"}`. **So `createEditBatch` in the isolate
+  emits exactly what `apply_function_edits` consumes**; the two halves were
+  only pinned by a shared literal in the tests, and are now proven against
+  each other in production.
+- The provenance refusal fired live:
+  `Functions:UndeclaredObjectTypeEdited — Nope is not declared in the function spec`.
+
+The fixture was created in production and removed afterwards; `edits_enabled`
+on the demo object type was restored to its prior value.
 
 ## Corrected (2026-08-14) — UserFacingError, found by crawling
 
