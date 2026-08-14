@@ -8,6 +8,7 @@
     "type-check": "turbo type-check",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\" --ignore-path .gitignore",
     "check:doc-drift": "node scripts/check-doc-drift.mjs",
+    "check:edge": "node scripts/check-edge-syntax.mjs",
     "check:readings": "node scripts/check-readings.mjs",
     "check:surfaces": "node scripts/check-surfaces.mjs",
     "db": "node scripts/db.mjs",
