@@ -123,7 +123,21 @@ globalThis.createEditBatch = function () {
 // host then reads a string, never a promise: __hostCall is asyncified, so a
 // function that only awaits ontology reads completes as soon as the host
 // drains the microtask queue, and no promise crosses the boundary.
-globalThis.__state = { done: false, value: null, error: null }
+// "you may want to throw an error with a detailed message. To do so, throw a
+// UserFacingError" (functions/python-user-facing-error). The distinction is
+// the author's, not the platform's, and the action reports the two differently
+// — "User-facing function failure: The function backing the action threw an
+// error intended to be displayed to the user" is a separate failure type from
+// a function that merely broke.
+globalThis.UserFacingError = function UserFacingError(message) {
+  var e = new Error(message)
+  e.name = 'UserFacingError'
+  e.__userFacing = true
+  return e
+}
+globalThis.UserFacingError.prototype = Object.create(Error.prototype)
+
+globalThis.__state = { done: false, value: null, error: null, userFacing: false }
 
 globalThis.__start = function (args) {
   Promise.resolve(globalThis.__invoke(args)).then(
@@ -135,6 +149,10 @@ globalThis.__start = function (args) {
     function (e) {
       globalThis.__state = {
         done: true, value: null, error: String((e && e.message) || e),
+        // Thrown with or without new, both arrive here; the flag is what
+        // the host branches on. (No backticks in this comment: the whole
+        // harness lives inside a String.raw template and one would end it.)
+        userFacing: !!(e && (e.__userFacing || e.name === 'UserFacingError')),
       }
     },
   )

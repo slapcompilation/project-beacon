@@ -21,19 +21,65 @@ const MIRROR = 'docs/foundry-reference/mirror'
 /** Palantir's docs are not a public API; one request at a time, with a pause. */
 const DELAY_MS = 400
 
+const SITEMAP = 'https://palantir.com/docs/sitemap.xml'
+
 const args = process.argv.slice(2)
 const refresh = args.includes('--refresh')
 // Pages mirrored before mirrorImages handled absolute hrefs kept their
 // /docs/resources/... links and downloaded nothing. --images backfills those
 // without re-fetching a whole section's prose.
 const imagesOnly = args.includes('--images')
+const urlsOnly = args.includes('--urls')
 const targets = args.filter((a) => !a.startsWith('--'))
-if (targets.length === 0) {
+if (targets.length === 0 && !urlsOnly) {
   console.error('usage: node scripts/mirror-foundry-docs.mjs [--refresh] <section>...')
   console.error('       node scripts/mirror-foundry-docs.mjs --images <section>/<page>.md...')
+  console.error('       node scripts/mirror-foundry-docs.mjs --urls   # re-derive the index')
   process.exit(2)
 }
 const sections = targets
+
+/** Re-derive the URL index from the sitemap.
+ *
+ *  Without this the index is frozen at the day it was written, and a page
+ *  published since is invisible to every gap check — the diff can only find
+ *  what the list already knows about. The substrate mirror has had this from
+ *  the start; this one did not, and its list sat two weeks stale.
+ *
+ *  Two known shapes of the sitemap, both handled: it caps at 5,000 URLs and
+ *  skews to API and localized pages, so locale prefixes are stripped back to
+ *  the canonical English path and the result deduplicated. */
+async function refreshUrls() {
+  const res = await fetch(SITEMAP, { headers: { 'user-agent': 'beacon-docs-mirror' } })
+  if (!res.ok) throw new Error(`sitemap HTTP ${res.status}`)
+  const xml = await res.text()
+  const seen = new Set()
+  for (const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    const canonical = m[1].trim().replace(/\/docs\/[a-z]{2}(?:-[A-Za-z]{2})?\/foundry\//, '/docs/foundry/')
+    if (canonical.includes('/docs/foundry/')) seen.add(canonical)
+  }
+  const before = fs.existsSync(URLS)
+    ? new Set(fs.readFileSync(URLS, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean))
+    : new Set()
+  // UNION, never replace. The live sitemap is NARROWER than this index — it
+  // caps at 5,000 entries and skews to API and localized pages, while the
+  // index was built by recovering canonical English paths from those locale
+  // variants. Overwriting threw away 2,217 known URLs the first time this
+  // ran. A page that has since been retired costs one failed fetch, which the
+  // per-page handler already reports by name.
+  const urls = [...new Set([...before, ...seen])].sort()
+  fs.writeFileSync(URLS, urls.join('\n') + '\n')
+  const added = [...seen].filter((u) => !before.has(u)).sort()
+  console.log(`wrote ${URLS} — ${urls.length} pages (${added.length} new since the last index)`)
+  for (const u of added.slice(0, 40)) console.log(`  + ${u}`)
+  if (added.length > 40) console.log(`  … and ${added.length - 40} more`)
+  return urls
+}
+
+if (urlsOnly) {
+  await refreshUrls()
+  if (sections.length === 0) process.exit(0)
+}
 
 const all = fs.readFileSync(URLS, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean)
 const today = new Date().toISOString().slice(0, 10)
