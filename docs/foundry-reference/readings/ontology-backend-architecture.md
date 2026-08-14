@@ -183,6 +183,73 @@ minute hand that already ran schedules.
 Open question 1 is answered by building: the reindex is **its own build**,
 separate from the transforms feeding it, and contention queuing orders the two.
 
+**Question 2, answered — and my first answer was OSv1's.**
+
+I cited `object-databases/object-storage-v1` for a `in progress` status value.
+**That page is Phonograph**, which is in planned deprecation and "will be
+unavailable after June 30, 2026". Taking a status vocabulary from it and
+applying it to our build was importing the legacy backend's shape. The
+metadata page gives the same tell in plain sight: its Index status entry ends
+"Read more about index statuses" and links to the **OSv1** page.
+
+**OSv2 has no scalar index status.** The status is the pipeline's job states:
+
+> "The Ontology Manager application has a dedicated pipeline graph that shows
+> the status of various jobs in a Funnel pipeline. A green tick in the Object
+> Storage v2 node in the graph indicates that the indexing is complete and the
+> object type is ready to be queried from OSv2."
+
+— `object-indexing/faq`, and the same page again on failure: "indexing jobs
+will not succeed and will report the underlying problem in the pipeline graph
+in the Ontology Manager application." `funnel-batch-pipelines` sends you to the
+same place — "check the pipeline errors through the **Live pipeline** dashboard
+in the object type's **Datasources** tab. Choose the failed job in the pipeline
+graph, then select **Failed job**."
+
+`object-indexing/images/pipeline2.png` shows what that surface actually is, and
+it is nothing like OSv1's single chip:
+
+- An **Object Storage V2** panel — "the backend service that stores and serves
+  information about objects" — listing each **data store** with **two**
+  independent chips, `Data:` and `Schema:` (the screenshot reads `No data
+  indexed` and `Up to date`), plus **+ Add new data store**. Two axes and many
+  stores, matching "an indexing job per object database".
+- A **Live pipeline** graph — "Append the latest changes made to any backing
+  datasets into relevant stores" — with a node per job (`…changelog` → `Merge
+  changes` → `Indexing` → `Object Storage V2`), a tick on the finished ones,
+  and a percentage on the running one, which reads 90% complete alongside how
+  long ago it started.
+
+**So the v2 answer is stronger than the one I proposed.** There is no status to
+reconcile: the truth is the build job's state, which 513 already stores in the
+seven documented values, and every surface reads the pipeline. `success /
+failed / not started` on `object_type_indexes` is an OSv1-shaped scalar we
+inherited from a page that points at Phonograph for its own definition.
+
+**Do not add `in progress`.** That was my proposal one turn ago and it would
+have imported a fourth legacy value into a v2 system. The correction is the
+other direction: `object_type_indexes` becomes a projection of the last index
+build job — or stops carrying a status at all — and progress is the job's, not
+a column's.
+
+*Inference, marked*: that our single index job maps onto the graph's four
+nodes as one node. 442's collapse already says this; the pipeline graph is
+where a user would notice it.
+
+## Built (2026-08-15) — migrations 513–514
+
+Decisions 1–3 shipped as recited. An index job is a `job_specs` row whose
+output is an object type, run by the engine 493–508 already ships: it carries
+the seven job states, settles through `settle_build`, obeys `job_spec_fresh`,
+and `job_blocked_by` learned that an index job's inputs are its type's
+datasources — so a reindex queues behind the build rewriting the data it is
+about to read, which was free. The four-job collapse stays and says so in the
+migration. `run_stale_indexes` implements both published arms and hangs off the
+minute hand that already ran schedules.
+
+Open question 1 is answered by building: the reindex is **its own build**,
+separate from the transforms feeding it, and contention queuing orders the two.
+
 **Question 2 is answered by the documentation, in two places.**
 
 > "**Index status:** The status of the last reindex of the object type and its
