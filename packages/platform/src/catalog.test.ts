@@ -26,6 +26,19 @@ describe.skipIf(noDb)('catalog hygiene', () => {
     expect(rows.map((r) => (r as { relname: string }).relname)).toEqual([])
   })
 
+  // 487 proved every table HAS a comment. Nothing can prove a comment is
+  // TRUE — but the teardown deleted a specific vocabulary, and its
+  // reappearance is checkable. Five comments still described the old product
+  // (hotels, @beacon/reality-graph, "Studio P") until the 2026-08-13 gap run.
+  it('no comment still describes the pre-teardown product', async () => {
+    const { rows } = await db.query(`
+      select c.relname from pg_class c
+       where c.relnamespace = 'public'::regnamespace and c.relkind = 'r'
+         and obj_description(c.oid, 'pg_class') ~* '(hotel|reality-graph|Studio P)'
+       order by c.relname`)
+    expect(rows.map((r) => (r as { relname: string }).relname)).toEqual([])
+  })
+
   it('every foreign key has an index on its leading column', async () => {
     const { rows } = await db.query(`
       select c.conrelid::regclass::text || '.' || a.attname as fk
