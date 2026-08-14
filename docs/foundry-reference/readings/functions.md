@@ -304,3 +304,183 @@ URL never uploads.
    ontology call under the caller's JWT. No Management API token, no
    per-function deployment, no quota.
    an isolated environment" is literally true here.
+
+---
+
+# Addendum (2026-08-14) — F2: edit functions and the action that applies them
+
+Pages read in full: `functions/typescript-v2-ontology-edits.md` (**the one that
+matches what F1 built** — `functions/api-ontology-edits.md` is TypeScript v1
+and its semantics differ, see below), `functions/edits-overview.md`,
+`action-types/function-actions-overview.md`,
+`action-types/function-actions-getting-started.md` and its screenshots
+(backfilled — they were absolute `/docs/resources/` links and had never been
+mirrored), `action-types/function-actions-batched-execution.md`. Plus the API
+reference, now that it is reachable: `api/v2/ontologies-v2-resources` (85
+pages), for the published edit vocabulary.
+
+## 1. An edit function returns edits. It does not apply them.
+
+> "The only way to update objects using a function is by configuring an action
+> to use the function as described in the documentation for function-backed
+> actions."
+
+> "running an edit function outside of an Action will not actually modify any
+> object data"
+
+This is the rule the whole slice hangs on, and it is stated across both pages.
+F1 already refuses writes from the isolate; F2 does not relax that. The
+function returns a value, and only an action turns that value into edits.
+
+## 2. The v2 shape, which is mechanical
+
+> "For the edits created in a function to actually be applied, Ontology edit
+> functions *must be configured as a function-backed Action*."
+
+The batch carries five verbs — `create`, `update`, `delete`, `link`, `unlink`
+— an object reference that is either a loaded instance or an API-name and
+primary-key pair, and a declared return type of an edits array:
+
+> "You must then declare that the function returns an array of edits of the new
+> type."
+
+**The v1/v2 difference is load-bearing and in our favour.** v1 says an edited
+property read back returns the new value, which needs pending edits
+materialized into reads. v2 says the opposite:
+
+> "Subsequent access to the `lastName` property value of `employee` later in
+> the same function execution will *not* reflect the changes that you make when
+> calling `update` on the edit batch."
+
+We built the v2 contract, so **the batch is write-only and reads are
+untouched** — no pending-edit overlay. The object-search caveat holds for free:
+
+> "Changes to objects and links are propagated to the object set APIs *after*
+> your function has finished executing."
+
+Also, for one-to-one and one-to-many links, v2 does **not** use `link`:
+
+> "For one-to-one and one-to-many links, use the `update` method available on
+> the created batch to modify the foreign key property of the source object."
+
+Which is exactly how our link types are backed.
+
+## 3. Provenance is a second declaration, and it is enforced
+
+`imports` (F1) is what a function may **read**. Provenance is what it may
+**edit**, and they are different lists:
+
+> "you can use the `@Edits` decorator and specify the object types for which
+> your function returns edits"
+
+> "Currently, the provenance consists only of the object types that the action
+> may edit at runtime."
+
+And the enforcement, which is what makes it worth storing:
+
+> "If a newer release of the function returns edits outside of this provenance
+> (for example, an additional object type), action execution will fail."
+
+## 4. What the screenshot adds that the prose does not
+
+`action-types/images/function_backed_actions_configure_inputs.png` — the
+**Run function** rule card:
+
+- The function, labelled `addPriorityToTitle` **on `Demo Ticket`** — the rule
+  shows the provenance next to the name.
+- **A version dropdown reading `0.1.2`.** The rule pins a *version*, not just a
+  name. 418 stored only `function_name`.
+- **An `Auto upgrade to compatible versions` toggle**, off, matching "By
+  default, if the function logic is changed, the action does not automatically
+  update to match it."
+- **`Required inputs`**, one row per function input, mapping the input `ticket`
+  to a parameter. **The rule stores an input-to-parameter mapping**, which is
+  the piece with no home in our schema at all.
+- A read-only **Code Preview** with an `Edit in Code Repositories` link.
+
+The prose says parameters appear — "all inputs of the function will
+automatically be created as parameters and added to the **Parameters** tab" —
+but only the image shows that the mapping is stored per input and editable.
+
+## 5. The published edit vocabulary
+
+`api/v2/ontologies-v2-resources/actions-apply-action.md` publishes the
+`ObjectEdit` union: **`addObject`, `modifyObject`, `deleteObject`, `addLink`,
+`deleteLink`** — each carrying `objectType` and `primaryKey`, the link variants
+carrying `linkTypeApiNameAtoB`, `linkTypeApiNameBtoA` and both sides. The
+response counts them too: `addedObjectCount`, `modifiedObjectsCount`,
+`deletedObjectsCount`, `addedLinksCount`, `deletedLinksCount`.
+
+The same endpoint publishes two option enums we do not have: `mode` is
+`VALIDATE_ONLY` or `VALIDATE_AND_EXECUTE`, and `returnEdits` is `ALL`,
+`ALL_V2_WITH_DELETIONS` or `NONE`.
+
+Our `object_edits.instruction` is `create` / `modify` / `delete`, taken in 422
+from the **rule kind** names in `action-types/rules.md`. That is a different
+vocabulary from `ObjectEdit`, the way build status turned out to be different
+from job status — I am *not* assuming they should be unified, and it is a
+question below.
+
+## 6. Atomicity
+
+> "the backing function is usually called once per request in sequence, and all
+> edits are applied atomically at the end of the action call"
+
+> "The entire function must succeed in order to generate the list of edits
+> which is passed to the actions service executing the atomic transaction."
+
+One transaction, after the function returns, or nothing.
+
+## Decisions (mine, not Palantir's, unless quoted)
+
+1. **`function_versions` gains `edits`**, the provenance list, beside `imports`.
+   Two lists because the pages describe two: what it reads, what it may edit. A
+   version whose signature returns edits and declares no provenance is refused
+   at publish.
+2. **The guest harness gains `createEditBatch(client)`** with the five verbs and
+   `getEdits()`, producing the published `ObjectEdit` shape. The batch is
+   write-only — v2's own semantics — so nothing in F1's read path changes.
+3. **The host returns the batch and applies nothing.** `function-run` already
+   returns a value; an edit function's value is the edit array. Running one
+   outside an action stays inert, which the pages demand repeatedly.
+4. **`action_type_rules` gains `function_version_id` and `auto_upgrade`**, and a
+   new `action_type_rule_inputs` table holds the input-to-parameter mapping the
+   screenshot shows. Without that mapping the rule cannot be executed at all,
+   which is why 418's rule has pointed at nothing since it landed.
+5. **`apply_action` executes a function rule** by calling the function with the
+   mapped parameters, then writing the returned edits as `object_edits` rows in
+   the same transaction — the atomicity the pages state. **An edit naming an
+   object type outside the version's provenance fails the action**, quoted
+   above, rather than being silently dropped.
+6. **Link edits are refused by name**, exactly as `create_link` and
+   `delete_link` already are — 446's own registry note says a link instance
+   store does not exist here yet, and that is the same fact (ours, not a
+   quotation). A `link` call on a foreign-key-backed link is a property update
+   and *does* work, because that is what the page says it is.
+7. **`action_rule_kinds()` flips `function` to executable**, since its note
+   ("needs a function runtime") is now false.
+8. **Auto upgrade ships off and stays off.** The page documents three risks
+   under its own headings — a user without edit permission on the action can
+   change its behaviour, breaking changes can fail execution, provenance can
+   drift. We have no release review. Recorded, not built.
+9. **Recorded, not built**: batched execution, `VALIDATE_ONLY` mode, the
+   `returnEdits` options, interface edits, struct-property edits, and Python.
+
+## Questions
+
+1. **Should `object_edits.instruction` take the published `ObjectEdit` names?**
+   422 derived `create`/`modify`/`delete` from the rule-kind labels. The API
+   publishes `addObject`/`modifyObject`/`deleteObject` for an *edit*. These may
+   be two vocabularies for two things (as build status and job status turned out
+   to be), or ours may be the same mistake again. I lean toward leaving
+   `object_edits` alone and using the published names only in the batch the
+   function returns — but this is exactly the shape of the error 493 made, so I
+   would rather be told than guess.
+2. **Does provenance cover link types too?** The page says "Currently, the
+   provenance consists only of the object types that the action may edit at
+   runtime", and "Currently" is doing work. I store object types only, per the
+   sentence.
+3. **Is one edit function per action rule right?** Every screenshot shows a
+   single Run function card and the rule is exclusive, so yes — but nothing
+   states a function cannot call another published function, and F1 has no
+   mechanism for that.
