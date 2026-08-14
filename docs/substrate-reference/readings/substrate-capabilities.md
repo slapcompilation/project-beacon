@@ -38,6 +38,36 @@ own project), or `doc+probe` (both). Anything load-bearing must reach
 | search | OpenSearch (Aiven) + Postgres fallback | probe | live since 478 |
 | streaming functions | Realtime | doc | `realtime/` mirrored; **not built** |
 
+## What the substrate docs changed about what we had already built
+
+One finding, and it was worth the crawl on its own.
+
+> "calling functions directly in RLS policies can impact database performance,
+> as the function is evaluated for each row when the policy is checked"
+> — `mirror/api/securing-your-api.md`, whose examples write `(select auth.uid())`
+
+Every policy we had written called its helper bare. Measured here on 200,000
+rows, as `authenticated`:
+
+| predicate | bare | wrapped | |
+|---|---|---|---|
+| `organization_id = auth_org_id()` | 1590 ms | 88 ms | **18×** |
+| `organization_id = ANY (COALESCE(auth_org_ids(), '{}'))` | 4563 ms | 96 ms | **47×** |
+
+The array case is the worse one because it builds an array per row, and it is
+the one we would not have guessed. `EXPLAIN` tells the two apart without a
+stopwatch: the wrapped form carries an `InitPlan`, evaluated once per query.
+
+504 rewrote the two scalar helpers mechanically from `pg_policies`; 505 did
+`auth.uid()` the same way and hand-wrote the five array sites. The hand-written
+half was forced: `group_id = ANY (auth_group_ids())` is the ARRAY form of `ANY`,
+and wrapping it blindly gives `ANY ((SELECT …))`, the SUBQUERY form, which
+compares `uuid` to `uuid[]`. The legal wrap puts the subquery in a scalar
+position — `ANY (COALESCE((SELECT auth_group_ids()), '{}'::uuid[]))`. The first
+attempt at 504 failed on exactly this and rolled back.
+
+`rlsInitPlan.test.ts` re-asks it every run, with no exception list.
+
 ## Where we cannot copy Foundry one-for-one
 
 1. **CPU-bound logic.** Foundry gives a function 60 seconds of run time; this
