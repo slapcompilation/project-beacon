@@ -225,3 +225,123 @@ regex actually parse, and it did not.
 3. Does a build on a non-default branch write branch transactions the way
    our dataset branching already models? (I propose yes — the machinery
    exists; create-schedule's branch note supports it.)
+
+---
+
+# Addendum (2026-08-14) — the sentence B1 skipped, and what the screenshot says
+
+Re-read `data-integration/builds.md` in full, plus its
+`images/builds.png` (the Builds application), because the first reading
+covered three of Build resolution's four bullets and silently dropped the
+fourth.
+
+## What the prose says
+
+> "Detects if other builds are in progress that would change the inputs into
+> the build. If so, the build may be *queued* and wait for the other build to
+> complete."
+
+— `data-integration/builds.md`, the **Build resolution** section.
+
+That is the entire published account of build queuing. I grepped all 1,184
+mirrored pages for `queued`: five other hits, none about builds (Data
+Connection agent concurrency, a Slate browser-connection limit, a CDC
+changelog backlog). **No build status vocabulary is published anywhere** —
+the page enumerates the seven JOB states in caps and never lists build
+statuses at all.
+
+Note what the sentence is and is not. It is a **contention** rule: my build
+waits because another build is rewriting *my inputs*, so proceeding would
+read data that is about to change. It is **not** a work queue for capacity,
+and it is not about how long a request may live. Our own reason for wanting
+a queue — a build outliving the caller's HTTP request — is a substrate
+problem that this mechanism happens to also solve, and the two must not be
+confused in the design.
+
+Also note what it does not say: not *will* be queued, but **may**. Foundry
+leaves itself room; a build whose inputs are being rewritten is a risk, not
+a certainty.
+
+## What the image adds that the prose does not
+
+`images/builds.png` — the Builds application, a build of `region and 3 more`:
+
+- **Build info reads `Status: Running`** with a spinner icon. So build status
+  is title-case display vocabulary in the UI, distinct from the `RUNNING`
+  API token, and the page's silence on build statuses is a documentation
+  gap rather than evidence there are none.
+- **The Build progress legend names five**: `Queued · Running · Succeeded ·
+  Failed · Canceled`. This is the Gantt chart of *jobs*, so these are the
+  seven API job states rendered for humans — `Queued` covers `WAITING` and
+  `RUN_PENDING`, `Succeeded` is `COMPLETED`, `Canceled` is `ABORTED`. **We
+  need no new job state**; ours already carry the API tokens.
+- **A per-job timeline**: `Started job (3s) → Waited for resources (34s) →
+  Running (4m36s) → Finished`. So queueing happens at *two* levels in
+  Foundry — the build waits on input contention, and a job waits on compute
+  resources. The second is a Spark cluster fact and has no analogue here.
+- **`Started by: Build schedule`** — a build records its origin, and the UI
+  surfaces it. We store the reverse link only (`schedule_runs.build_id`).
+- **`Progress: 0 of 4 jobs succeeded`**, **`Estimated 23m 53s`**, and per-job
+  **`Typically 19m 5s`** — derived from job history, not stored state.
+- **A `Cancel build` control**, which is the "aborted … upon user request"
+  half of the `ABORTED` job state. We have the state and no way to reach it.
+
+## Decisions (mine, not Palantir's, unless quoted)
+
+1. **The queue is the builds table, not a message queue.** The sentence says
+   "the build may be queued" — the build itself carries the waiting. A pgmq
+   queue would hold a second copy of the fact `builds` already states, which
+   is the parallel-system mistake this repo has made three times. **This
+   reverses what I proposed to the operator** ("queue-backed builds,
+   Supabase Queues") before reading the page.
+
+2. **`builds.status` gains `QUEUED`.** *Inference on the token*: no build
+   status vocabulary is published, and our existing four
+   (`RUNNING/COMPLETED/FAILED/ABORTED`) were already derived from the job
+   states. `QUEUED` continues that derivation and matches the UI's `Queued`.
+
+3. **Contention is defined as: another build in `RUNNING` or `QUEUED` has an
+   output dataset that is an input to mine.** Read straight off "other
+   builds ... that would change the inputs into the build". Not
+   output-output collision — that is *build locking*, which B1 already
+   built with open transactions.
+
+4. **`run_build` splits into resolution and execution.** Resolution keeps
+   every B1 step (cycle detection, validation, permission, staleness) and
+   ends by either executing immediately or leaving the build `QUEUED`.
+   Callers keep the same signature and the same return, and in the
+   uncontended case the behaviour is byte-identical to today.
+
+5. **The existing minute hand drains it.** `run_schedules` already runs
+   under pg_cron with the 486 claims swap; a queued build is executed the
+   same way, as `builds.requested_by`, when its blocker is gone. No second
+   cron entry, no worker process. *Inference*: Foundry drains its queue with
+   infrastructure we do not have, and this is the substrate's equivalent —
+   recorded in `substrate-reference` as an accommodation.
+
+6. **Deadlock is refused, not waited on.** If two queued builds each block
+   the other, nothing can drain. The drainer detects a cycle among blocked
+   builds and fails them with a named error rather than leaving rows that
+   never move. *Inference entirely* — the page says nothing about it, and I
+   would rather fail loudly than build a state that can wedge.
+
+7. **Recorded, not built**: `Cancel build` (needs an abort path through open
+   transactions), `Started by` on the build row, and duration estimates from
+   job history. Each is real and visible in the screenshot; none is needed
+   to make queuing correct, and shipping them together would hide which
+   part the operator is approving.
+
+## Questions
+
+1. **"may be queued" — under what condition is it *not*?** My reading queues
+   whenever contention exists. If Foundry only queues when the contending
+   build writes an input the job actually reads (InputSpec granularity, a
+   subset of views), that is narrower than ours and I cannot tell from the
+   page.
+2. **Does a queued build re-evaluate staleness when it finally runs?** It
+   must — the blocking build just changed its inputs, which is the whole
+   point — but the page does not say, and the alternative (freezing the
+   resolution taken at submit time) is defensible. I propose re-evaluating.
+3. Does the operator's course material show the Builds application's queue,
+   or a build sitting in `Queued`? One screenshot would settle both of the
+   above.

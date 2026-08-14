@@ -124,16 +124,20 @@ join dataset (`create-link-type.md`). If a design needs a generic table with a
 ## What is here
 
 ```
-apps/web/                44 files. Ontology Manager (/ontology), projects,
+apps/web/                107 files. Ontology Manager (/ontology), projects,
                          account, auth, the shell. Vite + React + Blueprint.
 packages/ontology/       the ontology model: object types, properties and base
                          types, link cardinality, interfaces, shared properties,
                          object sets and traversal, status, project roles, and
                          the generated per-type interfaces.
+packages/platform/       the engine tested against the documentation's own
+                         printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     390 migrations. The last ~40 are the teardown.
-docs/foundry-reference/  532+ mirrored pages + 4,764 URL slugs. THE SOURCE.
+supabase/migrations/     506 migrations. 355 is where the ontology was emptied;
+                         everything after it is the rebuild.
+docs/foundry-reference/  1,809 mirrored pages + 4,764 URL slugs. THE SOURCE.
+docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
@@ -170,7 +174,8 @@ pnpm turbo lint type-check test  # what CI runs
 pnpm check:readings              # every citation traces to a mirrored page
 pnpm check:doc-drift             # has a page we built from changed upstream?
 pnpm check:surfaces              # every web file is reachable from main.tsx
-pnpm check:platform              # the engine against Palantir's published answers
+pnpm check:edge                  # supabase/functions parse, and deploy whole
+pnpm --filter @beacon/platform test   # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
 pnpm gen:client                  # regenerate the typed client from the platform
 ```
@@ -178,7 +183,10 @@ pnpm gen:client                  # regenerate the typed client from the platform
 ### The guards, and what is gone
 
 `check:surfaces` remains. It asks about **real reachability** and answers by
-walking the import graph from `main.tsx`.
+walking the import graph from `main.tsx`. `check:edge` asks the same question of
+`supabase/functions`, where the answer is harsher: the deploy uploads only what
+`index.ts` statically imports, so an unimported file ships as an empty module
+and fails when it is called rather than when it is deployed.
 
 **`check:rpcs` is deleted, and how matters.** It regexed `.rpc('name')` out of
 source and looked the name up in `pg_proc` — a reference check done by string
@@ -189,9 +197,9 @@ wrong, with a "Did you mean" suggestion. **A guard whose job the compiler can do
 should be deleted, not maintained.** `check:surfaces` is the same category and
 goes the same way once object surfaces are generated.
 
-`check:platform` (was `check:datasets`) is the third, and it is a different kind:
-it **runs the algorithm and compares against the answer the documentation
-prints**. `data-integration/datasets#example-of-transaction-types` states the
+**The platform suite** (`packages/platform`, was `check:datasets` then
+`check:platform`) is the third, and it is a different kind: it **runs the
+algorithm and compares against the answer the documentation prints**. `data-integration/datasets#example-of-transaction-types` states the
 view after each of five transactions; markings, scoped sessions and the
 datasource binding each state their outcome the same way. Nothing in it is
 structural — no grep for a function name, no list of tables. The guarded-table
@@ -210,7 +218,7 @@ change at the moment it lands; this proves it still holds.
 does every property name a column its datasource actually has" is
 `ontology_violations()` — a query against the ontology, which is Foundry's own
 shape ("Ontology owners... write linters that check the entity definitions",
-`superrepo/core-concepts.md`). `check:platform` asks it one question: **is the
+`superrepo/core-concepts.md`). The suite asks it one question: **is the
 ontology we actually have well-formed?**
 
 `check:shape` and `check:vocabulary` are deleted, with `shape_registry`. They
@@ -223,7 +231,7 @@ exists. Wanting an allowlist is the signal to index instead.
 The RLS contract suite is also gone; Foundry handles data contracts another way
 and we take that shape when we reach it. **This had a cost that landed**:
 `auth_org_id()` kept reading a dropped table for a day, and every policy calls
-it. Nothing static catches that — the replacement is `check:platform`'s
+it. Nothing static catches that — the replacement is the platform suite's
 `authenticated` pass, which reads every RLS-guarded table in the catalog.
 
 ## Substrate

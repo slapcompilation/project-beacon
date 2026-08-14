@@ -45,3 +45,11 @@ jobs:
       - name: Every web file is reachable
         run: pnpm check:surfaces
 
+      # turbo covers the TS packages but not supabase/functions (Deno, resolved
+      # at deploy). This guard was deleted in the teardown when that directory
+      # was empty; function-run put real code back. It parses every file and
+      # proves each one is statically imported — the deploy uploads only what
+      # index.ts reaches, so a runtime-only reference ships an empty module and
+      # fails when it is called, not when it is deployed.
+      - name: Edge functions parse, and deploy whole
+        run: pnpm check:edge
