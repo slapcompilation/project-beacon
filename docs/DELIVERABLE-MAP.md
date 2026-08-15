@@ -55,11 +55,25 @@ actions" and "Execute Foundry functions" — both of which now exist and are
 verified live. Conditions are time-based, object-data-based, or both. Mirrored
 (42 pages) and unread.
 
-### 4. Enrollment-wide principal discovery
+### 4. Cross-organization principal visibility — PREMISE CORRECTED, NEEDS A READING
 
 The guest picker adds foreign principals by ID because registries are
-org-siloed; Foundry's Control Panel searches the enrollment. Small, recorded in
-`readings/enrollments-and-organizations.md`.
+org-siloed. This entry used to say "Foundry's Control Panel searches the
+enrollment", and **that was our inference, not a citation**. The one sentence
+found on looking says something different and narrower:
+
+> "You will only be able to view groups for which you have `View group
+> membership` permission on the group's Organization."
+> — `platform-security-management/manage-groups`
+
+So the mechanism is a **grantable per-organization permission** that widens who
+you can see, not a global search. That is a permission type we do not have, and
+it belongs beside the granular policies in the security phase rather than being
+bolted onto the guest picker.
+
+**No longer "small".** It needs its own reading — `manage-groups`,
+`manage-roles-`, and the Organization permissions surface — before anything is
+built. Do not build from this entry as written.
 
 ---
 
