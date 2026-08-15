@@ -159,4 +159,60 @@ describe.skipIf(noDb)('automations', () => {
     expect(Number((await one('select public.run_automations(now()) as n')).n))
       .toBeGreaterThanOrEqual(0)
   })
+
+  // 521/522: the published numbers, replacing one I invented.
+  it('uses the published input caps, per condition type', async () => {
+    expect(await count(`select public.automation_input_limit('run_on_all') n`)).toBe(1000000)
+    expect(await count(`select public.automation_input_limit('objects_added') n`)).toBe(100000)
+    expect(await count(`select public.automation_input_limit('objects_removed') n`)).toBe(100000)
+    // And the runner asks for the limit rather than carrying one.
+    const d = (await one(
+      `select pg_get_functiondef('public.automation_fires(uuid,timestamptz)'::regprocedure) as d`)).d
+    expect(d).toContain('automation_input_limit')
+    expect(d).not.toContain('10000)')
+  })
+
+  it('classifies retryable failures the way the page lists them', async () => {
+    for (const e of ['Actions:ObjectVersionChanged — stale', '429 rate limit exceeded',
+                     'service outage downstream']) {
+      expect(await count(`select (public.automation_error_retryable($1))::int n`, [e])).toBe(1)
+    }
+    expect(await count(
+      `select (public.automation_error_retryable('Actions:MissingParameter'))::int n`)).toBe(0)
+  })
+
+  it('bounds retries where the page bounds them, and only where they are allowed', async () => {
+    const eff = (await one(
+      `select id from public.automation_effects where automation_id=$1 limit 1`, [auto])).id
+    // "this must be between 1 and 5"
+    expect(await refused(db, () => db.query(
+      'update public.automation_effects set retry_count = 6 where id = $1', [eff])))
+      .toContain('retry_count')
+    // "must be less than 24 hours"
+    expect(await refused(db, () => db.query(
+      `update public.automation_effects set retry_interval = interval '25 hours' where id=$1`, [eff])))
+      .toContain('retry_interval')
+    // "can currently only be configured on ... Action effects, Logic effects"
+    const fnEff = (await one(
+      `insert into public.automation_effects (automation_id, position, kind, function_id)
+       values ($1, 9, 'function', (select id from public.functions limit 1)) returning id`, [auto])).id
+    expect(await refused(db, () => db.query(
+      'update public.automation_effects set retry_count = 2 where id = $1', [fnEff])))
+      .toContain('retries_where_allowed')
+  })
+
+  it('withholds a fallback only when a retry is actually due', async () => {
+    // The rule is a disjunction — "failed non-retryably, OR the maximum number
+    // of retries has been reached" — so with no retry config the maximum is
+    // zero, trivially reached, and the fallback fires at once.
+    const d = (await one(
+      `select pg_get_functiondef('public.run_automations(timestamptz)'::regprocedure) as d`)).d
+    expect(d).toContain('automation_error_retryable')
+    expect(d).toContain('awaiting_retry')
+    // And the ledger can say a run is waiting rather than failed.
+    expect(await count(
+      `select count(*) n from pg_constraint
+        where conrelid='public.automation_runs'::regclass
+          and pg_get_constraintdef(oid) like '%awaiting_retry%'`)).toBe(1)
+  })
 })
