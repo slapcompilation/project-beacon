@@ -99,9 +99,13 @@ Remaining:
    unreachable and comes out.
 4. Drop the column, with the reachability guard and the suite as the proof.
 
-**Step 3 is the one that needs care**: it means backfilling an index build job
-for every existing index, or accepting that types indexed the old way become
-unready. Do not start it without a plan for the existing rows.
+**Step 3's question is answered by the documentation, not by a choice.** An
+OSv2 index never predates its pipeline: Funnel pipelines "create and modify
+object instances in the Ontology", and a type entering OSv2 is indexed by a
+first pipeline run before anything switches over — "the migration will start as
+soon the first Funnel pipeline succeeds". So the plan is **backfill**: run one
+index build per existing type through `run_index_build`, then stop writing the
+scalar, then drop the fallback arm. Not "accept some types go unready".
 
 ### 6. Automate: the retry ladder and the published limits
 
