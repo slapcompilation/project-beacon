@@ -148,3 +148,37 @@ And a warning we should obey by *not* copying it:
 2. **What does `automatic` watch, exactly?** "whenever updates to objects are
    detected" — an index build completing is the obvious signal here, but an
    edit applied without a reindex is also an update to objects. I propose both.
+
+## Built (2026-08-15) — migrations 515–516
+
+Decisions 1–7 shipped as recited. `object_datasets` carries the type, the
+dataset and the `build_interval` with the dialog's two values; `job_specs`
+gained `source_object_type_id`, so a materialization is a third job shape — a
+dataset output whose logic is the copy — on the engine 513 already extended.
+Retention deletes the older transactions, leaving the latest snapshot. The
+status is not stored: it is the last build job, per the OSv2 correction.
+
+**Two corrections, both from the standing suite on the next run.**
+
+1. **The schema was wrong, and my migration comment justified it falsely.** 515
+   said the index table is "keyed by property API name — which is exactly what
+   the page demands". It is not: the index keys by **property id**. For the
+   seeded Aircraft the index reads `tail_number` where the API name is
+   `tailNumber`. `SELECT *` copied property ids into the object dataset and
+   made the page's own sentence false. 516 renames each column to its API name
+   on the way out. The *index* keeps its own keying — no page says the index is
+   API-named, and only the materialized dataset's schema is dictated.
+
+   The test caught it by asserting the output column exists. **An assertion
+   about the artifact survives a wrong belief; a comment asserting the belief
+   does not.**
+
+2. `build_jobs.source_object_type_id` had no index, which `catalog.test.ts`
+   asks of every foreign key on every run.
+
+**Not enforced, and deliberately so**: "Materializations cannot be created on a
+branch." Our ontology branching has no session-level current branch — a branch is
+made *from* working state by `save_to_new_branch`, and object datasets are not
+a branchable resource kind. Inventing a `current_ontology_branch()` to refuse
+against would be structure with no caller. Revisit if object datasets ever
+enter working state.
