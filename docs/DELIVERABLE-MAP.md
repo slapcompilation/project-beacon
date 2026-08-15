@@ -221,6 +221,24 @@ when it hurts.
 mode, the `returnEdits` options, interface and struct edits, retries with
 backoff, `fallbackBranches`, `connecting` build targets, Cancel build.
 
+**A function version on a branch.** `execute-query` takes a `branch` alongside
+`version`: "When provided without `version`, the latest version on this branch
+is used. When provided with `version`, the specified version must exist on the
+branch." `function_versions` has no branch, and 536 built the other three
+parameters rather than invent one — the branch overlay (461–471) exists for
+ontology entities and nothing yet says a function version joins it the same way.
+**Question for the operator, not a design to guess at.**
+
+**Nesting a version resolver inside a query over its own table loses
+uncommitted rows.** Observed reproducibly in 536: `WHERE id =
+function_resolve_version(...)` over `function_versions` misses rows written
+earlier in the same transaction, while the identical predicate inline finds
+them, and the function receives the right arguments throughout. Minimal
+reproductions in both `sql` and `plpgsql` did **not** reproduce it, so the
+mechanism is not yet pinned. Committed rows are unaffected. Both call sites now
+resolve into a variable first, which sidesteps it — but the cause is unexplained
+and could bite another pair of functions.
+
 **`ObjectMap` is parked.** `features/objects/ObjectMap.tsx` + `basemap.ts` are
 `@surface-orphan-ok`: a maplibre map that plots any object with a geopoint
 property, kept deliberately ahead of its caller.

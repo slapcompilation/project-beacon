@@ -352,7 +352,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (146) ───────────────────────────────────────────────────
+// ── FUNCTIONS (149) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -833,8 +833,23 @@ export const functionEditsValid = { apiName: 'function_edits_valid', kind: 'func
   boolean
 >
 
+/**
+ *  The latest version of a function: the highest semantic version excluding
+ *  prereleases by default, or the most recently published one including them
+ *  when resolution is PUBLISH_TIME.
+ */
 export const functionLatestVersion = { apiName: 'function_latest_version', kind: 'function' } as FunctionType<
-  { p_function: string },
+  { p_function: string; p_resolution?: string; p_include_prerelease?: boolean },
+  string
+>
+
+/**
+ *  The version a caller meant: the one they pinned, or the latest under the
+ *  given resolution. Refuses includePrerelease alongside an explicit version,
+ *  which the API does not support.
+ */
+export const functionResolveVersion = { apiName: 'function_resolve_version', kind: 'function' } as FunctionType<
+  { p_function: string; p_version?: string; p_resolution?: string; p_include_prerelease?: boolean },
   string
 >
 
@@ -844,13 +859,22 @@ export const functionSignatureValid = { apiName: 'function_signature_valid', kin
 >
 
 export const functionToRun = { apiName: 'function_to_run', kind: 'function' } as FunctionType<
-  { p_ontology: string; p_api_name: string },
+  { p_ontology: string; p_api_name: string; p_version?: string; p_resolution?: string; p_include_prerelease?: boolean },
   Json
 >
 
 export const functionTypeValid = { apiName: 'function_type_valid', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
+>
+
+/**
+ *  A function version as the API writes it: <major>.<minor>.<patch>-<tag>,
+ *  the tag optional.
+ */
+export const functionVersionString = { apiName: 'function_version_string', kind: 'function' } as FunctionType<
+  { p_major: number; p_minor: number; p_patch: number; p_prerelease?: string },
+  string
 >
 
 /**
@@ -1311,6 +1335,15 @@ export const searchVisibleTypes = { apiName: 'search_visible_types', kind: 'func
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  A sortable key for a prerelease tag. INFERENCE: the documentation gives
+ *  the tag format but no ordering between two prereleases of one version.
+ */
+export const semverPrereleaseKey = { apiName: 'semver_prerelease_key', kind: 'function' } as FunctionType<
+  { p_prerelease: string },
+  string[]
 >
 
 /**

@@ -41,8 +41,15 @@ Deno.serve(async (req) => {
   const auth = req.headers.get('authorization') ?? ''
   if (!auth.startsWith('Bearer ')) return reply(401, { error: 'sign in first' })
 
-  const { ontologyId, apiName, inputs = {} } =
-    await req.json() as { ontologyId?: string; apiName?: string; inputs?: Record<string, unknown> }
+  // `version`, `latestVersionResolution` and `includePrerelease` are the
+  // API's own parameters on execute-query; the database applies their rules
+  // and their defaults, so they travel through untouched rather than being
+  // defaulted twice.
+  const { ontologyId, apiName, inputs = {}, version, latestVersionResolution, includePrerelease } =
+    await req.json() as {
+      ontologyId?: string; apiName?: string; inputs?: Record<string, unknown>
+      version?: string; latestVersionResolution?: string; includePrerelease?: boolean
+    }
   if (!ontologyId || !apiName) return reply(400, { error: 'ontologyId and apiName are required' })
 
   // Everything below runs as the caller: the artifact read, and every
@@ -53,6 +60,12 @@ Deno.serve(async (req) => {
 
   const { data, error } = await caller.rpc('function_to_run', {
     p_ontology: ontologyId, p_api_name: apiName,
+    p_version: version ?? null,
+    // "Defaults to `SEMANTIC_VERSION`."
+    p_resolution: latestVersionResolution ?? 'SEMANTIC_VERSION',
+    // Null, not false: the default depends on the resolution mode, and that
+    // rule lives in one place.
+    p_include_prerelease: includePrerelease ?? null,
   })
   if (error) return reply(400, { error: error.message })
   const fn = data as Payload | null
