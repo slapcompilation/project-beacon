@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (36) ────────────────────────────────────────────────
+// ── ACTION TYPES (38) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -204,6 +204,11 @@ export const mintValueTypeVersion = { apiName: 'mint_value_type_version', kind: 
   number
 >
 
+export const objectDatasetJobSpec = { apiName: 'object_dataset_job_spec', kind: 'action' } as ActionType<
+  { p_object_dataset: string },
+  string
+>
+
 /**
  *  Finish rebase and save: apply the per-resource choices (Use Main deletes
  *  the branch row; Keep current refreshes its baseline to main's present),
@@ -249,6 +254,11 @@ export const runBuildJob = { apiName: 'run_build_job', kind: 'action' } as Actio
  */
 export const runIndexBuild = { apiName: 'run_index_build', kind: 'action' } as ActionType<
   { p_types: string[]; p_force?: boolean },
+  string
+>
+
+export const runObjectDatasetBuild = { apiName: 'run_object_dataset_build', kind: 'action' } as ActionType<
+  { p_object_dataset: string; p_force?: boolean },
   string
 >
 
@@ -348,7 +358,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (134) ───────────────────────────────────────────────────
+// ── FUNCTIONS (135) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -945,6 +955,11 @@ export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as Fu
 export const markingMember = { apiName: 'marking_member', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string },
   boolean
+>
+
+export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 'function' } as FunctionType<
+  { p_dataset: string },
+  string
 >
 
 /**
