@@ -77,12 +77,35 @@ built. Do not build from this entry as written.
 
 ---
 
-### 5. Drop `object_type_indexes.status`
+### 5. Drop `object_type_indexes.status` — SCOPE CORRECTED, BIGGER THAN STATED
 
 520 made `object_type_index_state()` the OSv2 answer — the last index build
-job's state — and left the legacy column in place because sixteen migrations
-and three web surfaces read it. Moving those readers over and dropping the
-column is the finish. Nothing new is designed; it is a migration of callers.
+job's state — and left the legacy column. I described the remaining work as
+"three web surfaces". **Counting the live catalog instead of guessing: 18
+functions touch the table**, and at least eight gate the **hot read path** on
+`x.status = 'success'`:
+
+`evaluate_object_set`, `count_object_set`, `aggregate_object_set`,
+`histogram_object_set`, `indexed_objects`, `object_set_where`, `search_objects`,
+`search_visible_types`.
+
+That predicate means "only read an index that built", which is correct and
+must keep meaning that. The v2 equivalent is "the last index build job
+COMPLETED", so the replacement is a predicate — `object_type_index_ready()` —
+substituted into eight engine functions, each restated from
+`pg_get_functiondef`, plus `index_object_type` ceasing to write the column,
+plus the web surfaces.
+
+**Do it as its own change, first thing, not tacked onto anything.** It touches
+every read of every object, and the last time something rushed into a shared
+path here it took the heartbeat down for four minutes. The pieces:
+
+1. `object_type_index_ready(uuid)` — the last index job COMPLETED.
+2. The eight engine functions, one migration, restated from the live catalog.
+3. `index_object_type` stops writing `status`; the web surfaces read the state
+   function.
+4. Drop the column, with `reachability.test.ts` and the platform suite as the
+   proof that nothing still wants it.
 
 ---
 
