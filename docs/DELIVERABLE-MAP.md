@@ -92,20 +92,26 @@ caught it on the next run, which is exactly why this was worth its own change.
 `object_type_index_ready()` now prefers the job and falls back to the legacy
 scalar **only** where no job exists.
 
-Remaining:
+Remaining, and **the order is fixed by a mistake, not by preference**:
 
-3. `index_object_type` stops writing `status`, and every index is built through
-   a job — at which point the fallback arm in `object_type_index_ready()` is
-   unreachable and comes out.
-4. Drop the column, with the reachability guard and the suite as the proof.
+3. **Make `index_object_type` unreachable except through a build job.** It is
+   granted to `authenticated` and exposed as `indexObjectType` in the generated
+   client, and the platform suite calls it directly in several fixtures. Until
+   all of that moves to `run_index_build`, an index can be created with no
+   pipeline at any moment.
+4. Then the fallback arm in `object_type_index_ready()` is unreachable **by
+   construction**, and comes out.
+5. Then `index_object_type` stops writing `status`, and the column is dropped.
 
-**Step 3's question is answered by the documentation, not by a choice.** An
-OSv2 index never predates its pipeline: Funnel pipelines "create and modify
-object instances in the Ontology", and a type entering OSv2 is indexed by a
-first pipeline run before anything switches over — "the migration will start as
-soon the first Funnel pipeline succeeds". So the plan is **backfill**: run one
-index build per existing type through `run_index_build`, then stop writing the
-scalar, then drop the fallback arm. Not "accept some types go unready".
+**Why the order is this way.** 525 backfilled a build for every existing index
+and asserted none was left without one — true. 526 removed the arm on that
+basis and the read path went dark again, because the assertion described the
+*rows that existed*, not the *system*: a fixture indexing a new type has no
+build, and eight exploration cases failed immediately. 527 put the arm back.
+
+That is the same error as 523 one level up — proving a property of the current
+data and treating it as a property of the system. The suite caught both within
+one run, which is the only reason neither reached CI.
 
 ### 6. Automate: the retry ladder and the published limits
 
