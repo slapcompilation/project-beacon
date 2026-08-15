@@ -358,7 +358,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (135) ───────────────────────────────────────────────────
+// ── FUNCTIONS (139) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -482,6 +482,21 @@ export const authOrgMarkingIds = { apiName: 'auth_org_marking_ids', kind: 'funct
 export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionType<
   Record<string, never>,
   string
+>
+
+export const automationConditionValid = { apiName: 'automation_condition_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
+export const automationEffectKinds = { apiName: 'automation_effect_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; runtime: string; executable: boolean; note: string }[]
+>
+
+export const automationFires = { apiName: 'automation_fires', kind: 'function' } as FunctionType<
+  { p_automation: string; p_at: string },
+  string[]
 >
 
 /**
@@ -969,6 +984,11 @@ export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 
 export const objectSetFiltersValid = { apiName: 'object_set_filters_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
+>
+
+export const objectSetKeys = { apiName: 'object_set_keys', kind: 'function' } as FunctionType<
+  { p_set: string; p_limit?: number },
+  string[]
 >
 
 /**
