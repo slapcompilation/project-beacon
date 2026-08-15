@@ -150,6 +150,13 @@ const isStrict = (text) => /^---[\s\S]*?\bverify:\s*strict\b[\s\S]*?^---/m.test(
 let checked = 0
 let legacy = 0
 const failures = []
+/** Pages a reading's quotations actually resolve to, per reading. */
+const leanedOn = new Set()
+const declared = []
+/** Named in a header, quoted nowhere. */
+const unused = []
+/** `mirror/foundry/x/y.md` and a header's `x/y` are the same page. */
+const slugOf = (f) => f.split('\\').join('/').replace(/^.*mirror\//, '').replace(/\.md$/, '')
 
 for (const name of readings) {
   const text = fs.readFileSync(path.join(READINGS, name), 'utf8')
@@ -174,13 +181,65 @@ for (const name of readings) {
     for (const u of unfound) {
       failures.push({ name, at: q.at, why: `not in any mirrored page: "${u.slice(0, 90)}"` })
     }
+    // Which page did this quotation actually come from? Recorded so the
+    // reading can be compared against what it leans on.
+    for (const p of parts) {
+      for (const m of mirror) {
+        if (m.lower.includes(p.toLowerCase())) { leanedOn.add(slugOf(m.file)); break }
+      }
+    }
   }
+
+  // ── what the reading CLAIMS to have read ──────────────────────────────────
+  //
+  // Every real error this guard did not catch came from the same place: a
+  // decision taken on a page that was skimmed or never opened, while the
+  // header said otherwise. Three readings listed pages they did not rest on
+  // — one of them listed eighteen — and the questions that later blocked the
+  // build were sitting in those pages.
+  //
+  // It WARNS rather than fails, for two reasons. Older readings carry long
+  // page lists this would fail wholesale, and a guard that fails on its own
+  // backlog gets switched off. And a sentence published on two pages resolves
+  // to whichever the walker reaches first, so a page genuinely read can be
+  // flagged — `automate/security` and `automate/permissions` share their
+  // execution-permission list word for word.
+  //
+  // Nothing here can prove a page was read. What it can do is make the claim
+  // PER PAGE and comparable: a page named in the header that no quotation in
+  // the whole reading comes from is, in practice, a page that was listed
+  // rather than used.
+  const header = text.split('\n## ')[0]
+  for (const m of header.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
+    const claim = slugOf(m[1])
+    // Images are provenance-checked above; a bare directory is a pointer, not
+    // a page; and a path with no mirrored file behind it is a reference to
+    // something else entirely (a script, a migration, another reading).
+    if (/\.(png|jpg|jpeg|gif|svg)$/i.test(claim) || claim.endsWith('/')) continue
+    if (!mirror.some((m) => slugOf(m.file) === claim)) continue
+    declared.push({ name, claim })
+  }
+  for (const d of declared.filter((d) => d.name === name)) {
+    if (!leanedOn.has(d.claim)) unused.push({ name, claim: d.claim })
+  }
+  leanedOn.clear()
+  declared.length = 0
 }
 
 console.log(`${readings.length} readings · ${mirror.length} mirrored pages`)
 console.log(`${checked} quotations checked in ${readings.length - legacy} strict reading(s)`)
 if (legacy > 0) {
   console.log(`${legacy} reading(s) predate this guard and are not checked — add \`verify: strict\` to opt one in`)
+}
+
+if (unused.length > 0) {
+  console.warn(`
+${unused.length} page(s) named in a reading's header that no quotation rests on:
+`)
+  for (const u of unused.slice(0, 20)) console.warn(`  ${u.name}  —  ${u.claim}`)
+  if (unused.length > 20) console.warn(`  …and ${unused.length - 20} more`)
+  console.warn('\nA page listed as read and never quoted is usually a page that was listed.')
+  console.warn('Either quote what it contributed, or say in the header that it was skimmed.')
 }
 
 if (failures.length > 0) {
