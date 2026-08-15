@@ -1049,10 +1049,10 @@ export const objectState = { apiName: 'object_state', kind: 'function' } as Func
 >
 
 /**
- *  Whether this object type may be read. Prefers the OSv2 answer — the last
- *  index build job COMPLETED — and falls back to the legacy scalar only for
- *  indexes built before 513, which have no job. The fallback goes when
- *  index_object_type stops writing that column.
+ *  Whether this object type may be read. Prefers the OSv2 answer — the index
+ *  pipeline completed — and falls back to the legacy scalar for an index
+ *  created without a build. The fallback goes when index_object_type is no
+ *  longer directly callable, not before.
  */
 export const objectTypeIndexReady = { apiName: 'object_type_index_ready', kind: 'function' } as FunctionType<
   { p_type: string },
