@@ -31,7 +31,7 @@ import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
-import { useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
+import { indexPhase, useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -242,13 +242,17 @@ export default function ObjectTypesPage() {
                     <p className="text-[11px] text-muted-foreground">{t.properties.length} propert{t.properties.length === 1 ? 'y' : 'ies'}</p>
                     {(() => {
                       const ix = indexes?.get(t.id)
-                      if (ix?.status === 'success') {
-                        return <Tag minimal intent={Intent.SUCCESS} className="!text-[10px]">{ix.objectCount ?? 0} objects</Tag>
+                      switch (indexPhase(ix)) {
+                        case 'ready':
+                          return <Tag minimal intent={Intent.SUCCESS} className="!text-[10px]">{ix?.objectCount ?? 0} objects</Tag>
+                        case 'failed':
+                          return <Tag minimal intent={Intent.DANGER} className="!text-[10px]" title={ix?.error ?? undefined}>index failed</Tag>
+                        // The pipeline is mid-run; the states are the job's own.
+                        case 'running':
+                          return <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]" title={ix?.state ?? undefined}>indexing</Tag>
+                        default:
+                          return <Tag minimal className="!text-[10px]" title="Only once the indexing pipeline completes will objects be visible">not indexed</Tag>
                       }
-                      if (ix?.status === 'failed') {
-                        return <Tag minimal intent={Intent.DANGER} className="!text-[10px]" title={ix.error ?? undefined}>index failed</Tag>
-                      }
-                      return <Tag minimal className="!text-[10px]" title="Only once the indexing pipeline completes will objects be visible">not indexed</Tag>
                     })()}
                     <Button variant="minimal" size="small" icon="refresh" title="Full reindex"
                       loading={reindex.isPending && reindex.variables === t.id}

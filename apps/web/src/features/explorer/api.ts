@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase/client'
 import { client } from '@/lib/supabase/ontologyClient'
 import {
   aggregateObjectSet, countObjectSet, evaluateObjectSet, histogramObjectSet,
-  objectSetRows, objectSetSize, saveObjectSet, searchObjects,
+  objectSetRows, objectSetSize, objectTypeIndexReport, saveObjectSet, searchObjects,
   type Json,
 } from '@beacon/platform'
 
@@ -46,16 +46,18 @@ export type ObjectRow = Record<string, unknown>
 
 // ── metadata ───────────────────────────────────────────────────────────────
 
-export interface IndexInfo { object_type_id: string; status: string; object_count: number | null }
+export interface IndexInfo { object_type_id: string; state: string | null; object_count: number | null }
 
 export function useIndexCounts() {
   return useQuery({
     queryKey: ['explorer', 'index-counts'],
     queryFn: async (): Promise<IndexInfo[]> => {
-      const { data, error } = await supabase.from('object_type_indexes')
-        .select('object_type_id, status, object_count')
-      if (error) throw new Error(error.message)
-      return data as IndexInfo[]
+      // The count is only meaningful once the pipeline completed, so the state
+      // travels with it rather than being inferred from a row existing.
+      const rows = await client(objectTypeIndexReport).executeFunction({})
+      return rows.map((r) => ({
+        object_type_id: r.object_type_id, state: r.state, object_count: r.object_count,
+      }))
     },
     staleTime: 30_000,
   })

@@ -4,43 +4,52 @@
 // see your new objects… you can refresh the page to see an object count in top
 // left of your screen: 183,999 objects."
 //
-// The status vocabulary is the page's: success, failed, or not started. An
-// absent row is also not started — the type has never been indexed.
+// The vocabulary is the pipeline's, not Phonograph's. OSv2 has no Index status
+// scalar — "a dedicated pipeline graph that shows the status of various jobs in
+// a Funnel pipeline" is the surface, and a green tick on the Object Storage v2
+// node means ready. So a type's index reads as one of the seven job states, and
+// a type that has never been built has no job and answers null.
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
-import { runIndexBuild } from '@beacon/platform'
+import { objectTypeIndexReport, runIndexBuild } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
 export interface IndexStatus {
   objectTypeId: string
-  status: 'not started' | 'success' | 'failed'
-  /** The job details a failure points at. */
+  /** A build job state, or null for a type no pipeline has run. */
+  state: string | null
+  /** What the failing job reported. */
   error: string | null
   objectCount: number | null
   indexedAt: string | null
-}
-
-interface Row {
-  object_type_id: string; status: IndexStatus['status']
-  error: string | null; object_count: number | null; indexed_at: string | null
 }
 
 export function useIndexStatuses() {
   return useQuery({
     queryKey: ['object-type-indexes'],
     queryFn: async (): Promise<Map<string, IndexStatus>> => {
-      const { data, error } = await supabase
-        .from('object_type_indexes')
-        .select('object_type_id, status, error, object_count, indexed_at')
-      if (error) throw new Error(error.message)
-      return new Map((data as Row[]).map((r) => [r.object_type_id, {
-        objectTypeId: r.object_type_id, status: r.status, error: r.error,
+      const rows = await client(objectTypeIndexReport).executeFunction({})
+      return new Map(rows.map((r) => [r.object_type_id, {
+        objectTypeId: r.object_type_id, state: r.state, error: r.error,
         objectCount: r.object_count, indexedAt: r.indexed_at,
       }]))
     },
   })
+}
+
+/** Is this type queryable? "A green tick in the Object Storage v2 node in the
+ *  graph indicates that the indexing is complete and the object type is ready
+ *  to be queried from OSv2" — one state, of the seven, means ready. */
+export const indexReady = (ix?: IndexStatus): ix is IndexStatus => ix?.state === 'COMPLETED'
+
+/** Where a type is in its pipeline, for a tag. `null` means no job has run. */
+export function indexPhase(ix?: IndexStatus): 'ready' | 'running' | 'failed' | 'none' {
+  if (!ix?.state) return 'none'
+  if (ix.state === 'COMPLETED') return 'ready'
+  if (ix.state === 'FAILED' || ix.state === 'ABORTED') return 'failed'
+  return 'running'
 }
 
 /** A full reindex — the documented user-triggered case, run as a build.

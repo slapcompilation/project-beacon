@@ -38,7 +38,10 @@ const db = vi.hoisted(() => {
       id: 'if1', ontology_id: 'ont1', rid: null, api_name: 'Roomed', label: 'Roomed', description: '',
       interface_properties: [], interface_link_constraints: [], interface_action_constraints: [], extensions: [],
     }],
-    object_type_indexes: [{ object_type_id: 'ot1', status: 'success', error: null, object_count: 12, indexed_at: '' }],
+    // The index report, not the table: OSv2 answers with the build job's state.
+    object_type_index_report: [{
+      object_type_id: 'ot1', state: 'COMPLETED', error: null, object_count: 12, indexed_at: '',
+    }],
   }
   return { rows }
 })
@@ -56,7 +59,12 @@ vi.mock('@/lib/supabase/client', () => {
 })
 // The working state is empty, so the header's save area renders nothing.
 vi.mock('@/lib/supabase/ontologyClient', () => ({
-  client: () => ({ executeFunction: () => Promise.resolve([]), applyAction: () => Promise.resolve(null) }),
+  // Keyed by entity, because the pages read some of their data through
+  // functions now — the index report among them.
+  client: (entity: { apiName: string }) => ({
+    executeFunction: () => Promise.resolve(db.rows[entity.apiName] ?? []),
+    applyAction: () => Promise.resolve(null),
+  }),
 }))
 
 import OmaLayout from './OmaLayout'

@@ -32,7 +32,7 @@ export default function ExplorerHome() {
     () => types.filter((t) => t.visibility !== 'hidden'),
     [types])
   const countOf = (id: string) =>
-    counts.find((c) => c.object_type_id === id && c.status === 'success')?.object_count ?? null
+    counts.find((c) => c.object_type_id === id && c.state === 'COMPLETED')?.object_count ?? null
 
   // Configured groups first; every ungrouped visible type lands in "Other".
   const sections = useMemo(() => {

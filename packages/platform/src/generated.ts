@@ -352,7 +352,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (144) ───────────────────────────────────────────────────
+// ── FUNCTIONS (146) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -971,6 +971,16 @@ export const jobSpecQueryText = { apiName: 'job_spec_query_text', kind: 'functio
 >
 
 /**
+ *  The schema version of a JobSpec's pipeline: its own for a dataset spec,
+ *  the object type's for an index spec. A job recorded at an older one is
+ *  running an out-of-date pipeline.
+ */
+export const jobSpecVersion = { apiName: 'job_spec_version', kind: 'function' } as FunctionType<
+  { p_spec: string },
+  number
+>
+
+/**
  *  The generated accessor for one end of a link type: .get() where that side
  *  sees one, .all() where it sees many. Derived from cardinality so the two
  *  can never disagree.
@@ -1050,6 +1060,16 @@ export const objectState = { apiName: 'object_state', kind: 'function' } as Func
 export const objectTypeIndexReady = { apiName: 'object_type_index_ready', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
+>
+
+/**
+ *  One row per index: the last build job's state and error, with the row
+ *  count and time. The OSv2 answer to what the Index status scalar used to
+ *  show.
+ */
+export const objectTypeIndexReport = { apiName: 'object_type_index_report', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type_id: string; state: string; error: string; object_count: number; indexed_at: string }[]
 >
 
 /**
