@@ -136,15 +136,65 @@ they execute."
    thing that makes a failed effect visible to an operator, and because F2
    already distinguishes a function that broke from one that spoke.
 
-## Questions
+## Questions, both answered by crawling
 
-1. **Does an automation's effect run as the author, or as a service identity?**
-   `permissions` and `security` are mirrored and I have read them; they cover
-   who may edit an automation, not whose rights the effect runs with. Our
-   schedules answer with whoever last edited the schedule, through 486's claims
-   swap, and I propose the same until a page says otherwise — but this is the
-   one that decides whether an automation can escalate.
-2. **Where do automations sit in the resource hierarchy?** Compass folders and
-   project roles govern everything else; nothing I read says an automation is a
-   Compass resource. I propose treating it as one, since it is created inside a
-   project like an action type.
+**1. Whose rights does an effect run with? THE AUTOMATION OWNER**, and my
+proposal of "whoever last edited it" was wrong in a way that matters — an owner
+is an explicit, transferable role, not a side effect of the last save.
+
+> "**Condition evaluation:** Uses automation owner's permissions"
+
+> "**Action and Logic effects:** Execute as the automation owner"
+
+> "**Notification effects:** Use each recipient's individual permissions"
+
+`permissions` spells out four consequences of executing as the owner:
+submission criteria "are evaluated against the owner", functions "receive
+authentication tokens from the owner", edit history "shows the owner in the
+**Edited by** field", and "**Audit logs** record Ontology edits as performed by
+the automation owner".
+
+Ownership is transferred deliberately, and editing is gated on it:
+
+> "You must take ownership of the automation to make edits to the condition or
+> effects."
+
+> "Future actions effects will execute on behalf of the new owner."
+
+And it is stated a third time so it cannot be mistaken for a scope setting:
+
+> "Regardless of scoping mode, automations execute as the owner."
+
+**The service identity exists too, and it unblocks something else.**
+`permissions` documents third-party application ownership: "Automations can be
+owned by third-party applications instead of individual users. When an
+automation is owned by a third-party application, it uses a service user for
+all executions, providing team continuity when individual users leave or are
+out of office." Our schedules recorded project-scope mode as waiting on exactly
+that — a service execution identity — so this page answers a question the
+pipeline phase left open.
+
+**2. Where does an automation sit? IN A PROJECT**, and its dependencies are
+imported there:
+
+> "Project-scoped automations require all transitive resources used in the
+> automation to be imported into the project."
+
+Scope is about who sees run history — "Project scope enables team
+collaboration by making run history (including effect executions) visible to
+all users who satisfy the markings on a run" — not about whose rights run. I
+had these two conflated; the pages separate them explicitly.
+
+## Decisions, revised by those answers
+
+8. **`automations.owner_id`, and effects execute as the owner** through 486's
+   claims swap — not as the last editor. Condition evaluation uses the same
+   identity, so a condition cannot see what its owner cannot.
+9. **Editing the condition or effects requires being the owner**, refused by
+   name, because the page makes taking ownership the precondition for editing.
+10. **Scope (`user` / `project`) governs history visibility only.** Recorded as
+    a column now and enforced when history exists; it must never be mistaken
+    for an execution identity, which is why the page says so three times.
+11. **Third-party-application ownership is recorded, not built** — it needs a
+    service user, which the schedules phase is also waiting on. When it lands
+    it should serve both.
