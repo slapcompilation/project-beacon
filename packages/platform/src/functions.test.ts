@@ -131,6 +131,50 @@ describe.skipIf(noDb)('functions as versioned code', () => {
     expect(payload.object_types).toEqual(['Aircraft501T'])
   })
 
+  // The four published rules on execute-query and get-query. By this point the
+  // function has 1.0.0, 1.1.0 and 2.0.0-rc1, the prerelease published last —
+  // which is the only arrangement where the two modes disagree.
+  it('PUBLISH_TIME takes the most recent, and counts prereleases by default', async () => {
+    const latest = (await one(
+      `select public.function_version_string(major, minor, patch, prerelease) as v
+         from public.function_versions
+        where id = public.function_latest_version($1,'PUBLISH_TIME')`, [fn])).v
+    expect(latest).toBe('2.0.0-rc1')
+    // And the same function under the default resolution still says 1.1.0,
+    // so the two modes really are answering different questions.
+    const semantic = (await one(
+      `select public.function_version_string(major, minor, patch, prerelease) as v
+         from public.function_versions where id = public.function_latest_version($1)`, [fn])).v
+    expect(semantic).toBe('1.1.0')
+  })
+
+  it('includePrerelease reaches the prerelease under SEMANTIC_VERSION too', async () => {
+    const v = (await one(
+      `select public.function_version_string(major, minor, patch, prerelease) as v
+         from public.function_versions
+        where id = public.function_latest_version($1,'SEMANTIC_VERSION',true)`, [fn])).v
+    expect(v).toBe('2.0.0-rc1')
+  })
+
+  it('a pinned version wins, and the tag survives the round trip', async () => {
+    const payload = (await one(
+      `select public.function_to_run($1,'getReschedulableAircraftCount','2.0.0-rc1') as p`, [ont])).p as
+      unknown as { version: string }
+    // The old format dropped the tag and would have reported "2.0.0" here.
+    expect(payload.version).toBe('2.0.0-rc1')
+
+    expect(await refused(db, () => db.query(
+      `select public.function_to_run($1,'getReschedulableAircraftCount','9.9.9')`, [ont])))
+      .toContain('Functions:VersionNotFound')
+    expect(await refused(db, () => db.query(
+      `select public.function_to_run($1,'getReschedulableAircraftCount','not-a-version')`, [ont])))
+      .toContain('Functions:InvalidVersion')
+    // "Not supported together with `version`."
+    expect(await refused(db, () => db.query(
+      `select public.function_to_run($1,'getReschedulableAircraftCount','2.0.0-rc1','SEMANTIC_VERSION',true)`,
+      [ont]))).toContain('Functions:IncludePrereleaseWithVersion')
+  })
+
   it('reading a placed function takes a role on its project', async () => {
     await db.query(`delete from public.project_role_grants where project_id=$1 and user_id=$2`,
       [f.projectId, usr])
