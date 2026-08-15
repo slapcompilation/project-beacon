@@ -247,17 +247,24 @@ project-scoped schedules also want.
 
 Reading `retries` and `limits` in full, having built from neither.
 
-**1. The fallback fires too early.** 517 runs a fallback effect the moment its
-primary fails. The page is specific:
+**1. The fallback rule — and I over-read it first.** I recorded this as "the
+fallback fires too early, full stop". Reading the sentence again, it is a
+DISJUNCTION:
 
 > "Fallback effects are not eligible for retries, and will only execute if an
 > object failed non-retryably, or the maximum number of retries has been
 > reached."
 
-So a fallback is the *last* resort, after retries are exhausted or on an error
-that is not retryable — not the *first* response to any failure. Ours fires on
-every failure, which means a transient rate limit runs the fallback path that
-was meant for genuine breakage.
+The second arm settles it: with no retry strategy configured the maximum number
+of retries is zero, which is trivially reached, so a fallback fires at once.
+**517's behaviour was therefore correct for every automation we can create**,
+because retries did not exist here. What was missing was the configuration the
+rule hangs on, not the branch.
+
+521 and 522 add it: retry bounds as published, a classifier for the errors the
+page calls retryable, and a fallback withheld only when a retryable failure
+meets an effect that opted into retries. Behaviour is unchanged for everything
+that has no retry configuration.
 
 The retry machinery it depends on is published too: per-effect automatic
 retries, configurable, and available **only on action and Logic effects**;

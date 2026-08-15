@@ -358,7 +358,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (140) ───────────────────────────────────────────────────
+// ── FUNCTIONS (142) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -494,9 +494,28 @@ export const automationEffectKinds = { apiName: 'automation_effect_kinds', kind:
   { kind: string; runtime: string; executable: boolean; note: string }[]
 >
 
+/**
+ *  Whether a failure is one the page calls retryable: rate limits, service
+ *  outages, and ephemeral errors such as Actions:ObjectVersionChanged.
+ */
+export const automationErrorRetryable = { apiName: 'automation_error_retryable', kind: 'function' } as FunctionType<
+  { p_error: string },
+  boolean
+>
+
 export const automationFires = { apiName: 'automation_fires', kind: 'function' } as FunctionType<
   { p_automation: string; p_at: string },
   string[]
+>
+
+/**
+ *  The published maximum input size for a scheduled object-set condition:
+ *  1,000,000 for Run on all objects, 100,000 for Objects added and Objects
+ *  removed.
+ */
+export const automationInputLimit = { apiName: 'automation_input_limit', kind: 'function' } as FunctionType<
+  { p_condition_type: string },
+  number
 >
 
 /**
