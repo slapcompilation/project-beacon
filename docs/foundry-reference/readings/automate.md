@@ -4,12 +4,26 @@ verify: strict
 
 # Automate — conditions and effects over the Ontology
 
-Pages read: `automate/overview`, `condition-time`, `condition-objects`,
-`condition-settings`, `effects`, `effect-actions`, `effect-function`,
-`effect-notification`, `effect-fallback`, `effect-settings`,
-`evaluation-frequency`, `limits`, `retries`, `muting-pausing-expiration`,
-`permissions`, `security`, `manual-execution`, `history`, plus the three
-worked examples.
+**CORRECTED 2026-08-15.** This line originally listed eighteen pages as read.
+That was false, and it is the failure CLAUDE.md names first — "A link is not a
+reading". What was actually read when this was written:
+
+- **In full**: `automate/security`, `automate/permissions`.
+- **Partially** (the opening sections, enough for the shape and the quotes
+  used): `automate/overview`, `condition-objects`, `condition-time`, `effects`,
+  `evaluation-frequency`, `history-visibility-and-scope`.
+- **By grep only**, for one passage: `effect-settings` (execution guarantees).
+- **Not opened at all**: `condition-settings`, `effect-actions`,
+  `effect-function`, `effect-notification`, `effect-fallback`, `limits`,
+  `retries`, `muting-pausing-expiration`, `manual-execution`, `history`,
+  `automation-dependencies`, `branching-automations`, `streaming`,
+  `performance-best-practices`, `integrations`, `notification-settings`,
+  `third-party-app-ownership`, and the three worked examples.
+
+Every quotation in this reading traces (`check:readings` passes), so nothing
+here is invented — but the decisions were taken with a third of the section
+read, and **`retries`, `limits` and `effect-settings` in particular bear
+directly on the runner that shipped**. Read them before the next slice.
 
 Read because it is §3 of the derived queue and the layer directly above what
 F2 finished: its effects are the actions and functions we now run.
@@ -228,4 +242,49 @@ finished.
 missing metric history rule out; notification and Logic effects; and
 third-party-application ownership, which waits on the service user that
 project-scoped schedules also want.
+
+## Read afterwards (2026-08-15) — two pages that contradict what shipped
+
+Reading `retries` and `limits` in full, having built from neither.
+
+**1. The fallback fires too early.** 517 runs a fallback effect the moment its
+primary fails. The page is specific:
+
+> "Fallback effects are not eligible for retries, and will only execute if an
+> object failed non-retryably, or the maximum number of retries has been
+> reached."
+
+So a fallback is the *last* resort, after retries are exhausted or on an error
+that is not retryable — not the *first* response to any failure. Ours fires on
+every failure, which means a transient rate limit runs the fallback path that
+was meant for genuine breakage.
+
+The retry machinery it depends on is published too: per-effect automatic
+retries, configurable, and available **only on action and Logic effects**;
+plus event retries with two parameters — a "**Retry interval:** The time
+interval between retries. This must be less than 24 hours" and a "**Number of
+retries:** The maximum number of times an event will be retried… this must be
+between 1 and 5". Retryable means "Rate limits", "Service outages", and
+"Ephemeral errors such as `Actions:ObjectVersionChanged`".
+
+**2. The object-set cap is invented and wrong.** `object_set_keys` caps at
+10,000, a number I chose. The published limits are per condition:
+
+> "Maximum input size for `Objects added` or `Objects removed` conditions with
+> scheduled execution | 100,000"
+
+> "Maximum input size for `Run on all objects` condition with scheduled
+> execution | 1,000,000"
+
+with the behaviour also stated — "Error message when saving the automation OR
+runtime error when evaluating the automation if the input set grows beyond the
+limit". Ours truncates silently at a tenth of the smaller one, which is the
+worse failure: a condition that quietly stops seeing objects.
+
+`limits` also publishes runtime bounds we have no equivalent for: 45 minutes
+maximum wait in the execution queue, and 4 hours maximum run, where "effects
+that completed before the timeout are preserved".
+
+**Neither is fixed here.** Both are recorded in DELIVERABLE-MAP so the next
+change starts from the published numbers rather than from mine.
 

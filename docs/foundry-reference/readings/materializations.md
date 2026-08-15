@@ -4,10 +4,13 @@ verify: strict
 
 # Materializations — the merged state, written back out as a dataset
 
-Pages read in full: `object-edits/materializations.md` and its ten images,
-`object-edits/how-edits-applied.md` (§ persistent storage of user edits),
-`object-indexing/funnel-batch-pipelines.md` (§ live pipelines), and
-`object-link-types/property-metadata.md` for the API-name rule the schema uses.
+**CORRECTED 2026-08-15.** Read in full: `object-edits/materializations.md`,
+`object-edits/how-edits-applied.md`, `object-indexing/funnel-batch-pipelines.md`.
+Of the ten images, **two** were opened — `materializations-2` and
+`materializations-3`, the two the decisions rest on.
+`object-link-types/property-metadata.md` was cited in the original header and
+**was never opened**; the API-name rule quoted here comes from
+`materializations.md` itself, which states it directly.
 
 Read because it is §2 of the derived queue: the merged state — datasource plus
 user edits — is exactly what `object_state()` already computes, and it is the

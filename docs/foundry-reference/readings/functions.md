@@ -692,3 +692,29 @@ Build-time trap, recorded because it has now bitten twice: the guest harness
 lives inside a `String.raw` template, so a backtick anywhere in it — including
 inside a comment — ends the template and breaks the deploy. `check:edge`
 caught it before the commit, which is what it was restored for.
+
+## Found later (2026-08-15) — "latest version" has two published meanings
+
+`api/functions-v2-resources` was mirrored only after F1 and F2 shipped; it had
+never been in reach, because those pages sit at `api/<resource>` with no `/v2/`
+segment and every earlier crawl targeted `api/v2/…`.
+
+F1 resolves an API-named function to its latest version. The API says that is a
+CHOICE, with a default:
+
+`latestVersionResolution` is an enum of `PUBLISH_TIME` and `SEMANTIC_VERSION`,
+described as:
+
+> "Controls how latest version is resolved when `version` is omitted. Defaults
+> to `SEMANTIC_VERSION`."
+
+and prereleases have their own rule:
+
+> "When resolving the latest version, whether prerelease versions are
+> considered. Defaults to `false`, except when `latestVersionResolution` is
+> `PUBLISH_TIME`. Not supported together with `version`."
+
+Ours resolves one way and names neither. `function_latest_version` should say
+which of the two it implements, default to `SEMANTIC_VERSION` as published, and
+exclude prereleases unless resolving by publish time. Recorded, not fixed.
+

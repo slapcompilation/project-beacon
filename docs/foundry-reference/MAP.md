@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**2284 pages across 82 sections.**
+**2750 pages across 97 sections.**
 
 ## action-types — 35 pages
 
@@ -176,6 +176,485 @@ stay findable.
 - `tableau-setup` — Set up
 - `troubleshooting-odbc-jdbc` — Troubleshooting issues when configuring ODBC & JDBC Drivers
 
+## api/audit-v2-resources — 5 pages
+
+- `_index` — Log File basics
+- `log-files` — Log File basics
+- `log-files-get-log-file-content` — Get Log File Content
+- `log-files-list-log-files` — List Log Files
+- `log-files-log-file-basics` — Log File basics
+
+## api/checkpoints-v2-resources — 6 pages
+
+- `_index` — Record basics
+- `records` — Record basics
+- `records-get-record` — Get Record
+- `records-get-records-batch` — Get Records Batch
+- `records-record-basics` — Record basics
+- `records-search-records` — Search Records
+
+## api/functions-v2-resources — 8 pages
+
+- `_index` — Query basics
+- `queries` — Query basics
+- `queries-execute-query` — Execute Query
+- `queries-get-by-rid` — Get By Rid
+- `queries-get-by-rid-queries-batch` — Get By Rid Queries Batch
+- `queries-get-query` — Get Query
+- `queries-query-basics` — Query basics
+- `queries-streaming-execute-query` — Streaming Execute Query
+
+## api/v1 — 84 pages
+
+- `_index` — Introduction
+- `datasets-resources` — Dataset basics
+- `datasets-resources-branches` — Branch basics
+- `datasets-resources-branches-branch-basics` — Branch basics
+- `datasets-resources-branches-create-branch` — Create Branch
+- `datasets-resources-branches-delete-branch` — Delete Branch
+- `datasets-resources-branches-get-branch` — Get Branch
+- `datasets-resources-branches-list-branches` — List Branches
+- `datasets-resources-datasets` — Dataset basics
+- `datasets-resources-datasets-create-dataset` — Create Dataset
+- `datasets-resources-datasets-dataset-basics` — Dataset basics
+- `datasets-resources-datasets-get-dataset` — Get Dataset
+- `datasets-resources-datasets-read-table` — Read Table
+- `datasets-resources-files` — File basics
+- `datasets-resources-files-delete-file` — Delete File
+- `datasets-resources-files-file-basics` — File basics
+- `datasets-resources-files-get-file-content` — Get File Content
+- `datasets-resources-files-get-file-metadata` — Get File Metadata
+- `datasets-resources-files-list-files` — List Files
+- `datasets-resources-files-upload-file` — Upload File
+- `datasets-resources-transactions` — Transaction basics
+- `datasets-resources-transactions-abort-transaction` — Abort Transaction
+- `datasets-resources-transactions-commit-transaction` — Commit Transaction
+- `datasets-resources-transactions-create-transaction` — Create Transaction
+- `datasets-resources-transactions-get-transaction` — Get Transaction
+- `datasets-resources-transactions-transaction-basics` — Transaction basics
+- `general` — Introduction
+- `general-overview` — Introduction
+- `general-overview-authentication` — Authentication
+- `general-overview-errors` — Errors
+- `general-overview-getting-started` — Getting started
+- `general-overview-introduction` — Introduction
+- `general-overview-limits` — Limits
+- `general-overview-paging` — Paging
+- `general-overview-sdks` — Software development kit (SDK)
+- `general-overview-versioning` — Versioning
+- `llm-apis` — Anthropic Messages (Proxy)
+- `llm-apis-models` — Anthropic Messages (Proxy)
+- `llm-apis-models-anthropic-messages-proxy` — Anthropic Messages (Proxy)
+- `llm-apis-models-openai-chat-completions-proxy` — OpenAI Chat Completions (Proxy)
+- `llm-apis-models-openai-embeddings-proxy` — OpenAI Embeddings (Proxy)
+- `llm-apis-models-openai-responses-proxy` — OpenAI Responses (Proxy)
+- `ontology-resources` — Ontology basics
+- `ontology-resources-action-types` — Action Type basics
+- `ontology-resources-action-types-action-type-basics` — Action Type basics
+- `ontology-resources-action-types-get-action-type` — Get Action Type
+- `ontology-resources-action-types-list-action-types` — List Action Types
+- `ontology-resources-actions` — Action basics
+- `ontology-resources-actions-action-basics` — Action basics
+- `ontology-resources-actions-apply-action` — Apply Action
+- `ontology-resources-actions-apply-action-batch` — Apply Action Batch
+- `ontology-resources-actions-validate-action` — Validate Action
+- `ontology-resources-attachments` — Attachment basics
+- `ontology-resources-attachments-attachment-basics` — Attachment basics
+- `ontology-resources-attachments-get-attachment` — Get Attachment
+- `ontology-resources-attachments-get-attachment-content` — Get Attachment Content
+- `ontology-resources-attachments-upload-attachment` — Upload Attachment
+- `ontology-resources-object-types` — Object Type basics
+- `ontology-resources-object-types-get-object-type` — Get Object Type
+- `ontology-resources-object-types-get-outgoing-link-type` — Get Outgoing Link Type
+- `ontology-resources-object-types-list-object-types` — List Object Types
+- `ontology-resources-object-types-list-outgoing-link-types` — List Outgoing Link Types
+- `ontology-resources-object-types-object-type-basics` — Object Type basics
+- `ontology-resources-objects` — Ontology Object basics
+- `ontology-resources-objects-aggregate` — Aggregate Objects Details
+- `ontology-resources-objects-aggregate-objects` — Aggregate Objects
+- `ontology-resources-objects-get-linked-object` — Get Linked Object
+- `ontology-resources-objects-get-object` — Get Object
+- `ontology-resources-objects-list-linked-objects` — List Linked Objects
+- `ontology-resources-objects-list-objects` — List Objects
+- `ontology-resources-objects-ontology-object-basics` — Ontology Object basics
+- `ontology-resources-objects-search` — Search Objects Details
+- `ontology-resources-objects-search-objects` — Search Objects
+- `ontology-resources-ontologies` — Ontology basics
+- `ontology-resources-ontologies-get-ontology` — Get Ontology
+- `ontology-resources-ontologies-list-ontologies` — List Ontologies
+- `ontology-resources-ontologies-ontology-basics` — Ontology basics
+- `ontology-resources-queries` — Query basics
+- `ontology-resources-queries-execute-query` — Execute Query
+- `ontology-resources-queries-query-basics` — Query basics
+- `ontology-resources-query-types` — Query Type basics
+- `ontology-resources-query-types-get-query-type` — Get Query Type
+- `ontology-resources-query-types-list-query-types` — List Query Types
+- `ontology-resources-query-types-query-type-basics` — Query Type basics
+
+## api/v2/admin-v2-resources — 101 pages
+
+- `_index` — User basics
+- `authentication-providers` — Authentication Provider basics
+- `authentication-providers-authentication-provider-basics` — Authentication Provider basics
+- `authentication-providers-get-authentication-provider` — Get Authentication Provider
+- `authentication-providers-list-authentication-providers` — List Authentication Providers
+- `authentication-providers-preregister-group` — Preregister Group
+- `authentication-providers-preregister-user` — Preregister User
+- `cbac-banners` — Cbac Banner basics
+- `cbac-banners-cbac-banner-basics` — Cbac Banner basics
+- `cbac-banners-get-cbac-banner` — Get Cbac Banner
+- `cbac-marking-restrictions-objects` — Cbac Marking Restrictions basics
+- `cbac-marking-restrictions-objects-cbac-marking-restrictions-basics` — Cbac Marking Restrictions basics
+- `cbac-marking-restrictions-objects-get-cbac-marking-restrictions` — Get Cbac Marking Restrictions
+- `enrollment-role-assignments` — Enrollment Role Assignment basics
+- `enrollment-role-assignments-add-enrollment-role-assignments` — Add Enrollment Role Assignments
+- `enrollment-role-assignments-enrollment-role-assignment-basics` — Enrollment Role Assignment basics
+- `enrollment-role-assignments-list-enrollment-role-assignments` — List Enrollment Role Assignments
+- `enrollment-role-assignments-remove-enrollment-role-assignments` — Remove Enrollment Role Assignments
+- `enrollments` — Enrollment basics
+- `enrollments-enrollment-basics` — Enrollment basics
+- `enrollments-get-current-enrollment` — Get Current Enrollment
+- `enrollments-get-enrollment` — Get Enrollment
+- `group-members` — Group Member basics
+- `group-members-add-group-members` — Add Group Members
+- `group-members-group-member-basics` — Group Member basics
+- `group-members-list-group-members` — List Group Members
+- `group-members-remove-group-members` — Remove Group Members
+- `group-membership-expiration-policies` — Group Membership Expiration Policy basics
+- `group-membership-expiration-policies-get-group-membership-expiration-policy` — Get Group Membership Expiration Policy
+- `group-membership-expiration-policies-group-membership-expiration-policy-basics` — Group Membership Expiration Policy basics
+- `group-membership-expiration-policies-replace-group-membership-expiration-policy` — Replace Group Membership Expiration Policy
+- `group-memberships` — Group Membership basics
+- `group-memberships-group-membership-basics` — Group Membership basics
+- `group-memberships-list-group-memberships` — List Group Memberships
+- `group-provider-infos` — Group Provider Info basics
+- `group-provider-infos-get-group-provider-info` — Get Group Provider Info
+- `group-provider-infos-group-provider-info-basics` — Group Provider Info basics
+- `group-provider-infos-replace-group-provider-info` — Replace Group Provider Info
+- `groups` — Group basics
+- `groups-create-group` — Create Group
+- `groups-delete-group` — Delete Group
+- `groups-get-group` — Get Group
+- `groups-get-groups-batch` — Get Groups Batch
+- `groups-group-basics` — Group basics
+- `groups-list-current-groups` — List Current Groups
+- `groups-list-groups` — List Groups
+- `groups-replace-group` — Replace Group
+- `groups-search-groups` — Search Groups
+- `hosts` — Host basics
+- `hosts-host-basics` — Host basics
+- `hosts-list-hosts` — List Hosts
+- `marking-categories` — Marking Category basics
+- `marking-categories-create-marking-category` — Create Marking Category
+- `marking-categories-get-marking-category` — Get Marking Category
+- `marking-categories-list-marking-categories` — List Marking Categories
+- `marking-categories-marking-category-basics` — Marking Category basics
+- `marking-categories-replace-marking-category` — Replace Marking Category
+- `marking-members` — Marking Member basics
+- `marking-members-add-marking-members` — Add Marking Members
+- `marking-members-list-marking-members` — List Marking Members
+- `marking-members-marking-member-basics` — Marking Member basics
+- `marking-members-remove-marking-members` — Remove Marking Members
+- `marking-role-assignments` — Marking Role Assignment basics
+- `marking-role-assignments-add-marking-role-assignments` — Add Marking Role Assignments
+- `marking-role-assignments-list-marking-role-assignments` — List Marking Role Assignments
+- `marking-role-assignments-marking-role-assignment-basics` — Marking Role Assignment basics
+- `marking-role-assignments-remove-marking-role-assignments` — Remove Marking Role Assignments
+- `markings` — Marking basics
+- `markings-create-marking` — Create Marking
+- `markings-get-marking` — Get Marking
+- `markings-get-markings-batch` — Get Markings Batch
+- `markings-list-markings` — List Markings
+- `markings-marking-basics` — Marking basics
+- `markings-parse-classifications` — Parse Classifications
+- `markings-replace-marking` — Replace Marking
+- `organization-role-assignments` — Organization Role Assignment basics
+- `organization-role-assignments-add-organization-role-assignments` — Add Organization Role Assignments
+- `organization-role-assignments-list-organization-role-assignments` — List Organization Role Assignments
+- `organization-role-assignments-organization-role-assignment-basics` — Organization Role Assignment basics
+- `organization-role-assignments-remove-organization-role-assignments` — Remove Organization Role Assignments
+- `organizations` — Organization basics
+- `organizations-create-organization` — Create Organization
+- `organizations-get-organization` — Get Organization
+- `organizations-list-available-roles-organization` — List Available Roles Organization
+- `organizations-organization-basics` — Organization basics
+- `organizations-replace-organization` — Replace Organization
+- `user-provider-infos` — User Provider Info basics
+- `user-provider-infos-get-user-provider-info` — Get User Provider Info
+- `user-provider-infos-replace-user-provider-info` — Replace User Provider Info
+- `user-provider-infos-user-provider-info-basics` — User Provider Info basics
+- `users` — User basics
+- `users-delete-user` — Delete User
+- `users-get-current-user` — Get Current User
+- `users-get-markings-user` — Get Markings User
+- `users-get-profile-picture-of-user` — Get Profile Picture Of User
+- `users-get-user` — Get User
+- `users-get-users-batch` — Get Users Batch
+- `users-list-users` — List Users
+- `users-revoke-all-tokens-user` — Revoke All Tokens User
+- `users-search-users` — Search Users
+- `users-user-basics` — User basics
+
+## api/v2/aip-agents-v2-resources — 26 pages
+
+- `_index` — Agent basics
+- `agent-versions` — Agent Version basics
+- `agent-versions-agent-version-basics` — Agent Version basics
+- `agent-versions-get-agent-version` — Get Agent Version
+- `agent-versions-list-agent-versions` — List Agent Versions
+- `agents` — Agent basics
+- `agents-agent-basics` — Agent basics
+- `agents-get-agent` — Get Agent
+- `agents-list-sessions-for-agents` — List Sessions For Agents
+- `contents` — Content basics
+- `contents-content-basics` — Content basics
+- `contents-get-content` — Get Content
+- `session-traces` — Session Trace basics
+- `session-traces-get-session-trace` — Get Session Trace
+- `session-traces-session-trace-basics` — Session Trace basics
+- `sessions` — Session basics
+- `sessions-blocking-continue-session` — Blocking Continue Session
+- `sessions-cancel-session` — Cancel Session
+- `sessions-create-session` — Create Session
+- `sessions-delete-session` — Delete Session
+- `sessions-get-rag-context-for-session` — Get Rag Context For Session
+- `sessions-get-session` — Get Session
+- `sessions-list-sessions` — List Sessions
+- `sessions-session-basics` — Session basics
+- `sessions-streaming-continue-session` — Streaming Continue Session
+- `sessions-update-session-title` — Update Session Title
+
+## api/v2/connectivity-v2-resources — 29 pages
+
+- `_index` — Connection basics
+- `connections` — Connection basics
+- `connections-connection-basics` — Connection basics
+- `connections-create-connection` — Create Connection
+- `connections-get-configuration` — Get Configuration
+- `connections-get-configuration-connections-batch` — Get Configuration Connections Batch
+- `connections-get-connection` — Get Connection
+- `connections-update-export-settings-for-connection` — Update Export Settings For Connection
+- `connections-update-secrets-for-connection` — Update Secrets For Connection
+- `connections-upload-custom-jdbc-drivers-connection` — Upload Custom Jdbc Drivers Connection
+- `file-imports` — File Import basics
+- `file-imports-create-file-import` — Create File Import
+- `file-imports-delete-file-import` — Delete File Import
+- `file-imports-execute-file-import` — Execute File Import
+- `file-imports-file-import-basics` — File Import basics
+- `file-imports-get-file-import` — Get File Import
+- `file-imports-list-file-imports` — List File Imports
+- `file-imports-replace-file-import` — Replace File Import
+- `table-imports` — Table Import basics
+- `table-imports-create-table-import` — Create Table Import
+- `table-imports-delete-table-import` — Delete Table Import
+- `table-imports-execute-table-import` — Execute Table Import
+- `table-imports-get-table-import` — Get Table Import
+- `table-imports-list-table-imports` — List Table Imports
+- `table-imports-replace-table-import` — Replace Table Import
+- `table-imports-table-import-basics` — Table Import basics
+- `virtual-tables` — Virtual Table basics
+- `virtual-tables-create-virtual-table` — Create Virtual Table
+- `virtual-tables-virtual-table-basics` — Virtual Table basics
+
+## api/v2/data-health-v2-resources — 11 pages
+
+- `_index` — Check basics
+- `check-reports` — Check Report basics
+- `check-reports-check-report-basics` — Check Report basics
+- `check-reports-get-check-report` — Get Check Report
+- `check-reports-get-latest-check-reports` — Get Latest Check Reports
+- `checks` — Check basics
+- `checks-check-basics` — Check basics
+- `checks-create-check` — Create Check
+- `checks-delete-check` — Delete Check
+- `checks-get-check` — Get Check
+- `checks-replace-check` — Replace Check
+
+## api/v2/datasets-v2-resources — 42 pages
+
+- `_index` — Dataset basics
+- `branches` — Branch basics
+- `branches-branch-basics` — Branch basics
+- `branches-create-branch` — Create Branch
+- `branches-delete-branch` — Delete Branch
+- `branches-get-branch` — Get Branch
+- `branches-get-branch-transaction-history` — Get Branch Transaction History
+- `branches-list-branches` — List Branches
+- `datasets` — Dataset basics
+- `datasets-create-dataset` — Create Dataset
+- `datasets-dataset-basics` — Dataset basics
+- `datasets-get-dataset` — Get Dataset
+- `datasets-get-dataset-health-check-reports` — Get Dataset Health Check Reports
+- `datasets-get-dataset-health-checks` — Get Dataset Health Checks
+- `datasets-get-dataset-jobs` — Get Dataset Jobs
+- `datasets-get-dataset-schedules` — Get Dataset Schedules
+- `datasets-get-dataset-schema` — Get Dataset Schema
+- `datasets-get-schema-datasets-batch` — Get Schema Datasets Batch
+- `datasets-list-transactions-of-dataset` — List Transactions Of Dataset
+- `datasets-put-dataset-schema` — Put Dataset Schema
+- `datasets-read-table-dataset` — Read Table Dataset
+- `files` — File basics
+- `files-delete-file` — Delete File
+- `files-file-basics` — File basics
+- `files-get-file` — Get File
+- `files-get-file-content` — Get File Content
+- `files-list-files` — List Files
+- `files-upload-file` — Upload File
+- `transactions` — Transaction basics
+- `transactions-abort-transaction` — Abort Transaction
+- `transactions-commit-transaction` — Commit Transaction
+- `transactions-create-transaction` — Create Transaction
+- `transactions-get-transaction` — Get Transaction
+- `transactions-transaction-basics` — Transaction basics
+- `views` — View basics
+- `views-add-backing-datasets` — Add Backing Datasets
+- `views-add-primary-key` — Add Primary Key
+- `views-create-view` — Create View
+- `views-get-view` — Get View
+- `views-remove-backing-datasets` — Remove Backing Datasets
+- `views-replace-backing-datasets` — Replace Backing Datasets
+- `views-view-basics` — View basics
+
+## api/v2/filesystem-v2-resources — 41 pages
+
+- `_index` — Resource basics
+- `folders` — Folder basics
+- `folders-create-folder` — Create Folder
+- `folders-folder-basics` — Folder basics
+- `folders-get-folder` — Get Folder
+- `folders-get-folders-batch` — Get Folders Batch
+- `folders-list-children-of-folder` — List Children Of Folder
+- `project-resource-references` — Project Resource Reference basics
+- `project-resource-references-add-project-resource-references` — Add Project Resource References
+- `project-resource-references-list-project-resource-references` — List Project Resource References
+- `project-resource-references-project-resource-reference-basics` — Project Resource Reference basics
+- `project-resource-references-remove-project-resource-references` — Remove Project Resource References
+- `projects` — Project basics
+- `projects-add-organizations` — Add Organizations
+- `projects-create-project` — Create Project
+- `projects-create-project-from-template` — Create Project From Template
+- `projects-get-project` — Get Project
+- `projects-list-organizations-of-project` — List Organizations Of Project
+- `projects-project-basics` — Project basics
+- `projects-remove-organizations` — Remove Organizations
+- `resource-roles` — Resource Role basics
+- `resource-roles-add-resource-roles` — Add Resource Roles
+- `resource-roles-list-resource-roles` — List Resource Roles
+- `resource-roles-remove-resource-roles` — Remove Resource Roles
+- `resource-roles-resource-role-basics` — Resource Role basics
+- `resources` — Resource basics
+- `resources-add-markings` — Add Markings
+- `resources-delete-resource` — Delete Resource
+- `resources-get-access-requirements` — Get Access Requirements
+- `resources-get-by-path` — Get By Path
+- `resources-get-by-path-resources-batch` — Get By Path Resources Batch
+- `resources-get-resource` — Get Resource
+- `resources-get-resources-batch` — Get Resources Batch
+- `resources-list-markings-of-resource` — List Markings Of Resource
+- `resources-permanently-delete-resource` — Permanently Delete Resource
+- `resources-remove-markings` — Remove Markings
+- `resources-resource-basics` — Resource basics
+- `resources-restore-resource` — Restore Resource
+- `spaces` — Space basics
+- `spaces-list-spaces` — List Spaces
+- `spaces-space-basics` — Space basics
+
+## api/v2/media-sets-v2-resources — 20 pages
+
+- `_index` — Media Set basics
+- `media-sets` — Media Set basics
+- `media-sets-abort-media-transaction` — Abort Media Transaction
+- `media-sets-clear-media-item-at-path` — Clear Media Item At Path
+- `media-sets-commit-media-transaction` — Commit Media Transaction
+- `media-sets-create-media-transaction` — Create Media Transaction
+- `media-sets-get-media-item-info` — Get Media Item Info
+- `media-sets-get-media-item-metadata` — Get Media Item Metadata
+- `media-sets-get-media-item-reference` — Get Media Item Reference
+- `media-sets-get-media-item-rid-by-path` — Get Media Item Rid By Path
+- `media-sets-get-media-set` — Get Media Set
+- `media-sets-get-transformation-job-result` — Get Transformation Job Result
+- `media-sets-get-transformation-job-status` — Get Transformation Job Status
+- `media-sets-media-set-basics` — Media Set basics
+- `media-sets-put-media-item` — Put Media Item
+- `media-sets-read-media-item` — Read Media Item
+- `media-sets-read-original-media-item` — Read Original Media Item
+- `media-sets-register-media-item` — Register Media Item
+- `media-sets-transform-media-item` — Transform Media Item
+- `media-sets-upload-media` — Upload Media
+
+## api/v2/models-v2-resources — 52 pages
+
+- `_index` — Experiment basics
+- `artifact-tables` — Experiment Artifact Table basics
+- `artifact-tables-experiment-artifact-table-basics` — Experiment Artifact Table basics
+- `artifact-tables-json-experiment-artifact-table` — Json Experiment Artifact Table
+- `artifact-tables-parquet-experiment-artifact-table` — Parquet Experiment Artifact Table
+- `experiment-series-list` — Experiment Series basics
+- `experiment-series-list-experiment-series-basics` — Experiment Series basics
+- `experiment-series-list-json-experiment-series` — Json Experiment Series
+- `experiment-series-list-parquet-experiment-series` — Parquet Experiment Series
+- `experiments` — Experiment basics
+- `experiments-experiment-basics` — Experiment basics
+- `experiments-get-experiment` — Get Experiment
+- `experiments-search-experiments` — Search Experiments
+- `live-deployments` — Live Deployment basics
+- `live-deployments-create-live-deployment` — Create Live Deployment
+- `live-deployments-get-live-deployment` — Get Live Deployment
+- `live-deployments-list-live-deployments` — List Live Deployments
+- `live-deployments-live-deployment-basics` — Live Deployment basics
+- `live-deployments-replace-live-deployment` — Replace Live Deployment
+- `live-deployments-transform-json-live-deployment` — Transform Json Live Deployment
+- `model-functions` — Model Function basics
+- `model-functions-create-model-function` — Create Model Function
+- `model-functions-get-model-function` — Get Model Function
+- `model-functions-model-function-basics` — Model Function basics
+- `model-functions-replace-model-function` — Replace Model Function
+- `model-studio-config-versions` — Model Studio Config Version basics
+- `model-studio-config-versions-create-model-studio-config-version` — Create Model Studio Config Version
+- `model-studio-config-versions-get-model-studio-config-version` — Get Model Studio Config Version
+- `model-studio-config-versions-latest-model-studio-config-versions` — Latest Model Studio Config Versions
+- `model-studio-config-versions-list-model-studio-config-versions` — List Model Studio Config Versions
+- `model-studio-config-versions-model-studio-config-version-basics` — Model Studio Config Version basics
+- `model-studio-runs` — Model Studio Run basics
+- `model-studio-runs-list-model-studio-runs` — List Model Studio Runs
+- `model-studio-runs-model-studio-run-basics` — Model Studio Run basics
+- `model-studio-trainers` — Model Studio Trainer basics
+- `model-studio-trainers-get-model-studio-trainer` — Get Model Studio Trainer
+- `model-studio-trainers-list-model-studio-trainers` — List Model Studio Trainers
+- `model-studio-trainers-model-studio-trainer-basics` — Model Studio Trainer basics
+- `model-studios` — Model Studio basics
+- `model-studios-create-model-studio` — Create Model Studio
+- `model-studios-get-model-studio` — Get Model Studio
+- `model-studios-launch-model-studio` — Launch Model Studio
+- `model-studios-model-studio-basics` — Model Studio basics
+- `model-versions` — Model Version basics
+- `model-versions-get-model-version` — Get Model Version
+- `model-versions-list-model-versions` — List Model Versions
+- `model-versions-model-version-basics` — Model Version basics
+- `models` — Model basics
+- `models-create-model` — Create Model
+- `models-get-model` — Get Model
+- `models-model-basics` — Model basics
+- `models-promote-version-model` — Promote Version Model
+
+## api/v2/notepad-v2-resources — 15 pages
+
+- `_index` — Template basics
+- `export-jobs` — Export Job basics
+- `export-jobs-create-export-job` — Create Export Job
+- `export-jobs-export-job-basics` — Export Job basics
+- `export-jobs-get-export-job` — Get Export Job
+- `files` — File basics
+- `files-content-file` — Content File
+- `files-file-basics` — File basics
+- `generation-jobs` — Generation Job basics
+- `generation-jobs-generation-job-basics` — Generation Job basics
+- `generation-jobs-get-generation-job` — Get Generation Job
+- `generation-jobs-save-document-generation-job` — Save Document Generation Job
+- `templates` — Template basics
+- `templates-generate-template` — Generate Template
+- `templates-template-basics` — Template basics
+
 ## api/v2/ontologies-v2-resources — 84 pages
 
 - `_index` — Ontology basics
@@ -293,6 +772,38 @@ stay findable.
 - `schedules-run-schedule` — Run Schedule
 - `schedules-schedule-basics` — Schedule basics
 - `schedules-unpause-schedule` — Unpause Schedule
+
+## api/v2/streams-v2-resources — 14 pages
+
+- `_index` — Dataset basics
+- `datasets` — Dataset basics
+- `datasets-create-streaming-dataset` — Create Streaming Dataset
+- `datasets-dataset-basics` — Dataset basics
+- `streams` — Stream basics
+- `streams-create-stream` — Create Stream
+- `streams-get-end-offsets-for-stream` — Get End Offsets For Stream
+- `streams-get-records-from-stream` — Get Records From Stream
+- `streams-get-stream` — Get Stream
+- `streams-publish-binary-record-to-stream` — Publish Binary Record To Stream
+- `streams-publish-record-to-stream` — Publish Record To Stream
+- `streams-publish-records-to-stream` — Publish Records To Stream
+- `streams-reset-stream` — Reset Stream
+- `streams-stream-basics` — Stream basics
+
+## api/v2/third-party-applications-v2-resources — 12 pages
+
+- `_index` — Website basics
+- `versions` — Version basics
+- `versions-delete-version` — Delete Version
+- `versions-get-version` — Get Version
+- `versions-list-versions` — List Versions
+- `versions-upload-version` — Upload Version
+- `versions-version-basics` — Version basics
+- `websites` — Website basics
+- `websites-deploy-website` — Deploy Website
+- `websites-get-website` — Get Website
+- `websites-undeploy-website` — Undeploy Website
+- `websites-website-basics` — Website basics
 
 ## app-building — 6 pages
 
