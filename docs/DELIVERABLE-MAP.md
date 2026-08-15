@@ -77,37 +77,31 @@ built. Do not build from this entry as written.
 
 ---
 
-### 5. Drop `object_type_indexes.status` — SCOPE CORRECTED, BIGGER THAN STATED
+### 5. Drop `object_type_indexes.status` — two of four steps done
 
-520 made `object_type_index_state()` the OSv2 answer — the last index build
-job's state — and left the legacy column. I described the remaining work as
-"three web surfaces". **Counting the live catalog instead of guessing: 18
-functions touch the table**, and at least eight gate the **hot read path** on
-`x.status = 'success'`:
+523 and 524 did steps 1 and 2: `object_type_index_ready()` is the predicate,
+and all ten functions that gated on `x.status = 'success'` now ask it —
+including the eight on the hot read path.
 
-`evaluate_object_set`, `count_object_set`, `aggregate_object_set`,
-`histogram_object_set`, `indexed_objects`, `object_set_where`, `search_objects`,
-`search_visible_types`.
+**523 hid every object, and 524 fixed it forward.** The pure OSv2 predicate
+asked only whether the last index BUILD JOB completed, and every index that
+existed had been built before 513 made reindexing a build job. None had one, so
+the answer was false for all of them and exploration, counts, aggregations,
+histograms, quicksearch and restricted views all went dark. The platform suite
+caught it on the next run, which is exactly why this was worth its own change.
+`object_type_index_ready()` now prefers the job and falls back to the legacy
+scalar **only** where no job exists.
 
-That predicate means "only read an index that built", which is correct and
-must keep meaning that. The v2 equivalent is "the last index build job
-COMPLETED", so the replacement is a predicate — `object_type_index_ready()` —
-substituted into eight engine functions, each restated from
-`pg_get_functiondef`, plus `index_object_type` ceasing to write the column,
-plus the web surfaces.
+Remaining:
 
-**Do it as its own change, first thing, not tacked onto anything.** It touches
-every read of every object, and the last time something rushed into a shared
-path here it took the heartbeat down for four minutes. The pieces:
+3. `index_object_type` stops writing `status`, and every index is built through
+   a job — at which point the fallback arm in `object_type_index_ready()` is
+   unreachable and comes out.
+4. Drop the column, with the reachability guard and the suite as the proof.
 
-1. `object_type_index_ready(uuid)` — the last index job COMPLETED.
-2. The eight engine functions, one migration, restated from the live catalog.
-3. `index_object_type` stops writing `status`; the web surfaces read the state
-   function.
-4. Drop the column, with `reachability.test.ts` and the platform suite as the
-   proof that nothing still wants it.
-
----
+**Step 3 is the one that needs care**: it means backfilling an index build job
+for every existing index, or accepting that types indexed the old way become
+unready. Do not start it without a plan for the existing rows.
 
 ### 6. Automate: the retry ladder and the published limits
 
