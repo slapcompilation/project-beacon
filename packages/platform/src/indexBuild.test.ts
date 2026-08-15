@@ -175,4 +175,22 @@ describe.skipIf(noDb)('the index is a build', () => {
       `select count(*) n from pg_constraint where conrelid='public.job_specs'::regclass
          and conname = 'job_specs_one_output'`)).toBe(1)
   })
+
+  // 533 took the legacy fallback out of object_type_index_ready() on the
+  // argument that an index row can only come from the gated indexer. Twice
+  // before, that predicate was narrowed on a claim about the ROWS that existed
+  // and the whole read path went dark. This asks the claim it actually rests
+  // on, and asks it on every run rather than once at landing.
+  it('one function creates an index row, and it is the one that demands a job', async () => {
+    const writers = await db.query(`
+      select p.proname from pg_proc p
+       where p.pronamespace = 'public'::regnamespace and p.prokind = 'f'
+         and pg_get_functiondef(p.oid) ilike '%insert into public.object_type_indexes%'`)
+    expect(writers.rows.map((r) => (r as { proname: string }).proname)).toEqual(['index_object_type'])
+
+    // And it is unreachable without a RUNNING job for that very type.
+    const err = await refused(db, () => db.query(
+      'select public.index_object_type($1, gen_random_uuid())', [type]))
+    expect(err).toContain('Builds:IndexNeedsAJob')
+  })
 })
