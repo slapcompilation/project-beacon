@@ -94,11 +94,25 @@ scalar **only** where no job exists.
 
 Remaining, and **the order is fixed by a mistake, not by preference**:
 
-3. **Make `index_object_type` unreachable except through a build job.** It is
-   granted to `authenticated` and exposed as `indexObjectType` in the generated
-   client, and the platform suite calls it directly in several fixtures. Until
-   all of that moves to `run_index_build`, an index can be created with no
-   pipeline at any moment.
+3. **Make `index_object_type` unreachable except through a build job —
+   ATTEMPTED AND REVERTED (528, reverted by 529/530).** The shape is right: the
+   indexer takes the build job it runs under and refuses without a RUNNING one,
+   so the hole closes by signature rather than by census. Revoking EXECUTE
+   cannot do it — `run_build_job` is SECURITY INVOKER and would lose the
+   privilege along with everyone else.
+
+   **Blocked on one question.** With the guard in place, the `restrictedViews`
+   fixture's object type fails to index *through a build* — "field name must
+   not be null" — while the same type indexes fine when the indexer is called
+   directly. The guard passes before any of the body runs and the body is
+   otherwise identical, so something about that type resolves differently on
+   the build path. It is a restricted-view-backed type whose properties are a
+   **mix of datasource-bound and unbound** (the primary key carries no
+   `datasource_id`, the others do) and `index_object_type` loops per
+   datasource — that is where to look first.
+
+   Answer that, reapply 528 unchanged, then move the three fixtures and
+   `apps/web/src/features/objectTypes/indexing.ts` onto `run_index_build`.
 4. Then the fallback arm in `object_type_index_ready()` is unreachable **by
    construction**, and comes out.
 5. Then `index_object_type` stops writing `status`, and the column is dropped.

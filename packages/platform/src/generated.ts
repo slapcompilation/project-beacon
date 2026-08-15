@@ -160,12 +160,6 @@ export const indexJobSpec = { apiName: 'index_job_spec', kind: 'action' } as Act
   string
 >
 
-/**
- *  Full reindex of one object type: the current datasource view merged with
- *  the edit log through object_state(), written to a real table in the
- *  objects schema. Failure is recorded on object_type_indexes, not raised —
- *  the save already succeeded, and the error is the job details.
- */
 export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } as ActionType<
   { p_object_type: string },
   unknown
