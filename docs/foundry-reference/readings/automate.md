@@ -198,3 +198,34 @@ had these two conflated; the pages separate them explicitly.
 11. **Third-party-application ownership is recorded, not built** — it needs a
     service user, which the schedules phase is also waiting on. When it lands
     it should serve both.
+
+## Built (2026-08-15) — migrations 517–519
+
+Decisions 1–11 shipped as recited. `automations` carries the condition, the
+owner and the scope; `automation_effects` carries the ordered effects and their
+fallbacks; `automation_runs` is written **before** each attempt, which is the
+at-least-once promise made in the direction the page chooses. The registry
+names all four effect kinds with `executable` and `runtime`, so `notification`
+and `logic` are disabled rather than absent, and a `function` effect is
+executable but not by this heartbeat — the same split 509 drew for function
+rules.
+
+Editing the condition or the effects is refused to anyone but the owner, by
+name. The runner reads `owner_id` and never `scope`, which a test asserts
+against the function body: scope widens who reads `automation_runs` and nothing
+else.
+
+**Two things the standing suite caught, both on the first run after 517.**
+`automation_runs` had no table comment, which `catalog.test.ts` asks of every
+table. And 517 built the runner without wiring it into the minute hand — the
+same mistake 442 made with the indexer and 513 had to repair. 518 wired it
+immediately, but the pattern is worth naming: **a runner and its caller belong
+in the same migration**, because a migration that ships only half of them looks
+finished.
+
+**Deferred, and said out loud**: live monitoring, which needs streaming;
+`objects_modified` and `threshold_crossed`, which the support matrix and a
+missing metric history rule out; notification and Logic effects; and
+third-party-application ownership, which waits on the service user that
+project-scoped schedules also want.
+
