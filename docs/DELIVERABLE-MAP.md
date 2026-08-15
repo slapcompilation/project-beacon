@@ -123,9 +123,40 @@ Remaining, and **the order is fixed by a mistake, not by preference**:
    one part of the indexer that already resolved the view correctly. And **a
    fixture that exercises an engine by calling its internals is not testing the
    engine**; the three that did hid this for nineteen migrations.
-4. Then the fallback arm in `object_type_index_ready()` is unreachable **by
-   construction**, and comes out.
-5. Then `index_object_type` stops writing `status`, and the column is dropped.
+4. **The fallback arm comes out of `object_type_index_ready()` — DONE (533).**
+   Third attempt, and the first whose argument is about the system: an index
+   row exists only if `index_object_type` ran, which since 532 requires a
+   RUNNING job, so the ELSE arm cannot be taken. The three ways that chain
+   could break were checked rather than assumed — RLS refuses a direct INSERT
+   (verified **as `authenticated`**), the only `DELETE` on `builds` fires at
+   `n = 0`, and "no index reading success may fail `ready()`" is an assertion.
+   The single-writer claim it rests on is now a standing platform test.
+5. **`status` is deleted — DONE (534, 535).** The scalar carried two facts and
+   the second one was the work. "This index succeeded" was already the job's;
+   "this index is stale" was three triggers writing `'not started'`.
+
+   The page names the replacement: "When the schema of an object type changes
+   and the previous pipeline's schema is no longer up-to-date, a new
+   **replacement pipeline** must be provisioned"
+   (`object-indexing/funnel-batch-pipelines`). **`object_types.version` is
+   already that schema version** — it bumps on a type edit and on any property
+   change, which is why `mark_index_stale_properties` was dead code rather than
+   merely unattached. So `job_spec_fresh`, which already compared
+   `bj.spec_version` to the spec's version, now compares against the type's,
+   and all three trigger functions are **deleted with nothing replacing them**:
+   a datasource swap and a data commit were always covered by
+   `job_spec_input_state`.
+
+   I first built this as a trigger copying the type's version onto the spec. It
+   tripped `guard_job_spec` — publishing a spec takes the editor role, and
+   provisioning a pipeline is not a person publishing anything. **The refusal
+   was right and the design was wrong**: a second copy of a version that
+   already exists is state to keep in step. The guard was left alone.
+
+   The indexer also stops swallowing its own failure — it raises, and the job
+   records it, "in the pipeline graph" as the FAQ puts it. Surfaces read
+   `object_type_index_report()`, which reports the seven job states, so the
+   Object types page can now say *indexing* where it used to say *not indexed*.
 
 **Why the order is this way.** 525 backfilled a build for every existing index
 and asserted none was left without one — true. 526 removed the arm on that

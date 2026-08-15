@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { useIndexStatuses } from '@/features/objectTypes/indexing'
+import { indexReady, useIndexStatuses } from '@/features/objectTypes/indexing'
 import { NoOntologyCallout, OntologySummary } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { typePath, useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
@@ -65,7 +65,7 @@ function Cards({ types }: { types: ObjectTypeDef[] }) {
               <span className="oma-tile"><Icon icon={t.icon as IconName} size={16} color="#fff" /></span>
               <span className="min-w-0">
                 <span className="oma-card-name">{t.label}</span>
-                {ix?.status === 'success'
+                {indexReady(ix)
                   ? <span className="oma-card-sub">{ix.objectCount ?? 0} object{ix.objectCount === 1 ? '' : 's'}</span>
                   : <Tag minimal intent="warning" className="!text-[9px]">Not indexed</Tag>}
               </span>
