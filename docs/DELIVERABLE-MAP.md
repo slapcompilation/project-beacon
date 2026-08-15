@@ -94,25 +94,35 @@ scalar **only** where no job exists.
 
 Remaining, and **the order is fixed by a mistake, not by preference**:
 
-3. **Make `index_object_type` unreachable except through a build job —
-   ATTEMPTED AND REVERTED (528, reverted by 529/530).** The shape is right: the
-   indexer takes the build job it runs under and refuses without a RUNNING one,
+3. **Make `index_object_type` unreachable except through a build job — DONE
+   (528, reverted by 529/530, reapplied unchanged as 532).** The indexer takes
+   the build job it runs under and refuses without a RUNNING one for that type,
    so the hole closes by signature rather than by census. Revoking EXECUTE
    cannot do it — `run_build_job` is SECURITY INVOKER and would lose the
-   privilege along with everyone else.
+   privilege along with everyone else. All three platform fixtures and the
+   Reindex button now go through `run_index_build`.
 
-   **Blocked on one question.** With the guard in place, the `restrictedViews`
-   fixture's object type fails to index *through a build* — "field name must
-   not be null" — while the same type indexes fine when the indexer is called
-   directly. The guard passes before any of the body runs and the body is
-   otherwise identical, so something about that type resolves differently on
-   the build path. It is a restricted-view-backed type whose properties are a
-   **mix of datasource-bound and unbound** (the primary key carries no
-   `datasource_id`, the others do) and `index_object_type` loops per
-   datasource — that is where to look first.
+   **The blocker was a real bug, and not the one I named.** 528 was reverted on
+   the theory that its guard broke the `restrictedViews` fixture. It did not.
+   Forcing that fixture down the build path for the first time exposed a defect
+   that had been there since 513: a restricted-view backing leaves
+   `object_type_datasources.dataset_id` NULL — **by CHECK**, not by accident —
+   and `job_spec_input_state` aggregated on it, which is what
+   `jsonb_object_agg` reports as "field name must not be null". Every
+   restricted-view-backed object type was unbuildable, and no test saw it
+   because all three fixtures called the indexer directly, which is the very
+   hole step 3 closes. `job_blocked_by` took the same NULL and *silently*
+   matched nothing, so such a reindex never waited for the build rewriting its
+   data. 531 resolves both through `object_type_input_datasets()`, per
+   `object-edits/materializations`: "Backing dataset: The backing dataset of
+   the restricted view."
 
-   Answer that, reapply 528 unchanged, then move the three fixtures and
-   `apps/web/src/features/objectTypes/indexing.ts` onto `run_index_build`.
+   Two lessons, both already paid for once. **A component that only fails when
+   something else forces it down a new path is not the component at fault** —
+   my note sent the next reader to the property/datasource loop, which was the
+   one part of the indexer that already resolved the view correctly. And **a
+   fixture that exercises an engine by calling its internals is not testing the
+   engine**; the three that did hid this for nineteen migrations.
 4. Then the fallback arm in `object_type_index_ready()` is unreachable **by
    construction**, and comes out.
 5. Then `index_object_type` stops writing `status`, and the column is dropped.

@@ -95,8 +95,16 @@ describe.skipIf(noDb)('restricted views', () => {
        values ($1,'owner_id','Owner','ownerId','string','owner_id',$2,false),
               ($1,'region','Region','region','string','region',$2,false)`, [saleType, src])
 
-    const r = await one('select status, object_count, error from public.index_object_type($1)', [saleType])
-    expect(r.status, r.error ?? '').toBe('success')
+    // Through a build, not a bare call. This fixture indexed directly for as
+    // long as it existed, and that is why nobody saw that a restricted-view
+    // backing leaves `object_type_datasources.dataset_id` NULL by constraint —
+    // `job_spec_input_state` aggregated on it and raised "field name must not
+    // be null". 531 resolves the view to the dataset underneath it.
+    const build = (await one(
+      'select public.run_index_build(array[$1]::uuid[], true) as b', [saleType])).b
+    const job = await one(
+      'select state, error from public.build_jobs where build_id = $1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
   }, 60_000)
   afterAll(async () => { await rollback(db) })
 

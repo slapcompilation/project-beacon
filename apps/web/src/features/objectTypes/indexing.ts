@@ -10,7 +10,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
-import { indexObjectType } from '@beacon/platform'
+import { runIndexBuild } from '@beacon/platform'
 import { client } from '@/lib/supabase/ontologyClient'
 
 export interface IndexStatus {
@@ -43,22 +43,32 @@ export function useIndexStatuses() {
   })
 }
 
-/** A full reindex — the documented user-triggered case. The spinner is the
- *  pending call; failure comes back as a recorded status, not a thrown error. */
+/** A full reindex — the documented user-triggered case, run as a build.
+ *
+ *  "The Funnel service is responsible for orchestrating Funnel pipelines that
+ *  create and modify object instances in the Ontology" (object-indexing/
+ *  overview): a reindex is a build job, so the button starts one and reads the
+ *  job it produced. Forced, because the user asked for it — the freshness
+ *  check is for the scheduler, not for a person clicking Reindex. */
 export function useReindex() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (objectTypeId: string) =>
-      client(indexObjectType).applyAction({ p_object_type: objectTypeId }),
-    onSuccess: (row, objectTypeId) => {
+    mutationFn: async (objectTypeId: string) => {
+      const build = await client(runIndexBuild)
+        .applyAction({ p_types: [objectTypeId], p_force: true })
+      const { data, error } = await supabase
+        .from('build_jobs').select('state, error').eq('build_id', build).single()
+      if (error) throw new Error(error.message)
+      return data as { state: string; error: string | null }
+    },
+    onSuccess: (job, objectTypeId) => {
       void qc.invalidateQueries({ queryKey: ['object-type-indexes'] })
-      const r = row as { status: string; object_count: number | null; error: string | null }
-      if (r.status === 'success') {
-        toast.success(`Indexed — ${r.object_count ?? 0} object${r.object_count === 1 ? '' : 's'}`)
+      if (job.state === 'COMPLETED') {
+        toast.success('Indexed')
         // The search index is derived from this one; it follows, fire-and-forget.
         void supabase.functions.invoke('search-index', { body: { objectTypeId } })
       } else {
-        toast.error(`Index failed: ${r.error ?? 'see job details'}`)
+        toast.error(`Index ${job.state.toLowerCase()}: ${job.error ?? 'see job details'}`)
       }
     },
     onError: (e: Error) => { toast.error(e.message) },
