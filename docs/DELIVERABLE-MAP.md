@@ -77,6 +77,34 @@ built. Do not build from this entry as written.
 
 ---
 
+### 5. Drop `object_type_indexes.status`
+
+520 made `object_type_index_state()` the OSv2 answer — the last index build
+job's state — and left the legacy column in place because sixteen migrations
+and three web surfaces read it. Moving those readers over and dropping the
+column is the finish. Nothing new is designed; it is a migration of callers.
+
+---
+
+## The deprecation audit (2026-08-15)
+
+Every page carrying a **planned deprecation** callout was checked against what
+we build. The result: **one** deprecated design had reached the schema.
+
+| deprecated in Foundry | what we have |
+|---|---|
+| Object Storage v1 (Phonograph), "unavailable after June 30, 2026" | `object_type_indexes.status` was its scalar. 520 replaces it; §5 above drops it. |
+| Writeback datasets (OSv1's edit persistence) | never built — we built object datasets, the OSv2 replacement |
+| "Ignore inherited permissions" | never built; C1 recorded the deprecation as the reason folders organize and never gate |
+| "Propagate view requirements", superseded by Projects and Markings | never built; we have both replacements |
+| Metric changed [Sunset] (Automate condition) | excluded by name in the Automate reading |
+| Gaia Milsym Creatable interface | not our domain |
+
+**Re-run this when the mirror grows.** `grep -rl "planned deprecation"
+docs/foundry-reference/mirror/` is the whole scan, and it is cheap. A page can
+acquire the callout between one reading and the next, which is how a build
+copies a design Foundry has already left.
+
 ## Known gaps, not queued
 
 **Replacement pipelines.** A schema change should build a second index in the
