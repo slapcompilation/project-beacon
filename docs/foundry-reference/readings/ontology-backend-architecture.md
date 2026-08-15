@@ -4,12 +4,19 @@ verify: strict
 
 # The Ontology backend, service by service — and where ours sits
 
-Pages read in full: `object-backend/overview.md` and its architecture diagrams
-(`images/osv2-arch.png`, `images/osv1-arch.png`), `object-indexing/overview.md`,
-`object-indexing/funnel-batch-pipelines.md` and its five screenshots,
-`object-indexing/funnel-streaming-pipelines.md`, `object-indexing/direct-datasources.md`,
-`object-indexing/data-restrictions.md`, `object-indexing/faq.md`,
-`object-edits/how-edits-applied.md`, `object-edits/materializations.md`.
+**CORRECTED 2026-08-15.** Read in full: `object-backend/overview.md`,
+`object-indexing/funnel-batch-pipelines.md`, `object-edits/how-edits-applied.md`,
+`object-edits/materializations.md`. Images opened: `osv2-arch.png` and
+`funnel` `pipeline2.png` — **not** `osv1-arch.png` and not the other four
+screenshots. Consulted **by grep only**: `object-indexing/faq.md`. **Never
+opened**: `object-indexing/overview.md`, `funnel-streaming-pipelines.md`,
+`direct-datasources.md`, `data-restrictions.md`.
+
+The architecture map and the finding it produced rest on the four pages read in
+full and on `osv2-arch.png`, all of which are quoted. The four unopened pages
+are why "streaming pipelines" and "direct datasources" appear nowhere in the
+decisions — that is an absence, not a judgement, and they should be read before
+anything touches indexing again.
 
 Read because every audit so far has checked **vocabulary** — do our CHECK values
 trace to a page — and none has checked **shape**: is the thing wired together

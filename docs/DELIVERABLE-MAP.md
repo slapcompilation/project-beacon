@@ -109,6 +109,23 @@ path here it took the heartbeat down for four minutes. The pieces:
 
 ---
 
+### 6. Automate: the retry ladder and the published limits
+
+Two divergences found by reading `retries` and `limits` AFTER shipping 517.
+
+**The fallback fires too early.** Ours runs on any failure; the page says
+fallbacks "will only execute if an object failed non-retryably, or the maximum
+number of retries has been reached". That needs the retry ladder underneath it:
+per-effect retries (action and Logic only), and event retries with an interval
+under 24 hours and a count between 1 and 5.
+
+**The object-set cap is ours and it is wrong.** `object_set_keys` truncates at
+10,000. Published: 100,000 for `Objects added`/`Objects removed`, 1,000,000 for
+`Run on all objects`, and exceeding it is an ERROR at save or evaluation — not
+a silent truncation, which is what we do and is the worse behaviour.
+
+Also unbuilt and published: 45-minute queue wait and 4-hour run ceilings.
+
 ## The deprecation audit (2026-08-15)
 
 Every page carrying a **planned deprecation** callout was checked against what
