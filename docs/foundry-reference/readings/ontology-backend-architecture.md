@@ -304,3 +304,36 @@ call the heartbeat for real.
 So: an assertion that greps a function body proves the edit landed, not that
 the function works. At least one assertion per migration has to execute the
 thing. 514's do.
+
+## Answered (2026-08-15) — an OSv2 index never predates its pipeline
+
+§5 step 3 was blocked on a question I had framed as a choice: backfill an index
+build job for every index that predates 513, or accept that those types go
+unready. **Foundry does not treat it as a choice**, and the answer is in
+`object-indexing/overview` — one of the pages the corrected header admits I had
+never opened.
+
+> "The Funnel service is responsible for orchestrating Funnel pipelines that
+> create and modify object instances in the Ontology and ensure up-to-date data
+> and metadata."
+
+The pipeline **creates** the instances. An index is not something that exists
+and then acquires a pipeline; it is what a pipeline produces. And the migration
+page shows the same thing from the operational side, where a type entering OSv2
+is indexed by a first pipeline run before anything switches over:
+
+> "If no transition window is set, the migration will start as soon the first
+> Funnel pipeline succeeds."
+
+> "A transition window will be computed after the first sync to OSv2 finishes
+> successfully."
+
+So the answer is **backfill, and it is not a compromise**: every existing index
+gets one index build, which `run_index_build` already does, and only then does
+`index_object_type` stop writing the scalar. There is no supported state in
+which an OSv2 object type has an index and no pipeline — which is exactly the
+state 523 assumed away and 524 had to accommodate.
+
+The fallback arm in `object_type_index_ready()` is therefore temporary by the
+documentation, not merely by our intention.
+
