@@ -22,9 +22,11 @@ describe.skipIf(noDb)('the exploration engine', () => {
   const count = async (filters: unknown) =>
     Number((await one('select public.count_object_set($1,$2::jsonb) as n', [flight, JSON.stringify(filters)])).n)
 
+  // An index is what a build produces, so the fixture builds one.
   const reindex = async (t: string) => {
-    const r = await one('select status, error from public.index_object_type($1)', [t])
-    expect(r.status, r.error ?? '').toBe('success')
+    const build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [t])).b
+    const job = await one('select state, error from public.build_jobs where build_id = $1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
   }
 
   // Two datasets materialize and two indexes build; the default 10s is tight.

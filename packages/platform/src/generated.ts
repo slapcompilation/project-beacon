@@ -161,7 +161,7 @@ export const indexJobSpec = { apiName: 'index_job_spec', kind: 'action' } as Act
 >
 
 export const indexObjectType = { apiName: 'index_object_type', kind: 'action' } as ActionType<
-  { p_object_type: string },
+  { p_object_type: string; p_job: string },
   unknown
 >
 
@@ -352,7 +352,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (143) ───────────────────────────────────────────────────
+// ── FUNCTIONS (144) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1062,6 +1062,16 @@ export const objectTypeIndexReady = { apiName: 'object_type_index_ready', kind: 
 export const objectTypeIndexState = { apiName: 'object_type_index_state', kind: 'function' } as FunctionType<
   { p_type: string },
   string
+>
+
+/**
+ *  The datasets an object type reads, one per datasource, resolving a
+ *  restricted-view backing to the view's backing dataset: "Backing dataset:
+ *  The backing dataset of the restricted view."
+ */
+export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', kind: 'function' } as FunctionType<
+  { p_type: string },
+  string[]
 >
 
 /**

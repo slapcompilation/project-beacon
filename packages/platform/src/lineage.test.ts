@@ -99,8 +99,9 @@ describe.skipIf(noDb)('the lineage graph', () => {
        values ($1,$2,$3,'lthing-to-other','Thing to Other','things','Things','other','Other','many_to_one')`,
       [ont, thing, other])
 
-    const idx = await one('select status, error from public.index_object_type($1)', [thing])
-    expect(idx.status, idx.error ?? '').toBe('success')
+    const build = (await one('select public.run_index_build(array[$1]::uuid[], true) as b', [thing])).b
+    const job = await one('select state, error from public.build_jobs where build_id = $1', [build])
+    expect(job.state, job.error ?? '').toBe('COMPLETED')
     // One transaction, two clocks: indexed_at is now(); the fixture commits
     // use clock_timestamp(). Align so staleness compares real moments.
     await db.query(
