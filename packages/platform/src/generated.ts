@@ -358,7 +358,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (139) ───────────────────────────────────────────────────
+// ── FUNCTIONS (140) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1027,6 +1027,17 @@ export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid'
 export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
   { properties: Json; deleted: boolean }[]
+>
+
+/**
+ *  The state of the last index build job for this object type, in the seven
+ *  documented job states. OSv2 has no scalar index status: "a dedicated
+ *  pipeline graph that shows the status of various jobs in a Funnel pipeline"
+ *  is the surface.
+ */
+export const objectTypeIndexState = { apiName: 'object_type_index_state', kind: 'function' } as FunctionType<
+  { p_type: string },
+  string
 >
 
 /**
