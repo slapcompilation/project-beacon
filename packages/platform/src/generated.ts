@@ -358,7 +358,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (142) ───────────────────────────────────────────────────
+// ── FUNCTIONS (143) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1046,6 +1046,17 @@ export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid'
 export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
   { properties: Json; deleted: boolean }[]
+>
+
+/**
+ *  Whether this object type may be read. Prefers the OSv2 answer — the last
+ *  index build job COMPLETED — and falls back to the legacy scalar only for
+ *  indexes built before 513, which have no job. The fallback goes when
+ *  index_object_type stops writing that column.
+ */
+export const objectTypeIndexReady = { apiName: 'object_type_index_ready', kind: 'function' } as FunctionType<
+  { p_type: string },
+  boolean
 >
 
 /**
