@@ -192,6 +192,34 @@ a silent truncation, which is what we do and is the worse behaviour.
 
 Also unbuilt and published: 45-minute queue wait and 4-hour run ceilings.
 
+**THE RETRY SCHEDULER IS NOW UNBLOCKED, and it was blocked for a stated reason.**
+521 recorded: "re-attempting needs a queue with its own clock, and inventing one
+to satisfy a sentence would be the mistake this file exists to correct." That
+clock now exists — 493–496 put `run_schedules()` and `drain_waiting_jobs()` on a
+pg_cron minute hand, and `run_stale_indexes` already rides it.
+
+What is in place: `automation_effects.retry_count` (1–5) and `retry_interval`
+(< 24 h), both with the published bounds; and `automation_runs.outcome` carries
+`awaiting_retry`, so a retryable failure is already *named* rather than
+swallowed.
+
+What is missing is only the state and the pass:
+
+* `automation_runs` has no attempt counter and no `next_attempt_at`. Both are
+  needed, because "Number of retries: The maximum number of times an event will
+  be retried. Note that **this does not include the initial attempt**" — so the
+  budget is `1 + retry_count` attempts, and the counter has to distinguish them.
+* a `run_automation_retries(at)` that takes runs `awaiting_retry` whose next
+  attempt is due, re-attempts the effect, and either settles, re-schedules, or
+  releases the fallback — which is the half the page ties together: "Fallback
+  effects are not eligible for retries, and will only execute if an object
+  failed non-retryably, **or the maximum number of retries has been reached**."
+* one line in `run_schedules`, beside the three hands already there.
+
+**Build it as one migration**, not as state first: 517 built a runner with no
+caller and 518 had to wire it in, and the standing rule from that is that a
+runner and its caller belong in the same migration.
+
 ## The deprecation audit (2026-08-15)
 
 Every page carrying a **planned deprecation** callout was checked against what
