@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — markings
 
 The mandatory control we do not have. Three separate things already read need it:
@@ -21,7 +25,7 @@ Images read closely:
 > "**Markings** provide an additional level of access control for files, folders,
 > and Projects… Markings define **eligibility criteria** that restrict visibility
 > and actions to users who meet those criteria. To access a resource, a user must
-> be a member of **all** Markings applied to a resource."
+> be a member of **all** Markings applied to a resource to access it."
 >
 > "Access to a Marking is **binary (all-or-nothing)**. **Regardless of role**, a
 > user cannot access a file in any way unless the user satisfies all Marking
@@ -96,14 +100,14 @@ inherited from an input to this dataset.**"
 
 ### What the diagrams add
 
-`markings-project.png` — "Security marking added to project" → "Access restricted
+`security/images/markings-project.png` — "Security marking added to project" → "Access restricted
 to everything inside project". The right-hand panel does **not** redraw the shield
 on each file; a single Marking chip has a **brace spanning the whole container**.
 The marking lives on the container and *reaches* the contents — it is not copied
 onto them. That is a modelling instruction: store the application once, resolve
 the effective set on read.
 
-`markings-dataset.png` — "Security marking added to dataset" → "Dependent datasets
+`security/images/markings-dataset.png` — "Security marking added to dataset" → "Dependent datasets
 inherit security marking". **Two** upstream datasets feed one downstream, and the
 marking is applied to only one of them. After: the marked input carries a shield,
 the downstream carries a shield, the *unmarked* input carries none — and the edge
@@ -129,14 +133,15 @@ Both routes are immediate, and both are described as dangerous in the same words
 a **file**, and it has one more card:
 
 > "Users must meet **all** of the following requirements to access this file"
+> — security/images/markings-0.png
 
 | card | contents |
 |---|---|
-| **Roles** ⓘ | "Your role: **Owner**" · "Showing roles granted **directly on this file**" |
+| **Roles** ⓘ | *Your role: **Owner*** · *Showing roles granted **directly on this file*** |
 | **AND** | |
 | **Organizations · Any of** ⓘ | `Sky Industries` |
 | **AND** | |
-| **File markings** ⓘ (Add) | `None` · "**No constraints set** · Optional ⓘ" |
+| **File markings** ⓘ (Add) | `None` · ***No constraints set** · Optional ⓘ* |
 | **AND** | |
 | **Additional data markings · All of** ⓘ | `Information: PII` — with a **different icon** from a file marking |
 
@@ -156,10 +161,12 @@ Optional" — the *limit on what may be applied* sits in the same card as the
 The panel is not four loose cards. `data_dependecies_message.png` shows it is
 **two named sections**, and the second one states its own scope:
 
-> **Data access requirements**
 > "People must meet these **additional** requirements **propagated from data
 > upstream** in order to access **data in this file**."
-> MARKINGS · All of → `[lineage] Information: PII`
+> — security/images/markings-0.png
+
+under a heading reading **Data access requirements**, with `MARKINGS · All of →
+[lineage] Information: PII` beneath it.
 
 And the header badge popover (`marking-file-inheritance.png`, `markings-data-missing.png`)
 splits under the same two headings:
@@ -199,11 +206,13 @@ columns**, Updated via, Tags, Health Checks, and **Inputs** with its lineage lin
 
 But the preview reads:
 
-> **Failed to load preview** — "Cannot read all dataset transactions in paths,
-> insufficient permissions." *(with a **Request access** button)*
+> "Cannot read all dataset transactions in paths, insufficient permissions."
+> — security/images/markings-0.png
 
-And one field changes tellingly: where the accessible dataset offers "**Calculate
-row count**", this one says "***Row count not available***". A row count is a data
+shown under **Failed to load preview**, with a **Request access** button.
+
+And one field changes tellingly: where the accessible dataset offers *Calculate
+row count*, this one says *Row count not available*. A row count is a data
 read, so it is gone with the data.
 
 `marking-file-inheritance.png` pushes it further than is comfortable. The user who
@@ -272,9 +281,9 @@ Its fields:
 |---|---|
 | Name, description | `Cities` / `Worksteam X` |
 | **Created** | date + author |
-| **Category type** | **`Conjunctive · And`** — "**All** applied markings will be required." |
-| **Category visibility** | `Visible` — "Visible to all users." |
-| **Organization** | "can be seen by users from **all organizations**" *or* "from the following organization: 🏢 Sky Industries" |
+| **Category type** | **`Conjunctive · And`** — *all applied markings will be required* |
+| **Category visibility** | `Visible` — *visible to all users* |
+| **Organization** | *can be seen by users from **all organizations***, or from one named organization |
 | **Category permissions** | Manage → principals |
 
 **`Category type: Conjunctive · And` appears in no sentence on either page.** It is
@@ -287,6 +296,7 @@ user must be a member of **all** the Markings… since Markings are conjunctive
 Two irreversibility warnings, both in callouts:
 
 > "Once created, marking **categories cannot be deleted**."
+>
 > "Once created, **markings cannot be deleted or moved to a different category**."
 
 Visibility is per **category**, never per marking:
@@ -294,8 +304,8 @@ Visibility is per **category**, never per marking:
 > "Visibility is defined for a category and all of its Markings together; **it
 > cannot be assigned on a per-Marking basis**."
 >
-> If `Hidden`, "the existence of this category and its Markings is considered
-> sensitive information" and only explicit `Category Viewer`s see it.
+If `Hidden`, the page says "the existence of this category and its Markings is
+considered sensitive information", and only explicit `Category Viewer`s see it.
 
 And a subtlety about who implicitly counts as a category viewer: everyone with
 access to a marking, or a role on one, "will **not appear in API results as
@@ -308,7 +318,7 @@ The prose lists four; `markings-9.png` shows the dropdown, which offers **three*
 | permission | quoted |
 |---|---|
 | **Manage permissions** | "Users who can grant permissions to manage this Marking, its members, and its metadata." |
-| **Apply marking** | "Users who can apply this Marking to Projects and resources. **This permission only grants the ability to apply a Marking and does not grant membership.**" |
+| **Apply marking** | "Users who can apply this Marking to Projects and resources. **This permission only grants the ability to apply a Marking and does not grant membership of a Marking.**" |
 | **Remove marking** | "Users who can remove this Marking… **To remove a Marking, a user must also be able to apply the Marking.**" |
 | **Members** | "Users who can see resources and Projects protected by this Marking." |
 
@@ -317,8 +327,8 @@ surface** — "Markings are granted **globally** to users." And the separation i
 stated outright:
 
 > "All the permissions above are **distinct and do not automatically provide users
-> with membership**. For example, a user can have 'Apply marking' and 'Manage
-> permissions' access on a Marking and **not be a member** of the Marking. In that
+> with membership permissions**. For example, a user can have "Apply marking" and
+> "Manage permissions" access on a Marking and **not be a member** of the Marking. In that
 > situation, the users could apply the Marking to files, folders, and Projects…
 > **but they could not see the data** marked with that Marking."
 
@@ -326,9 +336,9 @@ You can classify data you cannot read. That is the design, not an accident.
 
 Applying needs two permissions from two different systems:
 
-> "1. You have the '**Apply marking**' permission on the Marking.
->  2. You have the '**Update Markings on resource**' permission, which is included
->     in the Owner role by default."
+> "1. You have the "**Apply marking**" permission on the Marking.
+> 2. You have the "**Update Markings on resource**" permission, which is included
+>    in the Owner role by default."
 
 ## Propagation runs on transactions
 
@@ -339,7 +349,7 @@ The step in the apply checklist that connects markings to the dataset layer:
 > treatment. Specifically, the latest view of a dataset built with `APPEND`
 > transactions will include dependencies from **old upstream transactions**; by
 > contrast, the latest view of a dataset built with `SNAPSHOT` transactions… only
-> depends on the **latest** transactions from upstream."
+> depends on the **latest** transactions from upstream datasets."
 
 So an incremental dataset carries the markings of every upstream transaction still
 in its view — which is precisely the set `dataset_view_transactions` computes. A
@@ -412,6 +422,7 @@ of markings. The dialog's footer states the invariant:
 
 > "People will only have access to these markings in this scoped session.
 > **Scoped sessions do not grant people membership to any markings.**"
+> — administration/images/new_scoped_session_dialog.png
 
 And selection is gated by membership, so a session can only ever be a subset of
 what you already hold:
@@ -508,9 +519,9 @@ direction:
 
 - **Ours is per user, Foundry's is per login.** We have no login-time session
   state, so two tabs share a session where Foundry's would not.
-- **"Allow no scoped session" is one boolean.** Foundry grants it "for all users,
-  for members of select groups only, or for all users except members of selected
-  groups"; we have no groups.
+- **Allow-no-scoped-session is one boolean here.** Foundry grants it "for all
+  users, for members of select groups only, or for all users except members of
+  selected groups"; we have no groups.
 - **No maximum classification.** The unscoped caption reads "access to all
   markings they are a member of **and their maximum classification**" — CBAC,
   which we do not have.

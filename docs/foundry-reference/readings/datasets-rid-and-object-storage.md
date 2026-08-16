@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — datasets, RIDs, and the object backend
 
 This is the reading that answers the four open questions left at the end of
@@ -12,10 +16,13 @@ Pages read in full:
 - `mirror/object-backend/overview.md`
 - `mirror/object-backend/object-storage-v2-breaking-changes.md`
 - `mirror/object-backend/osv1-osv2-migration.md`
-- `mirror/object-indexing/overview.md`
 - `mirror/object-indexing/data-restrictions.md`
 - `mirror/object-indexing/funnel-batch-pipelines.md`
-- `mirror/object-indexing/direct-datasources.md`
+
+Read, and nothing below quotes them: `mirror/object-indexing/overview.md` (the
+Funnel service's own definition, which `funnel-batch-pipelines` then details) and
+`mirror/object-indexing/direct-datasources.md` (read for whether a datasource can
+skip indexing; it cannot, and no sentence of it is load-bearing here).
 
 Images read closely:
 - `object-backend/images/osv2-arch.png` — the whole architecture on one page
@@ -56,7 +63,7 @@ are in the latest view) or `ABORTED` ("any files that were written during the
 transaction are ignored").
 
 > "Dataset transactions are the basis of Foundry's support for data versioning,
-> sometimes referred to as 'Git for data.' A transaction is analogous to a *commit*
+> sometimes referred to as "Git for data." A transaction is analogous to a *commit*
 > in Git: an atomic change to the contents of a dataset."
 
 **Four transaction types**, and they are the whole vocabulary:
@@ -68,7 +75,9 @@ transaction are ignored").
   overwritten, then attempting to commit the transaction will fail." The basis of
   incremental pipelines.
 - **`UPDATE`** — "like an `APPEND`, adds new files to a dataset view, but may also
-  overwrite the contents of existing files." Carries a warning: overwriting "will
+  overwrite the contents of existing files."
+
+  The page warns that overwriting "will
   break the append-only requirement for incremental pipelines… downstream pipelines
   cannot process data incrementally and must fall back to `SNAPSHOT` (batch)
   processing." And: "Do not overwrite existing files in an `UPDATE` transaction
@@ -92,12 +101,18 @@ lines:
 
 ### Dataset views — the algorithm
 
-> 1. "Start with an empty set of files.
+> "1. Start with an empty set of files.
 > 2. The view at a given time begins at the latest `SNAPSHOT` transaction before
 >    that point in time. If there is no `SNAPSHOT` transaction present, then take
 >    the earliest transaction for the dataset instead.
-> 3. For the first transaction in the view, and for each subsequent transaction…"
->    `SNAPSHOT`/`APPEND` add; `UPDATE` adds and replaces; `DELETE` removes.
+> 3. For the first transaction in the view, and for each subsequent transaction,
+>    do the following:
+>    * For a `SNAPSHOT` (which would only be the first transaction) or `APPEND`
+>      transaction, add all the transaction's files to the set.
+>    * For an `UPDATE` transaction, add all the transaction's files to the set
+>      and replace existing files.
+>    * For a `DELETE` transaction, remove all files in the transaction from the
+>      set."
 
 And the invariant that falls out of it:
 
@@ -236,8 +251,8 @@ that value. Plus report/view issues on individual columns, and a column-name sea
 ## 3. RID
 
 > "Foundry provides two options for specifying your dataset details:
-> * **'RID'**, which is the dataset identifier
-> * **'Location'**, which specifies the filepath location of the dataset"
+> * **"RID"**, which is the dataset identifier
+> * **"Location"**, which specifies the filepath location of the dataset"
 
 Both live on the About panel behind "see more", each with a copy button.
 
@@ -254,10 +269,10 @@ unambiguously:
 ri.<service>.<instance>.<type>.<locator>
 ```
 
-> **Corrected by `rid-grammar.md`:** the instance segment **can be empty** —
-> `ri.multipass..organization.<uuid>`, and three other services do the same. The
-> `main` in every example below is a property of those services, not of the
-> grammar.
+**Corrected by `rid-grammar.md`** (ours, not the page's): the instance segment
+**can be empty** — `ri.multipass..organization.<uuid>`, and three other services
+do the same. The `main` in every example below is a property of those services,
+not of the grammar.
 
 Real examples, each from a page in the mirror:
 
@@ -287,8 +302,9 @@ producing job), **RID**, **Job type** (`Contour`), **Size** (`241MB • 4 files`
 
 Two things the prose does not say:
 
-1. **Size is stated twice, differently.** "Table size: 6 columns • 10m rows" is the
-   *logical* shape; "Size: 241MB • 4 files" is the *physical* shape. The dataset
+1. **Size is stated twice, differently.** The panel shows a *logical* shape
+   (`Table size: 6 columns • 10m rows`) beside a *physical* one
+   (`Size: 241MB • 4 files`). The dataset
    abstraction shows you both sides of its own wrapper.
 2. **"Updated via" is a link to the thing that produced it.** Provenance is a
    first-class field on the resource, not a lineage view you go find. In
@@ -313,7 +329,8 @@ git-branch icon, exactly like the Ontology's `Main` selector.
 > * **Querying, searching, and aggregating objects** from the Ontology with support
 >   for specific filtering and permissioning.
 > * **Orchestration of writing to the Ontology**, including indexing of datasources
->   and edits to Ontology objects."
+>   and edits to Ontology objects based on decisions made or actions taken in
+>   Foundry."
 
 | service | job, quoted |
 |---|---|
@@ -369,15 +386,19 @@ database directly except OSS.
 
 ### Object sets — two independent axes
 
-> * "**Static object sets:** saved as a list of primary keys, and will stay the same
->   regardless of any changes to the input data.
-> * **Dynamic object sets:** saved as a representation of the filters applied to
->   create the object set. When new data matches the filters, the object set will be
->   updated.
-> * **Temporary object sets:** … can only be accessed by the user who created them.
->   A sample temporary object set RID will appear like
->   `ri.object-set.main.temporary-object-set.<uuid>` and **expires within 24 hours**.
-> * **Permanent object sets:** stored in the object backend for future reference."
+> "**Static object sets:** Static object sets are saved as a list of primary keys,
+> and will stay the same regardless of any changes to the input data."
+>
+> "**Dynamic object sets:** Dynamic object sets are saved as a representation of
+> the filters applied to create the object set. When new data matches the filters,
+> the object set will be updated."
+>
+> "**Temporary object sets:** … can only be accessed by the user who created them.
+> A sample temporary object set RID will appear like
+> `ri.object-set.main.temporary-object-set.`… and **expires within 24 hours**."
+>
+> "**Permanent object sets:** Permanent object sets are stored in the object
+> backend for future reference and use across the platform."
 
 Definition (static | dynamic) × state (temporary | permanent). Both axes, and they
 are orthogonal. Ours (`object_sets`) are permanent + dynamic only.
@@ -418,16 +439,21 @@ That is Foundry's own statement of the rule we already hold as "no raw writes." 
 is not a convention here; it is the only supported path, and OSv1's alternative was
 deleted rather than deprecated.
 
-> "OSv2 renames 'writeback datasets' as '**materializations**'. In OSv1, writeback
+> "OSv2 renames "writeback datasets" as "**materializations**". In OSv1, writeback
 > datasets are **required**; in OSv2, materializations are **optional**."
 
-The migration page adds the reason: "With optional materialized datasets in OSv2,
-you only need to create materializations if they are required for **downstream
-usage**." A materialization is an *export* of edits back into a dataset, for
+The migration page adds the reason:
+
+> "With optional materialized datasets in OSv2, you only need to create
+> materializations if they are required for **downstream usage**."
+
+A materialization is an *export* of edits back into a dataset, for
 pipelines that consume it — not a storage requirement.
 
-The rest: changelog "latest timestamp wins" is gone (Funnel computes it, "rendering
-the changelog python decorator obsolete"); monitoring moves to monitoring views;
+The rest: the changelog's *latest timestamp wins* is gone, Funnel computes it —
+the page says the work is "automatically performed in the background by
+Funnel, rendering the "changelog python decorator" obsolete". Monitoring
+moves to monitoring views;
 OSS APIs have **no query string support** where OSv1 did; cardinality metrics don't
 work on object sets spanning both backends.
 
@@ -444,7 +470,8 @@ reading. Enforcement point and failure mode are stated first:
 **Primary keys:**
 
 > "OSv2 enforces unique object primary keys for datasources. If there are duplicate
-> primary keys **within a single transaction, indexing will fail**. If there are
+> primary keys **within a single transaction, indexing will fail** and throw an
+> error. If there are
 > duplicate primary keys **across transactions, the version in the later transaction
 > will be used**."
 
@@ -452,10 +479,11 @@ And a closed list of types that **cannot** be a primary key: **Geopoint, Geoshap
 Arrays, Time series properties, Real number types (decimal, double, float)**. The
 stated reason is "to encourage Ontology modeling best practices."
 
-> **Corrected by `properties-and-keys.md`:** this is what OSv2 *blocks*, and
-> eligibility is **three-valued**, not two. `properties-overview` adds a
-> **Discouraged** tier — `Date`, `Timestamp`, `Boolean`, `Byte`, `Long` — each
-> with its reason. Only **`String`, `Integer`, `Short`** are unreservedly valid.
+**Corrected by `properties-and-keys.md`** (ours, not the page's): this is what
+OSv2 *blocks*, and eligibility is **three-valued**, not two. `properties-overview`
+adds a **Discouraged** tier — `Date`, `Timestamp`, `Boolean`, `Byte`, `Long` —
+each with its reason. Only **`String`, `Integer`, `Short`** are unreservedly
+valid.
 
 **Property values:**
 
@@ -554,7 +582,7 @@ property of the *backing*, not of the type's metadata.
 
 **Section 3 — Object Storage V2.** "Object Storage V2 is the backend service that
 stores and serves information about objects." One entry — **Object Storage V2**,
-subtitled "**Default object data store**" — carrying two status chips: **Data:
+subtitled **Default object data store** — carrying two status chips: **Data:
 `Indexing not started`** and **Schema: `Up to date`**. Below it, **+ Add new data
 store**.
 
@@ -593,9 +621,14 @@ All intermediate datasets are "owned and controlled by Funnel, and thus are **no
 accessible to users**."
 
 **Two pipelines coexist.** A **live pipeline** "updates object types in production
-with new data" and runs when datasources update — plus "if user edits on objects
-are detected, live pipelines will run **every six hours** regardless of any explicit
-backing dataset update; this ensures that user edits are persisted." A
+with new data", running when datasources update. And:
+
+> "if user edits on objects are detected, live pipelines will run **every six
+> hours** regardless of any explicit backing dataset update; this ensures that
+> user edits are persisted during the merge changes step of indexing into the
+> Funnel-owned dataset."
+
+A
 **replacement pipeline** is provisioned "when the schema of an object type changes",
 runs in the background, and swaps in after its first success "without impacting the
 live data being served."
@@ -607,9 +640,9 @@ rows." Full reindex happens in three cases: **more than 80% of rows changed in o
 transaction** (default threshold), a schema change requiring a replacement pipeline,
 or a manual reindex from Ontology Manager.
 
-For changelog datasets: "most recent transaction wins"; "Each transaction must
-contain at most one row per primary key"; and a column named `is_deleted` "is **not**
-treated as a deletion column by default" — it only counts if declared in legacy
+For changelog datasets, three rules — "most recent transaction wins"; "Each
+transaction must contain at most one row per primary key"; and, of a column named
+`is_deleted`, that it "is **not** treated as a deletion column by default" — it only counts if declared in legacy
 OSv1 changelog metadata.
 
 ### Direct datasources [Beta]
@@ -693,8 +726,10 @@ can lie about which wins.
 
 `data-integration/datasets` said: "committing a `DELETE` transaction **does not
 delete the underlying file** from the backing file system—it simply removes the file
-reference from the dataset view," then pointed at retention policies to "remove data
-in transactions which are no longer needed."
+reference from the dataset view."
+
+It then points at retention policies, to "remove data in transactions which are
+no longer needed."
 
 So the separation is deliberate and complete:
 
@@ -709,6 +744,7 @@ policy decision, made by a separate service, by a separately-permissioned role.
 
 > * "**Fixed deletion date:** By default, all transactions in a root dataset are
 >   assigned the same specified deletion time (unless a cutoff date is configured)."
+>
 > * "**Latest view only:** All transactions in a root dataset that are *not* in that
 >   dataset's current view will be assigned a deletion date equal to the current time.
 >   This means that all historical transactions will be marked for immediate deletion,
@@ -724,8 +760,10 @@ mechanism:
 
 > * "If the transaction is on a **branch not covered** under the policy, it will be
 >   assigned a deletion date that **matches the transaction's creation date**."
+>
 > * "If the transaction is on a branch covered by the policy and **does not create a
 >   new view** (an updated transaction), it will **not** receive a deletion date."
+>
 > * "If the transaction is on a branch covered under the policy and **creates a new
 >   view (a SNAPSHOT transaction)**, it will not be assigned a deletion date. Instead,
 >   **the dataset will be re-evaluated to place deletion dates on transactions in the
@@ -780,11 +818,11 @@ application that allows organizations to require **user justifications** for act
 ### What the images add
 
 **`createanewpolicy.png`** — the Create new policy dialog, headed "Creating policy
-scoped to 📁 **Test**". **Policies are scoped to a folder**, which is what "namespace
-level" means in the prose. Fields: Policy name (required), Policy description, then
-**Policy type** as two radio *cards* with their own one-line explanations — "Marks
-transactions for deletion at a specified date and time" / "Marks all but the most
-recent dataset view of a dataset for deletion". Then **Deletion date (required)** with
+scoped to 📁 **Test**. Policies are scoped to a folder, which is what *namespace
+level* means in the prose. Fields: Policy name (required), Policy description, then
+**Policy type** as two radio *cards* with their own one-line explanations — *Marks
+transactions for deletion at a specified date and time* / *Marks all but the most
+recent dataset view of a dataset for deletion*. Then **Deletion date (required)** with
 an explicit **timezone selector (`EDT`)**, and **Cutoff date**, whose helper text
 appears nowhere in the prose:
 
@@ -792,6 +830,7 @@ appears nowhere in the prose:
 > this date. **Transactions in downstream datasets will still be deleted if they
 > inherit data from an upstream transaction that is scheduled for deletion because of
 > the policy.**"
+> — data-lifetime/images/createanewpolicy.png
 
 A cutoff protects the dataset it is set on. It does **not** protect downstream — the
 inheritance runs through it. That is the sharpest edge in the whole feature and it
