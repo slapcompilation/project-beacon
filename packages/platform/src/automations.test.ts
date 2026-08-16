@@ -209,10 +209,18 @@ describe.skipIf(noDb)('automations', () => {
       `select pg_get_functiondef('public.run_automations(timestamptz)'::regprocedure) as d`)).d
     expect(d).toContain('automation_error_retryable')
     expect(d).toContain('awaiting_retry')
-    // And the ledger can say a run is waiting rather than failed.
+    // And the ledger can say a run is waiting rather than failed. Two
+    // constraints now mention it and both are meant: the outcome list admits
+    // the value, and 543 ties it to a due time — a run cannot await a retry
+    // that nothing will ever claim.
     expect(await count(
       `select count(*) n from pg_constraint
         where conrelid='public.automation_runs'::regclass
+          and conname = 'automation_runs_outcome_check'
           and pg_get_constraintdef(oid) like '%awaiting_retry%'`)).toBe(1)
+    expect(await count(
+      `select count(*) n from pg_constraint
+        where conrelid='public.automation_runs'::regclass
+          and conname = 'automation_runs_awaiting_has_a_time'`)).toBe(1)
   })
 })

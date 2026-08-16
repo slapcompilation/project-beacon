@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (38) ────────────────────────────────────────────────
+// ── ACTION TYPES (39) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -225,6 +225,16 @@ export const rlsViolations = { apiName: 'rls_violations', kind: 'action' } as Ac
 >
 
 /**
+ *  Re-attempts automation effects whose retry has come due, advancing the
+ *  ladder until the published budget is spent — at which point the run fails
+ *  and its fallback is released.
+ */
+export const runAutomationRetries = { apiName: 'run_automation_retries', kind: 'action' } as ActionType<
+  { p_at?: string },
+  number
+>
+
+/**
  *  One build: resolve the job set (manual or upstream), refuse cycles, skip
  *  the fresh unless forced, run jobs in dependency order as the caller. A job
  *  whose inputs another unfinished build is rewriting stays WAITING and the
@@ -352,7 +362,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (153) ───────────────────────────────────────────────────
+// ── FUNCTIONS (154) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -519,6 +529,11 @@ export const automationFires = { apiName: 'automation_fires', kind: 'function' }
 export const automationInputLimit = { apiName: 'automation_input_limit', kind: 'function' } as FunctionType<
   { p_condition_type: string },
   number
+>
+
+export const automationRetryDue = { apiName: 'automation_retry_due', kind: 'function' } as FunctionType<
+  { p_effect: string; p_attempt: number },
+  string
 >
 
 /**
