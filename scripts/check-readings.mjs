@@ -67,6 +67,10 @@ const normalise = (s) => s
   // A source sentence carries links — "associated with a [space](/docs/…) in the
   // platform" — and a reading quotes the words, not the URL.
   .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+  // The docs site marks external links with an arrow INSIDE the link text
+  // (`[Palantir Rubix ↗](https://…)`), so a reading that quotes the words
+  // never matches the glyph. It is chrome, not content.
+  .replace(/\s*↗/g, '')
   .replace(/\*\*/g, '').replace(/`/g, '').replace(/\*/g, '')
   .replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
   .replace(/\\/g, '')

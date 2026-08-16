@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — the RID grammar, and which resources actually have one
 
 Written because migration 391 gave RIDs to five resource types and deliberately
@@ -5,8 +9,11 @@ withheld them from five others, on the grounds that no page in the mirror
 attested a form. The operator searched the documentation and pointed at six
 pages. This is what they say.
 
+Read, and nothing below quotes it: `mirror/compass/create-a-project.md` — read
+for whether a project RID is printed anywhere in the creation flow. It is not,
+which is why nothing here rests on it.
+
 Pages read in full:
-- `mirror/compass/create-a-project.md`
 - `mirror/security/orgs-and-spaces.md`
 - `mirror/platform-security-management/manage-orgs-and-spaces.md`
 - `mirror/object-link-types/create-link-type.md`
@@ -190,8 +197,11 @@ But the page's first paragraph is more interesting than the wizard:
 > "Local struct property types backed by shared property types will inherit
 > shared property type fields **except for the struct field resource identifiers
 > (RIDs)**. Struct field metadata (display name, description, aliases) will then
-> be inherited from the shared property type, but **struct fields will keep their
+> be inherited from the shared property type, but **struct fields with keep their
 > original RIDs**."
+
+(“with keep” is the page's own typo, quoted as printed — it read “will keep”
+here until `check:readings` could not trace the sentence.)
 
 So RIDs go *deeper than the property* — an individual **field inside a struct
 property** has one. Metadata is inherited on attachment; identity is not. That is
@@ -262,11 +272,14 @@ defaults on.
 The prose is ambiguous in a way that matters. Two different things are called an
 "Action RID":
 
-> `action-types/action-log`: "**Action RID:** Unique identifier for a single
-> **action submission**"
->
-> `action-types/getting-started`: "Copy and paste the action RID from the
-> **Ontology Manager** and paste it into the **Action RID** field."
+From `action-types/action-log`:
+
+> "**Action RID:** Unique identifier for a single **action submission**"
+
+and from `action-types/getting-started`:
+
+> "Copy and paste the action RID from the **Ontology Manager** and paste it into
+> the **Action RID** field."
 
 The first is an instance. The second is copied from Ontology Manager, where
 action *types* live — and `getting_started_add_RID.png` settles it by showing the

@@ -1,10 +1,16 @@
+---
+verify: strict
+---
+
 # Reading — Slate: styles
 
 Pages read in full:
-- `mirror/slate/style-overview.md`
 - `mirror/slate/concepts-styles.md`
-- `mirror/slate/applications-style-text.md`
-- `mirror/slate/styles-global-stylesheet.md`
+
+Read, and nothing below quotes them: `mirror/slate/style-overview.md`,
+`mirror/slate/applications-style-text.md`, `mirror/slate/styles-global-stylesheet.md`.
+They place the three stylesheet scopes around the one page this reading rests
+on; no sentence of theirs is load-bearing here.
 
 Images read: `images/global-stylesheets.png`, `images/text-css3.png`,
 `images/theme-dark-mode.png`. (`text-css1`, `text-css2` are earlier frames of the
@@ -51,7 +57,7 @@ managing complex styles."
 - **Colors** — "chosen with WCAG 2.0 compliance in mind", referenced as LESS variables.
 - **Components** — read the **CSS API**, not the JavaScript API, to see whether the
   `pt-x` class plus plain HTML reproduces the component.
-- **Icons** — by class, version-dependent: `<span class="bp6-icon-standard bp6-icon-clean">`.
+- **Icons** — by class, version-dependent: `<span class='bp6-icon-standard bp6-icon-clean'>`.
 
 ### Dynamic styling
 

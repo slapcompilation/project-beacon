@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — where a rule about the ontology belongs
 
 Not a new page. This settles a question the operator asked twice — *"why
@@ -8,8 +12,10 @@ Pages relied on:
 - `mirror/object-link-types/create-object-type.md` (the completeness contract,
   the API-name casings, the Source column, `MapType`/`StructType`)
 - `mirror/superrepo/core-concepts.md` (Ontology linting)
-- `mirror/object-permissioning/multi-datasource-objects.md` (one datasource per
-  property, the primary key in every one)
+
+Read, and nothing below quotes it: `mirror/object-permissioning/multi-datasource-objects.md`
+— one datasource per property, and the primary key in every one. It bounds what
+a linter could check; no sentence of it is quoted here.
 
 ---
 
@@ -77,7 +83,8 @@ found the same way — down the branch's commit chain from its head. Hence
 The plan had been to move the engine assertions into the migrations that own
 those algorithms and delete the script. **That is not possible, and the reason is
 worth writing down:** `scripts/db.mjs` treats applied migrations as immutable —
-*"Applied migrations are immutable. Correct it with a NEW migration."* An
+*Applied migrations are immutable; correct one with a NEW migration* (our own
+rule, from `scripts/db.mjs` — not a Foundry page). An
 assertion moved into 393 would either trip that guard, or — worse — sit in a file
 that never runs again anywhere it has already been applied. A migration assertion
 proves a change **at the moment it lands**. A regression test proves it **still
@@ -93,9 +100,10 @@ So the two survive together, and the split is now clean:
 
 ## The constraint the client was carrying alone
 
-> An object type's API name must "Begin with an **uppercase** character… written
-> in **PascalCase**… **unique across all object types**… between 1 and 100
-> characters."
+An object type's API name must:
+
+> "Begin with an **uppercase** character… written in **PascalCase**…
+> **unique across all object types**… between 1 and 100 characters long."
 
 The uniqueness was a unique index. The **spelling** was in TypeScript only, so
 anything writing SQL could insert `maintenance_request`. It is now
