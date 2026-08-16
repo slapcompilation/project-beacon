@@ -27,7 +27,7 @@ While virtual media sets enable you to work with media files stored outside of F
 
 To set up a virtual media set sync, follow the instructions in the [media set sync documentation](/docs/foundry/data-connection/media-set-sync/) but select **Virtual media set sync** instead of **Media set sync**.
 
-![Virtual media set sync section](/docs/resources/foundry/media-sets-advanced-formats/virtual-media-set-sync-section.png)
+![Virtual media set sync section](./images/virtual-media-set-sync-section.png)
 
 ## Using transforms to register media items into virtual media sets
 

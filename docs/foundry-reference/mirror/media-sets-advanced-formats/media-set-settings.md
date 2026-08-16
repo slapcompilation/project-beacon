@@ -30,7 +30,7 @@ The semantics of transactional media sets are most similar to Foundry datasets. 
 
 You can configure retention policies to permanently delete media items. This is a helpful option to minimize storage costs. To configure retention policies, open the media set and select the **Details** tab, then configure the options in the **Retention policy** section.
 
-![The retention policy panel in media set details.](/docs/resources/foundry/media-sets-advanced-formats/retention-policy-configuration.png)
+![The retention policy panel in media set details.](./images/retention-policy-configuration.png)
 
 ### Permanently delete all media items older than
 

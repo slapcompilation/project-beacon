@@ -35,11 +35,11 @@ To view the version history of a media item path:
 1. Select a media item in the media set.
 2. In the **Metadata** panel, select **Version History**.
 
-![The Version History button in the Metadata panel.](/docs/resources/foundry/media-sets-advanced-formats/version-history-button.png)
+![The Version History button in the Metadata panel.](./images/version-history-button.png)
 
 The version history displays all media items that have been uploaded to that path in chronological order, with the most recent upload listed first. Each entry shows when the media item was uploaded and allows you to preview the content.
 
-![The Version History panel showing multiple uploads at the same media item path.](/docs/resources/foundry/media-sets-advanced-formats/version-history.png)
+![The Version History panel showing multiple uploads at the same media item path.](./images/version-history.png)
 
 :::callout{theme="neutral"}
 Overwritten media items are not permanently deleted from the media set and may still be processed in builds. To manage storage and ensure only the latest items are processed, consider configuring a [retention policy for overwritten items](/docs/foundry/media-sets-advanced-formats/media-set-settings/#permanently-delete-any-media-items-that-have-been-overwritten-or-deleted-after).
@@ -51,15 +51,15 @@ To import media files to a media set through a direct upload, drag and drop the 
 
 1. First, create a new media set by selecting **New** within a Project and selecting `media set` from the search bar as shown below.
 
-![Create a media set from a Project](/docs/resources/foundry/media-sets-advanced-formats/project-add-media-set-dialog.png)
+![Create a media set from a Project](./images/project-add-media-set-dialog.png)
 
 2. Next, choose the desired media file type for the new media set and select **Create media set**.
 
-![Choose a media file type](/docs/resources/foundry/media-sets-advanced-formats/add-media-set-welcome-page.png)
+![Choose a media file type](./images/add-media-set-welcome-page.png)
 
 3. Once you have created a media set, you can upload media via drag-and-drop onto the empty media set or by selecting the **choose from your computer** prompt.
 
-![Upload from an empty media set](/docs/resources/foundry/media-sets-advanced-formats/empty-media-set-action.png)
+![Upload from an empty media set](./images/empty-media-set-action.png)
 
 ## Connecting to an external source system
 
@@ -73,7 +73,7 @@ After you create the sync, trigger a build in the media set view for the media t
 
 You can also connect an existing source to a new media set via the **Select a source** option.
 
-![Add existing sources into a media set](/docs/resources/foundry/media-sets-advanced-formats/add-media-set-welcome-page-add-source.png)
+![Add existing sources into a media set](./images/add-media-set-welcome-page-add-source.png)
 
 #### Virtual media sets
 

@@ -18,7 +18,7 @@ Both tools can be used to transform input media sets, write to output media sets
 
 Here is an example of the Text Extraction (OCR option) board used on a PDF media set:
 
-![Text extraction on pipeline builder](/docs/resources/foundry/media-sets-advanced-formats/pipeline_builder_pdf_ocr_board.png)
+![Text extraction on pipeline builder](./images/pipeline_builder_pdf_ocr_board.png)
 
 Contact Palantir Support if you are interested in a transformation that is not currently available.
 
