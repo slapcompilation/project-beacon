@@ -1,0 +1,99 @@
+name: Edge deploy
+
+# Deploys supabase/functions to the linked project when they land on main.
+#
+# Why this exists: `supabase/config.toml` already describes itself as "what
+# makes the edge-deploy workflow robust", and there was no such workflow. Edge
+# functions were deployed by hand, which has two failure modes and we have hit
+# both. A function changed on main and never deployed runs old code in
+# production with green CI (function-run's version parameters, 537). And a
+# function deployed from a laptop can carry uncommitted edits that main has
+# never seen.
+#
+# The rule is the same one db-migrate.yml follows: main is the source of truth,
+# and the only automated writer is CI. Nothing here is a judgement call, so
+# nothing here needs a human.
+#
+# WHY IT DEPLOYS EVERY FUNCTION, NOT THE CHANGED ONES. A per-function deploy
+# has to decide what changed, and `_shared/` is imported by all of them — a
+# diff-based deploy would miss every function whose only change came through a
+# shared module. Deploying all of them makes production equal to main by
+# construction, which is the invariant worth having; the cost is a slower job.
+#
+# `verify_jwt` is NOT passed here. The CLI reads it per function from
+# config.toml, so the JWT policy of a function is declared in the repository
+# and cannot be hand-waved at the command line.
+#
+# Dormant without SUPABASE_ACCESS_TOKEN, so a fork never fails on a secret it
+# cannot have — the same shape db-migrate uses for SUPABASE_DB_URL.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/functions/**'
+      - 'supabase/config.toml'
+      - '.github/workflows/edge-deploy.yml'
+  workflow_dispatch:
+
+# Queue, never cancel: two overlapping deploys of the same slug is the one
+# thing worse than a slow one.
+concurrency:
+  group: supabase-edge-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: functions match main
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is a token configured?
+        id: gate
+        env:
+          TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "no SUPABASE_ACCESS_TOKEN — skipping (a fork, or the secret is unset)"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: pnpm/action-setup@v4
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # The same guard CI runs on PRs, re-asked here: an unimported file ships
+      # as an empty module and fails when it is called rather than when it is
+      # deployed, so it must not reach production.
+      - name: Edge functions parse, and deploy whole
+        if: steps.gate.outputs.run == 'true'
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm check:edge
+
+      - uses: supabase/setup-cli@v1
+        if: steps.gate.outputs.run == 'true'
+        with:
+          version: latest
+
+      - name: Deploy every function
+        if: steps.gate.outputs.run == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          # The project is config.toml's project_id; no ref is hand-passed.
+          supabase functions deploy --project-ref "$(sed -n 's/^project_id *= *"\(.*\)"/\1/p' supabase/config.toml)"
+
+      - name: What is deployed now
+        if: steps.gate.outputs.run == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions list --project-ref "$(sed -n 's/^project_id *= *"\(.*\)"/\1/p' supabase/config.toml)"
