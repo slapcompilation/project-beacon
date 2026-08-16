@@ -75,6 +75,13 @@ bolted onto the guest picker.
 `manage-roles-`, and the Organization permissions surface — before anything is
 built. Do not build from this entry as written.
 
+**Two readings ride along with it.** `readings/control-panel-and-banners.md` (12
+untraceable quotations) is about exactly this surface, and
+`readings/capabilities-value-types-and-groups.md` (8) covers the groups half.
+Re-reading a page is what fixes a citation, so both get swept here rather than
+in a separate pass — see `readings/README.md` for the allocation and what the
+sweep looks for.
+
 ---
 
 ### 5. Drop `object_type_indexes.status` — two of four steps done
@@ -217,6 +224,13 @@ when it hurts.
 **The five `…of interface` action-rule variants** are unblocked (B5 built in
 450) but unbuilt (`ONTOLOGY-BUILD-MAP.md` Phase C).
 
+**Unbuilt, each carrying a reading whose citations get swept when it is built**
+(`readings/README.md` holds the table): **portfolios**, the half of Compass that
+C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13);
+**typeclasses and render hints** carry `capabilities-typeclasses-and-branching.md`
+(9); and the **lineage surface** — `lineage_graph()` exists and nothing renders
+it — carries `data-lineage.md` (13).
+
 **Recorded from the functions reading**: batched execution, `VALIDATE_ONLY`
 mode, the `returnEdits` options, interface and struct edits, retries with
 backoff, `fallbackBranches`, `connecting` build targets, Cancel build.
@@ -263,7 +277,9 @@ and could bite another pair of functions.
 property, kept deliberately ahead of its caller.
 
 **Property base types beyond the 22.** Geoshape, Attachment, Time series and the
-rest each wait for something that stores one.
+rest each wait for something that stores one. The media and attachment half
+carries `readings/materializations-links-media-and-rids.md` (9 untraceable
+quotations) with it.
 
 **Function signature types beyond the nine.** `functions/types-reference`
 publishes, with a TypeScript v2 tab for each: Short, Decimal, Binary, Byte,

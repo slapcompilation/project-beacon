@@ -362,44 +362,60 @@ Thirty-six readings against 1,809 mirrored pages is the honest running position.
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
 
-## `verify: strict` — which readings are checked, and why the rest are not
+## `verify: strict` — which readings are checked, and when the rest will be
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **31 of 40 are opted in and pass; 970
-quotations trace.**
+in with `verify: strict` in its frontmatter. **33 of 40 are opted in and pass;
+986 quotations trace.**
 
-The other 9 were measured, not ignored. Opting all of them in reports **124
-untraceable fragments** (81 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
-**every one of them has ≥90% of its words in the corpus**, and each divergence
-inspected was one of four mundane things —
+The seven that remain are **not a backlog to grind**. Each one belongs to a
+phase that has to reopen the same pages anyway, and **re-reading a page is
+exactly what fixes a citation** — so the sweep is free when it rides along with
+the build, and duplicated effort when it does not.
 
-- a verb conjugated to fit the reading's sentence (`creates` for `create`),
-- a UI label read off a screenshot but written as a prose quote,
-- the operator's own question, or one of our own rules, in quotation marks,
-- an elision without the `…` the checker splits on.
+| reading | fragments | swept when |
+|---|---|---|
+| `control-panel-and-banners` | 12 | **DELIVERABLE-MAP §4** — cross-organization principal visibility, which already says it "needs its own reading" of `manage-groups`, `manage-roles` and the Organization permissions surface. That is this reading's subject. |
+| `capabilities-value-types-and-groups` | 8 | §4 for the groups half; the **value types** phase for the other. |
+| `projects-roles-and-portfolios` | 13 | **portfolios**, the unbuilt half of Compass — C1/C2 shipped folders and the catalog, and a portfolio is neither. |
+| `materializations-links-media-and-rids` | 9 | the **media and attachment property types**, listed under "Property base types beyond the 22". Materializations themselves shipped in 515/516; the media half is what remains. |
+| `capabilities-typeclasses-and-branching` | 9 | **typeclasses and render hints** — `metadata-typeclasses` and `metadata-render-hints` are mirrored and unbuilt. |
+| `data-lineage` | 13 | the **lineage surface**. `lineage_graph()` exists; nothing renders it. |
+| `deep-dive-ontology` | 43 | **never** — see below. |
 
-Two were worth having found on their own: `rid-grammar` had silently corrected a
-typo in the source (`struct fields with keep` → `will keep`), and `ontology-linting`
-had dropped a word (`between 1 and 100 characters` for `…characters long`). A
-citation that tidies its source is exactly what this guard is for.
-
-| reading | untraceable fragments |
-|---|---|
-| `capabilities-typeclasses-and-branching` | 9 |
-| `capabilities-value-types-and-groups` | 8 |
-| `control-panel-and-banners` | 12 |
-| `data-lineage` | 13 |
-| `deep-dive-ontology` | 43 |
-| `materializations-links-media-and-rids` | 9 |
-| `projects-roles-and-portfolios` | 13 |
-| `spaces-and-the-resource-path` | 8 |
-| `statuses-and-coupling` | 9 |
+**Two readings had no phase to attach to and were swept immediately**
+(`spaces-and-the-resource-path`, `statuses-and-coupling`): spaces, RIDs and the
+status cascades are built and settled, so no future re-read would ever have
+caught them. That is the test for whether allocation makes sense — if nothing
+will reopen the page, the sweep has to happen on its own.
 
 **`deep-dive-ontology` cannot be checked at all**, and that is not a defect: it
 quotes the learn.palantir.com course PDFs under `docs/foundry-deep-dives/source/`,
 which the guard cannot read. The markdown capture beside them is explicitly
-"their own words, **condensed**", so it is not a verbatim source either.
+"their own words, **condensed**", so it is not a verbatim source either. It
+stays unchecked, on purpose.
 
-**The remedy is per reading, not a bulk edit.** Fixing a quote means opening the
-page it came from and quoting it as printed — the same work as writing the
-reading. Eight were done this way; the rest are a queue, and this table is it.
+## What the sweep found, so the next one knows what to look for
+
+Roughly 250 fragments were repaired across fifteen readings. **None was an
+invented citation.** They fell into five families:
+
+1. **A quotation ending in a full stop where the source continues** — a real
+   elision, unmarked. The commonest by far, and the only one safe to fix by
+   rule (the text traces the moment the period becomes `…`).
+2. **A page's list quoted as a sentence**, or renumbered, or merged.
+3. **UI text from a screenshot written as prose quotation.** Either attribute it
+   with `— section/images/file.png`, or drop the quote marks and describe it.
+4. **The reading's own words in quotation marks** — its corrections, the
+   operator's questions, and our own rules from CLAUDE.md.
+5. **Structure the checker reads differently than a human does**: consecutive
+   blockquote lines join into ONE quotation, so quote marks between bullets land
+   inside the text; an inline quote that wraps across two lines is invisible
+   (it matches per line); and a `— page.md` attribution inside a blockquote
+   becomes part of the quote, because that form is understood only for images.
+
+**Three fidelity errors were worth the whole exercise**: `rid-grammar` had
+silently corrected a typo in the source, `create-object-type` had quoted the
+API-name rule as "between 1 and 100 characters" where the page says
+"characters **long**", and `markings` cited two diagrams that **were never
+mirrored** — a claim nobody could have checked.

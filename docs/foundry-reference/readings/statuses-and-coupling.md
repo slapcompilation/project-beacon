@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Statuses and their coupling — the property phase
 
 ```
@@ -17,12 +21,14 @@ phase's own.
 The enumeration includes properties:
 
 > Every object type, property, link type, action, or interface in the Ontology has a **status** that indicates developmental state. An ontological resource's status can be either active, experimental, deprecated, or example; object types can also be classified as [promoted](#promoted-status-object-types-only).
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 The deprecation metadata is for every deprecated resource, properties included:
 
 > A deprecated resource also has metadata that includes:
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 with the trio (description, deadline, replacement) beneath it.
 
@@ -30,24 +36,28 @@ The object-type-to-property cascade is stated as the general rule with one
 worked example:
 
 > The Ontology Manager ensures status consistency between an object type and its related properties or link types. For example, if an object type is changed from `active` to `experimental`, all of its properties will be marked `experimental` as well.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 The property-to-link coupling is three bullets:
 
 > * If a foreign key property is changed to `experimental`, its link type will be changed to `experimental`.
 > * If a foreign key property is changed to `example`, its link type will be changed to `example`.
 > * If a foreign key property is changed to `deprecated`, its link type will be changed to `deprecated`.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 And the one asymmetry is stated in prose, with its reason:
 
 > In contrast, when marking a property `active`, the application won't change a link type referencing the property as its foreign key to `active`, as it is valid for a foreign key property to be in production, while the link type and its backing datasource are still in development.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 Bulk edit is an **option**, not a cascade:
 
 > When changing an object type from `experimental` to `active`, there is the option to also apply the `active` status to all properties on the object type:
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 ## 2 — What this connects to in our schema
 
@@ -97,10 +107,12 @@ exactly two conflict errors, and neither is between a property and its own
 object type:
 
 > If you receive the error `OntologyMetadata:ConflictBetweenLinkTypeStatusAndPropertyTypeStatus`, there is a conflict between the status on a link type and the status on a property.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 > If you receive the error `OntologyMetadata:ConflictBetweenLinkTypeStatusAndObjectTypeStatus`, there is a conflict between the status on a link type and the status of one of its associated object types.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 So no property-vs-own-type guard exists, and the error names are Foundry's
 own — 457's invented `Ontology:LinkStatusDisagrees` is corrected to the
@@ -108,7 +120,8 @@ printed name in 458. The same tail also upgrades part of D3 from inference to
 quote:
 
 > When you change an object type to `example`, all of its properties will automatically become `example` also.
-> — object-link-types/metadata-statuses.md
+
+— `object-link-types/metadata-statuses.md`
 
 **Q2. ASSESSED, not page-answered.** No page couples a property's status to
 materializations. Status is metadata ("Status metadata helps Ontology-editing
