@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — Compass, Global Branching, Object Views
 
 Read to close four open questions from `deep-dive-ontology.md`. Three are
@@ -49,9 +53,9 @@ green **+ New project**.
 
 | card | its own words |
 |---|---|
-| **Portfolios** | "groupings of projects which allow you to organize related projects into a **use case or area of interest**" |
-| **Projects** | "**secure containers** of related files which allow you to **permission access to the work unit uniformly**" |
-| **Promoted items** | "A catalog of the most useful projects, folders and files to jumpstart your work" |
+| **Portfolios** | *groupings of projects which allow you to organize related projects into a **use case or area of interest*** |
+| **Projects** | ***secure containers** of related files which allow you to **permission access to the work unit uniformly*** |
+| **Promoted items** | *A catalog of the most useful projects, folders and files to jumpstart your work* |
 
 **Filters panel:** `Filters 0` · **Types** (searchable; `Notepad document 2`,
 `Folder 1`, "View all (2)") · **Status** (`Promoted items`) · **Portfolios**
@@ -98,7 +102,7 @@ levels, then a favourite star and settings.
 
 The 🏢1 badge sits on **each section**, not the project as a whole.
 
-**Main:** a **📌 Pinned** strip — "The most important files in this project",
+**Main:** a **📌 Pinned** strip — *the most important files in this project*,
 `0 items` — then **Files** with **Actions ▾** and a green **+ New ▾**. Columns
 **NAME ▲ · LAST UPDATED · TAGS**. Rows carry per-type icons and include two
 **folders** (`uploaded_data`, `workbook-output`) beside datasets, code workbooks
@@ -108,14 +112,15 @@ and analyses. **Right rail:** ⓘ info · 🔒 security · 📡 activity · 🚩
 The page's own list of the areas:
 
 > * **Files:** A collection of all resources within a project. **Pinned resources
->   appear at the top.**
+>   appear at the top for quick access.**
 > * **Autosaved:** Resources created within the project that were **automatically
 >   saved without a designated location**.
 > * **References:** A collection of resources that **flow into the project**,
 >   including file references and external references.
-> * **Trash:** Resources deleted from the project, available for **recovery or
->   permanent deletion**.
-> * **Sensitive Data Scanner:** a view for reviewing PII detections.
+> * **Trash:** Resources deleted from the project that are available for
+>   **recovery or permanent deletion**.
+> * **Sensitive Data Scanner:** A view for operational users to review
+>   personally identifiable information (PII) detections.
 
 `dev-toolchain/overview.md` confirms the hierarchy from the API side:
 
@@ -199,8 +204,8 @@ History
 **Footer:** **Health issues** · **Cleanup**
 
 **Three of these I had never catalogued: Groups, Value types, Functions.**
-"Groups" is the `+ Add to group` on the object type Overview and the "Type
-groups" excluded from branch protection. "Value types" appears nowhere in the
+*Groups* is the `+ Add to group` on the object type Overview, and the *Type
+groups* excluded from branch protection. *Value types* appears nowhere in the
 deep dive at all.
 
 The page body lists resources with a change badge — `Office · Created`,
@@ -252,17 +257,20 @@ take main's.
 ## 3 — Object Views
 
 > "Object Views are **reusable representations of object data**… a central hub
-> for all information related to an object, including **property data, object
-> links, and related applications**."
+> for all information related to an object and include key information about the
+> object, including **property data, object links, and related applications**."
 
 Two kinds:
 
-> 1. **Standard Object Views:** "Standardized, out-of-the-box representations that
->    **automatically reflect an object type's configuration**. Available for **all**
->    object types… **without any configuration**."
-> 2. **Configured Object Views:** "Fully customizable representations built using
+> "1. **Standard Object Views:** Standardized, out-of-the-box representations
+>    that **automatically reflect an object type's configuration**. Standard
+>    Object Views are available for **all** object types and provide a consistent
+>    way to view object data without any configuration."
+>
+> "2. **Configured Object Views:** Fully customizable representations built using
 >    **Workshop**… When a configured Object View is created, it **becomes the
->    default view**, though users can always **switch back** to the standard."
+>    default view**, though users can always switch back to the standard Object
+>    View."
 
 > "Standard Object Views exist alongside configured Object Views **as a
 > first-class viewing option**… they remain accessible **even after** a configured
@@ -270,10 +278,12 @@ Two kinds:
 
 Two **form factors**, both available to both kinds:
 
-> 1. **Full Object Views:** "A comprehensive overview… an in-depth display of all
->    related information."
-> 2. **Panel Object Views:** "Intended for **integration with other applications**
->    and should focus on the most critical data for a specific workflow."
+> "1. **Full Object Views:** A comprehensive overview of an object, representing
+>    an in-depth display of all related information."
+>
+> "2. **Panel Object Views:** Intended for **integration with other applications**
+>    and should focus on displaying the most critical data for a specific
+>    workflow."
 
 So the **Object views** tab on an object type is where its configured view is
 attached, and the standard one is derived and never goes away.
@@ -283,7 +293,7 @@ attached, and the standard one is derived and never goes away.
 **The suggested page does not answer it.** `platform-overview/aip-capabilities.md`
 is a thirteen-line stub about generative AI:
 
-> "Palantir AIP provides a full set of capabilities for building with generative
+> "AIP (Artificial Intelligence Platform) provides a full set of capabilities for building with generative
 > AI and connecting AI to operations… governed access to a wide range of LLMs…
 > building LLM-driven functions, creating and managing agents, managing the
 > evaluation suites… defining the automations…"
