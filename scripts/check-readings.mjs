@@ -56,7 +56,14 @@ const MIN_LEN = 25
  *  mirror carries HTML too — a doc table writes `Configure in <br>**Capabilities**
  *  page`, and a reading quotes the sentence without the tag. */
 const normalise = (s) => s
-  .replace(/<[^>]+>/g, ' ')
+  // An HTML TAG, not any angle bracket. `<[^>]+>` looked equivalent and was
+  // not: `functions/version-range-dependencies-for-functions` is a page about
+  // `>=1.2.3 <2.0.0`, and the loose form matched from a comparison operator to
+  // the next `>` anywhere in the file, deleting real prose. Its printed
+  // precedence example normalised to "1.0.0-rc.1 =1.0.0 <2.0.0.", so no
+  // quotation from it could ever be traced. A tag starts with a letter or a
+  // slash; a comparison does not.
+  .replace(/<\/?[a-zA-Z][^>]*>/g, ' ')
   // A source sentence carries links — "associated with a [space](/docs/…) in the
   // platform" — and a reading quotes the words, not the URL.
   .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')

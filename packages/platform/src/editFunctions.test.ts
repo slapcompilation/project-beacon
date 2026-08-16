@@ -159,6 +159,55 @@ describe.skipIf(noDb)('edit functions', () => {
         where r.action_type_id = $1 and i.input_name = 'ticketId'`, [action])).toBe(1)
   })
 
+  // 509 stored `auto_upgrade` from the Run function card's "Auto upgrade to
+  // compatible versions" toggle and nothing ever read it. 538 made it mean what
+  // the page says it means: a caret range on the pinned version, resolved to
+  // "the maximum satisfying version". Asked on every run, because a resolver
+  // that silently reverts to the pin is indistinguishable from one that works.
+  it('auto upgrade moves within the caret, and never past a major', async () => {
+    const rule = (await one(
+      `select id, function_version_id from public.action_type_rules
+        where action_type_id = $1 and kind = 'function'`, [action]))
+    // The same signature as the pin: dropping `ticketId` would be a breaking
+    // change, and `Functions:BreakingChangeNeedsMajor` refuses it inside a
+    // minor — which is exactly the compatibility a caret range relies on.
+    const sig = JSON.stringify({
+      parameters: [{ name: 'ticketId', type: 'string', required: true }],
+      returns: 'OntologyEdit[]',
+    })
+    const eds = JSON.stringify({ object_types: ['Ticket'] })
+    // A compatible release and a breaking one land after the pin (1.0.0).
+    await db.query(
+      `insert into public.function_versions
+         (function_id, major, minor, patch, source, signature, edits)
+       select v.function_id, 1, 1, 0, 'export default () => 2', $2::jsonb, $3::jsonb
+         from public.function_versions v where v.id = $1`, [rule.function_version_id, sig, eds])
+    await db.query(
+      `insert into public.function_versions
+         (function_id, major, minor, patch, source, signature, edits)
+       select v.function_id, 2, 0, 0, 'export default () => 3', $2::jsonb, $3::jsonb
+         from public.function_versions v where v.id = $1`, [rule.function_version_id, sig, eds])
+
+    // Off: the pin holds even though newer versions exist.
+    expect((await one('select public.action_rule_version($1) as v', [rule.id])).v)
+      .toBe(rule.function_version_id)
+
+    await db.query('update public.action_type_rules set auto_upgrade = true where id = $1', [rule.id])
+    const resolved = (await one(
+      `select public.function_version_string(major, minor, patch, prerelease) as s
+         from public.function_versions where id = public.action_rule_version($1)`, [rule.id])).s
+    expect(resolved).toBe('1.1.0')
+
+    // And the payload the runner receives reports the version it will run.
+    const payload = (await one(
+      'select public.action_function_to_run($1) as p', [action])).p as unknown as { version: string }
+    expect(payload.version).toBe('1.1.0')
+
+    // The rule is shared with the cases below, which expect the pin. Left on,
+    // this reads as those cases failing rather than as this one leaking.
+    await db.query('update public.action_type_rules set auto_upgrade = false where id = $1', [rule.id])
+  })
+
   it('refuses a function rule with no version, and a version on another kind', async () => {
     const act = (await one(
       `insert into public.action_types (ontology_id, api_name, label)
