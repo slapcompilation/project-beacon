@@ -26,7 +26,7 @@ you) **· Shared with you**.
 
 > "Below the tabs, **quick filter cards** allow you to filter the view by
 > portfolios, projects, or **Promoted items**. If you need access to a project,
-> select **Request access**."
+> select **Request access**…"
 >
 > "Filter options include **resource type, status, portfolio, project,
 > organization, and tag**."
@@ -162,7 +162,7 @@ project's **Files** tab."
 
 > "If your global branch does **not** contain changes to the ontology, rebasing
 > occurs **automatically**. Once you introduce ontology changes to your branch,
-> **including indexing an object type**, you will need to **manually** rebase."
+> **including indexing an object type**, you will need to **manually** rebase…"
 
 **Indexing is a modification.** That is stated twice — here, and in the
 limitations: "Indexing an object type is treated as a modification. If the

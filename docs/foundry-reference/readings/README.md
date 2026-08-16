@@ -365,11 +365,11 @@ are missing from it (see `home-and-navigation.md` §7.8).
 ## `verify: strict` — which readings are checked, and why the rest are not
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **24 of 40 are opted in and pass;
-768 quotations trace.**
+in with `verify: strict` in its frontmatter. **27 of 40 are opted in and pass; 821
+quotations trace.**
 
-The other 16 were measured, not ignored. Opting all of them in reports **228
-untraceable fragments**, and the number is not evidence of invented citations:
+The other 13 were measured, not ignored. Opting all of them in reports **192
+untraceable fragments** (149 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
 **every one of them has ≥90% of its words in the corpus**, and each divergence
 inspected was one of four mundane things —
 
@@ -385,22 +385,19 @@ citation that tidies its source is exactly what this guard is for.
 
 | reading | untraceable fragments |
 |---|---|
-| `osdk-and-ontology-as-code` | 5 |
-| `properties-and-keys` | 6 |
-| `spaces-and-the-resource-path` | 8 |
-| `capabilities-typeclasses-and-branching` | 9 |
-| `statuses-and-coupling` | 9 |
-| `capabilities-value-types-and-groups` | 10 |
-| `materializations-links-media-and-rids` | 11 |
-| `control-panel-and-banners` | 13 |
-| `data-lineage` | 13 |
-| `projects-roles-and-portfolios` | 13 |
-| `branch-overlay` | 15 |
-| `compass-branching-and-views` | 16 |
-| `create-object-type` | 16 |
-| `markings` | 18 |
-| `datasets-rid-and-object-storage` | 23 |
 | `deep-dive-ontology` | 43 |
+| `datasets-rid-and-object-storage` | 22 |
+| `markings` | 17 |
+| `branch-overlay` | 15 |
+| `compass-branching-and-views` | 14 |
+| `projects-roles-and-portfolios` | 13 |
+| `data-lineage` | 13 |
+| `control-panel-and-banners` | 12 |
+| `statuses-and-coupling` | 9 |
+| `materializations-links-media-and-rids` | 9 |
+| `capabilities-typeclasses-and-branching` | 9 |
+| `spaces-and-the-resource-path` | 8 |
+| `capabilities-value-types-and-groups` | 8 |
 
 **`deep-dive-ontology` cannot be checked at all**, and that is not a defect: it
 quotes the learn.palantir.com course PDFs under `docs/foundry-deep-dives/source/`,

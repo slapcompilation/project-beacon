@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — creating an object type, its keys, and mandatory control properties
 
 Rewritten 2026-08-07 after reading the whole page rather than the parts that
@@ -25,7 +29,8 @@ Images read closely:
 > "The primary way to create and configure a new object type is with a **guided
 > step-by-step helper**… but if you exit the helper before completing the object
 > creation process, you can also **manually** complete the process by specifying
-> the metadata, backing datasource, property mappings, and keys."
+> the metadata, backing datasource, property mappings, and keys (primary and
+> title) for the new object type."
 
 And a programmatic one, which is a whole system we have not looked at:
 
@@ -48,7 +53,7 @@ And a programmatic one, which is a whole system we have not looked at:
 > `StructType` columns**."
 >
 > "If you do not have an existing datasource… you can choose to continue without
-> one and select a location to **generate a dataset for permissions**. This option
+> an existing datasource and select a location to **generate a dataset for permissions**. This option
 > **is not available if you are using Object Storage v1**. As permissions of the
 > objects of a type are determined by the location of their backing datasources,
 > you will be prompted to choose a location to which you want to save an **empty
@@ -109,12 +114,17 @@ key a **green `Title`** chip.
 
 ## The keys
 
-> **Title key:** "The property that acts as a **display name** for objects of this
-> type." Example: `full name` on `Employee` → "Melissa Chang".
->
-> **Primary key:** "The property that acts as a **unique identifier** for each
-> instance of an object type. **Each row in the backing datasource must have a
-> different value for this property.**" Example: `employee ID`.
+**Title key** —
+
+> "The property that acts as a **display name** for objects of this type."
+
+The page's example is the `full name` property on `Employee`.
+
+**Primary key** —
+
+> "The property that acts as a **unique identifier** for each instance of an
+> object type. **Each row in the backing datasource must have a different value
+> for this property.**"
 
 **Both are designations on a property, not fields on the object type.**
 `create-object-type-configure-keys-manual.png` makes this unmissable — the property
@@ -197,13 +207,16 @@ And the constraint that governs the whole binding:
 
 ## API names — two different casings, and reserved words
 
-> An **object type's** API name must "Begin with an **uppercase** character…
-> written in **PascalCase**… **unique across all object types**… between 1 and 100
-> characters."
->
-> A **property's** API name must "Begin with a **lowercase** character… written in
-> **camelCase**… **unique across all properties belonging to the same object
-> type**… between 1 and 100 characters."
+An object type's API name must:
+
+> "Begin with an **uppercase** character… written in **PascalCase**… **unique
+> across all object types**… between 1 and 100 characters long."
+
+A property's API name must:
+
+> "Begin with a **lowercase** character… written in **camelCase**… **unique
+> across all properties belonging to the same object type**… between 1 and 100
+> characters long."
 
 Note the different uniqueness scopes: object type API names are globally unique,
 property API names only within their type.
@@ -214,18 +227,22 @@ property API names only within their type.
 
 The troubleshooting section restates the ID and API rules slightly differently —
 property **IDs** allow "lowercase or uppercase letters, numbers, dashes, and
-underscores", and an object type API name there is "alphanumeric characters **and
-underscores**" where the main section said alphanumeric only. **The two sections
+underscores". An object type API name is described there as allowing
+"alphanumeric characters **and underscores**", where the main section said
+alphanumeric only. **The two sections
 disagree; the stricter reading is the safe one.**
 
 ## The completeness contract — the tightest thing on the page
 
-> To save a new object type, these **object type** fields must not be empty:
-> **ID · Display name · Plural display name · Backing datasource · API name**
->
-> And these **property** fields must not be empty:
-> **Property ID · Property display name · Backing column · Property API name ·
-> Title key · Primary key**
+> "To save a new object type, the following object type fields must not be
+> empty:"
+
+**ID · Display name · Plural display name · Backing datasource · API name**
+
+> "Additionally, the following property fields must not be empty:"
+
+**Property ID · Property display name · Backing column · Property API name ·
+Title key · Primary key**
 
 That is the validation rule, given as a list. `create-object-type-edit-backing-dataset.png`
 shows what violating it looks like: an object type named `test` with `0 objects`, a
@@ -236,9 +253,10 @@ about how and where this object type is being used will soon be available here."
 
 And the error for the cardinality rule:
 
-> `Phonograph2:DatasetAndBranchAlreadyRegistered` — "the datasource backing the
-> object type you are trying to save is **already backing a different object
-> type** in the Ontology and cannot be used again."
+On `Phonograph2:DatasetAndBranchAlreadyRegistered`:
+
+> "the datasource backing the object type you are trying to save is **already
+> backing a different object type** in the Ontology and cannot be used again."
 
 Note it names a **dataset and branch** pair. The same error appears on
 `create-link-type` for link types.
@@ -250,7 +268,7 @@ Note it names a **dataset and branch** pair. The same error appears on
 > "Mandatory control properties are object type properties that allow for granular
 > access control to the data stored in objects. You can use mandatory control
 > properties to restrict access to **all other properties in the same datasource**
-> for a given object."
+> for a given object…"
 >
 > "Mandatory control properties are **only available on Object Storage v2**."
 
@@ -268,7 +286,7 @@ Three kinds, and they compose differently:
 
 > "Markings and organizations **can be used together** on the same mandatory
 > control property. In this case, a user must satisfy **all** the markings and **at
-> least one** of the organizations."
+> least one** of the organizations…"
 >
 > "Classifications **can not** be used together with markings or organizations on
 > the same mandatory control property."
@@ -287,12 +305,13 @@ restricted views, so this is blocked on a thing we deliberately did not build.
 ### Datasource-level, which is the design
 
 > "A mandatory control property secures **all other properties in the same
-> datasource**… for multi-datasource-backed object types, **each datasource could
+> datasource**… for multi-datasource-backed object types (MDOs), **each datasource could
 > have its own** mandatory control property. Only the properties backed by a
 > specific datasource will be secured by the mandatory control in that datasource."
 >
 > "it is possible for a user to only have permission to see a **subset of
-> properties** on an object… **Other properties will appear as null.**"
+> properties** on an object… **Other properties will appear as null** when
+> displaying an object instance to the user."
 >
 > "the backing datasources **should be structured in such a way that only
 > properties that should share a mandatory control are in the same datasource**."
