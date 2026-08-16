@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — virtual tables, and where dynamic security is not
 
 Chasing two open questions from `ontology-core-concepts.md`. One is answered
@@ -71,8 +75,8 @@ security and permissions model."
 >
 > You can configure objects backed directly by virtual tables in **Ontology Manager**."
 
-So the answer to "what does mapping a virtual table look like versus a dataset"
-is: **at the Ontology Manager it looks the same.** An object type's backing
+So the answer to the question — what does mapping a virtual table look like
+versus a dataset — is: **at the Ontology Manager it looks the same.** An object type's backing
 datasource is either a Foundry dataset or a virtual table; the difference is where
 the bytes live, not how the object type is defined.
 

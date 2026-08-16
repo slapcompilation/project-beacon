@@ -1,11 +1,16 @@
+---
+verify: strict
+---
+
 # Reading — three kinds of thing that were all called "checks"
 
 Not a new page. This is the taxonomy that came out of the operator's question —
-*"are these the correct way for an ontology architecture to have?"* — and the
+*are these the correct way for an ontology architecture to have?* — and the
 restructure it forced. The answer to the question as asked was **no**, and the
 reason is that one word was covering three different mechanisms.
 
-Pages relied on:
+Read, and nothing below quotes them — this reading is a taxonomy of our own
+vocabulary, and the pages fixed the boundary rather than supplying sentences:
 - `mirror/superrepo/core-concepts.md` (Ontology linting; the embedded Ontology
   for integration tests)
 - `mirror/ontology-sdk/overview.md` (types generated from the Ontology)

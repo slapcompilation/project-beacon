@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — object permissioning, and what dynamic security is
 
 This closes the open question from `ontology-core-concepts.md`. **Dynamic security
@@ -86,10 +90,10 @@ data sources to view object instances."
 `osp-permissions-ui-overview.png` — the **Compose object security policy** dialog
 is a before/after with an arrow between two columns:
 
-- **Left, "Datasource access requirements"** — `Viewer permissions` on a dataset
+- **Left, Datasource access requirements** — `Viewer permissions` on a dataset
   (icon: a table) named `passenger`, **AND** `Organizations`, **AND** `Markings`
   (`demo: PII`, `demo: VIP`).
-- **Right, "Policy access requirements"** — `Viewer permissions` on the **object
+- **Right, Policy access requirements** — `Viewer permissions` on the **object
   type** (icon: a cube) named `Passenger`, **AND** `Granular policy` (None), **AND**
   `Organizations`, **AND** `Markings`.
 

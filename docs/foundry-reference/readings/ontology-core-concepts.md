@@ -1,8 +1,14 @@
+---
+verify: strict
+---
+
 # Reading — Ontology: core concepts
 
 Pages read in full:
-- `mirror/ontology/_index.md` — "Ontology building"
 - `mirror/ontology/core-concepts.md` — "Core concepts"
+
+Read, and nothing below quotes it: `mirror/ontology/_index.md` — the section
+front door ("Ontology building"), which lists what the pages beneath it define.
 
 Images read: `images/airline-ontology.png` (the diagram the whole page is built
 around), `images/ontology-overview-header.png` (decorative).
@@ -108,9 +114,9 @@ Aircraft), each box showing **Object Type / Object / Properties** on one instanc
    Delay"). The prose says "entity or event"; the diagram shows the event modelled
    exactly like the entity, not as an attribute of Flight.
 4. **Properties shown are concrete and typed by implication** — Airport has
-   "Lat./Long.", which is the geopoint base type; Flight has "Passenger Count".
-5. **The instance line is the title key doing its job**: "Object: JFK", and for
-   Flight, "Object: JFK -> SFO 24-02-2020 15:22" — a composed human label, not an id.
+   **Lat./Long.**, which is the geopoint base type; Flight has "Passenger Count".
+5. **The instance line is the title key doing its job**: **Object: JFK**, and for
+   Flight, **Object: JFK -> SFO 24-02-2020 15:22** — a composed human label, not an id.
 6. The caption states the scale of a *useful* example: "A simple ontology of 5
    object types displays some of the properties and relationships within airline
    industry datasets."

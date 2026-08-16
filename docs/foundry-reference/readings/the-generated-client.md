@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — the Ontology SDK, and generating ours
 
 Read to build the thing that **deletes `check:rpcs`** rather than maintaining it.
@@ -86,8 +90,8 @@ behind the secret.
 
 The five names `check:rpcs` guarded — `dataset_markings`, `dataset_view`,
 `object_type_problems`, `project_role`, `save_object_type` — are **not
-object-type reads**. Four are functions in Foundry's sense; `save_object_type`
-"creates, modifies, and deletes objects in the Ontology", which is an action.
+object-type reads**. Four are functions in Foundry's sense; `save_object_type` does what the page calls an
+action — "create, modify, and delete objects in the Ontology".
 They map onto the image's second and third sections.
 
 So the guard-deleting half is functions and actions, and it needs no object

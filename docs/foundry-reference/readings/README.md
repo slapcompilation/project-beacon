@@ -361,3 +361,52 @@ is worth most just before the thing it describes gets built. Nothing here is
 Thirty-six readings against 1,809 mirrored pages is the honest running position. `../MAP.md` is
 how the rest stay findable in the meantime — with the caveat that 19 sections
 are missing from it (see `home-and-navigation.md` §7.8).
+
+## `verify: strict` — which readings are checked, and why the rest are not
+
+`pnpm check:readings` traces every quotation back to the mirror. A reading opts
+in with `verify: strict` in its frontmatter. **24 of 40 are opted in and pass;
+768 quotations trace.**
+
+The other 16 were measured, not ignored. Opting all of them in reports **228
+untraceable fragments**, and the number is not evidence of invented citations:
+**every one of them has ≥90% of its words in the corpus**, and each divergence
+inspected was one of four mundane things —
+
+- a verb conjugated to fit the reading's sentence (`creates` for `create`),
+- a UI label read off a screenshot but written as a prose quote,
+- the operator's own question, or one of our own rules, in quotation marks,
+- an elision without the `…` the checker splits on.
+
+Two were worth having found on their own: `rid-grammar` had silently corrected a
+typo in the source (`struct fields with keep` → `will keep`), and `ontology-linting`
+had dropped a word (`between 1 and 100 characters` for `…characters long`). A
+citation that tidies its source is exactly what this guard is for.
+
+| reading | untraceable fragments |
+|---|---|
+| `osdk-and-ontology-as-code` | 5 |
+| `properties-and-keys` | 6 |
+| `spaces-and-the-resource-path` | 8 |
+| `capabilities-typeclasses-and-branching` | 9 |
+| `statuses-and-coupling` | 9 |
+| `capabilities-value-types-and-groups` | 10 |
+| `materializations-links-media-and-rids` | 11 |
+| `control-panel-and-banners` | 13 |
+| `data-lineage` | 13 |
+| `projects-roles-and-portfolios` | 13 |
+| `branch-overlay` | 15 |
+| `compass-branching-and-views` | 16 |
+| `create-object-type` | 16 |
+| `markings` | 18 |
+| `datasets-rid-and-object-storage` | 23 |
+| `deep-dive-ontology` | 43 |
+
+**`deep-dive-ontology` cannot be checked at all**, and that is not a defect: it
+quotes the learn.palantir.com course PDFs under `docs/foundry-deep-dives/source/`,
+which the guard cannot read. The markdown capture beside them is explicitly
+"their own words, **condensed**", so it is not a verbatim source either.
+
+**The remedy is per reading, not a bulk edit.** Fixing a quote means opening the
+page it came from and quoting it as printed — the same work as writing the
+reading. Eight were done this way; the rest are a queue, and this table is it.
