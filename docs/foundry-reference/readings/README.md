@@ -365,11 +365,11 @@ are missing from it (see `home-and-navigation.md` §7.8).
 ## `verify: strict` — which readings are checked, and why the rest are not
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **27 of 40 are opted in and pass; 821
+in with `verify: strict` in its frontmatter. **29 of 40 are opted in and pass; 929
 quotations trace.**
 
-The other 13 were measured, not ignored. Opting all of them in reports **192
-untraceable fragments** (149 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
+The other 11 were measured, not ignored. Opting all of them in reports **153
+untraceable fragments** (110 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
 **every one of them has ≥90% of its words in the corpus**, and each divergence
 inspected was one of four mundane things —
 
@@ -386,8 +386,6 @@ citation that tidies its source is exactly what this guard is for.
 | reading | untraceable fragments |
 |---|---|
 | `deep-dive-ontology` | 43 |
-| `datasets-rid-and-object-storage` | 22 |
-| `markings` | 17 |
 | `branch-overlay` | 15 |
 | `compass-branching-and-views` | 14 |
 | `projects-roles-and-portfolios` | 13 |
