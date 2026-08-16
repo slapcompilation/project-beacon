@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**2750 pages across 97 sections.**
+**2773 pages across 98 sections.**
 
 ## action-types — 35 pages
 
@@ -957,12 +957,13 @@ stay findable.
 - `overview` — Checkpoints
 - `review-checkpoint-records` — Review checkpoint records
 
-## code-repositories — 35 pages
+## code-repositories — 36 pages
 
 - `_index` — Code Repositories
 - `admin-overview` — Administer repositories
 - `advanced-settings` — Advanced repository settings
 - `aip-features` — AIP features in Code Repositories
+- `anaconda` — Use Anaconda in Foundry
 - `analyze-impact` — Analyze the impact of changes
 - `artifact-repositories-nav` — Navigation
 - `artifact-repositories-overview` — Artifact repositories
@@ -1469,7 +1470,7 @@ stay findable.
 - `rules` — Available rules
 - `sweep-schedules` — Sweep schedules
 
-## logic — 15 pages
+## logic — 17 pages
 
 - `_index` — AIP Logic
 - `aip-logic-integration-automate` — AIP Logic integration with Automate
@@ -1480,12 +1481,14 @@ stay findable.
 - `evaluations-create-suite` — Create an evaluation suite
 - `evaluations-getting-started` — Evaluation suites for Logic functions
 - `evaluations-metrics-dashboard` — Evaluations metrics dashboard
+- `evaluations-ontology-edits` — Evaluation functions and Ontology edits
 - `evaluations-overview` — AIP Evals
 - `execution-mode-settings` — Execution mode settings
 - `faq` — AIP Logic FAQ
 - `getting-started` — Getting started
 - `logic-metrics` — AIP Logic metrics
 - `overview` — AIP Logic
+- `staged-writes` — Staged writes in AIP Logic
 
 ## machinery — 6 pages
 
@@ -1782,7 +1785,7 @@ stay findable.
 - `test-changes-in-ontology` — Branching the ontology
 - `volume-usage` — Ontology volume usage
 
-## ontology — 22 pages
+## ontology — 23 pages
 
 - `_index` — Ontology building
 - `aip-multimodal-and-embedding-models` — Process multimodal and embedding models
@@ -1795,6 +1798,7 @@ stay findable.
 - `ontology-anti-patterns` — Ontology design: Anti-patterns
 - `ontology-augmented-generation` — Ontology-augmented generation
 - `ontology-best-practices` — Ontology design: Best practices
+- `ontology-best-practices-and-anti-patterns` — Ontology design: Best practices
 - `ontology-structural-guidance` — Ontology design: Structural guidance
 - `osdk-scenario` — Use scenarios with OSDK
 - `overview` — Ontology building
@@ -1841,6 +1845,27 @@ stay findable.
 - `typescript-subscriptions` — Subscribe to changes in object sets with the TypeScript OSDK
 - `unsupported-types` — Unsupported types in OSDK
 - `websocket-subscriptions` — Subscribe to changes in object sets via WebSocket
+
+## ontology-sdk-react-applications — 18 pages
+
+- `_index` — OSDK React applications
+- `advanced-todo-application-architecture` — Architecture and configuration
+- `advanced-todo-application-overview` — Build an advanced to-do application with OSDK
+- `development` — Development environment
+- `osdk-react` — Build applications with `@osdk/react`
+- `osdk-react-components` — Build interfaces with OSDK React components
+- `overview` — OSDK React applications
+- `troubleshooting` — Troubleshooting
+- `useadmin-hook` — useAdmin hook
+- `useadmin-tsx` — useAdmin reference
+- `usecodingtask-hook` — useCodingTask hook
+- `usecodingtask-tsx` — useCodingTask reference
+- `uselearningtask-hook` — useLearningTask hook
+- `uselearningtask-tsx` — useLearningTask reference
+- `useprojects-hook` — useProjects hook
+- `useprojects-tsx` — useProjects reference
+- `usetasks-hook` — useTasks hook
+- `usetasks-tsx` — useTasks reference
 
 ## optimizing-pipelines — 22 pages
 
@@ -2656,7 +2681,7 @@ stay findable.
 - `sap-sync-setup` — SAP ERP
 - `uninstall-sap` — Uninstall the Palantir Foundry Connector 2.0 for SAP Applications or Remote Agent
 
-## security — 38 pages
+## security — 39 pages
 
 - `_index` — Security and governance
 - `audit-log-categories` — Audit log categories
@@ -2672,6 +2697,7 @@ stay findable.
 - `download-controls` — Download controls
 - `emulation-mode` — Emulation mode
 - `enable-code-scanning` — Enable code scanning
+- `manage-code-scanning-rules` — Manage code scanning rules
 - `markings` — Markings
 - `monitor-audit-logs` — Monitor audit logs
 - `monitor-for-vulnerabilities` — Monitoring for vulnerabilities

@@ -132,15 +132,72 @@ Membership can also expire, which we do not model at all:
    §4. Recorded here so it is not lost.
 5. **Nothing is built from this reading yet** — the recitation gate.
 
-## Questions
+## Questions — all three answered, by looking harder rather than by asking
 
-1. **Which workflows does `Users and groups administrator` grant?** The card
-   footer says four and the details are behind *Show details*, which the
-   screenshot does not expand. Without them, "the role that lets you see across
-   organizations" is a name without contents, and I will not invent four.
-2. **Is `View group membership` one of those four**, or does it survive as a
-   separate legacy grant after the migration? The two pages disagree in a way
-   that the mirrored corpus does not settle.
-3. **What is the `Marking permissions` tab?** It sits beside `Roles` on the same
-   page and appears in no sentence. We already model markings; whether they are
-   granted here or only in the markings surface is unanswered.
+The operator's response to the first draft was that the material exists and my
+crawler had not caught it. Both halves were true, and the fix was two different
+kinds of looking.
+
+### Q1 — which workflows a role grants. ANSWERED, and the shape is the answer
+
+**Foundry publishes no central role→workflow catalogue.** It documents each
+workflow **at the point of use**, on the page for the thing the workflow
+unlocks, naming the role that grants it:
+
+> "To view and configure the Application access section in Control Panel, a user needs the **Manage application access** workflow, which is granted by the **User experience administrator** role. Roles are administered in the **Organization permissions** tab in Control Panel."
+
+> "a user needs the **Manage platform version** workflow, which is granted by the **User experience administrator** role"
+
+Others name the role the same way, distributed the same way — a
+`Manage Auth Chooser Enterprise Presets` workflow "as part of either the
+`Data governance officer` or `Organization administrator`" role, a
+`Manage public Slate applications` workflow "grantable through Control Panel's
+**Organization permissions** settings", and a `View usage metrics` workflow
+granted "on the organization".
+
+**So the unit is the workflow and the role is a bundle assembled from where the
+workflows are used** — which is the same shape as our own rule against
+allowlists: the catalogue is not a list to maintain, it is what you get by
+indexing the places that need it.
+
+### Q2 — the fate of `View group membership`. ANSWERED enough to build on
+
+It is granted from Organization permissions either way, and the corpus calls it
+both things in the same breath — `workshop/widgets-user-select` says users need
+
+> "the `View group membership` role on the organization for configured groups"
+
+two paragraphs before calling it
+
+> "the `View group membership` permission on the group's Organization"
+
+That is the two-vocabularies trap CLAUDE.md names, not a contradiction about
+mechanism. **Whether it survives the migration as a standalone grant is still
+unstated — and no longer blocking**, because the grant point is the same under
+both models: a role or permission held **on the Organization**.
+
+### Q3 — the `Marking permissions` tab. ANSWERED, and it is not ours to build here
+
+`manage-markings` has the section, and its callout draws the line exactly:
+
+> "The permissions below apply to resource-level markings. Organizations have a separate permission model with their own **Apply organization** and **Expand access** permissions."
+
+So the tab beside `Roles` is the **resource-level** marking permission surface
+(`Manage permissions`, `Apply marking`, and the rest), which our markings
+reading already covers. **Organization-level marking permissions are a different
+pair** — `Apply organization` and `Expand access` — and those belong to the
+organization model, not to the role model this reading is about.
+
+## What the search itself found, which matters more than the answers
+
+The pages were not missing because the crawler failed on them. **The crawler
+cannot see them at all**: `mirror-foundry-docs.mjs` derives its index from the
+sitemap, and its own comment says the sitemap "caps at 5,000 URLs". Every gap
+check we run diffs against that index, so a page outside the cap is invisible
+to all of them — including the check whose job is finding gaps.
+
+Diffing the **links in the prose we already hold** against the index found 559
+linked-but-unmirrored pages, six of which **were not in the index at all**. All
+six are real, and one is `logic/staged-writes` — beside the TypeScript staged
+writes this build already read. They are mirrored now, and the index carries
+them.

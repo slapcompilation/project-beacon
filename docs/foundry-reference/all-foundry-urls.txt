@@ -1958,6 +1958,7 @@ https://palantir.com/docs/foundry/code-repositories/
 https://palantir.com/docs/foundry/code-repositories/admin-overview/
 https://palantir.com/docs/foundry/code-repositories/advanced-settings/
 https://palantir.com/docs/foundry/code-repositories/aip-features/
+https://palantir.com/docs/foundry/code-repositories/anaconda/
 https://palantir.com/docs/foundry/code-repositories/analyze-impact/
 https://palantir.com/docs/foundry/code-repositories/artifact-repositories-nav/
 https://palantir.com/docs/foundry/code-repositories/artifact-repositories-overview/
@@ -2805,6 +2806,7 @@ https://palantir.com/docs/foundry/logic/faq/
 https://palantir.com/docs/foundry/logic/getting-started/
 https://palantir.com/docs/foundry/logic/logic-metrics/
 https://palantir.com/docs/foundry/logic/overview/
+https://palantir.com/docs/foundry/logic/staged-writes/
 https://palantir.com/docs/foundry/machinery/analyze-and-monitor/
 https://palantir.com/docs/foundry/machinery/analyze-and-montior/
 https://palantir.com/docs/foundry/machinery/connect-data/
@@ -3174,6 +3176,8 @@ https://palantir.com/docs/foundry/ontology-sdk-react-applications/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/advanced-todo-application-architecture/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/advanced-todo-application-overview/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/development/
+https://palantir.com/docs/foundry/ontology-sdk-react-applications/osdk-react-components/
+https://palantir.com/docs/foundry/ontology-sdk-react-applications/osdk-react/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/overview/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/troubleshooting/
 https://palantir.com/docs/foundry/ontology-sdk-react-applications/useadmin-hook/
@@ -3221,6 +3225,7 @@ https://palantir.com/docs/foundry/ontology/merge-scenario/
 https://palantir.com/docs/foundry/ontology/models/
 https://palantir.com/docs/foundry/ontology/ontology-anti-patterns/
 https://palantir.com/docs/foundry/ontology/ontology-augmented-generation/
+https://palantir.com/docs/foundry/ontology/ontology-best-practices-and-anti-patterns/
 https://palantir.com/docs/foundry/ontology/ontology-best-practices/
 https://palantir.com/docs/foundry/ontology/ontology-structural-guidance/
 https://palantir.com/docs/foundry/ontology/osdk-scenario/
@@ -4309,6 +4314,7 @@ https://palantir.com/docs/foundry/security/disaster-recovery/
 https://palantir.com/docs/foundry/security/download-controls/
 https://palantir.com/docs/foundry/security/emulation-mode/
 https://palantir.com/docs/foundry/security/enable-code-scanning/
+https://palantir.com/docs/foundry/security/manage-code-scanning-rules/
 https://palantir.com/docs/foundry/security/markings/
 https://palantir.com/docs/foundry/security/monitor-audit-logs/
 https://palantir.com/docs/foundry/security/monitor-for-vulnerabilities/

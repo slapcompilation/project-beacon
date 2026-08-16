@@ -1,0 +1,51 @@
+<!-- source: https://palantir.com/docs/foundry/ontology-sdk-react-applications/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+
+# OSDK React applications
+
+**Developer Console** enables application builders to build completely customizable user interfaces using [React ↗](https://react.dev/) and powered by the Ontology Software Development Kit (OSDK). By choosing React to build your application, you can leverage the pre-existing developer experience and incredible community investments into this technology to quickly deliver best-in-class user interfaces. By treating Foundry as your backend, you can leverage the Ontology's robust ability to perform high-scale queries and Foundry edits alongside granular governance controls to accelerate the process of securely developing applications that can power your organization.
+
+This section of documentation will walk you through the creation, development, and deployment process of a React application within the Palantir platform.
+
+* [Create a Developer Console application](/docs/foundry/developer-console/create-application/)
+* [Develop and deploy your application](/docs/foundry/ontology-sdk-react-applications/development/)
+* [Troubleshooting](/docs/foundry/ontology-sdk-react-applications/troubleshooting/)
+
+## Development tools
+
+Within the platform, we recommend using VS Code as your code editing tool. For more information on supported development tools, review the following documentation:
+
+* [VS Code editor overview and capabilities](/docs/foundry/vs-code/overview/)
+* [Code Workspaces overview](/docs/foundry/code-workspaces/overview/)
+* [Local development](/docs/foundry/ontology-sdk-react-applications/development/#local-development)
+
+## OSDK documentation
+
+OSDK is language-agnostic. Along with providing an NPM (Node Package Manager) library for TypeScript, we also support Pip and Conda for Python, Maven for Java, and OpenAPI specs for any other language. You can review other OSDK and Developer Console documentation using the links below:
+
+* [Ontology SDK overview](/docs/foundry/ontology-sdk/overview/)
+* [Developer Console and OSDK permission structure](/docs/foundry/developer-console/permissions/)
+* [Bootstrap a new TypeScript backend application](/docs/foundry/developer-console/how-to-bootstrapping-server-side-typescript/)
+* [Bootstrap a new Python application](/docs/foundry/developer-console/how-to-bootstrapping-python/)
+
+### OSDK React libraries
+
+Use the following libraries to build custom React interfaces with the OSDK:
+
+* **[`@osdk/react`](/docs/foundry/ontology-sdk-react-applications/osdk-react/):** Provides typed hooks, shared caching, actions, functions, and custom data-driven interfaces.
+* **[`@osdk/react-components`](/docs/foundry/ontology-sdk-react-applications/osdk-react-components/):** Provides pre-built, Ontology-aware interface elements. This library builds on `@osdk/react`.
+
+## Examples and additional resources
+
+Explore OSDK reference examples directly from the **Examples** application in the platform or the Developer Console home page. These examples provide self-paced lessons that demonstrate various OSDK capabilities to help you get started building your own applications:
+
+* **Getting started with Ontology SDK (OSDK): Build a to-do application:** Dive into this step-by-step tutorial and learn how to create your very own to-do application using the power of the Ontology SDK (OSDK). The OSDK allows you to access the full power of the ontology directly from your development environment and treat Foundry as the backend to develop custom applications. This comprehensive guide will teach you everything from setting up your development environment to deploying your final product.
+
+* **Ontology SDK (OSDK) with AIP Logic: Build a to-do application powered by AIP Logic:** AIP Logic is not locked inside Foundry; you can use it from anywhere you want. Dive into this step-by-step tutorial and learn how to create your very own to-do application using the power of OSDK. This comprehensive guide will teach you everything from setting up your development environment to running your application in production, including calling AIP Logic functions from React or Python applications.
+
+* **Create custom Workshop widgets using the Ontology SDK (OSDK):** Use the [**Iframe**](/docs/foundry/workshop/widgets-iframe/) widget in Workshop to embed Foundry web-hosted React applications in Workshop and share state bi-directionally.
+
+Each example includes step-by-step instructions and code samples that you can follow at your own pace to gain hands-on experience with different OSDK features and implementation patterns.
+
+### Advanced examples
+
+* **Advanced to-do application with the Ontology SDK (OSDK):** This project demonstrates advanced features of the Ontology SDK (OSDK) [using a to-do application](/docs/foundry/ontology-sdk-react-applications/advanced-todo-application-overview/) as a practical example.
