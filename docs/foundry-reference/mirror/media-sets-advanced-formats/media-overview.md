@@ -68,9 +68,9 @@ Additional input formats can be configured during the creation of a media set, a
 
 Additional input formats cannot be specified for [virtual media sets](/docs/foundry/media-sets-advanced-formats/virtual-media-sets/).
 
-![Configure additional input formats during creation](/docs/resources/foundry/media-sets-advanced-formats/media-set-additional-input-formats-creation.png)
+![Configure additional input formats during creation](./images/media-set-additional-input-formats-creation.png)
 
-![Configure additional input formats post-creation](/docs/resources/foundry/media-sets-advanced-formats/media-set-additional-input-formats-configuration.png)
+![Configure additional input formats post-creation](./images/media-set-additional-input-formats-configuration.png)
 
 Some file types can only be processed as additional input formats. For example, DOCX (`.docx`), PPTX (`.pptx`), and TXT (`.txt`) files can be uploaded to PDF (`.pdf`) media sets as additional input file formats, even though they are not supported as primary file formats.
 
@@ -127,11 +127,11 @@ When a media item is deleted in the platform, it will no longer be visible, but 
 
 You can delete media items from a media set by selecting the media item that you want to delete, and selecting the **Delete** action. To prevent accidental deletion, this action will require you to select **Delete** in the pop-up again to confirm your intention of deleting a media item.
 
-![Delete media item](/docs/resources/foundry/media-sets-advanced-formats/delete-media-item.png)
+![Delete media item](./images/delete-media-item.png)
 
 Once you have successfully deleted the item, the media set will refresh with a success message. You can now view the media set without the deleted media item.
 
-![Successful deletion](/docs/resources/foundry/media-sets-advanced-formats/delete-media-item-success.png)
+![Successful deletion](./images/delete-media-item-success.png)
 
 :::callout{theme="warning" title="Deletion limitations"}
 Media item deletion is not supported for media sets that are updated through a build pipeline.
