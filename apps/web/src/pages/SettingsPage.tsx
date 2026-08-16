@@ -1,8 +1,7 @@
 // Platform Settings — the admin console Foundry reaches from Account >
-// Settings. One section leads somewhere real today: Groups
-// (platform-security-management/manage-groups.md). Users, Roles and
-// Organizations arrive when something backs them; empty entries would render
-// their empty states forever.
+// Settings. Groups (platform-security-management/manage-groups.md) and now
+// Roles lead somewhere real; Users and Organizations arrive when something
+// backs them, because an empty entry renders its empty state forever.
 //
 // The Group details layout follows the manage-groups dashboard: metadata with
 // the permanent ID, Members ("individual users or groups"), Group permissions
@@ -24,7 +23,7 @@ import {
   type Group, type GroupPermission,
 } from '@/features/groups/api'
 import {
-  useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest,
+  useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest, useOrgRoles,
 } from '@/features/organization/api'
 import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
@@ -52,10 +51,84 @@ export default function SettingsPage() {
           </p>
         </header>
         <OrganizationSection />
+        <RolesSection />
         <GroupsSection />
         <TagsSection />
       </div>
     </div>
+  )
+}
+
+// The Roles half of Organization permissions. The page is a list of role cards
+// because Foundry's is: each carries its grantees and a footer counting what it
+// confers ("Grants 24 workflows and unlocks 7 settings"), and the panel beside
+// them reads "Select a role to manage grants to users or groups".
+//
+// Read-only for now, deliberately. Granting takes the
+// `manage_organization_permissions` workflow, which nobody holds until an
+// administrator grant exists — a form that always refuses is worse than no
+// form, and the schema already refuses correctly.
+function RolesSection() {
+  const { data: roles = [], isLoading } = useOrgRoles()
+  if (isLoading) return <Spinner size={SpinnerSize.SMALL} />
+
+  return (
+    <section className="space-y-3">
+      <div>
+        <h2 className="text-sm font-semibold">Roles</h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          A role is a bundle of workflows, granted to users or groups. Default roles are offered to
+          every organization; a custom role belongs to this one.
+        </p>
+      </div>
+      <div className="space-y-2">
+        {roles.map((r) => (
+          <Card key={r.id} className="!p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">{r.displayName}</span>
+                  {r.organizationId === null
+                    ? <Tag minimal className="!text-[10px]">Default role</Tag>
+                    : <Tag minimal intent={Intent.PRIMARY} className="!text-[10px]">Custom</Tag>}
+                  {r.applicationSpecific && (
+                    <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
+                      title="Legacy application-specific roles are not incorporated in the Organization administrator role">
+                      Application-specific
+                    </Tag>
+                  )}
+                </div>
+                {r.description !== null && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{r.description}</p>
+                )}
+                <p className="text-[11px] text-muted-foreground mt-1 font-mono">{r.apiName}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <p className="text-xs text-muted-foreground">
+                  {r.workflows.length === 0
+                    ? 'No workflows of its own'
+                    : `Grants ${String(r.workflows.length)} workflow${r.workflows.length === 1 ? '' : 's'}`}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {r.grants === 0 ? 'Held by nobody' : `Held by ${String(r.grants)}`}
+                </p>
+              </div>
+            </div>
+            {r.workflows.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {r.workflows.map((w) => (
+                  <Tag key={w} minimal className="!text-[10px] !font-mono">{w}</Tag>
+                ))}
+              </div>
+            )}
+          </Card>
+        ))}
+      </div>
+      <Callout intent={Intent.NONE} className="!text-xs">
+        The Organization administrator incorporates all workflows from other roles of that level,
+        except application-specific ones.
+      </Callout>
+    </section>
   )
 }
 

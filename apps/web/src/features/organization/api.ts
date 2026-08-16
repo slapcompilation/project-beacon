@@ -101,3 +101,64 @@ export function useRemoveOrgGuest() {
     onError: (e: Error) => { toast.error(e.message) },
   })
 }
+
+// ── Organization permissions: roles, and who holds them ─────────────────────
+//
+// "At each level, roles can be granted to users and/or groups. Each role
+// contains a number of workflows which correspond to capabilities or actions
+// that the people granted the role will be able to take."
+// (administration/enrollments-and-organizations-permissions.md)
+//
+// Default roles carry no organization and are offered to every one; a custom
+// role names its own, because "custom roles are not shared across
+// organizations".
+
+export interface OrgRole {
+  id: string
+  organizationId: string | null
+  apiName: string
+  displayName: string
+  description: string | null
+  applicationSpecific: boolean
+  workflows: string[]
+  /** How many users and groups hold it in this organization. */
+  grants: number
+}
+
+interface RoleRow {
+  id: string
+  organization_id: string | null
+  api_name: string
+  display_name: string
+  description: string | null
+  application_specific: boolean
+  organization_role_workflows: { workflow: string }[]
+  organization_role_grants: { id: string }[]
+}
+
+export function useOrgRoles() {
+  return useQuery({
+    queryKey: ['org-roles'] as const,
+    queryFn: async (): Promise<OrgRole[]> => {
+      const { data, error } = await supabase
+        .from('organization_roles')
+        .select(`id, organization_id, api_name, display_name, description,
+                 application_specific,
+                 organization_role_workflows(workflow),
+                 organization_role_grants(id)`)
+        .order('api_name')
+      if (error) throw new Error(error.message)
+      return (data as RoleRow[]).map((r) => ({
+        id: r.id,
+        organizationId: r.organization_id,
+        apiName: r.api_name,
+        displayName: r.display_name,
+        description: r.description,
+        applicationSpecific: r.application_specific,
+        workflows: r.organization_role_workflows.map((w) => w.workflow).sort(),
+        grants: r.organization_role_grants.length,
+      }))
+    },
+    staleTime: 30_000,
+  })
+}
