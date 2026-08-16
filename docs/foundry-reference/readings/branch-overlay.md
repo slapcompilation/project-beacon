@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # The branch overlay — saving onto a branch, and the merge that applies it
 
 ```
@@ -23,32 +27,39 @@ applying anything.
 The overlay is total for ontology resources, unlike the rest of the platform:
 
 > Within your branch, you can make changes to Foundry resources without affecting the `main` branch. However, creating or deleting Foundry resources on a branch will affect `main`. This does not apply to ontology resources: you can create, modify, or delete entities on the branch without affecting the `main` branch.
-> — global-branching/core-concepts.md
+
+— `global-branching/core-concepts.md`
 
 Branches come only off main:
 
 > You can only branch from the main ontology, also known as `main` branch.
-> — ontologies/branching-ontology.md
+
+— `ontologies/branching-ontology.md`
 
 And a branch has BOTH a saved state and a working state — the rebase text keeps
 them distinct:
 
 > During rebasing, changes from `main` are loaded onto your branch, while any previously saved changes from your current branch are reloaded back into the working state, which you can see in the **All changes** tab.
-> — ontologies/branching-ontology.md
+
+— `ontologies/branching-ontology.md`
 
 ## 2 — The proposal, and who approves
 
-> When you [create a Global Branching proposal] on a branch that includes ontology changes, an ontology proposal is automatically created to track the ontology-specific changes.
-> — ontologies/branching-ontology.md
+> "When you create a [Global Branching proposal](/docs/foundry/global-branching/core-concepts/) on a branch that includes ontology changes, an ontology proposal is automatically created to track the ontology-specific changes."
+
+— `ontologies/branching-ontology.md`
 
 > Creating a proposal requires the branch `Owner` role or space `Administrator` privileges.
-> — global-branching/core-concepts.md
+
+— `global-branching/core-concepts.md`
 
 > Non-protected resources still require approval from a user with edit-level permissions, which may be granted automatically when the contributor satisfies the policy.
-> — global-branching/core-concepts.md
+
+— `global-branching/core-concepts.md`
 
 > Default policies are satisfied in one of two ways: **Automatically**, when the contributor's own permissions cover the policy. **Through review**, when a separate user with the required permission approves the change.
-> — global-branching/resource-protection-and-approval-policies.md
+
+— `global-branching/resource-protection-and-approval-policies.md`
 
 420 already carries this shape: `proposal_tasks.auto_approved`, reviews where
 one rejection dominates, `proposal_blockers()` as the single mergeability
@@ -57,11 +68,14 @@ clause when re-read now.
 
 ## 3 — The merge
 
-> When merging a proposal, you can trigger builds for the affected resources […] In case of a partial merge failure, the proposal page will show which resources successfully merged and which failed to merge and remain on the branch. You cannot currently revert a partially-failed merge.
-> — global-branching/core-concepts.md
+> "When merging a proposal, you can trigger builds for the affected resources…
+> In case of a partial merge failure, the proposal page will show which resources successfully merged and which failed to merge and remain on the branch. You cannot currently revert a partially-failed merge."
+
+— `global-branching/core-concepts.md`
 
 > Global Branching auto-resolves any non-conflicting changes during a rebase. For true conflicts — where the same property of the same resource was edited on both `main` and your branch — there is no automatic resolution; you must pick one version manually before the rebase can proceed.
-> — global-branching/core-concepts.md
+
+— `global-branching/core-concepts.md`
 
 The conflict definition is exactly 428/429's three-way field rule, already
 built for the working state.
@@ -69,10 +83,12 @@ built for the working state.
 ## 4 — Protection (slice 2, not slice 1)
 
 > Protected resources cannot be changed directly; instead, changes must be made on a branch and then approved before merging into the main branch.
-> — global-branching/resource-protection-and-approval-policies.md
+
+— `global-branching/resource-protection-and-approval-policies.md`
 
 > When modifying protected resources, the **Save** dialog is replaced with **Create and save to branch**, requiring you to save changes to a new branch.
-> — ontologies/branching-ontology.md
+
+— `ontologies/branching-ontology.md`
 
 Five protectable kinds (object/action/link/interface/shared property — not
 type groups), gated on project permissions, which 454 built. Custom policies:
@@ -171,13 +187,13 @@ a non-ontology branching surface ever exists.
   date".
 - **The proposal page** (`ontology-proposal-overview.png`): a three-step
   stepper — Prepared ✓ → Reviewed (4/4 tasks approved) ✓ → Merge proposal —
-  plus "**Datasource branch:** Test-Branch-YAWXfb" (the ontology branch pairs
+  plus a ***Datasource branch:*** `Test-Branch-YAWXfb` row (the ontology branch pairs
   with a dataset branch), suggested reviewers, per-task comments, and a
   Changelog that is the branch timeline grouped by author and hour.
 - **Preview status** counts: cannot be indexed / in progress / ready for
   preview, per object type, with the type's status pill beside it.
 - **Merge history** (`merge-history.png`): "Past merge attempts", a banner
-  ("The last merge attempt was successful"), and per-resource outcome tags
+  (*The last merge attempt was successful*), and per-resource outcome tags
   (Created / Modified) grouped under "Ontology entities [5]".
 - **Policies rendered**: default policy verbatim — "Approval required from at
   least one user with edit permissions to the file." — and a custom one —
@@ -190,11 +206,11 @@ a non-ontology branching surface ever exists.
   policy" with two numeric fields — Branch inactivity days, Branch data
   deletion days (`branch-retention-policy.png`).
 - **The taskbar popover** (`branch-taskbar-review-button.png`) reads like a
-  pull request: "Open · <user> wants to merge into ⎇ Main from ⎇ <branch>",
+  pull request: *Open · <user> wants to merge into ⎇ Main from ⎇ <branch>*,
   task rows with reviewers, Auto-approved / Awaiting approval, per-row check
   ✓/✗, and Merge proposal enabling only when all checks pass.
 - **The legacy split is visible**: the OMA branch selector has two tabs,
-  "Foundry branches | Ontology branches" (`branch-selector.png`).
+  "Foundry branches | Ontology branches" (`ontologies/images/branch-selector.png`).
 - **On-branch OMA chrome**: the sidebar gains Proposals, Main branch updates
   (blue-dot indicator) and Branch history; deletions travel as tasks tagged
   `Deleted`; a task for a deleted link renders "No visible changes or

@@ -365,11 +365,11 @@ are missing from it (see `home-and-navigation.md` §7.8).
 ## `verify: strict` — which readings are checked, and why the rest are not
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **29 of 40 are opted in and pass; 929
+in with `verify: strict` in its frontmatter. **31 of 40 are opted in and pass; 970
 quotations trace.**
 
-The other 11 were measured, not ignored. Opting all of them in reports **153
-untraceable fragments** (110 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
+The other 9 were measured, not ignored. Opting all of them in reports **124
+untraceable fragments** (81 checkable — see the note on `deep-dive-ontology`), and the number is not evidence of invented citations:
 **every one of them has ≥90% of its words in the corpus**, and each divergence
 inspected was one of four mundane things —
 
@@ -385,17 +385,15 @@ citation that tidies its source is exactly what this guard is for.
 
 | reading | untraceable fragments |
 |---|---|
-| `deep-dive-ontology` | 43 |
-| `branch-overlay` | 15 |
-| `compass-branching-and-views` | 14 |
-| `projects-roles-and-portfolios` | 13 |
-| `data-lineage` | 13 |
-| `control-panel-and-banners` | 12 |
-| `statuses-and-coupling` | 9 |
-| `materializations-links-media-and-rids` | 9 |
 | `capabilities-typeclasses-and-branching` | 9 |
-| `spaces-and-the-resource-path` | 8 |
 | `capabilities-value-types-and-groups` | 8 |
+| `control-panel-and-banners` | 12 |
+| `data-lineage` | 13 |
+| `deep-dive-ontology` | 43 |
+| `materializations-links-media-and-rids` | 9 |
+| `projects-roles-and-portfolios` | 13 |
+| `spaces-and-the-resource-path` | 8 |
+| `statuses-and-coupling` | 9 |
 
 **`deep-dive-ontology` cannot be checked at all**, and that is not a defect: it
 quotes the learn.palantir.com course PDFs under `docs/foundry-deep-dives/source/`,
