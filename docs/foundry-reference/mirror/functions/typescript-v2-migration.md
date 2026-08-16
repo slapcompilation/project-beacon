@@ -36,7 +36,7 @@ export default function reverseStringArray(
 
 To keep your repository organized, we recommend grouping related functions into subdirectories within the `src/functions` directory. For example, the following folder structure organizes functions into `payroll` and `staffing` subdirectories to make the separation of responsibilities clearer.
 
-![An example folder structure for TypeScript v2 functions.](/docs/resources/foundry/functions/typescript-v2-folder-structure.png)
+![An example folder structure for TypeScript v2 functions.](./images/typescript-v2-folder-structure.png)
 
 Refer to our documentation on [getting started with TypeScript v2 functions](/docs/foundry/functions/typescript-v2-getting-started/) for more information.
 
@@ -86,15 +86,15 @@ TypeScript v2 functions can use any date and timestamp library available in the 
 
 TypeScript v2 functions provide first-class support for querying and editing the Ontology through the [Ontology SDK](/docs/foundry/ontology-sdk/typescript-osdk/). Like in TypeScript v1, TypeScript v2 repositories allow you to import Ontology entities through the [**Resource imports** sidebar](/docs/foundry/functions/resource-imports-sidebar/). Once you add your object types and link types, you are prompted to create an initial version of the Ontology SDK.
 
-![A prompt to create your first Ontology SDK in a TypeScript code repository.](/docs/resources/foundry/functions/osdk-create-initial-version.png)
+![A prompt to create your first Ontology SDK in a TypeScript code repository.](./images/osdk-create-initial-version.png)
 
 Select **Create**, then choose a name for the Ontology SDK. This name cannot be changed after the first version is generated. Select **Create new version** to generate the Ontology SDK.
 
-![Choose a name before generating your first Ontology SDK.](/docs/resources/foundry/functions/osdk-name.png)
+![Choose a name before generating your first Ontology SDK.](./images/osdk-name.png)
 
 Once the Ontology SDK is created, you will see an option to install it into the workspace. Selecting **Install** will add the Ontology SDK as a dependency in the `package.json` file and make it available to use in TypeScript code.
 
-![A prompt to install your Ontology SDK from a TypeScript code repository.](/docs/resources/foundry/functions/osdk-install.png)
+![A prompt to install your Ontology SDK from a TypeScript code repository.](./images/osdk-install.png)
 
 View the **Documentation** tab in the sidebar for comprehensive examples of working with your Ontology in TypeScript.
 
