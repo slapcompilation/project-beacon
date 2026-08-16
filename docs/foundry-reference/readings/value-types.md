@@ -23,10 +23,13 @@ illustration, they are most of the specification.
 analysis in §8.
 
 **Sublinks followed and read:** `object-link-types/base-types.md` (whole),
-`object-link-types/properties-overview.md` §Supported property types,
-`data-integration/datasets.md` §Supported field types,
 `security/orgs-and-spaces.md` (whole), `platform-security-management/manage-orgs-and-spaces.md`
 §Spaces, `object-link-types/type-reference.md` (whole, = `object-link-types/_index.md`).
+
+**Read, and nothing below quotes them:** `object-link-types/properties-overview.md`
+§Supported property types, `data-integration/datasets.md` §Supported field types.
+They fixed the boundary — which base types exist, and which dataset field types
+they land on — without contributing a sentence this reading rests on.
 
 **Corpus swept for every other mention of the phrase** (`grep -rn -i "value type"`,
 24 files) and the ones that bear on structure read: `functions/resource-imports-sidebar.md`
@@ -35,9 +38,13 @@ analysis in §8.
 `map/integrate-objects.md`, `pipeline-builder/transforms-geospatial.md` §Logical types,
 `pipeline-builder/functions-index.md` §Logical type cast,
 `object-link-types/mandatory-control-properties.md` §Validations,
-`object-link-types/metadata-statuses.md`, `object-link-types/edit-properties.md`,
+`object-link-types/metadata-statuses.md`,
 `ontologies/ontologies-overview.md`, `global-branching/branch-security.md`,
 `security/projects-and-roles.md`.
+
+Also read with nothing here quoting it: `object-link-types/edit-properties.md`
+— it says which properties an editor may change, which bounds where a value
+type can be attached, and no sentence of it is load-bearing below.
 
 **Read and discarded as a different concept with the same name:**
 `workshop/widgets-metric-card.md`, `workshop/widgets-iframe.md`,

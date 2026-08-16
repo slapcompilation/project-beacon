@@ -164,9 +164,14 @@ which is the same pinning 536 built for the caller side and which we do not yet
 record on the callee side.
 
 Note the page's own banner: "The following documentation is specific to TypeScript v1 functions." The `resources.json` shape is therefore v1's, and the
-v2 equivalent (`functions/ontology-imports`) describes the same sidebar without
-publishing a file format. **Marked as inference: that the v2 manifest carries
-the same six categories.**
+v2 equivalent describes the same sidebar without publishing a file format —
+what it does publish is the scope an import lives in:
+
+> "Any object, interface, or link types you want to use in your function must be imported into the Project that contains your repository."
+
+(`functions/ontology-imports`.) **Which is where ours already lives**: `functions.project_id` places a function
+in a project, and `function_to_run` refuses a caller with no role on it.
+**Marked as inference: that the v2 manifest carries the same six categories.**
 
 ## 8. Branching does not apply to us
 
@@ -209,14 +214,19 @@ the documentation. **Both were.** Recorded as found, because the failure mode
 here is asking rather than grepping.
 
 1. **~~Is per-function versioning the right collapse?~~ ANSWERED: yes, at the
-   level that matters.** `functions/functions-versioning` talks about a
-   function's versions throughout — "You have a function called `myFunction` at
-   version `1.0.0`" — and the API's Query resource carries `apiName` and
-   `version` per function. The repository tag is the *authoring* act that
-   assigns them in bulk; the *contract a consumer sees* is a function at a
-   version, which is exactly our model. One repository-scoped rule we do not
-   have: "Dropping a function. This includes deleting a function in your Python
-   or TypeScript function code repository" counts as a breaking change.
+   level that matters.** `functions/functions-versioning` treats the version as
+   the function's throughout — its worked example opens:
+
+   > "You have a function called `myFunction` at version `1.0.0` which takes a single string input."
+
+   and the API's Query resource carries `apiName` and `version` per function.
+   The repository tag is the *authoring* act that assigns them in bulk; the
+   *contract a consumer sees* is a function at a version, which is exactly our
+   model. One repository-scoped rule we do not have:
+
+   > "Dropping a function. This includes deleting a function in your Python or TypeScript function code repository."
+
+   counts as a breaking change, and our compatibility check is per function.
 2. **~~Should an imported function be pinned?~~ ANSWERED, and it is richer than
    pinning.** `functions/version-range-dependencies-for-functions` is a whole
    page I had never opened:

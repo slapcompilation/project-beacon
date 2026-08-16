@@ -6,9 +6,14 @@ verify: strict
 
 Pages read in full: `data-integration/builds.md`, `data-integration/schedules.md`,
 `building-pipelines/triggers-reference.md`, `building-pipelines/create-schedule.md`,
-`building-pipelines/common-schedules.md`, `transforms-python-spark/overview.md`.
+`building-pipelines/common-schedules.md`.
 Read because this is the largest structural absence left: `dataset_inputs`
 declares derivation and nothing computes it.
+
+Read in full, and **nothing below quotes it**: `transforms-python-spark/overview.md`.
+Stated rather than trimmed — Spark and the JVM data stack are an explicit
+non-goal (CLAUDE.md), so the page set the boundary and contributed no sentence
+this build rests on.
 
 ## 1. The three nouns
 

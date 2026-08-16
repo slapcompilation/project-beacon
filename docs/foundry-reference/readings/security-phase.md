@@ -4,8 +4,11 @@ verify: strict
 
 # Reading — the Security phase
 
+Read in full, and **nothing below quotes it**: `security/overview` — the
+section's front door, which names the pieces the pages beneath it define.
+
 Pages read in full (13 + the course):
-`security/overview`, `security-glossary`, `users-and-groups`,
+`security-glossary`, `users-and-groups`,
 `restricted-views`, `branching-restricted-views`, `property-security-markings`,
 `classification-based-access-controls`, `checking-permissions`,
 `emulation-mode`, `protecting-sensitive-data`, `securing-a-data-foundation`,
