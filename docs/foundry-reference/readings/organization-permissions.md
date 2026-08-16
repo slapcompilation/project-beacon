@@ -284,3 +284,41 @@ than wording, and it is why this looked answerable for longer than it was.
 requesting, approving, and maintaining a history of sensitive workflows within
 Control Panel" — currently covering network ingress, egress and SDK web hosting.
 Recorded in the gaps list rather than half-built.
+
+## Correction: a role's contents ARE published, one card at a time
+
+The section above concluded that the default roles' contents are not published,
+on the evidence that every Organization-permissions screenshot shows a role card
+**collapsed** — a count and a `Show details` link. The operator then supplied the
+Upgrade Assistant pages, and that conclusion was too strong.
+
+`upgrade-assistant/technical-maintenance-operators` states a mapping outright:
+
+> "These users are known as Maintenance Operators who have a unique set of permissions shown as the `Oversee progress in Upgrade Assistant` workflow in Control Panel."
+
+> "By default, these permissions are associated with two roles:"
+
+— Organization Administrator and Technical Compliance Officer, and
+
+> "A user assigned to either role will automatically receive the `Oversee progress in Upgrade Assistant` workflow, designating them as a Maintenance Operator."
+
+**And its screenshot is the same card with the details OPEN.** Under a
+**Workflows** heading it lists one row:
+
+> "Technical compliance officer … Primary point of contact for breaking change resolution and compliance tasks … Grants 1 workflow … Workflows … Oversee progress in Upgrade assistant"
+> — upgrade-assistant/images/technical-compliance-officer-role.png
+
+So the rule is the same point-of-use rule as the prose, **applied to
+screenshots**: a role's contents appear wherever a page needs to show them, one
+card at a time. Not a catalogue, and not unpublished either.
+
+**What that changes.** `technical_compliance_officer` had no workflows in 540's
+seed and now has its one — and because the card states *Grants 1 workflow*, the
+role is **complete** rather than partially known, which no other default role is.
+Its description is now the product's own line rather than one assembled from the
+permissions page's prose. Both in 542.
+
+**What it does not change.** The other four default roles still show only counts,
+so the seed is still assembled from what pages happen to state. The way to
+complete another is to find a page that had reason to expand its card — which is
+a search worth doing when a phase needs one, not a blocking question.

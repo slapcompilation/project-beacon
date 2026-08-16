@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**2795 pages across 100 sections.**
+**2804 pages across 101 sections.**
 
 ## action-types — 35 pages
 
@@ -2981,6 +2981,18 @@ stay findable.
 - `_index` — SQL transforms
 - `overview` — SQL transforms
 - `spark-reference` — Spark SQL Reference
+
+## upgrade-assistant — 9 pages
+
+- `_index` — Upgrade Assistant
+- `ignore-resources` — Ignoring resources
+- `impacted-resources` — Identifying impacted resources
+- `notifications` — Upgrade Assistant notifications
+- `overview` — Upgrade Assistant
+- `platform-changes` — Platform changes
+- `resource-assignment` — Resource assignment
+- `resource-type` — Resource Types in Upgrade Assistant
+- `technical-maintenance-operators` — Maintenance Operator and Technical Compliance Officer
 
 ## workflow-lineage — 7 pages
 
