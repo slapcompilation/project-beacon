@@ -35,6 +35,11 @@ on:
       - 'supabase/config.toml'
       - '.github/workflows/edge-deploy.yml'
   workflow_dispatch:
+    inputs:
+      prune:
+        description: 'Type DELETE to remove deployed functions that are not in the repository'
+        required: false
+        default: ''
 
 # Queue, never cancel: two overlapping deploys of the same slug is the one
 # thing worse than a slow one.
@@ -97,3 +102,58 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           supabase functions list --project-ref "$(sed -n 's/^project_id *= *"\(.*\)"/\1/p' supabase/config.toml)"
+
+  # ── deleting what main does not have ───────────────────────────────────────
+  #
+  # DISPATCH ONLY, and only when the input reads DELETE. Deploy makes production
+  # a superset of main; nothing makes it equal, so functions whose code was
+  # removed keep serving. 20 of them were, from the teardown — several with
+  # `verify_jwt = false`, i.e. reachable without a user JWT and authenticated
+  # only by shared secrets that may still be set.
+  #
+  # This never runs on a push. An auto-prune would delete a function during any
+  # transient state — a rename landing in two commits, a revert, a bad merge —
+  # and a deleted function is not something a revert brings back. Removing
+  # something from production is a decision, so it takes one.
+  #
+  # The Management API rather than `supabase functions delete`: an explicit
+  # DELETE with no prompt to guess at in a non-interactive runner.
+  prune:
+    name: delete what the repository does not have
+    if: github.event_name == 'workflow_dispatch' && inputs.prune == 'DELETE'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Delete every deployed function with no code here
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          REF="$(sed -n 's/^project_id *= *"\(.*\)"/\1/p' supabase/config.toml)"
+          API="https://api.supabase.com/v1/projects/$REF/functions"
+
+          curl -sS -f -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "$API" \
+            | jq -r '.[].slug' | sort > /tmp/deployed.txt
+          ls supabase/functions | grep -v '^_' | sort > /tmp/in-repo.txt
+
+          echo "deployed: $(wc -l < /tmp/deployed.txt) · in repo: $(wc -l < /tmp/in-repo.txt)"
+          comm -23 /tmp/deployed.txt /tmp/in-repo.txt > /tmp/zombies.txt
+
+          if [ ! -s /tmp/zombies.txt ]; then
+            echo "nothing to prune — production already equals main"
+            exit 0
+          fi
+
+          echo "── deleting:"; cat /tmp/zombies.txt
+          while read -r slug; do
+            [ -z "$slug" ] && continue
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X DELETE \
+              -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "$API/$slug")
+            echo "  $slug → $code"
+            case "$code" in 2*) ;; *) echo "FAILED on $slug"; exit 1;; esac
+          done < /tmp/zombies.txt
+
+          echo "── what remains:"
+          curl -sS -f -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" "$API" | jq -r '.[].slug' | sort
