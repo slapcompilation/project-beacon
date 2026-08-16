@@ -15,6 +15,8 @@ the v2 pages themselves.
 `functions/branching-functions` (5 images), `functions/resource-imports-sidebar`,
 `functions/ontology-imports`.
 
+**Read in full since:** `functions/functions-versioning`, `functions/version-range-dependencies-for-functions` (both after the operator pointed out that my open questions were answered in the docs).
+
 **Read for one section:** `global-branching/integrations` — the "Notable
 limitations" list only.
 
@@ -200,16 +202,52 @@ assumption: a branched version is a normal version number carrying a label —
    manifest's version pinning (§7) and streaming reads (§3), and both are
    additive rather than corrective.
 
-## Questions
+## Questions — two of three answered by pages I had not opened
 
-1. **Is per-function versioning the right collapse, or should a "repository"
-   exist?** Foundry's release unit is the repository, and our whole versioning
-   surface assumes it is the function. This is the kind of shape that gets
-   expensive later, and it is the operator's call rather than mine.
-2. **Should an imported function be pinned at a version?** `resources.json`
-   pins `functions` and `valueTypes` by `{ rid, version }`. We have no
-   function-to-function imports at all yet, so this is a question about when,
-   not whether.
-3. `functions/types-reference` is 1,604 lines and unopened. Our 22 base types
-   came from the ontology pages; whether the function type reference adds
-   anything they do not is unknown, and it is the page that would say.
+The operator's response to this reading was that both questions are answered in
+the documentation. **Both were.** Recorded as found, because the failure mode
+here is asking rather than grepping.
+
+1. **~~Is per-function versioning the right collapse?~~ ANSWERED: yes, at the
+   level that matters.** `functions/functions-versioning` talks about a
+   function's versions throughout — "You have a function called `myFunction` at
+   version `1.0.0`" — and the API's Query resource carries `apiName` and
+   `version` per function. The repository tag is the *authoring* act that
+   assigns them in bulk; the *contract a consumer sees* is a function at a
+   version, which is exactly our model. One repository-scoped rule we do not
+   have: "Dropping a function. This includes deleting a function in your Python
+   or TypeScript function code repository" counts as a breaking change.
+2. **~~Should an imported function be pinned?~~ ANSWERED, and it is richer than
+   pinning.** `functions/version-range-dependencies-for-functions` is a whole
+   page I had never opened:
+
+   > "In addition to depending on a pinned version of a Function, some applications like Workshop and Actions allow you to depend on a Function at a version range."
+
+   > "Applications like Workshop and Actions currently only allow version ranges that comprise backward compatible versions (that is, minor or patch upgrades)."
+
+   > "The NPM equivalent of this backward compatible range used by Workshop and Actions is the caret range"
+
+   > "when you depend on a Function at a version range, a concrete version that satisfies the range will be chosen at runtime during execution. In particular, the *maximum* satisfying version will be chosen"
+
+   **This is what `action_type_rules.auto_upgrade` meant all along.** 509 took
+   that toggle from a screenshot and shipped it off by default; nothing ever
+   read it. 538 makes it a caret range resolved to the maximum satisfying
+   version. Pinned remains the documented conservative choice: "if your
+   application has strict uptime requirements and cannot tolerate any breaks,
+   you should use pinned version dependencies."
+3. `functions/types-reference` is 1,604 lines and still unopened. Our 22 base
+   types came from the ontology pages; whether the function type reference adds
+   anything is unknown, and it is the page that would say. **Still open.**
+
+## A correction to 536
+
+536 marked prerelease ordering as inference, saying the documentation "does not
+say how two prereleases of the SAME `x.y.z` order against each other". It does,
+by reference, on the range page:
+
+> "You should also be familiar with the rules around version precedence as defined in the Semantic Versioning specification … In other words, you should be able to determine, given two distinct versions, which one has lower precedence. For example, `1.0.0-rc.1` < `1.0.0` < `1.0.1` < `1.1.0` < `2.0.0`."
+
+The printed example confirms both things 536 implemented — a release outranks
+its own prerelease, and prerelease identifiers are dot-separated — so what was
+marked as invention was documented all along. Corrected forward in 538 rather
+than edited into the applied migration.

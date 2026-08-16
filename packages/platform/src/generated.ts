@@ -352,7 +352,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (149) ───────────────────────────────────────────────────
+// ── FUNCTIONS (151) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -387,6 +387,15 @@ export const actionFunctionToRun = { apiName: 'action_function_to_run', kind: 'f
 export const actionRuleKinds = { apiName: 'action_rule_kinds', kind: 'function' } as FunctionType<
   Record<string, never>,
   { kind: string; targets: string; executable: boolean; runtime: string; note: string }[]
+>
+
+/**
+ *  The function version a function-backed action runs: the pinned one, or
+ *  with auto_upgrade the maximum version satisfying the caret range on it.
+ */
+export const actionRuleVersion = { apiName: 'action_rule_version', kind: 'function' } as FunctionType<
+  { p_rule: string },
+  string
 >
 
 export const activeScopedSession = { apiName: 'active_scoped_session', kind: 'function' } as FunctionType<
@@ -1335,6 +1344,15 @@ export const searchVisibleTypes = { apiName: 'search_visible_types', kind: 'func
 export const selectableScopedSessions = { apiName: 'selectable_scoped_sessions', kind: 'function' } as FunctionType<
   Record<string, never>,
   { id: string; name: string; description: string; markings: string[] }[]
+>
+
+/**
+ *  The exclusive upper bound of a caret range: the backward-compatible window
+ *  an auto-upgrading dependency may move within.
+ */
+export const semverCaretUpper = { apiName: 'semver_caret_upper', kind: 'function' } as FunctionType<
+  { p_major: number; p_minor: number; p_patch: number },
+  number[]
 >
 
 /**
