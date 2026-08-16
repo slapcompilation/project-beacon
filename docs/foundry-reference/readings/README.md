@@ -419,3 +419,33 @@ silently corrected a typo in the source, `create-object-type` had quoted the
 API-name rule as "between 1 and 100 characters" where the page says
 "characters **long**", and `markings` cited two diagrams that **were never
 mirrored** — a claim nobody could have checked.
+
+## The same check, where a citation becomes schema
+
+`check:readings` guarded `readings/` only — and **the founding failure it exists
+to prevent did not happen in a reading.** `object_type_impact` was built into the
+schema on a quote that did not exist. Migrations carry ~1,150 quotations in their
+headers and not one had ever been checked.
+
+**It now checks the migrations a pull request ADDS**, and only those. Applied
+migrations are immutable and run once, so a citation in one can be corrected
+forward but never edited: failing on 540 files would be failing on a backlog
+nobody can fix, and that guard gets switched off within a week. Checking what is
+being added stops it getting worse, which is the half actually available.
+
+**The audit of what is already applied: 365 of 1,142 quotations do not trace,
+across 201 migrations.** Read that number carefully — it is not 365 invented
+citations. Sampling it, and reading every one in the migrations from the session
+that measured it, the families are the same five as the readings plus one new:
+
+- **our own rules and error tokens in quotation marks** — "compose predicates,
+  never restate" is CLAUDE.md, not Foundry, and `Phonograph2:…` is ours;
+- **API field descriptions carrying the page's own list decoration**
+  (`version · string — …`), which the page prints as a bulleted definition;
+- and **angle-bracket placeholders**: `<major>.<minor>.<patch>` is eaten by the
+  HTML-tag strip on both sides, and survives only when both sides are mangled
+  identically.
+
+The three that matter are indistinguishable from the harmless ones without
+opening the page, which is the argument for the gate rather than the sweep: the
+next one gets caught while it is still editable.
