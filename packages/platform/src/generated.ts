@@ -872,6 +872,11 @@ export const functionToRun = { apiName: 'function_to_run', kind: 'function' } as
   Json
 >
 
+/**
+ *  Whether a token may appear in a published v2 function signature. The
+ *  spellings are TypeScript v2's: DateISOString and TimestampISOString, not
+ *  v1's LocalDate and Timestamp.
+ */
 export const functionTypeValid = { apiName: 'function_type_valid', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean

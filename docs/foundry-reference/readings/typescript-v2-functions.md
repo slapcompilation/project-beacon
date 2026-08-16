@@ -235,9 +235,27 @@ here is asking rather than grepping.
    version. Pinned remains the documented conservative choice: "if your
    application has strict uptime requirements and cannot tolerate any breaks,
    you should use pinned version dependencies."
-3. `functions/types-reference` is 1,604 lines and still unopened. Our 22 base
-   types came from the ontology pages; whether the function type reference adds
-   anything is unknown, and it is the page that would say. **Still open.**
+3. **~~Does `functions/types-reference` add anything?~~ ANSWERED, and it found a
+   real error.** The page prints every type once per language tab, and two of
+   the nine tokens `function_type_valid` accepted were **TypeScript v1's**:
+
+   > "TypeScript v1 uses the `LocalDate` and `Timestamp` types from the `@foundry/functions-api` package for working with temporal data. TypeScript v2 replaces these with the `DateISOString` and `TimestampISOString` types from the `@osdk/functions` package"
+
+   We built the v2 contract while accepting v1 spellings, so an author writing
+   the v2 code we claim to run would be refused for `DateISOString` and
+   accepted for two types that do not exist in their language. Fixed in 539; no
+   stored signature used either, so nothing was rewritten.
+
+   **Everything else survived the crossing, checked tab by tab rather than
+   assumed:** `Integer`, `Long`, `Float`, `Double` are the same names from
+   `@osdk/functions`; `boolean` and `string` are themselves; `ObjectSet<T>`
+   comes from `@osdk/client`; and `OntologyEdit[]` is what the v2 examples print
+   verbatim, so it is a v2 spelling rather than a v1 leftover.
+
+   The families it publishes that we do **not** accept are listed in
+   DELIVERABLE-MAP. They are not oversights — each needs the isolate to marshal
+   it, and a token the runtime cannot carry is worse than a missing one: the
+   signature passes and the call fails.
 
 ## A correction to 536
 
