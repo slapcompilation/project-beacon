@@ -23,7 +23,7 @@ download.
 **Why it was greyed in the deep dive screenshot:**
 
 > "Navigate to the **Materializations** tab by **toggling the Edits
-> configuration** in the **Datasources** tab."
+> configuration** in the **Datasources** tab…"
 
 That object type had `Edits: Disabled`. The tab is gated on edits being on.
 
@@ -146,7 +146,7 @@ read metadata**. And two constraints worth keeping:
 
 > "Media files uploaded in action forms are **only uploaded to the backing media
 > set upon successful form submission**, to ensure that canceled or failed
-> submissions do not result in orphaned media files."
+> submissions do not result in orphaned media files…"
 >
 > "**Media reference lists are not supported** as a property type on an object."
 

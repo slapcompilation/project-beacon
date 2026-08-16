@@ -92,7 +92,7 @@ The worked example is the whole idea:
 And they bite in both places:
 
 > "Value types also **enforce their validation constraints on data in Builder
-> pipelines and the ontology**."
+> pipelines and the ontology**…"
 
 **Where they live:** the space, not the ontology (§0). "Value types are **not
 available for the Default ontology**." They are **versioned** (breaking and
@@ -134,7 +134,7 @@ And the failure mode, which is the load-bearing sentence for us:
 
 > "If you apply a value type to an object property that contains property values
 > that **fail validation, that object type will fail to index**. You can view such
-> index failures in the **object type health status** in Ontology Manager."
+> index failures in the **object type health status** in Ontology Manager…"
 
 **A value type is a constraint that runs at index time.** That is why "Health
 issues" is a permanent sidebar entry.

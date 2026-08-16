@@ -39,7 +39,7 @@ The asymmetry is enforced, not merely described:
 > "The **Expand Access permission on the Marking itself**, a centrally managed
 > permission, is required to remove a Marking. For example, **even if a user has
 > the Owner role on a dataset** that is marked with the `PII` marking, their Owner
-> role does not allow them to remove the marking."
+> role does not allow them to remove the marking…"
 
 An Owner can give away any role they hold. An Owner cannot take a marking off.
 That is the whole point of the two-control design.

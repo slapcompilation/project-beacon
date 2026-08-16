@@ -88,7 +88,7 @@ lines:
 >
 > "At this point, the current dataset view would contain `A'` and `C`. If we added
 > a fifth `SNAPSHOT` transaction containing file `D`, the current dataset view
-> would then only contain `D`."
+> would then only contain `D`…"
 
 ### Dataset views — the algorithm
 

@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — properties, the two keys, and what indexing means
 
 The operator's correction: the key icon beside `IATA` in the Data Lineage panel is
@@ -17,13 +21,13 @@ Pages read in full:
 
 > "An **object type** is the schema definition of a real-world entity or event.
 > An **object or object instance** refers to a single instance of an object type…
-> An **object set** refers to a collection of multiple object instances."
+> An **object set** refers to a collection of multiple object instances…"
 
 `properties-overview`:
 
 > "A **property** of an object type is the **schema definition of a
 > characteristic** of a real-world entity or event. A **property value** refers to
-> the value of a property on an object."
+> the value of a property on an object…"
 
 Both pages then restate the dataset analogy in their own terms, and together they
 complete it:
@@ -49,8 +53,10 @@ And both end on the same sentence, which is the datasource model stated twice:
 This is a correction. `datasets-rid-and-object-storage` recorded the rule from
 `object-indexing/data-restrictions`, which names only what OSv2 *blocks*:
 
-> "The following types **cannot** be used as primary keys: Geopoint, Geoshapes,
-> Arrays, Time series properties, Real number types (decimal, double, float)."
+> "The following types **cannot** be used as primary keys:"
+
+The page prints them as a list, not a sentence: Geopoint, Geoshapes, Arrays,
+Time series properties, and real number types (decimal, double, float).
 
 `properties-overview` is the guidance table, and it has a **middle tier** that list
 does not:
@@ -134,7 +140,7 @@ the page that closes this.
 Not a search index in the incidental sense — it is *the* mechanism by which a
 datasource becomes queryable objects.
 
-> "indexing is overseen by the **Object Data Funnel** service ('Funnel'). The
+> "indexing is overseen by the **Object Data Funnel** service ("Funnel"). The
 > Funnel service is responsible for orchestrating Funnel pipelines that **create
 > and modify object instances in the Ontology** and ensure up-to-date data and
 > metadata."
@@ -185,11 +191,14 @@ is because object types need a primary key to uniquely identify them."
 1. **Is `Marking` a base type or a separate concept?** It is in
    `properties-overview`'s table and absent from `base-types`. Resolved most
    likely by `mandatory-control-properties`, unread.
-2. **Can an object type have a composite primary key?** Every sentence says "the
-   property", singular — and `create-object-type` says "The primary key of the
-   object type is auto-selected since **there is only one primary key for each
-   object type**". Reads as single-column, but no page says "composite keys are
-   unsupported" outright.
+2. **Can an object type have a composite primary key?** Every sentence says *the
+   property*, singular. `create-object-type` says:
+
+   > "The primary key of the object type is auto-selected since **there is only
+   > one primary key for each object type** (`Tail Number` for the `Aircraft`
+   > object type)."
+
+   Reads as single-column, but no page rules composite keys out in so many words.
 
 ## Decisions
 

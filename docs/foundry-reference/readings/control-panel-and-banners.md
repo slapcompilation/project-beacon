@@ -27,7 +27,7 @@ Images read closely:
 > "Additional settings in Control Panel are presented as **tabs on the side panel,
 > grouped by enrollment/Organization levels**. To search for a specific setting,
 > open the search dialog by selecting **Search** in the side panel or using
-> `Cmd+J`."
+> `Cmd+J`…"
 
 `control-panel-homepage.png` shows the grouping, and across the screenshots I have
 there are **five** scopes, not two:

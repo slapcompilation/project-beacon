@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — the Ontology SDK, and where the ontology is authored
 
 Read to settle a fork I refused to guess at: **should application code name
@@ -9,7 +13,10 @@ supports *both*, and names the path that matches us.
 Pages read:
 - `mirror/ontology-sdk/overview.md`, `typescript-osdk.md` (query shapes, filtering),
   `unsupported-types.md`, `how-to-add-to-existing-typescript.md`
-- `mirror/superrepo/overview.md`, `core-concepts.md`
+- `mirror/superrepo/core-concepts.md`
+
+Read, and nothing below quotes it: `mirror/superrepo/overview.md` — the section
+front door, which names the components `core-concepts` then defines.
   *(the superrepo section is not in `all-foundry-urls.txt` — the index predates it.
   Fetched by following links from its overview.)*
 
@@ -51,23 +58,24 @@ client's contract.
 
 > * "**Strong type-safety:** The functions and types generated for the OSDK are
 >   based on just **the subset of the Ontology relevant to you**. Types and
->   functions are **generated from your Ontology**."
+>   functions are generated from your Ontology, allowing you to query and
+>   explore your Ontology directly in your editor."
+>
 > * "**Centralized maintenance:** As the Ontology is **built and managed
->   centrally**, you can focus on application building and decrease the typical
->   maintenance burden required to build a data foundation."
-> * "**Secure by design:** the OSDK uses a token that is **scoped only to the
->   ontological entities** you want your application to access, **in addition to
->   the user's own permissions to the data**."
+>   centrally in Foundry**, you can focus on application building and decrease
+>   the typical maintenance burden required to build a data foundation."
+>
+> * "**Secure by design:** The OSDK uses a token that is **scoped only to the
+>   ontological entities** you want your application to access, in addition to
+>   the user's own permissions to the data."
 
-Two layers of security, not one: an application-scoped token *and* the user's own
-permissions. Our RLS is the second. We have no equivalent of the first.
-
-### What cannot cross the boundary
+The third is the one that matters here.
 
 `unsupported-types` is the honest limits page. For the TypeScript SDK:
 
-> "`Cipher`, `Marking`, `Vectors`" — "the code generator will **skip that property
-> and log the error**."
+The unsupported ones are `Cipher`, `Marking` and `Vectors`, and for each:
+
+> "the code generator will **skip that property and log the error**."
 
 **`Marking` is unsupported.** Mandatory control properties never reach application
 code, by design — the marking value is enforcement metadata, not application data.
@@ -91,7 +99,7 @@ This is the fork I would have got wrong by guessing.
 
 > "Ontology entities that **already exist on your enrollment, including those
 > created in the Ontology Manager**, can be **imported** into your SuperRepo with
-> `foundry import ontology` **instead of being redefined in code**. Importing
+> the `foundry import ontology` command **instead of being redefined in code**. Importing
 > **generates the OSDK and Ontology-as-code types for those entities**… The command
 > writes the import metadata to a **lock file that you should commit to your
 > repository, because code generation is based on it**."
@@ -169,7 +177,7 @@ to take, and nothing to empty.
 
 ## A correction the operator caught
 
-I applied "wanting an allowlist is the signal to index instead" to `check:tables`
+I applied CLAUDE.md's *wanting an allowlist is the signal to index instead* to `check:tables`
 and **exempted my own work from it**. Categorising `check:datasets`' 40 assertions:
 
 | kind | count | verdict |
@@ -184,7 +192,7 @@ adding one without adding it here is a visible omission."
 
 Both had strictly better behavioural equivalents:
 
-- *"the list policies compose `resource_file_access`"* → **the list agrees with the
+- *the list policies compose `resource_file_access`* → **the list agrees with the
   detail**: a dataset you cannot read must not appear in `select from datasets`,
   and one you can must. That tests the property rather than the spelling, and it
   catches a policy that composes the right function *wrongly* — which the grep
