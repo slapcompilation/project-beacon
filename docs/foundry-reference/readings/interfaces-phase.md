@@ -18,12 +18,17 @@ logged the same for its own section. **Nine distinct pages, not ten.**
 
 **Sublinks followed and read:** `object-link-types/shared-property-overview`,
 `object-link-types/shared-property-metadata`, `object-link-types/metadata-statuses`,
-`object-link-types/object-type-metadata`, `object-link-types/property-metadata`,
-`object-link-types/link-type-metadata`, `object-permissioning/ontology-permissions-legacy`
+`object-link-types/object-type-metadata`, `object-permissioning/ontology-permissions-legacy`
 (head), `ontology-manager/migrate-to-project-based-permissions` (head),
 `ontology/ontology-structural-guidance` §Interfaces, `ontology/core-concepts`,
-`ontologies/ontologies-overview`, `ontology-manager/navigation`,
-`getting-started/foundry-platform-summary-llm` §Interfaces.
+`ontology-manager/navigation`.
+
+**Read, and nothing below quotes them:** `object-link-types/property-metadata`,
+`object-link-types/link-type-metadata`, `ontologies/ontologies-overview`,
+`getting-started/foundry-platform-summary-llm` §Interfaces. They are the
+surrounding metadata pages — what a property and a link type carry, and how the
+platform summarises the ontology — read to place interfaces among them, and no
+decision in this reading rests on a sentence of theirs.
 
 **Sublinks named but NOT read:** `marketplace/overview` (**not in the mirror**),
 `action-types/actions-on-interfaces` (**not in the mirror** — named by

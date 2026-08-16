@@ -188,11 +188,14 @@ for (const name of readings) {
     for (const u of unfound) {
       failures.push({ name, at: q.at, why: `not in any mirrored page: "${u.slice(0, 90)}"` })
     }
-    // Which page did this quotation actually come from? Recorded so the
-    // reading can be compared against what it leans on.
+    // Which page did this quotation come from? EVERY page that carries the
+    // sentence, not the first one the walker reaches. Foundry republishes
+    // paragraphs across pages — `automate/security` and `automate/permissions`
+    // share their execution-permission list word for word — and crediting only
+    // the first reported 15 pages as unquoted that the reading quotes verbatim.
     for (const p of parts) {
       for (const m of mirror) {
-        if (m.lower.includes(p.toLowerCase())) { leanedOn.add(slugOf(m.file)); break }
+        if (m.lower.includes(p.toLowerCase())) leanedOn.add(slugOf(m.file))
       }
     }
   }
@@ -205,19 +208,25 @@ for (const name of readings) {
   // — one of them listed eighteen — and the questions that later blocked the
   // build were sitting in those pages.
   //
-  // It WARNS rather than fails, for two reasons. Older readings carry long
-  // page lists this would fail wholesale, and a guard that fails on its own
-  // backlog gets switched off. And a sentence published on two pages resolves
-  // to whichever the walker reaches first, so a page genuinely read can be
-  // flagged — `automate/security` and `automate/permissions` share their
-  // execution-permission list word for word.
+  // It WARNS rather than fails: older readings carry long page lists this
+  // would fail wholesale, and a guard that fails on its own backlog gets
+  // switched off.
   //
   // Nothing here can prove a page was read. What it can do is make the claim
   // PER PAGE and comparable: a page named in the header that no quotation in
   // the whole reading comes from is, in practice, a page that was listed
   // rather than used.
+  //
+  // A HEADER MAY SAY IT DID NOT READ SOMETHING, and that has to count. The
+  // message at the bottom has always offered "say in the header that it was
+  // skimmed" as the remedy, and until now saying so changed nothing — a
+  // reading whose header read "Named and NOT opened:" was flagged for exactly
+  // the honesty being asked for. So the header is read in paragraphs, and a
+  // paragraph that disclaims rather than claims is not a claim.
   const header = text.split('\n## ')[0]
-  for (const m of header.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
+  const DISCLAIMED = /skim|not (re-?)?read|never (opened|read)|not opened|deferred|consulted|not quoted|discarded|nothing (below|here)/i
+  const claiming = header.split(/\n\s*\n/).filter((para) => !DISCLAIMED.test(para)).join('\n')
+  for (const m of claiming.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
     const claim = slugOf(m[1])
     // Images are provenance-checked above; a bare directory is a pointer, not
     // a page; and a path with no mirrored file behind it is a reference to

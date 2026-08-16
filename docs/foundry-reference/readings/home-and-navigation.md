@@ -8,20 +8,24 @@ date: 2026-08-10
 
 **Pages read in full**
 
-- `getting-started/_index.md`, `getting-started/overview.md` (same file, two slugs)
 - `getting-started/orientation-and-nav.md`, `getting-started/orientation-and-nav-.md` (same file, two slugs)
 - `getting-started/login.md`
 - `getting-started/quicksearch.md` (and `compass/quicksearch.md` — same file, two slugs)
-- `getting-started/application-reference.md` (the six capability tables; first three read line by line)
 - `administration/configure-workspaces.md`
 - `administration/configure-homepage-url.md` (= `configure-languages.md` = `configure-platform-experience.md`, one page under three slugs)
 - `administration/configure-application-access.md`
 - `app-building/curating-apps.md`
-- `platform-overview/overview.md`
 - `ontology-manager/_index.md`, `ontology-manager/overview.md` (same file, two slugs)
 - `ontology-manager/navigation.md`
 - `compass/overview.md`
 - `object-views/config-app-sidebar.md` (a name collision, not the platform sidebar — see §7.6)
+
+**Read in full, and nothing below quotes them:** `getting-started/_index.md` /
+`getting-started/overview.md` (same file, two slugs),
+`getting-started/application-reference.md` (the six capability tables; first
+three read line by line), `platform-overview/overview.md`. They are the
+section's front doors and a capability matrix — they placed the surfaces
+relative to one another, and no sentence of theirs is load-bearing below.
 
 **Pages scanned, not read in full, and why:** `getting-started/introductory-concepts.md`,
 `projects-and-resources.md`, `next-steps-by-role.md`, `training-application.md`,
