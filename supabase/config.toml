@@ -8,31 +8,23 @@
 # Only the deliberately PUBLIC functions are listed — anything omitted requires a
 # user JWT. Keep this in sync when a function must be reachable without one.
 # (Intentionally minimal: this declares JWT policy only, not local-dev settings.)
+#
+# ── THE LIST IS EMPTY, AND THAT IS CORRECT ──────────────────────────────────
+# It declared six: intelligence-cycle, eval-record, ingest-pos,
+# ingest-occupancy, square-webhook and mews-webhook. All six were the
+# hospitality product's, and their code went in the teardown; none of the four
+# functions that exist today wants verify_jwt = false. So every entry named a
+# function that was not there.
+#
+# That was invisible until edge-deploy.yml ran for the first time and the CLI
+# tried to bundle a directory that does not exist:
+#
+#   WARN: failed to read file: open supabase/functions/eval-record/index.ts
+#   Error: entrypoint path does not exist (.../supabase/functions/eval-record/index.ts)
+#
+# `pnpm check:edge` now asks the question directly, so the next stale entry
+# fails on a pull request instead of a deploy. NOTE: removing an entry here
+# does not undeploy anything — if those six are still live in the project they
+# have to be deleted there, which is the operator's call, not a migration's.
 
 project_id = "nohsofkkuypwlvdsfbnw"
-
-# Cron-only intelligence sweep — authenticated by x-beacon-secret in the request,
-# never a user JWT. Must stay false or pg_cron's call is rejected.
-[functions.intelligence-cycle]
-verify_jwt = false
-
-# CI eval reporter — posts model_eval_runs from the GitHub runner (no user JWT).
-[functions.eval-record]
-verify_jwt = false
-
-# Inbound integration webhooks — called by external systems (POS, PMS, Square,
-# Mews), never by an authenticated Beacon user. Each authenticates the caller
-# itself (shared secret via x-beacon-secret, or a provider HMAC signature), so
-# the gateway JWT check must be off or the external POST is rejected before it
-# reaches the handler.
-[functions.ingest-pos]
-verify_jwt = false
-
-[functions.ingest-occupancy]
-verify_jwt = false
-
-[functions.square-webhook]
-verify_jwt = false
-
-[functions.mews-webhook]
-verify_jwt = false
