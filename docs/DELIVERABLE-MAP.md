@@ -192,33 +192,38 @@ a silent truncation, which is what we do and is the worse behaviour.
 
 Also unbuilt and published: 45-minute queue wait and 4-hour run ceilings.
 
-**THE RETRY SCHEDULER IS NOW UNBLOCKED, and it was blocked for a stated reason.**
-521 recorded: "re-attempting needs a queue with its own clock, and inventing one
-to satisfy a sentence would be the mistake this file exists to correct." That
-clock now exists — 493–496 put `run_schedules()` and `drain_waiting_jobs()` on a
-pg_cron minute hand, and `run_stale_indexes` already rides it.
+**THE RETRY SCHEDULER IS BUILT — 543/544, and §6 is closed.** It was blocked for
+a stated reason: "re-attempting needs a queue with its own clock, and inventing
+one to satisfy a sentence would be the mistake this file exists to correct."
+493–496 supplied that clock, so `run_automation_retries` became a fourth hand on
+`run_schedules` rather than a mechanism. The budget is `1 + retry_count` because
+the published count "does not include the initial attempt"; the interval is the
+effect's own; and when the budget is spent the run fails and the fallback is
+**released** — the arm of the disjunction 521 could not reach.
 
-What is in place: `automation_effects.retry_count` (1–5) and `retry_interval`
-(< 24 h), both with the published bounds; and `automation_runs.outcome` carries
-`awaiting_retry`, so a retryable failure is already *named* rather than
-swallowed.
+**543 shipped two omissions, and both were mistakes already paid for once.** It
+added a CHECK tying `awaiting_retry` to a due time and a comment claiming
+`run_automations` "now also says when" — the patch was described and never
+applied, so the next retryable failure would have violated the CHECK and taken
+the whole pass down. Its assertions passed because they asked about the SHAPE
+rather than the behaviour, which is 514's grep-only assertion exactly. And its
+own header quotes "517 shipped a runner with no caller" before shipping one.
+544 corrects both, with assertions that execute the path.
 
-What is missing is only the state and the pass:
+---
 
-* `automation_runs` has no attempt counter and no `next_attempt_at`. Both are
-  needed, because "Number of retries: The maximum number of times an event will
-  be retried. Note that **this does not include the initial attempt**" — so the
-  budget is `1 + retry_count` attempts, and the counter has to distinguish them.
-* a `run_automation_retries(at)` that takes runs `awaiting_retry` whose next
-  attempt is due, re-attempts the effect, and either settles, re-schedules, or
-  releases the fallback — which is the half the page ties together: "Fallback
-  effects are not eligible for retries, and will only execute if an object
-  failed non-retryably, **or the maximum number of retries has been reached**."
-* one line in `run_schedules`, beside the three hands already there.
+## The build order is complete
 
-**Build it as one migration**, not as state first: 517 built a runner with no
-caller and 518 had to wire it in, and the standing rule from that is that a
-runner and its caller belong in the same migration.
+Sections 1–6 are all built. What remains is in **Known gaps** below and in the
+readings' allocation table, and neither is a queue with an order — each item
+waits on a phase that has a reason to start.
+
+**The five allocated citation sweeps** ride with the phase that reopens their
+pages (`readings/README.md` holds the table): `control-panel-and-banners` with
+the next §4 surface slice, `projects-roles-and-portfolios` with portfolios,
+`materializations-links-media-and-rids` with the media and attachment property
+types, `capabilities-typeclasses-and-branching` with typeclasses and render
+hints, and `data-lineage` with the lineage surface.
 
 ## The deprecation audit (2026-08-15)
 
