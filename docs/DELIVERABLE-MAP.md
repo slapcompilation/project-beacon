@@ -221,13 +221,32 @@ when it hurts.
 mode, the `returnEdits` options, interface and struct edits, retries with
 backoff, `fallbackBranches`, `connecting` build targets, Cancel build.
 
-**A function version on a branch.** `execute-query` takes a `branch` alongside
-`version`: "When provided without `version`, the latest version on this branch
-is used. When provided with `version`, the specified version must exist on the
-branch." `function_versions` has no branch, and 536 built the other three
-parameters rather than invent one — the branch overlay (461–471) exists for
-ontology entities and nothing yet says a function version joins it the same way.
-**Question for the operator, not a design to guess at.**
+**A function version on a branch — ANSWERED, and the answer is "not for what we
+build".** I recorded this as a question for the operator after 536. Two mirrored
+pages settle it, and I should have read them before asking:
+
+> "You can develop, publish, and consume functions on a global branch. This is
+> currently supported for **TypeScript v1 functions and AIP Logic functions**."
+> — `functions/branching-functions`
+
+> "**TypeScript v2 and Python functions:** Currently, you cannot modify
+> TypeScript v2 or Python functions on a branch. You may reference a specific
+> version of a function on a branch and test that version before merging it
+> back to the `main` branch. However, the function code will only be able to
+> leverage the schemas that exist on the `main` branch."
+> — `global-branching/integrations`
+
+**We built the v2 contract** (`readings/functions.md`), so `function_versions`
+must NOT gain a branch — that would be building something Foundry does not have
+for our flavour. And the read-side sentence is already satisfied: nothing in the
+function execution path consults the branch overlay, so a function's ontology
+reads see `main`, which is what the page requires. Verified, not assumed.
+
+The screenshots also correct an assumption worth recording: a branched version
+is a **normal version number carrying a `Branched pre-release` label**
+(`4.0.1 Branched pre-release` next to a plain `4.0.0`, and "Releasing: 6.0.0
+(unstable)"), **not** a semver prerelease tag. If branching ever reaches our
+functions, the marker is a flag beside the version, not `-rc1` inside it.
 
 **Nesting a version resolver inside a query over its own table loses
 uncommitted rows.** Observed reproducibly in 536: `WHERE id =

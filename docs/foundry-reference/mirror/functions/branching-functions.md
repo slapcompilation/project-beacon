@@ -12,17 +12,17 @@ To use Global Branching for TypeScript v1, upgrade your repository template vers
 
 You can develop a function that depends on changes made to resources on your global branch, such as newly created or modified ontology entities.
 
-![Developing a new function on a branch.](/docs/resources/foundry/functions/branch-function.png)
+![Developing a new function on a branch.](./images/branch-function.png)
 
 When you are ready, publish your function with a **version target** — the stable version published to `main` when the global branch merges. During development on your branch, the function is published as unstable preview versions.
 
-![Publishing functions on a branch.](/docs/resources/foundry/functions/branch-function-publish.png)
+![Publishing functions on a branch.](./images/branch-function-publish.png)
 
 Once you have successfully published your function on the branch, you can use the new function version on your branch in Workshop, AIP Logic, and function-backed actions. This function version is labeled with the `Branched pre-release` tag. Note that functions published on your branch will not be accessible from other branches, including `main`.
 
-![Using a branched function in Workshop.](/docs/resources/foundry/functions/branch-function-backed-variable.png)
+![Using a branched function in Workshop.](./images/branch-function-backed-variable.png)
 
-![Using a branched function in actions.](/docs/resources/foundry/functions/branch-function-backed-action.png)
+![Using a branched function in actions.](./images/branch-function-backed-action.png)
 
 :::callout{theme="neutral"}
 It is currently not possible to depend on branched versions of query functions in TypeScript v1 repositories.
@@ -36,7 +36,7 @@ If the version target on the branch changes, you must update all dependents of t
 
 When developing on a branch, you will not automatically receive newer function versions published to `main`. This prevents main development from disrupting your branch work. If newer versions are available on `main`, you will see notifications in function version selectors and Ontology Manager. You can then rebase your function versions to pull in all newer versions from `main`.
 
-![Rebasing functions dialog.](/docs/resources/foundry/functions/rebasing-functions.png)
+![Rebasing functions dialog.](./images/rebasing-functions.png)
 
 If your version target gets published to `main` while you are developing, you must select a new version target before merging. Once you do, update any dependents to use the new version target.
 
