@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**2773 pages across 98 sections.**
+**2795 pages across 100 sections.**
 
 ## action-types — 35 pages
 
@@ -2303,6 +2303,19 @@ stay findable.
 - `manage-roles-` — Manage roles
 - `manage-users` — Manage users
 
+## platform-security-third-party — 10 pages
+
+- `_index` — Third-party applications
+- `3pa-api-guidance` — Foundry third-party application & API guidance
+- `authorizing-3pa-access` — Authorizing third-party application access
+- `danger-zone-actions` — Danger zone actions
+- `enabling-3pa-access` — Enabling third-party applications
+- `manage-3pa` — Manage third-party application configuration
+- `register-3pa` — Registering third-party applications
+- `third-party-apps-overview` — Third-party applications
+- `user-generated-tokens` — User-generated tokens
+- `writing-oauth2-clients` — Writing OAuth2 clients for Foundry
+
 ## questions-answers — 33 pages
 
 - `_index` — Automate
@@ -2632,6 +2645,21 @@ stay findable.
 - `visual-functions-create` — Create and use visual functions
 - `visual-functions-overview` — Visual functions
 - `xy-plots` — Time series X/Y plots
+
+## resource-management — 12 pages
+
+- `_index` — Resource Management
+- `analysis` — Analysis
+- `anomaly-detection` — Anomaly detection
+- `budgets` — Budgets
+- `configure-access` — Configure access
+- `ecosystem` — Ecosystem
+- `monitors` — Monitors
+- `overview` — Resource Management
+- `overview-tab` — Overview tab
+- `project-usage` — Project usage
+- `resource-queues` — Resource queues
+- `usage-types` — Usage types
 
 ## retention — 7 pages
 

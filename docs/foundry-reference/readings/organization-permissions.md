@@ -201,3 +201,38 @@ linked-but-unmirrored pages, six of which **were not in the index at all**. All
 six are real, and one is `logic/staged-writes` — beside the TypeScript staged
 writes this build already read. They are mirrored now, and the index carries
 them.
+
+## Are the default roles' contents published? No — checked properly
+
+The operator's expectation was that a core configuration would be stated
+clearly, and it is reasonable. It is not stated at all, and this is how that was
+established rather than assumed.
+
+**The docs site ships its own sidebar tree** in `pageProps.sidebarNavProps`,
+which enumerates pages independently of the sitemap and its 5,000-URL cap. The
+links there are `/foundry/<section>/<page>/` — **not** `/docs/foundry/...`, which
+is why the earlier link-diff never saw them. Crawling the trees behind
+`administration/enrollments-and-organizations-permissions`,
+`platform-security-management/manage-groups` and `security/overview` reaches
+**258 pages**, and none is a role or workflow reference. The unmirrored remainder
+is adjacent material — use-case examples, adoption phases, Cipher, the upgrade
+assistant — and `resource-management` and `platform-security-third-party` were
+mirrored to close the two that could plausibly have carried it. Neither does.
+
+So the position is:
+
+- **Each workflow is documented at the point of use**, naming the role that
+  grants it — that is the only published mapping, and it is where our seed comes
+  from.
+- **A role's full contents live behind `Show details`** in the product. The
+  screenshot shows *Grants 24 workflows and unlocks 7 settings* as a **count**,
+  never a list, which is consistent with the list existing only in the UI.
+- **Therefore the seed cannot be completed from the corpus.** It grows one
+  mapping at a time as pages name them, and that is not a gap in the reading —
+  it is the shape of what Palantir publishes.
+
+**What would settle it** is a capture of the Control Panel role detail from
+learn.palantir.com, the way `docs/foundry-deep-dives/` holds nine course
+captures. That is the operator's to supply; nothing on the public site answers
+it, and inventing the other twenty workflows would be the invented citation this
+repository exists to prevent.
