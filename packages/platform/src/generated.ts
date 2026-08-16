@@ -352,7 +352,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (151) ───────────────────────────────────────────────────
+// ── FUNCTIONS (153) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -945,6 +945,11 @@ export const hasGroupPermission = { apiName: 'has_group_permission', kind: 'func
   boolean
 >
 
+export const hasOrgWorkflow = { apiName: 'has_org_workflow', kind: 'function' } as FunctionType<
+  { p_organization: string; p_workflow: string },
+  boolean
+>
+
 export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_min: string },
   boolean
@@ -1179,6 +1184,16 @@ export const ontologyViolations = { apiName: 'ontology_violations', kind: 'funct
 export const opensearchAnalyzer = { apiName: 'opensearch_analyzer', kind: 'function' } as FunctionType<
   { p_analyzer: string },
   string
+>
+
+/**
+ *  The workflows the caller holds in one organization, through roles granted
+ *  to them or to a group they are in. An Organization administrator
+ *  incorporates all workflows except the legacy application-specific ones.
+ */
+export const orgWorkflows = { apiName: 'org_workflows', kind: 'function' } as FunctionType<
+  { p_organization: string },
+  string[]
 >
 
 /**
