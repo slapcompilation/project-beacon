@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — Capabilities, Value types, Type groups
 
 Closes the three questions left open by `compass-branching-and-views.md`, and
@@ -46,8 +50,8 @@ The tab **is** documented — indirectly, from the applications that consume it.
 > time** and **Event end time** timestamp properties in the **Event** section of
 > the object type's Capabilities tab."
 >
-> — `map/integrate-objects.md`
 
+— `map/integrate-objects.md`
 And from `object-link-types/base-types.md`, a third section:
 
 > "…the **Capabilities** tab of the object type. This **media source** should be
@@ -85,9 +89,10 @@ convention, **the object type nominates them**.
 
 The worked example is the whole idea:
 
-> "a user can define an 'email' value type that has a **regular expression
+> "a user can define an "email" value type that has a **regular expression
 > constraint**… This value type can then be **reused across multiple object types
-> and pipelines without having to duplicate the validation logic**."
+> and pipelines without having to duplicate the validation logic** for every
+> such property."
 
 And they bite in both places:
 
@@ -112,12 +117,12 @@ picker in its top-left.
 
 | constraint | valid base types |
 |---|---|
-| **Enum (one of)** | String, Boolean, Decimal, Double, Float, Integer, Short — and for String, "optionally case-sensitive or case-insensitive" |
+| **Enum (one of)** | String, Boolean, Decimal, Double, Float, Integer, Short — and for String, *optionally case-sensitive or case-insensitive* |
 | **Range** | Decimal, Double, Float, Integer, Short, Date, Timestamp, String, Array — "For String… the **length** of the string is constrained. For Array… the **size** of the array" |
 | **Regex** | String — "may optionally pass when matching only a **substring**" |
 | **RID** | String |
 | **UUID** | String |
-| **Uniqueness** | Array — "All elements must be unique" |
+| **Uniqueness** | Array — *all elements must be unique* |
 | **Nested** | Array — "A value type constraint can be applied to the **elements** of the array" |
 | **Element constraints** | Struct — "a **mapping between a struct field identifier and a value type reference**" |
 
@@ -169,22 +174,28 @@ Membership is editable from either end:
 And they are a search facet:
 
 > "Groups are **searchable** in Ontology Manager's Search bar… The table of object
-> types supports **displaying and filtering by group**. Groups are also displayed
+> types in the Ontology Manager supports **displaying and filtering by group**.
+> Groups are also displayed
 > on the **Object Explorer home page**."
 
 **History worth keeping:** groups replaced a tag-based system on 22 May 2024, and
 the names of un-migratable legacy groups "remain stored as **type class
-metadata** on object types." Also: group visibility was changed so that "**all
-groups will now be discoverable to any user that can view the ontology**", where
+metadata** on object types."
+
+Group visibility also changed, so that "**all groups will now be discoverable to
+any user that can view the ontology**" — where
 previously a group of invisible types was itself invisible. That is a deliberate
 choice of transparency over need-to-know, at the *name* level only.
 
 ## 4 — Ontology Manager, and what the annotated images add
 
-`ontology-manager/overview.md` names the top bar's three jobs — "search for
-Ontology resources, create new Ontology resources, and **navigate between or
-create new branches**" — and the search placeholder in the image is
-**"Search by name, RID, aliases…"**, which is why an object type has an Aliases
+`ontology-manager/overview.md` names the top bar's three jobs:
+
+> "search for Ontology resources, create new Ontology resources, and **navigate
+> between or create new branches**"
+
+and the search placeholder in the image is
+*Search by name, RID, aliases…*, which is why an object type has an Aliases
 field at all.
 
 **The sidebar** (two versions seen; both agree on the spine): Ontology picker →
