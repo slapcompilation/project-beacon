@@ -47,6 +47,7 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import { spawnSync } from 'node:child_process'
 
 const READINGS = 'docs/foundry-reference/readings'
 const MIRROR = 'docs/foundry-reference/mirror'
@@ -246,7 +247,93 @@ for (const name of readings) {
   declared.length = 0
 }
 
+// ── NEW MIGRATIONS, where a citation becomes SCHEMA ────────────────────────
+//
+// This guarded `readings/` only, and the founding failure it exists to prevent
+// did not happen in a reading: `object_type_impact` was built into the schema on
+// a quote that did not exist. Migrations carry ~1,150 quotations and not one was
+// ever checked.
+//
+// ONLY THE NEW ONES. Applied migrations are immutable and run once, so a
+// citation in one can be corrected forward but never edited — failing on 540
+// files would be failing on a backlog nobody can fix, and a guard like that gets
+// switched off. Checking what a pull request ADDS stops it getting worse, which
+// is the half that is actually available.
+//
+// The quotation rules differ from a reading's, because a migration comment is
+// prose in `--` lines rather than markdown: consecutive comment lines join, a
+// blank comment line ends the paragraph (pairing quote marks across a 60-line
+// header matches the prose BETWEEN two citations and reports it as one), and
+// anything that looks like code is skipped.
+const addedMigrations = () => {
+  // BOTH forms, unioned. `origin/main...HEAD` sees what the branch has
+  // committed, which is what CI has; plain `origin/main` sees the working tree,
+  // which is what a migration being written right now is. Taking only the first
+  // that exits 0 returned empty for uncommitted work and checked nothing —
+  // found by writing a migration with an invented quote and watching it pass.
+  const found = new Set()
+  for (const base of ['origin/main...HEAD', 'origin/main']) {
+    const r = spawnSync('git',
+      ['diff', '--name-only', '--diff-filter=A', base, '--', 'supabase/migrations'],
+      { encoding: 'utf8' })
+    if (r.status !== 0) continue
+    for (const l of r.stdout.split(/\r?\n/)) {
+      const f = l.trim()
+      if (f.endsWith('.sql')) found.add(f)
+    }
+  }
+  return [...found]   // empty when there is no origin/main — a fork, a fresh clone
+}
+
+const sqlQuotations = (sql) => {
+  const out = []
+  let buf = []
+  let start = 0
+  const flush = () => {
+    if (buf.length > 0) {
+      const text = buf.join(' ').replace(/\s+/g, ' ')
+      for (const m of text.matchAll(/"([^"]{30,})"/g)) {
+        const t = normalise(m[1])
+        if (!/[{}]|=>|import |CREATE |SELECT /.test(t)) out.push({ at: start, text: t })
+      }
+    }
+    buf = []
+  }
+  sql.split(/\r?\n/).forEach((l, i) => {
+    const c = /^\s*--\s?(.*)$/.exec(l)
+    if (c === null) { flush(); return }
+    if (c[1].trim() === '') { flush(); return }
+    if (buf.length === 0) start = i + 1
+    buf.push(c[1])
+  })
+  flush()
+  return out
+}
+
+let migChecked = 0
+const added = addedMigrations()
+for (const file of added) {
+  if (!fs.existsSync(file)) continue
+  for (const q of sqlQuotations(fs.readFileSync(file, 'utf8'))) {
+    const parts = fragments(q.text)
+    if (parts.length === 0) continue
+    migChecked += 1
+    for (const p of parts) {
+      if (mirror.some((m) => m.lower.includes(p.toLowerCase()))) continue
+      failures.push({
+        name: file.replace(/^supabase\/migrations\//, ''),
+        at: q.at,
+        why: `not in any mirrored page: "${p.slice(0, 90)}"`,
+      })
+    }
+  }
+}
+
+
 console.log(`${readings.length} readings · ${mirror.length} mirrored pages`)
+if (added.length > 0) {
+  console.log(`${migChecked} quotation(s) checked in ${added.length} new migration(s)`)
+}
 console.log(`${checked} quotations checked in ${readings.length - legacy} strict reading(s)`)
 if (legacy > 0) {
   console.log(`${legacy} reading(s) predate this guard and are not checked — add \`verify: strict\` to opt one in`)
