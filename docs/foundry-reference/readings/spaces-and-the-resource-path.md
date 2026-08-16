@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — spaces, and where a resource path starts
 
 Written to close the open question left by `rid-grammar.md`: *"What is a space, as
@@ -11,7 +15,10 @@ screenshot and no sentence.**
 Pages read in full:
 - `mirror/platform-security-management/manage-orgs-and-spaces.md`
 - `mirror/security/orgs-and-spaces.md`
-- `mirror/security/projects-and-roles.md`
+
+Read, and nothing below quotes it: `mirror/security/projects-and-roles.md` — the
+role model one level down from a space, read to see where a space's roles stop
+and a project's begin.
 
 Images read closely, all four on the management page:
 - `images/control-panel-create-space.png`
@@ -72,9 +79,12 @@ path segment is:
 
 **Access requirements**, the second card:
 
-> "To access this space, users must be a member of at least one of the selected
-> organizations below. **Additional requirements may need to be met for project
-> access.**"
+*To access this space, users must be a member of at least one of the selected
+organizations below. Additional requirements may need to be met for project
+access.* The API states the same rule in its own words:
+
+> "to access this Space, a user must be a member of at least one of these
+> Organizations."
 
 An **Organizations** search box over a checkbox list (`Palantir`, checked). That
 sentence is the two-level model in one line: the space sets a floor, the project
@@ -100,12 +110,12 @@ prose.
 
 Creation asks for six things (from the page):
 
-> **Access requirements** ("Users need permission from at least one organization to
-> access this space. Projects in this space can only be visible by organizations in
-> this list."), **Deletion policy** ("The space is deleted only after all
-> organizations in this policy have been deleted."), **Filesystem** ("Where project
-> data is stored. **Cannot be changed after creation**"), **Usage account**,
-> **Resource queue**, **Role set**.
+**Access requirements** (*Users need permission from at least one organization to
+access this space. Projects in this space can only be visible by organizations in
+this list.*), **Deletion policy** (*The space is deleted only after all
+organizations in this policy have been deleted.*), **Filesystem** (*Where project
+data is stored. **Cannot be changed after creation***), **Usage account**,
+**Resource queue**, **Role set**.
 
 **Filesystem is a per-space, immutable setting.** That is the same "backing file
 system" a dataset's files live in — so *which* filesystem is a property of the
@@ -124,13 +134,13 @@ many *workflows* it grants:
 
 | role | description | grants |
 |---|---|---|
-| **Contributor** | "Can create projects." | **5 workflows** — Create project · Curate portfolios within the space · Manage portfolios within the space · Manage value types · View value types |
-| **Project Templates Administrator** | "Create, edit, and delete project templates." | **1 workflow** |
-| **Space Administrator** | "Has full control over the space: security, project templates, and settings." | **61 workflows** |
+| **Contributor** | *Can create projects.* | **5 workflows** — Create project · Curate portfolios within the space · Manage portfolios within the space · Manage value types · View value types |
+| **Project Templates Administrator** | *Create, edit, and delete project templates.* | **1 workflow** |
+| **Space Administrator** | *Has full control over the space: security, project templates, and settings.* | **61 workflows** |
 
-A `+ New role` button sits beside a filter reading "Filter roles and
-workflows…", and the prose describes custom roles as "select which workflows to
-include with this role."
+A `+ New role` button sits beside a filter reading *Filter roles and
+workflows…*, and the prose describes custom roles as *select which workflows to
+include with this role*.
 
 **So a space role is a *set* of workflows, not a rank.** Compare project roles —
 Owner > Editor > Viewer > Discoverer, where "Each role can assign other users the
@@ -142,7 +152,7 @@ The right-hand panel completes it: "**Manage privileges** — Grant people
 
 And a trap worth carrying:
 
-> "Custom roles are '**frozen**', meaning that new workflows added to default roles
+> "Custom roles are "**frozen**", meaning that new workflows added to default roles
 > will not automatically apply to custom roles."
 
 A custom role is a snapshot of a workflow set. It does not track its template.
@@ -167,8 +177,8 @@ roles** containing two independent pickers, each with its own explanation:
 - **Marketplace role context** — "Roles granted here will be inherited by all
   **marketplace projects** in this space"
 
-Both show "Add a user or group…" over an empty state reading "No principals with
-inherited role grants". The prose only says "There are two inheritance role grant
+Both show *Add a user or group…* over an empty state reading *No principals with
+inherited role grants*. The prose only says "There are two inheritance role grant
 pickers, one for regular projects and one for locked marketplace projects" — the
 screenshot names them and tells you the first applies to *public* projects, which
 implies projects have a public/non-public distinction the prose never mentions.
@@ -180,7 +190,7 @@ implies projects have a public/non-public distinction the prose never mentions.
 > organizations or removing this organization."
 
 And a named failure mode: a user who cannot move a resource between organizations
-"must be granted the **Expand access** permission **on the source organization**"
+must be granted the **Expand access** permission **on the source organization**
 — on the one they are leaving, not the one they are joining.
 
 ---
