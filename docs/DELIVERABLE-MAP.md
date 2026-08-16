@@ -218,6 +218,13 @@ background and swap it, "without impacting the live data being served to users".
 Ours rebuilds in place, so the type is unavailable while it runs. Worth doing
 when it hurts.
 
+**Control Panel's Approvals integration.** "a dedicated Approvals integration
+designed to facilitate the process of requesting, approving, and maintaining a
+history of sensitive workflows within Control Panel"
+(`administration/control-panel-approvals`), covering network ingress, egress and
+SDK web hosting. We have `ontology_proposals` for ontology changes and nothing
+for administrative ones.
+
 **`authorized_group_ids` compiles fail-closed** until scoped sessions bind it
 (`readings/security-phase.md`, open question 2).
 

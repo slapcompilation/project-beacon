@@ -236,3 +236,51 @@ learn.palantir.com, the way `docs/foundry-deep-dives/` holds nine course
 captures. That is the operator's to supply; nothing on the public site answers
 it, and inventing the other twenty workflows would be the invented citation this
 repository exists to prevent.
+
+## The four Control Panel pages — what they settle, and the conflation they expose
+
+The operator supplied `administration/control-panel`,
+`administration/control-panel-approvals`, `map/control-panel` and
+`code-repositories/configure-repositories-in-control-panel`. All four were
+already mirrored. They do not publish the role contents, and they clarify three
+things that matter more.
+
+**1. Two more point-of-use mappings, confirming the pattern is the rule:**
+
+> "To modify these settings, you will need the `User Experience Administrator` role."
+
+(`code-repositories/configure-repositories-in-control-panel`.)
+
+> "To modify Map settings, you will need the `Map Admin` role."
+
+(`map/control-panel`.)
+
+**2. `Map Admin` is the worked example of the flag 540 built.** It is named by one
+application's settings page and by nothing else — which is exactly what the
+permissions page means by "Application-specific roles under Organization
+permissions are legacy standalone roles that are in the process of migrating",
+and why those "are not incorporated in the Organization administrator role and
+cannot be included in custom roles". `organization_roles.application_specific`
+exists for roles of this shape.
+
+**3. THE CROSS-LINK GOES SOMEWHERE ELSE, and this is the real find.** Both pages
+above link the word *role* to `security/projects-and-roles#roles`. That section
+documents a **different role family**:
+
+> "From most powerful to least powerful, the default roles in Foundry are: Owner, Editor, Viewer, and Discoverer."
+
+Those are **Project** roles — discretionary, inherited to child resources,
+"generally granted at the Project level" — and we already hold them as
+`project_role_grants`. They are not Organization roles, and no page reached from
+that anchor lists an Organization role's workflows.
+
+So the pages that look like they would lead to the catalogue lead to the other
+role system entirely. **Two role families, one word, cross-linked as though they
+were one.** That is the two-vocabularies trap at the level of navigation rather
+than wording, and it is why this looked answerable for longer than it was.
+
+**Also found, and not built:** Control Panel has an Approvals integration —
+"a dedicated Approvals integration designed to facilitate the process of
+requesting, approving, and maintaining a history of sensitive workflows within
+Control Panel" — currently covering network ingress, egress and SDK web hosting.
+Recorded in the gaps list rather than half-built.
