@@ -265,6 +265,16 @@ property, kept deliberately ahead of its caller.
 **Property base types beyond the 22.** Geoshape, Attachment, Time series and the
 rest each wait for something that stores one.
 
+**Function signature types beyond the nine.** `functions/types-reference`
+publishes, with a TypeScript v2 tab for each: Short, Decimal, Binary, Byte,
+mandatory and classification markings, Map, Set, Optional, Struct/custom types,
+Range and the two aggregation shapes, Object, Interface, Interface object set,
+Attachment, Notification, Media, User, Group, Principal, and the geometry types.
+We accept nine tokens plus arrays and `ObjectSet<T>` (539). **Each of these
+needs the isolate to marshal it, and a token the runtime cannot carry is worse
+than a missing one** — the signature would pass and the call would fail. So the
+list grows one type at a time, when something needs to pass one.
+
 **47% of the documentation is not mirrored**, concentrated in `api/` (1,131
 pages) — the corpus that has falsified our CHECK constraints twice. Refresh the
 index with `--urls` before concluding a page does not exist.
