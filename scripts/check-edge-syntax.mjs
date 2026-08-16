@@ -100,4 +100,28 @@ if (orphans.length > 0) {
   process.exit(1)
 }
 
-console.log(`${String(fns.length)} edge functions parse · ${String(files.length)} files, all reachable`)
+// ── config.toml must name functions that exist ─────────────────────────────
+//
+// `supabase functions deploy` deploys the union of what is on disk and what
+// config.toml declares, so an entry for a deleted function does not sit there
+// harmlessly — it fails the deploy at the point of bundling:
+//
+//   Error: entrypoint path does not exist (.../supabase/functions/eval-record/index.ts)
+//
+// Six such entries survived the teardown and nothing noticed, because nothing
+// deployed from CI until edge-deploy.yml existed. A declaration whose function
+// is gone is also a JWT policy for nothing, which is the worse half: it reads
+// as though something is deliberately public.
+const declared = [...readFileSync('supabase/config.toml', 'utf8')
+  .matchAll(/^\[functions\.([^\]]+)\]/gm)].map((m) => m[1])
+const missing = declared.filter((slug) => !existsSync(join(ROOT, slug, 'index.ts')))
+
+if (missing.length > 0) {
+  console.error('config.toml declares functions that do not exist:\n')
+  for (const m of missing) console.error(`  [functions.${m}]  →  ${ROOT}/${m}/index.ts is not there`)
+  console.error('\ndelete the entry, or add the function — the deploy bundles what config.toml names')
+  process.exit(1)
+}
+
+console.log(`${String(fns.length)} edge functions parse · ${String(files.length)} files, all reachable`
+  + ` · ${String(declared.length)} declared in config.toml, all present`)
