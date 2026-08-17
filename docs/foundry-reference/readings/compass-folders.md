@@ -33,7 +33,7 @@ From `getting-started/projects-and-resources.md`:
 The project dashboard's areas, verbatim from the overview: **Files**,
 **Autosaved**, **References**, **Trash**, and **Sensitive Data Scanner**.
 
-## 2. Folders carry no permissions — by Foundry's own deprecations
+## 2. A folder may not BLOCK inheritance — read on, this section drew the wrong conclusion
 
 The one setting that ever made a folder a permission boundary is going away:
 
@@ -49,11 +49,59 @@ And its replacement guidance names our own architecture:
 > necessary to view underlying data."
 
 So the security phase's sentence stays literally true — a role on the
-project reaches everything inside — and a folder is organization, never a
-gate. Markings, however, DO apply to folders: the migration page offers
-"replacing the folder or file with a" Marking as a first-class option and
-repeatedly applies one "on the folder or file", so the marking machinery
-must flow through the folder chain.
+project reaches everything inside. Markings, however, DO apply to folders: the
+migration page offers "replacing the folder or file with a" Marking as a
+first-class option and repeatedly applies one "on the folder or file", so the
+marking machinery must flow through the folder chain.
+
+## ⚠️ CORRECTION 2026-08-17 — the "never a gate" conclusion was FALSE
+
+This reading originally concluded from the paragraphs above that a folder is
+organization and never a gate, and slice C1 shipped on it. The weekly adversary
+flagged it; I checked the mirror myself, and the adversary is right.
+
+`security/projects-and-roles` states the opposite outright:
+
+> Importantly, like mandatory controls, role grants inherit to child resources.
+> For example, granting a user Viewer on a Project or folder gives them Viewer
+> on all resources contained by that Project or folder.
+
+It then carries a whole section headed **Role grants on folders and files**,
+describing a setting that turns them off — which only exists because they are on:
+
+> To enforce this behavior, you can use the toggle to disable folder and file
+> role grants in the **Settings** section in the Project view. When this setting
+> is disabled, role grants can only be granted at the Project level, not at the
+> folder or file level.
+
+and a consequence for anything already granted:
+
+> If the role grants setting is disabled for Projects already containing
+> resources with role grants, role grants against these individual resources
+> will be removed.
+
+**The mistake was a conflation, and it is worth naming precisely.** The
+deprecated "Ignore inherited permissions" setting let a folder *block*
+inheritance. Its deprecation says folders may no longer **subtract** access.
+This reading took that to mean folders carry no permissions at all — but
+**granting** is the other direction, and it is documented, current, and on by
+default.
+
+**The true rule:** a folder can carry role grants and they inherit downward.
+Palantir recommends granting only at the Project level, and gives Owners a
+toggle to enforce that:
+
+> we recommend that roles be granted only at the Project level to provide
+> uniform capabilities on all resources within the Project's scope
+
+We took that recommendation for a law.
+
+**What this means for what shipped.** C1's folders are project-bound and never
+gate, which matches Foundry only when that toggle is disabled. We have built the
+*enforced* configuration as though it were the only one. That is a narrower
+product rather than a broken one — but it is a deviation that was not
+deliberate, and the folder role-grant path plus its toggle are now a known gap
+rather than a settled design.
 
 ## 3. Move, and who may
 
