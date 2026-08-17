@@ -25,6 +25,62 @@ here is invented — but the decisions were taken with a third of the section
 read, and **`retries`, `limits` and `effect-settings` in particular bear
 directly on the runner that shipped**. Read them before the next slice.
 
+## `effect-settings` read at last, 2026-08-17 — and it corrects the audit too
+
+The warning above went unheeded through 521, 522, 543 and 544 — four migrations
+into the runner, twice by me, while this paragraph sat here naming the page.
+The weekly adversary then reported the runner "contradicts a published stop on
+failure rule". Reading the page shows the adversary is **half right, and the
+half it got wrong changes what to build.**
+
+The rule is **conditional on an execution mode we do not model at all**:
+
+> In sequential execution, if an effect fails, subsequent effects in the
+> sequence will not execute. This applies even if a fallback effect is
+> configured and executes successfully. A successful fallback action handles
+> the failure of that specific effect but does not allow the sequence to
+> continue.
+
+> In parallel execution, effects execute independently and one effect's failure
+> does not impact other effects.
+
+And parallel is the **default**, reached whenever sequential is not configurable:
+
+> Action, logic, and function effects can be ordered sequentially. You must have
+> at least two of these types of effects to enable sequential execution.
+> Otherwise, effects execute in parallel.
+
+**So our runner is not contradicting the page — it implements the documented
+default.** Continuing past a failed effect is exactly right for parallel. The
+real defect is narrower and different: **sequential mode does not exist here**,
+so the stop rule can never be honoured, and an automation that Foundry would let
+you order cannot be ordered at all.
+
+Note also the concurrency framing, which our SQL heartbeat satisfies trivially
+but should not claim as a design: "Effects for a single automation... can be
+configured to execute sequentially or in parallel." Our loop runs everything
+serially in one transaction regardless — that is an implementation accident, not
+parallel semantics, and it differs observably (a parallel run should not see a
+prior effect's writes).
+
+**What a fix needs**, recorded so the next attempt does not have to re-derive it:
+
+1. `automations.execution` — `sequential` | `parallel`, **defaulting to
+   `parallel`** because the page makes that the fallback.
+2. `orderable` on `automation_effect_kinds()`. The page names exactly three —
+   action, logic, function — and our registry already holds exactly those plus
+   `notification`, so the column restates nothing.
+3. A guard that sequential requires **at least two orderable effects**, which
+   crosses tables and so is a trigger rather than a CHECK.
+4. `run_automations`' effect loop labelled, and `EXIT` after the fallback block
+   when the automation is sequential — after, because a successful fallback
+   "does not allow the sequence to continue".
+
+**Not built in this pass**, deliberately: restating `run_automations` from a
+partial read of its live definition is how 543 shipped a described-but-unapplied
+patch, and the whole point of this correction is that the runner has already
+been changed four times by someone who had not read this page.
+
 Read because it is §3 of the derived queue and the layer directly above what
 F2 finished: its effects are the actions and functions we now run.
 
