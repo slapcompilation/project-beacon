@@ -167,6 +167,8 @@ const leanedOn = new Set()
 const declared = []
 /** Named in a header, quoted nowhere. */
 const unused = []
+/** Named as a page, and is neither a mirrored page nor a file in this repo. */
+const misattributed = []
 /** `mirror/foundry/x/y.md` and a header's `x/y` are the same page. */
 const slugOf = (f) => f.split('\\').join('/').replace(/^.*mirror\//, '').replace(/\.md$/, '')
 
@@ -237,7 +239,17 @@ for (const name of readings) {
     // a page; and a path with no mirrored file behind it is a reference to
     // something else entirely (a script, a migration, another reading).
     if (/\.(png|jpg|jpeg|gif|svg)$/i.test(claim) || claim.endsWith('/')) continue
-    if (!mirror.some((m) => slugOf(m.file) === claim)) continue
+    if (!mirror.some((m) => slugOf(m.file) === claim)) {
+      // It named something that is not a mirrored page. That is fine when it is
+      // a real file in this repo — a script, a migration, another reading — and
+      // is a WRONG CITATION when it is neither. 531 attributes a quote to
+      // `builds-and-schedules/overview`, which is no page and no file; the quote
+      // is real but its provenance is invented, and this branch used to skip it.
+      if (!fs.existsSync(m[1]) && !fs.existsSync(path.join(READINGS, m[1]))) {
+        misattributed.push({ name, claim: m[1] })
+      }
+      continue
+    }
     declared.push({ name, claim })
   }
   for (const d of declared.filter((d) => d.name === name)) {
@@ -314,7 +326,22 @@ let migChecked = 0
 const added = addedMigrations()
 for (const file of added) {
   if (!fs.existsSync(file)) continue
-  for (const q of sqlQuotations(fs.readFileSync(file, 'utf8'))) {
+  const sql = fs.readFileSync(file, 'utf8')
+
+  // A migration's header attributes its quotes the same way a reading does, and
+  // gets the same question asked of it: a name that looks like a page must BE
+  // one. 531 attributed a real sentence to `builds-and-schedules/overview` —
+  // no such page, no such file, and the quote itself traced fine, so nothing
+  // caught it. Backticked here, since SQL comments carry paths in prose.
+  for (const m of sql.matchAll(/`([a-z0-9][\w./-]*\/[\w./-]+)`/gi)) {
+    const claim = slugOf(m[1])
+    if (/\.(png|jpg|jpeg|gif|svg)$/i.test(claim) || claim.endsWith('/')) continue
+    if (mirror.some((x) => slugOf(x.file) === claim)) continue
+    if (fs.existsSync(m[1]) || fs.existsSync(path.join(READINGS, m[1]))) continue
+    misattributed.push({ name: path.basename(file), claim: m[1] })
+  }
+
+  for (const q of sqlQuotations(sql)) {
     const parts = fragments(q.text)
     if (parts.length === 0) continue
     migChecked += 1
@@ -347,6 +374,15 @@ ${unused.length} page(s) named in a reading's header that no quotation rests on:
   if (unused.length > 20) console.warn(`  …and ${unused.length - 20} more`)
   console.warn('\nA page listed as read and never quoted is usually a page that was listed.')
   console.warn('Either quote what it contributed, or say in the header that it was skimmed.')
+}
+
+if (misattributed.length > 0) {
+  console.warn(`
+${misattributed.length} name(s) cited as a page that is neither mirrored nor a file here:
+`)
+  for (const u of misattributed) console.warn(`  ${u.name}  —  ${u.claim}`)
+  console.warn('\nThe quote may be real while its provenance is invented — the failure')
+  console.warn('CLAUDE.md calls the most expensive. Cite the page the sentence is ON.')
 }
 
 if (failures.length > 0) {
