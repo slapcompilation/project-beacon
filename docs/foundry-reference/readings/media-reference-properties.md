@@ -196,6 +196,68 @@ One behaviour worth keeping, since it constrains any retention design:
 > reference to the "overwritten" media item will continue to render and
 > reference the original item.
 
+## Answered on a second push — Question 2, the Capabilities tab
+
+Asked to try harder for sublinks in main categories. The Capabilities tab has
+**no page of its own** — grepping `MAP.md` for "capabilit" returns pages about
+AIP Analyst and AI FDE, nothing ontological. It is documented **entirely at the
+point of use**, and almost all of it in `map/`, a section this reading had no
+reason to open. That is the same rule the organization role→workflow catalogue
+follows, applied to a UI surface.
+
+Assembled from four pages, the tab carries at least six groups:
+
+**Geospatial** —
+
+> A circle geometry can be specified on an object type by selecting a **Radius**
+> property in the **Geospatial** section of the object type's **Capabilities** tab.
+
+> To specify that a string property contains H3 cell IDs, select that property
+> under **H3 cell** in the Geospatial section of the object type's
+> **Capabilities** tab.
+
+with `Track Latitude` and `Track Longitude` in the same section, which "must be
+numeric time series properties representing the object's location over time".
+
+**Event** —
+
+> Object types can be configured as events by specifying **Event start time**
+> and **Event end time** timestamp properties in the **Event** section of the
+> object type's **Capabilities** tab.
+
+plus an **Event intent** "indicating the severity of the event", in that section.
+
+**Search Around** —
+
+> To designate an intermediary object type to always link merge, turn on **Link
+> merge always** in the **Search Around** section of the intermediary object
+> type's **Capabilities** tab.
+
+with `Incoming links to merge` and `Outgoing links to merge` beside it.
+
+**Default tab** — "You can change the default tab for an object in Ontology
+Manager's **Capabilities** tab." **Offline App Sync** — `developer-console`
+walks through enabling it there. And **Media reference properties**, which is
+how this reading arrived.
+
+The `developer-console` screenshot also places the tab: the object type editor's
+sidebar reads `Observability`, `Capabilities`, `Object views`, `Interfaces` —
+so **Capabilities is a peer of Interfaces**, which we already model, not a
+sub-panel of properties.
+
+> Observability / Capabilities / Object views / Interfaces
+> — developer-console/images/eo-capabilities.png
+
+**What this means for us.** Capabilities is where an object type declares
+*optional roles it can play* — mappable, event-like, traversal-merging,
+offline-syncable, media-bearing — each one a small set of property designations
+on the type. That is the same shape as our primary-key and title-key
+designations, which are already property-level declarations. **It is a
+designation surface, not a new backing mechanism** *(inference: no page says
+this in general terms; it is read off six instances that all take the same
+form)*. The media source is the one member that is not purely a property
+designation, since it names an external resource.
+
 ## Decisions
 
 1. **Media reference is a base type, not a new property kind.** It joins the
@@ -224,10 +286,8 @@ One behaviour worth keeping, since it constrains any retention design:
 1. ~~Is a media set a dataset?~~ **ANSWERED above: no.** Separate resource kinds,
    separate backing services, and files must be loaded into a media set before
    media transforms accept them.
-2. **What is the Capabilities tab?** It is named as the place a media source is
-   configured, and we have no such tab. Whether it holds more than media sources
-   is unknown — `capabilities-typeclasses-and-branching` is an allocated sweep
-   and probably answers it.
+2. ~~What is the Capabilities tab?~~ **ANSWERED — see below.** It holds far more
+   than media sources, and none of it is documented in the ontology section.
 3. ~~What is the media reference column's type?~~ **ANSWERED above: there is no
    new type.** The column carries the typeclass `{kind: reference, name:
    media_reference}`, which is why the page could describe the column without
