@@ -44,6 +44,41 @@ describe.skipIf(noDb)('the anon surface', () => {
     expect(err).toMatch(/permission denied/)
   })
 
+  it('has no relation or sequence we own carrying an anon grant', async () => {
+    // 552: the same default ACL stamped anon DML onto every new table; 92
+    // carried it. All were RLS-guarded, so nothing leaked — but the guarantee
+    // rested on the absence of a permissive policy, which 549 called one
+    // deletion away from gone.
+    const { rows } = await db.query(`
+      SELECT c.oid::regclass::text AS rel
+        FROM pg_class c JOIN pg_namespace ns ON ns.oid = c.relnamespace
+       WHERE ns.nspname = 'public'
+         AND c.relkind IN ('r','v','m','f','p','S')
+         AND pg_has_role(current_user, c.relowner, 'USAGE')
+         AND EXISTS (SELECT 1 FROM aclexplode(c.relacl) a
+                      JOIN pg_roles g ON g.oid = a.grantee
+                     WHERE g.rolname = 'anon')`)
+    expect(rows.map((r) => r.rel)).toEqual([])
+  })
+
+  it('refuses an anonymous table read at the grant layer', async () => {
+    await db.query('SAVEPOINT anon_read')
+    await db.query('SET LOCAL ROLE anon')
+    const err = await refused(db, () => db.query('SELECT count(*) FROM public.object_types'))
+    await db.query('RESET ROLE')
+    await db.query('ROLLBACK TO SAVEPOINT anon_read')
+    expect(err).toMatch(/permission denied/)
+  })
+
+  it('no longer stamps anon onto a table born today', async () => {
+    await db.query(`CREATE TABLE public.t_probe_anon_surface (id int)`)
+    const { rows } = await db.query(`
+      SELECT has_table_privilege('anon', 'public.t_probe_anon_surface', 'SELECT') AS anon_can,
+             has_table_privilege('authenticated', 'public.t_probe_anon_surface', 'SELECT') AS auth_can`)
+    expect(rows[0].anon_can).toBe(false)
+    expect(rows[0].auth_can).toBe(true)
+  })
+
   it('no longer stamps anon onto a function born today', async () => {
     // Executes the defaults path inside the suite's rolled-back transaction:
     // the per-schema/global split in 551 is exactly what a catalog read of
