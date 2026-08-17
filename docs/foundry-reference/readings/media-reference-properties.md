@@ -258,6 +258,59 @@ this in general terms; it is read off six instances that all take the same
 form)*. The media source is the one member that is not purely a property
 designation, since it names an external resource.
 
+## Answered on a third push — Question 4, and yes the distinction is documented
+
+The three source types are not a media quirk. **Each one has its own page in
+`object-link-types`**, and the three are mutually exclusive strategies for where
+a property's value comes from.
+
+**Datasource** — the default, and the only one the overview describes:
+
+> Property values are created and displayed in user applications by adding
+> backing datasources to an object type in the Ontology Manager.
+
+**User edits → `edit-only-properties`:**
+
+> Edit-only properties allow you to define Ontology properties that are not
+> directly mapped to a column in the backing dataset of the object type.
+
+It carries two constraints the radio label does not show:
+
+> **Permissioned to one of the datasets backing the object type:** To ensure
+> data consistency and security, edit-only properties must be permissioned to
+> one of the datasets backing the object type.
+
+> **Available only in Object Storage v2:** Edit-only properties are a feature
+> that is exclusively available for object types leveraging Object Storage v2.
+
+So an edit-only property is *unmapped but still permissioned* through a
+datasource — it does not escape the datasource, only the column. **That matters
+for us: we are on OSv2, so this one is available rather than blocked.**
+
+**Linked objects → `derived-properties`** (Beta):
+
+> Derived properties are properties that are calculated at runtime based on
+> values from linked objects. Instead of storing data directly, a derived
+> property pulls information from objects connected through link types,
+> optionally applying aggregations like averaging, counting, or collecting
+> values into lists.
+
+> Derived properties are **read-only** and cannot be edited by functions or
+> actions.
+
+The three therefore divide cleanly by **where the value lives**: in a column, in
+the edit store, or nowhere at all — computed at read time across a link. That is
+a real trichotomy, not three labels for one mechanism.
+
+**One discrepancy, recorded rather than resolved.** `edit-only-properties`
+describes the control as a **toggle**: "Under the **Data** section, toggle on the
+**Edit-only property** toggle and choose a dataset to permission to". The
+screenshot in `base-types` shows a three-way **radio group** labelled `Source
+type` in that same region. Two shapes for the same choice — most likely the
+radio group is the newer control that absorbed the toggle, but **no page says
+so**, and the difference is not worth guessing at. Whichever it is, the property
+still ends up sourced one of three ways.
+
 ## Decisions
 
 1. **Media reference is a base type, not a new property kind.** It joins the
@@ -292,6 +345,18 @@ designation, since it names an external resource.
    new type.** The column carries the typeclass `{kind: reference, name:
    media_reference}`, which is why the page could describe the column without
    naming a type.
-4. **Do the three source types apply to every property?** If so, `User edits` and
-   `Linked objects` are two property-source modes we have never modelled, and the
-   answer is much larger than the media phase.
+4. ~~Do the three source types apply to every property?~~ **ANSWERED: yes, and
+   each has its own page.** `edit-only-properties` (OSv2-only, unmapped but
+   permissioned to a backing dataset) and `derived-properties` (Beta, read-only,
+   computed across links) are two property-source modes we have never modelled.
+   Both are real gaps, and neither belongs to the media phase.
+
+**All four questions are answered. New questions this raised:**
+
+5. **Is our property model missing the source dimension entirely?**
+   `object_type_properties` assumes a backing column. Edit-only and derived
+   properties do not have one, and edit-only is available to us today.
+6. **What does `derived-properties` need to express?** Aggregations named on the
+   page — averaging, counting, collecting into lists — over a link type. That is
+   an expression language, not a column reference, and it should get its own
+   reading before anything is built.
