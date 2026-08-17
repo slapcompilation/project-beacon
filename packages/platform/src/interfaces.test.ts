@@ -183,9 +183,13 @@ describe.skipIf(noDb)('interfaces', () => {
   it('refuses a mapping that disagrees on base type or the pk tri-state', async () => {
     // ext_id is pk_constraint 'must'; map it to a non-pk integer property.
     const otherPid = (await one(
+      // Edit-only, so it names no column — but it is still permissioned to the
+      // type's datasource.
       `insert into public.object_type_properties
-         (object_type_id, property_id, display_name, api_name, base_type, source)
-       values ($1,'attempts','Attempts','attempts','integer','user_input') returning id`, [type])).id
+         (object_type_id, property_id, display_name, api_name, base_type, source, datasource_id)
+       values ($1,'attempts','Attempts','attempts','integer','user_input',
+               (select id from public.object_type_datasources where object_type_id = $1 limit 1))
+       returning id`, [type])).id
     const err = await refused(db, async () => {
       const impl = (await one(`insert into public.object_type_interfaces (object_type_id, interface_id)
                                values ($1,$2) returning id`, [type, iface])).id
