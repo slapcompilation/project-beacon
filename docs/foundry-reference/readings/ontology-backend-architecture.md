@@ -243,7 +243,23 @@ a column's.
 nodes as one node. 442's collapse already says this; the pipeline graph is
 where a user would notice it.
 
-## Built (2026-08-15) — migrations 513–514
+## Built (2026-08-15) — migrations 513–514, continued
+
+**⚠️ Two blocks, one heading, opposite answers — resolved by what shipped.**
+This section and the one above carried the *same* heading and the same date, and
+answered the `in progress` question in opposite directions: the block above
+concludes that it must not be added, while what follows works through the OSv1
+spelling that publishes it. Nothing said which was current, so a reader doing the
+recitation gate got two answers — the audit's finding #12.
+
+**The question is now closed, and neither block's proposal is what shipped.** The
+block above offered the alternative it turned out to be right about: that
+`object_type_indexes` stops carrying a status at all. Migration 535 dropped the
+columns — `DROP COLUMN status, DROP COLUMN error` — and the index state is read
+from the build job, via `object_type_index_state()`. So no value was added in
+either spelling, and the vocabulary discussion below is kept as the reasoning
+that led there, not as a live proposal.
+
 
 Decisions 1–3 shipped as recited. An index job is a `job_specs` row whose
 output is an object type, run by the engine 493–508 already ships: it carries
