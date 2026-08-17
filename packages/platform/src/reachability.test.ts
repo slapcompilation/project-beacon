@@ -15,23 +15,51 @@
 // of the database.
 //
 // A function is REACHABLE if any of these is true:
-//   - `authenticated`, `anon` or a platform hook role may EXECUTE it (so a
-//     client, an edge function or GoTrue can call it) — NOT `service_role`,
-//     which retains EXECUTE on almost everything and is therefore evidence of
-//     nothing,
+//   - `authenticated` or a platform hook role may EXECUTE it (so a client or
+//     GoTrue can call it) — NOT `service_role`, which retains EXECUTE on
+//     almost everything and is therefore evidence of nothing: the cron entry
+//     points and search_index_payload carry the identical {postgres,
+//     service_role} ACL, so the grant cannot tell a deliberate edge-function
+//     endpoint from an un-wired runner,
+//   - an edge function's source names it (the caller for service_role-only
+//     endpoints — search_index_payload's evidence used to be a leftover anon
+//     grant from the default-ACL stamp, which was the bug 550/551 removed,
+//     not a caller),
 //   - another function's body names it,
 //   - a trigger fires it,
 //   - pg_cron runs it.
 //
+// `anon` is deliberately absent since 551: nothing we own may be executable by
+// anon at all — anonSurface.test.ts owns that invariant — so an anon grant is
+// evidence of a bug, never of a caller.
+//
 // Everything else is a runner nobody runs. There is deliberately no allowlist:
 // "Wanting an allowlist is the signal to index instead" (CLAUDE.md), and the
-// grant *is* the index — the two functions that looked dead on the first run,
-// `custom_access_token_hook` and `search_index_payload`, are both called from
-// outside Postgres and both say so with a grant.
+// caller *is* the index — custom_access_token_hook says GoTrue with its
+// supabase_auth_admin grant, and search-index/index.ts says so in source.
 
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
 import { noDb, connect, rollback } from './harness'
+
+/** Every edge function's source, one haystack: a `.rpc('name')` or any other
+ *  mention there is a caller outside Postgres that no catalog row records. */
+function edgeSources(): string {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../supabase/functions')
+  const parts: string[] = []
+  const walk = (dir: string) => {
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const p = path.join(dir, e.name)
+      if (e.isDirectory()) walk(p)
+      else if (e.name.endsWith('.ts')) parts.push(fs.readFileSync(p, 'utf8'))
+    }
+  }
+  walk(root)
+  return parts.join('\n')
+}
 
 describe.skipIf(noDb)('every function is reachable', () => {
   let db: pg.Client
@@ -54,7 +82,6 @@ describe.skipIf(noDb)('every function is reachable', () => {
       select f.proname
         from fns f, bodies b, crons c, tg g
        where not has_function_privilege('authenticated', f.oid, 'EXECUTE')
-         and not has_function_privilege('anon', f.oid, 'EXECUTE')
          -- service_role is deliberately absent: it can execute nearly
          -- everything, so including it made the whole check vacuous. Proved by
          -- un-wiring run_automations and watching this pass anyway.
@@ -64,7 +91,8 @@ describe.skipIf(noDb)('every function is reachable', () => {
              / length(f.proname || '(') <= 1
          and c.all_cmds not like '%' || f.proname || '%'
          and g.names not like '%' || f.proname || '%'
-       order by 1`)
+         and $1 not like '%' || f.proname || '%'
+       order by 1`, [edgeSources()])
 
     expect(rows.map((r) => (r as { proname: string }).proname)).toEqual([])
   })
