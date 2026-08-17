@@ -17,13 +17,17 @@ the **Media references** section of `object-link-types/base-types`.
 `object-link-types/images/media-reference-media-source.png`. Both carry structure
 the prose never states, and one of them answers a question the prose leaves open.
 
-**NOT read, and nothing below rests on them:** `media-overview`, `importing-media`,
+**Read in a second pass** (see *Answered after the fact* below):
+`data-integration/media-sets`, the **Media references** section of
+`media-sets-advanced-formats/media-overview`, and
+`pb-functions-expression/isValidMediaReferenceV1`.
+
+**NOT read, and nothing below rests on them:** `importing-media`,
 `configure-granular-policies-media`, `transforming-media`, `virtual-media-sets`,
 `use-media-in-osdk`, `media-usage-limits`, and the `api/v2` specs for
-`attachment-properties` and `media-reference-properties`. The API specs matter
-before any CHECK constraint is written — they are where enums live, and they have
-falsified our constraints twice. **This reading is not sufficient to build from
-alone**; it settles the shape, not the vocabulary.
+`attachment-properties` and `media-reference-properties`. **Attachments are a
+separate property type from media references and this reading does not cover
+them** — the phase needs its own pass before either is built.
 
 ## What a media reference is
 
@@ -130,6 +134,68 @@ The upload is **deferred to commit**, so a cancelled action leaves nothing
 behind. This is a transactional rule about action forms, not about the property
 type, and it belongs to whatever builds media upload rather than to the column.
 
+## Answered after the fact — Questions 1 and 3
+
+The operator asked whether the docs settle these. They do, on pages this reading
+had listed as unread. Both answers are recorded here rather than in a new file,
+because a reading whose Questions have been answered elsewhere is how a stale
+Decisions block gets built from.
+
+**Question 1 — a media set is NOT a dataset.** `data-integration/media-sets`
+defines one on its own terms:
+
+> A **media set** is a collection of media files with a common schema, for
+> example, files of the same format. Media sets are designed to work with
+> high-scale, unstructured data
+
+and `media-overview` contrasts the two directly, naming a different backing
+service for the dataset side:
+
+> A **file** within a regular Foundry dataset (backed by the platform's catalog
+> service), rather than a media set.
+
+> If you need to use files from a dataset with Pipeline Builder media transforms,
+> first load the files into a media set
+
+They are separate resource kinds. **Decision 3's open half is therefore closed:
+a media source cannot reuse `object_type_datasources`**, which names a dataset.
+
+**And the reference is a THREE-variant union, not one shape.** The base type page
+showed only `mediaSetViewItem`; `pb-functions-expression/isValidMediaReferenceV1`
+prints two more as worked examples:
+
+> {"mimeType":"PDF","reference":{"type":"datasetFile","datasetFile":{"fileReference":{"datasetRid":"ri.foundry.main.dataset.a","ref":"master","logicalFilePath":"file.pdf"}}}}
+
+> {"mimeType":"PDF","reference":{"type":"mediaSetItem","mediaSetItem":{"mediaSetRid":"ri.mio.main.media-set.a", "mediaItemRid":"ri.mio.main.media-item.a"}}}
+
+Counted across the whole mirror the tokens are `mediaSetViewItem` (119
+occurrences), `mediaSetItem` (27) and `datasetFile` (1), and there is no fourth.
+Note `mediaSetItem` carries **no view RID** — so "three RIDs, not one" above is
+true only of the view-scoped variant. And `datasetFile` holds `ref: "master"`,
+a branch, beside `datasetRid` and `logicalFilePath`.
+
+**Had a CHECK been written from `base-types` alone it would have admitted one
+token of three.** This is the api/prose split the repo already knows about,
+except the falsifying page here is an expression reference, not `api/`.
+
+**Question 3 — the column is marked by a TYPECLASS, not a distinct column type.**
+`media-overview`'s Python example writes the metadata dataset with:
+
+> column_typeclasses = {'mediaReference': [{'kind': 'reference', 'name': 'media_reference'}]} # Enables in-line thumbnails in dataset
+
+So the backing column is an ordinary column carrying the typeclass
+`{kind: reference, name: media_reference}`. That is why `base-types` could say
+the column "is specifically designed to store media reference values" without
+naming a type — there is no new type to name. **This ties the media phase to the
+`capabilities-typeclasses-and-branching` sweep**, which is the allocated reading
+for typeclasses generally.
+
+One behaviour worth keeping, since it constrains any retention design:
+
+> Even if a *path* has been overwritten by a newer upload, a saved media
+> reference to the "overwritten" media item will continue to render and
+> reference the original item.
+
 ## Decisions
 
 1. **Media reference is a base type, not a new property kind.** It joins the
@@ -139,9 +205,12 @@ type, and it belongs to whatever builds media upload rather than to the column.
    the dataset that already backs the object type — the model we have.
 3. **A second binding is required**: object type → media source, and the image
    shows that source is a **(media set, branch)** pair, mirroring
-   `object_type_datasources`. **Whether it reuses that table or takes its own is
-   not decided here** and should not be guessed — media sets are not datasets,
-   and `data-integration/media-sets` is unread.
+   `object_type_datasources`. It **takes its own table** rather than reusing
+   that one: a media set is a distinct resource kind from a dataset, confirmed
+   above, and `object_type_datasources` names a dataset.
+3b. **The reference value is a three-variant union** — `mediaSetViewItem`,
+   `mediaSetItem`, `datasetFile` — and any CHECK must admit all three. Only the
+   first appears on the base type page.
 4. **Media reference may not be arrayed**, per `media-in-ontology`, despite
    `base-types` listing only two exclusions.
 5. **Nothing is built from this reading yet.** The API specs carry the enums, and
@@ -152,18 +221,17 @@ type, and it belongs to whatever builds media upload rather than to the column.
 
 ## Questions
 
-1. **Is a media set a dataset?** Everything here treats them as different things
-   ("the media set that the media references point to", a separate RID family
-   `ri.mio.main.media-set`), yet the media source is bound with a branch exactly
-   as a dataset is. `data-integration/media-sets` should settle it, and the
-   answer decides Decision 3.
+1. ~~Is a media set a dataset?~~ **ANSWERED above: no.** Separate resource kinds,
+   separate backing services, and files must be loaded into a media set before
+   media transforms accept them.
 2. **What is the Capabilities tab?** It is named as the place a media source is
    configured, and we have no such tab. Whether it holds more than media sources
    is unknown — `capabilities-typeclasses-and-branching` is an allocated sweep
    and probably answers it.
-3. **What is the media reference column's type on the dataset?** The page says
-   the column "is specifically designed to store media reference values" without
-   naming the type. Our datasource columns are typed; this needs a name.
+3. ~~What is the media reference column's type?~~ **ANSWERED above: there is no
+   new type.** The column carries the typeclass `{kind: reference, name:
+   media_reference}`, which is why the page could describe the column without
+   naming a type.
 4. **Do the three source types apply to every property?** If so, `User edits` and
    `Linked objects` are two property-source modes we have never modelled, and the
    answer is much larger than the media phase.
