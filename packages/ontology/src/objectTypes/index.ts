@@ -156,7 +156,9 @@ export interface PropertyDef {
   apiName: string
   type: PropertyType
   /** "All base types may be used in arrays… excluding the Vector and Time
-   *  series types." Required exactly when type is array; never nested. */
+   *  series types" — plus media references, whose exclusion is stated only on
+   *  the media page: "Media reference lists are not supported as a property
+   *  type on an object." Required exactly when type is array; never nested. */
   arrayElementType?: PropertyType
   required: boolean
   /** A column in a backing datasource, or `user_input` — an edit-only property,
