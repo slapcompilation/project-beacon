@@ -1,43 +1,33 @@
 // RLS on the path that runs most builds.
 //
-// The weekly adversary found that `run_schedules` (the pg_cron heartbeat),
-// `drain_waiting_jobs` and `run_automations` are SECURITY DEFINER and swap
-// `request.jwt.claims` without ever elevating the ROLE. Nested SECURITY INVOKER
-// logic therefore runs as the function's owner.
+// The weekly adversary found that the cron entries were SECURITY DEFINER
+// owned by postgres — which owns every guarded table, none FORCE RLS — so
+// swapping `request.jwt.claims` changed who the policies would think you are
+// while the role guaranteed they were never consulted.
 //
-// That only matters if the owner is exempt from RLS, and it is: `public` has 92
-// tables with RLS and ZERO with `relforcerowsecurity`, all owned by `postgres`,
-// which is also these functions' owner. Postgres exempts a table's owner from
-// RLS unless FORCE is set. So RLS is off for every guarded table on the
-// scheduled path — the normal path, not an edge case.
+// The recorded fix ("elevate around the nested user logic" inside those
+// functions) turned out to be impossible, learned by probe: Postgres refuses
+// `cannot set parameter "role" within security-definer function`, and the
+// refusal propagates down the whole SECDEF stack — set_config('role', …) and
+// SET-clause wrappers included. 553 inverted instead: the entries are
+// SECURITY INVOKER run as `beacon_runner` (a NOLOGIN member of authenticated
+// — inherits its grants AND its policies), pg_cron drops role at the top
+// level where SET ROLE is legal, and the cross-org scans and ledger writes
+// elevate through SECURITY DEFINER helpers locked to the runner.
 //
-// 493 and 508 claim the opposite: "RLS applies to every input read... no
-// superuser surface is reachable", and "It is SECURITY INVOKER, so its reads and
-// writes are bounded by RLS". True of a direct user call only.
-//
-// WHY THIS FILE EXISTS RATHER THAN A FIX. The suite already has an
-// `authenticated` pass, and it did not catch this, because it exercises the
-// DIRECT-CALL path where the role really is `authenticated`. Nothing exercises
-// the cron path as a real caller. That absence is the defect; the bypass is what
-// it let through. So the first move is the missing test.
-//
-// The fix is NOT a blanket `SET LOCAL ROLE` at the top of each function: they
-// legitimately need owner rights for their ledger writes (automation_runs, job
-// and schedule state, object_type_indexes — see 549). It has to elevate around
-// the nested USER logic only, which is a per-function boundary decision on the
-// path that runs most builds.
-//
-// The two structural facts are asserted normally, because they are true today.
-// The invariant is written with `it.fails`, which PASSES while the invariant is
-// broken and starts FAILING the moment someone fixes it — at which point the
-// `.fails` comes off and it becomes an ordinary guard. A defect that is
-// executable outlives a defect that is described.
+// The engine beneath (run_build, run_build_job, settle_build, apply_action)
+// was already SECURITY INVOKER and web-proven as authenticated; only the
+// wrappers ever put it into owner mode.
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { noDb, connect, rollback } from './harness'
+import { noDb, connect, rollback, fixture } from './harness'
 
-const SCHEDULED = ['run_schedules', 'drain_waiting_jobs', 'run_automations']
+const ENTRIES = ['run_schedules', 'drain_waiting_jobs', 'run_automations', 'run_automation_retries']
+const HELPERS = ['schedule_candidates', 'record_schedule_state', 'record_schedule_run',
+  'waiting_job_candidates', 'fail_build_job', 'automation_candidates',
+  'automation_effect_rows', 'record_automation_run', 'settle_automation_run',
+  'record_automation_state', 'retry_candidates']
 
 describe.skipIf(noDb)('the scheduled path and RLS', () => {
   let db: pg.Client
@@ -53,45 +43,71 @@ describe.skipIf(noDb)('the scheduled path and RLS', () => {
     expect(Number(rows[0].guarded)).toBeGreaterThan(50)
     // Not an aspiration — FORCE would subject every SECURITY DEFINER helper to
     // RLS at once (provisioning, seeding, the indexer) and break more than it
-    // closes. It is recorded so the fix is not attempted this way.
+    // closes. The fix ran the other way: the ENTRIES stopped being owner.
     expect(Number(rows[0].forced)).toBe(0)
   })
 
-  it('runs the scheduled entry points as an owner of the guarded tables', async () => {
+  it('keeps the entries invoker and the ledger helpers definer', async () => {
     const { rows } = await db.query(`
-      SELECT p.proname, pg_get_userbyid(p.proowner) AS fn_owner, p.prosecdef
+      SELECT p.proname, p.prosecdef,
+             has_function_privilege('beacon_runner', p.oid, 'EXECUTE') AS runner_can,
+             has_function_privilege('authenticated', p.oid, 'EXECUTE') AS auth_can
         FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-       WHERE n.nspname = 'public' AND p.proname = ANY($1)`, [SCHEDULED])
-    expect(rows.length).toBe(SCHEDULED.length)
-
-    const { rows: owners } = await db.query(`
-      SELECT DISTINCT pg_get_userbyid(c.relowner) AS t_owner
-        FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-       WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relrowsecurity`)
-    const tableOwners = owners.map((o) => o.t_owner as string)
+       WHERE n.nspname = 'public' AND p.proname = ANY($1)`, [[...ENTRIES, ...HELPERS]])
+    expect(rows.length).toBe(ENTRIES.length + HELPERS.length)
 
     for (const r of rows) {
-      expect(r.prosecdef, `${r.proname} is SECURITY DEFINER`).toBe(true)
-      expect(tableOwners, `${r.proname} runs as an owner of the guarded tables`)
-        .toContain(r.fn_owner as string)
+      if (ENTRIES.includes(r.proname as string)) {
+        // An entry that elevates re-opens the bypass, and also re-poisons the
+        // stack: no role change is possible beneath a SECURITY DEFINER frame.
+        expect(r.prosecdef, `${r.proname} must be SECURITY INVOKER`).toBe(false)
+        expect(r.runner_can, `${r.proname} runs as the runner`).toBe(true)
+      } else {
+        expect(r.prosecdef, `${r.proname} must be SECURITY DEFINER`).toBe(true)
+        expect(r.runner_can, `${r.proname} is the runner's`).toBe(true)
+        // A ledger writer reachable by authenticated is the forge 549 closed.
+        expect(r.auth_can, `${r.proname} is not an api`).toBe(false)
+      }
     }
   })
 
-  // KNOWN BROKEN. Remove `.fails` when the elevation lands; it will start
-  // failing here first, which is the point.
-  it.fails('elevates the role around the logic it runs on a caller\'s behalf', async () => {
-    const { rows } = await db.query(`
-      SELECT p.proname, pg_get_functiondef(p.oid) AS src
-        FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-       WHERE n.nspname = 'public' AND p.proname = ANY($1)`, [SCHEDULED])
+  it('points the minute hand through the runner', async () => {
+    const { rows } = await db.query(
+      `SELECT command FROM cron.job WHERE jobname = 'beacon-run-schedules'`)
+    const command = (rows[0] as { command: string }).command
+    expect(command).toMatch(/^\s*SET ROLE beacon_runner;/)
+    for (const call of ['run_schedules', 'drain_waiting_jobs']) {
+      expect(command).toContain(call)
+    }
+  })
 
-    const naked = rows
-      .filter((r) => !/set\s+local\s+role/i.test(r.src as string))
-      .map((r) => r.proname as string)
+  it('subjects the scheduled path to the policies a caller gets', async () => {
+    // Two organizations exist; a runner impersonating org A sees only A. This
+    // is the executed form of the invariant that used to be `it.fails` — RLS
+    // engages on the scheduled path because the role is no longer the owner.
+    const a = await fixture(db, 'sched_rls_a')
+    await fixture(db, 'sched_rls_b')
 
-    // Swapping request.jwt.claims changes who the ROW POLICIES think you are.
-    // It does not change the ROLE, and the role is what decides whether the
-    // policies are consulted at all.
-    expect(naked, 'scheduled functions that never elevate the role').toEqual([])
+    await db.query('SAVEPOINT runner_probe')
+    await db.query('SET LOCAL ROLE beacon_runner')
+    await db.query(`SELECT set_config('request.jwt.claims', $1, true)`, [
+      JSON.stringify({ sub: '00000000-0000-0000-0000-000000000553',
+        app_metadata: { role: 'admin', org_id: a.orgId } })])
+    const { rows } = await db.query(
+      `SELECT count(*) AS n FROM public.datasets WHERE api_name LIKE 'sched_rls_%'`)
+    await db.query('RESET ROLE')
+    await db.query('ROLLBACK TO SAVEPOINT runner_probe')
+    expect(Number(rows[0].n)).toBe(1)
+
+    // And the heartbeat itself runs end to end as the runner — the entries,
+    // the helpers, the grants — rather than being proven reachable by grep.
+    await db.query('SAVEPOINT heartbeat')
+    await db.query('SET LOCAL ROLE beacon_runner')
+    const ran = await db.query(`SELECT public.run_schedules(clock_timestamp()) AS n`)
+    const drained = await db.query(`SELECT public.drain_waiting_jobs() AS n`)
+    await db.query('RESET ROLE')
+    await db.query('ROLLBACK TO SAVEPOINT heartbeat')
+    expect(Number(ran.rows[0].n)).toBeGreaterThanOrEqual(0)
+    expect(Number(drained.rows[0].n)).toBeGreaterThanOrEqual(0)
   })
 })

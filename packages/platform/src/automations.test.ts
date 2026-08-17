@@ -141,12 +141,17 @@ describe.skipIf(noDb)('automations', () => {
   })
 
   it('scope governs history, never identity', async () => {
-    // The runner reads owner_id and never scope; scope only widens who reads
-    // automation_runs.
-    const def = (await one(
+    // The runner's identity comes from owner_id and never scope; scope only
+    // widens who reads automation_runs. Since 553 the identity lookup lives in
+    // automation_candidates, and the entry takes whatever it hands over.
+    const entry = (await one(
       `select pg_get_functiondef('public.run_automations(timestamptz)'::regprocedure) as d`)).d
-    expect(def).toContain('owner_id')
-    expect(def).not.toContain('a.scope')
+    expect(entry).toContain('automation_candidates')
+    expect(entry).not.toContain('a.scope')
+    const candidates = (await one(
+      `select pg_get_functiondef('public.automation_candidates()'::regprocedure) as d`)).d
+    expect(candidates).toContain('owner_id')
+    expect(candidates).not.toContain('scope')
     expect(await count(
       `select count(*) n from pg_policies where tablename='automation_runs'`)).toBeGreaterThan(0)
   })
