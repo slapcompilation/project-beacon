@@ -73,12 +73,24 @@ describe('validateObjectTypeDraft', () => {
       ...draft, properties: [complete[0], { ...complete[1], backingColumn: '' }],
     })
     expect(noColumn.errors.join(' ')).toContain('backing column')
-    // ...unless it is not read from one at all.
+    // ...unless it is not read from one at all. An edit-only property still
+    // names a datasource: it escapes the column, not the permissioning.
     const byHand = validateObjectTypeDraft({
       ...draft,
-      properties: [complete[0], { ...complete[1], backingColumn: null, source: 'user_input' as const }],
+      properties: [complete[0], {
+        ...complete[1], backingColumn: null, source: 'user_input' as const,
+        datasourceId: '00000000-0000-0000-0000-000000000545',
+      }],
     })
     expect(byHand.errors).toEqual([])
+
+    const unpermissioned = validateObjectTypeDraft({
+      ...draft,
+      properties: [complete[0], {
+        ...complete[1], backingColumn: null, source: 'user_input' as const, datasourceId: null,
+      }],
+    })
+    expect(unpermissioned.errors.join(' ')).toContain('permissioned')
   })
 
   it('refuses a nullable primary key', () => {

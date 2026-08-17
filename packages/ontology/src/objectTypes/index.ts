@@ -159,8 +159,10 @@ export interface PropertyDef {
    *  series types." Required exactly when type is array; never nested. */
   arrayElementType?: PropertyType
   required: boolean
-  /** A column in a backing datasource, or `user_input` — the creation wizard
-   *  offers both as a Source. */
+  /** A column in a backing datasource, or `user_input` — an edit-only property,
+   *  "not directly mapped to a column in the backing dataset". It still names a
+   *  datasource: edit-only properties "must be permissioned to one of the
+   *  datasets backing the object type". */
   source?: 'column' | 'user_input'
   backingColumn?: string | null
   /** Which of the object type's datasources. NULL on the primary key, which
@@ -370,6 +372,10 @@ export function validateObjectTypeDraft(draft: ObjectTypeDraft): Validation {
     // a column-sourced property names the column it reads.
     if ((p.source ?? 'column') === 'column' && !(p.backingColumn ?? '').trim()) {
       errors.push(`Property "${p.label}" needs a backing column, or a source of user input.`)
+    }
+    // An edit-only property escapes the column, not the permissioning.
+    if (p.source === 'user_input' && !p.datasourceId) {
+      errors.push(`Property "${p.label}" is edit-only, so it must be permissioned to one of the object type's datasources.`)
     }
   }
 
