@@ -19,9 +19,9 @@ stay findable.
 ---
 
 
-**2804 pages across 101 sections.**
+**2807 pages across 101 sections.**
 
-## action-types — 35 pages
+## action-types — 37 pages
 
 - `_index` — Action types
 - `action-log` — Action log
@@ -47,12 +47,14 @@ stay findable.
 - `parameters-filter` — Filter results of a parameter dropdown
 - `parameters-override` — Overrides
 - `permissions` — Permissions
+- `read-write-authorizations` — Read and write authorizations
 - `rules` — Rules
 - `scale-property-limits` — Scale and property limits
 - `set-up-notification` — Set up a notification
 - `set-up-webhook` — Set up a webhook
 - `side-effects-overview` — Side effects
 - `submission-criteria` — Submission criteria
+- `test-run` — Test run
 - `trigger-schedule-build` — Trigger schedule build
 - `upload-attachments` — Upload attachments
 - `upload-media` — Upload media
@@ -1290,7 +1292,7 @@ stay findable.
 - `upgrade-to-use-rule-actions` — Upgrade to use rule Actions
 - `workshop-application` — Workshop application
 
-## functions — 82 pages
+## functions — 83 pages
 
 - `_index` — Functions
 - `add-dependencies` — Add npm dependencies
@@ -1317,6 +1319,7 @@ stay findable.
 - `functions-deployed` — Deploy functions
 - `functions-on-models` — Functions on models
 - `functions-on-objects` — Functions on objects (FOO)
+- `functions-settings` — Functions settings
 - `functions-versioning` — Function versioning
 - `getting-started` — Getting started with functions
 - `instrumentation-telemetry` — Instrumentation and telemetry in functions
