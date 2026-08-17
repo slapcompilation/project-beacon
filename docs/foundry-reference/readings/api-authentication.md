@@ -138,6 +138,24 @@ decision anyone made — it is the default ACL's stamp.
    same citation covers it, but sweeping ~92 tables' grants deserves its own
    pass with its own assertions, after this one lands.
 
+## Built (2026-08-18) — migrations 550–552
+
+Decisions 1–4 shipped as recited (550: the 46; 551: the 127 invoker functions
+and both default-ACL arms for functions — with the live-verified trap that the
+per-schema form ADDS to built-in defaults, so removing the PUBLIC grant needed
+the global form). Decision 6 followed as 552 once the blast radius was probed:
+all 92 anon-granted tables were RLS-guarded, no policy named anon, no relation
+carried a PUBLIC grant, and no migration had ever granted a table to anon
+deliberately — every grant was the stamp. 552 revokes anon from every relation
+and sequence we own in public and turns off the table/sequence stamp for new
+ones. `authenticated` and `service_role` untouched throughout, per decision 5.
+
+The standing invariant lives in `packages/platform/src/anonSurface.test.ts`:
+nothing we own in `public` — function, relation or sequence — is reachable by
+anon, and objects born today carry no anon stamp. The reachability guard now
+takes edge-function sources as caller evidence instead of the anon grant that
+turned out to be the bug itself.
+
 ## Questions
 
 1. Will we ever need a public-application equivalent (an unauthenticated
