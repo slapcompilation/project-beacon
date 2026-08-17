@@ -23,12 +23,14 @@ https://palantir.com/docs/foundry/action-types/parameters-default-value/
 https://palantir.com/docs/foundry/action-types/parameters-filter/
 https://palantir.com/docs/foundry/action-types/parameters-override/
 https://palantir.com/docs/foundry/action-types/permissions/
+https://palantir.com/docs/foundry/action-types/read-write-authorizations/
 https://palantir.com/docs/foundry/action-types/rules/
 https://palantir.com/docs/foundry/action-types/scale-property-limits/
 https://palantir.com/docs/foundry/action-types/set-up-notification/
 https://palantir.com/docs/foundry/action-types/set-up-webhook/
 https://palantir.com/docs/foundry/action-types/side-effects-overview/
 https://palantir.com/docs/foundry/action-types/submission-criteria/
+https://palantir.com/docs/foundry/action-types/test-run/
 https://palantir.com/docs/foundry/action-types/trigger-schedule-build/
 https://palantir.com/docs/foundry/action-types/upload-attachments/
 https://palantir.com/docs/foundry/action-types/upload-media/
@@ -2529,6 +2531,7 @@ https://palantir.com/docs/foundry/functions/function-metrics/
 https://palantir.com/docs/foundry/functions/functions-deployed/
 https://palantir.com/docs/foundry/functions/functions-on-models/
 https://palantir.com/docs/foundry/functions/functions-on-objects/
+https://palantir.com/docs/foundry/functions/functions-settings/
 https://palantir.com/docs/foundry/functions/functions-versioning/
 https://palantir.com/docs/foundry/functions/getting-started/
 https://palantir.com/docs/foundry/functions/input-output-types/
