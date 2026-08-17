@@ -8,7 +8,9 @@ verify: strict
 on the grounds that it is an expression language rather than a column reference
 and so needed its own reading. This is it.
 
-**Read in full:** `object-link-types/derived-properties`.
+**Read in full:** `object-link-types/derived-properties` (the how-to) and
+`ontology/derived-properties` (the concept page, found on a second pass), with
+the derived-property paragraph of `object-permissioning/object-security-policies`.
 
 **Images parsed:** `object-link-types/images/configure-derived-property-aggregation.png`
 (the one that gives the data shape), and the three others the page carries —
@@ -139,19 +141,76 @@ name things we also have.
 4. **Depth is capped at 3** and an aggregation is required exactly when some hop
    is a "many" — both computable from `link_types` cardinality rather than
    stored.
-5. **Six of the ten limitations are constraints**, and two of those
+5. **Seven of the ten limitations are constraints**, and two of those
    (`required`, `is_primary_key`) can be enforced against columns that exist.
+7. **A derived property names neither a column nor a datasource** — see below.
+   Its security comes from the source objects, so the third CHECK arm asserts
+   both are absent and the hops carry the meaning.
 6. **Not built from this reading yet.** The Decisions above want reciting first,
    and this is Beta — worth saying out loud, since we have shipped Beta features
    before (branch overlay) but only deliberately.
 
-## Questions
+## Answered — the datasource question, and a second page I had missed
 
-1. **Does a derived property occupy a `datasource_id`?** 545 established that
-   `column` names a column and `user_input` names a datasource. A derived
-   property reads nothing from its own type's datasource at all, so plausibly
-   neither — but the CHECK we now have admits only two arms, and adding a third
-   means deciding this. The page does not say.
+**There are two derived-properties pages, in different sections.** I read
+`object-link-types/derived-properties`, the how-to. `ontology/derived-properties`
+is the concept page, and it was not in my reading at all. It broadens the
+definition:
+
+> Derived properties are properties that are calculated at runtime based on the
+> values of other properties or links on objects. This includes aggregating on
+> or selecting properties of linked objects.
+
+**"other properties or links"** — so a derived property is not necessarily a
+traversal. Deriving from another property of the *same* object is in scope, and
+the how-to page never says this because every one of its worked examples is a
+link chain. My Decisions below describe only the traversal case.
+
+It also names where they can be used — the TypeScript OSDK's `withProperties`
+operation — and adds a limitation the other page omits:
+
+> * **Marketplace:** Functions using derived properties are not currently supported in Marketplace.
+
+**And it answers the datasource question outright:**
+
+> Derived properties use the security of all objects involved in the
+> calculation, so they do not expose information a user would otherwise be
+> unable to see.
+
+`object-permissioning/object-security-policies` says the same from the other
+side, and adds a consequence:
+
+> * You cannot test derived property visibility, as this also relies on the
+>   user's visibility on the derived property's source object.
+
+**So a derived property does NOT occupy a datasource.** Its security comes from
+the *source objects* involved in the calculation, not from permissioning to a
+dataset — which is exactly the opposite of the edit-only property 545 built,
+where the page demanded a dataset precisely "to ensure data consistency and
+security". Two source types, two different answers to where security comes
+from, each stated on its own page.
+
+The Source-tab screenshot corroborates it. The Properties table's **Column**
+cell reads `primary-key` for the key, `Edit-only` for five properties, and is
+**blank** for the derived property being configured — three states, and the
+derived one claims no column and shows no datasource:
+
+> Actor username · primary-key
+> New property 1
+> Birth Date · Edit-only
+> Avg movie rating · Edit-only
+> — object-link-types/images/configure-derived-property-source-tab.png
+
+That screenshot also shows the object type editor's full left nav, which is
+wider than the four seen in `developer-console`: `Overview`, `Properties`,
+`Security`, `Datasources`, `Observability`, `Capabilities`, `Object views`,
+`Interfaces`, `Materializations`, `Automations`, `Usage`, `History`.
+
+**Consequence for the CHECK.** 545's constraint admits two arms, both requiring
+something: a column, or a datasource. A derived property requires **neither**,
+so the third arm asserts both are absent — and the hops carry the meaning.
+
+## Questions
 2. **What happens to a derived property on a branch?** The chain crosses object
    types that may be edited on a branch, and `read-media-content` showed the API
    is branch-aware. Nothing here mentions branches.
