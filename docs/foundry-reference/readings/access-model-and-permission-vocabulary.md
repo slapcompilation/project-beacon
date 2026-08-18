@@ -369,6 +369,59 @@ to be a page of links about Markings. `builds`, `build_jobs` and
 question the previous section left open is answered for schedules and still
 open for builds.
 
+## Not built (2026-08-18) — the folder-and-file toggle, and why building it would be wrong
+
+Decision 7 recorded the toggle as "buildable now that 554 gave spaces settings
+to hold it". Checked before building, and **it should not be built**: it is a
+switch over a capability we do not have.
+
+What the toggle does:
+
+> "you can use the toggle to disable folder and file role grants in the
+> **Settings** section in the Project view. When this setting is disabled, role
+> grants can only be granted at the Project level, not at the folder or file
+> level."
+
+**We have no folder or file level.** Verified against the catalog rather than
+assumed: the only role-grant tables are `project_role_grants` (which names a
+project and nothing finer), `ontology_role_grants`, `organization_role_grants`,
+`space_role_grants` and `branch_roles`. There is no per-folder or per-file
+grant, and no link-sharing table — which matters, because the toggle also
+governs that:
+
+> "Project link sharing capability will also be removed as link sharing gives
+> the receiver of the link a direct role grant on the individual folder or
+> file."
+
+A folder's access here is entirely its project's: `project readers see folders`
+is `resource_file_access('folder', …) AND project_role(project_id) IS NOT NULL`.
+
+So the toggle has only one honourable position, and we are already in it —
+which is the position Foundry recommends:
+
+> "Role grants on folders and files are disabled by default. Space
+> administrators can change the default behavior at the space level. We
+> recommend keeping role grants on folders and files disabled."
+
+Building a control whose "enabled" position we could not honour is the
+half-built foundation `CLAUDE.md` opens by forbidding. Its test is not whether
+Foundry has one but whether ours is built the way theirs is — theirs has a
+toggle because it has the capability; ours has no capability, so it has no
+toggle.
+
+**What would make it real**, in order: per-resource role grants (a grant naming
+a folder or file rather than a project), then link sharing, then the toggle
+that disables both, then the space-level default, then the documented cascade —
+"If the role grants setting is disabled for Projects already containing
+resources with role grants, role grants against these individual resources will
+be removed." That cascade is the reason the toggle is not merely a boolean, and
+the reason it cannot be added ahead of the thing it deletes.
+
+*Inference, marked*: that we may never want per-resource grants at all. The
+page recommends against them twice, and 561 just finished making a project's
+contents follow the project's role — the uniformity the recommendation is
+about. Recorded so the next reader knows the absence is a position, not a gap.
+
 ## Questions
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The
