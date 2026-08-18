@@ -473,6 +473,66 @@ Decision 5's nullable column is confirmed from the mirrored page anyway — "eac
 project belongs to a single Portfolio" is the N:1 that makes membership a
 column, and no page requires every project to have one.
 
+## 10. Three more pages: Q3 still open, and two decisions corroborated
+
+The operator supplied `app-building/curating-apps`, `ontology/applications` and
+`compass/data-catalog`. **None mentions portfolios**, so Q3 is unanswered after
+eight pages. `ontology/applications` is a catalogue of object-aware
+applications with no permission content at all. The other two describe
+Foundry's *sibling* curation surfaces — Data Catalog **collections** and
+Applications Portal **promotion** — and those are worth having.
+
+### A third independent statement that curation is not access
+
+`compass/data-catalog`, in the same sentence shape as `security/portfolios`:
+
+> "Anyone can view collections and their descriptions, but you will only have
+> access to curated files that are shared with you."
+
+That is now three independent sources for decision 8 — the portfolios page, the
+ontology-permissions bullet, and this. A curated grouping is visible to more
+people than its contents are, everywhere Foundry does curation.
+
+### Delegation is a management act, which 555 already assumed
+
+`compass/data-catalog` puts the delegation in the same hand as the curation
+itself:
+
+> "have the permission to add and remove resources from collections and manage
+> who has this permission"
+
+Add/remove **and** manage-who-can. That is exactly the shape 555 built for
+portfolios — `managers appoint curators`, with the Curators list conferring
+curation and never the power to extend it. The reading inferred that from
+"users with management access can open the sidebar on a Portfolio and edit its
+list of Curators"; the sibling feature states it outright.
+
+### Foundry's habit is to bundle create with manage — which cuts against our split
+
+`app-building/curating-apps`, on the collections and tags that categorise
+promoted apps:
+
+> "Permissions to create collections and tags or add them to a promoted app are
+> the same as the permissions to promote to Applications Portal"
+
+Create, add, and categorise are **one** permission there, not three. And the
+promotion permission itself is a conjunction of a platform role and a resource
+role:
+
+> "You also must be an editor or owner of an app to be able to promote it."
+
+**What this does and does not say.** It does not answer Q3: portfolios
+demonstrably carry *two* workflow tokens, so a line exists there whatever the
+siblings do. What it says is that when Foundry splits curation permissions at
+all, the split is unusual — which makes our reading of the boundary (manage
+creates, curate populates) the less likely of the two shapes, and a single
+bundle the more likely.
+
+*Marked as analogy, not citation.* Collections are not portfolios, and no page
+carries the two token descriptions. Recorded so that whoever finds the
+expanded card knows which way the prior points; the two predicates in 555 are
+still the only thing that changes.
+
 ## Built (2026-08-18) — migrations 554–556
 
 Decisions 1–9 shipped as recited, after the operator approved this block.
@@ -533,8 +593,11 @@ suite by construction.
    contents are an API response (`listAvailableRoles` returns each role with
    its operations), not a published list. Decision 2 stands: names and
    descriptions, no invented rows.
-3. **STILL OPEN, and now checked properly.** The operator supplied five pages
-   to look in; none splits the two workflow tokens. See §9.
+3. **STILL OPEN after eight pages.** Five supplied first (§9), three more
+   after (§10); none splits the two workflow tokens. §10 does establish a
+   prior: Foundry's sibling curation surfaces bundle create with manage, so a
+   single bundle is likelier than our boundary. The answer will come from an
+   expanded Space permissions card, not from prose.
 4. *(the original wording of 3, kept because the proposal is what shipped)*
    **Does `Curate portfolios within the space` include creating one?** The
    prose gives creation to the "Editor role" and curation to curators, and
