@@ -11,7 +11,7 @@
 
 import { useState } from 'react'
 import {
-  Button, Callout, Card, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
+  Button, Callout, Card, Checkbox, HTMLSelect, Icon, InputGroup, Intent, NonIdealState,
   Spinner, SpinnerSize, Tag,
 } from '@blueprintjs/core'
 import { useAuthStore } from '@/stores/auth.store'
@@ -24,7 +24,7 @@ import {
 } from '@/features/groups/api'
 import {
   useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest, useOrgRoles,
-  useWorkflowCatalogue,
+  useWorkflowCatalogue, usePrincipalSearch, type Principal,
 } from '@/features/organization/api'
 import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
@@ -201,6 +201,103 @@ function WorkflowCatalogueSection() {
   )
 }
 
+// The principal picker, shaped as Control Panel's
+// (administration/images/manage-guests.png): ONE search box over both kinds —
+// "Add a user or group…" — checkbox rows carrying a principal-type icon and a
+// "You" badge, and Cancel/Save at the bottom, because the edit is staged rather
+// than applied per click.
+//
+// It replaces a Kind dropdown beside a raw UUID field. That was never Foundry's
+// shape; it was a workaround for not being able to search foreign principals.
+// The search is the control now, and what it finds is bounded by what the
+// caller may see — an empty result for another organization is the permission
+// model answering, not a broken box.
+function GuestPicker() {
+  const guests = useOrgGuests()
+  const add = useAddOrgGuest()
+  const remove = useRemoveOrgGuest()
+  const me = useAuthStore((s) => s.session?.user.id ?? null)
+  const [open, setOpen] = useState(false)
+  const [term, setTerm] = useState('')
+  // Staged: the checkbox set the operator is composing, applied on Save.
+  const [checked, setChecked] = useState<Set<string> | null>(null)
+  const { data: found = [], isFetching } = usePrincipalSearch(term)
+
+  const current = new Map(
+    (guests.data ?? []).map((g) => [g.userId ?? g.groupId ?? '', g.id]))
+  const staged = checked ?? new Set(current.keys())
+
+  const rows: Principal[] = [
+    ...(guests.data ?? []).map((g): Principal => ({
+      id: g.userId ?? g.groupId ?? '',
+      kind: g.userId ? 'user' : 'group',
+      label: g.label,
+    })),
+    ...found.filter((p) => !current.has(p.id)),
+  ]
+
+  const save = () => {
+    for (const p of rows) {
+      const was = current.has(p.id)
+      const now = staged.has(p.id)
+      if (now && !was) add.mutate({ kind: p.kind, principalId: p.id })
+      if (!now && was) remove.mutate(current.get(p.id) as string)
+    }
+    setChecked(null); setTerm(''); setOpen(false)
+  }
+
+  if (!open) {
+    return (
+      <div className="border-t border-border px-3 py-2">
+        <Button size="small" icon="add" onClick={() => { setOpen(true) }}>Manage guest members</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="border-t border-border px-3 py-3 space-y-2">
+      <p className="text-[11px] text-muted-foreground">
+        Manage members of other organizations who can view projects and files marked with this
+        organization.
+      </p>
+      <InputGroup leftIcon="search" placeholder="Add a user or group…" value={term}
+        onChange={(e) => { setTerm(e.currentTarget.value) }} />
+      <div className="space-y-1 max-h-64 overflow-y-auto">
+        {rows.map((p) => (
+          <Checkbox key={p.id} checked={staged.has(p.id)}
+            onChange={(e) => {
+              const next = new Set(staged)
+              if (e.currentTarget.checked) next.add(p.id); else next.delete(p.id)
+              setChecked(next)
+            }}
+            labelElement={
+              <span className="inline-flex items-center gap-1.5">
+                <Icon icon={p.kind === 'user' ? 'person' : 'people'} size={11}
+                  className="text-muted-foreground" />
+                <span className="text-xs">{p.label}</span>
+                {p.id === me && <Tag minimal className="!text-[10px]">You</Tag>}
+              </span>
+            } />
+        ))}
+        {rows.length === 0 && (
+          <p className="text-[11px] text-muted-foreground">
+            {term.trim() === ''
+              ? 'No guest members yet. Search to add one.'
+              : isFetching ? 'Searching…'
+              : 'Nothing you can see matches. Principals of another organization stay hidden until someone holds View group membership there.'}
+          </p>
+        )}
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button size="small" variant="outlined"
+          onClick={() => { setChecked(null); setTerm(''); setOpen(false) }}>Cancel</Button>
+        <Button size="small" intent={Intent.PRIMARY} disabled={checked === null}
+          loading={add.isPending || remove.isPending} onClick={save}>Save</Button>
+      </div>
+    </div>
+  )
+}
+
 // The Organization permissions surface, Guest membership half: "Manage
 // members of other organizations who can view projects and files marked with
 // this organization." Registries are org-siloed, so a foreign principal is
@@ -208,11 +305,7 @@ function WorkflowCatalogueSection() {
 function OrganizationSection() {
   const { data: org } = useMyOrganization()
   const { data: guests = [] } = useOrgGuests()
-  const add = useAddOrgGuest()
-  const remove = useRemoveOrgGuest()
   const isAdmin = useAuthStore((s) => s.role === 'owner' || s.role === 'admin')
-  const [kind, setKind] = useState<'user' | 'group'>('user')
-  const [principalId, setPrincipalId] = useState('')
 
   if (!org) return null
   return (
@@ -244,36 +337,11 @@ function OrganizationSection() {
               <li key={g.id} className="flex items-center gap-2 px-3 py-1.5 text-xs">
                 <Icon icon={g.userId ? 'person' : 'people'} size={11} className="text-muted-foreground" />
                 <span className="flex-1 truncate">{g.label}</span>
-                {isAdmin && (
-                  <Button variant="minimal" size="small" icon="cross" intent={Intent.DANGER}
-                    title="Remove guest" onClick={() => { remove.mutate(g.id) }} />
-                )}
               </li>
             ))}
           </ul>
         )}
-        {isAdmin && (
-          <div className="flex flex-wrap items-end gap-2 border-t border-border px-3 py-3">
-            <label className="flex flex-col gap-1">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Kind</span>
-              <HTMLSelect value={kind} onChange={(e) => { setKind(e.currentTarget.value as 'user' | 'group') }}>
-                <option value="user">User</option>
-                <option value="group">Group</option>
-              </HTMLSelect>
-            </label>
-            <label className="flex flex-col gap-1 flex-1 min-w-64">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                {kind === 'user' ? 'User ID' : 'Group ID'} (from the other organization)
-              </span>
-              <InputGroup value={principalId} placeholder="00000000-0000-0000-0000-000000000000"
-                onChange={(e) => { setPrincipalId(e.currentTarget.value) }} />
-            </label>
-            <Button size="small" icon="add" loading={add.isPending} disabled={!principalId.trim()}
-              onClick={() => { add.mutate({ kind, principalId: principalId.trim() }, { onSuccess: () => { setPrincipalId('') } }) }}>
-              Add guest
-            </Button>
-          </div>
-        )}
+        {isAdmin && <GuestPicker />}
       </Card>
     </section>
   )

@@ -73,6 +73,50 @@ export function useOrgGuests() {
   })
 }
 
+// ── the principal picker ────────────────────────────────────────────────────
+//
+// Foundry's is one search box over both kinds — "Add a user or group…" — with
+// checkbox rows carrying a principal-type icon, and Cancel/Save at the bottom
+// (administration/images/manage-guests.png). The same control appears on the
+// Portfolio curators rail and the Space permissions rail, so it is the
+// platform's one way of naming principals.
+//
+// What it FINDS is bounded by what the caller may see, exactly as there: "You
+// will only be able to view groups for which you have View group membership
+// permission on the group's Organization." An empty result for a foreign
+// organization is the permission model answering, not a broken search.
+
+export interface Principal {
+  id: string
+  kind: 'user' | 'group'
+  label: string
+}
+
+export function usePrincipalSearch(term: string) {
+  return useQuery({
+    queryKey: ['principal-search', term] as const,
+    enabled: term.trim().length > 0,
+    queryFn: async (): Promise<Principal[]> => {
+      const q = `%${term.trim()}%`
+      const [people, groups] = await Promise.all([
+        supabase.from('users').select('id, email').ilike('email', q).limit(10),
+        supabase.from('groups').select('id, name').ilike('name', q).limit(10),
+      ])
+      if (people.error) throw new Error(people.error.message)
+      if (groups.error) throw new Error(groups.error.message)
+      return [
+        ...(people.data as { id: string; email: string }[]).map((u) => ({
+          id: u.id, kind: 'user' as const, label: u.email,
+        })),
+        ...(groups.data as { id: string; name: string }[]).map((g) => ({
+          id: g.id, kind: 'group' as const, label: g.name,
+        })),
+      ].sort((a, b) => a.label.localeCompare(b.label))
+    },
+    staleTime: 10_000,
+  })
+}
+
 export function useAddOrgGuest() {
   const qc = useQueryClient()
   const orgId = useAuthStore((s) => s.session?.user.organization_id ?? null)
