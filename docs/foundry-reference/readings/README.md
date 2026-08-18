@@ -375,8 +375,8 @@ the build, and duplicated effort when it does not.
 
 | reading | fragments | swept when |
 |---|---|---|
-| `control-panel-and-banners` | 12 | **DELIVERABLE-MAP §4** — cross-organization principal visibility, which already says it "needs its own reading" of `manage-groups`, `manage-roles` and the Organization permissions surface. That is this reading's subject. |
-| `capabilities-value-types-and-groups` | 8 | §4 for the groups half; the **value types** phase for the other. |
+| ~~`control-panel-and-banners`~~ | ~~12~~ | **SWEPT 2026-08-18**, owed once §4 finished (563–566 and the guest picker). Three were the reading's own framing in quotation marks; four were screenshot transcriptions now attributed by path; two had their page attribution *inside* the blockquote, which glues it onto the quote; and one quoted a heading prefixed onto the sentence below it. One string is now deliberately **not** quoted — it came from a marketplace install screenshot I could no longer identify, and describing beats inventing a path. |
+| ~~`capabilities-value-types-and-groups`~~ | ~~8~~ | **Already swept** — the file carries `verify: strict` and passes, so §4 owed it nothing. Checked rather than assumed while closing §4. |
 | ~~`projects-roles-and-portfolios`~~ | ~~13~~ | **SWEPT 2026-08-18**, owed once portfolios shipped (554–556). Most were mechanical — an attribution line placed *inside* a blockquote glues onto the quote, and two quoted spans on one line pair across the prose between them. Two were real: the Project-constraints sentences were quoted truncated, and the dropped clause was the one the section is about. |
 | `materializations-links-media-and-rids` | 9 | the **media and attachment property types**, listed under "Property base types beyond the 22". Materializations themselves shipped in 515/516; the media half is what remains. |
 | ~~`capabilities-typeclasses-and-branching`~~ | ~~9~~ | **SWEPT 2026-08-18** with the Capabilities tab. Two of the nine were paraphrases wearing quotation marks (the spaces-as-environments sentence, the merge-permissions passage); seven were screenshot transcriptions that now attribute to the panel images by path. |
