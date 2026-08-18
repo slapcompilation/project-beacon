@@ -298,14 +298,23 @@ half this build needed.
 
 **Two things this build turned up that are not portfolio questions:**
 
-- **Project reads are organization-scoped, not grant-scoped.**
-  `resource_file_access` is organization plus markings and consults no role
-  grant, so any member of an organization can read any of its projects. That
-  differs from "users still separately need permissions to view the Projects
-  inside a Portfolio" (`security/portfolios`). Found while trying to write an
-  assertion that a portfolio grants nothing — twice, because the first two
-  callers could see the project for unrelated reasons. Belongs to whatever
-  reads `projects-and-roles` next.
+- **Project reads are organization-scoped, not grant-scoped — READ, NOT BUILT.**
+  `readings/access-model-and-permission-vocabulary.md` settles it and awaits a
+  human on its Decisions block. The published formula is a conjunction
+  (`security/checking-permissions`): access requires "Satisfying the
+  Organization and Marking requirements" **and** "Having one or more roles
+  (directly, via a group, or a default role)". Mandatory controls only ever
+  subtract — "Organizations and Markings, will *always* prevent an ineligible
+  user from accessing a resource, regardless of the user's role" — and roles
+  only ever add.
+
+  **Both halves exist here and were never joined.** `resource_file_access` is
+  the mandatory half; `project_role()` is the discretionary half and is already
+  complete (direct grant, group grant, `default_role`, strongest wins). The
+  projects read policy calls only the first. So the fix is one conjunct — and
+  it is **not safe to ship blind**, because all six production projects carry
+  `default_role IS NULL` and the conjunct would hide every one of them. The
+  data decision comes first and is the operator's.
 - **Question 3 stays open after eight pages.** Nothing splits
   `Curate portfolios within the space` from `Manage portfolios within the
   space`; the GA announcement uses "Editors" and "Administrators" for the same
@@ -364,12 +373,20 @@ this same model** — and an `operations` list. The role contents that every
 screenshot collapses are a **`listAvailableRoles` response**, served rather than
 published. §4's "not published" conclusion was right for the right reason.
 
-**One inference to settle before building**: workflow and operation look like
-one thing under two names — `manage-roles` gives an operation a display name
-*and* an identifier, Control Panel lists the display names as "workflows", the
-API lists the identifiers as `operations`. If that holds,
-`organization_role_workflows` is keyed on the display name where the API keys on
-the identifier. Marked, not acted on.
+**Workflow versus operation — settled enough to act on, in the same reading.**
+They are one concept at two scopes, on strong evidence and no outright
+sentence: the definitions match, both are what you pick when building a custom
+role, and decisively the API's Role object carries `type: ORGANIZATION` with a
+list called `operations` while Control Panel shows those same organization
+roles granting *workflows*. One object, one scope, two words.
+
+**So the tables are right and stay.** `organization_role_workflows` and
+`space_role_workflows` store slugs of display names, which is the audience we
+build for — Control Panel, where a person picks a workflow by name. **No
+identifier can be populated today**: the corpus publishes exactly one,
+`stemma:mutate-default-branch`, and it belongs to no workflow we store. A row
+gains an `operation` column when a page publishes its identifier, one card at a
+time the way 542 grew the catalogue.
 
 **Type classes and render hints — resolved 2026-08-18, and the entry was three
 different things.**
