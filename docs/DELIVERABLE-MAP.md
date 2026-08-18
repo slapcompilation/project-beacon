@@ -75,6 +75,34 @@ bolted onto the guest picker.
 `manage-roles-`, and the Organization permissions surface — before anything is
 built. Do not build from this entry as written.
 
+**THE READING IS DONE (2026-08-18)**, in
+`readings/access-model-and-permission-vocabulary.md` §5 rather than a fourth
+file, because it is the same role/workflow vocabulary. (`manage-roles-` turned
+out to be `manage-roles` mirrored twice from a double-slash URL.) Its Decisions
+have not been read by a human, so the gate still applies.
+
+**What it found: the mechanism is already half-present and unreachable.** A
+policy on `groups` — `view group membership reaches across organizations` —
+tests `has_org_workflow(…, 'view_group_membership')`, and that workflow appears
+in **zero** `organization_role_workflows` rows. Verified rather than reasoned:
+an `organization_administrator`, the strongest role there is, holds five
+workflows and not that one, because the administrator arm can only incorporate
+workflows some role already carries.
+
+540 was right on both counts — the page describes the **legacy** per-principal
+dropdown, and no page says which role carries the workflow — but the
+consequence is a workflow nobody can ever hold.
+
+**The structural gap is that we have no workflow catalogue.** Foundry's
+workflows exist independently of roles: administrators "define custom roles in
+Control Panel by selecting individual *workflows*", and the Space permissions
+screenshot has a `Filter roles and workflows…` box, which only makes sense over
+a list. Here a workflow exists **only** as a row attaching it to a role, so one
+nobody carries cannot be selected, granted or held.
+
+Order: a workflow catalogue → `view_group_membership` in it → custom roles
+built by selecting from it → then the guest picker.
+
 **Two readings ride along with it.** `readings/control-panel-and-banners.md` (12
 untraceable quotations) is about exactly this surface, and
 `readings/capabilities-value-types-and-groups.md` (8) covers the groups half.

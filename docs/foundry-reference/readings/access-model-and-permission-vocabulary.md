@@ -422,7 +422,82 @@ page recommends against them twice, and 561 just finished making a project's
 contents follow the project's role — the uniformity the recommendation is
 about. Recorded so the next reader knows the absence is a position, not a gap.
 
-## Questions
+## 5. §4's reading — a policy that can never fire, and the catalogue that is missing
+
+`DELIVERABLE-MAP` §4 (cross-organization principal visibility) asks for a
+reading of `manage-groups`, `manage-roles` and the Organization permissions
+surface before anything is built. This is it; the vocabulary above is the same
+vocabulary, so it lives here rather than in a fourth reading.
+
+**The finding is that the mechanism is already half-present and unreachable.**
+A policy on `groups` — `view group membership reaches across organizations` —
+tests `has_org_workflow(organization_id, 'view_group_membership')`. That
+workflow appears in **zero** `organization_role_workflows` rows, so the test is
+always false and the policy can never grant.
+
+Verified rather than reasoned: granted the strongest role that exists,
+`organization_administrator`, a caller holds
+`manage_application_access`, `manage_auth_chooser_enterprise_presets`,
+`manage_organization_permissions`, `manage_platform_version` and
+`oversee_progress_in_upgrade_assistant` — and **not**
+`view_group_membership`. Even the administrator arm cannot produce it, because
+that arm selects from the workflows some role already carries.
+
+### 540 was right to leave it out, and this is the cost
+
+The page that names the permission describes the **legacy** way to grant it:
+
+> "You will only be able to view groups for which you have `View group
+> membership` permission on the group's Organization. This permission can be
+> granted from **Settings > Platform Settings > Organizations** by selecting the
+> Organization of interest and then choosing **Manage** for **Organization
+> permissions**. This will display a list of users and groups as well as a
+> search box; for users and groups that have been added, use the dropdown box to
+> enable the **View group membership** option."
+
+A per-principal dropdown. 540 declined to build that, because the Organization
+permissions screenshot says the role mechanism replaces it, and because no page
+says which role carries the workflow — inventing one would have been an
+invented citation. Both halves of that were correct. What 540 could not see is
+that the result is a workflow **nobody can ever hold**.
+
+### The structural gap: there is no workflow catalogue
+
+In Foundry a workflow exists independently of any role, and building a role is
+choosing from a list of them:
+
+> "In addition to the default roles, **Enrollment administrators** and
+> **Organization administrators** can define custom roles in Control Panel by
+> selecting individual *workflows*."
+
+The Space permissions screenshot shows the same affordance one scope over — a
+`Filter roles and workflows…` box beside **+ New role**, which only makes sense
+over a catalogue.
+
+**Ours has no such list.** A workflow exists here only as a row attaching it to
+a role, so a workflow nobody's role carries does not exist at all: it cannot be
+filtered for, cannot be selected, and cannot be put into a custom role. That is
+why `view_group_membership` is simultaneously *referenced by a live policy* and
+*unholdable*.
+
+### What §4 needs, in order
+
+1. **A workflow catalogue** — the known workflows as their own rows, so one may
+   be selected before any role carries it. Every token in it traces to a page
+   that names it, exactly as `organization_role_workflows` already requires;
+   the catalogue changes where a token lives, not how it is justified.
+2. **`view_group_membership` in that catalogue**, which makes the existing
+   policy reachable for the first time.
+3. **Custom roles built by selecting from it** — the mechanism the page
+   describes, which is also what makes 540's decision safe rather than
+   permanent: an operator composes the role, and no default has to be invented.
+4. Only then the guest picker, which is where §4 started.
+
+*Inference, marked*: that a catalogue is the right shape rather than seeding
+`view_group_membership` into some default role. The seeding route would require
+choosing a role no page assigns it to — the thing 540 refused — while the
+catalogue is stated outright by the page above. **Not built here**: this
+reading stops at the finding, and the recitation gate applies to what follows.
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The
    pages speak of "a Project, folder, or file"; whether an ontology entity
