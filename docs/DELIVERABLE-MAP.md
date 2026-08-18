@@ -310,10 +310,29 @@ half this build needed.
 
   The sweep behind 561 listed all 36 permissive read policies gated on
   organization alone; the rest are org registries or specified as
-  organization-visible (portfolios, collections). **Recorded, not changed**:
-  `builds`, `build_jobs`, `schedules`, `schedule_runs` read org-wide over
-  objects that belong to datasets, which belong to projects — whether a build
-  is a "child resource" in the inheritance sense needs the builds pages read.
+  organization-visible (portfolios, collections).
+
+- **Schedules — FIXED (562). Builds — still open, and now for a stated reason.**
+  The pipeline question split in two once the pages were read.
+  `building-pipelines/schedule-troubleshooting` publishes the schedule rule
+  exactly: view needs `Viewer` on the target dataset, edit/delete/pause needs
+  `Editor` on the target dataset **and** on the scoped project — and, since
+  "If you lost permissions for one dataset, remove this dataset from the
+  schedule before you save", editing needs **every** target. 562 implements
+  both through `dataset_role()`; read is `ANY` target and that is marked
+  inference, since our `target_dataset_ids` is an array where Foundry's rule is
+  singular.
+
+  **Builds get nothing**, because no page read says who may view one. The
+  Builds application is described as showing "all builds occurring across
+  Foundry", which is a product description rather than a permission, and
+  `building-pipelines/security-overview` is a page of links about Markings.
+  `builds`, `build_jobs` and `schedule_runs` stay organization-scoped until a
+  page says otherwise.
+
+  Also unmodelled and recorded: `schedules.scope` carries Foundry's `user` and
+  `project` values but no column names **which** project a project-scoped
+  schedule belongs to.
 
   Still unbuilt: the **folder-and-file role-grants toggle**, buildable now that
   554 gave spaces settings to hold it.

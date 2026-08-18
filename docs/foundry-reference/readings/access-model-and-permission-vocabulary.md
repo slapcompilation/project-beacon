@@ -314,6 +314,61 @@ which belong to projects. Whether a build is a "child resource" of its project
 in the inheritance sense is not answered by any page cited here, and belongs to
 whoever reads the builds pages next.
 
+## Built (2026-08-18) — migration 562, and the pipeline question answered by one page
+
+The open item was whether `builds`, `build_jobs`, `schedules` and
+`schedule_runs` need the role conjunct — whether a build is a "child resource"
+of its project. **Schedules have a published rule; builds do not**, and the
+split is the whole answer.
+
+`building-pipelines/schedule-troubleshooting` states it exactly:
+
+> "To edit, delete, or pause a schedule, you need to have `Editor` permissions
+> on the target dataset and `Editor` permissions on the Project to which the
+> schedule is scoped. To view a schedule, you need to have `Viewer` permissions
+> on the target dataset."
+
+So a schedule is reached **through the datasets it builds**, not through the
+organization and not directly through a project. The project-scoped case adds
+the quantifier by consequence:
+
+> "To edit a schedule in Project-scoped mode, you must have `Editor`
+> permissions on the target datasets, `Viewer` permissions on the trigger
+> datasets, and `Editor` permissions on the Project to which the schedule is
+> scoped. If you lost permissions for one dataset, remove this dataset from the
+> schedule before you save your changes."
+
+Losing permission on **one** target blocks the save, so editing needs **every**
+target. 562 implements both: read requires `viewer` on any target, write
+requires `editor` on all of them, and `dataset_role()` resolves a dataset to
+the project role that reaches it.
+
+**Read is `ANY`, and that is marked inference.** The view rule says "the target
+dataset", singular, because a Foundry schedule usually has one; ours carries an
+array. The Build Schedules search finds schedules "by the datasets or other
+files in Foundry that they build", so a schedule is reached through a file you
+can already see — which is the reading `ANY` encodes. `ALL` would hide a
+schedule from someone who can see most of what it builds, and that search would
+contradict it.
+
+**Two things deliberately not built.**
+
+*The scoped project is unmodelled.* `schedules.scope` already carries Foundry's
+two values, `user` and `project`, but no column names **which** project a
+project-scoped schedule belongs to. Where that is the project holding the
+targets the two clauses collapse and the dataset clause is the whole rule;
+where it is not, the second clause is simply absent. Choosing the scoped
+project is the user's decision in Foundry and not ours to derive.
+
+*Builds are left alone.* No page read says who may view a build.
+`data-integration/application-reference` calls the Builds application a way to
+"view all builds occurring across Foundry", which is a product description
+rather than a permission, and `building-pipelines/security-overview` turns out
+to be a page of links about Markings. `builds`, `build_jobs` and
+`schedule_runs` stay organization-scoped until a page says otherwise — the
+question the previous section left open is answered for schedules and still
+open for builds.
+
 ## Questions
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The
