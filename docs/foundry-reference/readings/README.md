@@ -255,6 +255,21 @@ is worth most just before the thing it describes gets built. Nothing here is
   sections are missing from it, including the three this reading needed most**, and
   grepping it for `home`/`landing`/`orientation` returns nothing.
 
+- `actions-on-interfaces.md` — the page `interfaces-phase` most wanted and could
+  not have (it was unmirrored then, mirrored 2026-08-11). **Written after the
+  build, which is the wrong order** — 569 and 570 already cite it — and recorded
+  that way rather than hidden. It corrects the quote both migrations carry: the
+  restriction to interface shared properties ends "**or to delete objects**",
+  a clause both cut. Its two primary-key images are **inverses of each other** —
+  same interface, same types, same mapping, create fails where modify succeeds
+  and vice versa — because the interface property a create rule must cover is
+  exactly the one a modify rule may not write, and **both fail at submission,
+  per object type, not at configuration**. That is the argument for leaving the
+  five kinds registered-but-not-executable. It also answers `interfaces-phase`
+  question 6: **Interface action control** is the *object type's* switch over
+  actions it inherits, on its Interfaces tab, and exists because interface
+  submission criteria apply uniformly across every implementer.
+
 - `interfaces-phase.md` — **the whole `interfaces/` section, all 32 images**, as the
   spec that replaces our two-table stub. An interface is the one ontology type with
   **no datasource**. Local and shared properties are **two separate lists**, and

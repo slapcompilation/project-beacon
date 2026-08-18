@@ -265,18 +265,32 @@ name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
 
 `action_types(id, ontology_id, api_name, name, description, status, rid)` ·
 `action_type_rules(action_type_id, verb ∈ create|modify|delete, object_type_id)`
-· `action_type_rule_properties(rule_id, property_id)` ·
+· `action_type_rule_properties(rule_id, property_id | interface_property_id)` ·
 `action_type_parameters(...)` — the Form · submission criteria.
 
 **The declared property set is the edit permission.** That sentence is the whole
 design: nothing else may write.
 
-**Built as seven rule kinds of the twelve** `rules.md` lists — create/modify/
-create-or-modify/delete object, create/delete link, and the function rule. The
-five `…of interface` variants waited on B5, which 450 has since built — they
-are unblocked now, just unbuilt; the three side-effect rules (notification,
-webhook, schedule) each name a system we have no counterpart for, so they are
-absent rather than stubbed.
+**All twelve rule kinds** `rules.md` lists are now registered — create/modify/
+create-or-modify/delete object, create/delete link, the function rule, and
+since **569** the five `…of interface` variants, which waited on B5 (450). The
+three side-effect rules (notification, webhook, schedule) each name a system we
+have no counterpart for, so they are absent rather than stubbed.
+
+The five interface variants are **expressible and constrained, not executable**,
+and each note says which thing it waits for: the object kinds need the
+parameter Foundry generates ("an 'interface reference' parameter will be
+generated, constrained to the selected interface"), the link kinds need the
+link instance store `create_link` already waits for.
+
+> "you can use interface action rules only to modify the *interface shared
+>  properties*"  — `actions-on-interfaces`
+
+which is the design sentence one level up: an interface rule may only write the
+interface's own properties, so the edit applies to every implementing type.
+**570** is what makes that enforceable — 569's check joined two columns of
+different types and could not run — by giving `action_type_rule_properties` an
+`interface_property_id` beside `property_id`, exactly one set per row.
 
 `action_editable_properties(action)` makes the design sentence answerable: every
 property an action can write, and nothing else can.
