@@ -938,6 +938,11 @@ export const granularComparisonCheck = { apiName: 'granular_comparison_check', k
   unknown
 >
 
+/**
+ *  One comparison as SQL. An unbound user attribute compiles to false rather
+ *  than to a placeholder value, because a placeholder leaves the outcome to
+ *  the operator and the empty set is a subset of everything.
+ */
 export const granularComparisonSql = { apiName: 'granular_comparison_sql', kind: 'function' } as FunctionType<
   { p_comp: Json; p_fields: Json; p_alias: string },
   string
