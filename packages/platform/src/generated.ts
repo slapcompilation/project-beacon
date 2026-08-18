@@ -362,7 +362,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (159) ───────────────────────────────────────────────────
+// ── FUNCTIONS (160) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -748,6 +748,14 @@ export const datasetHistoryFrom = { apiName: 'dataset_history_from', kind: 'func
 export const datasetMarkings = { apiName: 'dataset_markings', kind: 'function' } as FunctionType<
   { p_dataset: string },
   { marking_id: string; name: string; category: string; kind: string; origin: string; satisfied: boolean }[]
+>
+
+/**
+ *  The caller's role on a dataset, inherited from the project that holds it.
+ */
+export const datasetRole = { apiName: 'dataset_role', kind: 'function' } as FunctionType<
+  { p_dataset: string },
+  string
 >
 
 /**
