@@ -291,12 +291,15 @@ Sections 1–6 are all built. What remains is in **Known gaps** below and in the
 readings' allocation table, and neither is a queue with an order — each item
 waits on a phase that has a reason to start.
 
-**The five allocated citation sweeps** ride with the phase that reopens their
-pages (`readings/README.md` holds the table): `control-panel-and-banners` with
-the next §4 surface slice, `projects-roles-and-portfolios` with portfolios,
-`materializations-links-media-and-rids` with the media and attachment property
-types, `capabilities-typeclasses-and-branching` with typeclasses and render
-hints, and `data-lineage` with the lineage surface.
+**Four of the five allocated citation sweeps are done** (2026-08-18), each with
+the phase that reopened its pages: `data-lineage` (the surface turned out to be
+already built), `capabilities-typeclasses-and-branching` (the Capabilities tab),
+`projects-roles-and-portfolios` (portfolios), and `control-panel-and-banners`
+(§4). `capabilities-value-types-and-groups` was found already swept.
+
+**One remains**: `materializations-links-media-and-rids`, with the media and
+attachment property types. `deep-dive-ontology` is allocated **never**.
+`readings/README.md` holds the table and what each sweep found.
 
 ## The deprecation audit (2026-08-15)
 
@@ -311,6 +314,24 @@ we build. The result: **one** deprecated design had reached the schema.
 | "Propagate view requirements", superseded by Projects and Markings | never built; we have both replacements |
 | Metric changed [Sunset] (Automate condition) | excluded by name in the Automate reading |
 | Gaia Milsym Creatable interface | not our domain |
+
+### Re-run 2026-08-18 — 14 pages carry the callout, and nothing new reached us
+
+The mirror has grown from 2,284 pages to 2,807 since the audit above, so the
+scan was re-run. Fourteen pages now carry a **planned deprecation** callout, and
+they resolve to the same six findings plus three that are new and none of ours:
+
+| new callout | what we have |
+|---|---|
+| **Pipeline rollback** (`data-lineage/pipeline-rollback`), "unavailable for use after November 30th" | never built. The only `rollback` in our tree is the SQL transaction kind, in a migration and a test — checked, not assumed. |
+| **Map's Series panel** (`map/series-panel`), "unavailable after January 31, 2026" | not our domain; we build no Map. |
+| **Language-model deprecation and brown-out** (`model-catalog/model-deprecation`) | a model-catalog concern; we have no model catalogue. |
+
+Eight of the fourteen are **Object Storage v1** restating itself across
+`object-backend`, `object-databases`, `object-edits`, `ontologies/oss-limitations`
+and inline in `action-types/getting-started` — all already the first two rows
+above. `platform-overview/development-life-cycle` is not a deprecation at all;
+it is the page that **defines** the phases the callouts link to.
 
 **Re-run this when the mirror grows.** `grep -rl "planned deprecation"
 docs/foundry-reference/mirror/` is the whole scan, and it is cheap. A page can
