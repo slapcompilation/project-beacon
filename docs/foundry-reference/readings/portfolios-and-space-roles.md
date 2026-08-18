@@ -363,9 +363,84 @@ rather than reinterpreting them:
 **Recorded, not queued.** Role sets are a bigger object than portfolios and
 nothing is blocked on them: the defaults are what we already implement.
 
+## 8. What `api/` adds, and why question 2 has no documentation answer
+
+`api/v2/admin-v2-resources/organizations-list-available-roles-organization`
+carries the **Role object itself**, which no prose page draws:
+
+> "A set of permissions that can be assigned to a principal for a specific
+> resource type."
+
+Its `id` field:
+
+> "The unique ID for a Role. Roles are sets of permissions that grant different
+> levels of access to resources. The default roles in Foundry are: Owner,
+> Editor, Viewer, and Discoverer."
+
+`roleSetId` is a required string. `isDefault`:
+
+> "Default roles are provided by Palantir and cannot be edited or modified by
+> administrators."
+
+`type` is an enum whose only published value here is `ORGANIZATION`:
+
+> "The type of resource that is valid for this role."
+
+And `operations`:
+
+> "The operations that a principal can perform with this role on the assigned
+> resource."
+
+> "An operation that can be performed on a resource. Operations are used to
+> define the permissions that a Role has. Operations are typically in the
+> format `service:action`, where `service` is related to the type of resource
+> and `action` is the action being performed."
+
+Four things this settles:
+
+1. **`roleSetId` is required on every role.** "All roles belong to one and only
+   one role set" is not prose emphasis — it is the schema. Any role we model
+   needs its set.
+2. **`isDefault` is the customisation boundary**, and stated harder here than
+   in the prose: default roles "cannot be edited or modified by
+   administrators". Copying a default set into a custom one produces roles that
+   are *not* default and therefore editable. Two states, one flag.
+3. **The role's context is `type`, "the type of resource that is valid for this
+   role"** — and `ORGANIZATION` is one of its values. So an **organization
+   role is a Role in this same model**, which means §7's table understates the
+   reach: role sets are not only about projects and ontologies.
+4. **Question 2 has no documentation answer *by design*.** The workflow lists
+   the Space permissions screenshot collapses are not withheld — they are an
+   **API response**. `listAvailableRoles` returns each role *with its
+   operations*, so the catalogue is served, not published. Our §4 conclusion
+   that the role contents "are not published" was right, and this is why:
+   asking the docs for them is asking the wrong source.
+
+### An inference worth marking, because it changes a built table
+
+**Workflow and operation look like one thing under two names.** `manage-roles`
+gives an operation both a display name and an identifier — the operation "named
+"Change default branch" operation (with identifier: `stemma:mutate-default-branch`)"
+— and Control Panel renders a role's contents as a list of display names it
+labels *workflows* (`Create project`, `Curate portfolios within the space`).
+The API calls that same list `operations`, in `service:action` form.
+
+**Marked as inference**: no page read equates the two words. If it
+holds, then `organization_role_workflows` is storing display names for what the
+API models as identifiers, and a future role-set build should carry the
+identifier as the key with the display name beside it — the same
+prose-versus-API split CLAUDE.md's vocabulary table already tracks. Worth
+settling from an API page that returns a role's operations for a *non*-organization
+type before anything is built on it.
+
 ## Questions
-2. **What are the other 61 + 1 workflows?** Not published anywhere read; the
-   screenshot collapses them. Recorded as a known hole, exactly like §4's.
+
+1. **Answered in §7** — the space's own roles are per-space; role sets are the
+   separate Organization-owned object, and no role set has a Space context.
+2. **Answered in §8 — the docs are the wrong source.** The other roles'
+   contents are an API response (`listAvailableRoles` returns each role with
+   its operations), not a published list. Decision 2 stands: names and
+   descriptions, no invented rows.
 3. **Does `Curate portfolios within the space` include creating one?** The
    prose gives creation to the "Editor role" and curation to curators, and
    Contributor holds both workflows, so the split cannot be read off the
