@@ -264,11 +264,36 @@ for administrative ones.
 **The five `…of interface` action-rule variants** are unblocked (B5 built in
 450) but unbuilt (`ONTOLOGY-BUILD-MAP.md` Phase C).
 
-**Unbuilt, each carrying a reading whose citations get swept when it is built**
+**Unbuilt, carrying a reading whose citations get swept when it is built**
 (`readings/README.md` holds the table): **portfolios**, the half of Compass that
-C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13); and
-**typeclasses and render hints** carry
-`capabilities-typeclasses-and-branching.md` (9).
+C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13).
+
+**Type classes and render hints — resolved 2026-08-18, and the entry was three
+different things.**
+
+*Capabilities* was an engine with no caller: 415 built the table, the
+`capability_slots()` registry, the guard and the policies, and production held
+zero rows with nothing reading or writing them. The **Capabilities tab** is now
+built, shaped as the screenshot has it, with the picker reading its `accepts`
+list from the same registry the guard enforces. `capabilities.test.ts` fires
+all three refusals, which had never run.
+
+*Render hints* were already real and already consumed — `searchable`,
+`sortable`, `selectable`, `analyzer` on `object_type_properties`, with the
+published dependency rule enforced as `hints_need_searchable` and readers in
+`object_set_where`, `evaluate_object_set`, `aggregate_object_set` and
+`search_index_payload`. **Seven of the ten published hints are unbuilt**:
+Disable formatting, Identifier, Keywords, Long text (pure Object View display
+hints, no index cost) and Low cardinality, Enable leading wildcards, Enable
+regex queries (search behaviour, each requiring Searchable). Each waits for a
+surface that would read it.
+
+*Type classes as a general mechanism* stay deliberately unbuilt. "The
+configuration of all supported type classes will move to the Capabilities
+page", so a generic kind/name bag would be building the thing Foundry is
+retiring — and `metadata-render-hints` frames the whole feature in **Object
+Storage v1 (Phonograph)** terms, the backend whose scalar we already had to
+undo. Take hints one at a time, from a consumer that needs one.
 
 **The lineage surface was already built, and this file said otherwise for
 twelve days.** The entry read "`lineage_graph()` exists and nothing renders it".

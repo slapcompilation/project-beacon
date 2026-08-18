@@ -379,7 +379,7 @@ the build, and duplicated effort when it does not.
 | `capabilities-value-types-and-groups` | 8 | §4 for the groups half; the **value types** phase for the other. |
 | `projects-roles-and-portfolios` | 13 | **portfolios**, the unbuilt half of Compass — C1/C2 shipped folders and the catalog, and a portfolio is neither. |
 | `materializations-links-media-and-rids` | 9 | the **media and attachment property types**, listed under "Property base types beyond the 22". Materializations themselves shipped in 515/516; the media half is what remains. |
-| `capabilities-typeclasses-and-branching` | 9 | **typeclasses and render hints** — `metadata-typeclasses` and `metadata-render-hints` are mirrored and unbuilt. |
+| ~~`capabilities-typeclasses-and-branching`~~ | ~~9~~ | **SWEPT 2026-08-18** with the Capabilities tab. Two of the nine were paraphrases wearing quotation marks (the spaces-as-environments sentence, the merge-permissions passage); seven were screenshot transcriptions that now attribute to the panel images by path. |
 | ~~`data-lineage`~~ | ~~13~~ | **SWEPT 2026-08-18.** The allocation was wrong about its own trigger: the surface was already built (engine, canvas, simulation, `lineage.test.ts`), so the sweep had no phase left to wait for. All 13 traced, `verify: strict` on. |
 | `deep-dive-ontology` | 43 | **never** — see below. |
 

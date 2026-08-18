@@ -27,6 +27,7 @@ import {
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { useEditsEnabled } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
+import { CapabilitiesTab } from '@/features/objectTypes/CapabilitiesTab'
 import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
@@ -407,6 +408,7 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Tab id="security" title="Security" icon="shield" panel={<SecurityTab type={type} />} />
         <Tab id="datasources" title="Datasources" icon="database" panel={<DatasourcesTab type={type} />} />
         <Tab id="interfaces" title="Interfaces" icon="layers" panel={<InterfacesTab type={type} />} />
+        <Tab id="capabilities" title="Capabilities" icon="widget" panel={<CapabilitiesTab type={type} />} />
         {editsEnabled &&
           <Tab id="materializations" title="Materializations" icon="export" panel={<MaterializationsTab type={type} />} />}
       </Tabs>
