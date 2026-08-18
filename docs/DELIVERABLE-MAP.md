@@ -103,6 +103,21 @@ nobody carries cannot be selected, granted or held.
 Order: a workflow catalogue → `view_group_membership` in it → custom roles
 built by selecting from it → then the guest picker.
 
+**Steps 1–3 BUILT (563–564).** And the sweep found a **second** orphan in the
+same state: `manage_space_permissions`, from 554 earlier the same day, whose
+header claim that "only a subsuming administrator holds it" is false —
+subsumption redistributes what some role carries and cannot conjure a token
+that appears nowhere, so `space administrators grant roles` was dead too.
+
+`workflows` now holds twelve rows with a `published` flag (false for exactly
+one, ours); both role tables have a foreign key into it and a scope trigger, so
+an unknown workflow is refused where any well-formed string used to pass. **No
+grant changed** — the orphans are selectable, not held, which keeps 540's
+refusal intact. `workflowCatalogue.test.ts` guards the class: every workflow a
+policy tests must be catalogued.
+
+**Step 4, the guest picker, is what remains of §4.**
+
 **Two readings ride along with it.** `readings/control-panel-and-banners.md` (12
 untraceable quotations) is about exactly this surface, and
 `readings/capabilities-value-types-and-groups.md` (8) covers the groups half.
