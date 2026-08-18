@@ -319,6 +319,24 @@ A third granularity also arrives with it: **operations** (`stemma:mutate-default
 are what roles in a role set are built from, below the workflow level Control
 Panel uses for organization and space roles.
 
+**Open question 2 is answered too, by `api/` — and the answer is that the docs
+are the wrong source.** The Role object
+(`api/v2/admin-v2-resources/organizations-list-available-roles-organization`)
+carries `roleSetId` as **required**, an `isDefault` flag whose description is
+harder than the prose ("Default roles are provided by Palantir and cannot be
+edited or modified by administrators"), a `type` naming the resource the role is
+valid for — **`ORGANIZATION` is one of its values, so organization roles live in
+this same model** — and an `operations` list. The role contents that every
+screenshot collapses are a **`listAvailableRoles` response**, served rather than
+published. §4's "not published" conclusion was right for the right reason.
+
+**One inference to settle before building**: workflow and operation look like
+one thing under two names — `manage-roles` gives an operation a display name
+*and* an identifier, Control Panel lists the display names as "workflows", the
+API lists the identifiers as `operations`. If that holds,
+`organization_role_workflows` is keyed on the display name where the API keys on
+the identifier. Marked, not acted on.
+
 **Type classes and render hints — resolved 2026-08-18, and the entry was three
 different things.**
 
