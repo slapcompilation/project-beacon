@@ -433,6 +433,98 @@ prose-versus-API split CLAUDE.md's vocabulary table already tracks. Worth
 settling from an API page that returns a role's operations for a *non*-organization
 type before anything is built on it.
 
+## 9. Question 3, searched and still open — plus what the GA announcement adds
+
+The operator supplied five pages. Checked in all of them; **none splits
+`Curate portfolios within the space` from `Manage portfolios within the
+space`.** What each contributed:
+
+- `security/portfolios` — the source of the question. Gives the prose split
+  (administrators create and populate; curators add/remove projects and edit
+  description and documentation) but names the gate as "the Editor role on a
+  Space", which §5 showed is not a role at all.
+- `announcements/2024-11`, the GA announcement — **read at the URL and
+  deliberately not mirrored**, so nothing here is quoted from it. It uses the
+  same prose shorthand as the reference page and shifts it within two
+  paragraphs: *Editors of Spaces* add projects to a portfolio, then
+  *Administrators* curate portfolios to represent a business unit. The two
+  words for one activity, consecutively, which is the clearest evidence that
+  the workflow tokens cannot be recovered from prose. It also states the
+  cardinality as **at most** a single portfolio — better than the reference
+  page's "a single Portfolio", and the basis for decision 5's nullable column
+  being right, though the reference page carries the same fact.
+
+  *Not mirrored on purpose*: the section is a changelog whose images run to
+  950 files and 394 MB, disproportionate to one sentence that
+  `security/portfolios` already establishes. Recorded so the next reader knows
+  it was consulted rather than skipped.
+- `object-permissioning/ontology-permissions` — corroborates §1's curation
+  reading from the ontology side: "Compass curation primitives: Use portfolios
+  and tags to organize ontology resources, and role grants or markings to hide
+  irrelevant resources from users." Portfolios organize; *role grants and
+  markings* hide. Two different jobs, named in one sentence.
+- `getting-started/orientation-and-nav` — places the surface: Files "takes you
+  to the landing page for the Project folder structure, where you can access
+  top-level **Portfolios**, **Projects**, **Your files**, and **Shared with
+  you** shortcuts."
+- `announcements/2026-02` — no mention of portfolios.
+
+Decision 5's nullable column is confirmed from the mirrored page anyway — "each
+project belongs to a single Portfolio" is the N:1 that makes membership a
+column, and no page requires every project to have one.
+
+## Built (2026-08-18) — migrations 554–556
+
+Decisions 1–9 shipped as recited, after the operator approved this block.
+
+**554 — space roles.** `space_roles` / `space_role_workflows` /
+`space_role_grants`, copied from 540's shape: `space_id` NULL is a default role
+offered to every space, grants are user XOR group, and a custom role may only be
+granted on the space that owns it. The three published defaults are seeded;
+**only Contributor carries workflows**, because only its card is expanded in the
+screenshot. `space_workflows()` is the predicate, with the Space Administrator
+subsuming — marked as inference in the migration, since the space page states
+full control in prose where the organization page names incorporation outright.
+
+`manage_space_permissions` is **ours**, not published: the grant policy needs a
+token and no card names the workflow that lets someone grant roles. It is in no
+role, so only a subsuming administrator has it — the same treatment 540 gave
+`view_group_membership`.
+
+**555 — portfolios.** Membership is `projects.portfolio_id` plus
+`portfolio_display_name`, N:1 by the documented sentence, so moving a project is
+an UPDATE that cannot leave it in two and leaving one drops the name that only
+existed inside it. `space_id` is immutable by trigger; a portfolio takes only
+its own space's projects; curators are user XOR group; the catalog is a
+SECURITY INVOKER function over `project_resources`.
+
+**The claim that a portfolio is not an access predicate is proven, and proving
+it took two corrections** — both of which are the same failure in different
+clothes, a test that passes while testing nothing:
+
+1. The first caller was an org admin, and `admins and owners write projects` is
+   a `FOR ALL` policy, so it admits SELECT too.
+2. The second was a plain member of the same organization — and project
+   visibility here is `resource_file_access`: **organization plus markings, and
+   not role grants at all**. A same-org member can read any project of that
+   org, so the absence of a grant was never the thing making it invisible.
+
+The shipped assertion hides the project in a **second organization the space
+also serves**, so the caller reaches the space and the portfolio but not that
+organization's projects — leaving portfolio membership as the only thing that
+could expose it. It does not, and the catalog inherits the refusal.
+
+*Recorded, not built*: that project reads are org-scoped rather than
+grant-scoped is a real difference from `security/portfolios`' "users still
+separately need permissions to view the Projects", and it is **not a portfolio
+question**. It belongs to whatever reads `projects-and-roles` next.
+
+**556 — the hygiene 554 and 555 owed.** Table comments and nine foreign-key
+indexes, caught by `catalog.test.ts` rather than by review. Both migrations'
+own assertions passed, because they assert what the feature promises and not
+what the repository requires of any table; a house rule lives in the standing
+suite by construction.
+
 ## Questions
 
 1. **Answered in §7** — the space's own roles are per-space; role sets are the
@@ -441,7 +533,10 @@ type before anything is built on it.
    contents are an API response (`listAvailableRoles` returns each role with
    its operations), not a published list. Decision 2 stands: names and
    descriptions, no invented rows.
-3. **Does `Curate portfolios within the space` include creating one?** The
+3. **STILL OPEN, and now checked properly.** The operator supplied five pages
+   to look in; none splits the two workflow tokens. See §9.
+4. *(the original wording of 3, kept because the proposal is what shipped)*
+   **Does `Curate portfolios within the space` include creating one?** The
    prose gives creation to the "Editor role" and curation to curators, and
    Contributor holds both workflows, so the split cannot be read off the
    screenshot. I propose: **manage** creates and edits metadata, **curate**

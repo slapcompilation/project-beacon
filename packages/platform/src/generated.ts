@@ -362,7 +362,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (154) ───────────────────────────────────────────────────
+// ── FUNCTIONS (159) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -561,6 +561,11 @@ export const canChooseScopedSession = { apiName: 'can_choose_scoped_session', ki
   boolean
 >
 
+export const canCuratePortfolio = { apiName: 'can_curate_portfolio', kind: 'function' } as FunctionType<
+  { p_portfolio: string },
+  boolean
+>
+
 export const canIndexObjectType = { apiName: 'can_index_object_type', kind: 'function' } as FunctionType<
   { p_type: string },
   boolean
@@ -573,6 +578,11 @@ export const canManageBranch = { apiName: 'can_manage_branch', kind: 'function' 
 
 export const canManageMarking = { apiName: 'can_manage_marking', kind: 'function' } as FunctionType<
   { p_marking: string },
+  boolean
+>
+
+export const canManagePortfolio = { apiName: 'can_manage_portfolio', kind: 'function' } as FunctionType<
+  { p_portfolio: string },
   boolean
 >
 
@@ -970,6 +980,11 @@ export const hasResourceRole = { apiName: 'has_resource_role', kind: 'function' 
   boolean
 >
 
+export const hasSpaceWorkflow = { apiName: 'has_space_workflow', kind: 'function' } as FunctionType<
+  { p_space: string; p_workflow: string },
+  boolean
+>
+
 /**
  *  Histogram buckets over a numeric or date property of the filtered set;
  *  bounds from the data, bucket count from the caller.
@@ -1222,6 +1237,16 @@ export const passesScopedSession = { apiName: 'passes_scoped_session', kind: 'fu
   boolean
 >
 
+/**
+ *  Resources of the portfolio's member projects. SECURITY INVOKER on purpose:
+ *  the caller sees only the projects and resources their own grants allow,
+ *  which is what keeps a portfolio curation rather than access.
+ */
+export const portfolioCatalog = { apiName: 'portfolio_catalog', kind: 'function' } as FunctionType<
+  { p_portfolio: string },
+  { project_id: string; project_name: string; resource_kind: string; resource_id: string }[]
+>
+
 export const primaryKeyAdvice = { apiName: 'primary_key_advice', kind: 'function' } as FunctionType<
   { p_base_type: string },
   string
@@ -1417,6 +1442,16 @@ export const signatureBreaks = { apiName: 'signature_breaks', kind: 'function' }
 export const simulateMarkingChanges = { apiName: 'simulate_marking_changes', kind: 'function' } as FunctionType<
   { p_dataset: string; p_add?: string[]; p_remove?: string[] },
   Json
+>
+
+/**
+ *  The workflows the caller holds on one space, through roles granted to them
+ *  or to a group they are in. A Space Administrator has full control over the
+ *  space and so incorporates the rest.
+ */
+export const spaceWorkflows = { apiName: 'space_workflows', kind: 'function' } as FunctionType<
+  { p_space: string },
+  string[]
 >
 
 /**

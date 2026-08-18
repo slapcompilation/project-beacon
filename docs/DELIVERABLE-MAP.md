@@ -264,10 +264,12 @@ for administrative ones.
 **The five `…of interface` action-rule variants** are unblocked (B5 built in
 450) but unbuilt (`ONTOLOGY-BUILD-MAP.md` Phase C).
 
-### Portfolios — READ, NOT BUILT, and blocked on a prerequisite
+### Portfolios — BUILT (554–556), after its prerequisite
 
-`readings/portfolios-and-space-roles.md` is written and **awaits a human
-reading its Decisions block**, which is the gate before any of it is built.
+`readings/portfolios-and-space-roles.md` was recited, approved, and built:
+**554** space roles, **555** portfolios, **556** the catalog hygiene the first
+two owed. What follows is why the order was forced, kept because the finding
+outlives the build.
 
 **The finding that matters: portfolios cannot be built first.** Every portfolio
 operation is gated on a space role, and *we have no space roles at all* — space
@@ -289,9 +291,26 @@ Two corrections that would have become structure:
   built for organizations in 540–542, one scope up, so the precedent to copy
   already exists.
 
-Order therefore: **space roles, then portfolios.** The reading carries both,
-with `projects-roles-and-portfolios.md` (13 citations) still allocated to the
-build.
+Order therefore: **space roles, then portfolios** — which is what shipped.
+`projects-roles-and-portfolios.md` (13 citations) is still allocated and
+unswept; it covers project roles and access requirements, not the portfolio
+half this build needed.
+
+**Two things this build turned up that are not portfolio questions:**
+
+- **Project reads are organization-scoped, not grant-scoped.**
+  `resource_file_access` is organization plus markings and consults no role
+  grant, so any member of an organization can read any of its projects. That
+  differs from "users still separately need permissions to view the Projects
+  inside a Portfolio" (`security/portfolios`). Found while trying to write an
+  assertion that a portfolio grants nothing — twice, because the first two
+  callers could see the project for unrelated reasons. Belongs to whatever
+  reads `projects-and-roles` next.
+- **Question 3 stays open after a real search.** None of the five pages splits
+  `Curate portfolios within the space` from `Manage portfolios within the
+  space`; the GA announcement uses "Editors" and "Administrators" for the same
+  activity in consecutive paragraphs. Our split is marked as inference inside
+  555, and only two predicates change if a page later contradicts it.
 
 **Open question 1 is answered (§7), and the question was the wrong shape.**
 `manage-roles` — a page no reading had opened — shows that "roles on a space"
