@@ -266,10 +266,28 @@ for administrative ones.
 
 **Unbuilt, each carrying a reading whose citations get swept when it is built**
 (`readings/README.md` holds the table): **portfolios**, the half of Compass that
-C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13);
-**typeclasses and render hints** carry `capabilities-typeclasses-and-branching.md`
-(9); and the **lineage surface** — `lineage_graph()` exists and nothing renders
-it — carries `data-lineage.md` (13).
+C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13); and
+**typeclasses and render hints** carry
+`capabilities-typeclasses-and-branching.md` (9).
+
+**The lineage surface was already built, and this file said otherwise for
+twelve days.** The entry read "`lineage_graph()` exists and nothing renders it".
+All three slices the reading planned are live: L1 the engine (`lineage_graph`,
+four edge sources, the staleness fact), L2 the surface
+(`features/lineage/LineagePage.tsx` — the SVG layered DAG, chevron depth,
+details drawer, routed at `/lineage` and `/lineage/:kind/:id`, listed in
+`apps.ts`), and L3 the simulation (`simulate_marking_changes`, the four
+documented states, the mode banner). `lineage.test.ts` is its standing guard.
+
+Verified live rather than by reading the tree: the graph, the simulation and
+`dataset_markings` were each called **as `authenticated`** against production
+after 550–552 revoked the anon grants on exactly those functions. The reading's
+13 citations are swept, and it now carries `verify: strict`.
+
+**This is the eighth time an audit found the thing already built.** The pattern
+holds: the entry described the gap at the moment it was written and nothing
+deleted it when the gap closed. Deleting a shipped entry is the rule this file
+opens with; it is also the rule that keeps getting missed.
 
 **Recorded from the functions reading**: batched execution, `VALIDATE_ONLY`
 mode, the `returnEdits` options, interface and struct edits, retries with

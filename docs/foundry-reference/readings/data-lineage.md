@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — Data Lineage
 
 Read because two features are blocked on a `derived from` edge — the data half of
@@ -37,8 +41,13 @@ nodes**:
 |---|---|
 | **Data source** | "the name of the data source as it appears in Data Connection" |
 | **Dataset** | "Foundry datasets and the lineage between them… **Dashed border indicates unstructured datasets.**" |
-| **Object type** | "Ontology object types. The icon and color of the node depends on the definition of each object type. When clicking on the '**link**' icon next to the object type name, Data Lineage shows the **relations between this object type and other object types**." |
+| **Object type** | first-class, quoted in full below |
 | **Artifact** | "Contour analyses, Reports, etc. The color of the node depends on the artifact type" |
+
+> "Ontology object types. The icon and color of the node depends on the
+> definition of each object type. When clicking on the "link" icon next to the
+> object type name, Data Lineage shows the relations between this object type
+> and other object types."
 
 So **link types are edges in the same graph as dataset dependencies.** One graph
 spans the Dataset Layer and the Object Layer — which is what the operator's
@@ -48,9 +57,11 @@ Dataset (11)`, `Object type (1)`.
 Four **node indicators** sit on top of dataset nodes, and one of them is the
 datasource binding made visible:
 
-> **Defines an object type** — "This indicator appears on **datasets that are used
-> to define Ontology object types**. Hovering over the right arrow allows you to
-> expose those linked object types."
+**Defines an object type** (quoted with the source's own "arrow of" slip):
+
+> "This indicator appears on datasets that are used to define Ontology object
+> types. Hovering over the right arrow of allows you to expose those linked
+> object types."
 
 The others: **Open issues** (with a count on hover), **Syncs** ("datasets with this
 indicator have syncs to other databases or systems"), and **Trashed** ("Deleted
@@ -82,7 +93,11 @@ dataset."
 Two behaviours worth keeping. Expansion is depth-controlled — "Click on the
 chevron button to **define the number of levels** to expose. Click the
 double-chevron to expand **all the way to the raw data**" — with a warning that
-"Adding too many nodes simultaneously may affect the graph's performance." And the
+"Adding too many nodes simultaneously may affect the graph's performance and
+usability." Answering why a node is behind is `stale-datasets`' walkthrough,
+which starts from the questions themselves —
+"Is there an upstream dataset that hasn't built and isn't up to date?"
+— and answers them by expanding ancestors and coloring. And the
 histogram, for multi-select: "displays common properties and their values alongside
 **the number of appearances of each value on the graph**", clickable to highlight,
 with **Frequent Columns** as the column-search mechanism.
@@ -95,32 +110,39 @@ node. The ones that map onto things we have or nearly have:
 | coloring | quoted, abridged |
 |---|---|
 | **Permissions** | "the level of access the user has to the data or the resource… allows you to choose **any Foundry user and view their permissions**" |
-| **Transaction type** | "Indicates each node's transaction type: **Append or Snapshot**" |
-| **Out-of-date** | "**Out-of-date with parent**… a direct parent had been updated and the resource itself hasn't. **Out-of-date with ancestor**… up-to-date with its direct parents, but there is a resource upstream that is more updated." Filterable by **Data** vs **Logic** — "**Logic out-of-date** means job-specs has changed." |
+| **Transaction type** | "Indicates each nodes transaction type: Append or Snapshot" — sic, the source's apostrophe |
+| **Out-of-date** | "**Out-of-date with parent** means a direct parent of the resource had been updated and the resource itself hasn't yet updated accordingly.… **Out-of-date with ancestor** means the resource is up-to-date with its direct parents, but there is a resource upstream that is more updated." Filterable by **Data** vs **Logic** — "**Logic out-of-date** means job-specs has changed." |
 | **Storage** | "Will be **Foundry** unless you are using Virtual Tables" |
 | **Row count**, **Files** | size metrics; row count "could be calculated in the dataset details helper" |
 | **Build status**, **Data Health**, **Schedule count**, **Sync status**, **Time last built**, **Build duration**, **Spark usage**, **User views**, **Branch**, **Code Status** | pipeline operations |
 | **Project**, **Folder**, **Data Catalog**, **Repository**, **Resource type**, **Resource overview**, **Issues**, **Custom color**, **No color** | organisation |
 
-"If the nodes are grouped, the more severe status would be presented" — grouping
+"If the nodes are grouped the more severe status would be presented" — grouping
 aggregates by worst case, which is the right default for a health signal.
 
 ## Permissions coloring confirms the file/data split — from a third source
 
 `check-permissions` offers exactly two permission types to colour by, and they are
-the two halves migration 401 built:
+the two halves migration 401 built. **Data access in datasets**:
 
-> * **Data access in datasets** — "a user's data access is **affected by data
->   lineage**… By coloring your nodes based on the user's access to data, you can
->   easily see what the **upstream datasets** are that may restrict the user's
->   access to data." And: "this option **only works on dataset nodes**."
-> * **Resource access** — "the **role** (such as Editor, Viewer, etc.) that is set
->   for the selected user on the selected resource."
+> "Remember that a user's data access is affected by data lineage"
 
-With the distinction stated outright:
+> "By coloring your nodes based on the user's access to data, you can easily
+> see what the upstream datasets are that may restrict the user's access to
+> data."
 
-> "**Roles do not correspond to data lineage the same way that data access does.**
-> For example, a user being an 'Editor' on a Contour Analysis does not guarantee
+> "Note that this option only works on dataset nodes."
+
+**Resource access**:
+
+> "This will allow you to see the role (such as Editor, Viewer, etc.) that is
+> set for the selected user on the selected resource."
+
+With the distinction stated outright (and quoted with the source's own
+"user being"):
+
+> "Roles do not correspond to data lineage the same way that data access does.
+> For example, user being an "Editor" on a Contour Analysis does not guarantee
 > they have permissions to see the data that the analysis depends on."
 
 ## Marking simulation — the reason for the reading
@@ -135,13 +157,12 @@ dataset will appear as selected. To simulate Marking removal, **uncheck** the bo
 
 Four result states, which is the output contract:
 
-> * "**Simulate changes applied** appears on the datasets to which you applied changes."
-> * "**Access affected** appears on datasets for which the Markings **before and after
->   the change will be different**."
-> * "**Access unaffected** appears on datasets for which the Markings before and after
->   will **remain the same**."
-> * "**No visible transactions** appears on datasets that have **not been built yet**,
->   or where you do not have permission to see transactions."
+> **Simulate changes applied** appears on the datasets to which you applied
+> changes. **Access affected** appears on datasets for which the Markings
+> before and after the change will be different. **Access unaffected** appears
+> on datasets for which the Markings before and after the change will remain
+> the same. **No visible transactions** appears on datasets that have not been
+> built yet, or where you do not have permission to see transactions.
 
 And one hard constraint on what may be simulated:
 
@@ -156,7 +177,7 @@ Three tips that are really behaviour notes:
 
 - "Datasets can **stop propagating Markings via code**… nodes on the Data Lineage
   graph that stop propagating Markings show that data access was **modified via
-  code**." Searchable in the Code Helper "by using the term `stop_propagating`."
+  code**." Searchable in the Code Helper by the term `stop_propagating`.
 - "Datasets can have Markings propagated to them **from other inputs**; expand the
   dataset inputs by clicking on the left arrow."
 - "Markings can be applied on the **parent Project or folder**; Markings will have
@@ -171,15 +192,15 @@ finalized."
 `marking-simulation-analyze.png`. The right-hand **Access information** panel, in
 simulation mode, is headed with the two sections we built, with their prose:
 
-> **File access requirements**
-> "People must have a **role** and meet these access requirements in order to
-> access this file."
-> `ORGANIZATIONS · Any of` → `Palantir`
->
-> **Data access requirements**
-> "People must meet these **additional** requirements **propagated from data
-> upstream** in order to access **data in this file**."
-> `MARKINGS · All of` → `[lineage icon] Content: PII`
+> **File access requirements** — "People must have a role and meet these
+> access requirements in order to access this file." `ORGANIZATIONS · Any of`
+> → `Palantir`
+> — data-lineage/images/marking-simulation-analyze.png
+
+> **Data access requirements** — "People must meet these additional
+> requirements propagated from data upstream in order to access data in this
+> file." `MARKINGS · All of` → `Content: PII`
+> — data-lineage/images/marking-simulation-analyze.png
 
 **That is a second, independent source for the split** — the first was
 `data_dependecies_message.png` on the markings page. Same words, different
