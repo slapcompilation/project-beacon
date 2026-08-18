@@ -116,6 +116,21 @@ grant changed** — the orphans are selectable, not held, which keeps 540's
 refusal intact. `workflowCatalogue.test.ts` guards the class: every workflow a
 policy tests must be catalogued.
 
+**And the surface asked a question the schema never had: who holds any of this?**
+Nobody — production held zero role grants of either kind, so no principal held
+any workflow. That made **555's portfolios unusable**: creating one needs
+`manage_portfolios_within_the_space`, and granting the role that confers it
+needs `manage_space_permissions`, so neither door opened from inside. Measured
+as the organization's own admin: both refused `42501`.
+
+**566 fixes it with this repository's own precedent** — `enforce_grant_ceiling`
+already bootstraps project roles ("someone has to grant the first Owner"), so
+space role grants get the same arm and nothing wider: an owner or admin of an
+organization the space actually serves. Only the *grant* path gets it; the
+administrator then grants `space_administrator`, which subsumes the published
+workflows, and portfolios work through the mechanism rather than around it.
+Verified end to end on real data. `spaceBootstrap.test.ts` guards the chain.
+
 **Step 4, the guest picker, is what remains of §4.**
 
 **Two readings ride along with it.** `readings/control-panel-and-banners.md` (12
