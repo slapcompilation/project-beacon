@@ -1262,8 +1262,10 @@ export const primaryKeyEligibility = { apiName: 'primary_key_eligibility', kind:
 >
 
 /**
- *  The caller's role on a project: the stronger of their explicit grant and
- *  the project's organization-wide default role.
+ *  The caller's strongest role on one project — direct, via a group, or the
+ *  project default — in any organization they belong to. SECURITY DEFINER
+ *  because a predicate that decides access may not be subject to it, and
+ *  because the grants policy calls this function.
  */
 export const projectRole = { apiName: 'project_role', kind: 'function' } as FunctionType<
   { p_project: string },

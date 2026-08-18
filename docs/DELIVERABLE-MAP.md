@@ -298,9 +298,21 @@ half this build needed.
 
 **Two things this build turned up that are not portfolio questions:**
 
-- **Project reads are organization-scoped, not grant-scoped — READ, NOT BUILT.**
-  `readings/access-model-and-permission-vocabulary.md` settles it and awaits a
-  human on its Decisions block. The published formula is a conjunction
+- **Project reads are organization-scoped, not grant-scoped — FIXED (557–560).**
+  `readings/access-model-and-permission-vocabulary.md` has the full account.
+  The conjunct landed on `projects` and `datasets` (`folders` already had it),
+  and finding it exposed two more defects: `project_role` **restated** the
+  organization test more narrowly than the predicate beside it, so a guest
+  could not hold a grant made to them; and it was SECURITY INVOKER while being
+  consulted *by* a policy over the very table it reads, so it answered `viewer`
+  to the owner and NULL to the caller. Both fixed, with `accessModel.test.ts`
+  as the standing guard.
+
+  The open question — which `default_role` preserves behaviour — **dissolved**:
+  every production pair was checked and zero lose visibility, so no backfill
+  was needed. And 557 removed the fixtures 554/555 had committed to production,
+  with the lesson that a migration wrapped in one transaction commits whatever
+  its assertions insert. The published formula is a conjunction
   (`security/checking-permissions`): access requires "Satisfying the
   Organization and Marking requirements" **and** "Having one or more roles
   (directly, via a group, or a default role)". Mandatory controls only ever

@@ -220,13 +220,72 @@ would be the invented citation this repository exists to prevent.
    administrators can change the default behavior at the space level"), which
    is now buildable because 554 gave spaces settings to hold it.
 
-## Questions
+## Built (2026-08-18) — migrations 557–560
 
-1. **Which default role preserves today's behaviour** — `viewer`, or
-   `discoverer`? Foundry's Discoverer exists precisely so a user can see that a
-   project exists without seeing its contents, which may be the more faithful
-   default for an org-wide grant. This is decision 2's open half and needs the
-   operator.
+Decisions 1 and 3 shipped; decision 2 dissolved; two defects were found on the
+way that the conjunct alone would never have shown.
+
+**557 — the fixtures 554 and 555 left in production.** A migration with no
+`COMMIT` of its own is wrapped in one, so rows an assertion inserts are
+committed with the schema change. 552 and 553 dropped their probe *tables*; 554
+and 555 left probe *rows* — three organizations, four spaces, three projects,
+two portfolios, two users. Deleted, child-first, with the reverse direction
+asserted too so a careless cleanup could not take the three default space roles
+with it.
+
+**558 — the conjunct, and question 1 answered by not arising.** The read
+policies for `projects` and `datasets` now read
+`resource_file_access(...) AND project_role(...) IS NOT NULL`. **`folders`
+already did exactly this**, so the change brings two siblings into line with a
+third rather than introducing a pattern.
+
+Decision 2 asked which `default_role` would preserve behaviour, `viewer` or
+`discoverer`. **Neither.** Every user/resource pair in production was checked
+first: both users hold an explicit `owner` grant on the one shared project, and
+each personal project is owned by its person. **Zero pairs lose visibility**, so
+a backfill would have been a change dressed as a migration. The question was
+real and the answer was that the data already satisfied the stricter rule.
+
+**559 — a restatement that disagreed with the predicate beside it.** One
+standing test failed, and correctly. `project_role` tested each grant with
+`g.organization_id = auth_org_id()` — the caller's *primary* organization — while
+`resource_file_access` beside it accepts `auth_org_ids()`, primary **and**
+guest. So a guest could not hold a grant made to them in the host organization.
+Replaced with `auth_in_org(...)`, which is that rule already composed. The
+intent the restatement protected is unchanged: a grant in an organization the
+caller does not belong to still counts for nothing.
+
+**560 — a predicate that answered differently depending on who asked.** The
+guest case still failed, and the cause was in neither function.
+`project_role` is consulted *by* a policy and reads `project_role_grants`,
+which is RLS-guarded, whose read policy is also primary-organization-only. As
+SECURITY INVOKER it returned `viewer` to the owner and NULL to the caller.
+Made SECURITY DEFINER, which is what every sibling predicate already is
+(`auth_in_org`, `auth_org_ids`, `auth_group_ids`) — and which also removes a
+recursion that was sitting in plain sight, since `role holders grant` is a
+policy on `project_role_grants` that calls a function reading
+`project_role_grants`. **A policy may not read the table it guards** is the
+standing rule from the last time that happened.
+
+The function stays safe because its body only ever answers about the caller:
+`g.user_id = auth.uid()`, groups from `auth_group_ids()`, `auth_in_org` on
+every arm.
+
+**The 492 test was corrected, not weakened.** It asserted that guest membership
+*alone* let a visitor read the host's project — the mandatory half standing in
+for the whole formula. An organization is "an access requirement applied to
+Projects": a gate, never a grant, and
+`security/cross-organization-collaboration` grants a guest their roles as a
+separate explicit act. The guest now holds a `viewer` grant, the read-only half
+that was always the point is unchanged, and a new case asserts that a guest
+with no role reads nothing.
+
+`accessModel.test.ts` is the standing guard: grant admits, no-role refuses, the
+predicate agrees with itself across roles, a guest-organization grant counts,
+guest membership alone does not, the mandatory control still vetoes a role
+holder, and datasets obey the same conjunction.
+
+## Questions
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The
    pages speak of "a Project, folder, or file"; whether an ontology entity

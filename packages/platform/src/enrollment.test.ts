@@ -89,23 +89,51 @@ describe.skipIf(noDb)('an organization is a marking', () => {
     expect(await satisfies(homeMarking)).toBe(true)
   })
 
-  it('a guest views the host org read-only — projects, files, users, groups (492)', async () => {
+  // CORRECTED with 558/559. This asserted that guest membership ALONE let the
+  // visitor read the host's project, which is the mandatory half standing in
+  // for the whole formula. `security/checking-permissions` requires both
+  // clauses — organization and markings, AND "one or more roles" — and
+  // `cross-organization-collaboration` grants a guest their roles as a
+  // separate, explicit act ("We need to grant both Sunrise Airlines and Sky
+  // Industries administrators roles on the shared space"). An organization is
+  // an access *requirement*: it gates, it never grants.
+  //
+  // So the guest now needs a role, and the read-only half — which was always
+  // the point of the case — is unchanged.
+  const asGuest = async <T>(fn: () => Promise<T>): Promise<T> => {
     await db.query(`select set_config('request.jwt.claims', $1, true)`,
       [JSON.stringify({ sub: visitor, app_metadata: {
         role: 'admin', org_id: awayOrg, guest_org_ids: [f.orgId] } })])
-    const seen = await (async () => {
-      await db.query('savepoint guest_probe')
-      await db.query('set local role authenticated')
-      try {
-        const p = Number((await one('select count(*) as n from public.projects where id=$1', [f.projectId])).n)
-        const d = Number((await one('select count(*) as n from public.datasets where id=$1', [f.datasetId])).n)
-        const wrote = await db.query(`update public.projects set name='stolen' where id=$1`, [f.projectId])
-        return { p, d, wrote: wrote.rowCount ?? 0 }
-      } finally {
-        await db.query('reset role')
-        await db.query('rollback to savepoint guest_probe')
-      }
-    })()
+    await db.query('savepoint guest_probe')
+    await db.query('set local role authenticated')
+    try {
+      return await fn()
+    } finally {
+      await db.query('reset role')
+      await db.query('rollback to savepoint guest_probe')
+    }
+  }
+
+  it('a guest with no role reads nothing of the host org (558)', async () => {
+    const seen = await asGuest(async () => Number(
+      (await one('select count(*) as n from public.projects where id=$1', [f.projectId])).n))
+    expect(seen).toBe(0)
+  })
+
+  it('a guest views the host org read-only — projects, files, users, groups (492)', async () => {
+    // The grant is made in the HOST organization, which is the shape 559 had
+    // to fix: project_role restated the org test as the caller's PRIMARY
+    // organization, so a guest could not hold a grant made to them.
+    await db.query(
+      `insert into public.project_role_grants (project_id, user_id, role, organization_id)
+       values ($1,$2,'viewer',$3)`, [f.projectId, visitor, f.orgId])
+
+    const seen = await asGuest(async () => {
+      const p = Number((await one('select count(*) as n from public.projects where id=$1', [f.projectId])).n)
+      const d = Number((await one('select count(*) as n from public.datasets where id=$1', [f.datasetId])).n)
+      const wrote = await db.query(`update public.projects set name='stolen' where id=$1`, [f.projectId])
+      return { p, d, wrote: wrote.rowCount ?? 0 }
+    })
     expect(seen.p).toBe(1)
     expect(seen.d).toBe(1)
     expect(seen.wrote).toBe(0)
