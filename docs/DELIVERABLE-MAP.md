@@ -388,9 +388,19 @@ half this build needed.
   `builds`, `build_jobs` and `schedule_runs` stay organization-scoped until a
   page says otherwise.
 
-  Also unmodelled and recorded: `schedules.scope` carries Foundry's `user` and
-  `project` values but no column names **which** project a project-scoped
-  schedule belongs to.
+  **The scoped project — ANSWERED and BUILT (567).** `api/` carries `scopeMode`
+  as a union: project scope names `projectRids`, a **list**, and is "the
+  boundaries for the schedule build" rather than an attribution. `scope` had
+  been read by *nothing* — no function, no policy — so it recorded an intention
+  and enforced nothing. It now names its projects, the union is a CHECK both
+  ways, and a trigger refuses a target outside the boundary. The *discovery*
+  half is deliberately not built: Foundry's user-scoped schedule discovers
+  outputs from what the owner can build, and ours never discovers anything.
+
+  **Builds — still unpublished, now confirmed from the API too.** `get-build`
+  gives only the OAuth scope `api:orchestration-read`; `create-build` names only
+  `CreateBuildPermissionDenied` without saying what permission was missing.
+  Checked from both sides now, not one.
 
   **The folder-and-file role-grants toggle is NOT to be built**, and the
   reading says why. It disables "folder and file role grants" — and there is no
