@@ -306,11 +306,26 @@ half this build needed.
   assertion that a portfolio grants nothing — twice, because the first two
   callers could see the project for unrelated reasons. Belongs to whatever
   reads `projects-and-roles` next.
-- **Question 3 stays open after a real search.** None of the five pages splits
+- **Question 3 stays open after eight pages.** Nothing splits
   `Curate portfolios within the space` from `Manage portfolios within the
   space`; the GA announcement uses "Editors" and "Administrators" for the same
   activity in consecutive paragraphs. Our split is marked as inference inside
   555, and only two predicates change if a page later contradicts it.
+
+  **The search did establish a prior, and it points away from our split.**
+  Foundry's sibling curation surfaces bundle create with manage:
+  `app-building/curating-apps` says permissions to create collections and tags
+  "are the same as the permissions to promote", and `compass/data-catalog`
+  gives one permission both add/remove and "manage who has this permission".
+  So a single bundle is likelier than our boundary. Recorded as analogy — the
+  answer will come from an expanded Space permissions card, not from prose.
+
+  Two decisions were corroborated on the way: **curation is not access** now
+  has a third independent source ("Anyone can view collections and their
+  descriptions, but you will only have access to curated files that are shared
+  with you"), and **delegation is a management act** — which 555's
+  `managers appoint curators` already assumed — is stated outright for
+  collections.
 
 **Open question 1 is answered (§7), and the question was the wrong shape.**
 `manage-roles` — a page no reading had opened — shows that "roles on a space"
