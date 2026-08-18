@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — project roles, access requirements, constraints and portfolios
 
 Answers four questions the operator raised, and closes two open ones from
@@ -27,29 +31,39 @@ Images read closely:
 two tabs — **Requirements** and **Check access** — under a heading that states the
 rule outright:
 
-> "Users must meet **all** of the following requirements to access this project"
+> "Users must meet all of the following requirements to access this project"
+> — security/images/pmc-1.png
 
-Three cards, joined by a literal **AND** between each:
+Three cards, joined by a literal **AND** between each. **Organizations · Any of**
+holds `🏢 Sky Industries`; **Markings · All of** holds `🛡 Information: PII`; and
+the **Roles** card carries a row of principal avatars over this line:
 
-| card | contents |
-|---|---|
-| **Roles** ⓘ | a row of principal avatars, and: "Everyone from 🏢 **Sky Industries** meeting access requirements can see the existence of this project and is granted the **Discoverer** role. You also have the **Owner** role." |
-| **Organizations · Any of** ⓘ | `🏢 Sky Industries` |
-| **Markings · All of** ⓘ | `🛡 Information: PII` |
+> "Everyone from Sky Industries meeting access requirements can see the
+> existence of this project and is granted the Discoverer role. You also have
+> the Owner role."
+> — security/images/pmc-1.png
 
 **The quantifiers are in the labels.** `Organizations · Any of`. `Markings · All
 of`. That is not inferred; it is printed on the card. And two other pages state
 the same rule in prose, independently:
 
-> "**Markings** restrict access in an **all-or-nothing** fashion: to access a
-> resource, a user must be a member of **all** markings applied to the resource…
-> On the other hand, for **organizations**, users must be a member or guest member
-> of **at least one** organization applied to a project."
-> — `pipeline-builder/outputs-remove-markings-and-organizations`
+From `security/security-glossary`:
 
-> "If a resource has multiple organizations, the user must be a member of **at
-> least one** of the organizations applied to the resource."
-> — `object-link-types/mandatory-control-properties`
+> "An access requirement applied to resources that restricts access in an
+> all-or-nothing fashion. In order to meet access requirements, a user must be
+> a member of *all* Markings applied on the resource. Markings are a mandatory
+> control."
+
+and the other half, from `security/orgs-and-spaces`:
+
+> "To meet access requirements, users must be a member or guest member of at
+> least one organization applied to a Project."
+
+with `object-link-types/mandatory-control-properties` saying the same of any
+resource:
+
+> "If a resource has multiple organizations, the user must be a member of at
+> least one of the organizations applied to the resource."
 
 This is the same four-slot shape as the object security policy dialog from
 `object-permissioning`, one level up: it is how a **project** is permissioned, and
@@ -72,22 +86,33 @@ other and are different things — see §4.
   `Flight Delays [Transform] - Owner` → `Owner` *(tagged **You**)*
   `Flight Delays [Transform] - Viewer` → `Viewer`
 - **Flatten group members** ⓘ — a toggle, off
-- Footer: "This project is using roles from **Project defaults**."
+- a footer line:
+
+> "This project is using roles from Project defaults."
+> — security/images/flight-delay-project.png
 
 Three things the prose does not say:
 
 1. **Foundry auto-creates one group per role per project**, named
-   `<Project> - <Role>`. That is what "we recommend granting group roles at the
-   Project level" looks like when the platform does it for you.
-2. **`Default role` is a standing setting on the project**, not a one-time grant.
-   The create dialog's sentence names its effect: "Everyone from **Palantir** can
-   see the existence of this project and is granted the **Viewer** role." The
-   grantee is **the organization**, not the creator.
-3. **"using roles from Project defaults"** names the *role set* — which
-   `manage-orgs-and-spaces` lists as a space creation setting: "**Role set:**
-   Controls which roles are available to projects. Defaults to `Project
-   defaults`." So which roles exist is a space-level choice, and a project
-   declares which set it follows.
+   `<Project> - <Role>`. That is what the recommendation to grant group roles at
+   the project level looks like when the platform does it for you.
+2. **`Default role` is a standing setting on the project**, not a one-time
+   grant, and the grantee is **the organization** rather than the creator. The
+   create dialog names the effect:
+
+> "Everyone from Palantir can see the existence of this project and is granted
+> the Viewer role."
+> — security/images/pmc-1.png
+
+3. The footer names the **role set**, which `manage-orgs-and-spaces` lists as a
+   space creation setting:
+
+> "**Role set:** Controls which roles are available to projects. Defaults to
+> `Project defaults`, but you can use a custom role set instead."
+
+   So which roles exist is a space-level choice, and a project declares which
+   set it follows. (§7 of `portfolios-and-space-roles` works out what a role set
+   actually is.)
 
 The ladder itself, quoted:
 
@@ -110,23 +135,42 @@ And the boundary between discretionary and mandatory, stated in one sentence:
 
 A project setting, `advanced_settings_roles.png`:
 
-> **Allow resource level role grants** — "When enabled, users can be assigned roles
-> on folders and files." *(off)*
+The project's own toggle, **Allow resource level role grants**, shown off:
 
-And its space-level default, `space-settings-role-grants.png`, under a heading
-**Resource-level role grants**:
+> "When enabled, users can be assigned roles on folders and files."
+> — security/images/advanced_settings_roles.png
 
-> **Role grants on folders and files** — "When enabled, users can be assigned roles
-> on folders and files **in new projects by default**." *(off)*
+And its space-level default, under a heading **Resource-level role grants**,
+also off — note the wording differs deliberately, since the space sets the
+default *for new projects* while the project sets its own:
 
-Note the wording differs deliberately: the space sets the default **for new
-projects**; the project sets its own. Prose: "Role grants on folders and files are
-**disabled by default**… **We recommend keeping role grants on folders and files
-disabled**." Turning it off is destructive and says so: "if the role grants setting
-is disabled for Projects already containing resources with role grants, role grants
-against these individual resources **will be removed**… it cannot be re-added until
-the setting is re-enabled." Link sharing goes with it, "as link sharing gives the
-receiver of the link a direct role grant on the individual folder or file."
+> "When enabled, users can be assigned roles on folders and files in new
+> projects by default."
+> — security/images/space-settings-role-grants.png
+
+The prose says which way to leave it:
+
+> "Role grants on folders and files are disabled by default. Space
+> administrators can change the default behavior at the space level. We
+> recommend keeping role grants on folders and files disabled."
+
+Turning it off is destructive, and says so:
+
+> "If the role grants setting is disabled for Projects already containing
+> resources with role grants, role grants against these individual resources
+> will be removed. Once an existing role grant is removed, it cannot be re-added
+> until the setting is re-enabled."
+
+Link sharing goes with it:
+
+> "Project link sharing capability will also be removed as link sharing gives
+> the receiver of the link a direct role grant on the individual folder or
+> file."
+
+**Built (2026-08-18)**: none of this, deliberately — see
+`access-model-and-permission-vocabulary`. We have no folder or file level for a
+grant to attach to, so the toggle would be a switch over nothing, and the state
+we are permanently in is the one this page recommends.
 
 ## 3. Requesting access
 
@@ -143,12 +187,18 @@ Three entry points, each for a different starting position:
 > to a Project, including any required **Markings**."
 
 The request asks for a reason, who it is for, and *how* they should be granted —
-and the recommended answer is a group, not a direct grant: "users can select to get
-access to a **group** with an appropriate role on the Project… which will route the
-request to the group administrators for approval." Only when "there are no groups
-assigned to the Project" does it fall back to a direct grant, which "will create a
-Project access request task and require approval from users who have the **Owner**
-role."
+and the recommended answer is a group, not a direct grant:
+
+> "In the **Request access** pop-up, users can select to get access to a group
+> with an appropriate role on the Project."
+
+Only when no group is available does it fall back to a direct grant, and that
+route needs an owner's approval:
+
+> "If there are no groups assigned to the Project, a user can request to be
+> added directly to the Project with a given role. This will create a Project
+> access request task and require approval from users who have the Owner role
+> on the Project."
 
 One rule worth keeping: **a request on a file is a request on the project.**
 
@@ -161,11 +211,38 @@ One rule worth keeping: **a request on a file is a request on the project.**
 
 Three types, and they constrain what *may be applied*, not what a user must hold:
 
-> * "**No constraints (default):** All markings are allowed in the Project."
-> * "**Allowed markings:** Only specified markings are allowed in the Project."
-> * "**Prohibited markings:** The specified markings are not allowed in this
->   Project… This constraint effectively allows data with any marking, except those
->   listed, to be used in the Project."
+**Corrected 2026-08-18**: the first two were quoted truncated, and the dropped
+clause is the one this section is about — each says what may be *set as an
+access requirement*, which is precisely the constraint/requirement distinction.
+
+> "**No constraints (default):** All markings are allowed in the Project and can
+> be set as an access requirement."
+
+> "**Allowed markings:** Only specified markings are allowed in the Project and
+> can be set as an access requirement in Project files."
+
+> "**Prohibited markings:** The specified markings are not allowed in this
+> Project… This constraint effectively allows data with any marking, except
+> those listed, to be used in the Project."
+
+`manage-project-constraints` adds who may set one, and a guard against setting
+a constraint that the project already violates:
+
+> "To add a constraint on a Project, you must have an `Owner` role on the
+> Project and add “Apply marking" permissions on all markings added as a Project
+> constraint. You will not be able to add or modify a Project constraint if
+> doing so would cause an existing file in the Project to be in violation of the
+> constraint you are trying to add."
+
+And the consequence of a violation arriving later — which is a **build**
+outcome, not an access one, and the sharpest evidence that a constraint is not
+a requirement:
+
+> "After a Project constraint is applied, a dataset could still violate the
+> Project constraint if a violating marking was added somewhere upstream and
+> inherited by a dataset in the Project. This is surfaced by a warning on the
+> dataset that is in violation. If the dataset violates the Project constraints,
+> it cannot be built until the violation is resolved."
 
 The purpose is stated, and it is not access control:
 
@@ -330,7 +407,7 @@ better excuse.
 
 1. **`projects.default_role` is a standing setting, granted to the organization.**
    Our `useCreateProject` treated it as a one-time grant **to the creator**, with a
-   comment rationalising it ("the only member the project has at this point"). The
+   comment rationalising it as the only member the project had at that point. The
    screenshot disproves both halves: `Default role` is a persistent dropdown in
    Manage roles, and the create dialog's own sentence says "**Everyone from
    Palantir** … is granted the Viewer role."
