@@ -334,8 +334,20 @@ half this build needed.
   `project` values but no column names **which** project a project-scoped
   schedule belongs to.
 
-  Still unbuilt: the **folder-and-file role-grants toggle**, buildable now that
-  554 gave spaces settings to hold it.
+  **The folder-and-file role-grants toggle is NOT to be built**, and the
+  reading says why. It disables "folder and file role grants" — and there is no
+  folder or file level here: `project_role_grants` names a project and nothing
+  finer, no per-resource grant table exists, and no link-sharing table exists
+  either (the toggle governs that too). A folder's access is already entirely
+  its project's. So the switch has one honourable position and we are in it,
+  which is the position Foundry recommends: "We recommend keeping role grants
+  on folders and files disabled."
+
+  What would make it real, in order: per-resource role grants, then link
+  sharing, then the toggle over both, then the space-level default, then the
+  documented cascade that deletes existing resource grants when it is turned
+  off. That cascade is why it is not merely a boolean and cannot precede the
+  thing it deletes.
 
 - **Project reads are organization-scoped, not grant-scoped — FIXED (557–560).**
   `readings/access-model-and-permission-vocabulary.md` has the full account.
