@@ -496,8 +496,49 @@ why `view_group_membership` is simultaneously *referenced by a live policy* and
 *Inference, marked*: that a catalogue is the right shape rather than seeding
 `view_group_membership` into some default role. The seeding route would require
 choosing a role no page assigns it to — the thing 540 refused — while the
-catalogue is stated outright by the page above. **Not built here**: this
-reading stops at the finding, and the recitation gate applies to what follows.
+catalogue is stated outright by the page above.
+
+### Built (2026-08-18) — migrations 563–564, and a second orphan that was mine
+
+**There were two, not one.** Sweeping every workflow token a policy tests found
+`manage_space_permissions` in the same state, from **554**, written earlier the
+same day. Its header says the token "sits in no role and only a subsuming
+administrator holds it" — and that is **false**, verified by granting
+`space_administrator` and reading the answer: subsumption redistributes
+workflows some role already carries and cannot conjure one that appears
+nowhere. So `space_role_grants.space administrators grant roles` was dead too.
+540's version was the more defensible mistake; mine was the same mistake made
+while documenting it.
+
+**563** builds the catalogue: `workflows(api_name, scope, display_name,
+description, published)`, twelve rows — the ten a role carries, plus the two
+orphans. `published` is false for exactly one, `manage_space_permissions`,
+because no card names the workflow that confers granting; keeping the invented
+tokens countable is the point of the column. Both role tables gain a foreign key
+into it, so an unknown workflow is refused where any string matching the format
+CHECK used to pass, and a trigger keeps each level to its own scope.
+
+**No grant changed.** Every role carries exactly what it carried, and both
+orphans are still held by nobody — the catalogue makes them *selectable*, not
+held, which is what keeps 540's refusal intact rather than overturning it. What
+becomes possible is the composition route the page describes: an operator builds
+a custom role containing one, and only then does the policy behind it come
+alive.
+
+The guard's error messages are split deliberately — `Permissions:UnknownWorkflow`
+before `Permissions:WorkflowWrongScope` — because the trigger fires ahead of the
+foreign key, and a typo reported as a scope error sends the reader after the
+wrong thing.
+
+**564** pays the leading-column indexes 563's two foreign keys owed, caught by
+`catalog.test.ts`. Second time in this arc after 556; the standing suite finds
+it because a migration's own assertions test what the feature promises, not what
+the repository requires of any table.
+
+`workflowCatalogue.test.ts` holds the class rather than the two instances: **every
+workflow a policy tests must be catalogued**. That is the test nobody had, and
+its absence is why the defect survived two migrations that each reasoned about it
+correctly.
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The
    pages speak of "a Project, folder, or file"; whether an ontology entity
