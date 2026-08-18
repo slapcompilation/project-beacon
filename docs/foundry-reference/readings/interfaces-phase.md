@@ -31,9 +31,10 @@ platform summarises the ontology — read to place interfaces among them, and no
 decision in this reading rests on a sentence of theirs.
 
 **Sublinks named but NOT read:** `marketplace/overview` (**not in the mirror**),
-`action-types/actions-on-interfaces` (**not in the mirror** — named by
-`interface-action-type-constraints.md` as the page for action rules that operate
-on interface objects; it is the one page this reading most wanted),
+`action-types/actions-on-interfaces` (**was not in the mirror when this was
+written; mirrored 2026-08-11 and now read** — see
+`readings/actions-on-interfaces.md`, which answers question 6 below and
+corrects the guess in it),
 `functions/overview`, `ontology-sdk/overview`, `workshop/overview`,
 `object-backend/overview` (grepped: contains no occurrence of the word interface),
 `pipeline-builder/outputs-add-ontology-output`, `platform-overview/development-life-cycle`,
@@ -1097,12 +1098,15 @@ does incidentally demonstrate that display name and API name are independent.
    implementers? Is the 1,000 a hard cap or an indexing guideline? The sentence
    states the limits and stops. Grepped the whole corpus; `interface-metadata.md`
    is the only page that mentions them.
-6. **What is `Interface action control` / `Enable interface actions`?**
-   `blocks: action-type-constraints`. Image-only (`iatc-mapping-page.png`); zero
-   prose hits corpus-wide for either string. It appears to gate whether actions
-   *inherited from an interface* may run against this object type — which implies
-   a runtime that the Limitations section says does not exist. The unmirrored
-   `action-types/actions-on-interfaces` is the likely home.
+6. ~~**What is `Interface action control` / `Enable interface actions`?**~~
+   **ANSWERED** by `actions-on-interfaces`, now mirrored. The guess above was
+   half right and half wrong. Right: it does gate actions inherited from an
+   interface against a specific object type. Wrong: it is not the action-type
+   constraint, and it is not the action type's own setting — it is the *object
+   type's*, reached from its Interfaces tab, and it exists because interface
+   submission criteria "apply uniformly to all object types that implement the
+   interface", so opting an object type out is the only per-type control there
+   is. See `readings/actions-on-interfaces.md` §5.
 7. **Is a locally-defined interface property ever shown with a globe?**
    `blocks: nothing`. The globe means shared property
    (`shared-property-overview.md`), and the newest capture shows local properties

@@ -352,11 +352,89 @@ history of sensitive workflows within Control Panel"
 SDK web hosting. We have `ontology_proposals` for ontology changes and nothing
 for administrative ones.
 
-**`authorized_group_ids` compiles fail-closed** until scoped sessions bind it
-(`readings/security-phase.md`, open question 2).
+**~~`authorized_group_ids` compiles fail-closed~~ — it did not, in one shape
+(FIXED 568).** Foundry declines to define the attribute ("Contact your Palantir
+administrator"), so 484/490 bound it to an empty array. That is closed for
+`intersects` and `superset_of` and **open for `subset_of`**, since the empty set
+is a subset of everything — `authorized_group_ids subset_of <column>` was true
+for every row. It now compiles to `false`, because any placeholder leaves the
+outcome to the operator. `policyFailClosed.test.ts` guards the class.
 
-**The five `…of interface` action-rule variants** are unblocked (B5 built in
-450) but unbuilt (`ONTOLOGY-BUILD-MAP.md` Phase C).
+Worth keeping: `granular_comparison_check` already refused `NOT` for exactly
+this hazard, quoting Foundry's warning and calling itself "stricter than the
+warning, and deliberately so". The same failure walked in through an operator
+the warning does not name.
+
+### Action rules on interfaces — BUILT (569–570), and 569 was wrong
+
+`action-types/rules` lists twelve rule kinds; we carried seven. **569** adds
+`action_type_rules.interface_id` and registers the remaining five. None
+executes: the three object kinds need the parameter Foundry generates for them
+("an 'Object type' parameter will be automatically generated", "an 'interface
+reference' parameter will be generated, constrained to the selected
+interface"), and the two link kinds wait for the link instance store that
+`create_link` and `delete_link` already wait for. Each says so in its own note
+rather than sharing a vague one — registered, expressible, refused at execution
+with a stated reason, which is how `create_or_modify_object` has been carried
+since it was registered.
+
+**570 corrects 569, and the way it was wrong is the point.** The governing
+sentence is one clause:
+
+> you can use interface action rules only to modify the *interface shared
+> properties*  — `action-types/actions-on-interfaces`
+
+569 enforced it by joining `action_type_rule_properties.property_id` against
+`interface_properties.property_id`. Those columns are different types — a uuid
+referencing `object_type_properties(id)` against the property's text api id —
+so the guard raised `function string_agg(uuid, unknown) does not exist` the
+moment any interface rule carried a property. **569's own assertions checked
+the registry and never inserted a rule property**, so the path they were meant
+to prove was never executed. That is exactly the failure
+`a lesson written is not followed` records, made again while the lesson was two
+migrations old. The rule holds without amendment: **an assertion has to execute
+the path, and a guard nobody has watched fail is not a guard.**
+
+The type error was pointing at a real design fault, not a missing cast. The
+column can only reference an *object type's* property, and an interface rule
+does not write those — a rule naming `Aircraft.status` is a rule about Aircraft
+however it is labelled. So 570 gives the table a second reference,
+`interface_property_id`, with `num_nonnulls(...) = 1`: a rule property names
+either an object type's property or an interface's, never both.
+
+**And a third guard nobody had looked at.** `guard_action_rule_property` read
+the rule's `object_type_id` and refused the row outright when it was null —
+"% does not write object properties" — which was right while every rule
+carrying properties targeted an object type, and made all five interface kinds
+unusable. It is also where the check belongs, because it fires on the property
+INSERT rather than needing the rule row touched afterwards. The rule row still
+re-checks, because repointing a rule at another interface strands the
+properties the old one declared. `interfaceActionRules.test.ts` covers both
+directions.
+
+**571 is the consequence nobody would have looked for.** `action_editable_properties`
+answers Phase C's design sentence — *"this is the only property that users can
+edit"* — with an inner join through `property_id`. After 570 an interface rule's
+property lives in the other column, so **every interface action reported zero
+writable properties**. Not an error; a zero, from the function whose whole job is
+that answer. 571 adds the interface arm: the interface property resolved through
+`interface_implementation_mappings` to the concrete property each implementer
+mapped it onto, one row per type — Foundry's own example being `Title` on Bug
+and `Summary` on Feature request for one interface `Subject`.
+
+It also gives `object_type_interfaces.interface_actions_enabled` **its first
+reader**. 450 added that column citing this same page and nothing ever read it —
+declared, defaulted, inert, which is the half-built shape seen from the other
+side. A type that turned interface actions off is not edited by the action, so
+its properties leave the answer.
+
+**The reading came after the build, and is recorded that way.**
+`readings/actions-on-interfaces.md` was written once 569 was already applied.
+It found two things review had not: the governing quote both migrations carry
+is **cut short** — it ends "or to delete objects" — and the Interface action
+control gate this page describes was **already built in 450**, while
+`readings/interfaces-phase.md` was simultaneously recording the page as
+unmirrored and the question as open. The schema knew and the reading did not.
 
 ### Portfolios — BUILT (554–556), after its prerequisite
 

@@ -375,9 +375,10 @@ export const actionEditLimit = { apiName: 'action_edit_limit', kind: 'function' 
 >
 
 /**
- *  Every property this action type can write. "Because we have only defined
- *  one action that touches only the Root Cause property, this is the only
- *  property that users can edit."
+ *  Every property this action type can write. An interface rule expands to
+ *  the concrete property each implementing type mapped its interface property
+ *  onto, skipping types that turned interface actions off — because the
+ *  action edits objects, and an interface has none.
  */
 export const actionEditableProperties = { apiName: 'action_editable_properties', kind: 'function' } as FunctionType<
   { p_action: string },

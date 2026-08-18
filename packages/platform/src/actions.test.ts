@@ -127,7 +127,9 @@ describe.skipIf(noDb)('actions', () => {
     expect(await count(
       `select count(*) n from public.action_rule_kinds() where executable and runtime = 'sql'`)).toBe(3)
     expect(await count('select count(*) n from public.action_rule_kinds() where executable')).toBe(4)
-    expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(7)
+    // Twelve since 569 registered the five `…of interface` variants. The number
+    // that matters is the one above it: registering a kind does not make it run.
+    expect(await count('select count(*) n from public.action_rule_kinds()')).toBe(12)
   })
 
   // ── 445 + 449: the apply path and its gates ───────────────────────────────
