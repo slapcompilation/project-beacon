@@ -316,8 +316,8 @@ surface.
 `capabilities.test.ts` now fires each refusal — unknown slot, a property of
 another object type, a base type the slot does not take — and the nomination
 that must succeed. The whole CRUD path was also run **as `authenticated`**
-against production, because "authors write capabilities" had never admitted a
-row and a policy nobody has exercised is a guess.
+against production, because the `authors write capabilities` policy had never
+admitted a row, and a policy nobody has exercised is a guess.
 
 **Deliberately not built.** The list-shaped panel (Time series) needs a `sync`
 reference and a `base_formatter` that `time_series_properties` does not carry,
