@@ -285,6 +285,35 @@ predicate agrees with itself across roles, a guest-organization grant counts,
 guest membership alone does not, the mandatory control still vetoes a role
 holder, and datasets obey the same conjunction.
 
+## Built (2026-08-18) — migration 561, and a decision that was already built
+
+**Decision 6 needed nothing.** The delegation rule — "Each role can assign
+other users the same or lesser role… while the Discoverer can only grant other
+users the Discoverer role" — is already enforced, as
+`Projects:GrantExceedsRole`. I had it down as an unbuilt gap and expected to
+find a privilege escalation; probing as a real caller found a discoverer
+refused both `owner` and `editor` and allowed `discoverer`. It is now asserted
+in the suite, because a guard nobody has watched fail is not a guard.
+
+**561 — the same conjunct, one table over.** `project_resources` is the
+placement ledger, and its write policy already required `editor` while its read
+policy asked only for the organization. So after 558 a caller with no role
+could not see a project and could still enumerate its contents. Closed on
+inheritance: "role grants inherit to child resources… granting a user Viewer on
+a Project or folder gives them Viewer on all resources contained by that
+Project or folder."
+
+**The sweep behind it.** Every permissive read policy gated on `auth_org_id`
+alone was listed — 36 — and the rest are not this. Org-level registries
+(users, groups, tags, spaces, organizations) are meant to be visible to
+members; portfolios and collections are **specified** as organization-visible
+and 555 asserts it; the role vocabularies and grant ledgers are their own
+thing. *Recorded, not changed*: `builds`, `build_jobs`, `schedules` and
+`schedule_runs` read org-wide over pipeline objects that belong to datasets,
+which belong to projects. Whether a build is a "child resource" of its project
+in the inheritance sense is not answered by any page cited here, and belongs to
+whoever reads the builds pages next.
+
 ## Questions
 2. **Does the role conjunct apply to every resource kind, or only to those
    Compass governs?** `resource_file_access` is called for several kinds. The

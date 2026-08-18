@@ -117,4 +117,64 @@ describe.skipIf(noDb)('access is a conjunction', () => {
       (await one('select count(*) as n from public.datasets where id=$1', [f.datasetId])).n))
     expect(n).toBe(0)
   })
+
+  it('applies it to a project\'s contents too (561)', async () => {
+    // "role grants inherit to child resources", so the placement ledger is
+    // reachable through a role and not through the organization. The write
+    // policy already required editor; the read policy did not.
+    await db.query(
+      `insert into public.project_resources (resource_kind, resource_id, project_id, organization_id)
+       values ('object_type', gen_random_uuid(), $1, $2)`, [f.projectId, f.orgId])
+
+    await claims(holder, f.orgId)
+    const seen = await asAuthenticated(async () => Number(
+      (await one('select count(*) as n from public.project_resources where project_id=$1',
+        [f.projectId])).n))
+    expect(seen).toBe(1)
+
+    await claims(stranger, f.orgId)
+    const hidden = await asAuthenticated(async () => Number(
+      (await one('select count(*) as n from public.project_resources where project_id=$1',
+        [f.projectId])).n))
+    expect(hidden).toBe(0)
+  })
+
+  it('lets a role grant only the same or a lesser role', async () => {
+    // "Each role can assign other users the same or lesser role… while the
+    // Discoverer can only grant other users the Discoverer role."
+    // Already enforced as Projects:GrantExceedsRole — asserted here because a
+    // guard nobody has watched fail is not a guard.
+    const weak = (await one(
+      `insert into auth.users (id, instance_id, aud, role, email)
+       values (gen_random_uuid(),'00000000-0000-0000-0000-000000000000',
+               'authenticated','authenticated','access558c@beacon.test') returning id`)).id
+    // The guard applies to this setup insert too — it fires on the trigger, not
+    // on the connected role — so the fixture is laid down as an admin before
+    // the probe drops to the weak identity.
+    await claims(holder, f.orgId, 'admin')
+    await db.query(
+      `insert into public.project_role_grants (project_id, user_id, role, organization_id)
+       values ($1,$2,'discoverer',$3)`, [f.projectId, weak, f.orgId])
+    await claims(weak, f.orgId)
+
+    const attempt = async (role: string) => {
+      await db.query('savepoint grant_probe')
+      await db.query('set local role authenticated')
+      try {
+        await db.query(
+          `insert into public.project_role_grants (project_id, user_id, role, organization_id)
+           values ($1, $2, $3, $4)`, [f.projectId, stranger, role, f.orgId])
+        return null
+      } catch (e) {
+        return e instanceof Error ? e.message : String(e)
+      } finally {
+        await db.query('rollback to savepoint grant_probe')
+        await db.query('reset role')
+      }
+    }
+
+    expect(await attempt('owner')).toContain('Projects:GrantExceedsRole')
+    expect(await attempt('editor')).toContain('Projects:GrantExceedsRole')
+    expect(await attempt('discoverer')).toBeNull()
+  })
 })

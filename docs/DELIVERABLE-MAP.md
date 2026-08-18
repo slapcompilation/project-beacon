@@ -298,6 +298,26 @@ half this build needed.
 
 **Two things this build turned up that are not portfolio questions:**
 
+- **Project contents — FIXED (561), and one gap that was not one.**
+  `project_resources` read org-wide while its write policy already required
+  `editor`, so after 558 a caller with no role could not see a project and
+  could still enumerate its contents. Closed on inheritance ("role grants
+  inherit to child resources").
+
+  **Role delegation was already built** — `Projects:GrantExceedsRole` refuses a
+  discoverer both `owner` and `editor`. It was listed as a gap and was not one;
+  **the tenth time an audit has found the thing already built.** Now asserted.
+
+  The sweep behind 561 listed all 36 permissive read policies gated on
+  organization alone; the rest are org registries or specified as
+  organization-visible (portfolios, collections). **Recorded, not changed**:
+  `builds`, `build_jobs`, `schedules`, `schedule_runs` read org-wide over
+  objects that belong to datasets, which belong to projects — whether a build
+  is a "child resource" in the inheritance sense needs the builds pages read.
+
+  Still unbuilt: the **folder-and-file role-grants toggle**, buildable now that
+  554 gave spaces settings to hold it.
+
 - **Project reads are organization-scoped, not grant-scoped — FIXED (557–560).**
   `readings/access-model-and-permission-vocabulary.md` has the full account.
   The conjunct landed on `projects` and `datasets` (`folders` already had it),
