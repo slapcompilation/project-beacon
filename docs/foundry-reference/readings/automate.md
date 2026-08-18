@@ -463,12 +463,33 @@ the `permissions` page into `security` and grown its own page.
    falsified a CHECK did not, and the reason was a second sentence on the same
    page. **When a drifted page seems to contradict a constraint, read the whole
    page again, not the diff** — a diff shows what moved, never what still holds.
-2. **Multiple cron expressions is the one thing here worth building**, and the
-   shape follows from how the page words it. Foundry states non-overlap as a
-   requirement on the author and never says it rejects an overlapping pair, so a
-   CHECK that refuses one would be inventing enforcement — the same move that
-   put `object_type_impact` back. The build is: a list of crons, each validated
-   individually as today, firing when **any** matches.
+2. **Multiple cron expressions — BUILT (573).** A time condition names either
+   one `cron` or a non-empty `crons` array, never both, sharing one `timezone`;
+   it fires when **any** expression matches. Existing rows keep working.
+
+   **Non-overlap is not enforced, and the build strengthened the reason.** The
+   reading's argument was that Foundry states it as a requirement on the author
+   and never says the platform refuses an overlapping pair, so a CHECK would be
+   inventing enforcement. True, but the decisive reason is narrower: **firing is
+   once per tick on any match, so in this engine an overlap is a non-event.**
+   Two expressions matching the same minute produce one firing. Foundry
+   presumably needs the rule because theirs would fire twice. A CHECK would
+   refuse configurations that behave correctly here, which is worse than not
+   having one. (It is also intractable to check exactly — the documented dom/dow
+   OR rule makes field-wise disjointness unsound — but that is a reason not to
+   fake it, not the reason not to do it.)
+
+   **Scope, which nearly went wrong.** This is *Automate's* time condition.
+   `building-pipelines/triggers-reference` still says a time trigger is "defined
+   using a cron expression and a time zone" — singular — so `schedules.trigger`
+   is untouched, and a test asserts that a `crons` array is still refused there.
+   The two grammars look alike; only one page moved.
+
+   **The timezone stays on the condition.**
+   `condition-time-cron-configuration.png` pairs one cron field with one
+   timezone dropdown, which is our shape. That capture predates multiple
+   expressions and **no image shows the multi-cron control at all**, so a zone
+   per expression would be invented structure.
 3. **Automatic pausing is not built.** "Excessive activity" is undefined — no
    threshold, no metric, no window anywhere in the section. A pause we invent a
    trigger for is a policy of ours wearing Foundry's name. What it *does* expose
@@ -486,12 +507,13 @@ the `permissions` page into `security` and grown its own page.
 ## Questions from the sweep
 
 1. **Does Foundry refuse overlapping cron expressions, or only ask for
-   non-overlap?** The page lists it under "Requirements" beside a requirement
-   that is plainly validated (each expression must be individually valid). If it
-   *is* enforced, the mechanism is unstated, and an exact check is expensive —
-   two expressions overlap only if some instant satisfies both, and the dom/dow
-   OR rule makes field-wise reasoning unsound. `blocks:` whether multi-cron gets
-   a CHECK or a comment.
+   non-overlap?** Still open, and 573 no longer waits on it: an overlap is
+   harmless in our engine either way. It would only matter if firing became
+   per-expression rather than per-tick. `blocks: nothing`.
+1b. **Does each expression in a multi-cron condition carry its own timezone?**
+   Unattested — the only cron screenshot predates the feature and pairs one
+   expression with one zone. 573 keeps the zone on the condition.
+   `blocks:` a multi-cron authoring surface.
 2. **What does a partially paused automation look like in the data?** Scheduled
    and live triggers stop while manual runs and event retries continue, so pause
    is at least a three-state. Whether an auto-pause is distinguishable from an

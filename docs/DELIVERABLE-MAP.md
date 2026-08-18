@@ -762,17 +762,45 @@ versus event retries. **When a drifted page seems to contradict a constraint,
 re-read the page, not the diff.** A diff shows what moved and never what still
 holds.
 
-**Two real divergences, both recorded with Decisions blocks, neither built:**
+**Two real divergences, both since BUILT (572, 573) after the operator asked
+for them to be verified against the pages and images first:**
 
-* **We always allow overlapping schedule runs.** `create-schedule` now documents
+* **We always allowed overlapping schedule runs.** `create-schedule` documents
   a default — a schedule does not start a new run while another is in progress —
-  and `schedule_candidates()` filters on `NOT s.paused` and nothing else. So
-  Foundry's opt-in behaviour is our only behaviour, unstated, with the pg_cron
-  heartbeat firing every minute. Not a regression (the sentence is new), but a
-  *silent* divergence: nothing fails, runs pile up.
-* **A time condition takes one cron, and Foundry now takes several.**
-  Non-overlap is stated as a requirement on the author, never as a platform
-  refusal — so a CHECK enforcing it would be inventing enforcement.
+  and `schedule_candidates()` filtered on `NOT s.paused` and nothing else, with
+  the pg_cron heartbeat firing every minute. Not a regression (the sentence is
+  new), but a *silent* divergence: nothing failed, runs piled up. **572** adds
+  `allow_overlapping_runs`, default false.
+* **A time condition takes one cron, and Foundry now takes several.** **573**
+  makes it either one `cron` or a non-empty `crons` array, never both, sharing
+  one `timezone`, firing when any matches.
+
+**Verifying before building changed both of them.**
+
+For the schedule, the images settled the default twice over —
+`advanced-settings.png` shows all six Advanced-options checkboxes unchecked —
+and reading the *code* found the trap: `record_schedule_run` clears
+`trigger_state`, because a run consumes what it observed. A suppressed attempt
+never ran, so routing the skip through it would have eaten the observed events
+silently. That is a worse bug than the one being fixed, and nothing but reading
+the helper would have shown it. Hence `record_schedule_skip`. No new outcome
+token was needed either: `Ignored` is already defined as "The run was attempted,
+but a build was not created".
+
+For the cron list, verification caught a **scoping** error that was one step
+from shipping. `condition-time` is *Automate's* condition;
+`building-pipelines/triggers-reference` still says a time trigger is "defined
+using a cron expression and a time zone" — singular. Two grammars that look
+alike, one page moved, and a test now asserts a `crons` array is still refused
+on `schedules.trigger`.
+
+It also produced a better reason for the decision already taken. Non-overlap is
+not enforced not merely because Foundry frames it as advice, but because **we
+fire once per tick on any match** — an overlap is a non-event in this engine,
+and a CHECK would refuse configurations that behave correctly. And the timezone
+stays on the condition, because the only cron screenshot predates multiple
+expressions and no image shows the multi-cron control at all; a zone per
+expression would be invented structure.
 
 **Three additive gaps recorded, deliberately not built:** download is a separate
 permission from view, and *which resource* it is checked on depends on where the

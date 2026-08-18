@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (39) ────────────────────────────────────────────────
+// ── ACTION TYPES (40) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -76,6 +76,11 @@ export const applyObjectType = { apiName: 'apply_object_type', kind: 'action' } 
 export const applyOneChange = { apiName: 'apply_one_change', kind: 'action' } as ActionType<
   { p_kind: string; p_id: string; p_op: string; p_fields: Json; p_ont: string },
   void
+>
+
+export const automationFires = { apiName: 'automation_fires', kind: 'action' } as ActionType<
+  { p_automation: string; p_at: string },
+  string[]
 >
 
 /**
@@ -362,7 +367,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (160) ───────────────────────────────────────────────────
+// ── FUNCTIONS (159) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -498,6 +503,12 @@ export const authRole = { apiName: 'auth_role', kind: 'function' } as FunctionTy
   string
 >
 
+/**
+ *  The condition grammar. A time condition names either one `cron` or a
+ *  non-empty `crons` array — never both — sharing one `timezone`. Non-overlap
+ *  between expressions is Foundry's requirement on the author, not refused
+ *  here: firing is once per tick on ANY match, so an overlap changes nothing.
+ */
 export const automationConditionValid = { apiName: 'automation_condition_valid', kind: 'function' } as FunctionType<
   { p: Json },
   boolean
@@ -515,11 +526,6 @@ export const automationEffectKinds = { apiName: 'automation_effect_kinds', kind:
 export const automationErrorRetryable = { apiName: 'automation_error_retryable', kind: 'function' } as FunctionType<
   { p_error: string },
   boolean
->
-
-export const automationFires = { apiName: 'automation_fires', kind: 'function' } as FunctionType<
-  { p_automation: string; p_at: string },
-  string[]
 >
 
 /**

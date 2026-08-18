@@ -519,12 +519,31 @@ The second setting is a different kind of thing and is only recorded:
 
 ## Decisions from the sweep
 
-1. **Allow-overlapping-runs is worth building, and the default is the point.**
-   `schedules.allow_overlapping_runs boolean NOT NULL DEFAULT false`, with
-   `schedule_candidates()` skipping a schedule that already has a run in flight
-   unless it is set. Small, exactly cited, and it makes the behaviour we already
-   have into a *choice* rather than an accident. Not built yet: this block has
-   not been recited.
+1. **Allow-overlapping-runs — BUILT (572).**
+   `schedules.allow_overlapping_runs boolean NOT NULL DEFAULT false`, and the
+   runner suppresses a satisfied trigger when a build it started is still
+   RUNNING. The default is attested twice: by the sentence, and by
+   `advanced-settings.png`, where all six Advanced-options checkboxes —
+   including **Allow overlapping runs** — are unchecked.
+
+   **Two things the build turned up that reading could not.**
+
+   First, **no new outcome token was needed.** `schedule_runs.outcome` already
+   carries Ignored, defined by the page as "The run was attempted, but a build
+   was not created" — which is a suppressed run exactly.
+
+   Second, and this is the one that would have been a bug: **the skip may not go
+   through `record_schedule_run`.** That helper clears `trigger_state` to `{}`
+   and stamps `last_run_at`, because a run consumes what it observed —
+
+   > "An event trigger remains satisfied after the event has occurred until the entire trigger is satisfied and the schedule is run."
+
+   A suppressed attempt is not the schedule being run, so its observed events are
+   still owed a build. Recording it through the existing helper would have eaten
+   them silently: a worse bug than the one being fixed, and invisible except by
+   reading what the helper does. Hence `record_schedule_skip`, which writes the
+   row and touches nothing else. `scheduleOverlap.test.ts` asserts both
+   directions — the skip keeps the state, a real run consumes it.
 2. **The failure-behaviour setting is recorded, not built.** "Cancels its
    dependent jobs" is a build-graph behaviour we do have, but the per-dataset
    exemption list is a second mechanism, and the page says nothing about how the
