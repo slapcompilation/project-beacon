@@ -24,6 +24,7 @@ import {
 } from '@/features/groups/api'
 import {
   useMyOrganization, useOrgGuests, useAddOrgGuest, useRemoveOrgGuest, useOrgRoles,
+  useWorkflowCatalogue,
 } from '@/features/organization/api'
 import {
   useCreateTag, useCreateTagCategory, useDeleteTagEntity, useTagCategories, useTags,
@@ -70,6 +71,9 @@ export default function SettingsPage() {
 // form, and the schema already refuses correctly.
 function RolesSection() {
   const { data: roles = [], isLoading } = useOrgRoles()
+  // The catalogue names each workflow; the role only stores its api name.
+  const { data: catalogue = [] } = useWorkflowCatalogue()
+  const named = new Map(catalogue.map((w) => [w.apiName, w]))
   if (isLoading) return <Spinner size={SpinnerSize.SMALL} />
 
   return (
@@ -117,7 +121,9 @@ function RolesSection() {
             {r.workflows.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {r.workflows.map((w) => (
-                  <Tag key={w} minimal className="!text-[10px] !font-mono">{w}</Tag>
+                  <Tag key={w} minimal className="!text-[10px]" title={named.get(w)?.description ?? w}>
+                    {named.get(w)?.displayName ?? w}
+                  </Tag>
                 ))}
               </div>
             )}
@@ -126,9 +132,72 @@ function RolesSection() {
       </div>
       <Callout intent={Intent.NONE} className="!text-xs">
         The Organization administrator incorporates all workflows from other roles of that level,
-        except application-specific ones.
+        except application-specific ones — but only workflows some role already carries, so one
+        held by nobody stays held by nobody.
       </Callout>
+
+      <WorkflowCatalogueSection />
     </section>
+  )
+}
+
+// The list a custom role is composed from: "Enrollment administrators and
+// Organization administrators can define custom roles in Control Panel by
+// selecting individual workflows."
+//
+// Read-only alongside the roles above, and worth showing on its own because a
+// workflow exists here before any role carries it — which is exactly the state
+// that hid two dead policies until 563. A workflow nothing carries is visible
+// here and nowhere else.
+function WorkflowCatalogueSection() {
+  const { data: catalogue = [] } = useWorkflowCatalogue()
+  const { data: roles = [] } = useOrgRoles()
+  if (catalogue.length === 0) return null
+
+  const carried = new Set(roles.flatMap((r) => r.workflows))
+  const byScope = (scope: 'organization' | 'space') =>
+    catalogue.filter((w) => w.scope === scope)
+
+  return (
+    <div className="space-y-2 border-t pt-3">
+      <div>
+        <h3 className="text-xs font-semibold">Workflows</h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Everything a role may be given. A workflow exists before any role carries it, which is
+          what makes a custom role something you compose rather than inherit.
+        </p>
+      </div>
+      {(['organization', 'space'] as const).map((scope) => (
+        <div key={scope}>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">
+            {scope}
+          </p>
+          <div className="space-y-1">
+            {byScope(scope).map((w) => (
+              <div key={w.apiName} className="flex items-baseline gap-2">
+                <span className="text-xs">{w.displayName}</span>
+                {!w.published && (
+                  <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
+                    title="Ours: no Foundry page names this workflow. It exists because a policy needed a token.">
+                    ours
+                  </Tag>
+                )}
+                {/* Only meaningful at the organization level, where this page
+                    can see which roles carry what. */}
+                {scope === 'organization' && !carried.has(w.apiName) && (
+                  <Tag minimal className="!text-[10px]" title="Catalogued, so a custom role may include it — but no role carries it today.">
+                    carried by no role
+                  </Tag>
+                )}
+                <span className="text-[11px] text-muted-foreground font-mono ml-auto">
+                  {w.apiName}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 

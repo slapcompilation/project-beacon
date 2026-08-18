@@ -136,6 +136,43 @@ interface RoleRow {
   organization_role_grants: { id: string }[]
 }
 
+// ── the workflow catalogue (563) ───────────────────────────────────────────
+//
+// "Enrollment administrators and Organization administrators can define custom
+// roles in Control Panel by selecting individual workflows" — so the list a
+// role is composed from exists on its own, and a workflow can be catalogued
+// before any role carries it.
+
+export interface WorkflowDef {
+  apiName: string
+  scope: 'organization' | 'space'
+  displayName: string
+  description: string | null
+  /** False for a token we minted because a policy needed one and no page names
+   *  it. Shown, not hidden — the invented ones stay countable. */
+  published: boolean
+}
+
+export function useWorkflowCatalogue() {
+  return useQuery({
+    queryKey: ['workflow-catalogue'] as const,
+    queryFn: async (): Promise<WorkflowDef[]> => {
+      const { data, error } = await supabase.from('workflows')
+        .select('api_name, scope, display_name, description, published')
+        .order('scope').order('api_name')
+      if (error) throw new Error(error.message)
+      return (data as {
+        api_name: string; scope: 'organization' | 'space'
+        display_name: string; description: string | null; published: boolean
+      }[]).map((w) => ({
+        apiName: w.api_name, scope: w.scope, displayName: w.display_name,
+        description: w.description, published: w.published,
+      }))
+    },
+    staleTime: Infinity,   // platform vocabulary, not data
+  })
+}
+
 export function useOrgRoles() {
   return useQuery({
     queryKey: ['org-roles'] as const,
