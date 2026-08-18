@@ -264,9 +264,34 @@ for administrative ones.
 **The five `…of interface` action-rule variants** are unblocked (B5 built in
 450) but unbuilt (`ONTOLOGY-BUILD-MAP.md` Phase C).
 
-**Unbuilt, carrying a reading whose citations get swept when it is built**
-(`readings/README.md` holds the table): **portfolios**, the half of Compass that
-C1/C2 did not cover, carries `projects-roles-and-portfolios.md` (13).
+### Portfolios — READ, NOT BUILT, and blocked on a prerequisite
+
+`readings/portfolios-and-space-roles.md` is written and **awaits a human
+reading its Decisions block**, which is the gate before any of it is built.
+
+**The finding that matters: portfolios cannot be built first.** Every portfolio
+operation is gated on a space role, and *we have no space roles at all* — space
+access today is organization membership and nothing else. I first concluded the
+space-role vocabulary was undocumented; **that was wrong**, and checking rather
+than trusting it is the only reason the reading is right.
+`platform-security-management/manage-orgs-and-spaces` publishes it, and
+`space-permissions.png` publishes the contents of the default roles.
+
+Two corrections that would have become structure:
+
+- **There is no "Editor" role on a space.** The defaults are Contributor,
+  Project Templates Administrator and Space Administrator. `security/portfolios`
+  says "the Editor role on a Space" as prose shorthand for whoever holds the
+  portfolio workflows — by default Contributor. The two-vocabularies trap.
+- **The permission is a workflow, not a role**, and both are named in the
+  screenshot: `Curate portfolios within the space` and `Manage portfolios within
+  the space`. A space role **bundles workflows** — the identical mechanism §4
+  built for organizations in 540–542, one scope up, so the precedent to copy
+  already exists.
+
+Order therefore: **space roles, then portfolios.** The reading carries both,
+with `projects-roles-and-portfolios.md` (13 citations) still allocated to the
+build.
 
 **Type classes and render hints — resolved 2026-08-18, and the entry was three
 different things.**
