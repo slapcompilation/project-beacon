@@ -1,7 +1,11 @@
+---
+verify: strict
+---
+
 # Reading — Control Panel, the settings surface, and banners
 
-Written to answer "where does a settings page live, and where does a banner go",
-after building scoped sessions (migration 404) with no surface.
+Written to answer where a settings page lives and where a banner goes, after
+building scoped sessions (migration 404) with no surface.
 
 Pages read in full:
 - `mirror/administration/overview.md`
@@ -51,7 +55,7 @@ it belongs to. Markings are a *platform* setting; scoped sessions are an
 
 The home page itself is three stacked cards: **Getting started** (two labelled
 groups of task cards — `SETTING UP THE ENROLLMENT`, `SETTING UP AN ORGANIZATION` —
-plus "✨ Take a tour of Control Panel"), **Overview** (`ENROLLMENT DETAILS` with the
+plus a "Take a tour of Control Panel" link — administration/images/control-panel-homepage.png), **Overview** (`ENROLLMENT DETAILS` with the
 hostname, and `ORGANIZATIONS`), and **Managing Foundry with Control Panel** (linked
 cards regrouped under `ENROLLMENT` and `ORGANIZATION`). Sidebar footer: language
 picker, Help, **Open Foundry**, Log out.
@@ -85,7 +89,7 @@ sidebar and an `/account` page.
 
 ## Banners — there are three, and they share one slot
 
-This is the answer to "where does the workspace banner go", and it is more
+This is the answer to where the workspace banner goes, and it is more
 specific than expected.
 
 ### 1. The static banner (organization-configured)
@@ -109,22 +113,27 @@ application below. The banner is not inside the app chrome; it is above all of i
 Stated twice on the same card, and it establishes a precedence:
 
 > "If a CBAC banner is configured, use this configuration to customize its
-> position. **The CBAC banner is displayed instead of the static banner.**"
->
+> position. The CBAC banner is displayed instead of the static banner."
+> — administration/images/configure-static-banner.png
+
 > "If a CBAC banner is configured for the current user, the static banner is
-> **hidden by default**. Enable [Show with classification banner] to show the
-> static banner **below** the CBAC banner."
+> hidden by default. Enable Show with classification banner to show the static
+> banner below the CBAC banner."
+> — administration/images/configure-static-banner.png
 
 So: CBAC wins the slot; the static banner is suppressed unless explicitly stacked
 underneath it.
 
 ### 3. The workspace banner (scoped session)
 
-> "After you select a scoped session, there will be a **workspace banner** showing
-> the name of the scoped session." (`security/markings`)
->
-> "…may potentially lead to the display of a Foundry **workspace banner**."
-> (`configure-scoped-sessions`)
+From `security/markings`:
+
+> "After you select a scoped session, there will be a workspace banner showing
+> the name of the scoped session."
+
+and `configure-scoped-sessions` names the same strip from the other side:
+
+> "may potentially lead to the display of a Foundry workspace banner."
 
 `scoped_session_banner.png` shows it: a thin dark strip at the very top of the
 window, **centred**, reading the session name with a caret. Hovering opens a
@@ -150,14 +159,19 @@ and the other two. CBAC-over-static is stated; workspace-versus-either is not.
 - right: the selected session's name, description, and a **Marking access**
   section listing its marking chips. For the unscoped entry the text is instead
   "You will have access to all the markings that you are a member of."
+  — administration/images/disabled_scoped_sessions.png
 - footer: **Choose scoped session**, which becomes **Choose unscoped session**
 
 Whether it appears at all is governed by two settings and the user's membership:
 
-> "the user would not see the scoped session dialog or the scoped session banner:
-> • The user is not a member of any of the Markings used in the scoped sessions.
-> • **No scoped session** is enabled for this user.
-> • **Always show selector** is disabled."
+> "In the following scenario, for example, the user would not see the scoped
+> session dialog or the scoped session banner:"
+
+> "The user is not a member of any of the Markings used in the scoped sessions."
+
+> "**No scoped session** is enabled for this user."
+
+> "**Always show selector** is disabled."
 
 And with **Always show selector** off, "a user with access to only one scoped
 session will not see the scoped session dialog… instead, they will **automatically
@@ -172,10 +186,11 @@ settings, and that is exactly why it is useful as a contrast:
 > analysis. **These apply to the current analysis, but not to other analyses that
 > you create.**"
 >
-> "**Personal default settings** — Quiver allows you to save your preferred
-> analysis settings. These personal default settings will be automatically applied
-> to any new analysis you create. You also have the option to apply your personal
-> settings to existing analyses."
+and, under **Personal default settings**:
+
+> "Quiver allows you to save your preferred analysis settings. These personal
+> default settings will be automatically applied to any new analysis you create.
+> You also have the option to apply your personal settings to existing analyses."
 
 With a danger callout: "Applying your personal default settings to an existing
 analysis will **overwrite existing analysis settings. This will affect other users
@@ -239,9 +254,9 @@ Nothing is shared between them but the sidebar to their left. Which is why a
 corpus-wide grep for "tab bar" finds nothing: **there is no such platform
 concept to document.**
 
-**This is our existing rule, arriving from the other direction.** "One chrome (the
-sidebar); pages own headers" and "each application owns its own top bar" are the
-same statement. The rule was never in tension with Foundry; my framing was.
+**This is our existing rule, arriving from the other direction.** One chrome —
+the sidebar — with pages owning their headers is the same statement as each
+application owning its own top bar. The rule was never in tension with Foundry; my framing was.
 
 So the build changes:
 
@@ -255,9 +270,11 @@ So the build changes:
 ### What the Marketplace capture adds
 
 The install form asks for **Install location** → **Namespace** → **Ontology**, in
-that order, and the Ontology field is *disabled* until a namespace is chosen:
-"Please select a namespace first". Permissions → Roles reads "No namespace
-selected".
+that order, and the Ontology field is *disabled* until a namespace is chosen,
+with Permissions → Roles likewise reporting that no namespace is selected. The
+exact wording is not quoted here: it came from one of the marketplace install
+screenshots and I can no longer say which, so there is nothing to attribute it
+to.
 
 That is `orgs-and-spaces`' "a space is a high-level container of projects, **with
 one common ontology**" made operable: **the ontology is a property of the space**,

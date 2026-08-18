@@ -131,14 +131,29 @@ administrator then grants `space_administrator`, which subsumes the published
 workflows, and portfolios work through the mechanism rather than around it.
 Verified end to end on real data. `spaceBootstrap.test.ts` guards the chain.
 
-**Step 4, the guest picker, is what remains of §4.**
+**Step 4 BUILT — §4 IS COMPLETE.** The picker was a Kind dropdown beside a raw
+UUID field, which was never Foundry's shape but a workaround for not being able
+to search foreign principals. `administration/images/manage-guests.png` shows
+what it is: one search box over both kinds ("Add a user or group…"), checkbox
+rows with a principal-type icon and a "You" badge, and Cancel/Save — the same
+control the Portfolio curators and Space permissions rails use, so it is the
+platform's single way of naming a principal. What it finds stays bounded by what
+the caller may see, which is the same sentence §4 opened with.
 
-**Two readings ride along with it.** `readings/control-panel-and-banners.md` (12
-untraceable quotations) is about exactly this surface, and
-`readings/capabilities-value-types-and-groups.md` (8) covers the groups half.
-Re-reading a page is what fixes a citation, so both get swept here rather than
-in a separate pass — see `readings/README.md` for the allocation and what the
-sweep looks for.
+**Both allocated sweeps are settled.** `control-panel-and-banners` (12) is
+**swept**: three were the reading's own framing in quotation marks, four were
+screenshot transcriptions now attributed by path, two had their page attribution
+*inside* the blockquote — which glues it onto the quote — and one prefixed a
+heading onto the sentence below it. One string is deliberately **not** quoted
+any more: it came from a marketplace install screenshot I could no longer
+identify, and describing beats inventing a path.
+`capabilities-value-types-and-groups` (8) turned out to be **already swept** —
+it carries `verify: strict` and passes, so §4 owed it nothing. Checked rather
+than assumed.
+
+Only two readings now predate the guard: `deep-dive-ontology` (allocated
+**never**) and `materializations-links-media-and-rids`, which waits for the
+media and attachment property types.
 
 ---
 
