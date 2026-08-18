@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-chart/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Chart XY
 
@@ -16,13 +16,13 @@ The **Chart XY** widget is used to visualize Objects as interactive charts. Modu
 
 The below screenshot shows an example of three configured Chart XY widgets displaying `Flight Alerts` data:
 
-![chart\_xy\_empty\_state.png](/docs/resources/foundry/workshop/chart_xy_example.png)
+![chart\_xy\_empty\_state.png](./images/chart_xy_example.png)
 
 ## Configuration options
 
 In the image below, to the left of the blue arrow you can see a newly added (but not yet configured) Chart XY widget, alongside its initial configuration panel. To the right of the blue arrow in the image below, you can see an individual **Layer** configuration panel with the backing object set of `Flight Alerts` already populated:
 
-![chart\_xy\_empty\_state.png](/docs/resources/foundry/workshop/chart_xy_empty_state.png)
+![chart\_xy\_empty\_state.png](./images/chart_xy_empty_state.png)
 
 ### Layer configuration options
 
@@ -85,6 +85,18 @@ Configuring a Layer is required to add data to the Chart XY widget. The followin
     * If this option is enabled, you cannot segment by other properties.
   * See the [Scenarios documentation](/docs/foundry/workshop/scenarios-overview/) for more information on Scenarios.
 
+### Runtime configuration options
+
+Some Chart XY configuration options are available at runtime through the chart toolbar, rather than in the widget configuration panel.
+
+#### Timestamp bucket size
+
+When a chart layer uses a date or timestamp property as the X axis property with basic aggregation, a cog (settings) button appears in the chart toolbar at runtime. Selecting this icon opens a bucket size selector that allows you to configure how timestamp values are grouped—for example, by day, week, or month.
+
+:::callout{theme="neutral"}
+The bucket size configuration button only appears when the layer's X axis property is a date or timestamp type and the layer uses basic aggregation rather than function-backed aggregation.
+:::
+
 ### Chart-wide configuration options
 
 In addition to the configuration options for a layer described above, the main Chart XY configuration panel contains a number of chart-wide configuration options:
@@ -93,12 +105,16 @@ In addition to the configuration options for a layer described above, the main C
   * **Show title**
     * If enabled, displays the title of the categorical axis and also allows this title to be override.
     * By default, this title will display the property type(s) plotted within the chart's series.
+
   * **Enable numerical formatting**
     * If enabled, provides configuration options for numerical values displayed in the categorical axis keys.
     * Configuration options include numerical grouping, min / max decimals shown, scientific notation, and others.
+
   * **Sort by**
     * Controls sorting logic for how each charted value is displayed.
     * By default, sorts categorical keys alphabetically from A to Z.
+    * Other options include sorting by value (ascending or descending) and **Custom** sorting.
+    * To define a custom category order, assign numeric sort values to a property and select that property as the sort metric.
 * **Value axis**
   * **Use multiple value axes**
     * Only available if multiple chart series have been configured and allows value axes to be configured on a per series basis. This can be helpful when different series on a chart have substantially different value scales.

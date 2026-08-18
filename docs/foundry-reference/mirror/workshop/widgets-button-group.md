@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-button-group/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-button-group/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Button Group
 
@@ -14,13 +14,13 @@ The **Button Group** widget allows application builders to add buttons to a Work
 
 The screenshot below shows an example of two rows of configured Button Group widgets and highlights the different button type and display options provided:
 
-![button\_group\_example](/docs/resources/foundry/workshop/button_group_example.png)
+![button\_group\_example](./images/button_group_example.png)
 
 ## Widget configuration options
 
 The screenshot below shows the configuration options available for the Button Group widget:
 
-![Configuration for a button group widget](/docs/resources/foundry/workshop/button_group_config.png)
+![Configuration for a button group widget](./images/button_group_config.png)
 
 For the Button Group widget, the core configuration options are the following:
 
@@ -34,7 +34,7 @@ For the Button Group widget, the core configuration options are the following:
 
 The screenshot below shows the configuration options available for a button within the Button Group widget:
 
-  <img src="./media/widgets-button-group-configuration.png" alt="Configuration for a button within the button group widget" width=400>
+  <img src="./images/widgets-button-group-configuration.png" alt="Configuration for a button within the button group widget" width=400>
 
 * **Add button:** Selecting this option adds another button / menu item to this button group.
 * **Duplicate button:** Selecting this option creates a copy of an existing button's configuration, allowing builders to quickly replicate button settings.
@@ -62,7 +62,7 @@ The screenshot below shows the configuration options available for a button with
 
 Buttons can trigger actions, layout events, URLs, and different types of exports. Each option is described in detail below.
 
-![On click config for a button in the Button Group widget](/docs/resources/foundry/workshop/button_group_on_click.png)
+![On click config for a button in the Button Group widget](./images/button_group_on_click.png)
 
 #### Actions
 
@@ -91,7 +91,7 @@ URL events trigger the opening of specified URLs from within a Workshop module. 
 
 The screenshot below shows an example definition of an external URL event from within a Button Group widget:
 
-![Input configuring https://www.palantir.com for a button URL](/docs/resources/foundry/workshop/palantir_external_url.png)
+![Input configuring https://www.palantir.com for a button URL](./images/palantir_external_url.png)
 
 :::callout{theme="neutral"}
 When defining an external URL, include the prefix `https://`.
@@ -103,7 +103,11 @@ Export events take an object set variable as an input and trigger the export of 
 
 The screenshot below shows an example definition of an Export event from within a Button Group widget:
 
-![Configuration to export an object set](/docs/resources/foundry/workshop/button_group_export.png)
+![Configuration to export an object set](./images/button_group_export.png)
+
+:::callout{theme="warning"}
+Exports configured through the Button Group widget do not preserve sort order. If you need to export an object set while maintaining a specific sort order, use the right-click export functionality in the [Object Table widget](/docs/foundry/workshop/widgets-object-table/) instead, which respects the configured sort order.
+:::
 
 Note that if [function-backed columns](/docs/foundry/workshop/widgets-object-table/#function-backed-columns) or linked object columns are included, the export file format will be CSV and not Excel.
 
@@ -111,12 +115,18 @@ Note that if [function-backed columns](/docs/foundry/workshop/widgets-object-tab
 
 Function-backed exports take a Function and its inputs, and download the output into a specified file type. Supported file types are CSV, TXT, JSON, XML, PDF, DOCX, and XLSX. Below is a sample Function-backed export definition from within a Button Group widget:
 
-![Configuration for a function backed export](/docs/resources/foundry/workshop/button_group_function_backed_export.png)
+![Configuration for a function backed export](./images/button_group_function_backed_export.png)
+
+:::callout{theme="warning"}
+Function-backed exports only support functions that return string outputs — plain text for text-based formats, or base64-encoded strings for binary formats. Functions that return other output types, such as zip files, will not appear in the function picker. To download unsupported file types, consider creating an OSDK custom widget that calls your function directly and enables the `allow-downloads` iframe property.
+:::
 
 The Function output must be a string, with encoding determined by the export file type:
 
 * **Text-based formats (CSV, TXT, JSON, XML):** The Function should return a plain string representing the file content.
 * **Binary formats (PDF, DOCX, XLSX):** The Function should return a base64-encoded string of the file bytes. In Python, you can return `bytes` directly. Do not include a MIME type prefix (for example, `data:application/pdf;base64,`) in the returned string, or the export will fail to download. Workshop infers the MIME type from the file type selected in the export configuration.
+
+If a function-backed export fails, the error toast displays the specific failure reason. If the underlying Function throws a [`UserFacingError`](/docs/foundry/functions/user-facing-error/), the thrown error message is shown to the user. For unrecognized error types, a generic error message is displayed.
 
 #### Export media
 
@@ -124,8 +134,8 @@ Export media events take a list of exported items and trigger the download of al
 
 Below is a sample export media event definition from within a Button Group widget:
 
-![Configuration for export media](/docs/resources/foundry/workshop/button_group_export_media.png)
+![Configuration for export media](./images/button_group_export_media.png)
 
 A sample export item definition is shown below:
 
-![Configuration for export media item](/docs/resources/foundry/workshop/button_group_export_media_item.png)
+![Configuration for export media item](./images/button_group_export_media_item.png)

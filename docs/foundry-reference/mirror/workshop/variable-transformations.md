@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/variable-transformations/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/variable-transformations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Variable transformations
 
 Variable transformations allow builders in Workshop to apply common operations to variables, as well as chain operations together by referencing previous operations.
+
+## Execution context
+
+Variable transformations run in the browser rather than the Foundry backend. Transformations on primitive types, such as strings, numbers, dates, and booleans, do not require round trips to Foundry services.
 
 ## Transformation types
 

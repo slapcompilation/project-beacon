@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/transform-model-input/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/transform-model-input/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # ModelInput in transforms
 
@@ -88,7 +88,7 @@ def compute(ctx, input_df, model_input, output):
 
 To instantiate the model adapter class, the environment must have access to the model adapter code. In particular, if the model was created in a different repository, the adapter code, which is packaged alongside the model as a Python library, needs to be imported as a dependency in your repository. The application will prompt you to do this, as shown in the screenshot below.
 
-![Import dependencies if the model is from another repository.](/docs/resources/foundry/integrate-models/import_dependencies_prompt.png)
+![Import dependencies if the model is from another repository.](./images/import_dependencies_prompt.png)
 
 ### Specifying a version
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/schedule-troubleshooting/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/schedule-troubleshooting/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Troubleshooting reference
 
@@ -51,7 +51,7 @@ You can verify if a schedule was triggered at the expected time by checking the 
 * If the schedule is using an `Event` trigger, verify that the expected event actually happened.
   * For example, if the build should be triggered when the input updates, check that the last build on the input ran successfully and transactions on this build were successfully committed in the [Dataset Preview history view](/docs/foundry/dataset-preview/overview/#history).
   * If the build should be triggered after multiple inputs update, check builds and timing on *all* inputs. For example, consider a schedule with input triggers A1 and A2, and "Wait until all these datasets update" is turned on. Say this schedule was previously ran at time T1. For this schedule to run again at time T2, A1 and A2 would need to both be updated in the time period between (T1, T2). <br><br>
-    ![Flowchart showing A1 and A2 condition requirement](/docs/resources/foundry/building-pipelines/A1-AND-A2-troubleshooting.png) <br><br>
+    ![Flowchart showing A1 and A2 condition requirement](./images/A1-AND-A2-troubleshooting.png) <br><br>
 
 ### Schedule retries differ from configured
 
@@ -83,7 +83,7 @@ To edit, delete, or pause a schedule, you need to have `Editor` permissions on t
 
 ### Schedule compute information is unavailable
 
-![A warning on a schedule indicating that not all compute information is available](/docs/resources/foundry/building-pipelines/compute-usage-warning.png)
+![A warning on a schedule indicating that not all compute information is available](./images/compute-usage-warning.png)
 
 A message stating "Not all compute information is available. Actual compute usage may be higher than shown." may appear when viewing a schedule for either of the following reasons:
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-indexes/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-indexes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Optimize indexes and schema design
 

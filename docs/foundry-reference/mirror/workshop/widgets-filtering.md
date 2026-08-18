@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-filtering/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-filtering/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Filtering widgets
 
 Many filtering widgets output an object set filter variable, which captures the current filter state and can be applied to object set variables or reused in widget configurations. Learn more about configuring default filters and filter value extraction in [Object set filter variables](/docs/foundry/workshop/object-set-filter-variables/).
 
-* **[Filter List](/docs/foundry/workshop/widgets-filter-list/):** Renders a configurable list of property type filters as histograms, distribution charts, data pickers, and type-ahead selectors. Also, allows for keyword search.
+* **[Filter List](/docs/foundry/workshop/widgets-filter-list/):** Render property filters as histograms, distribution charts, data pickers, and type-ahead selectors. You can also filter by object type or keyword.
 * **[Object Dropdown](/docs/foundry/workshop/widgets-object-dropdown/):** Allow the user to select a single object from a list of objects.
 * **Object Selector:** Allow the user to select multiple objects from a list of objects.
 * **[String Selector](/docs/foundry/workshop/widgets-string-selector/):** Allow the user to select a string from a list of strings.

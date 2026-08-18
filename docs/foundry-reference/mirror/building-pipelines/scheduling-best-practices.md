@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/scheduling-best-practices/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/scheduling-best-practices/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Scheduling best practices
 
@@ -18,11 +18,11 @@ To ensure schedules of production pipelines can easily be managed, we have devel
 
 A pipeline with unnecessary schedules that should be combined into one schedule:
 
-![Unnecessary schedule in one pipeline](/docs/resources/foundry/building-pipelines/too_many_schedules.png)
+![Unnecessary schedule in one pipeline](./images/too_many_schedules.png)
 
 Combine datasets into a logical schedule using a connecting build:
 
-![Use a connecting build](/docs/resources/foundry/building-pipelines/one_connecting_build.png)
+![Use a connecting build](./images/one_connecting_build.png)
 
 Use the guidance below to set up an effective system of schedules for your pipelines.
 
@@ -38,7 +38,7 @@ An exception could be made for pipelines that run in multiple sequential steps; 
 2. If your pipeline makes use of validation tables, you may need separate schedules for them.
 3. Refer to [stability recommendations](/docs/foundry/maintaining-pipelines/stability-recommendations/) for more information on how to effectively handle complex pipelines like these.
 
-![Pipeline inputs and outputs](/docs/resources/foundry/building-pipelines/pipeline_io.png)
+![Pipeline inputs and outputs](./images/pipeline_io.png)
 
 ### Project-scoped schedules
 
@@ -80,7 +80,7 @@ Be explicit about what is included in your schedule. Explicitly ignore datasets 
 
 * In our example pipeline screenshot below, `Owned By Someone` should be ignored from a schedule defined on `Apex 2`. The same applies for `Cleaned 1` and `Cleaned 2` — triggering a job on either of them would immediately cause the build to fail due to lack of permissions.
 
-![Pipeline inputs and outputs](/docs/resources/foundry/building-pipelines/pipeline_io.png)
+![Pipeline inputs and outputs](./images/pipeline_io.png)
 
 In addition, schedules should not depend on or try to build datasets that are:
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/optimize-jdbc-syncs/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/optimize-jdbc-syncs/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Optimize JDBC syncs
 
@@ -19,7 +19,7 @@ By default, batch syncs will sync all matching rows from the target table. *Incr
 
 Below is an example configuration for an incremental batch sync:
 
-![incremental-jdbc-sync](/docs/resources/foundry/data-connection/incremental-jdbc-sync.png)
+![incremental-jdbc-sync](./images/incremental-jdbc-sync.png)
 
 Perform the following steps to set up an incremental batch sync:
 

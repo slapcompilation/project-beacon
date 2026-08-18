@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-shift-event-set/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-shift-event-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time shift event set
 
@@ -14,7 +14,7 @@ Event set
 
 ## Examples
 
-![Time shift event set example](/docs/resources/foundry/quiver/card-time-shift-event-set.png)
+![Time shift event set example](./images/card-time-shift-event-set.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-code-function-object-set/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-code-function-object-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Code function object set
 

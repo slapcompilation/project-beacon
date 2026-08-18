@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/add-dependencies/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/add-dependencies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add npm dependencies
 
@@ -16,17 +16,17 @@ By default, functions repositories do not fetch packages from the public npm reg
 
 If your repository does not already fetch dependencies from the public npm registry, a banner for enabling it will appear when you open a `package.json` file in Code Repositories.
 
-![Enable an external npm in Code Repositories.](/docs/resources/foundry/functions/external-npm.png)
+![Enable an external npm in Code Repositories.](./images/external-npm.png)
 
 ## Add dependencies in Code Repositories
 
 You can add packages to your functions repository using the Libraries sidebar in **Code Repositories**. Search for the desired package, and select a result to view details like the latest version. Results include packages from Foundry and <https://npmjs.com>.
 
-![Add a library from the Code Repositories sidebar.](/docs/resources/foundry/functions/npm-installation-controls.png)
+![Add a library from the Code Repositories sidebar.](./images/npm-installation-controls.png)
 
 Choose whether to add the package to `dependencies` or `devDependencies` in your `package.json` file. Select **Add and install library** to add the package to your repository.
 
-![Confirm the library dependency changes before adding a library.](/docs/resources/foundry/functions/npm-backing-repositories.png)
+![Confirm the library dependency changes before adding a library.](./images/npm-backing-repositories.png)
 
 If the package's originating repository is not yet configured as a backing repository, a dialog will prompt you to import additional resources. The **Add and install library** button automatically imports the package and its dependencies into your functions repository, updating your `package.json` and `package-lock.json`.
 
@@ -38,7 +38,7 @@ If you are using a `typescript-functions` template version lower than 0.520.0, i
 
 You can manually add a package by modifying the `package.json` file in Code Repositories. This can be useful if you need to install a specific package version. Open `package.json`, add your dependency with a relevant version chosen from <https://npmjs.com>, and select **Commit**. After verifying that checks pass successfully, restart Code Assist to make the new package available.
 
-![Restart Code Assist by hovering over the status bar and selecting the status symbol.](/docs/resources/foundry/functions/restart-code-assist.png)
+![Restart Code Assist by hovering over the status bar and selecting the status symbol.](./images/restart-code-assist.png)
 
 Below is an example of adding the `d3-array` package manually to the `package.json` file in a repository:
 

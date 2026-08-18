@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/external-transforms-legacy/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/external-transforms-legacy/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # External transforms \[Legacy]
 
@@ -42,7 +42,7 @@ Within the code repository you just created, a Foundry user with the `Informatio
 
 The `Information Security Officer` is a default role in Foundry; users can be granted the `Information Security Officer` role in [Control Panel](/docs/foundry/administration/enrollments-and-organizations-permissions/) under **Enrollment permissions**.
 
-![Enable external system interaction](/docs/resources/foundry/data-connection/external-transforms-enable.png)
+![Enable external system interaction](./images/external-transforms-enable.png)
 
 ### Enable dataset inputs
 
@@ -52,7 +52,7 @@ When a dataset is used as an input to a transform that can communicate with an e
 
 As an example, you may have a dataset with a **Sensitive** marking in the **Palantir** Organization. To use this dataset in an external transform, the Information Security Officer must add both the **Sensitive** marking and the **Palantir** Organization under step three, **Configure use of Foundry inputs with external systems**, in the code repository settings.
 
-![Enable external system interaction with inputs](/docs/resources/foundry/data-connection/external-transforms-enable-inputs.png)
+![Enable external system interaction with inputs](./images/external-transforms-enable-inputs.png)
 
 ### Add the `transforms-external-systems` library
 
@@ -62,7 +62,7 @@ Once external system interactions are enabled for the code repository, you must 
 If you are working in a Python transforms repository in a [VS Code workspace](/docs/foundry/vs-code/overview/), navigate to the **Settings** tab in the top navigation bar and select **External systems** to access the **Egress** and **Credentials** settings.
 :::
 
-![Add library in the Libraries tab to left side panel. ](/docs/resources/foundry/data-connection/external-transforms-library.png)
+![Add library in the Libraries tab to left side panel. ](./images/external-transforms-library.png)
 
 ### Configure egress and credentials
 
@@ -70,7 +70,7 @@ After adding the library, you can access a new **Egress and Credentials** tab to
 
 In this tab, you can set up the network egress policies required for any endpoints called from your code, and add credentials (if necessary) for the repository to use. Note that not all endpoints require credentials.
 
-<img src="./media/external-transforms-egress-and-credentials-tab.png" alt="The Egress and Credentials tab in Code Editor" width="300" />
+<img src="./images/external-transforms-egress-and-credentials-tab.png" alt="The Egress and Credentials tab in Code Editor" width="300" />
 
 ## Use network egress policies and credentials
 

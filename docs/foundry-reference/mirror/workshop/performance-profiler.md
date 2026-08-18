@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/performance-profiler/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/performance-profiler/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Performance Profiler
 
 Workshop’s Performance Profiler gives builders the ability to capture and view the performance of their applications, providing a tool to diagnose where high load times may be occurring and identify where optimizations can be made to improve the overall performance of applications.
 
-![A preview of the Workshop application while in Profiler mode.](/docs/resources/foundry/workshop/performance-profiler.png)
+![A preview of the Workshop application while in Profiler mode.](./images/performance-profiler.png)
 
 To use Performance Profiler, enter Edit mode, open the **Profiler** tab, and select **Reload in Profiler Mode** to enter Profiler mode. Entering Profiler mode will refresh the module’s web browser page to allow the profiler to record network requests, starting from the module’s initialization. A banner will be displayed at the top of the page, letting builders know that they are currently in Profiler mode and that load events are actively being recorded.
 

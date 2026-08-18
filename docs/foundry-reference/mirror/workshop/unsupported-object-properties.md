@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/unsupported-object-properties/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/unsupported-object-properties/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Unsupported object property types
 
@@ -13,19 +13,23 @@ The following property types are generally unsupported in Workshop:
 
 Certain Workshop widgets can be configured to allow viewing of unsupported property types. For widgets that support viewing a property type on-demand, the unsupported property must be specifically revealed by a user action as described below. A warning icon with tooltip will also be displayed for unsupported properties during widget configuration describing its non-performance due to large size.
 
-![adding\_unsupported\_property\_type](/docs/resources/foundry/workshop/adding-unsupported-property-type.png)
+![adding\_unsupported\_property\_type](./images/adding-unsupported-property-type.png)
 
 The following widgets support viewing specific unsupported properties of an object on-demand:
 
 * **[Object List](/docs/foundry/workshop/widgets-object-list/):** To view an unsupported property's value in an object list widget, select **Load** to reveal its value. <br><br>
-  ![unsupported\_property\_in\_object\_list](/docs/resources/foundry/workshop/object-list-supported-property-type.png) <br><br>
+  ![unsupported\_property\_in\_object\_list](./images/object-list-supported-property-type.png) <br><br>
 
 * **[Object Table](/docs/foundry/workshop/widgets-object-table/):** To view an unsupported property's value in an object table widget, select **...** button to reveal its value. <br><br>
-  ![unsupported\_property\_in\_object\_table](/docs/resources/foundry/workshop/object-table-unsupported-property-type.png) <br><br>
+  ![unsupported\_property\_in\_object\_table](./images/object-table-unsupported-property-type.png) <br><br>
 
 * **[Property List](/docs/foundry/workshop/widgets-property-list/):** To view an unsupported property's value in a property list widget, select **Load** to reveal its value. <br><br>
-  ![unsupported\_property\_in\_property\_list](/docs/resources/foundry/workshop/property-list-unsupported-property-type.png) <br><br>
+  ![unsupported\_property\_in\_property\_list](./images/property-list-unsupported-property-type.png) <br><br>
 
 The following widgets support viewing unsupported properties of an object:
 
 * **[Map](/docs/foundry/workshop/widgets-map/):** If a Geoshape property is configured in a Map widget, it will be automatically loaded.
+
+## Related concepts
+
+[Derived properties](/docs/foundry/workshop/derived-properties/) calculate property values at runtime based on links and aggregations. While derived properties also have performance considerations and limited widget support, they are computed values rather than native property types. See the [derived properties documentation](/docs/foundry/workshop/derived-properties/) for information on their specific limitations.

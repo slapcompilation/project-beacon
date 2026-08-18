@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-configure-domain/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/scenarios-configure-domain/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Configure a domain
 
@@ -12,6 +12,6 @@ For the **Model**, the core configuration options are the following:
 
 Learn more about [Modeling in Foundry.](/docs/foundry/model-integration/overview/)
 
-![configure-a-model](/docs/resources/foundry/workshop/configure-a-model.png)
+![configure-a-model](./images/configure-a-model.png)
 
-![Configure-models-domain](/docs/resources/foundry/workshop/Configure-models-domain.png)
+![Configure-models-domain](./images/Configure-models-domain.png)

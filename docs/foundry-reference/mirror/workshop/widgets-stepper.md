@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-stepper/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-stepper/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Stepper
 
 The **Stepper** widget is used to help navigate the user through a multi-step workflow, displaying and tracking progress as they walk through a sequence of steps.
 
-<img src="./media/widgets-stepper.png" alt="Stepper example" width=700>
+<img src="./images/widgets-stepper.png" alt="Stepper example" width=700>
 
 ## Configuration Options
 

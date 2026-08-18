@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-live/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-live/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up and use a live deployment
 
@@ -15,11 +15,11 @@ To create a new live deployment, navigate to the **Deployments** section at the 
 
 Fill out the deployment name, a description, and whether this deployment should be based on the current staging or production released model. Once configuration is complete, select **Create deployment**.
 
-![create live deployment](/docs/resources/foundry/manage-models/howto-live-create.png)
+![create live deployment](./images/howto-live-create.png)
 
 Select the newly created deployment to open the details where you will see interim statuses, indicating that the container image containing the latest release and inference code is being deployed.
 
-![update live deployment](/docs/resources/foundry/manage-models/howto-live-update.png)
+![update live deployment](./images/howto-live-update.png)
 
 ## Publish function
 
@@ -27,7 +27,7 @@ You can publish a [function](/docs/foundry/functions/overview/) for the deployme
 
 To publish a function, navigate to the **Details** page of your deployment and select **Publish Function**. This creates a wrapper function with the same input and output API as your model, which can be [imported and called from a functions repository](/docs/foundry/functions/functions-on-models/) to add custom business logic.
 
-![Publish deployment function](/docs/resources/foundry/manage-models/publish_function_objective_deployment.png)
+![Publish deployment function](./images/publish_function_objective_deployment.png)
 
 For details on function behavior, version upgrades, and configuration options, see the [Model functions developer guide](/docs/foundry/model-integration/model-functions-guide/).
 
@@ -35,7 +35,7 @@ For details on function behavior, version upgrades, and configuration options, s
 
 After the deployment finishes updating, the status and health should both appear as green checkmarks. These indicate the deployment is ready for querying and has been successfully updated to contain the latest released model.
 
-![update live success](/docs/resources/foundry/manage-models/howto-live-success.png)
+![update live success](./images/howto-live-success.png)
 
 ## Test live deployment
 
@@ -71,11 +71,11 @@ There are two options to take on a running live deployment:
 * **Disable** to turn off the deployment but still allow for re-enablement to leverage the same *Target RID*.
 * **Delete** to remove the deployment completely. The old Target RID will no longer be able to be queried.
 
-![live actions](/docs/resources/foundry/manage-models/howto-live-actions.png)
+![live actions](./images/howto-live-actions.png)
 
 A disabled live deployment will still appear in the Deployments page on an objective and is available to be enabled again.
 
-![live disabled](/docs/resources/foundry/manage-models/howto-live-disabled.png)
+![live disabled](./images/howto-live-disabled.png)
 
 ### Resource configuration
 
@@ -85,11 +85,11 @@ You can configure resource requirements upon deployment creation, as well as edi
 
 To configure a new live deployment, select **Create deployment**, select **Live** under **Deployment type**, then input a minimum and maximum replica range and resource configuration.
 
-![configure live deployment](/docs/resources/foundry/manage-models/howto-configure-live-deployment.png)
+![configure live deployment](./images/howto-configure-live-deployment.png)
 
 To edit the configured replica range and resources, navigate to the **Deployments** section in your modeling project, choose your deployment from the listed deployments, and select the edit button under **Runtime configuration** to edit the replica range or resource configuration.
 
-![edit live deployment configuration](/docs/resources/foundry/manage-models/howto-edit-live-deployment-configuration.png)
+![edit live deployment configuration](./images/howto-edit-live-deployment-configuration.png)
 
 ### View deployment service logs
 
@@ -97,7 +97,7 @@ A series of logs that describe the deployment's startup progress are emitted fro
 
 To view service logs directly from the running live deployment, navigate to the **Logs & Metrics** tab on the deployment details page. You can specify a time window to search within, filter logs by any of the fields, and add or remove columns from the view. You can also download all logs as a text file using the download button in the top right corner.
 
-![view live deployment logs](/docs/resources/foundry/manage-models/howto-live-logs.png)
+![view live deployment logs](./images/howto-live-logs.png)
 
 Because you may have configured your deployment to run with multiple replicas, you may see seemingly duplicated logs - each set coming from a different replica. However, each log includes a tag with a unique `node_id` which you can use to filter by replica if needed. You can use the following notation for this:
 
@@ -130,7 +130,7 @@ Kubernetes host metrics show the percentage of memory and CPU usage used by all 
 
 Inference container metrics are helpful for debugging resource usage in Python models and model adapter logic. These metrics provide the exact memory usage and CPU core usage of the inference container, independent of the entire Kubernetes host. Currently, usage metrics are not available for container-based models.
 
-![view live metrics](/docs/resources/foundry/manage-models/howto-live-metrics.png)
+![view live metrics](./images/howto-live-metrics.png)
 
 :::callout{theme="warning"}
 If you can only view the Kubernetes host metrics and not the inference container metrics, your container may be running on an outdated version of live deployments. Restart your live deployment to update the version and view all metrics.

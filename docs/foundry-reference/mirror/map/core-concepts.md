@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/core-concepts/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/core-concepts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -8,7 +8,7 @@ A **layer** is a collection of geographic data that are used to build a map. The
 
 * **Base layer:** A base layer provides the foundation of a map by rendering geographic features of the world including roads, cities, borders, place names, and more. Available base layers include a light theme, a dark theme, and satellite imagery, amongst others. Change base layers by using the selector in the **Layers** panel.
 
-  ![Base layer selector](/docs/resources/foundry/map/core-concepts-base-layer.png)
+  ![Base layer selector](./images/core-concepts-base-layer.png)
 
 You also have the option of using different types of layers as follows:
 

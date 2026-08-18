@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Analyst
 
@@ -10,15 +10,15 @@ As an example, imagine a user that runs a coffee chain and wants to perform a co
 
 AIP Analyst searches across your Ontology for relevant data using multiple search terms to increase the likelihood of finding a relevant object type.
 
-![An AIP Analyst object type search.](/docs/resources/foundry/aip-analyst/aip-analyst-workflow-1.png)
+![An AIP Analyst object type search.](./images/aip-analyst-workflow-1.png)
 
 Having found some coffee shops, AIP Analyst examines the data and applies a geospatial filter centered around Northampton.
 
-![AIP Analyst geospatial filters.](/docs/resources/foundry/aip-analyst/aip-analyst-workflow-2.png)
+![AIP Analyst geospatial filters.](./images/aip-analyst-workflow-2.png)
 
 Finally, after performing some additional aggregations on the chains, it generates a summary of the shops within the specified area and competing chains.
 
-![A sample AIP Analyst summary.](/docs/resources/foundry/aip-analyst/aip-analyst-workflow-3.png)
+![A sample AIP Analyst summary.](./images/aip-analyst-workflow-3.png)
 
 ## More ways to use AIP Analyst
 

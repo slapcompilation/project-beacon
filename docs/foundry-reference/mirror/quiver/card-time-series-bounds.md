@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-bounds/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-bounds/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series bounds
 
 The time series bound plots the region bounded by two time series.
 
-![Time series bounds example](/docs/resources/foundry/quiver/resource-time-series-bounds-example.png)
+![Time series bounds example](./images/resource-time-series-bounds-example.png)
 
 ## Input type
 

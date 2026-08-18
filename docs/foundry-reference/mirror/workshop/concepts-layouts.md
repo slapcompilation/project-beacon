@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-layouts/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-layouts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Layouts
 
@@ -8,7 +8,7 @@ Workshop **layouts** allow builders to configure how the user interface of a mod
 
 The header in a Workshop module serves as a persistent toolbar for module-wide titles, tabs, and buttons. When creating a new module, the module header will be visible at the top of the screen:
 
-![Screenshot of a Workshop module header](/docs/resources/foundry/workshop/layout_header.png)
+![Screenshot of a Workshop module header](./images/layout_header.png)
 
 When the header is selected, the plus (**+**) signs allow widgets such as tabs and button groups to be added to the header, making them easily accessible across all pages of a Workshop module. If the module header is hidden, it may be selected with the **Header** option that appears at the top of the list found in the **Layout** sidebar panel.
 
@@ -29,11 +29,11 @@ Configuration options provided for a module header include:
 * Choose the header's orientation: horizontal (at the top) or vertical (on the left) of the module.
 * Set the header height for horizontal headers.
 
-![Configuration options for a Workshop module header](/docs/resources/foundry/workshop/module_header_config.png)
+![Configuration options for a Workshop module header](./images/module_header_config.png)
 
 When configured, a horizontal header with a custom image can look like the following example:
 
-![Screenshot of a horizontal module header, configured with a title, tabs, and an export button](/docs/resources/foundry/workshop/configured_horizontal_header.png)
+![Screenshot of a horizontal module header, configured with a title, tabs, and an export button](./images/configured_horizontal_header.png)
 
 You also have the option to configure a vertical header, which will be displayed on the left side of your module. Once you enable the vertical orientation, several additional settings will become available for customization:
 
@@ -42,17 +42,17 @@ You also have the option to configure a vertical header, which will be displayed
 * Add a custom image for the collapsed state, either by selecting from your Palantir resources or uploading from your computer.
   * To display a collapsed image, you must first set up a header image as outlined above. If you opt for an icon instead, the chosen icon will appear in the collapsed state.
 
-![Configuration options for a vertical module header](/docs/resources/foundry/workshop/vertical_module_header_config.png)
+![Configuration options for a vertical module header](./images/vertical_module_header_config.png)
 
 When enabling collapsed headers, the Button Group and Tabs widgets will also have collapsed states that will only show the icons; the text will be dropped in this state. All other widgets will be hidden when a module header is collapsed.
 
 The example below shows a configured vertical module header:
 
-![Screenshot of a vertical module header, configured with a title, tabs, and an export button](/docs/resources/foundry/workshop/vertical_configured.png)
+![Screenshot of a vertical module header, configured with a title, tabs, and an export button](./images/vertical_configured.png)
 
 And its collapsed state:
 
-![Screenshot of a collapsed vertical module header, configured with a title, tabs, and an export button](/docs/resources/foundry/workshop/configured_vertical_collapsed.png)
+![Screenshot of a collapsed vertical module header, configured with a title, tabs, and an export button](./images/configured_vertical_collapsed.png)
 
 ## Pages
 
@@ -64,15 +64,15 @@ In the example module header shown above, each tab in the Tabs widget could be c
 
 Pages can be added from within the **Layout** panel on the left side of the screen. To add a page, open the **Layout** panel, then select the plus (**+**) sign on the top. Next, select the **New page** option, as shown below:
 
-![The New Page option from the Layout panel in Workshop.](/docs/resources/foundry/workshop/add_page.png)
+![The New Page option from the Layout panel in Workshop.](./images/add_page.png)
 
 Once added, the new page will be auto-selected within the **Layout** panel and you can begin configuring its contents. The below screenshot showcases the default, unconfigured page that is initialized with two vertically divided sections beneath the module-wide header:
 
-<img src="./media/configure_new_page.png" alt="A workshop page is separated into two sections, with more layout options below." width="900">
+<img src="./images/configure_new_page.png" alt="A workshop page is separated into two sections, with more layout options below." width="900">
 
 You can also explore other layout templates using the layout template picker at the bottom of the page. You can preview what each layout would look like by hovering over its icon. If you would like to use a template, you can select that icon; the page layout will update to the one you selected.
 
-<img src="./media/page-template-preview.png" alt="A Workshop page is formatted with an inbox-style layout." width="900">
+<img src="./images/page-template-preview.png" alt="A Workshop page is formatted with an inbox-style layout." width="900">
 
 When editing your application, pages are listed in the order in which they are created. Page order as seen in edit view has no impact on module behavior.
 
@@ -90,7 +90,7 @@ Sections are the components of each page and overlay that allow module builders 
 
 In edit mode, the **Add widget** and **Set layout** options appear when you hover over sections in your module layouts. To access available layout options for a section, choose **Set layout** on any empty section in your module and examine the **Layout** options as shown below:
 
-![Workshop layout selector](/docs/resources/foundry/workshop/layout_selector.png)
+![Workshop layout selector](./images/layout_selector.png)
 
 The currently supported Layout options include:
 
@@ -120,7 +120,7 @@ When pasting sections or widgets, builders have two options for managing the new
 * **Paste with same input variable:** Paste a new section or widget that reuses the copied section’s or widget’s input variables.
 * **Paste with duplicate input variables:**  Pastes a new section or widget that uses newly created input variables that match the copied section’s or widget’s input variables.
 
-![The cut, copy, and paste options for a section or widget are highlighted.](/docs/resources/foundry/workshop/cut-copy-paste.png)
+![The cut, copy, and paste options for a section or widget are highlighted.](./images/cut-copy-paste.png)
 
 ## Overlays
 
@@ -128,7 +128,7 @@ Overlays may be used when certain sections should only appear when contextually 
 
 Similarly to pages, you can add overlays rom within the **Layout** panel on the left side of the screen. To add an overlay, select the (**+**) sign on the top. Next, select the **New overlay** option, as shown below:
 
-![The New overlay option from the Layout panel in Workshop.](/docs/resources/foundry/workshop/add_overlay.png)
+![The New overlay option from the Layout panel in Workshop.](./images/add_overlay.png)
 
 ### Configuration options
 
@@ -168,21 +168,21 @@ Header formatting options can be added when the header is enabled on a section. 
 * **Contained:** The section header appears to be contained within the body area.
 * **Floating:** The section header appears above the body area and is visually on the background of the parent section.
 
-<img src="./media/header_formatting_options.png" alt="Image demonstrating the three types of header formats available" width="800">
+<img src="./images/header_formatting_options.png" alt="Image demonstrating the three types of header formats available" width="800">
 
 ### Background colors
 
 Background colors can be added to pages, sections, and widgets to help visually segment parts of a module. There are five preset shades for both light mode and dark mode, [Blueprint colors ↗](https://blueprintjs.com/docs/#core/colors), and a transparent option available.
 
-<img src="./media/background_color_options.png" alt="Background color options" width="500">
+<img src="./images/background_color_options.png" alt="Background color options" width="500">
 
-<img src="./media/background_color_examples.png" alt="Background color examples" width="300">
+<img src="./images/background_color_examples.png" alt="Background color examples" width="300">
 
 In addition to preset shades, you can apply a custom hex color to section and page backgrounds. Select the custom color tile to open the color picker to enter a hex code or choose from [Blueprint color ↗](https://blueprintjs.com/docs/#core/colors) shortcuts. [Saved colors](/docs/foundry/workshop/used-colors/) defined at the module level are also available as background color options for sections and pages.
 
 When a custom background color is applied to a section, widgets within that section automatically switch between light and dark mode based on the brightness of the background, ensuring text and controls remain legible.
 
-<img src="./media/background_color_custom.png" alt="An example of a custom background color" width="300">
+<img src="./images/background_color_custom.png" alt="An example of a custom background color" width="300">
 
 ### Border styles
 
@@ -193,9 +193,9 @@ Border styles can be configured on sections and widgets, giving the appearance o
 * **Inner shadow:** A shadow inside the border to give the section or widget a depressed appearance.
 * **Borderless:** No outline around the section or widget so it blends into the background.
 
-<img src="./media/border_style_options.png" alt="Border style options" width="500">
+<img src="./images/border_style_options.png" alt="Border style options" width="500">
 
-<img src="./media/border_style_examples.png" alt="Border style examples" width="300">
+<img src="./images/border_style_examples.png" alt="Border style examples" width="300">
 
 ### Padding controls
 
@@ -209,4 +209,4 @@ Padding can be configured for pages and sections to set a consistent amount of p
 
 **Inner section style:** Optionally select one of various pre-defined section styles to be applied to all children sections:
 
-<img src="./media/padding_control_inner_section_style_options.png" alt="Demonstration of various styles of inner section padding style." width="400">
+<img src="./images/padding_control_inner_section_style_options.png" alt="Demonstration of various styles of inner section padding style." width="400">

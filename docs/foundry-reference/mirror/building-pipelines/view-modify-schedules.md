@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/view-modify-schedules/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/view-modify-schedules/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # View and modify schedules
 
@@ -23,7 +23,7 @@ To view the previous versions of a schedule:
 
 1. Navigate to the schedule's metrics page.
 2. Select the versions tab: <br><br>
-   ![schedules-versions](/docs/resources/foundry/building-pipelines/schedule-versions.png) <br><br>
+   ![schedules-versions](./images/schedule-versions.png) <br><br>
 
 Only the versions up until the date displayed will be shown. If you need to see older versions, edit the date picker in the top right corner of the page.
 

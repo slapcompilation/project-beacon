@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/drag-and-drop/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/drag-and-drop/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Drag and drop in Workshop
 
@@ -15,22 +15,22 @@ Drop zones are interactive components that allow users to transfer data by "drop
 The [section](/docs/foundry/workshop/concepts-layouts/#sections) component can be configured to receive drag payloads.
 
 1. To turn the section component into a drop zone, select the relevant section and toggle **Drop Handling** in the section configuration panel to the right. <br><br>
-   ![Toggle to enable drop handling for the section.](/docs/resources/foundry/workshop/section-drop-handling-toggle.png) <br><br>
+   ![Toggle to enable drop handling for the section.](./images/section-drop-handling-toggle.png) <br><br>
 
    :::callout{theme="neutral"}
    If the drop handling toggle is not displayed, contact your platform administrator to enable this feature.
    :::
 
 2. When drop handling is enabled, additional configurations will appear below the toggle. These configurations define the appearance of the drop zone when a drag payload is dragged over it: <br><br>
-   ![Section drop zone visual element configuration.](/docs/resources/foundry/workshop/section-drop-handling-config-visual.png) <br><br>
+   ![Section drop zone visual element configuration.](./images/section-drop-handling-config-visual.png) <br><br>
 
    The **Drop label** and **Drop icon** settings determine the text and icon that will appear on the drop zone, respectively.
 
    For example, if **Drop label** is configured as "Drop here" and the plus icon is selected as the **Drop icon**, the drop zone might look as follows when a user drags a payload over: <br><br>
-   ![Drop zone behavior](/docs/resources/foundry/workshop/section-drop-visuals.png) <br><br>
+   ![Drop zone behavior](./images/section-drop-visuals.png) <br><br>
 
 3. Lastly, configure what happens to dropped data with the  **Output object set** and **On drop** settings. <br><br>
-   ![Set the output object set variable.](/docs/resources/foundry/workshop/section-drop-handling-config-logical.png) <br><br>
+   ![Set the output object set variable.](./images/section-drop-handling-config-logical.png) <br><br>
 
    Select the object set variable that the dropped data should be written to. This can be used to populate an object table, for example. An event can also be configured to fire after the drop.
 
@@ -50,11 +50,11 @@ The following drag zones can be dragged onto both Gotham and Foundry drop zones 
 
 To configure the [object set title](/docs/foundry/workshop/widgets-object-set-title/) component as a drag zone, select the component and toggle **Enable drag** in the configuration panel to the right. This drag zone can be used to transport Foundry object set RIDs.
 
-![Object set title drag zone configuration.](/docs/resources/foundry/workshop/object-set-title-drag-zone.png)
+![Object set title drag zone configuration.](./images/object-set-title-drag-zone.png)
 
 When this is enabled, the component can be dragged onto compatible drop zones to transfer data. Without enrichment, this component can only be dragged onto drop zones that accept the [Foundry object set](/docs/foundry/cross-app-interactivity/object-sets/#foundry-object-set) media type. Refer to the [media types documentation](/docs/foundry/cross-app-interactivity/drag-and-drop-overview/#media-types) for more information.
 
-![Object set title drag zone](/docs/resources/foundry/workshop/object-set-drag-zone.png)
+![Object set title drag zone](./images/object-set-drag-zone.png)
 
 ### Object table cell drag zone
 
@@ -64,7 +64,7 @@ Cells in an [object table](/docs/foundry/workshop/widgets-object-table/) can be 
 
 The icon in the [object view widget](/docs/foundry/workshop/widgets-object-view/) header can be dragged onto compatible drop zones. Without enrichment, this drag zone is compatible with drop zones that accept the [Foundry object RID](/docs/foundry/cross-app-interactivity/objects/#foundry-object-resource-identifiers) media type. Refer to the [media types documentation](/docs/foundry/cross-app-interactivity/drag-and-drop-overview/#media-types) for more information.
 
-![Object view drag zone.](/docs/resources/foundry/workshop/object-view-icon-drag-zone.png)
+![Object view drag zone.](./images/object-view-icon-drag-zone.png)
 
 ## Reordering within widgets
 

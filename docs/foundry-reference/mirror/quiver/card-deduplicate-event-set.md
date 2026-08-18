@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-deduplicate-event-set/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-deduplicate-event-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Deduplicate event set
 
@@ -14,7 +14,7 @@ Event set
 
 ## Examples
 
-![Deduplicate event set example](/docs/resources/foundry/quiver/card-deduplicate-event-set.png)
+![Deduplicate event set example](./images/card-deduplicate-event-set.png)
 
 ## Usage information
 

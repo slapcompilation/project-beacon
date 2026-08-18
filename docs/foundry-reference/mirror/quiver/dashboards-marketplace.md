@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-marketplace/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-marketplace/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add Quiver dashboard to a Marketplace product
 
@@ -21,7 +21,7 @@ Quiver dashboards with the following features are supported:
 3. If the validator does not display any errors, the dashboard **Publish** or **Republish** button will also save a Marketplace-ready version of the dashboard.
 4. Use that dashboard version in a new or existing [Marketplace product](/docs/foundry/foundry-devops/create-products/).
 
-<img src="./media/marketplace-linter-config.png" alt="Linter configuration." width=650>
+<img src="./images/marketplace-linter-config.png" alt="Linter configuration." width=650>
 
 ### Linter errors
 
@@ -31,7 +31,11 @@ The linter may indicate up to three main classes of errors:
 * Unsupported configuration: The card is supported, but its configuration is not supported (such as seen in the pivot table examples below). Review the error message provided to learn more.
 * Unexpected errors: In most cases, resolving the above two items will remove any unexpected errors. If unexpected errors remain, contact Palantir Support.
 
-<img src="./media/marketplace-linter-errors.png" alt="Linter errors on display as an example." width=350>
+:::callout{theme="neutral"}
+The validation process considers the underlying logic and dependencies of all cards and transforms in your analysis, not just those directly visible on the dashboard. If a card that is not compatible with Marketplace has a dependency that is used on the dashboard, validation will fail. Review the full dependency chain of any flagged cards to identify and resolve compatibility issues.
+:::
+
+<img src="./images/marketplace-linter-errors.png" alt="Linter errors on display as an example." width=350>
 
 :::callout{theme="neutral"}
 Instead of linting each dashboard individually, you can enable Marketplace linting for an entire analysis to run validation automatically as you work. When analysis-wide linting is enabled, a Marketplace validation indicator appears next to the **Save** button, displaying the current validation status and the number of errors and warnings found. Select the indicator to review validation details. <br><br>
@@ -42,17 +46,17 @@ In the [Global settings](/docs/foundry/quiver/analysis-settings/#global-settings
 
 If validation is successful, a **View inputs** option will appear in the header. Selecting it will display a list of object types, object instances, functions, and link types that the dashboard will require when packaged in Marketplace. For object type inputs, hover over the **Properties** text to the right of each input to see a list of property types that will need to be mapped.
 
-<img src="./media/marketplace-dashboard-inputs.png" alt="Marketplace dashboard inputs example." width=500>
+<img src="./images/marketplace-dashboard-inputs.png" alt="Marketplace dashboard inputs example." width=500>
 
 The **Dashboards** section of the **Analysis History** dialog displays which dashboard versions have been validated for packaging:
 
-<img src="./media/marketplace-analysis-history.png" alt="Analysis history." width=500>
+<img src="./images/marketplace-analysis-history.png" alt="Analysis history." width=500>
 
 ## Create an analysis from an installed dashboard
 
 While the underlying Quiver analysis is not packaged alongside the dashboard, you can create a new Quiver analysis from the installed dashboard by selecting **Create analysis from dashboard**.
 
-<img src="./media/marketplace-create-analysis-from-dashboard.png" alt="Create analysis from dashboard." width=500>
+<img src="./images/marketplace-create-analysis-from-dashboard.png" alt="Create analysis from dashboard." width=500>
 
 The created analysis will contain a copy of this dashboard, all cards visible in the dashboard, and their upstream dependencies.
 

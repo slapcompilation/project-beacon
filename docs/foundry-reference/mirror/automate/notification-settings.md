@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/notification-settings/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/notification-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Notification settings
 

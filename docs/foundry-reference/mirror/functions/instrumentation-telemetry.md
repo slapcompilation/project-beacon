@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/instrumentation-telemetry/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/instrumentation-telemetry/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Instrumentation and telemetry in functions
 
@@ -70,6 +70,16 @@ def my_function(name: str) -> str:
     logger.info("This is a custom log line.")
     return f"Hello, {name}!"
 ```
+
+#### Logging best practices
+
+Use the following logging practices:
+
+* **Choose appropriate log levels:** Use `INFO` for normal operations, `WARN` for recoverable issues, `ERROR` for failures, and `DEBUG` for detailed diagnostics.
+* **Include relevant context:** Add identifiers, counts, and operation details to help understand execution flow.
+* **Avoid logging sensitive data:** Do not log credentials, full API responses that may contain sensitive information, or other security-sensitive content.
+
+For detailed guidance on writing effective logs, viewing service logs, and filtering by log level, see [Service logs and debugging](/docs/foundry/aip-observability/service-logs-and-debugging/).
 
 ### Spans
 

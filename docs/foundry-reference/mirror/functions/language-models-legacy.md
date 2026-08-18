@@ -1,9 +1,9 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models-legacy/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models-legacy/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Legacy language models within functions
 
 :::callout{title="Legacy" theme="danger"}
-This is documentation for the **legacy** language models within functions. The [updated language models in functions](/docs/foundry/functions/language-models-python-tsv2/) offer more robust capabilities, such as vision and streaming. [Upgrade your language models in functions](/docs/foundry/functions/language-models/#upgrade-from-legacy-language-models-within-functions) to take advantage of the latest AIP offerings.
+This page documents **legacy** language models within functions. For TypeScript v2 and Python, see the [workflow that uses proxy endpoints and model aliases](/docs/foundry/functions/language-models-python-tsv2/). Updated [TypeScript v1 language models](/docs/foundry/functions/language-models/) support capabilities such as vision and streaming. To use the updated TypeScript v1 models, follow the [upgrade instructions](/docs/foundry/functions/language-models/#upgrade-from-legacy-language-models-within-functions).
 :::
 
 Palantir provides a set of language models which can be used within functions. [Read more about Palantir-provided LLMs](/docs/foundry/aip/supported-llms/).
@@ -18,11 +18,11 @@ To begin using a language model, you must import the specific model into the cod
 
 1. Navigate and open the **Model Imports** side panel to view all existing imported models.
 
-<img src="./media/language-model-import-sidebar.png" alt="Model import sidebar." width="400" />
+<img src="./images/language-model-import-sidebar.png" alt="Model import sidebar." width="400" />
 
 2. To import a new language model, select **Add** in the top-right corner of the **Resource Imports** panel and select **Models**. This will open a new window where you will be able to view the Palantir-provided models that are available to you.
 
-<img src="./media/language-model-import-dialog.png" alt="Model import dialog showing a few Palantir-provided LLMs." width="600" />
+<img src="./images/language-model-import-dialog.png" alt="Model import dialog showing a few Palantir-provided LLMs." width="600" />
 
 3. You will also see a tab where you can view custom models which have been created through the Modeling Objectives app or direct model deployments previously. More information on using those models can be found in the [functions on models](/docs/foundry/functions/functions-on-models/) documentation.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-widgets/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-widgets/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Widgets
 
@@ -6,7 +6,7 @@
 
 To add a widget to a module, hover over any empty section to reveal the **+ Add widget** button, then select it. You can also select the **+** button in a section or module header. Then, choose the desired widget from the widget selector modal that opens.
 
-![Screenshot of the Widget selector modal](/docs/resources/foundry/workshop/widget_picker.png)
+![Screenshot of the Widget selector modal](./images/widget_picker.png)
 
 ## Widget configuration
 
@@ -18,7 +18,7 @@ The core configuration options of a widget live within the **Widget setup** tab.
 
 The screenshot below shows the initial state of a newly added and not yet configured Filter List widget:
 
-![Screenshot of an empty configuration for a Filter List widget](/docs/resources/foundry/workshop/filter_list_widget_empty_config.png)
+![Screenshot of an empty configuration for a Filter List widget](./images/filter_list_widget_empty_config.png)
 
 In the example of the Filter List widget seen above, the core configuration options are the following:
 
@@ -29,7 +29,7 @@ In the example of the Filter List widget seen above, the core configuration opti
 
 The below screenshot shows an example of the Filter List’s **Widget setup** tab after it has been configured:
 
-![Screenshot of a completed configuration for a Filter List widget](/docs/resources/foundry/workshop/filter_list_widget_completed_config.png)
+![Screenshot of a completed configuration for a Filter List widget](./images/filter_list_widget_completed_config.png)
 
 ### Metadata
 
@@ -47,11 +47,13 @@ The **Display** tab enables configuration of the size of the current widget and 
 * **Absolute:** Specify a fixed pixel size for the widget.
 * **Flex:** Specify the ratio of this widget's height or width to that of other widgets in the current module so that widgets can scale appropriately as screen sizes or resolutions change.
 
+The **Display** tab also includes **Display optimization** settings that control when a widget mounts and unmounts as users navigate within a module. These settings are useful for custom widgets that hold local state, widgets with expensive initial loads, or widgets that users return to frequently. For more details, see [Widget display optimization](/docs/foundry/workshop/widget-display-optimization/).
+
 ## Reuse widgets
 
 After configuring a widget, you can copy it to reuse anywhere in the module. This capability is especially useful for recreating complex widget configurations; however, if the widget configuration may change often over time, an [embedded Workshop module widget](/docs/foundry/workshop/embedded-modules/) may be more appropriate. To copy a widget for reuse, select the widget and use `Cmd+C` (macOS) or `Ctrl+C` (Windows). Use `Cmd+V` (macOS) or `Ctrl+V` (Windows) to paste the widget into the **Unused widgets** area located at the bottom of the **Layouts** section in the left side panel. Add the widget to your module by choosing **+ Add widget**, then find it in the **Unused widgets** tab of the widget selector modal.
 
-![Find the pasted, unused widget in the widget selector modal.](/docs/resources/foundry/workshop/unused-widget.png)
+![Find the pasted, unused widget in the widget selector modal.](./images/unused-widget.png)
 
 Alternately, the controls found for [duplicating sections](/docs/foundry/workshop/concepts-layouts/#duplicating-sections) may be used to copy, cut, and paste widgets.
 

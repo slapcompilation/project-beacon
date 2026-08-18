@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-configure-health-check/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/dataexpectations-configure-health-check/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Configure data health checks
 
@@ -9,9 +9,9 @@ You can configure a dataset health check in Pipeline Builder by accessing the da
 
 In the **About** tab of the preview, you will find the **Health Checks** section. This section shows any active health checks configured for the dataset. Choose **View details** to learn more about active health checks or to configure a new check. This will open the **Health** tab in the Dataset Preview app.
 
-![Screenshot of data preview pane showing the health checks section](/docs/resources/foundry/pipeline-builder/health-checks@2x.png)
+![Screenshot of data preview pane showing the health checks section](./images/health-checks@2x.png)
 
-To add a new health check, first search for an available check. Use the search bar to find a check by name, or use the various tabs to search for checks based on status, time, size, content, or schema. For a list of available checks, descriptions, and example options, view [Checks reference](/docs/foundry/monitoring-views/check-groups/).
+To add a new health check, first search for an available check. Use the search bar to find a check by name, or use the various tabs to search for checks based on status, time, size, content, or schema. For a list of available checks, descriptions, and example options, view [Checks reference](/docs/foundry/health-checks/checks-reference/).
 
 Health check types include:
 
@@ -21,11 +21,11 @@ Health check types include:
 
 If you want to add a **Build status** check, for instance, search for **Build status** in the search bar or within the **Status** tab. Select the check to open a configuration side panel. Use this panel to configure the health check rule, group, notes, and issue prompt.
 
-![Screenshot of health check Build status popover](/docs/resources/foundry/pipeline-builder/health-build-status@2x.png)
+![Screenshot of health check Build status popover](./images/health-build-status@2x.png)
 
 * **Rule:** Describes the rule of the check you are configuring.
   * Choose **Edit severity** to mark the check as **Moderate** or **Severe**. <br><br>
-    ![Screenshot of build status severity dropdown](/docs/resources/foundry/pipeline-builder/health-severity@2x.png) <br><br>
+    ![Screenshot of build status severity dropdown](./images/health-severity@2x.png) <br><br>
 
   * Decide whether to escalate the check to critical after a set number of consecutive failures. Select **Add time** to set a time parameter of consecutive failures.
 

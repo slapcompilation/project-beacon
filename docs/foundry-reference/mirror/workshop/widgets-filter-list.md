@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-filter-list/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-filter-list/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Filter List
 
@@ -13,14 +13,14 @@ The **Filter List** widget is used to visualize a high-level summary of object d
 
 The screenshot below shows an example of a configured Filter List widget displaying `Flight Alert` objects in both vertical and pill layout:
 
-![filter\_list\_configured](/docs/resources/foundry/workshop/filter_list_configured.png)
-![A Filter List widget displaying Flight Alert objects in both vertical and pill layout.](/docs/resources/foundry/workshop/filter_list_configured_pills.png)
+![filter\_list\_configured](./images/filter_list_configured.png)
+![A Filter List widget displaying Flight Alert objects in both vertical and pill layout.](./images/filter_list_configured_pills.png)
 
 ## Configuration Options
 
 Here is a screenshot of the initial state of a newly added Filter List widget alongside its initial configuration panel:
 
-![filter\_list\_empty\_state](/docs/resources/foundry/workshop/filter_list_empty_state.png)
+![filter\_list\_empty\_state](./images/filter_list_empty_state.png)
 
 For the Filter List widget, the core configuration options are the following:
 
@@ -34,7 +34,12 @@ For the Filter List widget, the core configuration options are the following:
     * Selecting a property here will result in that property being displayed within the Filter List and filterable by users.
   * **Filter component**
     * This option determines how each property is visualized within the Filter List.
+
     * Options include keyword, histogram, single- and multi-select dropdowns, distribution chart, single- and multi-date pickers, and timeline displays.
+
+    * For string properties, filter component menus are displayed for all properties, including those that do not support exact matching. Properties without exact match support show the **Keyword** search option, while other options appear disabled with a tooltip explaining why they are unavailable. Derived properties also support keyword search, enabling filtering on computed property values.
+
+    * For string properties with regex queries enabled in Ontology Manager, regex search is available as a filter option. When the **Keyword** option is selected, the interface indicates whether the property is indexed for regex search.
   * **Allow user to add and remove filters**
     * If enabled, users will see an **Add filter** button within the widget and will be able to add and remove filterable properties.
 * **Layout configuration**
@@ -57,7 +62,7 @@ You can use a variable to store a union of multiple object sets of different obj
 * **Common property:** The properties that the different object types have in common. The properties must have the same [property ID](/docs/foundry/object-link-types/property-metadata/) to be matched together. The object types sharing attributes must use the same Object Storage version ( either V1 or V2).
 * **Single property:** A unique property that exists on only one of the object types. This property is not found in any of the other object types.
 
-![The Filter List widget configuration options.](/docs/resources/foundry/workshop/filter-list-multi.png)
+![The Filter List widget configuration options.](./images/filter-list-multi.png)
 
 The output variable of the Filter List widget can then be used to filter the variable containing the unioned object sets and all object types instances will be filtered.
 
@@ -71,7 +76,7 @@ To filter on linked object properties, select a link within the **Filter on a li
 
 Once selected, click into the link config to add filter sections. You will see a setup similar to the **Filters configuration** options described in the [Configuration Options section](#configuration-options), with some additional options.
 
-![Filter list linked object config](/docs/resources/foundry/workshop/filter_list_linked_config.png)
+![Filter list linked object config](./images/filter_list_linked_config.png)
 
 * **Has link**
   * The **Has Link** filter is unique to linked object filters and filters on the presence of a link. For example: "Filter for all **Tasks** that have a link to **Person**."
@@ -82,7 +87,7 @@ Once selected, click into the link config to add filter sections. You will see a
     * The grouped option will visually group linked filters into a section, adding an object icon and linked object count as seen in the screenshot below.
     * **Collapse by default:** When enabled, this option will display the linked filter group as collapsed by default when the module is loaded.
 
-![Filter list using grouped display config](/docs/resources/foundry/workshop/filter_list_grouped.png)
+![Filter list using grouped display config](./images/filter_list_grouped.png)
 
 ## Advanced filtering
 
@@ -90,4 +95,4 @@ The Filter List widget supports more advanced workflows through the keyword sear
 
 The new advanced keyword search widget can be accessed through the Filter List widget. Once the Filter List widget is configured, any keyword search filter component will have the advanced syntax as an option in the dropdown UI.
 
-![Advanced Keyword Search](/docs/resources/foundry/workshop/advanced-keyword-search.png)
+![Advanced Keyword Search](./images/advanced-keyword-search.png)

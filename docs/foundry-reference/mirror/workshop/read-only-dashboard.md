@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/read-only-dashboard/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/read-only-dashboard/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a read-only dashboard
 
@@ -22,7 +22,7 @@ Within an enrollment, the business has an existing Organization (`Company`, for 
 
 Configuring [application access](/docs/foundry/administration/configure-application-access/) allows Organizations to limit the set of applications that users assigned to the read-only Organization can access. To support viewing dashboards, this Organization should be allowed to use Slate and Workshop applications; all other applications should be disabled. Configure this in Control Panel by only granting full platform access to the administrative group of an enrollment (`foundry-admins-sg`, for example).
 
-![Platform Access configuration for administrators in Control Panel.](/docs/resources/foundry/workshop/admin-platform-access.png)
+![Platform Access configuration for administrators in Control Panel.](./images/admin-platform-access.png)
 
 #### Configure a home page
 

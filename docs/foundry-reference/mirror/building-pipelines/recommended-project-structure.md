@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/recommended-project-structure/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/recommended-project-structure/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Recommended project and team structure
 
@@ -22,7 +22,7 @@ These stages define the logical separation of projects that compose a well-order
 4. [Ontology project](#4-ontology-project): Datasets are imported from one or more `Transform projects` and transformed to produce the canonical tables representing discrete operational objects. A single Ontology project often groups related sets of objects for a given operational domain for ease of management.
 5. [Workflow project](#5-workflow-project): Workflow projects import data from Ontology projects to pursue a specific outcome. Frequently this is an operational workflow, data science investigation, business intelligence analysis and report, or application development project.
 
-![pipeline-overview](/docs/resources/foundry/building-pipelines/pipeline_overview.png)
+![pipeline-overview](./images/pipeline_overview.png)
 
 Each pipeline stage is a discrete unit, and the outputs are the datasets made available for downstream projects to import and use for other use cases, pipeline development, analysis, and so on. Within each project, the responsible team should, in addition to the implementation of the transformation steps, also [manage the stability and integrity](/docs/foundry/maintaining-pipelines/overview/) of their outputs. This involves managing the build schedules, configuring and monitoring data health checks, and, where relevant [writing unit tests](/docs/foundry/code-repositories/unit-tests/) or additional data integrity tests.
 
@@ -61,7 +61,7 @@ For more thoughts on monitoring your connections and ensuring the data flowing i
 
 Each source system should land data into a matching project inside the platform. The normal pattern involves landing data from each sync in as 'raw' a format as possible. The transformation step to a “clean” dataset is defined in the project *Code Repository*.
 
-![pipeline\_datasource](/docs/resources/foundry/building-pipelines/pipeline_datasource.png)
+![pipeline\_datasource](./images/pipeline_datasource.png)
 
 Establishing this project-per-datasource model has a number of convenient benefits:
 
@@ -194,7 +194,7 @@ The roles below are examples of the profiles commonly involved in the scoping, d
 
 The diagram below relates the primary roles to the segments of the pipeline where they're most commonly active.
 
-![pipeline\_roles](/docs/resources/foundry/building-pipelines/pipeline_roles.png)
+![pipeline\_roles](./images/pipeline_roles.png)
 
 ### Primary roles
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/infer-schema/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/infer-schema/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Infer a schema for CSV or JSON files
 

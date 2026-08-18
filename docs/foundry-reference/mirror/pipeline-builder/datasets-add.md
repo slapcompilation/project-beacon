@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/datasets-add/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/datasets-add/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add datasets
 
@@ -17,33 +17,35 @@ To access data from a data source, navigate to the **Data Connection** app in th
 You cannot save a new pipeline to your personal file folder. Set up the [recommended Project structure](/docs/foundry/building-pipelines/recommended-project-structure/) so that data security and governance are organized from the beginning of your development process.
 :::
 
-![The Data Connection application showing a sample data source.](/docs/resources/foundry/pipeline-builder/datasets-data-cnx@2x.png)
+![The Data Connection application showing a sample data source.](./images/datasets-data-cnx@2x.png)
 
 ## Add data from Foundry to Pipeline Builder
 
 To import datasets or media sets that already exist in your Foundry filesystem, proceed to the Pipeline Builder application and select **Add Foundry data** in the center of your graph space. Search for and select an available dataset, then choose **Add data**.
 
-![The Add Foundry data button in the center of the graph space.](/docs/resources/foundry/pipeline-builder/welcome-to-pipeline-builder-updated.png)
+![The Add Foundry data button in the center of the graph space.](./images/welcome-to-pipeline-builder-updated.png)
 
 You can add multiple datasets or media sets by adding each of them and choosing **Add to selection**; once all are selected, choose **Add data**.
 
-![The prompt for adding multiple datasets to the selection.](/docs/resources/foundry/pipeline-builder/data-add-datasets-prompt@2x.png)
+![The prompt for adding multiple datasets to the selection.](./images/data-add-datasets-prompt@2x.png)
 
 ## Upload data from your computer to Pipeline Builder
 
 You can also upload dataset or media set files from your computer. Select **Upload from your computer** to select the file you want to add, or drag and drop the file onto your graph.
 
-![The section for manually uploading data from your computer.](/docs/resources/foundry/pipeline-builder/data-manually-upload-data@2x.png)
+![The section for manually uploading data from your computer.](./images/data-manually-upload-data@2x.png)
 
 ## Manually enter data in Pipeline Builder
 
 Input datasets can also be created by defining a data table and manually populating it with data.
 
-![The icon for entering data manually in Pipeline Builder.](/docs/resources/foundry/pipeline-builder/manually-enter-data@2x.png)
+![The icon for entering data manually in Pipeline Builder.](./images/manually-enter-data@2x.png)
 
 Define the new table's schema by selecting column names and types, then manually add values to the table. Manually entered tables can be modified at any point.
 
-![A manually entered data table with defined columns and values.](/docs/resources/foundry/pipeline-builder/manually-entered-data-table@2x.png)
+To remove rows from a manually entered table, select one or more rows, right-click, and choose **Remove row** or **Remove rows** from the context menu.
+
+![A manually entered data table with defined columns and values.](./images/manually-entered-data-table@2x.png)
 
 The following table lists some of the most common column types in a manual entry table:
 
@@ -63,11 +65,19 @@ After selecting the **Array** column type, double-click the cell or type `[` to 
 :::
 
 :::callout{theme="warning"}
+Manually entered tables are only supported as inputs for batch pipelines. They are not compatible with Faster (lightweight) pipelines.
+:::
+
+:::callout{theme="warning"}
+There is a limit to the number of manually entered tables you can create in a pipeline. When this limit is reached, an error message provides guidance on how to resolve the issue. You can use the provided dialog to view and delete unused or archived manually entered tables to free up capacity.
+:::
+
+:::callout{theme="warning"}
 You may experience longer loading times when viewing proposed changes to large manually entered tables. As an alternative, you can view the raw tables side by side.
 :::
 
 ## Next steps
 
-After adding datasets or media sets to Pipeline Builder, you can change their [computation mode](/docs/foundry/pipeline-builder/datasets-computation-modes-for-batch/), choose to [transform the data](/docs/foundry/pipeline-builder/transforms-overview/) or [add outputs](/docs/foundry/pipeline-builder/outputs-add-dataset-output/).
+After adding datasets or media sets to Pipeline Builder, you can change their [computation mode](/docs/foundry/pipeline-builder/datasets-computation-modes-for-batch/), choose to [transform the data](/docs/foundry/pipeline-builder/transforms-overview/), [add outputs](/docs/foundry/pipeline-builder/outputs-add-dataset-output/), or use the **Train in Model Studio** action to open your dataset directly in Model Studio for model training.
 
-![A Pipeline Builder graph showing imported datasets.](/docs/resources/foundry/pipeline-builder/demo-pipeline@2x.png)
+![A Pipeline Builder graph showing imported datasets.](./images/demo-pipeline@2x.png)

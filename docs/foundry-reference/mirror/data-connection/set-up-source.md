@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-source/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-source/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a source
 
@@ -50,7 +50,7 @@ To configure a network policy, navigate to the **Network egress** section in Con
 
 If you are unable to view the **Network egress** section, contact your Palantir administrator to set up the network policy.
 
-![The dialog to create a new network egress policy in Control Panel](/docs/resources/foundry/data-connection/create-network-policy.png)
+![The dialog to create a new network egress policy in Control Panel](./images/create-network-policy.png)
 
 ## Provision credentials
 
@@ -80,9 +80,9 @@ Select **Create source and continue** in the bottom-right.
 
 On the next setup page, select the network policy you [configured earlier](#configure-a-network-policy) by choosing **Use existing policy** and searching for the policy name.
 
-![The Network Connectivity setup page in Data Connection.](/docs/resources/foundry/data-connection/use-existing-policy.png)
+![The Network Connectivity setup page in Data Connection.](./images/use-existing-policy.png)
 
-![Select an available network policy to use.](/docs/resources/foundry/data-connection/select-network-policy.png)
+![Select an available network policy to use.](./images/select-network-policy.png)
 
 ### Configure source
 

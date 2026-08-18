@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-functions/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Define and run Slate functions
 
@@ -16,13 +16,13 @@ Functions are typically used for lightweight data-processing tasks like string p
 Functions run sequentially, not in parallel. Slate executes functions one at a time from a queue, so each function must finish before the next one begins. This applies even when functions use asynchronous calls: a function that awaits a long-running operation will block the queue until it completes, delaying any functions that follow. Avoid relying on functions running concurrently.
 :::
 
-![functions](/docs/resources/foundry/slate/functions-panel.png)
+![functions](./images/functions-panel.png)
 
 ## Per-Document level function libraries
 
 Users are able to write reusable JavaScript functions with parameters. This will assist in the refactoring of code and reducing the copying and pasting of code in functions. You can also re-run and update all the functions dependent on a function library using the `Re-run All Function` button.
 
-![function-libraries](/docs/resources/foundry/slate/function-libraries.png)
+![function-libraries](./images/function-libraries.png)
 
 ## Default JavaScript libraries available
 
@@ -30,13 +30,20 @@ For enhanced use of functions, Slate ships by default with the following externa
 
 Do not use ES6 syntax features unless all users are mandated to use a browser supporting these features.
 
+## Upload custom external libraries
+
+You can upload external JavaScript libraries for use in Slate functions:
+
+* **Application libraries:** Add libraries in the **Functions** panel. These libraries are available only in that Slate application.
+* **Platform-wide libraries:** Use the **Admin Panel** to upload libraries for all users and applications across your Foundry instance.
+
 ## Examples
 
 ### Example 1: add two widget properties
 
 This function adds the value of two dropdown widgets and displays the result in a text widget.
 
-![functions-ex1](/docs/resources/foundry/slate/functions-ex1.png)
+![functions-ex1](./images/functions-ex1.png)
 
 Open the Functions editor and add a function called `addNumbers`. Add the following JavaScript:
 

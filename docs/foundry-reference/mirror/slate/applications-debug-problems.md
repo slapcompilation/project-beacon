@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-debug-problems/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-debug-problems/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Debug applications
 
@@ -22,31 +22,35 @@ When a Slate application is opened in edit mode, Slate automatically checks for 
 
 Any errors or warnings encountered will appear in the [action bar](/docs/foundry/slate/navigation/) located atop the page.
 
-![Slate application bar highlighting the health check dialog button in a red square](/docs/resources/foundry/slate/health-check-dialog-button.png)
+![Slate application bar highlighting the health check dialog button in a red square](./images/health-check-dialog-button.png)
 
 Select the issues icon to open the health check dialog. From here, jump directly to the query or function raising the issue either on the canvas or in the dependency graph view.
 
-![The health check dialog showing all errors and warnings in queries and functions](/docs/resources/foundry/slate/health-check-dialog-window.png)
+![The health check dialog showing all errors and warnings in queries and functions](./images/health-check-dialog-window.png)
 
 Errors are also visible in the [queries](/docs/foundry/slate/concepts-queries/) or the [functions](/docs/foundry/slate/concepts-functions/) panels. The queries panel will highlight all failed queries. Select **Test** to run the query and see the detailed error.
 
-![The queries panel highlighting errors in queries](/docs/resources/foundry/slate/health-check-dialog-query-error.png)
+![The queries panel highlighting errors in queries](./images/health-check-dialog-query-error.png)
 
 The functions panel will not highlight all failed functions. To run a function, select **Test**. In the case of failure, this will display a detailed error message for further analysis.
 
-![The functions panel highlighting an error in a function](/docs/resources/foundry/slate/health-check-dialog-function-error.png)
+![The functions panel highlighting an error in a function](./images/health-check-dialog-function-error.png)
+
+### OSDK errors
+
+If your Slate application uses the [Ontology SDK (OSDK)](/docs/foundry/slate/concepts-osdk/), the health check dialog also displays OSDK loading errors. When the OSDK fails to load, select the **OSDK** tab to view detailed error information and guidance. Use the direct link in the dialog to open the OSDK configuration panel and fix configuration issues.
 
 ## Debugger
 
 The Slate debugger simplifies the process of investigating errors while providing all relevant information in a single view.
 
-![Debugger](/docs/resources/foundry/slate/debugger-overview.png)
+![Debugger](./images/debugger-overview.png)
 
 ### Enable debugger
 
 To enable or disable the debugger, toggle on the **Debugger** in the top-right corner of the dependencies tab.
 
-Enabling the debugger adds a variety of new functionalities to the graph. A new bottom drawer becomes available; on the left side of the drawer, you can see all nodes which currently have [breakpoints](#set-a-breakpoint) set. From this drawer, you can run and refresh an application. The right side of the drawer gives a preview of current values of a selected node.
+Enabling the debugger adds a bottom drawer to the graph. The left side lists all nodes with [breakpoints](#set-a-breakpoint), and the right side previews the current values of the selected node. You can also run and refresh the application from the drawer. Use the scrollbar to view large component states without truncation.
 
 ### Set a breakpoint
 

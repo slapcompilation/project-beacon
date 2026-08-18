@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-list/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-list/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object List
 
@@ -15,21 +15,21 @@ The **Object List** widget is used to display object data in either a list or gr
 
 The screenshot below shows an example of a configured **Object list** widget displaying `Flight Alert` objects:
 
-![object\_list\_example](/docs/resources/foundry/workshop/object_list_example.png)
+![object\_list\_example](./images/object_list_example.png)
 
 The screenshot below shows an example of an **Object list** widget displaying objects configured in a grid display with images:
 
-![object\_list\_image\_example](/docs/resources/foundry/workshop/object_list_image_example.png)
+![object\_list\_image\_example](./images/object_list_image_example.png)
 
 The screenshot below shows an example of an **Object list** widget displaying objects configured in a list display with icons:
 
-![object\_list\_icon\_example](/docs/resources/foundry/workshop/object_list_icon_example.png)
+![object\_list\_icon\_example](./images/object_list_icon_example.png)
 
 ## Configuration options
 
 Here is a screenshot of the initial state of a newly added Object List widget alongside its initial configuration panel:
 
-![object\_list\_empty\_state](/docs/resources/foundry/workshop/object_list_empty_state.png)
+![object\_list\_empty\_state](./images/object_list_empty_state.png)
 
 For the Object List widget, the core configuration options are the following:
 
@@ -60,7 +60,7 @@ For the Object List widget, the core configuration options are the following:
 
 ### Configuration options
 
-![object\_list\_media\_config](/docs/resources/foundry/workshop/object_list_media_config.png)
+![object\_list\_media\_config](./images/object_list_media_config.png)
 
 For the Object List widget, the media configuration options are the following:
 
@@ -75,7 +75,7 @@ For the Object List widget, the media configuration options are the following:
 
 Builders may configure items within the Object List to be re-orderable by allowing users to drag-and-drop object cards in the widget.
 
-<img src="./media/widgets-object-list-reordering-example.png" alt="Object list widget reordering configuration fields." width="300">
+<img src="./images/widgets-object-list-reordering-example.png" alt="Object list widget reordering configuration fields." width="300">
 
 ### Limitations
 
@@ -85,7 +85,7 @@ Builders may configure items within the Object List to be re-orderable by allowi
 
 ### Configuration options
 
-<img src="./media/widgets-object-list-reordering-configuration.png" alt="Object list widget reordering configuration fields." width="300">
+<img src="./images/widgets-object-list-reordering-configuration.png" alt="Object list widget reordering configuration fields." width="300">
 
 * **Conditionally enabled:** Set a Boolean variable to determine whether reordering is enabled within the widget.
 * **Primary key array:** Set a string array containing the primary keys of the displayed objects. The ordering of the primary keys in the array will determine the order these objects will be displayed in the sorted section of the widget. Any objects with primary keys not in the array will be displayed in the **Unsorted list** section in the widget below the sorted objects, either in an unsorted fashion or with the **default sort** applied if configured in the widget.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-migration/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-migration/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Migrate from TypeScript v1 to TypeScript v2
 
@@ -178,11 +178,19 @@ export default function myFunction(
 }
 ```
 
+:::callout{theme="neutral"}
+In TypeScript v2, use `Edits.Interface<MyInterface>` to create, update, and delete objects through [Ontology interface](/docs/foundry/interfaces/interface-overview/) properties. For details, see [Ontology edits](/docs/foundry/functions/typescript-v2-ontology-edits/).
+:::
+
 In TypeScript v1, edits *are not* applied to the Ontology during function execution. As described in our [edits and object search documentation](/docs/foundry/functions/edits-overview/#edits-and-object-search), changes to objects and links are only propagated after the function finishes executing, and only when called within a function-backed action.
 
 TypeScript v2 makes this behavior more explicit. Rather than implicitly accumulating edits, your function must track them using an edit batch and return them upon completion.
 
 Refer to the [Ontology edits](/docs/foundry/functions/typescript-v2-ontology-edits/) section in the TypeScript v2 documentation for the full list of supported operations.
+
+:::callout{theme="neutral"}
+TypeScript v2 also supports [staged writes](/docs/foundry/functions/typescript-v2-staged-writes/), an alternative execution model with read-after-write guarantees. Staged-write functions use a `WriteableClient` instead of `createEditBatch` and need not return edits explicitly.
+:::
 
 ## Generate unique IDs for objects
 

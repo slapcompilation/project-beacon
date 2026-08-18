@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/getting-started/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -8,13 +8,13 @@ This guide demonstrates how to use the Map application with resources from the *
 
 To create a map, expand the left-hand side Foundry navigation bar, then click on **View all** in the Apps section. You will find the **Map** application under the **Operational Applications** section.
 
-<img src="./media/navigation-bar-map.png" alt="Map application in the Foundry navigation bar" width="430" />
+<img src="./images/navigation-bar-map.png" alt="Map application in the Foundry navigation bar" width="430" />
 
 ## Map application interface overview
 
 When the Map application loads, you are presented with a blank map:
 
-![Map application](/docs/resources/foundry/map/map-interface-overview.png)
+![Map application](./images/map-interface-overview.png)
 
 On the left side of the screen are the following panels:
 
@@ -46,15 +46,15 @@ In this example, we will search for the Detroit Metro Airport (DTW) and add it t
 
 First, click **Add to Map** in the **Layers** panel:
 
-<img src="./media/add-to-map-button.png" alt="Add to Map button" width="328" />
+<img src="./images/add-to-map-button.png" alt="Add to Map button" width="328" />
 
 Then, search for `DTW` to find Detroit Metro Airport; you may need to select the object type `[Example Data] Airport` in the list on the right. Select the DTW airport object and click **Add selected**.
 
-![Searching for Detroit Metro Airport](/docs/resources/foundry/map/tutorial-add-dialog-dtw-airport.png)
+![Searching for Detroit Metro Airport](./images/tutorial-add-dialog-dtw-airport.png)
 
 You should now see the map zoomed in on DTW airport; the object's geospatial data is a point, so the object is represented by a map pin indicating the coordinates. The **Layers** panel on the left now shows that you have an `[Example Data] Airports` layer, and the **Selection** panel on the right displays details about the selected object as shown below.
 
-![Map with Detroit Metro Airport](/docs/resources/foundry/map/tutorial-dtw-on-map.png)
+![Map with Detroit Metro Airport](./images/tutorial-dtw-on-map.png)
 
 Try navigating around the map:
 
@@ -68,11 +68,11 @@ Try navigating around the map:
 
 In this example, we will perform exploratory analysis regarding Detroit Metro Airport (DTW). First, add DTW's runways to the map by right-clicking the DTW object icon on the map, selecting **Search Around**, and then choosing `[Example Data] Runway`.
 
-<img src="./media/tutorial-searcharound-airport-runway.png" alt="Detroit Metro Airport Search Around menu" width="684" />
+<img src="./images/tutorial-searcharound-airport-runway.png" alt="Detroit Metro Airport Search Around menu" width="684" />
 
 You should then see the runway objects added to the map as well. These runway objects are represented by lines on the map. You can hover the mouse over a runway line to see the runway ID. You can also click on a runway to select it and see more details in the **Selection** panel.
 
-![Runways added to the map](/docs/resources/foundry/map/tutorial-added-runways.png)
+![Runways added to the map](./images/tutorial-added-runways.png)
 
 ## Geospatial search
 
@@ -80,14 +80,14 @@ In this example, we will find other airports within 200 kilometers of Detroit Me
 
 First, click **Draw** to bring up the shape drawing tool:
 
-![Draw button on toolbar](/docs/resources/foundry/map/toolbar-draw-button.png)
+![Draw button on toolbar](./images/toolbar-draw-button.png)
 
 Then, select the **Circle** tool:
 
-<img src="./media/tutorial-draw-tool-choose-circle.png" alt="Circle tool" width="280" />
+<img src="./images/tutorial-draw-tool-choose-circle.png" alt="Circle tool" width="280" />
 
 Finally, from the map, click on DTW airport to choose the center point, enter "200", and select **km**.
 
-![200 km radius search](/docs/resources/foundry/map/tutorial-200km-radius-search.png)
+![200 km radius search](./images/tutorial-200km-radius-search.png)
 
 This opens the Object Search dialog, filtered to objects that intersect with that circle. Choose **\[Example Data] Airports** from the **Object Type** list, and click **Add all**. This will add six additional airports to the map.

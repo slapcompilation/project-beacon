@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-schedule/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-schedule/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create a schedule
 
@@ -9,15 +9,15 @@ The [Data Lineage](/docs/foundry/data-lineage/overview/) schedule editor is wher
 The following steps guide you to the Data Lineage schedule editor, where you can create a new schedule:
 
 1. Navigate to the [dataset preview](/docs/foundry/dataset-preview/overview/) of the dataset for which you would like to schedule a build, open the **Actions** menu, and select **Manage Schedules**. <br><br>
-   ![Manage schedules from Actions menu](/docs/resources/foundry/building-pipelines/actions-menu-manage-schedules.png) <br><br>
+   ![Manage schedules from Actions menu](./images/actions-menu-manage-schedules.png) <br><br>
 
 2. This will bring you to a [Data Lineage](/docs/foundry/data-lineage/overview/) graph, with the schedules panel to the right listing all current schedules that affect the dataset.
 
    To create a schedule, click the **Create schedule** button. <br><br>
-   ![Create a new schedule](/docs/resources/foundry/building-pipelines/schedules-page-new.png) <br><br>
+   ![Create a new schedule](./images/schedules-page-new.png) <br><br>
 
 3. This will bring you to the schedule editor. <br><br>
-   ![Data Lineage schedule editor](/docs/resources/foundry/building-pipelines/schedule-editor-create.png) <br><br>
+   ![Data Lineage schedule editor](./images/schedule-editor-create.png) <br><br>
 
 ## Define the schedule
 
@@ -31,11 +31,11 @@ When creating schedules in Data Lineage, the schedules apply to the branches (in
 
 The target datasets specify the datasets at the end of the build. By default, only these datasets will be built. In other configurations, these datasets may be the last in a line of datasets being built.
 
-![Target datasets of build schedule](/docs/resources/foundry/building-pipelines/target-datasets.png)
+![Target datasets of build schedule](./images/target-datasets.png)
 
 Target datasets can be selected by adding them to the graph and marking them as a target.
 
-![Add target dataset to graph](/docs/resources/foundry/building-pipelines/adding-target.png)
+![Add target dataset to graph](./images/adding-target.png)
 
 The datasets will be built on the branch set in the top right of the Data Lineage window. Datasets on the graph will be colored according to how they will affect or be affected by the schedule.
 
@@ -43,7 +43,7 @@ The datasets will be built on the branch set in the top right of the Data Lineag
 
 Excluded datasets specify the datasets that will be ignored during graph traversal when determining which datasets to build. All datasets upstream of ignored datasets will not be built.
 
-![Exclude datasets from build](/docs/resources/foundry/building-pipelines/exclude-datasets.png)
+![Exclude datasets from build](./images/exclude-datasets.png)
 
 ### When to build
 
@@ -144,7 +144,7 @@ If the user is deactivated or loses permission to datasets that are essential to
 
 The advanced settings specify additional build options:
 
-![advanced-settings](/docs/resources/foundry/building-pipelines/advanced-settings.png)
+![advanced-settings](./images/advanced-settings.png)
 
 * **Abort build on failure:** If any job in the build is unsuccessful, immediately finish the build by canceling all other jobs.
 
@@ -161,6 +161,12 @@ Transforms that make API calls behave differently from Data Connection syncs. Th
 * **Re-trigger upon successful build:** Repeatedly triggers the schedule to keep building until all the inputs have been processed and the targets of the schedule are no longer stale. For this setting to have an effect, the schedule must:
   1. Contain at least one target output that uses either [incremental transaction limits](/docs/foundry/transforms-python-spark/incremental-transaction-limits/#create-a-build-schedule-to-keep-outputs-up-to-date) for datasets or [incremental batch limits](/docs/foundry/transforms-python-spark/incremental-media-sets/#limit-batch-size-of-incremental-inputs) for media sets. If there are no such outputs in the schedule, a warning with the text `No resources in this schedule require re-triggering` will be displayed.
   2. Have the **Force build** setting disabled.
+
+* **Allow overlapping runs:** By default, a schedule does not start a new run while another run of the same schedule is in progress. Enable this setting to allow runs to overlap. Use this setting to:
+  * **Reduce latency in a pipeline with a long sequence of jobs:** A new run can begin processing new input data at the start of the pipeline before an earlier run finishes processing data through the entire pipeline.
+  * **Use one schedule to keep multiple datasets up to date:** A single schedule starts builds for each dataset as needed, without requiring a separate schedule for each dataset.
+
+* **Customize behavior on job failure:** By default, when a job fails, the build cancels its dependent jobs. Enable this setting to specify datasets for which a job failure should not cancel dependent jobs. If a job for one of the specified datasets fails, the build continues to run its dependent jobs.
 
 ## Save the schedule
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models-python-tsv2/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models-python-tsv2/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Language models in TypeScript v2 and Python functions
 
@@ -14,11 +14,11 @@ To begin using a language model, you must import the specific model into your fu
 
 1. Open the **Platform SDK** tab in the **Resource imports** panel.
 
-![The tab to access Platform SDK resources in a TypeScript v2 repository.](/docs/resources/foundry/functions/platform-sdk-tab.png)
+![The tab to access Platform SDK resources in a TypeScript v2 repository.](./images/platform-sdk-tab.png)
 
 2. To import a new language model, select **Add > Models** in the upper right corner. A window will open in which you can view available Palantir-provided and registered models.
 
-![The model import dialog in a TypeScript v2 repository.](/docs/resources/foundry/functions/models-v3-import-dialog.png)
+![The model import dialog in a TypeScript v2 repository.](./images/models-v3-import-dialog.png)
 
 3. Select the models to import, then choose **Confirm selection**. A configuration dialog will open in which you can configure aliases for each selected model. Select the pen icon near the alias to make edits, or choose to keep the defaults.
 
@@ -26,11 +26,15 @@ To begin using a language model, you must import the specific model into your fu
 Each model must have an alias, and the alias must be unique within the repository.
 :::
 
-![Configure model aliases after choosing models to import.](/docs/resources/foundry/functions/configure-models-aliases.png)
+![Configure model aliases after choosing models to import.](./images/configure-models-aliases.png)
 
 4. The imported models will appear in the **Platform SDK** tab in the **Resource imports** side panel. You can edit any alias inline by selecting the pen icon next to the alias.
 
-![Configure model aliases inline.](/docs/resources/foundry/functions/inline-models-aliases-edit.png)
+![Configure model aliases inline.](./images/inline-models-aliases-edit.png)
+
+:::callout{theme="neutral"}
+You can also define [custom aliases](/docs/foundry/functions/custom-aliases/) in the **Platform SDK** tab. Custom aliases store configuration parameters, feature flags, or environment-specific settings that installers can customize during Marketplace installation.
+:::
 
 ## Write a function that uses a language model
 

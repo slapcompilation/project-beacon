@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/permissions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -26,11 +26,11 @@ In a repository, whenever checks run or Code Assist starts up, the functions plu
 
 In a functions repository, you can import the needed Ontology resources by navigating to **Settings** > **Ontology**. This interface allows you to choose object and link types to import into your Project.
 
-![ontology-settings](/docs/resources/foundry/functions/ontology-settings-flights.png)
+![ontology-settings](./images/ontology-settings-flights.png)
 
 If your user account has access to multiple Ontologies, you can also choose which Ontology you’d like to use. Currently, importing multiple Ontologies into a single Project is unsupported.
 
-![ontology-picker](/docs/resources/foundry/functions/ontology-picker.png)
+![ontology-picker](./images/ontology-picker.png)
 
 :::callout{theme="warning" title="Warning"}
 Although the above interface shows up within functions repositories, any Ontologies, object types, and link types you import are added at the **Project** level. This means that changing imports in one repository can affect other repositories in the same Project. If you want to have two repositories that rely on different Ontology entities, you should separate them into different Projects.
@@ -44,7 +44,7 @@ Because it is tied to the repository, Code Assist is subject to the same permiss
 
 In the functions helper, if there are object types imported into your Project without the corresponding datasource being imported, a warning will be displayed in live preview prompting you to update the imports:
 
-![preview-backing-datasources](/docs/resources/foundry/functions/preview-backing-datasources.png)
+![preview-backing-datasources](./images/preview-backing-datasources.png)
 
 In the case of most object types, the **Import backing datasources** dialog will prompt you to import a Foundry dataset. For object types that have [row-level security](/docs/foundry/object-permissioning/configuring-rv-access-controls/) enabled, you will be prompted to import a [Restricted View](/docs/foundry/security/restricted-views/).
 
@@ -60,8 +60,24 @@ In order to execute a function, a user must have **Viewer** role on the reposito
 The **Check access** panel in the sidebar can be used to check someone's access to a Workshop or Slate application, including access to dependent functions. For more information, see the [Check access panel documentation](/docs/foundry/security/checking-permissions/).
 :::
 
+:::callout{theme="neutral" title="Function registration in Developer Console"}
+A `PERMISSION_DENIED` error with the code `FunctionRegistry:ReadOntologyFunctionPermissionDenied` typically means the function is not registered or available in Developer Console, rather than indicating a folder-level permissions issue. Add and register the function in Developer Console. Folder and repository permissions alone do not make the function executable.
+:::
+
 [Function-backed Actions](/docs/foundry/action-types/function-actions-overview/) are a special case in which end users do not necessarily need read access to the function in order to apply an Action that uses it. An administrative user must have read access to a function when configuring an Action to use it. Afterwards, users will be able to apply the Action based on [Action-level permissions](/docs/foundry/action-types/permissions/), regardless of their access to the function.
 
 ### Object loading permissions
 
 When a function loads object data, either as a parameter or via an [Object search](/docs/foundry/functions/api-object-sets/), the permissions of the end user running the function determine which objects are loaded. In the case of object types secured using row-level permissions, this means that different users executing the same function may receive different results. This behavior is intended—users should only see the objects they have access to, and this behavior enables a single function to work for users with differing access to individual objects.
+
+## Extended function execution
+
+Administrators control extended execution capabilities through **Functions settings** in [Control Panel](/docs/foundry/administration/control-panel/). These capabilities grant elevated access, such as calling [actions](/docs/foundry/action-types/function-actions-overview/) from within a function or obtaining authentication tokens with a time-to-live (TTL) of up to four hours.
+
+To publish, execute, or install functions with extended capabilities, administrators must configure the appropriate allowlists:
+
+* **Repositories allowed to publish extended functions:** Only repositories in this allowlist can publish functions with extended capabilities.
+* **Functions allowed to execute with extended capabilities:** Only functions in this allowlist can execute with extended capabilities. Foundry checks this allowlist at execution time.
+* **Projects allowed for installing extended functions via Marketplace:** Only projects in this allowlist can successfully install functions with extended capabilities from [Marketplace](/docs/foundry/marketplace/overview/).
+
+If publishing, execution, or Marketplace installation returns a permission error for a function with extended capabilities, ask your administrator to verify the relevant allowlists.

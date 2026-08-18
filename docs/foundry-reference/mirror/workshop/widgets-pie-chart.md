@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pie-chart/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pie-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Pie Chart
 
@@ -6,7 +6,7 @@ The Pie Chart widget is used to visualize objects data in a pie or donut chart v
 
 The Pie Chart widget supports exporting of the current chart visualization as a PNG by using either the **Download chart as image** option or **Custom chart export** option in View mode. The current chart visualization can also be copied as an image to the clipboard. Export and copy to clipboard options appear on hover of the widget.
 
-<img src="./media/widgets-pie-chart.png" alt="Pie chart example" width=700>
+<img src="./images/widgets-pie-chart.png" alt="Pie chart example" width=700>
 
 ## Configuration Options
 

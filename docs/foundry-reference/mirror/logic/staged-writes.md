@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/staged-writes/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/staged-writes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Staged writes in AIP Logic
 

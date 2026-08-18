@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/xy-plots/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/xy-plots/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series X/Y plots
 
@@ -25,7 +25,7 @@ We would like to investigate whether these stock prices are correlated. To test 
 3. Input the AAL time series as the `Source X Plot` and the CMG time series as the `Source Y plot`.
 4. Creating a scatter plot may be quite expensive for larger time series. Toggle on the **Bucketing** option and decrease the number of buckets if needed. This will result in fewer points being generated which can improve performance.
 
-![Creating a time series scatter plot](/docs/resources/foundry/quiver/create_scatterplot.gif)
+![Creating a time series scatter plot](./images/create_scatterplot.gif)
 
 ### Plotting a scatter plot regression
 
@@ -37,7 +37,9 @@ There appears to be a positive correlation between the prices of these two stock
 
 While we choose to use linear regression for this example, you can also perform exponential and polynomial regression.
 
-![Scatter plot regression](/docs/resources/foundry/quiver/scatterplot_regression.gif)
+![Scatter plot regression](./images/scatterplot_regression.gif)
+
+To extract the regression equation coefficients as an array for further analysis, you can add a [scatter plot regression coefficients](/docs/foundry/quiver/card-scatter-plot-regression-coefficients/) card from the scatter plot regression next actions menu.
 
 We would now like to see whether time plays a role in this trend. For this, we can toggle on the **Color points by time** option in the **Display** tab of the scatter plot. Toggling on **Show color time legend** allows us to see at a glance what time ranges correspond to different colors.
 
@@ -56,7 +58,7 @@ Finally, we add a numeric marker on the chart to draw a vertical line depicting 
 1. Select the gear icon in the chart header.
 2. Scroll down to the **Markers** section and select **Add marker**. Input the metric card with the average stock price for AAL.
 
-![Numeric series formula and marker](/docs/resources/foundry/quiver/numeric_formula_and_marker.gif)
+![Numeric series formula and marker](./images/numeric_formula_and_marker.gif)
 
 ### Distributions and heat grids
 
@@ -76,4 +78,4 @@ To configure the time series distribution:
 4. Repeat steps 1 - 3 for the CMG time series.
 5. To display the two distributions on the same chart, drag one distribution plot into the chart containing the other plot.
 
-![Time series heat grid and distribution](/docs/resources/foundry/quiver/heat_grid_and_distribution.png)
+![Time series heat grid and distribution](./images/heat_grid_and_distribution.png)

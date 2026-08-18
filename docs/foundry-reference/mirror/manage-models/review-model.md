@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/review-model/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/review-model/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Review models
 
@@ -6,4 +6,4 @@
 
 Objective owners can set [roles](/docs/foundry/security/projects-and-roles/#roles) to control access for review, release, and deployment.
 
-![img](/docs/resources/foundry/manage-models/concepts_concept-review.png)
+![img](./images/concepts_concept-review.png)

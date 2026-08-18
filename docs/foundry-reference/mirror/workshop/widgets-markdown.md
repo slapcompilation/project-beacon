@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-markdown/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-markdown/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Markdown
 
@@ -14,7 +14,7 @@ The below screenshot shows an example of a configured Markdown widget including 
 * Embedded references from specific highlighted anchor text to Ontology objects
 * Triggering on-click Workshop events from specific highlighted anchor text
 
-![A simple example of Markdown object references.](/docs/resources/foundry/workshop/markdown_object_references_simple_example.png)
+![A simple example of Markdown object references.](./images/markdown_object_references_simple_example.png)
 
 The example below shows a configured Markdown widget displaying annotation objects with the following user interactions configured on the embedded objects:
 
@@ -22,13 +22,13 @@ The example below shows a configured Markdown widget displaying annotation objec
 * Trigger on-click Workshop actions and events from displayed annotation objects
 * Create new annotation objects on specific portions of text
 
-<img src="./media/widgets-markdown-annotations-example.png" alt="A Markdown widget example with annotations." width="800">
+<img src="./images/widgets-markdown-annotations-example.png" alt="A Markdown widget example with annotations." width="800">
 
 ## Configuration options
 
 The screenshot below shows the initial state of an unconfigured Markdown widget alongside its initial configuration panel.
 
-![The initial Markdown widget configuration.](/docs/resources/foundry/workshop/widget-markdown-initial-configuration.png)
+![The initial Markdown widget configuration.](./images/widget-markdown-initial-configuration.png)
 
 For the Markdown widget, the core configuration options are the following:
 
@@ -91,7 +91,7 @@ Table Syntax Example
 | Row 2    | Data 2   |
 ```
 
-![Visual representation of the Markdown examples presented.](/docs/resources/foundry/workshop/markdown_example_formatting.png)
+![Visual representation of the Markdown examples presented.](./images/markdown_example_formatting.png)
 
 ## Object references in the Markdown widget
 
@@ -107,7 +107,7 @@ The format for creating one of these anchors is as follows:
 
 Let's walk through an example where we're attempting to reference two Flight Alerts objects within a sentence. First, let's look at the desired end-state we'd like to appear on-screen for users. Note: each of the Flight Alert objects reference below is individually selectable by a user and will then become the output selected object set of the Markdown widget.
 
-![Markdown object references configuration.](/docs/resources/foundry/workshop/markdown_object_references_config.png)
+![Markdown object references configuration.](./images/markdown_object_references_config.png)
 
 To achieve the above, the backing Markdown input is the following:
 
@@ -128,13 +128,13 @@ Beyond the syntax describe above for the Markdown input, builders can also confi
 
 Object references in Markdown can also have standard Markdown formatting applied. The screenshot below contains a variety of examples of Markdown formatting, such as headings and tables embedded with objects.
 
-![Additional Markdown formatting.](/docs/resources/foundry/workshop/markdown_additional_formatting.png)
+![Additional Markdown formatting.](./images/markdown_additional_formatting.png)
 
 ### Annotations
 
 The **Annotation** option can be used to display annotation objects on text using the Markdown widget. This option also allows users to interact with text within the widget by creating new annotation objects on selected portions of text, or running actions and events on the displayed annotation objects.
 
-<img src="./media/widget-markdown-annotation-creation.png" alt="Markdown widget example with annotation creation." width="800">
+<img src="./images/widget-markdown-annotation-creation.png" alt="Markdown widget example with annotation creation." width="800">
 
 Annotation objects capture selected text using zero-indexed numeric indices, with an inclusive start index and an exclusive end index, to represent the text selection's start and end positions. Markdown widget annotations currently do not support negative indices.
 

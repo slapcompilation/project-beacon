@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/marketplace-virtual-tables/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/marketplace-virtual-tables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add virtual tables to a Marketplace product
 
@@ -18,4 +18,4 @@ To add a virtual table to a product, first [create a product](/docs/foundry/foun
 
 You can then select which virtual tables you would like to include in your product.
 
-![Selecting a virtual table for your product](/docs/resources/foundry/data-connection/marketplace-virtual-table-selection.png)
+![Selecting a virtual table for your product](./images/marketplace-virtual-table-selection.png)

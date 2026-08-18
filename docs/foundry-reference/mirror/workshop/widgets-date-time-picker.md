@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-date-time-picker/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-date-time-picker/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Date and Time Picker
 
 The Date and Time Picker widget can be used to allow a user to enter a single date and time value.
 
-<img src="./media/widgets-date-time-picker.png" alt="Date time picker example" width=300>
+<img src="./images/widgets-date-time-picker.png" alt="Date time picker example" width=300>
 
 ## Configuration Options
 
@@ -21,4 +21,5 @@ The Date and Time Picker widget can be used to allow a user to enter a single da
 * **Timezone user editable**
   * Toggle controlling whether or not the timezone of the widget is adjustable in view mode by the user.
 * **Default timezone**
-  * Sets the default timezone used by the widget. This can be set statically by manually selecting the timezone, dynamically using a variable, or set to local which uses the viewer’s local timezone.
+
+  * Sets the default timezone used by the widget. This can be set statically by manually selecting the timezone, dynamically using a variable, or set to local which uses the viewer's local timezone. When using a variable to set the timezone dynamically, the value must be an IANA timezone identifier (for example, `Asia/Dubai` or `America/New_York`) rather than a GMT offset code.

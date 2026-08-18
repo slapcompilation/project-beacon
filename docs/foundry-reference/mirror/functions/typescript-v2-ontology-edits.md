@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-ontology-edits/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-ontology-edits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Ontology edits
 
@@ -9,6 +9,10 @@ For more details about how edit functions work, refer to the [overview page](/do
 For the edits created in a function to actually be applied, Ontology edit functions *must be configured as a [function-backed Action](/docs/foundry/action-types/function-actions-overview/)*.
 Configuring an Action in this way allows you to provide additional metadata, configure permissions, and access the Action in various operational interfaces.
 As noted in the [documentation](/docs/foundry/functions/edits-overview/#when-edits-are-applied), running an edit function outside of an Action will not actually modify any object data.
+
+:::callout{theme="neutral"}
+Standard Ontology edits use an edit batch. TypeScript v2 also supports [staged writes](/docs/foundry/functions/typescript-v2-staged-writes/), which provide read-after-write guarantees within a function. With staged writes, edits are immediately visible to later queries in the same execution, and nested staged-write function calls share those edits. Use staged writes when a function must read data that it just wrote.
+:::
 
 :::callout{theme="warning" title="Warning"}
 Searching for objects immediately after editing them may return unexpected results. See the [Caveats section](/docs/foundry/functions/edits-overview/#edits-and-object-search) for details.

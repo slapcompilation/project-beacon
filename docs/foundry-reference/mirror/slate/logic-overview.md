@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/logic-overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/logic-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Logic
 
@@ -8,6 +8,6 @@ Applications often require data to be modified or enriched before it can be pres
 
 **Handlebars** pass values from one component to another, using the output of a function in a widget or a query in an event. Handlebars give you access to all the information currently flowing through your application via two curly brackets `{{ }}`. Learn more about [using Handlebars in Slate](/docs/foundry/slate/concepts-handlebars/).
 
-**Variables** store values to save a specific state, store user inputs, or set defaults. Set the value for variables via URL parameters or update them via events. Learn more about [variables in Slate](/docs/foundry/slate/concepts-variables/).
+**Variables** store application state, user inputs, or defaults. Set variable values through URL parameters or events. The **Variables** panel provides a spreadsheet-like interface where you can resize columns, edit cells, use context menus, and upload CSV files to initialize or update tabular values. Learn more about [variables in Slate](/docs/foundry/slate/concepts-variables/).
 
 **Events** are made up of an individual event and a user action. Events trigger activity in your application; for example, you can configure an Event to submit a query when a button is selected or display a toast after a dialog is closed. Events and actions handle all kinds of automated interactions inside of Slate. Learn more about [Events and Actions in Slate](/docs/foundry/slate/concepts-events/).

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-mobile-navbar/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-mobile-navbar/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Widget: Mobile Navigation Bar
 
@@ -6,19 +6,19 @@ The **Mobile Navigation Bar** widget allows your users to navigate between a few
 
 The design and behavior of the Mobile navigation bar is informed by the design guidelines for iOS ([Tab Bars ↗](https://developer.apple.com/design/human-interface-guidelines/components/navigation-and-search/tab-bars)) and Android's Material Design ([Bottom navigation ↗](https://material.io/components/bottom-navigation)).
 
-<img src="./media/mobile-navbar-example.png" alt="mobile navbar example" width="400px" />
+<img src="./images/mobile-navbar-example.png" alt="mobile navbar example" width="400px" />
 
 ## Navigation bar setup
 
 To enable and configure the navigation bar, ensure your module is configured to have a Mobile device type, then select **Layout** and **Navigation Bar** on the left side while editing a Workshop module:
 
-![enable mobile navbar](/docs/resources/foundry/workshop/mobile-navbar-open.png)
+![enable mobile navbar](./images/mobile-navbar-open.png)
 
 Enable the navigation bar using the **Module Navigation Bar Visible** switch in the top-right, then add navigation items. Each navigation item includes a label and icon.
 
 Typically, you should configure navigation items to navigate to a [page](/docs/foundry/workshop/concepts-layouts/#pages) in your application. Select **+ Add event** and select the event to switch to your page.
 
-<img src="./media/mobile-navbar-configure.png" alt="mobile navbar configuration" />
+<img src="./images/mobile-navbar-configure.png" alt="mobile navbar configuration" />
 
 ## Behavior
 

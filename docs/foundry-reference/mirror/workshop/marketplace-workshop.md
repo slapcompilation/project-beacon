@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/marketplace-workshop/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/marketplace-workshop/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add Workshop application to a Marketplace product
 
@@ -18,17 +18,21 @@ Once you select your application, if you receive any error messages, visit the [
 
 If you have created a Workshop application that you would like to include as part of a Marketplace product, enable **Installation configuration** in the Workshop settings as below, which provides additional features for [debugging packaging errors](#packaging-error-linter) when [creating your product](/docs/foundry/foundry-devops/create-products/) and creating [**Installation parameters**](#installation-parameters) to expose during installation.
 
-![enable installation configuration](/docs/resources/foundry/workshop/marketplace-enable-installation-configuration.png)
+![enable installation configuration](./images/marketplace-enable-installation-configuration.png)
 
 ## Packaging error linter
 
 To successfully package a Workshop application, DevOps must be able to successfully identify all application dependencies, such as the object types that are used in the application. Once you have enabled **Installation configuration**, any errors will be surfaced in the top right corner of your application next to warnings.
 
+:::callout{theme="neutral"}
+Some Foundry enrollments enable Marketplace linting by default for all users. When enabled, Marketplace provides linting feedback for every Workshop module, including modules that you do not intend to package. Use this feedback to identify packaging issues during development.
+:::
+
 Note that there may be some (~5-10 seconds) latency for errors to appear depending on the size of your application. If no errors are present, nothing will appear.
 
 It is generally a best practice to enable the linter and check for errors before attempting to package your application in DevOps. If you attempt packaging before enabling the linter, you will be directed to use the linter if there are any unresolved issues.
 
-![linting error](/docs/resources/foundry/workshop/marketplace-linting-error.png)
+![linting error](./images/marketplace-linting-error.png)
 
 Common errors that are surfaced by the linter include:
 
@@ -44,7 +48,7 @@ Common errors that are surfaced by the linter include:
 
 After enabling **Installation configuration**, a new panel will appear under **Settings**. Two types of installation parameters are configurable from this panel: `string` and `boolean` parameters.
 
-![installation configuration panel](/docs/resources/foundry/workshop/marketplace-installation-configuration.png)
+![installation configuration panel](./images/marketplace-installation-configuration.png)
 
 Use `string` parameters to allow for customization of content like application titles at installation time. For example, you can use a `string` parameter to allow installers to customize the application with their organization’s name when installing your product.
 
@@ -52,8 +56,8 @@ Use `boolean` parameters to show/hide content based on installer preferences. Fo
 
 Once you’ve created your installation parameters, you can connect the parameters to Workshop variables.
 
-![connect to workshop variables](/docs/resources/foundry/workshop/marketplace-connect-variables.png)
+![connect to workshop variables](./images/marketplace-connect-variables.png)
 
 When other users install your product, these parameters will be surfaced as [inputs](/docs/foundry/marketplace/install-product/#inputs).
 
-![parameters as inputs](/docs/resources/foundry/workshop/marketplace-parameter-input.png)
+![parameters as inputs](./images/marketplace-parameter-input.png)

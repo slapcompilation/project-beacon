@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/use-functions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/use-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use functions in the platform
 
@@ -11,6 +11,10 @@ This section documents various ways that you can use functions throughout the Fo
 ### Variables
 
 Most Workshop [Variables](/docs/foundry/workshop/concepts-variables/) can be Function-backed, allowing an application builder to use functions to compute values that can then be used throughout Workshop. By default, the value for a variable is recomputed when another variable it depends on is updated. This enables flexible recomputation of values in response to user feedback—for example, when a user edits an input component, a dependent Function-backed Object Set variable will be recomputed automatically.
+
+:::callout{theme="neutral"}
+Function-backed variables cache results for identical inputs instead of recomputing them. Configure the variable's [recompute behavior](/docs/foundry/workshop/concepts-variables/#recompute-variable-value), or use a [set variable value](/docs/foundry/workshop/concepts-events/#set-variable-value) event to trigger recomputation explicitly.
+:::
 
 To learn more, take a look at the [tutorial on how to use functions to back Workshop variables](/docs/foundry/workshop/functions-use/#function-backed-variables-in-workshop).
 
@@ -28,11 +32,13 @@ Below is the mapping between Workshop variable types and their equivalents in Ty
 
 Workshop’s **Object Table** widget can be configured to compute a Function-backed column, which can update based on user input and will be recomputed on the fly as end users scroll through the table. You can see a [full tutorial for using this functionality](/docs/foundry/workshop/widgets-object-table/#function-backed-columns).
 
+Function-backed columns can return media references. When a function returns a `mediaReference` type with `mimeType` and `reference` properties, the object table automatically renders the result as media instead of raw data. This supports dynamic media in table columns based on custom function logic.
+
 ### Chart: Derived aggregations
 
 Workshop’s **Chart: XY** widget supports using a Function-backed aggregation to derive aggregated values on demand. This can be useful if you want to have aggregation data be based on user selection. To use functions in a Chart widget, simply click to configure a chart layer and select *Function aggregation*.
 
-![use-functions-chart](/docs/resources/foundry/functions/use-functions-chart.png)
+![use-functions-chart](./images/use-functions-chart.png)
 
 A [reference for the Aggregation API](/docs/foundry/functions/types-reference/#aggregation-types) is available. For more advanced use cases, you may want to read the documentation about [how to compute custom aggregations](/docs/foundry/functions/create-custom-aggregation/).
 
@@ -56,7 +62,7 @@ An Action can also be configured to trigger a Webhook when it is applied. Webhoo
 
 [Slate](/docs/foundry/slate/overview/) includes native support for finding and using functions within the **Platform** tab. When editing a Slate document, open the Platform tab and add a **Foundry Function** in the bottom-left. Now, you can search for a Function, configure parameters, and use the result in your Slate document.
 
-![use-functions-slate](/docs/resources/foundry/functions/use-functions-slate.png)
+![use-functions-slate](./images/use-functions-slate.png)
 
 Note that for historical reasons, the Slate product has its own notion of "functions", which are snippets of JavaScript logic located within each Slate document. This is why the functions product is called "Foundry functions" and is located under the **Platform** tab. Slate's functions capability allows for quick, easy data manipulation within a document, but do not have native support for objects.
 
@@ -65,6 +71,10 @@ You can use Slate's functions and Foundry functions in combination with each oth
 ## Quiver
 
 [Object set plots](/docs/foundry/quiver/objects-chart-drilldown/#code-function-categorical-plot) in Quiver use the same underlying component as Workshop's Chart: XY widget. As such, you can use Function-backed Aggregations in Quiver analyses as well.
+
+**Code function object set** and **Code function categorical plot** cards support functions with object parameters. Set parameter values by referencing another card or selecting objects in the card editor.
+
+You can also add code functions from the Quiver search dialog. The **Code functions** category supports object set, categorical plot, value, and time series outputs.
 
 ## Automate
 

@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-timeline/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-timeline/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Timeline
 
 The Timeline widget is used to visualize temporal data, rendering objects as events in a chronologically ordered timeline.
 
-<img src="./media/widgets-timeline.png" alt="Timeline example" width=400>
+<img src="./images/widgets-timeline.png" alt="Timeline example" width=400>
 
 ## Configuration Options
 

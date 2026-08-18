@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-permissioning/object-security-policies/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-permissioning/object-security-policies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object and property security policies
 
@@ -20,6 +20,10 @@ When an object or property security policy is configured, users do not need `Vie
 
 :::callout{theme="warning"}
 If your enrollment uses the legacy [datasource-derived permissions model](/docs/foundry/object-permissioning/ontology-permissions-legacy/#datasource-derived-permissions), users still require `Viewer` permissions on the backing data source to view the object type and its instances. This requirement applies even when an object security policy is configured. Because datasource-derived permissions defeat the decoupling that object security policies provide, we recommend [migrating to project-based permissions](/docs/foundry/object-permissioning/ontology-permissions/) before configuring object security policies.
+:::
+
+:::callout{theme="warning"}
+Download permissions are evaluated separately from the view permissions described above. When an object type is secured with a security policy, the platform checks download permissions on the object type if the object type is saved in a project, and on the backing data source if the object type uses [ontology roles or datasource-derived permissions](/docs/foundry/object-permissioning/ontology-permissions-legacy/). Review [permissions to download object data](#permissions-to-download-object-data).
 :::
 
 Consider an example where a `Passenger` object type has the properties `User ID`, `Flight Number`, `Seat Assignment`, `Name`, `Address`, and `Phone Number`. Some passengers are VIPs, whose information can only be seen by users who have access to a `VIP` marking. Additionally, some properties, such as `Name`, `Address`, and `Phone Number`, should be visible only to users who have the `PII` marking, and are authorized to view personally identifiable information. Since the backing dataset consists of sensitive data, it should be marked with `PII` and `VIP`. However, users without sensitive markings should still be able to access a passenger’s flight details.
@@ -57,6 +61,13 @@ To create or edit an object or property security policy, you must be an **Owner*
 :::callout{theme="warning"}
 If your enrollment uses the legacy [datasource-derived permissions model](/docs/foundry/object-permissioning/ontology-permissions-legacy/#datasource-derived-permissions), this means you must be an `Owner` on the Ontology to create or edit object security policies. Once security policies are configured on an object type, adding or removing properties also requires `Owner` on the Ontology. This makes many common workflows highly restrictive, and is a further reason we recommend [migrating to project-based permissions](/docs/foundry/object-permissioning/ontology-permissions/) before configuring object security policies.
 :::
+
+### Permissions to download object data
+
+When an object type is secured with an object or property security policy, the location of the object type determines where the platform checks download permissions:
+
+* **Object types saved in a [project](/docs/foundry/object-permissioning/ontology-permissions/):** The platform checks download permissions on the object type.
+* **Object types using [ontology roles](/docs/foundry/object-permissioning/ontology-permissions-legacy/#ontology-roles) or [datasource-derived permissions](/docs/foundry/object-permissioning/ontology-permissions-legacy/#datasource-derived-permissions):** The platform checks download permissions on the backing data source.
 
 ### Property security policy restrictions
 

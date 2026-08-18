@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph-organization/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph-organization/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Organize and filter
 
@@ -14,7 +14,7 @@ You can also hide entire [color groups](/docs/foundry/quiver/analysis-graph-colo
 
 To show hidden nodes, use the **Analysis Contents** panel to find and reveal them.
 
-![Hiding and showing nodes in graph mode.](/docs/resources/foundry/quiver/analysis-graph-organization-hide.gif)
+![Hiding and showing nodes in graph mode.](./images/analysis-graph-organization-hide.gif)
 
 ## Filter nodes
 
@@ -27,7 +27,7 @@ The **Analysis Contents** panel includes filters to control which nodes are visi
 
 Nodes that do not match the active filter are hidden from the graph but remain part of the analysis.
 
-![The Analysis Contents panel with node type filters applied.](/docs/resources/foundry/quiver/analysis-graph-organization-filter.gif)
+![The Analysis Contents panel with node type filters applied.](./images/analysis-graph-organization-filter.gif)
 
 ## Dependency view
 

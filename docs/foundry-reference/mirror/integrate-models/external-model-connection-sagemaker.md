@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-sagemaker/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-sagemaker/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Example: Integrate an Amazon SageMaker model
 
@@ -104,13 +104,13 @@ Note that the URL is not required by the above `SageMakerTabularAdapter` and so 
 
 The below uses an egress policy that has been configured for `runtime.sagemaker.us-east-1.amazonaws.com` (Port 443).
 
-![Egress Policy Amazon SageMaker in the modeling objectives application](/docs/resources/foundry/integrate-models/external-sagemaker-egress-configuration.png)
+![Egress Policy Amazon SageMaker in the modeling objectives application](./images/external-sagemaker-egress-configuration.png)
 
 ### Configure model adapter
 
 Choose the published model adapter in the **Connect an externally hosted model** dialog.
 
-![Model Adapter configuration panel for Amazon SageMaker in Palantir Foundry](/docs/resources/foundry/integrate-models/external-sagemaker-adapter-configuration.png)
+![Model Adapter configuration panel for Amazon SageMaker in Palantir Foundry](./images/external-sagemaker-adapter-configuration.png)
 
 ### Configure connection configuration
 
@@ -121,7 +121,7 @@ This adapter requires connection configuration of:
 * **region\_name** - The AWS region name where the model is hosted.
 * **endpoint\_name** - The unique identifier for the externally hosted model.
 
-![Connection configuration panel for Amazon SageMaker in Palantir Foundry](/docs/resources/foundry/integrate-models/external-sagemaker-connection-configuration.png)
+![Connection configuration panel for Amazon SageMaker in Palantir Foundry](./images/external-sagemaker-connection-configuration.png)
 
 ### Configure credential configuration
 
@@ -132,7 +132,7 @@ This adapter requires credential configuration of:
 * **access\_key\_id** - This is the unique identifier for the user whose credentials will call the SageMaker model.
 * **secret\_access\_key** - This is the secret key for the user whose credentials will call the SageMaker model.
 
-![Credentials configuration panel for Amazon SageMaker in Palantir Foundry](/docs/resources/foundry/integrate-models/external-sagemaker-credentials-configuration.png)
+![Credentials configuration panel for Amazon SageMaker in Palantir Foundry](./images/external-sagemaker-credentials-configuration.png)
 
 ## Amazon SageMaker tabular model usage
 
@@ -140,4 +140,4 @@ Now that the Amazon SageMaker model has been configured, this model can be hoste
 
 The below image shows an example query made to the Amazon SageMaker model in a live deployment.
 
-![Example query using SageMakerTabularAdapter](/docs/resources/foundry/integrate-models/external-sagemaker-example-query.png)
+![Example query using SageMakerTabularAdapter](./images/external-sagemaker-example-query.png)

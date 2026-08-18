@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-vertex-ai/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-vertex-ai/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Example: Integrate a Vertex AI model
 
@@ -105,13 +105,13 @@ Note that the URL is not required by the above `VertexAITabularAdapter` and so i
 
 The below uses an egress policy that has been configured for `us-central1-aiplatform.googleapis.com` (Port 443).
 
-![Egress Policy for Vertex AI in the modeling objectives application](/docs/resources/foundry/integrate-models/external-vertex-ai-egress-configuration.png)
+![Egress Policy for Vertex AI in the modeling objectives application](./images/external-vertex-ai-egress-configuration.png)
 
 ### Configure model adapter
 
 Choose the published model adapter in the **Connect an externally hosted model** dialog.
 
-![Model Adapter configuration panel for Vertex AI in Palantir Foundry](/docs/resources/foundry/integrate-models/external-vertex-ai-adapter-configuration.png)
+![Model Adapter configuration panel for Vertex AI in Palantir Foundry](./images/external-vertex-ai-adapter-configuration.png)
 
 ### Configure connection configuration
 
@@ -123,7 +123,7 @@ This adapter requires connection configuration of:
 * **project\_id** - The unique identifier for the project this external hosted model belongs to.
 * **endpoint\_id** - The unique identifier for the externally hosted model.
 
-![Connection configuration panel for Vertex AI in Palantir Foundry](/docs/resources/foundry/integrate-models/external-vertex-ai-connection-configuration.png)
+![Connection configuration panel for Vertex AI in Palantir Foundry](./images/external-vertex-ai-connection-configuration.png)
 
 ### Configure credential configuration
 
@@ -133,7 +133,7 @@ This adapter requires credential configuration of:
 
 * **google\_application\_credentials** - This is the full contents of a service account private key file that can be used to obtain credentials for a service account. You can create a private key using the [Credentials page of the Google Cloud Console ↗](https://console.cloud.google.com/apis/credentials).
 
-![Credentials configuration panel for Vertex AI in Palantir Foundry](/docs/resources/foundry/integrate-models/external-vertex-ai-credentials-configuration.png)
+![Credentials configuration panel for Vertex AI in Palantir Foundry](./images/external-vertex-ai-credentials-configuration.png)
 
 ## Vertex AI tabular model usage
 
@@ -141,4 +141,4 @@ Now that the Vertex AI model has been configured, this model can be hosted in a 
 
 The below image shows an example query made to the Vertex AI model in a live deployment.
 
-![Example query using VertexAITabularAdapter](/docs/resources/foundry/integrate-models/external-vertex-ai-example-query.png)
+![Example query using VertexAITabularAdapter](./images/external-vertex-ai-example-query.png)

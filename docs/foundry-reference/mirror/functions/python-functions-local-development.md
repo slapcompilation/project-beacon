@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-local-development/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-local-development/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Local development
 
@@ -9,8 +9,8 @@ You can carry out local development of Python functions repositories, allowing f
 ### Clone the repository
 
 1. In the menu bar of your repository, select **Work locally** to open the dialog and copy the given repository URL. <br><br>
-   ![The top menu bar of a repository with the "Work locally" option to the right.](/docs/resources/foundry/functions/clone-repo.png) <br><br>
-   ![The "Work locally" dialog.](/docs/resources/foundry/functions/work-locally-dialog.png) <br><br>
+   ![The top menu bar of a repository with the "Work locally" option to the right.](./images/clone-repo.png) <br><br>
+   ![The "Work locally" dialog.](./images/work-locally-dialog.png) <br><br>
 
 2. Using the command line, run `git clone <URI>` on your local machine in a directory of your choice. Then use the `cd` command to navigate to the repository.
 
@@ -64,10 +64,10 @@ Upgrade your repository to the latest template version as described above to res
 * Import the project following the steps outlined [here ↗](https://www.jetbrains.com/help/pycharm/open-projects.html).
 
 * Choose **Add New Interpreter** from the [Python Interpreter selector ↗](https://www.jetbrains.com/help/pycharm/configuring-python-interpreter.html#widget) on the status bar. <br><br>
-  ![add python interpreter screenshot](/docs/resources/foundry/functions/pycharm-add-python-interpreter.png) <br><br>
+  ![add python interpreter screenshot](./images/pycharm-add-python-interpreter.png) <br><br>
 
 * In the left-hand pane of the **Add Python Interpreter** dialog, select **Virtualenv Environment**. <br><br>
-  ![configure python interpreter screenshot](/docs/resources/foundry/functions/pycharm-configure-python-interpreter.png) <br><br>
+  ![configure python interpreter screenshot](./images/pycharm-configure-python-interpreter.png) <br><br>
 
 * Choose **Existing environment** and set the **Interpreter** field to the Python interpreter from your Conda environment.
   * For Unix, the Python interpreter path is <code>\<your-conda-environment-dir>/bin/python</code>.<br/>

@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-linked-compass-resources/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-linked-compass-resources/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Linked Compass Resources
 
 Use the **Linked Compass Resources** widget to display Compass resources linked to objects, create new links on objects to existing Compass resources, and upload new files for direct linking to objects.
 
-<img src="./media/widgets-linked-compass-resource.png" alt="Linked Compass Resource widget example" width="500">
+<img src="./images/widgets-linked-compass-resource.png" alt="Linked Compass Resource widget example" width="500">
 
 ## Configuration options
 

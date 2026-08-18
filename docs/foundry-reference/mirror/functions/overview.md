@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Functions
 
@@ -15,6 +15,7 @@ Common use cases for functions include:
 * Running logic in the backend to return information to be displayed in the frontend in [Slate](/docs/foundry/slate/overview/).
 * Computing custom metrics or aggregations for display in [Quiver](/docs/foundry/quiver/overview/).
 * Querying external systems to enrich objects in the Ontology through [external functions](/docs/foundry/functions/webhooks/).
+* Streaming results incrementally for real-time experiences, particularly when working with [language models](/docs/foundry/functions/streaming-functions/).
 * Using Python functions as a sidecar container in [Pipeline Builder](/docs/foundry/functions/python-functions-builder/).
 
 The languages supported by functions are [TypeScript ↗](https://www.typescriptlang.org/docs/handbook/basic-types.html) and [Python ↗](https://www.python.org/).

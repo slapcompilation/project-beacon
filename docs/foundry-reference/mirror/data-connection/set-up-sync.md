@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-sync/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-sync/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a batch sync
 
@@ -12,7 +12,7 @@ Follow the steps below to set up a batch sync. This setup guide assumes you have
 
 First, navigate to your source connection in the Data Connection application, then select **New batch sync** from the overview page. If this is a newly configured source, you should see the available capabilities as shown below, and select **Create** next to the batch sync option.
 
-![Data connection source capabilities on a newly created source.](/docs/resources/foundry/data-connection/data-connection-source-capabilities.png)
+![Data connection source capabilities on a newly created source.](./images/data-connection-source-capabilities.png)
 
 If your connector supports [source exploration](/docs/foundry/data-connection/source-exploration/), you can also select **Explore and create syncs** to explore your data source and begin creating syncs directly from the exploration view. Refer to the [source exploration](/docs/foundry/data-connection/source-exploration/) documentation for details.
 
@@ -22,7 +22,7 @@ The output location defines where the dataset of synced data will be created and
 
 The recommended best practice when creating a sync dataset is to save it alongside the connector. This enables the pattern of uniformly permissioning all data from a given connector, which is helpful when creating data pipelines. Learn more about the [recommended Project structure for data pipelines](/docs/foundry/building-pipelines/recommended-project-structure/).
 
-![Data connection location picker for a batch sync output dataset](/docs/resources/foundry/data-connection/data-connection-batch-sync-output-selector.png)
+![Data connection location picker for a batch sync output dataset](./images/data-connection-batch-sync-output-selector.png)
 
 :::callout{theme="neutral"}
 Syncing to an existing dataset is supported but not recommended, since syncs may overwrite any data already in the selected dataset.
@@ -43,7 +43,7 @@ Most systems support either file or table batch syncs, but some systems may supp
 
 The below example shows the configuration for a file batch sync from S3 that does a `SNAPSHOT` update on each build. You may optionally specify a subdirectory and filters to narrow down the set of files to be synced to the output dataset. Our example does not specify a subdirectory or filters, meaning all files found under the root directory that was chosen when setting up the source connection will be synced.
 
-![An example batch sync configuration for an S3 source.](/docs/resources/foundry/data-connection/data-connection-batch-sync-s3.png)
+![An example batch sync configuration for an S3 source.](./images/data-connection-batch-sync-s3.png)
 
 Additional settings for file batch syncs are described in the reference documentation for [file batch syncs](/docs/foundry/data-connection/file-based-syncs/), including detailed documentation for the available [filters](/docs/foundry/data-connection/file-based-syncs/#filters).
 
@@ -51,7 +51,7 @@ Additional settings for file batch syncs are described in the reference document
 
 This example shows the configuration for a table batch sync from [Microsoft SQL Server](/docs/foundry/available-connectors/microsoft-sql-server/). A query defines which data will be pulled from the target system. In this case, the incremental batch sync setting is also enabled, which allows data to be incrementally updated based on a monotonically increasing column.
 
-![An example batch sync configuration for a Microsoft SQL server source.](/docs/resources/foundry/data-connection/data-connection-batch-sync-azure-sql.png)
+![An example batch sync configuration for a Microsoft SQL server source.](./images/data-connection-batch-sync-azure-sql.png)
 
 :::callout{theme="neutral"}
 Although you cannot visualize SQL stored procedures on the [**Explore source**](/docs/foundry/data-connection/source-exploration/) tab, you can run a SQL stored procedure by running the `EXEC` command followed by the corresponding procedure in the **SQL Query** field.
@@ -80,7 +80,7 @@ Before proceeding, you can run a preview of the data that will be synced based o
 
 Below, we show an example preview for an S3 file batch sync, with a filter to a subfolder called `csv_files`:
 
-![Example of a batch sync from S3 showing a preview of three CSV files in a subdirectory.](/docs/resources/foundry/data-connection/data-connection-batch-sync-s3-preview.png)
+![Example of a batch sync from S3 showing a preview of three CSV files in a subdirectory.](./images/data-connection-batch-sync-s3-preview.png)
 
 :::callout{theme="neutral"}
 The example above shows a warning `Preview not available` when using the **Exclude files already synced** filter. This is because this filter is not reflected in the preview results shown and will only be applied once the sync is scheduled or run manually.
@@ -92,11 +92,11 @@ After saving your batch sync, you can choose when and how you want to run it.
 
 Run your batch sync manually using the **Run** button shown on the overview page for the sync:
 
-![A manually run Data Connection batch sync.](/docs/resources/foundry/data-connection/data-connection-batch-sync-run-manually.png)
+![A manually run Data Connection batch sync.](./images/data-connection-batch-sync-run-manually.png)
 
 Configure a build schedule to trigger the batch sync to run on a regular schedule:
 
-![Example of a Data Connection batch sync schedule.](/docs/resources/foundry/data-connection/data-connection-batch-sync-schedule.png)
+![Example of a Data Connection batch sync schedule.](./images/data-connection-batch-sync-schedule.png)
 
 Use the [Data Lineage application](/docs/foundry/data-lineage/overview/) to set up a [schedule](/docs/foundry/data-integration/schedules/) for multiple syncs at the same time.
 

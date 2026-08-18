@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/widget/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/widget/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Embed a map template in a Workshop module
 

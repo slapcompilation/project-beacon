@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-slack-bot/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-slack-bot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create an AI-powered Slack bot with listeners
 
@@ -24,19 +24,19 @@ Since users will directly message the Tennis Bot with questions, you will need t
 
 Add the `im:history` and `chat:write` scopes for your app.
 
-![Slack app OAuth scopes configuration shown.](/docs/resources/foundry/data-connection/listeners-chat-bots-slack-scopes.png)
+![Slack app OAuth scopes configuration shown.](./images/listeners-chat-bots-slack-scopes.png)
 
 Additionally, subscribe your app to the `message.im` event.
 
-![Slack Events API configuration show.](/docs/resources/foundry/data-connection/listeners-chat-bots-events-configuration.png)
+![Slack Events API configuration show.](./images/listeners-chat-bots-events-configuration.png)
 
 You will also need to allow users to directly message the bot. This setting can be found in your Slack app settings under **Features > App Home**.
 
-![Enable direct messages for the bot in Slack](/docs/resources/foundry/data-connection/listeners-chat-bots-dm-bot.png)
+![Enable direct messages for the bot in Slack](./images/listeners-chat-bots-dm-bot.png)
 
 After you have configured the listener, you will be able to verify that the listener is correctly configured in the **Test** tab of the listener setup wizard.
 
-![Event shown in the test panel for the Slack listener in Data Connection.](/docs/resources/foundry/data-connection/listeners-chat-bots-test-listener-page.png)
+![Event shown in the test panel for the Slack listener in Data Connection.](./images/listeners-chat-bots-test-listener-page.png)
 
 ## Step 2: Set up Slack source
 
@@ -44,13 +44,13 @@ Next, you will need to [create a new Slack source](/docs/foundry/data-connection
 
 After installing your Slack app into your workspace, you can find the bearer token to configure your source within **Installed App Settings**.
 
-![Slack app bearer token for source authentication.](/docs/resources/foundry/data-connection/listeners-chat-bots-slack-bearer.png)
+![Slack app bearer token for source authentication.](./images/listeners-chat-bots-slack-bearer.png)
 
 You will need to enable exports and code repository imports for your source by navigating to **Connection settings**.
 
-![Enable exports for your source.](/docs/resources/foundry/data-connection/listeners-chat-bots-source-exports.png)
+![Enable exports for your source.](./images/listeners-chat-bots-source-exports.png)
 
-![Enable code repository imports for your source.](/docs/resources/foundry/data-connection/listeners-chat-bots-code-import-configuration.png)
+![Enable code repository imports for your source.](./images/listeners-chat-bots-code-import-configuration.png)
 
 Additionally, you must configure an API name for your source so that the source can be referenced from code. The API name configuration can be found under **Connection Settings > Code import configuration**.
 
@@ -74,15 +74,15 @@ Keep your responses concise and friendly.
 
 To give the chatbot a source of information about tennis, you can provide a PDF with the rules of tennis as [document context](/docs/foundry/chatbot-studio/retrieval-context/#document-context) to the chatbot; the chatbot will then be able to use this context to answer user queries.
 
-![Provide the chatbot with a document containing the rules of tennis.](/docs/resources/foundry/data-connection/listeners-chat-bots-agent-document-context.png)
+![Provide the chatbot with a document containing the rules of tennis.](./images/listeners-chat-bots-agent-document-context.png)
 
 Ensure that you disable citations to avoid the chatbot including [XML citations](/docs/foundry/chatbot-studio/citations/#citation-formats) in its response; this will prevent the chatbot from including links back to the document in its Slack responses.
 
-![Disable citations for the chatbot.](/docs/resources/foundry/data-connection/listeners-chat-bots-disable-citations-for-agent.png)
+![Disable citations for the chatbot.](./images/listeners-chat-bots-disable-citations-for-agent.png)
 
 You can additionally test your chatbot to ensure it responds in an appropriate manner. Use Chatbot Studio for ad-hoc testing, or use [AIP Evals](/docs/foundry/chatbot-studio/chatbots-as-functions/#evaluate-chatbots-with-aip-evals) to test against a full evaluation suite.
 
-![We ask a tennis-related question to the AIP chatbot to test our setup.](/docs/resources/foundry/data-connection/listeners-chat-bots-agent-test.png)
+![We ask a tennis-related question to the AIP chatbot to test our setup.](./images/listeners-chat-bots-agent-test.png)
 
 When you are satisfied with the chatbot's performance, [publish the chatbot as a function](/docs/foundry/chatbot-studio/chatbots-as-functions/) so that you can use the chatbot in your event processing workflow.
 
@@ -90,7 +90,7 @@ When you are satisfied with the chatbot's performance, [publish the chatbot as a
 
 Once you have set up the chatbot, you will need to enable the chatbot to interact with Slack. First, [create a new code repository for writing TypeScript functions](/docs/foundry/functions/getting-started/). Once created, import both your created source and the published chatbot function into the repository.
 
-![The chatbot function and source are both imported into the code repository.](/docs/resources/foundry/data-connection/listeners-chat-bots-function-imports.png)
+![The chatbot function and source are both imported into the code repository.](./images/listeners-chat-bots-function-imports.png)
 
 ## Step 5: Set up listener event payload processing
 
@@ -147,19 +147,19 @@ Commit and tag a version to [publish this function](/docs/foundry/functions/gett
 
 Navigate to [Ontology Manager](/docs/foundry/ontology-manager/overview/) to create a [function-backed action](/docs/foundry/action-types/function-actions-overview/) using your event processor function. This action will be triggered for each incoming Slack message event.
 
-![A walkthrough wizard for creating a function-backed action is shown.](/docs/resources/foundry/data-connection/listeners-chat-bots-function-backed-action.png)
+![A walkthrough wizard for creating a function-backed action is shown.](./images/listeners-chat-bots-function-backed-action.png)
 
 ## Step 7: Set up automation to execute function-backed actions
 
 Next, create a new automation to execute the function-backed action for each new listener event. The new automation should have a "Stream" condition (it will execute when new rows are added to the stream). The input to this automation should be the output stream from the created Slack listener.
 
-![A summary of the created automation is shown.](/docs/resources/foundry/data-connection/listeners-chat-bots-create-tennis-bot-automation.png)
+![A summary of the created automation is shown.](./images/listeners-chat-bots-create-tennis-bot-automation.png)
 
 ## Step 8: Test the bot
 
 At this point, the Tennis Bot is ready for testing. Send a Slack direct message to your bot and wait for its response. The bot should respond with information about tennis.
 
-![A conversation is shown between a user and the created Slack bot.](/docs/resources/foundry/data-connection/listeners-chat-bots-slack-chat.png)
+![A conversation is shown between a user and the created Slack bot.](./images/listeners-chat-bots-slack-chat.png)
 
 ## Optional extensions and improvements
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-event-sets/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-event-sets/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event set cards
 
@@ -58,7 +58,7 @@ From the **Display** tab of any events plot configuration, you can control how e
   * **Object view:** Display the title and prominent properties of the object, as configured in the Ontology. This option is only supported if the event set is based on an object set or includes an object column.
   * **Custom:** Select from the event set's columns to define the title and description for the event tooltip. Additional fields can be shown, along with event range and duration.
 
-![Events plot example.](/docs/resources/foundry/quiver/resource-events-plot-example.png)
+![Events plot example.](./images/resource-events-plot-example.png)
 
 ## Events timeline
 

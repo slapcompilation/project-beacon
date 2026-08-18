@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/shapes/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/shapes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Shapes
 
@@ -15,27 +15,27 @@ All operations available on shapes first require an active shape. Create a shape
 
 Choose one of the **Drawing method** options in the toolbar or press `D` on your keyboard to manually draw a shape on the map.
 
-![Open drawing tools](/docs/resources/foundry/map/shapes-draw-button.png)
+![Open drawing tools](./images/shapes-draw-button.png)
 
 Select from the various modes available using the dropdown accessible by clicking on the current drawing mode:
 
-![Select drawing mode](/docs/resources/foundry/map/shapes-draw-modes.png)
+![Select drawing mode](./images/shapes-draw-modes.png)
 
 ### From selection
 
 You can also create shapes from the active selection on the map. Right-click on any selected object and use the **Create shape from selection** menu entry.
 
-![Create shape from selection](/docs/resources/foundry/map/shapes-from-selection.png)
+![Create shape from selection](./images/shapes-from-selection.png)
 
 ## Modify a shape
 
 You can edit active shapes on your map by using the **Modify** button in the shapes toolbar.
 
-![Modify button](/docs/resources/foundry/map/shapes-modify-button.png)
+![Modify button](./images/shapes-modify-button.png)
 
 There are a number of modification tools available:
 
-![Modify toolbar](/docs/resources/foundry/map/shapes-modify-modes.png)
+![Modify toolbar](./images/shapes-modify-modes.png)
 
 * **Edit points:** Lets you drag individual vertices to modify polygons, lines, or points.
 * **Buffer:** Allows entering a specific distance by which to grow or shrink the perimeter of shapes.
@@ -48,7 +48,7 @@ Once finished applying modifications, use the **Done** button to return the shap
 
 With an active shape, use the **Shapes** toolbar to perform various operations:
 
-![Shapes toolbar](/docs/resources/foundry/map/shapes-toolbar.png)
+![Shapes toolbar](./images/shapes-toolbar.png)
 
 * **Select intersecting:** Selects every object on your map that is in a visible layer and that intersects the current shape.
 * **Search within:** Opens the **Add objects** panel and filters the results to only include objects that have geospatial data that intersects the current shape. Note that only objects with [`geohash` or `geoshape` properties](/docs/foundry/map/integrate-objects/) can be searched.

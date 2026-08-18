@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/webhooks/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/webhooks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Webhooks
 
@@ -12,7 +12,7 @@ This section details the various options available for configuring webhooks in a
 
 There are two ways that webhooks can be configured for use in an action: as a **writeback** or as a **side effect**.
 
-<img src="./media/webhooks-add-webhook.png" alt="Add webhook" width="400" />
+<img src="./images/webhooks-add-webhook.png" alt="Add webhook" width="400" />
 
 For convenience, below is a table comparing the behavior of writeback and side effect webhooks.
 
@@ -49,13 +49,13 @@ There are two ways to configure Webhook input parameters: by mapping to Action p
 
 When mapping to **Action parameters**, each required Webhook input must be set to either an Action parameter of the same type, a static value, or a property of an object parameter.
 
-<img src="./media/webhooks-input-parameters.png" alt="Input parameters" width="400" />
+<img src="./images/webhooks-input-parameters.png" alt="Input parameters" width="400" />
 
 When using a [Function](/docs/foundry/functions/overview/), you must select a Function that returns a custom type that includes all of the required Webhook input parameters and strongly matches the Webhook type, otherwise you will receive an `OntologyMetadata:ActionWebhookInputsDoNotHaveExpectedType` error. Using a Function to populate Webhook input parameters can be useful when you want to use logic to populate inputs, especially if this logic is based on Ontology objects. For example, you can retrieve linked objects and pull property values from those objects to prepopulate Webhook inputs.
 
 As an example, suppose you have a Webhook which takes three input parameters with IDs `name`, `industry`, and `country`:
 
-<img src="./media/webhooks-input-parameters-example.png" alt="Input parameters example" width="400" />
+<img src="./images/webhooks-input-parameters-example.png" alt="Input parameters example" width="400" />
 
 You can write a Function that returns a custom interface of the same structure:
 
@@ -69,7 +69,7 @@ export interface MyWebhookInput {
 
 Then, you can select this Function when configuring Webhook inputs in an Action, mapping Action parameters to the parameters required by the Function:
 
-<img src="./media/webhooks-input-parameters-define-using-action.png" alt="Mapping Action parameters to the parameters required by a Function" width="400" />
+<img src="./images/webhooks-input-parameters-define-using-action.png" alt="Mapping Action parameters to the parameters required by a Function" width="400" />
 
 Below is a full code example of a Function that loads data from an Ontology object and uses it to populate Webhook inputs.
 
@@ -134,7 +134,7 @@ General reference material about Webhook output parameters is available in the [
 
 To use an output parameter in a subsequent logic rule, select **Writeback response** when populating the value for a logic rule, then select the specific output you wish to use:
 
-<img src="./media/webhooks-output-parameters-in-logic-rule.png" alt="Using an output parameters in a Logic Rule" width="400" />
+<img src="./images/webhooks-output-parameters-in-logic-rule.png" alt="Using an output parameters in a Logic Rule" width="400" />
 
 ## OAuth 2.0 authentication
 

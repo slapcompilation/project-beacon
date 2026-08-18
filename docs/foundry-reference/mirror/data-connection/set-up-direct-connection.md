@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-direct-connection/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-direct-connection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a direct connection
 
@@ -32,7 +32,7 @@ The *Information security officer* role can be found in the Enrollment permissio
 
 To configure a network policy, navigate to Control Panel using the **Other workspaces** link in the [Workspace sidebar](/docs/foundry/getting-started/orientation-and-nav/#workspace-navigation-sidebar). In Control Panel, select **Network egress** in the sidebar. If you can't see this option, contact your Palantir representative to go through the following steps.
 
-![create network policy](/docs/resources/foundry/data-connection/create-network-policy.png)
+![create network policy](./images/create-network-policy.png)
 
 Add a network policy by selecting **Add network policy**. Add a description and connection details, similar to the details you provided when contacting Palantir:
 
@@ -57,7 +57,7 @@ Once the above steps are done, you can proceed with creating the Source in Data 
 * Select the [source type](/docs/foundry/data-integration/source-type-overview/) corresponding to your data source.
 * Select **Direct connection**, then select **Continue** in the bottom right.
 
-![Create direct connection](/docs/resources/foundry/data-connection/create-direct-connection.png)
+![Create direct connection](./images/create-direct-connection.png)
 
 ### Save the Source in a Project
 
@@ -69,8 +69,8 @@ Select **Create source and continue** in the bottom right.
 
 On the next page, select the network policy you [configured earlier](#configure-a-network-policy) by clicking **Use existing policy** and searching for the policy name.
 
-![Use existing policy for direct connection](/docs/resources/foundry/data-connection/use-existing-policy.png)
-![select network policy](/docs/resources/foundry/data-connection/select-network-policy.png)
+![Use existing policy for direct connection](./images/use-existing-policy.png)
+![select network policy](./images/select-network-policy.png)
 
 ### Configure Source and add drivers
 

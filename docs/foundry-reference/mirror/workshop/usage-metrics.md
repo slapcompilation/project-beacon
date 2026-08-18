@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/usage-metrics/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/usage-metrics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Usage metrics
 
@@ -10,7 +10,7 @@ Action metrics show how many times each action in the module has been successful
 
 Below the overview are individual actions with their submission counts and a proportional bar indicating relative usage. Select an action to view which widgets in the module use that action.
 
-![An example of action metrics.](/docs/resources/foundry/workshop/metrics-action-metrics.png)
+![An example of action metrics.](./images/metrics-action-metrics.png)
 
 Action metrics are available by default for all modules and do not require any additional configuration.
 
@@ -18,7 +18,7 @@ Action metrics are available by default for all modules and do not require any a
 
 Layout view metrics track how many times each page, tab, and overlay in the module has been viewed by users. The overview card displays total views across all layouts, and the list view breaks down views by individual layout item.
 
-![An example of layout metrics.](/docs/resources/foundry/workshop/metrics-layout-metrics.png)
+![An example of layout metrics.](./images/metrics-layout-metrics.png)
 
 Selecting a page or overlay in the list navigates to that layout in the editor.
 
@@ -33,7 +33,7 @@ Layout view metrics require builders to opt in. To enable tracking:
 
 After enabling, it may take up to 24 hours before view metrics begin to appear in the metrics panel. Layout view data is processed in a daily aggregation, so new views are reflected once per day rather than in real time.
 
-![Enabling granular metrics for pages, tabs, and overlays.](/docs/resources/foundry/workshop/metrics-enable-granular-view-metrics.png)
+![Enabling granular metrics for pages, tabs, and overlays.](./images/metrics-enable-granular-view-metrics.png)
 
 Layout views are only recorded when the module is viewed on the main branch in View mode. Views in Edit mode or on draft branches are not tracked.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-evals/ontology-edits/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-evals/ontology-edits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Evaluation functions and Ontology edits
 

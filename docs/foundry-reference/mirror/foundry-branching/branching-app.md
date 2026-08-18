@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-branching/branching-app/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-branching/branching-app/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Global Branching application
 

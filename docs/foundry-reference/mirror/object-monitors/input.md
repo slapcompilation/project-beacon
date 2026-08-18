@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/input/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/input/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Input
 
@@ -12,8 +12,8 @@ Input object sets are created by building a **saved exploration** in [Object Exp
 
 The monitor input is displayed in the overview section when viewing an object monitor in the Object Monitors application. Click on a monitor to open the overview panel.
 
-![View input in Object Monitors app](/docs/resources/foundry/object-monitors/input_shown_in_management_app.png)
+![View input in Object Monitors app](./images/input_shown_in_management_app.png)
 
 When viewing a particular saved exploration in Object Explorer, object monitors that use this exploration as input are displayed in the **Monitor** popover in the upper right of your screen.
 
-![List of monitors using saved exploration in Object Explorer](/docs/resources/foundry/object-monitors/list_of_monitors_for_exploration.png)
+![List of monitors using saved exploration in Object Explorer](./images/list_of_monitors_for_exploration.png)

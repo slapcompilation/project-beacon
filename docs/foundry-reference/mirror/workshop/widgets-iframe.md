@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-iframe/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-iframe/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Iframe
 
@@ -12,7 +12,7 @@ An embedded application can also bidirectionally communicate using Workshop vari
 
 Note that since iframes require additional memory and processing resources, the stability and performance of your Workshop module may be impacted. We do not recommend embedding more than one iframe widget on-screen.
 
-<img src="./media/iframe-widget-example.png" alt="Iframe widget example">
+<img src="./images/iframe-widget-example.png" alt="Iframe widget example">
 
 :::callout{theme="neutral"}
 You will need to configure the [content security policy (CSP)](/docs/foundry/administration/embed-foundry-externally/#embed-external-resources-in-foundry) in order to iframe external resources in your Foundry environment. The external resource itself must also set a [frame-ancestors directive for the Content-Security-Policy header ↗](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors) that allows your Foundry URL to embed the resource. If you are using a URL external to your Foundry environment that makes requests to Foundry APIs, you must additionally configure [cross-origin resource sharing (CORS)](/docs/foundry/administration/configure-cors/).
@@ -22,7 +22,7 @@ You will need to configure the [content security policy (CSP)](/docs/foundry/adm
 
 Input the URL for an application as a static string or a string variable.
 
-<img src="./media/iframe-widget-url-config.png" alt="iframe widget url config" width=400>
+<img src="./images/iframe-widget-url-config.png" alt="iframe widget url config" width=400>
 
 :::callout{theme="neutral"}
 When embedding another Foundry application, you can hide the Foundry sidebar by adding the `embedded=true` URL query parameter.
@@ -43,7 +43,7 @@ The sections below provide details on how to embed a Slate application with the 
 The Slate source defines the method of referencing the Slate embedded within your module. You can choose to use a **Compass reference** or **Permalink** as your Slate source.
 
 * **Compass reference:** Allows you to use a Foundry resource selector to choose a Slate application to embed.
-* **Permalink:** Allows you to enter the permalink or RID of a Slate application to choose it to embed. You can find your Slate RID within your URL: `/workspace/slate/documents/\\<slate-permalink>/latest`.
+* **Permalink:** Allows you to enter the permalink or RID of a Slate application to choose it to embed. You can find your Slate RID within your URL: `/workspace/slate/documents/<slate-permalink>/latest`.
 
 ### URL parameters
 
@@ -51,9 +51,9 @@ URL parameters append to your Slate URL and are used to set variables in Slate. 
 
 **Example:** Change the appearance of the embedded Slate application based on the user name and ID on load.
 
-<img src="./media/url_parameter_set_up_workshop.png" alt="The URL parameter configuration menu, with options for Key and Value inputs." width=400>
+<img src="./images/url_parameter_set_up_workshop.png" alt="The URL parameter configuration menu, with options for Key and Value inputs." width=400>
 
-<img src="./media/slate_variable_tab.png" alt="The Variable tab in Slate with `username` set. " width=300>
+<img src="./images/slate_variable_tab.png" alt="The Variable tab in Slate with `username` set. " width=300>
 
 ### Input parameters
 
@@ -73,9 +73,9 @@ const payload = {{slEventValue}}
 return payload["flight-alerts"]
 ```
 
-<img src="./media/input_parameter_config_workshop.png" alt="The Input parameter configuration menu, with options for Key and Value inputs." width=400>
+<img src="./images/input_parameter_config_workshop.png" alt="The Input parameter configuration menu, with options for Key and Value inputs." width=400>
 
-<img src="./media/slate_get_message_event_input_param.png" alt="The Events panel in Slate, with parameters set to adjust the view of the Slate application in Workshop." width=400>
+<img src="./images/slate_get_message_event_input_param.png" alt="The Events panel in Slate, with parameters set to adjust the view of the Slate application in Workshop." width=400>
 
 ### Output parameters
 
@@ -103,9 +103,9 @@ return {
 }
 ```
 
-<img src="./media/output_parameter_config_workshop.png" alt="The Output parameter configuration menu, with options for Key and Value inputs." width=400>
+<img src="./images/output_parameter_config_workshop.png" alt="The Output parameter configuration menu, with options for Key and Value inputs." width=400>
 
-<img src="./media/slate_send_message_event.png" alt="The Events panel in Slate, with parameters set to change the Workshop filter set." width=400>
+<img src="./images/slate_send_message_event.png" alt="The Events panel in Slate, with parameters set to change the Workshop filter set." width=400>
 
 ### Triggerable events
 
@@ -129,9 +129,9 @@ return {
 }
 ```
 
-<img src="./media/triggerable_event_config_workshop.png" alt="The Triggerable events configuration menu, with options for Key and Workshop event inputs." width=400>
+<img src="./images/triggerable_event_config_workshop.png" alt="The Triggerable events configuration menu, with options for Key and Workshop event inputs." width=400>
 
-<img src="./media/slate_config_trigger_event.png" alt="The Events panel in Slate, with a parameter set to toggle a section in Workshop." width=400>
+<img src="./images/slate_config_trigger_event.png" alt="The Events panel in Slate, with a parameter set to toggle a section in Workshop." width=400>
 
 ## Bidirectional
 
@@ -159,40 +159,52 @@ This package provides the means to bidirectionally communicate with Workshop thr
 
 Once your application has been deployed with the changes to bidirectionally communicate with Workshop, add an **Iframe** widget to your Workshop module and select the **Bidirectional** option.
 
-![The unconfigured empty state for the bidirectional widget's config panel.](/docs/resources/foundry/workshop/bidirectional-widget-empty-state.png)
+![The unconfigured empty state for the bidirectional widget's config panel.](./images/bidirectional-widget-empty-state.png)
 
 Input the URL of your application either as a static string or with a string variable. The widget's configuration panel will display a loading state while waiting to receive the definition of variables and events required by the embedded application.
 
-![The loading state for the bidirectional widget's config panel after entering a URL for a custom app.](/docs/resources/foundry/workshop/bidirectional-widget-loading-config.png)
+![The loading state for the bidirectional widget's config panel after entering a URL for a custom app.](./images/bidirectional-widget-loading-config.png)
 
 After receiving the definition of required variables and events, the widget's configuration panel will display variable pickers and event selectors for each variable and event requested, allowing each to be set.
 
-![The loaded state for the bidirectional widget's config panel after it has received the config definition from the iframed app.](/docs/resources/foundry/workshop/bidirectional-widget-loaded-config.png)
+![The loaded state for the bidirectional widget's config panel after it has received the config definition from the iframed app.](./images/bidirectional-widget-loaded-config.png)
 
 The value of the set Workshop variable will be sent to the custom application each time the value or loading state of the variable changes. The set events will determine what events can be executed from within the custom application.
 
-![The bidirectional widget's config after variables have been specified.](/docs/resources/foundry/workshop/bidirectional-widget-config-with-values.png)
+![The bidirectional widget's config after variables have been specified.](./images/bidirectional-widget-config-with-values.png)
 
 #### Example of a bidirectional widget
 
 The screenshot below shows an example where a change to a variable's value in Workshop is immediately sent to and reflected within a custom application. The Workshop string variable is configured both as one of the variables within the custom application's definition and as the output of the [Text Input widget](/docs/foundry/workshop/widgets-text-input/). When a user enters text into the widget's input field (thus changing the string variable's value), the value is immediately passed to and reflected within the iframed application.
 
-![Typing in a text input widget where the variable value is connected to the bidirectional widget's embedded application shows the value update in the embedded application.](/docs/resources/foundry/workshop/bidirectional-widget-workshop-changing-variable-value.png)
+![Typing in a text input widget where the variable value is connected to the bidirectional widget's embedded application shows the value update in the embedded application.](./images/bidirectional-widget-workshop-changing-variable-value.png)
 
 The screenshot below shows an example where a Workshop variable's value can be set by the iframed application. Selecting the **Set a random value** button for the `numberField` within the custom application will generate a numeric value and pass it to the number variable set within the iframe widget's configuration.
 
-![Clicking a button in the custom bidirectionally iframed app changes the value for a number variable and also updates the variable's value in Workshop.](/docs/resources/foundry/workshop/bidirectional-widget-set-value-in-workshop.png)
+![Clicking a button in the custom bidirectionally iframed app changes the value for a number variable and also updates the variable's value in Workshop.](./images/bidirectional-widget-set-value-in-workshop.png)
 
 The screenshot below shows an example of a Workshop event being executed from within the iframed application. A **Toggle between light and dark mode** event has been set for the iframed application configuration. Selecting the **Execute event** button in the application will switch the module to light mode.
 
-![Clicking a button in the custom bidirectionally iframed app executes an event in Workshop, in this case toggling between light and dark mode.](/docs/resources/foundry/workshop/bidirectional-widget-execute-event.png)
+![Clicking a button in the custom bidirectionally iframed app executes an event in Workshop, in this case toggling between light and dark mode.](./images/bidirectional-widget-execute-event.png)
 
 ### Limitations
 
 * Object set field definitions sent by the iframed application are specified with a single preset object type. When configuring the variable in Workshop, the object type that the variable is constrained to will be shown in the config panel for object set variables. If the Workshop object set variable contains objects that are not of the preset object type, the objects will be filtered out before being sent to the iframed application.
 
-![An object set variable picker filtered to a specific object type.](/docs/resources/foundry/workshop/bidirectional-widget-object-set-variable.png)
+![An object set variable picker filtered to a specific object type.](./images/bidirectional-widget-object-set-variable.png)
 
 * Object Set variables are limited to 10,000 objects when sent to the iframed application. If you try to pass an Object Set variable from Workshop to the iframed app with more than 10,000 objects or attempt to set a Workshop variable with more than 10,000 objects from inside the iframed application, objects following the 10,000th object will be cut off, and not sent to the recipient.
+
 * There is currently no support for struct variables.
-* Currently, iframes reload every time they are removed from the page and later displayed again. To prevent the widget from resetting in this case, consider storing bidirectional widget data in Workshop variables that are passed to the widget.
+
+* Iframes reload every time they are removed from the page and later displayed again, which discards any state held inside the iframe. To prevent the widget from resetting in this case, you can configure the widget's [display optimization](/docs/foundry/workshop/widget-display-optimization/) settings to keep it mounted, or store bidirectional widget data in Workshop variables that are passed to the widget.
+
+## Local network access
+
+By default, browser security policies restrict embedded applications from requesting `localhost` or other local network addresses. If your embedded application must communicate with local services, enable local network access.
+
+To allow local network access, enable the **Allow local network access** option in the iframe widget configuration. When enabled, the iframe will include the `local-network` permission in its `allow` attribute, permitting the embedded application to make requests to localhost addresses.
+
+:::callout{theme="warning"}
+Enabling local network access allows the embedded application to communicate with services on the user's local machine. Enable this option only when necessary and when you trust the embedded application.
+:::

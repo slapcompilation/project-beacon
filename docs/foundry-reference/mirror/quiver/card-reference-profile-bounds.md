@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-reference-profile-bounds/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-reference-profile-bounds/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Reference profile bounds
 
@@ -20,7 +20,7 @@ Bounded time series
 
 ## Examples
 
-![Reference profile bounds example.](/docs/resources/foundry/quiver/resource-reference-profile-bounds.png)
+![Reference profile bounds example.](./images/resource-reference-profile-bounds.png)
 
 ## Usage information
 

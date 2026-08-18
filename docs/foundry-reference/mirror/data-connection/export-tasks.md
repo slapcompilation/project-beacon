@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/export-tasks/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/export-tasks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Export tasks (legacy)
 
@@ -40,7 +40,7 @@ To configure an export task:
 The input source **must** be named `inputSource` and the output dataset **must** be named `outputDataset`. Failure to use these specific names may result in task errors.
 :::
 
-![This screenshot shows the Task Editor UI with an export task configuration including inputSource, inputDataset, and outputDataset fields.](/docs/resources/foundry/data-connection/export-task-configuration.png)
+![This screenshot shows the Task Editor UI with an export task configuration including inputSource, inputDataset, and outputDataset fields.](./images/export-task-configuration.png)
 
 ## Supported export types
 

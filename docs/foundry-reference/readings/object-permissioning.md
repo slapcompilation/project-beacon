@@ -192,3 +192,42 @@ Property-level security does not travel to the resource a property points at.
 - How does a granular policy get evaluated at read time — is it compiled into the
   index, or applied per query? The "near-instantaneous" claim versus RVs' "pipeline
   rebuild" suggests the former.
+
+---
+
+## Upstream moved (2026-08-18) — download is a separate permission
+
+The drift sweep re-mirrored `object-permissioning/`. No quotation here went
+stale, so nothing this reading stands on has changed. One thing was **added**,
+and it is a permission dimension we do not have at all:
+
+> "Download permissions are evaluated separately from the view permissions described above."
+
+> "When an object type is secured with an object or property security policy, the location of the object type determines where the platform checks download permissions:"
+
+> "* **Object types saved in a [project](/docs/foundry/object-permissioning/ontology-permissions/):** The platform checks download permissions on the object type."
+
+> "* **Object types using [ontology roles](/docs/foundry/object-permissioning/ontology-permissions-legacy/#ontology-roles) or [datasource-derived permissions](/docs/foundry/object-permissioning/ontology-permissions-legacy/#datasource-derived-permissions):** The platform checks download permissions on the backing data source."
+
+**Two things follow, and the second is the one that matters.**
+
+First, *seeing* a row and *exporting* it are different permissions. Everything
+481–486 built answers one question — may this caller read this row — and a
+download check would be a second question asked of a different resource.
+
+Second, **which resource is asked depends on where the object type lives.** A
+project-saved type is asked about itself; a type on the legacy paths is asked
+about its backing datasource. That is the same split `ontology-permissions` draws
+for view, arriving one layer down — and it is why this cannot be modelled as a
+boolean on the policy. It is a second edge in the resource graph.
+
+**Decision: not built, and not stubbed.** We have no export or download path, so
+a `download` verb would be a column nothing reaches — the fourth question in
+CLAUDE.md's checklist answered "nothing". Recorded so that when an export
+surface is built it starts from two checks rather than discovering the second
+one afterwards.
+
+**Question:** does a download check *compose* with the view check, or replace it?
+"evaluated separately" says they are two checks and stops. A caller who may view
+but not download is obvious; whether the reverse is even representable is not
+said. `blocks:` any export surface.

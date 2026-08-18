@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-permissions/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-permissions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Permissions in Workshop
 
@@ -12,4 +12,4 @@ The data, actions, or functions used or contained in a Workshop module are permi
 
 You can use the [Check access panel](/docs/foundry/security/checking-permissions/) in the sidebar to easily check a user's access on a Workshop module. This will show if they meet the access requirement on the Workshop module, as well as additional data requirements to see object types, link types, action types, and functions.
 
-![Checking permissions in Workshop](/docs/resources/foundry/workshop/checking_permissions.png)
+![Checking permissions in Workshop](./images/checking_permissions.png)

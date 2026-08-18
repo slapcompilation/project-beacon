@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-writeback/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-writeback/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Write back data to Phonograph \[Legacy]
 
@@ -26,7 +26,7 @@ Once the primary key is configured, we will create the writeback dataset which w
 
 When finished, your sync configuration should look something like this:
 
-![asteroid\_notes](/docs/resources/foundry/slate/asteroid_notes.png)
+![asteroid\_notes](./images/asteroid_notes.png)
 
 :::callout{theme="neutral"}
 The writeback index does *not* support `struct` column types. This means that a dataset with a `DateTime` column type will fail to index. You can use Contour or a SQL or Python transform to cast the `DateTime` column to a `Timestamp` before indexing.
@@ -105,7 +105,7 @@ becomes
 
 In addition to getting all the rows at once, you can use the `Get Rows` endpoint to provide a list of primary key objects to retrieve a number of rows by their ID. This is a simple way to check if a row already exists when a user is entering new values, which is necessary to determine whether to apply the changes as an `edit` or `add` event (more on this below).
 
-![selectedRow](/docs/resources/foundry/slate/selectedRow.png)
+![selectedRow](./images/selectedRow.png)
 
 #### Display query results in a widget
 
@@ -223,7 +223,7 @@ The final step in the function `f_createTableEditEvent` is to insert the `update
 
 Once the function is complete, you can plug the output of the function, which is the `tableEditedEventPostRequest` object, into the appropriate parameter field of the `updateRow` query (see image below).
 
-![updateRow](/docs/resources/foundry/slate/updateRow.png)
+![updateRow](./images/updateRow.png)
 
 ### Set the query to run manually
 
@@ -233,7 +233,7 @@ While viewing the query in the query editor, use the dropdown menu next to **Run
 
 We will now configure a trigger for the query so that it runs on some user action. The simplest way to do this is to add a [button widget](/docs/foundry/slate/widgets-control/#button-widget) and trigger the query on the `button.clickevent`, though there are many other possible solutions. Add a button widget to the Slate application and configure the query to run on click. Note that running this query will only update the Phonograph cache (edits will not immediately be seen in the writeback dataset in Foundry).
 
-![new-run-manually](/docs/resources/foundry/slate/new-run-manually.png)
+![new-run-manually](./images/new-run-manually.png)
 
 In addition, it's often best practice to write a separate function to validate the form inputs and generate feedback text to display alongside your form. This helps guard against data quality issues stemming from user input data. A function to do this might look like this:
 
@@ -406,11 +406,11 @@ All filter types can be nested with `AND` and `OR` filter types to build up more
 
 The `updateRow` query we’ve written will only update the copy of `asteroid_notes` stored in Phonograph. In order to get the data to show up in Foundry, we will need to click "Build" on the preview page of the dataset within Foundry.
 
-![dataset-details](/docs/resources/foundry/slate/dataset-details.png)
+![dataset-details](./images/dataset-details.png)
 
 Once that’s been completed, we can see our edits to `research_notes` appear in `asteroid_notes_edited`
 
-![asteroid\_notes\_edited](/docs/resources/foundry/slate/asteroid_notes_edited.png)
+![asteroid\_notes\_edited](./images/asteroid_notes_edited.png)
 
 ## Advanced
 
@@ -471,7 +471,7 @@ Note that due to limitations of Elasticsearch, the results of some aggregations 
 
 Below is a simple example of the syntax. Note that a raw version of the `visits` field must be used and that "Exact Match" has to be enabled because we are aggregating by a string field.
 
-![phonograph-sync-exact-match](/docs/resources/foundry/slate/phonograph-sync-exact-match.png)
+![phonograph-sync-exact-match](./images/phonograph-sync-exact-match.png)
 
 ```json
 {

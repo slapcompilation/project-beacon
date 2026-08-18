@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/slate/marketplace-slate/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/marketplace-slate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add Slate application to a Marketplace product
 
 Use [Foundry DevOps](/docs/foundry/devops/overview/) to include your Slate applications in [Marketplace products](/docs/foundry/devops/core-concepts/#product) for other users to install and reuse. Marketplace supports single-page and multipage Slate applications, including static applications with no data loading. All pages, routes, and page structure are preserved during packaging and installation. [Learn how to create your first product.](/docs/foundry/foundry-devops/create-products/)
+
+:::callout{theme="neutral"}
+This page covers Slate application packaging. For Developer Console applications, see [Install a Developer Console application with Marketplace](/docs/foundry/developer-console/marketplace-installation/).
+:::
 
 ## Add Slate applications to products
 
@@ -30,7 +34,7 @@ Slate applications which have dependencies on external libraries for the Code Sa
 
 If you want to generate copies of the library files upon installation, ensure that you include the files for the libraries in the **Files** tab under the **Content** tab when creating your product. When a user installs the product, they will get a copy of those files in their project. The Code Sandbox widget will then reference their copy of the library files.
 
-![Code Sandbox with dependencies](/docs/resources/foundry/slate/code-sandbox-package-with-dependencies.png)
+![Code Sandbox with dependencies](./images/code-sandbox-package-with-dependencies.png)
 
 Slate also supports providing libraries via a CDN link (for example, `https://unpkg.com/browse/chart.js@2.7.1/`). The CDN links are untouched, so the installed Slate application will have the same CDN links. This may mean that the user will need to have configured their CSP to allow the CDN links.
 
@@ -40,7 +44,7 @@ For more information about using libraries with the Code Sandbox widget, see the
 
 Slate applications that use the [Ontology SDK](/docs/foundry/slate/concepts-osdk/) (OSDK) can be packaged with Marketplace. Foundry DevOps automatically handles OSDK Ontology dependencies during packaging, so no manual dependency configuration is required.
 
-![OSDK dependencies for a Slate application in DevOps.](/docs/resources/foundry/slate/slate-osdk-devops-deps.png)
+![OSDK dependencies for a Slate application in DevOps.](./images/slate-osdk-devops-deps.png)
 
 ### How OSDK packaging works
 

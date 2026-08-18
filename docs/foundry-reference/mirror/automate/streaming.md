@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/streaming/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/streaming/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Streaming
 
@@ -14,6 +14,10 @@ To set this up, navigate to the **Objects modified** condition and select the st
 
 ![Stream evaluation frequency.](./images/stream-evaluation-frequency.png)
 
+:::callout{theme="warning"}
+Stream-backed object types only support the **Objects modified in set** condition type for live monitoring. For **Objects added to set** and **Objects removed from set**, use scheduled monitoring or a batch-backed object type.
+:::
+
 Note that for real-time stream monitoring, it is not possible to explicitly specify properties to be monitored. All changes will be processed. To support stateful execution, modify the object set you are monitoring and handle state in the downstream ontology.
 
 ### Example use case
@@ -28,7 +32,7 @@ You can monitor streaming datasets directly through Automate. This allows for re
 
 To set up this condition, simply select a stream condition, then search for the relevant streaming dataset in the user interface. Then, proceed to set up [effects](/docs/foundry/automate/effect-actions/), including actions or logic.
 
-You can additionally queue effect executions to ensure ordered event processing.
+You can [queue effect executions](/docs/foundry/automate/condition-settings/#queue-effect-executions) to process automation events sequentially in trigger order. Queuing is useful when events must run in sequence or when you need to control concurrency, manage capacity limits, or avoid conflicts.
 
 :::callout{theme="neutral"}
 When using a binary stream column as the input for an effect, Automate will decode the content for you. For example, the binary stream value `eyJIZWxsbyI6ICJXb3JsZCEifQ==` will be passed to your effect as the string value `{"Hello": "World!"}`.
@@ -37,3 +41,7 @@ When using a binary stream column as the input for an effect, Automate will deco
 ### Example use case
 
 Consider a scenario where you are monitoring a stream of temperature sensor data. You can set up an automation to trigger an alert if the temperature exceeds a certain threshold, ensuring immediate response to potential overheating issues.
+
+## Streaming time series conditions
+
+Use streaming data to evaluate time series conditions at low latency. For configuration details, see [streaming alerting](/docs/foundry/time-series/alerting-overview/#streaming-alerting).

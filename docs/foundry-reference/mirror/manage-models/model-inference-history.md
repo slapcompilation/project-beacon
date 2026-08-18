@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/model-inference-history/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/model-inference-history/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Model inference history
 
@@ -13,11 +13,11 @@ The model inference history is a dataset in Foundry that captures all inference 
 
 To create a model inference history, navigate to the **Deployments** page of your Modeling Objective and select the live deployment to which you would like to add the model inference history. Under the **Model Inference History** card, click on **Create dataset**. This will open the **Create new model inference history** dialog.
 
-![create dataset button](/docs/resources/foundry/manage-models/model_inference_history-create-dataset.png)
+![create dataset button](./images/model_inference_history-create-dataset.png)
 
 In the **Create new model inference history**  dialog, enter a dataset name and location for the model inference history. We strongly recommend adding [Security Markings](/docs/foundry/security/markings/) since inputs and outputs may contain sensitive information and should only be accessible by individuals with the appropriate security permissions.
 
-![create model inference history dialog](/docs/resources/foundry/manage-models/model_inference_history-create-history-dialog.png)
+![create model inference history dialog](./images/model_inference_history-create-history-dialog.png)
 
 Once the model inference history is created, the following information will be recorded in the dataset:
 
@@ -32,11 +32,11 @@ Once the model inference history is created, the following information will be r
 * `output`: JSON representation of the model output
 * `error`: Detailed error message or stacktrace encountered by the model while running inference on the provided input
 
-![model inference history dataset](/docs/resources/foundry/manage-models/model_inference_history-dataset.png)
+![model inference history dataset](./images/model_inference_history-dataset.png)
 
 To temporarily enable or disable a model inference history, click the toggle in the top right corner of the **Model Inference History** card labeled **Enable Recording**.
 
-![enable model inference history recording toggle](/docs/resources/foundry/manage-models/model_inference_history-enable-recording.png)
+![enable model inference history recording toggle](./images/model_inference_history-enable-recording.png)
 
 To permanently disable a model inference history, select **Remove** to the right of the dataset in the **Model Inference History** card.
 
@@ -44,7 +44,7 @@ To permanently disable a model inference history, select **Remove** to the right
 Removing a model inference history is permanent and cannot be undone. Once a dataset is removed as a model inference history, the dataset will still exist, but cannot be added back to a deployment.
 :::
 
-![enable model inference history recording toggle](/docs/resources/foundry/manage-models/model_inference_history-remove.png)
+![enable model inference history recording toggle](./images/model_inference_history-remove.png)
 
 ## Frequently Asked Questions (FAQ)
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/webhooks-setup/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/webhooks-setup/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a webhook
 
@@ -29,7 +29,7 @@ Some sources, including SAP, legacy Salesforce, and legacy `magritte-rest-v2` us
 
 Start by navigating to **Data Connection** and selecting the **Sources** tab. Then, select **New source** and **REST API**.
 
-![New REST API source](/docs/resources/foundry/data-connection/webhooks-rest-api-new-source.png)
+![New REST API source](./images/webhooks-rest-api-new-source.png)
 
 Use the source editor to fill in configuration details for the REST API to which you are connecting. More details on the REST API source type can be found in the [source type reference](/docs/foundry/available-connectors/rest-apis/).
 
@@ -43,11 +43,11 @@ Some other source types also support webhooks. For more details, review the [ref
 
 Once the source has been created, select the **Webhooks** tab and select **New webhook**.
 
-![New webhook](/docs/resources/foundry/data-connection/webhooks-new-webhook.png)
+![New webhook](./images/webhooks-new-webhook.png)
 
 Follow the steps in the **New webhook wizard** to create a webhook that makes an external request. The example below illustrates a `POST` request to the `/api/v1/createItem` endpoint on our example domain. The body is constructed as Raw JSON and, in this case, is configured to accept two string input parameters.
 
-![New webhook](/docs/resources/foundry/data-connection/webhooks-setup-wizard-example.png)
+![New webhook](./images/webhooks-setup-wizard-example.png)
 
 #### Duplicate a webhook
 

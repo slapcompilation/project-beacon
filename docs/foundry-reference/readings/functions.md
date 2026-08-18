@@ -124,8 +124,11 @@ memory by runtime, and object-set ceilings (100,000 objects, 3 search
 arounds). `manage-functions.md`: functions are found and managed in Ontology
 Manager's **Functions** tab, searchable by
 "the function name, description, API name and RID".
-The overview page shows
-"basic information about the function, including its inputs and outputs and any associated usage history for the function."
+The overview page shows, as reworded upstream by 2026-08-18,
+"In Ontology Manager, select a function to view its inputs, outputs, usage
+history, and [function metrics](/docs/foundry/functions/function-metrics/),
+including success and failure counts and P95 execution duration." The metrics —
+counts and P95 — are new; the sentence used to stop at usage history.
 
 ## Decisions I had to make (mine, not Palantir's, unless quoted)
 
@@ -718,3 +721,68 @@ Ours resolves one way and names neither. `function_latest_version` should say
 which of the two it implements, default to `SEMANTIC_VERSION` as published, and
 exclude prereleases unless resolving by publish time. Recorded, not fixed.
 
+---
+
+## Upstream moved (2026-08-18) — what the drift sweep found
+
+Re-mirroring `functions/` rewrote the section; one quotation here had gone stale
+and is corrected above. Four things were **added**, and the first is a rule about
+a combination we have both halves of.
+
+### A function used as an automation effect does not get its edits applied
+
+> "[Automate](/docs/foundry/automate/overview/) does not apply edits returned by functions used as effects. To apply Ontology edits through an automation, configure a function-backed action instead."
+
+We have function effects (`automation_effects.kind = 'function'`, 517) and we
+have Ontology edit functions (F1, 501–502). **This sentence says the composition
+of the two is not what it looks like**: the function runs, its edit batch is
+discarded, and the supported route is a function-backed *action* effect. Nothing
+shipped is wrong — our function effect does not apply an edit batch — but it was
+unstated, and an unstated case is where an invention goes. It is now stated.
+
+### Extended execution is an administrator's grant, not a function's property
+
+> "Administrators control extended execution capabilities through **Functions settings** in [Control Panel](/docs/foundry/administration/control-panel/). These capabilities grant elevated access, such as calling [actions](/docs/foundry/action-types/function-actions-overview/) from within a function or obtaining authentication tokens with a time-to-live (TTL) of up to four hours."
+
+> "Functions executed through [Automate](/docs/foundry/automate/overview/) run asynchronously for up to **4 hours**, exceeding the standard execution limits."
+
+Two consequences. **Calling an action from inside a function is a privilege that
+is granted, not a capability that exists** — which is the shape our declared-import
+enforcement already takes, and a good sign the seam was drawn in the right place.
+And the execution limit is not a property of the function: the same function gets
+a different ceiling depending on who invoked it.
+
+### A registry error worth carrying by name
+
+> "A `PERMISSION_DENIED` error with the code `FunctionRegistry:ReadOntologyFunctionPermissionDenied` typically means the function is not registered or available in Developer Console, rather than indicating a folder-level permissions issue. Add and register the function in Developer Console. Folder and repository permissions alone do not make the function executable."
+
+Namespaced, typed, with a payload — the pattern CLAUDE.md takes from their stack.
+And the last sentence is a permission-model claim, not troubleshooting advice:
+**registration is a distinct requirement from access.** A caller holding every
+folder permission still cannot execute an unregistered function, which is why
+the failure surfaces as PERMISSION_DENIED and misleads. Ours has no registry
+separate from the function row, so the case cannot arise — recorded because the
+first instinct on seeing that error is to widen a grant, and widening would not
+have fixed it.
+
+### Staged writes are a second edit mechanism
+
+> "Standard Ontology edits use an edit batch. TypeScript v2 also supports [staged writes](/docs/foundry/functions/typescript-v2-staged-writes/)"
+
+We built the edit batch. Staged writes are a page we have not read.
+
+## Decisions from the sweep
+
+1. **Nothing is rebuilt.** All four additions are additive, and the one that
+   touches a combination we have both halves of — function effects and edit
+   functions — describes a behaviour we happen not to have implemented.
+2. **The function-effect rule is recorded on both sides.** It belongs to this
+   reading and to `automate.md`, because whoever later wonders why a function
+   effect does not write to the Ontology will be looking at one or the other.
+3. **`typescript-v2-staged-writes` is unread and goes on the queue**, not built
+   from. It is named as an alternative to the edit batch, which is the mechanism
+   F1 shipped, so it is the kind of page that quietly makes a shipped design
+   look like the only option.
+4. **Extended execution is not built.** It is a Control Panel grant we have no
+   counterpart for, and inventing one would put an administrator's decision in
+   the function's own definition.

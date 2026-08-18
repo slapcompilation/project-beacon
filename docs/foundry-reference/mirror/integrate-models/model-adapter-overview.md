@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-adapter-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Model adapter overview
 
@@ -42,6 +42,6 @@ Once initialized, the adapter can be used for inference for either batch or inte
 
 The platform uses the provided [API](#api) definition to call the [`predict()`](/docs/foundry/integrate-models/model-adapter-api/) method with the defined names and types so that inference can be performed.
 
-![Model adapter lifecycle](/docs/resources/foundry/integrate-models/custom_adapter-lifecycle.png)
+![Model adapter lifecycle](./images/custom_adapter-lifecycle.png)
 
 For more information on creating model adapters, refer to the documentation on [creating model adapters](/docs/foundry/integrate-models/model-adapter-creation/). You can also consult the full Python API on the [model adapter reference page](/docs/foundry/integrate-models/model-adapter-reference/).

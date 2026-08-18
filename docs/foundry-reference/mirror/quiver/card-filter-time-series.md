@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Filter time series
 
@@ -23,9 +23,9 @@ Time series
 
 ## Examples
 
-![Filter on time](/docs/resources/foundry/quiver/card-filter-on-time.png)
+![Filter on time](./images/card-filter-on-time.png)
 
-![Filter on condition](/docs/resources/foundry/quiver/card-filter-on-condition.png)
+![Filter on condition](./images/card-filter-on-condition.png)
 
 ## Usage information
 

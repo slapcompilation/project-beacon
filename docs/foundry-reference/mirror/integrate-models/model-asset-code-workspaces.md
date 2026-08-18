@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-workspaces/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-workspaces/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Train a model in a Jupyter® notebook
 
@@ -23,7 +23,7 @@ The [supervised model training tutorial](/docs/foundry/model-integration/tutoria
 3. Name your workspace in relation to the model you are training. You can optionally configure additional settings such as the workspace's compute resources or network policies by selecting **Advanced** in the **Code Repository** step. Once you have named your notebook, Select **Continue**.
 4. Lastly, select **Create** to create and launch the workspace.
 
-![Initialize the Jupyter® Notebook in Code Workspaces](/docs/resources/foundry/integrate-models/model-asset-create-cws.png)
+![Initialize the Jupyter® Notebook in Code Workspaces](./images/model-asset-create-cws.png)
 
 ## Import data and write model training code
 
@@ -60,11 +60,11 @@ The open source tools available for model development in Code Workspaces allow y
 
 Package installation using the sidebar:
 
-![Select and install a package version from the UI.](/docs/resources/foundry/integrate-models/model-asset-maestro-ui-install.png)
+![Select and install a package version from the UI.](./images/model-asset-maestro-ui-install.png)
 
 Package installation from the terminal:
 
-![Install multiple packages at once from the terminal.](/docs/resources/foundry/integrate-models/model-asset-maestro-terminal-install.png)
+![Install multiple packages at once from the terminal.](./images/model-asset-maestro-terminal-install.png)
 
 After writing and running your model in Code Workspaces, you can publish it to Foundry for integration across other applications. Below is an example of model training code:
 
@@ -99,7 +99,7 @@ To make a model available outside of Code Workspaces, you must add a new model o
 
 1. To add an output, open the **Models** tab in the left sidebar below **Packages** and select **Add model > Create new model**. Name the model and save it to a location of your choice.
 
-![Create a new model in Jupyter® Code Workspaces in Palantir Foundry](/docs/resources/foundry/integrate-models/model-asset-cws-create-model.png)
+![Create a new model in Jupyter® Code Workspaces in Palantir Foundry](./images/model-asset-cws-create-model.png)
 
 2. After you name and save your model, you will be prompted to **Publish a new model** in the left panel of your workspace. Complete **Step 1: Install `palantir_models`** by copying the code snippet to your clipboard and running it in your original `.ipynb` notebook file.
 
@@ -170,7 +170,7 @@ model_output.publish(linear_regression_model_adapter)
 
 The snippet should work as is, with the exception of having to properly pass the model you trained to the adapter initialization. Once the code is ready, you can run the cell to publish the model to Foundry.
 
-![Publish model to Foundry from Code Workspaces](/docs/resources/foundry/integrate-models/model-asset-cws-publish.png)
+![Publish model to Foundry from Code Workspaces](./images/model-asset-cws-publish.png)
 
 ## Consume the model
 

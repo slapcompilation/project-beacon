@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-value-at-time/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-value-at-time/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Value at time
 
@@ -16,7 +16,7 @@ Number
 
 ## Examples
 
-![Value at time example](/docs/resources/foundry/quiver/card-value-at-time.png)
+![Value at time example](./images/card-value-at-time.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-pattern-mining/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-pattern-mining/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Frequent pattern mining
 
@@ -24,7 +24,7 @@ For example, a supermarket might have a dataset of past purchases (transactions)
 
 The frequent pattern growth transform takes an `Items column` and a `Minimum support` value as inputs. In this example, the `products_purchased` column is the items column. Since only frequent patterns will be in the output, the `Minimum support` is set to 0.6; the transform will only return patterns that occur in at least 60% of the transactions. The following screenshot shows how to configure the transform for this example:
 
-![Configure a frequent pattern growth transform using the Pipeline Builder transform table.](/docs/resources/foundry/pipeline-builder/transforms-pattern-mining-configuration.png)
+![Configure a frequent pattern growth transform using the Pipeline Builder transform table.](./images/transforms-pattern-mining-configuration.png)
 
 The output dataset of the transform is the following:
 

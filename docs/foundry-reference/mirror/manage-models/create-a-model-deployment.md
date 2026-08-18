@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-model-deployment/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-model-deployment/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create a direct model deployment
 
@@ -10,13 +10,13 @@ The following sections explain how to create, configure, and publish a direct mo
 
 To create and start a direct model deployment, navigate to the [model](/docs/foundry/model-integration/models/). Select **Start Deployment** at the top of a model page under **Live Inference**. Once running, you can interactively test the deployment by selecting **Run**.
 
-![Create a new direct model deployment in a model.](/docs/resources/foundry/manage-models/model-direct-deployment-start.png)
+![Create a new direct model deployment in a model.](./images/model-direct-deployment-start.png)
 
 ## 2. Configure a direct model deployment
 
 To configure the resources of a direct model deployment, select the **Configure** button in the top right of the **Live Inference** panel. Direct model deployments can be configured to scale from zero. When the deployment reaches 75% capacity, it will create an additional replica until it reaches the maximum replica count specified in the runtime scaling configuration. This also allows deployments to automatically scale down after 30 minutes without a live request.
 
-![Configure a direct model deployment in a model](/docs/resources/foundry/manage-models/configure-modeling-direct-deployment.png)
+![Configure a direct model deployment in a model](./images/configure-modeling-direct-deployment.png)
 
 ## 3. Publish a function for the deployment
 
@@ -24,7 +24,7 @@ You can publish a [function](/docs/foundry/functions/overview/) for the model, e
 
 To publish a function, select the **+** icon in the model artifact sidebar and provide a function name. You can register one function per branch. This creates a wrapper function with the same input and output API as your model, which can be [imported and called from a functions repository](/docs/foundry/functions/functions-on-models/) to add custom business logic.
 
-![Publish a Function direct model deployment from a model.](/docs/resources/foundry/manage-models/model-deployment-function-publish.png)
+![Publish a Function direct model deployment from a model.](./images/model-deployment-function-publish.png)
 
 For details on function behavior, version upgrades, and configuration options, see the [Model functions developer guide](/docs/foundry/model-integration/model-functions-guide/).
 
@@ -43,9 +43,9 @@ You can schedule overrides for your minimum and maximum replica configuration on
 To configure a schedule override:
 
 1. Navigate to your direct model deployment's **Live deployment** tab and select the settings icon to the right of **Start deployment** to edit the runtime configuration. <br><br>
-   ![Select the edit runtime configuration button from the Live deployment tab.](/docs/resources/foundry/manage-models/edit-runtime-configuration.png) <br><br>
+   ![Select the edit runtime configuration button from the Live deployment tab.](./images/edit-runtime-configuration.png) <br><br>
 2. In the **Scaling** section, toggle on **Enable schedule overrides** to render a configuration panel where you schedule the overrides. <br><br>
-   ![Configure schedule overrides in the Runtime configuration modal.](/docs/resources/foundry/manage-models/schedule-overrides.png) <br><br>
+   ![Configure schedule overrides in the Runtime configuration modal.](./images/schedule-overrides.png) <br><br>
 3. Configure the following settings for your override:
    * **Override minimum replicas:** The minimum number of replicas during the scheduled period.
    * **Override maximum replicas:** The maximum number of replicas during the scheduled period.
@@ -70,13 +70,13 @@ Model type safety is different from live modeling deployments which do not curre
 
 To view debugging information and logs for your direct model deployment, select the **Deployment health** tab at the top of the model page.  Here you can find the deployment's running build, health information about replicas, logs, and metrics about each replica's state.
 
-![Debug a direct model deployment from the model artifact page.](/docs/resources/foundry/manage-models/model-deployment-debugging.png)
+![Debug a direct model deployment from the model artifact page.](./images/model-deployment-debugging.png)
 
 You can also view the call stack of your model inference under the **Run Debug** card.  This allows you to see how long each python function took and where performance improvements can be made.
 
 **Note:** This does not show the call stack in container models, or if an error is thrown during inference.
 
-![Debug a direct model deployment with "Run Debug".](/docs/resources/foundry/manage-models/direct-run-debug.png)
+![Debug a direct model deployment with "Run Debug".](./images/direct-run-debug.png)
 
 ## Comparison: Direct model deployments vs Modeling Objective live deployments
 

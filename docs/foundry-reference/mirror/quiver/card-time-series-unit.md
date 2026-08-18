@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-unit/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-unit/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series unit
 
@@ -14,7 +14,7 @@ String
 
 ## Examples
 
-![Time series unit example](/docs/resources/foundry/quiver/card-ts-unit.png)
+![Time series unit example](./images/card-ts-unit.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-incremental-pipeline-pb/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create an incremental pipeline with Pipeline Builder
 
@@ -43,25 +43,25 @@ Now, we can initialize a new pipeline (for a step-by-step walkthrough, reference
 
 First, mark your input dataset as **Incremental** using the buttons below the dataset. You will see a blue badge appear in the top right corner to indicate the change.
 
-![Example of incremental input](/docs/resources/foundry/building-pipelines/incremental-input.png)
+![Example of incremental input](./images/incremental-input.png)
 
 Next, add a transform to filter `flights` to those departing `JFK` airport. Notice the icon to the right of the dataset input labeled with the tooltip **Incremental input**. Downstream transformations will have this icon to indicate that they are being processed incrementally.
 
-![Example of incremental transform](/docs/resources/foundry/building-pipelines/incremental-transform-path.png)
+![Example of incremental transform](./images/incremental-transform-path.png)
 
 On the graph, downstream nodes will be marked with the same blue badge as the input.
 
-![Example of incremental transform on graph](/docs/resources/foundry/building-pipelines/incremental-transform-graph.png)
+![Example of incremental transform on graph](./images/incremental-transform-graph.png)
 
 Finally, add an output dataset `filtered_flights`.
 
-![Example of incremental output](/docs/resources/foundry/building-pipelines/incremental-output.png)
+![Example of incremental output](./images/incremental-output.png)
 
 ## Part 4: Deploy output dataset
 
 You are now ready to [deploy your pipeline](/docs/foundry/pipeline-builder/outputs-deliver-pipeline/).
 
-![Example of incremental deploy](/docs/resources/foundry/building-pipelines/incremental-deploy.png)
+![Example of incremental deploy](./images/incremental-deploy.png)
 
 ### Replay on deploy
 
@@ -71,4 +71,4 @@ Sometimes, it may be necessary to reprocess previous input transactions (for exa
 Replaying on deploy will produce a `SNAPSHOT` transaction on the output dataset.
 :::
 
-![Example of incremental replay on deploy](/docs/resources/foundry/building-pipelines/incremental-replay-on-deploy.png)
+![Example of incremental replay on deploy](./images/incremental-replay-on-deploy.png)

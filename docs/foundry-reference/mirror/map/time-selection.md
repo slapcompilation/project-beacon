@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/time-selection/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/time-selection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time selection
 
@@ -16,11 +16,11 @@ Adjust your map to visualize data at a time of interest by using the time select
 The time selector only allows selecting a time that lies within the current time window.
 :::
 
-![Time selector](/docs/resources/foundry/map/time-selection-selector.png)
+![Time selector](./images/time-selection-selector.png)
 
 You can also use the slider to scroll through your time window:
 
-![Time slider](/docs/resources/foundry/map/time-selection-slider.png)
+![Time slider](./images/time-selection-slider.png)
 
 ### View the latest data
 
@@ -30,4 +30,4 @@ Click **View latest** to set the selected time to the current time. When on the 
 
 Adjust the time window using the date range selector under the time slider:
 
-![Time window](/docs/resources/foundry/map/time-selection-window.png)
+![Time window](./images/time-selection-window.png)

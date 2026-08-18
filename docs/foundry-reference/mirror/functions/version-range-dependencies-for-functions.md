@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/functions/version-range-dependencies-for-functions/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/version-range-dependencies-for-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Version range dependencies for functions
 
-In addition to depending on a pinned version of a Function, some applications like Workshop and Actions allow you to depend on a Function at a version range. Doing so enables automatic upgrades at runtime, which can save you time in your development cycle and provide a downtime-less upgrade experience for [deployed functions](/docs/foundry/functions/functions-deployed/).
+Workshop, Actions, and Automate can depend on either a pinned function version or a version range. A version range enables automatic runtime upgrades, which can reduce development work and allow [deployed functions](/docs/foundry/functions/functions-deployed/) to upgrade without downtime.
 
 While version range dependencies are a powerful feature, they also carry certain risks (for example, there are [permissioning consequences specific to Actions](#permissions-and-provenance-in-actions)). This documentation explains the mechanics behind version range resolution so that you can better understand these risks and make an informed decision on whether version range dependencies are suitable for your application.
 
@@ -44,6 +44,10 @@ Upon noticing a breaking change, you should immediately contact the developer of
 
 :::callout{theme="warning"}
 With the caveat of deployed Function dependencies, if your application has strict uptime requirements and cannot tolerate any breaks, you should use pinned version dependencies.
+:::
+
+:::callout{theme="neutral"}
+Function publishers can reduce risk by [restricting stable version tags](/docs/foundry/code-repositories/branch-settings/#restrict-stable-version-tags) to protected branches. This restriction requires code review before releasing a stable version that downstream applications might consume automatically.
 :::
 
 ### Permissions and provenance in Actions

@@ -1,22 +1,28 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-preview-pipeline/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-preview-pipeline/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Preview pipeline
 
 The preview panel allows you to preview logic and column statistics for a single selected node in your pipeline. When you select a node, this will open the preview panel and run the logic from raw datasets up until the selected node.
 
-![Screenshot of dataset's data preview pane](/docs/resources/foundry/pipeline-builder/outputs-data-preview@2x.png)
+![Screenshot of dataset's data preview pane](./images/outputs-data-preview@2x.png)
 
 You can also expand the preview panel by clicking on the icon in the bottom right of the graph. Then, click on a node to preview data.
 
-![Screenshot of dataset's data preview pane](/docs/resources/foundry/pipeline-builder/outputs-data-preview-button@2x.png)
+![Screenshot of dataset's data preview pane](./images/outputs-data-preview-button@2x.png)
 
 To view statistics, right-click on a column and click **View stats**.
 
-![Screenshot of dataset's data preview pane](/docs/resources/foundry/pipeline-builder/outputs-view-stats@2x.png)
+![Screenshot of dataset's data preview pane](./images/outputs-view-stats@2x.png)
 
 For string columns, the statistics view includes histograms of values and value lengths and counts of string casing, whitespace, and null instances. For numeric columns, a distribution of values is displayed along with basic statistics such as min, max, mean, standard deviation, and number of distinct values.
 
 To view the row count, select **Calculate row count** in the bottom right of the preview panel.
+
+## Timezone selection for timestamp columns
+
+When previewing a transform output node that contains a timestamp column, the preview toolbar displays a timezone picker. Selecting a timezone re-renders timestamp values in the chosen timezone, allowing you to verify how your data will appear in different time zones.
+
+The timezone selection is shared across all preview types (dataset preview, SQL preview, and transform output preview), so a timezone chosen in one preview persists across the others within the same session. The timezone picker is hidden when the output schema does not contain a timestamp column.
 
 ## Configuring Preview Behavior
 
@@ -32,7 +38,7 @@ To set a default preview behavior at the enrollment level:
 If a user has any preview setting set in Pipeline Builder, this will override the enrollment-level setting.
 :::
 
-![Screenshot of Pipeline Builder's Control Panel settings](/docs/resources/foundry/pipeline-builder/outputs-preview-control-panel.png)
+![Screenshot of Pipeline Builder's Control Panel settings](./images/outputs-preview-control-panel.png)
 
 In the Pipeline Builder application, each user can set their own preview preference which will take precedent over the enrollment-level setting. To do this, open Pipeline Builder and:
 
@@ -41,13 +47,13 @@ In the Pipeline Builder application, each user can set their own preview prefere
 
 This only changes the setting at the user level, so all pipelines you view within that enrollment will follow your selected preference.
 
-![Screenshot of Pipeline Builder's user preferences.](/docs/resources/foundry/pipeline-builder/outputs-preview-user-preference.png)
+![Screenshot of Pipeline Builder's user preferences.](./images/outputs-preview-user-preference.png)
 
 ## Preview row counts
 
 By default, Pipeline Builder will process up to 500 rows in the preview table. This implementation may only require 500 input rows in the dataset, but many operations such as **Filter**, **Joins** and **Drop Duplicates** can require additional rows to produce a preview of 500 rows.
 
-To speed up previews, [add an input sampling strategy](/docs/foundry/pipeline-builder/management-input-sampling/) to limit the number of input rows available for computing previews. Input sampling strategies only affect previews and have no effect on builds.
+To speed up previews, [add an input sampling strategy](/docs/foundry/pipeline-builder/management-input-sampling/) to limit the number of input rows available for computing previews. Available strategies include percentage-based sampling and, for file datasets, filtered preview which allows you to filter on columns generated from file metadata. Input sampling strategies only affect previews and have no effect on builds.
 
 Row count and statistic calculations are run across the sampled input. This means that if the full dataset is used, the row count and stats will match a full build; however, if a sample strategy is set to only use part of the input dataset, the row counts and stats will only be computed across this sample.
 

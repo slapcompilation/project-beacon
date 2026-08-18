@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/map/control-panel/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/control-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Control Panel
 
 Various organization-wide Map settings can be configured using the [Control Panel](/docs/foundry/administration/control-panel/). To modify Map settings, you will need the `Map Admin` role.
 
-![Map section in Control Panel.](/docs/resources/foundry/map/control-panel-map-defaults.png)
+![Map section in Control Panel.](./images/control-panel-map-defaults.png)
 
 Some organization-level settings users will be able to override on a user or map level in the [settings menu](/docs/foundry/map/settings/).
 
@@ -46,10 +46,10 @@ When Mapbox styles are disabled, map applications and widgets in the Foundry pla
 
 Add a custom base map using either Raster tiles or Mapbox JSON.
 
-![Custom base map configuration panel.](/docs/resources/foundry/map/control-panel-custom-base-map.png)
+![Custom base map configuration panel.](./images/control-panel-custom-base-map.png)
 
 ### Watermark configurations
 
 Watermarks can be configured as a default or per group. The watermark will overlay on the base map.
 
-![An example map with a watermark reading "demo".](/docs/resources/foundry/map/control-panel-watermark.png)
+![An example map with a watermark reading "demo".](./images/control-panel-watermark.png)

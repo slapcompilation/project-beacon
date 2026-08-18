@@ -1,22 +1,31 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Quiver
 
 Quiver provides a point-and-click interface to perform data analysis on object and [time series](/docs/foundry/time-series/time-series-overview/) data from the [Ontology](/docs/foundry/ontology/core-concepts/). You can use these analyses to create interactive [dashboards](/docs/foundry/quiver/dashboards-overview/) that allow others to explore and investigate the data in operational workflows. For simpler use cases, Foundry offers streamlined interfaces for [time series analysis](/docs/foundry/quiver/analysis-types/#time-series-analysis) and [object set analysis](/docs/foundry/quiver/analysis-types/#object-set-path-analysis). Review our documentation on [analysis types](/docs/foundry/quiver/analysis-types/) for a comparison.
 
-![Quiver sample image](/docs/resources/foundry/quiver/quiver-overview.png)
+![Quiver sample image](./images/quiver-overview.png)
 
 ## Key features
 
 Quiver enables you to:
 
 * Visualize, filter, and transform object and time series data without code.
+
+* Build analyses using [canvas mode](/docs/foundry/quiver/analysis-canvas/) for organizing and presenting cards, or [graph mode](/docs/foundry/quiver/analysis-graph/) for inspecting card dependencies and data flow.
+
 * Quickly navigate the relationships between linked object types.
+
 * Parameterize analyses to easily switch between different views of the data and results.
+
 * Create interactive dashboards that you can embed in operational applications such as [Workshop](/docs/foundry/workshop/overview/).
+
 * Create charts that you can embed in reporting applications such as [Notepad](/docs/foundry/notepad/overview/).
+
 * Save and share analyses directly with colleagues.
+
 * Leverage Quiver's [formula language](/docs/foundry/quiver/cards-formula-syntax/) for more advanced calculations.
+
 * Use [transform tables](/docs/foundry/quiver/cards-transform-table/) and [materializations](/docs/foundry/quiver/cards-index-materializations/) for more advanced transformations and aggregations.
 
 ## When to use Quiver

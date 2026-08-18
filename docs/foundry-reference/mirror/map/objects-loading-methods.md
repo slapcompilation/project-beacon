@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/objects-loading-methods/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/objects-loading-methods/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Loading methods
 
@@ -8,7 +8,7 @@ By default, the Map application loads all objects in a layer to render them on t
 
 You can configure loading methods for a display with the **Loading method** dropdown menu in the style panel.
 
-![The loading methods configuration option in the style menu.](/docs/resources/foundry/map/objects-loading-methods.png)
+![The loading methods configuration option in the style menu.](./images/objects-loading-methods.png)
 
 The loading method options are as follows:
 

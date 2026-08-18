@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-websocket/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-websocket/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # WebSocket listeners
 
@@ -25,7 +25,7 @@ You can use WebSocket listeners in the following situations:
 1. Navigate to **Data Connection > Listeners**.
 2. Select **Create new listener** and choose the WebSocket connector you need.
 
-![The listener selection page showing available WebSocket connectors.](/docs/resources/foundry/data-connection/websocket-select-listener-page.png)
+![The listener selection page showing available WebSocket connectors.](./images/websocket-select-listener-page.png)
 
 :::callout{theme="neutral" title="Connector availability"}
 If the connector you require is not present, contact Palantir Support to enable it for your enrollment.
@@ -39,7 +39,7 @@ All WebSocket listeners must be mounted on a dedicated subdomain. You must confi
 2. Configure ingress to allow connections from your external system. Refer to the [Configure ingress documentation](/docs/foundry/administration/configure-ingress/).
 3. Mount the subdomain to your listener. This requires approval before you can start receiving requests.
 
-![The endpoint configuration section of the WebSocket listener setup page.](/docs/resources/foundry/data-connection/websocket-listener-configure-endpoint.png)
+![The endpoint configuration section of the WebSocket listener setup page.](./images/websocket-listener-configure-endpoint.png)
 
 ### 3. Configure security
 
@@ -47,7 +47,7 @@ Each WebSocket listener type has specific authentication requirements. Configure
 
 Next, navigate to the **Configure server** page and specify which exportable markings your listener should allow. [Learn more about WebSocket listener security](/docs/foundry/data-connection/listeners-websocket-security/).
 
-![The exportable markings configuration section of the WebSocket listener.](/docs/resources/foundry/data-connection/websocket-listener-configure-markings.png)
+![The exportable markings configuration section of the WebSocket listener.](./images/websocket-listener-configure-markings.png)
 
 ### 4. Configure a compute module
 
@@ -59,7 +59,7 @@ To configure the compute module, follow the steps below:
 2. Add the Foundry resources your compute module needs as inputs and outputs. By default, the compute module has no permissions—you must explicitly grant access to each resource. [Learn more about configuring compute modules.](/docs/foundry/compute-modules/overview/)
 3. Start your compute module and check the **Logs** tab to confirm everything is running as expected.
 
-![The compute module configuration page linked to a WebSocket listener.](/docs/resources/foundry/data-connection/websocket-compute-module-ui.png)
+![The compute module configuration page linked to a WebSocket listener.](./images/websocket-compute-module-ui.png)
 
 ## Supported WebSocket listeners
 

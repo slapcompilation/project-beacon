@@ -1,9 +1,9 @@
-<!-- source: https://palantir.com/docs/foundry/automate/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Automate
 
 :::callout{theme="info"}
-Automate is a fully backwards-compatible product that replaces [Object Monitoring](/docs/foundry/object-monitors/overview/) as the single entry point for all business automation in the platform.
+Automate is a fully backwards-compatible product that replaces [Object Monitoring](/docs/foundry/object-monitors/overview/) as the single entry point for all business automation in the platform.
 :::
 
 **Automate** is an application for business automation. With Automate, you can define conditions that are checked continuously or on a schedule, along with effects that execute automatically when the specified conditions are met.
@@ -17,6 +17,8 @@ Conditions can be *time-based conditions* ("trigger every Monday at 9 AM"), *obj
 * Execute [Foundry functions](/docs/foundry/functions/overview/)
 * Send platform and email notifications with attachments
 
+Learn more about configuring effects, including fallback effects and execution settings, in the [Effects](/docs/foundry/automate/effects/) documentation.
+
 ## Use cases
 
 Automate can be used for a variety of different automation workflows, including:
@@ -27,6 +29,14 @@ Automate can be used for a variety of different automation workflows, including:
   * Checking for data anomalies and automatically passing those objects into an Action with logic to remediate the issue.
   * Watching for suggestions or potential Actions and automatically applying them when preconfigured event and time conditions are met. Such Actions could include making an API call to an external system via Webhooks to apply a change directly in the external system.
 * **Watched searches:** Configure automations to notify when saved object explorations have new results or when an aggregate criterion is met across all results from a search; for example, the maximum temperature across all sensor objects crosses a threshold.
+
+## Best practices
+
+Follow [performance best practices](/docs/foundry/automate/performance-best-practices/) to minimize compute consumption and run automations efficiently at scale.
+
+## Branching support
+
+Automate integrates with [Global Branching](/docs/foundry/global-branching/overview/). You can create, test, and modify automations on a branch before merging changes to `main`. For details, see [branching automations](/docs/foundry/automate/branching-automations/).
 
 ## Access Automate
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/kiosk-mode/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/kiosk-mode/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Kiosk mode
 
@@ -6,17 +6,21 @@ Kiosk mode gives builders the ability to enable long-lived, restricted sessions 
 
 Kiosk mode sessions are read-only, meaning that Ontology write backs such as object edits and creations may not be triggered, and have scoped down permissions limiting the content viewable within a session. Details on what entities are included in a Kiosk mode session's scope are available [here](#kiosk-mode-session-scope).
 
+:::callout{theme="neutral"}
+Kiosk mode restricts permissions and limits content access. If you want to visually hide data for screenshots or screen sharing without changing permissions, see [redact mode](/docs/foundry/workshop/redact-mode/) instead.
+:::
+
 ## Configure kiosk mode for a Workshop module
 
 Kiosk mode settings can be configured and managed per [Organization](/docs/foundry/security/orgs-and-spaces/) from [Control Panel](/docs/foundry/administration/configure-workshop/).
 
 Once a module has been added to the kiosk mode setting’s allowlist, builders with permissions to launch kiosk mode sessions can do so by navigating to the **Advanced Functionalities** section of the module’s **Settings** panel and enabling the **Kiosk Mode** toggle. The **Open kiosk** button will appear in the top right corner of the module. Selecting this button opens a modal that outlines the contents of the currently published version of the module that will be visible for the duration of the session. This includes object types, link types, functions, and other embedded Foundry applications. After reviewing the scope of the module’s content, select **Launch session** to start a kiosk mode session.
 
-<img src="./media/kiosk-mode-edit-mode.png" alt="Kiosk mode toggle, launch modal, and button in edit mode" width="700">
+<img src="./images/kiosk-mode-edit-mode.png" alt="Kiosk mode toggle, launch modal, and button in edit mode" width="700">
 
 After kiosk mode has been configured and enabled for a module in both Control Panel and Workshop, you can also launch a kiosk mode session in view mode by selecting **Open kiosk**.
 
-<img src="./media/kiosk-mode-view-mode-dongle.png" alt="Kiosk mode toggle in enabled position." width="350">
+<img src="./images/kiosk-mode-view-mode-dongle.png" alt="Kiosk mode toggle in enabled position." width="350">
 
 You can end a kiosk mode session by selecting **Exit kiosk mode**. Active kiosk mode sessions can also be ended by Administrators from the **Session Launch History** table found in the [kiosk mode settings section of Control Panel](/docs/foundry/administration/configure-workshop/).
 

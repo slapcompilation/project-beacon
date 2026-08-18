@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/permissions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/permissions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -20,6 +20,10 @@ Use the **Check access** panel in the sidebar to check a user's access to a Work
 
 Action submission criteria allow for fine-grained control over who can run an action. Simple submission criteria can require a specific user ID or group ID and can be combined with information from parameters. For more information see the [submission criteria documentation](/docs/foundry/action-types/submission-criteria/).
 
+### Read and write authorizations
+
+Read and write authorizations limit which marked data an action can read directly or receive as input from other logic and enforce minimum security for data it creates or modifies. For more information see the [read and write authorizations documentation](/docs/foundry/action-types/read-write-authorizations/).
+
 ### Object edits permissions
 
 Object edits can either be locked down so that edits are only allowed via actions, or reopened so that edits are allowed via actions, Foundry Forms, direct Object Explorer edits, and API calls. To enforce a consistent security paradigm across many workflows, by default, new object types only allow edits via actions. Other forms of edits are not recommended for new usage.
@@ -34,7 +38,7 @@ With either writeback setting, an action type's configuration does not display p
 
 Updating edit permissions on an object type to "Only allow edits via actions" will not remove historical, non-action edits, but they will prevent further edits from Foundry Forms, direct Object Explorer edits, and API calls.
 
-![Only allow edits via actions is recommended.](/docs/resources/foundry/action-types/recommended-writeback-setting.png)
+![Only allow edits via actions is recommended.](./images/recommended-writeback-setting.png)
 
 [Learn more about writeback permissions.](/docs/foundry/object-permissioning/configuring-rv-access-controls/)
 

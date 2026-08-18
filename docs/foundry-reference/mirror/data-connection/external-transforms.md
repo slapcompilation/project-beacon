@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/external-transforms/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/external-transforms/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # External transforms
 
@@ -53,11 +53,11 @@ If you are working in a Python transforms repository in a [VS Code workspace](/d
 1. From the left side panel, open the **External systems** tab.
 2. Select **Add > Create new**.
 
-![Select "Create new" to create a new generic connector from Code Repositories.](/docs/resources/foundry/data-connection/external-transforms-create-new-generic-connector.png)
+![Select "Create new" to create a new generic connector from Code Repositories.](./images/external-transforms-create-new-generic-connector.png)
 
 3. Choose a name for your source and a Project in which to store it. Upon creation, the newly created source will show up in the left side panel. Any egress policies, secrets and exportable markings can be directly configured from this panel.
 
-![Newly created generic connector from Code Repositories](/docs/resources/foundry/data-connection/external-transforms-new-generic-connector-created.png)
+![Newly created generic connector from Code Repositories](./images/external-transforms-new-generic-connector-created.png)
 
 4. For this tutorial, you should add an [egress policy](/docs/foundry/administration/configure-egress/) for the dictionary API: `api.dictionaryapi.dev`. You will not need any secrets since this API does not require authentication, and export controls may be skipped for now. However, they will be required to [use Foundry data inputs with this source](#use-foundry-inputs-in-external-transforms).
 
@@ -69,7 +69,7 @@ You may also create a source from the Data Connection application or use an exis
 
 1. Navigate to the Data Connection application within Foundry and choose **New Source**. From the list of options, select **REST API**.
 
-![Data connection new source page with a red box around the REST API card](/docs/resources/foundry/data-connection/external-transforms-choose-rest-api-source.png)
+![Data connection new source page with a red box around the REST API card](./images/external-transforms-choose-rest-api-source.png)
 
 2. Review the **Overview** page, then select **Continue** in the bottom right. You will be prompted to choose the connection worker: pick a [Foundry worker](/docs/foundry/data-connection/core-concepts/#foundry-worker) to connect to the dictionary API, because [agent worker](/docs/foundry/data-connection/core-concepts/#agent-worker) connections are not supported for external transforms.
 
@@ -77,11 +77,11 @@ You may also create a source from the Data Connection application or use an exis
 
 4. Fill out the **Domains** section with the connection information of the API source. The configuration for the dictionary API example is shown below:
 
-![REST API source creation page showing configuration to connect to api.dictionaryapi.dev without any authentication](/docs/resources/foundry/data-connection/external-functions-configure-dictionary-api-source.png)
+![REST API source creation page showing configuration to connect to api.dictionaryapi.dev without any authentication](./images/external-functions-configure-dictionary-api-source.png)
 
 5. For this example, we also need to create the necessary egress policy. The policy will be automatically suggested in the **Network Connectivity** section if you completed the previous step:
 
-![Suggested egress panel showing a suggested policy for api.dictionaryapi.dev on port 443](/docs/resources/foundry/data-connection/external-functions-suggested-egress-for-dictionary-api.png)
+![Suggested egress panel showing a suggested policy for api.dictionaryapi.dev on port 443](./images/external-functions-suggested-egress-for-dictionary-api.png)
 
 6. Select **Save**, then **Save and continue** to complete the source setup.
 
@@ -89,7 +89,7 @@ You may also create a source from the Data Connection application or use an exis
 
 To use external transforms, you must first import the `transforms-external-systems` library in your repository. Libraries are installed using the **Libraries** tab in the left side panel, searching for the desired library, then selecting **Install**.
 
-![Code repository showing the transforms-external-systems library installed.](/docs/resources/foundry/data-connection/external-transforms-install-transforms-external-systems-library.png)
+![Code repository showing the transforms-external-systems library installed.](./images/external-transforms-install-transforms-external-systems-library.png)
 
 [Learn more about installing and managing libraries.](/docs/foundry/code-repositories/libraries/).
 
@@ -103,11 +103,11 @@ REST API sources with multiple domains may not be imported. Instead, you should 
 
 2. Toggle on the option to **Allow this source to be imported into code repositories**. Any code repositories that import this source will be displayed on this page.
 
-![Dictionary API source configuration options in data connection, showing the panel for code import configuration with code imports toggled on.](/docs/resources/foundry/data-connection/external-transforms-allow-dictionaryapi-source-to-be-imported-into-code.png)
+![Dictionary API source configuration options in data connection, showing the panel for code import configuration with code imports toggled on.](./images/external-transforms-allow-dictionaryapi-source-to-be-imported-into-code.png)
 
 3. You are now ready to return to your code repository and import the source. In the repository, navigate to the left side panel and select the **External Systems** tab represented by the globe icon. Within the side panel, select **Add**, then search for the Dictionary API source that you previously created. Select this source, then **Confirm selection** to import.
 
-![Dialog for importing the Dictionary API source into a Python transforms repository.](/docs/resources/foundry/data-connection/external-transforms-import-dictionaryapi-source-to-repository.png)
+![Dialog for importing the Dictionary API source into a Python transforms repository.](./images/external-transforms-import-dictionaryapi-source-to-repository.png)
 
 :::callout{theme="neutral"}
 You must have at least `Editor` access to the source to be able to import it in the repository. Read more about [permissions](/docs/foundry/data-connection/permissions/#external-transforms-pipelines-and-compute-modules)
@@ -149,7 +149,7 @@ dictionary_api_url = dictionary_api_source.get_https_connection().url
 
 Additional secrets or credentials stored on the source can also be accessed from the source. To identify the secret names that can be accessed, navigate to the left panel in your transform.
 
-![Left panel showing the Dictionary API source details.](/docs/resources/foundry/data-connection/external-transforms-left-panel.png)
+![Left panel showing the Dictionary API source details.](./images/external-transforms-left-panel.png)
 
 Use the following syntax to access secrets in code:
 
@@ -245,7 +245,7 @@ The setting to **Enable exports to this source** must be toggled on to allow the
 
 Below you can see an example export configuration for the Dictionary API source, allowing data from the `Palantir` organization with no additional security markings to be exported to the Dictionary API:
 
-![Data connection settings showing the export configuration for Dictionary API source with enable exports to this source toggled on](/docs/resources/foundry/data-connection/external-transforms-export-configuration-for-dictionaryapi-source.png)
+![Data connection settings showing the export configuration for Dictionary API source with enable exports to this source toggled on](./images/external-transforms-export-configuration-for-dictionaryapi-source.png)
 
 :::callout{theme="neutral"}
 Note that **Enable exports to this source** must be toggled on *even if you are not actually exporting data to this system*, since allowing Foundry data inputs into the same compute job with an open connection to this system means that data *could* be exported.
@@ -402,10 +402,10 @@ To configure external transforms with private network access:
 1. **Create a [PostgreSQL source](/docs/foundry/available-connectors/postgresql/) with direct connection runtime:** When creating your Data Connection source, select **Direct connection** as the runtime option.
 2. **Configure network policy:** In the source's network connectivity settings, create a network policy that defines the routing through your Data Connection agent. Select **Agent proxy** and then choose the agents that should be used to proxy.
 
-![The control panel for Network egress policy with the policy created.](/docs/resources/foundry/data-connection/create-agent-proxy-network-egress-policy.png)
+![The control panel for Network egress policy with the policy created.](./images/create-agent-proxy-network-egress-policy.png)
 3\. **Enable code imports:** In the code import configuration panel, toggle on **Allow this source to be imported into code repositories**.
 
-![Dictionary API source configuration options in data connection, showing the panel for code import configuration with code imports toggled on.](/docs/resources/foundry/data-connection/external-transforms-allow-dictionaryapi-source-to-be-imported-into-code.png)
+![Dictionary API source configuration options in data connection, showing the panel for code import configuration with code imports toggled on.](./images/external-transforms-allow-dictionaryapi-source-to-be-imported-into-code.png)
 4\. Bootstrap a transform code repository and import the source.
 
 #### Example: PostgreSQL connection via Spark sidecar

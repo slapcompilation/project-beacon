@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/application-design-components/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/application-design-components/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Component-specific best practices
 
@@ -10,11 +10,11 @@ When adding [Object Tables](/docs/foundry/workshop/widgets-object-table/), [Obje
 
 * Always include counts to indicate the length of tables and lists by configuring a [Metric Card](/docs/foundry/workshop/widgets-metric-card/) widget in the table's section header. Choose **Tag** as your layout style.
 
-![A Metric Card is configured to render a count of objects in an Object Table.](/docs/resources/foundry/workshop/global-table-count.png)
+![A Metric Card is configured to render a count of objects in an Object Table.](./images/global-table-count.png)
 
 * Ensure each section renders enough information for row selection; use [collapsible detail panels](/docs/foundry/workshop/getting-started/#part-iv-configure-a-collapsible-panel-for-the-object-view) for additional data instead of overlays, which can obstruct the base layer of information.
 
-![A sample Workshop application displays a collapsible side panel containing an object view.](/docs/resources/foundry/workshop/collapsible-side-panel.png)
+![A sample Workshop application displays a collapsible side panel containing an object view.](./images/collapsible-side-panel.png)
 
 * Validate that your table or list adheres to Workshop's [scrolling best practices](/docs/foundry/workshop/application-design-best-practices/#scrolling-best-practices).
 * Use the **Display & formatting** section of the **Widget setup** panel to customize your table's display.
@@ -39,18 +39,18 @@ When adding a [Button Group](/docs/foundry/workshop/widgets-button-group/) to yo
 
 | Button purpose                                                                                                                                  | Best practice                                                                                                                 |
 | ----------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Use the first button in a group to denote the primary action. De-emphasize other actions with a menu to reduce visual clutter.                  | ![A button group with a primary action and menu of secondary actions.](/docs/resources/foundry/workshop/button-group-streamlined.png)                  |
-| Use icons to inform a user of the button's action and what will occur after selection.                                                          | ![An Add button with two icons.](/docs/resources/foundry/workshop/button-action-indication.png)                                                        |
-| Apply arrow icons to show navigation to a new page/section within the module (horizontal arrow) or a new tab outside the module (angled arrow). | ![Buttons with arrows indicate tab or window navigation.](/docs/resources/foundry/workshop/button-navigate-to-tab-or-window.png)                       |
-| Group buttons to indicate if there are other actions related to a button (**+**) or other independent actions accessible from a menu.           | ![Buttons with a plus sign and ellipsis indicate related or more nested actions exist.](/docs/resources/foundry/workshop/button-save-more-actions.png) |
+| Use the first button in a group to denote the primary action. De-emphasize other actions with a menu to reduce visual clutter.                  | ![A button group with a primary action and menu of secondary actions.](./images/button-group-streamlined.png)                  |
+| Use icons to inform a user of the button's action and what will occur after selection.                                                          | ![An Add button with two icons.](./images/button-action-indication.png)                                                        |
+| Apply arrow icons to show navigation to a new page/section within the module (horizontal arrow) or a new tab outside the module (angled arrow). | ![Buttons with arrows indicate tab or window navigation.](./images/button-navigate-to-tab-or-window.png)                       |
+| Group buttons to indicate if there are other actions related to a button (**+**) or other independent actions accessible from a menu.           | ![Buttons with a plus sign and ellipsis indicate related or more nested actions exist.](./images/button-save-more-actions.png) |
 
 * Label your buttons using natural, user-friendly language in sentence case. Avoid repetitive copy when adding a Button Group to a section header where the context is clear.
 
-![A Do and Do not comparison of button copy examples is displayed.](/docs/resources/foundry/workshop/button-copy-example.png)
+![A Do and Do not comparison of button copy examples is displayed.](./images/button-copy-example.png)
 
 * Add buttons in close proximity to their related section or widget. As an example, if you configure two Object Table widgets which render `Equipment` and `Part` objects, then you should add buttons with their relevant actions to each Object Table's specific header.
 
-![A Do and Do not comparison of button alignment to Object Table section headers.](/docs/resources/foundry/workshop/button-group-proximity.png)
+![A Do and Do not comparison of button alignment to Object Table section headers.](./images/button-group-proximity.png)
 
 * Organize buttons hierarchically by adjusting their size, border, and color intensity in the **Display & formatting** section of the **Widget setup** panel.
 
@@ -58,7 +58,7 @@ When adding a [Button Group](/docs/foundry/workshop/widgets-button-group/) to yo
 
 | 🔴 Avoid multiple colors in one group                                          | 🟢 Best practice                                                                           |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| ![A button group with multiple colors applied.](/docs/resources/foundry/workshop/button-group-multiple-colors.png)  | ![A button group with one color applied.](/docs/resources/foundry/workshop/button-group-best-practice.png) |
+| ![A button group with multiple colors applied.](./images/button-group-multiple-colors.png)  | ![A button group with one color applied.](./images/button-group-best-practice.png) |
 
 [Learn more about the Button Group widget.](/docs/foundry/workshop/widgets-button-group/)
 
@@ -68,10 +68,10 @@ When adding [one of Workshop's filtering widgets](/docs/foundry/workshop/widgets
 
 * Use a Filter List's **Vertical** filter layout if the object list requires users to apply multiple filters simultaneously. This layout is also best used for complex filtering scenarios and provides a clear overview of available filtering options.
 
-![A filter list with a vertical layout is displayed.](/docs/resources/foundry/workshop/filters-complex-vertical-layout.png)
+![A filter list with a vertical layout is displayed.](./images/filters-complex-vertical-layout.png)
 
 * Use a Filter List's **Pills** filter layout for compact, beginner-friendly visual filtering. The **Pills** layout is ideal for limited screen space or frequent filter changes. You can also use the Exploration Filter Pills widget for this same purpose.
 
-![A filter list with a pills filter layout is displayed.](/docs/resources/foundry/workshop/filters-pill-layout.png)
+![A filter list with a pills filter layout is displayed.](./images/filters-pill-layout.png)
 
 * Add an [Exploration Search Bar](/docs/foundry/workshop/widgets-exploration-search-bar/) to enable comprehensive searches with complex filtering capabilities. This is best suited for experienced users requiring detailed, precise querying functionality. The Exploration Search Bar supports keyword searches, property filtering, and complex queries.

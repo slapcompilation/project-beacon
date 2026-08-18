@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-scenario-selector/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-scenario-selector/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Widget: Scenario Selector
 
@@ -6,13 +6,13 @@ The **Scenario selector** widget in Workshop allows a user to select a Scenario(
 
 The screenshot below shows an example of a multi-select configuration of the Scenario selector. When placed in a section header, the widget becomes a dropdown instead of a panel.
 
-![scenario\_selector\_example](/docs/resources/foundry/workshop/scenario-selector-overview.png)
+![scenario\_selector\_example](./images/scenario-selector-overview.png)
 
 ## Configuration Options
 
 Here is a screenshot of the initial state of a newly added Scenario Selector widget alongside its initial configuration panel:
 
-![scenario\_selector\_example](/docs/resources/foundry/workshop/scenario-selector-config.png)
+![scenario\_selector\_example](./images/scenario-selector-config.png)
 
 For the Scenario Selector widget, the core configuration options are the following:
 

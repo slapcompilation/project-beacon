@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/evaluations-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/evaluations-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Evals
 
@@ -13,7 +13,7 @@ You can use AIP Evals to:
 
 AIP Evals is also available as an integrated tool within [AI FDE](/docs/foundry/ai-fde/overview/), allowing you to create and run evaluation suites through conversational commands.
 
-![Evals overview](/docs/resources/foundry/aip-evals/aip-evals-overview.png)
+![Evals overview](./images/aip-evals-overview.png)
 
 ## Core concepts
 

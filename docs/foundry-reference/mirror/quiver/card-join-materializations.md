@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-join-materializations/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-join-materializations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Join materializations
 
@@ -8,7 +8,7 @@ This is useful if you are trying to perform a visualization or calculation using
 
 Alternatively, at smaller scales (less than 50,000 objects), a [join to linked objects](/docs/foundry/quiver/card-join-to-linked-objects/) card can be used in the transform table.
 
-<img src="./media/join-materializations-panel.png" alt="Configuration panel for Join materializations" width="400">
+<img src="./images/join-materializations-panel.png" alt="Configuration panel for Join materializations" width="400">
 
 ## Input type
 

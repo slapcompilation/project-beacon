@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-events/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-events/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Configure Events and Actions
 
@@ -12,7 +12,7 @@ The **Events panel** shows all event/action pairs configured in a Slate applicat
 
 Events and actions allow for much more robust application behavior control than when using Handlebar references alone.
 
-![events](/docs/resources/foundry/slate/events-panel.png)
+![events](./images/events-panel.png)
 
 :::callout{theme="neutral"}
 The events editor does not accept [helpers](/docs/foundry/slate/references-helpers/) of any kind.
@@ -30,11 +30,11 @@ The events editor does not accept [helpers](/docs/foundry/slate/references-helpe
 
 This event will run a query when the button is clicked on:
 
-![buttonTriggerQueryEvent](/docs/resources/foundry/slate/buttonTriggerQueryEvent.png)
+![buttonTriggerQueryEvent](./images/buttonTriggerQueryEvent.png)
 
 Open the events panel and create a new event:
 
-![newEvent](/docs/resources/foundry/slate/newEvent.png)
+![newEvent](./images/newEvent.png)
 
 Choose `w_button.click` for the triggering event, and `q_query.run` for the triggered action, and select **Update** to persist your change. No JavaScript is necessary for this pairing.
 
@@ -53,7 +53,7 @@ return 2 * dropdownSelectionValue;
 
 The end result should look something like
 
-![doubleDropdownEvent](/docs/resources/foundry/slate/doubleDropdownEvent.png)
+![doubleDropdownEvent](./images/doubleDropdownEvent.png)
 
 `{{slEventValue}}` is a special handlebars value in the events panel. If the triggering action has some associated value, then `{{slEventValue}}` will be whatever that associated value is. In the case of `.changed` actions, the `{{slEventValue}}` is the value of whatever the associated widget property has changed *to*.
 
@@ -74,7 +74,7 @@ return history;
 
 The end result should look something like
 
-![dropdownHistoryEvent](/docs/resources/foundry/slate/dropdownHistoryEvent.png)
+![dropdownHistoryEvent](./images/dropdownHistoryEvent.png)
 
 Now, whenever the user selects something from the dropdown, the event will be triggered. The code will take the current value in `v_selectionHistory`, and push onto the end of the list, the newly selected value, which is passed in by `{{slEventValue}}`, and then return the newly augmented history. Because the action is `v_selectionHistory.set`, the variable `v_selectionHistory` will be set to this new array, adding the newly selected item to the accumulated history.
 
@@ -96,6 +96,6 @@ if (input1Text === "" || input2Text === "") {
 
 The end result should look something like
 
-![events](/docs/resources/foundry/slate/events-panel.png)
+![events](./images/events-panel.png)
 
 `{{slDisableAction}}` is a special handlebars value in the events panel. Returning this value from the code in the panel will disable the triggered action. So in other words – if either `w_input1` or `w_input2` are empty, this special value will be returned, and the query `q_query` will not be run. If both of these inputs *do* have values however, then nothing will be returned, and the action will proceed as normal.

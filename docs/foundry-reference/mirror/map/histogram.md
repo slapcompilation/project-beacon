@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/histogram/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/histogram/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Histogram
 
@@ -12,7 +12,7 @@ Click the **Value** heading to toggle the sort method to **Value** (ascending) o
 
 | Value                                                                  | Count                                                     | Selected count                                                              |
 |------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------|
-| ![Histogram sorted by value alphabetical](/docs/resources/foundry/map/histogram-value.png) | ![Histogram sorted by count](/docs/resources/foundry/map/histogram-count.png) | ![Histogram sorted by selected count](/docs/resources/foundry/map/histogram-selected-count.png) |
+| ![Histogram sorted by value alphabetical](./images/histogram-value.png) | ![Histogram sorted by count](./images/histogram-count.png) | ![Histogram sorted by selected count](./images/histogram-selected-count.png) |
 
 For date and numeric properties, an additional option to control the **Binning** is available.
 
@@ -20,19 +20,19 @@ For date properties, by clicking on this heading you can toggle the binning meth
 
 | Year                                                            | Year and month                                                             | Quarter                                                               | Month                                                                     | Day                                                                   |
 |-----------------------------------------------------------------|----------------------------------------------------------------------------|-----------------------------------------------------------------------|---------------------------------------------------------------------------|-----------------------------------------------------------------------|
-| ![Histogram binned by year](/docs/resources/foundry/map/histogram-binning-year.png) | ![Histogram binned by month](/docs/resources/foundry/map/histogram-binning-year-and-month.png) | ![Histogram binned by quarter](/docs/resources/foundry/map/histogram-binning-quarter.png) | ![Histogram binned by month of year](/docs/resources/foundry/map/histogram-binning-month.png) | ![Histogram binned by day of week](/docs/resources/foundry/map/histogram-binning-day.png) |
+| ![Histogram binned by year](./images/histogram-binning-year.png) | ![Histogram binned by month](./images/histogram-binning-year-and-month.png) | ![Histogram binned by quarter](./images/histogram-binning-quarter.png) | ![Histogram binned by month of year](./images/histogram-binning-month.png) | ![Histogram binned by day of week](./images/histogram-binning-day.png) |
 
 For numeric properties, by clicking on this heading you can toggle the binning method between **No binning**, **Equal size** which will automatically group the numeric values into equally sized bins, and **Logarithmic** which will group the numeric values by their order of magnitude.
 
 | No binning                                               | Equal size                                                                        | Logarithmic                                                                           |
 |----------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------------------------------------------------|
-| ![Numeric histogram](/docs/resources/foundry/map/histogram-binning-none.png) | ![Numeric histogram in equal size bins](/docs/resources/foundry/map/histogram-binning-equal-size.png) | ![Numeric histogram in logarithmically sized bins](/docs/resources/foundry/map/histogram-binning-log.png) |
+| ![Numeric histogram](./images/histogram-binning-none.png) | ![Numeric histogram in equal size bins](./images/histogram-binning-equal-size.png) | ![Numeric histogram in logarithmically sized bins](./images/histogram-binning-log.png) |
 
 ## Selection
 
 Clicking on a row within the **Histogram** panel will select all matching objects. Holding Shift while selecting a second row will select a range of rows. Holding Ctrl (Windows) or Cmd (Mac) will add the row to the existing selection. This enables you to select rows across multiple sections of the histogram.
 
-![Map application with histogram row selected](/docs/resources/foundry/map/histogram-filters-selected.png)
+![Map application with histogram row selected](./images/histogram-filters-selected.png)
 
 ## Filtering
 
@@ -40,10 +40,10 @@ When histogram rows are selected, you can use the **Filter to** or **Filter out*
 
 Selecting **Filter to** will filter your map to only objects matching the selected rows.
 
-![Map application with objects filtered in](/docs/resources/foundry/map/histogram-filtered-in.png)
+![Map application with objects filtered in](./images/histogram-filtered-in.png)
 
 Selecting **Filter out** will filter your map to only objects that do not match the selected rows.
 
-![Map application with objects filtered out](/docs/resources/foundry/map/histogram-filtered-out.png)
+![Map application with objects filtered out](./images/histogram-filtered-out.png)
 
 In addition to the **Filter to** and \**Filter out* buttons, you can also filter to an individual histogram row by double-clicking on it. To filter to all currently selected objects, you can use the **Filter to selected objects** menu item from the right click menu on your map.

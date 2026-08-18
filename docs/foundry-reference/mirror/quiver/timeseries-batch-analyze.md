@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-batch-analyze/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-batch-analyze/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Batch analyze time series
 
@@ -14,15 +14,15 @@ This section will show you how to use time series columns in a transform table t
 
 1. Create a transform table from the next actions menu by selecting **Convert > Transform table from object set**.
 
-![Object set transform table](/docs/resources/foundry/quiver/resource-object-set-transform-table.gif)
+![Object set transform table](./images/resource-object-set-transform-table.gif)
 
 2. Add the time series property as a column using the **Properties** button in the transform table. This is only required if the time series property is not already in your table. In the example below, the existing columns are removed with the \**Clear all* button before the `Temperature` time series column is added.
 
-![Add time series column](/docs/resources/foundry/quiver/resource-transform-table-time-series-properties.gif)
+![Add time series column](./images/resource-transform-table-time-series-properties.gif)
 
 3. Apply transformations to the time series column in batch using the **Add Transformation** button. In the example below, a 30-day rolling average transform of the `Temperature` time series column is added by selecting **Add Transformation**, choosing the **Rolling aggregate** transformation, then setting the window configuration time duration value to `30` and the unit to `Day`.
 
-![Add transformation](/docs/resources/foundry/quiver/resource-transform-table-rolling-aggregate.gif)
+![Add transformation](./images/resource-transform-table-rolling-aggregate.gif)
 
 This workflow is particularly useful if you want to:
 
@@ -64,7 +64,7 @@ You can analyze multiple time series from a chart by following these steps:
 2. Create a transform table using **Compute metrics > Table from time series chart** from the **Next Actions** menu.
 3. Each time series plot becomes a row in the table; apply transformations to the table to analyze the series collectively.
 
-![Create transform table from chart](/docs/resources/foundry/quiver/resource-chart-transform-table.gif)
+![Create transform table from chart](./images/resource-chart-transform-table.gif)
 
 This approach is valuable if you want to:
 

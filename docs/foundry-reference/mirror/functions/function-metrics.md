@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/function-metrics/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/function-metrics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Function metrics
 
@@ -9,7 +9,7 @@ Function metrics display the near real-time usage of a function type over the la
 
 You are also able to access [run history](/docs/foundry/aip-observability/run-history/), which provides a complete view of a given function's executions over the past seven days. Learn more about [AIP observability](/docs/foundry/aip-observability/overview/).
 
-![Screenshot of function metrics in the overview section.](/docs/resources/foundry/functions/function-metrics.png)
+![Screenshot of function metrics in the overview section.](./images/function-metrics.png)
 
 All metrics are updated in near real-time using the latest data from the Foundry Telemetry Service (FTS). This ensures you have access to the most current information for monitoring, debugging, and maintaining the health of your functions.
 
@@ -29,6 +29,10 @@ Function metrics have a variety of categories of failures that may be displayed.
 * **Structured error:** The function execution encounters a structured error as defined on its spec.
 * **Deployment error:** The function execution failed due to an error with the function's deployment.
 * **Consistent snapshot error:** The function failed to execute due to a consistent snapshot error.
+
+## Set up monitoring alerts
+
+You can also configure monitoring rules to receive alerts when performance degrades or failures occur. Function monitoring supports alerts for P95 function duration and the number of function failures within a time window. For configuration instructions, see [Monitor functions](/docs/foundry/functions/monitoring/).
 
 ## Permissions
 

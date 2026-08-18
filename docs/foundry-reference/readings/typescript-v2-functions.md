@@ -231,7 +231,13 @@ here is asking rather than grepping.
    pinning.** `functions/version-range-dependencies-for-functions` is a whole
    page I had never opened:
 
-   > "In addition to depending on a pinned version of a Function, some applications like Workshop and Actions allow you to depend on a Function at a version range."
+   > "Workshop, Actions, and Automate can depend on either a pinned function version or a version range. A version range enables automatic runtime upgrades, which can reduce development work and allow [deployed functions](/docs/foundry/functions/functions-deployed/) to upgrade without downtime."
+
+   **Reworded upstream by 2026-08-18, and it grew a third application**: the
+   sentence named Workshop and Actions when this was written and now names
+   **Automate** too. Nothing here rests on the list being two — but a reading that
+   had turned that list into a constraint would now be wrong, which is why the
+   drift sweep re-reads rather than re-quotes.
 
    > "Applications like Workshop and Actions currently only allow version ranges that comprise backward compatible versions (that is, minor or patch upgrades)."
 

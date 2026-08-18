@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/dataset-preview/sql-console/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/dataset-preview/sql-console/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # SQL console
 
@@ -20,9 +20,9 @@ The starter query is prepopulated based on the resource you are currently viewin
 
 ## Using SQL console
 
-The SQL console provides core SQL editing and execution functionality, including running queries, autocomplete for tables and columns, an inline results panel, and the ability to save queries as [SQL worksheets](/docs/foundry/sql-warehousing/sql-studio/#worksheets). The SQL console uses Foundry's [Spark SQL dialect](/docs/foundry/sql-warehousing/sql-dialect/).
+The SQL console provides core SQL editing and execution functionality, including running queries, autocomplete for tables and columns, an inline results panel, and the ability to save queries as [SQL worksheets](/docs/foundry/sql-warehousing/worksheets/). The SQL console uses Foundry's [Spark SQL dialect](/docs/foundry/sql-warehousing/sql-dialect/).
 
-For full details on SQL features, including worksheets, AI-assisted query generation, and result visualization, see the [SQL Studio documentation](/docs/foundry/sql-warehousing/sql-studio/).
+For full details on SQL Studio features, including AI-assisted query generation and result visualization, see the [SQL Studio documentation](/docs/foundry/sql-warehousing/sql-studio/).
 
 ### Modes
 

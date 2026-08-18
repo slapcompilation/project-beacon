@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-spreadsheet-display/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-spreadsheet-display/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Spreadsheet Display widget
 
-![An example of a Spreadsheet Display widget.](/docs/resources/foundry/workshop/spreadsheet_display_widget_example.png)
+![An example of a Spreadsheet Display widget.](./images/spreadsheet_display_widget_example.png)
 
 The Spreadsheet Display widget displays spreadsheet files from a [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) property on an object.
 
@@ -12,7 +12,7 @@ This widget provides a way to visualize spreadsheet data directly within your Wo
 
 **Spreadsheet display:** Configure the object type and media reference and enable optional annotations.
 
-<img src="./media/spreadsheet_display_widget_configuration.png" alt="An example configuration of the media reference configuration for the Spreadsheet Display widget" width=345 />
+<img src="./images/spreadsheet_display_widget_configuration.png" alt="An example configuration of the media reference configuration for the Spreadsheet Display widget" width=345 />
 
 * **Object set with a single object:** An object set containing a single object with a media reference property
 * **Spreadsheet media reference property:** A [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) property that contains a spreadsheet media reference.
@@ -20,7 +20,7 @@ This widget provides a way to visualize spreadsheet data directly within your Wo
 
 **Spreadsheet annotation inputs:** Configure one or more annotation layers.
 
-<img src="./media/spreadsheet_display_widget_annotation_layer_configuration_example.png" alt="An example of an annotation layer configuration for the Spreadsheet Display widget." width=345 />
+<img src="./images/spreadsheet_display_widget_annotation_layer_configuration_example.png" alt="An example of an annotation layer configuration for the Spreadsheet Display widget." width=345 />
 
 * **Annotation layer name:** A custom name for the annotation layer.
 * **Object set:** An object set containing annotation data.
@@ -39,7 +39,7 @@ This widget provides a way to visualize spreadsheet data directly within your Wo
 
 **Annotation interactions:** Configure one or more actions to surface in the widget.
 
-![An example of an annotation interaction configuration for the Spreadsheet Display widget.](/docs/resources/foundry/workshop/spreadsheet_display_widget_annotation_interaction_configuration.png)
+![An example of an annotation interaction configuration for the Spreadsheet Display widget.](./images/spreadsheet_display_widget_annotation_interaction_configuration.png)
 
 * **Icon to display:** A custom icon for the action.
 * **Name:** A custom name for the action.

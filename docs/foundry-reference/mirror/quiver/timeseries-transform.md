@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-transform/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-transform/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Transform time series
 
@@ -21,7 +21,7 @@ The simplest way to add a time series transformation is through the next actions
 
 In the example below, we transform our input temperature time series by using the **Rolling aggregate** plot to derive a 30 day rolling average.
 
-![Derive a new time series from your original with the rolling aggregate plot.](/docs/resources/foundry/quiver/getting-started-build-time-series.gif)
+![Derive a new time series from your original with the rolling aggregate plot.](./images/getting-started-build-time-series.gif)
 
 Alternatively, open the [search bar](/docs/foundry/quiver/analysis-toolbars/#search-bar), search for the desired transform and add it to the canvas.
 

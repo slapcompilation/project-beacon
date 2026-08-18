@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/read-write-authorizations/ · mirrored 2026-08-17 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/read-write-authorizations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Read and write authorizations
 

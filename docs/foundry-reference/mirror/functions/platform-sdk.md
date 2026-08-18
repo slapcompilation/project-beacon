@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/platform-sdk/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/platform-sdk/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use platform APIs with the Foundry platform SDK
 
@@ -12,15 +12,19 @@ First-class authentication is not supported for TypeScript v1 functions. We reco
 
 To install the Foundry platform SDK, navigate to the **Libraries** side panel in your code repository and search for the SDK name: `foundry-platform-sdk` for Python, or `@osdk/foundry` for TypeScript.
 
-<img src="./media/platform-sdk-lib-panel-py.png" alt="The Libraries search panel, searching for the Python platform SDK." width="400" />
+<img src="./images/platform-sdk-lib-panel-py.png" alt="The Libraries search panel, searching for the Python platform SDK." width="400" />
 
-<img src="./media/platform-sdk-lib-panel-ts.png" alt="The Libraries search panel, searching for the TypeScript platform SDK." width="400" />
+<img src="./images/platform-sdk-lib-panel-ts.png" alt="The Libraries search panel, searching for the TypeScript platform SDK." width="400" />
+
+### Python version compatibility
+
+The Python `foundry-platform-sdk` requires Python 3.9 or later. Support for Python 3.14 begins with `foundry-platform-sdk` version 1.93.0. Earlier SDK versions can return `typing` module errors with Python 3.14. To resolve these errors, upgrade to version 1.93.0 or later. Alternatively, use Python 3.11, 3.12, or 3.13.
 
 ## Initialize your client
 
 Your function requires authentication to interact with Foundry APIs. This process involves instantiating an authenticated “client” through which you can make requests to the Foundry APIs through the SDK. In TypeScript v2 repositories, this requires the `@osdk/client` library, which should be pre-installed. You can verify this by looking for the green pin:
 
-<img src="./media/platform-sdk-lib-panel-client-ts.png" alt="The authentication library for TypeScript." width="400" />
+<img src="./images/platform-sdk-lib-panel-client-ts.png" alt="The authentication library for TypeScript." width="400" />
 
 ## Use platform APIs
 
@@ -91,3 +95,7 @@ The TypeScript v2 client (passed to the function by Foundry at runtime) and the 
 * `api:usage:ontologies-write`
 
 Each platform API endpoint requires certain scopes to hit the endpoint. Documentation on these scopes can be found in the [API reference](/docs/foundry/api/v2)
+
+:::callout{theme="warning"}
+Foundry functions do not support reading datasets directly with the `api:usage:datasets-read` scope. Dataset reads return a permission error. Code may succeed in Code Workspaces live preview because it runs with your user context and full scopes, but fail as a deployed function because deployed functions use restricted permissions.
+:::

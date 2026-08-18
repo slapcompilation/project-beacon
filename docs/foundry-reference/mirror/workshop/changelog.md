@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/changelog/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/changelog/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Changelog panel in Workshop
 
@@ -14,7 +14,7 @@ If changes exist for the selected module versions, the panel will be populated w
 * **Moved:** The node was relocated (for example, moved from page 1 to page 2).
 * **Made unused:** A widget was deleted but not removed from the module, moving it to `unused widgets`.
 
-![Changelog Node Types](/docs/resources/foundry/workshop/changelog_node_types.png)
+![Changelog Node Types](./images/changelog_node_types.png)
 
 The image above conveys the following:
 
@@ -25,11 +25,11 @@ The image above conveys the following:
 
 You can inspect the change node further by opening the JSON diff. Here, you can see the exact changes made to the node. In the screenshot below, we can see the variable value changed from `Hello` to `Hello world` and the variable name changed from `var1` to `hello world`.
 
-![Changelog Variable Change](/docs/resources/foundry/workshop/changelog_variable_change.png)
+![Changelog Variable Change](./images/changelog_variable_change.png)
 
 Additionally, the Changelog Panel displays a visual hierarchy of changes. In the example below, we can infer from the hierarchy that the `Metric card container` section contains the `Metric card A` widget, and both were modified. Furthermore, we see `Metric card A value` is used within `Metric card A` and was added to the module.
 
-![Changelog Nesting](/docs/resources/foundry/workshop/changelog_nesting.png)
+![Changelog Nesting](./images/changelog_nesting.png)
 
 ### Module selection
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-advanced/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-advanced/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Advanced
 
@@ -27,14 +27,14 @@ The Code Sandbox widget unlocks advanced, custom development capabilities within
 
 A summary of interaction with Slate and functions that can be used can be found below:
 
-![image](/docs/resources/foundry/slate/code_sandbox_overview.png)
+![image](./images/code_sandbox_overview.png)
 
 ### JavaScript tab
 
 This tab has the fields for the JavaScript, as well as any JavaScript
 libraries you might wish to load.
 
-![image](/docs/resources/foundry/slate/js_tab.png)
+![image](./images/js_tab.png)
 
 #### JavaScript
 
@@ -98,7 +98,7 @@ its folder and copying the Location / RID.
 
 ### HTML/CSS tab
 
-![image](/docs/resources/foundry/slate/html_tab.png)
+![image](./images/html_tab.png)
 
 #### HTML
 
@@ -131,7 +131,7 @@ CSS libraries works like Code Sandbox’s JavaScript libraries. The CSS library 
 Plain CSS is sufficient for the contents of the CSS library file; ensure that you do not have the HTML `<style>` tag surrounding the CSS style.
 :::
 
-![code-sandbox-css.png](/docs/resources/foundry/slate/code-sandbox-css.png)
+![code-sandbox-css.png](./images/code-sandbox-css.png)
 
 ### Interactions tab
 
@@ -144,7 +144,7 @@ actions.
 We recommend that you pass in the Handlebars through this interaction tab only. Using the Handlebars directly in the JavaScript box will still work (e.g. to pass in some state without using the `SlateFunctions.watch` or `SlateFunctions.getState`), but this is not recommended since the entire widget will reload and refresh each time.
 :::
 
-![image](/docs/resources/foundry/slate/interactions_tab.png)
+![image](./images/interactions_tab.png)
 
 #### State
 
@@ -203,7 +203,7 @@ You then need to list your Action in the Interaction tab below.
 
 *Example*
 
-![image](/docs/resources/foundry/slate/onaction.png)
+![image](./images/onaction.png)
 
 This example uses the Slate Checkbox widget which causes the Code
 Sandbox widget to update when clicked:
@@ -256,7 +256,7 @@ changes.
 
 *Example*
 
-![image](/docs/resources/foundry/slate/watch.png)
+![image](./images/watch.png)
 
 This example uses Slate's Input widget which passes the state to
 the Code Sandbox widget and displays it:
@@ -315,7 +315,7 @@ For example, if your state is:
 
 *Example*
 
-![image](/docs/resources/foundry/slate/get.png)
+![image](./images/get.png)
 
 This example uses Slate's Input widget which passes the state to
 the Code Sandbox widget. The entire state is called through the use of
@@ -357,7 +357,7 @@ first argument instead of `"view.height"`.
 
 *Example*
 
-![image](/docs/resources/foundry/slate/setstate.png)
+![image](./images/setstate.png)
 
 This example uses a generated button in the Code Sandbox widget
 to update the state of a Slate "HTML widget" from "Initial widget state"
@@ -399,7 +399,7 @@ body of the event.
 
 *Example*
 
-![image](/docs/resources/foundry/slate/triggerevent.png)
+![image](./images/triggerevent.png)
 
 In this example, when the Code Sandbox widget is interacted with by a
 click of the button, a Slate Toast widget is launched in the Slate

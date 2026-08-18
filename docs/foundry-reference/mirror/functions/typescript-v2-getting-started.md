@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/typescript-v2-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Getting started with TypeScript v2 functions
 
@@ -64,3 +64,10 @@ Functions may not be immediately searchable by name in Workshop or the function 
 After the checks for your tag have passed, navigate back to the **Code** tab in **Code Repositories** and select the **Functions** helper. You should now be able to see your functions under the **Published** section. Select it and run the new function:
 
 ![Run the new function in the functions helper.](./images/tsv2-functions-helper-run.png)
+
+## Next steps
+
+After you create and publish a basic function, explore these capabilities:
+
+* **Ontology edits:** Learn how to [create, update, and delete objects](/docs/foundry/functions/typescript-v2-ontology-edits/) in your functions.
+* **Staged writes \[Beta]:** For edit functions that need read-after-write guarantees or nested function calls, see [staged writes](/docs/foundry/functions/typescript-v2-staged-writes/).

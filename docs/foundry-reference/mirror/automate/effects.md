@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/effects/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/effects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Effects
 
@@ -16,6 +16,15 @@ Automate supports the following types of effects:
 ## Fallback effects
 
 Action, logic, and function effects can be configured with a [fallback effect](/docs/foundry/automate/effect-fallback/). Fallback effects execute when the primary effect fails, allowing you to handle errors gracefully by sending notifications, logging failures, or triggering alternative workflows.
+
+With sequential execution, a successful fallback does not allow subsequent effects to continue. Learn more about [failure behavior](/docs/foundry/automate/effect-settings/#failure-behavior) in effect settings.
+
+## Retries
+
+Automate provides [retry functionality](/docs/foundry/automate/retries/) to handle transient errors:
+
+* **Per-effect automatic retries:** Configure automatic retries on individual action and logic effects to handle temporary errors such as rate limits.
+* **Event retries:** Configure retry strategies for entire trigger events to handle persistent errors such as service outages.
 
 ## Effect settings
 

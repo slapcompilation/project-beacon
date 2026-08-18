@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/templates/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/templates/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map templates
 
@@ -10,7 +10,7 @@ Map templates can be used to generate new maps, and can also be embedded in Work
 
 First, create a standard map as an example of what you would want the generated maps to be. Then, click the down arrow located beside **Save**, then click **Save as template...**.
 
-<img src="./media/save-as-template.png" alt="Save as template option" width="265" />
+<img src="./images/save-as-template.png" alt="Save as template option" width="265" />
 
 ## Configure a map template
 
@@ -21,7 +21,7 @@ Map templates let you configure two kinds of parameters, that can be used to con
 * **Object parameters:** Define which object types will be used to generate the resulting map.
 * **Non-object parameters:** Define additional inputs for primitive data types. For example, `string`, `float`, `double`, `integer`, `long`, `boolean`, `date`, or `timestamp` inputs.
 
-![Template parameters](/docs/resources/foundry/map/template-parameters.png)
+![Template parameters](./images/template-parameters.png)
 
 ### Search Arounds
 
@@ -29,7 +29,7 @@ Next, you can **configure Search Arounds** associated with your template. Each o
 
 Any non-object arguments to Search Around functions can be mapped to a value, which can be either a constant or a parameter. To map a function input to a parameter, click the **Parameter** button on left side of the input box and select a parameter from the dropdown.
 
-![Template Search Arounds](/docs/resources/foundry/map/template-search-arounds.png)
+![Template Search Arounds](./images/template-search-arounds.png)
 
 ### Layers
 

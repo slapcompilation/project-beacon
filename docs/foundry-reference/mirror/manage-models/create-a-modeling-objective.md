@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-modeling-objective/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/create-a-modeling-objective/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create a modeling objective
 
@@ -6,11 +6,11 @@ The Modeling Objectives application is an intuitive workspace for teams to manag
 
 Create a modeling objective by selecting the **Modeling Objectives** application on the Foundry sidebar and clicking **New objective**.
 
-![Create new modeling objective](/docs/resources/foundry/manage-models/manage_create-new-objective.png)
+![Create new modeling objective](./images/manage_create-new-objective.png)
 
 After the modeling objective has been created, you can select a location to save the objective. We recommend saving the modeling objective in a centralized location where all relevant contributors, stakeholders, and consumers will have access to the project.
 
-![modeling objectives zero state](/docs/resources/foundry/manage-models/manage_objective-zero-state.png)
+![modeling objectives zero state](./images/manage_objective-zero-state.png)
 
 ## Configure modeling objective
 
@@ -20,7 +20,7 @@ Modeling objectives can be edited and configured in several ways. This section p
 
 After creating a modeling objective, you can add a description by clicking the **Edit description** button. The description field is [Markdown ↗](https://www.markdownguide.org/)-compatible; we recommend using this space as a README for the objective and its goals.
 
-![modeling objectives edit description](/docs/resources/foundry/manage-models/manage_edit-description.png)
+![modeling objectives edit description](./images/manage_edit-description.png)
 
 ### Edit objective metadata
 

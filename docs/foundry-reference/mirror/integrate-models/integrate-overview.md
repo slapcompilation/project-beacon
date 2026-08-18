@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/integrate-overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/integrate-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Models
 
@@ -11,7 +11,7 @@ Palantir provides a common interface to integrate models from a range of differe
 
 All models can be productionized and connected to operational applications through the [Modeling Objectives](/docs/foundry/model-integration/objectives/) application.
 
-![Model Adapter and Modeling Objective architecture diagram](/docs/resources/foundry/integrate-models/model-architecture-foundry.png)
+![Model Adapter and Modeling Objective architecture diagram](./images/model-architecture-foundry.png)
 
 ## Model adapters
 
@@ -20,4 +20,4 @@ Models in Palantir comprise of two components:
 * **Model artifacts:** The model files, parameters, weights, container, or credentials where a trained model is saved.
 * **[Model adapter](/docs/foundry/integrate-models/model-adapter-overview/):** The logic and the environment dependencies that describes how Foundry should interact with the **model artifacts** to load, initialize, and perform inference with the model.
 
-<img src="./media/model-adapter.png" alt="Model in Palantir" width=600px/>
+<img src="./images/model-adapter.png" alt="Model in Palantir" width=600px/>

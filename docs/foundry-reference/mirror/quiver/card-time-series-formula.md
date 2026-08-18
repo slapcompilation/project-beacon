@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-formula/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-formula/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series formula
 
@@ -21,7 +21,7 @@ Time series
 
 ## Examples
 
-![TS formula example](/docs/resources/foundry/quiver/card-ts-formula.png)
+![TS formula example](./images/card-ts-formula.png)
 
 ## Usage information
 

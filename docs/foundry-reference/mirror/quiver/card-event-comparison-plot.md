@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-event-comparison-plot/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-event-comparison-plot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event comparison plot
 
@@ -14,7 +14,7 @@ Time series group
 
 ## Examples
 
-![Event comparison plot example.](/docs/resources/foundry/quiver/resource-event-comparison-plot.png)
+![Event comparison plot example.](./images/resource-event-comparison-plot.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/enforced-limits/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/enforced-limits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Manage published functions
 
@@ -9,13 +9,13 @@ Once published, all types of functions can be viewed and managed using the **Ont
 To search for functions, navigate to the **Ontology Manager** and select the **Functions** tab.
 You can search for functions by most metadata on the function, including but not limited to the function name, description, API name and RID.
 
-![Search for functions in Ontology Manager](/docs/resources/foundry/functions/functions-search.png)
+![Search for functions in Ontology Manager](./images/functions-search.png)
 
 ## Function overview page
 
-After selecting a function in the Ontology Manager, you can view basic information about the function, including its inputs and outputs and any associated usage history for the function.
+In Ontology Manager, select a function to view its inputs, outputs, usage history, and [function metrics](/docs/foundry/functions/function-metrics/), including success and failure counts and P95 execution duration.
 
-![View function overview in Ontology Manager](/docs/resources/foundry/functions/function-overview.png)
+![View function overview in Ontology Manager](./images/function-overview.png)
 
 ## Function configuration page
 
@@ -29,7 +29,7 @@ Configuration overrides are applied on a per-function version basis. Depending o
 
 For example, you can configure the timeout on a TypeScript function as seen in the following image.
 
-![Manage function runtime configurations in Ontology Manager](/docs/resources/foundry/functions/function-configuration.png)
+![Manage function runtime configurations in Ontology Manager](./images/function-configuration.png)
 
 ### Configuration inheritance
 
@@ -70,6 +70,8 @@ Several limits are in place to prevent functions from consuming too many resourc
 Functions are limited to **60 seconds** of elapsed run time by default. These limits can be modified on the [function configuration page](#function-configuration-page).
 
 Functions are allowed to run for up to **280 seconds** when running in live preview, even if modified on the function configuration page.
+
+Functions executed through [Automate](/docs/foundry/automate/overview/) run asynchronously for up to **4 hours**, exceeding the standard execution limits.
 
 :::callout{theme="warning"}
 TypeScript v1 functions are additionally limited to **30 seconds** of CPU time, which is not configurable. When a function exceeds this threshold, the cause is often inefficient data loading logic. Refer to the section on [optimizing performance](/docs/foundry/functions/optimize-performance/) for tips on how to avoid CPU timeouts.

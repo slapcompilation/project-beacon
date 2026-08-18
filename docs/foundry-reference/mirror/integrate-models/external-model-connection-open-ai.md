@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-open-ai/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-open-ai/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Example: Integrate an Open AI model
 
@@ -107,13 +107,13 @@ Note that the URL and the configuration and credentials maps are completed using
 
 The example below uses an egress policy that has been configured for `api.llm.palantir.tech` (Port 443).
 
-![Egress Policy Open AI in the modeling objectives application](/docs/resources/foundry/integrate-models/external-open-ai-egress-configuration.png)
+![Egress Policy Open AI in the modeling objectives application](./images/external-open-ai-egress-configuration.png)
 
 ### Configure model adapter
 
 Choose the published model adapter in the **Connect an externally hosted model** dialog.
 
-![Model Adapter configuration panel for Open AI in Palantir Foundry](/docs/resources/foundry/integrate-models/external-open-ai-adapter-configuration.png)
+![Model Adapter configuration panel for Open AI in Palantir Foundry](./images/external-open-ai-adapter-configuration.png)
 
 ### Configure URL and connection configuration
 
@@ -127,7 +127,7 @@ This adapter requires connection configuration of the following:
 * **api\_version** - The API version to use.
 * **engine** - The model engine to use.
 
-![Connection configuration panel for Open AI.](/docs/resources/foundry/integrate-models/external-open-ai-connection-configuration.png)
+![Connection configuration panel for Open AI.](./images/external-open-ai-connection-configuration.png)
 
 ### Configure credential configuration
 
@@ -137,7 +137,7 @@ This adapter requires credential configuration of the following:
 
 * **api\_key** - The secret key needed to query Open AI.
 
-![Credentials configuration panel for Open AI.](/docs/resources/foundry/integrate-models/external-open-ai-credentials-configuration.png)
+![Credentials configuration panel for Open AI.](./images/external-open-ai-credentials-configuration.png)
 
 ## Open AI model usage
 
@@ -145,4 +145,4 @@ Now that the Open AI model has been configured, this model can be hosted in a [l
 
 The below image shows an example query made to the Open AI model in a live deployment.
 
-![Example query using OpenAIAdapter](/docs/resources/foundry/integrate-models/external-open-ai-example-query.png)
+![Example query using OpenAIAdapter](./images/external-open-ai-example-query.png)

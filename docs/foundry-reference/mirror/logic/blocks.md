@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/blocks/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/blocks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Blocks
 
@@ -17,7 +17,7 @@ There are many different types of blocks; a selection of commonly used blocks ar
 
 The **Use LLM** block is the heart of AIP Logic and enables you to leverage LLMs to define a Logic block. Logic blocks are composed of a [prompt](#prompts), [tools](#tools), and an [output](/docs/foundry/logic/getting-started/#outputs). The Use LLM block supports any available LLM in the platform, in keeping with Palantir's *k-LLM* philosophy.
 
-![LLM Block.](/docs/resources/foundry/logic/block-use-llm-prompt.png)
+![LLM Block.](./images/block-use-llm-prompt.png)
 
 To replace the model used across multiple Logic functions at once, you can [bulk replace models in Workflow Lineage](/docs/foundry/workflow-lineage/refactor-and-understand-workflows/#bulk-replace-models).
 
@@ -31,13 +31,19 @@ In the following notional prompt, we use the LLM to search for information from 
 
 Then, the prompt specifies the data to query (in this case, the complaints emails, represented as `complaint` objects). After entering the prompt, you can provide the LLM access to your inputs by typing “/“ and selecting one or more variables available in your analysis; in the screenshot below, we choose properties of the email object.
 
-![Notional prompt sharing an overview of the task "You are my complaints helper agent. Find other emails that describe similar events to those described in the input email. Look only at the email body. Determine the best solution based on what has worked in the past. Return your one solution recommendation, do not list findings from every email."](/docs/resources/foundry/logic/block-use-llm-prompt.png)
+![Notional prompt sharing an overview of the task "You are my complaints helper agent. Find other emails that describe similar events to those described in the input email. Look only at the email body. Determine the best solution based on what has worked in the past. Return your one solution recommendation, do not list findings from every email."](./images/block-use-llm-prompt.png)
 
 ### Tools
 
 Tools are the mechanism by which AIP Logic enables the LLM to read or write to the Ontology and power real-world operations. AIP Logic leverages three categories of Ontology-driven tools - data, logic, and action - to effectively query data, execute logical operations, and safely take actions. Note that LLMs do not have direct access to tools; LLMs can only ask to use tools, and these tool calls are then executed by AIP Logic within the invoking user's permissions.
 
-<img src="./media/aip-logic-tools-dropdown.png" alt="AIP Logic tools available for selection: Apply actions, Call function, Query objects, Calculator tool." width="350">
+#### Tool calling modes
+
+AIP Logic supports prompted and native tool calling. Native tool calling uses capabilities built into the underlying LLM to improve performance and token efficiency. Prompted tool calling uses prompts to instruct the LLM how to use tools.
+
+When every model in a Use LLM board supports native tool calling, AIP Logic automatically upgrades from prompted to native and shows a message in the [Debugger](/docs/foundry/logic/core-concepts/#debugging). If any model lacks native support, AIP Logic continues to use prompted tool calling.
+
+<img src="./images/aip-logic-tools-dropdown.png" alt="AIP Logic tools available for selection: Apply actions, Call function, Query objects, Calculator tool." width="350">
 
 The available tools include:
 
@@ -56,7 +62,7 @@ The **Apply actions** tool enables the LLM to use [Actions](/docs/foundry/action
 
 The **Call function** tool allows you to select functions that the LLM can call. Functions can be code-defined in repositories, or can be existing Logic functions.
 
-![Call function tool with "extractAnswer" function selected from function dropdown.](/docs/resources/foundry/logic/call-function-example.png)
+![Call function tool with "extractAnswer" function selected from function dropdown.](./images/call-function-example.png)
 
 #### Query objects
 
@@ -76,14 +82,14 @@ The **Apply action** block allows you to deterministically call actions without 
 Calling an AIP Logic function from an action is required for edits to be written back to the Ontology. The Ontology will not be edited unless the Logic function is executed from an action, even if the function contains an **Apply action** block.
 :::
 
-!["Apply action" block.](/docs/resources/foundry/logic/action-block.png)
+!["Apply action" block.](./images/action-block.png)
 
 ## Execute function
 
 The **Execute function** block allows you to call other existing functions within Foundry such as TypeScript, Python, and even other Logic functions. The Execute block enables you to reuse existing functions that already accomplish your intended task, rather than reimplementing the logic yourself. In the example below, the Execute block is used to leverage the output from a semantic search function to help return the resolution text from similar incidents.
 
-![Execute block1/2.](/docs/resources/foundry/logic/execute-one.png)
-![Execute block2/2.](/docs/resources/foundry/logic/execute-two.png)
+![Execute block1/2.](./images/execute-one.png)
+![Execute block2/2.](./images/execute-two.png)
 
 ## Conditionals
 
@@ -92,7 +98,7 @@ Conditionals are blocks that evaluate a condition and execute different paths ba
 * **If** a condition is true, **then** perform one set of operations
 * **Else** perform a different set of operations
 
-![Conditional block in the AIP Logic interface](/docs/resources/foundry/logic/conditional-block.png)
+![Conditional block in the AIP Logic interface](./images/conditional-block.png)
 
 Conditionals are useful when you need to process data differently or run different actions based on specific criteria.
 
@@ -114,13 +120,13 @@ Loops enable AIP Logic to iterate over a collection and, for each element, run a
 
 The output of a loop can be either a list of values or ontology edits.
 
-<img src="./media/loop-block.png" alt="Loop block" width="400">
+<img src="./images/loop-block.png" alt="Loop block" width="400">
 
 Within a loop, you can access the current element via the `element` variable and the index of the current element via the `index` variable (these can be renamed if needed).
 
 Loops only operate on Lists, not Arrays. Selecting an array as input to a loop will automatically insert an "Array to List" block before the loop that converts the input to a list prior to passing it into the loop.
 
-<img src="./media/loop-automatic-conversion.png" alt="Loop transform" width="400">
+<img src="./images/loop-automatic-conversion.png" alt="Loop transform" width="400">
 
 Note: If your loop contains no actions each iteration will be executed in parallel.
 
@@ -128,4 +134,4 @@ Note: If your loop contains no actions each iteration will be executed in parall
 
 The **Create variable** block creates a variable that can be used in future blocks. The variable can be of the following types: array, boolean, date, double, float, integer, long, object, short, string, or timestamp.
 
-![Create variable section block.](/docs/resources/foundry/logic/block-create-variable.png)
+![Create variable section block.](./images/block-create-variable.png)

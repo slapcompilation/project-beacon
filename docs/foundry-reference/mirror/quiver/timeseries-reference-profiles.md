@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-reference-profiles/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-reference-profiles/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Reference profiles
 
@@ -6,7 +6,7 @@ Reference profiles define the expected behavior of a sensor during a specific pr
 
 For example, consider the water temperature sensor during a tea steeping process that is carried out regularly under controlled conditions. By selecting batches where the steeping process completed normally, we can use the temperature data from these runs to establish upper and lower bounds for the sensor. This allows us to compare future tea steeping cycles against the reference profile to detect deviations from normal operation.
 
-![Reference profile visualization](/docs/resources/foundry/quiver/reference-profile-intro-screenshot.png)
+![Reference profile visualization](./images/reference-profile-intro-screenshot.png)
 
 In the screenshot, the shaded area shows the expected operating range for the water temperature sensor, calculated as the average value plus or minus two times the standard deviation across the selected golden batch curves.
 
@@ -35,7 +35,7 @@ To use more than one time series in reference profile construction, a [transform
 3. Add a grouped time series plot card from the transform table selecting the filtered and relative aligned time series.
 4. Use the [reference profile bounds](/docs/foundry/quiver/card-reference-profile-bounds/) card with the grouped time series plot as the input.
 
-![Transform table reference profile bounds](/docs/resources/foundry/quiver/timeseries-transform-table-reference-profile.gif)
+![Transform table reference profile bounds](./images/timeseries-transform-table-reference-profile.gif)
 
 Alternatively, you can skip the grouped time series plot if you do not need to visualize the individual filtered and relative aligned curves. In this case, you can construct a reference profile bounds card directly from the transform table.
 
@@ -49,7 +49,7 @@ Reference profile curves can be constructed for [derived series](/docs/foundry/t
 
 The process for selecting a golden batch is often unique to each application, we recommend a flexible Ontology structure that enables management of reference profile metadata and the ability to construct templated derived series.
 
-![Reference profile Ontology structure](/docs/resources/foundry/quiver/timeseries-reference-profile-ontology.png)
+![Reference profile Ontology structure](./images/timeseries-reference-profile-ontology.png)
 
 * Reference Profile Object Type: Serves as the metadata for the reference profile, linking to both the relevant time series and event objects. This will be the root object type of the derived series and will enable seamless construction of [templated derived series](/docs/foundry/time-series/derived-series-overview/#templated-derived-series).
 * Time Series Object Type: Contains a time series property representing the sensor data to be analyzed, for example, temperature series.
@@ -72,4 +72,4 @@ To construct reference profile in derived series:
    * The first linked series will create an average aggregation and the second a standard deviation.
 2. Use the [time series formula card](/docs/foundry/quiver/card-time-series-formula/) to construct an upper bound (`$average + 2 * $standard_deviation`) and a lower bound (`$average - 2 * $standard_deviation`).
 
-![Reference profile logic in derived series](/docs/resources/foundry/quiver/timeseries-derived-series-reference-profile.gif)
+![Reference profile logic in derived series](./images/timeseries-derived-series-reference-profile.gif)

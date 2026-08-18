@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-https-security/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-https-security/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # HTTPS listener security
 
@@ -12,7 +12,7 @@ Palantir makes no guarantees about the suitability or effectiveness of these ext
 
 The specific protocols implemented for each listener can be found in the **Configuration** step of the listener setup wizard, as well as the external system's documentation.
 
-![The Twilio security protocol.](/docs/resources/foundry/data-connection/twilio-security-protocol.png)
+![The Twilio security protocol.](./images/twilio-security-protocol.png)
 
 ## Redaction and data security
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/agent-worker-runtime/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/agent-worker-runtime/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Agent worker configuration reference
 
@@ -168,7 +168,7 @@ The default bootstrapper keystore and truststore are regenerated any time the ag
    ...
    ```
 
-![Agent keystore advanced configuration.](/docs/resources/foundry/data-connection/agent-advancedsetting-keystore.png)
+![Agent keystore advanced configuration.](./images/agent-advancedsetting-keystore.png)
 
 5. Finally, choose the **Explorer** tab and update both the`keyStorePath` and `keyStorePassword`. Save the new configuration.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/model-catalog/overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/model-catalog/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Model Catalog
 
@@ -26,7 +26,7 @@ Model Catalog has two main views:
 
 ## Model Catalog homepage
 
-![Model Catalog homepage](/docs/resources/foundry/model-catalog/model-catalog-home.png)
+![Model Catalog homepage](./images/model-catalog-home.png)
 
 The Model Catalog homepage is a discovery and navigation interface, displaying all large language models available for a user in their Foundry enrollment.
 
@@ -63,7 +63,7 @@ If a model is unavailable or grayed out, it means that it is not enabled for you
 
 ## Model entity page
 
-![Model catalog model view](/docs/resources/foundry/model-catalog/model-catalog-model.png)
+![Model catalog model view](./images/model-catalog-model.png)
 
 Each model has an entity page with three main sections:
 
@@ -73,6 +73,6 @@ Each model has an entity page with three main sections:
 
 ## Model comparison page
 
-![Model catalog comparison view](/docs/resources/foundry/model-catalog/model-catalog-comparison.png)
+![Model catalog comparison view](./images/model-catalog-comparison.png)
 
 The Model Catalog comparison page allows builders to efficiently compare and evaluate the performance of various LLMs. The interface allows users to select two LLMs and test them on the same completion or vision tasks. This enables informed decision-making and allows builders to quickly select a model that is optimal for their workflow.

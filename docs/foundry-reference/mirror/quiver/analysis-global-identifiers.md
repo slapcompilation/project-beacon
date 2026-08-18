@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-global-identifiers/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-global-identifiers/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Global identifiers (IDs)
 
@@ -15,7 +15,7 @@ Global ID values can be seen in various places across Quiver:
 * In the legend of a time series chart for each time series plot.
 * In the axis of a time series chart for each shared axis.
 
-![Global IDs across various locations in Quiver.](/docs/resources/foundry/quiver/concepts-global-ids.png)
+![Global IDs across various locations in Quiver.](./images/concepts-global-ids.png)
 
 ## Use global IDs
 

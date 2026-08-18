@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/faq/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/faq/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Logic FAQ
 
@@ -12,6 +12,7 @@ This page details some frequently asked questions about the AIP Logic applicatio
 * [Is it possible to support semantic search workflows using Logic?](#is-it-possible-to-support-semantic-search-workflows-using-logic)
 * [How can an LLM “learn” from feedback?](#how-can-an-llm-learn-from-feedback)
 * [How can I ensure the output of my Logic is correct?](#how-can-i-ensure-the-output-of-my-logic-is-correct)
+* [How can you create test cases from previous executions?](#how-can-you-create-test-cases-from-previous-executions)
 
 ## How can I use AIP Logic with the rest of the platform?
 
@@ -52,6 +53,7 @@ To improve the performance of an AIP Logic block, try the following suggestions:
 * If you are seeing surprising failures, validate that the model has the right "understanding" of your data by asking the LLM to explain its plan and understanding of the problem - this can provide insight into what context is missing.
 * Consider building a feedback loop with dynamic few-shot examples.
 * Use deterministic transform boards such as the transform block, [execute block](/docs/foundry/logic/blocks/#execute-function), and [apply action block](/docs/foundry/logic/blocks/#apply-action).
+* Use [AIP Evals](/docs/foundry/aip-evals/overview/) to run evaluations. The results analyzer in the Results view clusters failing cases into root-cause categories and proposes targeted prompt edits as you iterate on prompts.
 
 ## Is there a way to modify the temperature of the LLM or other model parameters?
 
@@ -78,7 +80,11 @@ You can help an LLM “learn” from feedback with this design pattern, if it su
 
 ## How can I ensure the output of my Logic is correct?
 
-You can add unit tests to Logic, which will test whether the function ran successfully on the given input (manually).
+Add unit tests to check whether the function runs successfully on a given input. You can also use [AIP Evals](/docs/foundry/aip-evals/overview/) to create evaluation suites for your Logic functions. To generate a suite, open the **Evals** tab in the right sidebar and select **Generate evals**. AIP Evals bootstraps the suite with test cases, evaluators, and metrics based on your function. Review and refine the generated test cases and evaluators before running evaluations. The Results view includes a built-in results analyzer that clusters failing cases into root-cause categories, surfaces representative examples, and proposes targeted prompt changes to improve accuracy. Learn more in [AIP Evals: Getting started](/docs/foundry/aip-evals/getting-started/).
+
+## How can you create test cases from previous executions?
+
+In **Run history**, use **Add as test case** to convert historical execution results into test cases for new or existing evaluation suites. This helps you build comprehensive test suites from function executions.
 
 ## Can I see previous versions of my Logic?
 
@@ -86,19 +92,19 @@ Yes, you can see and rollback to previously saved versions using the version his
 
 Select a prior version from the list to compare with the current state.
 
-![AIP Logic past version panel and preview.](/docs/resources/foundry/logic/aip-logic-versioning.png)
+![AIP Logic past version panel and preview.](./images/aip-logic-versioning.png)
 
 ## Can one LLM block return multiple values?
 
 Yes. By using the "Struct" output type you can return multiple named values.
 
-![Showing output for variable name and values requested.](/docs/resources/foundry/logic/multiple-values.png)
+![Showing output for variable name and values requested.](./images/multiple-values.png)
 
 ## Can I configure how many objects my tools give to the LLM blocks?
 
 Yes, when you add an Object Query tool on a Function tool in the LLM block, you can select **Configure object return limits** to choose the number of objects you would like to return from any tool use.
 
-![Configure object return limits option.](/docs/resources/foundry/logic/configure-object-return-limits.png)
+![Configure object return limits option.](./images/configure-object-return-limits.png)
 
 ## Why does my function execute successfully in AIP Logic Debugger but fail in Workshop or when called via an API?
 

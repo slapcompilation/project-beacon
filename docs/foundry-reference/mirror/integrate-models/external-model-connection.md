@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Integrate an externally hosted model
 
@@ -41,17 +41,17 @@ The first step is to create a new model. This can be done either by selecting **
 
 The screenshot below shows the creation of a new model in a Foundry project by selecting **+New > Model**.
 
-![Empty compass project showing creating a new model](/docs/resources/foundry/integrate-models/external-model-compass-new-model.png)
+![Empty compass project showing creating a new model](./images/external-model-compass-new-model.png)
 
 The screenshot below shows the creation of a new model through a modeling objective by selecting **Add model** from the External Model screen.
 
-![Empty modeling objective](/docs/resources/foundry/integrate-models/external-model-empty-objective.png)
+![Empty modeling objective](./images/external-model-empty-objective.png)
 
 ### 2. Select method of adding a model
 
 Select **Connect an externally hosted model**, then **Next**.
 
-![Select connect an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-hosted-new-model-dialog.png)
+![Select connect an externally hosted model in Palantir Foundry](./images/external-hosted-new-model-dialog.png)
 
 ### 3. Set egress policy
 
@@ -59,13 +59,13 @@ Select **Custom connection** as the source for your externally hosted model and 
 
 An egress policy enables a Foundry project or artifact to send data from Foundry to an external system. Egress policies may be controlled by your organization's Foundry security model. If you have the required permissions, you can browse and configure a new egress policy in the [Control Panel application](/docs/foundry/administration/control-panel/).
 
-![Select an egress policy for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/externally-hosted-select-egress-policy.png)
+![Select an egress policy for an externally hosted model in Palantir Foundry](./images/externally-hosted-select-egress-policy.png)
 
 ### 4. Configure model adapter
 
 Select the model adapter for this model. The model adapter should be configured to take an `ExternalModelContext` at load time to initialize the connection to the externally hosted model. For more information, refer to the documentation on how to create a [model adapter](/docs/foundry/integrate-models/model-adapter-creation/), review [example model adapters](#example-model-adapter-structure) for the external model, and view the [API definition](/docs/foundry/integrate-models/model-adapter-reference/#externalmodelcontext) of the `ExternalModelContext`.
 
-![Define the model adapter for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-model-adapter-configuration.png)
+![Define the model adapter for an externally hosted model in Palantir Foundry](./images/external-model-adapter-configuration.png)
 
 ### 5. Configure model connection
 
@@ -74,7 +74,7 @@ Define the model connection details for your custom model connection. The connec
 * **URL** (optional): This is the base URL that is provided to the model adapter. This is intended to be the URL of the model inference function.
 * **Connection Configuration** (optional): The connection configuration will not be encrypted and will be viewable with the model metadata in platform. This component can store specific configuration details such as the model name, inference parameters, or thresholds.
 
-![Define model configuration for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-connection-configuration.png)
+![Define model configuration for an externally hosted model in Palantir Foundry](./images/external-connection-configuration.png)
 
 ### 6. Configure credentials
 
@@ -82,7 +82,7 @@ Define the credentials configuration for your custom model connection and then s
 
 * **Credentials Configuration** (optional): The credentials will be encrypted and safely stored alongside the Model. These credentials will be decrypted and provided to the model adapter at model load time. Note that users who have access to the model will be able to use this model to perform inference regardless of their underlying access to the external model. Select **Next** to proceed to save your model details.
 
-![Define model credentials for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-credentials-configuration.png)
+![Define model credentials for an externally hosted model in Palantir Foundry](./images/external-credentials-configuration.png)
 
 ### 7. Configure details and submit model
 
@@ -92,17 +92,17 @@ If you are creating this model from a modeling objective, select **Submit** to c
 
 If you are creating this model in a Foundry project, choose **Done** to save this model.
 
-![Define model save location for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-save-location-configuration.png)
+![Define model save location for an externally hosted model in Palantir Foundry](./images/external-save-location-configuration.png)
 
 ### View externally hosted models
 
 The externally hosted model enables a user to update credentials, see the connection configuration, and copy egress policy RIDs so a user can configure [Python Transforms](/docs/foundry/transforms-python/transforms/).
 
-![External model view in Palantir Foundry](/docs/resources/foundry/integrate-models/external-model-asset-view.png)
+![External model view in Palantir Foundry](./images/external-model-asset-view.png)
 
 #### External model submission in a modeling objective
 
-![External model view in Palantir Foundry](/docs/resources/foundry/integrate-models/external-model-submission-view.png)
+![External model view in Palantir Foundry](./images/external-model-submission-view.png)
 
 ## Test and operationalize an externally hosted model
 
@@ -127,7 +127,7 @@ To configure a [Python transform](/docs/foundry/transforms-python/transforms/) t
 
 Next, you can find the required egress policy name from the model version and configure a Python transform with that model input.
 
-![Egress and Credential RIDs in the view for an externally hosted model in Palantir Foundry](/docs/resources/foundry/integrate-models/external-model-asset-rids.png)
+![Egress and Credential RIDs in the view for an externally hosted model in Palantir Foundry](./images/external-model-asset-rids.png)
 
 #### Dependencies
 

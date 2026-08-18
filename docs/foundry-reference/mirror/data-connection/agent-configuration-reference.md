@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/agent-configuration-reference/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/agent-configuration-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Agent configuration reference
 
@@ -59,7 +59,7 @@ In both cases, certificates may be added from the agent management page in the D
 
 To add a certificate to an agent, navigate to the agent details page for your agent in Data Connection, then select **Manage agent certificates**.
 
-![Manage agent certificates in Data Connection.](/docs/resources/foundry/data-connection/manage-certs.png)
+![Manage agent certificates in Data Connection.](./images/manage-certs.png)
 
 From here, choose the certificate to be added, along with an alias if desired. Then, add the contents of the certificate. The certificate should be added as a string similar to the below example, including newlines but without a trailing newline character. The certificate shown below is the public certificate for `https://palantir.com`.
 
@@ -252,7 +252,7 @@ Navigate to the agent page in Data Connection, then select the **Metrics** tab. 
 * Agent Manager version stale time
 * Agent version stale time
 
-![The agent metrics page for a streaming agent, with metrics to measure memory, disk space, and operating system load.](/docs/resources/foundry/data-connection/agent-metrics.png)
+![The agent metrics page for a streaming agent, with metrics to measure memory, disk space, and operating system load.](./images/agent-metrics.png)
 
 Hover over the metric cards for timestamped details, and select the top right corner of the card to expand a detailed view.
 
@@ -294,15 +294,15 @@ You can monitor an agent's health by [creating a monitoring view](/docs/foundry/
 
 You can view existing monitoring views by selecting the **Monitoring views** tab.
 
-![The Monitoring views page of the Data Health app, showing a single monitoring view named 'Test View'.](/docs/resources/foundry/data-connection/data-health-monitoring-views.png)
+![The Monitoring views page of the Data Health app, showing a single monitoring view named 'Test View'.](./images/data-health-monitoring-views.png)
 
 After selecting a specific monitoring view, you can configure the health monitors of an agent by selecting **Manage monitors**. From this page, you can create a new monitoring rule.
 
-![The Manage monitors tab of the Data Health app, showing a button prompting the user to create a new monitoring rule.](/docs/resources/foundry/data-connection/data-health-add-monitoring-rules.png)
+![The Manage monitors tab of the Data Health app, showing a button prompting the user to create a new monitoring rule.](./images/data-health-add-monitoring-rules.png)
 
 In the **Create monitoring rules** page, you can configure specific rules and alerts of varying severities.
 
-![The Create monitoring rules tab, in which the user has applied alerts for CPU utilization, queue size, and low disk space for a test source.](/docs/resources/foundry/data-connection/data-health-configure-and-apply-monitors.png)
+![The Create monitoring rules tab, in which the user has applied alerts for CPU utilization, queue size, and low disk space for a test source.](./images/data-health-configure-and-apply-monitors.png)
 
 Learn more about [tracking data health with monitors](/docs/foundry/monitoring-views/overview/) and [integrating monitors with PagerDuty](/docs/foundry/monitoring-views/overview/#integrate-with-external-systems).
 
@@ -314,7 +314,7 @@ The Data Connection agent service is regularly updated with security, stability,
 
 An agent upgrade window is a set of time intervals during which it is considered safe for the agent to be temporarily offline. These time intervals recur weekly and can be defined on the **Maintenance Window** page in the **Agent settings** tab for the given agent in the Data Connection application.
 
-![Manage automatic upgrades](/docs/resources/foundry/data-connection/manage-automatic-upgrades.png)
+![Manage automatic upgrades](./images/manage-automatic-upgrades.png)
 
 The Data Connection coordinator monitors agents and their respective upgrade windows; they will perform automatic upgrades of agents during these upgrade windows when new versions are available.
 
@@ -474,14 +474,14 @@ Follow the steps below to add host overrides for an agent directly from the Data
 2. Navigate to the **Agent settings** page and add a host override with the desired hostname and IP address mapping.
 3. Save your changes and restart the agent for the configuration to take effect.
 
-![Add a host override from the Agent settings page in Data Connection.](/docs/resources/foundry/data-connection/agent-add-host-override.png)
+![Add a host override from the Agent settings page in Data Connection.](./images/agent-add-host-override.png)
 
 As an example, if your data source is only accessible at `10.0.0.1` within your private network:
 
 1. Configure a host override that maps an ad-hoc domain (such as `my-private-internal-database.local`) to `10.0.0.1`. The chosen domain name can be anything, although we recommend a descriptive name of the system hosted at that IP.
 2. Use this ad-hoc domain instead of `10.0.0.1` in your source and egress policy configuration.
 
-![Use the host override in your source settings](/docs/resources/foundry/data-connection/source-with-host-override.png)
+![Use the host override in your source settings](./images/source-with-host-override.png)
 
 Network connections from within Foundry are initiated using the domain name, while the agent resolves it to the correct private IP address at the network edge.
 

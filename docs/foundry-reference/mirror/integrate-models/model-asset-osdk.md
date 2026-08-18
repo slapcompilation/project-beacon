@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-osdk/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-osdk/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Integrate models with the Ontology
 
@@ -32,7 +32,7 @@ class ObjectsInModelApiAdapter(pm.ModelAdapter):
 
 To pass in an object or object set for testing, you can select inputs from the Ontology on the model query page when a direct model deployment is running. You can also publish a function on the left side-bar using the Ontology object or object set inputs.
 
-![Example Object and Object Set input on the model query page](/docs/resources/foundry/integrate-models/object-model-query-input.png)
+![Example Object and Object Set input on the model query page](./images/object-model-query-input.png)
 
 ## Use the Platform SDK in a model adapter
 

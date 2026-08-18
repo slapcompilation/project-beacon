@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-regression/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-regression/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series regression
 
@@ -17,7 +17,7 @@ Time series
 
 ## Examples
 
-![Time series regression example](/docs/resources/foundry/quiver/card-time-series-regression.png)
+![Time series regression example](./images/card-time-series-regression.png)
 
 ## Usage information
 
@@ -29,4 +29,7 @@ Time series
 ## See also
 
 * [Scatter plot regression](/docs/foundry/quiver/card-scatter-plot-regression/)
+
+* [Scatter plot regression coefficients](/docs/foundry/quiver/card-scatter-plot-regression-coefficients/)
+
 * [Time series regression coefficients](/docs/foundry/quiver/card-time-series-regression-coefficients/)

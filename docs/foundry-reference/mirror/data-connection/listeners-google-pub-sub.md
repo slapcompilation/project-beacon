@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-google-pub-sub/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-google-pub-sub/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a Google Cloud Pub/Sub listener
 
@@ -19,10 +19,10 @@ Prior to configuration, ensure:
 ## Instructions
 
 1. Create a Pub/Sub topic if you do not already have one. This is the stream of events that will be pushed to your Foundry Listener. <br><br>
-   ![In the Google Cloud interface, create a new Pub/Sub topic.](/docs/resources/foundry/data-connection/listeners-google-pubsub-1.png) <br><br>
+   ![In the Google Cloud interface, create a new Pub/Sub topic.](./images/listeners-google-pubsub-1.png) <br><br>
 
 2. Navigate to the **Listeners** tab in Data Connection. Create a Foundry Pub/Sub listener by selecting Google Cloud Pub/Sub from the listener type menu. This step will not finish setting up the listener, but is required to generate the listener URL which is then used in step 3. <br><br>
-   ![Google Cloud Pub/Sub listener configuration page in Data Connection.](/docs/resources/foundry/data-connection/listeners-google-pubsub-2.png) <br><br>
+   ![Google Cloud Pub/Sub listener configuration page in Data Connection.](./images/listeners-google-pubsub-2.png) <br><br>
 
 3. Create a subscription for your Google Pub/Sub topic from step 1.
 
@@ -37,18 +37,18 @@ Prior to configuration, ensure:
    * To use a shared secret, enter your shared secret into the URL field as a query parameter after the listener endpoint URL. Example: `?token=<YOUR_TOKEN>`
 
    d. Save your subscription. <br><br>
-   ![Google Cloud Pub/Sub Add subscription to topic page with sample configuration values.](/docs/resources/foundry/data-connection/listeners-google-pubsub-3.png) <br><br>
+   ![Google Cloud Pub/Sub Add subscription to topic page with sample configuration values.](./images/listeners-google-pubsub-3.png) <br><br>
 
 4. Copy the **service account email address**, optional **audience claim**, and optional **shared secret** into the listener configuration as shown below then **Continue**. <br><br>
-   ![Google Cloud Pub/Sub Add subscription to topic page with sample configuration values.](/docs/resources/foundry/data-connection/listeners-google-pubsub-4.png) <br><br>
+   ![Google Cloud Pub/Sub Add subscription to topic page with sample configuration values.](./images/listeners-google-pubsub-4.png) <br><br>
 
 5. Administrator approval is now required from the Information Security Officer. Review the toggle description.
 
 6. Select **Start** on the listener **Test** page to turn on your listener and start accepting events.
 
 7. Send a test message to your topic, and see it appear in the listener test interface. <br><br>
-   ![Publish a message to test in Google Cloud Pub/Sub as part of testing your setup.](/docs/resources/foundry/data-connection/listeners-google-pubsub-5.png) <br><br>
-   ![Receive an event in your successfully configured listener.](/docs/resources/foundry/data-connection/listeners-google-pubsub-6.png) <br><br>
+   ![Publish a message to test in Google Cloud Pub/Sub as part of testing your setup.](./images/listeners-google-pubsub-5.png) <br><br>
+   ![Receive an event in your successfully configured listener.](./images/listeners-google-pubsub-6.png) <br><br>
 
 :::callout{theme="neutral"}
 The payload arrives base64 encoded. You can decode it in a streaming pipeline using the base64 decode transformation board in order to get a string representation of the message.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/mobile-design/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/mobile-design/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Design best practices
 
@@ -24,7 +24,7 @@ Instead, try using a [Flow layout](/docs/foundry/workshop/concepts-layouts/#sect
 
 If you need to keep some summary information or action buttons always available on screen, use either a Toolbar or Rows layout that contains a Flow within it. This enables you to have certain widgets always visible at either the top or bottom of the screen, while keeping the ability for users to scroll through the main body of content, as in the example below.
 
-<img src="./media/mobile-flows.png" alt="mobile flows layout" width="300px">
+<img src="./images/mobile-flows.png" alt="mobile flows layout" width="300px">
 
 For a step-by-step guide to setting up a page like this, refer to the tutorial section on [creating an object view](/docs/foundry/workshop/mobile-getting-started/#part-3-add-selected-object-view).
 
@@ -34,11 +34,11 @@ Users on desktop devices typically use a mouse and keyboard to interact with you
 
 When adding a Button Group widget in a mobile application, we recommend selecting the **Large style** option in most cases to ensure the button is easily selectable on a touchscreen. Where appropriate, we also recommend enabling the **Fill available horizontal space** option to further increase the size of the control target.
 
-<img src="./media/mobile-design-button-large.png" alt="mobile large button" width="500px">
+<img src="./images/mobile-design-button-large.png" alt="mobile large button" width="500px">
 
 When you need to display multiple button options to an end user, configure your Button Group to have a Menu button type. In a mobile application, this shows a top-level button which will open a bottom drawer to let the user select one of the nested buttons you've configured.
 
-<img src="./media/mobile-design-button-menu.png" alt="mobile button menu" width="300px">
+<img src="./images/mobile-design-button-menu.png" alt="mobile button menu" width="300px">
 
 ## Data entry in drawers
 
@@ -58,7 +58,7 @@ Building on the best practices described above, when you need users to examine a
 
 To set up this pattern, create a page in your Workshop application, add widgets to show relevant information, and use an [event](/docs/foundry/workshop/concepts-events/) to navigate to that page. Then, end users will be able to navigate back to your initial page using the web browser, as shown below.
 
-![mobile ios navigation](/docs/resources/foundry/workshop/mobile-navigation-ios.gif)
+![mobile ios navigation](./images/mobile-navigation-ios.gif)
 
 For a step-by-step guide to creating this workflow, refer to the last step of the tutorial section on [configuring an object view](/docs/foundry/workshop/mobile-getting-started/#part-3-add-selected-object-view).
 
@@ -72,7 +72,7 @@ As your application becomes more complex and includes multiple workflows for a u
 
 For example, in an application used to surface tasks for a technician, one tab called "My tasks" could show all active tasks assigned to the current user, another tab called "Task search" could enable searching for tasks across all technicians, and a final tab called "History" could show a record of tasks the user has previously completed.
 
-<img src="./media/mobile-design-navigation-bar.png" alt="mobile navigation bar" width="300px">
+<img src="./images/mobile-design-navigation-bar.png" alt="mobile navigation bar" width="300px">
 
 For details on how to configure the Navigation Bar, refer to the [Navigation Bar Widget](/docs/foundry/workshop/widgets-mobile-navbar/#navigation-bar-setup) page.
 

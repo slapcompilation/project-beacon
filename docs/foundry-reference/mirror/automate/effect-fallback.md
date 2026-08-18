@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/automate/effect-fallback/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/effect-fallback/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Fallback effect
 
 Fallback effects allow you to execute an alternative action when a primary effect (such as an action, logic, or function effect) fails, providing robust error handling for your automations. With fallback effects, you can implement contingency plans, capture error information, and ensure your workflows remain resilient even when primary actions encounter problems.
+
+:::callout{theme="neutral"}
+Fallback effects are not eligible for event retries. A fallback effect runs only after an object fails with a non-retryable error or reaches the maximum number of retries.
+:::
 
 ## Configuration
 

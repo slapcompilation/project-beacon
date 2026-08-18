@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-timeline/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-timeline/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Timeline geometries
 
@@ -14,24 +14,24 @@ Once you add a timeline geometry, you can access its additional configuration ac
 
 To make a new timeline event geometry layer appear on the timeline, add a **Timeline** geometry from the **Layers** panel.
 
-![The timeline geometry to edit how the Flights object appears on a timeline.](/docs/resources/foundry/map/timeline_add-geometry.png)
+![The timeline geometry to edit how the Flights object appears on a timeline.](./images/timeline_add-geometry.png)
 
 A **Timeline** section appears in the style menu once you add the timeline geometry, where you can change the properties used when drawing the selected shape on the timeline. Select the **Start property** and **End property** dropdown menus for shapes that use two time properties, or select **Time property** for shapes that use a single property.
 
-![The Timeline style configuration section for the Flights object. The shape is set to Bar, and there are options to select a start property and end property.](/docs/resources/foundry/map/timeline_bar-select-time-properties.png)
+![The Timeline style configuration section for the Flights object. The shape is set to Bar, and there are options to select a start property and end property.](./images/timeline_bar-select-time-properties.png)
 
 The timeline geometry will not appear in the timeline unless all its properties have been set.
 
-![The Timeline style configuration section for the Flights object. The shape is set to Diamond, and there is an option to select a time property.](/docs/resources/foundry/map/timeline_diamond-select-time-property.png)
+![The Timeline style configuration section for the Flights object. The shape is set to Diamond, and there is an option to select a time property.](./images/timeline_diamond-select-time-property.png)
 
 The **Shape** you choose in the **Timeline** style configuration section renders for every instance of the object type in the timeline. For example, the image below shows diamond shapes to represent the `Flights` object type on the timeline.
 
-![The Flights object type, represented as diamonds on the map timeline.](/docs/resources/foundry/map/timeline_diamond-on-timeline.png)
+![The Flights object type, represented as diamonds on the map timeline.](./images/timeline_diamond-on-timeline.png)
 
 Select the **Color** menu in the **Geometry** section to configure how shape colors render on your map's timeline.
 
-![The timeline color configuration window, currently set to a fixed color.](/docs/resources/foundry/map/timeline_color-menu.png)
+![The timeline color configuration window, currently set to a fixed color.](./images/timeline_color-menu.png)
 
 You can also use properties and measures to configure timeline color styling by changing the selected option in the **Color by** dropdown menu. For example, the image below shows a timeline geometry configured to color by the `Arrival Latitude` property with a rainbow color spectrum.
 
-![The timeline color configuration window set to color by a property using a rainbow color spectrum. The objects that appear on the map and timeline use a rainbow of colors based on a linear interpolation.](/docs/resources/foundry/map/timeline_color-by-property.png)
+![The timeline color configuration window set to color by a property using a rainbow color spectrum. The objects that appear on the map and timeline use a rainbow of colors based on a linear interpolation.](./images/timeline_color-by-property.png)

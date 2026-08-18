@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-checks/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/set-up-checks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up checks for all submissions
 
@@ -18,11 +18,11 @@ You can configure an objective check for each checkpoint above to create indepen
 
 To configure checks for your objective, go to the **Settings** page in the right sidebar and then navigate to the **Checks** tab. Here, you can create a new check with the name, description, and users or groups that are eligible to approve this check. In the example below, this check will be marked as approved if anyone from the `pcl-team` group or the `Administrators` group approves the check.
 
-![Add a check panel](/docs/resources/foundry/manage-models/setup-configure-objective-check.png)
+![Add a check panel](./images/setup-configure-objective-check.png)
 
 You can add additional checks based on your needs, or follow the example checks below.
 
-![Checks panel in Settings](/docs/resources/foundry/manage-models/objective-checks.png)
+![Checks panel in Settings](./images/objective-checks.png)
 
 ## Collaborate on model submission evaluation with checks
 
@@ -32,27 +32,27 @@ On the model submission page, navigate to the **Checks** panel. Here, you can se
 
 Currently, it is not mandatory for all checks to be approved before creating a release for a model submission.
 
-![Checks panel in model submission page](/docs/resources/foundry/manage-models/setup-submission-checks.png)
+![Checks panel in model submission page](./images/setup-submission-checks.png)
 
 ## Automatic evaluation-based checks
 
 Checks can also be created where its status is based on the result of an evaluation performed on a given input dataset and evaluation library.
 
-![The automatic check setup screen.](/docs/resources/foundry/manage-models/evaluation-checks-create-check.png)
+![The automatic check setup screen.](./images/evaluation-checks-create-check.png)
 
 The available choices of input dataset and evaluation library will be inherited from the evaluation configuration defined in the modeling objective's [evaluation dashboard](/docs/foundry/evaluate-models/model-evaluation-automatic/). In addition, the metrics built using the evaluation dashboard are used to determine the status of the check.
 
-![An example of evaluation results.](/docs/resources/foundry/manage-models/evaluation-checks-evaluation-results.png)
+![An example of evaluation results.](./images/evaluation-checks-evaluation-results.png)
 
 The metric requirement defines the conditions for a submission to pass this check. A `PASS` status is achieved when the metric satisfies the requirement. If the metric fails the requirement or is not found in the set of metrics produced by the chosen evaluation library, a status of `REJECT` is given with a message describing the reason for rejection. If metrics were not yet built for the combination of submission, input dataset, and evaluation library associated with the check, the status of the check will be `PENDING`. A pending status will also occur if the metrics build fails.
 
-![An automatic check result.](/docs/resources/foundry/manage-models/evaluation-checks-result.png)
+![An automatic check result.](./images/evaluation-checks-result.png)
 
 ## Archive a check
 
 You can archive an objective check with the “disable” icon next to the check in the **Settings** page. Archived checks are no longer shown on the submission’s checks page by default. However, prior comments and approval histories for archived checks can be still seen by selecting the **View archive** button on the submission’s checks panel.
 
-![Archive check setting](/docs/resources/foundry/manage-models/setup-archive-a-check.png)
+![Archive check setting](./images/setup-archive-a-check.png)
 
 ## Filter models by check status
 
@@ -60,4 +60,4 @@ You can filter models in an objective based on the status of a particular check 
 
 Navigate to the **Models** tab on the left, then select the **All models** tab on top. Here, you can see a list of all model submissions along with their overall check status in the table. In the left panel, you can see a filter group under the label **Check status**. Here, you can select the check and its status you’d like to filter the submissions by.
 
-![Filter models in an objective](/docs/resources/foundry/manage-models/setup-filter-submissions-by-check.png)
+![Filter models in an objective](./images/setup-filter-submissions-by-check.png)

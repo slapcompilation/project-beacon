@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/branching-integration/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/branching-integration/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Branching Workshop modules
 
@@ -16,7 +16,7 @@ If your Workshop module contains non-Workshop elements for which Global Branchin
 
 When on the `main` branch, protected Workshop modules show a **Save to new branch** option instead of **Save and publish**, requiring all changes to be made on a branch rather than directly to `main`.
 
-![Save to new branch button.](/docs/resources/foundry/workshop/save-to-new-branch.png)
+![Save to new branch button.](./images/save-to-new-branch.png)
 
 Select **Save to new branch** to open the new-branch dialog. Name the branch and select an ontology for it.
 
@@ -30,7 +30,7 @@ After a proposal is created, assigned reviewers are notified to review the chang
 
 Within the **Changelog** tab, reviewers can see the changes made to the module. Reviewers can then approve or reject the change by selecting the appropriate **Approve** or **Reject** button on the left panel in the **Review proposed changes** section.
 
-![Approve Workshop change.](/docs/resources/foundry/workshop/approve-workshop-change.png)
+![Approve Workshop change.](./images/approve-workshop-change.png)
 
 ## Rebasing and conflict resolution
 
@@ -48,9 +48,17 @@ If a rebase is required before merging, the **Changelog** panel displays a visua
 Unsaved Workshop edits are not preserved through a rebase. Save your changes to the branch before starting the rebase; any in-progress edits that have not been saved will be lost.
 :::
 
-![Rebasing panel in Workshop.](/docs/resources/foundry/workshop/rebase-panel.png)
+![Rebasing panel in Workshop.](./images/rebase-panel.png)
 
 Rebasing applies the changes made on the branch to the latest `main` version of the module. Resolve any merge conflicts manually to proceed.
+
+### No conflicts found
+
+After initiating a rebase, if the sidebar does not show any explicit conflicts, Workshop automatically accepts the non-conflicting changes from `main` and combines them with your branch's changes. In this case:
+
+* Review the displayed changes to ensure you are satisfied with the incoming changes from `main`.
+* No manual conflict resolution is needed.
+* Save the module to finalize the rebased state and proceed with your merge.
 
 ### Resolve a merge conflict
 
@@ -64,7 +72,7 @@ Common examples of merge conflicts include:
 * A section was deleted on `main` and edited on the branch.
 * A widget was moved from location `A` to `B` on `main` and from `A` to `C` on your branch.
 
-![An example of merge conflicts found.](/docs/resources/foundry/workshop/rebase-conflict.png)
+![An example of merge conflicts found.](./images/rebase-conflict.png)
 
 To resolve a merge conflict, switch between three states to test how each option affects the module in real time:
 
@@ -84,12 +92,12 @@ In the example below, a merge conflict occurs in the object table widget during 
 
 **Main:**
 
-<img src="./media/rebase-main-table.png" alt="Object table on main with the Departure airport code column." width="550">
+<img src="./images/rebase-main-table.png" alt="Object table on main with the Departure airport code column." width="550">
 
 **Branch:**
 
-<img src="./media/rebase-branch-table.png" alt="Object table on the working branch with the Action required column." width="550">
+<img src="./images/rebase-branch-table.png" alt="Object table on the working branch with the Action required column." width="550">
 
 To keep both columns, first select `main`, then manually add the `Action required` column to resolve the conflict.
 
-<img src="./media/rebase-combined-table.png" alt="Object table after resolving the rebase, showing both columns." width="550">
+<img src="./images/rebase-combined-table.png" alt="Object table after resolving the rebase, showing both columns." width="550">

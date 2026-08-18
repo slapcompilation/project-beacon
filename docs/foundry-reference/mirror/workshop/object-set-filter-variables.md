@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/object-set-filter-variables/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/object-set-filter-variables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object set filter variables
 
@@ -8,15 +8,15 @@ An **object set filter variable** is used to track the filter state of an object
 
 An object set filter variable can be created as an empty variable and then used in widget configurations to capture widget selections.
 
-![An empty object set filter variable.](/docs/resources/foundry/workshop/object-set-filter-empty.png)
+![An empty object set filter variable.](./images/object-set-filter-empty.png)
 
 A default state for the filter can also be specified by selecting object types, property types, and values for those property types. The values can be specified inline, or as variables.
 
-![An object set filter variable with a default state.](/docs/resources/foundry/workshop/object-set-filter-default.png)
+![An object set filter variable with a default state.](./images/object-set-filter-default.png)
 
 If you select multiple object types, it is recommended that you filter on properties that are shared by all object types. Failure to do so may result in unexpected behavior, especially if deploying the module from Marketplace.
 
-![The object set filter property selector with multiple object types.](/docs/resources/foundry/workshop/object-set-filter-multiple-types.png)
+![The object set filter property selector with multiple object types.](./images/object-set-filter-multiple-types.png)
 
 You can also remove the specified object types once your properties are specified if you want to make your filter object type agnostic. Note that you cannot add additional property filters, or select variables for property values, unless at least a single object type is specified.
 
@@ -38,13 +38,13 @@ For some workflows, it may be helpful to extract specific filtered values from a
 
 To accomplish this, you can specify a default filter variable state using variables for property values, and turn on **Update used variables on filter value changes**.
 
-![An object set filter with value extraction enabled.](/docs/resources/foundry/workshop/object-set-filter-extraction-config.png)
+![An object set filter with value extraction enabled.](./images/object-set-filter-extraction-config.png)
 
 When the filter value is updated to a filter that matches the shape of the default filter, the value for each variable in the configured default will be updated to the extracted value from the filter.
 
 Using the filter above, when a range of points-per-game is selected in the filter list, the numeric inputs that are backed by these extraction variables will be updated.
 
-![An object set filter with value extraction causing a dependent widget to update.](/docs/resources/foundry/workshop/object-set-filter-extraction.png)
+![An object set filter with value extraction causing a dependent widget to update.](./images/object-set-filter-extraction.png)
 
 Only the following value types can be extracted:
 

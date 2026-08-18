@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/api-objects-links/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/api-objects-links/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # API: Objects and links
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-event-indicator-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-event-indicator-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event indicator series
 
@@ -17,7 +17,7 @@ Time series
 
 ## Examples
 
-![Event indicator series example.](/docs/resources/foundry/quiver/resource-events-series-indicator-example.png)
+![Event indicator series example.](./images/resource-events-series-indicator-example.png)
 
 ## Usage information
 

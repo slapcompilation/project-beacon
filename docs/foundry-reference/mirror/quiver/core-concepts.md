@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/core-concepts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -50,7 +50,7 @@ For advanced transformations on objects data, such as deriving properties and jo
 
 ## Time series
 
-Quiver has first-class support for [time series](/docs/foundry/time-series/time-series-overview/) analysis. Time series are primarily added to Quiver through [time series properties](/docs/foundry/time-series/time-series-properties/), however [time series syncs](/docs/foundry/time-series/time-series-syncs/) can also be viewed directly.
+Quiver supports [time series](/docs/foundry/time-series/time-series-overview/) analysis. Time series are primarily added to Quiver through [time series properties](/docs/foundry/time-series/time-series-properties/); however, you can also view [time series syncs](/docs/foundry/time-series/time-series-syncs/) directly. [Function-backed time series](/docs/foundry/time-series/function-backed-time-series-overview/) use Python functions to generate time series dynamically for real-time forecasting and custom analytics.
 
 Quiver provides an extensive library of [transformations](/docs/foundry/quiver/timeseries-transform/) and [visualizations](/docs/foundry/quiver/timeseries-visualize/) for time series data. Quiver also supports advanced time series workflows such as [anomaly detection](/docs/foundry/quiver/timeseries-search-anomalies/) and [event analysis](/docs/foundry/quiver/timeseries-analyze-events-data/).
 

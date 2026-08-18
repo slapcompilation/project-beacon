@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-latest-value-for-enum-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-latest-value-for-enum-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Latest value for enum time series
 
@@ -14,7 +14,7 @@ String
 
 ## Examples
 
-![Latest value for enum ts example](/docs/resources/foundry/quiver/card-latest-value-for-enum-ts.png)
+![Latest value for enum ts example](./images/card-latest-value-for-enum-ts.png)
 
 ## Usage information
 

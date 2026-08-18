@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-materializations/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-materializations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Materializations cards
 
@@ -8,7 +8,7 @@ Cards in this section support the analysis of Ontology [materializations](/docs/
 
 [Materialization](/docs/foundry/object-edits/materializations/) is a [data type](/docs/foundry/quiver/analysis-data-model/#list-of-input-and-output-types) in Quiver that provides a way to transform, visualize and analyze Ontology data at scale, with the capacity to surpass the 50k row constraint on data joins and transformations present in transform tables.
 
-![Materializations card menu](/docs/resources/foundry/quiver/quiver-materialization-cards-menu.png)
+![Materializations card menu](./images/quiver-materialization-cards-menu.png)
 
 Specifically, Materializations cards allow you to:
 
@@ -21,7 +21,7 @@ Use Materializations cards for large-scale analyses that take object sets as inp
 
 To find out which backing dataset primitives are powering a Materializations card, simply hover over the datasource icon.
 
-![Hover over the datasource icon to trace backing dataset primitives](/docs/resources/foundry/quiver/quiver-datasource-tracing.png)
+![Hover over the datasource icon to trace backing dataset primitives](./images/quiver-datasource-tracing.png)
 
 The following cards are available:
 

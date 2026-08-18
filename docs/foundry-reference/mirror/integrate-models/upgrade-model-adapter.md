@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/upgrade-model-adapter/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/upgrade-model-adapter/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Upgrade model adapter without retraining
 
@@ -33,8 +33,8 @@ To upgrade a model adapter, first implement and publish changes to the model ada
 
 Next, on the model application, scroll to the **Inference Configuration** card. Click **Upgrade model adapter**.
 
-![Model Adapter Upgrade Button](/docs/resources/foundry/integrate-models/adapter-upgrade-button.png)
-![Model Adapter Upgrade Dialog](/docs/resources/foundry/integrate-models/adapter-upgrade-dialog.png)
+![Model Adapter Upgrade Button](./images/adapter-upgrade-button.png)
+![Model Adapter Upgrade Dialog](./images/adapter-upgrade-dialog.png)
 
 Clicking **Create model version** will create a new model version using the updated model adapter with the previously published model artifacts.
 

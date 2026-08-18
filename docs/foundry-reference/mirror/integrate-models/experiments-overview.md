@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/experiments-overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/experiments-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Experiments
 
@@ -8,7 +8,7 @@ An *experiment* is an artifact that represents a collection of metrics produced 
 
 The model development process is inherently iterative, and it can be difficult to keep track of different attempts at producing a model. Experiments provide a lightweight Python API for logging details related to those different attempts, including metrics and hyperparameters. Those metrics and hyperparameters can be visualized and compared between different model versions to provide a better understanding of how different parameters affect the model's performance. Below is an overview of how to create and write to experiments.
 
-![Parallel coordinate plot parameter config](/docs/resources/foundry/integrate-models/parallel-coordinate-plot-parameter-config.png)
+![Parallel coordinate plot parameter config](./images/parallel-coordinate-plot-parameter-config.png)
 
 ## Create experiments
 

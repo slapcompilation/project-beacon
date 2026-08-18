@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-visualize/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-visualize/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Visualize time series
 
@@ -14,7 +14,7 @@ When discussing time series visualization in Quiver, we use the following termin
 
 For example, in the image below, we have two time series charts. The first chart, Chart 1, has three time series plots on it: `Gulkana Temperature`, `Newark Temperature`, and `Newark Wind Gust`. This chart also has two, numerical, y-axes: `kt` and `°F`. The two temperature plots use the `°F` axis, and the wind gust plot uses the `kt` axis. The second chart, Chart 2, has a single, categorical time series plot on it: `Newark Rain Status`. This uses the ordinal y-axis: `Status`. Both charts share the same x-axis: `Time`.
 
-![Two time series charts. One with three plots, and one with a single categorical series plot.](/docs/resources/foundry/quiver/howto-time-series-visualize.png)
+![Two time series charts. One with three plots, and one with a single categorical series plot.](./images/howto-time-series-visualize.png)
 
 ## Panning and zooming
 
@@ -24,7 +24,7 @@ After panning and zooming, you can select the **Fit to extent** button on an axi
 
 Quiver automatically links all time axes across time series charts. As a result, when you pan or zoom one chart's time axes, the zoom range of other time series charts in the canvas will update synchronously.
 
-![Panning and zooming on a time series chart.](/docs/resources/foundry/quiver/howto-time-series-pan-and-zoom.gif)
+![Panning and zooming on a time series chart.](./images/howto-time-series-pan-and-zoom.gif)
 
 ## Moving plots between charts
 
@@ -38,11 +38,11 @@ Lastly, you can use the analysis contents panel to drag and drop plots between c
 
 In the example below, we first drag the plot `Newark Rain Statis` from the legend onto the canvas to move it to a new chart. Then, we drag the root object `NEWARK LIBERTY INTERNATIONAL` from the legend onto the new chart, which moves the plots `Newark Wind Gust` and `Newark Temperature` onto the new chart. Lastly, we use the **Move plot** section of the next actions menu to move some of these plots back into the original chart.
 
-![Move plots between time series charts.](/docs/resources/foundry/quiver/howto-time-series-move-plots.gif)
+![Move plots between time series charts.](./images/howto-time-series-move-plots.gif)
 
 ## Formatting plots
 
-Plots have many different display options for visualization. To view the full configuration options for an individual plot, select the **Configure plot** (<img alt="Open editor icon" src="./media/time-series-visualize-plot-config-icon.png" width="25px">) icon in the chart legend, then open the **Display** tab in the editor panel.
+Plots have many different display options for visualization. To view the full configuration options for an individual plot, select the **Configure plot** (<img alt="Open editor icon" src="./images/time-series-visualize-plot-config-icon.png" width="25px">) icon in the chart legend, then open the **Display** tab in the editor panel.
 
 Common plot display options include:
 
@@ -57,7 +57,16 @@ Configuring a plot's [interpolation](/docs/foundry/quiver/cards-interpolation-us
 
 In the example below, we first select **Configure plot** in the legend to open the plot's editor panel. Then, we rename the plot. Next, we update its internal intpolation to `Previous`. Lastly, we select the **Display** tab and update the line width, gradient, and color.
 
-![Configure plot display options.](/docs/resources/foundry/quiver/howto-time-series-plot-display.gif)
+![Configure plot display options.](./images/howto-time-series-plot-display.gif)
+
+## View backing object properties
+
+When configuring a time series plot, you can view the properties of all objects backing the series using the **Properties** tab in the editor panel. From this tab, you can also open the object view in a new tab for more detailed exploration.
+
+To view backing object properties:
+
+1. Select the **Configure plot** (<img alt="Open editor icon" src="./images/time-series-visualize-plot-config-icon.png" width="25px">) icon in the chart legend to open the plot's editor panel.
+2. Select the **Properties** tab to view properties of all objects backing the series.
 
 ## Formatting charts
 
@@ -67,7 +76,7 @@ A chart caption can also be toggled on or off through the **More actions** menu 
 
 In the example below, we drag the legend to the right-hand side, and the y-axis to the left-hand side. Then we select the chart's **Configure** button and open the **Display** tab to update the legend style to `Side` and the overlay y-axis setting to `False`. These two display settings can be useful if you do not want your axes or legends to cover any plot data.
 
-![Configure chart display options.](/docs/resources/foundry/quiver/howto-time-series-chart-display.gif)
+![Configure chart display options.](./images/howto-time-series-chart-display.gif)
 
 ## Analysis time series settings
 
@@ -75,7 +84,7 @@ Along with plot and chart specific display options, Quiver supports a large numb
 
 [View the full list of configurable settings.](/docs/foundry/quiver/analysis-settings/#time-series-axes-and-legends)
 
-![Time series analysis settings.](/docs/resources/foundry/quiver/howto-time-series-global-settings.png)
+![Time series analysis settings.](./images/howto-time-series-global-settings.png)
 
 ## Configuring axes
 
@@ -93,7 +102,7 @@ From the value axis (y-axis) configuration window, you can:
 
 Y-axes can also be collapsed on one or both sides of the chart to maximize the chart display area. To do this, select the small triangle icon next to the axis.
 
-![Configure a time series chart y-axis](/docs/resources/foundry/quiver/howto-time-series-y-axis-configure.png)
+![Configure a time series chart y-axis](./images/howto-time-series-y-axis-configure.png)
 
 #### Time axis (x-axis) configuration
 
@@ -116,7 +125,7 @@ By default, activating the **Stream** button enables [analysis-wide streaming](/
 * **Growing** A view range with a fixed start time, and a dynamic range end that will grow with streaming updates
 * **Fixed** A fixed view range that will not change with streaming updates
 
-![Configure a time series chart x-axis](/docs/resources/foundry/quiver/howto-time-series-x-axis-configure.png)
+![Configure a time series chart x-axis](./images/howto-time-series-x-axis-configure.png)
 
 ## Linking and sharing axes
 
@@ -126,7 +135,7 @@ For value axes, by default, axes are unlinked across charts. When on the same ch
 
 While Quiver defaults axes to the settings above, you can also manually link and unlink axes, and configure which plots are connected to which axes. To do this, after opening an axis's configuration window, select the **Linked Plots** tab. From here you can individually move plots between axes, regardless of which chart they are on.
 
-![Configure plot axis linking](/docs/resources/foundry/quiver/howto-time-series-axis-linking.png)
+![Configure plot axis linking](./images/howto-time-series-axis-linking.png)
 
 ## Time and values ranges
 
@@ -138,11 +147,11 @@ Time and value ranges can be used to highlight and drill down on anomalies in th
 
 Date markers are visual symbols (vertical lines) that help identify and distinguish individual data points in the plotted time series. The data points from time series plots that intersect with the date marker are shown in labels on the chart for each plot.
 
-![A time series chart showing a date marker highlighted with a red rectangle.](/docs/resources/foundry/quiver/time-series-visualize-marker-on-chart.png)
+![A time series chart showing a date marker highlighted with a red rectangle.](./images/time-series-visualize-marker-on-chart.png)
 
 Date markers are controlled by [date/time parameters](/docs/foundry/quiver/card-datetime-parameter/). When adding a marker to a time series chart, a date/time parameter will automatically be added and used as input to the date marker.
 
-![Quiver canvas showing a date/time parameter controlling a date marker which is highlighted on a time series chart and in the chart's legend.](/docs/resources/foundry/quiver/time-series-visualize-markers.png)
+![Quiver canvas showing a date/time parameter controlling a date marker which is highlighted on a time series chart and in the chart's legend.](./images/time-series-visualize-markers.png)
 
 #### Add a marker
 
@@ -151,15 +160,15 @@ To add a marker to a time series chart:
 1. Move the cursor over the chart to the desired time and select the chart.
 2. Select **Save new date marker**.
 
-![Marker selection context menu with the option to save date as marker highlighted with a red rectangle.](/docs/resources/foundry/quiver/time-series-visualize-save-marker.png)
+![Marker selection context menu with the option to save date as marker highlighted with a red rectangle.](./images/time-series-visualize-save-marker.png)
 
 #### Delete a marker
 
 To delete a marker from a time series chart, hover over the marker in the time series chart and select the **trash icon**.
 
-![Marker selection context menu with the option to delete a marker highlighted with a red rectangle.](/docs/resources/foundry/quiver/time-series-visualize-delete-marker-from-chart.png)
+![Marker selection context menu with the option to delete a marker highlighted with a red rectangle.](./images/time-series-visualize-delete-marker-from-chart.png)
 
-Alternatively, open the time series chart editor, navigate to the **Markers** section and select the **trash icon** next to the desired marker. <img alt="Time series chart editor menu showing the markers configuration section with the option to delete a marker highlighted with a red rectangle." src="./media/time-series-visualize-delete-marker-from-editor.png" width="350px">
+Alternatively, open the time series chart editor, navigate to the **Markers** section and select the **trash icon** next to the desired marker. <img alt="Time series chart editor menu showing the markers configuration section with the option to delete a marker highlighted with a red rectangle." src="./images/time-series-visualize-delete-marker-from-editor.png" width="350px">
 
 ## Annotate ranges with action buttons
 
@@ -176,4 +185,4 @@ Common bounded time series plots include:
 * [Bollinger bands](/docs/foundry/quiver/card-bollinger-bands/): Plotting Bollinger bands over a rolling time window.
 * [Time series bounds](/docs/foundry/quiver/card-time-series-bounds/): Plots the region bounded by two time series.
 
-![Shade areas of a time series chart with bounded time series](/docs/resources/foundry/quiver/howto-time-series-bounded-series.png)
+![Shade areas of a time series chart with bounded time series.](./images/howto-time-series-bounded-series.png)

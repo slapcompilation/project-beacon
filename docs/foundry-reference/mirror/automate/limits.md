@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/limits/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/limits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Limits
 
@@ -28,3 +28,9 @@ Automation events may wait in a queue for several reasons:
 
 * **Queue effect executions setting:** When [Queue effect executions](/docs/foundry/automate/condition-settings/#queue-effect-executions) is enabled, events execute sequentially and must wait for previous events to complete before starting.
 * **Internal parallelism limits:** Even when the **Queue effect executions** setting is not toggled on, there is an internal limit on how many events can execute in parallel. When many events are triggered in quick succession, they enter the queue in trigger order and begin executing in trigger order, but may not complete in trigger order depending on each event's runtime.
+
+## Automatic pausing due to excessive activity
+
+The system may automatically pause an automation when it detects excessive activity. While paused, scheduled and live triggers do not run, but manual runs and event retries remain available.
+
+A user with an `Editor` role on the automation can resume a paused automation at any time from the automation overview. Learn more about [muting, pausing, and expiration](/docs/foundry/automate/muting-pausing-expiration/).

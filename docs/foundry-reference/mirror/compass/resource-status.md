@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/compass/resource-status/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/resource-status/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Resource status
 
@@ -20,13 +20,13 @@ Take the following steps to promote a resource:
 2. Right-click on the resource to open the context menu.
 3. Select **Change status**, then select **Promoted**.
 
-![The context menu for a resource showing the Change status option with the Promoted submenu.](/docs/resources/foundry/compass/promote-resource-project-view.png)
+![The context menu for a resource showing the Change status option with the Promoted submenu.](./images/promote-resource-project-view.png)
 
 :::callout{theme="warning"}
 To promote a resource, you must have the **Editor** [role](/docs/foundry/security/projects-and-roles/#roles) or higher on that resource, and you must be granted the **Resource Curator** role at the [space](/docs/foundry/security/orgs-and-spaces/#spaces) level.
 :::
 
-![The Change status option is disabled when the user has insufficient permissions.](/docs/resources/foundry/compass/change-status-insufficient-permissions.png)
+![The Change status option is disabled when the user has insufficient permissions.](./images/change-status-insufficient-permissions.png)
 
 ### Remove promoted status
 

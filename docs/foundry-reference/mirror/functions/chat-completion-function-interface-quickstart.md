@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/chat-completion-function-interface-quickstart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Register an LLM using function interfaces \[Legacy]
 
@@ -16,7 +16,7 @@ There are currently two ways to build a custom connection to OpenAI:
 
 This tutorial explains how to create a source to define your LLM’s API endpoint, call the model from a TypeScript function using a webhook, and publish the function for use in the Palantir platform (for instance, with AIP Logic or Pipeline Builder).
 
-![Example of "bring your own model" usage in Logic with GPTo1.](/docs/resources/foundry/aip/byom-tutorial-logic-usage.png)
+![Example of "bring your own model" usage in Logic with GPTo1.](./images/byom-tutorial-logic-usage.png)
 
 ## Prerequisites
 
@@ -88,11 +88,11 @@ To maintain platform security, you need to register the call to OpenAI as a webh
 
 4. Configure the `messages` and `model` input parameters as in the example below.
 
-    <img src="./media/byom-tutorial-webhook-configuration-1.png" alt="Webhook configuration input configuration." width="450">
+    <img src="./images/byom-tutorial-webhook-configuration-1.png" alt="Webhook configuration input configuration." width="450">
 
 5. Configure the `choices` and `usage` output parameters as in the example below.
 
-    <img src="./media/byom-tutorial-webhook-configuration-2.png" alt="Webhook configuration output configuration." width="450" >
+    <img src="./images/byom-tutorial-webhook-configuration-2.png" alt="Webhook configuration output configuration." width="450" >
 
 6. Test and save your webhook.
 
@@ -123,23 +123,23 @@ To start, you will need to import both the OpenAI webhook and the `ChatCompleti
    * The `OpenAI` Rest API Source that contains the `CreateChatCompletion` webhook
    * The `ChatCompletion` function interface
 
-     <img src="./media/byom-tutorial-add-resources.png" alt="Import resources into Typescript repository." width="400">
+     <img src="./images/byom-tutorial-add-resources.png" alt="Import resources into Typescript repository." width="400">
 
 2. In the **Resource imports** panel, search for the `OpenAI` source that contains the `CreateChatCompletion` webhook and import it into your TypeScript repository. [Learn more about how to import resources into Code Repositories.](/docs/foundry/functions/resource-imports-sidebar/)
 
-    <img src="./media/byom-tutorial-source-import.png" alt="Import source and webhook into Typescript repository." width="600">
+    <img src="./images/byom-tutorial-source-import.png" alt="Import source and webhook into Typescript repository." width="600">
 
 3. In the **Resource imports** panel, search for the `ChatCompletion` interface and import it into your TypeScript repository.
 
-    <img src="./media/byom-tutorial-function-interface-import.png" alt="Import Function interface into Typescript repository." width="600">
+    <img src="./images/byom-tutorial-function-interface-import.png" alt="Import Function interface into Typescript repository." width="600">
 
 At this point, your **Resource imports** should include both the OpenAI source and `ChatCompletion` interface as seen in the following image.
 
-<img src="./media/byom-tutorial-post-resource-import-view.png" alt="Post Typescript resource import view." width="450">
+<img src="./images/byom-tutorial-post-resource-import-view.png" alt="Post Typescript resource import view." width="450">
 
 After importing resources, the Task Runner will re-run a `localDev` task that generates the relevant code bindings. You can check on the progress of this task by opening the **Task Runner** tab on the ribbon at the bottom of the page.
 
-![Task Runner view.](/docs/resources/foundry/aip/byom-tutorial-task-runner-view.png)
+![Task Runner view.](./images/byom-tutorial-task-runner-view.png)
 
 ### Write a TypeScript function
 
@@ -151,7 +151,7 @@ Importing both the `CreateChatCompletion` webhook (via the **OpenAI** source) 
 
 You can find code snippets to set up your function scaffolding by selecting the `ChatCompletion` function interface in the **Resource imports** panel.
 
-![Chat Completion more info navigation.](/docs/resources/foundry/aip/byom-tutorial-chat-completion-more-details-page-nav-1.png)
+![Chat Completion more info navigation.](./images/byom-tutorial-chat-completion-more-details-page-nav-1.png)
 
 The following is an example of what your code might look like at this point:
 

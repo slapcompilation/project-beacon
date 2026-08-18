@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-parameters/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-parameters/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Parameters
 
@@ -22,7 +22,7 @@ All parameter cards existing in an analysis are referenced in the parameters pan
 
 ## The parameters panel
 
-The parameters panel can be found in the left sidebar, under the variable icon (<img alt="Parameters panel icon" src="./media/howto-parameters-icon.png" width="30px" >), and is a unified location for managing parameters in your analysis.
+The parameters panel can be found in the left sidebar, under the variable icon (<img alt="Parameters panel icon" src="./images/howto-parameters-icon.png" width="30px" >), and is a unified location for managing parameters in your analysis.
 
 The panel allows you to:
 
@@ -33,7 +33,7 @@ The panel allows you to:
 * Configure parameters (such as changing the label, placeholder value, and so on).
 * See in which cards a given parameter is used. Some parameter types have additional details and controls relating to their use with time series. This is indicated by an extra section next to the number of cards that use the parameter. The number in the additional section represents how many plots are contained in the time series charts where the parameter is used. [Learn more about additional controls on date/time range parameters](/docs/foundry/quiver/timeseries-ranges/).
 
-![Parameters panel](/docs/resources/foundry/quiver/howto-analysis-parameter-parameters-panel.png)
+![Parameters panel](./images/howto-analysis-parameter-parameters-panel.png)
 
 ## List of parameters
 
@@ -68,11 +68,11 @@ See below for step-by-step instructions for each of the ways listed above.
 
 To add a parameter from the [parameters panel](#the-parameters-panel):
 
-1. Open the parameters panel by selecting the variable icon (<img alt="parameters panel icon" src="./media/howto-parameters-icon.png" width="30px" >) in the left sidebar.
+1. Open the parameters panel by selecting the variable icon (<img alt="parameters panel icon" src="./images/howto-parameters-icon.png" width="30px" >) in the left sidebar.
 2. Select the **+** button in the panel header.
 3. Select the desired parameter.
 
-<img alt="Adding a parameter from the parameters panel" src="./media/howto-analysis-add-parameter-from-panel.png" width="400px">
+<img alt="Adding a parameter from the parameters panel" src="./images/howto-analysis-add-parameter-from-panel.png" width="400px">
 
 ### Add a parameter using card search
 
@@ -82,7 +82,7 @@ To add a parameter card by searching for it:
 2. Search for “parameter” to see all the parameter cards.
 3. Select the desired parameter type.
 
-<img alt="Search for parameter" src="./media/howto-analysis-parameters-search-for-parameter.png" >
+<img alt="Search for parameter" src="./images/howto-analysis-parameters-search-for-parameter.png" >
 
 ### Add a parameter when configuring another card
 
@@ -90,11 +90,11 @@ When configuring a card input that you wish to parameterize, you can add a param
 
 To add a parameter from a card configuration editor:
 
-1. Open the card configuration editor of the target card by selecting the configure icon (<img alt="configure icon" src="./media/howto-chart-controls-chart-configuration-open-editor.png" width="30px" >) in the card header.
+1. Open the card configuration editor of the target card by selecting the configure icon (<img alt="configure icon" src="./images/howto-chart-controls-chart-configuration-open-editor.png" width="30px" >) in the card header.
 2. Select the **Use variable input** button to parameterize a configuration value.
 3. Select **Create new parameter** from the input dropdown.
 
-<img alt="Add parameter from use variable input menu" src="./media/howto-analysis-add-parameter-from-input-dropdown.png" width="800px">
+<img alt="Add parameter from use variable input menu" src="./images/howto-analysis-add-parameter-from-input-dropdown.png" width="800px">
 
 ## Example: Use parameters to dynamically filter object sets
 
@@ -102,14 +102,14 @@ In the analysis below, we have created a bar plot and two numerical aggregations
 
 To begin, we can add a property filter for Retailer Name. Next, create a new [property value select parameter](/docs/foundry/quiver/card-property-value-select-parameter/) to control this value. You can create the parameter by selecting the **Use variable input** button next to the filter input box and then **Create new parameter**. This will both add the new parameter card to your analysis and set it to control the filter.
 
-![Example of using parameters to dynamically filter object sets](/docs/resources/foundry/quiver/howto-analysis-parameter-dynamic-filtering-example.gif)
+![Example of using parameters to dynamically filter object sets](./images/howto-analysis-parameter-dynamic-filtering-example.gif)
 
 Only parameters that are the same type as the property being configured can be selected from the parameter dropdown. For example, the parameter added above of type `string` does not show up when trying to filter a property of type `number`.
 
-![Restriction by type of parameters appearing in parameter dropdown](/docs/resources/foundry/quiver/howto-analysis-parameters-restrictive-dropdown.png)
+![Restriction by type of parameters appearing in parameter dropdown](./images/howto-analysis-parameters-restrictive-dropdown.png)
 
 You can see what type a property is in the **Add filter** menu on the right side, as well as after selecting a property when configuring its variable input.
 
-<img alt="See property type in Add Filter menu" src="./media/howto-analysis-parameters-see-property-type.png" width="600px">
+<img alt="See property type in Add Filter menu" src="./images/howto-analysis-parameters-see-property-type.png" width="600px">
 
-<img alt="See property type in object set filter editor" src="./media/howto-analysis-parameters-see-property-type-in-editor.png" width="600px">
+<img alt="See property type in object set filter editor" src="./images/howto-analysis-parameters-see-property-type-in-editor.png" width="600px">

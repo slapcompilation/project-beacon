@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-pivot-transform-table/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-pivot-transform-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Pivot transform table
 

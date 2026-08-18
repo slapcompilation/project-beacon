@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-import-export/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-import-export/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Import, export, and duplicate applications
 
@@ -8,9 +8,11 @@ These workflows are not recommended for sharing or duplicating complex applicati
 
 ## Import Slate applications
 
-To import a Slate application, select the **File** dropdown menu and choose **Import JSON** while in Edit mode to open the upload dialog. Select a JSON file from your local machine to upload as a Slate document. If the permalink defined in the JSON file is new and unique, you will be prompted to choose a location where a new Slate document will be created. If the permalink defined in the JSON of the Slate document already exists in Foundry, a new version of the existing Slate document will be created with the content of the imported JSON file.
+To import a Slate application in Edit mode, select **File** > **Import JSON** to open the **Import Slate JSON** dialog. Drag a `.slate.json` file onto the drop zone, or select **Browse** to choose a local file. The dialog displays the file name and size. During upload, the dialog displays a loading state and disables all inputs. If the upload fails, the dialog remains open and displays the error in a toast notification so you can retry.
 
-When importing an application, only the logic of the application itself is imported. Supporting resources such as images, files, objects, datasets, and data sources are not automatically created. The JSON import will fail if referenced data sources are not available. References to other resources that do not exist will result in an error when opening the application, but these errors can be resolved by re-pointing them manually in edit mode. For applications that use the [Ontology SDK](/docs/foundry/slate/concepts-osdk/), you may also need to regenerate the OSDK bundle manually after import.
+If the permalink defined in the JSON file is new and unique, you will be prompted to choose a location where a new Slate document will be created. If the permalink defined in the JSON of the Slate document already exists in Foundry, a new version of the existing Slate document will be created with the content of the imported JSON file.
+
+A JSON import includes only the application logic. Slate does not automatically create supporting resources such as images, files, objects, datasets, and data sources. The import fails if referenced data sources are unavailable. If the JSON contains queries that reference unconfigured data sources, you may encounter the error `You don't have permission to edit queries for all datasources in this document.` To resolve this error, remove the queries from the Slate JSON before importing, or configure the referenced data sources first. References to other resources that do not exist cause errors when you open the application. Resolve these errors by manually updating the references in Edit mode. For applications that use the [Ontology SDK](/docs/foundry/slate/concepts-osdk/), you may also need to regenerate the OSDK bundle manually after import.
 
 ## Export Slate applications
 

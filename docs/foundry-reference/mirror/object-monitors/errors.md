@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/errors/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/errors/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Error reference
 
@@ -16,7 +16,7 @@ A monitor may fail to evaluate due to problems with the underlying data. Monitor
 
 Object monitors use a reference to a [saved exploration](/docs/foundry/object-explorer/save-explorations/) to define the input. This reference is not dynamic, but instead is stored according to the exploration as it exists when the monitor is saved. If the exploration changes, the monitor will continue to evaluate using the exploration's old state unless the monitor is updated. In this case, a warning banner is displayed on the monitor:
 
-![Warning banner for out of sync monitor](/docs/resources/foundry/object-monitors/monitor_out_of_sync_banner.png)
+![Warning banner for out of sync monitor](./images/monitor_out_of_sync_banner.png)
 
 ## Notification effect errors
 

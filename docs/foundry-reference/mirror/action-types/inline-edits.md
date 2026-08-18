@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/inline-edits/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/inline-edits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Inline edits
 
@@ -12,7 +12,7 @@ Inline edits allow users to quickly edit values of an object in the [Object Expl
 
 ### Configuration
 
-![Inline edit action configuration](/docs/resources/foundry/action-types/inline-action-configuration.png)
+![Inline edit action configuration](./images/inline-action-configuration.png)
 
 To set up an inline edit action, navigate to the **Properties** tab of your object type and then to the **Interaction** tab in Ontology Manager. Select a property and navigate to **Inline edit** in the sidebar. In the dropdown menu, select one of the available action types or create a new one. Creating a new one will trigger the action type creation workflow. Each property can have only one inline edit action type.
 

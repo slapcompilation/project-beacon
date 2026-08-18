@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/live-deployment-reference/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/live-deployment-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # API: Query a model or Modeling Objective live deployment
 
@@ -31,7 +31,7 @@ A multi I/O endpoint - sometimes referred to as a "v2 endpoint" - is a flexible 
 
 For the following examples, we will use a model with a simple API of a single input and output.
 
-![The expected API for a simple example model.](/docs/resources/foundry/manage-models/sample-model-api.png)
+![The expected API for a simple example model.](./images/sample-model-api.png)
 
 The hosted model in this example expects a single input named `inference_data`, which is a dataset containing a `text` column. In this case, the expected request format would be the following:
 
@@ -117,7 +117,7 @@ else:
 
 Multi I/O models can receive multiple inputs and return multiple outputs. The image below shows an example of a model with multiple inputs and outputs:
 
-![A model with multiple inputs and outputs.](/docs/resources/foundry/manage-models/sample-multi-io-model-api.png)
+![A model with multiple inputs and outputs.](./images/sample-multi-io-model-api.png)
 
 To query a multi I/O, use the same request format as shown in the previous examples, with the `inference_request` containing a named field for each input:
 
@@ -164,7 +164,7 @@ Single I/O endpoints are no longer recommended for new implementations. Prefer t
 
 For the following examples, we will use a model with a simple API of a single input and output.
 
-![The expected API for a simple example model.](/docs/resources/foundry/manage-models/sample-model-api.png)
+![The expected API for a simple example model.](./images/sample-model-api.png)
 
 The hosted model in this example expects a single input named `inference_data`, which is a dataset containing a `text` column. In this case, the expected request format would be the following:
 

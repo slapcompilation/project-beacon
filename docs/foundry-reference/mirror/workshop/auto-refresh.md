@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/auto-refresh/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/auto-refresh/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Auto-refresh in Workshop
 
@@ -12,7 +12,7 @@ To surface data recency directly in your module's UI, use the [Data Freshness wi
 
 You can enable Auto-refresh within a specific Workshop module. Navigate to the Auto-refresh configuration options toward the bottom of the **Settings** panel in the Workshop editor.
 
-![Auto-refresh configuration in settings panel](/docs/resources/foundry/workshop/auto-refresh-location.png)
+![Auto-refresh configuration in settings panel](./images/auto-refresh-location.png)
 
 :::callout{theme="neutral"}
 Auto-refresh may trigger an increased data load volume and associated costs. Builders may choose not to enable the feature for workflows where live data is less necessary.
@@ -20,7 +20,7 @@ Auto-refresh may trigger an increased data load volume and associated costs. Bui
 
 ## Settings
 
-![Auto-refresh settings](/docs/resources/foundry/workshop/auto-refresh-settings.png)
+![Auto-refresh settings](./images/auto-refresh-settings.png)
 
 To update auto-refresh settings, select **Auto-refresh** in the **Settings** panel. Then expand the **Settings** section on the bottom of the panel.
 
@@ -39,7 +39,7 @@ You can let users pause or resume the application of auto-refresh updates during
 * **Enable auto-refresh updates:** Allows updates from auto-refresh to take effect.
 * **Disable auto-refresh updates:** Prevents updates from auto-refresh from taking effect.
 
-Learn more about [Events: Module state](/docs/foundry/workshop/concepts-events/#module-appearance).
+Learn more about [Events: Module state](/docs/foundry/workshop/concepts-events/#module-state).
 
 ## Limitations
 
@@ -63,7 +63,11 @@ To trigger auto-refresh for linked object properties or function-backed columns,
 
 ### Filters
 
-Some object set filter types are not currently supported by Auto-refresh, such as `terms`, `phrase`, `multiMatch`, `prefixOnLastToken`, and `objectSetLink`. Support for these filter types may be added in the future. As a workaround, you can watch an unfiltered object set of the same type. This may cause refreshing to happen more often than is necessary but should otherwise ensure that the object type is kept up to date within a module.
+Some object set filter types are not currently supported by Auto-refresh, such as `terms`, `phrase`, `multiMatch`, `prefixOnLastToken`, and `objectSetLink`. Support for these filter types may be added in the future.
+
+Use supported filter types to limit refreshes to specific objects. For example, filter an object set by its primary key so the module refreshes only when that object changes.
+
+As a workaround for unsupported filter types, you can watch an unfiltered object set of the same type. This may cause refreshing to happen more often than is necessary but should otherwise ensure that the object type is kept up to date within a module.
 
 ### Visibility in module
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/dropdown-security/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/dropdown-security/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object dropdown security considerations
 
@@ -8,7 +8,7 @@ Static value filters in object dropdown validations are exposed to all users who
 
 As an example, imagine we have a `Document` object with an `Investigation Name` property. In our action type, we add a filter on the object reference parameter to only show **Documents** where **Investigation Name** is `Area 51 Investigation`.
 
-![Object Dropdown Security Concern](/docs/resources/foundry/action-types/objectDropdownSecurityFilter.png)
+![Object Dropdown Security Concern](./images/objectDropdownSecurityFilter.png)
 
 Here, we would potentially be revealing that `Area 51 Investigation` is a property value of some `Document` objects to users who cannot view those documents.
 
@@ -19,7 +19,7 @@ This only applies to **static value filters**. There is no reference to the `Are
 
 Therefore, neither of these search queries represents a data privacy concern.
 
-![Object Dropdown Property Filters](/docs/resources/foundry/action-types/objectDropdownSecurityProperty.png)
+![Object Dropdown Property Filters](./images/objectDropdownSecurityProperty.png)
 
 ## Technical details
 

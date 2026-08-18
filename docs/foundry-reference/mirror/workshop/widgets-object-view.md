@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-view/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-view/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object View
 
@@ -13,13 +13,13 @@ The **Object View widget** provides detailed information about a single object b
 
 This is an example of a configured Object View widget displaying a single `Airport` object:
 
-<img alt="Object View widget example" src="./media/object_view_example.png" height="400"/>
+<img alt="Object View widget example" src="./images/object_view_example.png" height="400"/>
 
 ## Configuration options
 
 This is the initial state of an Object View widget and its configuration panel:
 
-<img alt="Blank Object View widget configuration" src="./media/object_view_empty.png" height="400"/>
+<img alt="Blank Object View widget configuration" src="./images/object_view_empty.png" height="400"/>
 
 ### Core configuration options
 
@@ -30,19 +30,19 @@ This is the initial state of an Object View widget and its configuration panel:
   * **Form factor:** Controls whether the full or panel object view is displayed. See [form factor configuration options](#form-factor-configuration-options) below for additional configuration available for each form factor.
   * **Object View Mode:** Controls which viewing option is displayed (either [standard or configured](/docs/foundry/object-views/overview/#standard-and-configured-object-views)), with an option to toggle between them.
 
-    <img alt="Object View mode" src="./media/object_view_mode.png" height="100"/>
+    <img alt="Object View mode" src="./images/object_view_mode.png" height="100"/>
 * **Additional Options**
 
   * **Hide header:** If toggled on, the object view header will be hidden.
   * **Empty state:** Configures the appearance when the widget's input variable is empty. Builders can select an icon and configure a custom message to display.
 
-    <img alt="Object View widget custom empty state example" src="./media/object_view_custom_empty_state.png" height="400"/>
+    <img alt="Object View widget custom empty state example" src="./images/object_view_custom_empty_state.png" height="400"/>
 
 ### Form factor configuration options
 
 Additional options are available under the **Advanced settings** dropdown:
 
-<img alt="Object View widget advanced settings" src="./media/object_view_advanced_settings.png" height="70"/>
+<img alt="Object View widget advanced settings" src="./images/object_view_advanced_settings.png" height="70"/>
 
 * **Full object view**
   * **Hide tabs:** Hides the tabs of the object view. Tabs are always hidden for object views with a single tab, so this is only applicable to object views with multiple tabs. Users will be unable to navigate to different tabs of the object view when this option is selected.
@@ -62,8 +62,8 @@ Additional options are available under the **Advanced settings** dropdown:
     * **Adaptive:** Automatically switches between object instance view and object set view based on the input. When the object set contains exactly one object, it displays the object instance view. When the object set contains zero or multiple objects, it displays the object set view.
     * **Object set:** Always displays the object set view, regardless of the object count.
 
-    <img alt="Object view panel behavior" src="./media/object_view_panel_behavior.png" height="250"/>
+    <img alt="Object view panel behavior" src="./images/object_view_panel_behavior.png" height="250"/>
 
   * **Interface configuration:** Defines a mapping from the current module's variables to an object view panel's [module interface](/docs/foundry/workshop/module-interface/). Configure this by adding an object type to the mapping and populating the panel's module interface. For more details, visit the [interface configuration section](/docs/foundry/workshop/embedded-modules/#interface-configuration) for embedded modules.
 
-    <img alt="Object View module interface mapping" src="./media/object_view_module_interface.png" height="250"/>
+    <img alt="Object View module interface mapping" src="./images/object_view_module_interface.png" height="250"/>

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Listeners
 
@@ -6,7 +6,7 @@ Listeners enable the Palantir platform to receive events from other systems that
 
 To accept inbound connections from these systems, data connection listeners provision a URL endpoint, implement the specific message signing or other verification schemes for specific external systems, and allow a simple and low-latency mechanism to receive data feeds into Foundry.
 
-![The event listeners homepage.](/docs/resources/foundry/data-connection/event-listeners.png)
+![The event listeners homepage.](./images/event-listeners.png)
 
 ## Types of listeners
 

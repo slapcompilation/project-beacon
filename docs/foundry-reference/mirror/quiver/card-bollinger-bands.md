@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-bollinger-bands/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-bollinger-bands/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Bollinger bands
 
@@ -9,7 +9,7 @@ A Bollinger band plot is a type of technical analysis tool used by traders and i
 
 As shown in the example below, these bands are usually plotted together with the moving average itself and they can be added separately using the [rolling aggregate](/docs/foundry/quiver/card-rolling-aggregate/) plot.
 
-![Bollinger bands example](/docs/resources/foundry/quiver/resource-bollinger-bands-example.png)
+![Bollinger bands example](./images/resource-bollinger-bands-example.png)
 
 Bollinger bands are also called Statistical Process Control (SPC) or Statistical Quality Control (SQC) charts.
 

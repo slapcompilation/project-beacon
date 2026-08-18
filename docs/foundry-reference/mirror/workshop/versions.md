@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/versions/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/versions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Publishing and versioning
 
@@ -6,14 +6,14 @@ Module **versioning** allows builders to safely and iteratively build Workshop a
 
 ## Version history and settings
 
-<img src="./media/versions-dialog.png" alt="Versions dialog" width="600">
+<img src="./images/versions-dialog.png" alt="Versions dialog" width="600">
 
 The Versions dialog is where builders can view a history of the saved versions for a module. Each saved version displays a timestamp, editor, and description if available. For each saved version, builders have the option to:
 
 * **Publish this version:** Publish a saved version of a module that will be accessible to viewers.
 * **View this version:** View the module at that specific version. When viewing a non-published version, a warning banner will appear at the top of the module.
 
-![Version warning banner](/docs/resources/foundry/workshop/version-warning-banner.png)
+![Version warning banner](./images/version-warning-banner.png)
 
 * **Revert to this version:** Save the historic version as the newest version of the module. A description detailing the revert action will be automatically generated.
 
@@ -30,7 +30,7 @@ The Versions dialog is also where builders can go to edit settings related to sa
 * **Automatically publish when saving:** This toggle controls whether saving will automatically publish a new version.
 * **Always prompt to add a version description when saving:** This toggle controls whether the builder is prompted to add an optional description when saving a new version. Descriptions can be added to help document the changes being made to modules and build up a richer record of the module's history. Descriptions can be viewed, added, and edited in the module’s Versions dialog.
 
-<img src="./media/version-description.png" alt="Version description prompt" width="500">
+<img src="./images/version-description.png" alt="Version description prompt" width="500">
 
 ## Viewing changes between versions
 

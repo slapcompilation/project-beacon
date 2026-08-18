@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-scatter-plot/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-scatter-plot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series scatter plot
 
@@ -17,7 +17,7 @@ Time series scatter plot
 
 ## Examples
 
-![Time series scatter plot example](/docs/resources/foundry/quiver/card-ts-scatter-plot.png)
+![Time series scatter plot example](./images/card-ts-scatter-plot.png)
 
 ## Usage information
 

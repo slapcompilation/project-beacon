@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/unique-id-creation/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/unique-id-creation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create unique IDs in Pipeline Builder
 
@@ -14,7 +14,7 @@ To generate unique IDs using this method in Pipeline Builder, follow these steps
 2. Concatenate the selected string columns to form a single string for each record.
 3. Use “Hash sha256” to compute the SHA256 hash of the concatenated string. The resulting 256-bit hash can be represented as a 64-character hexadecimal string, which will serve as the unique ID for each record.
 
-![Screenshot of stable id](/docs/resources/foundry/pipeline-builder/concat-sha-id.png)
+![Screenshot of stable id](./images/concat-sha-id.png)
 
 This method has several advantages:
 
@@ -23,6 +23,22 @@ This method has several advantages:
 
 By using the concatenation of string columns followed by a SHA256 hash, you can generate unique IDs that are scalable, secure, and consistent, making it an ideal choice for your data pipeline application.
 
+### Using UUID V5 for deterministic unique IDs
+
+Another approach to generate deterministic unique IDs is to use the UUID V5 function. UUID V5 generates a deterministic UUID from a namespace UUID and a name string using SHA-1 hashing (RFC 4122). The same namespace and name always produce the same UUID, making it suitable for scenarios where you need standardized, reproducible identifiers.
+
+To generate unique IDs using UUID V5 in Pipeline Builder:
+
+1. Choose a namespace UUID that represents your data domain. You can use standard namespace UUIDs or create your own.
+2. Use the concatenation of identifying columns as the name string.
+3. Apply the "UUID V5" expression to generate the deterministic UUID.
+
+This method provides:
+
+* **Standards compliance:** UUID V5 follows RFC 4122, making the generated IDs interoperable with other systems expecting standard UUIDs.
+* **Consistency:** The same namespace and name combination always produces the same UUID.
+* **Deterministic generation:** Like SHA256, multiple processes can generate the same UUID independently given the same inputs.
+
 ### Disadvantages of monotonically increasing IDs
 
 While monotonically increasing IDs are not supported in Pipeline Builder, they are often used by data engineers who are familiar with Spark. Monotonically increasing IDs are generated sequentially, such as 1, 2, 3, and so on. While this approach has an inherent simplicity, it has several disadvantages:
@@ -30,7 +46,7 @@ While monotonically increasing IDs are not supported in Pipeline Builder, they a
 * **Inconsistency between builds:** When using monotonically increasing IDs in Spark, the generated IDs can change between different runs of the same application. This is because the way Spark assigns tasks to its executors can vary, leading to different ID assignment orders. Consequently, this inconsistency can make it difficult to reproduce results, compare different runs, or perform incremental updates, making it a less reliable choice for an ID column. If used as a primary key to an ontology object, this will force a full re-index on every build.
 * **Reliance on State:** Generating monotonically increasing IDs requires maintaining state between rows.
 
-These disadvantages indicate that using monotonically increasing IDs is not the best approach for generating unique identifiers in a data pipeline application. Instead, as detailed in the previous section, we recommend using the concatenation of string columns followed by a SHA256 hash.
+These disadvantages indicate that using monotonically increasing IDs is not the best approach for generating unique identifiers in a data pipeline application. Instead, as detailed in the previous sections, we recommend using the concatenation of string columns followed by a SHA256 hash or UUID V5.
 
 ### If a set of unique columns to hash is not available
 
@@ -44,4 +60,4 @@ If you do not have a set of columns that define a unique row in your data, you c
 2. Cast the column to string.
 3. Use “Hash sha256” to hash that column.
 
-![Screenshot of random id](/docs/resources/foundry/pipeline-builder/random-id.png)
+![Screenshot of random id](./images/random-id.png)

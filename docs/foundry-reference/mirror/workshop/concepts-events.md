@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-events/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-events/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Events
 
@@ -6,7 +6,7 @@ Events within Workshop modules enable you to trigger specific behavior whenever 
 
 ## Event execution order
 
-Events in Workshop execute sequentially based on their configuration order. However, events do not wait for the downstream computations of previous events to complete before executing.
+Events in Workshop execute sequentially in their configured order. To reorder two or more events on a widget, drag the event cards up or down in the configuration panel. Events do not wait for dependent computations from previous events to finish before executing.
 
 ### Key behavior
 
@@ -43,7 +43,9 @@ Layout events trigger changes in the on-screen display within a Workshop module,
 
 #### Switch to {page name}
 
-For each page in the module, an event is available to switch to the chosen page when the event is triggered. If the module is using a string variable for the [**Variable-Based Page Selection**](/docs/foundry/workshop/variable-backed-layouts/#variable-backed-page-selection) option, the value of this variable will not be updated as a result of a Switch to Page event. If you wish to keep this variable value in sync with the selected page, you can use a [Set Variable Value](#set-variable-value) event instead.
+For each page in the module, an event is available to switch to the chosen page when the event is triggered. If the module is using a string variable for the [**Variable-Backed Page Selection**](/docs/foundry/workshop/variable-backed-layouts/#variable-backed-page-selection) option, the value of this variable will not be updated as a result of a Switch to Page event. If you wish to keep this variable value in sync with the selected page, you can use a [Set Variable Value](#set-variable-value) event instead.
+
+The [Tabs widget](/docs/foundry/workshop/widgets-tabs/#selection-state) uses **Switch to page** events to derive its selection state.
 
 #### Expand/Collapse/Toggle {section name}
 
@@ -59,19 +61,21 @@ If the specified section has a Boolean variable backing the collapse state, the 
 
 As an example, an application builder has configured the following module displaying hospital data. The module contains an object table and an initially-collapsed object view that the builder would like to expand when the **Open Hospital Object View** button is selected.
 
-![hospital\_object\_table](/docs/resources/foundry/workshop/hospital_object_table.png)
+![hospital\_object\_table](./images/hospital_object_table.png)
 
 At the bottom of a button's configuration pane for the Button Group widget, the application builder can choose to trigger a Layout event whenever the button is selected by choosing the **Event** option from the **On click** dropdown menu, then using the **Add event** button that appears to choose the desired Layout event.
 
-![expand\_hospital\_view](/docs/resources/foundry/workshop/expand_hospital_view.png)
+![expand\_hospital\_view](./images/expand_hospital_view.png)
 
 Once the button and event is configured, the section containing the object view will expand whenever a user selects the **Open Hospital Object View** button in this module, as shown below:
 
-![hospital\_application\_workshop](/docs/resources/foundry/workshop/hospital_application_workshop.png)
+![hospital\_application\_workshop](./images/hospital_application_workshop.png)
 
 #### Switch to {tab name}
 
 For each **Tab** section in the module, a **Switch to {tab name}** event will be added for each tab in the section. Unlike the [**Switch to {page name}**](#switch-to-page-name), and [section collapse state](#expandcollapsetoggle-section-name) events, events that change the selected tab will also update the value of the string variable configured for **Variable-Based Tab Selection** if a variable is configured.
+
+The [Tabs widget](/docs/foundry/workshop/widgets-tabs/#selection-state) uses **Switch to tab** events to derive its selection state.
 
 ### Variables
 
@@ -108,7 +112,7 @@ The **Stream LLM response into variable** event enables displaying the response 
 
 The screenshot below, which can be found within the event configuration, shows an example configuration with the supplied parameters described above.
 
-<img src="./media/stream_llm_response_into_variable.png" alt='Stream LLM response into variable configuration' width="500">
+<img src="./images/stream_llm_response_into_variable.png" alt='Stream LLM response into variable configuration' width="500">
 
 ### AIP Assist
 
@@ -124,13 +128,13 @@ The `Send to AIP Assist` event can be added using the [Button Group widget](/doc
 
 2. Configure the button's name, icon, and description as desired under the **Button Configuration** section.
 
-    <img src="./media/button_group_config.png" alt='Button Group Configuration' width="500">
+    <img src="./images/button_group_config.png" alt='Button Group Configuration' width="500">
 
 3. In the **On Click** section of the button configuration panel, select **Event** from the drop down.
 
 4. Select **+Add event** and choose **Send to AIP Assist** from the list of options.
 
-    <img src="./media/button_group_aip_assist_event.png" alt='Button Group Send to AIP Assist Event Configuration' width="500">
+    <img src="./images/button_group_aip_assist_event.png" alt='Button Group Send to AIP Assist Event Configuration' width="500">
 
 5. Configure the event by choosing whether the prompt should be **Static** text or a computed **Variable**.
    * **Static:** For this option, simply input the prompt text. This text will be sent to AIP Assist as a prompt when the button is selected. For example: “What threshold does the Inventory Management Application use to determine when to create a ‘Low Inventory Alert’?"
@@ -144,7 +148,7 @@ For more information on AIP Assist Agent configuration, refer to the AIP Assist 
 
 When configuring a variable for the `Send to AIP Assist` event, ensure that your variable value is up to date before using it. There are a number of possible variable configurations, but it is worth noting that the **String → Variable Transformation** type enables the configuration of complex, dynamic prompts based on the active state of the Workshop application. The following is a sample configuration for a series of connected variables that programmatically change based on Workshop's active state. In this example, the selected `Inventory Material` object from the active object table is **String concatenation Variable Transform**, combined with free text to form a prompt that can be sent to AIP Assist.
 
-![The variable configuration panel, listing the variable value as well as the object properties that are concatenated to the variable value string.](/docs/resources/foundry/workshop/variable_config_send_to_aip_assist.png)
+![The variable configuration panel, listing the variable value as well as the object properties that are concatenated to the variable value string.](./images/variable_config_send_to_aip_assist.png)
 
 ### Applications
 
@@ -160,6 +164,19 @@ The following events provide a way to open other Foundry resources in a new brow
 ### Data staleness
 
 The **Refresh data in module** event allows all data in the module to be reloaded when this event is triggered.
+
+### Module state
+
+Module state events allow users to control certain module-level behaviors during their session.
+
+#### Enable or disable auto-refresh updates
+
+You can let users pause or resume the application of auto-refresh updates during a session by configuring Workshop events, such as through a Button Group widget:
+
+* **Enable auto-refresh updates:** Allows updates from auto-refresh to take effect.
+* **Disable auto-refresh updates:** Prevents updates from auto-refresh from taking effect.
+
+Learn more about [auto-refresh in Workshop](/docs/foundry/workshop/auto-refresh/).
 
 ### Module appearance
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/using-custom-models-to-create-a-semantic-search-workflow/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/using-custom-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Using custom models to create a semantic search workflow
 
@@ -12,7 +12,7 @@ For this example, we begin by setting up a model in Foundry and creating a pipel
 
 We begin with a dataset that currently has our parsed documents and metadata, such as `Document_Content` and `Link`. Next, we will generate embeddings from the `Document_Content` to enable us to query them via semantic search.
 
-![Dataset to generate embeddings](/docs/resources/foundry/ontology/dataset-to-generate-embeddings.png)
+![Dataset to generate embeddings](./images/dataset-to-generate-embeddings.png)
 
 To understand the details of the KNN feature, review [KNN Functions on Objects](/docs/foundry/functions/api-object-sets/#k-nearest-neighbors-knn) section in the Foundry documentation.
 
@@ -115,7 +115,7 @@ We will name the object type `Document`, and set the `embedding` property to be 
 1. **Dimension:** this is the length of the array produced in the column `embedding`.
 2. **Similarity Function:** the method by which distance between two `embedding` values from different objects will be calculated.
 
-![New vector property type](/docs/resources/foundry/ontology/vector-property-in-oma.jpg)
+![New vector property type](./images/vector-property-in-oma.jpg)
 
 Once this object type is created, we will have a property (`embedding`) that can be used to semantically search through the `Documentation` objects.
 
@@ -269,8 +269,8 @@ The process to creating a semantic search for the documentation service in the e
 2. Add a [text input](/docs/foundry/workshop/widgets-text-input/) and a [string selector](/docs/foundry/workshop/widgets-string-selector/). The string selector will be used to choose a documentation category with which to filter. Both the text input and string selector will serve as inputs into the published KNN document fetch function.
 3. Finally, add an [object list widget](/docs/foundry/workshop/widgets-object-list/) with an input object set generated from the function and the selected inputs as shown below:
 
-![KNN Function to generate object set](/docs/resources/foundry/ontology/knn-function-workshop-panel.png)
+![KNN Function to generate object set](./images/knn-function-workshop-panel.png)
 
 From this point, the inputs will be used to semantically search through documents in the object type and return the two most relevant. This is just one simple use case of vector properties and semantic search. See an example of the resulting Workshop application in the screenshot below:
 
-![Example semantic search workshop](/docs/resources/foundry/ontology/completed-knn-workshop.png)
+![Example semantic search workshop](./images/completed-knn-workshop.png)

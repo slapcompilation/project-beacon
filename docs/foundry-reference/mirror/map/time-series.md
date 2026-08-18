@@ -1,16 +1,16 @@
-<!-- source: https://palantir.com/docs/foundry/map/time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series
 
 [Time series](/docs/foundry/time-series/time-series-overview/) are measured values that change over time. You can configure time series values in the Ontology as [time series properties](/docs/foundry/time-series/time-series-setup/). The map contains features to help you view and analyze time series data that is associated with geospatial objects.
 
-![Time series data in the timeline and selection panel.](/docs/resources/foundry/map/time-series.png)
+![Time series data in the timeline and selection panel.](./images/time-series.png)
 
 ## Explore related time series
 
 Select an object on your map that has associated time series data. You can see any related time series in the **Series** tab of the selection panel. The value shown next to a series reflects the value of the series at the current [selected time](/docs/foundry/map/time-overview/#selected-time-and-time-range).
 
-![Series tab of selection panel.](/docs/resources/foundry/map/time-series-tab.png)
+![Series tab of selection panel.](./images/time-series-tab.png)
 
 You can also add a [time series](/docs/foundry/time-series/time-series-overview/) explicitly to the series-panel by right-clicking an object and selecting **Add series to series view**. Additionally, you can select an object to render the [**Selection** panel](/docs/foundry/map/selection/#selection-panel) before navigating to the **Series** tab. From the **Series** tab, select the ellipsis icon that appears when hovering over a series row to open a menu that contains additional actions related to the time series where you can select **Add to series view**.
 
@@ -20,8 +20,8 @@ You can also add a [time series](/docs/foundry/time-series/time-series-overview/
     <th>Use the <b>Selection</b> panel to add a time series</th>
   </tr>
   <tr>
-    <td><img src="./media/timeline_right-click.png" alt="Adding a series to the timeline from the right-click menu."></img></td>
-    <td><img src="./media/timeline_selection-panel.png" alt="Adding a series to the timeline from the selection panel."></img></td>
+    <td><img src="./images/timeline_right-click.png" alt="Adding a series to the timeline from the right-click menu."></img></td>
+    <td><img src="./images/timeline_selection-panel.png" alt="Adding a series to the timeline from the selection panel."></img></td>
   </tr>
 </table>
 

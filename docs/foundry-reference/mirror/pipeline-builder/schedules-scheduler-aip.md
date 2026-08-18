@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/schedules-scheduler-aip/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/schedules-scheduler-aip/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP feature in Scheduler
 
 Use AIP to generate the schedule configuration when creating a dataset build schedule with a specific time trigger. Input a schedule trigger prompt within the **New schedule** view side-panel to generate the proper cron format for complex triggers.
 
-<img src="./media/schedules-aip-schedule-2.png" alt="Image of schedule list configuration menu powered by AIP." width=450>
+<img src="./images/schedules-aip-schedule-2.png" alt="Image of schedule list configuration menu powered by AIP." width=450>
 
 ## Use AIP feature
 

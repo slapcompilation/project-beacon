@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-property/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-property/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series property
 
@@ -17,7 +17,7 @@ Time series
 
 ### Example
 
-![Object time series property](/docs/resources/foundry/quiver/resource-object-time-series-property.png)
+![Object time series property](./images/resource-object-time-series-property.png)
 
 ## Usage information
 
@@ -28,4 +28,4 @@ Time series
 
 \* In the transform table, time series properties are added as columns by default. However, you can also use the *linked time series sensor* transform to add a time series sensor object type (a time series attached to a root object). You can also use the **Columns** button in the upper-right corner of the table to add time series properties or sensors.
 
-![Transform table columns](/docs/resources/foundry/quiver/card-tsp-ttcolumns.png)
+![Transform table columns](./images/card-tsp-ttcolumns.png)

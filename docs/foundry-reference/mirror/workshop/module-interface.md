@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/module-interface/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/module-interface/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Module interface
 
@@ -10,13 +10,13 @@ Module interface variables are different from [ontology interfaces](/docs/foundr
 
 To add a variable to the module interface, navigate to the **Settings** panel for a variable, add an external ID, and make sure the toggle for module interface is enabled. Optionally, you can give a module interface variable a display name and description, which will be shown when the module is embedded or used in an [Open Workshop module event](#open-workshop-module-event).
 
-![Module interface configuration](/docs/resources/foundry/workshop/module_interface_configuration.png)
+![Module interface configuration](./images/module_interface_configuration.png)
 
 ## Embedded module interface
 
 When embedding a module, the module interface variables for that module will be available to map parent module variables to child module interface variables. You can read more about this in [interface configuration](/docs/foundry/workshop/embedded-modules/#interface-configuration) within the embedded modules documentation.
 
-Use module interface variables to communicate between a parent and child module or between sibling embedded modules. These shared interface variables can back shared state, such as a selected object, a selected tab, or whether an overlay is shown. Embedded modules may modify the value of interface variables through events, allowing other places that reference these variables to respond to the updated value. Learn more in [Communicating across embedded modules](/docs/foundry/workshop/embedding-workshop-modules-overview/#communicating-across-embedded-modules).
+Use module interface variables to communicate between a parent and child module or between sibling embedded modules. These shared interface variables can back shared state, such as a selected object, a selected tab, or whether an overlay is shown. For more details on controlling layout state with variables, see [variable-backed layouts](/docs/foundry/workshop/variable-backed-layouts/). Embedded modules may modify the value of interface variables through events, allowing other places that reference these variables to respond to the updated value. Learn more in [Communicating across embedded modules](/docs/foundry/workshop/embedding-workshop-modules-overview/#communicating-across-embedded-modules).
 
 :::callout{theme="neutral"}
 When an interface variable is mapped between a parent and an embedded child module, Workshop uses the parent module's variable definition and ignores the embedded module's own interface variable definition. See the [embedded modules interface configuration](/docs/foundry/workshop/embedded-modules/#interface-configuration) for details.
@@ -51,3 +51,5 @@ For testing purposes, you can change the `/latest/` to `/dev/` in the URL, and t
 ## Carbon navigation
 
 Read about [using module interface variables with Carbon navigation here](/docs/foundry/carbon/modules-navigation/#workshop-module-interface). Note there are several limitations on types of variables that Carbon supports, and that external IDs must be prefixed with `variable.` when configuring parameters for a Carbon module tab.
+
+Carbon supports object set filter variables when you navigate between Workshop module tabs, so you can pass filter values between tabs.

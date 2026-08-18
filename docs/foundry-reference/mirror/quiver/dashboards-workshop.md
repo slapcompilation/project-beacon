@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-workshop/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-workshop/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Embed in a Workshop module
 
@@ -9,17 +9,17 @@ The main purpose of inputs and outputs is to pass data to and from an applicatio
 In the example below, we filter the Workshop `Aircraft` object set for aircrafts with `high priority` maintenance issues.
 The embedded Quiver dashboard automatically updates to show a bar plot of aircrafts by current location and a list of objects next to it. As we select only the aircrafts located  in `DFW` and `DEN` from the bar plot, the Workshop metric card at the top updates accordingly to show the object count in the Quiver bar plot selection.
 
-![Example of embedded dashboard](/docs/resources/foundry/quiver/howto-dashboards-embedded-dashboard-example.gif)
+![Example of embedded dashboard](./images/howto-dashboards-embedded-dashboard-example.gif)
 
 ## Embedding a dashboard
 
 In Workshop, select **Add widget**, then choose **Quiver dashboard** from the menu.
 
-![Workshop widget](/docs/resources/foundry/quiver/quiver-dashboard-widget.png)
+![Workshop widget](./images/quiver-dashboard-widget.png)
 
 In the widget editor, select the dashboard you want to embed. The list shows all the published dashboards to which you have access. Hover over the information tooltip next to each dashboard to get more information, or open it in a new tab.
 
-<img alt="Select dashboard" src="./media/workshop-widget-select-dashboard.png" width="300px">
+<img alt="Select dashboard" src="./images/workshop-widget-select-dashboard.png" width="300px">
 
 ## Configuring inputs and outputs
 
@@ -41,4 +41,4 @@ Quiver dashboard inputs and outputs can be mapped to Workshop variables accordin
 
 Finally, make sure you have the correct dashboard version selected. If you want the dashboard to automatically show the latest version, enable the **Auto-update** toggle.
 
-<img alt="Embedded dashboard configuration" src="./media/howto-dashboards-dashboard-config.png" width="500px">
+<img alt="Embedded dashboard configuration" src="./images/howto-dashboards-dashboard-config.png" width="500px">

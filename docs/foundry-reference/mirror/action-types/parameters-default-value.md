@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameters-default-value/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set parameter default value
 
@@ -18,26 +18,26 @@ Selecting any parameter opens the parameter configuration view for that paramete
 
 Imagine an example action type that modifies the `Type` property of a selected `Aircraft` object to become `A320`. To configure, click into the `Type` parameter and add a static default value.
 
-![Configuring a static default value](/docs/resources/foundry/action-types/default_value_static_configuration.png)
+![Configuring a static default value](./images/default_value_static_configuration.png)
 
 To achieve a similar user experience without default values, input values would need to be configured in each application that uses the parameter. Updating this behavior (for instance, to `A380`) would require manually modifying the behavior, possibly across multiple applications.
 
-![Static default value example](/docs/resources/foundry/action-types/default_value_static_example.png)
+![Static default value example](./images/default_value_static_example.png)
 
 ### Object property default values
 
 To set an object property as the default value for a parameter, begin by selecting an object parameter to configure. Let's assume a more generic action type called `Change Airplane Details` where, for example, users need to know the current value of a property before making edits. This can be achieved by configuring the value of each parameter to be prefilled from the currently selected object (in our case, the `Plane` object to modify). Only object reference parameters that are placed above the parameter in the input list are available to be used as a default value.
 
-![Configuring a property default value](/docs/resources/foundry/action-types/default_value_object_configuration.png)
+![Configuring a property default value](./images/default_value_object_configuration.png)
 
 In Object Explorer, the `Change Airplane Details` action will be prefilled with current values. In this case, users could choose to modify just one property and keep the rest the same. This same default logic will be present anywhere the action is submitted. Note that the `Lifetime Hours` value shows as edited once this default value is updated by the action user.
 
-![Object default value](/docs/resources/foundry/action-types/default_value_object_example.png)
+![Object default value](./images/default_value_object_example.png)
 
 ### Type class prefills
 
 Action parameters can be prefilled with special values (such as automatically-generated UUIDs or the current user's ID) by annotating them with type classes. The Ontology documentation has [a complete list of the available type classes](/docs/foundry/object-link-types/metadata-typeclasses/).
 
-![Configuring a type class prefill](/docs/resources/foundry/action-types/default_value_type_class_configuration.png)
+![Configuring a type class prefill](./images/default_value_type_class_configuration.png)
 
 In most cases, you should set the parameter visibility to `hidden`, so that users do not manually change these special prefilled values.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map
 
@@ -14,7 +14,7 @@ The Map widget renders using [MapboxGL ↗](https://docs.mapbox.com/mapbox-gl-js
 
 Below are some examples of maps with various layer configurations:
 
-<img src="./media/widgets-map-ex.png" alt="Four examples of maps with different layer configurations." width="700" />
+<img src="./images/widgets-map-ex.png" alt="Four examples of maps with different layer configurations." width="700" />
 
 ## Layers
 
@@ -49,7 +49,7 @@ In addition to object layers, the local configuration editor also allows users t
 
 The base layer picker controls the default background map imagery. When the **Show base layer picker** toggle is enabled, users can edit the base map from the Map widget interface.
 
-<img src="./media/widgets-map-base-layer-picker.png" alt="The 'Show base layer picker' toggle below the base map configuration." width="450" />
+<img src="./images/widgets-map-base-layer-picker.png" alt="The 'Show base layer picker' toggle below the base map configuration." width="450" />
 
 ### Import map template
 
@@ -67,13 +67,13 @@ For information about using an existing resource to configure a Map widget, see 
 * **Clear shapes after operation:** Control whether drawn shapes are cleared after an operation that uses them (selecting intersecting objects, searching for objects, or searching for tracks).
 * **Enable splitting on antimeridian:** Control whether shapes that are drawn across the antimeridian will be split into separate polygons.
 * **Enable shaped-based selection:** Enable a tool to select objects on the map that intersect a drawn shape. <br><br>
-  ![A button labeled Select intersecting.](/docs/resources/foundry/workshop/map-shapes-toolbar-select-intersecting.png) <br><br>
+  ![A button labeled Select intersecting.](./images/map-shapes-toolbar-select-intersecting.png) <br><br>
 * **Enable geospatial object search:** Enable a tool to search the Ontology for objects that intersect a drawn shape. <br><br>
-  ![A button labeled Search within.](/docs/resources/foundry/workshop/map-shapes-toolbar-search-within.png) <br><br>
+  ![A button labeled Search within.](./images/map-shapes-toolbar-search-within.png) <br><br>
 * **Enable shape-based track tools:** Enable tools that allow users to search the Ontology for tracks that intersect a drawn shape and filter map breadcrumbs by that shape. <br><br>
-  ![A button labeled Track search.](/docs/resources/foundry/workshop/map-shapes-toolbar-track-search.png) ![A button labeled Filter breadcrumbs.](/docs/resources/foundry/workshop/map-shapes-toolbar-filter-breadcrumbs.png) <br><br>
+  ![A button labeled Track search.](./images/map-shapes-toolbar-track-search.png) ![A button labeled Filter breadcrumbs.](./images/map-shapes-toolbar-filter-breadcrumbs.png) <br><br>
 * **Enable shape editing tools:** Enable a tool to modify a drawn shape. <br><br>
-  ![A button labeled Modify.](/docs/resources/foundry/workshop/map-shapes-toolbar-modify.png) <br><br>
+  ![A button labeled Modify.](./images/map-shapes-toolbar-modify.png) <br><br>
 * **Enable measurements:** Allow users to view the measurements of their drawn shapes. Units are based on [map settings](/docs/foundry/map/settings/#units) if configured, or [default to organization settings](/docs/foundry/map/control-panel/#map-defaults).
   * **Enable polygon perimeter:** Show the length of each segment or the total perimeter length along a drawn polygon's edges.
   * **Enable polygon area:** Show the polygon's area in the center of the drawn polygon.

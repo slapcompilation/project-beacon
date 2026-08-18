@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/compute-usage/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/compute-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Live deployment compute usage
 
@@ -61,7 +61,7 @@ All compute-second usage in the platform is available in the [Resource Managemen
 
 Compute usage for deployments is attached to the Modeling Objective from which it is deployed. Multiple live deployments can be active for any given objective. The live deployments of a Modeling Objective can be found under the **Deployments** section. See the screenshot below for an example.
 
-![Deployments](/docs/resources/foundry/manage-models/compute_usage-deployments.png)
+![Deployments](./images/compute_usage-deployments.png)
 
 ## Drivers of increased or decreased usage
 
@@ -76,7 +76,7 @@ Live deployments use compute-seconds while they are active. The following strate
 
 A live deployment’s resource usage is defined by its profile. The profile can be set at creation time of the live deployment. Profiles can be changed while the deployment is active. Deployments will automatically receive the updated profile with no downtime.
 
-![Deployments](/docs/resources/foundry/manage-models/compute_usage-submit-page.png)
+![Deployments](./images/compute_usage-submit-page.png)
 
 ## Managing usage
 
@@ -94,9 +94,9 @@ In enrollments where compute is managed through [Resources Queues](/docs/foundry
 
 The following example shows a live deployment with the default replica profile of two replicas that is active for 20 seconds with the “low-cpu-lowest-memory” profile:
 
-![Deployments](/docs/resources/foundry/manage-models/compute_usage-replica-config.png)
+![Deployments](./images/compute_usage-replica-config.png)
 
-![Deployments](/docs/resources/foundry/manage-models/compute_usage-resource-config.png)
+![Deployments](./images/compute_usage-resource-config.png)
 
 ```
 resource_config:

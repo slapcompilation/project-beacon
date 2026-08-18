@@ -133,8 +133,15 @@ A **render hints** mechanism sits beside it — `selectable`, `sortable`,
 in its own first sentence. AIP Analyst's is a set of **tool checkboxes**:
 
 > "AIP Analyst uses tools to search, analyze, and present answers to your
-> questions. You can customize which tools are available by selecting
-> checkboxes from the **Tools** menu."
+> questions. Tools are grouped into categories in the **Tools** menu, where you
+> can enable or disable an entire category or an individual tool. AIP Analyst
+> can also adjust the enabled categories itself using the **Manage tools** tool."
+
+**Rewritten upstream by 2026-08-18** — it was a flat list of checkboxes when this
+was read, and is now two levels with the agent able to widen its own tool scope.
+The distinction this section draws is unaffected: it is still a different word
+from the ontology sense. Recorded because an agent that enables its own
+categories is a permission question wearing a settings-menu shape.
 
 AI FDE's is an agent's context management:
 

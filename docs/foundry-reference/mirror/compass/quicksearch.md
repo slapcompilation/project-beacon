@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/compass/quicksearch/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/quicksearch/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Quicksearch
 
@@ -15,9 +15,9 @@ Quicksearch is a tool for fast and easy search, navigation, and discovery in the
 * **Single click to full results:** From the dialog and dropdown, press `Enter/Return` or filter by **Apps**, **Objects**, **Datasets**, or **Files** to move to advanced search mode.
 * **Personalized results:** Results in Quicksearch are personalized by your recently accessed or favorited resources, and more.
 
-![Quicksearch Recent Searches](/docs/resources/foundry/compass/quicksearch-recents.png)
+![Quicksearch Recent Searches](./images/quicksearch-recents.png)
 
-![Quicksearch Dropdown](/docs/resources/foundry/compass/quicksearch-dropdown.png)
+![Quicksearch Dropdown](./images/quicksearch-dropdown.png)
 
 ## Full results view
 
@@ -29,9 +29,9 @@ Quicksearch is a tool for fast and easy search, navigation, and discovery in the
 * **Filters:** Filters are provided for advanced searches. Additionally, by selecting the filter tabs from the initial search dropdown, users can perform complex filter searches (for example, “all reports under project X that were created by me”).
 * **Permissions:** Quicksearch respects all existing permissions in the platform. Content with `Discover` permissions would open a `Request access` message. Users will not see content to which they do not have access.
 
-![Quicksearch Top Tab](/docs/resources/foundry/compass/quicksearch-top-tab.png)
+![Quicksearch Top Tab](./images/quicksearch-top-tab.png)
 
-![Quicksearch Results](/docs/resources/foundry/compass/quicksearch-results.png)
+![Quicksearch Results](./images/quicksearch-results.png)
 
 :::callout{theme="warning"}
 Quicksearch **does not** search across all object instances in the platform. Quicksearch is limited to search for instances on 250 object types, prioritized by `Active` object types with `Prominent`, then `Normal`, and then `Experimental` status (deprecated and hidden object types are not searched on). If a user cannot find what they are looking for, they are prompted to try searching in [Object Explorer](/docs/foundry/object-explorer/search-objects/), where they can adjust their search to only specific groups of object types, or even specific object types.
@@ -49,7 +49,7 @@ To search for modules, workspaces, or other applications made from Palantir appl
 
 In our "automotive" search example, we can see three Workshop modules, one Carbon workspace, and one Slate document that are correctly recognized as applications built in Palantir.
 
-![Searching for "automotive" results filtered by apps.](/docs/resources/foundry/compass/quicksearch-apps.png)
+![Searching for "automotive" results filtered by apps.](./images/quicksearch-apps.png)
 
 #### Objects
 
@@ -57,7 +57,7 @@ To only view results that are based on Ontology object types, filter by **Object
 
 When searching for "automotive", we see several object types and object results, with the ability to filter even further into selected object types like `Award` or `Auto Parts`.
 
-![Searching for "automotive" results filtered by objects.](/docs/resources/foundry/compass/quicksearch-objects.png)
+![Searching for "automotive" results filtered by objects.](./images/quicksearch-objects.png)
 
 #### Datasets
 
@@ -65,7 +65,7 @@ When filtering by **Datasets**, the results view will show a list of available d
 
 Using the same "automotive" example, we can see a list of 38 datasets with matching terms in dataset and column names.
 
-![Searching for "automotive" results filtered by datasets.](/docs/resources/foundry/compass/quicksearch-datasets.png)
+![Searching for "automotive" results filtered by datasets.](./images/quicksearch-datasets.png)
 
 #### Files
 
@@ -73,4 +73,4 @@ Use the **Files** tab in Quicksearch to quickly find individual resource files t
 
 When we search for "automotive", we receive several file results, including folders, graphs, images, and Modeling Objectives.
 
-![Searching for "automotive" results filtered by files.](/docs/resources/foundry/compass/quicksearch-files.png)
+![Searching for "automotive" results filtered by files.](./images/quicksearch-files.png)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-on-objects/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-on-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Functions on objects
 
@@ -12,18 +12,22 @@ your functions. After saving to confirm your selections, a banner will appear to
 
 Navigate to the **SDK Generation** tab to generate and install the OSDK.
 
-![Create a new SDK.](/docs/resources/foundry/functions/python-sdk-create-new.png)
+:::callout{theme="warning"}
+If SDK generation returns an import error such as `cannot import name 'Equipment2' from 'ontology_sdk.ontology.objects'`, confirm that you selected an Ontology in the blue bar at the bottom of the interface. Importing object types does not select the Ontology required for SDK generation.
+:::
+
+![Create a new SDK.](./images/python-sdk-create-new.png)
 
 If no OSDK has been generated, you will be prompted to enter a name for the generated package.
 The package name cannot be changed after the first version has been generated.
 
 After selecting **Create new version**, you can monitor the generation progress from this view.
 
-![The SDK package being generated.](/docs/resources/foundry/functions/python-sdk-package-generating.png)
+![The SDK package being generated.](./images/python-sdk-package-generating.png)
 
-Once generation is complete, you will need to install the newly generated version with the <img src="./media/python-sdk-package-install-icon.png" alt="Install"> button.
+Once generation is complete, you will need to install the newly generated version with the <img src="./images/python-sdk-package-install-icon.png" alt="Install"> button.
 
-![The generated SDK package is ready to install.](/docs/resources/foundry/functions/python-sdk-package-ready-to-install.png)
+![The generated SDK package is ready to install.](./images/python-sdk-package-ready-to-install.png)
 
 This will trigger an interactive install in the task runner panel.
 Once that task completes successfully (the Task Runner will display `BUILD SUCCESSFUL`), code completion for the OSDK will be available in your code assist session.
@@ -31,7 +35,7 @@ Once that task completes successfully (the Task Runner will display `BUILD SUCCE
 The `meta.yml` file will also be updated to include a reference to the generated package.
 You can manually update `meta.yml` instead of using the installation helper, but if you manually update `meta.yml`, you will need to rebuild your code assist session to pick up the changes.
 
-![The meta.yml includes the installed SDK package.](/docs/resources/foundry/functions/python-sdk-meta-yml-updated.png)
+![The meta.yml includes the installed SDK package.](./images/python-sdk-meta-yml-updated.png)
 
 Any time you import additional resources in the sidebar you will be prompted to generate and install a new version of the OSDK that includes these resources.
 Additionally, if you modify imported resources (for instance, adding a new property to an already imported object type), you will need to generate a new OSDK version to pick up these changes.

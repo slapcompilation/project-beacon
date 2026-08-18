@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-event-set-from-ranges/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-event-set-from-ranges/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event set from ranges
 
@@ -14,7 +14,7 @@ Event set
 
 ## Examples
 
-![Event set from ranges example.](/docs/resources/foundry/quiver/resource-event-set-from-ranges.png)
+![Event set from ranges example.](./images/resource-event-set-from-ranges.png)
 
 ## Usage information
 

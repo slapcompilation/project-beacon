@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-markings/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-markings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Guidance on removing markings
 
@@ -25,7 +25,7 @@ This scenario is for when the pipeline:
 
 Therefore, you are migrating from using severing (a deprecated feature) to removing an inherited Marking.
 
-<img src="./media/scenario1.png" alt="scenario1" width="600" />
+<img src="./images/scenario1.png" alt="scenario1" width="600" />
 
 In the old state shown in the example above, severing has been used to prevent the Marking from propagating. Assuming that severing is only being used to remove a Marking, we strongly recommend that you replace severing with [Marking removal](/docs/foundry/building-pipelines/remove-inherited-markings/#input-transform-property), as in the new state in the example above. When removing the Marking, it is useful to think about the [approval mode](/docs/foundry/building-pipelines/remove-inherited-markings/#approval-modes) configuration of the repository which contains the Marking removal transform.
 
@@ -35,7 +35,7 @@ In the case that propagate view requirements is enabled, read scenario 2 below.
 
 This scenario involves applying Markings to a dataset in your pipeline in order to disable the project-level propagate view requirements settings.
 
-<img src="./media/propagate_view_requirement_off.png" alt="propagate_view_requirement_off" width="300" />
+<img src="./images/propagate_view_requirement_off.png" alt="propagate_view_requirement_off" width="300" />
 
 New Projects have the **Propagate View Requirements** option disabled by default, as seen above. For these new Projects, view requirements will not be enforced for downstream derived datasets. Specifically, this means that users accessing a downstream version of the data in a separate Project would not also require access to the upstream data in the Projects where this configuration is disabled.
 
@@ -43,7 +43,7 @@ New Projects have the **Propagate View Requirements** option disabled by default
 Markings always propagate. If data in a new Project has a Marking, that Marking will still propagate to all downstream datasets, regardless of the "propagate view requirements" setting.
 :::
 
-<img src="./media/propagate_view_requirement_on.png" alt="propagate_view_requirement_on" width="300" />
+<img src="./images/propagate_view_requirement_on.png" alt="propagate_view_requirement_on" width="300" />
 
 If you have Projects with the **Propagate View Requirements** option enabled as in the image above, then view requirements have propagated for datasets in these Projects. This means that users accessing a downstream version of the data in a separate Project would additionally require access to the upstream Project(s) with this config enabled.
 
@@ -57,7 +57,7 @@ Before disabling view requirement propagation and introducing Markings to your p
 
 In the example below, our goal is to disable "propagate view requirements" on the **Datasource** Project. After following the steps above, we learned that the reason "propagate view requirements" is enabled on the project was to protect the `raw_dataset_1` dataset because it has sensitive data.
 
-<img src="./media/scenario2.png" alt="scenario2" width="600" />
+<img src="./images/scenario2.png" alt="scenario2" width="600" />
 
 In the old state, viewing the contents of Dataset **A** would require at least “viewer” access on both the **Datasource** Project and the **Downstream** Project. Subsequently, severing has been used to remove the view requirement propagation on Dataset **B**.
 
@@ -78,7 +78,7 @@ The following steps are recommended for introducing this change so that users do
 
 This potentially complex scenario involves introducing a new Marking early in an existing pipeline without accidentally locking out users later in the pipeline.
 
-<img src="./media/scenario3.png" alt="scenario3" width="600" />
+<img src="./images/scenario3.png" alt="scenario3" width="600" />
 
 It is critical to note that the Marking introduced on Dataset **A** will immediately propagate to all resources that are downstream of that dataset along the transaction lineage. Users will require the marking to access anything derived from the marked dataset.
 
@@ -111,7 +111,7 @@ To ensure each incremental **Downstream** dataset is unmarked, everything betwee
 
 If the number of **Downstream** datasets is infeasible for manually triggering a rebuild, we suggest the following steps:
 
-<img src="./media/scenario3_2.png" alt="scenario3_2" width="600" />
+<img src="./images/scenario3_2.png" alt="scenario3_2" width="600" />
 
 1. Create a Dataset **A′** and make sure its contents are identical to Dataset **A**.
 2. Rewrite the code for Dataset **B** to use Dataset **A′** as an input in place of Dataset **A**. At the same time, make sure to add appropriate Marking removal to the transform and then build Dataset **B** immediately afterward. There is no need to snapshot build Dataset **B**.

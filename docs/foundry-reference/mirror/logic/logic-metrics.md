@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/logic-metrics/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/logic-metrics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Logic metrics
 
@@ -8,11 +8,11 @@ You can view these metrics in [Ontology Manager](/docs/foundry/ontology-manager/
 
 * **Success/failure metrics:** Monitor the current status of your AIP Logic executions with success and failure counts for the underlying function.
 
-![AIP Logic execution metrics displayed in Workflow Lineage.](/docs/resources/foundry/logic/logic-metric-in-wfl-executions.png)
+![AIP Logic execution metrics displayed in Workflow Lineage.](./images/logic-metric-in-wfl-executions.png)
 
 * **P95 duration metric:** Track the 95th percentile (P95) execution duration, helping you detect performance bottlenecks and optimize workflows.
 
-![AIP Logic P95 duration metric displayed in Workflow Lineage.](/docs/resources/foundry/logic/logic-metric-in-wfl-p95.png)
+![AIP Logic P95 duration metric displayed in Workflow Lineage.](./images/logic-metric-in-wfl-p95.png)
 
 You can also access [run history](/docs/foundry/aip-observability/run-history/), which provides a complete view of executions over the past seven days. Learn more about [AIP observability](/docs/foundry/aip-observability/overview/).
 

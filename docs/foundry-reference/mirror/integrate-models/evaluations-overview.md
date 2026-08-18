@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/evaluations-overview/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/evaluations-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Evaluations
 
 An *evaluation* is a collection of metrics, images, plots, and tables that captures how a specific model version performs against a given set of test data. Evaluations allow developers to define evaluation logic that writes these results to an evaluation set associated with the model, where they can be visualized and compared on the model page.
 
-![Example evaluations homepage in the model view.](/docs/resources/foundry/integrate-models/evaluations-base-view.png)
+![Example evaluations homepage in the model view.](./images/evaluations-base-view.png)
 
 Because every evaluation is tied to a single model version, an evaluation set lets you track how a metric evolves across versions as a model is retrained.
 

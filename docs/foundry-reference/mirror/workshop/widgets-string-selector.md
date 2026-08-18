@@ -1,17 +1,18 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-string-selector/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-string-selector/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # String Selector
 
 The String Selector widget can be used to display string options in various selection forms including a dropdown menu, as radio buttons, or a set of checkboxes.
 
-<img src="./media/widgets-string-selector.png" alt="String selector example" width=300>
+<img src="./images/widgets-string-selector.png" alt="String selector example" width=300>
 
 ## Configuration Options
 
 * **Label**
   * Sets an optional label for the widget. This text is displayed across the top of the widget.
 * **Option generation**
-  * **Static:** Manually enter in and reorder option values by using the **Add selector option** button.
+
+  * **Static:** Select **Add selector option** to enter and reorder values. Options appear in the configured order; you cannot pin a subset while sorting the remaining values alphabetically.
   * **Dynamic:** Select an existing or create a new string array variable to be used to generate options for the widget.
 * **Selection**
   * The widget can be set to either allow for a single option selection or multiple option selections.

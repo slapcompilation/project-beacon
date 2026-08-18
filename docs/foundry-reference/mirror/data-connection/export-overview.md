@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/export-overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/export-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Exports
 
@@ -81,7 +81,7 @@ The selected **export mode** specifies how data will be exported during a table 
 
 Export modes are not available for legacy export tasks.
 
-![On the configuration page users see a form that allows them to input the names for the destination table, schema, and dataset](/docs/resources/foundry/data-connection/table-exports-full-screen.png)
+![On the configuration page users see a form that allows them to input the names for the destination table, schema, and dataset](./images/table-exports-full-screen.png)
 
 #### Special considerations for table exports
 
@@ -229,7 +229,7 @@ As an example, you may have a dataset with a `Sensitive` marking in the `Palanti
 
 Exportable markings also control which resource metadata can appear in [Slack notifications from monitoring views](/docs/foundry/monitoring-views/external-systems/#configure-exportable-markings-for-resource-name-visibility).
 
-![enable exports for source](/docs/resources/foundry/data-connection/exports-enable-and-configure-exportable-markings.png)
+![enable exports for source](./images/exports-enable-and-configure-exportable-markings.png)
 
 :::callout{theme="warning"}
 The credentials entered in the Data Connection source configuration must have write access on the table in the external system. For example, [S3](/docs/foundry/available-connectors/amazon-s3/) requires the `"s3:PutObject"` permission. Other [file exports](#file-exports) may require specific permissions to create directories if the target path does not already exist. [Table exports](#table-exports) may require additional permissions [when using an export mode that does truncation](#special-considerations-for-table-exports).
@@ -243,13 +243,13 @@ To create an export, first navigate to the **Overview** page of the source to wh
 
 If this is the first export you are setting up for the given source, you will see an empty table and a button to create an export.
 
-![An empty table on a source export page with a blue Create Export button.](/docs/resources/foundry/data-connection/exports-overview-no-exports-created.png)
+![An empty table on a source export page with a blue Create Export button.](./images/exports-overview-no-exports-created.png)
 
 Select **Create export**, then select the dataset or stream to export and any source-specific export configuration options. These options will vary by source connector and are explained on the corresponding [source type](/docs/foundry/data-integration/source-type-overview/) pages in our documentation. If multiple branches exist on the exported dataset, only data on the master branch will be exported.
 
 The example below shows the export configuration interface for the [S3](/docs/foundry/available-connectors/amazon-s3/) connector:
 
-![The S3 source export configuration page. Available configurations include the dataset and destination for export, the export name, and source-specific settings.](/docs/resources/foundry/data-connection/exports-new-s3.png)
+![The S3 source export configuration page. Available configurations include the dataset and destination for export, the export name, and source-specific settings.](./images/exports-new-s3.png)
 
 After saving the export, you will land on the export management page where you can do the following:
 
@@ -274,7 +274,7 @@ To schedule an export, navigate to the **Overview** page for the export. Then, s
 
 View any schedules that trigger a specific export on the **Overview** page for that export, as shown below:
 
-![A preview of a schedule set to build an export job at 12:30 AM in Europe/London time.](/docs/resources/foundry/data-connection/exports-existing-schedule.png)
+![A preview of a schedule set to build an export job at 12:30 AM in Europe/London time.](./images/exports-existing-schedule.png)
 
 ## Export history
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-categorical-formula-plot/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-categorical-formula-plot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Categorical formula plot
 
@@ -16,7 +16,7 @@ Categorical chart, object selection
 
 In the example below, we add two bar plots together and multiply by the value of a numeric parameter. When writing formulas here, computation between bar plots will be run on matching segments and group-by categories. Single numerical values will be applied to all bars.
 
-![Categorical formula plot example](/docs/resources/foundry/quiver/resource-categorical-formula-plot-example.png)
+![Categorical formula plot example](./images/resource-categorical-formula-plot-example.png)
 
 ## Usage information
 

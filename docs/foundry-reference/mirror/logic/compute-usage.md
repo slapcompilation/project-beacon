@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/compute-usage/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/compute-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Compute usage with AIP Logic
 

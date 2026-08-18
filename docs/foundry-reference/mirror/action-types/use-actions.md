@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/use-actions/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/use-actions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use actions in the platform
 
@@ -10,7 +10,7 @@ In the examples below, we use the term **single action type** to refer to an act
 
 Actions can be added to an [Object View](/docs/foundry/object-views/overview/) using the **Actions section**.
 
-![The Actions section of the Object View](/docs/resources/foundry/action-types/integrate_actions_object_explorer_object_view_actions_section.png)
+![The Actions section of the Object View](./images/integrate_actions_object_explorer_object_view_actions_section.png)
 
 When configuring the **Actions section** you have the option to:
 
@@ -29,19 +29,19 @@ Actions will automatically be shown in three places across [Object Explorer](/do
 
 1. From the **Actions** dropdown in the Exploration View (top right).
 
-![The Actions dropdown in the Exploration View](/docs/resources/foundry/action-types/integrate_actions_object_explorer_exploration_view_actions_dropdown.png)
+![The Actions dropdown in the Exploration View](./images/integrate_actions_object_explorer_exploration_view_actions_dropdown.png)
 
 Using the current set of objects, this dropdown is automatically populated with applicable bulk actions.
 
 2. From the **Object Actions** dropdown menu in the Object View (top right).
 
-![The Object Actions dropdown in the Object View](/docs/resources/foundry/action-types/integrate_actions_object_explorer_object_view_object_actions_dropdown.png)
+![The Object Actions dropdown in the Object View](./images/integrate_actions_object_explorer_object_view_object_actions_dropdown.png)
 
 Using the current object, this dropdown menu is automatically populated with applicable single and bulk action types.
 
 3. From the **Linked objects view section** in the Object View (top).
 
-![The Linked objects view section in the Object View](/docs/resources/foundry/action-types/integrate_actions_object_explorer_object_view_linked_objects_view_section.png)
+![The Linked objects view section in the Object View](./images/integrate_actions_object_explorer_object_view_linked_objects_view_section.png)
 
 Using the selected object(s), this dropdown is automatically populated with applicable single and/or bulk action types.
 
@@ -53,7 +53,7 @@ In "bulk" contexts (where multiple objects are shown in a list view), only actio
 
 In [Workshop](/docs/foundry/workshop/overview/), Actions can be configured and applied using the [**Button group** widget](/docs/foundry/workshop/widgets-button-group/).
 
-![Button group widget in Workshop](/docs/resources/foundry/action-types/integrate_actions_workshop_button_group_widget.png)
+![Button group widget in Workshop](./images/integrate_actions_workshop_button_group_widget.png)
 
 This widget has the same configuration options as the [Actions section](#object-views) in an Object View, with a few notable extensions:
 

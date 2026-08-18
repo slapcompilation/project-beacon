@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-exploration-search-bar/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-exploration-search-bar/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Exploration Search Bar
 
 Use the **Exploration Search Bar** widget to visualize and apply filters to an object set. The widget supports both filtering on properties on the object type and filtering with linked object types and their properties. For more information on how to use the extensive filtering capabilities of the search bar, review the [filter results documentation](/docs/foundry/object-explorer/filter-results/).
 
-![Exploration Search Bar example](/docs/resources/foundry/workshop/widgets-exploration-search-bar.png)
+![Exploration Search Bar example](./images/widgets-exploration-search-bar.png)
 
 ## Configuration options
 

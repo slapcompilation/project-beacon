@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-metric-cards/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-metric-cards/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Get metrics from time series
 
@@ -12,7 +12,7 @@ From a numeric time series, you can use the [time series numeric aggregation](/d
 2. Choose the **Compute metrics** category and select the **time series numeric aggregation** card.
 3. In the editor for the **time series numeric aggregation** card, choose the input time series and select the intended aggregate type.
 
-![Creating a numeric aggregation for time series](/docs/resources/foundry/quiver/time-series-numeric-aggregation.gif)
+![Creating a numeric aggregation for time series](./images/time-series-numeric-aggregation.gif)
 
 If you want to compute the aggregation over a certain time range, you can use the [filter time series](/docs/foundry/quiver/card-filter-time-series/) card to first filter your series to the intended range. Then you can pass the resulting series as input to the numeric aggregation card.
 
@@ -28,4 +28,4 @@ You can also use these computed metrics in downstream cards as numeric inputs. F
 
 This results in a filtered time series containing only the days with temperatures more than one standard deviation away from the average.
 
-![Using the computed metrics to filter a series](/docs/resources/foundry/quiver/time-series-filter-on-aggregation-values.gif)
+![Using the computed metrics to filter a series](./images/time-series-filter-on-aggregation-values.gif)

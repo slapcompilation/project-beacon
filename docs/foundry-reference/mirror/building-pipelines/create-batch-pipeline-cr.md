@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-cr/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/create-batch-pipeline-cr/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create a dataset batch pipeline with Code Repositories
 
@@ -10,7 +10,7 @@ Get started by creating a new repository. To do so, navigate to a [Project](/doc
 
 For this guide, we will write a SQL transform. Give your repository a name, then select **SQL** in the dropdown under **Language template**. Then, select **Initialize repository**.
 
-![new-branch-dialog](/docs/resources/foundry/building-pipelines/initialize-repository.png)
+![new-branch-dialog](./images/initialize-repository.png)
 
 ## 2. Import your data
 
@@ -20,7 +20,7 @@ If you’ve already imported a raw dataset that you will be working with, you ca
 
 Refer to the guide on [manual data uploads](/docs/foundry/compass/manually-upload-data/) to learn how to upload this dataset into your Project alongside your repository.
 
-![repository and dataset](/docs/resources/foundry/building-pipelines/repo-and-dataset.png)
+![repository and dataset](./images/repo-and-dataset.png)
 
 ## 3. Create a branch
 
@@ -28,11 +28,11 @@ By creating personal **branches** to make changes, instead of directly editing t
 
 When you navigate to a Code Repository, you will be on the `master` branch by default. It is best practice for the `master` branch to be protected, meaning that it is not possible to directly edit code on that branch. Note that you can read files on protected branches, but you cannot edit or create files.
 
-Before you can add changes to your Code Repository, you must first create your own branch which contains a copy of the code on the `master` branch. To create your branch, click the <img src="./media/new-branch.png" alt ="new-branch" width="25"> icon next to the current branch name.
+Before you can add changes to your Code Repository, you must first create your own branch which contains a copy of the code on the `master` branch. To create your branch, click the <img src="./images/new-branch.png" alt ="new-branch" width="25"> icon next to the current branch name.
 
 This opens a dialog for selecting an existing branch and choosing a custom name for the new branch:
 
-![new-branch-dialog](/docs/resources/foundry/building-pipelines/new-branch-dialog.png)
+![new-branch-dialog](./images/new-branch-dialog.png)
 
 After you create a new branch, you will see an identical file tree on the left-hand side. You’ve simply created a copy of the code on the `master` branch you started on. You can now edit files in your branch.
 
@@ -42,7 +42,7 @@ After you create a new branch, you will see an identical file tree on the left-h
 
 Now that you’re working in your own branch, create a new SQL file by clicking the ellipses icon when you hover over a folder and then selecting **New file**. Once you select **New file**, you will be prompted to select the type of file and give it a name. For this example, select **SQL Transformation** and pick a filename (without spaces or special characters):
 
-![create-new-file](/docs/resources/foundry/building-pipelines/create-new-file.gif)
+![create-new-file](./images/create-new-file.gif)
 
 Notice that your new SQL file is highlighted in the file tree at the position where the resulting dataset will exist when you build it.
 
@@ -60,15 +60,15 @@ Notice that when you start typing a backtick, auto-complete will show you an int
 
 Type the name of your project in the backticks, find the `titanic` dataset, and select it from the menu.
 
-![select dataset](/docs/resources/foundry/building-pipelines/select-dataset.png)
+![select dataset](./images/select-dataset.png)
 
 Continue writing SQL code to perform transformations on your data. You will see various help dialogs appear as you type SQL functions. For instance, say you want to create a new column with a one-letter abbreviated gender of passengers in your “titanic” dataset. You can view information about how to use the `SUBSTRING` function:
 
-![verb-autocomplete](/docs/resources/foundry/building-pipelines/verb-autocomplete.png)
+![verb-autocomplete](./images/verb-autocomplete.png)
 
 Before moving on, finish writing your data transformation code to select the “Name”, “Age”, “Survived”, and “Ticket” columns as well as a derived column called “Gender”. The “Gender” column represents the abbreviated gender of passengers; to create this column, call the `SUBSTRING` function on the “Sex” column.
 
-![finished-code](/docs/resources/foundry/building-pipelines/finished-code.png)
+![finished-code](./images/finished-code.png)
 
 Note that you must define an alias for any derived columns you create in SQL. For more information about writing SQL data transformations, refer to the [Spark SQL language reference](/docs/foundry/transforms-sql/spark-reference/).
 
@@ -105,15 +105,15 @@ After writing new code, you can commit your changes. In Code Repositories, you c
 Clicking the **Commit** button commits your changes and runs automatic checks on your code. Clicking the **Build** button also commits your changes. Specifically, clicking **Build** runs automatic code checks and starts building your output dataset. If you want to quickly test your changes without building your dataset to ensure your code passes the code checks, click **Commit**. Otherwise, you can skip ahead to [build your dataset](#build-your-dataset-on-your-branch).
 :::
 
-To commit the changes you’ve made, click the <img src="./media/commit.png" alt ="commit" width="80"> button at the top right corner and enter a summary of the changes you've made. Committing changes triggers automatic checks to run on your code. An icon in the top-right corner indicates the status of these checks; hover over it to see more details.
+To commit the changes you’ve made, click the <img src="./images/commit.png" alt ="commit" width="80"> button at the top right corner and enter a summary of the changes you've made. Committing changes triggers automatic checks to run on your code. An icon in the top-right corner indicates the status of these checks; hover over it to see more details.
 
-![check-status](/docs/resources/foundry/building-pipelines/check-status.png)
+![check-status](./images/check-status.png)
 
 ### Build your dataset on your branch
 
-To test your changes, click the <img src="./media/build-button.png" alt ="build-button" width="70"> button at the top of the screen.
+To test your changes, click the <img src="./images/build-button.png" alt ="build-button" width="70"> button at the top of the screen.
 
-Once you click the build button, two things happen: automatic checks run on your code and your output dataset starts to build. During this time, either a new output dataset will be created from the code in your branch or an existing output dataset will get updated to reflect your changes. You can view the progress of the running tasks in the **Build** helper. Once the tasks complete, the <img src="./media/checks-passed.png" alt ="checks-passed" width="25"> icon indicates that each task has successfully completed. If you see the <img src="./media/checks-failed.png" alt ="checks-failed" width="25"> icon instead, click the **details** button in the **Build** helper to learn more about what went wrong. This will take you to the **Checks** tab where you can look for error messages and also re-trigger your build.
+Once you click the build button, two things happen: automatic checks run on your code and your output dataset starts to build. During this time, either a new output dataset will be created from the code in your branch or an existing output dataset will get updated to reflect your changes. You can view the progress of the running tasks in the **Build** helper. Once the tasks complete, the <img src="./images/checks-passed.png" alt ="checks-passed" width="25"> icon indicates that each task has successfully completed. If you see the <img src="./images/checks-failed.png" alt ="checks-failed" width="25"> icon instead, click the **details** button in the **Build** helper to learn more about what went wrong. This will take you to the **Checks** tab where you can look for error messages and also re-trigger your build.
 
 Here is some important information about testing your changes and building your datasets:
 
@@ -125,7 +125,7 @@ Here is some important information about testing your changes and building your 
 
 Once your tasks successfully complete and your dataset gets built, you can preview your built dataset in the **Build** helper:
 
-![preview-dataset](/docs/resources/foundry/building-pipelines/preview-dataset.png)
+![preview-dataset](./images/preview-dataset.png)
 
 Click on the link to your dataset in the **Build** helper to open your full dataset.
 
@@ -146,9 +146,9 @@ Now, you will propose your changes for review by your teammates. After you’ve 
 Users with **Owner** permissions will be able to enable the option to “Automatically merge changes” when creating a *pull request*. This option is only available if at least one required check is configured and passing for your repository’s branch. If you enable the option to “Automatically merge changes”, your *pull request* will automatically get merged into the main code after you create it. Once the changes from your branch are merged into the main code, your branch will also get automatically deleted.
 :::
 
-To create a new **Pull Request**, click the <img src="./media/propose-changes.png" alt ="propose-changes" width="110"> button at the top right corner. This will open the "New pull request" page where you can write a description of your changes and click the **Create pull request** button.
+To create a new **Pull Request**, click the <img src="./images/propose-changes.png" alt ="propose-changes" width="110"> button at the top right corner. This will open the "New pull request" page where you can write a description of your changes and click the **Create pull request** button.
 
-![pr-page](/docs/resources/foundry/building-pipelines/pr-page.png)
+![pr-page](./images/pr-page.png)
 
 This creates a new pull request with your proposed changes. The pull request page provides a wide range of tools you can use to review how the proposed changes will affect your data pipeline:
 
@@ -184,9 +184,9 @@ Once your proposed changes have been accepted, you should validate that your the
 Do not delete any branches that you did not create. For others working in the same Code Repository, this could result in lost work!
 :::
 
-Now you can delete the branch you created at the start of this tutorial to reduce clutter. Since your changes have been merged into the `master` branch, there is no need to keep your branch. Navigate to the **Branches** tab, and look under “Personal branches”. Delete the branch you created by clicking the <img src="./media/trash.png" alt ="trash" width="25">  icon:
+Now you can delete the branch you created at the start of this tutorial to reduce clutter. Since your changes have been merged into the `master` branch, there is no need to keep your branch. Navigate to the **Branches** tab, and look under “Personal branches”. Delete the branch you created by clicking the <img src="./images/trash.png" alt ="trash" width="25">  icon:
 
-![delete-branch](/docs/resources/foundry/building-pipelines/delete-branch.png)
+![delete-branch](./images/delete-branch.png)
 
 :::callout{theme="neutral"}
 The pull request page offers a "Delete branch after merge" option to allow for quick clean-up of branches. This option is unavailable for protected branches.
@@ -196,7 +196,7 @@ To delete a protected branch, you first need to [unprotect](/docs/foundry/code-r
 
 ## 8. Build your dataset on the `master` branch
 
-The final step is to build your new dataset on the `master` branch. Similar to [build the dataset in your branch](#build-your-dataset-on-your-branch), click the <img src="./media/build-button.png" alt="build" width="86"> button at the top of the screen when your SQL code file is selected.
+The final step is to build your new dataset on the `master` branch. Similar to [build the dataset in your branch](#build-your-dataset-on-your-branch), click the <img src="./images/build-button.png" alt="build" width="86"> button at the top of the screen when your SQL code file is selected.
 
 Once your tasks successfully complete and your dataset gets built, you can click on the link to your dataset in the **Build** helper to open your full dataset.
 
@@ -210,6 +210,6 @@ Congratulations! You have successfully created a new data transformation and pub
 
 If you notice problems with a code change you have already merged into the master branch, there is an easy way to undo those changes. You can revert a specific commit by locating it in the commit history of the master branch. On the **Branches** tab of your repository, click on `master` to see the chronological list of all commits.
 
-![commit-history](/docs/resources/foundry/building-pipelines/commit-history.png)
+![commit-history](./images/commit-history.png)
 
 You can view a certain commit's code changes by clicking on the commit hash. Once you have located the commit you want to revert, click **Revert**. This will open a pull request into the master branch which you can review and merge.

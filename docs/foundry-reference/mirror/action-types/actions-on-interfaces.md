@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/actions-on-interfaces/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/actions-on-interfaces/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Actions on interfaces
 

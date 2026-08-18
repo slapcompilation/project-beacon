@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-evals/intermediate-parameters/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-evals/intermediate-parameters/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use intermediate parameters to evaluate block output
 
@@ -13,4 +13,4 @@ To set up intermediate parameters for evaluation, follow these steps:
 1. Select the flask icon on an AIP Logic block to expose the output as intermediate parameter.
 2. Select the new intermediate parameter in the evaluator configuration panel to evaluate the output.
 
-![Set up intermediate parameters for evaluation.](/docs/resources/foundry/aip-evals/aip-evals-set-up-intermediate-parameters.png)
+![Set up intermediate parameters for evaluation.](./images/aip-evals-set-up-intermediate-parameters.png)

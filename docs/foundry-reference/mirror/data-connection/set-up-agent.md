@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-agent/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-agent/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up an agent
 
@@ -52,7 +52,7 @@ The recommended limits are as follows:
 * **Stack size:** Hard and soft limit of 32768 (KB)
 * **Max locked memory:** Hard and soft limit of "unlimited"
 
-<img alt="Agent requirements" src="./media/agent-requirements.png" width="600px">
+<img alt="Agent requirements" src="./images/agent-requirements.png" width="600px">
 
 ### Configure agent network access
 
@@ -75,13 +75,13 @@ The agent requires network egress to reach the Foundry VPC, which is accessed th
 
 You can copy Foundry's domain name and port from the **Server Setup** tab in the agent setup workflow in Data Connection to appropriately configure egress network access.
 
-![A diagram of how network egress works in Data Connection.](/docs/resources/foundry/data-connection/agent-egress.svg)
+![A diagram of how network egress works in Data Connection.](./images/agent-egress.svg)
 
 #### Ingress in Foundry
 
 Foundry must allow inbound traffic from your server's IP. You can manage ingress rules from the [**Network ingress** page in Control Panel](/docs/foundry/administration/configure-ingress/). Your Foundry domain will not be accessible from outside of your approved ingress rules.
 
-![A diagram of how network ingress works in Data Connection.](/docs/resources/foundry/data-connection/agent-ingress.svg)
+![A diagram of how network ingress works in Data Connection.](./images/agent-ingress.svg)
 
 ### Secure an agent host with firewall
 

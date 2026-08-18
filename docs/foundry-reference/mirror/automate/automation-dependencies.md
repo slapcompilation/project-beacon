@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/automation-dependencies/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/automation-dependencies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Automation dependencies
 
@@ -49,4 +49,4 @@ Automation dependencies have the following limitations:
 
 * **Single dependency only:** Automation dependencies only support a single dependency (parent → child). Multi-level chains (parent → child → grandchild) are not supported.
 * **Requires Project-scoped supported object types:** The monitored object type must support Project scoping.
-* **Branching not supported:** Automation dependencies cannot be used with branching workflows.
+* **Not supported on branches:** The automation dependency condition cannot be used when building automations on a branch. For more information on branching support for automations, see [Branching automations](/docs/foundry/automate/branching-automations/).

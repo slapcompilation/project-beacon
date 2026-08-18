@@ -739,6 +739,74 @@ needs the isolate to marshal it, and a token the runtime cannot carry is worse
 than a missing one** — the signature would pass and the call would fail. So the
 list grows one type at a time, when something needs to pass one.
 
+### The drift sweep (2026-08-18/19) — the corpus moved under fourteen readings
+
+`check:doc-drift` had been failing with **36 pages changed upstream across 14
+readings**. Swept: every affected section re-mirrored, every stale citation
+replaced with current wording, and the material findings written into the
+readings that own them.
+
+**The two guards are one mechanism, and this is the first time it ran end to
+end.** Drift says *a page moved*; re-mirroring it makes `check:readings` fail on
+*the exact sentence we were standing on*. Six citations surfaced that way. A
+reading is not re-verified by re-reading it — it is re-verified by refreshing the
+mirror underneath it and seeing what breaks.
+
+**Nothing shipped was falsified, and the near-miss is the lesson.** `retries`
+now says function effects "may receive immediate, short-term retries", which
+reads like `automation_effects_retries_where_allowed` (restricting configured
+retries to action and logic) is wrong. It is not — the sentence that constraint
+was built on is still on the page verbatim, and the sweep added a *second*
+mechanism, which `effects` now names separately as per-effect automatic retries
+versus event retries. **When a drifted page seems to contradict a constraint,
+re-read the page, not the diff.** A diff shows what moved and never what still
+holds.
+
+**Two real divergences, both recorded with Decisions blocks, neither built:**
+
+* **We always allow overlapping schedule runs.** `create-schedule` now documents
+  a default — a schedule does not start a new run while another is in progress —
+  and `schedule_candidates()` filters on `NOT s.paused` and nothing else. So
+  Foundry's opt-in behaviour is our only behaviour, unstated, with the pg_cron
+  heartbeat firing every minute. Not a regression (the sentence is new), but a
+  *silent* divergence: nothing fails, runs pile up.
+* **A time condition takes one cron, and Foundry now takes several.**
+  Non-overlap is stated as a requirement on the author, never as a platform
+  refusal — so a CHECK enforcing it would be inventing enforcement.
+
+**Three additive gaps recorded, deliberately not built:** download is a separate
+permission from view, and *which resource* it is checked on depends on where the
+object type lives; a manual automation run reads its input object set as the
+person who started it, not the owner — the first documented exception to
+executing as the owner; and Automate discards edits returned by function
+effects, so the supported route is a function-backed action.
+
+**The sweep repaired something nobody was looking for.** 108 mirrored files
+carried `<img src="./media/…">` references, and **no `media/` directory exists
+anywhere in the corpus** — every one of them pointed at nothing. `map` and
+`data-connection` had zero images on disk at all. For a protocol whose second
+step is "read every paragraph, and every image", that was a silent hole, and
+re-mirroring closes it — 108 files down to **one**.
+
+That last one is its own small finding. `superrepo` still carries a dangling
+reference because the section has no URLs in `all-foundry-urls.txt`, so
+`--refresh superrepo` printed a line and did nothing. **A refresh that skips a
+section reports the same as a refresh that succeeds**, and the sitemap this
+index derives from caps at 5,000 entries — which is how a mirrored section ends
+up unreachable by the tool that maintains it.
+
+**And a correction I made and had to unmake.** Mid-sweep I concluded the drift
+checker had a false positive — that it compared our rewritten image paths
+against upstream's originals, so any page with an image would drift forever. It
+does not. `check-doc-drift`'s `normalise` strips HTML tags outright and reduces
+`![alt](path)` to its alt text, so both halves of our rewrite vanish before the
+comparison; verified by running the real function over both forms. What actually
+had the weak normalisation was **the throwaway probe script I wrote to classify
+the 36**, and I attributed its blind spot to the checker. All 36 were real prose
+changes, as first reported. The lesson is small and exact: **when a tool and a
+scratch script disagree, the scratch script is the suspect** — and running the
+real function takes a minute.
+
 **47% of the documentation is not mirrored**, concentrated in `api/` (1,131
 pages) — the corpus that has falsified our CHECK constraints twice. Refresh the
 index with `--urls` before concluding a page does not exist.

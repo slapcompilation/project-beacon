@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-enum-value-at-time/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-enum-value-at-time/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Enum value at time
 
@@ -16,7 +16,7 @@ String
 
 ## Examples
 
-![Enum value at time example](/docs/resources/foundry/quiver/card-enum-value-at-time.png)
+![Enum value at time example](./images/card-enum-value-at-time.png)
 
 ## Usage information
 

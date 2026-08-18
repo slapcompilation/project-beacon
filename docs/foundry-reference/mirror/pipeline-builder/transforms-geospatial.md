@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-geospatial/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-geospatial/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create geospatial transforms
 
@@ -42,7 +42,7 @@ Additional expressions exist to translate between the above two types, as well a
 
 ## Transforming geospatial data
 
-Once you have populated your columns of Pipeline Builder’s geospatial types, you can take advantage of transforms that operate specifically on geospatial data. Most transforms (except for geo-joins) are currently supported in both streaming and batch workflows. Some highlights are listed below.
+Once you have populated your columns of Pipeline Builder’s geospatial types, you can take advantage of transforms that operate specifically on geospatial data. Most transforms are supported in both streaming and batch workflows. Some highlights are listed below.
 
 ### Geometry comparisons
 
@@ -73,8 +73,10 @@ Once you have populated your columns of Pipeline Builder’s geospatial types, y
 Pipeline Builder supports the following geospatial joins:
 
 * [Geometry intersection joins](#geometry-intersection-joins)
+* [Geometry intersection anti joins](#geometry-intersection-anti-joins)
 * [Geometry distance joins](#geometry-distance-joins)
 * [Geometry nearest neighbor joins](#geometry-k-nearest-neighbors-knn-joins)
+* [Approximate nearest neighbor (ANN) joins](#approximate-nearest-neighbor-ann-joins)
 
 #### Geometry intersection joins
 
@@ -87,6 +89,12 @@ Geometry intersection joins that have a number of rows in the output comparable 
 :::
 
 As an alternative to the geometry intersection join, the cross join configured with the “Geometries have intersection” filter may provide more stable memory usage. However, this approach could lead to a sharp increase in build times.
+
+#### Geometry intersection anti joins
+
+Pipeline Builder's geometry intersection anti join returns rows from the left dataset where the geometry does not intersect with any geometry in the right dataset. This join is supported in both batch and streaming pipelines.
+
+The geometry intersection anti join requires two datasets, each of which must have a geometry typed column. Similar to intersection joins, we recommend normalizing the geometry column and explicitly filtering out `null` values if they are not needed in the output.
 
 #### Geometry distance joins
 
@@ -114,6 +122,12 @@ Note that this join has two requirements:
 In practice, Pipeline Builder supports modest values of `k` (< 5) with up to a few hundred thousand rows in the neighbors dataset and 1 million geometries in the base dataset. When both datasets have a few hundred thousand rows, Pipeline Builder can support much larger values of `k`. Finding up to several hundred nearest neighbors should finish quickly in such cases. Increasing the scale of the inputs beyond this point may succeed intermittently, but is not currently supported in general.
 :::
 
+#### Approximate nearest neighbor (ANN) joins
+
+Pipeline Builder's approximate nearest neighbor (ANN) join provides an alternative to the KNN join that prioritizes processing speed over exact precision. Unlike the KNN join, which finds the exact K nearest neighbors for each row, the ANN join uses estimated close matches to provide substantial improvements in processing speed with only a slight reduction in precision.
+
+Consider using the ANN join when processing speed is a priority over exact precision, or when working with large datasets where exact KNN joins would be too slow. For use cases requiring exact nearest neighbor results, use the [geometry KNN join](#geometry-k-nearest-neighbors-knn-joins) instead.
+
 #### Troubleshooting
 
 If your join is encountering stability issues, use the following steps to remediate:
@@ -128,11 +142,11 @@ If your join is encountering stability issues, use the following steps to remedi
 
 Once you have finished transforming your data in Pipeline Builder, you can validate the results of these transforms visually on a map. In the regular preview pane, select the cells you would like to preview on a map (the cells must be from columns of one of the geospatial types mentioned above). Right-click and select **Open Geo Preview**.
 
-<img src="./media/transforms-geo-open-preview@2x.png" alt="Open the geo preview from the preview pane." width="800">
+<img src="./images/transforms-geo-open-preview@2x.png" alt="Open the geo preview from the preview pane." width="800">
 
 A new preview tab will appear, displaying the selected cells plotted on a map.
 
-<img src="./media/transforms-geo-see-preview@2x.png" alt="The geo preview of selected cells." width="800">
+<img src="./images/transforms-geo-see-preview@2x.png" alt="The geo preview of selected cells." width="800">
 
 ## Using geospatial data with the Ontology
 

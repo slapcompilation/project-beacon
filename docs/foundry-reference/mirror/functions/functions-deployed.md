@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/functions-deployed/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/functions-deployed/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Deploy functions
 
@@ -15,6 +15,7 @@ Deployed functions have some capabilities that are not available to serverless f
 * The long-lived nature of deployed functions means that local caching may be possible if the function is tolerant to restarts.
 * Serverless functions support [external sources](/docs/foundry/functions/api-calls/) using the client from the provided source object, but they do not support third-party clients. You must deploy your function to make external API calls with third-party clients.
 * Deployed functions support GPU allocations to accelerate computationally intensive model training and inference workflows through parallel processing, while serverless functions do not.
+* Deployed functions have access to the full service discovery API, while serverless functions have access to only a limited subset of service discovery APIs such as `api_gateway` and `telemetry`.
 
 Deployed functions have some limitations that do not apply to serverless execution:
 
@@ -34,6 +35,8 @@ We recommend using serverless functions if enabled on your enrollment, rather th
 
 When your function is deployed, a long-running environment will be created to handle incoming execution requests. The environment will be scaled according to the request volume and occasionally restarted by automated processes. All functions from a single repository are hosted by a single deployment.
 
+A function's execution mode and deployment configuration are packaged and reproduced when the function is shipped through Marketplace. Review [deployed functions in Marketplace](/docs/foundry/functions/marketplace-functions/#deployed-functions) for details and limitations.
+
 :::callout{theme="warning" title="Compute costs"}
 Deployed functions will incur compute costs for the running deployment. Serverless functions will only incur costs when executed.
 :::
@@ -45,26 +48,26 @@ Follow the steps below to configure and deploy a function:
 1. Open your function repository and navigate to the **Branches** tab, then select **Tags and releases**.
 2. Hover over the function you want to deploy, then select **Open in Ontology Manager**.
 
-![Open the selected function in Ontology Manager.](/docs/resources/foundry/functions/python-functions-open-ontology-manager-v2.png)
+![Open the selected function in Ontology Manager.](./images/python-functions-open-ontology-manager-v2.png)
 
 3. Select the version of the function you want to use from the version selector on the left.
 4. Select **Configure execution**.
 
-![Configure execution for a function.](/docs/resources/foundry/functions/python-functions-configure-execution.png)
+![Configure execution for a function.](./images/python-functions-configure-execution.png)
 
 5. If serverless functions are enabled in your environment, you will see an option to switch between serverless and deployed. If unselected and no deployment exists, serverless will be used by default.
 
-![The settings for a function in serverless mode.](/docs/resources/foundry/functions/python-functions-serverless-mode-configuration.png)
+![The settings for a function in serverless mode.](./images/python-functions-serverless-mode-configuration.png)
 
 6. Select the **Deployed** execution mode option.
 
 7. If no deployment exists for the function, select **Create deployment**.
 
-![The settings for a function in deployed mode without an existing deployment.](/docs/resources/foundry/functions/python-functions-create-deployment.png)
+![The settings for a function in deployed mode without an existing deployment.](./images/python-functions-create-deployment.png)
 
 8. Defaults will be applied for the configuration when the deployment is first created. You can view the entire configuration by scrolling down to the end of the page.
 
-![The settings for a function in deployed mode.](/docs/resources/foundry/functions/python-functions-deployed-mode-configuration.png)
+![The settings for a function in deployed mode.](./images/python-functions-deployed-mode-configuration.png)
 
 9. Modify the deployment configuration as needed. You can configure the following:
    * The compute resources allocated to the deployment, including CPU, GPU, and memory.
@@ -72,14 +75,14 @@ Follow the steps below to configure and deploy a function:
    * The environment variables that will be set for the deployment upon startup.
    * The total duration the function is allowed to run before returning a timeout error. Unlike the other deployment settings, timeout is configured individually for each function version.
 
-![Modifying the memory allocation for a function in deployed mode.](/docs/resources/foundry/functions/python-functions-modify-deployment-memory-allocation.png)
+![Modifying the memory allocation for a function in deployed mode.](./images/python-functions-modify-deployment-memory-allocation.png)
 
 10. Select **Save and start deployment** to save any changes and launch the deployment. You may also select **Save without starting deployment** to save the configuration without launching the deployment.
 
-![Save and start deployment for a function in deployed mode.](/docs/resources/foundry/functions/python-functions-save-and-start-deployment.png)
+![Save and start deployment for a function in deployed mode.](./images/python-functions-save-and-start-deployment.png)
 
 11. If you chose to **Save and start deployment** option is selected, you will need to wait for the deployment that is hosting the function to start up. This may take a few minutes.
 
 12. To verify that the deployment is running, navigate to the code repository containing the function and run the function. The function should execute successfully and return the expected result.
 
-![Running a function in deployed mode.](/docs/resources/foundry/functions/python-functions-run-deployed-function.png)
+![Running a function in deployed mode.](./images/python-functions-run-deployed-function.png)

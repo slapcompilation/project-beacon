@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/example-applications/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/example-applications/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Example applications
 
@@ -6,16 +6,16 @@
 
 Create ready-to-use applications using your own data directly from the Workshop home page. Currently, there is support for building an inbox, map, and metrics application.
 
-<img src="./media/splash-page-templates.png" alt="Image showing inbox, map, and metrics templates for Workshop." width="1000">
+<img src="./images/splash-page-templates.png" alt="Image showing inbox, map, and metrics templates for Workshop." width="1000">
 
 To begin, choose the template you would like to use. Then, simply select an object type and relevant properties to be used in the template. The images below illustrate this process for the creation of a map application.
 
-<img src="./media/map-template-overview.png" alt="Image showing a preview and description of the map template." width="800">
-<img src="./media/map-template-inputs.png" alt="Image showing object type and property inputs for the map template." width="800">
+<img src="./images/map-template-overview.png" alt="Image showing a preview and description of the map template." width="800">
+<img src="./images/map-template-inputs.png" alt="Image showing object type and property inputs for the map template." width="800">
 
 Once you have chosen a save location for the module and selected **Create module**, you will have a ready-to-use template with the data you inputted.
 
-<img src="./media/map-template.png" alt="Image showing the map Workshop application." width="1200">
+<img src="./images/map-template.png" alt="Image showing the map Workshop application." width="1200">
 
 ## Workshop Design Hub
 
@@ -25,7 +25,7 @@ The Design Hub consists of six high-quality Workshop application examples for yo
 
 Design Hub modules are intended as design examples and inspiration rather than ready-made app templates. These example modules come with notional data and provide functional end-to-end apps which can be reverse-engineered and analyzed by app builders. We hope that the concepts and patterns in Design Hub modules can be applied to new apps that you build or existing apps that you manage.
 
-![workshop\_design\_hub\_splash\_page](/docs/resources/foundry/workshop/workshop-design-hub-splash-page.png)
+![workshop\_design\_hub\_splash\_page](./images/workshop-design-hub-splash-page.png)
 
 ### Supported Workshop applications
 
@@ -58,7 +58,7 @@ A common application type built in Workshop is an inbox. Often, the core compone
 
 The example below shows an example Workshop inbox displaying information about Flight Alerts that require triage, review, and action. Core widgets used include the Prominent Terms Filter, [Filter List](/docs/foundry/workshop/widgets-filter-list/), [Object Table](/docs/foundry/workshop/widgets-object-table/), and [Button Group](/docs/foundry/workshop/widgets-button-group/). Additionally, [state saving](/docs/foundry/workshop/state-saving/) is enabled to allow users to preserve the inbox settings most relevant to them and also share these saved views with other users.
 
-![example inbox](/docs/resources/foundry/workshop/example-inbox.png)
+![example inbox](./images/example-inbox.png)
 
 ### Common operating pictures
 
@@ -66,4 +66,4 @@ Senior leaders often need a way to understand how the critical parts of their or
 
 The example below shows an example Workshop common operating picture overlaying COVID case information atop retail store sales and operations data. The aim is to help a store manager understand store performance and more effectively adjust their plans as local case counts change. Core widgets used include the [Metric Card](/docs/foundry/workshop/widgets-metric-card/), [Map](/docs/foundry/workshop/widgets-map/), [Chart: XY](/docs/foundry/workshop/widgets-chart/), and [Object Table](/docs/foundry/workshop/widgets-object-table/).
 
-![example common operating picture](/docs/resources/foundry/workshop/example-cop.png)
+![example common operating picture](./images/example-cop.png)

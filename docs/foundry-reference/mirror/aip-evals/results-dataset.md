@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-evals/results-dataset/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-evals/results-dataset/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Write run results to a dataset
 
@@ -28,4 +28,4 @@ After these steps, the dataset will be ready for use, and running the evaluation
 
 Note that if you remove a run results dataset, you will not be able to select it again. You will need to create a new dataset.
 
-![Set up run results dataset.](/docs/resources/foundry/aip-evals/aip-evals-set-up-results-dataset.png)
+![Set up run results dataset.](./images/aip-evals-set-up-results-dataset.png)

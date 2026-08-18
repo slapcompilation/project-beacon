@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/upload-image-container-model/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/upload-image-container-model/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Upload images with a container model
 
@@ -10,9 +10,9 @@ To create a container-backed model, first create the resource to which the image
 
 Create a new model by navigating to any modeling objective and select **+Add model**, then **Import containerized model**.
 
-![Add model button on the top right of the Objective page](/docs/resources/foundry/integrate-models/create-model-in-objective.png)
+![Add model button on the top right of the Objective page](./images/create-model-in-objective.png)
 
-![Add model dialog, with Import containerized model highlighted](/docs/resources/foundry/integrate-models/add-model-dialog.png)
+![Add model dialog, with Import containerized model highlighted](./images/add-model-dialog.png)
 
 ## 2. Push an image to the model
 
@@ -22,13 +22,13 @@ The image(s) you push must adhere to Foundry's [image requirements](/docs/foundr
 
 After creating a model resource in Palantir, follow the instructions to push your images into the Asset.
 
-![New container model landing page, with push image highlighted](/docs/resources/foundry/integrate-models/new-model-landing-page.png)
+![New container model landing page, with push image highlighted](./images/new-model-landing-page.png)
 
 Select **Generate token**, then copy the block of default commands and edit them to replace `example-package:<TAG>` with the image name and tag (or digest) present in your local Docker repository. Note that the tag is not allowed to be 'latest' per [the image requirements](/docs/foundry/transforms-container/container-overview/#image-requirements). Executing these commands will push the relevant image into the model, where it can be accessed by anyone with `Viewer` permissions.
 
 Once the images have been successfully pushed and are available in the container images list, select **Create model version** to start configuring your version. To do this, you must first author a [container model adapter](/docs/foundry/integrate-models/container-model-adapter-example/) created with the [model adapter library template](/docs/foundry/integrate-models/model-adapter-creation/#model-adapter-library-template).
 
-![Container images tab, with create model version highlighted](/docs/resources/foundry/integrate-models/container-images-tab.png)
+![Container images tab, with create model version highlighted](./images/container-images-tab.png)
 
 :::callout{theme="neutral"}
 Depending on the size of the image(s), it may take several minutes for your container images to be available in the model.
@@ -61,17 +61,17 @@ def compute(source_df, output):
 
 On the **Configure model Version** page, select one or more container images to be included in the specific model version. Select **Next** to proceed to the model version configuration.
 
-![First page of the model version creation dialog](/docs/resources/foundry/integrate-models/model-configuration-page-1.png)
+![First page of the model version creation dialog](./images/model-configuration-page-1.png)
 
 On the **Model details** page of the **Configure model** dialog, configure the type of semantic version change to make. Then, add an optional description and configuration file and select the adapter you created. Choose your model adapter repository in the **Model adapter** configuration section, and the **Select a model adapter** dropdown will populate with the latest versions of any valid adapters defined in the repository.
 
-![Second page of the model version creation dialog](/docs/resources/foundry/integrate-models/model-configuration-page-2.png)
+![Second page of the model version creation dialog](./images/model-configuration-page-2.png)
 
 Finally, configure any optional runtime information for each image, including memory constraints, arguments, any environment variables, or a new exec command. Note that specifying the port on which the image is listening is critical if your adapter uses the requests library. You can configure the runtime information for each image selected for the model version.
 
 Models can be configured to produce telemetry logs. If your [container supports telemetry](/docs/foundry/integrate-models/container-models-faq/#how-do-i-enable-telemetry-on-my-model), you can enable it to the model version on the step shown in the screenshot below.
 
-![Third page of the model version creation dialog](/docs/resources/foundry/integrate-models/model-configuration-page-3.png)
+![Third page of the model version creation dialog](./images/model-configuration-page-3.png)
 
 ## 4. View model versions
 

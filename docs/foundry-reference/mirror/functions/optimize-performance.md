@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/optimize-performance/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/optimize-performance/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Optimize performance
 
@@ -22,7 +22,7 @@ For more information about how compute-seconds are calculated and measured in th
 
 The performance tab provides a tool to analyze and identify performance issues with your functions.
 
-![functions-performance-tab](/docs/resources/foundry/functions/functions-performance-tab.png)
+![functions-performance-tab](./images/functions-performance-tab.png)
 
 The waterfall graph represents operations as horizontal bars stretched out across time on the X-axis. There are markers for each operation to indicate how time is spent.
 
@@ -309,7 +309,11 @@ When you need to compute aggregates like counts, sums, or averages, use the Onto
 
 ## Prefer using the Objects API where possible
 
-A common paradigm when using [Workshop's derived properties](/docs/foundry/workshop/widgets-object-table/#function-backed-columns) is to calculate the property value by aggregating over each object's links (for example, counting the number of related objects).
+[Workshop function-backed columns](/docs/foundry/workshop/widgets-object-table/#function-backed-columns) often calculate values by aggregating over each object's links, such as by counting related objects.
+
+:::callout{theme="neutral"}
+Function-backed columns are distinct from [derived properties](/docs/foundry/workshop/derived-properties/), which are configured directly in Workshop without writing code.
+:::
 
 Although the code below works, the function itself must retrieve all linked objects, and then perform an aggregation (in this case, calculating the length):
 
@@ -736,7 +740,7 @@ export class MyFunctions {
 
 ## Optimize derived column generation
 
-Workshop supports computing derived properties using functions on objects (FOO). Workshop applications typically call these functions with a few dozen rows of content from an object table. The function then returns a map where each object is mapped to the display value in the derived column.
+Workshop supports computing function-backed columns using functions on objects (FOO). Workshop applications typically call these functions with a few dozen rows of content from an object table. The function then returns a map where each object is mapped to the display value in the derived column.
 
 ### Base implementation without optimization
 

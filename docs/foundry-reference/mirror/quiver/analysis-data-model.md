@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-data-model/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-data-model/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Data model
 
@@ -20,11 +20,11 @@ For example, a [filter object set](/docs/foundry/quiver/card-filter-object-set/)
 
 Understanding a card's output type, and which downstream cards it can be used in is a very important concept in Quiver. Fortunately, Quiver's [next actions menu](/docs/foundry/quiver/analysis-toolbars/#next-actions-menu), which is shown when hovering over a card, helps simplify this problem.  It only shows cards that are able to take your current card's output type as input.  The type being used by the next action menu is shown in the top right of the menu.
 
-<img alt="The input type options for the next actions menu card." src="./media/concepts-next-actions-input-type.png" width="700px">
+<img alt="The input type options for the next actions menu card." src="./images/concepts-next-actions-input-type.png" width="700px">
 
 Additionally, When configuring variable inputs for a Quiver card in the editor, only cards with compatible output types are shown for selection.  For example, in the image below, when configuring the input number for a [number to date](/docs/foundry/quiver/card-number-to-date/) card, we are able to select the numeric parameter as input (`$I`), but not the string parameter (`$H`).
 
-<img alt="The input type for card editor options." src="./media/concepts-editor-input-type.png" width="700px">
+<img alt="The input type for card editor options." src="./images/concepts-editor-input-type.png" width="700px">
 
 ## List of input and output types
 
@@ -65,12 +65,12 @@ The full list of Quiver supported input and output types is provided below.
 
 The possible input types and the returned output type for each card are annotated as `input_types` to `output_types` next to each operation in the [next actions menu](/docs/foundry/quiver/analysis-toolbars/#next-actions-menu).
 
-<img alt="The input and output type for each card in the next actions menu." src="./media/concepts-input-output-types-next-actions.png" width="700px">
+<img alt="The input and output type for each card in the next actions menu." src="./images/concepts-input-output-types-next-actions.png" width="700px">
 
 The same `input_types` to `output_types` annotation is also used in the [cards search window](/docs/foundry/quiver/analysis-toolbars/#search-bar):
 
-<img alt="The input and output type for each card in the cards search window." src="./media/concepts-input-output-types-cards-search-bar.png" width="700px">
+<img alt="The input and output type for each card in the cards search window." src="./images/concepts-input-output-types-cards-search-bar.png" width="700px">
 
 The output type of each Quiver card is also shown in the card header.
 
-<img alt="The card output type in a card's header." src="./media/concepts-card-output-type.png" width="700px">
+<img alt="The card output type in a card's header." src="./images/concepts-card-output-type.png" width="700px">

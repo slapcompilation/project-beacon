@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/muting-pausing-expiration/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/muting-pausing-expiration/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Muting, pausing, and expiration
 
@@ -16,7 +16,11 @@ When the **Auto-mute this automation** setting is enabled, the automation will a
 
 ## Pausing an automation
 
-Automations can be paused by users. While an automation is paused, the condition will not be evaluated and no further executions will be triggered. Additionally, Automate interrupts any currently active executions when an automation is paused by a user. The automation can be resumed at any time by a user with an `Editor` role on the automation.
+While an automation is paused, scheduled and live triggers do not run. You can still run the automation manually or retry events; the interface warns that scheduled and live triggers remain disabled. Pausing also interrupts active executions. A user with an `Editor` role on the automation can resume it at any time.
+
+:::callout{theme="warning"}
+Expired, trashed, and otherwise disabled automations continue to block all execution, including manual runs.
+:::
 
 ![Expiration date configuration](./images/muting-pausing-configuration.png)
 

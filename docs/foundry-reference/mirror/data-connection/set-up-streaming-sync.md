@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-streaming-sync/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/set-up-streaming-sync/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a streaming sync
 
@@ -22,7 +22,7 @@ First, decide which data you would like to sync into Foundry. Select your [strea
 * **Explore and create syncs:** This option appears if your source type supports [source exploration](/docs/foundry/data-connection/source-exploration/), allowing you to explore your data source while creating a sync.
 * **Create sync:** This option appears if your source type does not support source exploration.
 
-<img alt="Explore Kafka source" src="./media/stream-explore-create-sync@2x.png">
+<img alt="Explore Kafka source" src="./images/stream-explore-create-sync@2x.png">
 
 ### Explore and create syncs
 
@@ -30,11 +30,11 @@ If your source type supports source exploration, you will land on the **Explore 
 
 From the Kafka exploration view, you can view existing topics in the list to the left of the page.
 
-<img alt="Explore Kafka source" src="./media/stream-kafka-explore-source@2x.png">
+<img alt="Explore Kafka source" src="./images/stream-kafka-explore-source@2x.png">
 
 Selecting a topic will let you preview a sample of data from that topic.
 
-<img alt="Preview Kafka topic" src="./media/stream-kafka-preview-topic@2x.png">
+<img alt="Preview Kafka topic" src="./images/stream-kafka-preview-topic@2x.png">
 
 ## Part 2. Define the sync location
 
@@ -51,13 +51,13 @@ Now, you will land on the **Sync creation** page in Data Connection where you ca
 * **Source-specific:** Located at the top of the configuration page, these options depend on your source type and configures the parameters passed to the specific source to which you are connecting.
 * **Core streaming:** Located below the source-specific configuration, these options are common to all streaming syncs. Core configurations include the throughput, schema, and sync destination.
 
-<img alt="Configure Kafka sync" src="./media/stream-kafka-configure-sync@2x.png">
+<img alt="Configure Kafka sync" src="./images/stream-kafka-configure-sync@2x.png">
 
 Next, select the [throughput](/docs/foundry/data-integration/streams/#partitions) for your stream. The throughput determines the number of partitions that will be created. Selecting a larger number of partitions allows for higher throughput. Selecting a **Normal** throughput will allow up to 5 MB/s for that stream.
 
 Then specify the schema of the input data, by default this is inferred from source, but it can be overwritten if necessary.
 
-<img alt="Set stream schema" src="./media/stream-kafka-set-schema@2x.png">
+<img alt="Set stream schema" src="./images/stream-kafka-set-schema@2x.png">
 
 Once you configure your sync, select **Create Sync** on the top right.
 
@@ -69,11 +69,11 @@ Now, you are ready to run the sync. Select the **Overview** tab to view a summar
 
 Click **Start** to begin running the sync of data from the external stream into Foundry.
 
-<img alt="Kafka sync overview" src="./media/stream-kafka-sync-overview@2x.png">
+<img alt="Kafka sync overview" src="./images/stream-kafka-sync-overview@2x.png">
 
 To view the stream data, navigate to the stream you configured while creating the sync to view the stream preview page. You should see records flowing from the Kafka topic in the stream.
 
-<img alt="View stream output" src="./media/stream-sync-output@2x.png">
+<img alt="View stream output" src="./images/stream-sync-output@2x.png">
 
 ## Next steps
 

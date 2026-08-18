@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/compass/use-project-details-panel/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/use-project-details-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use Project details panel
 
 You can open the resource details panel by selecting one of the right-hand side icons on the Project page.
 
-![Main view of Project.](/docs/resources/foundry/compass/project-details.png)
+![Main view of Project.](./images/project-details.png)
 
 ## Documentation
 
@@ -22,7 +22,7 @@ If necessary, you can make your Project and its description discoverable to peop
 
 The **Access** tab in the resource panel allows you to manage group and user access roles within a Project.
 
-<img src="./media/access.png" alt="access" width="200" />
+<img src="./images/access.png" alt="access" width="200" />
 
 For a Project `Owner`, this panel provides an interface to add required markings, manage default access, and configure additional access by granting roles to other users and groups.
 
@@ -36,4 +36,4 @@ Learn more about [checking someone's permissions on a Project, folder, or file](
 
 The **Resource queues** tab allows you to view which [resource queues](/docs/foundry/resource-management/resource-queues/) are assigned to the Project.
 
-![Resource queues assigned to a project.](/docs/resources/foundry/compass/resource-queues.png)
+![Resource queues assigned to a project.](./images/resource-queues.png)

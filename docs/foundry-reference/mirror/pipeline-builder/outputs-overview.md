@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Outputs
 
@@ -8,11 +8,11 @@ Outputs help you describe your pipeline, from adding your data to creating trans
 
 To add an output, select **Add pipeline output** in the outputs panel to the right of your graph.
 
-<img src="./media/outputs-add-output@2x.png" alt="New pipeline creation page" width="800">
+<img src="./images/outputs-add-output@2x.png" alt="The Pipeline outputs panel in Pipeline Builder with the Add pipeline output button highlighted." width="800">
 
-This will take you to the output type selection screen.
+A side panel will open where you can select the output type to add.
 
-<img src="./media/outputs-output-types.png" alt="Output types" width="600">
+<img src="./images/outputs-output-types.png" alt="The Add a pipeline output panel listing the available output types." width="400">
 
 Review the sections below for details on each output type.
 
@@ -27,6 +27,10 @@ Learn more about [adding dataset outputs](/docs/foundry/pipeline-builder/outputs
 A [media set](/docs/foundry/data-integration/media-sets/) is a collection of media files with a common schema, for example, files of the same format. Media sets support a variety of forms of unstructured data, including visual media, PDF documents, audio, and more. Add a media set as an output when you want to build a pipeline that produces clean, transformed media.
 
 Learn more about [adding media set outputs](/docs/foundry/pipeline-builder/outputs-add-media-set-output/).
+
+## Files
+
+Use a **file** output to produce files and file sets from transformed file data. Select the transform to output, then choose **Add output** and **Output file**.
 
 ## Geotemporal series syncs
 
@@ -52,7 +56,7 @@ Learn more about [adding Ontology outputs](/docs/foundry/pipeline-builder/output
 
 ### Object types
 
-An **object type** is the schema definition of a real-world entity or event. Add an object type output to your workflow to help guide data transforms into defined elements that you can use to build applications in Foundry, including [Workshop](/docs/foundry/workshop/overview/) modules or [Slate](/docs/foundry/slate/overview/) applications.
+An **object type** is the schema definition of a real-world entity or event. Add an object type output to your workflow to help guide data transforms into defined elements that you can use to build applications in Foundry, including [Workshop](/docs/foundry/workshop/overview/) modules or [Slate](/docs/foundry/slate/overview/) applications. You can also optionally [implement interfaces](/docs/foundry/pipeline-builder/outputs-add-ontology-output/#implement-interfaces) on object type outputs to map interface properties to object type properties.
 
 ### Object links
 

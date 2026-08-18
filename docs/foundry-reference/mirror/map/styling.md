@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/styling/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/styling/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Styling
 
@@ -8,7 +8,7 @@ Use **styling** to control the visualization of the data contained in your map's
 
 Edit styling for a layer by using the edit styling button in the **Layers** panel:
 
-![Open styling panel.](/docs/resources/foundry/map/styling-edit-button.png)
+![Open styling panel.](./images/styling-edit-button.png)
 
 :::callout{theme="neutral"}
 This list contains styling options that are used across different layers, but the options available for each layer vary based on the kind of data contained within the layer. For example the **Fill polygons** option only appears when the styler being configured render as a polygon. Within each option, the available modes also vary by the layer type: property, function, and measure based styling are only available on object layers, while fixed styling is available on every layer type.
@@ -25,7 +25,7 @@ Use the **Color** section to control the coloring for objects in the layer. The 
 
 When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
 
-![Gradient styling panel](/docs/resources/foundry/map/styling-gradient-editor.png)
+![Gradient styling panel](./images/styling-gradient-editor.png)
 
 When coloring by a function, property, or time series that has string values, the **Color mapping** dropdown contains methods for mapping values to colors:
 
@@ -42,7 +42,7 @@ The **Value from** dropdown contains the various ways you can specify opacity:
 * **Fixed:** Select a single opacity that uniformly applies to all objects in the layer.
 * **By time:** When rendering [tracks](/docs/foundry/map/integrate-objects/#track-objects) or objects that are [events](/docs/foundry/map/integrate-objects/#event-objects), control their opacity based on the global [time selection](/docs/foundry/map/time-overview/#selected-time-and-time-range).
 
-  ![Opacity by time options](/docs/resources/foundry/map/styling-opacity-time.png)
+  ![Opacity by time options](./images/styling-opacity-time.png)
 
   * **Active opacity:** Sets the opacity when the object or point is considered active.
   * **Inactive opacity:** Sets the opacity when the object or point is not considered active.
@@ -62,7 +62,7 @@ When the viewport is at a zoom level within the active range, the corresponding 
 
 The zoom level configuration only applies to layers that are toggled to be [visible](/docs/foundry/map/layer-management/#toggle-layer-visibility).
 
-![Zoom levels](/docs/resources/foundry/map/zoom-levels.png)
+![Zoom levels](./images/zoom-levels.png)
 
 ### Stroke width
 
@@ -74,17 +74,17 @@ Use the **Stroke style** section to control the dash pattern used when rendering
 
 * **Solid**
 
-  ![Solid stroke](/docs/resources/foundry/map/styling-stroke-solid.png)
+  ![Solid stroke](./images/styling-stroke-solid.png)
 * **Dashed**
 
-  ![Dashed stroke](/docs/resources/foundry/map/styling-stroke-dashed.png)
+  ![Dashed stroke](./images/styling-stroke-dashed.png)
 * **Dotted**
 
-  ![Dotted stroke](/docs/resources/foundry/map/styling-stroke-dotted.png)
+  ![Dotted stroke](./images/styling-stroke-dotted.png)
 
 For [line segments](#edit-object-layer-stylers), use the stroke style section to optionally display arrows, as pictured below.
 
-<img src="./media/styling-arrows.png" alt="Line segments with arrows" width="600" />
+<img src="./images/styling-arrows.png" alt="Line segments with arrows" width="600" />
 
 ### Fill polygons
 
@@ -104,13 +104,13 @@ When configuring an icon styler, use the **Marker shape** section to configure t
 
 * **Circle**
 
-  ![Circle marker](/docs/resources/foundry/map/styling-marker-circle.png)
+  ![Circle marker](./images/styling-marker-circle.png)
 * **Pin**
 
-  ![Pin marker](/docs/resources/foundry/map/styling-marker-pin.png)
+  ![Pin marker](./images/styling-marker-pin.png)
 * **None**
 
-  ![No marker](/docs/resources/foundry/map/styling-marker-none.png)
+  ![No marker](./images/styling-marker-none.png)
 
 ### Include in legend
 
@@ -123,7 +123,7 @@ There are two optional toggles related to labels and tooltips:
 **Show labels:** Controls whether a label appears on the map for each item in the layer.
 **Show tooltips:** Controls whether items in the layer will show a pop-up with contextual information when hovered.
 
-![Labels example](/docs/resources/foundry/map/styling-labels.png)
+![Labels example](./images/styling-labels.png)
 
 #### Label content for object layers
 
@@ -134,11 +134,11 @@ For object-backed layers, labels and tooltips may contain the following:
 * [Series](/docs/foundry/time-series/time-series-overview/)
 * Linked object counts
 
-![Label content example for airport objects](/docs/resources/foundry/map/styling-labels-content.png)
+![Label content example for airport objects](./images/styling-labels-content.png)
 
 Properties or series can also be added from the selection panel using the **…** menu that appears when hovering on a property or series, as pictured below.
 
-![Add pinned property](/docs/resources/foundry/map/styling-add-to-label.png)
+![Add pinned property](./images/styling-add-to-label.png)
 
 ## Object layer stylers
 
@@ -148,7 +148,7 @@ Each object in an object layer can render in multiple ways on the map by specify
 
 Edit the stylers for an object layering by opening the layer's styling panel. Expand any individual styler to edit its styling options (color, opacity, and so on), or add a new styler using the **Add styler** button:
 
-![Add styler button](/docs/resources/foundry/map/styling-add-styler.png)
+![Add styler button](./images/styling-add-styler.png)
 
 The add styler menu contains two sections:
 
@@ -176,8 +176,8 @@ When the geometry source used in a styler is a track--a position that changes ov
 
 Create a saved style using the **New style** button, and give it a name that will help users understand what that style helps them visualize:
 
-![Create saved style](/docs/resources/foundry/map/styling-saved-style-create.png)
+![Create saved style](./images/styling-saved-style-create.png)
 
 Then switch between styles using the **Saved styles** dropdown:
 
-![Switch saved style](/docs/resources/foundry/map/styling-saved-style-switch.png)
+![Switch saved style](./images/styling-saved-style-switch.png)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/events/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/events/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Events
 
@@ -51,7 +51,7 @@ Event objects are [object types](/docs/foundry/object-link-types/object-types-ov
 
 Once you [add event objects to your map as a layer](/docs/foundry/map/add-to-map/), you can apply custom styles, explore their linked events, and view event time periods in the [timeline](/docs/foundry/map/timeline/).
 
-![Timeline geometry example where a user can see the time properties of the event object 'Earthquakes' on the timeline, noting there is no additional timeline geometry.](/docs/resources/foundry/map/events-object.png)
+![Timeline geometry example where a user can see the time properties of the event object 'Earthquakes' on the timeline, noting there is no additional timeline geometry.](./images/events-object.png)
 
 Event objects automatically populate an event layer in the timeline and can be styled by adding a timeline geometry with the same start and end time as the event object's start and end time. There are additional display options available in the **Style** section of the left panel:
 
@@ -64,34 +64,34 @@ If you add a timeline geometry in the **Layers** panel, it will override this ev
 
 You can style event objects on your map so they are only visible when the current [time selection](/docs/foundry/map/time-overview/#selected-time-and-time-range) overlaps with the time period of the event. Use this to make your map responsive over time and show only the event objects that are currently relevant. [Learn more about using event objects for styling.](/docs/foundry/map/visualize-objects/#opacity-styling)
 
-![Styling events by time.](/docs/resources/foundry/map/events-style-by-time.gif)
+![Styling events by time.](./images/events-style-by-time.gif)
 
 ### Linked events
 
 A linked event is an event object linked to another object. On the map, you can view those linked events by selecting the object and opening the **Events** tab. If the currently selected time lies between the start and end times of an event, the event will appear in the **Active events** section. Otherwise, the event is considered inactive and can be shown by using the **Show inactive events** option.
 
-![The Events tab is displayed.](/docs/resources/foundry/map/events-selection-events-tab.png)
+![The Events tab is displayed.](./images/events-selection-events-tab.png)
 
 When the linked events are of a [geospatial object type](/docs/foundry/map/integrate-objects/) click **+** to add them to your map:
 
-![Add to map button.](/docs/resources/foundry/map/events-add-to-map.png)
+![Add to map button.](./images/events-add-to-map.png)
 
 Each event has corresponding actions you may take:
 
-* Set the selected time window to match the time endpoints of the event with the ![Magnifying glass icon.](/docs/resources/foundry/map/events-magnifying-glass.png) icon.
-* Open the event in Object Explorer with the ![Open in button.](/docs/resources/foundry/map/events-open-in.png) icon.
+* Set the selected time window to match the time endpoints of the event with the ![Magnifying glass icon.](./images/events-magnifying-glass.png) icon.
+* Open the event in Object Explorer with the ![Open in button.](./images/events-open-in.png) icon.
 
 #### Show on series panel \[Planned deprecation]
 
 Right-click on an object and select **Open linked events** to open and add linked events to the [series panel](/docs/foundry/map/series-panel/). Analyze your time series data in the context of important periods of time, and adjust the time selection so the map reflects a time of interest.
 
-![Add events to series panel.](/docs/resources/foundry/map/events-add-to-series-panel.png)
+![Add events to series panel.](./images/events-add-to-series-panel.png)
 
 #### Show counts in labels
 
 If you enable labels for a layer, a count of active events also displays in the label for each object. Hover over the active event count to view the active events:
 
-![View events from label.](/docs/resources/foundry/map/events-view-from-label.png)
+![View events from label.](./images/events-view-from-label.png)
 
 ## Timeline geometries
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-linked-series-aggregation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-linked-series-aggregation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Linked series aggregation
 
@@ -20,11 +20,11 @@ Time series
 
 Without event options:
 
-![Linked series aggregation](/docs/resources/foundry/quiver/card-linked-series-aggregation.png)
+![Linked series aggregation](./images/card-linked-series-aggregation.png)
 
 With event options:
 
-![Linked series aggregation aligned to events](/docs/resources/foundry/quiver/card-linked-series-aggregation-with-event-options.png)
+![Linked series aggregation aligned to events](./images/card-linked-series-aggregation-with-event-options.png)
 
 ## Usage information
 

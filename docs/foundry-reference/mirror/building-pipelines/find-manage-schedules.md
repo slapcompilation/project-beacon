@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/find-manage-schedules/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/find-manage-schedules/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Find and manage schedules
 
@@ -6,13 +6,13 @@
 
 To access the Build Schedules application, look for **Build schedules** in the Foundry navigation sidebar to the left of your browser.
 
-<img src="./media/build-schedules-foundry-sidebar.png" alt="Build Schedules app in Foundry sidebar" width="300" />
+<img src="./images/build-schedules-foundry-sidebar.png" alt="Build Schedules app in Foundry sidebar" width="300" />
 
 From the Build Schedules landing page, you will first see the schedules you created. Search parameters are stored in the page link, allowing you to bookmark a page or send the link to other users.
 
 ## Adding search criteria
 
-![Add more schedules to view](/docs/resources/foundry/building-pipelines/add-more-schedules.png)
+![Add more schedules to view](./images/add-more-schedules.png)
 
 To find other schedules, select **Add more schedules to view**. Schedules will be found if they match any search criteria. The available search criteria are:
 

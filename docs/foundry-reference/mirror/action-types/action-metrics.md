@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/action-metrics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Action metrics
 
@@ -9,7 +9,7 @@ Action metrics display the near real-time usage of an action type over the last 
 
 You are also able to access [run history](/docs/foundry/aip-observability/run-history/), which provides a complete view of a given action's executions over the past seven days. Learn more about [AIP observability capabilities](/docs/foundry/aip-observability/overview/).
 
-![Screenshot of action metrics in the overview section.](/docs/resources/foundry/action-types/action-metrics-failures.png)
+![Screenshot of action metrics in the overview section.](./images/action-metrics-failures.png)
 
 All metrics are updated in near real-time using the latest data from the Foundry Telemetry Service (FTS). This ensures you have access to the most current information for monitoring, debugging, and maintaining the health of your actions.
 

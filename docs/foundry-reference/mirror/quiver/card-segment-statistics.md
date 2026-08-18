@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-segment-statistics/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-segment-statistics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Segment statistics
 
@@ -20,7 +20,7 @@ Time series
 
 ## Examples
 
-![Segment statistics example](/docs/resources/foundry/quiver/card-segment-statistics.png)
+![Segment statistics example](./images/card-segment-statistics.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/branching-release-process/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/branching-release-process/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Branching and release process
 
@@ -16,7 +16,7 @@ multiple projects of different types - datasource, transforms, Ontology and work
 * The Ontology product: this product is the collection of output datasets created out of the datasource, pipeline and Ontology projects.
 * A Use-case product: every use case project represents a given use case that stands on its own. Each of the use cases is defined as a product.
 
-![pipeline-overview](/docs/resources/foundry/building-pipelines/pipeline_overview.png)
+![pipeline-overview](./images/pipeline_overview.png)
 
 :::callout{theme="neutral"}
 The definition we give to a product here can cover code which is managed in multiple repositories and other Foundry resources.
@@ -51,7 +51,7 @@ short-lived branch, meaning it can be deleted once the branch is being
 merged into master. Since the branch is derived from `dev` it will be
 sourced with the same data `dev` branch has. Note that this remains true as long as the fallback branches don't get reconfigured, and as long as the input datasets don't exist on the feature branch.
 
-![basic-branching](/docs/resources/foundry/building-pipelines/branches-1.png)
+![basic-branching](./images/branches-1.png)
 
 ### Other special branches
 
@@ -69,7 +69,7 @@ As described above, some branches are permanent while
 others are short-lived. The following section describes the
 recommended workflow between branches.
 
-![advanced-branching](/docs/resources/foundry/building-pipelines/branches-2.png)
+![advanced-branching](./images/branches-2.png)
 
 * At *t0*, `master` and `dev` branches are created.
 
@@ -95,11 +95,11 @@ It is recommended to keep merging `dev` onto `major-release-[X]` , so the lat
 
 *Repository upgrades* are periodic prompts to update the configuration files in a Code Repository. These updates apply fixes or bump versions of language-bundle dependencies and best practice is to stay on top of applying these recommended upgrades.
 
-![upgrade button](/docs/resources/foundry/building-pipelines/upgrade.png)
+![upgrade button](./images/upgrade.png)
 
 Note that if you miss clicking the "Upgrade" button on the prompt, the button is also available for any branch under the "..." options menu in the upper right corner:
 
-![upgrade button](/docs/resources/foundry/building-pipelines/upgrade-2.png)
+![upgrade button](./images/upgrade-2.png)
 
 The upgrade process should be treated the same way as a feature development cycle. This means:
 
@@ -116,7 +116,7 @@ A fast iteration loop from idea to production is common in development practices
 
 For example, once all feature PRs are merged, all datasets get built on the `dev` branch so that the results can be verified on Wednesday and Friday. During these days, only fixes to problems discovered during verification get merged into `dev`, until `dev` finally gets merged into `master` on Thursday and Monday, the "release days"
 
-![upgrade-windows](/docs/resources/foundry/building-pipelines/branches-3.png)
+![upgrade-windows](./images/branches-3.png)
 
 It is recommended to agree on such cadence with all parties involved to
 make sure they devote enough time during these days to push new features
@@ -144,7 +144,7 @@ Upon completion of feature development, the new feature code needs to be reviewe
 
 We recommend using a combination of Pull Request reviews for the first and Foundry Issues for the second as explained in the diagram below.
 
-![pull-request](/docs/resources/foundry/building-pipelines/branches-4.png)
+![pull-request](./images/branches-4.png)
 
 1. The developer creates a pull request from his feature branch to the `dev` branch and adds implementation comments.
 
@@ -178,7 +178,7 @@ Issues is a great place to store the feature review workflow as end users can al
 
 The diagram below shows how an issue is created on the build output dataset.
 
-![issue-review](/docs/resources/foundry/building-pipelines/branches-5.png)
+![issue-review](./images/branches-5.png)
 
 1. In Foundry Explorer, select Output dataset.
 
@@ -190,8 +190,8 @@ The diagram below shows how an issue is created on the build output dataset.
 
 5. Once the issue is created, make sure to change the label to `Feature Review: Request Review`. (If you do not have these labels available, contact your Palantir representative for assistance.)
 
-![issue-review3](/docs/resources/foundry/building-pipelines/branches-7.png)
+![issue-review3](./images/branches-7.png)
 
 As the review process continues, the collaboration thread including all status changes and verification evidence are stored in the issue.
 
-![issue-review4](/docs/resources/foundry/building-pipelines/branches-8.png)
+![issue-review4](./images/branches-8.png)

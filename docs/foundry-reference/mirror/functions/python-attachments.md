@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-attachments/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-attachments/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Attachments
 
@@ -52,6 +52,74 @@ def read(self) -> BytesIO: ...
 ```
 
 You may need to use libraries or write your own custom code for handling complex file types. For example, PDFs must be parsed with an appropriate library. [Learn more about adding dependencies to functions repositories](/docs/foundry/functions/add-dependencies/).
+
+### Parse Excel files from attachments
+
+To create or update Ontology objects in bulk, accept an Excel file as an attachment parameter and parse its rows.
+
+```typescript tab="TypeScript v1"
+import { Attachment, OntologyEditFunction, Edits } from "@foundry/functions-api";
+import { MyObjectType } from "@foundry/ontology-api";
+import * as XLSX from "xlsx";
+
+interface ExcelRow {
+    [key: string]: string | number | null;
+}
+
+@OntologyEditFunction()
+@Edits(MyObjectType)
+public async processExcelUpload(file: Attachment): Promise<void> {
+    // Read the file as a Blob
+    const blob: Blob = await file.readAsync();
+
+    // Convert Blob to ArrayBuffer
+    const arrayBuffer = await blob.arrayBuffer();
+
+    // Parse the Excel file using SheetJS
+    const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+
+    // Get the first sheet
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+
+    // Convert worksheet to JSON rows
+    const data = XLSX.utils.sheet_to_json(worksheet, { defval: null }) as ExcelRow[];
+
+    // Process each row to create or update objects
+    for (const row of data) {
+        // Create or update ontology objects based on row data
+    }
+}
+```
+
+```python tab="Python"
+from io import BytesIO
+import pandas as pd
+
+from functions.api import function, Attachment, OntologyEdit
+from ontology_sdk import FoundryClient
+from ontology_sdk.ontology.objects import MyObjectType
+
+
+@function(edits=[MyObjectType])
+def process_excel_upload(excel_file: Attachment) -> list[OntologyEdit]:
+    client = FoundryClient()
+    ontology_edits = client.ontology.edits()
+
+    # Read the uploaded Excel file
+    sheet_data: BytesIO = excel_file.read()
+    df = pd.read_excel(sheet_data)
+
+    # Process each row to create or update objects
+    for _, row in df.iterrows():
+        new_obj = ontology_edits.objects.MyObjectType.create(str(row["id"]))
+        new_obj.property_a = row["column_a"]
+        new_obj.property_b = row["column_b"]
+
+    return ontology_edits.get_edits()
+```
+
+For multiple file uploads, accept `Attachment[]` (TypeScript) or `list[Attachment]` (Python) as the parameter type. For libraries such as `xlsx` (SheetJS) or `pandas`, see [Add dependencies](/docs/foundry/functions/add-dependencies/).
 
 ### File parsing in TypeScript v1
 

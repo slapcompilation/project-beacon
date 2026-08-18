@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/edits-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/edits-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Ontology edits
 
@@ -100,6 +100,10 @@ def edit_and_search() -> list[OntologyEdit]:
 
     return ontology_edits.get_edits()
 ```
+
+#### Apply Ontology edits in Automate
+
+[Automate](/docs/foundry/automate/overview/) does not apply edits returned by functions used as effects. To apply Ontology edits through an automation, configure a function-backed action instead. For more information, see [Function effects](/docs/foundry/automate/effect-function/).
 
 #### Optional arrays in function-backed actions
 

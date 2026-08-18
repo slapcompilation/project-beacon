@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-numeric-series-formula/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-numeric-series-formula/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Numeric series formula
 
@@ -14,7 +14,7 @@ Time series
 
 ## Examples
 
-![Numeric series formula example](/docs/resources/foundry/quiver/card-numeric-series-formula.png)
+![Numeric series formula example](./images/card-numeric-series-formula.png)
 
 ## Usage information
 

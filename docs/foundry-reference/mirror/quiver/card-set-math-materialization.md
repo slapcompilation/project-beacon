@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math-materialization/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-set-math-materialization/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set math (materialization)
 
 Perform a union, intersection, or difference of two materializations.
 
-<img src="./media/set-math-card-config.png" alt="Set math (materialization) config panel" width="400">
+<img src="./images/set-math-card-config.png" alt="Set math (materialization) config panel" width="400">
 
 ## Input type
 

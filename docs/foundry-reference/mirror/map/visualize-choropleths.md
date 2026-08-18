@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-choropleths/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-choropleths/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Choropleths
 
 A choropleth map displays regions colored by an aggregation computed across all objects in each region. Choropleths are useful for visualizing spatial patterns in large datasets. This example map shows a choropleth map generated from 31 million traffic accident objects, where each US state is colored by the average severity of accidents that occurred within it.
 
-![Choropleth map showing severity of traffic accidents by US State.](/docs/resources/foundry/map/choropleth-traffic-severity.png)
+![Choropleth map showing severity of traffic accidents by US State.](./images/choropleth-traffic-severity.png)
 
 To configure a choropleth map, add the objects you want to compute aggregations over to the map, and add a choropleth styler from the **Add display** menu in the **Styling** panel.
 
-![Add choropleth option in display menu.](/docs/resources/foundry/map/choropleth-add-display.png)
+![Add choropleth option in display menu.](./images/choropleth-add-display.png)
 
 You then need to specify how to group objects into regions, as well as how each region should be displayed. A choropleth region has the same styling options as [polygon displays](/docs/foundry/map/visualize-polygons-lines/), with the only difference that all the values are based on aggregations computed over all objects in each region.
 
@@ -44,7 +44,7 @@ Value-based styling is different in choropleth maps, since each region is colore
 
 A standard aggregation is a simply way to define an aggregation over a property of the objects in a region. To configure a standard aggregation, open the **Property** menu and select the property and aggregation function (sum, mean, max, min) you want to use.
 
-![Standard aggregation configuration.](/docs/resources/foundry/map/choropleth-standard-aggregation.png)
+![Standard aggregation configuration.](./images/choropleth-standard-aggregation.png)
 
 ## Expression aggregations
 
@@ -56,7 +56,7 @@ An expression aggregation lets you define a custom aggregation over the objects 
 
 For example, this map uses an expression aggregation to color US Forest Service Ranger Districts by the density of trails in each district.
 
-![Choropleth map showing trail density by US Forest Service Ranger District.](/docs/resources/foundry/map/choropleth-trail-density.png)
+![Choropleth map showing trail density by US Forest Service Ranger District.](./images/choropleth-trail-density.png)
 
 It uses three expressions to compute the trail density:
 

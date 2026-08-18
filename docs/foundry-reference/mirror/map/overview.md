@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map
 
@@ -10,7 +10,7 @@ The **Map** application provides powerful geospatial and temporal analysis and v
 * Interact by drawing shapes and performing geospatial actions.
 * Build geospatial applications using map templates.
 
-![Map Application](/docs/resources/foundry/map/map-overview.png)
+![Map Application](./images/map-overview.png)
 
 ## Geospatial data on the Map
 
