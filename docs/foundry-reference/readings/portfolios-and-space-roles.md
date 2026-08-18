@@ -5,10 +5,16 @@ verify: strict
 # Reading — Portfolios, and the space roles they rest on
 
 Written 2026-08-18, picking up the deliverable map's portfolios entry — the
-half of Compass that C1 and C2 did not cover. Read in full: `security/portfolios`,
-`platform-security-management/manage-orgs-and-spaces`. Images opened and
+half of Compass that C1 and C2 did not cover. **§7 was added after the
+operator asked whether the docs settle open question 1. They do**, in
+`manage-roles`, which no reading had opened. Read in full: `security/portfolios`,
+`platform-security-management/manage-orgs-and-spaces`,
+`platform-security-management/manage-roles` (§7). Images opened and
 transcribed: `platform-security-management/images/space-permissions.png` —
-**the page that settles this** — and `security/images/portfolio-curators.png`.
+**the page that settles the permission model** —
+`security/images/portfolio-curators.png`,
+`platform-security-management/images/create-role-set.png` and
+`platform-security-management/images/roles-card-space-settings.png`.
 Consulted by grep only: `security/orgs-and-spaces`, `security/projects-and-roles`.
 
 **This reading stops before building.** Its Decisions block has not been read
@@ -196,7 +202,10 @@ with organization admin would invent a security model.
    540–542's shape rather than re-derived. Grants are **user XOR group**, as
    both screenshots show. Three default roles seeded per space with their
    published names and descriptions: Contributor, Project Templates
-   Administrator, Space Administrator.
+   Administrator, Space Administrator. **Confirmed per-space by §7** — these
+   are roles *on* the space and there is no Space context among the three role
+   set contexts, so they are the space's own: "Each space comes with a set of
+   default roles and the ability to create custom roles".
 2. **The workflow vocabulary is only what a screenshot publishes.** Five for
    Contributor, exactly as transcribed. The other two roles' contents are *not*
    published — "Grants 1 workflow" and "Grants 61 workflows" with the lists
@@ -229,15 +238,132 @@ with organization admin would invent a security model.
 10. **Deferred**: thumbnails as uploaded images (we have no media store; icon
     colour only), the Add Content promotion dialog, and favouriting.
 
-## Questions
+## 7. Question 1, answered — and the question conflated two mechanisms
 
-1. **Do the three default roles exist per space, or per enrollment?** The page
-   says "Each space comes with a set of default roles", which reads per-space,
-   but the Role set setting ("Controls which roles are available to projects…
-   you can use a custom role set") suggests role sets are a shared object
-   spaces point at. §4 hit the same ambiguity for organizations. **I propose
-   per-space rows seeded at creation**, and flag that a role *set* is probably
-   the real Foundry object.
+Read after the fact: `platform-security-management/manage-roles`, plus
+`images/create-role-set.png` and `images/roles-card-space-settings.png`.
+(`manage-roles-.md` is the *same page* mirrored twice from a double-slash URL —
+its only difference is the source comment. A mirror artifact, not a second
+page.)
+
+I asked whether the space's default roles are per-space rows or a shared "role
+set" object. **Both are true, of two different things**, and my question ran
+them together because `manage-orgs-and-spaces` puts them on the same settings
+page.
+
+### Role sets are real, first-class, and Organization-owned
+
+> "Role sets are a group of roles that allow the customization of role
+> permissions at the Organization level and are used in a specific context,
+> such as in Projects or the Ontology."
+
+> "Roles in the same set are not dependent on any role outside of that set.
+> All roles belong to one and only one role set. Roles in the set belong to
+> the same Organization and are permissioned uniformly. Roles in the set are
+> designed to work together, in the same context. Currently, the three
+> available contexts for role sets are the Project context, Ontology context,
+> and Marketplace Installation context."
+
+> "Every enrollment will have at least three default role sets: Project
+> defaults (Owner, Editor, etc.), Ontology defaults (Ontology Owner, Ontology
+> Editor, etc.), and Marketplace Installation defaults (Marketplace
+> Installation Editor, Marketplace Installation Viewer, etc.). Default role
+> sets and the roles within them are always available to all Organizations."
+
+The list screenshot gives the object its columns, and shows the defaults
+carrying **no** organization while a custom set carries one:
+
+> "Roles" · "Create and manage roles and their role sets." · columns **Name ·
+> Context · Organization** · `Ontology Defaults` [Ontology] · `Project
+> defaults` [Project] · `Sky Industries project defaults` [Project] · Palantir
+> — platform-security-management/images/create-role-set.png
+
+**A space points at one role set per context**, and the space settings card
+says so in the imperative:
+
+> "Role sets" · **Project role set** — "Projects in this space must use this
+> role set." → `Project defaults`, "A collection of standard project roles."
+> [Replace] · **Marketplace installation role set** — "Projects installed via
+> Marketplace in this space must use this role set." → `Marketplace
+> Installation Role Set` [Replace]
+> — platform-security-management/images/roles-card-space-settings.png
+
+Confirmed from the prose, which also makes the space the *only* place a role
+set is applied:
+
+> "Role sets can only be applied at the space level. All the Projects, folders,
+> and files within that space can only use the roles defined in the role set
+> applied in the space settings."
+
+### But that is not what gates portfolios
+
+The three role-set contexts are **Project, Ontology and Marketplace
+Installation**. There is **no Space context**. The roles on the Space
+permissions page — Contributor, Project Templates Administrator, Space
+Administrator, granting *workflows* like `Curate portfolios within the space` —
+are therefore **not** a role set. They are roles **on** the space, and the page
+that describes them says they are the space's own:
+
+> "Each space comes with a set of default roles and the ability to create
+> custom roles for greater flexibility in managing permissions."
+
+So the answer is a split, and each half was half of my proposal:
+
+| | roles **on** a space | role **sets** |
+|---|---|---|
+| grant | workflows (`Curate portfolios within the space`) | operations (`stemma:mutate-default-branch`) |
+| apply to | the space itself | projects, folders and files *in* the space |
+| owned by | the space | an Organization (defaults: the enrollment) |
+| gates portfolios | **yes** | no |
+| our equivalent | nothing | `project_role_grants`, `ontology_role_grants` |
+
+**Portfolios are gated by the first column**, so decision 1's per-space rows
+stand. The role set is the second column and is a separate, larger object.
+
+### Three granularities, not two
+
+`manage-roles` also names the layer below a role, which no page read had:
+
+> "Operations are individual permissions that Foundry applications check to
+> verify a user has permission to perform a given action. Roles are sets of
+> operations: when you grant someone a role on a resource (like a Project or a
+> dataset), you are granting them a set of operations on that resource and any
+> child resources underneath it. Each operation has a name and unique
+> identifier."
+
+With a worked example — the operation `stemma:mutate-default-branch`, "Change
+default branch", in Owner "but none of the lesser roles". So *workflow* is the
+Control Panel word for a bundle at organization/space scope, and *operation* is
+the resource-scope permission a role set's roles are built from.
+
+### What this says about what we already have
+
+**Our `project_role_grants` CHECK — `owner`, `editor`, `viewer`, `discoverer` —
+is the "Project defaults" role set, hardcoded**, and `ontology_role_grants` is
+"Ontology defaults" hardcoded. That is a legitimate place to be: default role
+sets "are always available to all Organizations", so every enrollment has
+exactly these. What we lack is the *customisation*, which is three mechanisms:
+
+> "You can only edit default roles (e.g. Viewer) for a custom role set. So to
+> customize your Organization's roles, you first need to create a custom role
+> set of the default roles."
+
+> "For the new Merger role above, we've included the Viewer role, meaning all
+> permissions granted by Viewer will be granted in the Merger role."
+
+> "If an administrator replaces the current role set on a space with a new role
+> set, each current role must be mapped to the replacement role."
+
+That last one has a consequence worth keeping, since it rewrites stored grants
+rather than reinterpreting them:
+
+> "When complete, all role grants throughout the space will be updated to their
+> new replacement role."
+
+**Recorded, not queued.** Role sets are a bigger object than portfolios and
+nothing is blocked on them: the defaults are what we already implement.
+
+## Questions
 2. **What are the other 61 + 1 workflows?** Not published anywhere read; the
    screenshot collapses them. Recorded as a known hole, exactly like §4's.
 3. **Does `Curate portfolios within the space` include creating one?** The

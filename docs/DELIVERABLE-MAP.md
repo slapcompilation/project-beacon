@@ -293,6 +293,32 @@ Order therefore: **space roles, then portfolios.** The reading carries both,
 with `projects-roles-and-portfolios.md` (13 citations) still allocated to the
 build.
 
+**Open question 1 is answered (§7), and the question was the wrong shape.**
+`manage-roles` — a page no reading had opened — shows that "roles on a space"
+and "role sets" are two mechanisms that share a settings page:
+
+- **Roles *on* a space** (Contributor, Space Administrator…) grant **workflows**,
+  belong to the space, and are what gates portfolios. Per-space, as proposed.
+- **Role sets** group the roles usable *inside* a space, on projects, folders
+  and files. They grant **operations**, are owned by an **Organization**
+  (defaults by the enrollment), come in three contexts — Project, Ontology,
+  Marketplace Installation, and **no Space context** — and a space points at one
+  per context: "Projects in this space must use this role set."
+
+So portfolios are unblocked by the first and unaffected by the second.
+
+**And it names what we already have.** `project_role_grants`' owner / editor /
+viewer / discoverer **is the "Project defaults" role set, hardcoded**, and
+`ontology_role_grants` is "Ontology defaults". That is a supported place to
+stand — default role sets "are always available to all Organizations" — so what
+is missing is customisation (custom role sets, editing a default role inside
+one, role inclusion, and the replace-with-mapping that rewrites every grant in
+the space). **Recorded, not queued**: nothing is blocked on it.
+
+A third granularity also arrives with it: **operations** (`stemma:mutate-default-branch`)
+are what roles in a role set are built from, below the workflow level Control
+Panel uses for organization and space roles.
+
 **Type classes and render hints — resolved 2026-08-18, and the entry was three
 different things.**
 
