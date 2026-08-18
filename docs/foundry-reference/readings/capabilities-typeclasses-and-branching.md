@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — Capabilities (answered), type classes, and Global Branching
 
 Closes the two remaining blocking questions. The Capabilities tab turns out to
@@ -44,27 +48,51 @@ marked that way enumerate what it holds:
 
 `geospatial-time-series-ontology` shows it, and the shape is precise. **A
 capability is a panel** — icon · title · one-line description · *Learn more* ·
-collapse chevron.
+collapse chevron. The page's own walkthrough names the tab and the flow:
 
-**Geospatial** — *"Each Object represents a geospatial feature"*:
+> "In the **Capabilities** tab, scroll down to and select the **Geospatial**
+> panel. Next, set your `Latitude Series Id` and `Longitude Series Id`
+> properties as the **Track Latitude** and **Track Longitude** properties,
+> respectively, before saving your changes to the Ontology."
 
-| slot | description, verbatim from the screenshot |
-|---|---|
-| **Altitude** | "Numeric (or numeric time series) property specifying altitude/elevation of each Object in meters" |
-| **Radius** | "Numeric property specifying the radius in meters, to render object as circles - **must also have a 'Geopoint' property indicating the center of the circle**" |
-| **H3 cell** | "**String property, or array of strings**, containing H3 cell IDs" |
-| **Track Latitude** | "**Time series property**, representing the Object's Latitude" |
-| **Track Longitude** | "Time series property, representing the Object's Longitude" |
+**Geospatial**, whose panel line and five slot descriptions are read off the
+screenshot and appear in no prose:
+
+> "Each Object represents a geospatial feature"
+> — time-series/images/set-track-lat-and-long.png
+
+> **Altitude** — "Numeric (or numeric time series) property specifying
+> altitude/elevation of each Object in meters"
+> — time-series/images/set-track-lat-and-long.png
+
+> **Radius** — "Numeric property specifying the radius in meters, to render
+> object as circles - must also have a 'Geopoint' property indicating the
+> center of the circle"
+> — time-series/images/set-track-lat-and-long.png
+
+> **H3 cell** — "String property, or array of strings, containing H3 cell IDs"
+> — time-series/images/set-track-lat-and-long.png
+
+> **Track Latitude** — "Time series property, representing the Object's
+> Latitude"
+> — time-series/images/set-track-lat-and-long.png
+
+> **Track Longitude** — "Time series property, representing the Object's
+> Longitude"
+> — time-series/images/set-track-lat-and-long.png
 
 Each is a row with a `Choose a property ▾` dropdown.
 
 **But there are two panel shapes, and I had only modelled one.**
 
-**Time series** — *"Set up time series properties or a sensor object type"* — is
-**list-based**, not slot-based: a `Time series properties [1]` table with
-**+ Add property** and **Analyze**, columns **PROPERTY NAME · TIME SERIES SYNC ·
-BASE FORMATTER**, and a row reading `Longitude Series Id [Default] ·
-ship-time-series-sync · No formatting ▾`.
+**Time series** is **list-based**, not slot-based — a `Time series properties
+[1]` table with **+ Add property** and **Analyze**, columns **PROPERTY NAME ·
+TIME SERIES SYNC · BASE FORMATTER**, and a row reading `Longitude Series Id
+[Default] · ship-time-series-sync · No formatting ▾`. Its panel line, also from
+the screenshot:
+
+> "Set up time series properties or a sensor object type"
+> — time-series/images/capabilities-time-series-properties-panel.png
 
 **We already have `time_series_properties` (12 columns).** That is the
 list-shaped capability, built before I knew it was one.
@@ -101,11 +129,21 @@ pre-filling (`generate_uuid`, `prefill_current_user`).
 A **render hints** mechanism sits beside it — `selectable`, `sortable`,
 `searchable` — and now owns what `analyzer.not_indexed` used to.
 
-**The other two "capabilities" pages are a different word.**
-`aip-analyst/capabilities` is AIP Analyst's **tool checkboxes** (object type
-search, object lookup, function lookup…). `ai-fde/modes-and-capabilities` is an
-agent's modes ("*Modes* are the broad task at hand… *capabilities* are granular
-abilities"). Neither is the object type tab.
+**The other two "capabilities" pages are a different word**, and each says so
+in its own first sentence. AIP Analyst's is a set of **tool checkboxes**:
+
+> "AIP Analyst uses tools to search, analyze, and present answers to your
+> questions. You can customize which tools are available by selecting
+> checkboxes from the **Tools** menu."
+
+AI FDE's is an agent's context management:
+
+> "AI FDE uses modes and capabilities to accomplish tasks and provide an easy
+> way to manage the agent's context. *Modes* are the broad task at hand, such
+> as data integration or ontology editing, while *capabilities* are granular
+> abilities that can be used across different modes."
+
+Neither is the object type tab.
 
 ## 3 — How a branch stores a change
 
@@ -183,12 +221,15 @@ currently revert a partially-failed merge**."
 metadata, roles, organizations, archive/restore, the inactive label, and a **Do
 not merge** setting. Space `Administrators` have the same powers.
 
-> "**Any user who can view a proposal can merge it**, as long as resource-level
-> approvals and checks are satisfied… The person who merges may be submitting
-> changes to resources that **they cannot edit themselves. This is by design**:
-> edit permissions are still required to modify the branched resource in the
-> first place; reviewers can be designated to verify and approve; and merging
-> only applies **pre-authored and approved** changes."
+> "Any user who can view a proposal can merge it, as long as resource-level
+> approvals and checks are satisfied and the **Do not merge** setting is not
+> applied."
+
+> "The person who merges may be submitting changes to resources that they
+> cannot edit themselves. This is by design: edit permissions are still
+> required to modify the branched resource in the first place; reviewers can be
+> designated to verify and approve the change; and merging only applies
+> pre-authored and approved changes."
 
 **Approval policies** are set at the **project** level and satisfied one of two
 ways: "**Automatically**, when the contributor's own permissions cover the
@@ -199,9 +240,15 @@ all new files**".
 
 ## 4 — Release management: spaces are the environments
 
-> "**Spaces** are a flexible primitive… that allow for **environment separation**…
-> A typical environment setup consists of… Development, Test, Production, **each
-> represented as a 'space'**."
+**Corrected 2026-08-18.** This section previously quoted "A typical environment
+setup consists of… Development, Test, Production, each represented as a
+'space'." **No page says that** — it was a paraphrase wearing quotation marks,
+and the citation gate caught it. What the page actually says:
+
+> "Spaces are a flexible primitive in the Palantir platform that allow for
+> environment separation in Foundry. Environment separation is the practice of
+> maintaining distinct spaces for different stages of development and
+> deployment, such as development, testing, and production."
 
 This interlocks with "**a space can hold a single ontology**": each environment
 has **its own ontology**, and promotion between them is Marketplace, not
@@ -248,6 +295,41 @@ rights are deliberately wider than edit rights.
 
 **A1 · One ontology per space** gains a second reason: the space is also the
 **environment**, so dev/test/prod each have their own ontology by construction.
+
+## Built (2026-08-18) — the Capabilities tab, and what the audit found
+
+**B4's slot half was already built and had never been used.** Migration 415
+created `object_type_capabilities`, the `capability_slots()` registry (11 slots
+across Geospatial and Event, each with its `accepts` list and its screenshot
+description), `guard_object_type_capability` and both RLS policies. Production
+held **zero rows**, no function read the table, and no surface wrote it — so
+the guard's three refusals had never once fired.
+
+So this phase built the missing half rather than the engine: a **Capabilities
+tab** on the object type (`features/objectTypes/CapabilitiesTab.tsx`), shaped
+as the screenshot has it — one collapsible panel per capability with its icon,
+title and one-line description, each slot a row with a `Choose a property ▾`
+dropdown. **The picker offers exactly what the guard accepts**: both read
+`accepts` from `capability_slots()`, so the vocabulary is never restated in the
+surface.
+
+`capabilities.test.ts` now fires each refusal — unknown slot, a property of
+another object type, a base type the slot does not take — and the nomination
+that must succeed. The whole CRUD path was also run **as `authenticated`**
+against production, because the `authors write capabilities` policy had never
+admitted a row, and a policy nobody has exercised is a guess.
+
+**Deliberately not built.** The list-shaped panel (Time series) needs a `sync`
+reference and a `base_formatter` that `time_series_properties` does not carry,
+and nothing stores a time series yet. Type classes as a *general* mechanism
+stay unbuilt: the page says "the configuration of all supported type classes
+will move to the Capabilities page", so building a generic kind/name bag would
+be building the thing Foundry is retiring. **Render hints are separate and
+already real** — `searchable`, `sortable`, `selectable` and `analyzer` are
+columns on `object_type_properties`, the published dependency rule is a CHECK
+(`hints_need_searchable`), and they are consumed by `object_set_where`,
+`evaluate_object_set`, `aggregate_object_set` and `search_index_payload`. The
+seven hints we lack are recorded in the map, not here.
 
 ## Open questions
 
