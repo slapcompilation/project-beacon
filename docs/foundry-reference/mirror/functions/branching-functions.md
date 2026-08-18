@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/functions/branching-functions/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/branching-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Branching functions
 
 You can develop, publish, and consume functions on a global branch. This is currently supported for TypeScript v1 functions and AIP Logic functions.
+
+:::callout{theme="warning"}
+You cannot modify TypeScript v2 or Python functions on a branch. To test one before merging into `main`, reference a specific function version on the branch. The function code can use only schemas that exist on `main`.
+:::
 
 ## Developing functions
 

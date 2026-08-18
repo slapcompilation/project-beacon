@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/configure-objective-metadata/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/configure-objective-metadata/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Configure objective metadata
 
@@ -8,20 +8,20 @@ Different teams have different mandates or required information that they wish t
 
 The **Display metadata** tab on the **Settings** page provides the option for changing the display options for the default metadata collected by each objective. However, all metadata in that tab, selected or unselected, will be shown in the **Model details** section for each model submission.
 
-![metadata page](/docs/resources/foundry/manage-models/metadata_settings-metadata.png)
+![metadata page](./images/metadata_settings-metadata.png)
 
 The **Custom model metadata** tab provides an interface for configuring additional custom metadata fields.
 
-![custom metadata](/docs/resources/foundry/manage-models/metadata_custom-metadata.png)
+![custom metadata](./images/metadata_custom-metadata.png)
 
 Multiple metadata types are supported.
 
-![metadata types](/docs/resources/foundry/manage-models/metadata_new-metadata.png)
+![metadata types](./images/metadata_new-metadata.png)
 
 There is a JSON editor option to easily copy/paste metadata between objectives.
 
-![json metadata configuration](/docs/resources/foundry/manage-models/metadata_json-metadata.png)
+![json metadata configuration](./images/metadata_json-metadata.png)
 
 After adding custom metadata to an objective, when someone submits a model, the custom metadata fields will be available for submitters to enter.
 
-![submission with metadata](/docs/resources/foundry/manage-models/metadata_submission-with-metadata.png)
+![submission with metadata](./images/metadata_submission-with-metadata.png)

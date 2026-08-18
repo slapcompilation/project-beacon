@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-objects/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Visualize Ontology data
 
@@ -11,9 +11,9 @@ To edit the style of a layer, select a layer entry from the Layers panel. The la
 * **Style:** Configure the appearance of individual displays, or define default settings that can be applied to multiple displays.
 * **Legend:** Control how the style information for this layer is displayed in the Legend panel.
 
-<img src="./media/styling-edit-button.png" alt="Edit styling button." width="450" />
+<img src="./images/styling-edit-button.png" alt="Edit styling button." width="450" />
 
-<img src="./media/layer-details-panel.png" alt="Layer details panel showing Style and Legend tabs." width="450" />
+<img src="./images/layer-details-panel.png" alt="Layer details panel showing Style and Legend tabs." width="450" />
 
 ## Layer style
 
@@ -29,7 +29,7 @@ An object layer can contain many **displays**, each of which is a different way 
 
 You can add a new display using the **Add display** option below the **Style** section.
 
-![Add display option.](/docs/resources/foundry/map/styling-add-display.png)
+![Add display option.](./images/styling-add-display.png)
 
 The add display menu has two sections:
 
@@ -63,7 +63,7 @@ When using a fixed color style, select a single color that will be applied unifo
 
 When coloring by a function, property, or time series that has numeric values, use the gradient editor to map values to output colors. The colors used in the gradients can be edited by selecting points the gradient bar. The numerical range (min/max) for the color gradient is automatically inferred, but this can be toggled off to set the range manually.
 
-![Gradient styling panel.](/docs/resources/foundry/map/styling-gradient-editor.png)
+![Gradient styling panel.](./images/styling-gradient-editor.png)
 
 When coloring by a function, property, or time series that has string values, the **Color mapping** dropdown menu contains methods for mapping values to colors:
 
@@ -79,14 +79,14 @@ The following sections describe the numeric-styling options available for each t
 
 When using a fixed numeric style, specify the numeric value by using the slider or entering an exact number in the input field.
 
-![Fixed numeric styling.](/docs/resources/foundry/map/styling-numeric-fixed.png)
+![Fixed numeric styling.](./images/styling-numeric-fixed.png)
 
 ### Value-based
 
 When styling a numeric attribute (for example, line width or icon size), only properties that have numeric values can be used as a value source. Configure a mapping from your selected value source to the style attribute by selecting a **Numeric mapping** option:
 
 * **Scaled:** Define a linear scale to convert a value from the object to the number used for styling. <br><br>
-  ![Scaled numeric styling.](/docs/resources/foundry/map/styling-numeric-mapping.png) <br><br>
+  ![Scaled numeric styling.](./images/styling-numeric-mapping.png) <br><br>
 
   * The top row controls the minimum and maximum values for the styling attribute, while the bottom row determines the range of values that will correspond to those min/max values.
   * In this example, the line width will be `1` pixel for an object that has a "Departing Flights" property value of `20`, and `10` pixels when the property value is `500`.
@@ -100,7 +100,7 @@ The **Value from** dropdown menu contains the various ways in which you can spec
 
 * **Fixed:** Select a single opacity that uniformly applies to all objects in the layer.
 * **By time:** When rendering [tracks](/docs/foundry/map/integrate-objects/#track-objects) or objects that are [events](/docs/foundry/map/integrate-objects/#event-objects), control their opacity based on the global [time selection](/docs/foundry/map/time-overview/#selected-time-and-time-range). <br><br>
-  ![Opacity by time options](/docs/resources/foundry/map/styling-opacity-time.png) <br><br>
+  ![Opacity by time options](./images/styling-opacity-time.png) <br><br>
 
   * **Active opacity:** Sets the opacity when the object or point is considered active.
   * **Inactive opacity:** Sets the opacity when the object or point is not considered active.
@@ -126,7 +126,7 @@ Define custom labels to showcase important information as text on the map. Use t
 * **Enable Header:** Display the first label row item with bold text and a more opaque background, making key information immediately recognizable.
 * **Show Missing Data:** Include row entries with null or empty values in the label.
 
-![Labels example.](/docs/resources/foundry/map/styling-labels.png)
+![Labels example.](./images/styling-labels.png)
 
 :::callout{theme="neutral"}
 Note that labels and additional tooltip contents are not supported for layers using [tile-based loading methods](/docs/foundry/map/objects-loading-methods/). If you need labels or custom tooltip contents, ensure you are using the "Object" loading method.
@@ -141,7 +141,7 @@ For object-backed layers, labels may contain the following:
 * [Series](/docs/foundry/time-series/time-series-overview/)
 * Linked object counts
 
-![Label content example for airport objects.](/docs/resources/foundry/map/styling-labels-content.png)
+![Label content example for airport objects.](./images/styling-labels-content.png)
 
 Once added, individual label rows also support the following operations:
 
@@ -151,7 +151,7 @@ Once added, individual label rows also support the following operations:
 
 Properties or series can also be added from the selection panel using the **…** menu that appears when hovering on a property or series, as pictured below.
 
-![Add pinned property.](/docs/resources/foundry/map/styling-add-to-label.png)
+![Add pinned property.](./images/styling-add-to-label.png)
 
 ## Display visibility by zoom level
 
@@ -161,10 +161,10 @@ When the viewport is at a zoom level within the active range, the corresponding 
 
 The zoom level configuration only applies to layers that are toggled to be [visible](/docs/foundry/map/layer-management/#toggle-layer-visibility).
 
-![Zoom levels.](/docs/resources/foundry/map/zoom-levels.png)
+![Zoom levels.](./images/zoom-levels.png)
 
 ## Legend
 
 From the **Layers** details panel, use the **Legend** tab to preview and control how the layer will be represented. Style information from the layer's displays are included by default in this tab. The title switch determines whether this layer and its associated displays will appear in the **Legend** panel. Toggle the checkboxes at the row level to hide or show individual entries.
 
-<img src="./media/styling-legend-config.png" alt="Legend configuration with options." width="450" />
+<img src="./images/styling-legend-config.png" alt="Legend configuration with options." width="450" />

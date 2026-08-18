@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/evaluations-ontology-edits/ · mirrored 2026-08-16 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/evaluations-ontology-edits/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Evaluation functions and Ontology edits
 

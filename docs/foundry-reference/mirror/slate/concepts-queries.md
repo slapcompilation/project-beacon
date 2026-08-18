@@ -1,8 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-queries/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-queries/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Read and write to data systems
 
-The **Queries** panel lets you query your data sources. Depending on the type of data source, you can write different queries in the Queries panel. The below provides overviews and examples about how to write different types of queries, security considerations when using Handlebars in each type of query, and an introduction to query partials and conditional queries.
+The **Queries** panel lets you query your data sources. The panel separates query template configuration from related events, schedules, and constraints. For JSON-based templates, the panel validates syntax and provides an integrated query preview for testing queries before deployment.
+
+Depending on the type of data source, you can write different queries in the Queries panel. The below provides overviews and examples about how to write different types of queries, security considerations when using Handlebars in each type of query, and an introduction to query partials and conditional queries.
+
+## Filtering queries by data source
+
+If your application has multiple data sources, a filter icon appears next to the search input. Select the icon, then select or clear the checkboxes to display queries from specific data sources. You can also select or clear all data sources. Combine the data source filter with search terms to further narrow the query list.
 
 ## Query security overview
 
@@ -14,11 +20,11 @@ Additionally, any template that references user variables (e.g. `{{user.firstNam
 
 An example of a SQL security error:
 
-![sql-query-security-error](/docs/resources/foundry/slate/sql-query-security-error.png)
+![sql-query-security-error](./images/sql-query-security-error.png)
 
 An example of a HTTP JSON security error:
 
-![http-json-query-security-error](/docs/resources/foundry/slate/http-json-query-security-error.png)
+![http-json-query-security-error](./images/http-json-query-security-error.png)
 
 ## API Gateway queries
 
@@ -40,11 +46,11 @@ To create a dataset sync:
 2. Enter a table name.
 3. Select **Apply and sync**.
 
-![unavailable\_sync\_panel](/docs/resources/foundry/slate/unavailable_sync_panel.png)
+![unavailable\_sync\_panel](./images/unavailable_sync_panel.png)
 
 When the sync has completed, the **Sync to Postgres** section in the **Dataset sync** tab will contain a sample SQL query that can be pasted into the **Queries** tab.
 
-![sql\_panel](/docs/resources/foundry/slate/sql_panel.png)
+![sql\_panel](./images/sql_panel.png)
 
 ## SQL queries
 
@@ -233,33 +239,35 @@ You can also pass arguments to partials, with the syntax `{{>partialName` `arg1=
 
 You can also nest partials, allowing for code-reuse inside code-reuse.
 
+To rename a partial, open the partial in the editor panel and update its name directly. When a partial is renamed, any Handlebars references to that partial in your queries are automatically updated to reflect the new name.
+
 Partials are a Handlebars concept and the Slate implementation uses the Handlebars syntax. See the [Handlebars partials documentation ↗](https://handlebarsjs.com/guide/partials.html#partials) to learn more.
 
 ## Conditional queries
 
 The **Triggers & interactions** tab will allow you to control the circumstances under which your query runs. There are two options for running the query conditionally, you can choose `All dependencies are not null`, which means that every single handlebars reference in the query must not be `null` in order for it to run, or you can choose `The handlebar input returns true` which will allow you to specify a handlebars condition. This condition can be a reference to a function, widget property, or anything you would like to control the logic for when your query should be able to run. The query will only run if this handlebars reference evaluates to true – if not, the query will not be run.
 
-![query-conditional-options](/docs/resources/foundry/slate/query-conditional-options.png)
+![query-conditional-options](./images/query-conditional-options.png)
 
 ### Example 1: all dependencies are not null
 
 The following query requires at least one value from `w_visits_bar.selection.data` in order run.
 
-![query-conditional-null-dependencies-raw](/docs/resources/foundry/slate/query-conditional-null-dependencies-raw.png)
+![query-conditional-null-dependencies-raw](./images/query-conditional-null-dependencies-raw.png)
 
 If no values are present, the request to Postgres will fail with a syntax error.
 
 Adding the condition to only run when all dependencies are not null will prevent known bad requests from being sent to Postgres, which otherwise consume connections and resources.
 
-![query-conditional-notnull](/docs/resources/foundry/slate/query-conditional-notnull.png)
+![query-conditional-notnull](./images/query-conditional-notnull.png)
 
 ### Example 2: only run when this returns true
 
 The following query fetches data used to populate a widget in a tabbed container. Let’s assume that the widget is not visible on page load but has dependencies on a set of page level filters. In this particular case, you might consider adding a condition to the query to only run when the widget is visible. This can be done using the `The handlebar input returns true` option in the query settings.
 
-![query-conditional-check](/docs/resources/foundry/slate/query-conditional-check.png)
+![query-conditional-check](./images/query-conditional-check.png)
 
-![query-conditional-return](/docs/resources/foundry/slate/query-conditional-return.png)
+![query-conditional-return](./images/query-conditional-return.png)
 
 ## Tutorial: Make data available for Slate
 
@@ -267,19 +275,19 @@ The following query fetches data used to populate a widget in a tabbed container
 You should only load data using the Object Set Builder in the **Platform** tab of Slate where possible. The Object Set Builder allows you to easily query the Ontology and will return data in a tabular format similar to the example shown below. The Postgres workflow explained below is retained as a reference for legacy usage.
 :::
 
-:::callout{title="warning"}
-Before proceeding with the tutorial below, you must make the `last-mile-flights` and `airports` datasets you uploaded to Foundry available for use in Slate. Open the **Datasets** panel and select **+Add** to open the Foundry resource selector.
+:::callout{theme="warning"}
+Before proceeding with the tutorial below, you must make the `last-mile-flights` and `airports` datasets you uploaded to Foundry available for use in Slate. Open the **Variables** panel and select **+Add** to open the Foundry resource selector.
 :::
 
-![resource-selector](/docs/resources/foundry/slate/resource-selector.png)
+![resource-selector](./images/resource-selector.png)
 
 Navigate to the `last-mile-flights` dataset by selecting **All Files > Getting started data**, or use the search box in resource selector. Once you locate the dataset, choose the **Select last-mile-flights** option to begin import configuration.
 
-![resource-selector-last-mile](/docs/resources/foundry/slate/resource-selector-last-mile.png)
+![resource-selector-last-mile](./images/resource-selector-last-mile.png)
 
 To view configuration options, select the arrow next to **Sync to Postgres**.
 
-![foundry-sync-pg-noconfig](/docs/resources/foundry/slate/foundry-sync-pg-noconfig.png)
+![foundry-sync-pg-noconfig](./images/foundry-sync-pg-noconfig.png)
 
 :::callout{theme="neutral"}
 The default table name in Postgres will include the file path and mixed-case dataset name. To handle the special character `/`, uppercase letters, and spaces, Postgres will treat the table name as a quoted identifier. This means that whenever the table is referenced in a query, you must include double quotes or Postgres will throw a syntax error. We recommend the inclusion of a `Postgresql table name` in the setup that is snake case, lower case letters and `_` to avoid the need for double quote usage.
@@ -287,7 +295,7 @@ The default table name in Postgres will include the file path and mixed-case dat
 
 Since the data access patterns have not yet been defined and the `last-mile-flights` dataset is relatively small, we will not create any indexes on the table. You can always add these later. Select **Apply and sync** to start the sync. You can use the **Check Status** button to monitor the sync.
 
-![foundry-sync-running](/docs/resources/foundry/slate/foundry-sync-running.png)
+![foundry-sync-running](./images/foundry-sync-running.png)
 
 Once the sync is complete, you should see a sample query to use in Slate that looks similar to the following, though the number appended to your dataset name will be different:
 
@@ -328,7 +336,7 @@ If you get an error, make sure that you made `last-mile-flights` available in Sl
 
 Select **Update Query** to save the query.
 
-![q\_lastMileFlights](/docs/resources/foundry/slate/q_lastMileFlights.png)
+![q\_lastMileFlights](./images/q_lastMileFlights.png)
 
 :::callout{theme="neutral"}
 You can view the results in the raw JSON response structure by selecting **< / >**.

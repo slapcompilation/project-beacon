@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/schedules-overview/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/schedules-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Schedules
 
@@ -18,6 +18,8 @@ Scheduled builds can be configured to build:
 * All datasets that depend on a dataset
 * All datasets that connect two datasets
 * *Any combination of the above configurations*
+
+By default, a schedule does not start a run while another run of the same schedule is in progress. Enable **Allow overlapping runs** to process new input data before an earlier run finishes. You can also use this setting to keep multiple datasets up to date with one schedule.
 
 You can set up basic build schedules directly within Pipeline Builder and navigate to advanced settings and status reports in dataset views. Edit or remove schedules at any time, and review our [best practices](/docs/foundry/building-pipelines/scheduling-best-practices/) to optimize pipeline management.
 

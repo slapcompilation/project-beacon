@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/activity/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/activity/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Activity
 
@@ -10,11 +10,11 @@ Object monitor activity is recorded based on the condition and when certain meta
 
 The activity timeline for all monitors subscribed to by a user is displayed on the **Overview** page of the Object Monitors application.
 
-![Object Monitors app Overview page](/docs/resources/foundry/object-monitors/object_monitors_app_overview.png)
+![Object Monitors app Overview page](./images/object_monitors_app_overview.png)
 
 The activity timeline for a single monitor is displayed under the **History** tab in the individual monitor overview panel.
 
-![Objects Monitors app activity timeline](/docs/resources/foundry/object-monitors/object_monitors_app_activity_timeline.png)
+![Objects Monitors app activity timeline](./images/object_monitors_app_activity_timeline.png)
 
 ## Activity event types
 

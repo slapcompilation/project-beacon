@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-cumulative-aggregate/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-cumulative-aggregate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Cumulative aggregate
 
@@ -16,7 +16,7 @@ Time series
 
 ## Examples
 
-![Cumulative aggregate example](/docs/resources/foundry/quiver/card-cumulative-agg.png)
+![Cumulative aggregate example](./images/card-cumulative-agg.png)
 
 ## Usage information
 

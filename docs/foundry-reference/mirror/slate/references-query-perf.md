@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/references-query-perf/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/references-query-perf/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Optimize queries in Postgres
 
@@ -16,8 +16,8 @@ The target execution time for PostgreSQL queries is <= 500ms. This should be pos
 
 When evaluating query performance, particularly with a new dataset, ensure that queries are run multiple times before collecting and analyzing statistics. This will help ensure the dataset is properly cached and the performance is better aligned with the expected usage. If you're interested in learning more about the PostgreSQL cache, see the following links:
 
-* [Introduction to PostgreSQL physical storage ↗](http://rachbelaid.com/introduction-to-postgres-physical-storage/)
-* [Deeper dive into physical storage ↗](http://www.interdb.jp/pg/pgsql01.html)
+* [Introduction to PostgreSQL physical storage ↗](https://rachbelaid.com/introduction-to-postgres-physical-storage/)
+* [Deeper dive into physical storage ↗](https://www.interdb.jp/pg/pgsql01.html)
 * [Official Postgres documentation ↗](https://www.postgresql.org/docs/current/static/storage.html)
 
 ## EXPLAIN... explained

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-inherited-markings/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/remove-inherited-markings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Remove inherited Markings and Organizations
 
@@ -29,7 +29,7 @@ When restricted content is removed or obfuscated while deriving a dependent reso
 The gray dataset boxes in Project C below highlight the fact that Project References must be added for all the inputs in the destination Project.
 :::
 
-![basic\_workflow](/docs/resources/foundry/building-pipelines/basic_workflow.png)
+![basic\_workflow](./images/basic_workflow.png)
 
 ### Steps
 
@@ -37,7 +37,7 @@ The gray dataset boxes in Project C below highlight the fact that Project Refere
 
 2. Add one or both of the `stop_propagating` and `stop_requiring` properties to the input transform. For example:
 
-![basic\_example\_code](/docs/resources/foundry/building-pipelines/basic_example_code.png)
+![basic\_example\_code](./images/basic_example_code.png)
 
 3. Create a pull request to merge this code into a protected branch.
 
@@ -76,11 +76,11 @@ In Python, Marking removal is specified in the input constructor.
 
 The `Markings` class takes a list of Marking IDs and a list of protected branches on which to apply the marking removal. Marking IDs can be found in the `Markings` list on the `Settings` page.
 
-![marking\_id](/docs/resources/foundry/building-pipelines/marking_id.png)
+![marking\_id](./images/marking_id.png)
 
 The `OrgMarking` class takes a list of Organization IDs and a list of protected branches on which to apply the Marking removal. Organization IDs can be found in the `Organizations` list on the `Settings` page.
 
-![org\_id](/docs/resources/foundry/building-pipelines/org_id.png)
+![org\_id](./images/org_id.png)
 
 ### Java
 
@@ -161,13 +161,13 @@ repository itself, as well as having a [Role](/docs/foundry/security/projects-an
 For a Marking approval, the user approving needs to have the `Remove marking` role on the Marking.
 :::
 
-![remove\_role](/docs/resources/foundry/building-pipelines/remove_role.png)
+![remove\_role](./images/remove_role.png)
 
 :::callout{theme="neutral"}
 For an Organization approval, the user approving needs to have the `Expand access` role on the Marking.
 :::
 
-![expand\_access](/docs/resources/foundry/building-pipelines/expand_access.png)
+![expand\_access](./images/expand_access.png)
 
 ## Approval modes
 
@@ -178,9 +178,9 @@ For each repository and each Organization and Marking, a data governance user ca
 
 ### Example 1
 
-![example\_1](/docs/resources/foundry/building-pipelines/example_1.png)
+![example\_1](./images/example_1.png)
 
-![example\_1\_code](/docs/resources/foundry/building-pipelines/example_1_code.png)
+![example\_1\_code](./images/example_1_code.png)
 
 *Above is a transform in a repository with one Marking `PHI` that requires re-approval.*
 
@@ -192,9 +192,9 @@ Given the above setup, the following will happen:
 
 ### Example 2
 
-![example\_2](/docs/resources/foundry/building-pipelines/example_2.png)
+![example\_2](./images/example_2.png)
 
-![example\_2\_code](/docs/resources/foundry/building-pipelines/example_2_code.png)
+![example\_2\_code](./images/example_2_code.png)
 
 *Above is a transform in a repository with one organization, `PALANTIR`, that does **NOT** require re-approval.*
 
@@ -206,13 +206,13 @@ Given the above setup, the following will happen:
 
 ### Example 3
 
-![example\_3](/docs/resources/foundry/building-pipelines/example_3.png)
+![example\_3](./images/example_3.png)
 
-![example\_3\_part1\_code](/docs/resources/foundry/building-pipelines/example_3_part1_code.png)
+![example\_3\_part1\_code](./images/example_3_part1_code.png)
 
 *Transform 1: Above is a transform with one Marking, `PII`, and one Organization, `PALANTIR`. The `PII` Marking requires re-approval and the `PALANTIR` Organization does not require re-approval.*
 
-![example\_3\_part2\_code](/docs/resources/foundry/building-pipelines/example_3_part2_code.png)
+![example\_3\_part2\_code](./images/example_3_part2_code.png)
 
 *Transform 2: Above is a transform with one Marking, `USA`, that does **NOT** require re-approval.*
 
@@ -229,11 +229,11 @@ Given the above setup, here's what will happen:
 
 In this example scenario, a code editor wants to use two datasets from a sensitive upstream project, remove certain information, and allow a wider audience to access the resulting dataset. The two datasets, which have two Markings each, have been added as references in the downstream Project. The code editor wants three of the four Markings to stop propagating, such that they do not appear on the output dataset. In addition, the upstream Project is restricted to users from OrgA or OrgB, and the intent is to distribute the downstream data to users from OrgC.
 
-![before\_unmarking](/docs/resources/foundry/building-pipelines/before_unmarking.png)
+![before\_unmarking](./images/before_unmarking.png)
 
 *Before: The **output** dataset on the code editors branch has inherited all four Markings and is still restricted to users from OrgA or OrgB.*
 
-![after\_unmarking](/docs/resources/foundry/building-pipelines/after_unmarking.png)
+![after\_unmarking](./images/after_unmarking.png)
 
 *After: The **output** dataset, once merged into a protected branch (for example, **main**), now has only one inherited Marking and does not require users to be members of `OrgA` or `OrgB`.*
 
@@ -242,7 +242,7 @@ In this example scenario, a code editor wants to use two datasets from a sensiti
 1. The code editor writes a new transform on the
    `feature/clean-data` branch of the repository of the downstream Project.
 
-![detailed\_workflow](/docs/resources/foundry/building-pipelines/detailed_workflow.png)
+![detailed\_workflow](./images/detailed_workflow.png)
 
 2. Since all the marking changes are being requested for the `master` branch, no approvals are needed to work on `feature/clean-data`. In other words, when the output dataset is built on the `feature/clean-data` branch, all the upstream Markings will still be inherited.
 

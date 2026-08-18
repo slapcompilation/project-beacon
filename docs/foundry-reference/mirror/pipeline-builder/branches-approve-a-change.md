@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/branches-approve-a-change/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/branches-approve-a-change/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Approve a change
 
-Pipeline Builder users with `Edit` access in a workflow project can approve change proposals to the **Main** pipeline branch. To approve a proposal, first open the Builder **Proposal** view and select it from the list of `open` proposals. Here, you can view details including the merge behavior (for example, from `test/branch` into `Main`), a description of the change, and any errors found in the proposal.
+Pipeline Builder users with `Edit` access in a workflow project can approve change proposals to the **main** pipeline branch. To approve a proposal, first open the Builder **Proposal** view and select it from the list of `open` proposals. Here, you can view details including the merge behavior (for example, from `test/branch` into `main`), a description of the change, and any errors found in the proposal.
 
 ![Approve a change branch](./images/branch-approve-a-change@2x.png)
 
 ## View changes
 
-Switch to the **Changes** tab to compare proposed changes to the **Main** branch workflow. In the left panel, you can filter between types of changes. In the example below, the proposed changes include four edits to `Transforms` and three edits to `Outputs`.
+Switch to the **Changes** tab to compare proposed changes to the **main** branch workflow. In the left panel, you can filter between types of changes. In the example below, the proposed changes include four edits to `Transforms` and three edits to `Outputs`.
 
 Each proposed edit is tagged by proposal type: `ADD`, `MOD`, or `DEL`.
 
@@ -16,7 +16,7 @@ Each proposed edit is tagged by proposal type: `ADD`, `MOD`, or `DEL`.
 * `MOD`: The edit is a modification of an existing workflow node.
 * `DEL`: The edit removes a node from the workflow.
 
-Click on an individual edit for a side-by-side view of differences between the **Main** branch and proposal branch. In the example below, the proposed `Join person data` modification adds the `CITY` column to the existing join.
+Select an individual edit for a side-by-side view of differences between the **main** branch and proposal branch. In the example below, the proposed `Join person data` modification adds the `CITY` column to the existing join.
 
 ![Screenshot of branch changing an output](./images/branch-change-target@2x.png)
 
@@ -95,6 +95,10 @@ You can also unresolve resolved comments by selecting **Unresolve** or **Unresol
 
 ![Screenshot of unresolving comments.](./images/comments-unresolve.png)
 
+:::callout{theme="neutral"}
+If comments were left on pipeline blocks that have been deleted, you can still resolve them using the **Comments** side panel or the **Overview** tab of the proposal. The comments appear in these views even though the associated block no longer exists in the pipeline.
+:::
+
 ## Resolve errors
 
 In some cases, a proposal will show schema or edit errors that must be resolved before merging.
@@ -127,4 +131,11 @@ In the rebase branch, you can view the conflicts and changes on the graph. Find 
 
 ![Rebase branch to resolve merge conflicts](./images/branch-rebase.png)
 
-Once you are done resolving all conflicts, you can submit the changes to your branch and proposal by clicking **Submit** in the upper right of your graph.
+Once you are done resolving all conflicts, you can submit the changes to your branch and proposal by selecting **Submit** in the upper right of your graph.
+
+### Resolution settings
+
+Before submitting, you can configure additional resolution options by selecting the dropdown arrow next to the **Submit** button. This opens a resolution settings menu with the following options:
+
+* **Discard new changes from {base branch}:** The option label names the base branch you are rebasing onto. Enable this option to reject all base branch changes and keep only the changes from your head branch. By default, when resolving conflicts, non-conflicting changes from the base branch are automatically merged. Use this option when you want to preserve only your branch's changes.
+* **Squash intermediate versions:** Enable this option to combine intermediate versions into a single change when submitting. This is particularly useful for large branch rebases and prevents errors that may occur when rebasing branches with many intermediate versions.

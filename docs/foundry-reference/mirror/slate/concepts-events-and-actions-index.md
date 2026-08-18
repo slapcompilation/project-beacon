@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-events-and-actions-index/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-events-and-actions-index/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Available events and actions
 
@@ -26,7 +26,9 @@ The `slate.resize` event triggers whenever the browser window is resized. If any
 
 ### slate.userStorageChanged
 
-`slate.userStorageChanged` detects when the userStorage was updated with the `slate.setUserStorage` action. This event is also supported if the user storage was updated through another browser tab or window.
+`slate.userStorageChanged` fires when the `slate.setUserStorage` action updates `sl_user_storage`. The event also fires if another browser tab or window updates user storage. The new value of `sl_user_storage` is available as `{{slEventValue}}`.
+
+This event is useful for initializing local variables based on user storage on page load, as `sl_user_storage` may not be fully loaded when `slate.ready` fires.
 
 ### slate.getMessage
 
@@ -426,7 +428,7 @@ This action will immediately run the query specified by `QUERY_NAME`. This actio
 
 The `QUERY_NAME.export` action can be added as a trigger to an event from the **Export on** dropdown menu in the **Queries** tab.
 
-![The Query Export on menu](/docs/resources/foundry/slate/queries-export-on.png)
+![The Query Export on menu](./images/queries-export-on.png)
 
 By default, the file will be named `QUERY_NAME.xlsx`. To change this, navigate to the **Events** tab and select `QUERY_NAME.export`. You can then add a return statement to configure the file name. For example, `return "january_data"` or `return {fileName: "january_data"}` will download an .xlsx file called `january_data.xlsx`. A valid file name should not be empty and must only contain letters, numbers, underscores, or spaces. If the file name in the return statement is invalid, the query's name will be used as the file name.
 
@@ -450,7 +452,7 @@ This action will immediately run the function specified by `FUNCTION_NAME`. Each
 
 The `FUNCTION_NAME.export` action can be added as a trigger to an event from the **Export on** dropdown menu in the **Functions** tab.
 
-![The Function Export on menu](/docs/resources/foundry/slate/functions-export-on.png)
+![The Function Export on menu](./images/functions-export-on.png)
 
 By default, the file will be named `FUNCTION_NAME.xlsx`. To change this, navigate to the **Events** tab and select `FUNCTION_NAME.export`. You can then add a return statement to configure the file name. For example, `return "january_data"` or `return {fileName: "january_data"}` will download an .xlsx file called `january_data.xlsx`. A valid file name should not be empty and must only contain letters, numbers, underscores, or spaces. If the file name in the return statement is invalid, the function's name will be used as the file name.
 

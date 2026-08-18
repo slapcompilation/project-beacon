@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-osdk/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-osdk/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use the Ontology SDK (OSDK) in Slate
 
@@ -35,7 +35,7 @@ The OSDK panel in Slate enables you to:
 The available Ontologies depend on your platform setup and permissions. You may only have access to one Ontology. You will have to delete and reconfigure the OSDK to switch to a different Ontology later.
 :::
 
-![The Ontology selection screen showing the Select Ontology dropdown in the OSDK panel.](/docs/resources/foundry/slate/select-ontology.png)
+![The Ontology selection screen showing the Select Ontology dropdown in the OSDK panel.](./images/select-ontology.png)
 
 ### Add data entities
 
@@ -78,7 +78,9 @@ After configuring your entities:
 3. Wait for the generation process to complete.
 4. Once generated, the OSDK is available for use in your Slate functions.
 
-![The OSDK configuration panel showing added entities and the documentation sidebar with code snippets.](/docs/resources/foundry/slate/slate-osdk-config-with-docs.png)
+The generation tag displays the application's OSDK version.
+
+![The OSDK configuration panel showing added entities and the documentation sidebar with code snippets.](./images/slate-osdk-config-with-docs.png)
 
 ## Using the OSDK in Slate functions
 
@@ -91,6 +93,40 @@ For example, selecting an object type displays:
 * The exact import statement and method calls for your generated OSDK.
 
 For detailed syntax reference on filtering, aggregations, actions, and other operations, see the [TypeScript OSDK guide](/docs/foundry/ontology-sdk/typescript-osdk-migration/). Note that Slate uses OSDK version 1 and is in JavaScript, so type annotations are omitted.
+
+### Traverse links with pivotTo
+
+After you configure link types in your OSDK, use the `pivotTo` method to traverse a link from every object in an object set to its linked objects.
+
+For example, if you have a `Dealer` object type with an `orders` link to an `Order` object type, you can retrieve the related orders for a set of dealers:
+
+```javascript
+import { client } from "@slate/osdk";
+
+const linkedOrders = await client.ontology.objects.Dealer
+    .pivotTo("orders")
+    .fetchPage({ pageSize: 30 });
+```
+
+To traverse a link from a single object instead, access the link directly on that object:
+
+```javascript
+import { client } from "@slate/osdk";
+
+function getLinkedOrders(source) {
+    return source.orders.fetchPageWithErrors({ pageSize: 30 });
+}
+```
+
+To use `pivotTo`:
+
+1. Include the link type in your OSDK configuration.
+2. In the **OSDK** panel, add an object type and select the relevant links in the bottom-right section.
+3. Generate the OSDK. The `pivotTo` method is then available and type-safe for the configured link names.
+
+:::callout{theme="neutral"}
+Select a link type in the **OSDK** panel to view the generated snippets for that link, including the exact object type and link API names for your configuration.
+:::
 
 ## Managing your OSDK configuration
 
@@ -123,6 +159,23 @@ To troubleshoot generation issues:
 
 1. Select the dropdown arrow next to **Generate OSDK**.
 2. Select **View latest generation logs**.
+
+### Troubleshooting OSDK loading errors
+
+If the OSDK fails to load, Slate displays the errors in the health check dialog.
+
+1. Open the health check dialog by selecting the issues icon in the [action bar](/docs/foundry/slate/navigation/).
+2. Select the **OSDK** tab to view detailed error information and guidance.
+3. Use the direct link in the dialog to open the OSDK configuration panel and fix the issue.
+
+For more information about the health check dialog, see [Debug applications](/docs/foundry/slate/applications-debug-problems/#health-check-dialog).
+
+### OSDK behavior when importing or duplicating applications
+
+When you [import or duplicate](/docs/foundry/slate/applications-import-export/) a Slate application that uses the OSDK, the behavior of the OSDK bundle varies:
+
+* **Importing applications:** JSON imports do not automatically include the OSDK bundle. You may need to regenerate the bundle after import by selecting **Regenerate last OSDK** from the **Generate OSDK** dropdown.
+* **Duplicating applications:** Using **Save as** from the **File** dropdown copies the existing OSDK bundle from the source application. If the OSDK fails to load after you save a copy, Slate displays a tooltip instructing you to regenerate the SDK or refresh the page.
 
 ### Deleting the OSDK
 

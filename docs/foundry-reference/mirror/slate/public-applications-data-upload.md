@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/public-applications-data-upload/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/public-applications-data-upload/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Upload data for public applications
 
@@ -21,7 +21,7 @@ To set up data upload in your public application, follow the instructions below:
 
 Create a new dataset resource in a Project or folder of your choice.
 
-![Create dataset via Projects & files](/docs/resources/foundry/slate/public-applications-compass.png)
+![Create dataset via Projects & files](./images/public-applications-compass.png)
 
 ## 2. Create a channel
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/action-reverts/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/action-reverts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Revert or undo actions
 
@@ -16,7 +16,7 @@ Currently, actions can only be reverted by the user who applied the action.
 
 In the **Form** tab of an action, toggle on the **Allow revert after action submission** button. Once this toggle is correctly configured and saved to the Ontology, your action can be reverted.
 
-![Screenshot of action reverts in the Form section](/docs/resources/foundry/action-types/action-reverts-form-button.png)
+![Screenshot of action reverts in the Form section](./images/action-reverts-form-button.png)
 
 The **Allow revert after action submission** toggle in the **Form** tab will be enabled by default for actions created after May 2024 that only modify OSv2 object types.
 If an action existed before May 2024 and modifies an object type in OSv2, action reverts will not be toggled on by default but can be manually enabled.
@@ -33,11 +33,11 @@ Once reverted successfully, users will see a similar toast to the original actio
 
 Edits applied:
 
-![Toast notification stating: "Edits successfully reverted".](/docs/resources/foundry/action-types/action-reverts-revert-action.png)
+![Toast notification stating: "Edits successfully reverted".](./images/action-reverts-revert-action.png)
 
 Edits reverted:
 
-![Toast notification stating: "Edits successfully applied".](/docs/resources/foundry/action-types/action-reverts-edits-reverted.png)
+![Toast notification stating: "Edits successfully applied".](./images/action-reverts-edits-reverted.png)
 
 ## Caveats
 

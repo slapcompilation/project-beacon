@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-object-selector/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-object-selector/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object selector
 
@@ -16,7 +16,7 @@ Single object
 
 ## Examples
 
-![Object selector](/docs/resources/foundry/quiver/resource-object-selector.png)
+![Object selector](./images/resource-object-selector.png)
 
 ## Usage information
 

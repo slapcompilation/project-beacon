@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-tabs/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-tabs/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Tabs
 
 The **Tabs** widget displays configurable tabs that trigger Workshop events to navigate throughout pages and overlays of a module.
 
-<img src="./media/widgets-tabs-v2.png" alt="Tabs widget example" width="600">
+<img src="./images/widgets-tabs-v2.png" alt="Tabs widget example" width="600">
 
 ## Configuration options
 
@@ -26,7 +26,7 @@ The following outlines the configuration settings for the Tabs widget:
 
   * **Design:** Select a styling preset to be applied to all configured tabs in the widget. Choose from **Outline**, **Block**, **Prominent**, or **Grouped**.
 
-  <img src="./media/widgets-tabs-designs.png" alt="Tabs widget design presets" width=300>
+  <img src="./images/widgets-tabs-designs.png" alt="Tabs widget design presets" width=300>
 
   * **Outline**
     * **Size:** Set the size for the tabs' display values to either default or large.

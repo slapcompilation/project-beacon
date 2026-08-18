@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-databricks/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/external-model-connection-databricks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Example: Integrate a Databricks model
 
@@ -96,19 +96,19 @@ Note that the URL is required by the above `DatabricksExternalModelAdapter` and 
 
 The below uses an egress policy that has been configured for your Databricks workspace domain (e.g., `<workspace-name>.cloud.databricks.com` or your custom domain) on Port 443.
 
-![Egress Policy Databricks in the modeling objectives application](/docs/resources/foundry/integrate-models/external-databricks-egress-configuration.png)
+![Egress Policy Databricks in the modeling objectives application](./images/external-databricks-egress-configuration.png)
 
 ### Configure model adapter
 
 Choose the published model adapter in the **Connect an externally hosted model** dialog.
 
-![Model Adapter configuration panel for Databricks in Palantir Foundry](/docs/resources/foundry/integrate-models/external-databricks-adapter-configuration.png)
+![Model Adapter configuration panel for Databricks in Palantir Foundry](./images/external-databricks-adapter-configuration.png)
 
 ### Configure connection URL
 
 Set the Base URL to the full Databricks serving endpoint URL by setting the `host` and `serving_endpoint_name` expected by the Databricks adapter.
 
-![Connection configuration panel for Databricks in Palantir Foundry](/docs/resources/foundry/integrate-models/external-databricks-connection-configuration.png)
+![Connection configuration panel for Databricks in Palantir Foundry](./images/external-databricks-connection-configuration.png)
 
 ### Configure credential configuration
 
@@ -118,7 +118,7 @@ This adapter requires credential configuration of:
 
 * `token`: A Databricks personal access token with permission to access the model serving endpoint.
 
-![Credentials configuration panel for Databricks in Palantir Foundry](/docs/resources/foundry/integrate-models/external-databricks-credentials-configuration.png)
+![Credentials configuration panel for Databricks in Palantir Foundry](./images/external-databricks-credentials-configuration.png)
 
 ## Use the Databricks tabular model
 
@@ -128,7 +128,7 @@ Now that the Databricks model has been configured, this model can be hosted in a
 
 The image below shows an example query made to the Databricks model in a live deployment.
 
-![Example query using Databricks adapter](/docs/resources/foundry/integrate-models/external-databricks-query.png)
+![Example query using Databricks adapter](./images/external-databricks-query.png)
 
 ### Use the Databricks tabular model in a transform
 

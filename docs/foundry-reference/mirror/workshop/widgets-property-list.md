@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-property-list/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-property-list/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Property List
 
 The **Property List** widget displays a list of properties from a single provided object.
 
-<img src="./media/widgets-property-list.png" alt="Property list example" width=600>
+<img src="./images/widgets-property-list.png" alt="Property list example" width=600>
 
 ## Configuration Options
 

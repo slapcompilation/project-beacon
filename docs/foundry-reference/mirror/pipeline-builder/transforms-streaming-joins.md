@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-streaming-joins/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/transforms-streaming-joins/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Joins in streaming Pipeline Builder pipelines
 
@@ -14,7 +14,7 @@ Complete the following steps to join a stream with a batch dataset in Pipeline B
 
 2. Under the batch dataset, select the dropdown menu and change the type to **Snapshot**.
 
-    <img src="./media/stream-type@2x.png" alt="Image of stream type selection." width=300>
+    <img src="./images/stream-type@2x.png" alt="Image of stream type selection." width=300>
 
 3. Select the stream against which you want to join.
 
@@ -39,8 +39,13 @@ You cannot transform the batch dataset before joining it against a stream. If yo
 Consider the following limitations for streaming joins:
 
 * The left side of the join must be either a stream or a batch dataset with "Stream" read mode when joining against a batch dataset.
+
+* The batch (snapshot) dataset used in a streaming join must be append-only. If the snapshot dataset contains non-append transactions such as overwrites or deletes, the join may produce empty output. If you encounter this issue, recreate the snapshot dataset using only append transactions.
+
 * Performance may degrade if you join against batch datasets with more than 8-10GB of data.
+
 * The batch dataset will update at most once every five minutes if a new append transaction is detected.
+
 * Joining against large static datasets can slow down cluster startup time.
 
 ## Join streams with other streams

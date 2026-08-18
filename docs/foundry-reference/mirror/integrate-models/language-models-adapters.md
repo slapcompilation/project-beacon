@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/language-models-adapters/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/language-models-adapters/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # API: Language model adapters \[Sunset]
 
@@ -10,7 +10,7 @@ This page documents the [model adapters](/docs/foundry/integrate-models/model-ad
 
 The model adapter currently in use is viewable on the model submission page in the Modeling Objectives application.
 
-![Model submission page in the Modeling Objectives application showing the model adapter in use](/docs/resources/foundry/integrate-models/language-models-model-adapter-usage.png)
+![Model submission page in the Modeling Objectives application showing the model adapter in use](./images/language-models-model-adapter-usage.png)
 
 ## Seq2SeqLMModelAdapter
 
@@ -20,7 +20,7 @@ This model adapter adds support for [sequence-to-sequence language models ↗](h
 
 **Example:** The expected input text and its structure depends on the selected model. We highly recommend reading the model details to ensure correct prompt engineering. The [flan-t5-large ↗](https://huggingface.co/google/flan-t5-large) model, for example, can perform a wide variety of prompts from translation to summarization to question answering.
 
-![Example sequence to sequence query in a live deployment](/docs/resources/foundry/integrate-models/language-models-sequence-to-sequence-example.png)
+![Example sequence to sequence query in a live deployment](./images/language-models-sequence-to-sequence-example.png)
 
 ### Model API
 
@@ -35,7 +35,7 @@ This model adapter adds support for [Named Entity Recognition pipelines ↗](htt
 
 **Example:** When sending the text “My name is Max and I live in Germany” to the model through a live deployment, the model recognizes two entities: Max and Germany.
 
-![Example named entity recognition query in a live deployment](/docs/resources/foundry/integrate-models/language-models-named-entity-recognition-example.png)
+![Example named entity recognition query in a live deployment](./images/language-models-named-entity-recognition-example.png)
 
 ### Model API
 
@@ -56,7 +56,7 @@ This model adapter calculates the embedding for a given text based on the model'
 
 **Example:**
 
-![Example embedding query in a live deployment](/docs/resources/foundry/integrate-models/language-models-embedding-example.png)
+![Example embedding query in a live deployment](./images/language-models-embedding-example.png)
 
 ### Model API
 
@@ -71,7 +71,7 @@ This model adapter classifies the input text for a predefined set of classes. Co
 
 **Example:**
 
-![Example of text classification query in a live deployment](/docs/resources/foundry/integrate-models/language-models-text-classification-example.png)
+![Example of text classification query in a live deployment](./images/language-models-text-classification-example.png)
 
 ### Model API
 
@@ -88,7 +88,7 @@ This model adapter classifies the input text based on a list of classes that are
 
 **Example:** When sending the text “I love to develop new language models” and the candidate labels “Travel”, “Sports”, “Work”, and “Entertainment”, the model will score the labels and rank "Work" as the most likely classification.
 
-![Example of ZeroShot classification query in a live deployment](/docs/resources/foundry/integrate-models/language-models-zero-shot-classification-example.png)
+![Example of ZeroShot classification query in a live deployment](./images/language-models-zero-shot-classification-example.png)
 
 ### Model API
 

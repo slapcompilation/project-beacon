@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-periodic-aggregate/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-periodic-aggregate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Periodic aggregate
 
@@ -17,7 +17,7 @@ Time series
 
 ## Examples
 
-![Periodic aggregate example](/docs/resources/foundry/quiver/card-periodic-aggregate.png)
+![Periodic aggregate example](./images/card-periodic-aggregate.png)
 
 ## Usage information
 

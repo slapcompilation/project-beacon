@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-job-groups/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/management-job-groups/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Job groups
 
@@ -20,25 +20,27 @@ To assign job groups, right-click on any output node in your Pipeline Builder gr
 
 **Batch view** | **Streaming view**
 \--------       |------------------
-![View of node menu for batch pipelines](/docs/resources/foundry/pipeline-builder/assign-job-group-batch.png) | ![View of node menu for streaming pipelines.](/docs/resources/foundry/pipeline-builder/assign-job-group-stream.png)
+![View of node menu for batch pipelines](./images/assign-job-group-batch.png) | ![View of node menu for streaming pipelines.](./images/assign-job-group-stream.png)
 
-Select **New group** to assign the output to a new job group. A **Build settings** panel will open to the right side and automatically assign a color to the job group for easy identification on the graph.
+Select **New group** to assign the output to a new job group, or select **Use default** to reset the output to the default job grouping behavior. A **Build settings** panel will open to the right side and automatically assign a color to the job group for easy identification on the graph.
+
+The **Build settings** panel displays a dedicated section for single ungrouped jobs, making it easier to distinguish between grouped and ungrouped outputs. By default, all ungrouped jobs in batch pipelines are displayed in this section.
 
 **Batch view** | **Streaming view**
 \------         |------------------
-![View of Build Setting panel in batch pipelines](/docs/resources/foundry/pipeline-builder/build-settings-batch.png) | ![View of Build Settings panel in streaming pipelines.](/docs/resources/foundry/pipeline-builder/build-settings-stream.png)
+![View of Build Setting panel in batch pipelines](./images/build-settings-batch.png) | ![View of Build Settings panel in streaming pipelines.](./images/build-settings-stream.png)
 
 Continue to edit other outputs to add them to existing or new job groups. Alternatively, use the side panel to move outputs to new groups.
 
-![Move jobs to groups in the Build Settings panel.](/docs/resources/foundry/pipeline-builder/move-to-group.png)
+![Move jobs to groups in the Build Settings panel.](./images/move-to-group.png)
 
 The default compute profile is shown at the top of the panel. To add custom profiles for each job group, select **Add profile** in the header of each group. In the example below, the default compute profile is `Small`, but Group 1 is configured with a `Medium` compute profile.
 
-![Configure additional compute profiles in the Build Settings panel.](/docs/resources/foundry/pipeline-builder/add-compute-profiles.png)
+![Configure additional compute profiles in the Build Settings panel.](./images/add-compute-profiles.png)
 
 Once you have created your job groups, select **Apply** in the upper right of the panel to save your changes.
 
-![The Apply button at the top of the Build Settings panel.](/docs/resources/foundry/pipeline-builder/apply-job-groups.png)
+![The Apply button at the top of the Build Settings panel.](./images/apply-job-groups.png)
 
 You are now ready to deploy your pipeline.
 
@@ -48,8 +50,10 @@ You are now ready to deploy your pipeline.
 In a job group, Markings from all inputs will be inherited by all outputs within the same job group, even if the outputs are not directly connected to the marked inputs. Learn more about [Markings inheritance](/docs/foundry/security/markings/#inheritance).
 :::
 
+Pipeline Builder displays a badge icon on outputs in a job group when those outputs may have markings added by other inputs in the same job grouping. This visual indicator also appears in diff and rebase views to help you identify when marking changes may be affected by other inputs in the shared job group.
+
 In the following example, **Input\_A** has Markings and **Input\_B** has no Markings. **Output\_X** and **Output\_Y** are in the same job group. Although **Output\_Y** is not directly connected to **Input\_A**, it will inherit all Markings from **Input\_A** upon deployment.
 
-![The Apply button at the top of the Build Settings panel.](/docs/resources/foundry/pipeline-builder/job-groups-markings.png)
+![The Apply button at the top of the Build Settings panel.](./images/job-groups-markings.png)
 
 You can [preemptively remove Markings](/docs/foundry/pipeline-builder/outputs-remove-markings-and-organizations/) inherited from job groupings if you do not want the markings on **Output\_Y**.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-comments/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-comments/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Comments
 
@@ -12,7 +12,7 @@ See below for an example of configuring and using references in the Comments wid
 
 | Configuration | Usage |
 |--------|---------------|
-| <img alt="References can be configured in the Comments widget configuration. A reference configuration allows for an easy way to reference objects from a given object set." src="./media/comments-references-config.png" width="300" /> | <img alt="Use the at symbol to include a reference in a comment. Possible references will be displayed in a pop-up as you begin typing." src="./media/comments-references-popup.png" width="300" /> |
+| <img alt="References can be configured in the Comments widget configuration. A reference configuration allows for an easy way to reference objects from a given object set." src="./images/comments-references-config.png" width="300" /> | <img alt="Use the at symbol to include a reference in a comment. Possible references will be displayed in a pop-up as you begin typing." src="./images/comments-references-popup.png" width="300" /> |
 
 ## Permissions
 
@@ -52,26 +52,28 @@ The Comments widget comes with notifications enabled by default. The default not
 To send a custom notification, you can disable “Send default notifications” and configure an “Action to perform after commenting” which has a notification side-effect, refer to [the action notification documentation](/docs/foundry/action-types/notifications/) for more information. The Comments widget provides special values that can be passed to an action: `Users to notify` (a list of Multipass user IDs) and `Comment text`. These allow you to easily construct a custom notification. To include a link to a specific location in your Workshop application you can configure a [`module interface variable`](/docs/foundry/workshop/module-interface/). The examples below show how you can configure a custom notification:
 
 1. Set up an Action in Ontology with following fields
-   <img alt="Fields like comment text or users to notify can be added." src="./media/comments-custom-notification-form.png">
+   <img alt="Fields like comment text or users to notify can be added." src="./images/comments-custom-notification-form.png">
 
 2. Then add the notification side effect to the action rules
-   <img alt="In Ontology app, you can add a notification side-effect to your action." src="./media/comments-custom-notification-rule.png" />
+   <img alt="In Ontology app, you can add a notification side-effect to your action." src="./images/comments-custom-notification-rule.png" />
 
 3. Configure the notification that should be sent
-   ![Notification configuration lets you use the special values provided by the Comments widget like "users to notify" and comment text](/docs/resources/foundry/workshop/comments-custom-notification-oma.png)
+   ![Notification configuration lets you use the special values provided by the Comments widget like "users to notify" and comment text](./images/comments-custom-notification-oma.png)
 
 4. Configure the action in the Comments widget to pass `Users to notify` and `Comment text`
-   <img alt="Comments widget configuration lets you pass comment text and users to notify to an action you configure in Ontology app" src="./media/comments-custom-notification-widget.png" width="300" />
+   <img alt="Comments widget configuration lets you pass comment text and users to notify to an action you configure in Ontology app" src="./images/comments-custom-notification-widget.png" width="300" />
 
 ## Attachments
 
 You can upload attachments, such as files and images, either under the parent object or directly under a comment.  Attachments uploaded under a comment will be visible only in the Comments widget and are best suited for draft documents and iteration. We recommend only uploading small attachments, for larger attachments you will notice a long upload time and there is a 200 MB limit. We recommend uploading larger attachments directly on the parent object.
 
+For files exceeding the 200 MB attachment limit, consider using a [multimodal media set](/docs/foundry/media-sets-advanced-formats/media-overview/#multimodal-media-sets) instead. Store your files in the media set and use [media references](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) to associate them with your objects, rather than uploading them as traditional attachments.
+
 ## Action Log
 
 The Comment widget can display comments and actions taken on the relevant objects in one unified feed. Learn more about Action Log [here](/docs/foundry/action-types/action-log/).
 
-<img alt="Comment widget showing comments and actions in one unified feed." src="./media/comments-action-log.png" width="500" />
+<img alt="Comment widget showing comments and actions in one unified feed." src="./images/comments-action-log.png" width="500" />
 
 ## Frequently asked questions
 
@@ -82,3 +84,7 @@ The Comments widget lets you display Action Log entries in a common feed with co
 #### Can I display comments from the Comments Helper in Object Explorer through the Comments widget in Workshop?
 
 Comments from the Comments Helper in Object Explorer cannot be displayed or reused in Workshop's Comments widget.
+
+#### How can I prevent auto-refresh from clearing unsent text in the Comments widget?
+
+When auto-refresh is enabled in a module, refreshing can clear any unsent text a user has typed in the Comments widget. To prevent this, use button-driven events to control auto-refresh instead of leaving it always on. Disable auto-refresh when the user navigates to tabs containing the Comments widget, and re-enable auto-refresh only when switching back to tabs where live data updates are needed. Learn more about [controlling auto-refresh with events](/docs/foundry/workshop/auto-refresh/#control-auto-refresh-updates-with-events).

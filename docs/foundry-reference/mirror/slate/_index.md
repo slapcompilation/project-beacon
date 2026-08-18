@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/slate/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Slate
 
 **Slate** enables application developers (builders) to construct dynamic and responsive applications with a custom design using a drag-and-drop interface, reducing development time and cost. With minimal coding skills, developers can quickly create operational applications, interactive dashboards and custom landing pages with a custom style.
 
-![Example Slate dashboard](/docs/resources/foundry/slate/slate-overview-example.png)
+![Example Slate dashboard](./images/slate-overview-example.png)
 
 Customize the [style](/docs/foundry/slate/style-overview/) of your application using CSS, giving you the ability to create a unique experience for your users that aligns with your corporate identity or lets you experiment with new designs. With Slate, everything you see can be changed, from the background color of the canvas to the font and border radius of a button.
 

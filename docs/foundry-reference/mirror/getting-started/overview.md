@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/overview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 ![Get started design header.](./images/Get-Started.svg)
 
@@ -35,7 +35,7 @@ To help you navigate this documentation, here is a summary of what you will find
 Once you have platform access, we recommend the following resources to help you get started in the Palantir platform:
 
 * **[Examples](/docs/foundry/getting-started/start-with-examples/)** is a comprehensive library of reference examples, tutorials, and starter kits for quickly developing new applications, designed to facilitate learning and effective platform usage.
-* The **[Palantir Learning ↗](http://learn.palantir.com/)** portal provides courses, workflow tutorials, certifications, and more to help you get the most value out of the platform.
+* The **[Palantir Learning ↗](https://learn.palantir.com/)** portal provides courses, workflow tutorials, certifications, and more to help you get the most value out of the platform.
 * **[AIP Assist](/docs/foundry/assist/overview/)** is an LLM-powered tool designed to help you navigate, understand, and generate value with the Palantir platform. AIP Assist can be accessed from within the platform through a dedicated icon in the lower-left corner of the interface.
 * **[Solution Designer](/docs/foundry/solution-designer/overview/)** is an interactive tool for creating architectural representations of solutions for the Palantir platform. If you already have access to an enrollment, Solution Designer can be found at `<your-enrollment-URL>/workspace/solution-design`.
 

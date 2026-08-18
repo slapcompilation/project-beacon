@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-analyze-events-data/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-analyze-events-data/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Analyze events data
 
@@ -58,11 +58,11 @@ To perform the conversion, follow these steps:
 2. Select the **Continue analysis from** menu and then select the desired event set.
 3. Select **Convert > New transform table**.
 
-![Converting an events plot to a transform table.](/docs/resources/foundry/quiver/time-series-event-plot-convert.gif)
+![Converting an events plot to a transform table.](./images/time-series-event-plot-convert.gif)
 
 A wide variety of transforms are available to modify or enrich the underlying events data. For example, computing a quality score value for each event and displaying it the event tooltip. After transforming the data, use the [event set from tabular data](/docs/foundry/quiver/card-event-set-from-tabular-data/) card to convert the data back to an events plot and use it in subsequent time series operations.
 
-![Enriching event set data.](/docs/resources/foundry/quiver/time-series-event-transform.png)
+![Enriching event set data.](./images/time-series-event-transform.png)
 
 ## Use event sets for time series analysis
 

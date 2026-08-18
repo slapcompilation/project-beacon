@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/integrate-objects/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/integrate-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Ontology objects
 
@@ -12,7 +12,7 @@ Point, line, and polygon geometries can be specified in the ontology using the `
 
 A circle geometry can be specified on an object type by selecting a **Radius** property in the **Geospatial** section of the object type's **Capabilities** tab. The radius property can be any numeric property measured in meters.
 
-![Radius property configuration in the Ontology Manager](/docs/resources/foundry/map/oma-capabilities-radius-earthquake.png)
+![Radius property configuration in the Ontology Manager](./images/oma-capabilities-radius-earthquake.png)
 
 :::callout{theme="warning"}
 The circle geometry is only rendered on the map, not indexed for searching.  If you need objects to be geospatially searchable based on a circle geometry, you will need to approximate a circle using a [polygon](#ontology-native-representation).
@@ -28,7 +28,7 @@ Maps support rendering choropleths for objects that are configured with some com
 
 To configure boundary identifiers, first search for and install the "Choropleth Value Types" product in Marketplace. This product contains the ontology value types that the map application knows how to render as choropleths.
 
-![Image of the choropleth value types product in Marketplace](/docs/resources/foundry/map/marketplace-choropleth-value-types.png)
+![Image of the choropleth value types product in Marketplace](./images/marketplace-choropleth-value-types.png)
 
 The current supported region types and ways of identifying them are:
 
@@ -44,7 +44,7 @@ The current supported region types and ways of identifying them are:
 
 If your object type already has a property the contains one of these identifiers, select the corresponding value type in the **Value Type** dropdown menu for that property in Ontology Manager.
 
-![Image of the Value Type dropdown menu in the Ontology Manager](/docs/resources/foundry/map/oma-choropleth-value-type.png)
+![Image of the Value Type dropdown menu in the Ontology Manager](./images/oma-choropleth-value-type.png)
 
 If you want to display choropleths for one of the region types above, but your data has latitude/longitude points instead of one of the supported identifiers, use the "Choropleth Boundary Datasets" product from Marketplace to attach the region identifiers. This product contains datasets that contain the actual geometries and other metadata for the regions. Use Pipeline Builder's [Geometry intersection join](/docs/foundry/pipeline-builder/transforms-geospatial/#geometry-intersection-joins) to find the region that each point lies within and attach the corresponding region identifier, then configure the corresponding value type in ontology manager.
 
@@ -73,7 +73,7 @@ Objects can include string properties containing H3 cell IDs from the [H3 geospa
 
 To specify that a string property contains H3 cell IDs, select that property under **H3 cell** in the Geospatial section of the object type's **Capabilities** tab.
 
-![H3 property configuration in the Ontology Manager](/docs/resources/foundry/map/oma-capabilities-h3-tree.png)
+![H3 property configuration in the Ontology Manager](./images/oma-capabilities-h3-tree.png)
 
 :::callout{theme="warning"}
 The H3 hexagon is only rendered on the Map, not indexed for searching. If you need objects to be geospatially searchable based on a H3 hexagon, you will need to convert the H3 cell IDs into GeoJSON Polygons and include them in a `geoshape` property as described above.
@@ -90,7 +90,7 @@ An object can have georectified images attached, such as a satellite photo, aeri
     * Value: `bounds.<image URL property ID>` where `<image URL property ID>` is the ID of the image URL property.
   * For example, if the image URL property ID is `image_url` then the typeclass would be: Kind: `geo`, Value: `bounds.image_url`
 
-![Georectified image property configuration in the Ontology Manager](/docs/resources/foundry/map/oma-geo-bounds-typeclass.png)
+![Georectified image property configuration in the Ontology Manager](./images/oma-geo-bounds-typeclass.png)
 
 Objects with georectified images are indexed for geospatial search, as with all `geoshape` properties.
 
@@ -108,13 +108,13 @@ Objects can have numeric [time series properties](/docs/foundry/time-series/time
 
 To configure the track for the object type, select the **Track Latitude** and **Track Longitude** properties in the **Geospatial** section of the object type's **Capabilities** tab. Both properties must be numeric time series properties representing the object's location over time. See [Time series setup](/docs/foundry/time-series/time-series-setup/) for more information on configuration time series, and [track displays](/docs/foundry/map/visualize-tracks/) for more information on the options in maps for visualizing tracks.
 
-![Track latitude and longitude configuration in the Ontology Manager](/docs/resources/foundry/map/oma-capabilities-track-lat-lon.png)
+![Track latitude and longitude configuration in the Ontology Manager](./images/oma-capabilities-track-lat-lon.png)
 
 ## Event objects
 
 Event objects are Ontology objects that occur at a point or period of time. Object types can be configured as events by specifying **Event start time** and **Event end time** timestamp properties in the **Event** section of the object type's **Capabilities** tab.
 
-![Event configuration in the Ontology Manager](/docs/resources/foundry/map/oma-capabilities-event.png)
+![Event configuration in the Ontology Manager](./images/oma-capabilities-event.png)
 
 ### Event objects on the map
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/evaluations-writing/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/evaluations-writing/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Author and run evaluations
 

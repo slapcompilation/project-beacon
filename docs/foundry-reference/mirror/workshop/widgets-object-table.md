@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-table/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object Table
 
@@ -16,7 +16,7 @@ The **Object Table** widget is used to display object data in a tabular format. 
 
 The below screenshot shows an example of a configured Object Table displaying Flight Alert data:
 
-![object\_table\_reference\_1](/docs/resources/foundry/workshop/object_table_reference_1.png)
+![object\_table\_reference\_1](./images/object_table_reference_1.png)
 
 ## Configuration options
 
@@ -37,6 +37,8 @@ For the Object Table widget, the core configuration options are the following:
     If the object type's property name is later updated in the Ontology, the displayed column name in the Object Table will not automatically change.
     :::
 
+  * **Derived properties:** [Derived properties](/docs/foundry/workshop/derived-properties/) configured at the module level can be displayed as columns in the Object Table. These properties are calculated at runtime based on linked object values or aggregations. See the [derived properties documentation](/docs/foundry/workshop/derived-properties/) for configuration details and supported widgets.
+
   * **Unsupported property types:** Certain large properties (for example, Geoshape and Vector) are not loaded by default to preserve performance. In View mode, users can select the "..." overflow on a cell to load an unsupported property's value on demand. In the widget editor, unsupported properties are marked with a warning icon and tooltip to indicate potential performance impact.
 
   * **Enable inline editing:** When enabled, this toggle allows configuration of cell-level edits within the Object Table. See the [Inline Edits (cell-level writeback)](#inline-edits-cell-level-writeback) section below for more information on how to configure this advanced feature.
@@ -46,6 +48,7 @@ For the Object Table widget, the core configuration options are the following:
 * **Right-click menu**
   * **Enable export to CSV:** When enabled, this toggle allows a user to export object table data to CSV format from a row's right-click menu. This feature supports exporting function-backed columns and linked object properties and is capable of exporting up to 10,000 rows at a time.
   * **Enable export to Excel:** When enabled, this toggle allows a user to export object table data to Excel format from a row's right-click menu. Note that this feature supports exporting up to 200,000 rows at a time.
+    * **Use custom column names in export:** When enabled, exported Excel files use the user-defined column names as they appear in the configured object table. When disabled, exported files use the underlying property API names as column headers.
   * **Customize right-click menu:** This option enables module builders to configure a row's right-click menu with custom actions. See the [custom right-click menu](#custom-right-click-menu) section below for more information on how to configure this feature.
 
 * **Selection**
@@ -191,11 +194,11 @@ def flight_alert_calculate_urgency(
 
 Once this function has been published, configure the `Urgency` derived property to be displayed in this Workshop module. First, within the Object Table's configuration panel in the Workshop module, select the **Add column** button and the option to add a **Function-backed property.**
 
-![object\_table\_reference\_2](/docs/resources/foundry/workshop/object_table_reference_2.png)
+![object\_table\_reference\_2](./images/object_table_reference_2.png)
 
 Within the **Function-Backed Property** option that appears in the Columns list, select the "fx" Functions icon and then choose the desired function. In this example, we select the **flightAlertCalculateUrgency** function.
 
-![object\_table\_reference\_3](/docs/resources/foundry/workshop/object_table_reference_3.png)
+![object\_table\_reference\_3](./images/object_table_reference_3.png)
 
 Next, confirm the function version and then configure the necessary inputs for the function. Let's choose **Use a runtime input** to pass only the objects currently displayed in the Object Table and thus optimize the performance of our function. Alternatively, you have the option to pass in an object set variable (that is, the same object set that backs the Object Table).
 
@@ -203,15 +206,15 @@ Next, confirm the function version and then configure the necessary inputs for t
 The **Use a runtime input** option will dynamically pass only the objects currently displayed in the Object Table (rather than an entire object set) into a derived column function and provide faster performance. The additional **Use a variable input** option allows passing in an entire object set variable instead (such as the input object set variable that backs the Object Table), but may result in slower performance.
 :::
 
-![object\_table\_reference\_4](/docs/resources/foundry/workshop/object_table_reference_4.png)
+![object\_table\_reference\_4](./images/object_table_reference_4.png)
 
 Lastly, select the **Function-backed property** column cell to rename this column to something more descriptive like "Urgency".
 
-![object\_table\_reference\_5](/docs/resources/foundry/workshop/object_table_reference_5.png)
+![object\_table\_reference\_5](./images/object_table_reference_5.png)
 
 The end result will be the following Object Table that calculates the new derived Urgency column on-the-fly and displays this valuable additional information to users.
 
-![object\_table\_reference\_6](/docs/resources/foundry/workshop/object_table_reference_6.png)
+![object\_table\_reference\_6](./images/object_table_reference_6.png)
 
 ### Configure multiple function-backed properties
 
@@ -354,7 +357,7 @@ Once the above function is [published](/docs/foundry/functions/getting-started/#
 
 In the new column that appears in the column list, select the **fx** icon to choose the function that will back the derived column(s). In this example, select the `getColumnsFromLinkedDepartureAirport` function defined earlier in this tutorial.
 
-![derived\_columns\_configuration\_1](/docs/resources/foundry/workshop/derived_columns_configuration_1.png)
+![derived\_columns\_configuration\_1](./images/derived_columns_configuration_1.png)
 
 Next, configure the input parameters to the selected function. In this example, the function takes a single input parameter, an object set of Flight Alert objects called `flightAlerts`. Let's choose the **Use a runtime input** option to pass the function the objects currently displayed in the Object Table.
 
@@ -362,11 +365,22 @@ Next, configure the input parameters to the selected function. In this example, 
 The **Use a runtime input** option will dynamically pass only the objects currently displayed in the Object Table (rather than an entire object set) into the derived column function and thus provide faster performance. The additional **Use a variable input** option allows passing in an entire object set variable instead (such as the input object set variable that backs the Object Table), but may result in slower performance.
 :::
 
-![derived\_columns\_configuration\_2](/docs/resources/foundry/workshop/derived_columns_configuration_2.png)
+![derived\_columns\_configuration\_2](./images/derived_columns_configuration_2.png)
 
 Once the above step is complete, the function should run successfully and display the three expected columns in the **Object Table:**`Departure Airport`, `Departure City`, and `Departure Country`. We can either stop here or edit the column display names or column order to improve how the columns are presented in the application.
 
-![derived\_columns\_configuration\_3](/docs/resources/foundry/workshop/derived_columns_configuration_3.png)
+![derived\_columns\_configuration\_3](./images/derived_columns_configuration_3.png)
+
+### Sorting on function-backed properties
+
+After adding a function-backed column in the **Column configuration** section of the widget configuration panel, select **Function-backed column** from the **Default sort(s)** section below to configure the column's sorting mechanism. When Workshop sorts on a function-backed column, it waits for the function to execute for all rows in the table before displaying data.
+
+#### Limitations
+
+* You cannot combine function-backed column sorts with base property sorts.
+* End users cannot sort function-backed columns if the table contains more than 10,000 objects.
+* A function-backed column used as a default sort for a table with more than 10,000 objects will only sort each page of objects as they are loaded in the table, with a warning displayed.
+* You can only sort on function-backed columns that are included in the **Column configuration** section. To sort on a hidden function-backed column, toggle the **Variable-backed column visibility** setting and create a string array variable that contains the API names of all visible columns.
 
 ## Time series properties
 
@@ -374,11 +388,11 @@ Once the above step is complete, the function should run successfully and displa
 
 In the example below, the `Country` object has a conventional string property `Name`, which stores the name of the country, and a time series property `New Cases`, which stores a daily history of new COVID-19 cases observed in the country. The object table displays these two properties in the first two columns on the left, along with three time series derived from the `New Cases` property using time series transforms: `Case Acceleration`, `Weekly Cases`, and `Total Cases`. Each time series column displays the most recent observation in the time series on the left, and a sparkline visualizing the history of the time series on the right.
 
-![time\_dependent\_properties\_object\_table](/docs/resources/foundry/workshop/time_dependent_properties_object_table.png)
+![time\_dependent\_properties\_object\_table](./images/time_dependent_properties_object_table.png)
 
 To illustrate how to configure a time series property column in the Object Table, we will walk through the set up of the `Weekly Cases` column. The panels on the right side of the screen are the upper and lower parts of the configuration of the `Weekly Cases` column. These are placed together on the same screen as the column itself, to give a holistic reference for the configuration and result.
 
-![weekly\_cases\_example](/docs/resources/foundry/workshop/weekly_cases_example.png)
+![weekly\_cases\_example](./images/weekly_cases_example.png)
 
 ### Time series transforms
 
@@ -386,7 +400,7 @@ First, we need to generate a time series of the weekly COVID-19 caseload using a
 
 Here, we can use an aggregate transform to create the time series we need. The `Add transform` button opens a transform configuration, which we can set up to generate the time series we need.
 
-![object\_table\_transform\_step](/docs/resources/foundry/workshop/object_table_transform_step.png)
+![object\_table\_transform\_step](./images/object_table_transform_step.png)
 
 ### Time series summarizers
 
@@ -394,7 +408,7 @@ Next, we can use a **time series summarizer** (the red box) to generate the nume
 
 We can then configure **value formatting** (the blue box), under the Format Number header, and **conditional formatting** (the green box), under the Conditional Formatting header, to style the display of this value. Value formatting controls how the figures in the value are displayed, while conditional formatting changes the display color using a value-based rule system. In this case, we want to use compact notation, and to display the value in red if the weekly average COVID-19 case count is more than 100. See [Formatting in Workshop](/docs/foundry/workshop/formatting/) for more information on value and conditional formatting.
 
-![object\_table\_summarizer\_step](/docs/resources/foundry/workshop/object_table_summarizer_step.png)
+![object\_table\_summarizer\_step](./images/object_table_summarizer_step.png)
 
 ### Sparklines
 
@@ -406,7 +420,7 @@ We can also add **conditional formatting** (the blue box), under the Conditional
 
 Last, we can configure a **baseline** (the green box) to aid with interpretation of the sparkline. See [Time series properties in Workshop](/docs/foundry/workshop/time-series-properties/#baselines) for more information on configuring baselines.
 
-![object\_table\_sparkline\_step](/docs/resources/foundry/workshop/object_table_sparkline_step.png)
+![object\_table\_sparkline\_step](./images/object_table_sparkline_step.png)
 
 ## Inline edits (cell-level writeback)
 
@@ -435,11 +449,11 @@ Additional notes:
 
 When configuring the Object Table widget, the toggle to **Enable inline editing** will appear within the **Column configuration** section below the **Columns** list. Setting this toggle to true will **Enable inline editing** and prompt you to select the action you already configured within the Ontology to modify the displayed object type. In the example below, inline editing is enabled through the **Flight Alert: Inline Editing** action. Beneath the action picker, the action parameters are mapped to the table columns through the displayed dropdown menus. You can also pass variables as action parameters that will get passed into the action automatically without the user needing to edit the field in the table.
 
-![object\_table\_inline\_editing\_1](/docs/resources/foundry/workshop/object_table_inline_editing_1.png)
+![object\_table\_inline\_editing\_1](./images/object_table_inline_editing_1.png)
 
-After the above is configured, users can enter into editing mode with the **Edit table** button visible in the table footer. You can edit this button text with the **Custom button text** input field. You can also choose to have the table always be in inline editing mode by toggling on the **Enable edit mode by default** option. Once in edit mode, users can edit any modifiable column mapped to an action parameter, as seen below. Users can stage edits for up to 20 rows at a time for function-backed actions and up to 200 rows at a time for actions that are not function-backed. Any staged edits can be undone with the <img src="./media/undo-button.png" alt="Undo button" width="20" /> **Undo** button (as seen in the left-most column of the table in the screenshot below).
+After the above is configured, users can enter into editing mode with the **Edit table** button visible in the table footer. You can edit this button text with the **Custom button text** input field. You can also choose to have the table always be in inline editing mode by toggling on the **Enable edit mode by default** option. Once in edit mode, users can edit any modifiable column mapped to an action parameter, as seen below. Users can stage edits for up to 20 rows at a time for function-backed actions and up to 200 rows at a time for actions that are not function-backed. Any staged edits can be undone with the <img src="./images/undo-button.png" alt="Undo button" width="20" /> **Undo** button (as seen in the left-most column of the table in the screenshot below).
 
-![object\_table\_inline\_editing\_2](/docs/resources/foundry/workshop/object_table_inline_editing_2.png)
+![object\_table\_inline\_editing\_2](./images/object_table_inline_editing_2.png)
 
 Once you make your edits and are ready to submit your changes, you can press the **Submit** button in the bottom right corner of the table. A confirmation dialog will appear where you will again press **Submit** to submit your changes. If you prefer to use a one-click submit option and would like to disable this confirmation dialog, you can enable the **One-click submit** toggle.
 
@@ -453,12 +467,12 @@ Adding custom row actions to the right-click menu allows users to run actions or
 
 To add custom row actions to the right-click menu, enable the **Customize right-click menu** toggle within the **Right-click menu** section. Setting this toggle to true will prompt you to create a right-clicked object which outputs the currently right-clicked object in the table. You can then add custom items to the menu by selecting **Add item**.
 
-![An example configuration of a right-click menu in Workshop.](/docs/resources/foundry/workshop/object_table_right_click_menu_1.png)
+![An example configuration of a right-click menu in Workshop.](./images/object_table_right_click_menu_1.png)
 
 When you select **Add item**, a new menu will appear (as shown in the screenshot below) where you can customize how your menu item will be displayed within the right-click menu. You can also assign an action to your menu item by selecting an option from the **On click** dropdown menu. This allows you to choose whether your menu item triggers an action or an event. Additionally, you can use the right-clicked object you set up earlier within the action or event.
 
-![Additional configuration options for adding an action to a right-click menu.](/docs/resources/foundry/workshop/object_table_right_click_menu_3.png)
+![Additional configuration options for adding an action to a right-click menu.](./images/object_table_right_click_menu_3.png)
 
 Once configured, you will see your changes when you right-click on a row in your Object Table.
 
-![A fully configured right-click menu that appears when right-clicking an object on the Object Table widget.](/docs/resources/foundry/workshop/object_table_right_click_menu_2.png)
+![A fully configured right-click menu that appears when right-clicking an object on the Object Table widget.](./images/object_table_right_click_menu_2.png)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-text-input/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-text-input/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Text Input
 
@@ -25,7 +25,7 @@ The **Text Input** widget allows users to enter text values into a form field.
 
 When the `format` field is set to **Markdown**, the Text Input widget provides a rich text editing experience powered by the same editor used in [Notepad](/docs/foundry/notepad/overview/). This mode is suited for fields where users need to enter formatted text, such as descriptions, notes, or comments.
 
-![Text Input widget in Markdown mode showing the formatting toolbar and rich text content.](/docs/resources/foundry/workshop/widgets-text-input-markdown-editor.png)
+![Text Input widget in Markdown mode showing the formatting toolbar and rich text content.](./images/widgets-text-input-markdown-editor.png)
 
 ### Features
 
@@ -38,4 +38,7 @@ When the `format` field is set to **Markdown**, the Text Input widget provides a
 ### Considerations
 
 * Markdown mode does not support event-on-enter triggers (available only in single line mode).
+
 * Content is stored as a Markdown-formatted string in the bound string variable. Other widgets consuming this value should be able to interpret Markdown formatting.
+
+* **Image syntax limitation:** Markdown content containing image syntax (for example, `![image text](image url)`) may cause a "Failed to display rich text contents" error when the widget loads. When this occurs, users must select **View source text** to edit the content. If your content includes images and you do not require the rich text formatting toolbar, consider using the **Text area** format instead.

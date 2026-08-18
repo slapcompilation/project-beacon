@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/series-panel/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/series-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Series panel \[Planned deprecation]
 
@@ -9,7 +9,7 @@ Contact Palantir Support if you have questions about Map's timeline feature or r
 
 You can use a map's **Series** panel to further inspect [time series](/docs/foundry/map/time-series/) and [linked events](/docs/foundry/map/events/#linked-events) synced with the timeline's selected time and time window.
 
-![Series panel.](/docs/resources/foundry/map/time-series-view.png)
+![Series panel.](./images/time-series-view.png)
 
 ## Time series
 
@@ -26,8 +26,8 @@ You can add a time series to the series panel using the following methods:
     <th>Use the <b>Selection</b> panel to add a time series</th>
   </tr>
   <tr>
-    <td><img src="./media/series-panel_right-click.png" alt="Adding a series to the series panel from the right-click menu."></img></td>
-    <td><img src="./media/series-panel_selection-panel.png" alt="Adding a series to the series panel from the selection panel."></img></td>
+    <td><img src="./images/series-panel_right-click.png" alt="Adding a series to the series panel from the right-click menu."></img></td>
+    <td><img src="./images/series-panel_selection-panel.png" alt="Adding a series to the series panel from the selection panel."></img></td>
   </tr>
 </table>
 

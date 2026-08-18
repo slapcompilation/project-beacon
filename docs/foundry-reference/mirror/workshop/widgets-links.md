@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-links/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-links/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Links
 
@@ -9,13 +9,13 @@ The Links widget is used to display the links relationship between objects and p
 
 The screenshot below shows an example of a configured Links widget displaying a single `Flight Alert`’s linked objects. The `Flight Alert`’s linked Departure Airport has been expanded further in this screenshot to show its links.
 
-<img src="./media/links_example.png" alt="Links widget example" width="400">
+<img src="./images/links_example.png" alt="Links widget example" width="400">
 
 ## Configuration options
 
 The following image shows the initial state of a Links widget and its configuration panel:
 
-![links\_empty\_state](/docs/resources/foundry/workshop/links_empty_state.png)
+![links\_empty\_state](./images/links_empty_state.png)
 
 A Links widget has the following configuration options:
 
@@ -27,18 +27,18 @@ A Links widget has the following configuration options:
   * **Default link expand:** Specify the number of links that will be auto-expanded by default in the first level.
 * **Linked objects configuration**
   * **Enable exploration on link types:** At each link type level, enable a button to allow viewing the link type in Object Explorer.
-    <img src="./media/links_enable_explorer.png" alt="Open in Explorer button" width="450">
+    <img src="./images/links_enable_explorer.png" alt="Open in Explorer button" width="450">
 
   * **Enable open object view on linked objects:** For each linked object, enable a button to allow opening the linked object's Object View in Object Explorer.
-    <img src="./media/links_enable_object_view.png" alt="Open Object View button" width="450">
+    <img src="./images/links_enable_object_view.png" alt="Open Object View button" width="450">
 
   * **Enable object preview on hover:** When hovering over on the title of a linked object, preview the linked object’s properties. By default, the popover includes the linked object’s prominent properties but can be configured for custom properties by specifying links.
-    <img src="./media/links_object_preview.png" alt="Link object preview window" width="450">
+    <img src="./images/links_object_preview.png" alt="Link object preview window" width="450">
 
 ## Specified link configuration options
 
 The following image shows the initial state of a Links widget and its configuration panel when **Specify link types** is selected:
-![links\_inner\_empty\_state](/docs/resources/foundry/workshop/links_inner_empty_state.png)
+![links\_inner\_empty\_state](./images/links_inner_empty_state.png)
 
 The Links widget's configuration panel options for specified links are the following:
 

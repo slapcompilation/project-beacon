@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/compass/use-project-navigation-panel/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/use-project-navigation-panel/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use Project navigation panel
 
 The Project navigation panel includes **Preview** and **Project workspace** sections which provide tools for documentation and managing lists of files.
 
-<img src="./media/project-navigation.png" alt="Project navigation sidebar." width="200">
+<img src="./images/project-navigation.png" alt="Project navigation sidebar." width="200">
 
 ## Cover page
 
@@ -18,7 +18,7 @@ The **Files** tab displays a collection of all files within a Project. The most 
 
 When you create a new file from an existing one, it is automatically saved in the Project's **Autosaved** section instead of in **Your files**. These files are marked by the `Autosaved` label and are visible by anyone who has access to the folder or Project. Autosaved files allow for quick work and reduce Project clutter.
 
-![A view of files which were autosaved.](/docs/resources/foundry/compass/autosaved.png)
+![A view of files which were autosaved.](./images/autosaved.png)
 
 When the files are manually saved, they will appear in the **Files** section.
 
@@ -42,13 +42,13 @@ Project **References** allow you to manage the flow of data and packages across 
 
 **External references** are generally code packages automatically added to the project from various data analysis applications in order to run builds.
 
-![File references view in the Projects tab.](/docs/resources/foundry/compass/references.png)
+![File references view in the Projects tab.](./images/references.png)
 
 ## Trash
 
 Each Project has its own **Trash** section. If you no longer need a file for your Project, you can delete the file by moving the file to the Trash. Select the file you want to delete, then select the Trash icon to **Move to trash**.
 
-![Move to trash icon highlights at the upper right of the window.](/docs/resources/foundry/compass/move-to-trash.png)
+![Move to trash icon highlights at the upper right of the window.](./images/move-to-trash.png)
 
 :::callout{theme="neutral"}
 After you move an item to Trash, the Trash state is applied immediately, but the **Trash** view may take some time to reflect the change because its listing is backed by search indexing. The item may already be in Trash even if it does not appear in the **Trash** view right away. To confirm the item's state while the listing catches up, review the [Activity](/docs/foundry/compass/use-project-details-panel/#activity) log for the Project, or open the item or folder directly and verify that it shows as **In trash**.
@@ -56,7 +56,7 @@ After you move an item to Trash, the Trash state is applied immediately, but the
 
 You can restore files from the Trash if you change your mind. In the Trash tab, select the file and then the **Restore** icon.
 
-![Right click an item to use the Restore from trash option.](/docs/resources/foundry/compass/restore-trash.png)
+![Right click an item to use the Restore from trash option.](./images/restore-trash.png)
 
 Restoring a file places it where it was before you deleted it and returns previous permissions.
 
@@ -66,7 +66,7 @@ Use the **X** button to permanently delete the selected file.
 
 For users with the `Owner` role on a project, a link to view [**Project usage**](/docs/foundry/resource-management/project-usage/) in [**Resource Management**](/docs/foundry/resource-management/overview/) is available at the bottom of the navigation panel.
 
-![Project usage link in navigation panel.](/docs/resources/foundry/compass/project-navigation-with-project-usage-link.png)
+![Project usage link in navigation panel.](./images/project-navigation-with-project-usage-link.png)
 
 ## Access graph
 

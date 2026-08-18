@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-vega-chart/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-vega-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Vega Chart
 
@@ -11,7 +11,7 @@ Vega allows you to create, save, and share interactive visualization designs in 
 
 The Vega Chart widget offers more customizability than the standard [XY Chart widget](/docs/foundry/workshop/widgets-chart/), with support for visualizations such as those below, provided by the official [Vega-Lite Example Gallery ↗](https://vega.github.io/vega-lite/examples/).
 
-![Image showing several example Vega-Lite charts: 2D histogram heatmap, wind vector map, waterfall chart of monthly profit and loss, bar chart highlighting values over a threshold, radial plot, and layered plot with dual-axis.](/docs/resources/foundry/workshop/vega-examples.png)
+![Image showing several example Vega-Lite charts: 2D histogram heatmap, wind vector map, waterfall chart of monthly profit and loss, bar chart highlighting values over a threshold, radial plot, and layered plot with dual-axis.](./images/vega-examples.png)
 
 ## Vega data inputs
 
@@ -52,10 +52,10 @@ In [Vega-Lite ↗](https://vega.github.io/vega-lite/docs/data.html) you can spec
 The Vega Chart widget has three different configuration options which allow you to flexibly transform object data from your Ontology into the expected Vega and Vega-Lite formats, and then inject it into your JSON spec.
 
 * **Object set:** Specify the object set and properties of that object that should be included in the data. <br><br>
-  ![Vega object set data](/docs/resources/foundry/workshop/vega-object-set-data.png) <br><br>
+  ![Vega object set data](./images/vega-object-set-data.png) <br><br>
 
 * **Aggregation:** Specify the object set, group by properties with bucketing strategy, and aggregation. Each data point will contain the value of each group by property, as well as the aggregation value keyed by the specified aggregation name. <br><br>
-  ![Vega aggregation data](/docs/resources/foundry/workshop/vega-aggregation-data.png) <br><br>
+  ![Vega aggregation data](./images/vega-aggregation-data.png) <br><br>
 
 * **Function:** Specify a function that returns a list of structs that will be directly used as the data.
 
@@ -71,7 +71,7 @@ The Vega Chart widget has three different configuration options which allow you 
   ```
 
   <br><br>
-  ![Vega function data](/docs/resources/foundry/workshop/vega-function-data.png) <br><br>
+  ![Vega function data](./images/vega-function-data.png) <br><br>
 
 You can have multiple data inputs that can be referenced in the specification by their configured names. The data will be automatically injected into the JSON spec, which you can see in the [Preview tab](#inline-editor-preview) of the editor. Note than you can also inline data into the JSON spec by matching the [above data formats](#vega-data-inputs).
 
@@ -79,13 +79,13 @@ You can have multiple data inputs that can be referenced in the specification by
 
 The [spec ↗](https://vega.github.io/vega-lite/docs/spec.html) is the JSON that defines your visualization; the spec can be specified inline or by using a string variable.
 
-![Vega spec](/docs/resources/foundry/workshop/vega-spec.png)
+![Vega spec](./images/vega-spec.png)
 
 ### Vega vs. Vega-Lite
 
 The widget allows you to specify whether you want to use Vega-Lite or Vega for your spec.
 
-![Vega spec library selection](/docs/resources/foundry/workshop/vega-spec-library.png)
+![Vega spec library selection](./images/vega-spec-library.png)
 
 If you are making a common plot, we recommend using Vega-Lite for its more concise grammar, and support for [selection parameters](#selection-parameters-vega-lite-only). For more complex visualizations, you can use Vega. See the [Vega-Lite ↗](https://vega.github.io/vega-lite/examples/) and [Vega ↗](https://vega.github.io/vega/examples/) examples for an idea of what both can support.
 
@@ -93,7 +93,7 @@ If you are making a common plot, we recommend using Vega-Lite for its more conci
 
 For ease of reusability, you can configure a theme that will be injected into the spec. The default theme matches the Blueprint styling of the XY Charts widget, but you can also specify your own custom theme from a string variable, or turn off the theme entirely.
 
-![Vega theme](/docs/resources/foundry/workshop/vega-theme.png)
+![Vega theme](./images/vega-theme.png)
 
 See the [vega-themes repository ↗](https://github.com/vega/vega-themes) for examples when building out your own custom themes.
 
@@ -107,13 +107,13 @@ You can use AIP to create the initial version of your Vega chart. With your give
 
 `Make me a bar chart of average points per game, bucketed by the number of seasons played.`
 
-![Vega AIP chart](/docs/resources/foundry/workshop/vega-aip-chart.png)
+![Vega AIP chart](./images/vega-aip-chart.png)
 
 This will create a chart which you can iterate on with additional AIP prompts:
 
 `Remove the gridlines from this chart, and only show number of seasons greater than 4.`
 
-![Vega AIP chart 2](/docs/resources/foundry/workshop/vega-aip-chart2.png)
+![Vega AIP chart 2](./images/vega-aip-chart2.png)
 
 If your AIP prompts do not provide the desired result, you can modify the spec directly. Refer to existing [Vega-Lite examples ↗](https://vega.github.io/vega-lite/examples/) and other Vega resources for guidance on how to modify the spec: for instance, you can start from an example and replace the example data with a reference to your input data.
 
@@ -129,7 +129,7 @@ The online [Vega Editor ↗](https://vega.github.io/editor/#/) is a valuable too
 
 The primary reason that Workshop recommends using the Vega-Lite schema is because Vega-Lite supports [*selection parameters* ↗](https://vega.github.io/vega-lite/docs/selection.html). In the Vega Chart widget, you can configure multiple selection parameters, each of which has a name and an output variable. The output variable can be either an object set filter or a string.
 
-![Vega selection](/docs/resources/foundry/workshop/vega-selection.png)
+![Vega selection](./images/vega-selection.png)
 
 Because selection can be specified in several different places in the spec, this configuration is not auto-injected into the spec. As a builder, you are responsible for including a selection parameter in the spec for each of the configured parameter names.
 

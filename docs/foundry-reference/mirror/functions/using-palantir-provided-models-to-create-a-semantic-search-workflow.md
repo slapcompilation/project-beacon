@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/using-palantir-provided-models-to-create-a-semantic-search-workflow/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/using-palantir-provided-models-to-create-a-semantic-search-workflow/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use Palantir-provided models to create a semantic search workflow
 
@@ -26,11 +26,11 @@ Options:
 
 We will use [Pipeline Builder](/docs/foundry/pipeline-builder/overview/) to embed text in the dataset as vectors with the [**Text to Embeddings** expression](/docs/foundry/pipeline-builder/pipeline-builder-aip/#text-to-embeddings). The expression takes a string and converts it to a vector using one of the Palantir-provided models; in our case, this is the `text-embedding-ada-002` embedding model.
 
-![Text to Embedding](/docs/resources/foundry/ontology/text-to-embedding.png)
+![Text to Embedding](./images/text-to-embedding.png)
 
 These embeddings can then be added to the Ontology as a vector property.
 
-![Configuring a vector property in a Pipeline Builder output object property](/docs/resources/foundry/ontology/embeddings-as-pipeline-builder-output-object-property.png)
+![Configuring a vector property in a Pipeline Builder output object property](./images/embeddings-as-pipeline-builder-output-object-property.png)
 
 If you would like more control around the generation of embeddings using Palantir-provided models, see [Language models within Python transforms](/docs/foundry/transforms-python-spark/palantir-provided-models/#embeddings).
 
@@ -46,7 +46,7 @@ Configuring a [KNN object set](/docs/foundry/functions/api-object-sets/#k-neares
 2. Select the filter `+ On a property` option, then from the list of properties in the menu, select your embedding property.
 3. Once selected, the K-nearest-neighbors configuration should appear. If this configuration does not appear, verify that the property you selected is an embedding property.
 
-![Workshop KNN config](/docs/resources/foundry/ontology/knn-config-workshop.png)
+![Workshop KNN config](./images/knn-config-workshop.png)
 
 Within this panel, you can configure:
 
@@ -56,7 +56,7 @@ Within this panel, you can configure:
 4. Next, create a [text input](/docs/foundry/workshop/widgets-text-input/) widget and add its output variable to the KNN query option seen above.
 5. Lastly, add an [object table](/docs/foundry/workshop/widgets-object-table/) widget and configure its input variable to be the newly created [KNN object set](/docs/foundry/functions/api-object-sets/#k-nearest-neighbors-knn).
 
-![Workshop KNN semantic search](/docs/resources/foundry/ontology/knn-workshop-semantic.png)
+![Workshop KNN semantic search](./images/knn-workshop-semantic.png)
 
 For more customized semantic search logic, see the [section on functions](#create-a-function-to-semantically-search-across-objects-for-use-in-workshop-andor-aip-logic).
 
@@ -113,7 +113,7 @@ At this point, we have a function that can run semantic search to query objects 
 2. Add a [text input widget](/docs/foundry/workshop/widgets-text-input/), which will be used as an input to the published KNN document fetch function.
 3. Add an [object list widget](/docs/foundry/workshop/widgets-object-list/) with an input [object set generated from the function](/docs/foundry/workshop/functions-use/#function-backed-variables-in-workshop) and the selected inputs as shown below:
 
-<img src="./media/semantic-search-workshop-function.png" alt="KNN Function to generate object set" width="450">
+<img src="./images/semantic-search-workshop-function.png" alt="KNN Function to generate object set" width="450">
 
 4. Set the `kValue` to however many results you want returned, subject to the [specified limits](/docs/foundry/functions/api-object-sets/#k-nearest-neighbors-knn).
 

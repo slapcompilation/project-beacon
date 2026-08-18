@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/security/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/security/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Security
 
@@ -13,8 +13,12 @@ Automate is governed by the same security and permissions model as the rest of t
 Understanding who has permission to see what is critical for secure automation design:
 
 * **Condition evaluation:** Uses automation owner's permissions
-* **Action and Logic effects:** Execute as the automation owner
+* **Action, Logic, and Function effects:** Execute as the automation owner
 * **Notification effects:** Use each recipient's individual permissions
+
+:::callout{theme="warning"}
+Manual executions bypass trigger conditions, so Automate does not perform trigger-object permission checks. The input object set is still evaluated with the permissions of the user who starts the manual run.
+:::
 
 Learn more about how permissions work for different effect types in our Automate [permissions](/docs/foundry/automate/permissions/) documentation.
 
@@ -26,6 +30,12 @@ Automations can be configured with different scoping options that determine who 
 * **Project-scoped automations:** Enable team collaboration by sharing run history with all users who satisfy the markings on a run.
 
 Learn more about scoping options in our [history visibility and scope](/docs/foundry/automate/history-visibility-and-scope/) documentation.
+
+### Third-party application ownership
+
+Automations can be owned by third-party applications instead of individual users. This ties execution history and permissions to the application's service user, preserving team continuity when an individual owner is unavailable.
+
+Learn more about [third-party application ownership](/docs/foundry/automate/third-party-app-ownership/).
 
 ### History and activity tracking
 

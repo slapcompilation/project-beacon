@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-chart/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Chart
 
@@ -382,11 +382,11 @@ Next, plot the routes duration along the y-axis. Set **Y Values** to `"{{q_route
 
 To make the scatter plot easier to read, add labels to your axes. Select the **Axes** tab and change the **Name** of the first **X Axes** object from `x1` to `Distance`, and add a label such as `Distance (miles)` to describe the plotted information. You can also turn on gridlines to help identify where each point lies on the chart.
 
-![scatter-x-axis](/docs/resources/foundry/slate/scatter-x-axis.png)
+![scatter-x-axis](./images/scatter-x-axis.png)
 
 Name your **Y Axis** `Duration`, and configure it as follows:
 
-![scatter-y-axis](/docs/resources/foundry/slate/scatter-y-axis.png)
+![scatter-y-axis](./images/scatter-y-axis.png)
 
 Finally, give your points different sizes. We want the points to vary by how busy the route is. To do this, switch back to the **Data** tab and set **Radius** to `"{{q_routeMetrics.num_flights}}"`.
 
@@ -428,7 +428,7 @@ To finalize the chart, add the title `Route Metrics` to the **Title** input at t
 
 You should end with an application that looks like the following:
 
-![doc-with-scatter](/docs/resources/foundry/slate/doc-with-scatter.png)
+![doc-with-scatter](./images/doc-with-scatter.png)
 
 ### Line Chart with X and Y Range
 
@@ -492,7 +492,7 @@ You should end with an application that looks like the following:
 
 Gantt charts display time-based data as horizontal bars along a categorical y-axis. You can use Gantt charts to visualize schedules, project timelines, event durations, and any dataset where items span a start and end time. Gantt charts share the [chart widget properties](#chart-widget-properties) documented above.
 
-![A Gantt chart displaying three events as horizontal bars along a timeseries x-axis.](/docs/resources/foundry/slate/gantt-chart-default.png)
+![A Gantt chart displaying three events as horizontal bars along a timeseries x-axis.](./images/gantt-chart-default.png)
 
 ### Properties
 
@@ -831,19 +831,19 @@ Some examples of datasets which could be visualized with this chart:
 
 * Stocks (`label`) part of an industry (`category`) that have some share of the market (`size`) and have had some percentage price change (`density`)
 
-![tree-map-intro-example-stocks](/docs/resources/foundry/slate/tree-map-intro-example-stocks.png)
+![tree-map-intro-example-stocks](./images/tree-map-intro-example-stocks.png)
 
 * Factory locations (`label`) by region (`category`) that produce some quantity of goods (`size`) with a false positive ratio (`density`)
 
-![tree-map-intro-example-factories.png](/docs/resources/foundry/slate/tree-map-intro-example-factories.png)
+![tree-map-intro-example-factories.png](./images/tree-map-intro-example-factories.png)
 
 * Nodes of a cluster (`label`) with storage space (`size`) and some percentage storage space utilization (`density`)
 
-![tree-map-intro-example-node-sizes.png](/docs/resources/foundry/slate/tree-map-intro-example-node-sizes.png)
+![tree-map-intro-example-node-sizes.png](./images/tree-map-intro-example-node-sizes.png)
 
 * Population sizes (`size`) of countries (`label`) belonging to some world region (`category`)
 
-![tree-map-intro-example-populations.png](/docs/resources/foundry/slate/tree-map-intro-example-populations.png)
+![tree-map-intro-example-populations.png](./images/tree-map-intro-example-populations.png)
 
 ### Data Configuration
 
@@ -854,9 +854,9 @@ Some examples of datasets which could be visualized with this chart:
 
 In the default example, the cell rectangles corresponds to the cell `size`. There are two categories, `I` and `II`. Notice that `H` has the largest size (45), and is therefore the biggest rectangle. `H` also has the smallest density (3), so it is the darkest color (the gradient can be flipped with a checkbox under color panels).
 
-![tree-map-default-tree-map.png](/docs/resources/foundry/slate/tree-map-default-treemap.png)
+![tree-map-default-tree-map.png](./images/tree-map-default-treemap.png)
 
-![tree-map-default-data.png](/docs/resources/foundry/slate/tree-map-default-data.png)
+![tree-map-default-data.png](./images/tree-map-default-data.png)
 
 ### Color Configuration
 
@@ -866,9 +866,9 @@ There are different coloring configurations available based on if `categories` a
 
 When both `categories` and `densities` are enabled, colors of cells are defined according to gradients in the [Hue-Saturation-Value (HSV) ↗](https://en.wikipedia.org/wiki/HSL_and_HSV) color space. For each category a hue is defined. A list of hues (number between 0 and 360) or a dictionary mapping category names to hues can be provided. All categories' gradients then uses the same defined starting saturation and value. The gradient is defined using gradient type (brighten, darken, saturate, desaturate) and the strength of the gradient.
 
-![tree-map-all-enabled-widget.png](/docs/resources/foundry/slate/tree-map-all-enabled-widget.png)
+![tree-map-all-enabled-widget.png](./images/tree-map-all-enabled-widget.png)
 
-![tree-map-all-enabled-config.png](/docs/resources/foundry/slate/tree-map-all-enabled-config.png)
+![tree-map-all-enabled-config.png](./images/tree-map-all-enabled-config.png)
 
 #### Only category enabled
 
@@ -876,9 +876,9 @@ With only `categories` enabled, you can specify a list of colors or a dictionary
 
 The colors can be hex (#FF0000, #00FF00) or canonical (e.g. red, green).
 
-![tree-map-category-enabled-widget.png](/docs/resources/foundry/slate/tree-map-category-enabled-widget.png)
+![tree-map-category-enabled-widget.png](./images/tree-map-category-enabled-widget.png)
 
-![tree-map-category-enabled-config.png](/docs/resources/foundry/slate/tree-map-category-enabled-config.png)
+![tree-map-category-enabled-config.png](./images/tree-map-category-enabled-config.png)
 
 #### Only density Enabled
 
@@ -886,9 +886,9 @@ With only `densities` enabled, you can define a list of colors which will be app
 
 The colors can be hex (#FF0000, #00FF00) or canonical (e.g. red, green).
 
-![tree-map-density-enabled-widget.png](/docs/resources/foundry/slate/tree-map-density-enabled-widget.png)
+![tree-map-density-enabled-widget.png](./images/tree-map-density-enabled-widget.png)
 
-![tree-map-density-enabled-config.png](/docs/resources/foundry/slate/tree-map-density-enabled-config.png)
+![tree-map-density-enabled-config.png](./images/tree-map-density-enabled-config.png)
 
 #### Category disabled and density disabled
 
@@ -896,9 +896,9 @@ With both `categories` and `densities` disabled, you can define a list of colors
 
 The colors can be hex (#FF0000, #00FF00) or canonical (e.g. red, green).
 
-![tree-map-all-disabled-widget.png](/docs/resources/foundry/slate/tree-map-all-disabled-widget.png)
+![tree-map-all-disabled-widget.png](./images/tree-map-all-disabled-widget.png)
 
-![tree-map-all-disabled-config.png](/docs/resources/foundry/slate/tree-map-all-disabled-config.png)
+![tree-map-all-disabled-config.png](./images/tree-map-all-disabled-config.png)
 
 ### Miscellaneous Configuration
 
@@ -918,9 +918,9 @@ Optional miscellaneous configurations are possible:
 
 * Selection (multiple or single)
 
-![tree-map-misc-widget.png](/docs/resources/foundry/slate/tree-map-misc-widget.png)
+![tree-map-misc-widget.png](./images/tree-map-misc-widget.png)
 
-![tree-map-misc-config.png](/docs/resources/foundry/slate/tree-map-misc-config.png)
+![tree-map-misc-config.png](./images/tree-map-misc-config.png)
 
 ### Examples
 
@@ -940,17 +940,17 @@ categories: ["Tech", "Tech", "Tech", "Tech", "Finance", "Finance", "Finance", "F
 
 #### Example 1 with category and density enabled
 
-![tree-map-ex-1-widget.png](/docs/resources/foundry/slate/tree-map-ex-1-widget.png)
+![tree-map-ex-1-widget.png](./images/tree-map-ex-1-widget.png)
 
-<img src="./media/tree-map-ex-1-config.png" alt="tree-map-ex-1-config.png" width="300" />
+<img src="./images/tree-map-ex-1-config.png" alt="tree-map-ex-1-config.png" width="300" />
 
 #### Example 2 with only density enabled
 
 In this configuration the portfolio analyst can look at which equities have had the largest changes in price.
 
-![tree-map-ex-2-widget.png](/docs/resources/foundry/slate/tree-map-ex-2-widget.png)
+![tree-map-ex-2-widget.png](./images/tree-map-ex-2-widget.png)
 
-<img src="./media/tree-map-ex-2-config.png" alt="tree-map-ex-2-config.png" width="300" />
+<img src="./images/tree-map-ex-2-config.png" alt="tree-map-ex-2-config.png" width="300" />
 
 #### Example 3 with only category enabled
 
@@ -958,9 +958,9 @@ In this configuration the portfolio analyst can look at which industry is most r
 
 It is worth noting that you can use the configuration to offer a more granular representation of the data. For example, one could visualize the size of equities within the portfolio and color them according to Red, Amber, Green risk ratings.
 
-![tree-map-ex-3-widget.png](/docs/resources/foundry/slate/tree-map-ex-3-widget.png)
+![tree-map-ex-3-widget.png](./images/tree-map-ex-3-widget.png)
 
-<img src="./media/tree-map-ex-3-config.png" alt="tree-map-ex-3-config.png" width="300" />
+<img src="./images/tree-map-ex-3-config.png" alt="tree-map-ex-3-config.png" width="300" />
 
 #### Example 4 with category and density disabled
 
@@ -968,9 +968,9 @@ In this configuration, the portfolio analyst would simply see how large a share 
 
 It is worth noting that if a custom color strategy is required (beyond what is by default configurable), this configuration could be used by providing the color for each square individually.
 
-![tree-map-ex-4-widget.png](/docs/resources/foundry/slate/tree-map-ex-4-widget.png)
+![tree-map-ex-4-widget.png](./images/tree-map-ex-4-widget.png)
 
-<img src="./media/tree-map-ex-4-config.png" alt="tree-map-ex-4-config.png" width="300" />
+<img src="./images/tree-map-ex-4-config.png" alt="tree-map-ex-4-config.png" width="300" />
 
 ***
 
@@ -996,7 +996,7 @@ Alternatively,
 .legend .legend-row .legend-entry:nth-of-type(2) path,.legend .content .legend-row:nth-of-type(2) path {fill: #c993f1;}
 ```
 
-![line-css](/docs/resources/foundry/slate/line-css.png)
+![line-css](./images/line-css.png)
 
 ### Bar charts
 
@@ -1021,7 +1021,7 @@ Legend colors:
 }
 ```
 
-![bars-css](/docs/resources/foundry/slate/bars-css.png)
+![bars-css](./images/bars-css.png)
 
 ### Area charts
 
@@ -1051,7 +1051,7 @@ Alternatively:
 .legend .legend-row .legend-entry:nth-of-type(2) path,.legend .content .legend-row:nth-of-type(2) path {fill: #99CC00;}
 ```
 
-![area-css](/docs/resources/foundry/slate/area-css.png)
+![area-css](./images/area-css.png)
 
 ### Pie charts
 
@@ -1099,4 +1099,4 @@ sl-pie .legend .legend-row ._A path { fill: #009900; }
 sl-pie .legend .legend-row ._B path { fill: #99CC00; }
 ```
 
-![pie-css](/docs/resources/foundry/slate/pie-css.png)
+![pie-css](./images/pie-css.png)

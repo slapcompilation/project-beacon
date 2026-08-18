@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/notifications/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/notifications/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Notifications
 
 Notifications can be added to an action through the **Add new rule** dropdown menu. [Learn more about how to add a notification.](/docs/foundry/action-types/set-up-notification/)
 
-<img src="./media/side_effects_notification_tutorial_edit_action_rules.png" alt="Dropdown menu for Add new rule" width="500" />
+<img src="./images/side_effects_notification_tutorial_edit_action_rules.png" alt="Dropdown menu for Add new rule" width="500" />
 
 Configuring a notification requires specification of [recipients](#recipients) and [content](#content). The following sections provide more detail on these options.
 
@@ -14,7 +14,7 @@ Configuring the **Recipients** option of a notification allows you to specify th
 
 There are several supported ways of specifying recipients:
 
-<img src="./media/side_effects_recipients_selector.png" alt="Recipients Dropdown" width="400" />
+<img src="./images/side_effects_recipients_selector.png" alt="Recipients Dropdown" width="400" />
 
 * **Static:** In the configuration, you may select a set of users or groups who will always be notified when the action runs.
 * **From a parameter:** If you have a parameter to the action that is a Foundry user or group ID, you may specify this as your recipient for a notification.
@@ -36,7 +36,7 @@ Recipients may change their preferences for how notifications are delivered to t
 
 There are a number of options for customizing the content of notifications. Content may be configured via *Template* or provided via a custom *function*. Selecting template content will allow you to configure the full content directly in the configuration dialog. Function content will require you to have a published function, which returns the appropriate notification type.
 
-![Content Type Dropdown](/docs/resources/foundry/action-types/side_effects_content_selection_dropdown.png)
+![Content Type Dropdown](./images/side_effects_content_selection_dropdown.png)
 
 ### Content components
 
@@ -76,7 +76,7 @@ Any Ontology data used for generating notification content will reflect the stat
 
 This is an example configuration for a notification.
 
-<img src="./media/side_effects_numbered_example_configuration.png" alt="Example notification Configuration Labelled" width="400" />
+<img src="./images/side_effects_numbered_example_configuration.png" alt="Example notification Configuration Labelled" width="400" />
 
 1. **Recipients** configuration
 2. **Content** configuration
@@ -96,7 +96,7 @@ This is an example configuration for a notification.
 * There is a maximum of 50 recipients when using the "From a Function" option to render the notification content. There will be a warning in the configuration panel when selecting "From a Function" under the content configuration options, and the number of recipients will be checked each time the Action is run. If the number of recipients is over the limit, a red error toast will be displayed and the Action will fail to run.
 * There is a maximum of 500 recipients for a single Action notification when the content is configured directly in the configuration dialog using the "Template" option.
 
-![Function-rendered Content max-recipients warning](/docs/resources/foundry/action-types/side_effects_function_content_max_recipients.png)
+![Function-rendered Content max-recipients warning](./images/side_effects_function_content_max_recipients.png)
 
 ### Content length limits
 
@@ -109,7 +109,7 @@ Keep in mind that these maximum content lengths are validated and truncated when
 
 If "Strict Redaction" or "Group Redaction" on outbound email notifications is enabled for your Foundry instance, custom notification content will not be rendered. Instead, users will receive the generic message shown below. Selecting "View" will direct them into Foundry where they can view the full notification content. [Learn more about email content redaction in Foundry.](/docs/foundry/email/email-content-redaction/)
 
-![Strict redaction email content default](/docs/resources/foundry/action-types/side_effects_redacted_email_content.png)
+![Strict redaction email content default](./images/side_effects_redacted_email_content.png)
 
 ### Recipient user accounts
 
@@ -142,6 +142,6 @@ You must reference the primary key of a new object when linking it, since an obj
 
 To override redaction for email notifications, navigate to the **Security & Submission** tab, then **Notification settings > Disable notification redaction**.
 
-![Notifications settings with disable notification redaction option.](/docs/resources/foundry/action-types/notification_settings.png)
+![Notifications settings with disable notification redaction option.](./images/notification_settings.png)
 
 To learn how to enable this for the organization, refer to [the email redaction documentation page](/docs/foundry/email/email-content-redaction/#disable-email-redaction-in-action-types).

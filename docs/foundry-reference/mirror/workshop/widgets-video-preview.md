@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-video-preview/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-video-preview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Video Display widget
 
-![Video Display Widget](/docs/resources/foundry/workshop/video_display_widget_example.png)
+![Video Display Widget](./images/video_display_widget_example.png)
 
 The video display widget displays video from a [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) property on an object.
 
@@ -10,7 +10,7 @@ In contrast to the [Media Preview Widget](/docs/foundry/workshop/widgets-media-p
 
 ## Configuration options
 
-![Video display widget example configuration](/docs/resources/foundry/workshop/video_display_widget_example_configuration.png)
+![Video display widget example configuration](./images/video_display_widget_example_configuration.png)
 
 * **Object set with a single object:** An object with a media reference property
 
@@ -23,7 +23,7 @@ In contrast to the [Media Preview Widget](/docs/foundry/workshop/widgets-media-p
 
 * **Display Key Frames:** Optionally display select frames below the video.
 
-  ![Key Frame Display](/docs/resources/foundry/workshop/key_frame_display.png)
+  ![Key Frame Display](./images/key_frame_display.png)
 
   * **Preset:** Creates a frame at the specified interval.
     * Every 1 second

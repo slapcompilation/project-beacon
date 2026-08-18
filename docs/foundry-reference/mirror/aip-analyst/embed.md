@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-analyst/embed/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-analyst/embed/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Embed AIP Analyst
 
@@ -42,3 +42,7 @@ Pre-fill the user's first message, or pre-load [context](/docs/foundry/aip-analy
 * **`hideSettingsMenu`:** Hides the settings menu when set to `true`.
 * **`theme`:** Set the color theme (`light` or `dark`).
 * **`modelRid`:** Set a specific model to use for analysis.
+
+:::callout{theme="neutral"}
+URL parameters cover only a subset of the available settings. For anything you cannot configure with a parameter, create a Workshop module containing a single full-page [AIP Analyst widget](/docs/foundry/aip-analyst/workshop-widget/), configure it there, and embed that module instead. The widget exposes far more granular control, including which interface elements are visible, which tools are enabled by default, and how analyses are saved and loaded.
+:::

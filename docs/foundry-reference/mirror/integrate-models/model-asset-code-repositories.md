@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-repositories/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-code-repositories/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Train a model in Code Repositories
 
@@ -23,7 +23,7 @@ Read more about when to use each type of model adapter repository, and how to cr
 
 ### Model adapter implementation
 
-![Model Training Template Default Structure in Code Repositories](/docs/resources/foundry/integrate-models/model_asset_training_template-empty.png)
+![Model Training Template Default Structure in Code Repositories](./images/model_asset_training_template-empty.png)
 
 The model adapter and model training code should be in separate Python modules to ensure the trained model can be used in downstream transforms. In the template, we have separate `model_adapters` and `model_training` modules for this purpose. Author your model adapter in the `adapter.py` file.
 
@@ -76,19 +76,19 @@ In the Code Repositories application, you can select **Preview** to test your tr
 
 `ModelOutput` preview allows you to validate your model training logic as well as your model serialization, deserialization, and API implementation.
 
-![Model output preview in the Code Repositories application.](/docs/resources/foundry/integrate-models/model-asset-model-output-preview.gif)
+![Model output preview in the Code Repositories application.](./images/model-asset-model-output-preview.gif)
 
 ### ModelInput preview
 
 `ModelInput` preview allows you to validate your inference logic against an existing model. Note that for preview in Code Repositories, there is a 5GB size limit for every `ModelInput`.
 
-![Model input preview in the Code Repositories application.](/docs/resources/foundry/integrate-models/model-asset-model-input-preview.gif)
+![Model input preview in the Code Repositories application.](./images/model-asset-model-input-preview.gif)
 
 ## 4. Build your Python transform to publish the trained model
 
 In your code repository, select **Build** to run your transform. Foundry will resolve both the Python dependencies and dependencies of your model before executing your training logic.
 
-![Build a model in Code Repositories.](/docs/resources/foundry/integrate-models/model_asset-write-training-logic.png)
+![Build a model in Code Repositories.](./images/model_asset-write-training-logic.png)
 
 Calling `ModelOutput.publish()` will publish a version of your model to Foundry. Foundry will call the `ModelAdapter.save()` function and give your ModelAdapter the ability to serialize all required fields for execution.
 
@@ -114,7 +114,7 @@ If `use_sidecar` is not set to `True`, the model adapter and its dependencies mu
 
 If you are using a model in a different Python transform repository from the repository in which the model was created, you must add the model adapter Python library to your [authoring Python environment](/docs/foundry/transforms-python/overview/). This brings the Python packages required to load the model into the consuming repository's environment. The code authoring user interface will detect if a model's dependencies are not present in the repository and offer to perform the library import when hovering over the warning. The adapter library and its version corresponding to a specific model version can be found on the model page in Foundry.
 
-![Import dependencies if the model is from another repository.](/docs/resources/foundry/integrate-models/import_dependencies_prompt.png)
+![Import dependencies if the model is from another repository.](./images/import_dependencies_prompt.png)
 
 ```python
 from transforms.api import transform, Input, Output, LightweightInput, LightweightOutput

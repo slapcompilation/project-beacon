@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/state-saving/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/state-saving/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # State saving
 
@@ -11,6 +11,10 @@ State saving makes it easier to construct complex, long-running workflows in Wor
 * Partially completing an input form built of native Workshop widgets (e.g. the Text input widget or Date input widget) and saving state in order to return later to finish the data entry.
 
 When a state is saved, Workshop is preserving two things: (1) the current values ("states") of variables enabled for use with state saving and (2) optionally, the current page that a user is viewing. In Workshop’s Edit Mode, module builders can [decide which variables to use with state saving](#how-to-enable-state-saving) and also [configure other state saving options](#configuration-options). Module consumers in Workshop’s View Mode can then save, open, and share states as needed for their workflow.
+
+:::callout{theme="warning"}
+State saving does not automatically persist variable values across sessions. Enabling state saving for a variable only makes it eligible to be included when a user explicitly saves a state and later reloads that saved state. If you need to persist user preferences without requiring users to manually save and reload states, consider implementing an ontology-backed user preferences pattern where preference values are stored as object properties and loaded automatically on each visit.
+:::
 
 The following screenshots display an example of state saving. In this case, a module builder has configured state saving to preserve Object Set Filter variable output by the Filter List, which will save the user’s selected filtering criteria for high- and medium-priority unactioned alerts from NYC airports. The module builder has also configured the active Object Set variable output by the Object Table widget, which will save the currently highlighted alert in the table and then displayed in the Object View widget on the right-side of this module. Once this state is saved, the module consumer can easily return to this specific view of NYC flight alerts in the future or share the view with other users as a link.
 
@@ -49,6 +53,22 @@ Modifying a variable's external ID allows a module's configuration to change ove
 ### Configure optional settings
 
 Within the **Settings** panel under the **State Saving** section, you can configure settings for preserving the user's current page within a saved state. You can also set the allowed save location and folder shortcuts for this module's saved states. Folder shortcuts can make it easier to ensure that all shareable states for this module will be saved to the same location.
+
+## Setting a default saved state
+
+You can designate any saved state as the default for a module. When a default state is set, Workshop automatically applies it when users revisit the module without a specific saved state in the URL.
+
+To set a default state:
+
+1. Open the state saving menu from the module header.
+2. Select the saved state you want to set as the default.
+3. Choose the option to set it as the module's default state.
+
+You can also set a new state as the default when initially saving it. To remove a default state designation, use the state saving menu to clear the default setting.
+
+:::callout{theme="warning"}
+If you delete a saved state that has been designated as the default, Workshop will clear the default setting and display a warning notification.
+:::
 
 ## Configuration options
 
@@ -104,3 +124,7 @@ State saving is only available for end-users when platform access is enabled for
 ### Module header visibility required
 
 For module consumers to access state saving options in View Mode, the module header must be visible. If the module header is hidden, the state saving dropdown will not appear in the interface, even if state saving has been properly configured for the module.
+
+### State saving does not automatically persist per-user preferences
+
+State saving requires each user to actively save their state. It does not automatically persist preferences or settings on a per-user basis. If your workflow requires automatic per-user preference storage—such as a subscription toggle or a "do not show again" dialog setting that remembers each user's choice without manual intervention—consider using an ontology object to store and manage these preferences instead.

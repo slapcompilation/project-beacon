@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/selection/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/selection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Selection
 
@@ -28,23 +28,23 @@ These functions are also available in the right-click menu.
 
 | **Select** menu                                            | **Select** menu with existing selection                                                   | Right click menu for a shape                                                      |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
-| ![Toolbar select menu](/docs/resources/foundry/map/selection-toolbar-menu.png) | ![Toolbar select menu when items are selected](/docs/resources/foundry/map/selection-toolbar-menu-active.png) | ![Right click menu on shape](/docs/resources/foundry/map/selection-right-click-menu-intersecting.png) |
+| ![Toolbar select menu](./images/selection-toolbar-menu.png) | ![Toolbar select menu when items are selected](./images/selection-toolbar-menu-active.png) | ![Right click menu on shape](./images/selection-right-click-menu-intersecting.png) |
 
 You can select all the objects in a given layer using the **Select objects in layer** menu item from the **Layer Actions** menu.
 
-<img src="./media/selection-layer-actions-menu.png" alt="Layers panel with layer actions menu open" width="459" />
+<img src="./images/selection-layer-actions-menu.png" alt="Layers panel with layer actions menu open" width="459" />
 
 ## Select items using the histogram
 
 Click on a row within the **Histogram** panel to select all matching objects. Hold Shift while selecting a second row to select a range of rows. Holding Ctrl (Windows) or Cmd (macOS) will add the row to the existing selection. You can find more details in the [histogram and filtering documentation](/docs/foundry/map/histogram/).
 
-![Map application with histogram row selected](/docs/resources/foundry/map/selection-histogram-row.png)
+![Map application with histogram row selected](./images/selection-histogram-row.png)
 
 ## Locking objects on the map
 
 Lock the objects in a layer by selecting the **…** option, located in the **Layers** panel under the "Objects" section:
 
-<img src="./media/selection-locking.png" alt="Lock objects in layer." width="459" />
+<img src="./images/selection-locking.png" alt="Lock objects in layer." width="459" />
 
 This will lock the objects of a layer so that they will not be selectable on the map. The objects can still be selected from the left **Layers**, **Find**, and **Histogram** Panel, but you cannot interact with them on the map with your cursor, selection shortcuts, or intersecting shapes. You can still edit the styling of a layer from the **…** menu button.
 
@@ -54,26 +54,26 @@ To unlock the objects in a layer, select the lock icon next to a layer in the **
 
 If there are multiple objects selected, the **Selection** panel will list these objects. From this list, you can click a single object to narrow down your selection to that object. With a single object selected, the **Selection** panel on the right will show the details of the object.
 
-<img src="./media/selection-panel-single-object.png" alt="Selection panel showing a single object" width="327" />
+<img src="./images/selection-panel-single-object.png" alt="Selection panel showing a single object" width="327" />
 
-If the object has actions, these can be accessed by clicking the ![hammer icon](/docs/resources/foundry/map/selection-hammer-icon.png) icon. Additional actions such as centering the map on the object, deleting the object from the map, and opening the object in other applications are available from the **...** menu.
+If the object has actions, these can be accessed by clicking the ![hammer icon](./images/selection-hammer-icon.png) icon. Additional actions such as centering the map on the object, deleting the object from the map, and opening the object in other applications are available from the **...** menu.
 
 This panel has four tabs.
 
 * The **Properties** tab will show the properties of the object.
   * You can pin properties by right-clicking and selecting **Pin property** which will cause the properties to be shown at the top and allow you to hide the other properties.
-  * If there are any [functions](/docs/foundry/map/integrate-functions/) available, these can be added by selecting ![plus icon](/docs/resources/foundry/map/selection-plus-icon.png) in the bottom right. Selecting a function will add the value returned by that function to the properties list.
+  * If there are any [functions](/docs/foundry/map/integrate-functions/) available, these can be added by selecting ![plus icon](./images/selection-plus-icon.png) in the bottom right. Selecting a function will add the value returned by that function to the properties list.
 * The **Series** tab will show any series linked to the object.
 * The **Events** tab will show any events linked to the object in the currently selected time window.
 * The **Object view** tab will show the object view configured [in the Ontology Manager's **Object Views** tab](/docs/foundry/object-views/overview/).
 
 You can change the default tab for an object in Ontology Manager's **Capabilities** tab.
 
-![A section in Ontology Manager labeled "Default Object Selection Panel" and captioned "Sets the default panel to show in the object selection view" with the dropdown options of "Property list", "Series list", "Events list" and "Object view panel"](/docs/resources/foundry/map/oma-capabilities-default-selection-tab.png)
+![A section in Ontology Manager labeled "Default Object Selection Panel" and captioned "Sets the default panel to show in the object selection view" with the dropdown options of "Property list", "Series list", "Events list" and "Object view panel"](./images/oma-capabilities-default-selection-tab.png)
 
 | Adding a function                                                                                                                              | Showing a function value                                                                                                             |
 | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| <img src="./media/selection-panel-single-object-with-derived-properies-menu.png" alt="Selection panel with open functions menu" width="333" /> | <img src="./media/selection-panel-single-object-with-derived-propery.png" alt="Selection panel containing a function" width="327" /> |
+| <img src="./images/selection-panel-single-object-with-derived-properies-menu.png" alt="Selection panel with open functions menu" width="333" /> | <img src="./images/selection-panel-single-object-with-derived-propery.png" alt="Selection panel containing a function" width="327" /> |
 
 ## Remove items from the map
 
@@ -87,4 +87,4 @@ A toast will appear confirming the number of items that were deleted, with an **
 
 To remove all objects within a single layer, use the **Delete layer** item in the **Layer actions** menu.
 
-<img src="./media/selection-delete-layer.png" alt="Map application with layer actions menu open" width="459" />
+<img src="./images/selection-delete-layer.png" alt="Map application with layer actions menu open" width="459" />

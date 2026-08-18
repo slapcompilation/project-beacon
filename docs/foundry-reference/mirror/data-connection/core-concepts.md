@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/core-concepts/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/core-concepts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -99,7 +99,7 @@ Additional capabilities are being developed, and capability coverage is regularl
 
 Supported capabilities for specific connectors are also displayed on the new source page in the Data Connection application. It is possible to search both by connector name and by capability. The example below shows the results of a search for sources that support a "virtual" option.
 
-![Screenshot of the new source page showing capabilities available on connector cards with a search for "virtual".](/docs/resources/foundry/data-connection/data-connection-new-source-page.png)
+![Screenshot of the new source page showing capabilities available on connector cards with a search for "virtual".](./images/data-connection-new-source-page.png)
 
 ### Batch syncs
 

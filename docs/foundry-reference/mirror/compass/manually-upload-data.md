@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/compass/manually-upload-data/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/manually-upload-data/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Manually upload data
 
@@ -8,13 +8,13 @@ Start by opening the file on your computer to verify its contents. Check the num
 
 In the platform, navigate to the desired folder via **Files** in the workspace navigation sidebar, and then select **Your files**.
 
-!["Your files" view.](/docs/resources/foundry/compass/your-files-data.png)
+!["Your files" view.](./images/your-files-data.png)
 
 Within your home folder, you can create a folder named `data` to keep your files organized. Select the folder to navigate to it. You should now be in `Your files > data` or `/<shared-folder-path> > data`.
 
 Next, either directly drag and drop files onto your browser for upload into your folder, or alternatively, select **+ New > Upload files...** to start the upload process.
 
-<img src="./media/upload-file.png" alt="Upload file option" width="250">
+<img src="./images/upload-file.png" alt="Upload file option" width="250">
 
 During the upload process, choose how you would like to upload the file(s):
 
@@ -24,7 +24,7 @@ During the upload process, choose how you would like to upload the file(s):
 
 Then, configure your upload, and choose the **Write mode**.
 
-<img src="./media/configure-upload.png" alt="Configure the files you are uploading and select Write mode" width="300" />
+<img src="./images/configure-upload.png" alt="Configure the files you are uploading and select Write mode" width="300" />
 
 Write modes include:
 
@@ -34,7 +34,7 @@ Write modes include:
 
 Once set, select **Upload** to complete.
 
-<img src="./media/upload-finished.png" alt="Upload finished view" width="350">
+<img src="./images/upload-finished.png" alt="Upload finished view" width="350">
 
 :::callout{theme="neutral"}
 In the **Dataset Preview** application, you can [upload `.csv`, `.tsv`, `.xls`, `.xlsm`, and `.xlsx` files directly into a dataset](/docs/foundry/dataset-preview/overview/#upload-files-manually).

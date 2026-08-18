@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-create/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-create/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create and publish an application
 
@@ -14,7 +14,7 @@ Next, learn how to structure your application into [pages](/docs/foundry/slate/a
 
 Creating and editing new public applications requires permissions as described in [Permissions](/docs/foundry/slate/applications-types/#permissions). To create a new public application, select the **Public application** option. Public applications can only be created in projects and cannot be stored in private folders. Templates are not available for public applications.
 
-![Public application creation dialog](/docs/resources/foundry/slate/public-application-creation.png)
+![Public application creation dialog](./images/public-application-creation.png)
 
 The public application must first be [published](#publish-a-public-application) before unauthenticated users can view it.
 
@@ -22,7 +22,7 @@ The public application must first be [published](#publish-a-public-application) 
 
 To make newly-created public applications available for use, it must be published via either the version dialog or the dropdown next to **Save** assuming all prior edits have been saved already. Compared to strictly internal applications, public applications cannot be automatically published and the version intended for publication needs to be confirmed every time to prevent accidental publication.
 
-![Publishing a public application](/docs/resources/foundry/slate/public-application-publishing.png)
+![Publishing a public application](./images/public-application-publishing.png)
 
 Only one version can be published at any time. Tags are also not accessible to unauthenticated users, and these users will be redirected to the published version or shown an error message where there is no published version.
 
@@ -32,4 +32,4 @@ A published application can be unpublished anytime when no longer needed. Unpubl
 
 To unpublish, open the version dialog in edit mode and navigate to the published version in the list, indicated by the globe icon. Open the context menu and select **Unpublish** for on-screen guidance.
 
-![Public application unpublishing](/docs/resources/foundry/slate/public-application-unpublishing.png)
+![Public application unpublishing](./images/public-application-unpublishing.png)

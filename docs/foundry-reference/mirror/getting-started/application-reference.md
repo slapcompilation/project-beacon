@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/application-reference/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/application-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Application reference
 
@@ -71,7 +71,7 @@ The Palantir platform facilitates use case development by providing a suite of t
 |[Workshop](/docs/foundry/workshop/overview/) \[1] |Workshop enables the creation of interactive and high-quality applications for end users. | A point-and-click application builder that support pro-code customizations. | Slate may be a better fit if you need heavy customization for your application. |
 |[Slate](/docs/foundry/slate/overview/) \[2] |Slate is an extensible application development framework. |Create a customized application using HTML, CSS, and JavaScript. | Workshop is a better fit for applications of low to moderate complexity. |
 |[OSDK React applications](/docs/foundry/ontology-sdk-react-applications/overview/)| OSDK React applications allow developers to create fully customizable user interfaces using React, powered by the Ontology Software Development Kit, enabling seamless integration with Foundry as the backend for high-scale queries and secure application development. | Rapidly build and customize user interfaces by leveraging React's developer-friendly environment and Palantir's robust backend capabilities, ensuring efficient and secure application development in an organization. |
-|[Pilot](/docs/foundry/pilot/overview/)| Pilot is an AI-powered application builder that creates applications from natural language prompts, automatically generating ontology entities, design specifications, frontend code, and seed data. | Describe the application you want to build in natural language and deploy production-grade hosted applications using OSDK and React through Developer Console. |
+|[Pilot](/docs/foundry/pilot/overview/)| Pilot is an AI-powered builder that creates frontends from natural language prompts, automatically generating ontology entities, design specifications, frontend code, and seed data. Pilot builds standalone OSDK applications deployed through Developer Console and custom widgets published to the Widget Registry for embedding in Workshop. | Describe what you want to build in natural language and deploy production-grade hosted applications or custom widgets using OSDK and React. |
 
 \[1] Slate may be a better fit if heavy customization is needed for your application. <br>
 \[2] Workshop is a better fit for applications of low to moderate complexity, and generally poses a lower maintenance cost over time.

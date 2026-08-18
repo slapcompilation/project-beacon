@@ -1,26 +1,26 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/routing/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/routing/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Routing
 
 Workshop routing enables specific states or views of a module to be written to the URL, allowing users to easily share these views with others through link sharing.
 
-![A Workshop module configured with URL routing.](/docs/resources/foundry/workshop/routing-example.png)
+![A Workshop module configured with URL routing.](./images/routing-example.png)
 
 ## Enable routing
 
 To enable routing for your Workshop module, navigate to the **Pages** section of the **Settings** panel on the left and toggle on the **Enable routing** option.
 
-<img src="./media/enable-routing.png" alt="Enable routing configuration" width=250>
+<img src="./images/enable-routing.png" alt="Enable routing configuration" width=250>
 
 The **Pages** section displays an overview of the pages used with routing and provides an additional panel that showcases the variables in use, as shown below.
 
-<img src="./media/routing-overview.png" alt="Panel showing overview of variables used in routing" width=250>
+<img src="./images/routing-overview.png" alt="Panel showing overview of variables used in routing" width=250>
 
 ## Routing for pages
 
 With routing enabled, the ID of the current page will be written to the URL. For pages without a defined page ID, no page ID will be written to the URL; users will be returned to the module's default page on page load.
 
-<img src="./media/routing-page-config.png" alt="Page ID configuration" width=300>
+<img src="./images/routing-page-config.png" alt="Page ID configuration" width=300>
 
 ## Routing for variables
 
@@ -36,7 +36,7 @@ To include a module interface variable in the URL, use one of the following conf
 
 If a query parameter key matches the external ID of a module interface variable, the value of the query parameter will be used as the variable's initial value, regardless of URL inclusion behavior configured.
 
-<img src="./media/variable-settings-for-routing.png" alt="Variable settings options for a Flight Alert object type, featuring routing settings." width=400>
+<img src="./images/variable-settings-for-routing.png" alt="Variable settings options for a Flight Alert object type, featuring routing settings." width=400>
 
 ## Limitations
 

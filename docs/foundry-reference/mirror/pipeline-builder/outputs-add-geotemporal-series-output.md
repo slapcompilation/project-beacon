@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-geotemporal-series-output/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/outputs-add-geotemporal-series-output/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add a geotemporal series output
 
@@ -25,7 +25,7 @@ All geotemporal series outputs in Pipeline Builder have primary fields, or intri
 * **Position:** A GeoPoint value that represents the location at the time of an observation. GeoPoint values in Pipeline Builder can be created from latitude and longitude coordinates using the [`Construct geopoint column`](/docs/foundry/pb-functions-expression/constructGeoPointV1/) expression in upstream transformation logic.
 * **Altitude:** An optional value of type `Double` that represents the height above the surface of the Earth in meters.
 
-<img src="./media/geotemporal-series-required-fields.png" alt="Map required geotemporal observation series fields." width="800">
+<img src="./images/geotemporal-series-required-fields.png" alt="Map required geotemporal observation series fields." width="800">
 
 ## Mapping additional fields
 
@@ -36,7 +36,7 @@ In addition to the standard data types in Pipeline Builder, geotemporal series o
 * **GeoPoint:** A single point, which can be rendered on downstream maps and can be different from the point set in the "Position" primary field.
 * **Geometry:** A GeoJSON object which can be rendered on downstream maps.
 
-<img src="./media/geotemporal-series-property-mapping.png" alt="Map additional geotemporal observation series fields." width="800">
+<img src="./images/geotemporal-series-property-mapping.png" alt="Map additional geotemporal observation series fields." width="800">
 
 ## Advanced settings
 
@@ -56,7 +56,7 @@ Geotemporal series syncs can be written to two specialized observation databases
 * **Hot storage:** The default setting, which is optimized for real-time access. Observation data that is stored for a certain amount of time is eventually deleted from the store.
 * **Cold storage:** Stores observation data in Foundry datasets following [data retention policies](/docs/foundry/retention/manage-retention-policies/). Use cold storage when observation data must be stored long-term for geotemporal querying.
 
-![Displays the cold storage checkbox in the advanced settings section of the geotemporal series sync output.](/docs/resources/foundry/pipeline-builder/geotime-sync-advanced-settings.png)
+![Displays the cold storage checkbox in the advanced settings section of the geotemporal series sync output.](./images/geotime-sync-advanced-settings.png)
 
 :::callout{theme="neutral"}
 Reading observation data from cold storage has limited support in certain workflows. Contact Palantir Support for more information based on your use case.
@@ -82,7 +82,7 @@ Consult the documentation below for more information on mandatory and discretion
 
 Select the geotemporal series sync output node on your Pipeline Builder graph to copy its RID from the **Metadata** section under **Geotemporal series integration RID**.
 
-![The geotemporal series sync header section with a RID after deployment.](/docs/resources/foundry/pipeline-builder/geotemporal-series-integration-rid.png)
+![The geotemporal series sync header section with a RID after deployment.](./images/geotemporal-series-integration-rid.png)
 
 ## Troubleshooting
 
@@ -90,7 +90,7 @@ Observations should flow into your geotemporal series shortly after a pipeline h
 
 * Verify that data is appearing in the observations output dataset in Pipeline Builder by navigating to the **Outputs** panel on the right side and selecting the three dots next to your output, then selecting **View backing dataset.**
 
-<img src="./media/geotemporal-series-backing-dataset.png" alt="Check backing dataset for troubleshooting data." width="800">
+<img src="./images/geotemporal-series-backing-dataset.png" alt="Check backing dataset for troubleshooting data." width="800">
 
 * Check for errors in the error dataset by selecting **View errors dataset** in the **Outputs** panel mentioned above.
 * Check for errors logs indicating a runtime failure in the currently running pipeline build. This is accessible from the **History** tab in Pipeline Builder.

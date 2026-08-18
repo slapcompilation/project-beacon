@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/retries/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/retries/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Manual and automatic retries
 
@@ -30,6 +30,10 @@ Note that effect retries can currently only be configured on the following:
 
 Automate errors can occur when effects are not configured correctly. For example, when an action is misconfigured such that there are [action effect errors](/docs/foundry/automate/errors/#action-effect-errors), automations using this action can fail. In order to remediate this, you can update the action configuration and rerun failed automations manually to ensure these events are correct.
 
+:::callout{theme="neutral"}
+You can retry failed events on paused automations. The warning shown during a retry confirms that scheduled and live triggers remain disabled. Expired, trashed, and otherwise disabled automations continue to block all execution, including retries.
+:::
+
 These failures can be manually retried by selecting **Retry failed events**. This enables you to choose the specific events to retry, as shown below.
 
 ![select failed events](./images/select-failed-events.png)
@@ -58,7 +62,7 @@ Selecting **Retry** will immediately schedule a re-run of the failed effects.
 
 ## Event retries
 
-Action, logic, and function effects support immediate, short-term retries for individual effect executions within a trigger event to overcome ephemeral errors such as rate limits. However, some errors such as service degradation and outages are more persistent and would need a more long-term retry strategy.
+Action, logic, and function effects may receive immediate, short-term retries within a trigger event to overcome ephemeral errors such as rate limits. However, errors such as service degradation and outages may require an event retry strategy.
 
 With event retries, users can configure retry strategies for entire trigger events, which will cause failed effect executions on individual objects to be attempted a specified time later, up to a certain number of times.
 
@@ -83,7 +87,7 @@ Retryable errors include:
 
 Note that no retry is scheduled if there are no retryable errors on any object or effect, or the maximum number of retries has been reached.
 
-Fallback effects are not eligible for retries, and will only execute if an object failed non-retryably, or the maximum number of retries has been reached.
+Fallback effects are not eligible for event retries. They execute only after an object fails with a non-retryable error or reaches the maximum number of retries.
 
 ### Example
 

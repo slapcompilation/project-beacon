@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/core-concepts/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/core-concepts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Core concepts
 
@@ -20,7 +20,9 @@ Fundamentally, a [Foundry dataset](/docs/foundry/data-integration/datasets/) is 
 
 Version control is crucial to maintaining healthy pipeline workflows. In Pipeline Builder, version control is implemented with pipeline **branches**, which operate similarly to code branches in Git version control.
 
-A pipeline branch is a copy of the pipeline on which a user can iterate without saving back to the main pipeline, similar to a code branch in Git. Users can make changes, preview, save, and build on their branch. Once they are happy with the changes, they can propose to merge back into the **Main** branch, similar to merging a Git pull request.
+A pipeline branch is a copy of the pipeline on which a user can iterate without saving back to the main pipeline, similar to a code branch in Git. Users can make changes, preview, save, and build on their branch. Once they are happy with the changes, they can propose to merge back into the **main** branch, similar to merging a Git pull request.
+
+When creating a branch, you can choose between a Pipeline Builder branch, which is scoped to the pipeline you are working on, or a [global branch](/docs/foundry/global-branching/overview/), which allows you to make changes to multiple applications on a single branch. Pipeline Builder branches can also be configured to match Code Repositories branch names, allowing shared iteration across both applications. You can configure fallback branches to control which branch is used when an input dataset has not been built on the current branch.
 
 [Learn more about branches in Pipeline Builder.](/docs/foundry/pipeline-builder/branches-overview/)
 
@@ -32,7 +34,7 @@ A transform can be thought of as a function definition; that is, a transform acc
 
 ### Pipeline outputs
 
-Outputs in Pipeline Builder are the result of transforms performed in the pipeline and can be datasets, [virtual tables](/docs/foundry/data-integration/virtual-tables/), or Ontology components such as object types, object link types, or time series. Outputs can be used in other Foundry applications such as Quiver or Code Workbook.
+Outputs in Pipeline Builder are the result of transforms performed in the pipeline and can be datasets, files, [virtual tables](/docs/foundry/data-integration/virtual-tables/), or Ontology components such as object types, object link types, or time series. Outputs can be used in other Foundry applications such as Quiver or Code Workbook.
 
 [Learn more about pipeline outputs in Pipeline Builder.](/docs/foundry/pipeline-builder/outputs-overview/)
 
@@ -50,7 +52,7 @@ The concepts of [schedules](#schedules) and [data expectations](#data-expectatio
 
 Pipeline Builder supports data expectations on outputs and intermediate transforms through unit tests. Data expectations are requirements that can be applied to dataset outputs. These requirements (known as "expectations") can be used to create checks that improve data pipeline stability.
 
-Data expectations can be set on each pipeline output to define an expectation on the resulting output. Pipeline Builder currently supports two data expectation types: primary key and row count.
+Data expectations can be set on each pipeline output to define an expectation on the resulting output. Pipeline Builder supports several data expectation types, including primary key, row count, and row-level expectations.
 
 If any expectations fail, the build will be failed. The job expectations pane will show which data expectations passed and failed.
 

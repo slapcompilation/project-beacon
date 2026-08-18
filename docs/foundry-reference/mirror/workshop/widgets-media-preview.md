@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-media-preview/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-media-preview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Media Preview
 
@@ -18,6 +18,10 @@ The Media Preview widget can be used to display image, audio, video, and documen
   * Define an object set with a single object and select the attachment typed property to render a preview of the media for that object.
 * Media reference property
   * Define an object set with a single object and select the [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) typed property to render a preview of the media for that object.
+
+## Limitations
+
+* The Media Preview widget does not support viewing attachments embedded within a PDF file. To access embedded files within a PDF, download the PDF and open it in a local PDF viewer application.
 
 ## Specialized media preview widgets
 

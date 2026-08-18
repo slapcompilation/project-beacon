@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-platform/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-platform/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Platform
 
@@ -15,7 +15,7 @@ The Platform Widget category consists of the following widgets:
 
 The object card widget takes ObjectRID as its input. It will render the mini object-views (cards) as they have been defined in the Ontology app. The object cards will be linked to their Object Explorer object view.
 
-![object-card-view](/docs/resources/foundry/slate/object-card-view.png)
+![object-card-view](./images/object-card-view.png)
 
 ### Table Format
 
@@ -92,7 +92,7 @@ This widget does not create a visual element on your page. Instead, it exposes a
 |---	|---	|
 | w\_resource\_selector\_1.open | Triggering this action opens the resource selector dialog. |
 
-![resource-selector-dialog](/docs/resources/foundry/slate/resource-selector-dialog.png)
+![resource-selector-dialog](./images/resource-selector-dialog.png)
 
 ***
 
@@ -124,7 +124,7 @@ Finally, you can also prevent the Action Form from displaying via a toggle contr
 
 The Foundry Action will need to be created before being used in Slate. Refer to the [Actions documentation](/docs/foundry/action-types/overview/) for more information.
 
-![foundry-action](/docs/resources/foundry/slate/foundry-action.png)
+![foundry-action](./images/foundry-action.png)
 
 ## Default Parameters
 

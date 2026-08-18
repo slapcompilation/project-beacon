@@ -1,10 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-dates-timestamps/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-dates-timestamps/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Mock dates, timestamps, and UUIDs
 
 You can specify the output of non-deterministic functions by utilizing `jest.spyOn()` to inject a mock to run the test.
 
 ### UUID functions
+
+:::callout{theme="neutral"}
+The `Uuid` utility from `@foundry/functions-utils` is available in TypeScript v1 and used in the example below. For TypeScript v2, use a standard UUID library such as the [`uuid` npm package ↗](https://www.npmjs.com/package/uuid) and mock it directly in your tests.
+:::
 
 You can specify the output of `Uuid` by injecting a mock. Here is an example:
 

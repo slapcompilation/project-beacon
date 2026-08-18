@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-aip-chatbot/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-aip-chatbot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Chatbot
 
 The AIP Chatbot widget (formerly known as the AIP Agent widget) allows you to use interactive assistants equipped with enterprise-specific information and tools in your operational workflows in Workshop.
 
-![AIP Chatbot Widget configured to use a parameterized AIP Chatbot.](/docs/resources/foundry/workshop/chatbot-widget-overall.png)
+![AIP Chatbot Widget configured to use a parameterized AIP Chatbot.](./images/chatbot-widget-overall.png)
 
 You can configure the widget to interact with an AIP Chatbot configured in [AIP Chatbot Studio](/docs/foundry/chatbot-studio/overview/) (recommended, ["AIP Chatbot"](#base-configuration-aip-chatbot) tab in screenshot below) or a chatbot defined in workshop configurations (deprecated, ["Legacy"](#base-configuration-legacy) tab in screenshot below). Chatbots configured in AIP Chatbot Studio can also be orchestrated with Workshop [Commands](/docs/foundry/cross-app-interactivity/commands-overview/) to declare and execute operations in other embedded Palantir applications. When used together, chatbots can read from and write to those applications via Commands to drive cross-application workflows.
 
-<img src="./media/chatbot-widget-chatbot-or-legacy.png" alt="AIP Chatbot Widget base configuration choices." width="400">
+<img src="./images/chatbot-widget-chatbot-or-legacy.png" alt="AIP Chatbot Widget base configuration choices." width="400">
 
 ## Base configuration (AIP Chatbot)
 
@@ -18,13 +18,13 @@ Review [AIP Chatbot Studio documentation](/docs/foundry/chatbot-studio/overview/
 
 Choose the AIP Chatbot, the published version you want to be included, and whether chatbot reasoning should be shown.
 
-<img src="./media/chatbot-widget-chatbot-empty.png" alt="AIP Chatbot configuration empty state." width="400">
+<img src="./images/chatbot-widget-chatbot-empty.png" alt="AIP Chatbot configuration empty state." width="400">
 
 ### Configure application state
 
 Assuming you have [properly configured at least one application variable](/docs/foundry/chatbot-studio/application-state/#configure-application-state-in-aip-chatbot-studio) in AIP Chatbot Studio, the option to map those application variables to [Workshop variables](/docs/foundry/workshop/concepts-variables/) will be shown. Once configured, the AIP Chatbot can interact with the variable according to the read/write permissions defined in AIP Chatbot Studio.
 
-<img src="./media/interactive-widget-agent-application-variable-empty.png" alt="Application state configuration empty state." width="400">
+<img src="./images/interactive-widget-agent-application-variable-empty.png" alt="Application state configuration empty state." width="400">
 
 ### Auto-send a message
 
@@ -36,7 +36,7 @@ You can automatically send messages to the configured AIP Chatbot from Workshop 
 AIP Chatbots offer advantages over the legacy base configuration mode, including a configuration user interface in AIP Chatbot Studio, versioning, metrics, session history, downloading, and more. This legacy mode will soon enter the [sunset](/docs/foundry/platform-overview/development-life-cycle/) phase of development and will not include any new features. We recommend migrating to AIP Chatbots using the newly added **Upgrade to an AIP Chatbot** option to the legacy mode of the widget.
 :::
 
-<img src="./media/chatbot-widget-legacy-migrate.png" alt="Legacy mode migration option." width="450">
+<img src="./images/chatbot-widget-legacy-migrate.png" alt="Legacy mode migration option." width="450">
 
 In legacy mode, the AIP Chatbot widget uses the reasoning-over-tools framework to bring your tools to your operational applications. With the widget, you can integrate [AIP Logic](/docs/foundry/logic/overview/), your [KNN function](/docs/foundry/functions/api-object-sets/#k-nearest-neighbors-knn), or your LLM-powered Ontology exploration into your application state using Workshop variables.
 
@@ -51,7 +51,7 @@ This section allows you to define the widget's role and configure its tools and 
 
 The primary prompt should outline the widget's function within the context of the current application. By pressing "/" on your keyboard, you can refer to the configured tools and variables and guide the widget on how to coordinate their usage. Make sure to describe the underlying business logic and the appropriate situations for using the right tools in context.
 
-<img src="./media/aip-interactive-widget-prompt.png" alt="AIP Chatbot widget configuration panel." width="450">
+<img src="./images/aip-interactive-widget-prompt.png" alt="AIP Chatbot widget configuration panel." width="450">
 
 Here are some example prompts:
 
@@ -66,7 +66,7 @@ Here are some example prompts:
 
 Set up the tools and capabilities accessible to the widget. These tools will become available for the widget to use via the prompt.
 
-<img src="./media/aip-interactive-widget-tools.png" alt="AIP Chatbot widget tool options." width="450">
+<img src="./images/aip-interactive-widget-tools.png" alt="AIP Chatbot widget tool options." width="450">
 
 There are four types of tools:
 
@@ -79,7 +79,7 @@ There are four types of tools:
 
 In this section, you can customize the widget's access to Workshop variables and configure the object types the widget should be aware of.
 
-<img src="./media/aip-interactive-widget-ontology.png" alt="AIP Chatbot widget Ontology and application context panel." width="450">
+<img src="./images/aip-interactive-widget-ontology.png" alt="AIP Chatbot widget Ontology and application context panel." width="450">
 
 #### Variables
 
@@ -98,7 +98,7 @@ By specifying which object types the LLM should be aware of, you allow it to und
 
 This component allows you to modify the widget's access to default AIP tools. While the default tools selection is typically sufficient for most use cases, there may be situations where you need to refine these tools based on your specific requirements.
 
-<img src="./media/aip-interactive-widget-advanced-tools.png" alt="AIP Chatbot widget advanced tools configuration panel." width="450">
+<img src="./images/aip-interactive-widget-advanced-tools.png" alt="AIP Chatbot widget advanced tools configuration panel." width="450">
 
 For instance, you may want to limit the widget's Functions to solely human input to facilitate corrections and manage the implementation of other tools independently. Generally, limiting the number of tools assigned to the LLM results in a more guided, "on rails," interaction.
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-interpolation-usage/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-interpolation-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Interpolation in Quiver
 
@@ -85,11 +85,11 @@ For example, assume you have three time series `A`, `B`, and `C`, in which `B` a
 
 If you perform a linear aggregation sum of the three series when **Include partial aggregates** is off, you would see the following:
 
-![Example of linear aggregation with no partial aggregates included](/docs/resources/foundry/quiver/linear-aggregation-no-partial-aggregates.png)
+![Example of linear aggregation with no partial aggregates included](./images/linear-aggregation-no-partial-aggregates.png)
 
 The resulting series in the screenshot above is equivalent to the time series formula of `A + B + C`, where points only exist at the intersection of the two series (`B` and `C`) which have no interpolation defined. If you perform a linear aggregation sum of the three series when "Include partial aggregates" is on, you would see the following:
 
-![Example of linear aggregation with partial aggregates computed](/docs/resources/foundry/quiver/linear-aggregation-with-partial-aggregates.png)
+![Example of linear aggregation with partial aggregates computed](./images/linear-aggregation-with-partial-aggregates.png)
 
 Specifically, the screenshot above shows that the resulting series has points at every timestamp present in *any* of the input series. The value at each timestamp is computed using the value in each series at that point (if it exists) or the interpolated value at that timestamp (if interpolation is set for that series).
 
@@ -111,11 +111,11 @@ For example, assume you have three time series `A`, `B`, and `C`, in which serie
 
 If you want to search for points when the sum of the three series is `>= 6`, your search would look as follows:
 
-![Example of time series search where one of the series doesn't have interpolation set](/docs/resources/foundry/quiver/time-series-search-missing-interpolation.png)
+![Example of time series search where one of the series doesn't have interpolation set](./images/time-series-search-missing-interpolation.png)
 
 Although visually, the combined series "crosses" the threshold of 6 much earlier than the resulting event start, the event starts from the first actual point in the combined series that satisfies the condition. That point also happens to be the end of the event, because there are no more points after in the combined series. In contrast, if you have interpolation on series `C` as well, you would get the following result:
 
-![Example of time series search where all series have interpolation](/docs/resources/foundry/quiver/time-series-search-all-interpolation.png)
+![Example of time series search where all series have interpolation](./images/time-series-search-all-interpolation.png)
 
 Again, the combined series seems to visually "cross" earlier, but the event actually starts at the first point which matches the condition.
 

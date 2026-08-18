@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-dsp-filter/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-dsp-filter/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Digital Signal Processing (DSP) filter
 
@@ -27,7 +27,7 @@ Time series
 
 ### Example
 
-![DSP filter example](/docs/resources/foundry/quiver/card-dsp-filter.png)
+![DSP filter example](./images/card-dsp-filter.png)
 
 ## Usage information
 

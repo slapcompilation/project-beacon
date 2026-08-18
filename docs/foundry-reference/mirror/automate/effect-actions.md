@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/effect-actions/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/effect-actions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Action effects
 
@@ -70,6 +70,12 @@ You can also configure the amount of *jitter*, which is a variation in delay tim
 ### Error handling with retries
 
 For information about action effect execution guarantees and how to handle potential duplicate executions, see [execution guarantees](/docs/foundry/automate/effect-settings/#execution-guarantees) in the execution settings documentation.
+
+### Fallback effects
+
+You can also configure a fallback effect to execute an alternative action when the primary action effect fails. Select **Add failure effect** on the action effect configuration page. The fallback effect has access to the original effect input, error information, and the automation event ID.
+
+For more information, see [fallback effects](/docs/foundry/automate/effect-fallback/).
 
 ## Action visibility settings
 

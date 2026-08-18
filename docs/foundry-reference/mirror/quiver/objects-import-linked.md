@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-import-linked/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-import-linked/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Search around to linked objects
 
@@ -12,7 +12,7 @@ You can add this card through the next actions menu by selecting  **Join > Switc
 
 In the example below, starting with Tea Batch objects, we first search around to the linked Tea Vat objects. Then, from the Tea Vat objects we search around again to linked Tea Vat Sensors.
 
-![Use the switch to linked object set card to perform a search around.](/docs/resources/foundry/quiver/howto-object-set-linked-objects.gif)
+![Use the switch to linked object set card to perform a search around.](./images/howto-object-set-linked-objects.gif)
 
 This card also supports traversing links using [shared properties](/docs/foundry/object-link-types/shared-property-overview/)
 
@@ -26,7 +26,7 @@ The **Join to linked objects** card can be added through the next actions menu b
 
 The example below uses the **Join to linked objects** card to join Tea Tasting objects with their linked Tea Batches. The result is a single row that contains properties from both the original tea tasting as well as the linked tea batch.
 
-![Use the join to linked object set card to perform a join across an ontology link.](/docs/resources/foundry/quiver/howto-object-set-join-linked-objects.gif)
+![Use the join to linked object set card to perform a join across an ontology link.](./images/howto-object-set-join-linked-objects.gif)
 
 ## Join materializations
 

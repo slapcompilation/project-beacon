@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-linked-event-set/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-linked-event-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Linked event set
 
@@ -14,7 +14,7 @@ Event set
 
 ## Examples
 
-![Linked event set example.](/docs/resources/foundry/quiver/resource-event-set-linked.png)
+![Linked event set example.](./images/resource-event-set-linked.png)
 
 ## Usage information
 

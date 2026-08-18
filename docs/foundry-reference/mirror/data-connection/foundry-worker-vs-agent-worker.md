@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/foundry-worker-vs-agent-worker/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/foundry-worker-vs-agent-worker/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Foundry worker vs. agent worker
 
@@ -79,27 +79,27 @@ To perform a migration to a Foundry worker, follow the steps below:
 
 1. Navigate to **Connection settings > Connection details** and select **Compute: Agent worker**. This opens a dialog where you can select **Migrate to Foundry worker**.
 
-<img alt="The connection details page showing the Compute type set to Agent worker with a Migrate to Foundry worker button." src="./media/switching-source-worker-1.png">
+<img alt="The connection details page showing the Compute type set to Agent worker with a Migrate to Foundry worker button." src="./images/switching-source-worker-1.png">
 
 2. Review the migration overview. The walkthrough dialog explains the steps involved and confirms that the process is reversible. Select **Continue** to proceed.
 
-<img alt="The start step of the migration wizard showing an overview of benefits and reversibility." src="./media/switching-source-runtime-1.png">
+<img alt="The start step of the migration wizard showing an overview of benefits and reversibility." src="./images/switching-source-runtime-1.png">
 
 3. Choose a representative agent. Select a healthy agent currently assigned to the source. The selected agent is used to copy secrets and certificates to Foundry and to suggest required egress configuration based on the agent's current setup. You must acknowledge that secrets on the selected agent will be saved to Foundry.
 
-<img alt="The select agent step of the migration wizard showing available agents and a secrets acknowledgment checkbox." src="./media/switching-source-runtime-2.png">
+<img alt="The select agent step of the migration wizard showing available agents and a secrets acknowledgment checkbox." src="./images/switching-source-runtime-2.png">
 
 4. Copy certificates to the source. With Foundry worker, certificates must be applied directly to the source rather than to the agent. Select the certificates from the representative agent that should be transferred to your data source. If no certificates are found on the agent, you can skip this step.
 
-<img alt="The copy certificates step of the migration wizard showing certificates available for transfer." src="./media/switching-source-runtime-3.png">
+<img alt="The copy certificates step of the migration wizard showing certificates available for transfer." src="./images/switching-source-runtime-3.png">
 
 5. (Optional) Configure a JDBC driver if required by the source type. Select a driver from the representative agent to use with the Foundry worker.
 
-<img alt="The configure driver step of the migration wizard showing available JDBC drivers." src="./media/switching-source-runtime-4.png">
+<img alt="The configure driver step of the migration wizard showing available JDBC drivers." src="./images/switching-source-runtime-4.png">
 
 6. Add egress policies. Configure [direct connection](/docs/foundry/administration/configure-egress/#direct-connection-egress-policies) or [agent proxy](/docs/foundry/administration/configure-egress/#agent-proxy-egress-policies) egress policies to define how the Foundry worker should reach your source systems.
 
-<img alt="The add egress policies step of the migration wizard showing suggested network egress policies." src="./media/switching-source-runtime-5.png">
+<img alt="The add egress policies step of the migration wizard showing suggested network egress policies." src="./images/switching-source-runtime-5.png">
 
 7. Review the confirmation step. Before completing the migration, acknowledge the following:
 
@@ -108,7 +108,7 @@ To perform a migration to a Foundry worker, follow the steps below:
 
    Select **Migrate** to complete the process.
 
-<img alt="The confirmation step of the migration wizard showing job termination and revert acknowledgment checkboxes." src="./media/switching-source-runtime-6.png">
+<img alt="The confirmation step of the migration wizard showing job termination and revert acknowledgment checkboxes." src="./images/switching-source-runtime-6.png">
 
 ### Switch manually
 

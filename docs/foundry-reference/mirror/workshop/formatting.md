@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/formatting/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/formatting/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Formatting
 
@@ -12,7 +12,7 @@ Numeric value formatting includes options to control the number of decimals disp
 
 The example below shows how value formatting is used to style the value displayed in an Object table column named `Weekly Cases`, that features the weekly number of COVID-19 cases observed in each country.
 
-![value\_formatting](/docs/resources/foundry/workshop/value_formatting.png)
+![value\_formatting](./images/value_formatting.png)
 
 ## Conditional formatting
 
@@ -20,4 +20,4 @@ The example below shows how value formatting is used to style the value displaye
 
 The example below shows how conditional formatting is used to style the summarized value and the sparkline displayed in an Object table column named `Weekly Cases`, that features the weekly number of COVID-19 cases observed in each country.
 
-![object\_table\_conditional\_formatting\_example](/docs/resources/foundry/workshop/object_table_conditional_formatting_example.png)
+![object\_table\_conditional\_formatting\_example](./images/object_table_conditional_formatting_example.png)

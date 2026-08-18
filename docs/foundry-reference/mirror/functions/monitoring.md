@@ -1,8 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/functions/monitoring/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/monitoring/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Function monitoring
 
 Functions in Foundry can be monitored to track performance and reliability. This page explains the available monitoring capabilities for functions.
+
+You can also view real-time [function metrics](/docs/foundry/functions/function-metrics/) in Ontology Manager, including success and failure counts and P95 duration for each function type.
 
 ## Available monitoring rules
 
@@ -24,13 +26,13 @@ To set up monitoring for your functions, follow the standard process for creatin
 3. Configure appropriate thresholds and severity levels.
 4. Set up alert notifications following the [alert subscription guide](/docs/foundry/monitoring-views/overview/#subscribe-to-alerts).
 
-![Example monitoring alert setup.](/docs/resources/foundry/functions/monitoring-alerts.png)
+![Example monitoring alert setup.](./images/monitoring-alerts.png)
 
 ### Dynamic scopes
 
 Function monitors support **Workflow Lineage**, **Workshop**, and **OSDK application** as dynamic scopes. When you select one of these scopes, the monitor automatically tracks all functions the scoped resource uses and adjusts as functions are added or removed without requiring further intervention.
 
-![Select scope dialog showing dynamic scope options for function monitors.](/docs/resources/foundry/functions/functions-app-as-dynamic-scope-monitoring.png)
+![Select scope dialog showing dynamic scope options for function monitors.](./images/functions-app-as-dynamic-scope-monitoring.png)
 
 ## Related documentation
 

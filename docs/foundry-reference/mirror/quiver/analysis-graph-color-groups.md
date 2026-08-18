@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph-color-groups/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph-color-groups/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Color groups
 
@@ -6,7 +6,7 @@ You can use color groups in [graph mode](/docs/foundry/quiver/analysis-graph/) t
 
 Color groups can also be collapsed or hidden to simplify the graph and reduce visual clutter.
 
-![Color groups applied to nodes in graph mode.](/docs/resources/foundry/quiver/analysis-graph-color-groups-overview.png)
+![Color groups applied to nodes in graph mode.](./images/analysis-graph-color-groups-overview.png)
 
 ## Create and assign color groups
 
@@ -16,7 +16,7 @@ To add nodes to the group, right-click on a node and select **Color node**. Then
 
 You can also create new color groups directly on the graph. Select the nodes you want to group, then right-click and select **Color node > New color group** (or use the [bulk actions menu](/docs/foundry/quiver/analysis-graph/#bulk-actions)).
 
-![Creating a new color group from the analysis contents.](/docs/resources/foundry/quiver/analysis-graph-color-groups-create.gif)
+![Creating a new color group from the analysis contents.](./images/analysis-graph-color-groups-create.gif)
 
 ## Collapse and expand color groups
 
@@ -24,13 +24,13 @@ You can collapse a color group into a single node to simplify your graph, partic
 
 To collapse a color group, right-click on any node in the group and select **Collapse color group** or select the **Collapse color group** button in the **Analysis Contents** panel next to the group name. To expand the group, select **Expand color group** in the **Analysis Contents** panel next to the group name.
 
-![A collapsed color group displayed as a single node.](/docs/resources/foundry/quiver/analysis-graph-color-groups-collapse.gif)
+![A collapsed color group displayed as a single node.](./images/analysis-graph-color-groups-collapse.gif)
 
 ## Hide color groups
 
 You can hide a color group or hide all other color groups to focus on a specific part of your analysis. To hide a color group, go to the **Analysis Contents** panel and select the eye icon next to the group you want to hide.
 
-![The color legend with the eye icon to hide a group.](/docs/resources/foundry/quiver/analysis-graph-color-groups-hide.gif)
+![The color legend with the eye icon to hide a group.](./images/analysis-graph-color-groups-hide.gif)
 
 ## Modify color groups
 

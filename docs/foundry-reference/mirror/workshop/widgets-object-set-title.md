@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-set-title/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-set-title/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object Set Title
 

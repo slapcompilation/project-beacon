@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/set-up-notification/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/set-up-notification/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Set up a notification
 
@@ -25,7 +25,7 @@ For this tutorial, you will need to have a property on the `Alert` object that i
 
 First, navigate to your action that updates the ticket priority. Under the **Rules** section select **Add new rule**, followed by **Notification**. This will open the configuration dialog for adding a notification.
 
-<img src="./media/side_effects_notification_tutorial_edit_action_rules.png" alt="Recipients configuration" width="500" />
+<img src="./images/side_effects_notification_tutorial_edit_action_rules.png" alt="Recipients configuration" width="500" />
 
 ## Configure recipients
 
@@ -37,7 +37,7 @@ You should see the selected object parameter and property displayed in the **Rec
 For testing, you may initially want to configure the action with hardcoded recipient(s) that can be used to validate the logic and notification content is configured as expected.
 :::
 
-![hardcoded recipients](/docs/resources/foundry/action-types/side_effects_notification_tutorial_static_test_user.png)
+![hardcoded recipients](./images/side_effects_notification_tutorial_static_test_user.png)
 
 [Learn more about other recipient configuration options.](/docs/foundry/action-types/notifications/#recipients)
 
@@ -61,7 +61,7 @@ Finally, you will add a link to the Object View of the specified `Alert` in Obje
 
 Now you are ready to save your entire notification configuration:
 
-<img src="./media/side_effects_notification_tutorial_updated_full_finished_configuration.png" alt="Full configuration" width="400" />
+<img src="./images/side_effects_notification_tutorial_updated_full_finished_configuration.png" alt="Full configuration" width="400" />
 
 [Learn more about other types of links that can be configured.](/docs/foundry/action-types/notifications/#content)
 

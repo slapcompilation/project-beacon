@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-branching/rebasing-and-conflict-resolution/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-branching/rebasing-and-conflict-resolution/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Branching Workshop modules
 
@@ -51,6 +51,14 @@ Unsaved Workshop edits are not preserved through a rebase. Save your changes to 
 ![Rebasing panel in Workshop.](./images/rebase-panel.png)
 
 Rebasing applies the changes made on the branch to the latest `main` version of the module. Resolve any merge conflicts manually to proceed.
+
+### No conflicts found
+
+After initiating a rebase, if the sidebar does not show any explicit conflicts, Workshop automatically accepts the non-conflicting changes from `main` and combines them with your branch's changes. In this case:
+
+* Review the displayed changes to ensure you are satisfied with the incoming changes from `main`.
+* No manual conflict resolution is needed.
+* Save the module to finalize the rebased state and proceed with your merge.
 
 ### Resolve a merge conflict
 

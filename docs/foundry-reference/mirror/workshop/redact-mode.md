@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/redact-mode/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/redact-mode/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Redact mode
 
@@ -8,7 +8,7 @@ Redact mode visually obfuscates the visible content of a Workshop application so
 Redact mode is a visual aid only and is not a security feature. Workshop still loads and processes the underlying data; redact mode only changes how the page renders. Do not rely on redact mode to protect sensitive information from a determined viewer with access to your browser session.
 :::
 
-<img src="./media/workshop-enable-redact-mode.png" alt="A Workshop module with redact mode enabled, showing text replaced with obfuscated glyphs and images replaced with diagonal striped backgrounds." width="900">
+<img src="./images/workshop-enable-redact-mode.png" alt="A Workshop module with redact mode enabled, showing text replaced with obfuscated glyphs and images replaced with diagonal striped backgrounds." width="900">
 
 ## Enable redact mode
 

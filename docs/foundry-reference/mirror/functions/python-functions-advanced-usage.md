@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/python-functions-advanced-usage/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/python-functions-advanced-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Queries
 
@@ -115,7 +115,7 @@ To allow consumers to upgrade at their convenience without breaking changes, you
 
 As with other functions, you can search for and manage your queries in [Ontology Manager](/docs/foundry/ontology-manager/overview/). You can search for the query name or the API name. In the example [above](#example-api-named-query), the queries are `getReschedulableAircraftCount` for the API name and `countAircraftTakingOffAfter` for the query name, respectively.
 
-![Search for queries in the Ontology Manager](/docs/resources/foundry/functions/query-in-oma.png)
+![Search for queries in the Ontology Manager](./images/query-in-oma.png)
 
 :::callout{theme="neutral"}
 When using TypeScript v1 functions, you may need to update the `functions.json` file in your repository to enable queries by setting the `enableQueries` property to true: <br><br>

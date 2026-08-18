@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-derivative/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-derivative/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Derivative
 
@@ -17,7 +17,7 @@ Time series
 
 ### Example
 
-![Derivative example](/docs/resources/foundry/quiver/card-derivative.png)
+![Derivative example](./images/card-derivative.png)
 
 ## Usage information
 

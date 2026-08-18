@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-text/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-text/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Text
 
@@ -31,7 +31,7 @@ The **Card** widget is an extension of the Text widget. This widget uses HTML di
 
 A completed Card widget might look like this:
 
-![card](/docs/resources/foundry/slate/card.png)
+![card](./images/card.png)
 
 ### Common CSS
 
@@ -61,14 +61,14 @@ sl-text .cards .card.selected:hover {
 }
 ```
 
-![card-css](/docs/resources/foundry/slate/card-css.png)
+![card-css](./images/card-css.png)
 
 ## List widget
 
 The **List** widget is very similar to Card, but uses `divmclass=lists` instead of `div class=cards`.
 In the example below, note that with **Selection** set to **Multiple**, you can select multiple items in the list at once.
 
-![list](/docs/resources/foundry/slate/list.png)
+![list](./images/list.png)
 
 ### Common CSS
 
@@ -98,7 +98,7 @@ sl-text .lists .lists.selected:hover {
 }
 ```
 
-![list-css](/docs/resources/foundry/slate/list-css.png)
+![list-css](./images/list-css.png)
 
 ## Text widget
 
@@ -106,7 +106,7 @@ The Text widget is among the most versatile Slate widgets. It is also the basis 
 
 The Text widget has two modes: **Markdown mode** and **HTML mode**. Markdown is a lightweight markup language that renders to HTML, so anything you can do in HTML mode, you can also do in Markdown mode. Markdown mode lets you take advantage of the simpler, very readable Markdown syntax. For example, to set some text as a heading (H1), simply add a `#` sign before it:
 
-![markdown](/docs/resources/foundry/slate/markdown.png)
+![markdown](./images/markdown.png)
 
 Refer to the [Markdown documentation ↗](https://daringfireball.net/projects/markdown/syntax) for other Markdown syntax.
 
@@ -116,7 +116,7 @@ Refer to the [Markdown documentation ↗](https://daringfireball.net/projects/ma
 
 You can use Handlebars within a Text widget to display dynamic text (for example, something selected in another widget or a query).
 
-![values](/docs/resources/foundry/slate/values.png)
+![values](./images/values.png)
 
 #### Tooltips
 
@@ -124,15 +124,15 @@ The Text widget supports user-defined tooltips. Tooltips will appear when users 
 
 * Static tooltip:
 
-![tooltip-static](/docs/resources/foundry/slate/tooltip-static.png)
+![tooltip-static](./images/tooltip-static.png)
 
 * Tooltip using the inner text content of an `sl-tooltip` element:
 
-![tooltip-inner-text](/docs/resources/foundry/slate/tooltip-inner-text.png)
+![tooltip-inner-text](./images/tooltip-inner-text.png)
 
 * Multiple tooltips with custom values:
 
-![tooltip-custom-a](/docs/resources/foundry/slate/tooltip-custom-a.png)
+![tooltip-custom-a](./images/tooltip-custom-a.png)
 
 ### Properties
 

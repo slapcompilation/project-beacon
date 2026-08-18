@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-image-annotation/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-image-annotation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Image Annotation
 
@@ -6,13 +6,13 @@ The **Image Annotation** widget is used to annotate images by drawing rectangles
 
 The screenshot below shows an example of a configured **Image annotation** widget in the process of creating an annotation:
 
-![Example of an image annotation that marks a break in a pattern.](/docs/resources/foundry/workshop/image_annotation_example.png)
+![Example of an image annotation that marks a break in a pattern.](./images/image_annotation_example.png)
 
 ## Configuration options
 
 Here is a screenshot of the initial state of a newly-added Image Annotation widget alongside its initial configuration panel:
 
-![image\_annotation\_config](/docs/resources/foundry/workshop/image_annotation_config.png)
+![image\_annotation\_config](./images/image_annotation_config.png)
 
 * **Input data**
   * **Image source:** The image can be displayed from either a media URL or media reference. Currently this widget accepts the following image file types:

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-inline-action-form/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-inline-action-form/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Inline Action
 
@@ -8,7 +8,7 @@ The **Inline Action** widget enables users to interact with the Ontology to crea
 * To collect structured information from users.
 * To standardize and control how actions are performed on objects, ensuring data integrity and auditability.
 
-![Sample Inline Action widgets in the form and table layouts.](/docs/resources/foundry/workshop/action-layouts.png)
+![Sample Inline Action widgets in the form and table layouts.](./images/action-layouts.png)
 
 ## Action form
 
@@ -24,7 +24,7 @@ There may be some Actions that are not yet usable in the Table because some feat
 
 ## Configuration
 
-![Sample Inline Action widget configuration.](/docs/resources/foundry/workshop/inline-action-widget-configuration.png)
+![Sample Inline Action widget configuration.](./images/inline-action-widget-configuration.png)
 
 ### Primary features
 

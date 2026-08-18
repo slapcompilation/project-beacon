@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/model-catalog/model-deprecation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/model-catalog/model-deprecation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Model deprecation
 
@@ -54,7 +54,7 @@ To successfully migrate away from deprecated models and avoid disruption of crit
 
 Navigate to Upgrade Assistant and open the relevant model deprecation page in the **Active upgrades** section. On the deprecated model's description page, scroll down to the **Resources** section to see a list of resources affected by this model deprecation.
 
-![The model deprecation affected resources list view.](/docs/resources/foundry/model-catalog/model-deprecation-list-view.png)
+![The model deprecation affected resources list view.](./images/model-deprecation-list-view.png)
 
 #### Resource identification criteria
 
@@ -98,11 +98,11 @@ Applications that support model selector include:
 
 Resource configuration settings will display an alert next to the affected model, and it will be labeled as **Sunset**.
 
-<img src="./media/model-deprecation-sunset-view.png" alt="A deprecated model displaying an alert and recommended substitute models." width="700">
+<img src="./images/model-deprecation-sunset-view.png" alt="A deprecated model displaying an alert and recommended substitute models." width="700">
 
 To choose a substitute model, open model selector and choose a new model.
 
-<img src="./media/model-deprecation-model-selector.png" alt="The model selector displaying available models and model description." width="700">
+<img src="./images/model-deprecation-model-selector.png" alt="The model selector displaying available models and model description." width="700">
 
 ### Model usage in Pipeline Builder
 
@@ -110,10 +110,10 @@ For Pipeline Builder resources, Upgrade Assistant will link to the entire pipeli
 
 1. Navigate to the affected pipeline by selecting it from the list of resources in the Upgrade Assistant model deprecation page.
 
-2. Select the search icon in the upper-right corner of the pipeline graph. <br><br> <img src="./media/model-deprecation-pipeline-search.png" alt="The Pipeline Builder search icon." width="500"> <br><br>
+2. Select the search icon in the upper-right corner of the pipeline graph. <br><br> <img src="./images/model-deprecation-pipeline-search.png" alt="The Pipeline Builder search icon." width="500"> <br><br>
 
 3. Enter “use LLM” as a search term to view a list of all `Use LLM` nodes in the pipeline. All search results will also be highlighted with the color shown in the pipeline graph legend. <br><br>
-   ![Search results in Pipeline Builder.](/docs/resources/foundry/model-catalog/model-deprecation-pipeline-use-LLM.png) <br><br>
+   ![Search results in Pipeline Builder.](./images/model-deprecation-pipeline-use-LLM.png) <br><br>
 
 4. From the listed results, select each node to highlight it in the pipeline graph. Right click the selected node and select **Edit** from the context menu. This will open the node configuration page.
 
@@ -132,17 +132,17 @@ Note that users need to have edit permissions on affected Workshop modules. Foll
 #### Function-based model usage
 
 1. To identify the functions used in a Workshop module, open the **Overview** panel in the upper-left corner of your workspace. Under the **Capabilities** section, select **Functions**. <br><br>
-   ![The "Capabilities" section in the "Overview" panel.](/docs/resources/foundry/model-catalog/model-deprecation-function-capabilities.png) <br><br>
+   ![The "Capabilities" section in the "Overview" panel.](./images/model-deprecation-function-capabilities.png) <br><br>
 
 2. In the **Functions** panel, select each function to view the function source. <br><br>
-   ![A sample function and its source.](/docs/resources/foundry/model-catalog/model-deprecation-functions-source.png) <br><br>
+   ![A sample function and its source.](./images/model-deprecation-functions-source.png) <br><br>
 
 3. Select the function source to navigate to the source application, in this case AIP Logic. From this source, you can configure model settings and select a new model if the function uses a deprecated model.
 
 4. Save and publish a new version of the function.
 
 5. Back in Workshop, navigate to the **Functions** section in the **Overview** panel as specified in step 1. Select the updated function, and use the function version dropdown under the **Bulk update version** section to select the latest version of the function for all variables or widgets. <br><br>
-   ![The "Bulk update version" dropdown in the "Functions" section.](/docs/resources/foundry/model-catalog/model-deprecation-workshop-function-version.png) <br><br>
+   ![The "Bulk update version" dropdown in the "Functions" section.](./images/model-deprecation-workshop-function-version.png) <br><br>
 
 6. Repeat this process for all listed functions.
 
@@ -157,13 +157,13 @@ Widget-based model configuration depends on the type of widget used. Review the 
   4. Save and publish your chatbot.
 
 * **AIP generated content:** For the AIP generated content widget, model usage can only be configured in Workshop if the widget uses the **Direct to LLM** or **LLM via prompt function** options. Otherwise, it can be configured in the referenced Logic function. <br><br>
-  ![The AIP generated content widget configuration options.](/docs/resources/foundry/model-catalog/model-deprecation-widget-content.png) <br><br>
+  ![The AIP generated content widget configuration options.](./images/model-deprecation-widget-content.png) <br><br>
 
   * **Direct to LLM/LLM via prompt function:** A new model can be selected using the model selector in the widget configuration settings.
   * **Logic:** If the widget uses the Logic option, the Logic function will be listed under the module’s functions in the **Overview** panel. Refer to the [function-based model usage](#function-based-model-usage) section for more details.
 
 * **Free-form analysis:** Model usage for the free-form analysis widget can be configured directly in Workshop. In the widget configuration settings, toggle on **AIP options** and select **Enabled** to configure model settings. Then, select a new model from the model selector. <br><br>
-  !["AIP options" in the free-form analysis widget configuration panel.](/docs/resources/foundry/model-catalog/model-deprecation-free-form.png) <br><br>
+  !["AIP options" in the free-form analysis widget configuration panel.](./images/model-deprecation-free-form.png) <br><br>
 
 * **Logic - Chain of thought:** This widget uses Logic functions, which are listed in the **Overview** panel. Refer to the [function-based model usage](#function-based-model-usage) section for more details.
 
@@ -289,7 +289,7 @@ def compute_sentiment(ctx, reviews, model: OpenAiGptChatLanguageModel, output):
 
 LLM usage in Quiver can be configured in the analysis settings. Navigate to the settings tab in the sidebar of the affected analysis, and access the model selector under the **AIP Settings** section.
 
-<img src="./media/model-deprecation-quiver-model-selector.png" alt="The model selector in the Quiver analysis settings." width="500">
+<img src="./images/model-deprecation-quiver-model-selector.png" alt="The model selector in the Quiver analysis settings." width="500">
 
 ### Additional tools
 
@@ -300,12 +300,12 @@ Workflows can grow to be complex and unwieldy, making it hard to intuitively fin
 For a better understanding of model usage across resources, you can use [Workflow Lineage](/docs/foundry/workflow-lineage/overview/). Open a Workshop application or function repository in Workflow Lineage by using the keyboard shortcut `Cmd + I` (macOS) or `Ctrl + I` (Windows). In the Workflow Lineage graph, you will be able to view the objects, actions, and functions that back an application.
 
 * **Workshop applications:** For Workshop applications, Workflow Lineage will display upstream resources like Logic functions, and the models they are configured to use. Workflow Lineage also allows users to see other Workshop or OSDK applications that consume a given function, making it easier to understand the complete scope of affected resources. If a resource uses a deprecated model, Workflow Lineage will display an alert icon and a message alerting the user of the model's deprecated status. <br><br>
-  ![A deprecated model used by a Logic function in a Workshop application.](/docs/resources/foundry/model-catalog/model-deprecation-workflow-lineage-alert-message.png) <br><br>
+  ![A deprecated model used by a Logic function in a Workshop application.](./images/model-deprecation-workflow-lineage-alert-message.png) <br><br>
 
   Workflow Lineage can help action model migrations for Workshop with its [bulk update features](/docs/foundry/workflow-lineage/refactor-and-understand-workflows/#function-backed-workshop-application-upgrades). After updating a function as shown in the [function-based model usage](#function-based-model-usage) section, you can open the Workshop application in Workflow Lineage to bulk update the function version used across one or all dependent Workshop applications. Additionally, Workflow Lineage enables you to [replace language models in bulk](/docs/foundry/workflow-lineage/refactor-and-understand-workflows/#bulk-replace-models) across multiple AIP Logic functions from the lineage graph with a single action.
 
 * **Function repositories:** Workflow Lineage can provide a visual representation to help users understand model usage in function repositories. Functions that make calls to models will have a connected model node, allowing users to identify whether functions are making calls to deprecated models at a glance. <br><br>
-  ![A function in Workflow Lineage and its associated model.](/docs/resources/foundry/model-catalog/model-deprecation-workflow-lineage-function-repo.png) <br><br>
+  ![A function in Workflow Lineage and its associated model.](./images/model-deprecation-workflow-lineage-function-repo.png) <br><br>
 
 For more information on Workflow Lineage's complete set of features, refer to the Workflow Lineage [usage documentation](/docs/foundry/workflow-lineage/overview/).
 
@@ -317,6 +317,6 @@ To view function usage, navigate to Ontology Manager and select **Functions** in
 
 In the function overview page, scroll down to the **Usage history** section to see the list of resources that use this function. You can filter by version to find resources that may be using outdated versions of the function.
 
-![The "Usage history" section in a function overview page.](/docs/resources/foundry/model-catalog/model-deprecation-ontology-manager.png)
+![The "Usage history" section in a function overview page.](./images/model-deprecation-ontology-manager.png)
 
 You can then navigate to the resources that use this function to update it to the latest version. For more information, refer to the Ontology Manager [function type view](/docs/foundry/ontology-manager/overview/#function-type-view) documentation.

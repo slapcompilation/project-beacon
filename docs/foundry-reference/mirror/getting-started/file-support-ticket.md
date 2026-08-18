@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/file-support-ticket/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/file-support-ticket/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # File a support ticket
 

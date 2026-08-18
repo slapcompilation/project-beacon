@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-audio-preview/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-audio-preview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Audio and Transcription Display widget
 
-![An example Audio and Transcription Display widget, showing a visualization of the audio and a transcript.](/docs/resources/foundry/workshop/audio_display_widget_example.png)
+![An example Audio and Transcription Display widget, showing a visualization of the audio and a transcript.](./images/audio_display_widget_example.png)
 
 The audio and transcription display widget visualizes and allows the playback of audio based on a [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) property on an object. It can also be used to display and interact with transcriptions using an object set containing transcription segments.
 
@@ -19,7 +19,7 @@ The transcription component provides the following features:
 
 ### Audio
 
-![Audio display configuration options for the Audio and Transcription Display widget.](/docs/resources/foundry/workshop/audio_display_config_audio.png)
+![Audio display configuration options for the Audio and Transcription Display widget.](./images/audio_display_config_audio.png)
 
 * **Object set with a single object:** An object with a media reference property.
 * **Audio media reference property:** The [media reference](/docs/foundry/media-sets-advanced-formats/media-overview/#media-references) object property that is an audio media reference.
@@ -30,7 +30,7 @@ The transcription component provides the following features:
 
 ### Transcription (optional)
 
-![Transcription configuration options for the Audio and Transcription Display widget.](/docs/resources/foundry/workshop/audio_display_config_transcription.png)
+![Transcription configuration options for the Audio and Transcription Display widget.](./images/audio_display_config_transcription.png)
 
 * **Enable transcription:** Optionally display interactive transcription above the audio.
   * **Segments object set:** An object set containing segments that include selected properties.

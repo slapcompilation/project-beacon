@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/user-facing-error/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/user-facing-error/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # User-facing errors
 
@@ -51,6 +51,8 @@ def search_exactly_five_employees(
 
 When running this as a [Function-backed Action](/docs/foundry/action-types/function-actions-overview/) in a [Workshop application](/docs/foundry/workshop/functions-use/) with an incorrect number of employees, users will see the following error:
 
-![user-facing-error](/docs/resources/foundry/functions/user-facing-error.png)
+![user-facing-error](./images/user-facing-error.png)
 
-By adding a detailed user facing error message, you can help other users of your Function quickly identify and fix the issue.
+When a function used in a [function-backed export](/docs/foundry/workshop/widgets-button-group/#function-backed-export) throws a `UserFacingError`, the export failure toast displays the error message.
+
+A detailed user-facing error message helps users identify and resolve the issue.

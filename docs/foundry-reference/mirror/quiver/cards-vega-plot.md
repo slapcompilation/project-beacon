@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-vega-plot/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-vega-plot/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Vega Plots
 
@@ -19,21 +19,21 @@ Vega-Lite is a higher-level language built on top of Vega that provides a more c
 
 Several examples built with Vega and Vega-Lite can be seen in the image below:
 
-![Vega plot examples](/docs/resources/foundry/quiver/cards-vega-plot-examples.png)
+![Vega plot examples](./images/cards-vega-plot-examples.png)
 
 ## Configure a Vega plot
 
 To configure a Vega plot, hover over the desired card, select **Visualize** and navigate to (or search for) **Vega plot** in the dropdown menu. Select **Vega plot** to open the configuration menu.
 
-![Select the visualize button to open the Vega plot editor.](/docs/resources/foundry/quiver/visualize-select-vega-plot.png)
+![Select the visualize button to open the Vega plot editor.](./images/visualize-select-vega-plot.png)
 
 Within the editor menu, choose to configure either a Vega plot or a Vega-Lite plot. Templates for common visualizations, including bubble plots, box plots, sunburst plots and more, are provided in the **Choose a template** dropdown menu, as pictured below.
 
-![Vega plot templates for common visualizations](/docs/resources/foundry/quiver/vega-plot-choose-template.png)
+![Vega plot templates for common visualizations](./images/vega-plot-choose-template.png)
 
 Once you have selected your Vega plot template, you will be prompted to fill in parameters relevant to the plot you have selected by mapping them to columns of the transform table data source.
 
-![Fill template parameters](/docs/resources/foundry/quiver/vega-plot-fill-parameters.png)
+![Fill template parameters](./images/vega-plot-fill-parameters.png)
 
 After filling in the template parameters, select **Apply** to generate your Vega plot. Note that:
 
@@ -110,7 +110,7 @@ The Vega editor contains two useful settings for embedding a Vega plot in Worksh
 * **Autoscale plot:** When Autoscale plot is enabled, your Vega plot will automatically adjust to the card dimensions, based on the data provided.
 * **Default styling:** Inject some auto sizing and styling configurations to the Vega specification to make the plot appearance match the Quiver cards style. When disabled, the Vega visualization will match that on the public Vega website.
 
-![Default styling auto sizing and styling configurations](/docs/resources/foundry/quiver/vega-plots-default-styling.png)
+![Default styling auto sizing and styling configurations](./images/vega-plots-default-styling.png)
 
 ## Using AIP to configure Vega plots
 
@@ -122,11 +122,11 @@ To use AIP, select **AIP Configure** in the upper right of the Vega plot card. T
 
 In the example below, the user prompts AIP with: “Show ph vs caffeine on a scatter plot and draw a red line at 13 on the x axis and at 6 on the y axis”. AIP uses the prompt to suggest the configuration of a plot which contains the two numerical properties of interest (caffeine and pH levels).
 
-![Describe your desired Vega plot to AIP](/docs/resources/foundry/quiver/vega-plot-aip-assist.png)
+![Describe your desired Vega plot to AIP](./images/vega-plot-aip-assist.png)
 
 To accept AIP’s proposed update, select **Apply**. The Vega plot will render a visualization based on the updated Vega specification.
 
-![AIP Vega chart configuration](/docs/resources/foundry/quiver/vega-plot-aip-assist-output.png)
+![AIP Vega chart configuration](./images/vega-plot-aip-assist-output.png)
 
 ### Build on top of existing plots
 
@@ -134,11 +134,11 @@ AIP can recognize and differentiate abstract ideas contained within your prompt 
 
 In the image below, the user provides the prompt: “The two lines on the plot split the points into 4 quadrants. Color each quadrant a different color.” AIP recognizes that the areas defined by the vertical and horizontal lines are quadrants, even though the current plot configuration does not contain any definition or configuration of quadrants.
 
-![Modify existing Vega plots using AIP](/docs/resources/foundry/quiver/vega-plots-aip-modify-existing-plots.png)
+![Modify existing Vega plots using AIP](./images/vega-plots-aip-modify-existing-plots.png)
 
 AIP accurately generates the desired plot, aligned to the user prompt, which builds off of the initial plot.
 
-![AIP accurate generation based on provided prompt](/docs/resources/foundry/quiver/vega-plot-aip-modify-existing-output.png)
+![AIP accurate generation based on provided prompt](./images/vega-plot-aip-modify-existing-output.png)
 
 ### Create Vega plots using AIP Generate
 
@@ -170,15 +170,15 @@ To output the plot selection data as a transform table, perform the following st
    2. Set the `type` property to `point` for `quiverDefaultClick`, or `interval` for `quiverDefaultBrush`.
    3. Specify one or more [encodings ↗](https://vega.github.io/vega-lite/docs/encoding.html) in the `encodings` property. These are the fields that you wish to select over, such as `x`, `y`, or `color`. Encodings determine how values are selected and what information is output.
 
-       <img alt="Vega plot selection encoding example" src="./media/vega-selection-encoding-example.png" width=400>
+       <img alt="Vega plot selection encoding example" src="./images/vega-selection-encoding-example.png" width=400>
 
 3. Once a selection is made, a card footer with selection data will appear. Select **Output Selection** to output the selection data as a transform table. Alternatively, use the Vega plot’s next actions menu and select **Convert** > **New Transform Table**.
 
    * Point selections are output as a table of encoding fields and values, where each column corresponds to a field, and each row represents a selected point. <br><br>
-     ![Vega plot point selection example](/docs/resources/foundry/quiver/vega-selection-point-example.png) <br><br>
+     ![Vega plot point selection example](./images/vega-selection-point-example.png) <br><br>
 
    2. Interval selections are output as a range (minimum, maximum) of the interval’s bounds if the field is continuous, or as an array of values if the field is discrete. <br><br>
-      ![Vega plot interval selection example](/docs/resources/foundry/quiver/vega-selection-interval-example.png) <br><br>
+      ![Vega plot interval selection example](./images/vega-selection-interval-example.png) <br><br>
 
 :::callout{theme="neutral"}
 Unlike object set plots, where selection is a drill-down operation that outputs a filtered object set, Vega plots cannot automatically filter the input data based on the current selection. Instead, Vega plots will output the selected values of the given encodings, and these outputs can be used to manually construct a filter on the input table. For more information, review the section on [constructing a drill-down workflow](#construct-a-drill-down-workflow).
@@ -216,7 +216,7 @@ Refer to the provided Vega plot templates for additional examples of selection s
 ]
 ```
 
-![Plot with point selection along x axis](/docs/resources/foundry/quiver/vega-selection-along-x.gif)
+![Plot with point selection along x axis](./images/vega-selection-along-x.gif)
 
 ```
 ...
@@ -231,9 +231,9 @@ Refer to the provided Vega plot templates for additional examples of selection s
 ]
 ```
 
-![Plot with point selection by color](/docs/resources/foundry/quiver/vega-selection-by-color.gif)
+![Plot with point selection by color](./images/vega-selection-by-color.gif)
 
-![Plot with point selection by line color](/docs/resources/foundry/quiver/vega-selection-by-line.gif)
+![Plot with point selection by line color](./images/vega-selection-by-line.gif)
 
 #### Examples of interval selection parameters
 
@@ -250,27 +250,27 @@ Refer to the provided Vega plot templates for additional examples of selection s
 ]
 ```
 
-![Plot with interval selection along y axis](/docs/resources/foundry/quiver/vega-selection-along-y.png)
+![Plot with interval selection along y axis](./images/vega-selection-along-y.png)
 
 ### Construct a drill-down workflow
 
 Selection data from Vega-Lite plots can be used to construct drill-down workflows, where chart selections act as a filter and users can continue analysis on a subset of data based on the upstream selection. The following steps describe how to construct drill-down workflows.
 
 1. Set up selection parameters following the steps above, and output the current selection as a transform table. <br><br>
-   ![Drill-down workflow setup](/docs/resources/foundry/quiver/vega-selection-drilldown-1.png) <br><br>
+   ![Drill-down workflow setup](./images/vega-selection-drilldown-1.png) <br><br>
 
 2. Select **Pop out column as array** to convert the property into an array. <br><br>
-   <img alt="Drill-down workflow setup 2" src="./media/vega-selection-drilldown-2.png" width=300>
+   <img alt="Drill-down workflow setup 2" src="./images/vega-selection-drilldown-2.png" width=300>
 
-<br><br> <img alt="Drill-down workflow setup 3" src="./media/vega-selection-drilldown-3.png" width=600> <br><br>
+<br><br> <img alt="Drill-down workflow setup 3" src="./images/vega-selection-drilldown-3.png" width=600> <br><br>
 
 3. Filter a copy of the original transform table (or a copy of the root object set from which the transform table was derived), using the selected values as the filter parameter. <br><br>
-   <img alt="Setting up a drilldown workflow 4" src="./media/vega-selection-drilldown-4.png" width=350>
+   <img alt="Setting up a drilldown workflow 4" src="./images/vega-selection-drilldown-4.png" width=350>
 
 <br><br>
 
 4. The filtered table will now dynamically update based on the upstream chart selection. <br><br>
-   <img alt="Drill-down workflow gif example" src="./media/vega-selection-drilldown.gif">
+   <img alt="Drill-down workflow gif example" src="./images/vega-selection-drilldown.gif">
 
 <br><br>
 
@@ -309,6 +309,10 @@ Check the following:
 
 * Ensure that all selection parameters have a non-empty `encodings` field. Each parameter must specify one or more encodings to output selection information.
 * If it is an interval selection, check whether any of the encodings defined in the selection parameter are non-axis fields. Vega does not support interval selection over non-axis encoding fields like `color`, `shape`, and so on. Removing these from the encodings array should resolve the error.
+
+#### Vega plot object limit
+
+Vega plots in Quiver have a limit of 50,000 objects. If you need to visualize datasets exceeding this limit, consider using [object set charts](/docs/foundry/quiver/objects-chart-drilldown/) or [materialization charts](/docs/foundry/quiver/card-categorical-plot-materialization/), which are not scale-limited.
 
 :::callout{theme="warning"}
 [Vega-Lite ↗](https://vega.github.io/vega-lite/docs/encoding.html) documentation and the [Vega editor ↗](https://vega.github.io/editor/#/) can be helpful tools to test and debug Vega specs. However, you **should not** enter any sensitive information in the editor tool as we cannot guarantee data security outside of the Palantir platform.

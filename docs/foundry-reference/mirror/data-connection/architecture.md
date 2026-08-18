@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/architecture/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/architecture/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Architecture examples
 
@@ -17,7 +17,7 @@ External system credentials are stored with AES-256-GCM server-side encryption a
 
 To create a direct connection, follow instructions about [setting up a source](/docs/foundry/data-connection/set-up-source/).
 
-![Architecture diagram of direct connection.](/docs/resources/foundry/data-connection/direct-connection-architecture.png)
+![Architecture diagram of direct connection.](./images/direct-connection-architecture.png)
 
 ## Foundry worker with agent proxy policy
 
@@ -45,7 +45,7 @@ To create an agent-proxy connection, you will need to:
 * Create one or many [agent proxy policies](/docs/foundry/administration/configure-egress/#agent-proxy-egress-policies).
 * [Set up a Foundry worker source](/docs/foundry/data-connection/set-up-direct-connection/) using the policies above.
 
-![Architecture diagram of agent proxy connection.](/docs/resources/foundry/data-connection/agent-proxy-architecture.png)
+![Architecture diagram of agent proxy connection.](./images/agent-proxy-architecture.png)
 
 ## Legacy architecture: Agent worker
 
@@ -71,7 +71,7 @@ To create an agent worker connection, you will need to:
 * Configure it to be an [agent worker](/docs/foundry/data-connection/agent-worker/).
 * [Set up an agent worker source](/docs/foundry/data-connection/set-up-source/) and assign it that agent.
 
-![Architecture diagram of agent worker.](/docs/resources/foundry/data-connection/agent-worker-architecture.png)
+![Architecture diagram of agent worker.](./images/agent-worker-architecture.png)
 
 ## Summary
 

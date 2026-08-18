@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/model-aliases/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/model-aliases/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Model aliases
 
@@ -12,11 +12,11 @@ To define a model alias, open a TypeScript v2 or Python code repository and foll
 
 1. Open the **Platform SDK** tab in the **Resource imports** panel.
 
-![The tab to access Platform SDK resources in a TypeScript v2 repository.](/docs/resources/foundry/functions/platform-sdk-tab.png)
+![The tab to access Platform SDK resources in a TypeScript v2 repository.](./images/platform-sdk-tab.png)
 
 2. To import a new language model, select **Add > Models** in the upper right corner. A window will open in which you can view available Palantir-provided and registered models.
 
-![The model import dialog in a TypeScript v2 repository.](/docs/resources/foundry/functions/models-v3-import-dialog.png)
+![The model import dialog in a TypeScript v2 repository.](./images/models-v3-import-dialog.png)
 
 3. Select the models to import, then choose **Confirm selection**. A configuration dialog will open in which you can configure aliases for each selected model. Select the pen icon near the alias to make edits, or choose to keep the defaults.
 
@@ -24,11 +24,11 @@ To define a model alias, open a TypeScript v2 or Python code repository and foll
 Alias keys must be unique within the repository.
 :::
 
-![Configure model aliases after choosing models to import.](/docs/resources/foundry/functions/configure-models-aliases.png)
+![Configure model aliases after choosing models to import.](./images/configure-models-aliases.png)
 
 4. The imported models will appear in the **Platform SDK** tab in the **Resource imports** side panel. You can edit any alias inline by selecting the pen icon next to the alias.
 
-![Configure model aliases inline.](/docs/resources/foundry/functions/inline-models-aliases-edit.png)
+![Configure model aliases inline.](./images/inline-models-aliases-edit.png)
 
 ## Use a model alias in code
 
@@ -51,3 +51,7 @@ For a complete example of calling a language model using an alias, see [Write a 
 :::callout{theme="warning"}
 Model aliases work in functions added to [Marketplace products](/docs/foundry/functions/marketplace-functions/), but cannot be remapped during installation. If the model referenced by an alias is not available in the target environment, the function will fail to resolve the alias at runtime.
 :::
+
+## Related
+
+You can also define [custom aliases](/docs/foundry/functions/custom-aliases/) for string values such as configuration parameters, feature flags, or environment-specific settings. Custom aliases appear in the **Platform SDK** tab and can make functions portable across environments.

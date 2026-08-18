@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-sync/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-sync/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series sync
 
@@ -14,7 +14,7 @@ Time series
 
 ### Example
 
-![Time series sync](/docs/resources/foundry/quiver/card-time-series-sync.png)
+![Time series sync](./images/card-time-series-sync.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/integrate-functions/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/integrate-functions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Function-based styling
 
@@ -73,4 +73,4 @@ When using a function for styling in the Workshop Map widget, your function can 
 
 When working with additional arguments, the first argument will still always specify the objects for which you need to compute and return values. The widget automatically provides values for this first argument, but only the additional arguments will be shown. The widget configuration allows you to specify values for additional arguments by selecting variables.
 
-<img src="./media/styling-functions.png" alt="Additional arguments to a styling function in the Workshop Map widget." width="350" />
+<img src="./images/styling-functions.png" alt="Additional arguments to a styling function in the Workshop Map widget." width="350" />

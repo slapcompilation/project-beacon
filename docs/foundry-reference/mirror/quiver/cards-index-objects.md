@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-objects/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/cards-index-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Objects cards
 
@@ -28,7 +28,7 @@ The following cards accept single objects as input and output object properties:
 
 Select the **Show data** and **Hide data** buttons to switch between the results view and the card configuration view.
 
-![Cursor moving over a button labeled show data, once clicked the cards view changes to a table showing the resulting object set of a filter card](/docs/resources/foundry/quiver/howto-object-set-show-data.gif)
+![Cursor moving over a button labeled show data, once clicked the cards view changes to a table showing the resulting object set of a filter card](./images/howto-object-set-show-data.gif)
 
 Learn more about [adding data](/docs/foundry/quiver/getting-started/) to Quiver.
 
@@ -36,8 +36,8 @@ Learn more about [adding data](/docs/foundry/quiver/getting-started/) to Quiver.
 
 Object properties and available [linked sensors](/docs/foundry/quiver/timeseries-overview/#adding-a-time-series-property) can be added and removed directly from the card header by selecting **Properties** from the top right corner. This simplifies the discovery of time series data stored on the object as a time series property or on linked objects as sensors. Adding or removing properties will add or remove columns from the object set card table view.
 
-![Example of adding linked sensors to an object set card](/docs/resources/foundry/quiver/howto-object-set-drilldown-add-measures.png)
+![Example of adding linked sensors to an object set card](./images/howto-object-set-drilldown-add-measures.png)
 
 Object set rows (individual objects in the object set) can be popped out as **object view** cards, and all properties values (cells in the table) can be popped out as either a time series plot or an [object property](/docs/foundry/quiver/card-object-property/) (metric) card. This pop out action shortens the process to drill down from an object set of many objects to a specific time series plot or property metric on a single object.
 
-![Red rectangle highlighting two blue pop out buttons in a table](/docs/resources/foundry/quiver/howto-object-set-pop-out-cell.png)
+![Red rectangle highlighting two blue pop out buttons in a table](./images/howto-object-set-pop-out-cell.png)

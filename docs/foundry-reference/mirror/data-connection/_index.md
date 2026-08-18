@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Data Connection
 
@@ -6,11 +6,11 @@
 
 Access the Data Connection application by selecting the icon from the workspace navigation bar.
 
-![The Data Connection application in the Foundry sidebar.](/docs/resources/foundry/data-connection/data-connection-sidebar.png)
+![The Data Connection application in the Foundry sidebar.](./images/data-connection-sidebar.png)
 
 You can also find the Data Connection application by searching in the Applications Portal.
 
-![The Data Connection application found in the Applications Portal](/docs/resources/foundry/data-connection/data-connection-app-portal.png)
+![The Data Connection application found in the Applications Portal](./images/data-connection-app-portal.png)
 
 If you are connecting Foundry to your data for the very first time for your organization, get started by referring to the [initial setup guide](/docs/foundry/data-connection/initial-setup-overview/).
 

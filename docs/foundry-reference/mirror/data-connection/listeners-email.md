@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-email/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-email/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Email listeners
 
@@ -20,17 +20,17 @@ For information on securely configuring email listeners and incoming messages, r
 
 Select **Create new listener** and choose the email listener type.
 
-![The listener selection page showing the email listener option.](/docs/resources/foundry/data-connection/email-listener-select.png)
+![The listener selection page showing the email listener option.](./images/email-listener-select.png)
 
 ### 2. Configure connection
 
 Configure a unique email address for the listener.
 
-![The connection configuration page with the email address field.](/docs/resources/foundry/data-connection/email-listener-create-new-email-address.png)
+![The connection configuration page with the email address field.](./images/email-listener-create-new-email-address.png)
 
 Then, configure the sender allowlist to control which senders can deliver email to the listener. You can allow specific email addresses or entire domains.
 
-![The connection configuration page showing the sender allowlist settings.](/docs/resources/foundry/data-connection/email-listener-allow-senders.png)
+![The connection configuration page showing the sender allowlist settings.](./images/email-listener-allow-senders.png)
 
 :::callout{theme="warning" title="Security"}
 By default, email listeners do not accept email from any sender. You must explicitly configure which senders are permitted.
@@ -38,19 +38,19 @@ By default, email listeners do not accept email from any sender. You must explic
 
 After creation, the listener enters a **Provisioning** state and requires approval before it can begin receiving emails.
 
-![The listener detail page showing the provisioning state.](/docs/resources/foundry/data-connection/email-listener-provisioning-state.png)
+![The listener detail page showing the provisioning state.](./images/email-listener-provisioning-state.png)
 
 ### 3. Activate the listener
 
 Once the email address is approved and configured, activate the listener to begin receiving emails. Activated listeners process incoming emails and forward their content to a media set.
 
-![The listener detail page showing the activate option.](/docs/resources/foundry/data-connection/email-listener-activate-email.png)
+![The listener detail page showing the activate option.](./images/email-listener-activate-email.png)
 
 ### 4. Test the listener
 
 Send a test email to the listener address to verify that it is receiving and processing messages correctly.
 
-![An example of a test email sent to the listener.](/docs/resources/foundry/data-connection/email-listener-email-test-example.png)
+![An example of a test email sent to the listener.](./images/email-listener-email-test-example.png)
 
 ## Listener states
 

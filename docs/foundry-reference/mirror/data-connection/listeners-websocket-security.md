@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-websocket-security/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-websocket-security/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # WebSocket listener security
 
@@ -18,7 +18,7 @@ When WebSocket listeners process data, marking validation acts as a security con
 
 By default, only data without security markings can be read and incorporated into your compute module inputs. If your compute module needs to process data that carries security markings, you must explicitly configure which markings are permitted for export in the listener's settings. Only a user with the ability to declassify those markings can add them to the configuration.
 
-![Configure WebSocket markings in the listener settings.](/docs/resources/foundry/data-connection/websocket-listener-configure-markings.png)
+![Configure WebSocket markings in the listener settings.](./images/websocket-listener-configure-markings.png)
 
 ## Subdomains
 

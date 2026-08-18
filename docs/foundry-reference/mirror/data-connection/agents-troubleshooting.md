@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/agents-troubleshooting/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/agents-troubleshooting/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Troubleshooting reference
 
@@ -249,7 +249,7 @@ explorer:
 ...
 ```
 
-![Agent with custom legacy TLS protocols configured](/docs/resources/foundry/data-connection/agent-tls.png)
+![Agent with custom legacy TLS protocols configured](./images/agent-tls.png)
 
 3. Select **Restart agent**.
 

@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-media-uploader/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-media-uploader/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Media Uploader widget
 
 The Media Uploader widget is used to add a special type of button that allows users to upload media files to Foundry and trigger [actions](/docs/foundry/ontology/overview/) using the uploaded files as inputs. On desktop, you can select files from your computer. On mobile devices, you can also choose images from your device's gallery or capture photos directly using the device's camera.
 
-![The Media Uploader button and file upload dialog.](/docs/resources/foundry/workshop/widgets-media-uploader.png)
+![The Media Uploader button and file upload dialog.](./images/widgets-media-uploader.png)
 
 ## Configuration options
 

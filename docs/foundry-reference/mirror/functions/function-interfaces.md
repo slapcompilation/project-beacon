@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/function-interfaces/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/function-interfaces/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Function interfaces
 
@@ -63,16 +63,16 @@ Function interfaces are designed to be flexible and allow for a wide range of im
 
 The input names of each parameter must match the input names defined on the function interface at each specific input position. As the linting suggests, ensure that each input name has the exact same input name as declared on the function interface at each position.
 
-![Common errors: input names do not match.](/docs/resources/foundry/functions/byom-tutorial-common-errors-input-params-not-match.png)
+![Common errors: input names do not match.](./images/byom-tutorial-common-errors-input-params-not-match.png)
 
 ### Error: `Function is missing input parameter of the function interface`
 
 This error arises if the implementing function does not include every required input defined on the function interface. To resolve the error, ensure each input declared on the function interface is included in the implementing function.
 
-![Common errors: required inputs not included.](/docs/resources/foundry/functions/byom-tutorial-common-errors-missing-input-params.png)
+![Common errors: required inputs not included.](./images/byom-tutorial-common-errors-missing-input-params.png)
 
 ### Error: `Type {type1} is not assignable to type {type2}`
 
 The compiler may reject the implementing function as not compatible with the function defined on the interface. If so, ensure your implementing function is [compatible ↗](https://www.typescriptlang.org/docs/handbook/type-compatibility.html#comparing-two-functions) with the function defined on the function interface by checking the structure of each type compared to the types defined on the function interface.
 
-![Common errors: function not compatible with Chat completion decorator.](/docs/resources/foundry/functions/byom-tutorial-common-errors-function-not-compatible-with-interface.png)
+![Common errors: function not compatible with Chat completion decorator.](./images/byom-tutorial-common-errors-function-not-compatible-with-interface.png)

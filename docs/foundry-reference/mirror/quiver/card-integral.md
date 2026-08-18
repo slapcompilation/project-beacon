@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-integral/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-integral/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Integral
 
@@ -18,7 +18,7 @@ Time series
 
 ### Example
 
-![Integral example](/docs/resources/foundry/quiver/card-integral.png)
+![Integral example](./images/card-integral.png)
 
 ## Usage information
 

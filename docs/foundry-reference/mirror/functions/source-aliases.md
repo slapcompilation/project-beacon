@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/source-aliases/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/source-aliases/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Source aliases
 
@@ -14,7 +14,7 @@ To import a source:
 
 3. Select **Add > Sources**.
 
-   ![The Add dropdown in the Resource imports panel showing the Sources option.](/docs/resources/foundry/functions/source-aliases-import.png)
+   ![The Add dropdown in the Resource imports panel showing the Sources option.](./images/source-aliases-import.png)
 
 4. Search for and select the source to import, then choose **Confirm selection**.
 
@@ -25,7 +25,7 @@ After importing a source, you can add an alias to it:
 1. In the **Resource imports** panel, locate the source under **Sources**.
 2. Select **Add alias** below the source name.
 
-   ![The Resource imports panel showing an imported source with an option to add an alias.](/docs/resources/foundry/functions/source-aliases-add.png)
+   ![The Resource imports panel showing an imported source with an option to add an alias.](./images/source-aliases-add.png)
 
 :::callout{theme="neutral"}
 Alias keys must be unique within the repository.
@@ -35,7 +35,7 @@ Alias keys must be unique within the repository.
 
 To edit an existing source alias, navigate to the **Sources** section in the **Resource imports** panel. Select the pen icon next to the alias to edit it inline.
 
-![The Resource imports panel showing a source alias with an option to edit it.](/docs/resources/foundry/functions/source-aliases-edit.png)
+![The Resource imports panel showing a source alias with an option to edit it.](./images/source-aliases-edit.png)
 
 ## Use a source alias in code
 
@@ -93,16 +93,16 @@ For more information about using sources in functions, including accessing crede
 
 When you add a function that uses source aliases to a [Marketplace product](/docs/foundry/functions/marketplace-functions/), each aliased source appears as a configurable input under **Data connection sources**. Installers can map each input source to an available source in their environment during installation, without needing to modify the function source code.
 
-![A Marketplace product showing a Data Connection source as a configurable input.](/docs/resources/foundry/functions/source-aliases-marketplace-product.png)
+![A Marketplace product showing a Data Connection source as a configurable input.](./images/source-aliases-marketplace-product.png)
 
 ### Set a description
 
 To help installers understand which source to provide, you can add a description to the source input. Select the source under **Inputs** to open the **Details** panel, then enter a description on the **General** tab.
 
-![The Details panel for a source input showing a description field.](/docs/resources/foundry/functions/source-aliases-description.png)
+![The Details panel for a source input showing a description field.](./images/source-aliases-description.png)
 
 ### Installation experience
 
 During installation, installers see the source description and can select a source appropriate for their environment. Marketplace remaps the selected source to the defined alias automatically, so the function code remains untouched.
 
-![The installation view showing a source alias with a description and options to change the source or scope it to a namespace.](/docs/resources/foundry/functions/source-aliases-install.png)
+![The installation view showing a source alias with a description and options to change the source or scope it to a namespace.](./images/source-aliases-install.png)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/workshop-cross-app-interactivity/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/workshop-cross-app-interactivity/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Cross-application interactivity
 

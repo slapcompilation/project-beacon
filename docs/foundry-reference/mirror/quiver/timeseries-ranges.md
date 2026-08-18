@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-ranges/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-ranges/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time and value ranges
 
@@ -22,7 +22,7 @@ To save a new range from a time series chart:
    * The selected range color will change from blue to a different color, signifying that this range was persisted as a range parameter. You can change the range color by selecting the variable name in the Parameters panel or the card editor.
    * The range parameter will take the selected range boundaries as the start and end timestamps/values. Changing the start or end values of the range parameter will update the range highlighted on the chart.
 
-![Saving a new time range](/docs/resources/foundry/quiver/howto-timeseries-save-new-range.gif)
+![Saving a new time range](./images/howto-timeseries-save-new-range.gif)
 
 ## Control a range using parameters
 
@@ -41,11 +41,11 @@ To add a time range from the time range parameter editor, select the range from 
 
 To automatically add the range to new charts, toggle **Automatically add this range to new charts**. Once toggled on, the default visibility can be customized.
 
-![Editor view of a range parameters display tab](/docs/resources/foundry/quiver/howto-timeseries-range-on-multiple-charts-panel.png)
+![Editor view of a range parameters display tab](./images/howto-timeseries-range-on-multiple-charts-panel.png)
 
 To add a range from the chart editor, open the editor panel for the desired chart and select **Add range** under the **Ranges** section.
 
-![Using a range parameter with multiple charts](/docs/resources/foundry/quiver/howto-timeseries-range-on-multiple-charts.png)
+![Using a range parameter with multiple charts](./images/howto-timeseries-range-on-multiple-charts.png)
 
 ## Contextualize ranges
 
@@ -55,13 +55,13 @@ To rename a range, open the **Parameters** side panel and select the parameter n
 
 Additionally, consider configuring the **Prompt** and **Help text** of a range parameter which are visible when adding range parameters to dashboards.
 
-![Editor view of a range parameters](/docs/resources/foundry/quiver/howto-timeseries-range-parameter-editor.png)
+![Editor view of a range parameters](./images/howto-timeseries-range-parameter-editor.png)
 
 ## Use a range to compute range statistics
 
 You can view range statistics (min, max, and average) in the **Plot statistics** tab of the time range parameter editor. After selecting **Compute statistics**, metrics will be shown for plots on time series charts with this range. Statistics are only computed for plots with one time axis and one numeric axis, incompatible plots will not be shown. Hovering over a plot or chart will show the option to navigate to the respective editor.
 
-![Editor view of a range parameters plot statistics tab](/docs/resources/foundry/quiver/howto-timeseries-range-stats-panel.png)
+![Editor view of a range parameters plot statistics tab](./images/howto-timeseries-range-stats-panel.png)
 
 You can also use a range selection or a [saved range](#save-a-new-range) with a transform table to compute range statistics like max, min, and average. Range selections, as opposed to saved ranges, are not persisted; they offer an interactive way to quickly view statistics for different ranges.
 
@@ -75,16 +75,16 @@ To use a chart range selection within the transform table:
 4. Click **Add Transformation** to add a `Time series numeric aggregation` for each of the metrics you wish to compute.
 5. Select a different range on the chart to see the computed stats for that range.
 
-![Using chart range selection](/docs/resources/foundry/quiver/howto-timeseries-using-range-for-stats.gif)
+![Using chart range selection](./images/howto-timeseries-using-range-for-stats.gif)
 
 ## Use ranges to compare series over multiple periods of time
 
 You can use time ranges to compare a series (or multiple series) over different periods of time. This is achieved by using the ranges to create [filter time series plots](/docs/foundry/quiver/card-filter-time-series/) and [relative time series plots](/docs/foundry/quiver/card-relative-time-series/). Creating a filter plot isolates the series data over the range, while a relative time plot visually aligns the series across multiple periods of time. The picture below shows the result of using filter and relative time plots to visualize the open price of AAPL stock over multiple years.
 
-![Comparing the data of a single series over multiple periods of time](/docs/resources/foundry/quiver/howto-timeseries-range-comparison.png)
+![Comparing the data of a single series over multiple periods of time](./images/howto-timeseries-range-comparison.png)
 
 Relative comparison views like the one above can be created directly from the desired time ranges. To create a relative time plot from a range, select the range from the **Parameters** side panel and navigate to the **Filter plots** tab. Select the desired plot from the **Create filtered plots** dropdown, and then select **Relative time series plot**. A filter plot will be created using the range and selected plot, and then used as the input to a new relative time plot. Repeat this process for all of the series and time ranges you want to compare. You can also choose to only create the filter plot by using the same dropdown and selecting **Filter time series plot** after choosing a source plot. All filter and relative plots created using the range are displayed in the **Current filtered plots** section of the tab.
 
 A more focused version of this workflow is available from the **Filter plots** button found by hovering over the range display on a chart. The source plot selection menu here is filtered to only contain plots on the selected chart.
 
-![Example of how to compare the data of a single series over a period of time](/docs/resources/foundry/quiver/howto-timeseries-range-comparison-example.gif)
+![Example of how to compare the data of a single series over a period of time](./images/howto-timeseries-range-comparison-example.gif)

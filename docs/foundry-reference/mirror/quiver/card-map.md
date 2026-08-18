@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-map/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-map/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map
 
-Visualize one or more object sets on a map. Maps are backed by geospatial data (geopoints, GeoJSON, and region codes) that can be charted in a variety of ways. You can find a detailed description of map layer configurations in the [Workshop map widget documentation](/docs/foundry/workshop/widgets-map/).
+Visualize one or more object sets on a map. Maps are backed by geospatial data (geopoints, GeoJSON, and region codes) that can be charted in a variety of ways. You can find a detailed description of map layer configurations in the [Workshop map widget documentation](/docs/foundry/workshop/widgets-map/). For mobile or non-WebGL environments, see the [Map \[Legacy\] widget documentation](/docs/foundry/workshop/widgets-map-legacy/).
 
 * Point layers plot each object at a specific location on the map.
 * Clusters take a group of points and dynamically combine them based on zoom level.

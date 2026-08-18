@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-evals/run-suite/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-evals/run-suite/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Run an evaluation suite
 
@@ -14,7 +14,7 @@ Alternatively, you can run an evaluation suite from the AIP Evals application. T
 
 There are multiple configuration options available when running an evaluation suite. To access run configuration options, select the cog icon next to **Run evaluation suite**. This will open a dialog with the following options:
 
-![AIP Evals run configuration.](/docs/resources/foundry/aip-evals/aip-evals-run-configuration.png)
+![AIP Evals run configuration.](./images/aip-evals-run-configuration.png)
 
 #### Function to test
 
@@ -27,7 +27,7 @@ Evaluation suites can be run against functions authored in [AIP Logic](/docs/fou
 
 If your evaluation suite has [multiple target functions](/docs/foundry/aip-evals/create-suite/#additional-target-functions) configured, you can run evaluations against multiple functions simultaneously from AIP Evals. Select **Test multiple functions** to switch to multi-target mode, then select which targets to include in the run.
 
-![Multi-target function selection.](/docs/resources/foundry/aip-evals/aip-evals-multi-target-selection.png)
+![Multi-target function selection.](./images/aip-evals-multi-target-selection.png)
 
 :::callout{theme="neutral"}
 Experiment configuration is not available when running in multi-target mode.
@@ -81,7 +81,7 @@ After the evaluation suite run is completed, you can view the results by selecti
 
 Moreover, the results view offers the ability to compare runs by selecting **Click to compare another run**. This will open another run side-by-side with the current run, allowing you to compare the results of both runs. By default, the **View diff** toggle will be enabled, resulting in output differences between the two runs being highlighted.
 
-![Compare your results.](/docs/resources/foundry/aip-evals/aip-evals-run-result-comparison-view.png)
+![Compare your results.](./images/aip-evals-run-result-comparison-view.png)
 
 ## Single test case execution
 
@@ -91,6 +91,6 @@ The AIP Evals sidebar in AIP Logic provides a quick way to run single test cases
 
 To run a single test case, select the play icon next to the test case name in the sidebar. This will immediately execute the test case and open the debugger sidebar panel. Here, you will be able to follow the execution of the Logic function and evaluators that are run on test case results. Additionally, the test case will be marked as executed in the sidebar.
 
-![Execute a single test case.](/docs/resources/foundry/aip-evals/aip-evals-single-test-case-execution.png)
+![Execute a single test case.](./images/aip-evals-single-test-case-execution.png)
 
 After execution, the sidebar and results panel will indicate whether each metric passed or failed, according to your configured objectives.

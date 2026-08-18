@@ -1,14 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-edits-history/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-edits-history/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Edit History
 
-The **Edit History** widget displays the list of user edits made to an object's properties after [**Track user edit history**](/docs/foundry/object-edits/user-edit-history/) has been enabled for the object type within Ontology Manager. Edits completed prior to enabling Edit History, edits completed by a pipeline, or edits completed while on Object Storage v1 will not be reflected.
+The **Edit History** widget displays the list of user edits made to an object's properties after [**Track user edit history**](/docs/foundry/object-edits/user-edit-history/) has been enabled for the object type within Ontology Manager. Edits completed prior to enabling Edit History or edits completed by a pipeline will not be reflected.
 
 ## Audit trail and data permanence
 
 The Edit History widget provides an **immutable audit trail** of all changes made to ontology objects. Changelog records are designed for auditing purposes and **cannot be deleted or modified** by end users, even if the corresponding ontology edits are reverted or deleted. This ensures a permanent and accurate history of all changes for compliance and traceability requirements.
 
-<img src="./media/widgets_edits_history_example.png" alt="Edits history example">
+<img src="./images/widgets_edits_history_example.png" alt="Edits history example">
 
 ## Configuration options
 

@@ -1,10 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widget-free-form-analysis/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widget-free-form-analysis/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Free-form Analysis
 
 The **Free-form Analysis widget** enables users to independently investigate object data with flexibility, within the framework of the Workshop application.
 
-![Add a free-form analysis to your Workshop page with the available widget options.](/docs/resources/foundry/workshop/free-form-analysis-widget.png)
+:::callout{theme="neutral"}
+For investigating time series data specifically, see the [Time Series Analysis widget](/docs/foundry/workshop/widget-time-series-analysis/), which provides specialized tools for time series visualization, derived plots, and analysis.
+:::
+
+![Add a free-form analysis to your Workshop page with the available widget options.](./images/free-form-analysis-widget.png)
 
 ## Available cards
 

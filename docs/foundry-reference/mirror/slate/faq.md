@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/faq/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/faq/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Slate FAQ
 
@@ -237,6 +237,8 @@ To troubleshoot, perform the following steps:
 If a function is behaving in an unexpected manner, confirm that you understand how they fit in to the Dependency Graph and Event Framework by [reviewing the existing best practices documentation](/docs/foundry/slate/best-practices-app-functionality/#best-practices-and-common-patterns-for-javascript-functions).
 
 It's very rare to need a pattern where an Event calls the `[f_myFunction].run` action. An application attempting to rely on this pattern should be refactored to use the normal resolution of the dependency graph. Instead of triggering the function directly, instead update an upstream dependency, for example by triggering a query or setting the value of a referenced variable.
+
+Functions without inputs do not run again on a `Recalculate` event. If Slate already cached the result for a set of parameters, it returns that result instead of running the function again. To run a function at regular intervals, provide at least one input that changes with each interval, such as a timer-updated variable or a timestamp.
 
 [Return to top](#slate-faq)
 

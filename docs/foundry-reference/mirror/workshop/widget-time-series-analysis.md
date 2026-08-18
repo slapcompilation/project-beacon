@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widget-time-series-analysis/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widget-time-series-analysis/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time Series Analysis
 
 The **Time Series Analysis** widget enables users to independently investigate time series data with flexibility, within the framework of the Workshop application.
 
-![Add a time series analysis to your Workshop page with the available widget options.](/docs/resources/foundry/workshop/time-series-analysis-widget.png)
+![Add a time series analysis to your Workshop page with the available widget options.](./images/time-series-analysis-widget.png)
 
 ## Available plots
 
@@ -36,7 +36,7 @@ Add time series data from the Ontology with the **+ Add Data** search bar, then 
 
 The **Plots** panel at the bottom of the widget contains settings and information that are common to all plot types. Data configurations specific to the plot type are controlled in the editor panel on the right side of the widget. Column visibility, ordering, sorting, and widths are all customizable. Use the **Configure columns** menu for fine-grained control of the column ordering and to add non-default columns.
 
-![View settings common to all plot types in the Plots panel.](/docs/resources/foundry/workshop/time-series-analysis-plots-panel.png)
+![View settings common to all plot types in the Plots panel.](./images/time-series-analysis-plots-panel.png)
 
 The following visualization options can be quickly toggled from the panel header:
 

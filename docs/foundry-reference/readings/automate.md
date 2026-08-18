@@ -168,7 +168,7 @@ And a failure path:
 > multiple times for the same trigger event."
 
 > "Automate attempts to minimize duplicate executions but cannot completely
-> eliminate them due to the distributed nature of the system and the retry
+> remove them due to the distributed nature of the system and the retry
 > mechanisms for handling transient failures."
 
 The page's own mitigation is idempotency: "Implement *idempotent* operations,
@@ -214,9 +214,16 @@ is an explicit, transferable role, not a side effect of the last save.
 
 > "**Condition evaluation:** Uses automation owner's permissions"
 
-> "**Action and Logic effects:** Execute as the automation owner"
+> "**Action, Logic, and Function effects:** Execute as the automation owner"
 
 > "**Notification effects:** Use each recipient's individual permissions"
+
+**That first line said "Action and Logic effects" when this reading was
+written**, and the drift sweep of 2026-08-18 caught the change. It *widens* the
+rule to function effects, which is the direction our schema already took —
+`automations.owner_id` governs every effect, with no per-kind exception — so
+nothing is falsified. Recorded because the previous wording left function
+effects unstated, and an unstated case is where an invention goes.
 
 `permissions` spells out four consequences of executing as the owner:
 submission criteria "are evaluated against the owner", functions "receive
@@ -307,12 +314,18 @@ Reading `retries` and `limits` in full, having built from neither.
 fallback fires too early, full stop". Reading the sentence again, it is a
 DISJUNCTION:
 
-> "Fallback effects are not eligible for retries, and will only execute if an
-> object failed non-retryably, or the maximum number of retries has been
-> reached."
+> "Fallback effects are not eligible for event retries. They execute only after
+> an object fails with a non-retryable error or reaches the maximum number of
+> retries."
 
 The second arm settles it: with no retry strategy configured the maximum number
 of retries is zero, which is trivially reached, so a fallback fires at once.
+
+**Upstream reworded this sentence between the reading and 2026-08-18**, and the
+rewording sharpens it in our favour: "not eligible for retries" has become "not
+eligible for **event** retries", which is the distinction the same sweep added
+elsewhere — see §Drift below. The disjunction, which is the load-bearing half,
+is unchanged.
 **517's behaviour was therefore correct for every automation we can create**,
 because retries did not exist here. What was missing was the configuration the
 rule hangs on, not the branch.
@@ -351,3 +364,139 @@ that completed before the timeout are preserved".
 **Neither is fixed here.** Both are recorded in DELIVERABLE-MAP so the next
 change starts from the published numbers rather than from mine.
 
+---
+
+## Upstream moved (2026-08-18) — what the drift sweep found
+
+`check:doc-drift` reported 36 pages changed across 14 readings; seven of them are
+this reading's. Re-mirroring `automate/` rewrote **37 files**, and
+`check:readings` immediately failed on three quotations here — which is the pair
+of guards working as one: drift says a page moved, the citation gate says which
+sentence we were standing on. All three are fixed above. Nothing falsified what
+shipped in 517–521. What follows is the material that is genuinely new.
+
+### Nothing was falsified, and one near-miss is worth stating
+
+`automation_effects_retries_where_allowed` restricts a configured retry to
+`kind IN ('action','logic')`, and `retries` now says:
+
+> "Action, logic, and function effects may receive immediate, short-term retries within a trigger event to overcome ephemeral errors such as rate limits."
+
+Read alone, that reads like our CHECK is now wrong. It is not — the same page
+still carries the sentence the CHECK was built on:
+
+> "Note that effect retries can currently only be configured on the following:"
+
+followed by Action effects and Logic effects, and nothing else. The sweep added a
+*second, separate* mechanism, which `effects` now names explicitly:
+
+> "**Per-effect automatic retries:** Configure automatic retries on individual action and logic effects to handle temporary errors such as rate limits."
+
+> "**Event retries:** Configure retry strategies for entire trigger events to handle persistent errors such as service outages."
+
+**Two mechanisms, and we built the first.** The short-term retries function
+effects "may receive" are automatic and not configured, so they are not a
+`retry_count`. Checking the *other* sentence on the same page rather than
+reacting to the new one is what kept a correct constraint from being widened.
+
+### Multiple cron expressions per time condition — a real gap
+
+> "You can add multiple cron expressions to a single time condition to define more complex scheduling patterns. When using advanced cron mode, select the option to add additional cron expressions."
+
+> "Each cron expression must be non-overlapping with the others"
+
+> "All expressions must individually meet the cron expression requirements listed above"
+
+with the page's worked example: `0 9 1,15 * *` plus `0 10 * * 5`, where "Using
+different times prevents the schedules from overlapping when the first or
+fifteenth falls on a Friday."
+
+Ours takes one: `automation_condition_valid` requires `condition->>'cron'` to be
+a single non-empty string. This is a capability we do not have.
+
+**The non-overlap requirement is stated as a requirement on the author, not as a
+refusal by the platform**, and that distinction decides how it should be built —
+see Decisions below.
+
+### Automatic pausing due to excessive activity
+
+> "The system may automatically pause an automation when it detects excessive activity. While paused, scheduled and live triggers do not run, but manual runs and event retries remain available."
+
+> "A user with an `Editor` role on the automation can resume a paused automation at any time from the automation overview."
+
+Our `automations.paused` is a boolean an author sets. This describes a *second*
+writer of that column and, more interestingly, a **partial** pause: manual runs
+and event retries still work. A boolean cannot say which of those is true.
+
+### Manual execution skips a permission check, and says so
+
+> "Manual executions bypass trigger conditions, so Automate does not perform the trigger-object permission checks described above. The input object set is still evaluated with the permissions of the user who starts the manual run."
+
+Two identities in one sentence: the *trigger* checks are skipped, the *input
+object set* is read as the person who pressed the button — not as the owner.
+That is the first documented exception to the flat rule two paragraphs above it
+on the same page — automations execute as the owner regardless of scoping mode —
+which this reading's Decision 8 restates without qualification.
+
+### Notification recipients now have stated requirements
+
+> "* At least **Viewer** permission on the automation (required for both static and dynamic recipients)"
+
+> "* **Viewer** permission on the object instances that trigger the automation"
+
+> "* **Viewer** permission on all the properties of the object instances if the triggering object type is a [multi-datasource object type](/docs/foundry/object-permissioning/multi-datasource-objects/)"
+
+> "These requirements apply for both active and pre-registered users."
+
+### And two smaller additions
+
+> "Automate integrates with [Global Branching](/docs/foundry/global-branching/overview/). You can create, test, and modify automations on a branch before merging changes to `main`."
+
+> "Automations can be owned by third-party applications instead of individual users. This ties execution history and permissions to the application's service user, preserving team continuity when an individual owner is unavailable."
+
+The second was already recorded here as "recorded, not built"; it has moved from
+the `permissions` page into `security` and grown its own page.
+
+## Decisions from the sweep
+
+1. **Nothing is rebuilt or widened.** The one change that looked like it
+   falsified a CHECK did not, and the reason was a second sentence on the same
+   page. **When a drifted page seems to contradict a constraint, read the whole
+   page again, not the diff** — a diff shows what moved, never what still holds.
+2. **Multiple cron expressions is the one thing here worth building**, and the
+   shape follows from how the page words it. Foundry states non-overlap as a
+   requirement on the author and never says it rejects an overlapping pair, so a
+   CHECK that refuses one would be inventing enforcement — the same move that
+   put `object_type_impact` back. The build is: a list of crons, each validated
+   individually as today, firing when **any** matches.
+3. **Automatic pausing is not built.** "Excessive activity" is undefined — no
+   threshold, no metric, no window anywhere in the section. A pause we invent a
+   trigger for is a policy of ours wearing Foundry's name. What it *does* expose
+   is that `paused boolean` cannot express the partial pause the page describes,
+   and that is recorded as a question rather than guessed at.
+4. **Manual execution is not built, and Decision 8 is now qualified.** "Everything
+   executes as the owner" is true for triggered runs and false for the input
+   object set of a manual run. We have no manual execution, so nothing is wrong
+   today — but the unqualified sentence in Decision 8 would have become wrong the
+   moment one was added, which is exactly how a stale reading does damage.
+5. **Notification recipient permissions are not built**, because we have no
+   notification effect delivering to a recipient. Recorded so the four
+   requirements arrive with the feature rather than after it.
+
+## Questions from the sweep
+
+1. **Does Foundry refuse overlapping cron expressions, or only ask for
+   non-overlap?** The page lists it under "Requirements" beside a requirement
+   that is plainly validated (each expression must be individually valid). If it
+   *is* enforced, the mechanism is unstated, and an exact check is expensive —
+   two expressions overlap only if some instant satisfies both, and the dom/dow
+   OR rule makes field-wise reasoning unsound. `blocks:` whether multi-cron gets
+   a CHECK or a comment.
+2. **What does a partially paused automation look like in the data?** Scheduled
+   and live triggers stop while manual runs and event retries continue, so pause
+   is at least a three-state. Whether an auto-pause is distinguishable from an
+   author's pause — and whether resuming needs `Editor` specifically — is not
+   said. `blocks:` auto-pause, and any UI that shows why an automation is idle.
+3. **Is the manual-run identity split documented anywhere else?** One sentence
+   carries the whole rule, and it contradicts the flat "execute as the owner"
+   summary two paragraphs above it on the same page. `blocks:` manual execution.

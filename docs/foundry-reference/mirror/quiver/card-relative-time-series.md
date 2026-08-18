@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-relative-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-relative-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Relative time
 
@@ -23,7 +23,7 @@ Time series
 
 ## Examples
 
-![Relative time example](/docs/resources/foundry/quiver/resource-relative-time-example.png)
+![Relative time example](./images/resource-relative-time-example.png)
 
 ## Usage information
 

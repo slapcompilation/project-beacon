@@ -1,9 +1,9 @@
-<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/language-models/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Language models in TypeScript v1 functions
 
 :::callout{theme="warning"}
-The following documentation is specific to TypeScript v1 functions. For more [robust capabilities](/docs/foundry/functions/language-feature-support/#typescript-v1-vs-typescript-v2), including support for Ontology SDK and configurable resource requests, we recommend [migrating to TypeScript v2](/docs/foundry/functions/typescript-v2-migration/).
+This page documents TypeScript v1 functions. For TypeScript v2 or Python, see [Language models in TypeScript v2 and Python functions](/docs/foundry/functions/language-models-python-tsv2/). To use the Ontology SDK and configurable resource requests, [migrate to TypeScript v2](/docs/foundry/functions/typescript-v2-migration/).
 :::
 
 :::callout{title="Prerequisites" theme="neutral"}
@@ -18,11 +18,11 @@ To begin using a language model, you must import the specific model into the cod
 
 1. Navigate and open the **Model Imports** side panel to see all existing imported models.
 
-<img src="./media/v3-lms-functions-import-sidebar.png" alt="Model import sidebar." width="400" />
+<img src="./images/v3-lms-functions-import-sidebar.png" alt="Model import sidebar." width="400" />
 
 2. To import a new language model, select **Add** in the upper right corner of the **Resource Imports** panel, then select **Models**. This will open a new window where you will be able to see Palantir-provided models that are available to you.
 
-<img src="./media/v3-lms-functions-import-dialog.png" alt="Model import dialog showing a few Palantir-provided LLMs." width="600" />
+<img src="./images/v3-lms-functions-import-dialog.png" alt="Model import dialog showing a few Palantir-provided LLMs." width="600" />
 
 3. You will also see a tab where you can view custom models created through the Modeling Objectives application or direct model deployments previously. More information on using those models can be found in the [functions on models](/docs/foundry/functions/functions-on-models/) documentation.
 
@@ -30,7 +30,7 @@ To begin using a language model, you must import the specific model into the cod
 
 5. After importing the language models, select the model in the sidebar to view the detailed capabilities offered by this model. You can also copy code snippets to help you import and author functions with the model.
 
-<img src="./media/v3-lms-functions-sidebar-detail.png" alt="Model details in sidebar." width="400" />
+<img src="./images/v3-lms-functions-sidebar-detail.png" alt="Model details in sidebar." width="400" />
 
 ## Write a function that uses a language model
 
@@ -136,19 +136,19 @@ The updated language models in functions offer more advanced capabilities, such 
 
 1. If you have existing [legacy language models](/docs/foundry/functions/language-models-legacy/) imported, a warning icon to upgrade will appear in the sidebar. Choose **Select imports** to open the model import dialog.
 
-<img src="./media/v3-lms-functions-migration-sidebar.png" alt="Model imports warning in sidebar." width="400" />
+<img src="./images/v3-lms-functions-migration-sidebar.png" alt="Model imports warning in sidebar." width="400" />
 
 2. In the model import dialog, select **Fix** to remove any deprecated legacy language models.
 
-<img src="./media/v3-lms-functions-migration-dialog-warning.png" alt="Model import dialog with warning." width="400" />
+<img src="./images/v3-lms-functions-migration-dialog-warning.png" alt="Model import dialog with warning." width="400" />
 
 3. Reselect the models to migrate to the updated language model versions. You can view additional capabilities supported by this version in the details panel in the center of the dialog.
 
-<img src="./media/v3-lms-functions-migration-dialog-selected.png" alt="Model import dialog shows removed models." width="400" />
+<img src="./images/v3-lms-functions-migration-dialog-selected.png" alt="Model import dialog shows removed models." width="400" />
 
 4. Now, you can view the updated model imports in the sidebar. Selecting a model will show you a details panel with code snippets to help you update your code to take advantage of the additional capabilities.
 
-<img src="./media/v3-lms-functions-sidebar-detail.png" alt="Model details and code snippet in sidebar." width="400" />
+<img src="./images/v3-lms-functions-sidebar-detail.png" alt="Model details and code snippet in sidebar." width="400" />
 
 ## Performance considerations
 

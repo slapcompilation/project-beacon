@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-exploration-filter-pills/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-exploration-filter-pills/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Exploration Filter Pills
 
 Use the **Exploration Filter Pills** widget to visualize and apply filters to an object set.
 
-![Exploration Filter Pills widget example](/docs/resources/foundry/workshop/widgets-exploration-filter-pills.png)
+![Exploration Filter Pills widget example](./images/widgets-exploration-filter-pills.png)
 
 ## Configuration options
 

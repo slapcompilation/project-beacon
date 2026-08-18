@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/aip-evals/analyze-run-results/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/aip-evals/analyze-run-results/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Analyze run results
 
@@ -21,7 +21,7 @@ There are multiple ways to open the debug view for a test case. You can do it fr
 3. Hover over a test case result.
 4. Select the **Open** option that appears in the right side of the test case row.
 
-![AIP Evals app result view.](/docs/resources/foundry/aip-evals/aip-evals-app-result-view.png)
+![AIP Evals app result view.](./images/aip-evals-app-result-view.png)
 
 #### In AIP Logic or AIP Chatbot Studio
 
@@ -29,7 +29,7 @@ There are multiple ways to open the debug view for a test case. You can do it fr
 2. Select the **Debugger** option that appears in the top-right corner of the test case card.
 3. The debug view will open, showing detailed execution information.
 
-![AIP Evals run result view in AIP Logic.](/docs/resources/foundry/aip-evals/aip-evals-sidebar-result-view.png)
+![AIP Evals run result view in AIP Logic.](./images/aip-evals-sidebar-result-view.png)
 
 ### Debug view capabilities
 
@@ -40,27 +40,27 @@ The debug view provides detailed information about test function execution and e
 * **AIP Logic functions:** Trace the function execution step-by-step with the native Logic debugger.
 * **Evaluators:** Check input and output values, expected vs. actual evaluator results, and debug outputs from custom function evaluators and select built-in evaluators.
 
-![Function output in AIP Evals debug view.](/docs/resources/foundry/aip-evals/aip-evals-debug-view-function-output.png)
+![Function output in AIP Evals debug view.](./images/aip-evals-debug-view-function-output.png)
 
-![Evaluator tab in AIP Evals debug view.](/docs/resources/foundry/aip-evals/aip-evals-debug-view-evaluator-output.png)
+![Evaluator tab in AIP Evals debug view.](./images/aip-evals-debug-view-evaluator-output.png)
 
 Some evaluators surface additional context as **Debug outputs** in the evaluator tab. For example, the built-in [LLM-as-a-judge evaluator](/docs/foundry/aip-evals/create-suite/#built-in-evaluators) returns the model's reasoning as a debug output, helping you understand why it reached a specific verdict.
 
 If you write [custom evaluators](/docs/foundry/aip-evals/create-suite/#custom-evaluation-functions), these can also produce debug outputs. Any string values a custom evaluator returns alongside its metric outputs appear as **Debug outputs**, providing additional context such as reasoning, intermediate values, or diagnostic information.
 
-![Debug outputs from a custom function evaluator.](/docs/resources/foundry/aip-evals/aip-evals-debug-view-debug-outputs.png)
+![Debug outputs from a custom function evaluator.](./images/aip-evals-debug-view-debug-outputs.png)
 
 If you build a custom function evaluator with AIP Logic, you can additionally access the native Logic debugger. This helps you understand why the evaluation produced a specific result, which is particularly helpful when using an LLM-as-a-judge in your evaluator.
 
 In the example shown in the screenshot below, the custom function rubric grader evaluator did not pass, because the result of `8` did not cross the defined minimum threshold of `9`. Looking into the Logic debugger, we can see that the LLM judge only awarded `8` points because the response was wrapped in quotation marks. To earn a higher score, we will need to improve our prompt.
 
-![Example how to use AIP Evals debug view to understand evaluator results.](/docs/resources/foundry/aip-evals/aip-evals-debug-view-evaluator-logic-debugger-example.png)
+![Example how to use AIP Evals debug view to understand evaluator results.](./images/aip-evals-debug-view-evaluator-logic-debugger-example.png)
 
 ## Compare results across target functions
 
 When your evaluation suite has [multiple target functions](/docs/foundry/aip-evals/create-suite/#additional-target-functions) configured, you can select and compare results from runs across different targets in AIP Evals. This is useful for analyzing how different function implementations perform on the same test cases.
 
-![Multi-target results comparison view.](/docs/resources/foundry/aip-evals/aip-evals-multi-target-results-comparison.png)
+![Multi-target results comparison view.](./images/aip-evals-multi-target-results-comparison.png)
 
 ## Analyze results with AI FDE
 

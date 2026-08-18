@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-pages/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-pages/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Applications pages
 
@@ -13,19 +13,19 @@ To add a page to a Slate application:
 1. Select the **+** option in the **Pages** panel.
 2. Enter the page name.
 
-<img src="./media/page-add.png" alt="Add page to a Slate app." width="450">
+<img src="./images/page-add.png" alt="Add page to a Slate app." width="450">
 
 :::callout{theme="neutral"}
 You can share a link directly to a specific page within a Slate application by using a page's name in the URL.
 :::
 
-<img src="./media/link-to-page.png" alt="Link to a specific page in the URL." width="650">
+<img src="./images/link-to-page.png" alt="Link to a specific page in the URL." width="650">
 
 ## Delete a page
 
 To delete a page from a Slate application, open the **...** dropdown menu in-line with the specific page in the **Pages** panel, then select **Delete**.
 
-<img src="./media/page-delete.png" alt="Delete a page from a Slate app." width="450">
+<img src="./images/page-delete.png" alt="Delete a page from a Slate app." width="450">
 
 ## Navigate between pages
 
@@ -43,6 +43,6 @@ Sharing application state between pages is done using [shared variables](/docs/f
 
 For example, a function or user interaction on one page can set or modify the value of a shared variable, while another page can read from and use that value to allow for cross-page communication.
 
-<img src="./media/shared-variable.png" alt="Add a shared variable to share state across pages." width="450">
+<img src="./images/shared-variable.png" alt="Add a shared variable to share state across pages." width="450">
 
 Use the [user storage](/docs/foundry/slate/concepts-variables/#user-storage-variable) variable to store application state information for individual users that needs to persist across application loads, such as user preferences for a specific application. The user storage variable is also accessible from any page across the application.

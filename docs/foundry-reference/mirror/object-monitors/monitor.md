@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/monitor/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/monitor/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Monitor
 
@@ -32,6 +32,6 @@ Object monitors always have an expiration date. The longest permitted expiration
 
 The expiration date can be viewed and extended in the Object Monitors application interface. Click on a monitor to view the monitor overview panel to the right side of your screen. Then, click on the **Details** tab.
 
-![Monitor expiration date in details tab](/docs/resources/foundry/object-monitors/view_and_extend_monitor_expiration.png)
+![Monitor expiration date in details tab](./images/view_and_extend_monitor_expiration.png)
 
 Learn how to create a new object monitor in [Object Explorer](/docs/foundry/object-monitors/create_new_object_monitor/#create-from-object-explorer) or the [Object Monitors](/docs/foundry/object-monitors/create_new_object_monitor/#create-from-object-monitors-application) application.

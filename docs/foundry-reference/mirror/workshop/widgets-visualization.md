@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-visualization/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-visualization/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Visualization widgets
 
@@ -11,6 +11,8 @@
 * **[Map](/docs/foundry/workshop/widgets-map/):** Display an object set as a configurable, interactive geospatial visualization.
 
 * **[Free-form Analysis](/docs/foundry/workshop/widget-free-form-analysis/):** Enable users to independently investigate object data with flexibility, within the framework of the Workshop application.
+
+* **[Time Series Analysis](/docs/foundry/workshop/widget-time-series-analysis/):** Investigate time series data within a Workshop application.
 
 * **[Gantt Chart](/docs/foundry/workshop/widgets-gantt-chart/):** Display objects with time properties in a horizontal timeline view.
 

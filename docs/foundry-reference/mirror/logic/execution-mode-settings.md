@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/logic/execution-mode-settings/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/logic/execution-mode-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Execution mode settings
 
@@ -18,7 +18,7 @@ Project-scoped execution requires that all resources which are used by the Logic
 
 You can check if all required resources are imported in the execution mode settings; if a resource is missing, you will be able to import it directly from the configuration.
 
-<img src="./media/execution-dataset.png" alt="Execution dataset" width="500" />
+<img src="./images/execution-dataset.png" alt="Execution dataset" width="500" />
 
 ### Run history dataset
 

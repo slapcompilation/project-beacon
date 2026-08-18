@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-observability-chart/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-observability-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Observability Chart
 
@@ -13,7 +13,7 @@ Module builders configuring an Observability Chart widget can:
 
 The screenshot below shows an [observability dashboard](/docs/foundry/observability/dashboards/) built from several Observability Chart widgets: the execution counts and P95 duration for an **Escalate Order** action, alongside the same metrics for a `triagePatient` function. A single time range control at the top of the module drives all four charts.
 
-![An operational dashboard composed of four Observability Chart widgets, showing execution counts and P95 duration for an action and a function over the past seven days.](/docs/resources/foundry/workshop/observability-chart-example.png)
+![An operational dashboard composed of four Observability Chart widgets, showing execution counts and P95 duration for an action and a function over the past seven days.](./images/observability-chart-example.png)
 
 The metrics shown here are the same near real-time metrics surfaced elsewhere in the platform—see [AIP observability metrics](/docs/foundry/aip-observability/metrics/) for more details. The Observability Chart widget lets you embed those metrics in a purpose-built Workshop application.
 
@@ -21,7 +21,7 @@ The metrics shown here are the same near real-time metrics surfaced elsewhere in
 
 The widget setup panel is shown below, configured to plot executions for a `triagePatient` function over a variable-backed time range.
 
-![The Observability Chart widget setup panel, showing the resource type, resource, metric, and start and end time options.](/docs/resources/foundry/workshop/observability-chart-config.png)
+![The Observability Chart widget setup panel, showing the resource type, resource, metric, and start and end time options.](./images/observability-chart-config.png)
 
 ### Resource type
 

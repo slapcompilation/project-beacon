@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/best-practices-user-interaction/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/best-practices-user-interaction/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Enable user interaction
 

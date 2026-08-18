@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/map/settings/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Settings
 
-Choose the settings gear icon (![Gear icon](/docs/resources/foundry/map/settings-icon.png)) in the top right corner of the Map screen to open the settings menu:
+Choose the settings gear icon (![Gear icon](./images/settings-icon.png)) in the top right corner of the Map screen to open the settings menu:
 
-![Map settings menu](/docs/resources/foundry/map/settings.png)
+![Map settings menu](./images/settings.png)
 
 Some settings will be limited by what is configured organization-wide via [Control Panel](/docs/foundry/map/control-panel/).
 
@@ -24,7 +24,7 @@ You can specify the units in which distances are displayed. This is a per-user s
 
 You can enable an additional GeoJSON panel in the bottom-right corner of the screen that allows you to enter and edit GeoJSON data, and create annotations based on the GeoJSON geometries. This is a per-user setting and is applied for you whenever you are using the Map application.
 
-![GeoJSON panel](/docs/resources/foundry/map/geojson-panel.png)
+![GeoJSON panel](./images/geojson-panel.png)
 
 ## Map settings
 
@@ -59,7 +59,7 @@ Note that 24-hour is the only time format available if the time zone is set to U
 
 Switch between **Light** and **Dark** mode for the map app. This setting does not change the base map to be light or dark, only the UI of the map application.
 
-![Map with dark mode enabled.](/docs/resources/foundry/map/settings-dark-mode.png)
+![Map with dark mode enabled.](./images/settings-dark-mode.png)
 
 ### Enable experimental labels
 

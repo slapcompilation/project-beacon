@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/embedding-workshop-modules-overview/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/embedding-workshop-modules-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Embed Workshop modules
 
@@ -27,7 +27,7 @@ Embedded modules allow a single child module to be configured and reused in many
 
 ### Reuse within a single module
 
-Embedded modules can be used many times in a single parent module, either through the loop layout, or individual embedded module widgets. Some examples of a child module that would be embedded many times in the same parent module include:
+Embedded modules can be used many times in a single parent module, either through the loop layout (which supports both object sets and arrays), or individual embedded module widgets. Some examples of a child module that would be embedded many times in the same parent module include:
 
 * A custom card view derived from provided variables
 * A set of widgets that will be displayed one time per tab, or page
@@ -47,6 +47,10 @@ Embedded modules can be used to deploy a new Workshop module implementation with
 ## Communicating across embedded modules
 
 Use [module interface variables](/docs/foundry/workshop/module-interface/) to communicate between a parent and child module or between sibling modules. For example, these shared interface variables can back shared state, such as a selected object, a selected tab, or whether an overlay is shown. Embedded modules may modify the value of interface variables through events, allowing other places that reference these variables to respond according to the updated value.
+
+:::callout{theme="warning"}
+Variables updated inside a child module do not automatically propagate back to the parent module. To have changes in the child reflected in the parent's variables, you must explicitly configure a "set variable" event in the child module that targets the parent module's variables through the module interface.
+:::
 
 :::callout{theme="neutral"}
 Workshop always uses the parent module's variable definition and ignores the embedded module's interface variable definition. The [embedded modules interface configuration documentation](/docs/foundry/workshop/embedded-modules/#interface-configuration) contains more information about this behavior.
@@ -68,13 +72,25 @@ Embedded modules do not support the concept of *event passing*. *Event passing* 
 
 To [communicate across embedded modules](#communicating-across-embedded-modules), a parent module may pass variables backing layout state to module interface variables of the child module as a way for the child to modify the layout state of the parent.
 
+### Derived properties with map templates
+
+When a child module is embedded, derived properties are re-registered in the parent module with a prefixed ID to avoid collisions across embedded modules. Regular widgets work correctly because their configuration is stored directly in the widget definition and goes through the ID replacement logic. However, map widget configurations are stored as templates that continue to reference the original derived property IDs. As a result, derived properties may appear in widgets like tables but not on map hover cards in the parent module.
+
+To work around this limitation, copy the derived properties directly to the parent module instead of relying on the embedded module's registrations. This preserves the original IDs so the IDs referenced by the map template match the IDs registered in the parent module.
+
 ### Embedded module provenance
 
 Similar to other "Foundry apps" widgets in Workshop, the provenance of embedded modules used by other Workshop modules is not reported by [Data Lineage](/docs/foundry/data-lineage/overview/).
 
 ### Self-referential embedded modules
 
-A module may not embed itself, either directly or through a chain of child modules. If a self-reference is configured, the module will display a warning to builders and render nothing to viewers in order to prevent a possible infinite chain of embedded modules. Contact your Palantir representative if you have a use case that requires recursive or self-referential embedded modules.
+By default, a module may not embed itself, either directly or through a chain of child modules. If a self-reference is configured without enabling the feature, the module will display a warning to builders and render nothing to viewers in order to prevent a possible infinite chain of embedded modules.
+
+To enable recursive or self-referential embedded modules for nested or hierarchical views, you must enable the **Enable self referential embedded modules in Workshop** feature flag. This feature should only be enabled with the understanding that misconfiguration—such as creating an invalid hierarchy that causes infinite recursion—can render the module unusable.
+
+:::callout{theme="warning"}
+Use caution when enabling self-referential embedded modules. Invalid hierarchies or circular references can cause infinite recursion and render the module unusable.
+:::
 
 ### Permission of embedded modules
 
@@ -84,7 +100,11 @@ Embedded modules are separate resources with their own permission settings. If a
 
 Embedded modules should have similar performance characteristics to that of normal Workshop modules. One notable difference is that initialization of embedded modules is delayed until the embedded module is displayed in view. Once initialized, the embedded module is expected to run as if the entire module had been configured in the same place.
 
+Embedded modules generally improve the initial load time of a parent module because they are loaded lazily after the initial render. However, if there are multiple levels of embedding that are all visible on the initial page, the initial load may be slower due to a "waterfall" effect where each level must load sequentially. To optimize load times, consider breaking up larger modules so that initially non-visible parts are split into embedded modules.
+
 Note that the child module configuration will be initialized one time per instance, which comes with a cost to initialize its variables, but the child module configuration will only need to be loaded a single time if reused across many instances.
+
+When editing a parent module that contains multiple embedded modules, avoid opening each embedded module tab, as doing so causes a performance hit for the rest of the edit session. If you need to inspect or modify a specific embedded module, consider opening it directly rather than through the parent module's editor.
 
 Usage of embedded modules and loop layouts make it much easier for builders to configure very large, complex modules. Builders should be aware of the total number of widgets and variables being displayed at once, particularly ones that are expensive to load.
 

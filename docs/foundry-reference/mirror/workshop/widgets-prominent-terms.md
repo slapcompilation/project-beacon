@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-prominent-terms/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-prominent-terms/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Prominent Terms \[Beta]
 
@@ -8,7 +8,7 @@ The Prominent Terms widget is in the [beta](/docs/foundry/platform-overview/deve
 
 Use the **Prominent Terms** widget to define prominently-used terms and phrases to match on within an object set. Showcase the number of matched results, and use the widget as a way to define a custom set of terms for users to apply as filters.
 
-\<img src=./media/widgets-prominent-terms.png alt="Prominent Terms widget example" width=400>
+\<img src=./images/widgets-prominent-terms.png alt="Prominent Terms widget example" width=400>
 
 ## Configuration options
 

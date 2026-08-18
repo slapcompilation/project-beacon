@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/integrate-searcharounds/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/integrate-searcharounds/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map Search Arounds
 
@@ -15,7 +15,7 @@ The Map application can run two-step Search Arounds, where a geospatial object i
 * The intermediary object might represent a relationship between the two objects. For example, a `Factory` object and a `Supplier` object might be related via a `Supply Contract` object; when a Search Around is run, the Map will show an arc from factory to supplier, where the arc represents the supply contract.
 * The intermediary object might also be an event which both objects are involved with. For example, a `Customer` object might be linked to a `Distribution Center` object via a `Delivery` event - in this case, the delivery events will be shown as circles traveling along the arc. The position of the circle will be interpolated along the arc based on the event start and end time as well as the currently selected timestamp.
 
-![Link merged arc example](/docs/resources/foundry/map/integrate-objects-linkmerge-arc-example.png)
+![Link merged arc example](./images/integrate-objects-linkmerge-arc-example.png)
 
 There are two methods for configuring objects to be used for link merged Search Arounds:
 
@@ -26,17 +26,17 @@ There are two methods for configuring objects to be used for link merged Search 
 
 To designate an intermediary object type to always link merge, turn on **Link merge always** in the **Search Around** section of the intermediary object type's **Capabilities** tab.  This means that the object type itself will never appear in the Search Around list, but its transitive links will.
 
-![Link merge configuration in Ontology Manager.](/docs/resources/foundry/map/oma-capabilities-link-merge.png)
+![Link merge configuration in Ontology Manager.](./images/oma-capabilities-link-merge.png)
 
 For example, if the intermediary object type is `Delivery`, and the object types on either side are `Distribution Center` and `Customer`, then when a `Distribution Center` is selected to Search Around on, `Delivery` will not show up in the list, but `Customer (via Delivery)` will. See below for an example:
 
-![Search Around menu with link merged objects.](/docs/resources/foundry/map/integrate-objects-searcharound-linkmerge-example.png)
+![Search Around menu with link merged objects.](./images/integrate-objects-searcharound-linkmerge-example.png)
 
 ### Set specific link traversals to be link merged
 
 To designate specific link traversals to be link merged, specify both the **Incoming links to merge** and **Outgoing links to merge** in the **Search Around** section of the intermediary object type's **Capabilities** tab.
 
-![Incoming/Outgoing link merge configuration in Ontology Manager.](/docs/resources/foundry/map/oma-capabilities-link-merge-incoming-outgoing.png)
+![Incoming/Outgoing link merge configuration in Ontology Manager.](./images/oma-capabilities-link-merge-incoming-outgoing.png)
 
 For example, if you want to be able to perform a Search Around from a `Supplier` object type to a `Distribution Center` object type via a `Delivery` object type, you would configure the `Delivery` object type as the intermediary by selecting the `Delivery <-> Supplier` link as **Incoming links to merge** and the `Delivery <-> Distribution Center` link as **Outgoing links to merge**. Now, when a `Supplier` is selected to Search Around on, `Distribution Centers (via Delivery)` will appear as an option in the list.
 

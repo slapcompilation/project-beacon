@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-user-select/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-user-select/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # User Select
 
 Use the **User Select** widget for selection of user(s) through a single or multi-select dropdown menu.
 
-<img src="./media/widgets-user-select.png" alt="User Select widget example." width="300">
+<img src="./images/widgets-user-select.png" alt="User Select widget example." width="300">
 
 ## Configuration options
 

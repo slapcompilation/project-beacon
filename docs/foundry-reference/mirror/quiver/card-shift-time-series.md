@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-shift-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-shift-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Shift time series
 
@@ -17,7 +17,7 @@ Time series
 
 ## Examples
 
-![Shift time series example](/docs/resources/foundry/quiver/card-shift-ts.png)
+![Shift time series example](./images/card-shift-ts.png)
 
 ## Usage information
 

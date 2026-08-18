@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/functions-on-models/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/functions-on-models/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Functions on models
 
@@ -30,6 +30,10 @@ Legacy function on models that use the **API Name** card in Modeling Objectives 
 Starting from February 2026 onwards, all new model functions will be tied to an ontology. This is a prerequisite for usage in [TypeScript v2 and Python functions](/docs/foundry/functions/language-models-python-tsv2/), which only allow ontology resource imports. Prior to this date, model functions were tied to the model's [space](/docs/foundry/security/orgs-and-spaces/). TypeScript v1 allows importing both types of model functions, but the import and usage semantics vary slightly as [detailed below](#if-the-function-is-registered-to-an-ontology).
 
 To check if a function is bound to an ontology, navigate to your model: model functions that are not bound to an ontology will indicate that a migration is available. [Learn more on migrating your function to be ontology-bound](#migrating-model-functions-to-ontology-bound-functions).
+
+:::callout{theme="neutral"}
+Marketplace recognizes model functions imported into repositories as installation inputs, enabling structured dependency tracking. Marketplace does not track model functions queried directly through the Platform SDK without importing the model function.
+:::
 
 ## Call a model function from Python or TypeScript v2 functions
 
@@ -209,4 +213,5 @@ Direct model function usage through the [Foundry Platform SDK](/docs/foundry/dev
 
 Models are executed as part of the runtime of the function, therefore all standard [limits](/docs/foundry/functions/manage-functions/#enforced-limits) apply.
 If your function backs an Action, there are [further limits](/docs/foundry/action-types/scale-property-limits/#edit-limits) on the number of resulting edits.
-When calling live deployments, model input and output data is sent through the network with an upper limit of 50 MB. Including that additional throughput, the total execution time of the function cannot exceed 30 seconds. If you wish to increase this timeout limit per function, contact your Palantir representative.
+
+Calls to live deployments send model input and output data over the network, with an upper limit of 50 MB. This network transfer counts toward the function's [configured time limit](/docs/foundry/functions/manage-functions/#time-limit). To increase the timeout for a function, contact Palantir Support.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-container/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-container/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Container
 
@@ -195,11 +195,11 @@ sl-app-container {
 }
 ```
 
-![container-css](/docs/resources/foundry/slate/container-css.png)
+![container-css](./images/container-css.png)
 
 Though the `sl-app-container` selector and `background` property will correctly set the background color and borders of a container widget, use the `div.canvas-body` selector and `background-color` property in your local stylesheet to adjust the colors and borders of the Slate application canvas. In the example below, we customized the Slate canvas, container widget, and bar chart colors using the Styles editor:
 
-![The Styles editor in Slate with customized color settings. The Slate canvas is light blue, the widget container is light cyan, and the bar chart is light gray. ](/docs/resources/foundry/slate/set-canvas-color.png)
+![The Styles editor in Slate with customized color settings. The Slate canvas is light blue, the widget container is light cyan, and the bar chart is light gray. ](./images/set-canvas-color.png)
 
 ### Tabbed containers
 
@@ -238,4 +238,4 @@ sl-app-container table.container-titles tbody tr td.tab-title:last-child {
 }
 ```
 
-![tabbed-css](/docs/resources/foundry/slate/tabbed-css.png)
+![tabbed-css](./images/tabbed-css.png)

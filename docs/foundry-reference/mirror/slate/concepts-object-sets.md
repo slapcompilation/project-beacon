@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-object-sets/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-object-sets/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Create or retrieve object sets
 
@@ -17,11 +17,11 @@ There are two modes:
 
 To create an object set `s_object_set1`, select the base object type and then optionally add filters with AND/OR logic. The filter’s fields will account for the object’s property data type. For example, numeric properties will take a number range as the filter. You can further nest individual AND/OR filters in each filter level to limit the objects to specific results.
 
-![object-set](/docs/resources/foundry/slate/object-set.png)
+![object-set](./images/object-set.png)
 
 You can also use Slate’s handlebars in the filter fields so that you can parameterize an object set based on a dynamically changing input.
 
-![object-set-parameterized](/docs/resources/foundry/slate/object-set-parameterized.png)
+![object-set-parameterized](./images/object-set-parameterized.png)
 
 The filter fields also support templatizing using multi-term filters and wildcard filters:
 
@@ -31,7 +31,7 @@ The filter fields also support templatizing using multi-term filters and wildcar
 
 Object set results are returned in a tabular format under field `data` and also includes all object RIDs in field `objectRids`.
 
-![object-set-used](/docs/resources/foundry/slate/object-set-used.png)
+![object-set-used](./images/object-set-used.png)
 
 ## Object set limit results
 

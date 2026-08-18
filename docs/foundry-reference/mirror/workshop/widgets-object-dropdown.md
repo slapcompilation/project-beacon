@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-dropdown/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-object-dropdown/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Object Dropdown
 
@@ -14,13 +14,13 @@ The **Object Dropdown** widget is used to select a single object from a list of 
 
 The screenshot below shows an example of a configured Object Dropdown widget displaying `Flight Alert` objects:
 
-![An example of a configured Object Dropdown widget.](/docs/resources/foundry/workshop/object_dropdown_configured.png)
+![An example of a configured Object Dropdown widget.](./images/object_dropdown_configured.png)
 
 ## Configuration options
 
 The example below shows the initial state of a newly added Object Dropdown widget next to the configuration panel:
 
-![The empty state of a newly added Object Dropdown widget and configuration panel.](/docs/resources/foundry/workshop/object_dropdown_empty_state.png)
+![The empty state of a newly added Object Dropdown widget and configuration panel.](./images/object_dropdown_empty_state.png)
 
 The following core configuration options are available for the Object Dropdown widget:
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/breaking-changes/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/breaking-changes/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Breaking changes
 
@@ -21,19 +21,25 @@ There are two types of replays:
 
 * **Replay from start of input data:** Replays your pipeline from the start of data, either the start of a stream or the first transaction on an input dataset as determined by whether the input is a stream or an incremental dataset.
 
-![The Deploy panel with the replay strategy to replay from the start of input data.](/docs/resources/foundry/pipeline-builder/breaking-changes-replay-from-start.png)
+![The Deploy panel with the replay strategy to replay from the start of input data.](./images/breaking-changes-replay-from-start.png)
 
 * **Replay from amount of time ago (only available for Streaming):** Replay the pipeline using upstream data starting from a specified amount of time ago. The granular replay will include all data starting with the first transaction that committed before the time specified, all data before that will not be processed. This means you may get one transaction's worth of data from before the time you specify.
 
-![The Deploy panel with the replay strategy to replay from amount of time ago.](/docs/resources/foundry/pipeline-builder/breaking-changes-replay-from-time.png)
+![The Deploy panel with the replay strategy to replay from amount of time ago.](./images/breaking-changes-replay-from-time.png)
 
 Replays can be optional or required; in the case of breaking changes, Pipeline Builder automatically detects this change and requires a replay on deploy. The image below shows a forced replay in an Incremental pipeline.
 
-![The Deploy panel with a forced replay due to breaking changes.](/docs/resources/foundry/pipeline-builder/breaking-changes-forced-replay.png)
+![The Deploy panel with a forced replay due to breaking changes.](./images/breaking-changes-forced-replay.png)
+
+When a state break occurs, Pipeline Builder moves the replay to the **Errors** tab and blocks pipeline deployment until the break is resolved. This ensures you acknowledge and address breaking changes before proceeding with deployment.
+
+To protect against accidental replays, the **Advanced settings** section of the **Deploy pipeline** panel is collapsed by default with all replay options unselected. When you select a replay strategy, a **Confirm replay strategy** modal appears to explain the strategy and identify any downstream effects before execution.
 
 :::callout{theme="danger"}
 Replaying your pipeline could lead to lengthy downtimes, possibly as long as multiple days. When you replay your pipeline, your stream history will be lost and all downstream pipeline consumers will be required to replay.
 :::
+
+When a deployment involves breaking state changes, Pipeline Builder displays replay strategy information in the deployment timeline. You can view whether breaking changes were detected and which replay strategy was selected. This information appears as a task row in the deployment event details, helping you understand what replay decisions were made during deployment.
 
 ## Common causes of state breaks
 
@@ -59,6 +65,8 @@ Adding new columns to an output schema does not require a replay. However, remov
 
 Replaying a pipeline that feeds into your current pipeline can require you to replay your pipeline as well. When source data is reprocessed, the data arriving at your pipeline inputs may differ from the data your pipeline originally processed, which can invalidate the current state of stateful transforms.
 
+When an upstream streaming pipeline runs with **Reset Outputs on replay** enabled (the default behavior), the upstream pipeline's output dataset is cleared and repopulated only with data from the replay window. In this scenario, downstream pipelines should replay from the start of input data rather than from a specific time window. This ensures that downstream outputs, such as ontology objects, are rebuilt correctly for the entire reprocessed period without creating duplicates.
+
 ## State-preserving modifications
 
 Pipeline Builder includes features that allow certain pipeline modifications without a replay. These features enable you to continue processing from where you left off, preserving your stream history and avoiding impact to downstream consumers.
@@ -73,7 +81,7 @@ You can modify a pipeline's inputs and outputs after deployment. The behavior de
 
 When Pipeline Builder detects input or output changes, a state-break module prompts you to acknowledge the change. This acknowledgment tells the system to continue processing from where it left off rather than requiring a replay.
 
-![The state-break acknowledgment dialog for input and output changes.](/docs/resources/foundry/pipeline-builder/breaking-changes-state-break-acknowledge.png)
+![The state-break acknowledgment dialog for input and output changes.](./images/breaking-changes-state-break-acknowledge.png)
 
 :::callout{theme="warning"}
 If you remove an input or output that is within a job group, the acknowledge option is not available and requires replay, either from an amount of time ago or from the start of input data. Evaluate whether any changes to inputs or outputs affect stateful transforms later in the pipeline, as a replay may still be necessary to maintain data consistency.
@@ -91,7 +99,7 @@ You can re-ingest data from a specific point in time without resetting output vi
 
 To configure this behavior, expand the **Advanced** section in the deploy panel and disable the **Reset Outputs on replay** option when replaying your pipeline.
 
-![The Advanced section in the deploy panel showing the option to preserve output views during replay.](/docs/resources/foundry/pipeline-builder/breaking-changes-preserve-output-views.png)
+![The Advanced section in the deploy panel showing the option to preserve output views during replay.](./images/breaking-changes-preserve-output-views.png)
 
 ## Force incremental behavior for outputs
 
@@ -103,7 +111,7 @@ This setting ensures that jobs configured to run incrementally will automaticall
 * Forced snapshots due to output schema changes
 * Other unexpected full refreshes
 
-![The require incremental execution setting in Pipeline Builder.](/docs/resources/foundry/pipeline-builder/require-incremental-execution.png)
+![The require incremental execution setting in Pipeline Builder.](./images/require-incremental-execution.png)
 
 Follow the steps below to configure enforced incremental execution for your pipeline:
 
@@ -121,3 +129,16 @@ Follow the steps below to configure enforced incremental execution for your pipe
 :::callout{theme="neutral"}
 This feature is also available in PySpark incremental transforms by setting `require_incremental=True` in the `@incremental` decorator.
 :::
+
+## Commit empty transactions
+
+Incremental pipelines in Pipeline Builder include a build setting that allows you to commit empty transactions when a build produces zero output rows. When enabled, Pipeline Builder commits empty transactions to avoid reprocessing input on subsequent builds.
+
+This setting is useful for incremental pipelines where some builds may legitimately produce no output rows. Without this setting enabled, input data that produced no output would be reprocessed on subsequent builds.
+
+To configure this setting:
+
+1. Open your pipeline in **Pipeline Builder**.
+2. Select the **Build settings** sliders icon to the right of the Deploy button or in the right toolbar.
+3. Scroll down to **Advanced configuration**.
+4. Enable the **Commit empty transactions** option.

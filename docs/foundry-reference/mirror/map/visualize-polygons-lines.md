@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-polygons-lines/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-polygons-lines/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Polygon and line displays
 
@@ -13,7 +13,7 @@ See [value-based styling](/docs/foundry/map/visualize-objects/#value-based-styli
 
 Use the **Stroke width** section to control the width used when rendering lines, or the stroke of polygons that are not filled.
 
-![Styling line width.](/docs/resources/foundry/map/styling-line-width.png)
+![Styling line width.](./images/styling-line-width.png)
 
 ## Stroke style
 
@@ -21,11 +21,11 @@ Use the **Stroke style** section to control the dash pattern used when rendering
 
 | Solid                                           | Dashed                                            | Dotted                                            |
 | ----------------------------------------------- | ------------------------------------------------- | ------------------------------------------------- |
-| ![Solid line.](/docs/resources/foundry/map/styling-stroke-solid.png) | ![Dashed line.](/docs/resources/foundry/map/styling-stroke-dashed.png) | ![Dotted line.](/docs/resources/foundry/map/styling-stroke-dotted.png) |
+| ![Solid line.](./images/styling-stroke-solid.png) | ![Dashed line.](./images/styling-stroke-dashed.png) | ![Dotted line.](./images/styling-stroke-dotted.png) |
 
 For line segments, you can also configure arrows to indicate the direction of the line.
 
-![Line segment with arrows.](/docs/resources/foundry/map/styling-arrows.png)
+![Line segment with arrows.](./images/styling-arrows.png)
 
 ## Fill polygons
 
@@ -33,7 +33,7 @@ When **Fill polygons** is enabled, polygons render with a minimal stroke and the
 
 | Fill enabled                                        | Fill disabled                                         |
 | --------------------------------------------------- | ----------------------------------------------------- |
-| ![Filled polygon.](/docs/resources/foundry/map/styling-fill-enabled.png) | ![Stroked polygon.](/docs/resources/foundry/map/styling-fill-disabled.png) |
+| ![Filled polygon.](./images/styling-fill-enabled.png) | ![Stroked polygon.](./images/styling-fill-disabled.png) |
 
 ## Loading methods
 

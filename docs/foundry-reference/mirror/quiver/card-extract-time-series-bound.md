@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-extract-time-series-bound/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-extract-time-series-bound/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Extract time series bound
 
@@ -14,7 +14,7 @@ Time series
 
 ## Examples
 
-![Extract time series bound example](/docs/resources/foundry/quiver/card-extract-ts-bound.png)
+![Extract time series bound example](./images/card-extract-ts-bound.png)
 
 ## Usage information
 

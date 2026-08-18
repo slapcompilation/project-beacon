@@ -1401,3 +1401,28 @@ per (user, branch)**.
 12. **Is `Semantic search` an Ontology Manager feature we should know about?**
     `blocks: nothing`. It appears in three cleanup screenshots with a beta flask
     icon and in no sentence in the corpus.
+
+---
+
+## Upstream moved (2026-08-18) — and it corroborates the protection rule
+
+The drift sweep re-mirrored the six pages this reading borrows from. **No
+quotation here went stale**, so every sentence it stands on is still current.
+`pipeline-builder/branches-propose-a-change` added two things.
+
+The first restates, from the other side, the rule 461-471 built on:
+
+> "The **Resolve changes** action does not work for protected branches. Since **Resolve changes** directly saves changes to the pipeline, and protected branches do not allow direct modifications, you must use the proposal flow to merge changes into a protected branch."
+
+Protection does not merely discourage the direct route — it removes it, and the
+proposal flow is what is left. That is the case `branching.test.ts` asserts —
+main refuses a placed resource and the approved branch route lands.
+
+The second is a mechanism we do not share, recorded so it is not mistaken for one:
+
+> "When working with multiple long-lived branches — such as staging and deployment branches — using standard merge proposals can cause recurring merge conflicts. This occurs because Pipeline Builder implements merges as squash merge commits, which breaks the shared commit history between branches."
+
+**Squash merges are Pipeline Builder's implementation, not the ontology's.** Our
+merge applies an overlay rather than replaying commits, so there is no shared
+history to break and no fast-forward escape hatch to build. Recorded because a
+later reader finding fast-forward in the docs would otherwise read it as a gap.

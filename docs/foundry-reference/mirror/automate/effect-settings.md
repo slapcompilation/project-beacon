@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/effect-settings/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/effect-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Effect settings
 
@@ -56,4 +56,4 @@ Strategies for handling duplicate executions:
 * **Use conditional checks** to verify if an operation has already been performed before proceeding.
 * **Design for duplicates.** Structure data models to handle duplicate submissions appropriately.
 
-Automate attempts to minimize duplicate executions but cannot completely eliminate them due to the distributed nature of the system and the retry mechanisms for handling transient failures. It is important to consider this execution behavior when designing automation workflows, particularly for critical operations.
+Automate attempts to minimize duplicate executions but cannot completely remove them due to the distributed nature of the system and the retry mechanisms for handling transient failures. Consider this behavior when designing automation workflows, particularly for critical operations.

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/foundry-branching/protecting-resources/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/foundry-branching/protecting-resources/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Resource protection and project approval policies
 

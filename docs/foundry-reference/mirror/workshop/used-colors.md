@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/used-colors/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/used-colors/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Used colors
 
@@ -8,13 +8,13 @@ Access the **Used colors** panel by navigating to a module’s **Settings** tab 
 
 Note that usage of intent colors will not be displayed in the **Used colors** panel.
 
-![A preview of the Workshop application while configuring used colors.](/docs/resources/foundry/workshop/used-colors.png)
+![A preview of the Workshop application while configuring used colors.](./images/used-colors.png)
 
 ### Saved colors
 
 Saved colors are defined at the module level. Add colors to the **Saved colors** section to make them selectable when configuring custom colors in layouts and widgets, including section and page backgrounds. You can rename saved colors, set separate colors for light and dark modes, and view where each color is used across layouts and widgets in your module. When you edit a saved color, the change propagates to all layouts, sections, and widgets that reference it, so you can update colors across your module in one place.
 
-![A preview of the Workshop application while configuring saved colors.](/docs/resources/foundry/workshop/saved-colors.png)
+![A preview of the Workshop application while configuring saved colors.](./images/saved-colors.png)
 
 ### Unsaved colors
 

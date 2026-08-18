@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/marketplace-automate/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/marketplace-automate/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add automations to a Marketplace product
 
@@ -14,8 +14,6 @@ The following Automation features are not supported by Marketplace products:
 :::callout{theme="warning"}
 Automations that use an [action](/docs/foundry/automate/effect-actions/) or [AIP Logic](/docs/foundry/automate/effect-logic/) effect cannot be installed in "production" mode as automations with these effects do not automatically upgrade.
 :::
-
-<!-- *[tracking this issue here](https://github.palantir.build/foundry/object-sentinel/issues/8658)* -->
 
 ## Add automations to products
 

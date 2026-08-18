@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/navigation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/navigation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Navigation
 
@@ -26,7 +26,7 @@ The **Find** panel allows you to navigate to objects that have been added to you
 Select the **Objects on map** tab, and enter a search query to find objects by title or property values. Selecting a result
 will navigate the map to that object.
 
-<img src="./media/navigation-object-results.png" alt="Object results." width="450" />
+<img src="./images/navigation-object-results.png" alt="Object results." width="450" />
 
 ### Find locations
 
@@ -36,10 +36,10 @@ Your organization must have configured a [Mapbox API Key in Control Panel](/docs
 
 Select the **Locations** tab and enter a query to find locations by their address or name. Selecting a result will navigate the map to that location and show a marker with the location's address. You can hide the marker by clicking the **eye** icon next to the address in the results list.
 
-![Location results](/docs/resources/foundry/map/navigation-location-results.png)
+![Location results](./images/navigation-location-results.png)
 
 ### Navigate to Coordinates
 
 With either the **Objects on map** or **Locations** tab selected, you can enter coordinates in the search input and navigate your map to them by selecting the result. Using the **Show coordinates** button will add a text annotation at your specified coordinates.
 
-![Go to coordinates](/docs/resources/foundry/map/navigation-coordinates.png)
+![Go to coordinates](./images/navigation-coordinates.png)

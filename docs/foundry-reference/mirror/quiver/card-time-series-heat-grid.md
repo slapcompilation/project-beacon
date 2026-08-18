@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-heat-grid/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-heat-grid/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series heat grid
 
@@ -14,7 +14,7 @@ Flow end
 
 ## Examples
 
-![Time series heat grid example](/docs/resources/foundry/quiver/card-ts-heat-grid.png)
+![Time series heat grid example](./images/card-ts-heat-grid.png)
 
 ## Usage information
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-scenario-manager/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-scenario-manager/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Widget: Scenario Manager
 
@@ -8,15 +8,15 @@ The **Scenario Manager** widget allows a user to interactively create and manage
 
 The screenshot below shows an example of a multiple Scenarios compared side-by-side in the credit “balance” column of an object table. Scenario 1 shows the “balance” modified by an action while Scenario 2 shows the default values in the Ontology. A user can select between the two scenarios in the Scenario Manager.
 
-![scenario\_manager\_example](/docs/resources/foundry/workshop/scenario-manager-overview.png)
+![scenario\_manager\_example](./images/scenario-manager-overview.png)
 
 ## Configuration Options
 
 Here is a screenshot of the initial state of a newly added Scenario Manager widget alongside its initial configuration panel:
 
-![scenario\_manager\_configuration](/docs/resources/foundry/workshop/scenario-manager-config-1.png)
+![scenario\_manager\_configuration](./images/scenario-manager-config-1.png)
 
-![scenario\_variable\_configuration](/docs/resources/foundry/workshop/scenario-manager-config-2.png)
+![scenario\_variable\_configuration](./images/scenario-manager-config-2.png)
 
 For the Scenario Manager widget, the core configuration options are the following:
 

@@ -1,10 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/automate/integrations/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/integrations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Integrations
 
 Automate integrates natively with the following Foundry applications:
 
 * [AIP Logic](#aip-logic)
+* [Autopilot](#autopilot)
+* [Contour](#contour)
 * [Notepad](#notepad)
 * [Object Explorer](#object-explorer)
 * [Ontology Manager](#ontology-manager)
@@ -14,7 +16,24 @@ Automate integrates natively with the following Foundry applications:
 
 Automate your AIP Logic to automatically apply or stage Ontology edits for human review. Automations can trigger on existing objects or when new objects are created.
 
+How a Logic function is called from Automate depends on whether staged writes execution mode is enabled:
+
+* **Staged writes enabled:** Use an [action effect](/docs/foundry/automate/effect-actions/) to call an action type backed by the function.
+* **Staged writes disabled:** Use a [Logic effect](/docs/foundry/automate/effect-logic/) to call the function directly.
+
 [Learn how to automate your Logic function](/docs/foundry/logic/aip-logic-integration-automate/).
+
+## Autopilot
+
+You can open an automation directly in [Autopilot](/docs/foundry/autopilot/overview/) to visualize and manage your automation workflows. On the automation overview page, select **Open in Autopilot** from the **Actions** menu.
+
+When you open Autopilot from an automation, Autopilot automatically generates a workbench with the selected automation and suggested related automations.
+
+[Learn more about Autopilot](/docs/foundry/autopilot/overview/).
+
+## Contour
+
+[Contour dashboards](/docs/foundry/contour/dashboards-overview/) can be attached to an automation [notification effect](/docs/foundry/automate/effect-notification/) for distribution by email.
 
 ## Notepad
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pivot-table/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-pivot-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Pivot Table
 
@@ -13,7 +13,7 @@ The **Pivot Table** widget enables the dynamic grouping and aggregation of objec
 
 The example below shows a configured Pivot Table widget displaying `Flight Alerts` data and filtering a downstream **Object list** widget:
 
-![pivot\_table\_example.png](/docs/resources/foundry/workshop/pivot_table_example.png)
+![pivot\_table\_example.png](./images/pivot_table_example.png)
 
 ## Configuration options
 
@@ -23,7 +23,7 @@ When configuring a pivot table, builders can either derive data from objects or 
 
 The example below shows the initial state of an object-backed pivot table before configuration. The widget's configuration panel shows the initial input **Base object set** set to `Flight Alert: All`.
 
-![The initial pivot table state before configuration.](/docs/resources/foundry/workshop/pivot_table_empty_config.png)
+![The initial pivot table state before configuration.](./images/pivot_table_empty_config.png)
 
 The Pivot Table widget has the following core configuration options:
 
@@ -35,6 +35,11 @@ The Pivot Table widget has the following core configuration options:
   * **Show totals:** Adds a **Total** row grouping to the bottom of the table. When multiple aggregations are used to calculate the column value, the **Total** value is the result of applying the same aggregations on the sum of original values of the property.
     * **Disclaimer:** The value that will appear in the `Total` row will be the result of performing the multi-step aggregation on all the raw values of the objects *before* each aggregation.
   * **Sort rows:** Enables sorting on one or more of the configured row grouping properties.
+
+:::callout{theme="neutral"}
+The Pivot Table widget supports a maximum of seven row groupings. If you need to work with more groupings, consider adding hidden groupings to your table configuration. This approach allows users to swap between hidden groupings in the UI, effectively managing more groupings than the limit while maintaining performance.
+:::
+
 * **Column grouping:** The following options allow up to one column-level grouping to be added.
   * **Select a property:** Adds a column grouping by the selected property type.
   * **Time interval:** Within each column grouping for a date or timestamp property type, configures the bucketing time interval (such as exact date/time, week, month).
@@ -48,6 +53,13 @@ The Pivot Table widget has the following core configuration options:
   * **Column width:** Adjusts the column width for a given aggregation.
 * **Selected filter:** This output object set filter variable captures the grouping criteria of user-selected cells and can be used to filter downstream widgets and object set variables. Users can select individual cells, groups of cells, or entire rows or columns.
 * **On selection:** Allows **Workshop events** (e.g. opening a drawer within the current module) to be triggered when a user selects something within the table. For more details, see the [Workshop events documentation](/docs/foundry/workshop/concepts-events/).
+
+### Keyboard shortcuts
+
+The Pivot Table widget supports the following keyboard shortcuts for working with selected cells:
+
+* **Copy to clipboard:** Use `Cmd+C` (macOS) or `Ctrl+C` (Windows) to copy the selected cells as tab-separated values. The output includes row groupings, aggregation values, or both, depending on the selection.
+* **Refine selection:** Use `Shift+Left` and `Shift+Right` to refine your selection between full rows, row groupings only, and aggregation values only.
 
 ### Function-backed pivot tables
 
@@ -65,6 +77,10 @@ This approach is useful for the following use cases:
 * Each struct must include a field named `values`, which holds the pivot table values.
 
 #### Basic structure
+
+:::callout{theme="neutral"}
+TypeScript V1 and TypeScript V2 use the same implementation for function-backed pivot tables. The following patterns and examples apply to both versions.
+:::
 
 Below is an example of a TypeScript interface that can be used for a function-backed pivot table.
 
@@ -102,11 +118,11 @@ After selecting a function in the dropdown, builders can choose:
 2. **Value fields:** These determine what metrics are displayed in the cells.
 3. **Expandable rows:** Fields that can be expanded to show more detailed data.
 
-<img src="./media/function_backed_pivot_table_groupings.png" alt='Function-backed grouping configuration options.' width="400">
+<img src="./images/function_backed_pivot_table_groupings.png" alt='Function-backed grouping configuration options.' width="400">
 
 Once configured, the pivot table will render with the data returned from your function:
 
-<img src="./media/function_backed_pivot_table_data.png" alt='Function-backed pivot table data.' width="800">
+<img src="./images/function_backed_pivot_table_data.png" alt='Function-backed pivot table data.' width="800">
 
 #### Totals
 
@@ -161,6 +177,10 @@ To create a null bucket:
 1. Return `undefined` for the bucket's value.
 2. Ensure that your interface supports undefined fields.
 
+:::callout{theme="warning"}
+Avoid using empty strings (`''`) for null or missing values in grouping fields. Workshop interprets empty strings as if the field is omitted, causing records with empty strings to roll up into subtotal rows rather than appear as individual grouping rows. Always use `undefined` for true null buckets.
+:::
+
 Below is an example:
 
 ```typescript
@@ -183,7 +203,7 @@ interface SiteData {
 }
 ```
 
-<img src="./media/pivot_table_null.png" alt='An example of a null bucket.' width="400">
+<img src="./images/pivot_table_null.png" alt='An example of a null bucket.' width="400">
 
 :::callout{theme="neutral"}
 Omitting a field is different from passing `undefined`. Omitting a field creates a total, while `undefined` creates a null bucket.
@@ -260,7 +280,7 @@ Below are examples of three levels of expansion:
 ]
 ```
 
-<img src="./media/pivot_table_region_expanded.png" alt='Expansion of region and productType.' width="400">
+<img src="./images/pivot_table_region_expanded.png" alt='Expansion of region and productType.' width="400">
 
 3. **Second-level expansion:** `region`, `productType`, and `productName`.
 
@@ -296,17 +316,17 @@ Below are examples of three levels of expansion:
 ]
 ```
 
-<img src="./media/pivot_table_region_and_product_type_expanded.png" alt='Expansion of region, productType, and productName' width="400">
+<img src="./images/pivot_table_region_and_product_type_expanded.png" alt='Expansion of region, productType, and productName' width="400">
 
 #### Selection
 
 The output selection of a function-backed pivot table can be written to a [struct variable](/docs/foundry/workshop/struct-variables/). The struct fields are derived from the function's output.
 
-<img src="./media/pivot_table_static_struct.png" alt='Function-backed pivot table selection.' width="400">
+<img src="./images/pivot_table_static_struct.png" alt='Function-backed pivot table selection.' width="400">
 
 ### Display and styling
 
-<img src="./media/widget-pivot-table-styling-configuration.png" alt='Screenshot of the display and styling configuration for the pivot table widget.' width="400">
+<img src="./images/widget-pivot-table-styling-configuration.png" alt='Screenshot of the display and styling configuration for the pivot table widget.' width="400">
 
 The Pivot Table widget has the following display and styling options:
 

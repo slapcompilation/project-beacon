@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-files/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/model-asset-files/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Publish a model from pre-trained files
 
@@ -22,17 +22,17 @@ To create a model from model files, you will need the following:
 
 First, upload your model files to an unstructured dataset in the Palantir platform. Create a new dataset by selecting **+New > Dataset** in a Project.
 
-![Create a new unstructured dataset from a Project. ](/docs/resources/foundry/integrate-models/model-files-new-dataset.png)
+![Create a new unstructured dataset from a Project. ](./images/model-files-new-dataset.png)
 
 Then, select **Import new data** and choose the files from your computer to upload to the model.
 
-![Select Import new data from the center of the screen.](/docs/resources/foundry/integrate-models/model-files-empty-dataset.png)
+![Select Import new data from the center of the screen.](./images/model-files-empty-dataset.png)
 
-![Choose files from your computer for a new unstructured dataset.](/docs/resources/foundry/integrate-models/model-files-upload-files.png)
+![Choose files from your computer for a new unstructured dataset.](./images/model-files-upload-files.png)
 
 If required, you can upload many different files to the same dataset. The dataset will be unstructured, meaning it will not have a tabular schema.
 
-![Model files were successfully uploaded to an unstructured dataset. ](/docs/resources/foundry/integrate-models/model-files-uploaded-files.png)
+![Model files were successfully uploaded to an unstructured dataset. ](./images/model-files-uploaded-files.png)
 
 ### 2. Create a model training repository to define model adapter logic
 
@@ -40,7 +40,7 @@ Create a new code repository that will manage the logic for reading the model fi
 
 View the full documentation on the [Model Training template](/docs/foundry/integrate-models/model-asset-code-repositories/#1-author-a-model-adapter) and the [model adapter API](/docs/foundry/integrate-models/model-adapter-reference/) for reference.
 
-![The Initialize Repository page in the Code Repositories application.](/docs/resources/foundry/integrate-models/model-files-repo-setup.png)
+![The Initialize Repository page in the Code Repositories application.](./images/model-files-repo-setup.png)
 
 ### 3. Publish weights to a model
 
@@ -104,7 +104,7 @@ class ExampleModelAdapter(pm.ModelAdapter):
 
 The same file loading logic applies to most other cases, where libraries (such as PyTorch or Tensorflow) may provide methods for reading serialized files to Python objects.
 
-![The model training logic is ready to build in the code repository.](/docs/resources/foundry/integrate-models/model-from-files-with-publishing-logic.png)
+![The model training logic is ready to build in the code repository.](./images/model-from-files-with-publishing-logic.png)
 
 ### 4. Consume the published model
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map-legacy/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-map-legacy/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map \[Legacy]
 
@@ -114,7 +114,7 @@ For configuration information, see the [configure static layers](#configure-stat
 
 Here is an example of a newly added and not yet configured Map \[Legacy] widget alongside its configuration panel.
 
-![A newly added map with the configuration panel to the right.](/docs/resources/foundry/workshop/map_configuration_overview.png)
+![A newly added map with the configuration panel to the right.](./images/map_configuration_overview.png)
 
 For the Map \[Legacy] widget, the core configuration options are as follows:
 
@@ -172,7 +172,7 @@ For the Cluster layer, the main configuration options are as follows:
 * **Geopoint property:** The geopoint property type on the object set being mapped that contains the geopoint (latitude-longitude pairs) indicating the location of each object in the set. Nearby geopoints are taken into account while defining a cluster.
 * **Aggregation:** Allows configuring an aggregation to calculate what value should be shown for each cluster. For example, the screenshot below shows the configuration for a cluster layer displaying the total departing flights from US airports (which would look like the map shown above). See the [aggregated value series configuration](#configure-aggregated-value-series) section below for more details on configuration.
 
-![Cluster layer aggregation configuration.](/docs/resources/foundry/workshop/map_cluster_layer_aggregation.png)
+![Cluster layer aggregation configuration.](./images/map_cluster_layer_aggregation.png)
 
 * **Size configuration:** Allows defining the cluster size, which can either be of a single size (uniform clusters) or dynamic (scaling based on the values returned from the aggregation configured above).
   * **Single size:** Clusters will be of uniform size.
@@ -385,7 +385,7 @@ For **static layers**, the main configuration options are as follows:
 
 * **Static property:** Property whose value is needed to represent the data. Below is a screenshot showing the configuration of a static property for a map where US states are colored by area.
 
-![Non-aggregated value series configuration.](/docs/resources/foundry/workshop/map_non_aggregate_value.png)
+![Non-aggregated value series configuration.](./images/map_non_aggregate_value.png)
 
 * **Function-backed property:** Non-aggregated functions should return a map of `<object, value>`. For example, the function below would compute the derived COVID test positivity rate per country in the input object set:
 
@@ -411,7 +411,7 @@ In the example below, the `Country` object has a time series property `COVID19 N
 
 The screenshot below shows configuration options for **color configuration**.
 
-![Color configuration options.](/docs/resources/foundry/workshop/map_color_config.png)
+![Color configuration options.](./images/map_color_config.png)
 
 Configuration options for **color configuration** are as follows:
 
@@ -444,13 +444,13 @@ Configuration options for **color configuration** are as follows:
   * **Line/border width:** Width of the lines shown on line layer or width of the border for other layer types.
   * **Line/border stroke type:** Stroke of the lines shown on line layer or width of the border for other layer types.
   * **Show line/border direction:** Show the arrow defining the direction of the lines. Below is a screenshot of a map with directions shown on the line. <br><br>
-    ![An example of line border direction.](/docs/resources/foundry/workshop/map_line_border_direction.png) <br><br>
+    ![An example of line border direction.](./images/map_line_border_direction.png) <br><br>
 
 * **Value formatter:** Allows representing the value in a different format. For example, to represent the values as percentages, configure `%` as value formatter.  The value specified should be a [d3-format string ↗](https://github.com/d3/d3-format).
 
 ### Configure selection, visibility, and events
 
-![Selection, visibility, and events configuration options.](/docs/resources/foundry/workshop/map_selection_visibility_events.png)
+![Selection, visibility, and events configuration options.](./images/map_selection_visibility_events.png)
 
 Below are the main configuration options for **selection, visibility, and events configuration:**
 
@@ -509,11 +509,11 @@ In order to leverage the time stepper, we recommend that the temporal objects us
 
 Below is an example of a map with time stepper configured:
 
-![Time stepper options displayed at the bottom of a map.](/docs/resources/foundry/workshop/map_time_stepper_controls.png)
+![Time stepper options displayed at the bottom of a map.](./images/map_time_stepper_controls.png)
 
 Below is an example of configuration options for **time stepper controls:**
 
-![Time stepper controls configuration options.](/docs/resources/foundry/workshop/map_time_stepper.png)
+![Time stepper controls configuration options.](./images/map_time_stepper.png)
 
 The core configuration options for the time stepper are as follows:
 
@@ -533,7 +533,7 @@ The core configuration options for the time stepper are as follows:
 
 The below screenshot shows an example configuration of a **viewport filter**.
 
-![Viewport filter control configurations.](/docs/resources/foundry/workshop/map_viewport_filter.png)
+![Viewport filter control configurations.](./images/map_viewport_filter.png)
 
 A viewport filter outputs an object set filter variable; this allows filtering of the object set being mapped, based on the visible boundaries of the map in the widget. For example, for a map with airport locations mapped, if a user zoomed to the United States, the viewport filter will produce a filter variable which allows filtering the object set to contain objects only for US airports.
 

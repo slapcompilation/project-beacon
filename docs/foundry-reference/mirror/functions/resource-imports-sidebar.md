@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/resource-imports-sidebar/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/resource-imports-sidebar/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Import resources into Code Repositories
 
@@ -8,7 +8,7 @@ The following documentation is specific to TypeScript v1 functions. For more [ro
 
 The **Resource imports** sidebar in Code Repositories offers a centralized interface to manage imported Foundry resources within your TypeScript functions repository. The sidebar allows you to import, remove, and view details of various resources, including Ontology types, LMS language models, live deployments, and external systems such as REST APIs.
 
-![Resource Imports sidebar](/docs/resources/foundry/functions/resource-imports-sidebar.png)
+![Resource Imports sidebar](./images/resource-imports-sidebar.png)
 
 ## Select an Ontology
 
@@ -18,7 +18,7 @@ An Ontology is required to import object and link types. To choose an Ontology:
 
 If you have already imported at least one Ontology type, that type's Ontology is automatically selected. To change the Ontology, choose the **Edit** button next to the selected Ontology's name to open the Ontology selector dialog.
 
-![Ontology selector dialog](/docs/resources/foundry/functions/sidebar-ontology-picker.png)
+![Ontology selector dialog](./images/sidebar-ontology-picker.png)
 
 All imported resources within your repository must be associated with the same Ontology. Note that importing resources after changing the Ontology will overwrite any existing imports from other Ontologies.
 
@@ -40,7 +40,7 @@ To import resources using the sidebar:
 
 After confirming your selection, Code Assist will be restarted to re-run the necessary code generation tasks to apply your changes.
 
-![Example resource selector dialog](/docs/resources/foundry/functions/language-model-import-dialog.png)
+![Example resource selector dialog](./images/language-model-import-dialog.png)
 
 Learn more about importing resources of a specific type:
 
@@ -61,13 +61,13 @@ Choose the corresponding resource icon at the top of the sidebar to filter by ty
 
 Some resource types may have dependencies between other resources. For instance, link types are organized under their respective object types. If an imported resource has dependencies, a message like "(1 link type)" will be displayed next to the resource title. To view a resource's dependencies, hover over the resource icon and select the chevron that appears.
 
-![Resource Imports sidebar filter controls](/docs/resources/foundry/functions/resource-imports-sidebar-filters.png)
+![Resource Imports sidebar filter controls](./images/resource-imports-sidebar-filters.png)
 
 ## Importing resources without API names
 
 Resources must have an API name to be referenced within code in TypeScript functions repositories. If a resource lacks an API name, a warning is displayed. Hover over the warning sign to learn more or easily configure an API name by choosing **Add API name**.  Alternatively, choose **Learn more** to see documentation about adding an API name tailored to the specific resource type.
 
-![Resource Imports sidebar API name warning](/docs/resources/foundry/functions/resource-imports-sidebar-api-name-warning.png)
+![Resource Imports sidebar API name warning](./images/resource-imports-sidebar-api-name-warning.png)
 
 ## Import resources with value type dependencies
 
@@ -75,7 +75,7 @@ Some resources depend on [value types](/docs/foundry/object-link-types/value-typ
 
 In some cases, importing a combination of such resources can result in a value type dependency conflict. This occurs when different resources have a common value type they depend on at differing versions. It is not possible to have both versions of the same value type imported, and this causes a compilation error. This error is accompanied by a warning in the sidebar, allowing you to view the resources with conflicting dependencies.
 
-![Value type conflicts warning](/docs/resources/foundry/functions/value-type-conflicts-warning.png)
+![Value type conflicts warning](./images/value-type-conflicts-warning.png)
 
 ## File-based repository imports
 

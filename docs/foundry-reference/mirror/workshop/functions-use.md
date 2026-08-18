@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/functions-use/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/functions-use/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Use Functions in Workshop
 
@@ -33,15 +33,15 @@ Next, begin the process of wiring up this function in your Workshop module. The 
 
 Start by creating a new numeric variable from the **Variables** menu at the top left of the screen. Use the **+** option next to the **Variables** title to create a new variable, select **Numeric**, and then select **Function** as seen below.
 
-<img src="./media/workshop-creating-a-numeric-variable.png" alt="Creating a numeric variable backed by a function in Workshop." width="550" />
+<img src="./images/workshop-creating-a-numeric-variable.png" alt="Creating a numeric variable backed by a function in Workshop." width="550" />
 
 Next, find and select the function to use for this variable. Use the function picker to search for your function. Note that the function must be tagged with a release version to appear in this list. Learn more about [function versioning](/docs/foundry/functions/functions-versioning/).
 
-<img src="./media/workshop-search-for-a-function.png" alt="Searching for a function in the variable configuration." width="550" />
+<img src="./images/workshop-search-for-a-function.png" alt="Searching for a function in the variable configuration." width="550" />
 
 After selecting your desired function, configure its inputs. In the example below, the `aircraft` input is populated by the currently selected aircraft object in the module, and the `destinationAirportCode` input is populated by a variable that captures the selected flight’s destination airport elsewhere in the application. Make sure to name your variable and place it in a variable folder for easier discovery.
 
-<img src="./media/workshop-configure-a-function.png" alt="Configuring a function-backed variable with inputs and recompute behavior." width="550" />
+<img src="./images/workshop-configure-a-function.png" alt="Configuring a function-backed variable with inputs and recompute behavior." width="550" />
 
 :::callout{theme="warning"}
 Function-backed variables cache their results. If an identical input is provided to a function, the result in Workshop will be from a cache and not from a new computation. If you require the value to be recomputed, use a [set variable value](/docs/foundry/workshop/concepts-events/#set-variable-value) event in Workshop. You can also configure the [recompute behavior](/docs/foundry/workshop/concepts-variables/#recompute-variable-value) of the variable to control when it recomputes.
@@ -59,4 +59,4 @@ The Metric Card widget gives builders a way to display key information in their 
 
 The screenshot below shows the resulting module with our function-backed Metric Card on the right. As a user changes their selection on the Gantt chart on the left to different flights, the Metric Card dynamically updates to display the total number of flights for the selected aircraft to the destination airport. In this case, there are 680 total flights for this aircraft to Houston (IAH).
 
-![A Workshop module displaying a Gantt chart of flight history with a function-backed Metric Card showing 680 flights to the destination airport.](/docs/resources/foundry/workshop/workshop-flights-to-destination.png)
+![A Workshop module displaying a Gantt chart of flight history with a function-backed Metric Card showing 680 flights to the destination airport.](./images/workshop-flights-to-destination.png)

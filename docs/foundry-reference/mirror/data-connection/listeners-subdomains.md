@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-subdomains/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/listeners-subdomains/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Listener subdomains
 
@@ -16,7 +16,7 @@ Before mounting a listener to a subdomain, you need to create the subdomain in C
 
 Navigate to **Control Panel > Domains & certificates**, find the domain that you would like to create a new subdomain for, and select **Request a listener subdomain**. Once requested, the new subdomain will need to be approved by a user with the `Information Security Officer` role for the enrollment.
 
-![Request a new listener subdomain in Control Panel.](/docs/resources/foundry/data-connection/listeners-request-subdomain.png)
+![Request a new listener subdomain in Control Panel.](./images/listeners-request-subdomain.png)
 
 There is a limit of three listener subdomains per enrollment. Contact Palantir support if more are needed.
 
@@ -49,11 +49,11 @@ Once created, the subdomain cannot be reconfigured with custom ingress.
 2. In the **Configure connection** step of the listener settings wizard, select a listener subdomain.
 3. After requesting a subdomain for your listener, an Approvals request will be created, which an administrator will need to approve before the listener becomes accessible.
 
-![Select a subdomain from the Configure connection step of the listener settings wizard.](/docs/resources/foundry/data-connection/listeners-select-a-subdomain.png)
+![Select a subdomain from the Configure connection step of the listener settings wizard.](./images/listeners-select-a-subdomain.png)
 
 When the mount is approved, the listener will be able to process requests over the given endpoints (after the listener is started, if it is not already running).
 
-![The subdomain mount is approved and an endpoint is now available.](/docs/resources/foundry/data-connection/listeners-approved-subdomain-mount.png)
+![The subdomain mount is approved and an endpoint is now available.](./images/listeners-approved-subdomain-mount.png)
 
 ### Changing the subdomain for a listener
 
@@ -65,7 +65,7 @@ The listener will immediately stop processing requests over the old subdomain, a
 
 For listeners created before subdomains were available in an enrollment, a zero-downtime migration path is available. After creating a new listener subdomain, navigate to the **Configure connection** step of the listener settings wizard and follow the provided instructions.
 
-![Migration instructions for switching to use subdomains shown in the listener settings.](/docs/resources/foundry/data-connection/listeners-subdomain-migration.png)
+![Migration instructions for switching to use subdomains shown in the listener settings.](./images/listeners-subdomain-migration.png)
 
 ## Endpoint rotation
 
@@ -79,15 +79,15 @@ The steps to migrate endpoint usage are as follows:
 
 To support this process, listeners provide an endpoint rotation mechanism. To rotate your endpoint, navigate to the **Configuration** tab of your listener's settings and locate the **Rotate endpoints** option. Note that you can only have a maximum of two endpoints at a time, and a maximum of one *active* endpoint. An active endpoint is an endpoint without a set expiration date.
 
-![The listener's endpoints table shown in the "Configuration" step.](/docs/resources/foundry/data-connection/listener-endpoints-table.png)
+![The listener's endpoints table shown in the "Configuration" step.](./images/listener-endpoints-table.png)
 
 When rotating your endpoint, you can choose to set an expiration date for the endpoint for zero-downtime rotations, or to delete it immediately. When an endpoint expires, it will no longer be able to process events.
 
-![The modal for configuring the endpoint rotation.](/docs/resources/foundry/data-connection/listeners-rotate-endpoints-modal.png)
+![The modal for configuring the endpoint rotation.](./images/listeners-rotate-endpoints-modal.png)
 
 After setting an expiration for an endpoint, you can extend the expiration if more time is needed to migrate your usage over to the new endpoint.
 
-![In the listener's endpoint table, endpoint expirations can be modified.](/docs/resources/foundry/data-connection/listeners-modify-endpoint-expiration.png)
+![In the listener's endpoint table, endpoint expirations can be modified.](./images/listeners-modify-endpoint-expiration.png)
 
 Once an endpoint is expired, you can no longer modify the expiration date. You must delete the expired endpoint and generate a new one by performing another endpoint rotation.
 

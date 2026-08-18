@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-coalesce-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-coalesce-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Coalesce time series
 
@@ -14,7 +14,7 @@ Time series
 
 ## Examples
 
-![Coalesce time series example](/docs/resources/foundry/quiver/card-coalesce-ts.png)
+![Coalesce time series example](./images/card-coalesce-ts.png)
 
 ## Usage information
 

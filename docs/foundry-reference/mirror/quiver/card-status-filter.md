@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-status-filter/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-status-filter/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Status filter
 
@@ -24,7 +24,7 @@ Object set
 
 In the example below, we used the status filter toreturn the set of stock events that were open during the year 2017.
 
-![Example of stock events](/docs/resources/foundry/quiver/cards-index-status-filter-stock-events.png)
+![Example of stock events](./images/cards-index-status-filter-stock-events.png)
 
 ## Usage information
 

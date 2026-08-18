@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-event-set-from-tabular-data/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-event-set-from-tabular-data/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event set from tabular data
 
@@ -14,7 +14,7 @@ Event set
 
 ## Examples
 
-![Event set from tabular data example.](/docs/resources/foundry/quiver/resource-event-set-from-tabular-data.png)
+![Event set from tabular data example.](./images/resource-event-set-from-tabular-data.png)
 
 ## Usage information
 

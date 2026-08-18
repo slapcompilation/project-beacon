@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/media/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/media/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Media
 
@@ -151,7 +151,7 @@ Action parameters of type media reference can be passed to the function as a par
 
 The screenshot below shows an action passing a media parameter to its backing function.
 
-<img src="./media/media-tutorial-media-action-parameter.png" alt = "action" width="600"/>
+<img src="./images/media-tutorial-media-action-parameter.png" alt = "action" width="600"/>
 
 ### Media Ontology SDK operations
 

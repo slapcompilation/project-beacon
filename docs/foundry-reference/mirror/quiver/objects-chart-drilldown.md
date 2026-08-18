@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/objects-chart-drilldown/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/objects-chart-drilldown/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Visualize objects with charts
 
@@ -35,7 +35,7 @@ Object set charts can be found in the next actions menu under the **Visualize** 
 
 In the example below, we create a bar chart showing the average roof height grouped by `Building Type`. We then segment this by the `Year Constructed`. Lastly, we format the chart, changing the orientation to **Vertical** and the segmentation display to **Grouped**.
 
-![Create a bar chart from the filter object set card.](/docs/resources/foundry/quiver/getting-started-create-chart.gif)
+![Create a bar chart from the filter object set card.](./images/getting-started-create-chart.gif)
 
 ## Accuracy limitations
 
@@ -56,7 +56,11 @@ Most charts in Quiver that take object sets as input are interactive, and the un
 
 In the example below, we select the `garage` category and then select **Drill down** to create a **Selection Object Set**. We can see that the object set has 218,785 objects, matching the size of the bar. We then go back to the chart and use multi select to select the `building` category. Our filter updates to include all building objects where the type is `building OR garage`. Finally, we click and drag to select a range of categories that are too small to select individually.
 
-![Filter a bar chart using selection.](/docs/resources/foundry/quiver/howto-object-set-chart-selection.gif)
+![Filter a bar chart using selection.](./images/howto-object-set-chart-selection.gif)
+
+:::callout{theme="neutral"}
+Drill-down selection is only available for charts that take object sets as direct input. Charts that visualize [transform table](/docs/foundry/quiver/cards-transform-table/) or [materialization](/docs/foundry/quiver/cards-index-materializations/) outputs do not support drill-down capabilities.
+:::
 
 ### Cross filtering
 
@@ -70,7 +74,7 @@ For certain chart visualizations, you may want to overlay two charts on top of e
 
 In the example below, we use an overlay chart to combine a bar chart plotting max roof height with a line chart plotting average roof height.
 
-![Combine two charts with an overlay chart.](/docs/resources/foundry/quiver/howto-object-set-overlay-chart.gif)
+![Combine two charts with an overlay chart.](./images/howto-object-set-overlay-chart.gif)
 
 ## Use chart formulas
 
@@ -78,7 +82,7 @@ Native Quiver [formulas](/docs/foundry/quiver/cards-formula-syntax/) can be a us
 
 In the example below, we create a bar chart by building type. We then use a formula metric to compute a "range" aggregation, by subtracting the min roof height (`$M1`) from the max roof height (`$M0`), per category.
 
-![Use a formula to perform an aggregation in the bar chart.](/docs/resources/foundry/quiver/howto-object-set-bar-chart-formula.gif)
+![Use a formula to perform an aggregation in the bar chart.](./images/howto-object-set-bar-chart-formula.gif)
 
 You can also use [formulas](/docs/foundry/quiver/cards-formula-syntax/) in categorical charts with the [categorical formula plot](/docs/foundry/quiver/card-categorical-formula-plot/).  This card supports using a formula to combine data from numeric values, unsegmented categorical charts (2D), and segmented categorical charts (3D). In the formula, other cards can be reference with global identifier notation (For example, `$A`).
 
@@ -91,7 +95,7 @@ Use the following reference when combining data in the formula:
 
 In the example below, we first create a count aggregation of all buildings (`$S`). Then we create a bar chart of count grouped by building type (`$T`). Lastly, we use a categorical formula plot to divide the bar chart counts by the total count (`$T / $S`). This results in a bar chart showing count per category as a percentage of the total (as opposed to absolute count).
 
-![Use a formula to divide bar chart data by a numeric value.](/docs/resources/foundry/quiver/howto-object-set-categorical-formula.gif)
+![Use a formula to divide bar chart data by a numeric value.](./images/howto-object-set-categorical-formula.gif)
 
 ## Use advanced aggregations in categorical charts
 
@@ -117,4 +121,4 @@ The [transform table](/docs/foundry/quiver/cards-transform-table/) is a powerful
 
 For cases when you want a custom visualization outside of what is natively supported in Foundry, Quiver also supports using [Vega ↗](https://vega.github.io/vega/) and [Vega-Lite ↗](https://vega.github.io/vega-lite/) to create visualizations with the [vega plot](/docs/foundry/quiver/card-vega-plot/) card.  With this card, you can write a JSON spec to define a custom chart while referencing Quiver transform tables, arrays, and scalar values using [global identifiers](/docs/foundry/quiver/analysis-global-identifiers/) (For example `$A` and `$A.columnname`).
 
-[Learn more about using vega plots in Quiver.](/docs/foundry/quiver/cards-vega-plot/)
+[Learn more about using Vega plots in Quiver.](/docs/foundry/quiver/cards-vega-plot/)

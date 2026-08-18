@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/debug/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/debug/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Debug functions
 
@@ -12,7 +12,7 @@ As you write functions, you will likely need to inspect the state of your execut
 
 Use the debugger tool in Code Repositories to examine the behavior of your unit test while it runs. Set breakpoints to pause the execution of the unit test in order to examine variables, and understand functions and libraries.
 
-![Debugger overview panel.](/docs/resources/foundry/functions/debugger-overview.png)
+![Debugger overview panel.](./images/debugger-overview.png)
 
 ## Set breakpoints
 
@@ -20,7 +20,7 @@ To use the debugger, you need to set breakpoints. These breakpoints indicate the
 
 Set a breakpoint by selecting the faded red dot in the margins of each line of code. The debugger suspends the execution *before* the marked line runs. You can set multiple breakpoints across several files, if needed.
 
-![Debugger breakpoints.](/docs/resources/foundry/functions/debugger-breakpoint.png)
+![Debugger breakpoints.](./images/debugger-breakpoint.png)
 
 ## Run the debugger
 
@@ -28,13 +28,13 @@ Set a breakpoint by selecting the faded red dot in the margins of each line of c
 
 After adding breakpoints in your code, select **Run and debug**, located in the functions panel.
 
-![Live preview debugger layout.](/docs/resources/foundry/functions/live-preview-debugger-run.png)
+![Live preview debugger layout.](./images/live-preview-debugger-run.png)
 
 ### During testing
 
 After adding breakpoints in your code, select **Run test**, located next to the unit test in the code editor.
 
-![Test debugger layout.](/docs/resources/foundry/functions/test-debugger-run.png)
+![Test debugger layout.](./images/test-debugger-run.png)
 
 ## Use the debugger
 
@@ -42,7 +42,7 @@ Once the debugger has started, the debugger panel will open and pause on the fir
 
 As you navigate the code, the editor highlights the line of code to be executed next. Use the following buttons to advance the debugger:
 
-![Debugger controls.](/docs/resources/foundry/functions/debugger-controls.png)
+![Debugger controls.](./images/debugger-controls.png)
 
 1. **Resume execution:** Continue execution until completion or until paused by the next breakpoint.
 2. **Step over:** Execute the line of code without stepping into internal functions.
@@ -67,7 +67,7 @@ Select a frame to examine the variables within that frame and run console comman
 
 The variables section displays the values stored in both local and global variables while the transform is executed.
 
-![Debugger variables.](/docs/resources/foundry/functions/debugger-variables.png)
+![Debugger variables.](./images/debugger-variables.png)
 
 ### Console
 
@@ -77,7 +77,7 @@ The console allows you to interact with your data using JavaScript console comma
 Note that the console operates within the context of the selected frame. Attempting to execute commands on variables local to a different frame will lead to an error.
 :::
 
-![Debugger console.](/docs/resources/foundry/functions/debugger-console.png)
+![Debugger console.](./images/debugger-console.png)
 
 ## Console logging
 
@@ -99,10 +99,10 @@ Using console logs in this way can be useful for debugging correctness issues. Y
 
 When you run a function using the **Tests** helper in **Authoring**, console logs will be captured and displayed below:
 
-![Console logging tests.](/docs/resources/foundry/functions/console-logging-tests.png)
+![Console logging tests.](./images/console-logging-tests.png)
 
 ### During live preview
 
 When you run a function using the **Functions** helper in **Authoring**, console logs will be captured and displayed below, along with timestamps:
 
-![Console logging live preview.](/docs/resources/foundry/functions/console-logging-live-preview.png)
+![Console logging live preview.](./images/console-logging-live-preview.png)

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-linear-aggregation/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-linear-aggregation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Linear aggregation
 
@@ -18,7 +18,7 @@ Time series
 
 ## Examples
 
-![Linear aggregation example](/docs/resources/foundry/quiver/resource-linear-aggregation-example.png)
+![Linear aggregation example](./images/resource-linear-aggregation-example.png)
 
 ## Usage information
 

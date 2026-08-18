@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/compass/data-catalog/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/data-catalog/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Data Catalog
 
@@ -6,7 +6,7 @@ The **Data Catalog** is an interactive view of curated data and other resources 
 
 To access the Data Catalog, select **Files** from the workspace navigation sidebar, then the **✔️** icon at the top.
 
-![View of Data Catalog landing page.](/docs/resources/foundry/compass/data-catalog.png)
+![View of Data Catalog landing page.](./images/data-catalog.png)
 
 ## Collections and files
 
@@ -16,7 +16,7 @@ By default, [Organization administrators](/docs/foundry/administration/enrollmen
 
 Select a collection to view the files or resources it contains.
 
-![Two datasets that are in a selected collection in the Data Catalog.](/docs/resources/foundry/compass/data-catalog-collection.png)
+![Two datasets that are in a selected collection in the Data Catalog.](./images/data-catalog-collection.png)
 
 Throughout Foundry, Data Catalog data is indicated by the purple checkmark badge, as seen above.
 
@@ -26,8 +26,8 @@ Select a dataset or other resource to open and examine it.
 
 A **Filters** panel is available in the **Files** tab and within each collection. You can choose tags to filter the list of resources by type or tag category to easily find the content you need.
 
-![Use the Filters panel to easily search for and find resources.](/docs/resources/foundry/compass/data-catalog-filters.png)
+![Use the Filters panel to easily search for and find resources.](./images/data-catalog-filters.png)
 
 You can also group your filtered results by tags, such as Analytics or Region, for easier navigation within a collection.
 
-![Use tags to group your filtered results.](/docs/resources/foundry/compass/tag-groups.png)
+![Use tags to group your filtered results.](./images/tag-groups.png)

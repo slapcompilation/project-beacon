@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/map/annotations/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/annotations/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Annotations
 
 Use **annotations** to highlight and add contextual information about specific areas on a map.
 
-![Example annotations](/docs/resources/foundry/map/annotations-example.png)
+![Example annotations](./images/annotations-example.png)
 
 ## Create an annotation
 
@@ -16,7 +16,7 @@ Create an annotation by selecting **Annotate** in the toolbar and choosing one o
 * **Rectangle:** Add a rectangle annotation by specifying two corners.
 * **Circle:** Add a circular annotation by specifying the center and a radius.
 
-![Annotation menu](/docs/resources/foundry/map/annotations-create-menu.png)
+![Annotation menu](./images/annotations-create-menu.png)
 
 After selecting the kind of annotation you wish to create, the [drawing tools](/docs/foundry/map/shapes/#draw-a-shape) will open and provide instructions on using that specific drawing mode to create a new annotation. Your map will group annotations into layers according to their types.
 
@@ -26,13 +26,13 @@ Select an annotation, then use the **Selection** panel to edit its title and add
 
 Adjust the annotation's placement by using the **Edit** button.
 
-![Edit annotation title](/docs/resources/foundry/map/annotations-modify.png)
+![Edit annotation title](./images/annotations-modify.png)
 
 ## Annotation styling
 
 You can modify the appearance of your annotations by editing their styling in the **Layers** panel.
 
-<img src="./media/annotations-edit-styling.png" alt="Edit annotation styling." width="450" />
+<img src="./images/annotations-edit-styling.png" alt="Edit annotation styling." width="450" />
 
 Annotation styling options include:
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/time-overview/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/time-overview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time and temporal data in the map
 
@@ -10,19 +10,19 @@ The map has a collection of features for visualizing and working with data that 
 
 [Time series](/docs/foundry/map/time-series/) are measured values that change over time. You can configure time series values in the Ontology as [time series properties](/docs/foundry/time-series/time-series-setup/). Use time series to [style objects](/docs/foundry/map/visualize-objects/#value-based-styling) on your map, and view them in the [timeline](/docs/foundry/map/time-series/#explore-related-time-series).
 
-![Time series data in the timeline and selection panel.](/docs/resources/foundry/map/time-series.png)
+![Time series data in the timeline and selection panel.](./images/time-series.png)
 
 ### Events
 
 [Events objects](/docs/foundry/map/events/) are objects that have additional metadata that associate the object with a specific time or time range. Event objects can be used to [control the opacity of objects](/docs/foundry/map/visualize-objects/#opacity-styling) on your map and visualized in the [timeline](/docs/foundry/map/visualize-timeline/).
 
-![Styling events by time.](/docs/resources/foundry/map/events-style-by-time.gif)
+![Styling events by time.](./images/events-style-by-time.gif)
 
 ### Tracks
 
 Use [tracks](/docs/foundry/map/integrate-objects/#track-objects) to represent objects that have a position which changes over time. The [track styling options](/docs/foundry/map/visualize-tracks/) let you customize how you visualize the positions of an object over time.
 
-![Track displays example.](/docs/resources/foundry/map/styling-tracks.png)
+![Track displays example.](./images/styling-tracks.png)
 
 ## Selected time and time range
 
@@ -34,7 +34,7 @@ You can view the map's selected time and time range in the [timeline](/docs/foun
 
 For example, depending on the selected time, the color of time-based styling will vary.
 
-![An example map showing the icon colors of a weather station changing as the selected time is changed in the timeline.](/docs/resources/foundry/map/time_time-selection-changes.gif)
+![An example map showing the icon colors of a weather station changing as the selected time is changed in the timeline.](./images/time_time-selection-changes.gif)
 
 :::callout{theme="neutral"}
 The select time and time range will affect the way data is shown on the map even if the timeline is not open.

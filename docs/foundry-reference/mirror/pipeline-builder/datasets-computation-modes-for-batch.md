@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/pipeline-builder/datasets-computation-modes-for-batch/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/pipeline-builder/datasets-computation-modes-for-batch/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Computation modes for batch input datasets
 
@@ -8,7 +8,7 @@ You can choose to read your input dataset as snapshot or incremental, depending 
 
 Snapshot computation performs transforms over the entire input, not just newly-added data. The output dataset is fully replaced by the latest pipeline output every build.
 
-![Example of snapshot computation](/docs/resources/foundry/pipeline-builder/datasets-snapshot-computation.png)
+![Example of snapshot computation](./images/datasets-snapshot-computation.png)
 
 Best used when:
 
@@ -27,7 +27,7 @@ Incremental computation performs transforms only on new data that has been appen
 A pipeline will only run with incremental computation if the selected input dataset changes through `APPEND` or `UPDATE` transactions that do not modify existing files. Marking a snapshot input as incremental will have no effect.
 :::
 
-![Example of incremental computation](/docs/resources/foundry/pipeline-builder/datasets-incremental-computation.png)
+![Example of incremental computation](./images/datasets-incremental-computation.png)
 
 Best used when:
 
@@ -49,5 +49,11 @@ This section outlines restrictions that might be applicable to your workflow. Re
 * **Unions:** All inputs to a union must use the same computation mode (either all snapshot or all incremental).
 * **Transforms:** Transforms that may change the previous output are limited to the current transaction. Window functions, aggregations, and pivots apply only on the current transaction of data, not the previous output.
 * **Replays:** If your pipeline logic has changed and you would like to apply the new logic to previously processed input transactions, you may choose to replay on deploy. Only replays over the entire input are supported.
+
+### Enforce incremental execution
+
+To ensure your pipeline always runs incrementally, you can enable the **Require incremental execution** setting in your pipeline's **Build settings**. When enabled, jobs configured to run incrementally will automatically fail if incremental execution is not possible. This helps prevent unintended snapshot scenarios such as accidentally snapshotted inputs or forced snapshots from output schema changes.
+
+For more information, see [Force incremental behavior for outputs](/docs/foundry/pipeline-builder/breaking-changes/#force-incremental-behavior-for-outputs).
 
 For more information, see an [example of incremental computation in Pipeline Builder](/docs/foundry/building-pipelines/create-incremental-pipeline-pb/).

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-object-context/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-object-context/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Retrieve individual objects
 
@@ -14,7 +14,7 @@ To construct an Object Context `o_object_context1`, you need to enter a single o
 * Referencing a function or object query that returns a single RID (like `{{return_single_object}}`), or by
 * Directly entering a static object RID, like `ri.phonograph2-objects.main.object.09d2e0e9-dd3c-49b2-8b96-0cb1bf005c1d`.
 
-![object-context](/docs/resources/foundry/slate/object-context.png)
+![object-context](./images/object-context.png)
 
 Once the Object Context is defined, you will be able to:
 

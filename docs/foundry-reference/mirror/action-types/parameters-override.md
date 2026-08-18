@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/parameters-override/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/parameters-override/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Overrides
 
@@ -10,17 +10,17 @@ For example, let's assume that you have an action type which changes the status 
 
 You can add and edit overrides from different places on the parameter view. The easiest way to add a new override is directly from the **Value** tab in the **General** section. By clicking **Add override** on one of the three options, you can easily create an override via the pop-up, which now automatically configured the override based on the selected option. The **General** section also shows when and how many overrides have already been configured for one of the options. To edit existing overrides, select the override button.
 
-![Override pop up](/docs/resources/foundry/action-types/override_pop_up.png)
+![Override pop up](./images/override_pop_up.png)
 
 You can also add an override manually via the **Overrides** tab. The overrides tab shows an overview of all overrides configured for the parameter. You can add override blocks from here or add new conditions or overrides to existing blocks.
 
-![Override tab](/docs/resources/foundry/action-types/override_tab.png)
+![Override tab](./images/override_tab.png)
 
 ## Override block
 
 An override block presents the basis for overrides. It defines both the conditions (shown in the "if" part) and the overrides (shown in the "then" part). Each block's header shows a summary of the logic. Every parameter can contain multiple override blocks, however, if more than one is true, only the first one will be executed.
 
-![Override block](/docs/resources/foundry/action-types/override_block.png)
+![Override block](./images/override_block.png)
 
 ### "If" and conditions
 

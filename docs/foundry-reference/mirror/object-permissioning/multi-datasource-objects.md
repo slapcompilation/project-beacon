@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-permissioning/multi-datasource-objects/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-permissioning/multi-datasource-objects/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Multi-datasource object types (MDOs)
 

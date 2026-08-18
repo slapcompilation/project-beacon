@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-graph/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Graph mode
 
@@ -6,19 +6,19 @@ Quiver provides two view modes for building your analysis: [canvas](/docs/foundr
 
 You can see the active view mode and switch between view modes by using the view mode toggle at the upper-right corner of the screen. You can select your preferred default view mode in [view mode settings](/docs/foundry/quiver/analysis-settings/#view-mode-settings).
 
-![The view mode toggle showing graph and canvas options.](/docs/resources/foundry/quiver/concepts-graph-canvas-toggle.png)
+![The view mode toggle showing graph and canvas options.](./images/concepts-graph-canvas-toggle.png)
 
 ## Compact node design
 
 Each node on the graph displays a compact view of its title, identifier, and type. You can access common actions such as configuring inputs, adding the node to a canvas, or deleting the node from its **More actions** menu or by right-clicking on the node. This compact layout keeps the graph fast and responsive, even for large analyses with many cards.
 
-![An example of compact nodes in graph mode.](/docs/resources/foundry/quiver/analysis-graph-compact-nodes.png)
+![An example of compact nodes in graph mode.](./images/analysis-graph-compact-nodes.png)
 
 ## Preview panel
 
 Card outputs are displayed in a dedicated preview panel at the bottom of the screen. Select a node to see its preview. You can pin previews to keep them visible as you navigate the graph, or view two previews side by side in a split-screen layout. Pinned previews remain open even when you select a different node, making it easy to compare outputs across cards.
 
-![The preview panel displayed below the graph with a pinned preview.](/docs/resources/foundry/quiver/analysis-graph-preview-panel.gif)
+![The preview panel displayed below the graph with a pinned preview.](./images/analysis-graph-preview-panel.gif)
 
 ## Graph and canvas isolation
 
@@ -48,7 +48,7 @@ To enter a dependency view, right-click on a node and select **View dependencies
 
 To exit a dependency view and see the entire graph, select **Exit dependency view** in the top left of the graph.
 
-![Viewing card dependencies in a dependency view.](/docs/resources/foundry/quiver/analysis-graph-focus-mode.png)
+![Viewing card dependencies in a dependency view.](./images/analysis-graph-focus-mode.png)
 
 ## Node interactions
 
@@ -68,19 +68,26 @@ When configuring a node in graph mode, you can select its inputs by picking node
 While in **Selection mode**, you can select multiple nodes by dragging across the graph background. Once selected, a toolbar appears in the [graph navigation toolbar](#graph-navigation) with the following actions:
 
 * **Color nodes:** Assign the selected nodes to a [color group](/docs/foundry/quiver/analysis-graph-color-groups/).
+
 * **Hide:** Remove the selected nodes from view without deleting them from the analysis.
+
 * **Canvas organization:** Add the selected nodes to a canvas, move them between canvases, or remove them from a canvas.
+
+* **Copy to new analysis:** Create a new analysis containing copies of the selected nodes.
+
+* **Copy to existing analysis:** Copy the selected nodes to another existing analysis.
+
 * **Delete:** Delete the selected nodes from the analysis.
 
 ## Graph navigation
 
 You can adjust the graph layout by selecting and dragging nodes to the desired location. If you want to clean up the layout and reset the nodes to their original position, select **Layout nodes**. You can also switch between **Panning mode** and **Selection mode** to control whether mouse interactions move the graph or select and deselect nodes.
 
-![The graph navigation buttons for panning, selection, and layout.](/docs/resources/foundry/quiver/howto-analysis-graph-buttons.png)
+![The graph navigation buttons for panning, selection, and layout.](./images/howto-analysis-graph-buttons.png)
 
 In the bottom left corner of the graph, navigation buttons allow you to zoom in and out, zoom to fit all nodes on the screen, and reset the layout of the graph.
 
-![Graph zoom buttons.](/docs/resources/foundry/quiver/howto-analysis-graph-zoom-buttons.png)
+![Graph zoom buttons.](./images/howto-analysis-graph-zoom-buttons.png)
 
 You can also zoom in and out by scrolling up and down on the graph background.
 

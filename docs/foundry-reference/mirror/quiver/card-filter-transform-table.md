@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-transform-table/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-filter-transform-table/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Filter transform table
 
@@ -19,7 +19,7 @@ Once a column is selected, select the comparison operator to configure the condi
 
 The image below shows a condition configuration for a `greater than` comparison operator, comparing a number column "Ground Elevation" with the average value of that column computed by a numeric aggregation.
 
-![Filtering using a visual editor](/docs/resources/foundry/quiver/tt-filter-using-editor.png)
+![Filtering using a visual editor](./images/tt-filter-using-editor.png)
 
 ### Filter using a formula
 
@@ -29,7 +29,7 @@ Note that string types are not supported in formulas. To filter on string column
 
 The image below shows the same condition as the one configured above using the visual editor, but is alternatively using a formula. It uses the `greater than` comparison operator, comparing a number column "Ground Elevation" called `groundelev` with the average value of that column computed by a numeric aggregation with a global identifier `$O`.
 
-![Filtering using a visual editor](/docs/resources/foundry/quiver/tt-filter-using-formulas.png)
+![Filtering using a visual editor](./images/tt-filter-using-formulas.png)
 
 ## Input type
 

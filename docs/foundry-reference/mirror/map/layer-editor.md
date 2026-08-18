@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/layer-editor/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/layer-editor/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Map Layer Editor
 
@@ -10,11 +10,11 @@ The Map Layer Editor provides a point-and-click UI for configuring map layers th
 
 In Foundry, navigate to the folder in which you wish to create the map layer, and select **Map Layer** from the **New** menu:
 
-<img src="./media/new-map-layer-button.png" alt="New map layer button" width="219" />
+<img src="./images/new-map-layer-button.png" alt="New map layer button" width="219" />
 
 Then, add a data source or choose to write a Mapbox JSON document to begin configuring your layer.
 
-![Select layer type](/docs/resources/foundry/map/map-layer-editor-select-type.png)
+![Select layer type](./images/map-layer-editor-select-type.png)
 
 :::callout{theme="warning"}
 We recommend only using a Mapbox JSON document when you require functionality that is not supported by the vector or raster layers.
@@ -35,13 +35,13 @@ Vector layers display geometry data from GeoJSON or vector tile sources. There a
 
 After adding a source, you can add one or more displays to configure how your data is visualized on the map.
 
-![Vector layer](/docs/resources/foundry/map/map-layer-editor-vector.png)
+![Vector layer](./images/map-layer-editor-vector.png)
 
 ## Raster layers
 
 Raster layers display bitmap data from a raster tileset. Configure a raster data source by specifying the URL for the tileset.
 
-![Raster layer](/docs/resources/foundry/map/map-layer-editor-raster.png)
+![Raster layer](./images/map-layer-editor-raster.png)
 
 The available display options for raster layers are:
 
@@ -55,7 +55,7 @@ The available display options for raster layers are:
 
 Object layers display data directly from your Ontology. Only object types that are synced to OSS or OQL (deprecated) and have a geopoint or geoshape property type can be displayed via object layers.
 
-![Object layer](/docs/resources/foundry/map/map-layer-editor-objects.png)
+![Object layer](./images/map-layer-editor-objects.png)
 
 :::callout{theme="neutral"}
 Although OSS or OQL (deprecated) is required for object layers, it is not available on all instances. Contact your Palantir representative for more information.
@@ -74,4 +74,4 @@ For Mapbox JSON layers, you can edit the JSON document in the Map Layer Editor. 
 
 The JSON content must conform to the [Mapbox GL JS Style Specification ↗](https://docs.mapbox.com/mapbox-gl-js/style-spec/), but only the `sources` and `layers` properties are supported (and both are required).
 
-![JSON layer](/docs/resources/foundry/map/map-layer-editor-json.png)
+![JSON layer](./images/map-layer-editor-json.png)

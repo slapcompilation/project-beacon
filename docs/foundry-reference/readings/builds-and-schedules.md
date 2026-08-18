@@ -487,3 +487,61 @@ Quotes, all from `builds-get-build.md` / `builds-create-build.md`:
    targets from the jobset entirely and returns NULL when all are fresh
    ("Ignored"), so Foundry keeps a row where we keep none. Recorded as a
    structural difference, not corrected here.
+
+---
+
+## Upstream moved (2026-08-18) — and it named a default we do not have
+
+The drift sweep re-mirrored `building-pipelines/`. No quotation here went stale.
+`create-schedule` gained two settings, and the first one **states a default that
+our scheduler does not implement**:
+
+> "* **Allow overlapping runs:** By default, a schedule does not start a new run while another run of the same schedule is in progress. Enable this setting to allow runs to overlap. Use this setting to:"
+
+> "  * **Reduce latency in a pipeline with a long sequence of jobs:** A new run can begin processing new input data at the start of the pipeline before an earlier run finishes processing data through the entire pipeline."
+
+> "  * **Use one schedule to keep multiple datasets up to date:** A single schedule starts builds for each dataset as needed, without requiring a separate schedule for each dataset."
+
+`schedule_candidates()` (553) selects on `NOT s.paused` and nothing else. It has
+no idea whether a run of the same schedule is still going, so **we always
+overlap** — Foundry's opt-in behaviour, shipped as our only behaviour, and never
+stated anywhere.
+
+**This is not a regression.** The sentence is new upstream, so the default was
+not knowable when 493–496 were built. What makes it worth acting on is that it
+is a *silent* divergence: nothing fails, runs just pile up, and the pg_cron
+heartbeat fires every minute — which is precisely the shape that produces
+overlap in the first place.
+
+The second setting is a different kind of thing and is only recorded:
+
+> "* **Customize behavior on job failure:** By default, when a job fails, the build cancels its dependent jobs. Enable this setting to specify datasets for which a job failure should not cancel dependent jobs. If a job for one of the specified datasets fails, the build continues to run its dependent jobs."
+
+## Decisions from the sweep
+
+1. **Allow-overlapping-runs is worth building, and the default is the point.**
+   `schedules.allow_overlapping_runs boolean NOT NULL DEFAULT false`, with
+   `schedule_candidates()` skipping a schedule that already has a run in flight
+   unless it is set. Small, exactly cited, and it makes the behaviour we already
+   have into a *choice* rather than an accident. Not built yet: this block has
+   not been recited.
+2. **The failure-behaviour setting is recorded, not built.** "Cancels its
+   dependent jobs" is a build-graph behaviour we do have, but the per-dataset
+   exemption list is a second mechanism, and the page says nothing about how the
+   exempted datasets are chosen or stored.
+3. **A guard is what would have caught this, and none exists.** Nothing compares
+   our scheduler's behaviour against the page's stated defaults; the drift check
+   only says a page moved. **The class is "a documented default we silently
+   invert"** — worth remembering the next time a page states a default rather
+   than a capability.
+
+## Questions from the sweep
+
+1. **What counts as "in progress" for the overlap check — the build, or every
+   job in it?** A build with a long tail of jobs is arguably still running long
+   after its trigger fired. `blocks:` the exact predicate in
+   `schedule_candidates()`.
+2. **Does a suppressed run queue or vanish?** "does not start a new run" says the
+   run does not begin and stops. Whether the trigger is remembered and fires late,
+   or is simply dropped, decides whether a minute-resolution heartbeat loses work.
+   `blocks:` the same build.

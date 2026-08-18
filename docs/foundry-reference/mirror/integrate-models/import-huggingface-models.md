@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/integrate-models/import-huggingface-models/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/integrate-models/import-huggingface-models/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Import a Hugging Face model
 

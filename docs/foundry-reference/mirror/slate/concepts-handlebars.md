@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/concepts-handlebars/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/concepts-handlebars/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Access values with Handlebars
 
@@ -191,7 +191,7 @@ With our selection function configured, we can add a Text widget, name it `w_lin
 </a>
 ```
 
-![A linking button configured to say \`Learn More About Aircraft".](/docs/resources/foundry/slate/linking-button.png)
+![A linking button configured to say \`Learn More About Aircraft".](./images/linking-button.png)
 
 The code above has two functionalities. Adding `pt-button` gives the widget the appearance of a button, and adding `pt-intent-primary` turns the background blue. Adding "pt-icon-document-open" adds a Blueprint icon to the button. You can review the full list of icons from the [Blueprint documentation ↗](https://blueprintjs.com/docs/#core/components/icon).
 
@@ -207,8 +207,8 @@ When nothing is selected, the text widget will indicate **Learn More About Aircr
 
 Once a row in the table is selected, the button text updates to reflect the name of the selection; selecting the button takes you to the correct webpage.
 
-![faa](/docs/resources/foundry/slate/faa-registry.png)
+![faa](./images/faa-registry.png)
 
 Make sure to save your application, and select **X** from the top right corner to exit into View mode.
 
-![doc-with-map](/docs/resources/foundry/slate/doc-with-map.png)
+![doc-with-map](./images/doc-with-map.png)

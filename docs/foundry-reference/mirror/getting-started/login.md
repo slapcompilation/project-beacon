@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/getting-started/login/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/getting-started/login/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Log in to the platform
 
@@ -25,7 +25,7 @@ Ensure that your mobile device and browser are supported before attempting to st
 
 * **iOS devices:** The latest version of iOS and one prior version are supported. For example, If the latest version of iOS is iOS 18, iOS 18 and 17 are supported.
 * **Android devices:** Devices running Android 13 and later are supported. <br><br>
-  The Palantir platform is [fully supported](/docs/foundry/getting-help/supported-browsers-network-requirements/#supported-browsers) on Google Chrome and Microsoft Edge versions released within the last six months. Mobile usage requires Google Chrome, Microsoft Edge, or Apple Safari. For best results, use Google Chrome or Microsoft Edge if possible.
+  The Palantir platform is [fully supported](/docs/foundry/getting-help/supported-browsers-network-requirements/#supported-browsers) on Google Chrome and Microsoft Edge versions released within the past year. Mobile usage requires Google Chrome, Microsoft Edge, or Apple Safari. For best results, use Google Chrome or Microsoft Edge if possible.
 :::
 
 Follow the instructions below to continue configuring your passkey:
@@ -188,9 +188,9 @@ Your username is the email account you used to register for a Palantir account. 
 
 ### Client-side passkey issues
 
-If you are having issues with passkeys and are not sure whether this is due to the Palantir platform or software/hardware limitations, you can test whether you are able to use passkeys in general on [webauthn.io ↗](http://webauthn.io/). Register and use a passkey on this site to identify whether passkeys work on your device. If you are still having issues, or the issue appears to originate from the Palantir platform, select the **Need help?** link under the sign in form and fill out the form on the **AIP/Developer Tier support** page to get help with your issue.
+If you are having issues with passkeys and are not sure whether this is due to the Palantir platform or software/hardware limitations, you can test whether you are able to use passkeys in general on [webauthn.io ↗](https://webauthn.io/). Register and use a passkey on this site to identify whether passkeys work on your device. If you are still having issues, or the issue appears to originate from the Palantir platform, select the **Need help?** link under the sign in form and fill out the form on the **AIP/Developer Tier support** page to get help with your issue.
 
-In some cases, a browser or operating system may be too outdated to support passkeys. Ensure that you are using an updated operating system and a browser such as Google Chrome, Microsoft Edge, or Apple Safari, with a version that has been released in the past six months. Review our [supported browsers](/docs/foundry/getting-help/supported-browsers-network-requirements/#supported-browsers) for more information.
+An outdated browser or operating system may not support passkeys. Use an up-to-date operating system and a version of Google Chrome, Microsoft Edge, or Apple Safari released within the past year. Review our [supported browsers](/docs/foundry/getting-help/supported-browsers-network-requirements/#supported-browsers) for more information.
 
 ### My organization does not support passkeys
 

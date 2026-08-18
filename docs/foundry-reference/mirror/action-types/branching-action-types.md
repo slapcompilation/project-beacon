@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/branching-action-types/ · mirrored 2026-08-11 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/branching-action-types/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Branching action types
 
-Ontology actions integrate with Global Branching, enabling you to test action types on a branch without affecting your production environment. You can run actions, validate their configurations, and observe edits in an isolated branch context before merging changes to `main`.
+Ontology actions integrate with Global Branching, enabling you to test action types on a branch without affecting your production environment. You can run actions, validate their configurations, and observe edits in an isolated branch context before merging changes to `main`. Edits from the branch will not be merged.
 
 For general information on Global Branching concepts and workflows, refer to the [Global Branching documentation](/docs/foundry/global-branching/overview/).
 

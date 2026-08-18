@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/dataset-preview/ · mirrored 2026-08-06 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/dataset-preview/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Dataset Preview
 
@@ -50,7 +50,7 @@ The details view provides additional technical information about the dataset, as
 
 * **Schema:** Provides full information on the table schema (column specifications) and allows you to edit the schema (if applicable).
 * **Files:** Displays the list of files that make up the dataset and allows you to download them.
-* **Job spec:** Displays the job specification containing essential information for the dataset to build.
+* **Job spec:** Displays the job specification containing essential information for the dataset to build. Furnace SQL outputs can retain multiple [SQL definitions](/docs/foundry/sql-warehousing/sql-definitions/) in this section.
 * **Syncs:** Surfaces the status and details of data syncs to different databases. For some sync types, additional settings can be applied.
 * **Custom metadata:** Allows you to add custom fields of information to the dataset. The fields added in this section are displayed in the information panel of the overview page.
 * **Resource usage metrics:** Provides graphs and information on disk and Spark usage of the dataset over time.

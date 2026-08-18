@@ -1,8 +1,8 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widget-display-optimization/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widget-display-optimization/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Widget display optimization
 
-![Workshop widget configuration panel with one display optimization option visible.](/docs/resources/foundry/workshop/widgets-display-optimization.png)
+![Workshop widget configuration panel with one display optimization option visible.](./images/widgets-display-optimization.png)
 
 Widget display optimization is a Workshop setting that controls when individual widgets mount and unmount as users navigate within a module. By default, widgets mount when they become visible and unmount when they leave the screen. This frees up browser resources when widgets are not in view but means that widgets must reload their data and rebuild their state every time a user navigates back to them.
 

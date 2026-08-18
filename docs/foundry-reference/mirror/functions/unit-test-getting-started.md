@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/unit-test-getting-started/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/unit-test-getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -41,11 +41,11 @@ Refer to the [Jest API ↗](https://jestjs.io/docs/en/api) for details about the
 
 You can run all your tests by clicking on the `Test` button located on the top right, or run each individual test by clicking on the triangular "Play" button located beside the line number for each test.
 
-![button-run-tests](/docs/resources/foundry/functions/button-run-tests.png)
+![button-run-tests](./images/button-run-tests.png)
 
 When you click **Commit**, all tests will also run in Checks:
 
-<img src="./media/run-tests.png" alt="run-tests" width="500"/>
+<img src="./images/run-tests.png" alt="run-tests" width="500"/>
 
 ## Next steps
 

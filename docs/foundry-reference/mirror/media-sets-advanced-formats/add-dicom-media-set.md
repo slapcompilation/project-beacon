@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/add-dicom-media-set/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/media-sets-advanced-formats/add-dicom-media-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add a DICOM media set
 
@@ -46,9 +46,9 @@ Next, you will need to create a new pipeline to transform the media set to an ob
 4. Create an object type by selecting **Add pipeline output** from the **Pipeline outputs** menu in the right panel. <br><br>
    ![The Add pipeline output option is highlighted.](./images/add-pipeline-output.png) <br><br>
 
-   Select the **Object type** option. <br><br> <img alt="Add object type pipeline output." src="./media/add-pipeline-output-object-type.png" width=400> <br><br>
+   Select the **Object type** option. <br><br> <img alt="Add object type pipeline output." src="./images/add-pipeline-output-object-type.png" width=400> <br><br>
 
-5. Enter a name for the object type, for example `DICOM media set`. You can set the `Media Item Rid` property as the primary key by selecting the three dots to the right of the property and then selecting **Set as primary key**. <br><br> <img alt="DICOM media set file mapping." src="./media/create-dicom-object-type.png" width=400> <br><br>
+5. Enter a name for the object type, for example `DICOM media set`. You can set the `Media Item Rid` property as the primary key by selecting the three dots to the right of the property and then selecting **Set as primary key**. <br><br> <img alt="DICOM media set file mapping." src="./images/create-dicom-object-type.png" width=400> <br><br>
 
 When you are finished, you can [save and deploy the pipeline](/docs/foundry/pipeline-builder/outputs-deliver-pipeline/).
 

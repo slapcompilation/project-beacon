@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/applications-dependencies/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/applications-dependencies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # View application dependencies
 
@@ -12,7 +12,7 @@ Use the graph icon displayed in the top right of every element in the graph when
 
 For example, in the screenshot below, the Dropdown widget named `w_filter2dropdown` depends on data from a query `obsYear`. The value selected in that dropdown in turn feeds two other widgets and a query.
 
-![dependencies-highlight](/docs/resources/foundry/slate/dependencies-highlight.png)
+![dependencies-highlight](./images/dependencies-highlight.png)
 
 You can configure which related nodes are highlighted with the **Highlight** dropdown. Choose from:
 

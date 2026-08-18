@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/loop-layouts/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/loop-layouts/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Loop layouts
 
 This page discusses loop layouts. For an overview of Workshop embedding features, see the [embedding overview page](/docs/foundry/workshop/embedding-workshop-modules-overview/).
 
-<img src="./media/loop_layout_in_layouts_selector.png" alt="Loop layout option outlined in layouts selector" width=300>
+<img src="./images/loop_layout_in_layouts_selector.png" alt="Loop layout option outlined in layouts selector" width=300>
 
 Loop layouts allow you to loop over an object set or array, displaying an embedded module for each object in the set or each entry in the array used as input.
 
@@ -12,7 +12,7 @@ Each embedded module in the loop layout functions independently from other embed
 
 Below is an example of a loop layout to create interactive ticket cards for each object in three object sets (one per column), to create a kanban style application. Each ticket card is an embedded module instance populated with an object from the object set provided to the column's loop layout. In this embedded module, full layout control is available, and the builder can configure exactly what to display, and what actions are available for each object, offering greater flexibility than what is offered by other object set display widgets.
 
-![Three loop layouts used to set up priority triage workflow](/docs/resources/foundry/workshop/loop-layout-in-use.png)
+![Three loop layouts used to set up priority triage workflow](./images/loop-layout-in-use.png)
 
 ## Configuration
 
@@ -20,7 +20,7 @@ Below is an example of a loop layout to create interactive ticket cards for each
 
 ### Loop over an object set
 
-<img src="./media/loop-layout-object-set-configuration.png" alt="Loop layout configuration panel in Workshop with object set option selected." width=400>
+<img src="./images/loop-layout-object-set-configuration.png" alt="Loop layout configuration panel in Workshop with object set option selected." width=400>
 
 #### Object set to loop through
 
@@ -38,7 +38,7 @@ For object sets of a single object type that are not static object sets, a prima
 
 Loop layouts support looping over various array types, including string, Boolean, number, date, timestamp, and [struct](/docs/foundry/workshop/struct-variables/) arrays.
 
-<img src="./media/loop-layout-array-configuration.png" alt="Loop layout configuration panel in Workshop with array option selected." width=400>
+<img src="./images/loop-layout-array-configuration.png" alt="Loop layout configuration panel in Workshop with array option selected." width=400>
 
 #### Array to loop through
 
@@ -64,9 +64,9 @@ The module selected for a loop layout must have a module interface object set va
 
 Embedded modules created using the 'Create New' option will feature a basic module with a preset module interface variable matching the array type or object set and a widget for displaying each entry or item. Looped sections configured to use object sets will feature an [Object Set Title widget](/docs/foundry/workshop/widgets-object-set-title/), while looped sections configured to use arrays will feature a [Markdown widget](/docs/foundry/workshop/widgets-markdown/) to display the value of the array entry. When using an array of structs, the struct-typed module interface variable will contain a [variable transform](/docs/foundry/workshop/variable-transformations/), rendering the fields of each struct entry of the array in the  Markdown widget.
 
-<img src="./media/loop-layout-create-new-module-object-set.png" alt="Default embedded module using 'Create New' option with an object set passed in." width=300>
+<img src="./images/loop-layout-create-new-module-object-set.png" alt="Default embedded module using 'Create New' option with an object set passed in." width=300>
 
-<img src="./media/loop-layout-create-new-module-struct-array.png" alt="Default embedded module using 'Create New' option with an array of structs passed in." width=300>
+<img src="./images/loop-layout-create-new-module-struct-array.png" alt="Default embedded module using 'Create New' option with an array of structs passed in." width=300>
 
 #### Interface variable
 
@@ -89,6 +89,12 @@ This is the same padding configuration offered on other Workshop layouts. The co
 #### Inner border style
 
 If padding is applied to the loop layout, a border style may be selected which will be applied to each instance of the embedded module in the loop layout.
+
+### Performance
+
+#### Delay loading items until shown
+
+Enable this option to render items only when they become visible. This can reduce initial load time for loop layouts with many items or computationally expensive embedded modules.
 
 ## Share variables
 

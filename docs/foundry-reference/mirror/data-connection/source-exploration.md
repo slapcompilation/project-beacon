@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/source-exploration/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/source-exploration/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Source exploration
 
@@ -9,7 +9,7 @@ To access the **Explore** page, follow the steps below:
 1. Navigate to the **Sources** page and click on the name of the source you want to configure.
 2. Select the **Explore** link from the **Explore and Create Syncs** component of the Sync page.
 
-![Database Explorer](/docs/resources/foundry/data-connection/db-explorer.png)
+![Database Explorer](./images/db-explorer.png)
 
 ## Table-based data
 

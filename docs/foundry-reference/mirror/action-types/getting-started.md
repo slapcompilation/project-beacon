@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/getting-started/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Getting started
 
@@ -70,6 +70,10 @@ You will now see the action button on the preview page:
 ![Action button on Preview page](./images/getting_started_preview_page.png)
 
 You can now save and publish the Object View.
+
+:::callout{theme="neutral"}
+Before you apply an action, you can validate its submission criteria, rules, and resulting edits with a [test run](/docs/foundry/action-types/test-run/) in Ontology Manager.
+:::
 
 ## Apply the action
 

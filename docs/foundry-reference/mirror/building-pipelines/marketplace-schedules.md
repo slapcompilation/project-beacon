@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/marketplace-schedules/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/marketplace-schedules/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add schedule to a Marketplace product
 
@@ -21,8 +21,8 @@ To add a schedule to a product, first [create a product](/docs/foundry/foundry-d
 
 If you have not yet added any [pipelines](/docs/foundry/pipeline-builder/marketplace-pipeline-builder/) or [dataset transformations](/docs/foundry/code-repositories/marketplace-dataset-transformation/), you will not have any schedules to select. Given this, we typically recommend adding these resource types first. Once you have added a pipeline or dataset transformation, view the **Datasets** content type to review which datasets will not be built, and schedules you could add to your product to remedy this.
 
-![add highlighted schedule](/docs/resources/foundry/building-pipelines/marketplace-add-highlighted-schedules.png)
+![add highlighted schedule](./images/marketplace-add-highlighted-schedules.png)
 
 Select any relevant schedules to include with your product. If you don't see any schedules, you should [create one with your source datasets](/docs/foundry/building-pipelines/create-schedule/) and then [create a new version of your product](/docs/foundry/foundry-devops/manage-products/).
 
-![add schedule dialog](/docs/resources/foundry/building-pipelines/marketplace-schedule-dialog.png)
+![add schedule dialog](./images/marketplace-schedule-dialog.png)

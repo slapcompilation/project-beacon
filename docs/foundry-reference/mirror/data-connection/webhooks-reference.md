@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/webhooks-reference/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/webhooks-reference/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Configuration reference
 
@@ -37,7 +37,7 @@ Finally, an **Attachment** type may be used to pass a file that has been uploade
 
 An example configuration for a single output parameter called `unique_id` is shown below in the Webhook setup wizard:
 
-<img src="./media/webhooks-output-parameters-example.png" alt="Webhook output parameter for unique identifier returned from external system" width="400" />
+<img src="./images/webhooks-output-parameters-example.png" alt="Webhook output parameter for unique identifier returned from external system" width="400" />
 
 Alternatively, output parameters can also be directly accessed in the Webhook configuration step. An example is shown below where a webhook call uses a value from the response of the previous call. The first webhook call returns a response that looks like this:
 
@@ -51,7 +51,7 @@ Alternatively, output parameters can also be directly accessed in the Webhook co
 
 Configure the second webhook call. In the **Headers** tab, you can create inline references by typing `@` that opens a menu where you can reference values from the response of the previous call.
 
-<img src="./media/webhooks-output-parameters-inline-reference.png" alt="Webhook output parameters configured inline in successive call" width="400" />
+<img src="./images/webhooks-output-parameters-inline-reference.png" alt="Webhook output parameters configured inline in successive call" width="400" />
 
 Choose **From a call** and select the previous call that has the response to parse. There are three options available to extract the necessary value from the response:
 
@@ -61,11 +61,11 @@ Choose **From a call** and select the previous call that has the response to par
 
 As in the example below, select **Extract by key** and configure the keys: `results` followed by `unique_id` using the **Add nested key** option.
 
-<img src="./media/webhooks-output-parameters-configuring-nested-params.png" alt="Nested params configured in webhooks output configuration" width="400" />
+<img src="./images/webhooks-output-parameters-configuring-nested-params.png" alt="Nested params configured in webhooks output configuration" width="400" />
 
 Select **Add** and you will be able to see the reference displayed in the header value field.
 
-<img src="./media/webhooks-output-parameters-inline-reference-display.png" alt="Output of webhook inline reference configuration." width="400" />
+<img src="./images/webhooks-output-parameters-inline-reference-display.png" alt="Output of webhook inline reference configuration." width="400" />
 
 The output parameters that are captured depend on the task type you are using.
 
@@ -79,7 +79,7 @@ For convenience, the result of a Webhook task is automatically converted into an
 
 Output parameters may be configured using a response received from a request made via the "Test Connection" side panel. Once a successful test request has been made, suggested outputs parsed from the response will be automatically displayed when adding a new output parameter.
 
-<img src="./media/webhooks-output-parameters-from-test-connection.png" alt="Webhook output parameters automatically provided based on test response" width="400" />
+<img src="./images/webhooks-output-parameters-from-test-connection.png" alt="Webhook output parameters automatically provided based on test response" width="400" />
 
 ### Task body
 
@@ -308,7 +308,7 @@ In the example below, we use `"@{createAccount.id}"` to refer to the ID of the r
 
 ### SAP
 
-For SAP-specific webhook configuration, see the webhooks section of the [SAP ERP](/docs/foundry/available-connectors/sap-erp/#webhooks) connector documentation. We recommend running SAP webhooks on a [Foundry worker](/docs/foundry/data-connection/core-concepts/#foundry-worker) in Foundry-managed cloud compute.
+For SAP-specific webhook configuration, see the webhooks section of the [SAP ERP](/docs/foundry/available-connectors/sap-erp/#webhooks) connector documentation. For legacy integrations using custom YAML-based sources, see [SAP (Custom source)](/docs/foundry/available-connectors/sap-custom-source/#webhooks). We recommend running SAP webhooks on a [Foundry worker](/docs/foundry/data-connection/core-concepts/#foundry-worker) in Foundry-managed cloud compute.
 
 ## Limits
 
@@ -346,7 +346,7 @@ Learn more about [Data Connection permissions](/docs/foundry/data-connection/per
 
 The webhook history displays a timeline of when webhooks were triggered. The history metadata will always include the user ID who triggered the webhook, a timestamp, and the success or failure status of the execution, as shown below:
 
-![Webhooks history view showing a single successful webhook execution with input parameter and parsed response](/docs/resources/foundry/data-connection/webhooks-history-view.png)
+![Webhooks history view showing a single successful webhook execution with input parameter and parsed response](./images/webhooks-history-view.png)
 
 By default, inputs passed to the webhook and the full response will only be visible to the user who called the webhook. This protects any sensitive data passed in or returned from the webhook call. The `webhooks:read-privileged-data` permission will allow access to the full history, and is not granted to any users by default. A custom role with this permission is required to access the full history for a webhook.
 
@@ -363,6 +363,24 @@ This option may be disabled entirely for a webhook that is known to return sensi
 ### Authorization code grant
 
 Palantir Webhooks support calling endpoints using an OAuth 2.0 authorization code grant flow. This requires using an [outbound application](/docs/foundry/administration/configure-outbound-applications/) to define the interaction with the OAuth 2.0 server. Once configured, an outbound application may be used as the authentication for a REST API Webhook and will prompt individual users to authenticate with the OAuth server when attempting to execute the Webhook.
+
+#### Troubleshoot authorization code grant
+
+If you encounter errors when using an outbound application with authorization code grant, check the following common issues.
+
+**"The client is not authorized to request an authorization code"**
+
+This error indicates that the third-party application is not configured to use the authorization code flow. In the Developer Console, ensure that the **Authorization code grant** is enabled for the third-party application.
+
+**"The provided redirect URI is not an allowed redirect URI"**
+
+This error occurs when the redirect URI configured in the authorization code grant settings does not match the redirect URI expected by the outbound application. Set the redirect URL in the authorization code grant configuration to exactly match the outbound application's redirect page URL:
+
+```
+https://<your-enrollment>.palantirfoundry.com/workspace/oauth2-clients/callback
+```
+
+Once the redirect URL in the authorization code grant block matches the outbound application's redirect page URL, the authorization code request will succeed.
 
 ### Client credentials grant
 
@@ -390,7 +408,7 @@ When configuring the source, add both the **OAuth 2.0 server domain** and the **
 
 In the section for **Additional secrets**, add a new secret and enter the **ClientSecret** that will be included when making requests to the token endpoint. We will reference this value when constructing our Webhook call; when entered here, the `ClientSecret` will be encrypted and never exposed, even to other editors or owners of the source in Foundry.
 
-![A completed example REST API source configuration for doing an OAuth 2.0 client credentials workflow.](/docs/resources/foundry/data-connection/webhooks-client-credentials-source-configuration.png)
+![A completed example REST API source configuration for doing an OAuth 2.0 client credentials workflow.](./images/webhooks-client-credentials-source-configuration.png)
 
 #### Build a Webhook that performs the client credentials handshake
 
@@ -403,7 +421,7 @@ The Webhook will consist of two chained calls:
 
 An example of how to configure the first call is shown below:
 
-![An example webhook call configuration showing the first call to the token endpoint.](/docs/resources/foundry/data-connection/webhooks-client-credentials-token-endpoint-call.png)
+![An example webhook call configuration showing the first call to the token endpoint.](./images/webhooks-client-credentials-token-endpoint-call.png)
 
 :::callout{theme="neutral"}
 The parameters shown above in the call to the **token endpoint** are standard for many systems that use OAuth 2.0. However, the names of the fields may vary, and other fields may be required. Consult the documentation of the system you are connecting to and construct a request that is compatible with the token endpoint provided by that system.
@@ -415,12 +433,12 @@ In the second call, build the desired request using the available configuration 
 
 An example of how to select the bearer token from the first call is shown in the screenshot below:
 
-![The parameter input dialog showing how to select the access token returned from the first call in order to reference it in the header of the second call.](/docs/resources/foundry/data-connection/webhooks-client-credentials-extract-access-token.png)
+![The parameter input dialog showing how to select the access token returned from the first call in order to reference it in the header of the second call.](./images/webhooks-client-credentials-extract-access-token.png)
 
 Once configured, your completed Webhook with two chained calls should look similar to this example:
 
-![A completed example REST API webhook configuration for doing an OAuth 2.0 client credentials workflow.](/docs/resources/foundry/data-connection/webhooks-client-credentials-completed-webhook-configuration.png)
+![A completed example REST API webhook configuration for doing an OAuth 2.0 client credentials workflow.](./images/webhooks-client-credentials-completed-webhook-configuration.png)
 
 Finally, we highly recommended disabling storing full responses from the first call of the Webhook. If responses are stored, the bearer tokens contained in them may be visible to other users with permission to view full Webhook history. An automatic prompt will usually appear on the **Storage and retention** page of the Webhook configuration to disable storing history for requests to a token endpoint, as shown below:
 
-![The storage and retention options for a fully configured Webhook, including a warning pop-up suggesting to avoid storing the response of the call to the token endpoint.](/docs/resources/foundry/data-connection/webhooks-client-credentials-do-not-store-full-response.png)
+![The storage and retention options for a fully configured Webhook, including a warning pop-up suggesting to avoid storing the response of the call to the token endpoint.](./images/webhooks-client-credentials-do-not-store-full-response.png)

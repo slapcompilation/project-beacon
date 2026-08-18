@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/troubleshooting/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/troubleshooting/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Troubleshooting
 
@@ -45,7 +45,7 @@ A terminal, using the same connectivity settings as your source, is available to
 
 To open the terminal, select **Debug** in the **Network connectivity** panel under **Connection details** on the source page.
 
-![The source terminal is accessible by selecting Debug in the Network connectivity panel under Connection details on the source page.](/docs/resources/foundry/data-connection/source-terminal.png)
+![The source terminal is accessible by selecting Debug in the Network connectivity panel under Connection details on the source page.](./images/source-terminal.png)
 
 #### `dig`
 

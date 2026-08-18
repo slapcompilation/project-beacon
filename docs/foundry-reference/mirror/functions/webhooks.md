@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/functions/webhooks/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/functions/webhooks/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Webhooks in functions
 
@@ -24,13 +24,13 @@ Before following this guide, make sure you already created a functions repositor
 
 You must first enable the source to be imported into Code Repositories. To do this, go to the **Enable code imports** menu for your REST API source and enable the option to allow the source to be imported into Code Repositories. Since it is not possible to perform exportable Marking validations in all workflows where functions are used, you must also enable exports to the source without Marking validations in the **Enable exports** menu for each source.
 
-![Code import configuration.](/docs/resources/foundry/functions/source-code-import-configuration.png)
+![Code import configuration.](./images/source-code-import-configuration.png)
 
-![Export configuration.](/docs/resources/foundry/functions/source-export-configuration.png)
+![Export configuration.](./images/source-export-configuration.png)
 
 Next, to use a webhook in functions, the backing REST API source of the webhook must first be imported into the repository. Select the [**Resource imports** left-side panel](/docs/foundry/functions/resource-imports-sidebar/) to view the sources imported into the repository. Select **Add > Sources** to display a search dialog where you may select the source you want to import. Only sources with API names may be imported through this dialog.
 
-![External functions source import modal showing a specific source selected for import](/docs/resources/foundry/functions/external-functions-source-import-modal.png)
+![External functions source import modal showing a specific source selected for import](./images/external-functions-source-import-modal.png)
 
 :::callout{theme="neutral"}
 Source imports into Function repositories for webhook usage work differently than source imports to Python transforms repositories and compute modules. Function repositories that utilize a given source only for webhook usage will *not* be displayed in the list of repositories shown on the source overview. Any user with `Viewer` access to a source will be able to import and use those webhooks in external functions.
@@ -47,7 +47,7 @@ import { MyDictionarySource } from "@foundry/external-systems/sources";
 
 If you get the error `Cannot find module '@foundry/external-systems' or its corresponding type declarations.`, ensure the value for `enableExternalSystems` is set to `true` in the `functions-typescript/functions.json` file. Once you update it and commit the changes, the system should install the necessary packages, including `@foundry/external-systems`.
 
-![External functions import error message.](/docs/resources/foundry/functions/external-functions-import-error-message.png)
+![External functions import error message.](./images/external-functions-import-error-message.png)
 
 ### Example: Make multiple calls from a Function
 
@@ -231,7 +231,7 @@ Functions and webhooks have versions, and callers may invoke any version of a Fu
 
 When a functions repository is opened in the [Code Repositories](/docs/foundry/code-repositories/overview/) application, the generated code bindings used for autocomplete will always use the most recent version of the webhook. This webhook version is displayed in the **Resource imports** side panel to the left.
 
-![Resource import side panel in a functions repository, showing a source with a single webhook.](/docs/resources/foundry/functions/external-functions-import-sidebar.png)
+![Resource import side panel in a functions repository, showing a source with a single webhook.](./images/external-functions-import-sidebar.png)
 
 :::callout{theme="warning"}
 Make sure your webhook is stable before publishing functions that rely on its functionality.
@@ -257,6 +257,7 @@ Use the following platform tools to gain more insight into webhook executions fr
 
 * [Webhook execution history](/docs/foundry/data-connection/webhooks-reference/#webhook-history), which is available in the **History** tab when viewing a single webhook in [Data Connection](/docs/foundry/data-connection/overview/).
 * The Function usage history, available in [Ontology Manager](/docs/foundry/ontology-manager/overview/), shows a history of when functions were executed including the inputs, outputs, and user that triggered the Function.
+* [Function metrics](/docs/foundry/functions/function-metrics/), which display near real-time success/failure counts and P95 execution duration for your functions.
 * [Code authoring preview for functions](/docs/foundry/functions/foo-getting-started/#test-in-live-preview), which provides performance profiling, debug output, and more.
 
 ## Best practices

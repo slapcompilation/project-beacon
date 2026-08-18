@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-search-anomalies/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/timeseries-search-anomalies/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Search time series for anomalies
 
@@ -19,7 +19,7 @@ Assume that a temperature drop below 20 degrees Fahrenheit at the JFK airport is
 1. Select the `JFK Temperature` plot as the **Source Time Series** for the threshold condition.
 2. Set the threshold operator to less than `<` and the threshold value to `20`.
 
-![Basic threshold search](/docs/resources/foundry/quiver/resource-search-anomalies-basic-threshold.gif)
+![Basic threshold search](./images/resource-search-anomalies-basic-threshold.gif)
 
 ### Use time series as threshold
 
@@ -29,7 +29,7 @@ Quiver enables you to easily compare time series by using one time series as a t
 2. Set the threshold operator to greater than `>`.
 3. Select the `JFK Temperature` plot as the **Numeric Time Series** used as the threshold.
 
-![Time series as threshold](/docs/resources/foundry/quiver/resource-search-anomalies-timeseries-threshold.gif)
+![Time series as threshold](./images/resource-search-anomalies-timeseries-threshold.gif)
 
 ### Bounded time series search
 
@@ -39,7 +39,7 @@ Quiver also provides the ability to compare a source time series against a *boun
 2. Add a time series search card to your analysis and change the search type to `Bounded`.
 3. Select the `JFK Temperature` plot as the source **Time series** and the Bollinger bands card created in the first step as the **Bounded time series**.
 
-![Bounded time series search](/docs/resources/foundry/quiver/resource-search-anomalies-bounded.gif)
+![Bounded time series search](./images/resource-search-anomalies-bounded.gif)
 
 ### Custom formula search
 
@@ -48,7 +48,7 @@ If you need to perform more complex searches than are possible with the other se
 1. Add a time series search card to your analysis and change the search type to `Formula`.
 2. Input a formula that references the `JFK Temperature` and `LGA Temperature` plots. If you enter `$` in the conditions text box, you will be shown a list of available time series and parameters in your analysis. Select the `JFK Temperature` and `LGA Temperature` plots, which are substituted for their identifiers `$B` and `$E`, respectively. You can then write the [formula](/docs/foundry/quiver/cards-formula-syntax/) as `$B > $E + 1` and **Apply** the formula to run the search.
 
-![Formula search](/docs/resources/foundry/quiver/resource-search-anomalies-formula.gif)
+![Formula search](./images/resource-search-anomalies-formula.gif)
 
 ## Multi time series search
 
@@ -58,7 +58,7 @@ You can also use Quiver to find periods of interest across multiple time series;
 2. Hover over the transform table to access its next actions menu and select **Visualize** > **Time series search**.
 3. Input a formula that references the temperature property for each weather station in the transform table. If you type `@` in the conditions text box, you will be shown a list of available properties. Select the `Temperature` property, which is substituted for its identifier `@tdp_temp`. Then, write the [formula](/docs/foundry/quiver/cards-formula-syntax/) as `@tdp_temp > 80` and **Apply** the formula to run the search.
 
-![Multi time series search](/docs/resources/foundry/quiver/resource-search-anomalies-multi-formula.gif)
+![Multi time series search](./images/resource-search-anomalies-multi-formula.gif)
 
 ## Convert to automation
 
@@ -72,4 +72,4 @@ There are some restrictions on creating an Automation from a time series search 
 
 For more information on the [requirements](/docs/foundry/time-series/alerting-overview/#requirements) for creating time series alerts and how to use them, see [time series alerting](/docs/foundry/time-series/alerting-overview/).
 
-![Convert to automation](/docs/resources/foundry/quiver/resource-search-anomalies-create-automation.gif)
+![Convert to automation](./images/resource-search-anomalies-create-automation.gif)

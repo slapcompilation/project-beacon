@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-publish-share/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/dashboards-publish-share/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Publish and share a dashboard
 
@@ -6,17 +6,17 @@
 
 To preview a read-only version of your dashboard, select the **Preview** button in the top toolbar.
 
-<img alt="Preview button" src="./media/preview-button.png" width="300px">
+<img alt="Preview button" src="./images/preview-button.png" width="300px">
 
 Once in preview mode, you can interact with your dashboard as an end user would. You can also change the inputs you defined to see those changes would impact the view. Use the **Exit preview** button to go back to dashboard editing mode.
 
-<img alt="Preview mode buttons" src="./media/preview-mode-buttons.png" width="300px">
+<img alt="Preview mode buttons" src="./images/preview-mode-buttons.png" width="300px">
 
 ## Publish your dashboard
 
 Once you finish editing your dashboard, you need to publish it to share it with other users. This will create a separate Foundry resource backed by your Quiver analysis. Publishing your dashboard will both create the resource and save the analysis.
 
-<img alt="Publish button" src="./media/publish-button.png" width="300px">
+<img alt="Publish button" src="./images/publish-button.png" width="300px">
 
 To publish, use the **Publish** button in the top toolbar. You will be prompted to select a location in Foundry in which to save your dashboard.
 

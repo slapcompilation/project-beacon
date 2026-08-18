@@ -19,7 +19,7 @@ stay findable.
 ---
 
 
-**2807 pages across 101 sections.**
+**2825 pages across 101 sections.**
 
 ## action-types — 37 pages
 
@@ -905,7 +905,7 @@ stay findable.
 - `workbench-graph` — Dependency graph view
 - `workbench-kanban` — Kanban board view
 
-## building-pipelines — 41 pages
+## building-pipelines — 45 pages
 
 - `_index` — Building pipelines
 - `branching-release-process` — Branching and release process
@@ -918,8 +918,11 @@ stay findable.
 - `create-batch-pipeline-cr-media-sets` — Create a media set batch pipeline with Code Repositories
 - `create-batch-pipeline-pb` — Create a dataset batch pipeline with Pipeline Builder
 - `create-batch-pipeline-pb-media-set` — Create a media set batch pipeline with Pipeline Builder
+- `create-external-pipeline-pb` — External pipelines in Pipeline Builder
+- `create-faster-pipeline-pb` — Faster pipelines in Pipeline Builder
 - `create-incremental-pipeline-pb` — Create an incremental pipeline with Pipeline Builder
 - `create-incremental-syncs` — Creating incremental syncs
+- `create-lightweight-pipeline-pb` — Faster pipelines in Pipeline Builder
 - `create-schedule` — Create a schedule
 - `create-stream-pipeline-pb` — Create a streaming pipeline with Pipeline Builder
 - `development-best-practices` — Development best practices
@@ -930,6 +933,7 @@ stay findable.
 - `maintaining-incremental-performance` — Maintaining high performance
 - `marketplace-schedules` — Add schedule to a Marketplace product
 - `overview` — Building pipelines
+- `parameterization` — Parameterization \[Beta]
 - `pipeline-types` — Types of pipelines
 - `recommended-project-structure` — Recommended project and team structure
 - `remove-inherited-markings` — Remove inherited Markings and Organizations
@@ -1328,7 +1332,7 @@ stay findable.
 - `language-models-legacy` — Legacy language models within functions
 - `language-models-python-tsv2` — Language models in TypeScript v2 and Python functions
 - `manage-functions` — Manage published functions
-- `marketplace-functions` — Add functions to a Marketplace product
+- `marketplace-functions` — Functions in Marketplace
 - `media` — Media
 - `model-aliases` — Model aliases
 - `monitoring` — Function monitoring
@@ -2226,7 +2230,7 @@ stay findable.
 - `unicodeNormalizeV1` — Unicode normalize
 - `uniformRandomV1` — Uniform random number
 
-## pipeline-builder — 52 pages
+## pipeline-builder — 65 pages
 
 - `_index` — Pipeline Builder
 - `branches-approve-a-change` — Approve a change
@@ -2236,6 +2240,7 @@ stay findable.
 - `branches-propose-a-change` — Propose a change
 - `branches-protected-branches` — Branch protection
 - `breaking-changes` — Breaking changes
+- `compute-profile-permissions` — Configure compute profile permissions
 - `core-concepts` — Core concepts
 - `dataexpectations-configure-health-check` — Configure data health checks
 - `dataexpectations-overview` — Data expectations
@@ -2245,23 +2250,30 @@ stay findable.
 - `datasets-generated` — Automatically generate input data
 - `datasets-overview` — Datasets
 - `datasets-sources` — Configure sources and data syncs within Pipeline Builder
+- `evaluation-suite` — LLM evaluation suite in Pipeline Builder
 - `export-pipeline` — Export pipeline code
 - `functions-index` — Functions index
 - `management-build-settings` — Build settings
+- `management-charts` — Charts in Pipeline Builder
 - `management-checkpoints` — Checkpoints
 - `management-color-groups` — Color groups
 - `management-create-custom-functions` — Custom functions
 - `management-file-tree` — Folders in Pipeline Builder
+- `management-find-and-replace` — Find and replace in Pipeline Builder
 - `management-input-sampling` — Add an input sampling strategy
 - `management-job-groups` — Job groups
 - `management-overview` — Pipeline management
 - `management-parameter-overview` — Parameters
 - `management-show-hide-nodes` — Show and hide nodes
+- `management-text-nodes` — Text nodes
 - `marketplace-pipeline-builder` — Add pipeline to a Marketplace product
 - `navigation` — Navigation
+- `null-handling` — Null handling
 - `outputs-add-dataset-output` — Add a dataset output
 - `outputs-add-geotemporal-series-output` — Add a geotemporal series output
+- `outputs-add-media-set-output` — Add a media set output
 - `outputs-add-ontology-output` — Add an Ontology output
+- `outputs-add-virtual-table-output` — Add a virtual table output
 - `outputs-deliver-pipeline` — Deliver pipeline
 - `outputs-overview` — Outputs
 - `outputs-preview-pipeline` — Preview pipeline
@@ -2272,12 +2284,17 @@ stay findable.
 - `schedules-create-schedule` — Create a schedule
 - `schedules-overview` — Schedules
 - `schedules-scheduler-aip` — AIP feature in Scheduler
+- `subgraphs` — Subgraphs in Pipeline Builder
+- `tips-and-tricks` — Pipeline Builder tips and tricks
 - `transforms-geospatial` — Create geospatial transforms
 - `transforms-join-data` — Join data
 - `transforms-overview` — Transforms
 - `transforms-pattern-mining` — Frequent pattern mining
+- `transforms-split` — Split transform
 - `transforms-streaming-joins` — Joins in streaming Pipeline Builder pipelines
+- `transforms-trained-model` — Trained model node
 - `transforms-transform-data` — Transform data
+- `transforms-transform-media` — Transform media
 - `transforms-union-data` — Union data
 - `unique-id-creation` — Create unique IDs in Pipeline Builder
 
@@ -3007,7 +3024,7 @@ stay findable.
 - `overview` — Workflow Lineage
 - `refactor-and-understand-workflows` — Perform refactors and understand your workflows
 
-## workshop — 121 pages
+## workshop — 122 pages
 
 - `_index` — Workshop
 - `actions-overview` — Actions
@@ -3017,6 +3034,7 @@ stay findable.
 - `application-design-faqs` — Application design frequently asked questions
 - `auto-refresh` — Auto-refresh in Workshop
 - `branching-integration` — Branching Workshop modules
+- `branching-rebasing` — Branching Workshop modules
 - `changelog` — Changelog panel in Workshop
 - `commands` — Commands
 - `concepts-events` — Events

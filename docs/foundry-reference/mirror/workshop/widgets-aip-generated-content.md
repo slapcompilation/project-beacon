@@ -1,10 +1,14 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-aip-generated-content/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-aip-generated-content/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # AIP Generated Content
 
 The AIP Generated Content widget can display the response from an [AIP Logic](/docs/foundry/logic/overview/) function or visually stream the response from an LLM (similar to the [Stream LLM response into variable event](/docs/foundry/workshop/concepts-events/#stream-llm-response-into-variable)).
 
-![Add the AIP generated content widget to your Workshop page with the available widget options.](/docs/resources/foundry/workshop/aip-generated-content-base.png)
+:::callout{theme="warning"}
+Users must be able to access AIP Logic to use this widget. Otherwise, they receive the error `Could not find widget with type: oa-aip-generated-content`. Ensure that every user who needs a Workshop module containing this widget can view the AIP Logic application.
+:::
+
+![Add the AIP generated content widget to your Workshop page with the available widget options.](./images/aip-generated-content-base.png)
 
 ## Configuration options
 
@@ -31,4 +35,4 @@ The AIP Generated Content widget has the following three options for generating 
 
 The following example shows what the AIP Generated Content widget looks like when displaying a string response:
 
-![The AIP generated content widget displaying a response from logic regarding a flight alert.](/docs/resources/foundry/workshop/aip-generated-content-response.png)
+![The AIP generated content widget displaying a response from logic regarding a flight alert.](./images/aip-generated-content-response.png)

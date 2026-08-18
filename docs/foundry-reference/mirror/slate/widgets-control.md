@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/slate/widgets-control/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/slate/widgets-control/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Control
 
@@ -81,6 +81,7 @@ The following tables offer usage details about the properties available to Dropd
 |Attribute	|Description	|Type	|Required	|Changed By	|
 |---	|---	|---	|---	|---	|
 |disabled	|Specifies whether the user can interact with the widget. Defaults to false. Values are typically templated expressions that produce booleans (e.g. “{{w1.on}}”).	|boolean	|Yes	|Direct Edit	|
+|defaultPosition	|Specifies whether the dropdown should default to the top or bottom of the widget when opened. Valid values are “top” and “bottom”.	|string	|No	|Direct Edit	|
 |fuzzySearchEnabled	|Toggle fuzzy matching for search.	|boolean	|Yes	|Direct Edit	|
 |displayValues	|The values displayed in the dropdown. If not specified, ‘values’ will be used.	|any\[]	|No	|Direct Edit	|
 |groups	|The group in which corresponding ‘values’ entries will be displayed.	|any\[]	|No	|Direct Edit	|

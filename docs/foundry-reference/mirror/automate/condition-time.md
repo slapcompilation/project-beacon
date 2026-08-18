@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/condition-time/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/condition-time/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time condition
 
@@ -37,7 +37,7 @@ A natural language preview of your schedule will appear after entering the expre
 
 For reference, a list of example cron expressions is shown below:
 
-| Cron string | Meaning |
+| Cron string | Meaning |
 |-----|-----|
 | `0 * * * *` | Every hour on the hour |
 | `0 0 1 1 *` | At midnight on the first day of every year |
@@ -47,3 +47,14 @@ For reference, a list of example cron expressions is shown below:
 | `0 9 1 3,7,10,12 *` | At 09:00 AM, on the first day of the month, in March, July, October, and December |
 | `0 9 * * 1#1` | At 09:00 AM, on the first Monday of the month |
 | `0 9 * * 5L` | At 09:00 AM, on the last Friday of the month |
+
+### Multiple cron schedules
+
+You can add multiple cron expressions to a single time condition to define more complex scheduling patterns. When using advanced cron mode, select the option to add additional cron expressions.
+
+Requirements for multiple cron schedules:
+
+* Each cron expression must be non-overlapping with the others
+* All expressions must individually meet the cron expression requirements listed above
+
+For example, use `0 9 1,15 * *` to execute at 9:00 AM on the first and fifteenth of every month. Add `0 10 * * 5` to execute at 10:00 AM every Friday. Using different times prevents the schedules from overlapping when the first or fifteenth falls on a Friday.

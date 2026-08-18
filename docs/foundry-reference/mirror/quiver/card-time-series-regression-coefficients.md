@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-regression-coefficients/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-time-series-regression-coefficients/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Time series regression coefficients
 
@@ -14,7 +14,7 @@ Number array
 
 ## Examples
 
-![Time series regression coefficients example](/docs/resources/foundry/quiver/card-ts-regression-coefficients.png)
+![Time series regression coefficients example](./images/card-ts-regression-coefficients.png)
 
 ## Usage information
 
@@ -25,4 +25,5 @@ Number array
 
 ## See also
 
-[Time series regression](/docs/foundry/quiver/card-time-series-regression/)
+* [Time series regression](/docs/foundry/quiver/card-time-series-regression/)
+* [Scatter plot regression coefficients](/docs/foundry/quiver/card-scatter-plot-regression-coefficients/)

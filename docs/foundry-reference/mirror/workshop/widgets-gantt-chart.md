@@ -1,10 +1,10 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/widgets-gantt-chart/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/widgets-gantt-chart/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Gantt Chart
 
 Use the **Gantt Chart** widget to display objects as timed events in an interactive Gantt chart view to help with scheduling or resource allocation workflows.
 
-![Example use of the Gantt Chart widget in Workshop, showing flight alert events on a timeline.](/docs/resources/foundry/workshop/widgets-gantt-chart.png)
+![Example use of the Gantt Chart widget in Workshop, showing flight alert events on a timeline.](./images/widgets-gantt-chart.png)
 
 ## Configuration options
 

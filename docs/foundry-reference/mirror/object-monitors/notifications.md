@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/notifications/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/notifications/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Notifications
 
@@ -6,11 +6,11 @@ Subscribers to an object monitor may choose to receive notifications when there 
 
 Notifications are enabled by default for all subscribers but may be disabled for individual subscribers. To disable notifications, click the bell icon in the **Subscribers** tab when configuring or editing a monitor in the Object Monitors application.
 
-![Disable notifications in Subscribers tab](/docs/resources/foundry/object-monitors/monitor_subscriber_notifications_configuration.png)
+![Disable notifications in Subscribers tab](./images/monitor_subscriber_notifications_configuration.png)
 
 Individual users may also configure how they wish to receive notifications from Object Monitors. You can configure notifications in the **Notification** tab of the monitor configuration modal, and preferences apply globally for any monitors to which that user is subscribed.
 
-![Configure notification settings](/docs/resources/foundry/object-monitors/monitor_notifications_settings.png)
+![Configure notification settings](./images/monitor_notifications_settings.png)
 
 | Category      | Activity types          |
 | ------------- | ----------------------- |
@@ -27,7 +27,7 @@ The notifications emitted for [monitor triggered](/docs/foundry/object-monitors/
 
 When using templated rendering, the custom content (including subject, body, link label, and link destination) is shown directly in the provided form. HTML can also be used in the advanced email configuration if desired. A preview of the in-platform and email notifications can be seen on the right side of the form.
 
-![monitor\_custom\_notifications\_templated](/docs/resources/foundry/object-monitors/monitor_custom_notifications_templated.png)
+![monitor\_custom\_notifications\_templated](./images/monitor_custom_notifications_templated.png)
 
 ### Function-backed rendering
 

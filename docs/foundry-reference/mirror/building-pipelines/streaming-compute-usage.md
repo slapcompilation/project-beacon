@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/building-pipelines/streaming-compute-usage/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/building-pipelines/streaming-compute-usage/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Compute usage with Foundry Streaming
 
@@ -46,7 +46,7 @@ Archiving job usage is based on a single Spark driver and can be calculated with
 
 To view the total usage of streams, first navigate to the [Resource Management application](/docs/foundry/resource-management/overview/). Then, find your stream under the **Usage by resource** section and select **Details** to view usage by individual dataset.
 
-![streaming-compute-usage](/docs/resources/foundry/building-pipelines/stream-compute-usage.png)
+![streaming-compute-usage](./images/stream-compute-usage.png)
 
 The cost of a stream is attributed to the checkpoint dataset that the stream produces. This dataset serves as the permanent usage record of the processing of that stream. The streaming usage on this dataset falls under the “streaming” category in the Resource Management application.
 

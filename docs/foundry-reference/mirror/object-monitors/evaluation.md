@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/evaluation/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/evaluation/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Evaluation
 
@@ -48,4 +48,4 @@ Object monitors that cannot be evaluated in realtime are evaluated using a polli
 
 Non-realtime object monitors may also be evaluated manually from the Object Explorer interface. This option is primarily intended for testing when setting up non-realtime monitors.
 
-![Manual evaluation button in Object Explorer](/docs/resources/foundry/object-monitors/manual_evaluation_button.png)
+![Manual evaluation button in Object Explorer](./images/manual_evaluation_button.png)

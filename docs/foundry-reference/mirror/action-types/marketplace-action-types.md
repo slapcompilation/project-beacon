@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/action-types/marketplace-action-types/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/action-types/marketplace-action-types/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add action types to Marketplace product
 
@@ -12,12 +12,12 @@ Most action type features are supported, except actions that reference [object t
 
 To add an action type to a product, first [create a product](/docs/foundry/foundry-devops/create-products/) and then select the **Action type** content type as below.
 
-![Add action type.](/docs/resources/foundry/action-types/marketplace-add-action-type.png)
+![Add action type.](./images/marketplace-add-action-type.png)
 
 You will then be prompted to choose an action type.
 
-![Add action type dialogue.](/docs/resources/foundry/action-types/marketplace-add-action-type-dialog.png)
+![Add action type dialogue.](./images/marketplace-add-action-type-dialog.png)
 
 While you can select action types directly, we recommend first adding content like [Workshop applications](/docs/foundry/workshop/marketplace-workshop/) and then selecting relevant actions via the dependencies panel as shown below.
 
-![Add action type via panel.](/docs/resources/foundry/action-types/marketplace-add-action-type-panel.png)
+![Add action type via panel.](./images/marketplace-add-action-type-panel.png)

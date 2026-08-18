@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/sources-in-python/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/sources-in-python/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Sources in Python environments
 
@@ -18,7 +18,7 @@ If you attempt to create a connection with an invalid source connection configur
 
 To find out how many connections your source has, refer to the source's sidebar panel in the `External connection` section of your given environment, as seen in the example below:
 
-![Source connections displayed on the Foundry code resource sidebar](/docs/resources/foundry/data-connection/source-connections-sidebar.png)
+![Source connections displayed on the Foundry code resource sidebar](./images/source-connections-sidebar.png)
 :::
 
 ```python

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-ontology-sql/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-ontology-sql/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Ontology SQL
 
@@ -7,6 +7,8 @@ Ontology SQL is in the [beta](/docs/foundry/platform-overview/development-life-c
 :::
 
 The Ontology SQL card allows you to write SQL queries against [object sets](/docs/foundry/quiver/objects-overview/) in your analysis. Using standard SQL syntax, you can select, filter, join, and aggregate object data to produce tabular results directly in Quiver.
+
+The Ontology SQL card is the recommended approach for writing SQL against object sets. For cases when Ontology SQL is not suitable, such as for certain unsupported operations, consider using the [Materialization SQL](/docs/foundry/quiver/card-materialization-sql/) card as a fallback.
 
 The Ontology SQL card accepts object sets and other Ontology SQL cards as inputs. Object set inputs are referenced in your SQL query as tables, while other Ontology SQL cards can be chained together to compose more complex queries. You can also pass scalar values such as dates, numbers, strings, and booleans as inputs to parameterize your queries.
 
@@ -35,3 +37,5 @@ Ontology SQL
 
 * [Ontology SQL reference](/docs/foundry/sql-warehousing/ontology-sql/)
 * [Transform table](/docs/foundry/quiver/card-transform-table/)
+* [Materialization SQL](/docs/foundry/quiver/card-materialization-sql/)
+* [Ontology SQL functions](/docs/foundry/sql-warehousing/sql-functions/)

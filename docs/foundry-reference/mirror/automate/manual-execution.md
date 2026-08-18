@@ -1,8 +1,12 @@
-<!-- source: https://palantir.com/docs/foundry/automate/manual-execution/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/manual-execution/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Manual execution
 
 You can manually run automations on existing object sets. This is useful for backfilling data or testing automations before a wider release.
+
+:::callout{theme="neutral"}
+You can manually execute paused automations. When you use **Run Now**, a warning confirms that scheduled and live triggers remain disabled. Expired, trashed, and otherwise disabled automations continue to block all execution.
+:::
 
 Manual executions are considered run by the user who selects **Execute** in the Automate interface. Users must have Compass edit permissions on the Automate resource to manually execute an automation.
 
@@ -16,10 +20,10 @@ When an automation is manually executed, configured effects for that automation 
 
 Large backlogs may cause snapshot expiration errors during manual execution. To work around this, use a function-backed object set to process the backlog in manageable batches:
 
-1. Create a function that returns the oldest N objects needing processing (for example, `oldestNObjectsWithBlankField(int count)` that returns objects ordered by last edited timestamp with a limit).
+1. Create a function that returns the oldest `N` objects that require processing. For example, `oldestNObjectsWithBlankField(int count)` returns objects ordered by last edited timestamp with a limit.
 2. Configure your automation to use a function-generated object set that calls this function.
 3. Manually execute the automation repeatedly with a reasonable batch size, waiting for each execution to complete.
-4. Continue manual executions until the backlog is reduced below the limit (typically <100K objects).
+4. Continue manual executions until the backlog contains fewer than 100,000 objects.
 5. Once the backlog is manageable, your regular condition-based automation can process new objects as they arrive.
 
 ## Execution settings
@@ -38,6 +42,13 @@ Execution settings expose a number of configurable parameters:
 
 * **Parallelism:** Parallelism specifies how many batches should run in parallel. A higher number leads to faster execution.
 
-* **Recipients:** Manual execution supports sending notifications to all users. <br><br> <img src="./images/manual-execution-recipients.png" alt="Manual execution recipients" width="600">
+* **Recipients:** Manual execution supports sending notifications to all users. <br><br> <img src="./images/manual-execution-recipients.png" alt="The recipient settings for a manual execution." width="600">
 
   When a manual execution is triggered, the object set is evaluated using the token of the user who initiated the execution. This ensures that the evaluation respects permissions and access rights of the executing user.
+
+## Monitoring execution results
+
+After running a manual execution, you can inspect the execution results in the event history. The following observability features are available when viewing an effect execution:
+
+* **Flame chart:** View execution flow across functions, actions, and language models. Use timing and batch relationship information to monitor parallelism and identify failures.
+* **Service logs:** Review token usage, log messages, errors, and traces.

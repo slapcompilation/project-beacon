@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/object-monitors/condition/ · mirrored 2026-07-23 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/object-monitors/condition/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Condition
 
@@ -12,11 +12,11 @@ Object monitor conditions define when new monitored activity will be detected an
 
 Event conditions are the most common condition type. Event conditions include objects added or removed from the input and metric increase or decrease conditions. Each event takes place at a specific time and is a discrete event. As such, they display as dots in the activity graph:
 
-![Activity history tab in Object Monitors app](/docs/resources/foundry/object-monitors/activity-history-graph.png)
+![Activity history tab in Object Monitors app](./images/activity-history-graph.png)
 
 In the example below, the event condition uses a single input exploration and checks for when new objects are used in that exploration. Objects may be added because they were newly created or changed to match the filters used to define the input.
 
-![Example Sales Opportunity added event condition](/docs/resources/foundry/object-monitors/monitor_event_condition_example.png)
+![Example Sales Opportunity added event condition](./images/monitor_event_condition_example.png)
 
 Some event conditions may require a threshold sub-condition. In these cases, both the primary condition and sub-condition must be true for an event to be detected. For example, a threshold sub-condition may be used to detect when the count of input objects increases, but only if the primary condition of having at least `N` objects already in the input set is met.
 
@@ -26,7 +26,7 @@ Threshold conditions are run on the inputs to produce a status of `true` or `fal
 
 An example threshold condition in the Object Monitors application is shown below. In this example, the condition checks for when the sum of `amount` across a custom cohort of Sales Opportunities is greater than `10,000`.
 
-![Example Sales Opportunities threshold condition](/docs/resources/foundry/object-monitors/monitor_threshold_condition_example.png)
+![Example Sales Opportunities threshold condition](./images/monitor_threshold_condition_example.png)
 
 :::callout{theme="neutral"}
 Threshold conditions do not support [realtime evaluation](/docs/foundry/object-monitors/evaluation/#realtime-evaluation).
@@ -40,7 +40,7 @@ The Function should take an `ObjectSet<>` of the object type being monitored and
 
 The example below uses a Function to compute when the sum of `realized_amount` is less than the sum of `expected_amount` for an input set of Sales Opportunity objects.
 
-![Example Function-backed Sales Opportunity condition](/docs/resources/foundry/object-monitors/monitor_function_backed_condition_example.png)
+![Example Function-backed Sales Opportunity condition](./images/monitor_function_backed_condition_example.png)
 
 ```
 @Function()

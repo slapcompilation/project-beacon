@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/manage-models/modeling-objective-settings/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/manage-models/modeling-objective-settings/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Modeling Objective settings
 
@@ -12,7 +12,7 @@ Objective checks are a way to ensure that models pass predefined quality checks 
 
 The deployment settings page defines the model submission deployment profile requirements for Python model submissions before they can be operationalized in a batch or live deployment.
 
-![Deployment Settings](/docs/resources/foundry/manage-models/settings_deployment-settings.png)
+![Deployment Settings](./images/settings_deployment-settings.png)
 
 ## Model metadata
 
@@ -22,7 +22,7 @@ Models that are submitted to a modeling objective can have model submission-spec
 
 With appearance settings, you can configure whether an individual modeling objective will display in light mode or dark mode.
 
-![Deployment Settings](/docs/resources/foundry/manage-models/settings_appearance-settings.png)
+![Deployment Settings](./images/settings_appearance-settings.png)
 
 ## Advanced
 
@@ -32,7 +32,7 @@ The advanced settings page has non-standard configuration options. Typically, th
 
 There are two advanced configuration options for the evaluation dashboard: **Only show metrics produced by evaluation configuration** and **Show pinned tabs in evaluation dashboard**.
 
-![Advanced Evaluation Settings](/docs/resources/foundry/manage-models/settings_advanced-evaluation-settings.png)
+![Advanced Evaluation Settings](./images/settings_advanced-evaluation-settings.png)
 
 #### Only show metrics produced by evaluation configuration
 

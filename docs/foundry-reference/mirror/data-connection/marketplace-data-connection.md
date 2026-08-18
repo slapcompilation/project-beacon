@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/data-connection/marketplace-data-connection/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/data-connection/marketplace-data-connection/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Add sync or export to a Marketplace product
 
@@ -12,4 +12,4 @@ Both standard [syncs](/docs/foundry/data-connection/set-up-sync/) and [streaming
 
 To add a Data Connection sync or export to a product, first [create a product](/docs/foundry/foundry-devops/create-products/). Select **Add output**, then select a Data Connection source. The dialog will walk you through the process and allow you to include both syncs and exports in your Marketplace product.
 
-![add syncs](/docs/resources/foundry/data-connection/marketplace-add-syncs.png)
+![add syncs](./images/marketplace-add-syncs.png)

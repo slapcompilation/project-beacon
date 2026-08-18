@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/workshop/concepts-variables/ · mirrored 2026-08-03 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/workshop/concepts-variables/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Variables
 
@@ -6,13 +6,18 @@
 
 To access existing variables in a Workshop module or define new variables, open the **Variables** menu found in the left sidebar.
 
-![Variables sidebar panel in Workshop editor](/docs/resources/foundry/workshop/workshop_variables_panel.png)
+![Variables sidebar panel in Workshop editor](./images/workshop_variables_panel.png)
 
 The **Variables** panel (shown above) displays a list with the current variables that exist within a module, a plus **+** option to add a new variable, an input to search variables by their name or unique ID, an option to open the [variable lineage graph](#variable-lineage-graph), and a filter to display variables based on their definition type or what settings are enabled. The variable list includes partitions to help you quickly find relevant variables: when a widget is selected, a partition displays variables used by that widget; when no widget is selected, a partition displays variables used in the active page.
 
 Selecting a variable from the list on the left allows you to view and modify the configuration of that variable in a window that opens to the right of the variables list. The following configuration options are available:
 
-* **Variable name:** Selecting the variable name or the pencil icon will allow you to edit the name of the variable. We recommend using descriptive variable names to help document the configuration of your Workshop module and make it easier to find a desired variable later in the configuration process.
+* **Variable name:** Select the variable name or pencil icon to edit the name. Use descriptive names to document your module and find variables later. Names must be unique within a module. If a name conflicts with an existing variable, Workshop appends a numeric suffix. Matching is case-insensitive, so `MyVar` and `myvar` are duplicates. If you clear a name, Workshop restores its previous value.
+
+:::callout{theme="neutral"}
+The **Variables** panel does not support folders. To group variables alphabetically, prefix their names with a contextual identifier such as `$page_` or `$tab_`, followed by the page or tab name. For example, use `$page_Dashboard_filterState` or `$tab_Overview_selectedObject`.
+:::
+
 * **Variable definition type:** Next to the variable name is a dropdown menu that provides options for how a given variable is defined and populated with data. Available choices will vary based on the selected variable type and can include options such as the following:
   * **Static:** For manually set variable values
   * **Function:** For function-backed, dynamically computed variables
@@ -31,15 +36,19 @@ Selecting a variable from the list on the left allows you to view and modify the
 
 The screenshot below shows an example configuration for an Object Set variable:
 
-![Editing an Object Set variable](/docs/resources/foundry/workshop/workshop_object_set.png)
+![Editing an Object Set variable](./images/workshop_object_set.png)
 
 The screenshot below shows an example configuration for a string array variable:
 
-![Editing a string array variable](/docs/resources/foundry/workshop/workshop_string_array.png)
+![Editing a string array variable](./images/workshop_string_array.png)
 
 ## Lazy variable loading
 
 In both view and edit mode, Workshop variables will compute and recompute lazily only when displayed by a visible widget or layout. This means that variables used in non-visible pages, tabs, overlays, or non-visible pages of a looped layout will not be computed until they are shown. This behavior is the same for non-visible variables used in embedded modules.
+
+## Variable loading indicator
+
+Workshop displays a loading indicator while it evaluates a variable.
 
 ## Variable types
 
@@ -78,11 +87,11 @@ The `Object set definition` variable definition type does not offer recompute be
 
 ## Variable lineage graph
 
-![The button to open the variable lineage graph on the header of the variables panel.](/docs/resources/foundry/workshop/variable-lineage-open-button.png)
+![The button to open the variable lineage graph on the header of the variables panel.](./images/variable-lineage-open-button.png)
 
 Use the **Variable lineage graph** option found in the header of the **Variables** panel, to visualize how variables and widgets in your module depend on one another. Use it to debug recompute behavior, trace which widgets read or write a variable, and better understand complex relationships between application elements.
 
-![A screenshot of the Workshop variable lineage graph showing variables, widgets, and their dependencies.](/docs/resources/foundry/workshop/variable-lineage.png)
+![A screenshot of the Workshop variable lineage graph showing variables, widgets, and their dependencies.](./images/variable-lineage.png)
 
 ### Expanding the graph
 
@@ -90,7 +99,7 @@ Each node on the graph represents a variable or widget. Nodes with dependencies 
 
 Undo and redo options in the graph header step backward and forward through expand, collapse, and selection actions, mirroring the module's own undo/redo controls.
 
-![A detailed screenshot of the variable lineage graph showing pages and computation time.](/docs/resources/foundry/workshop/variable-lineage-detail.png)
+![A detailed screenshot of the variable lineage graph showing pages and computation time.](./images/variable-lineage-detail.png)
 
 Each node can display the pages and overlays where a variable is used and the time at which a variable was computed.
 

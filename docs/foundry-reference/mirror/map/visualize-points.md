@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/map/visualize-points/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/map/visualize-points/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Point displays
 
@@ -21,7 +21,7 @@ The **Icon** section allows you to control the icon that will be displayed for e
 
 The example below uses a rain status time series with both color and icon styling to visualize which weather stations across the Pacific Northwest observed rain on the selected day.
 
-![A map displaying sun and rain icons to indicate the weather conditions of the region.](/docs/resources/foundry/map/styling-icon-type.png)
+![A map displaying sun and rain icons to indicate the weather conditions of the region.](./images/styling-icon-type.png)
 
 ### Image media items
 
@@ -33,7 +33,7 @@ You can control the rotation of the icon by any of the [value-based styling](/do
 
 The example below uses a fixed arrow icon and rotation styling to display the direction of movement for vessel objects.
 
-![Vessel direction.](/docs/resources/foundry/map/styling-icon-rotation.png)
+![Vessel direction.](./images/styling-icon-rotation.png)
 
 ### Marker shape
 
@@ -41,13 +41,13 @@ There are three styles of markers that you can configure for icons:
 
 | Circle                                              | Pin                                           | None                                          |
 | --------------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
-| ![Circle marker.](/docs/resources/foundry/map/styling-marker-circle.png) | ![Pin marker.](/docs/resources/foundry/map/styling-marker-pin.png) | ![No marker.](/docs/resources/foundry/map/styling-marker-none.png) |
+| ![Circle marker.](./images/styling-marker-circle.png) | ![Pin marker.](./images/styling-marker-pin.png) | ![No marker.](./images/styling-marker-none.png) |
 
 ## Circle configuration
 
 Each circle is centered on the location provided and drawn with a radius value that you can configure in the **radius** section of styling.
 
-![Airports with different circle sizes.](/docs/resources/foundry/map/styling-circle-radius.png)
+![Airports with different circle sizes.](./images/styling-circle-radius.png)
 
 The other circle style options are the same as [the options for polygon displays](/docs/foundry/map/visualize-polygons-lines/).
 

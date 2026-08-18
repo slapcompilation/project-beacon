@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/compass/tags/ · mirrored 2026-08-04 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/compass/tags/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Tags
 
@@ -20,17 +20,17 @@ Tags related to use cases may also be helpful, such as:
 
 Below is a [Data Catalog](/docs/foundry/compass/data-catalog/) with tagged datasets and a tagged module:
 
-![Example of tagged data in Data Catalog.](/docs/resources/foundry/compass/tags-0.png)
+![Example of tagged data in Data Catalog.](./images/tags-0.png)
 
 ## Manage tags
 
 You can manage tags and tag categories in the **Tags** section of Platform Settings. Select the **New tag category** to create a new tag category. By default, a new tag category will be restricted to the Organization of which you are a member.
 
-![Create new tag category.](/docs/resources/foundry/compass/tags-1.png)
+![Create new tag category.](./images/tags-1.png)
 
 After you create a tag category, you can add multiple tags within the category. You can also add additional Organizations to the tag category if you want to expand access.
 
-![Add tags to category.](/docs/resources/foundry/compass/tags-2.png)
+![Add tags to category.](./images/tags-2.png)
 
 To delete a tag category, select the category and then **Delete category**. Similarly, to delete a tag, select the tag, then **Delete tag**. You cannot undo delete actions, and the category or tag will be removed from all resources.
 

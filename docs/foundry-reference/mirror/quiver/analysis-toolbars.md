@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/analysis-toolbars/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/analysis-toolbars/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Analysis toolbars
 
@@ -15,14 +15,14 @@ Whether you are conducting your analysis in [canvas mode](/docs/foundry/quiver/a
   * [Dashboards panel](#dashboards-panel)
   * [Settings panel](#settings-panel)
 
-![Analysis workspace toolbars, labeled 1 for analysis workspace header, 2 for analysis top bar, and 4 for side panels](/docs/resources/foundry/quiver/analysis-toolbars-overview-annotated.png)
+![Analysis workspace toolbars, labeled 1 for analysis workspace header, 2 for analysis top bar, and 4 for side panels](./images/analysis-toolbars-overview-annotated.png)
 
 ## Analysis workspace header
 
 Marked as `1` in the image, the analysis workspace header provides the following capabilities from left to right:
 
 * **Undo / Redo:** These buttons allow you to undo or redo actions within your analysis.
-* **Analysis history** (<img alt="Analysis history icon" src="./media/howto-analysis-history-icon.png" width="30px">): Access previous [saved versions](/docs/foundry/quiver/analysis-save-share/) of your analysis or dashboard.
+* **Analysis history** (<img alt="Analysis history icon" src="./images/howto-analysis-history-icon.png" width="30px">): Access previous [saved versions](/docs/foundry/quiver/analysis-save-share/) of your analysis or dashboard.
 * **Save:** [Save](/docs/foundry/quiver/analysis-save-share/#save-an-analysis) your analysis.
 * **Share:** [Share](/docs/foundry/quiver/analysis-save-share/#share-an-analysis) your analysis.
 * **Details panel:** To manage access, collaborators, and other analysis metadata.
@@ -38,13 +38,13 @@ Marked as `2` in the image above, the analysis top bar allows you to add data an
 
 Marked as `3` in the image above and below, the next actions menu is a toolbar that appears when you hover over a card or a time series plot on the canvas or the graph. From the next actions menu, you can find and perform common actions related to the selected card. Actions are grouped by categories such as filtering, visualizing, calculating, joining, transforming, and converting data.
 
-![Next actions menu for an object set card.](/docs/resources/foundry/quiver/analysis-toolbars-next-actions-menu-annotated.png)
+![Next actions menu for an object set card.](./images/analysis-toolbars-next-actions-menu-annotated.png)
 
 Note that the specific set of options in the next actions menu will vary depending on the [output type](/docs/foundry/quiver/analysis-data-model/#card-input-and-output-types) of the selected card.
 
-Search for actions across all categories or search within a specific category by using the search option (<img alt="Magnifying glass icon" src="./media/howto-magnifying-glass.png" width="30px">). Results will include matches from within the category and also highlight matches from other categories.
+Search for actions across all categories or search within a specific category by using the search option (<img alt="Magnifying glass icon" src="./images/howto-magnifying-glass.png" width="30px">). Results will include matches from within the category and also highlight matches from other categories.
 
-Available for object and [object set](/docs/foundry/quiver/cards-index-objects/) cards, use the Library option (<img alt="Library icon" src="./media/howto-library.png" width="30px">) to discover existing Foundry resources such as Ontology Actions and functions, published Quiver [dashboards](/docs/foundry/quiver/dashboards-overview/) and Quiver [visual functions](/docs/foundry/quiver/visual-functions-overview/) that can take the selected object type as input. Selecting an artifact will add the relevant Quiver card preconfigured with that artifact as input. For example, when selecting an Ontology Action, a Quiver Action button will be added to the analysis preconfigured with the selected Action.
+Available for object and [object set](/docs/foundry/quiver/cards-index-objects/) cards, use the Library option (<img alt="Library icon" src="./images/howto-library.png" width="30px">) to discover existing Foundry resources such as Ontology Actions and functions, published Quiver [dashboards](/docs/foundry/quiver/dashboards-overview/) and Quiver [visual functions](/docs/foundry/quiver/visual-functions-overview/) that can take the selected object type as input. Selecting an artifact will add the relevant Quiver card preconfigured with that artifact as input. For example, when selecting an Ontology Action, a Quiver Action button will be added to the analysis preconfigured with the selected Action.
 
 Open **AIP Generate** using the selected card as input to generate an analysis using natural language.
 
@@ -58,7 +58,7 @@ Open the search bar by selecting any item on the [analysis top bar](#analysis-to
 * **+ Add data** in an empty [Analysis Contents panel](#analysis-contents-panel).
 * **New card** in the [Analysis Contents panel](#analysis-contents-panel) (hovering on the canvas name).
 
-![Analysis workspace toolbars, labeled 3 search bar](/docs/resources/foundry/quiver/analysis-toolbars-searchbar-annotated.png)
+![Analysis workspace toolbars, labeled 3 search bar](./images/analysis-toolbars-searchbar-annotated.png)
 
 Cards are grouped in the following tabs:
 
@@ -97,9 +97,9 @@ In [canvas mode](/docs/foundry/quiver/analysis-canvas/), every card is listed in
 * **Hide:** Hide a card from the canvas
 * **Delete:** Remove the card from the analysis. If the card has downstream dependencies, you will get a [dialog](/docs/foundry/quiver/analysis-canvas/#delete-cards) with options on how to handle it.
 
-Card actions can be found by selecting the **More actions** icon (<img alt="Three dots icon" src="./media/howto-ellipsis.png" width="30px">) that appears when hovering over a card in the list.
+Card actions can be found by selecting the **More actions** icon (<img alt="Three dots icon" src="./images/howto-ellipsis.png" width="30px">) that appears when hovering over a card in the list.
 
-<img alt="Analysis Contents panel in canvas mode" src="./media/howto-analysis-contents-panel.png" width="450px">
+<img alt="Analysis Contents panel in canvas mode" src="./images/howto-analysis-contents-panel.png" width="450px">
 
 In [graph mode](/docs/foundry/quiver/analysis-graph/), cards are listed based on the [color group](/docs/foundry/quiver/analysis-graph-color-groups/) they belong to. You can also [filter](/docs/foundry/quiver/analysis-graph-organization/#filter-nodes) the graph based on data type or by canvases/dashboards/visual functions. The actions available from the **Analysis Contents** panel include:
 
@@ -110,7 +110,7 @@ In [graph mode](/docs/foundry/quiver/analysis-graph/), cards are listed based on
 * **Hide:** [Hide](/docs/foundry/quiver/analysis-graph-organization/#hide-nodes) a card on the graph
 * **Delete:** Remove the card from the analysis. If the card has downstream dependencies, you will get a [dialog](/docs/foundry/quiver/analysis-graph/#card-deletion) with options on how to handle it.
 
-![The Analysis Contents panel in graph mode.](/docs/resources/foundry/quiver/howto-analysis-graph-analysis-contents-panel.png)
+![The Analysis Contents panel in graph mode.](./images/howto-analysis-graph-analysis-contents-panel.png)
 
 ### Parameters panel
 

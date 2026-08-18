@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-switch-to-linked-object-set/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-switch-to-linked-object-set/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Switch to linked object set
 

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/automate/permissions/ · mirrored 2026-08-14 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/automate/permissions/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Permissions
 
@@ -7,15 +7,27 @@ Automate is governed by the same security and permissions model as the rest of t
 ## Permissions for executions
 
 * **Condition evaluation:** Uses automation owner's permissions
-* **Action and Logic effects:** Execute as the automation owner. This means:
+* **Action, Logic, and Function effects:** Execute as the automation owner. This means:
   * **Action submission criteria** are evaluated against the owner (for example, if an action requires the user to be in group Y, the owner must be in group Y)
   * **Function executions** in compute modules receive authentication tokens from the owner
   * **Ontology edit history** shows the owner in the **Edited by** field
   * **Audit logs** record Ontology edits as performed by the automation owner
-* **Notification effects:** Use each recipient's individual permissions. Because notification effects use recipient permissions, an automation may:
+* **Notification effects:** Use each recipient's individual permissions. To be eligible to receive notifications, recipients must have:
+
+  * At least **Viewer** permission on the automation (required for both static and dynamic recipients)
+  * **Viewer** permission on the object instances that trigger the automation
+  * **Viewer** permission on all the properties of the object instances if the triggering object type is a [multi-datasource object type](/docs/foundry/object-permissioning/multi-datasource-objects/)
+  * **Viewer** permission on all the object instances accessed by the Function execution in a Function-backed notification
+
+  These requirements apply for both active and pre-registered users. Because notification effects use recipient permissions, an automation may:
+
   * Trigger for some recipients but not others (based on their access)
   * Send different notification content to different recipients (for function-backed notifications)
   * Render different attachments for each recipient
+
+:::callout{theme="warning"}
+Manual executions bypass trigger conditions, so Automate does not perform the trigger-object permission checks described above. The input object set is still evaluated with the permissions of the user who starts the manual run.
+:::
 
 :::callout{theme="warning"}
 When you edit and save an automation, you may have the option to become the automation owner (taking ownership from the previous owner) or to keep the original owner. You must take ownership of the automation to make edits to the condition or effects. <br><br>
@@ -39,8 +51,8 @@ Automations can be owned by third-party applications instead of individual users
 
 The following applies for third-party application ownership:
 
-* The service user's permissions are used for condition evaluation and action/Logic effects.
-* Automation execution history and permissions are tied to an organizational service account.
+* The service user's permissions are used for condition evaluation and action, Logic, and function effects.
+* Automation execution history and permissions are tied to the service user.
 * Multiple automations can share the same third-party application ownership.
 
 Learn more about setting up and transferring automation ownership in [Third-party application ownership](/docs/foundry/automate/third-party-app-ownership/).

@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-backing-object-from-time-series/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-backing-object-from-time-series/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Backing object from time series
 

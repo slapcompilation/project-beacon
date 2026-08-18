@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/templates-convert-to-dashboard/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/templates-convert-to-dashboard/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Convert a canvas template (deprecated) to a dashboard
 
@@ -27,7 +27,7 @@ Quiver does not require existing templates to be rebuilt as dashboards. Template
 
 To convert an existing **object canvas template** to a **[dashboard](/docs/foundry/quiver/dashboards-overview/)**, you first need to convert the **object canvas template** back to a **free form canvas**. To do this, select **Convert to free form canvas** from the canvas menu of an **object canvas template**.
 
-<img alt="Convert an Object canvas template back to canvas" src="./media/howto-analysis-convert-to-free-form-canvas.png" width="450px">
+<img alt="Convert an Object canvas template back to canvas" src="./images/howto-analysis-convert-to-free-form-canvas.png" width="450px">
 
 Then, from the canvas menu at the bottom of the application, accessible through the down arrow by the canvas name, select **Convert to object canvas template**.
 
@@ -35,6 +35,6 @@ The dialog presents a choice between converting the canvas to a template (a depr
 
 Enter the dashboard title and select an object or object set to use as the object type input. Then select **Create dashboard** instead of convert to template.
 
-<img alt="A dialog showing an option to create a dashboard from a canvas" src="./media/template-convert-to-dashboard.png" width="600px">
+<img alt="A dialog showing an option to create a dashboard from a canvas" src="./images/template-convert-to-dashboard.png" width="600px">
 
 Alternatively, it is also possible to [create a dashboard](/docs/foundry/quiver/dashboards-create/) and add cards to dashboards one by one manually if converting the entire template to a dashboard is not desired.

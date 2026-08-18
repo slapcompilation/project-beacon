@@ -1,4 +1,4 @@
-<!-- source: https://palantir.com/docs/foundry/quiver/card-event-statistics/ · mirrored 2026-08-05 from Palantir Foundry docs -->
+<!-- source: https://palantir.com/docs/foundry/quiver/card-event-statistics/ · mirrored 2026-08-18 from Palantir Foundry docs -->
 
 # Event statistics
 
@@ -14,7 +14,7 @@ Time series
 
 ## Examples
 
-![Event statistics example](/docs/resources/foundry/quiver/card-event-statistics.png)
+![Event statistics example](./images/card-event-statistics.png)
 
 ## Usage information
 
