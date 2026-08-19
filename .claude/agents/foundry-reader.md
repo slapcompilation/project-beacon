@@ -27,9 +27,13 @@ your reading, after a human has reviewed it.
    status: Not indexed on branch`. None of those appear in any sentence.
    For each image: list its controls, labels, values, counts, and states, then
    say **what it adds that the prose does not**.
-   Images live beside the page in `images/` or `media/`. If a page references an
-   image that is not on disk, run
-   `node scripts/mirror-foundry-docs.mjs --images <section>/<page>.md`.
+   Images live beside the page in `images/`. **Not `media/`** — no such
+   directory exists anywhere in the mirror, and a page whose markdown still says
+   `./media/…` is pointing at nothing: 108 files did, until the 2026-08-19 drift
+   sweep re-mirrored them. If a page references an image that is not on disk,
+   run `node scripts/mirror-foundry-docs.mjs --images <section>/<page>.md`, and
+   if that is silent, re-mirror the whole section — a dangling reference reads
+   exactly like a page with no image, which is how images get skipped.
 
 3. **Follow the sublinks** a page names, and say which ones you read and which
    you did not.
@@ -37,6 +41,12 @@ your reading, after a human has reviewed it.
 4. **Grep the whole corpus for contradictions** before you conclude. Two pages
    disagreeing is a finding, not an inconvenience — and usually one is describing
    a legacy model. `grep -rn "<phrase>" docs/foundry-reference/mirror/`
+
+   **The mirror escapes underscores inside markdown tables.** A field published
+   as `timeseries_is_value_inverted` is on disk as
+   `timeseries\_is\_value\_inverted`, so the obvious grep returns nothing and
+   the page reads as absent. Search a distinctive word from the description
+   instead of the identifier. This has already cost one miss.
 
 ## How to quote
 

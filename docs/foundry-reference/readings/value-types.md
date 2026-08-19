@@ -1068,3 +1068,100 @@ times. Each binder gets its own nullable FK.
     `grep -rn -i 'health status' mirror/` — five hits, four
     unrelated. `ontology-manager/` has no such file. Would need mirroring, if a
     page exists upstream at all.
+
+---
+
+## 11 — How Foundry enforces kind × base type (read 2026-08-19)
+
+The 2026-08-19 gap run found that `value_type_constraints.kind` is not paired
+against `value_types.base_type` in our schema: the table's CHECKs are structural
+only, and `mint_value_type_version()` writes caller JSON unchecked, so a `regex`
+constraint on an `integer` value type is accepted and silently no-ops at read
+time. **Decision 6 below would answer this the wrong way by analogy**, so the
+question was taken back to the pages.
+
+### The pairing is published, twice, in two different shapes
+
+> "The available value type constraints, along with what base types they can be applied to, are below:"
+
+with per-kind lists — Enum: "**Valid base types:** String, Boolean, Decimal,
+Double, Float, Integer, or Short."; Range: "**Valid base types:** Decimal,
+Double, Float, Integer, Short, Date, Timestamp, String, or Array." — and then a
+second group written the other way round, from the type rather than the
+constraint:
+
+> "Additionally, the following property types have additional type-specific constraints available:"
+
+String gets Regex/RID/UUID, Array gets Uniqueness/Nested, Struct gets Element.
+That second framing is the tell: those kinds are **properties of the base type**,
+not free choices.
+
+### Foundry enforces it by making the mismatch unrepresentable
+
+`create-value-type` orders the wizard so the base type is chosen *first*:
+
+> "5. Choose a [base type](/docs/foundry/object-link-types/base-types/) for your value type."
+
+> "6. (Optional) Define a constraint for your value type. Validators can be regular expressions for `String` types, enums, ranges, or other validation methods depending on the base type."
+
+**"depending on the base type"** — and the screenshot proves it is the picker
+that depends, not the user. For a String value type the Constraint type control
+offers exactly five options:
+
+> RID · UUID · Length · Regex · Enum
+> — object-link-types/images/value-type-create-constraint.png
+
+`Uniqueness` and `Nested` (Array-only) and `Element` (Struct-only) are **not
+rendered at all**. There is no error message for a mismatched pairing anywhere in
+the section because **there is no way to author one**.
+
+The same image carries a vocabulary finding worth having: the kind the prose
+calls **Range** appears as **Length** when the base type is String — named for
+what it constrains, exactly as the prose says ("For String properties, the length
+of the string is constrained"). Our token is `range`; a surface should render it
+per base type rather than showing the API word.
+
+### And the mistake would be permanent
+
+> "The base type metadata and the constraints that define the validation rules for the type are immutable."
+
+A constraint cannot be edited once its version exists — only superseded by a new
+version. So a malformed constraint minted into version 3 is version 3's forever.
+
+## Decisions from §11
+
+1. **This is the opposite case to Decision 6, and the difference is which
+   surface authors it.** Decision 6 is about a *property binding to* a value
+   type, where §7.4 shows Foundry lets you save a binding the data violates — so
+   a CHECK there would be stricter than Foundry, and the reasoning holds. §11 is
+   about a value type's **own internal coherence**, where Foundry is not
+   permissive at all: it simply never offers the invalid pairing. Reading
+   Decision 6 as precedent for both would enforce the case Foundry allows and
+   permit the case Foundry forbids — precisely backwards.
+2. **Foundry's enforcement point is its only authoring surface; ours must be
+   ours.** Their guarantee is that the picker cannot express it. We have no picker
+   in the trust path — `mint_value_type_version()` takes caller JSON, and the
+   generated client is not the only writer. A database trigger is not us being
+   stricter than Foundry; it is the same guarantee at the layer where our
+   authoring actually happens.
+3. **`ontology_violations()` is the weaker answer here, and the immutability is
+   why.** A lint that reports "version 3 is malformed" leaves nothing to do about
+   version 3. Linting fits content that can be corrected; this cannot be.
+4. **A CHECK cannot do it** — the pairing spans two tables (`value_type_constraints`
+   → `value_types.base_type`), so the rule-placement ladder's first rung is
+   unavailable and a trigger is the first that works.
+5. **Not built from this section yet.** These Decisions want reciting first.
+
+## Questions from §11
+
+1. **What are the valid base types for the second group?** The page states them
+   for Enum and Range explicitly, but Regex/RID/UUID are given as "String" and
+   Uniqueness/Nested as "Array" only through the heading they sit under. Struct
+   for Element likewise. That is clear enough to build, and it is a heading
+   rather than a sentence. `blocks: nothing` — recorded so the source of each
+   pairing is known when the trigger is written.
+2. **Does a `nested` constraint's referenced value type have to match the array's
+   element type?** "A value type constraint can be applied to the elements of the
+   array" says the constraint applies; it does not say the referenced type's base
+   type must equal the element type. `blocks:` how strict the trigger is about
+   the self-edge.

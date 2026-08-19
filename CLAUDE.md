@@ -90,7 +90,7 @@ screenshot. It found a real misquote the first time it ran.
 ### The two artifacts that make this work
 
 **`docs/foundry-reference/MAP.md`** — every mirrored page by section and title,
-2,284 of them. A floor plan, not a reading: it answers "does a page about X
+2,825 of them across 101 sections as of 2026-08-19. A floor plan, not a reading: it answers "does a page about X
 exist, and what is it called", which is the question that keeps going wrong.
 `staging` appears in no URL but `manage-models/release-model` defines it. Grep
 titles here before concluding Foundry lacks something.
@@ -107,7 +107,7 @@ actually read, with a queue in build order. Grep it before designing anything;
 an answer already written down beats re-deriving one, and the "connects to" lines
 are how a concept met in one part of the platform gets recognised in another.
 
-The corpus is 2,284 mirrored pages against 4,803 known URLs — **47% of the
+The corpus is 2,825 mirrored pages against 4,812 known URLs — **41% of the
 documentation is not on disk**, and the biggest hole is `api/` (1,131 pages).
 The readings are far fewer still. That is the normal state — the map keeps the
 unread ones findable, and the queue says which to read next and when.
@@ -170,9 +170,9 @@ packages/platform/       the engine tested against the documentation's own
                          printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     513 migrations. 355 is where the ontology was emptied;
+supabase/migrations/     574 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
-docs/foundry-reference/  2,284 mirrored pages of 4,803 known URLs. THE SOURCE.
+docs/foundry-reference/  2,825 mirrored pages of 4,812 known URLs. THE SOURCE.
 docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```

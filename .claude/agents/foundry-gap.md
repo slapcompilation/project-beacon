@@ -41,8 +41,15 @@ SELECT c.relname FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
 ```
 
 **Read the documentation from the mirror**, and use `docs/foundry-reference/MAP.md`
-to find pages — it lists all 1,184 mirrored pages by section and title. A page
-existing is not the same as it being read; `readings/` says what has been read.
+to find pages — it lists every mirrored page by section and title. **Do not trust
+a page count you were told, including one in this file.** MAP.md is generated
+(`node scripts/build-map.mjs`); ask it, with `head -1 docs/foundry-reference/MAP.md`
+or a `grep -c`. This paragraph said "all 1,184 mirrored pages" until 2026-08-19,
+by which time the mirror held 2,825 — the exact drift CLAUDE.md records, repeated
+inside the instructions warning about it.
+
+A page existing is not the same as it being read; `readings/` says what has been
+read.
 
 ## Direction 1 — described but missing
 
@@ -69,6 +76,43 @@ justifies it. Report anything you cannot trace, and classify it:
 
 Only the first is a deletion candidate. Say which is which.
 
+### A NAME MATCH IS NOT A CITATION
+
+When you go looking for the page that justifies one of ours, you will find
+fields whose *names* converge. That is not evidence, and proposing one as the
+citation is the most damaging thing this agent can do — worse than reporting
+nothing, because **a citation that is nearly right stops the next person
+looking.**
+
+The case that produced this rule: `time_series_properties.negate` was reported
+as converging with Foundry's `timeseries_is_value_inverted`, with a
+recommendation to backfill the citation. The page says that type class "will
+automatically invert the y-axis values of a timeseries in Quiver" — it is a
+**render hint**; the chart flips and the stored data does not. Ours prepends a
+minus inside generated SQL, so every reader gets negated numbers. Same idea,
+different layer, and the citation would have been false.
+
+So before you propose any page as the justification for one of ours, write both
+halves out and compare them:
+
+- **what the page's mechanism does** — in its own words, quoted
+- **what ours does** — from the function body or constraint, not from its name
+- **the layer each acts on** — storage, query, render, permission
+
+If those differ, the finding is "ours is an invention that converges with X in
+name only", not "backfill the citation to X". Both are useful findings. Only one
+of them is true.
+
+### Two search gotchas that have cost real misses
+
+- **The mirror escapes underscores inside markdown tables.**
+  `timeseries_is_value_inverted` is on disk as `timeseries\_is\_value\_inverted`,
+  so the obvious grep returns nothing and the page reads as absent. Search a
+  distinctive *word* from the description, or use a pattern tolerant of `\`.
+- **Absence of a grep hit is not absence from Foundry.** 47% of the
+  documentation is not mirrored. Say "no mirrored page covers this", never
+  "Foundry does not have this".
+
 ## What not to do
 
 - Do not propose a schema. Report the gap; the design is a separate decision.
@@ -81,3 +125,19 @@ Only the first is a deletion candidate. Say which is which.
 Two lists, direction 1 then direction 2, each ranked by consequence. Give counts
 at the top: how many entities checked, how many present, partial, absent, and
 how many of ours are untraceable.
+
+**Every finding carries how you know it.** One of these three words, and the
+reader will act on the difference:
+
+- **VERIFIED** — you ran a command and it returned this. Give the command.
+  Anything naming a migration number, a column, a CHECK, or a table's origin
+  must be VERIFIED; those are one grep away and are believed on sight.
+- **QUOTED** — a mirrored page says this, with the path.
+- **INFERRED** — you reasoned to it. Say from what.
+
+A report that mixes the three silently is read as if it were all VERIFIED, which
+is how a wrong migration number gets into a map that other people grep.
+
+**Say what you did not check.** A section skipped is a finding. Coverage claims
+without a denominator ("7 passes", "representative") tell the reader nothing
+about what was missed.
