@@ -380,20 +380,25 @@ are missing from it (see `home-and-navigation.md` §7.8).
 ## `verify: strict` — which readings are checked, and when the rest will be
 
 `pnpm check:readings` traces every quotation back to the mirror. A reading opts
-in with `verify: strict` in its frontmatter. **33 of 40 are opted in and pass;
-986 quotations trace.**
+in with `verify: strict` in its frontmatter. **50 of 51 are opted in and pass;
+1,462 quotations trace.**
 
-The seven that remain are **not a backlog to grind**. Each one belongs to a
-phase that has to reopen the same pages anyway, and **re-reading a page is
-exactly what fixes a citation** — so the sweep is free when it rides along with
-the build, and duplicated effort when it does not.
+**The allocation policy worked, and is now finished.** The seven that remained
+were never a backlog to grind: each belonged to a phase that had to reopen the
+same pages anyway, and **re-reading a page is exactly what fixes a citation** —
+so the sweep was free when it rode along with the build. All seven have now been
+taken that way, the last (`materializations-links-media-and-rids`) alongside the
+media and attachment read on 2026-08-19.
+
+The one reading left unchecked is `deep-dive-ontology`, permanently and on
+purpose: it quotes course PDFs the guard cannot read.
 
 | reading | fragments | swept when |
 |---|---|---|
 | ~~`control-panel-and-banners`~~ | ~~12~~ | **SWEPT 2026-08-18**, owed once §4 finished (563–566 and the guest picker). Three were the reading's own framing in quotation marks; four were screenshot transcriptions now attributed by path; two had their page attribution *inside* the blockquote, which glues it onto the quote; and one quoted a heading prefixed onto the sentence below it. One string is now deliberately **not** quoted — it came from a marketplace install screenshot I could no longer identify, and describing beats inventing a path. |
 | ~~`capabilities-value-types-and-groups`~~ | ~~8~~ | **Already swept** — the file carries `verify: strict` and passes, so §4 owed it nothing. Checked rather than assumed while closing §4. |
 | ~~`projects-roles-and-portfolios`~~ | ~~13~~ | **SWEPT 2026-08-18**, owed once portfolios shipped (554–556). Most were mechanical — an attribution line placed *inside* a blockquote glues onto the quote, and two quoted spans on one line pair across the prose between them. Two were real: the Project-constraints sentences were quoted truncated, and the dropped clause was the one the section is about. |
-| `materializations-links-media-and-rids` | 9 | the **media and attachment property types**, listed under "Property base types beyond the 22". Materializations themselves shipped in 515/516; the media half is what remains. |
+| ~~`materializations-links-media-and-rids`~~ | ~~9~~ | **SWEPT 2026-08-19**, riding along with the media/attachment read as allocated. Four families, and two were new. **One quote was MORE CORRECT than its source**: the page writes "many-to many" cardinality, missing a hyphen, and the reading had silently fixed it — so tracing it meant reproducing Foundry's typo. Another failed on quote characters alone, straight `'one'` against the page's curly `"one"`. Two were ordinary: an elision closed with a full stop, and `requires` for the source's plural `require`. The last four are the RID segments, quoted from a specification outside the mirror — now **described rather than quoted**, the call `control-panel-and-banners` made for an unidentifiable screenshot, because a quotation the gate cannot read is one nobody can check. Three contiguous blockquote bullets also had to be split: the gate joins them into one quotation, which matches no single passage. |
 | ~~`capabilities-typeclasses-and-branching`~~ | ~~9~~ | **SWEPT 2026-08-18** with the Capabilities tab. Two of the nine were paraphrases wearing quotation marks (the spaces-as-environments sentence, the merge-permissions passage); seven were screenshot transcriptions that now attribute to the panel images by path. |
 | ~~`data-lineage`~~ | ~~13~~ | **SWEPT 2026-08-18.** The allocation was wrong about its own trigger: the surface was already built (engine, canvas, simulation, `lineage.test.ts`), so the sweep had no phase left to wait for. All 13 traced, `verify: strict` on. |
 | `deep-dive-ontology` | 43 | **never** — see below. |

@@ -1,3 +1,7 @@
+---
+verify: strict
+---
+
 # Reading — materializations, link editing, media, semantic search, cleanup, RIDs
 
 Closes six open questions and finds a latent defect in code we already shipped.
@@ -6,7 +10,10 @@ Pages read: `object-edits/materializations`, `ontology/overview-semantic-search`
 `object-link-types/edit-link-types`, `interfaces/interface-link-types-overview`,
 `map/events`, `functions/media`, `media-sets-advanced-formats/media-overview`
 and `media-in-ontology`, `ontology-manager/navigation`, `ontology-manager/cleanup`.
-Plus the RID specification from `github.com/palantir/resource-identifier`.
+The RID grammar was also consulted from the specification at
+github.com/palantir/resource-identifier, which is **not in the mirror and is
+therefore never quoted here** — §RIDs describes its four segments in my own
+words. A quotation the gate cannot read is a quotation nobody can check.
 
 ---
 
@@ -68,7 +75,8 @@ on a branch *are* indexed there and written to the materialization.
 > semantic meaning."
 >
 > "If the embedded text is then **associated with a particular object in the
-> Ontology**… Finding related entities… is simply finding the **nearest vectors**."
+> Ontology**… Finding related entities… is simply finding the **nearest
+> vectors** in N-dimensional space."
 
 Two "Learn how" paths: a **Palantir-provided model** or a **custom model**, plus
 chunking and PDFs. **We already have a `vector` base type** in the 22 — this is
@@ -88,14 +96,14 @@ Two hard rules, both keyed on status:
 
 And the key-mapping rules, which are a constraint we can enforce:
 
-> "in a link type with **many-to-many** cardinality, the columns in the backing
+> "in a link type with **many-to many** cardinality, the columns in the backing
 > datasource **must map to the primary keys** of the object types. If the type of
 > the primary key property… is not the same as the type of the column it is being
 > mapped to… **an error will prevent you from saving**."
 >
 > "In a link type with **any other cardinality**, the application requires that
 > the key of one of the object types must map to the **Primary key** of that
-> object type, **ensuring that the 'one' side of the Cardinality is unique**."
+> object type, **ensuring that the “one” side of the Cardinality is unique**."
 
 Visibility has stated semantics: "A `prominent` link type will prompt
 applications to **show this link type first**. A `hidden` link type will **not
@@ -161,7 +169,8 @@ read metadata**. And two constraints worth keeping:
 
 Also a distinction worth noting: an **event object** is configured on the *object
 type* (Capabilities), whereas a **timeline geometry** is configured per-map in the
-Layers panel and "requires an object to have at least one timestamp property".
+Layers panel, where "timeline geometries require an object to have at least one
+timestamp property depending on the geometry's shape".
 The ontology owns the first, the application the second.
 
 ## 7 — Navigation and Cleanup
@@ -173,12 +182,16 @@ on their **visibility, development status, and indexing issues**."
 
 **Cleanup** is a queue with three verbs:
 
-> * **Snooze:** hide from your cleanup queue for a configurable time — "affects
->   only the user that performs it."
-> * **Deprecate:** "Show object types as deprecated in every context that displays
->   object type status", with a **deadline**.
-> * **Delete:** "Delete object types from the Ontology and **remove associated
->   data from object storage**."
+> **Snooze:** Hide object types from your cleanup queue for a configurable
+> amount of time. Snoozing is an action that will affect only the user that
+> performs it.
+
+> **Deprecate:** Show object types as deprecated in every context that displays
+> object type status.… You can set a deadline along with a deprecation so users
+> know how long they have to refrain from using these object types.
+
+> **Delete:** Delete object types from the Ontology and remove associated
+> data from object storage.
 
 Its flags are the interesting part, because each is a computable predicate:
 **Past deprecation date · Trashed datasource · Datasource not updated in [x]
@@ -200,10 +213,16 @@ ri.<service>.<instance>.<type>.<locator>
 
 | segment | rule |
 |---|---|
-| **service** | "the service (or application) that namespaces the rest of the identifier" — `[a-z][a-z0-9\-]*` |
-| **instance** | "an **optionally empty** string that represents a specific service cluster" — `([a-z0-9][a-z0-9\-]*)?` |
-| **type** | "a service-specific resource type to namespace a group of locators" — `[a-z][a-z0-9\-]*` |
-| **locator** | "a string used to uniquely locate the specific resource" — `[a-zA-Z0-9\-\._]+` |
+| **service** | the service or application that namespaces the rest of the identifier — `[a-z][a-z0-9\-]*` |
+| **instance** | an **optionally empty** string representing a specific service cluster — `([a-z0-9][a-z0-9\-]*)?` |
+| **type** | a service-specific resource type, namespacing a group of locators — `[a-z][a-z0-9\-]*` |
+| **locator** | a string that uniquely locates the specific resource — `[a-zA-Z0-9\-\._]+` |
+
+*(Described rather than quoted. These four come from the RID specification at
+`github.com/palantir/resource-identifier`, which is not in the mirror and which
+the citation gate therefore cannot read. Quoting an unreadable source is how a
+citation becomes unverifiable, so the wording here is deliberately mine — the
+same call `control-panel-and-banners` made for an unidentifiable screenshot.)*
 
 **A defect this found in code we shipped.** `rid_locator()` (migration 391) is:
 
