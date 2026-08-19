@@ -603,7 +603,7 @@ A `vector` property (already one of our 22 base types) plus nearest-neighbour.
 **pgvector is already installed.** Two documented paths — a Palantir-provided
 model or a custom one.
 
-### F2 · Cleanup
+### F2 · Cleanup — **BUILT** (578)
 
 Three verbs — **Snooze** (per-user), **Deprecate** (with a deadline, "shown as
 deprecated in every context that displays object type status"), **Delete**
@@ -614,8 +614,26 @@ days · description missing · display name matches a regex (default
 order, and "deprecation and deletion are **staged the same way as normal Ontology
 modifications**".
 
-Every one of those flags is a query we can already write. This is
-`ontology_violations()` grown a second severity: *not wrong, but probably dead*.
+**That framing was half right and the half that was wrong mattered.** It is not
+`ontology_violations()` grown a severity — it is a second list, because Foundry
+keeps them separate: `cleanup-filters.png` shows `Health issues 1,939` and
+`Cleanup 5,633` as distinct sections with distinct counts. A blank description
+is not a violation.
+
+And "every one of those flags is a query we can already write" was wrong twice
+over. There are **seven** flags, not six — the seventh, `No registered usage in
+30 days`, appears only in a screenshot and is the strongest signal in the tool.
+Two of the seven cannot be computed here at all: `phonograph_deindexed` because
+the page applies it only to Object Storage v1 and says there is no v2
+equivalent, and `no_registered_usage` because it needs the Ontology metrics
+ledger `ontology-manager/view-usage` defines. Both are registered and refused
+with their own reason rather than quietly absent.
+
+Priority is `high|medium|low` (only a screenshot says so), configuration is
+per-user as (mode, overrides) rather than a row per flag, snooze is the one new
+state, and the queue is **stored** — Foundry prompts to recalculate rather than
+recomputing silently. Deprecate and Delete already existed; staging is Phase D's
+Review edits modal, unchanged.
 
 ### F3 · Dependents
 

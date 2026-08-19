@@ -213,7 +213,24 @@ not one.
    same way as normal Ontology modifications", and the screenshot is the same
    Review edits modal Phase D built. Cleanup writes through branches and
    proposals or directly, exactly as any other edit does.
-9. **Not built from this reading yet.** These Decisions want reciting first.
+9. **BUILT (578), after two recitations.** The second was worth it: the first
+   named F3 as the blocker for `no_registered_usage`, and the second replaced it
+   with the Ontology metrics ledger, which is different work entirely.
+
+   `cleanup_flags()` carries all seven with their published priorities, defaults
+   and parameters; five compute, two are registered and refused with their own
+   reason. `cleanup_configurations` is (user, ontology, mode) with
+   `cleanup_flag_overrides` beside it, `cleanup_snoozes` is per-user with an
+   expiry, and `cleanup_candidates` is the stored queue with `computed_at` on
+   the configuration. A settings change deletes the results and nulls
+   `computed_at`, because Foundry prompts to recalculate rather than doing it
+   silently.
+
+   **One thing the build sharpened.** Splitting the reset into two trigger
+   functions rather than one branching on `TG_TABLE_NAME` is not style: plpgsql
+   resolves a record's fields at runtime whichever branch is taken, so a single
+   function naming both `NEW.configuration_id` and `NEW.id` fails on whichever
+   table lacks the other's column.
 
 ## Questions — all four answered on the second pass, kept for the trail
 

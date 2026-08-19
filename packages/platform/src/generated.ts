@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (40) ────────────────────────────────────────────────
+// ── ACTION TYPES (42) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -219,6 +219,11 @@ export const rebaseBranch = { apiName: 'rebase_branch', kind: 'action' } as Acti
   number
 >
 
+export const resetCleanupResults = { apiName: 'reset_cleanup_results', kind: 'action' } as ActionType<
+  { p_config: string },
+  void
+>
+
 /**
  *  Every RLS-guarded table that the role PostgREST connects as cannot read.
  *  Derived from pg_class, never enumerated. Found the recursion in migration
@@ -254,6 +259,11 @@ export const runBuild = { apiName: 'run_build', kind: 'action' } as ActionType<
 export const runBuildJob = { apiName: 'run_build_job', kind: 'action' } as ActionType<
   { p_job: string },
   string
+>
+
+export const runCleanup = { apiName: 'run_cleanup', kind: 'action' } as ActionType<
+  { p_config: string },
+  number
 >
 
 /**
@@ -367,7 +377,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (167) ───────────────────────────────────────────────────
+// ── FUNCTIONS (173) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -679,6 +689,31 @@ export const capabilitySlots = { apiName: 'capability_slots', kind: 'function' }
 export const checkAccess = { apiName: 'check_access', kind: 'function' } as FunctionType<
   { p_kind: string; p_id: string; p_user: string },
   { section: string; requirement: string; detail: string; satisfied: boolean }[]
+>
+
+export const cleanupEffectiveFlags = { apiName: 'cleanup_effective_flags', kind: 'function' } as FunctionType<
+  { p_config: string },
+  { flag: string; enabled: boolean; priority: string; days: number; regex: string; computable: boolean }[]
+>
+
+export const cleanupFlagDefaultDays = { apiName: 'cleanup_flag_default_days', kind: 'function' } as FunctionType<
+  { p_flag: string },
+  number
+>
+
+export const cleanupFlagNames = { apiName: 'cleanup_flag_names', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const cleanupFlags = { apiName: 'cleanup_flags', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { flag: string; priority: string; default_on: boolean; parameter: string; computable: boolean; note: string }[]
+>
+
+export const cleanupPriorityRank = { apiName: 'cleanup_priority_rank', kind: 'function' } as FunctionType<
+  { p: string },
+  number
 >
 
 export const compassProjectOf = { apiName: 'compass_project_of', kind: 'function' } as FunctionType<
@@ -1178,6 +1213,11 @@ export const objectSetTraversalsValid = { apiName: 'object_set_traversals_valid'
 export const objectState = { apiName: 'object_state', kind: 'function' } as FunctionType<
   { p_object_type: string; p_primary_key: string; p_datasource_row: Json },
   { properties: Json; deleted: boolean }[]
+>
+
+export const objectTypeCleanupFlags = { apiName: 'object_type_cleanup_flags', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_config: string },
+  string[]
 >
 
 /**
