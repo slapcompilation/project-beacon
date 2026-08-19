@@ -603,7 +603,7 @@ A `vector` property (already one of our 22 base types) plus nearest-neighbour.
 **pgvector is already installed.** Two documented paths — a Palantir-provided
 model or a custom one.
 
-### F2 · Cleanup — **BUILT** (578)
+### F2 · Cleanup — **BUILT** (578), and its ledger (579)
 
 Three verbs — **Snooze** (per-user), **Deprecate** (with a deadline, "shown as
 deprecated in every context that displays object type status"), **Delete**
@@ -628,6 +628,25 @@ the page applies it only to Object Storage v1 and says there is no v2
 equivalent, and `no_registered_usage` because it needs the Ontology metrics
 ledger `ontology-manager/view-usage` defines. Both are registered and refused
 with their own reason rather than quietly absent.
+
+**579 built the ledger F2 named**, and `no_registered_usage` computes now.
+`ontology-manager/view-usage` defines it exactly — a read is one load REQUEST
+("Many objects loaded or aggregated at once will only be recorded as a single
+read"), Ontology Manager's own traffic is excluded, and Interactions and Active
+users are derived over 30 days. The Usage tab's four displays all aggregate from
+one grain, `(resource, day, application, user) -> reads, writes`, which is what
+`ontology_usage` stores.
+
+The load-bearing half is `ontology_usage_window_covered()`: metrics are an
+admin-only toggle that ships off, so **an absence of rows may only be read as an
+absence of usage where metrics covered the whole window**. Otherwise the flag
+reports nothing. Without that, a cleanup queue proposes deleting every object
+type in an ontology that simply never switched metrics on.
+
+`application` is free text and that is a decision: `apps-portal.png` shows
+`Platform apps 40` as a closed Foundry set, but `All apps 75` — the other 35 are
+promoted apps built by customers, so a CHECK would refuse a real caller the
+first time someone promotes one.
 
 Priority is `high|medium|low` (only a screenshot says so), configuration is
 per-user as (mode, overrides) rather than a row per flag, snooze is the one new
