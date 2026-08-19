@@ -90,7 +90,7 @@ also what gives each environment its own ontology. Branching works *within* an
 environment; promotion *between* them is Marketplace. They are "**complementary
 solutions to different problems**", and only the latter offers rollback.
 
-### A2 · `folders`
+### A2 · `folders` — **BUILT** (497–498)
 
 > "**Filesystem** — Manage **spaces, projects, folders**, and resource roles."
 > — `dev-toolchain/overview`
@@ -105,7 +105,7 @@ already builds a path; it has no folder level to walk.
 
 ---
 
-## Phase B — the object type, completed
+## Phase B — the object type, completed (B6 excepted, on purpose)
 
 ### B1 · The metadata the Overview shows — **BUILT** (415)
 
@@ -246,7 +246,28 @@ grepped for "which migration built this"** — a wrong number here is believed.
 (This section once read as future work — the 2026-08-13 gap run caught that
 missing marker, and the 2026-08-19 run caught this one.)
 
-### B6 · Type classes
+### B6 · Type classes — **DELIBERATELY NOT BUILT**, and this section said otherwise
+
+`DELIVERABLE-MAP.md` has recorded the decision for some time; this map went on
+describing it as pending, which is how someone ends up building it. The reason
+is not cost:
+
+> "The configuration of all supported type classes will move to the Capabilities page"
+
+A generic `kind`/`name` bag would be **building the thing Foundry is retiring**.
+And `metadata-render-hints` frames the whole feature in **Object Storage v1
+(Phonograph)** terms — the backend whose status scalar we already had to undo.
+
+What *is* built is the specific half that has a consumer: the render hints
+`searchable`, `sortable` and `selectable` live as columns on
+`object_type_properties`, with the published dependency rule enforced as
+`hints_need_searchable` and readers in `object_set_where`,
+`evaluate_object_set`, `aggregate_object_set` and `search_index_payload`. Seven
+of the ten published hints stay unbuilt, each waiting for a surface that would
+read it.
+
+**Take hints one at a time, from a consumer that needs one.** Do not build the
+bag.
 
 > "Type classes can be applied to **properties, link types, and action types**."
 
@@ -415,7 +436,7 @@ that is `Auto-approved` and still carries a red ✕.
 Merging offers three build options — **all affected / modified only / none** —
 and *"You **cannot currently revert a partially-failed merge**."*
 
-### D3 · Protection
+### D3 · Protection — **BUILT** (419–420)
 
 **Branch roles are not resource permissions**, and the separation is worth
 copying: *"Branch roles control access to **branch management actions only** and
@@ -528,7 +549,7 @@ And **indexing is a modification**: it belongs inside a branch (Phase D), shows
 as `Indexed 5 days ago` on a proposal task, and needs approval to merge when the
 resource is protected.
 
-### E3 · Materializations
+### E3 · Materializations — **BUILT** (453, 515–516)
 
 > "materializations of indexed data from the Ontology that contains the **latest
 > state of each object by combining data from both input datasources and user
@@ -550,7 +571,7 @@ dive screenshot.
 - **Not creatable or editable on a branch**, though branch changes do write
   through.
 
-### E4 · Value types
+### E4 · Value types — **BUILT** (452, 575)
 
 > "**semantic wrappers around a field type** that include metadata and
 > constraints."
