@@ -10,7 +10,7 @@
 --    — the comment on object_type_properties.datasource_id, migration 408
 --
 -- The primary key property points at NO datasource precisely because it belongs
--- to all of them. So "which datasource does the key property name" has no
+-- to all of them. So asking which datasource the key property names has no
 -- answer by construction, and 586's arm fired on the only real object type in
 -- the ontology.
 --

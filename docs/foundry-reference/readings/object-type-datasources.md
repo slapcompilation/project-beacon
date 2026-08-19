@@ -61,6 +61,18 @@ and its single member:
 halves are required in the API — an object type cannot round-trip through the
 get-object-type endpoint without one.
 
+**And the prose says it too, in the page we already had a reading of.** Step 2
+of the create wizard:
+
+> "**Icon:** Select the default icon to customize the icon and color of the object type; this icon and color will be displayed in user applications when a user views an object of this type."
+
+— `object-link-types/create-object-type.md`, and `edit-object-type.md` repeats
+it for an existing type. The phrase "icon and color" appears three times across
+those two pages. This is the failure CLAUDE.md describes under *How to read a
+Foundry page*: one sentence of a bullet list reached the work and the rest did
+not. The API did not reveal a gap here so much as make an already-documented one
+impossible to keep overlooking.
+
 Two things follow beyond the missing column.
 
 **It is a union, not a string.** "More icon types may be added in the future"
@@ -290,10 +302,12 @@ holds that boundary, because a rule about a limit is untested anywhere else.
 
 ## Questions
 
-1. **What is the default icon colour?** `#2D72D2` is Blueprint's blue3 and its
-   default primary-intent colour, and the object-type screenshots in the mirror
-   show a blue cube. That is inference from the palette and the screenshots, not
-   a statement on any page.
+1. **What is the default icon colour?** Partly answered. Step 2 of the create
+   wizard shows the Icon control as a blue cube on a pale blue swatch before
+   anything is chosen, so the default is blue and the default icon is Blueprint's
+   `cube` — `object-link-types/images/create-object-type-metadata-step.png`. The
+   exact hex is still inference: `#2D72D2` is Blueprint's blue3 and its primary
+   intent colour. No page prints a code.
 2. **Does a media set datasource count toward any limit?** The page excludes it
    from the 70 and names no other. Assumed unlimited.
 3. **What backs a `table` datasource, and is it distinct from a dataset?** The
