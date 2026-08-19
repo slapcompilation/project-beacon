@@ -37,7 +37,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBranchConflicts, useSetBranchStatus } from '@/features/branching/api'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
-import { useViolations } from '@/features/health/api'
+import { useViolations, useWarnings } from '@/features/health/api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProjects } from '@/features/projects/api'
 import { OntologyPicker } from '@/features/ontologies/OntologyPicker'
@@ -139,8 +139,10 @@ function NavRow({ icon, label, path, count, end = false }: {
 /** Health issues carries its count in the sidebar, and keeps it even when a
  *  search facets every other row — so it is a NavRow with a number, not a dot. */
 function HealthIssuesRow() {
-  const { data: rows = [] } = useViolations()
-  return <NavRow icon="pulse" label="Health issues" path="/ontology/health" count={rows.length} end />
+  const { data: errors = [] } = useViolations()
+  const { data: warnings = [] } = useWarnings()
+  return <NavRow icon="pulse" label="Health issues" path="/ontology/health"
+    count={errors.length + warnings.length} end />
 }
 
 /** "When there are new changes from main, a blue indicator appears on the

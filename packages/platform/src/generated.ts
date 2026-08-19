@@ -388,7 +388,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (186) ───────────────────────────────────────────────────
+// ── FUNCTIONS (187) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1392,6 +1392,16 @@ export const ontologyViolations = { apiName: 'ontology_violations', kind: 'funct
  *  superrepo/core-concepts "Ontology linting".
  */
 export const ontologyViolationsCore = { apiName: 'ontology_violations_core', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  Advisory problems: "warnings will not prevent you from saving".
+ *  Deliberately NOT consulted by save_working_state, which is what separates
+ *  this list from ontology_violations().
+ */
+export const ontologyWarnings = { apiName: 'ontology_warnings', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
 >
