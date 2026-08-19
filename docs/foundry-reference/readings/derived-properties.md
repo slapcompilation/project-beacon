@@ -143,10 +143,10 @@ name things we also have.
    stored.
 5. **Seven of the ten limitations are constraints**, and two of those
    (`required`, `is_primary_key`) can be enforced against columns that exist.
-7. **A derived property names neither a column nor a datasource** — see below.
+6. **A derived property names neither a column nor a datasource** — see below.
    Its security comes from the source objects, so the third CHECK arm asserts
    both are absent and the hops carry the meaning.
-6. **Not built from this reading yet.** The Decisions above want reciting first,
+7. **Not built from this reading yet.** The Decisions above want reciting first,
    and this is Beta — worth saying out loud, since we have shipped Beta features
    before (branch overlay) but only deliberately.
 
@@ -214,9 +214,62 @@ so the third arm asserts both are absent — and the hops carry the meaning.
 2. **What happens to a derived property on a branch?** The chain crosses object
    types that may be edited on a branch, and `read-media-content` showed the API
    is branch-aware. Nothing here mentions branches.
-3. **Does `up to 3 levels` mean 3 links or 3 object types?** The worked example
-   traverses Department to Employee to Project — two links, three object types —
-   and is introduced as multi-hop. The image shows two rows for that shape. So
-   the cap most likely counts **object types**, giving at most two or three
-   links; the page is not explicit and a constraint would have to pick.
-   *(Inference, flagged.)*
+3. ~~**Does `up to 3 levels` mean 3 links or 3 object types?**~~ **ANSWERED
+   2026-08-19, and the earlier inference was backwards.** It counts **links**,
+   so the cap is 3 hops and at most 4 object types.
+
+   Three things agree, and none of them is the sentence I had been reading:
+
+   * Step 4 says the additional link types "traverse multiple levels of
+     connections (up to 3 levels)" — **levels of connections**, and a connection
+     is a link, not an object type.
+   * The multi-hop procedure counts them one per link: "1. Select your first
+     link type. 2. Select **Add linked object** to add another level. 3. Select
+     the next link type from the newly-connected object type. 4. Repeat up to 3
+     levels total." Each level is one added row.
+   * Both configuration screenshots render exactly **two rows** for a two-link
+     chain, and the starting object type is not a row at all — it is the type
+     being edited. So rows count links.
+
+   The old answer leaned on the worked example (Department → Employee → Project)
+   having three object types and two rows, and read the cap off the object-type
+   count. The same example read off the *rows* gives the opposite answer, and the
+   step wording settles which one the cap is about. A constraint can now say
+   `position BETWEEN 1 AND 3` over hop rows rather than guessing.
+
+---
+
+## The panel, parsed field by field (2026-08-19)
+
+`configure-derived-property-aggregation.png` is the whole configuration in one
+frame, and it fixes the order the prose gives across three numbered steps:
+
+> Linked objects · Read only
+> Movie Roles [Role] · Movie [Movie] · Add linked object
+> Aggregation · Collect set
+> Property · Title
+> Limit · 10
+> — object-link-types/images/configure-derived-property-aggregation.png
+
+**Each hop row is a link type, displaying the object type it reaches** — the
+link's name on the left, `[Object type]` beside it. That is Decision 2 confirmed
+from the UI: a hop points at `link_types`, and the object type is derived from
+the link rather than stored beside it.
+
+**The section header carries a `Read only` badge**, and the panel repeats the
+rule as its own sentence rather than relying on the prose one:
+
+> Properties derived from a linked object or traversed across multiple linked objects, are read only and cannot be edited by functions or actions.
+> — object-link-types/images/configure-multi-hop-link.png
+
+Same rule as the prose's "Derived properties are **read-only** and cannot be
+edited by functions or actions", phrased for the two shapes the panel can be in.
+
+**`Limit` renders only under a collect aggregation**, and its default is the
+documented 10. `Property` carries a type icon and a clear (×) — so it is
+nullable in the UI, which is what Count needs.
+
+The hop rows also carry **per-row cardinality icons** that differ between the
+first and second row in both screenshots. Cardinality is already on
+`link_types`, so nothing needs storing; recorded because a surface will want to
+draw it.

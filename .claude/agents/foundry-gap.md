@@ -109,6 +109,13 @@ of them is true.
   `timeseries_is_value_inverted` is on disk as `timeseries\_is\_value\_inverted`,
   so the obvious grep returns nothing and the page reads as absent. Search a
   distinctive *word* from the description, or use a pattern tolerant of `\`.
+
+- **And markdown emphasis breaks a literal grep mid-sentence.** The page says
+  "Derived properties are **read-only** and cannot be edited by functions or
+  actions", so grepping the sentence without the asterisks returns nothing and
+  reads as "that quote does not exist". `check:readings` strips emphasis before
+  comparing, so a quote can pass the gate and still be unfindable by hand.
+  Grep a fragment that cannot contain formatting, never a whole sentence.
 - **Absence of a grep hit is not absence from Foundry.** 47% of the
   documentation is not mirrored. Say "no mirrored page covers this", never
   "Foundry does not have this".
