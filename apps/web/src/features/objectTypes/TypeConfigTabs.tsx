@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useDatasets, useBranches } from '@/features/datasets/api'
 import {
   useObjectTypeDatasources, useAddObjectTypeDatasource, useRemoveObjectTypeDatasource,
+  useSetDatasourcePrimaryKeyColumn,
 } from '@/features/objectTypes/hooks'
 import {
   useMaterializations, useEditsEnabled, useSetEditsEnabled,
@@ -114,23 +115,51 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const setEdits = useSetEditsEnabled(type.id)
   const [editingRv, setEditingRv] = useState<string | null>(null)
   const editingView = restrictedViews.find((v) => v.id === editingRv) ?? null
+  const setKey = useSetDatasourcePrimaryKeyColumn(type.id)
+  const [keyDraft, setKeyDraft] = useState<Partial<Record<string, string>>>({})
 
   return (
     <div className="space-y-3">
       {sources.map((s) => (
-        <div key={s.id} className="flex items-center gap-2 text-xs">
-          <Icon icon={s.restrictedViewId ? 'eye-off' : 'database'} size={12} className="text-violet-500" />
-          <span className="font-medium">{s.restrictedViewId ? s.restrictedViewName : s.datasetName}</span>
-          {s.restrictedViewId
-            ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
-                title="Each user sees only the objects the view's policy allows.">restricted view</Tag>
-            : <Tag minimal className="!text-[10px]">{s.branchName}</Tag>}
-          {s.restrictedViewId && (
-            <Button variant="minimal" size="small" icon="edit" title="Edit policy / View JSON / Test policy"
-              onClick={() => { setEditingRv(s.restrictedViewId) }} />
+        <div key={s.id} className="space-y-1">
+          <div className="flex items-center gap-2 text-xs">
+            <Icon size={12} className="text-violet-500"
+              icon={s.mediaSetViewRid ? 'media' : s.restrictedViewId ? 'eye-off' : 'database'} />
+            <span className="font-medium">
+              {s.mediaSetViewRid ?? (s.restrictedViewId ? s.restrictedViewName : s.datasetName)}
+            </span>
+            {s.mediaSetViewRid
+              ? <Tag minimal className="!text-[10px]"
+                  title="A media set view backs media reference properties directly, and does not count toward the 70-datasource limit.">media set view</Tag>
+              : s.restrictedViewId
+                ? <Tag minimal intent={Intent.WARNING} className="!text-[10px]"
+                    title="Each user sees only the objects the view's policy allows.">restricted view</Tag>
+                : <Tag minimal className="!text-[10px]">{s.branchName}</Tag>}
+            {s.restrictedViewId && (
+              <Button variant="minimal" size="small" icon="edit" title="Edit policy / View JSON / Test policy"
+                onClick={() => { setEditingRv(s.restrictedViewId) }} />
+            )}
+            <Button variant="minimal" size="small" icon="cross" className="ml-auto"
+              onClick={() => { remove.mutate(s.id) }} />
+          </div>
+          {/* "The Map primary key helper will appear and prompt you for a column
+              with values matching the primary key of the object type." Only for
+              the joined kinds; a media set view has nothing to join. Empty means
+              the key property's own column, which is the usual case. */}
+          {!s.mediaSetViewRid && (
+            <div className="flex items-center gap-2 pl-5 text-[11px] text-muted-foreground">
+              <span>Primary key column</span>
+              <InputGroup size="small" value={keyDraft[s.id] ?? s.primaryKeyColumn ?? ''}
+                placeholder={type.properties.find((p) => p.isPrimaryKey)?.backingColumn ?? 'same as the key property'}
+                onValueChange={(v) => { setKeyDraft({ ...keyDraft, [s.id]: v }) }}
+                onBlur={() => {
+                  const next = keyDraft[s.id]
+                  if (next !== undefined && next !== (s.primaryKeyColumn ?? '')) {
+                    setKey.mutate({ id: s.id, column: next })
+                  }
+                }} />
+            </div>
           )}
-          <Button variant="minimal" size="small" icon="cross" className="ml-auto"
-            onClick={() => { remove.mutate(s.id) }} />
         </div>
       ))}
       {editingView && (

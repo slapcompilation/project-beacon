@@ -20,7 +20,7 @@
 
 import pg from 'pg'
 import { describe, it, expect, beforeAll, afterAll } from 'vitest'
-import { noDb, connect, rollback, fixture, refused, type Fixture } from './harness'
+import { noDb, connect, rollback, fixture, refused, asAuthenticated, type Fixture } from './harness'
 
 describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
   let db: pg.Client
@@ -180,6 +180,16 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
     expect(await problems(dsC)).toEqual([
       expect.stringContaining('maps no properties'),
     ])
+  })
+
+  it('the Health issues page can read the linter as the role it connects as', async () => {
+    // `ontology_violations()` is not SECURITY DEFINER, so it reads every table
+    // it touches under the caller's policies. Connecting as the owner bypasses
+    // all of them, which is how a surface passes every guard and returns an
+    // error to the only role that will ever call it.
+    const rows = await asAuthenticated(db, async () =>
+      (await db.query('select * from public.ontology_violations()')).rows)
+    expect(Array.isArray(rows)).toBe(true)
   })
 
   it('an object type icon carries a colour, and it must be a hex code', async () => {
