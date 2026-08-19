@@ -27,6 +27,8 @@ import {
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { useEditsEnabled } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
+import { DependentsTab } from '@/features/objectTypes/DependentsTab'
+import { UsageTab } from '@/features/objectTypes/UsageTab'
 import { CapabilitiesTab } from '@/features/objectTypes/CapabilitiesTab'
 import { InterfacesTab } from '@/features/interfaces/InterfacesTab'
 import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
@@ -409,6 +411,10 @@ function TypeDetail({ type, allTypes }: { type: ObjectTypeDef; allTypes: ObjectT
         <Tab id="datasources" title="Datasources" icon="database" panel={<DatasourcesTab type={type} />} />
         <Tab id="interfaces" title="Interfaces" icon="layers" panel={<InterfacesTab type={type} />} />
         <Tab id="capabilities" title="Capabilities" icon="widget" panel={<CapabilitiesTab type={type} />} />
+        {/* Sections 5 and 7 of Foundry's object type Overview. Both engines
+            shipped in 579/580 with nothing reading them until now. */}
+        <Tab id="dependents" title="Dependents" icon="graph" panel={<DependentsTab type={type} />} />
+        <Tab id="usage" title="Usage" icon="timeline-line-chart" panel={<UsageTab type={type} />} />
         {editsEnabled &&
           <Tab id="materializations" title="Materializations" icon="export" panel={<MaterializationsTab type={type} />} />}
       </Tabs>
