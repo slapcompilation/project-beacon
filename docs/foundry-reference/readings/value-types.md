@@ -1150,7 +1150,27 @@ version. So a malformed constraint minted into version 3 is version 3's forever.
 4. **A CHECK cannot do it** — the pairing spans two tables (`value_type_constraints`
    → `value_types.base_type`), so the rule-placement ladder's first rung is
    unavailable and a trigger is the first that works.
-5. **Not built from this section yet.** These Decisions want reciting first.
+5. **BUILT (575).** `value_type_constraint_base_types(kind)` carries the
+   published pairing and a trigger on `value_type_constraints` enforces it, so
+   the mismatch is refused at the table rather than merely absent from a picker
+   we do not have.
+
+   **`long` and `byte` are deliberately excluded from enum and range.** Both look
+   numeric and the page lists neither. Adding them because they seem to belong
+   would be inventing a pairing, which is the failure this repo is organised
+   around — so a test asserts they are refused, and the exclusion is a decision
+   rather than an oversight.
+
+   **The audit that came with it: production held zero constraints.** The guard
+   lands before anything could accumulate under the lax path, so there is no
+   backlog of malformed immutable versions to correct — which was the whole
+   worry, and it is now closed rather than merely bounded.
+
+   `valueTypeConstraints.test.ts` drives the published pairing off the function
+   itself, so the assertions cannot drift from the rule, and separately asserts
+   that every kind in the CHECK vocabulary *has* a published list — a ninth kind
+   added without one would otherwise make the trigger refuse that kind entirely,
+   silently.
 
 ## Questions from §11
 
