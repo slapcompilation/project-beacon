@@ -146,9 +146,29 @@ name things we also have.
 6. **A derived property names neither a column nor a datasource** — see below.
    Its security comes from the source objects, so the third CHECK arm asserts
    both are absent and the hops carry the meaning.
-7. **Not built from this reading yet.** The Decisions above want reciting first,
-   and this is Beta — worth saying out loud, since we have shipped Beta features
-   before (branch overlay) but only deliberately.
+7. **BUILT (576-577), after reciting.** Beta, deliberately, the way the branch
+   overlay was.
+
+   Two Decisions were sharpened by the build rather than merely executed.
+
+   **Decision 5 undercounted what we can enforce.** It said two of the ten
+   limitations could be checked against columns that exist. It is three:
+   `value_type_id` is already on `object_type_properties`, so "Properties with
+   value types cannot be converted to derived properties" is a CHECK too. The
+   other seven are about queries, about mechanisms we do not model, or about a
+   Default ontology we have no counterpart for — refusing what we cannot
+   represent would be theatre.
+
+   **The rules landed on three different rungs, and the split is the design.**
+   A CHECK carries what a property row says about itself. A trigger carries
+   whether a hop reaches where the chain stands. The linter carries what only a
+   COMPLETE chain can answer — no hops at all, a missing aggregation over a
+   "many", a derived-from property on the wrong type — because **Foundry authors
+   the chain incrementally**: the panel sits with "Select linked object" still
+   empty, so a trigger demanding completeness would make the documented
+   authoring order impossible to follow. That is a rule about the *product's*
+   workflow deciding where enforcement can live, which is a sharper reason than
+   the ladder alone gives.
 
 ## Answered — the datasource question, and a second page I had missed
 

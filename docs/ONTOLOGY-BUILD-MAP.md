@@ -261,7 +261,7 @@ Inert application metadata, **with one exception**: "With the exception of the
 name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
 `searchable`) and now owns what `analyzer.not_indexed` used to.
 
-### B7 · Derived properties — **NOT BUILT, and until 2026-08-19 not tracked**
+### B7 · Derived properties — **BUILT** (576–577)
 
 > "Derived properties are properties that are calculated at runtime based on values from linked objects. Instead of storing data directly, a derived property pulls information from objects connected through link types, optionally applying aggregations like averaging, counting, or collecting values into lists."
 
@@ -276,12 +276,31 @@ so it was not on any build order. A reading with no map entry is not deferred
 work; it is forgotten work, and the difference only shows when something goes
 looking.
 
-Scheduling it is a real decision, not a cheap one: a third `source` value, a
-runtime computation path, the documented 3-hop traversal cap, nine named
-aggregations, and read-only enforcement ("Derived properties are read-only and
-cannot be edited by functions or actions") that has to hold against actions and
-edit functions both. Recorded here so it stops being invisible; the reading's
-Decisions block wants reciting before any of it is built.
+`object_type_properties.source` gains `linked_objects`, matching the Source type
+control's third radio ("Use a property from another object type").
+`derived_property_hops` carries the ordered chain, one row per link as the panel
+draws it, capped at 3 — **the cap counts links, not object types**, settled from
+the step wording ("levels of connections", "Repeat up to 3 levels total") and
+from both screenshots drawing two rows for the two-link worked example.
+
+**The two pages describe two surfaces, and only one of them is the ontology.**
+`ontology/derived-properties` defines them broadly and lists exactly one place
+they are available — the TypeScript OSDK's `withProperties`, a query-time
+construct. `object-link-types/derived-properties` is the Ontology Manager
+property. So the same-object derivation the broad wording allows belongs to the
+SDK surface; what is modelled here is the whole of the half that lives in the
+ontology, not a narrowed version of it.
+
+**A derived property names neither a column nor a datasource** — the third arm
+of 545's constraint asserts both are absent, because "Derived properties use the
+security of all objects involved in the calculation".
+
+Rules land on three rungs and the split is the point: CHECKs for what a property
+row says about itself, a trigger for whether a hop reaches where the chain
+stands, and `ontology_violations()` for what only a complete chain can answer.
+That last one is not laziness — **Foundry authors the chain incrementally**, with
+the panel sitting on an empty "Select linked object", so a trigger demanding
+completeness would make the documented authoring order impossible.
 
 ---
 

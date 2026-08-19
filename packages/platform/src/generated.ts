@@ -367,7 +367,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (160) ───────────────────────────────────────────────────
+// ── FUNCTIONS (167) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -814,6 +814,26 @@ export const defaultOntology = { apiName: 'default_ontology', kind: 'function' }
   string
 >
 
+export const derivedAggregationNames = { apiName: 'derived_aggregation_names', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const derivedAggregations = { apiName: 'derived_aggregations', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { name: string; needs_property: boolean; takes_limit: boolean }[]
+>
+
+export const derivedChain = { apiName: 'derived_chain', kind: 'function' } as FunctionType<
+  { p_property: string },
+  { reached: string; any_many: boolean; hops: number }[]
+>
+
+export const derivedPropertyProblems = { apiName: 'derived_property_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
 /**
  *  The file markings of every transitive input, arriving here as data
  *  markings. A union over inputs: one marked input marks everything
@@ -1083,6 +1103,21 @@ export const linkAccessor = { apiName: 'link_accessor', kind: 'function' } as Fu
   string
 >
 
+export const linkHopIsMany = { apiName: 'link_hop_is_many', kind: 'function' } as FunctionType<
+  { p_link: string; p_from: string },
+  boolean
+>
+
+/**
+ *  The object type a hop reaches, or NULL when the link does not touch the
+ *  one it starts from. A self-link resolves to the same type, which is
+ *  correct.
+ */
+export const linkOtherEnd = { apiName: 'link_other_end', kind: 'function' } as FunctionType<
+  { p_link: string; p_from: string },
+  string
+>
+
 export const markingMember = { apiName: 'marking_member', kind: 'function' } as FunctionType<
   { p_marking: string; p_user: string },
   boolean
@@ -1221,12 +1256,17 @@ export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as Fu
   string
 >
 
+export const ontologyViolations = { apiName: 'ontology_violations', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
 /**
  *  Every well-formedness violation in the ontology, as rows. The linting half
  *  of what check:platform was doing by assertion — see
  *  superrepo/core-concepts "Ontology linting".
  */
-export const ontologyViolations = { apiName: 'ontology_violations', kind: 'function' } as FunctionType<
+export const ontologyViolationsCore = { apiName: 'ontology_violations_core', kind: 'function' } as FunctionType<
   Record<string, never>,
   { object_type: string; scope: string; subject: string; problem: string }[]
 >
