@@ -163,7 +163,7 @@ join dataset (`create-link-type.md`). If a design needs a generic table with a
 ## What is here
 
 ```
-apps/web/                107 files. Ontology Manager (/ontology), projects,
+apps/web/                118 files. Ontology Manager (/ontology), projects,
                          account, auth, the shell. Vite + React + Blueprint.
 packages/ontology/       the ontology model: object types, properties and base
                          types, link cardinality, interfaces, shared properties,
@@ -173,7 +173,7 @@ packages/platform/       the engine tested against the documentation's own
                          printed answers, as `authenticated`.
 packages/services/       IAuthService and the other interface seams, with the
                          AuthSession and UserRole they describe.
-supabase/migrations/     582 migrations. 355 is where the ontology was emptied;
+supabase/migrations/     590 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
 docs/foundry-reference/  4,068 mirrored pages of 4,818 known URLs. THE SOURCE.
 docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
@@ -198,10 +198,20 @@ CHECK traces to a page — and the original core is still the map's spine:
 | `projects`, `project_resources`, `project_role_grants` | Compass: owner/editor/viewer/discoverer |
 | `organizations`, `users` | the tenant, and who is in it |
 
-**The ontology has no way to hold an object yet.** A type can now describe one
-completely — properties are rows, the primary key and title key are designations
-on them, and each names the datasource column it reads. What is missing is the
-step that turns that description into stored instances.
+**The ontology holds objects.** This paragraph used to say it could not, and was
+left saying so long after it stopped being true — check it against the database
+before repeating it. `index_object_type` builds `objects.ot_<uuid>`: a real
+table, one real typed column per property, primary key on the key property. It
+runs only from a RUNNING build job, gathers each datasource's current view,
+replays `object_edits` over it, drops the deleted, and fails the build on a value
+type violation. Objects that exist only in the edit log join the merge, so a type
+can hold rows its datasource never had.
+
+What a *new* type could not do until 590 is start life valid: creation left it
+with no datasource, so its own linter reported "A backing datasource is required"
+and the save was refused. `generate_backing_dataset` is the wizard's documented
+other branch — an empty dataset in a chosen location, because "permissions of the
+objects of a type are determined by the location of their backing datasources".
 
 ## Commands
 

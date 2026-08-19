@@ -10,7 +10,7 @@ import type { ActionType, FunctionType, Json } from './client'
 //   public.object_type_nearest
 //   public.rid_of
 
-// ── ACTION TYPES (44) ────────────────────────────────────────────────
+// ── ACTION TYPES (45) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -148,6 +148,17 @@ export const deleteOntologyResource = { apiName: 'delete_ontology_resource', kin
 export const discardWorkingState = { apiName: 'discard_working_state', kind: 'action' } as ActionType<
   { p_kind?: string; p_id?: string; p_branch?: string },
   number
+>
+
+/**
+ *  The create wizard's "Continue without datasource" branch: an empty dataset
+ *  in a chosen location, its master branch, and the datasource row — one
+ *  transaction, because a half-done create leaves an object type that cannot
+ *  be saved.
+ */
+export const generateBackingDataset = { apiName: 'generate_backing_dataset', kind: 'action' } as ActionType<
+  { p_object_type: string; p_name: string; p_folder?: string },
+  string
 >
 
 /**
