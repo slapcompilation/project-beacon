@@ -297,16 +297,22 @@ const addedMigrations = () => {
   // that exits 0 returned empty for uncommitted work and checked nothing —
   // found by writing a migration with an invented quote and watching it pass.
   const found = new Set()
-  for (const base of ['origin/main...HEAD', 'origin/main']) {
-    const r = spawnSync('git',
-      ['diff', '--name-only', '--diff-filter=A', base, '--', 'supabase/migrations'],
-      { encoding: 'utf8' })
-    if (r.status !== 0) continue
+  const collect = (args) => {
+    const r = spawnSync('git', args, { encoding: 'utf8' })
+    if (r.status !== 0) return
     for (const l of r.stdout.split(/\r?\n/)) {
       const f = l.trim()
       if (f.endsWith('.sql')) found.add(f)
     }
   }
+  for (const base of ['origin/main...HEAD', 'origin/main']) {
+    collect(['diff', '--name-only', '--diff-filter=A', base, '--', 'supabase/migrations'])
+  }
+  // `git diff` NEVER lists an untracked file, so the working-tree form above did
+  // not in fact see "a migration being written right now" — only one already
+  // staged. A new file is the commonest case there is, and it was the one this
+  // checked last.
+  collect(['ls-files', '--others', '--exclude-standard', '--', 'supabase/migrations'])
   return [...found]   // empty when there is no origin/main — a fork, a fresh clone
 }
 
@@ -322,11 +328,18 @@ const sqlQuotations = (sql) => {
       // next opening one — inventing a citation out of the prose BETWEEN two
       // quotes. 586 was reported for `— and name · string · required,`, which
       // no one wrote as a quotation and no page could ever contain.
+      // A migration may cite a screenshot too, and until now it had no way to:
+      // only readings had the `— path.png` form, while the header comment of
+      // this file says screenshots carry the most weight of anything here. Same
+      // rule as a reading — the file must exist on disk.
+      const shot = /[—-]\s*([\w./-]+\.(?:png|jpg|jpeg|gif|svg))\s*$/.exec(text)
       const spans = text.split('"').filter((_, i) => i % 2 === 1)
       for (const span of spans) {
         const t = normalise(span)
         if (t.length < 30) continue
-        if (!/[{}]|=>|import |CREATE |SELECT /.test(t)) out.push({ at: start, text: t })
+        if (!/[{}]|=>|import |CREATE |SELECT /.test(t)) {
+          out.push({ at: start, text: t, image: shot ? shot[1] : null })
+        }
       }
     }
     buf = []
@@ -377,6 +390,18 @@ for (const file of added) {
   }
 
   for (const q of sqlQuotations(sql)) {
+    if (q.image) {
+      migChecked += 1
+      const onDisk = path.join(MIRROR, q.image)
+      if (!fs.existsSync(onDisk) && !fs.existsSync(q.image)) {
+        failures.push({
+          name: file.replace(/^supabase\/migrations\//, ''),
+          at: q.at,
+          why: `image not on disk: ${q.image}`,
+        })
+      }
+      continue
+    }
     const parts = fragments(q.text)
     if (parts.length === 0) continue
     migChecked += 1

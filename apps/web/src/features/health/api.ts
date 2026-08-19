@@ -14,7 +14,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { client } from '@/lib/supabase/ontologyClient'
-import { ontologyViolations } from '@beacon/platform'
+import { ontologyViolations, ontologyWarnings } from '@beacon/platform'
 
 /** One problem: which type, which part of it, which thing, what is wrong.
  *  The four columns are the three-level grouping the Review edits dialog
@@ -31,5 +31,17 @@ export function useViolations() {
     queryKey: ['ontology-violations'],
     queryFn: async () =>
       await client(ontologyViolations).executeFunction({}) as unknown as Violation[],
+  })
+}
+
+/** The advisory list. Two lists rather than one list with a severity, because
+ *  the difference is behavioural: "errors need to be handled in order to save,
+ *  warnings will not prevent you from saving", and `save_working_state` only
+ *  ever consults the blocking one. */
+export function useWarnings() {
+  return useQuery({
+    queryKey: ['ontology-warnings'],
+    queryFn: async () =>
+      await client(ontologyWarnings).executeFunction({}) as unknown as Violation[],
   })
 }

@@ -170,6 +170,45 @@ describe.skipIf(noDb)('a datasource carries the key that joins it', () => {
     await db.query(
       `update public.object_type_datasources set primary_key_column='tail' where id=$1`, [dsB])
     expect(await problems(dsB)).toEqual([])
+
+    // And asked of the SURFACE, not of the arm. 586 satisfied
+    // `datasource_mapping_problems` while `ontology_violations_core` kept its
+    // own older copy of the same rule, which knew nothing about the override —
+    // so declaring the key column left the type reported and the save blocked.
+    // Only this assertion sees that; the one above passed throughout.
+    const { rows } = await db.query(
+      `select problem from public.ontology_violations() where object_type = 'Craft'`)
+    expect((rows as { problem: string }[]).map((r) => r.problem)).toEqual([])
+  })
+
+  it('a discouraged primary key warns, and a warning does not block a save', async () => {
+    // "Boolean limits your object type to two object instances." A CHECK
+    // already refuses the `no` tier, so the middle tier is the only one that
+    // can reach the database at all.
+    const d = await dataset('dsmap586_bool', ['flag'])
+    const bt = (await one(
+      `insert into public.object_types (ontology_id, project_id, api_name, label)
+       values ($1,$2,'Flagged','Flagged') returning id`, [ont, f.projectId])).id
+    const ds = (await one(
+      `insert into public.object_type_datasources (object_type_id, dataset_id, branch_id)
+       values ($1,$2,$3) returning id`, [bt, d.ds, d.br])).id
+    await db.query(
+      `insert into public.object_type_properties
+         (object_type_id, property_id, api_name, display_name, base_type, source,
+          backing_column, is_primary_key, is_title_key, required, datasource_id)
+       values ($1,'flag','flag','Flag','boolean','column','flag',true,true,true,$2)`,
+      [bt, ds])
+
+    const warn = async (sql: string) =>
+      ((await db.query(sql, [])).rows as { problem: string }[]).map((r) => r.problem)
+
+    expect(await warn(`select problem from public.ontology_warnings()
+                        where object_type = 'Flagged'`)).toEqual([
+      expect.stringContaining('two object instances'),
+    ])
+    // The whole point of the second list: it is not in the blocking one.
+    expect(await warn(`select problem from public.ontology_violations()
+                        where object_type = 'Flagged'`)).toEqual([])
   })
 
   it('a datasource that backs nothing is reported', async () => {
