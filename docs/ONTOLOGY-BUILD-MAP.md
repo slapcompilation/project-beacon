@@ -593,7 +593,7 @@ Array→size) · **Regex**, **RID**, **UUID** (String) · **Uniqueness**, **Nest
 
 ## Phase F — semantic search, cleanup, dependents
 
-### F1 · Semantic search
+### F1 · Semantic search — **BUILT** (581)
 
 > "AI models transform the text into vectors… called '**embeddings**'… Finding
 > related entities… is simply **finding the nearest vectors** in N-dimensional
@@ -602,6 +602,22 @@ Array→size) · **Regex**, **RID**, **UUID** (String) · **Uniqueness**, **Nest
 A `vector` property (already one of our 22 base types) plus nearest-neighbour.
 **pgvector is already installed.** Two documented paths — a Palantir-provided
 model or a custom one.
+
+**The ontology stores the vector; it does not embed.** Generation is Pipeline
+Builder's Text to Embeddings expression, a Python transform, or a function
+calling a model at query time — three routes, none of them here. Our half is a
+property and a query.
+
+**The distance function is declared PER PROPERTY**, not chosen platform-wide:
+"the distance function defined for the embedding property". The four values are
+taken from `similarityScoreV1`'s enum and marked INFERENCE, because that is
+Pipeline Builder's vocabulary and no page prints the property's own.
+
+Two rules come from `property-metadata` rather than the KNN callout, and both
+are property rules: "Vectors can only be queried by KNN" (so the render hints
+are refused on one) and "The max vector dimension is 2048" (so it is enforced at
+declaration). The query enforces the four published limits and raises on each,
+because "An error will be thrown" is the documented behaviour.
 
 ### F2 · Cleanup — **BUILT** (578), and its ledger (579)
 

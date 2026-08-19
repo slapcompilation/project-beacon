@@ -387,7 +387,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (179) ───────────────────────────────────────────────────
+// ── FUNCTIONS (182) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1302,6 +1302,17 @@ export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', 
 >
 
 /**
+ *  The k nearest objects by embedding. Enforces the four published KNN limits
+ *  and raises on each, because "An error will be thrown if any of these
+ *  limits are exceeded" is the documented behaviour — the batch similarity
+ *  expression returns null instead, but that is a different surface.
+ */
+export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_property: string; p_query: number[]; p_k: number },
+  { object_key: string; distance: number }[]
+>
+
+/**
  *  Every reason an object type cannot be saved, from the two lists in
  *  create-object-type#mandatory-object-type-fields. This is what the "4
  *  errors" badge counts.
@@ -1707,6 +1718,22 @@ export const valueConforms = { apiName: 'value_conforms', kind: 'function' } as 
 export const valueTypeConstraintBaseTypes = { apiName: 'value_type_constraint_base_types', kind: 'function' } as FunctionType<
   { p_kind: string },
   string[]
+>
+
+/**
+ *  The four similarity metrics Foundry publishes for embedding comparison.
+ *  INFERENCE: the enum is printed by the Pipeline Builder expression
+ *  similarityScoreV1, not by the ontology property page, which never names
+ *  the property's own vocabulary.
+ */
+export const vectorDistanceFunctions = { apiName: 'vector_distance_functions', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
+>
+
+export const vectorDistanceOperator = { apiName: 'vector_distance_operator', kind: 'function' } as FunctionType<
+  { p_fn: string },
+  string
 >
 
 /**

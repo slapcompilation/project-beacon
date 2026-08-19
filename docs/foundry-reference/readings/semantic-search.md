@@ -148,3 +148,90 @@ query.
    only one shown. Nothing says whether it can be selected, sorted or filtered
    conventionally. `blocks:` whether the render hints
    (`searchable`/`sortable`/`selectable`) mean anything for it.
+
+---
+
+## 7. All three questions answered (second pass, 2026-08-19)
+
+Two from pages this reading had not opened, one from a page it had. The first
+answer **changes a Decision's shape**, not merely its value.
+
+### 7.1 The distance function is declared PER PROPERTY
+
+`ontology/using-custom-models-to-create-a-semantic-search-workflow` carries it
+in a code comment, which is the only place in the corpus it appears:
+
+> "The computation of the distance function depends on the distance function defined for the embedding property. Here we assume it's cosine similarity, which can be computed with a simple vector dot product if the embedding model produces normalized vectors."
+
+**"the distance function defined for the embedding property"** — so it is not a
+platform-wide choice at all. It is part of the property's definition, exactly as
+`array_element_type` is. Decision 5's proposal to pick cosine and mark it as
+inference had the wrong *shape*: the right answer is a declared column.
+
+The vocabulary comes from the Pipeline Builder expression that computes the same
+thing, `pb-functions-expression/similarityScoreV1`:
+
+> "**Similarity metric:** The similarity metric for comparing the left and right embeddings.<br>*Enum\<Cosine Distance, Cosine Similarity, Dot Product, Euclidean Distance>*"
+
+with the token spellings visible in its own examples — `COSINE_SIMILARITY`,
+`DOT_PRODUCT`, `EUCLIDEAN_DISTANCE`. *(That expression is Pipeline Builder's
+rather than the ontology's, so taking its four values as the property's
+vocabulary is inference — but it is Foundry's published enum for this exact
+computation.)*
+
+Its examples also settle empirically what the comment claims. Cosine similarity
+of two Ada embeddings gives `0.7814455755180517`; dot product of the same pair
+gives `0.7814455030932973`. **Near-identical but not equal**, which is what
+"normalized vectors" produces — and which means the two are not formally
+interchangeable even for Ada.
+
+### 7.2 A vector cannot be queried any other way
+
+`object-link-types/property-metadata`, in the limited-support list:
+
+> "Vectors can only be queried by [KNN](/docs/foundry/functions/api-object-sets/#k-nearest-neighbors-knn)."
+
+That is a hard rule, not an ambiguity. So the render hints mean nothing for a
+vector property and ordinary filters must refuse it — Question 3 answered with
+the strongest possible form.
+
+### 7.3 And 2048 is a property rule, not a query rule
+
+The same list, next line:
+
+> "The max vector dimension is 2048."
+
+It appears under **property base types**, not only in the KNN callout. So
+applying it at declaration is the documented reading rather than the strict
+choice Question 2 supposed.
+
+### 7.4 One divergence worth carrying
+
+`similarityScoreV1`'s edge case: "Regular arrays become null when arrays have
+different length", and its table returns *null* for mismatched lengths. The KNN
+page says the opposite for the same mismatch — "An error will be thrown if any
+of these limits are exceeded". **Two surfaces, two behaviours**: the batch
+expression is null-tolerant, the query path throws. Ours is the query path, so
+it throws.
+
+## Decisions, revised
+
+1. **REPLACES Decision 5's approach. A vector property declares its distance
+   function**, from the four Foundry publishes, defaulting to cosine similarity
+   — the one its own worked example assumes. Not a platform constant.
+2. **Ordinary filters refuse a vector property outright**, per "Vectors can only
+   be queried by KNN". The render hints are meaningless for it.
+3. **2048 is enforced at declaration**, on the authority of the property-metadata
+   list rather than as a strict reading of a query callout.
+4. **A dimension mismatch throws**, following the query path rather than the
+   batch expression's null.
+5. **BUILT (581).** `vector_distance_functions()` carries the four,
+   `object_type_properties` gains `vector_dimension` and
+   `vector_distance_function` with five CHECKs, and `object_type_nearest()`
+   raises by name on each of the four published KNN limits.
+
+   **The hint constraint fired on the very first vector property**, which is the
+   kind of confirmation worth keeping: `searchable` defaults to true, so
+   "Vectors can only be queried by KNN" means a vector must have all three
+   hints explicitly off. The rule is not decorative — it changes how the row is
+   written.
