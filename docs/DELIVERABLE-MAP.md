@@ -935,6 +935,47 @@ on it, and both the migration and the test assert that rather than assume it.
 **The audit found zero constraints in production**, so the guard arrives ahead
 of any backlog.
 
-**47% of the documentation is not mirrored**, concentrated in `api/` (1,131
-pages) — the corpus that has falsified our CHECK constraints twice. Refresh the
-index with `--urls` before concluding a page does not exist.
+### Every vocabulary this session built, checked against `api/` (2026-08-19)
+
+Mirroring `api/` turned it from the biggest hole into the largest unread corpus,
+and the first thing done with it was to test every CHECK vocabulary this session
+shipped. **Two were falsified, two corroborated, and two have no API surface at
+all.**
+
+| vocabulary | verdict |
+|---|---|
+| vector similarity functions | **FALSIFIED** — three, not four (583) |
+| media source shape | **FALSIFIED** — a datasource of a media set view (585) |
+| derived aggregations | corroborated; the api's extra four are query-time |
+| action rule kinds | the api exposes 8 of our 12 — a scope split, not an error |
+| cleanup flags | no API surface: an Ontology Manager feature |
+| dependent kinds | no API surface: an Ontology Manager feature |
+
+**Both falsifications had the same cause**, which is the lesson worth carrying:
+each mapped a Foundry concept onto the nearest thing already in our schema — a
+Pipeline Builder expression's enum for the vector metric, a dataset and a branch
+for the media source — rather than asking what resource kind Foundry names.
+Screenshots invite that; the API resists it, because it prints the kind.
+
+**The two "no API surface" rows are a finding, not a gap.** Cleanup and
+Dependents exist only in Ontology Manager, so nothing can falsify their
+vocabularies and nothing will. That is worth knowing before someone goes looking.
+
+**And the action-rule row is the one most likely to be mistaken for a defect.**
+The api's `LogicRule` union carries eight kinds; `action-types/rules` enumerates
+twelve. That is not two spellings of one idea — the case CLAUDE.md's table
+covers — but **what the Ontology Manager can configure versus what a program can
+send.** We build Ontology Manager, so twelve is right. It is also independent
+evidence for 569's decision to register the two interface link rules without
+executing them: the public API does not expose them at all.
+
+**16% of the documentation is not mirrored**, and `api/` is no longer the hole —
+it was fetched whole on 2026-08-19 (1,243 pages, 6 unavailable). The count that
+sentence used to carry has moved from four falsifications to four: it falsified
+our CHECK constraints twice before this session and twice within an hour of
+landing. Refresh the index with `--urls` before concluding a page does not exist.
+
+**The rule about `api/` has changed shape and the new one is harder.** It is no
+longer "not on disk"; it is **on disk and under-read** — no reading has been
+written from it. "The page does not exist locally" is a failure you notice; "the
+page exists and nobody looked" is not.

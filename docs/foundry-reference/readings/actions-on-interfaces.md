@@ -330,3 +330,35 @@ interface it implements.
    object action it is presumably parameters to properties. For an interface
    action the mapping already exists on the object type's implementation.
    Uncaptured. `blocks: nothing`.
+
+---
+
+## The api exposes eight of the twelve (2026-08-19)
+
+`api/v2/ontologies-v2-resources/action-types-get-action-type-by-rid` publishes a
+`LogicRule` union, and it is **not** the twelve `action-types/rules` lists:
+
+    createObject · modifyObject · deleteObject
+    createLink · deleteLink
+    createInterfaceObject · modifyInterfaceObject · deleteInterfaceObject
+
+Eight. Absent: `create_or_modify_object`, the function rule, and **both interface
+link rules** — which do not appear anywhere in the action-type API.
+
+**This is not a falsification, and mistaking it for one would be the error.** It
+is the scope split CLAUDE.md's two-vocabularies table warns about, in a form that
+table does not cover: not two spellings of one idea, but **what the Ontology
+Manager can configure versus what the public API can express.** The prose page
+enumerates a picker; the API enumerates what a program can send. Twelve is right
+for us, because we are building Ontology Manager.
+
+It is also independent evidence for a decision 569 already took. The two
+interface link kinds are registered and not executable there, on the grounds that
+they need a link instance store and an interface link constraint no rule column
+points at. **The public API not exposing them at all** says the same thing from
+outside: of the twelve, those two are the least supported.
+
+The three interface object kinds *are* in the API — `createInterfaceObject`,
+`modifyInterfaceObject`, `deleteInterfaceObject` — each naming an interface type
+"in UpperCamelCase format", which matches this reading's §3.2 note that the
+wizard offers exactly three interface options.
