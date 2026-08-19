@@ -78,12 +78,16 @@ describe.skipIf(noDb)('cleanup asks whether an object type is dead', () => {
   const flagsFor = async (key: string) => (await one(
     `select public.object_type_cleanup_flags($1,$2) as f`, [ot[key], config])).f
 
-  it('registers seven flags, and refuses two of them with a stated reason', async () => {
+  it('registers seven flags, and refuses the one that cannot be computed', async () => {
+    // 578 refused two. 579 built the Ontology metrics ledger and made
+    // `no_registered_usage` computable, leaving only `phonograph_deindexed` —
+    // which stays refused permanently, on the page's own authority that there
+    // is no Object Storage v2 equivalent.
     const { rows } = await db.query(`select flag, computable, note from public.cleanup_flags()`)
     expect(rows.length).toBe(7)
     const un = (rows as { flag: string; computable: boolean; note: string }[])
       .filter((r) => !r.computable)
-    expect(un.map((r) => r.flag).sort()).toEqual(['no_registered_usage', 'phonograph_deindexed'])
+    expect(un.map((r) => r.flag)).toEqual(['phonograph_deindexed'])
     for (const r of un) expect(r.note.length, `${r.flag} says why`).toBeGreaterThan(40)
   })
 

@@ -9,7 +9,7 @@ import type { ActionType, FunctionType, Json } from './client'
 // NOT GENERATED — overloaded, and an entity has one API name:
 //   public.rid_of
 
-// ── ACTION TYPES (42) ────────────────────────────────────────────────
+// ── ACTION TYPES (44) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -219,6 +219,11 @@ export const rebaseBranch = { apiName: 'rebase_branch', kind: 'action' } as Acti
   number
 >
 
+export const recordOntologyUsage = { apiName: 'record_ontology_usage', kind: 'action' } as ActionType<
+  { p_object_type: string; p_link_type: string; p_application: string; p_reads?: number; p_writes?: number },
+  void
+>
+
 export const resetCleanupResults = { apiName: 'reset_cleanup_results', kind: 'action' } as ActionType<
   { p_config: string },
   void
@@ -349,6 +354,11 @@ export const saveWorkingState = { apiName: 'save_working_state', kind: 'action' 
   number
 >
 
+export const setOntologyMetrics = { apiName: 'set_ontology_metrics', kind: 'action' } as ActionType<
+  { p_ontology: string; p_enabled: boolean },
+  void
+>
+
 export const settleBuild = { apiName: 'settle_build', kind: 'action' } as ActionType<
   { p_build: string },
   string
@@ -377,7 +387,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (173) ───────────────────────────────────────────────────
+// ── FUNCTIONS (176) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1294,6 +1304,30 @@ export const ontologyResourceRow = { apiName: 'ontology_resource_row', kind: 'fu
 export const ontologyRole = { apiName: 'ontology_role', kind: 'function' } as FunctionType<
   { p_ontology: string },
   string
+>
+
+export const ontologyUsageByApplication = { apiName: 'ontology_usage_by_application', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_days?: number },
+  { application: string; reads: number; writes: number }[]
+>
+
+/**
+ *  Interactions, Reads, Writes, Active users and Last interaction over the
+ *  window. All derived — storing them would create two numbers that can
+ *  disagree.
+ */
+export const ontologyUsageSummary = { apiName: 'ontology_usage_summary', kind: 'function' } as FunctionType<
+  { p_object_type: string; p_days?: number },
+  { interactions: number; reads: number; writes: number; active_users: number; last_interaction: string }[]
+>
+
+/**
+ *  Were metrics on for the WHOLE window? Only then may an absence of usage
+ *  rows be read as an absence of usage. Off is not zero.
+ */
+export const ontologyUsageWindowCovered = { apiName: 'ontology_usage_window_covered', kind: 'function' } as FunctionType<
+  { p_ontology: string; p_days: number },
+  boolean
 >
 
 export const ontologyViolations = { apiName: 'ontology_violations', kind: 'function' } as FunctionType<

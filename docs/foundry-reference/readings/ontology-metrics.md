@@ -135,16 +135,52 @@ colleagues.
    instrumentation.** That asymmetry is worth stating because it decides the
    order: the ledger and the write half are one change, the read half is
    wherever `evaluate_object_set` and the index reads live.
-8. **Not built from this reading yet.** These Decisions want reciting first.
+8. **`application` is free text, deliberately.** Not because the vocabulary is
+   unknown — the platform half is closed at 40 and the portal draws it — but
+   because the other 35 of 75 are **promoted apps built by customers**. Any
+   CHECK would refuse a real caller the first time someone promotes an app.
+9. **BUILT (579).** `ontology_usage` is the daily rollup, `record_ontology_usage`
+   the explicit call from the read path, `ontology_usage_summary` and
+   `ontology_usage_by_application` the derived displays, and
+   `ontology_usage_window_covered` the predicate that keeps 578's flag honest.
+   `no_registered_usage` is now computable, leaving `phonograph_deindexed` as
+   the only permanently-refused flag.
+
+   **The `active_users` case taught something the page implies but never says.**
+   A request recorded with no authenticated caller still counts as a read or a
+   write, and contributes nothing to Active users — "the number of unique user
+   IDs" cannot count an absent one. So reads and Active users can disagree in a
+   way that is correct, and a surface showing both should not treat one as a
+   sanity check on the other.
 
 ## Questions
 
-1. **What is an "application" here?** The tab shows `Application type (22)` with
-   Quiver, actions and Fusion among them, so it is a fixed vocabulary of Foundry
-   products rather than free text — but the list is not published anywhere in
-   this page, and 22 is only visible as a count. `blocks:` whether the column is
-   a CHECK or free text. Recording it as free text with the caller naming
-   itself is the safe start.
+1. ~~**What is an "application" here?**~~ **ANSWERED, and it settles the column
+   type against a CHECK.** `app-building/curating-apps` names the mechanism —
+
+   > "Foundry platform apps are tools like Quiver, Contour, Data Connection, Pipeline Builder, and more. You can configure the option to display or hide platform apps from users in Control Panel under the **Application access** tab."
+
+   and `apps-portal.png` draws the whole set with its arithmetic:
+
+   > All apps 75 · Platform apps 40 · Analyze data 7 · Build & monitor pipelines 10 · Data Governance 4 · Manage & deploy models 1 · Operational applications 13 · Support 5 · Promoted apps 35
+   > — app-building/images/apps-portal.png
+
+   The six platform categories sum to 40, and the visible Analyze data seven are
+   Code workbook, Code workspaces, Contour, Fusion, Preparation, Quiver and
+   Reports — so the platform half **is** a closed, Foundry-defined vocabulary.
+
+   **But the other 35 are not.** The portal "displays all platform applications
+   as well as promoted applications trusted by administrators", and promoted
+   apps are built by customers and grouped into collections they name
+   (Automotive 4, Aviation 3, Human Resources 1 …). A CHECK over a fixed list
+   would therefore be **wrong by construction**, not merely under-informed —
+   which is a much better reason than the enum simply being unpublished.
+
+   Two smaller things the images settle. `Application type (22)` on the Usage
+   tab is a count of applications that touched *that object type*, not the size
+   of the vocabulary — 22 of a possible 75. And the usage list mixes cased
+   product names with a lowercase `actions`, so the recorded value is a service
+   identifier the caller supplies, not a portal display name.
 2. **Is the 30-day window fixed or configurable?** Every definition says "the
    last 30 days" and the tab offers Start date and End date filters, so the
    *display* ranges freely while the *definitions* are fixed at 30. Whether
