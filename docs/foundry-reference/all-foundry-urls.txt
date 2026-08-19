@@ -719,6 +719,9 @@ https://palantir.com/docs/foundry/api/ontologies-v2-resources/attachments/upload
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/cipher-text-properties/
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/cipher-text-properties/cipher-text-property-basics/
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/cipher-text-properties/decrypt/
+https://palantir.com/docs/foundry/api/ontologies-v2-resources/geotemporal-series-properties/
+https://palantir.com/docs/foundry/api/ontologies-v2-resources/geotemporal-series-properties/geotemporal-series-property-basics/
+https://palantir.com/docs/foundry/api/ontologies-v2-resources/geotemporal-series-properties/load-geotemporal-series-entries/
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/linked-objects/
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/linked-objects/get-linked-object/
 https://palantir.com/docs/foundry/api/ontologies-v2-resources/linked-objects/linked-object-basics/
@@ -1387,6 +1390,9 @@ https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/attachments/upl
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/cipher-text-properties/
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/cipher-text-properties/cipher-text-property-basics/
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/cipher-text-properties/decrypt/
+https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/geotemporal-series-properties/
+https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/geotemporal-series-properties/geotemporal-series-property-basics/
+https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/geotemporal-series-properties/load-geotemporal-series-entries/
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/linked-objects/
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/linked-objects/get-linked-object/
 https://palantir.com/docs/foundry/api/v2/ontologies-v2-resources/linked-objects/linked-object-basics/

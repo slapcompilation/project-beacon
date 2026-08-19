@@ -1,0 +1,31 @@
+<!-- source: https://palantir.com/docs/foundry/api/general/overview/sdks/ · mirrored 2026-08-19 from Palantir Foundry docs -->
+
+# Software development kit (SDK)
+
+The Foundry platform software development kits (SDKs) are libraries designed to simplify building applications that interact with Foundry APIs. These platform SDKs provide a set of tools and utilities that abstract the complexity of the underlying APIs, allowing developers to focus on business logic rather than technical specifics.
+
+## Platform SDK vs. Ontology SDK
+
+Just like  platform SDKs provide abstractions on top of Foundry APIs, [Ontology SDKs](/docs/foundry/ontology-sdk/overview) (OSDKs) provide further abstractions on top of platform SDKs.
+
+Platform SDKs are generic libraries that can be used with any Foundry enrollment to interact with all Foundry APIs, including the Ontology. When building an application that involves reading and writing Ontology data, however, you may find that the generic libraries provided by platform SDKs are too low-level, and it would be preferable to interact directly with the objects and Actions defined in your Ontology.  
+
+OSDKs are specialized libraries that are generated in your Foundry enrollment, and include code that provides a more intuitive interface for working with the Ontology. For example, if you have an Ontology with an object type called `Employee`, an OSDK would provide a class called `Employee` with methods to interact with the `Employee` object type.
+
+Use the platform SDKs if any of the following apply:
+
+* You do not intend to read or write data from the Ontology.
+* You are automating administrative or governance tasks and workflows.
+* You are building an application that must be portable between many unrelated Foundry enrollments.
+
+Use an Ontology SDK if:
+
+* You are building an application that reads and writes data only from your Ontology.
+
+## SDK Languages
+
+The platform SDK is currently available in the following languages:
+
+* [Python](https://github.com/palantir/foundry-platform-python)
+* [TypeScript](https://github.com/palantir/foundry-platform-typescript)
+* Java

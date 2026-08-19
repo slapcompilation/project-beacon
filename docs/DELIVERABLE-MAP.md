@@ -753,6 +753,14 @@ source does. Same incremental-authoring argument as the derived-property chain.
 it one sentence — "A type for storing files on objects for use with functions on
 objects" — and names no structure at all.
 
+**And the `api/` corpus corroborated it rather than falsifying it**, which is
+worth recording because that corpus has falsified our CHECK constraints twice.
+`api/v1/ontology-resources-objects-get-object` returns a media reference with all
+three RIDs and real tokens — `ri.mio.main.media-set.…`, `ri.mio.main.view.…`,
+`ri.mio.main.media-item.…` — so `media_reference_valid()` requiring the view RID
+is right, and the prose page's three-part description is not a simplification.
+Checked because the rule says to, not because anything looked wrong.
+
 **Function signature types beyond the nine.** `functions/types-reference`
 publishes, with a TypeScript v2 tab for each: Short, Decimal, Binary, Byte,
 mandatory and classification markings, Map, Set, Optional, Struct/custom types,
