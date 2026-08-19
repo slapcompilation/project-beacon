@@ -235,3 +235,59 @@ it throws.
    "Vectors can only be queried by KNN" means a vector must have all three
    hints explicitly off. The rule is not decorative — it changes how the row is
    written.
+
+---
+
+## 8. The api falsified three of this reading's answers (2026-08-19)
+
+`api/` was mirrored whole the same day, and the first vocabulary checked against
+it was this one. `api/v2/ontologies-v2-resources/object-types-get-object-type`
+carries the vector property's actual definition:
+
+> `vector` · object
+> "Represents a fixed size vector of floats. These can be used for vector similarity searches."
+> - `dimension` · integer · required "The dimension of the vector."
+> - `supportsSearchWith` · list
+>   - `VectorSimilarityFunction` · object · required
+>     "The vector similarity function to support approximate nearest neighbors search. Will result in an index specific for the function."
+>     - `value` · enum one of `COSINE_SIMILARITY`, `DOT_PRODUCT`, `EUCLIDEAN_DISTANCE`
+> - `embeddingModel` · union
+>   - `lms` · object "A model provided by Language Model Service."
+>     - `value` · enum · required one of `OPENAI_TEXT_EMBEDDING_ADA_002`, `TEXT_EMBEDDING_3_LARGE`, `TEXT_EMBEDDING_3_SMALL`, `SNOWFLAKE_ARCTIC_EMBED_M`, `INSTRUCTOR_LARGE`, `BGE_BASE_EN_V1_5`
+>   - `foundryLiveDeployment` · object
+>     - `rid` · string "The live deployment identifier. This rid is of the format 'ri.foundry-ml-live.main.live-deployment.<uuid>'."
+
+**Three, not four.** §7.1 took four values from `similarityScoreV1` and marked
+the choice INFERENCE because that enum is Pipeline Builder's. The flag was
+right and the value was still wrong: `COSINE_DISTANCE` is a batch expression's
+metric, not a property's. **A flagged inference is still a guess** — the flag
+says where to look when a better source arrives, and nothing more.
+
+**`supportsSearchWith` is a LIST**, and the spec says why: "Will result in an
+index specific for the function." Each supported function is an index the
+property pays for. 581 modelled one column, which could not express a property
+searchable two ways and implied the choice was free.
+
+**And the property declares its EMBEDDING MODEL**, which this reading did not
+have at all. Decision 1 — the ontology stores the vector, it does not embed —
+is still right about *generation*, and was wrong about *declaration*: a KNN
+query embeds the query string, so it must use the model that produced the
+stored vectors. Storing vectors without recording what made them turns every
+future query into a guess.
+
+Corrected in **583**, with **584** dropping the requirement 583 left standing on
+the superseded column.
+
+## Decisions, corrected
+
+1. **Three similarity functions**, from the api's enum rather than a pipeline
+   expression's.
+2. **A vector property supports a LIST of them**, one index each —
+   `object_type_vector_searches`, and the query refuses a function the property
+   does not support.
+3. **The property names its embedding model**: either one of six Language Model
+   Service models, or a Foundry live deployment with its input and output
+   parameter names. Optional, as the api leaves it.
+4. **Only `dimension` survived §7 unchanged**, and for the reason first given:
+   the api makes it required, which is the same rule as "the search vector must
+   be the same size as the one used for indexing".

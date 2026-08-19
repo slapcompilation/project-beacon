@@ -7,6 +7,7 @@
 import type { ActionType, FunctionType, Json } from './client'
 
 // NOT GENERATED — overloaded, and an entity has one API name:
+//   public.object_type_nearest
 //   public.rid_of
 
 // ── ACTION TYPES (44) ────────────────────────────────────────────────
@@ -1317,17 +1318,6 @@ export const objectTypeInputDatasets = { apiName: 'object_type_input_datasets', 
 >
 
 /**
- *  The k nearest objects by embedding. Enforces the four published KNN limits
- *  and raises on each, because "An error will be thrown if any of these
- *  limits are exceeded" is the documented behaviour — the batch similarity
- *  expression returns null instead, but that is a different surface.
- */
-export const objectTypeNearest = { apiName: 'object_type_nearest', kind: 'function' } as FunctionType<
-  { p_object_type: string; p_property: string; p_query: number[]; p_k: number },
-  { object_key: string; distance: number }[]
->
-
-/**
  *  Every reason an object type cannot be saved, from the two lists in
  *  create-object-type#mandatory-object-type-fields. This is what the "4
  *  errors" badge counts.
@@ -1746,10 +1736,10 @@ export const valueTypeConstraintBaseTypes = { apiName: 'value_type_constraint_ba
 >
 
 /**
- *  The four similarity metrics Foundry publishes for embedding comparison.
- *  INFERENCE: the enum is printed by the Pipeline Builder expression
- *  similarityScoreV1, not by the ontology property page, which never names
- *  the property's own vocabulary.
+ *  The three similarity functions a vector property may support, from the
+ *  api's VectorSimilarityFunction enum. 581 carried four, taking
+ *  cosine_distance from a Pipeline Builder expression — that was flagged
+ *  inference and it was wrong.
  */
 export const vectorDistanceFunctions = { apiName: 'vector_distance_functions', kind: 'function' } as FunctionType<
   Record<string, never>,
@@ -1759,6 +1749,16 @@ export const vectorDistanceFunctions = { apiName: 'vector_distance_functions', k
 export const vectorDistanceOperator = { apiName: 'vector_distance_operator', kind: 'function' } as FunctionType<
   { p_fn: string },
   string
+>
+
+/**
+ *  The six Language Model Service embedding models a vector property may
+ *  name. The other arm of the union is a Foundry live deployment, which names
+ *  a RID and its input and output parameters instead.
+ */
+export const vectorEmbeddingModels = { apiName: 'vector_embedding_models', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  string[]
 >
 
 /**
