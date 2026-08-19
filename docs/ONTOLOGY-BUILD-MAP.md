@@ -654,18 +654,31 @@ state, and the queue is **stored** — Foundry prompts to recalculate rather tha
 recomputing silently. Deprecate and Delete already existed; staging is Phase D's
 Review edits modal, unchanged.
 
-### F3 · Dependents
+### F3 · Dependents — **BUILT** (580)
 
 > Section 5 of the object type Overview: dependent **kinds** with counts —
 > Workshop 9, Function 2, Graph Template 1, Quiver Dashboard 1, Use cases 1,
 > Automation 0, Developer Console App 0, Map Layer 0 — **including the zeroes**.
 
-This is the index CLAUDE.md keeps invoking: *"the platform indexes ontology
-resources, so 'what uses this' is a query against the resource graph."* We have
-no equivalent, and it is what makes `check:surfaces` deletable.
+**Dependents are APPLICATIONS, not ontology types** — the panel's nine kinds are
+all applications, and action types and link types get their own sections on the
+same page. Of the nine we have two, Function and Automation, and both reach an
+object type through a resource's CONTENT rather than a foreign key: a jsonb id
+array of imports, and an object set or action reached through effects.
 
-**Last, deliberately** — it is a query over everything above, so it can only be
-built once there is something to index.
+**The kind list is what the platform has, not a universal enum.** A first draft
+proposed registering all nine with a `computable` flag; `curating-apps` argues
+otherwise — Application access hides an app "in the rest of Foundry", so the
+rendered zeroes are kinds the platform HAS and this type does not use.
+
+**And this does NOT retire `check:surfaces`**, which this map implied for a long
+time. That guard asks whether one of *our* React files is reachable from
+`main.tsx`; Dependents asks which applications consume an object type. Two
+different graphs — what would retire it is an index of our own resources.
+
+Nor does it gate deletion: `metadata-statuses` puts that on status, and 321/327
+already enforce it. Dependents tells an editor what will break, not whether they
+may act.
 
 ---
 
