@@ -387,7 +387,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (182) ───────────────────────────────────────────────────
+// ── FUNCTIONS (185) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1178,6 +1178,21 @@ export const markingMember = { apiName: 'marking_member', kind: 'function' } as 
   boolean
 >
 
+export const mediaPropertyProblems = { apiName: 'media_property_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
+>
+
+/**
+ *  The published media reference shape: a mimeType and a reference naming
+ *  three RIDs — the media set, the view of it, and the item. A reference
+ *  carrying only an item RID is a different mechanism.
+ */
+export const mediaReferenceValid = { apiName: 'media_reference_valid', kind: 'function' } as FunctionType<
+  { p: Json },
+  boolean
+>
+
 export const objectDatasetBuiltAt = { apiName: 'object_dataset_built_at', kind: 'function' } as FunctionType<
   { p_dataset: string },
   string
@@ -1525,6 +1540,16 @@ export const restrictedViewPredicate = { apiName: 'restricted_view_predicate', k
 export const ridLocator = { apiName: 'rid_locator', kind: 'function' } as FunctionType<
   { p_rid: string },
   string
+>
+
+/**
+ *  Is this string a resource identifier?
+ *  ri.<service>.<instance>.<type>.<locator>, where the instance segment may
+ *  be empty — the one segment that surprises people.
+ */
+export const ridValid = { apiName: 'rid_valid', kind: 'function' } as FunctionType<
+  { p_rid: string },
+  boolean
 >
 
 export const roleRank = { apiName: 'role_rank', kind: 'function' } as FunctionType<

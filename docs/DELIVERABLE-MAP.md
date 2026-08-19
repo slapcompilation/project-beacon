@@ -725,9 +725,33 @@ and could bite another pair of functions.
 property, kept deliberately ahead of its caller.
 
 **Property base types beyond the 22.** Geoshape, Attachment, Time series and the
-rest each wait for something that stores one. The media and attachment half
-carries `readings/materializations-links-media-and-rids.md` (9 untraceable
-quotations) with it.
+rest each wait for something that stores one.
+
+**The media half is BUILT (582)**, and it carried the reading's nine
+untraceable quotations with it as allocated — the last of the seven, closing the
+citation backlog.
+
+A media reference is three RIDs, not one: `base-types` prints the shape and names
+"a reference containing the media set RID, view RID, and specific media item
+RID". `media_reference_valid()` checks all three, and `rid_valid()` arrived with
+it — 391 and 396 minted RIDs, 412 pulled a locator out of one, and nothing had
+ever asked whether a string IS one.
+
+**The media source is not a capability, despite living on the Capabilities tab.**
+`object_type_capabilities` (415) nominates a PROPERTY FOR A SLOT
+(`geospatial.altitude`); the media panel attaches a DATASET AND BRANCH TO A
+PROPERTY. Opposite direction, so `object_type_media_sources` is its own table.
+"It is on the Capabilities tab" is exactly the reasoning that would have put it
+in the wrong one.
+
+The page's MUST — "a media reference property must have a media source" — is a
+`ontology_violations()` row rather than a refusal, because the panel shows the
+property carrying an `Add media source` button and therefore existing before its
+source does. Same incremental-authoring argument as the derived-property chain.
+
+**Attachment stays unbuilt**, and there is nothing to build: `base-types` gives
+it one sentence — "A type for storing files on objects for use with functions on
+objects" — and names no structure at all.
 
 **Function signature types beyond the nine.** `functions/types-reference`
 publishes, with a TypeScript v2 tab for each: Short, Decimal, Binary, Byte,
