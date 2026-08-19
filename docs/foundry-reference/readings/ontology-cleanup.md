@@ -7,6 +7,8 @@ verify: strict
 **Pages read:** `ontology-manager/cleanup` in full, with all seven of its images
 parsed field by field.
 
+**Read on the second pass (2026-08-19), because all four open questions were answered in the corpus after all:** `ontology-manager/view-usage` in full — the page that defines what usage *is* — plus the remaining cleanup images.
+
 **Named here but NOT read for this reading:** `ontology-manager/overview` (the
 tool is reached from it), `object-link-types/osv1-osv2-migration` (named by the
 last flag; the OSv1/OSv2 split is already settled in
@@ -213,7 +215,7 @@ not one.
    proposals or directly, exactly as any other edit does.
 9. **Not built from this reading yet.** These Decisions want reciting first.
 
-## Questions
+## Questions — all four answered on the second pass, kept for the trail
 
 1. **What counts as "registered usage"?** The flag exists only as a toggle
    label. Whether it counts reads, Workshop module references, function calls or
@@ -235,3 +237,125 @@ not one.
    whether anything still points at it — the flags are all about staleness, not
    references. That is F3's index again. `blocks: nothing` — the deletion path
    already exists.
+
+---
+
+## 8. The four questions, answered (second pass, 2026-08-19)
+
+All four were answerable. Three from a page this reading had not opened, and one
+from the images it had.
+
+### 8.1 "Registered usage" is defined precisely, on its own page
+
+`ontology-manager/view-usage` — titled **Ontology metrics** — defines every term
+the cleanup flag leans on:
+
+> "**Reads:** A read is recorded when an application loads objects for a specified object type. This can include displaying objects in a table in Workshop, returning all objects from search for a given object type, aggregating a property on an object type, and so on."
+
+> "Note that one read represents one load request from [Object Storage v1 (Phonograph)](/docs/foundry/object-databases/object-storage-v1/) or the Object Set Service (OSS). Many objects loaded or aggregated at once will only be recorded as a single read. Also note that any object type or link type usage happening in Ontology Manager is not included."
+
+> "**Writes:** A write is recorded when an application makes edits to objects of this type as the result of an [Action](/docs/foundry/action-types/overview/), [Function](/docs/foundry/functions/overview/), Foundry Form, direct Object Explorer edit, or API call."
+
+> "**Interactions:** The total number of reads and writes on objects of this type over the last 30 days."
+
+> "**Active users:** The number of unique user IDs that triggered the reads and writes recorded over the last 30 days."
+
+Three things that a design would otherwise have to guess:
+
+* **A read is a REQUEST, not an object.** "Many objects loaded or aggregated at
+  once will only be recorded as a single read." So this is a counter on the
+  query path, not a row per object touched.
+* **Ontology Manager's own traffic is excluded** — otherwise browsing the
+  cleanup queue would keep every object type looking alive.
+* **30 days is the window everywhere**, which is exactly the cleanup flag's
+  window. The flag is `Interactions = 0 over 30 days`.
+
+**And it is off unless an administrator turns it on:**
+
+> "Usage on the **Overview** tab and detailed usage metrics in the **Usage** tab are configured from the **Ontology settings** tab in Control Panel using the **Ontology metrics** toggle. This toggle can only be enabled or disabled by Ontology administrators and changes may take up to 60 minutes to take effect in Ontology Manager."
+
+> "If you see “No usage for the last 30 days” in the usage graph when you would expect to see usage statistics, then it’s possible that internal tables may not have been configured."
+
+That warning is the hazard in one line: **when metrics are off, every object type
+looks unused**, and a flag reading "no registered usage" would flag the entire
+ontology. Foundry's answer is that the flag is a toggle and the data is opt-in.
+
+### 8.2 The blocker is a usage ledger, not the Dependents index
+
+This reading previously said the flag needed the usage index that is F3. **That
+was wrong, and the two are different mechanisms.** F3's Dependents section counts
+*resources that reference* an object type — Workshop 9, Function 2, and so on.
+Usage counts *requests* — reads and writes over 30 days. A type can have nine
+Workshop modules pointing at it and zero reads.
+
+`cleanup-filter-example.png` settles it from the queue side: the table has a
+**READS** column, showing `1`, `1` and `43` for the three example types — and the
+one with 43 is the one the prose deprecates rather than deletes. Cleanup consumes
+usage metrics directly.
+
+### 8.3 Priority is per-user, by construction
+
+The `Priority` dropdown lives on the per-user **Flag settings** page, and a row's
+priority is the highest among the flags it triggers. `cleanup-filters.png` shows
+the filter panel offering `High · Medium · Low` as a Priority facet. Since the
+values are set per user and the row value is derived from them, priority is
+per-user without the page needing to say so.
+
+### 8.4 The queue is computed on demand and stored
+
+Four statements agree, and the counts in the images are the proof:
+
+> "When you opt to **Start cleanup**, the tool may take time to find cleanup candidates based on the size of your Ontology."
+
+> "When you save changes and return to the main **Cleanup** tab, you will be prompted to recalculate the cleanup queue."
+
+> Saving changes to flag settings will reset previous Cleanup results.
+> — ontology-manager/images/cleanup-configuration-view.png
+
+The nav carries `Cleanup 5,632` beside `Object types 6,305` — a stored count, not
+a figure recomputed on every render — and the header reads `Object types
+5,632/5,633` under a filter. Results are **materialised, invalidated by a flag
+settings change, and recalculated on request.**
+
+### 8.5 The filter panel only lists the flags that are ON
+
+`cleanup-filters.png` offers five flags to filter by, each with a count and a bar:
+
+> No registered usage in 30d 3167 · Past deprecation date 16 · Trashed datasource 112 · Phonograph deindexed 735 · Datasource not updated in 90d 5035
+> — ontology-manager/images/cleanup-filters.png
+
+**Description missing and Display Name regex are absent** — the two that ship
+toggled off. So the queue evaluates only enabled flags, and the filter facets are
+built from the same set. It also lists an **Actions** facet with `Snoozed 1`,
+which is where "Use the table filters to view all the actions you have already
+selected" lands.
+
+### 8.6 Cleanup does not check dependents, and does not need to
+
+No flag asks whether anything still points at the type. That is not an omission:
+deletion is "staged the same way as normal Ontology modifications", and the
+Review edits modal carries `Warnings · Errors · Migrations · Conflicts` tabs.
+Whatever refuses an unsafe deletion refuses it there, for every deletion, not
+only ones reached through cleanup. The safety signal cleanup itself contributes
+is the READS column.
+
+## Decisions, revised by those answers
+
+1. **Decision 4 is replaced.** `No registered usage in 30 days` is not blocked on
+   F3. It is blocked on **Ontology metrics** — a reads/writes ledger with a
+   30-day window, defined by `view-usage`, which is its own piece of work and has
+   its own Control Panel toggle in Foundry. Registered-and-not-computable still
+   stands; the reason and the unblocking work both change.
+2. **A read is a request-level counter**, incremented on the object-read path,
+   with Ontology Manager's own traffic excluded. Anything per-object would be a
+   different number from Foundry's.
+3. **The flag must be off when metrics are off.** "When metrics are off, every
+   object type looks unused" is a way to flag an entire ontology for deletion.
+   Whatever computes it has to distinguish *no usage* from *no usage data*.
+4. **Priority is per-user**, carried with the rest of the per-user flag
+   configuration.
+5. **The queue is a stored table, not a view**, recalculated on request and
+   invalidated when flag settings change — which also means it needs an
+   `is_stale` notion, because Foundry prompts rather than recomputing silently.
+6. **Only enabled flags are evaluated**, and the filter facets derive from the
+   same set rather than from the registry.
