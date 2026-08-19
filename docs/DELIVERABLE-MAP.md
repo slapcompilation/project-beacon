@@ -753,8 +753,37 @@ source does. Same incremental-authoring argument as the derived-property chain.
 it one sentence — "A type for storing files on objects for use with functions on
 objects" — and names no structure at all.
 
-**And the `api/` corpus corroborated it rather than falsifying it**, which is
-worth recording because that corpus has falsified our CHECK constraints twice.
+**Then the same corpus falsified its SHAPE (585).**
+`object-types-get-object-type` defines `datasources` as a union of Foundry
+resource kinds, and one of them is `mediaSetView` — "An object type datasource
+backed by a Foundry media set view, providing media for media reference
+properties", carrying a **media set RID and a view RID** and binding a **list**
+of properties.
+
+So 582 was wrong three ways: a media source is a datasource on the OBJECT TYPE,
+not a row per property; it names a media set and a view of it, not a dataset and
+a branch; and the kind belongs in the datasource union rather than in a table
+only media knows about. I had read the screenshot's `images · master` as a
+dataset and a branch **because that is what we already had** — the same
+inference-by-familiarity that got the vector property wrong an hour earlier.
+
+582's own validator already required the view RID, so the schema had been
+disagreeing with the validator shipped beside it.
+
+Two things 582 got right and 585 keeps: a media reference property needs BOTH
+backings — the dataset whose media reference column it reads and the media
+source its references point into — and the MUST is a linter row rather than a
+refusal.
+
+**And the guard predated the third kind.** `guard_object_type_datasource`
+derives an organization from the datasource's dataset and refuses one the
+ontology's space does not serve; a media set view has no local dataset, so every
+media datasource was refused as foreign. The org rule is about a DATASET being
+reachable from this space, so it is skipped rather than passed vacuously — and
+so is the MAP-column check that reads a dataset schema.
+
+**The value-shape check corroborated rather than falsified**, which is worth
+recording because that corpus has falsified our CHECK constraints twice.
 `api/v1/ontology-resources-objects-get-object` returns a media reference with all
 three RIDs and real tokens — `ri.mio.main.media-set.…`, `ri.mio.main.view.…`,
 `ri.mio.main.media-item.…` — so `media_reference_valid()` requiring the view RID
