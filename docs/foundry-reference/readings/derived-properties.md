@@ -293,3 +293,35 @@ The hop rows also carry **per-row cardinality icons** that differ between the
 first and second row in both screenshots. Cardinality is already on
 `link_types`, so nothing needs storing; recorded because a surface will want to
 draw it.
+
+---
+
+## The api checked (2026-08-19), and the nine hold
+
+`api/` was mirrored whole and every vocabulary this session built was checked
+against it. Two were falsified — the vector property and the media source. **This
+one was not**, and the way it corroborates is worth keeping.
+
+The api's `SelectedPropertyOperation`, on the object-set endpoints, is a union of
+**thirteen**: `approximateDistinct`, `min`, `avg`, `max`,
+`approximatePercentile`, `get`, `count`, `sum`, `collectList`, `exactDistinct`,
+`collectSet`, `negate`, `subtract`.
+
+Our nine map onto nine of them exactly — count/avg/sum/min/max,
+approximateDistinct, exactDistinct, collectList, collectSet. The four extra are
+**query-time operations**, and the union lives on
+`ontology-object-sets-*` rather than on the object type: it is the
+`withProperties` construct, not the Ontology Manager picker. That is the same
+definition-time / query-time split §3 of this reading already drew from the two
+prose pages, arriving independently from the API surface.
+
+**And `get` is the api's name for what we store as NULL.**
+
+> "Gets a single value of a property. Throws if the target object set is on the MANY side of the link and could explode the cardinality. Use collectList or collectSet which will return a list of values in that case."
+
+That is the Ontology Manager's rule — "If any link in your chain has a 'many'
+cardinality … you must select an **Aggregation**" — stated from the runtime side,
+with the same failure. `derived_property_problems()` already reports exactly it:
+a derived property crossing a many link and naming no aggregation. **The rule we
+inferred from the authoring page is the one the API enforces at execution**, which
+is the strongest kind of corroboration available.
