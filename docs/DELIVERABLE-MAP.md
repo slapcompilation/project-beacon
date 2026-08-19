@@ -835,6 +835,45 @@ changes, as first reported. The lesson is small and exact: **when a tool and a
 scratch script disagree, the scratch script is the suspect** — and running the
 real function takes a minute.
 
+### Value type constraints know their base type — BUILT (575)
+
+The 2026-08-19 gap run found `value_type_constraints.kind` unpaired with
+`value_types.base_type`: a `regex` constraint on an `integer` was accepted and
+then silently ignored by `value_conforms()`, which is an interpreter rather than
+a validator. No error at write, none at read.
+
+**Foundry makes the mismatch unrepresentable rather than rejecting it.**
+`create-value-type` picks the base type at step 5 and the constraint at step 6
+"depending on the base type", and `value-type-create-constraint.png` shows the
+picker for a String offering exactly RID, UUID, Length, Regex, Enum — the
+Array and Struct kinds are not drawn. There is no rejection message in the
+section because there is no way to author the mismatch.
+
+So the trigger is **not us being stricter than Foundry** — it is the same
+guarantee at the layer where our authoring happens, since
+`mint_value_type_version()` takes caller JSON and the generated client is not
+the only writer.
+
+**It is the opposite case to that reading's Decision 6, and checking beat
+reasoning by analogy.** Decision 6 governs a property *binding to* a value type,
+where the docs show Foundry lets you save a binding the data violates — a CHECK
+there would be stricter than Foundry. This governs a value type's own internal
+coherence, where Foundry is not permissive at all. Applying one decision to both
+would have enforced the case Foundry allows and permitted the case Foundry
+forbids.
+
+Two things made it a trigger rather than a lint: constraints are **immutable**
+once their version exists ("The base type metadata and the constraints that
+define the validation rules for the type are immutable"), so a lint reporting
+"version 3 is malformed" leaves nothing to do about version 3; and the pairing
+spans two tables, so the rule-placement ladder's first rung is unavailable.
+
+The guard on the child is only sufficient because the parent cannot move: 452
+already refuses a `base_type` change after save, built before anything depended
+on it, and both the migration and the test assert that rather than assume it.
+**The audit found zero constraints in production**, so the guard arrives ahead
+of any backlog.
+
 **47% of the documentation is not mirrored**, concentrated in `api/` (1,131
 pages) — the corpus that has falsified our CHECK constraints twice. Refresh the
 index with `--urls` before concluding a page does not exist.

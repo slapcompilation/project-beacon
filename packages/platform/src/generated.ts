@@ -367,7 +367,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (159) ───────────────────────────────────────────────────
+// ── FUNCTIONS (160) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1552,6 +1552,17 @@ export const userToolParamsValid = { apiName: 'user_tool_params_valid', kind: 'f
 export const valueConforms = { apiName: 'value_conforms', kind: 'function' } as FunctionType<
   { p_value: Json; p_value_type: string; p_depth?: number },
   boolean
+>
+
+/**
+ *  Which base types a constraint kind may be applied to, from
+ *  value-type-constraints. NULL for an unknown kind. `long` and `byte` are
+ *  deliberately absent from enum and range: the page lists neither, and
+ *  adding them because they look numeric would be inventing a pairing.
+ */
+export const valueTypeConstraintBaseTypes = { apiName: 'value_type_constraint_base_types', kind: 'function' } as FunctionType<
+  { p_kind: string },
+  string[]
 >
 
 /**
