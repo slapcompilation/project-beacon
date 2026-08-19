@@ -26,9 +26,14 @@ export interface PropertyRow {
   description: string
   base_type: PropertyDef['type']
   array_element_type: PropertyDef['type'] | null
-  source: 'column' | 'user_input'
+  source: 'column' | 'user_input' | 'linked_objects'
   datasource_id: string | null
   backing_column: string | null
+  derived_aggregation: string | null
+  derived_from_property_id: string | null
+  derived_limit: number | null
+  /** The chain, one row per link. Embedded unordered, so `rowToProperty` sorts. */
+  derived_property_hops?: { position: number; link_type_id: string }[]
   shared_property_id: string | null
   required: boolean
   visibility: 'prominent' | 'normal' | 'hidden'
@@ -56,6 +61,11 @@ export function rowToProperty(r: PropertyRow): PropertyDef {
     description: r.description, required: r.required,
     source: r.source, backingColumn: r.backing_column,
     datasourceId: r.datasource_id, sharedPropertyId: r.shared_property_id,
+    hops: [...(r.derived_property_hops ?? [])]
+      .sort((a, b) => a.position - b.position).map((h) => h.link_type_id),
+    derivedAggregation: r.derived_aggregation,
+    derivedFromPropertyId: r.derived_from_property_id,
+    derivedLimit: r.derived_limit,
     visibility: r.visibility, position: r.position,
     isPrimaryKey: r.is_primary_key, isTitleKey: r.is_title_key,
     status: r.status, deprecationReason: r.deprecation_reason,
@@ -69,8 +79,18 @@ export function propertyToRow(p: PropertyDef, position: number) {
     description: p.description ?? '', base_type: p.type,
     array_element_type: p.type === 'array' ? p.arrayElementType ?? null : null,
     source: p.source ?? 'column',
-    datasource_id: p.datasourceId ?? null,
-    backing_column: p.source === 'user_input' ? null : p.backingColumn ?? null,
+    // The CHECK admits exactly three shapes: a column names one, user input
+    // names a datasource and no column, and a derived property names neither —
+    // "the hops carry the meaning". Sending a stale value in the wrong shape is
+    // how the row gets refused.
+    datasource_id: p.source === 'linked_objects' ? null : p.datasourceId ?? null,
+    backing_column: p.source === 'column' ? p.backingColumn ?? null : null,
+    ...(p.source === 'linked_objects' ? {
+      hops: p.hops ?? [],
+      derived_aggregation: p.derivedAggregation ?? null,
+      derived_from_property_id: p.derivedFromPropertyId ?? null,
+      derived_limit: p.derivedLimit ?? null,
+    } : { hops: [], derived_aggregation: null, derived_from_property_id: null, derived_limit: null }),
     shared_property_id: p.sharedPropertyId ?? null,
     required: p.required, visibility: p.visibility ?? 'normal', position,
     is_primary_key: p.isPrimaryKey ?? false, is_title_key: p.isTitleKey ?? false,
@@ -133,7 +153,7 @@ export function rowToObjectType(r: ObjectTypeRow): ObjectTypeDef {
  *  one", so the two readers that used to differ now agree. */
 export async function fetchObjectTypes(): Promise<ObjectTypeRow[]> {
   const { data, error } = await supabase.from('object_types')
-    .select('*, object_type_properties(*)')
+    .select('*, object_type_properties(*, derived_property_hops(position, link_type_id))')
     .order('created_at', { ascending: false })
   if (error) throw new Error(error.message)
   return data as ObjectTypeRow[]
