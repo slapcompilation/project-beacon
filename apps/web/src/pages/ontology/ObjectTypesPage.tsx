@@ -23,7 +23,9 @@ import { rowToLinkType } from '@/features/objectTypes/api'
 import {
   useCreateObjectType, useUpdateObjectType, useSetObjectTypeStatus,
   useApplyActiveToProperties, useCreateLinkType, useDeleteLinkType, useLinkTypes,
+  useApplyBacking,
 } from '@/features/objectTypes/hooks'
+import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { useEditsEnabled } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
@@ -283,6 +285,8 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
   const [description, setDescription] = useState('')
   const [props, setProps] = useState<PropertyDraft[]>([newProperty()])
   const [computed, setComputed] = useState<ComputedRow[]>([])
+  const [backing, setBacking] = useState<Backing>({ kind: 'generate', name: '', folderId: null })
+  const applyBacking = useApplyBacking()
 
   const apiName = toPascal(label)
   const properties = draftsToProperties(props)
@@ -297,7 +301,17 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
     if (!canSave) return
     create.mutate(
       { apiName, label: label.trim(), icon, description: description.trim(), properties, ontologyId, projectId },
-      { onSuccess: () => { setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube') } },
+      {
+        onSuccess: (id) => {
+          // Step 1 of the wizard, applied after the type exists because the
+          // backing names it. A type with no datasource fails its own linter,
+          // so this is not optional decoration. It reports its own failure, and
+          // the form resets either way — the type is created regardless.
+          void applyBacking(id, backing)
+          setLabel(''); setDescription(''); setProps([newProperty()]); setComputed([]); setIcon('cube')
+          setBacking({ kind: 'generate', name: '', folderId: null })
+        },
+      },
     )
   }
 
@@ -316,6 +330,8 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
         {label && <Tag minimal className="font-mono">{apiName}</Tag>}
       </div>
       <TextArea placeholder="Description (optional)" value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
+
+      <BackingStep projectId={projectId} label={label} value={backing} onChange={setBacking} />
 
       <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap} />
 
