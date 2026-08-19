@@ -28,6 +28,13 @@
 //   > "…"
 //   > — path/to/image.png          image — that file must exist on disk
 //
+// A migration header has a third kind. A migration correcting an earlier one
+// quotes what THAT one said, and our own prose is in no mirrored page by
+// construction. Such a quotation is allowed when it appears verbatim in a
+// migration with a lower version, and the run says which one — it cannot pass
+// off a false Foundry citation, because the earlier migration's own quotations
+// were checked when it was added.
+//
 // A reading opts in with `verify: strict` in its frontmatter. Readings without
 // it are counted and reported, never failed: 23 were written before this
 // existed, and a guard that fails on its own backlog gets switched off.
@@ -51,6 +58,7 @@ import { spawnSync } from 'node:child_process'
 
 const READINGS = 'docs/foundry-reference/readings'
 const MIRROR = 'docs/foundry-reference/mirror'
+const MIGRATIONS = 'supabase/migrations'
 const MIN_LEN = 25
 
 /** Strip the formatting a reading adds, so the comparison is about words. The
@@ -142,6 +150,11 @@ function quotations(text) {
     // every inline quote in it.
     const nearby = /([\w./-]+\.(?:png|jpg|jpeg|gif|svg))/.exec(line)
       ?? /([\w./-]+\.(?:png|jpg|jpeg|gif|svg))/.exec(lines[i + 1] ?? '')
+    // Deliberately NOT parity-paired the way sqlQuotations is. Reading prose
+    // carries unbalanced quote marks within a line — an inch mark, a quotation
+    // opened here and closed two lines down — and pairing on them shifted every
+    // subsequent span by one and reported 309 phantom citations. A migration
+    // header is disciplined enough for parity; a reading is not.
     for (const m of line.matchAll(/[“"]([^“”"]{25,})[”"]/g)) {
       out.push({ at: i + 1, text: normalise(m[1]), image: nearby ? nearby[1] : null })
     }
@@ -304,8 +317,15 @@ const sqlQuotations = (sql) => {
   const flush = () => {
     if (buf.length > 0) {
       const text = buf.join(' ').replace(/\s+/g, ' ')
-      for (const m of text.matchAll(/"([^"]{30,})"/g)) {
-        const t = normalise(m[1])
+      // PAIR the quote marks in order. `/"([^"]{30,})"/g` skipped a quotation
+      // shorter than the minimum and then matched from ITS closing mark to the
+      // next opening one — inventing a citation out of the prose BETWEEN two
+      // quotes. 586 was reported for `— and name · string · required,`, which
+      // no one wrote as a quotation and no page could ever contain.
+      const spans = text.split('"').filter((_, i) => i % 2 === 1)
+      for (const span of spans) {
+        const t = normalise(span)
+        if (t.length < 30) continue
         if (!/[{}]|=>|import |CREATE |SELECT /.test(t)) out.push({ at: start, text: t })
       }
     }
@@ -323,7 +343,22 @@ const sqlQuotations = (sql) => {
 }
 
 let migChecked = 0
+const quotedFromUs = []
 const added = addedMigrations()
+
+/** The leading version of a migration path, or null. */
+const migrationVersion = (f) => (/(\d{3}[a-z]?)_/.exec(path.basename(f)) ?? [])[1] ?? null
+
+/** Every migration already on disk, for quotations that cite our own past. */
+const earlier = fs.readdirSync(MIGRATIONS)
+  .filter((f) => f.endsWith('.sql'))
+  .map((f) => ({
+    version: migrationVersion(f) ?? '',
+    // Strip the comment markers first: a sentence in a migration header wraps
+    // across `--` lines, so the raw file never contains it contiguously.
+    lower: normalise(fs.readFileSync(path.join(MIGRATIONS, f), 'utf8')
+      .replace(/^\s*--\s?/gm, '')).toLowerCase(),
+  }))
 for (const file of added) {
   if (!fs.existsSync(file)) continue
   const sql = fs.readFileSync(file, 'utf8')
@@ -347,6 +382,15 @@ for (const file of added) {
     migChecked += 1
     for (const p of parts) {
       if (mirror.some((m) => m.lower.includes(p.toLowerCase()))) continue
+      // A migration correcting an earlier one quotes what that one SAID, and
+      // our own prose is in no mirrored page by construction. That is a
+      // different claim from citing Foundry, so it gets a different — and still
+      // verified — form: the sentence must appear verbatim in a migration that
+      // already exists. It cannot smuggle a false citation past this, because
+      // the earlier migration's own quotations were checked when it was added.
+      const source = earlier.find((e) => e.version < (migrationVersion(file) ?? '')
+        && e.lower.includes(p.toLowerCase()))
+      if (source) { quotedFromUs.push({ file, at: q.at, from: source.version }); continue }
       failures.push({
         name: file.replace(/^supabase\/migrations\//, ''),
         at: q.at,
@@ -360,6 +404,11 @@ for (const file of added) {
 console.log(`${readings.length} readings · ${mirror.length} mirrored pages`)
 if (added.length > 0) {
   console.log(`${migChecked} quotation(s) checked in ${added.length} new migration(s)`)
+}
+if (quotedFromUs.length > 0) {
+  // Named, never silent: an exemption nobody sees is how a guard gets hollowed.
+  console.log(`${quotedFromUs.length} quotation(s) traced to an earlier migration instead: ${
+    [...new Set(quotedFromUs.map((q) => q.from))].sort().join(', ')}`)
 }
 console.log(`${checked} quotations checked in ${readings.length - legacy} strict reading(s)`)
 if (legacy > 0) {

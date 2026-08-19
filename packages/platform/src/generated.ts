@@ -388,7 +388,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (185) ───────────────────────────────────────────────────
+// ── FUNCTIONS (186) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -848,6 +848,11 @@ export const datasetViewTransactions = { apiName: 'dataset_view_transactions', k
 export const datasetViewTransactionsFrom = { apiName: 'dataset_view_transactions_from', kind: 'function' } as FunctionType<
   { p_transaction: string; p_at?: string },
   { transaction_id: string; txn_type: string; seq: number }[]
+>
+
+export const datasourceMappingProblems = { apiName: 'datasource_mapping_problems', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { object_type: string; scope: string; subject: string; problem: string }[]
 >
 
 /**

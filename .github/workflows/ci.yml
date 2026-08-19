@@ -17,7 +17,13 @@ jobs:
     name: lint + type-check + test
     runs-on: ubuntu-latest
     steps:
+      # Full history, because check:readings finds the migrations a branch ADDS
+      # by diffing against origin/main. At the default depth of 1 that ref does
+      # not exist, both diff forms exit non-zero, and the migration half of the
+      # citation gate silently checked nothing — for as long as it has existed.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: pnpm/action-setup@v4
         with:
