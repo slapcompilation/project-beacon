@@ -8,8 +8,10 @@
 // The dark rail to the left is the platform's and stays; everything here is the
 // application's, and light (§5.1). Two chromes, nested — that is the point.
 //
-// The sidebar screenshot (§6.3) inventories fourteen entries. Five lead
-// somewhere. OMITTED BY NAME, with what would have to exist first:
+// The sidebar screenshot (§6.3) inventories fourteen entries. Seven lead
+// somewhere — Cleanup and Health issues arrived last, each once something
+// rendered the query that had been backing it all along. OMITTED BY NAME, with
+// what would have to exist first:
 //   Unsaved changes  — the save session lives in the top bar instead, where the
 //                      count and its buttons already are (§10.8 puts it here too).
 //   History          — `object_edits` and `branch_resource_changes` exist; no reader.
@@ -18,8 +20,6 @@
 //   Groups           — `type_groups` and `object_type_group_members` exist; no surface.
 //   Value types      — nothing behind it.
 //   Functions        — nothing behind it.
-//   Health issues    — `ontology_violations()` would back it; nothing renders it.
-//   Cleanup          — nothing behind it.
 //   Ontology configuration — nothing behind it.
 // The header's `New ▾` goes with them: creation lives in the object types page.
 
@@ -37,6 +37,7 @@ import { supabase } from '@/lib/supabase/client'
 import { useBranches, useBranchChanges, useProposals, useCreateProposal, useBranchConflicts, useSetBranchStatus } from '@/features/branching/api'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/stores/app.store'
+import { useViolations } from '@/features/health/api'
 import { useAuthStore } from '@/stores/auth.store'
 import { useProjects } from '@/features/projects/api'
 import { OntologyPicker } from '@/features/ontologies/OntologyPicker'
@@ -102,9 +103,11 @@ export default function OmaLayout() {
               <NavRow key={r.path} icon={r.icon} label={r.label} path={r.path}
                 count={countOf(resources, r.kind)} />
             ))}
-            {/* Cleanup sits below the resource list with Flag settings indented
-                under it, as the Ontology Manager nav screenshot draws it. */}
+            {/* Health issues and Cleanup are one group below the resource list,
+                in that order, with Flag settings indented under Cleanup — as
+                the Ontology Manager nav screenshot draws it. */}
             <div className="oma-rule" />
+            <HealthIssuesRow />
             <NavRow icon="clean" label="Cleanup" path="/ontology/cleanup" end />
             <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
           </nav>
@@ -131,6 +134,13 @@ function NavRow({ icon, label, path, count, end = false }: {
       {count !== undefined && <span className="oma-count">{count}</span>}
     </NavLink>
   )
+}
+
+/** Health issues carries its count in the sidebar, and keeps it even when a
+ *  search facets every other row — so it is a NavRow with a number, not a dot. */
+function HealthIssuesRow() {
+  const { data: rows = [] } = useViolations()
+  return <NavRow icon="pulse" label="Health issues" path="/ontology/health" count={rows.length} end />
 }
 
 /** "When there are new changes from main, a blue indicator appears on the

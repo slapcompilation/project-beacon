@@ -21,6 +21,7 @@ import {
   fetchObjectTypeProblems,
   fetchLinkTypes, createLinkType, deleteLinkType,
   fetchObjectTypeDatasources, addObjectTypeDatasource, removeObjectTypeDatasource,
+  setDatasourcePrimaryKeyColumn,
   type UpdateObjectTypeInput, type CreateLinkTypeInput, type LinkTypeRow,
 } from './api'
 
@@ -158,6 +159,19 @@ export function useAddObjectTypeDatasource(objectTypeId: string) {
     },
     // The database raises Phonograph2:DatasetAndBranchAlreadyRegistered and the
     // two limit errors by name; showing them verbatim beats a generic failure.
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+export function useSetDatasourcePrimaryKeyColumn(objectTypeId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (i: { id: string; column: string | null }) =>
+      setDatasourcePrimaryKeyColumn(i.id, i.column),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.datasources(objectTypeId) })
+      void qc.invalidateQueries({ queryKey: ['ontology-violations'] })
+    },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

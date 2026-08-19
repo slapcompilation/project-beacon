@@ -272,22 +272,40 @@ export interface ObjectTypeDatasource {
   datasetId: string | null
   branchId: string | null
   restrictedViewId: string | null
+  /** Set on a media set view datasource (585), which backs media properties
+   *  directly and has no dataset, no branch and nothing to join. */
+  mediaSetViewRid: string | null
+  /** The column holding the object type's primary key, when this datasource
+   *  spells it differently from the key property. Null means inherit. */
+  primaryKeyColumn: string | null
   datasetName: string
   branchName: string
   restrictedViewName: string
 }
 
+/** "The Map primary key helper will appear and prompt you for a column with
+ *  values matching the primary key of the object type." Stored as an override:
+ *  null means the key property's own backing column. */
+export async function setDatasourcePrimaryKeyColumn(id: string, column: string | null): Promise<void> {
+  const { error } = await supabase.from('object_type_datasources')
+    .update({ primary_key_column: column === '' ? null : column }).eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
 export async function fetchObjectTypeDatasources(objectTypeId: string): Promise<ObjectTypeDatasource[]> {
   const { data, error } = await supabase.from('object_type_datasources')
-    .select('id, dataset_id, branch_id, restricted_view_id, datasets(name), dataset_branches(name), restricted_views(name)')
+    .select('id, dataset_id, branch_id, restricted_view_id, media_set_view_rid, primary_key_column, ' +
+            'datasets(name), dataset_branches(name), restricted_views(name)')
     .eq('object_type_id', objectTypeId)
   if (error) throw new Error(error.message)
   return (data as unknown as {
     id: string; dataset_id: string | null; branch_id: string | null; restricted_view_id: string | null
+    media_set_view_rid: string | null; primary_key_column: string | null
     datasets: { name: string } | null; dataset_branches: { name: string } | null
     restricted_views: { name: string } | null
   }[]).map((r) => ({
     id: r.id, datasetId: r.dataset_id, branchId: r.branch_id, restrictedViewId: r.restricted_view_id,
+    mediaSetViewRid: r.media_set_view_rid, primaryKeyColumn: r.primary_key_column,
     datasetName: r.datasets?.name ?? '', branchName: r.dataset_branches?.name ?? '',
     restrictedViewName: r.restricted_views?.name ?? '',
   }))
