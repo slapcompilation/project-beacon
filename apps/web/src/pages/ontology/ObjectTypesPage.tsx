@@ -26,6 +26,7 @@ import {
   useApplyBacking,
 } from '@/features/objectTypes/hooks'
 import { BackingStep, type Backing } from '@/features/objectTypes/BackingStep'
+import { PropertySourceDialog } from '@/features/objectTypes/PropertySource'
 import { useSharedPropertyMap } from '@/features/objectTypes/sharedProperties'
 import { useEditsEnabled } from '@/features/objectTypes/materializations'
 import { DatasourcesTab, MaterializationsTab, SecurityTab } from '@/features/objectTypes/TypeConfigTabs'
@@ -37,6 +38,14 @@ import { NoOntologyCallout } from '@/features/ontologies/OntologyPicker'
 import { SectionHead } from '@/features/ontologyManager/OmaLayout'
 import { useOmaOntology, useOmaTypes } from '@/features/ontologyManager/resources'
 import { indexPhase, useIndexStatuses, useReindex } from '@/features/objectTypes/indexing'
+
+/** The three sources, in the editor's own words. */
+const SOURCE_LABEL: Record<string, string> = {
+  column: 'Datasource', user_input: 'User edits', linked_objects: 'Linked objects',
+}
+const SOURCE_ICON: Record<string, IconName> = {
+  column: 'th', user_input: 'edit', linked_objects: 'link',
+}
 
 const ICONS: IconName[] = ['cube', 'wrench', 'clipboard', 'shop', 'people', 'warning-sign', 'document', 'calendar', 'clean', 'key']
 
@@ -69,11 +78,17 @@ function draftsToProperties(drafts: PropertyDraft[]): PropertyDef[] {
 /** The Properties step: two pickers over a Source -> Property table, which is
  *  how the wizard screenshot lays it out. Both designations are unique per type,
  *  so they are pickers rather than per-row checkboxes. */
-function PropertyRows({ drafts, onChange, sharedMap }: {
+function PropertyRows({ drafts, onChange, sharedMap, objectTypeId }: {
   drafts: PropertyDraft[]
   onChange: (next: PropertyDraft[]) => void
   sharedMap: Map<string, SharedPropertyDef>
+  /** Null while creating — the datasource list is empty until the type exists. */
+  objectTypeId: string | null
 }) {
+  const [sourceOf, setSourceOf] = useState<number | null>(null)
+  const { data: linkTypeRows } = useLinkTypes()
+  const linkTypes = useMemo(() => linkTypeRows.map(rowToLinkType), [linkTypeRows])
+  const { types } = useOmaTypes()
   const named = drafts.filter((p) => p.label.trim())
   const setProp = (i: number, patch: Partial<PropertyDraft>) => {
     onChange(drafts.map((p, idx) => (idx === i ? { ...p, ...patch } : p)))
@@ -157,13 +172,13 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
                   .map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </HTMLSelect>
             )}
-            {/* "A property's source can be User input / actions rather than a
-                dataset column" - so not every property is backed by data. */}
-            <HTMLSelect value={p.source ?? 'column'} title="Where the values come from"
-              onChange={(e) => { setProp(i, { source: e.currentTarget.value as 'column' | 'user_input' }) }}>
-              <option value="column">Datasource column</option>
-              <option value="user_input">User input / actions</option>
-            </HTMLSelect>
+            {/* The three sources have published definitions and per-source
+                configuration, so the row shows which one and opens the rest. */}
+            <Button size="small" icon={SOURCE_ICON[p.source ?? 'column']}
+              title="Where this property's values come from"
+              onClick={() => { setSourceOf(i) }}>
+              {SOURCE_LABEL[p.source ?? 'column']}
+            </Button>
             {(p.source ?? 'column') === 'column' && (
               <InputGroup size="small" placeholder={toSlug(p.label) || 'column'} value={p.backingColumn ?? ''}
                 title="The column in the backing datasource"
@@ -189,6 +204,13 @@ function PropertyRows({ drafts, onChange, sharedMap }: {
       })}
       <Button variant="minimal" size="small" icon="add"
         onClick={() => { onChange([...drafts, newProperty()]) }}>Add property</Button>
+
+      {sourceOf !== null && drafts[sourceOf] && (
+        <PropertySourceDialog isOpen onClose={() => { setSourceOf(null) }}
+          objectTypeId={objectTypeId} property={drafts[sourceOf]}
+          linkTypes={linkTypes} types={types}
+          onChange={(patch) => { setProp(sourceOf, patch) }} />
+      )}
     </div>
   )
 }
@@ -333,7 +355,8 @@ function TypeBuilder({ ontologyId }: { ontologyId: string | null }) {
 
       <BackingStep projectId={projectId} label={label} value={backing} onChange={setBacking} />
 
-      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap} />
+      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap}
+        objectTypeId={null} />
 
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 
@@ -562,7 +585,8 @@ function SchemaEditor({ type, onDone }: { type: ObjectTypeDef; onDone: () => voi
       </div>
       <TextArea value={description} onChange={(e) => { setDescription(e.currentTarget.value) }} fill rows={2} />
 
-      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap} />
+      <PropertyRows drafts={props} onChange={setProps} sharedMap={sharedMap}
+        objectTypeId={type.id} />
 
       <ComputedBuilder properties={properties} rows={computed} onChange={setComputed} />
 

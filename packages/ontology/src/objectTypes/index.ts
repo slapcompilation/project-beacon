@@ -165,8 +165,22 @@ export interface PropertyDef {
    *  "not directly mapped to a column in the backing dataset". It still names a
    *  datasource: edit-only properties "must be permissioned to one of the
    *  datasets backing the object type". */
-  source?: 'column' | 'user_input'
+  /** The third source. The property editor enumerates all three with their own
+   *  one-line definitions — "Datasource: Back this property with a dataset,
+   *  restricted view or stream", "User edits: Back this property exclusively
+   *  with edits from user inputs", "Linked objects: Use a property from another
+   *  object type" (`media-reference-source.png`). */
+  source?: 'column' | 'user_input' | 'linked_objects'
   backingColumn?: string | null
+  /** Derived from linked objects: the link chain, one link type per hop, at most
+   *  three — the cap counts links, not object types. */
+  hops?: string[]
+  /** One of `derived_aggregations()`. Count needs no property; the collects take
+   *  a limit. */
+  derivedAggregation?: string | null
+  /** The property on the object type the chain reaches. Null under Count. */
+  derivedFromPropertyId?: string | null
+  derivedLimit?: number | null
   /** Which of the object type's datasources. NULL on the primary key, which
    *  "must exist in every input datasource". */
   datasourceId?: string | null
