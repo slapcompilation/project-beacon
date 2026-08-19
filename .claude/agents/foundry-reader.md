@@ -48,6 +48,13 @@ your reading, after a human has reviewed it.
    the page reads as absent. Search a distinctive word from the description
    instead of the identifier. This has already cost one miss.
 
+   **And markdown emphasis breaks a literal grep mid-sentence.** The page says
+     "Derived properties are **read-only** and cannot be edited by functions or
+     actions", so grepping the sentence without the asterisks returns nothing and
+     reads as "that quote does not exist". `check:readings` strips emphasis before
+     comparing, so a quote can pass the gate and still be unfindable by hand.
+     Grep a fragment that cannot contain formatting, never a whole sentence.
+
 ## How to quote
 
 Add `verify: strict` to your reading's frontmatter, then `pnpm check:readings`
