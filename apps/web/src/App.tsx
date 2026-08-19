@@ -24,6 +24,8 @@ const DatasetsPage = lazyWithRetry(() => import('@/pages/DatasetsPage'))
 const ValueTypesPage = lazyWithRetry(() => import('@/pages/ValueTypesPage'))
 const ProposalsPage = lazyWithRetry(() => import('@/pages/ontology/ProposalsPage'))
 const MainBranchUpdatesPage = lazyWithRetry(() => import('@/pages/ontology/MainBranchUpdatesPage'))
+const CleanupPage = lazyWithRetry(() => import('@/pages/ontology/CleanupPage'))
+const CleanupFlagsPage = lazyWithRetry(() => import('@/pages/ontology/CleanupFlagsPage'))
 const BranchesPage = lazyWithRetry(() => import('@/pages/BranchesPage'))
 const BuildsPage = lazyWithRetry(() => import('@/pages/BuildsPage'))
 const CatalogPage = lazyWithRetry(() => import('@/pages/CatalogPage'))
@@ -81,6 +83,10 @@ function AppRoutes() {
               <Route path="interfaces"        element={<InterfacesPage />} />
               <Route path="proposals"         element={<ProposalsPage />} />
               <Route path="main-branch-updates" element={<MainBranchUpdatesPage />} />
+              {/* Cleanup is a nav section with a nested Flag settings sub-page,
+                  as the Ontology Manager screenshot draws it. */}
+              <Route path="cleanup"           element={<CleanupPage />} />
+              <Route path="cleanup/flags"     element={<CleanupFlagsPage />} />
             </Route>
             <Route path="/projects"  element={<ProjectsPage />} />
             <Route path="/datasets"  element={<DatasetsPage />} />

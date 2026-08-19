@@ -102,6 +102,11 @@ export default function OmaLayout() {
               <NavRow key={r.path} icon={r.icon} label={r.label} path={r.path}
                 count={countOf(resources, r.kind)} />
             ))}
+            {/* Cleanup sits below the resource list with Flag settings indented
+                under it, as the Ontology Manager nav screenshot draws it. */}
+            <div className="oma-rule" />
+            <NavRow icon="clean" label="Cleanup" path="/ontology/cleanup" end />
+            <NavRow icon="flag" label="Flag settings" path="/ontology/cleanup/flags" />
           </nav>
         </aside>
 
