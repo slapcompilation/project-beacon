@@ -232,10 +232,19 @@ Four parameters: **link target type** (an interface *or* an object type),
 **target**, **cardinality** (`ONE` | `MANY`), and whether the link is
 **required** for implementation.
 
-Built in 450: `interface_link_constraints` carries the four parameters, with
-`interface_action_satisfactions` and `interface_action_parameter_mappings`
-beside it. (This section once read as future work — the 2026-08-13 gap run
-caught the missing marker.)
+Built across **two** migrations, and this line said one until the 2026-08-19 gap
+run caught it. **450** builds `interface_link_constraints` with the four
+parameters and `interface_action_satisfactions` beside it. The parameter half —
+`interface_action_parameter_constraints` and `interface_action_parameter_mappings`
+— lands seventeen migrations later in **467**, whose own header calls itself "the
+unbuilt half of `interfaces/interface-action-type-constraints.md`, found by the
+nightly gap run."
+
+The citations under both tables were sound; only the number here was wrong. It is
+worth correcting rather than shrugging at, because **this map is what gets
+grepped for "which migration built this"** — a wrong number here is believed.
+(This section once read as future work — the 2026-08-13 gap run caught that
+missing marker, and the 2026-08-19 run caught this one.)
 
 ### B6 · Type classes
 
@@ -251,6 +260,28 @@ Inert application metadata, **with one exception**: "With the exception of the
 `type_classes(resource_kind ∈ property|link_type|action_type, resource_id, kind,
 name)`. A **render hints** mechanism sits beside it (`selectable`, `sortable`,
 `searchable`) and now owns what `analyzer.not_indexed` used to.
+
+### B7 · Derived properties — **NOT BUILT, and until 2026-08-19 not tracked**
+
+> "Derived properties are properties that are calculated at runtime based on values from linked objects. Instead of storing data directly, a derived property pulls information from objects connected through link types, optionally applying aggregations like averaging, counting, or collecting values into lists."
+
+`object_type_properties.source` is a closed `CHECK (source IN ('column',
+'user_input'))` (408). Foundry has a **third** kind, and it is not a variant of
+either: it stores nothing and is computed per read across a link.
+
+**The gap run found this because it was invisible.** `readings/derived-properties.md`
+exists and its Decisions block ends "Not built from this reading yet" — but
+neither this map nor `DELIVERABLE-MAP.md` mentioned derived properties at all,
+so it was not on any build order. A reading with no map entry is not deferred
+work; it is forgotten work, and the difference only shows when something goes
+looking.
+
+Scheduling it is a real decision, not a cheap one: a third `source` value, a
+runtime computation path, the documented 3-hop traversal cap, nine named
+aggregations, and read-only enforcement ("Derived properties are read-only and
+cannot be edited by functions or actions") that has to hold against actions and
+edit functions both. Recorded here so it stops being invisible; the reading's
+Decisions block wants reciting before any of it is built.
 
 ---
 
