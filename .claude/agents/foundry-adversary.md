@@ -43,6 +43,17 @@ For each rule the reading states, find the sentence it came from. If you cannot,
 it belongs in the Decisions block, not in the prose. Flag anything that reads as
 documentation but is a design choice.
 
+**6 — Is a citation attached by NAME rather than by behaviour?**
+The newest check, and it catches the opposite of check 4. There the quote is
+fake; here the quote is real and describes something else. Take each citation
+that justifies one of *our* fields and ask what the page's mechanism actually
+does versus what ours does — read the function body, not the identifier.
+*Caught: a gap report proposed backfilling `time_series_properties.negate`'s
+citation to Foundry's `timeseries_is_value_inverted`. Real quote, converging
+name — but that type class inverts a chart's y-axis and leaves the data alone,
+while ours prepends a minus inside generated SQL. A citation that is nearly
+right is worse than none, because it stops the next person looking.*
+
 ## If you are reviewing a migration rather than a reading
 
 Also check:
@@ -64,4 +75,13 @@ wrong — a short report with "I verified X, Y, Z and found nothing" is more use
 than a long one that only lists suspicions.
 
 Do not soften findings, and do not invent them to seem thorough. "I found
-nothing in checks 1–4; check 5 has one finding" is a good report.
+nothing in checks 1–5; check 6 has one finding" is a good report.
+
+**Mark each finding VERIFIED, QUOTED or INFERRED**, the same three words the
+gap agent uses, so findings from either can be merged without re-deriving which
+is which. Anything naming a migration number, a column or a CHECK is VERIFIED or
+it is not a finding — those are one grep away and are believed on sight.
+
+**Reviewing a gap report is in scope.** A report is exactly the confident,
+plausible artifact this agent exists for, and its citations are the half most
+likely to be wrong.
