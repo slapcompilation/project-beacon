@@ -387,7 +387,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (176) ───────────────────────────────────────────────────
+// ── FUNCTIONS (179) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -859,6 +859,16 @@ export const defaultOntology = { apiName: 'default_ontology', kind: 'function' }
   string
 >
 
+/**
+ *  The dependent kinds this platform has. Foundry shows nine because it has
+ *  nine applications; Application access scopes that list per enrollment, so
+ *  registering kinds we do not have would render a panel no tenant would see.
+ */
+export const dependentKinds = { apiName: 'dependent_kinds', kind: 'function' } as FunctionType<
+  Record<string, never>,
+  { kind: string; label: string; note: string }[]
+>
+
 export const derivedAggregationNames = { apiName: 'derived_aggregation_names', kind: 'function' } as FunctionType<
   Record<string, never>,
   string[]
@@ -1228,6 +1238,26 @@ export const objectState = { apiName: 'object_state', kind: 'function' } as Func
 export const objectTypeCleanupFlags = { apiName: 'object_type_cleanup_flags', kind: 'function' } as FunctionType<
   { p_object_type: string; p_config: string },
   string[]
+>
+
+/**
+ *  The left pane. Every kind appears, including those with none — the
+ *  screenshot renders Automation 0 beside Workshop 9, which is what makes it
+ *  a directory rather than a result set.
+ */
+export const objectTypeDependentCounts = { apiName: 'object_type_dependent_counts', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  { kind: string; label: string; dependents: number }[]
+>
+
+/**
+ *  Applications that consume this object type, one row per instance. Not
+ *  SECURITY DEFINER on purpose: a dependent the caller cannot see must not be
+ *  counted, and RLS already answers that.
+ */
+export const objectTypeDependents = { apiName: 'object_type_dependents', kind: 'function' } as FunctionType<
+  { p_object_type: string },
+  { kind: string; dependent_id: string; name: string }[]
 >
 
 /**

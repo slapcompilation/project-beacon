@@ -139,3 +139,89 @@ generated object surfaces registering themselves — which
    nothing says the equivalent here, and a count that leaks the existence of a
    Workshop module you cannot open would be a disclosure. `blocks:` the read
    path, and worth settling before a surface exists rather than after.
+
+---
+
+## 5. The two open questions, inferred from sibling surfaces (2026-08-19)
+
+No page answers either directly — searched for dependency, reference, "used by"
+and deletion-safety pages across the corpus, and the only prose about Dependents
+remains the word in the list of seven. But both are inferable from pages that
+describe the *same shapes* elsewhere, and the inferences point away from what
+this reading first proposed.
+
+### 5.1 The kind list is not a universal vocabulary — it is what the platform has
+
+`app-building/curating-apps`, describing the same applications that make up the
+kind list:
+
+> "Foundry platform apps are tools like Quiver, Contour, Data Connection, Pipeline Builder, and more. You can configure the option to display or hide platform apps from users in Control Panel under the **Application access** tab. This allows you to show only certain sub-groups of apps in Applications Portal, as well as in the rest of Foundry."
+
+**"as well as in the rest of Foundry"** is the load-bearing clause. An
+application hidden for an enrollment is hidden everywhere, which must include a
+panel that names it as a dependent kind. So the kind list a tenant sees is
+scoped to the applications that tenant actually has — the rendered zeroes are
+kinds the platform *has* and this object type does not use, not a catalogue of
+everything Foundry ships.
+
+**That reverses Decision 1.** Registering seven kinds we have no counterpart for
+would model applications Foundry itself would hide from a platform that lacks
+them, and would produce a panel no Foundry tenant would ever see. Two kinds, and
+zeroes among those two, reproduces the behaviour exactly at our scale.
+
+*(Inference, flagged. The clause is about Application access rather than about
+Dependents specifically.)*
+
+### 5.2 A dependent you cannot see does not count
+
+The same page states the rule twice for the Applications Portal's own
+groupings:
+
+> "Only collections that have promoted apps linked to them are displayed in Applications Portal, and only if you have access to view/discover these apps. If a collection has no promoted apps linked to it, or if you do not have access to any apps on the collection, it will not be displayed."
+
+> "Only tags that have promoted apps linked to them are displayed in Applications Portal as filters, and only if the user has access to view/discover these apps. If a tag is not added to any promoted apps, or if a user has no access to any apps with that tag, it would not be displayed."
+
+**A grouping is shown only if the caller can see its members, and members the
+caller cannot see do not count toward it** — stated for collections and again
+for tags, which is as close to a general rule as this corpus gives. And
+`view-usage` says the equivalent for the panel directly beside this one: its
+metrics "only includes the usage from users who have access to the object type".
+
+So a dependent count is scoped to what the caller may already see. That is the
+safe direction anyway; it is now the documented-by-analogy one.
+
+*(Inference, flagged.)*
+
+### 5.3 A finding from the same search: deletion is gated on status, not dependents
+
+> "It cannot be deleted. A resource’s status must be `experimental` or `deprecated` before it can be deleted."
+
+Nothing anywhere blocks deletion because something depends on the resource. That
+confirms Dependents is **informational** — it tells an editor what will break,
+and the gate that actually stops them is the status one. We already enforce that
+(`Ontology:ResourceIsActive`, 321/327), so nothing is owed here.
+
+## Decisions, revised
+
+1. **REPLACES Decision 1. Register the two kinds we have**, not nine.
+   `curating-apps` scopes the application list to the enrollment, so a panel
+   listing Workshop on a platform without Workshop is not a fidelity gain — it
+   is a shape Foundry would not render either. Zeroes still appear, for the two.
+2. **Dependent reads are scoped to what the caller can already see**, per the
+   collections-and-tags rule and the usage page's equivalent. A kind whose only
+   instances are invisible to the caller reports zero, exactly as a collection
+   with no visible apps is not displayed.
+3. **Nothing gates deletion on dependents**, and nothing should: the status gate
+   is the documented one and we have it.
+4. **BUILT (580).** `dependent_kinds()` registers the two, `object_type_dependents()`
+   returns the instances, `object_type_dependent_counts()` is the left pane with
+   its zeroes. The permission rule needed no code: leaving the function
+   **non-DEFINER** means RLS already hides what the caller may not see, which is
+   the collections-and-tags rule arriving for free rather than being restated.
+
+   **The counted-once rule needed a test, and it is the one that could have gone
+   wrong.** An automation can reach an object type twice — through the object
+   set it watches and through an action its effects invoke — and the header
+   being the sum of the kind counts only holds if that is one dependent. The
+   `UNION` (not `UNION ALL`) is what makes it so, and an assertion drives both
+   paths on one automation to prove it.
