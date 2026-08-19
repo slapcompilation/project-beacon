@@ -1,0 +1,5 @@
+<!-- source: https://palantir.com/docs/foundry/api/v2/models-v2-resources/model-versions/model-version-basics/ · mirrored 2026-08-19 from Palantir Foundry docs -->
+
+# Model Version basics
+
+The resource that is an immutable snapshot of a machine learning model which contains serialized data as well as code used to run the model.

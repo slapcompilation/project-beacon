@@ -1,0 +1,5 @@
+<!-- source: https://palantir.com/docs/foundry/api/v2/models-v2-resources/model-studios/model-studio-basics/ · mirrored 2026-08-19 from Palantir Foundry docs -->
+
+# Model Studio basics
+
+A Model Studio is a resource for training machine learning models using pre-built trainers. Studios contain configurations that define the training parameters, inputs, and outputs.
