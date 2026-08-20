@@ -20,7 +20,9 @@ pixels in that image.
 founding failure, and this is the first reading to cover its Colors, Icons and
 Custom fonts sections rather than one sentence of it.
 
-**Images measured (12):** `ontology-manager/images/cleanup-navigation-from-homepage.png`,
+**Images measured (15):** `ontology-manager/images/oma-user-interface-property-editor-v2.png`,
+`oma-user-interface-object-type-view.png`, `oma-user-interface-function-type.png`,
+`ontology-manager/images/cleanup-navigation-from-homepage.png`,
 `cleanup-configuration-navigation.png`, `cleanup-start-cleanup-button.png`,
 `oma-navigation-annotated.png`, `oma-user-interface-navigation-homepage-sidebar.png`,
 `oma-discover-view.png`, `save-review-edits-error.png`,
@@ -297,6 +299,51 @@ records for links. Two blue2 measurements agree on this capture, but this captur
 is the desaturated one (see Question 4) and #711 settled `--primary` on blue3
 from eleven images. Left alone; recorded as Question 5.
 
+## 10. Tables, measured but NOT built — and why not
+
+`oma-user-interface-property-editor-v2.png` (2x) carries a full table, and every
+number below is measured. **Nothing here has been applied**, because the era
+question is not settled the way it was for the sidebar, and settling it wrongly
+is the mistake §7 opens with.
+
+| property | measured |
+|---|---|
+| card border | 1px `#dde0e4` — light-gray2 |
+| toolbar row above the header | **40px**, white |
+| header row | **32px**, filled `#f6f7f9` — light-gray5 |
+| header bottom border | 1px `#d4d5d8` |
+| header text | `#616b7a` — gray1, **sentence case**, one step below body size |
+| header column dividers | 1px, **in the header band only**; the body has none |
+| data row | **46px** pitch |
+| row separator | 1px `#dde0e4` |
+| selected / hovered row | filled `#edeff2` — light-gray4 |
+
+**The unsettled part is the header.** This capture writes `Property name`,
+`Status`, `Visibility` in sentence case on a light-gray5 band. Both old-Ontology-
+Manager captures write `NAME`, `STATUS`, `VISIBILITY`, `ISSUES` in **uppercase on
+white** (`oma-user-interface-navigation-homepage-sidebar.png`,
+`cleanup-configuration-navigation.png`). Two styles, and no capture I have shows
+a resource-list table in the current chrome — the current Discover view is cards,
+not a table.
+
+**Inference, flagged, and the reason it is not enough to build on:** the v2
+capture's surrounding chrome — a tab card, and a right panel with
+`General / Display / Interaction / Details / Advanced` — matches
+`oma-user-interface-object-type-view.png` and `oma-user-interface-function-type.png`,
+which show `Capabilities` and versioned functions, both recent. So the sentence-
+case table is probably current. Probably is not measured, and the whole point of
+§7 is that I have already spent a session building from probably.
+
+### 10.1 The entity sub-nav selects differently from the main nav
+
+Worth writing down so nobody "fixes" one to match the other. The left rail on an
+entity page — `Overview / Properties / Security / Datasources / Capabilities /
+Object views / Interfaces / Automations / Usage` — draws its selected row as a
+pale blue fill **with a 1px blue border**. The main Ontology Manager nav draws it
+as a fill with **no border** (§7; I scanned the fill's edges for one and there is
+none). Two captures each way, and the two rails appear in the same generation of
+the product, so this is a component difference and not an era difference.
+
 ## Questions
 
 1. **Does Blueprint v6 change the palette?** Nothing measured disagrees with
@@ -312,6 +359,9 @@ from eleven images. Left alone; recorded as Question 5.
    no-descender label, which puts the face anywhere from 12px to 15px depending
    on how much of the edge is antialiasing. The type-scale change still anchors
    on Blueprint's published scale, not on this.
+6. **Are the current resource-list tables sentence-case or uppercase?** §10 has
+   both, from different eras, and no capture shows a resource list in the current
+   chrome. Nothing table-shaped should be built until one turns up.
 5. **Are links blue2 or blue3?** `See all` and the selected nav label both
    measure `#1e52a7` on `oma-discover-view.png`; §5.2 of `home-and-navigation`
    records blue3 for links from older captures. Only selection was changed.
