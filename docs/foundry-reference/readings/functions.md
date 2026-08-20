@@ -172,6 +172,22 @@ every piece that shape needs.
    signature and the declared imports. Foundry *warns* on breaking changes;
    ours **refuses** without a major bump, because we have no human
    release-review step. Marked as stricter than documented.
+
+   **Amended 2026-08-20 (597), and the amendment is narrow.** The refusal
+   stands past 1.0.0 — that divergence was reasoned and stays. But it also
+   fired during initial development, which the versioning page exempts by
+   name: the major-bump recommendation "does not apply if you are still in
+   the initial development phase (that is, you are still at major version
+   `0`)", and there "the function may change at any time". Refusing at 0.x is
+   not stricter-with-a-reason; it contradicts a stated exemption, and it made
+   the phase impossible to be in — the only way to change a signature at
+   0.1.0 was to release 1.0.0, which ends it.
+
+   Where the refusal no longer fires the *warning* still must, because the
+   page promises one: `function_versions.breaking_changes` records what the
+   check found at publish time, and `ontology_warnings()` grew a second arm
+   for a 0.x release that broke its signature. 589 built that list for
+   exactly this shape of finding — real, published, and not blocking.
 6. **API names take the page's four rules verbatim** (lowerCamelCase, <100
    chars, no leading digits, unique per ontology), and an API-named query
    resolves to its latest version, per the page.
