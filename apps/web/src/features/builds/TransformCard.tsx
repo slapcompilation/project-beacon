@@ -52,7 +52,7 @@ export function TransformCard({ datasetId }: { datasetId: string }) {
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Inputs</span>
           {inputs.map((i) => (
             <Tag key={i.inputDatasetId} minimal onRemove={() => { removeInput.mutate(i.inputDatasetId) }}>
-              {i.name} <span className="font-mono text-[10px] opacity-70">{i.apiName}</span>
+              {i.name} <span className="font-mono text-[10px] opacity-60">{i.apiName}</span>
             </Tag>
           ))}
           <HTMLSelect minimal value={pickedInput} onChange={(e) => { setPickedInput(e.currentTarget.value) }}>

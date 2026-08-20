@@ -51,6 +51,16 @@ jobs:
       - name: Every web file is reachable
         run: pnpm check:surfaces
 
+      # check:surfaces asks whether a FILE is reached; this asks whether a CLASS
+      # exists. There is no Tailwind and no build step, so a Tailwind-shaped
+      # class nobody wrote a rule for is an inert string that neither fails to
+      # compile nor warns. The utilities block was "generated once from the
+      # classes this app actually uses" and drifted by 88 classes across 139
+      # sites, among them overflow-x-auto on a wide panel and the object types
+      # list's entire selected state.
+      - name: Every class a component names has a rule
+        run: pnpm check:classes
+
       # turbo covers the TS packages but not supabase/functions (Deno, resolved
       # at deploy). This guard was deleted in the teardown when that directory
       # was empty; function-run put real code back. It parses every file and

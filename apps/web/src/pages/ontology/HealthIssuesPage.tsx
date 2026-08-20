@@ -59,7 +59,7 @@ function IssueList({ rows, intent }: { rows: Violation[]; intent: 'danger' | 'wa
           </div>
           {[...scopes.entries()].map(([scope, items]) => (
             <div key={scope}>
-              <p className="bg-neutral-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              <p className="bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {scope}
               </p>
               <HTMLTable compact className="w-full !text-xs">
@@ -70,7 +70,7 @@ function IssueList({ rows, intent }: { rows: Violation[]; intent: 'danger' | 'wa
                         <Icon size={12} intent={intent}
                           icon={intent === 'danger' ? 'error' : 'warning-sign'} />
                       </td>
-                      <td className="w-56 align-top font-mono text-xs text-neutral-500">
+                      <td className="w-56 align-top font-mono text-xs text-muted-foreground">
                         {r.subject}
                       </td>
                       <td>{r.problem}</td>

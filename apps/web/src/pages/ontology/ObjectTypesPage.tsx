@@ -258,7 +258,7 @@ export default function ObjectTypesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {types.map((t) => (
                 <Card key={t.id} interactive compact
-                  className={selectedId === t.id ? '!border-violet-400' : ''}
+                  className={selectedId === t.id ? '!border-primary' : ''}
                   onClick={() => { openType(t.id) }}>
                   <div className="flex items-center gap-2">
                     <span className="oma-tile is-sm" style={tileStyle(t)}>

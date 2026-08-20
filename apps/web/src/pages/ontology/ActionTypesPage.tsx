@@ -197,7 +197,7 @@ function ActionBuilder({ ontologyId, types }: { ontologyId: string; types: Objec
           // property is one row that each implementer resolves onto its own.
           const target = onInterface ? iface : types.find((t) => t.id === r.objectTypeId)
           return (
-            <div key={i} className="space-y-1.5 border-l-2 border-violet-400/40 pl-2">
+            <div key={i} className="space-y-1.5 border-l-2 border-border pl-2">
               <div className="flex flex-wrap items-center gap-2">
                 <HTMLSelect value={r.kind}
                   onChange={(e) => { setRule(i, { kind: e.currentTarget.value, props: [] }) }}>

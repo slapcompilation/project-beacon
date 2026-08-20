@@ -73,7 +73,7 @@ export default function DatasetsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {datasets.map((d) => (
               <Card key={d.id} interactive compact
-                className={selectedId === d.id ? '!border-violet-400' : ''}
+                className={selectedId === d.id ? '!border-primary' : ''}
                 onClick={() => { setSelectedId(selectedId === d.id ? null : d.id) }}>
                 <div className="flex items-center gap-2">
                   <Icon icon="th" size={14} className="text-violet-500" />
@@ -311,7 +311,7 @@ function AccessRequirements({ datasetId }: { datasetId: string }) {
               const of = markings.filter((m) => m.kind === kind)
               return (
                 <div key={kind}>
-                  {i > 0 && <div className="text-[10px] font-bold tracking-widest text-muted-foreground/60 py-1">AND</div>}
+                  {i > 0 && <div className="text-[10px] font-bold tracking-widest text-muted-foreground/70 py-1">AND</div>}
                   <div className="rounded border border-border">
                     <div className="flex items-baseline gap-2 px-2 py-1.5 border-b border-border/60">
                       <span className="text-[11px] font-semibold">{MARKING_KIND_META[kind].label}</span>

@@ -57,7 +57,7 @@ export default function CatalogPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {collections.map((c) => (
               <Card key={c.id} interactive compact
-                className={openCollection === c.id ? '!border-violet-400' : ''}
+                className={openCollection === c.id ? '!border-primary' : ''}
                 onClick={() => { setOpenCollection(openCollection === c.id ? null : c.id) }}>
                 <div className="flex items-center gap-2">
                   <Icon icon="box" size={14} className="text-violet-500" />

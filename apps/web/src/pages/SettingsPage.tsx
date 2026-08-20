@@ -384,7 +384,7 @@ function GroupsSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
           {groups.map((g) => (
             <Card key={g.id} interactive compact
-              className={selectedId === g.id ? '!border-violet-400' : ''}
+              className={selectedId === g.id ? '!border-primary' : ''}
               onClick={() => { setSelectedId(selectedId === g.id ? null : g.id) }}>
               <div className="flex items-center gap-2">
                 <Icon icon="people" size={14} className="text-violet-500" />

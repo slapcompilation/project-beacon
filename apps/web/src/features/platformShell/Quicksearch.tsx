@@ -109,7 +109,7 @@ export function Quicksearch({ onClose }: { onClose: () => void }) {
   return (
     <Dialog isOpen onClose={onClose} className="quicksearch" portalClassName="quicksearch-portal" style={{ width: 720 }}>
       <div className="qs-top">
-        <InputGroup className="qs-input" leftIcon="search" fill autoFocus value={query}
+        <InputGroup leftIcon="search" fill autoFocus value={query}
           placeholder="Search apps, objects, datasets and files" aria-label="Quicksearch"
           onValueChange={(v) => { setQuery(v); setCursor(0) }} onKeyDown={onKeyDown}
           rightElement={

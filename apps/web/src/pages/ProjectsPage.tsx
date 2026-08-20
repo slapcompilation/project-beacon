@@ -70,7 +70,7 @@ export default function ProjectsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {projects.map((p) => (
               <Card key={p.id} interactive compact
-                className={selectedId === p.id ? '!border-violet-400' : ''}
+                className={selectedId === p.id ? '!border-primary' : ''}
                 onClick={() => { setSelectedId(selectedId === p.id ? null : p.id) }}>
                 <div className="flex items-center gap-2">
                   <Icon icon="folder-close" size={14} className="text-violet-500" />

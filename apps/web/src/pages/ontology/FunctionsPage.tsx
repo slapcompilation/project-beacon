@@ -168,7 +168,7 @@ function RunPanel({ ontologyId, apiName, latest }: {
   return (
     <div className="space-y-2">
       <div className="rounded border">
-        <p className="border-b bg-neutral-50 px-2 py-1 text-xs font-bold uppercase tracking-widest">
+        <p className="border-b bg-muted px-2 py-1 text-xs font-bold uppercase tracking-widest">
           Inputs
         </p>
         <div className="space-y-2 p-2">
@@ -203,10 +203,10 @@ function RunPanel({ ontologyId, apiName, latest }: {
 
       {run.data && (
         <div className="rounded border">
-          <p className="flex items-center gap-2 border-b bg-neutral-50 px-2 py-1 text-xs font-bold uppercase tracking-widest">
+          <p className="flex items-center gap-2 border-b bg-muted px-2 py-1 text-xs font-bold uppercase tracking-widest">
             Output
             <span className="flex-1" />
-            <span className="font-normal normal-case tracking-normal text-neutral-500">
+            <span className="font-normal normal-case tracking-normal text-muted-foreground">
               Ran in {(run.data.ms / 1000).toFixed(2)} seconds
             </span>
           </p>

@@ -169,7 +169,7 @@ function ConfigureParametersDialog({ isOpen, onClose, type, iface, constraint, a
               <div key={pc.id} className="flex items-center gap-2 text-xs">
                 <span className="w-32 font-medium">{pc.display_name}</span>
                 <Tag minimal>{pc.base_type}{pc.is_list ? ' list' : ''}</Tag>
-                {pc.required && <span className="text-red-500">*</span>}
+                {pc.required && <span className="text-red-600">*</span>}
                 <HTMLSelect value={picks[pc.id] ?? ''} onChange={(e) => {
                   const v = e.currentTarget.value
                   setPicks((p) => {

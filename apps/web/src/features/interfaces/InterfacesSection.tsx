@@ -196,7 +196,7 @@ function MappingWizard({ type, row, all, onClose }: {
             const candidates = type.properties.filter((tp) => tp.type === p.base_type)
             return (
               <div key={p.property_id} className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="font-medium w-32">{p.display_name}{p.required && <span className="text-red-500"> *</span>}</span>
+                <span className="font-medium w-32">{p.display_name}{p.required && <span className="text-red-600"> *</span>}</span>
                 <Tag minimal>{p.base_type}</Tag>
                 <HTMLSelect value={d.resolution} onChange={(e) => {
                   set(i, { resolution: e.currentTarget.value as MappingDraft['resolution'],

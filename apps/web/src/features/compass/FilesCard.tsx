@@ -60,7 +60,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
         <Button variant="minimal" size="small" icon="trash" title="Move to trash (contents follow by the chain)"
           onClick={() => { setTrashed.mutate({ table: 'folders', id: f.id, trashed: true }) }} />
       </div>
-      <ul className="ml-5 divide-y divide-border/20">
+      <ul className="ml-5 divide-y divide-border/30">
         {filed(f.id).map((r) => <ResourceRow key={`${r.kind}:${r.id}`} r={r} />)}
       </ul>
       {children(f.id).map((c) => <FolderNode key={c.id} f={c} depth={depth + 1} />)}
@@ -79,7 +79,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
 
       <div className="px-3 py-2">
         {children(null).map((f) => <FolderNode key={f.id} f={f} depth={0} />)}
-        <ul className="divide-y divide-border/20">
+        <ul className="divide-y divide-border/30">
           {filed(null).map((r) => <ResourceRow key={`${r.kind}:${r.id}`} r={r} />)}
         </ul>
       </div>
@@ -101,7 +101,7 @@ export function FilesCard({ projectId }: { projectId: string }) {
       {(trashedFolders.length > 0 || trashedResources.length > 0) && (
         <div className="border-t border-border px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Trash</p>
-          <ul className="divide-y divide-border/20">
+          <ul className="divide-y divide-border/30">
             {trashedFolders.map((f) => (
               <li key={f.id} className="flex items-center gap-2 py-1 text-xs">
                 <Icon icon="folder-close" size={11} className="text-muted-foreground" />

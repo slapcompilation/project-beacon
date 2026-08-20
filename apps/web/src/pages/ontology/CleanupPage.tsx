@@ -136,7 +136,7 @@ export default function CleanupPage() {
                       <Checkbox checked={flagFilter === f.flag} className="!mb-0"
                         onChange={() => { setFlagFilter(flagFilter === f.flag ? null : f.flag) }} />
                       <span className="flex-1">{FLAG_LABEL[f.flag] ?? f.flag}</span>
-                      <span className="tabular-nums text-neutral-500">{f.count}</span>
+                      <span className="tabular-nums text-muted-foreground">{f.count}</span>
                     </label>
                   ))}
                   <p className="pt-1 font-semibold">Priority</p>
@@ -158,7 +158,7 @@ export default function CleanupPage() {
               <details className="rounded border px-3 py-2">
                 <summary className="cursor-pointer text-xs">
                   Snoozed <Tag minimal round className="tabular-nums">{snoozed.length}</Tag>
-                  <span className="ml-2 text-xs text-neutral-500">
+                  <span className="ml-2 text-xs text-muted-foreground">
                     hidden from your queue until the date shown — yours only
                   </span>
                 </summary>
