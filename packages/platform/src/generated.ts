@@ -10,7 +10,7 @@ import type { ActionType, FunctionType, Json } from './client'
 //   public.object_type_nearest
 //   public.rid_of
 
-// ── ACTION TYPES (45) ────────────────────────────────────────────────
+// ── ACTION TYPES (46) ────────────────────────────────────────────────
 // Volatile: they may write. Applied, not executed.
 
 /**
@@ -159,6 +159,11 @@ export const discardWorkingState = { apiName: 'discard_working_state', kind: 'ac
 export const generateBackingDataset = { apiName: 'generate_backing_dataset', kind: 'action' } as ActionType<
   { p_object_type: string; p_name: string; p_folder?: string },
   string
+>
+
+export const generateInterfaceParameters = { apiName: 'generate_interface_parameters', kind: 'action' } as ActionType<
+  { p_action_type: string },
+  number
 >
 
 /**
@@ -399,7 +404,7 @@ export const updateWorkingState = { apiName: 'update_working_state', kind: 'acti
   number
 >
 
-// ── FUNCTIONS (187) ───────────────────────────────────────────────────
+// ── FUNCTIONS (188) ───────────────────────────────────────────────────
 // Stable or immutable: they read and return.
 
 /**
@@ -1119,6 +1124,14 @@ export const indexedObjects = { apiName: 'indexed_objects', kind: 'function' } a
 export const interfaceAncestors = { apiName: 'interface_ancestors', kind: 'function' } as FunctionType<
   { p_interface: string },
   string[]
+>
+
+/**
+ *  The objectTypeApiName half of an Ontology Interface Object Reference.
+ */
+export const interfaceReferenceType = { apiName: 'interface_reference_type', kind: 'function' } as FunctionType<
+  { p_value: Json; p_ontology: string },
+  string
 >
 
 export const isCategoryAdmin = { apiName: 'is_category_admin', kind: 'function' } as FunctionType<

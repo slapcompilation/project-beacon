@@ -80,17 +80,22 @@ describe.skipIf(noDb)('action rules on interfaces', () => {
     expect(iface.map((r) => (r as { kind: string }).kind).sort()).toEqual([...INTERFACE_KINDS].sort())
   })
 
-  it('claims execution for none of them, and gives each its own reason', async () => {
-    // A kind that claimed execution it does not have would be worse than one
-    // that is absent, because a caller would believe it.
+  it('the three object kinds execute and the two link kinds still say why not', async () => {
+    // This assertion used to be "none of them execute". 592 and 593 changed that
+    // for the three OBJECT kinds — the blockers were the parameter kinds and the
+    // value encoding, both published in `api/` and neither needing inference.
+    // A kind that claimed execution it does not have would still be worse than
+    // one that is absent, so every kind still states its own reason.
     const { rows } = await db.query(
       `select kind, executable, note from public.action_rule_kinds() where targets = 'interface'`)
     for (const r of rows as { kind: string; executable: boolean; note: string }[]) {
-      expect(r.executable, `${r.kind} does not claim execution`).toBe(false)
-      expect(r.note.length, `${r.kind} states why`).toBeGreaterThan(20)
+      expect(r.executable, `${r.kind} executes iff it is an object rule`)
+        .toBe(!r.kind.includes('link'))
+      expect(r.note.length, `${r.kind} states what it does or why it cannot`).toBeGreaterThan(20)
     }
     // The two link kinds wait on the same thing their non-interface siblings do.
     const link = rows.filter((r) => (r as { kind: string }).kind.includes('link'))
+    expect(link).toHaveLength(2)
     for (const r of link) expect((r as { note: string }).note).toContain('link instance store')
   })
 

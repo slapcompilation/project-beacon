@@ -113,8 +113,15 @@ export interface ActionDraft {
   }[]
   rules: {
     kind: string; position: number; object_type_id: string | null
+    /** Set instead of `object_type_id` on the three interface object rules. */
+    interface_id?: string | null
     properties: {
-      property_id: string; value_source: ValueSource
+      /** A rule names an object type's property, or an interface's — never both.
+       *  An interface property resolves onto a different property per
+       *  implementing type, which is the whole reason 570 split the column. */
+      property_id?: string | null
+      interface_property_id?: string | null
+      value_source: ValueSource
       parameter_api_name: string | null; static_value: string | null
     }[]
   }[]
