@@ -27,6 +27,15 @@ export interface Project {
    *  existence of this project and is granted the <role> role." A floor, not a
    *  ceiling — an explicit grant can only raise it. */
   defaultRole: ProjectRole | null
+  /** The approval policy. "Approval policies have three customizable
+   *  parameters: Eligible reviewers… Number of approvals required…
+   *  Contributor approval" — 462 stored all three and the trigger enforces
+   *  them; nothing has ever shown them. NULL approvals means the DEFAULT
+   *  policy, which the page prints verbatim. */
+  autoProtectNew: boolean
+  policyApprovalsRequired: number | null
+  policyReviewerIds: string[]
+  policyContributorApproval: boolean
   createdAt: string
 }
 
@@ -57,14 +66,23 @@ export function useProjects() {
     queryKey: keys.all,
     queryFn: async (): Promise<Project[]> => {
       const { data, error } = await supabase.from('projects')
-        .select('id, api_name, name, description, created_at, default_role, spaces(path)').order('name')
+        .select(`id, api_name, name, description, created_at, default_role,
+                 auto_protect_new, policy_approvals_required, policy_reviewer_ids,
+                 policy_contributor_approval, spaces(path)`).order('name')
       if (error) throw new Error(error.message)
       return (data as unknown as {
         id: string; api_name: string; name: string; description: string; created_at: string
         default_role: ProjectRole | null; spaces: { path: string } | null
+        auto_protect_new: boolean; policy_approvals_required: number | null
+        policy_reviewer_ids: string[]; policy_contributor_approval: boolean
       }[]).map((r) => ({
         id: r.id, apiName: r.api_name, name: r.name, description: r.description,
-        spacePath: r.spaces?.path ?? '', defaultRole: r.default_role, createdAt: r.created_at,
+        spacePath: r.spaces?.path ?? '', defaultRole: r.default_role,
+        autoProtectNew: r.auto_protect_new,
+        policyApprovalsRequired: r.policy_approvals_required,
+        policyReviewerIds: r.policy_reviewer_ids,
+        policyContributorApproval: r.policy_contributor_approval,
+        createdAt: r.created_at,
       }))
     },
     staleTime: 30_000,
@@ -179,6 +197,31 @@ export function useSetDefaultRole(projectId: string) {
       if (error) throw new Error(error.message)
     },
     onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Default role updated') },
+    onError: (e: Error) => { toast.error(e.message) },
+  })
+}
+
+/** "Only users that are owners on the project can update its custom policy" —
+ *  guard_project_policy (462) refuses otherwise, so a failure here is the
+ *  database saying so rather than the surface guessing. */
+export function useSetProjectPolicy(projectId: string) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (p: {
+      autoProtectNew?: boolean
+      policyApprovalsRequired?: number | null
+      policyReviewerIds?: string[]
+      policyContributorApproval?: boolean
+    }) => {
+      const patch: Record<string, unknown> = {}
+      if (p.autoProtectNew !== undefined) patch.auto_protect_new = p.autoProtectNew
+      if (p.policyApprovalsRequired !== undefined) patch.policy_approvals_required = p.policyApprovalsRequired
+      if (p.policyReviewerIds !== undefined) patch.policy_reviewer_ids = p.policyReviewerIds
+      if (p.policyContributorApproval !== undefined) patch.policy_contributor_approval = p.policyContributorApproval
+      const { error } = await supabase.from('projects').update(patch).eq('id', projectId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: keys.all }); toast.success('Policy updated') },
     onError: (e: Error) => { toast.error(e.message) },
   })
 }

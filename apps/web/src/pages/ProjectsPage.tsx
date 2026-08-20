@@ -27,6 +27,7 @@ import {
 } from '@blueprintjs/core'
 import { toSlug, grantableRoles, roleAtLeast, ROLE_META, PROJECT_ROLES, type ProjectRole } from '@beacon/ontology'
 import { useAuthStore } from '@/stores/auth.store'
+import { PolicyPanel } from '@/features/projects/PolicyPanel'
 import {
   useProjects, useCreateProject, useProjectMembers, useMyProjectRole,
   useGrantRole, useRevokeRole, useSetDefaultRole, useProjectResources, useOrgMembers,
@@ -176,6 +177,10 @@ function ProjectDetails({ project }: { project: Project }) {
       </Card>
 
       <FilesCard projectId={project.id} />
+
+      {/* 462 stored the policy and its trigger enforces it; this is the
+          "Policies rendered" leftover from readings/branch-overlay.md. */}
+      <PolicyPanel project={project} members={members} canEdit={canGrant} />
 
       <AccessPanel projectId={project.id} members={members} myRole={myRole ?? null}
         canGrant={canGrant} defaultRole={project.defaultRole} />
