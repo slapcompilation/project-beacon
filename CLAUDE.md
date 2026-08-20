@@ -160,6 +160,25 @@ fewer still; that is the normal state.
 from the sitemap and *unions* it. Frozen for two weeks, the refresh turned up 39
 unknown pages — one of which falsified code that had already shipped.
 
+### An enumeration beats a description
+
+When two pages disagree about a name, **the page that LISTS the set wins over the
+page that DESCRIBES a member.** Our vocabulary is that list — a 1:1 snake_case of
+one table — so borrowing a single element's spelling from elsewhere leaves the
+set a mixture of two sources and no longer the thing the migration said it was.
+
+Learned by getting it wrong in one hour: 599 renamed the `cipher` base type to
+`cipher_text` because `base-types` says "Cipher text", `property-reducers` says
+`Cipher Text` and the api says `cipherText` — three sources against our one. 600
+reverted it, because `properties-overview`'s table, which 408 cites as the source
+of the twenty-two and which `vocabulary.test.ts` names as its anchor, enumerates
+`Cipher`. **Foundry is internally inconsistent here and counting sources is not
+the tie-break.** Two migrations and a merged PR to end where we started.
+
+`vocabulary.test.ts` now PARSES that table instead of restating it, so this
+particular mistake is refused mechanically. **The rule generalises further than
+the parser does**: no guard decides which page defines a set.
+
 ### Two vocabularies for one idea, which is the live trap
 
 Foundry names the same concept differently for different audiences, and taking
