@@ -9,11 +9,24 @@ TypeScript v1/v2 and Python getting-started, API-reference and unit-test
 families"). We then built the v2 contract from the API corpus alone. This reads
 the v2 pages themselves.
 
-**Read in full, with every image parsed:** `functions/typescript-v2-getting-started`
-(7 images), `functions/typescript-v2-migration` (4 images),
+**Read in full:** `functions/typescript-v2-getting-started` (7 images),
+`functions/typescript-v2-migration` (4 images),
 `functions/typescript-v2-staged-writes`, `functions/language-feature-support`,
 `functions/branching-functions` (5 images), `functions/resource-imports-sidebar`,
 `functions/ontology-imports`.
+
+**This header used to say "with every image parsed" and that was false.** Of
+`typescript-v2-getting-started`'s seven, one is cited below
+(`tsv2-functions-publish.png`); six are not, and neither are the images on
+`typescript-v2-migration` or `branching-functions`. Found 2026-08-20 by auditing
+my own coverage claims. Corrected here rather than quietly, because the header is
+what the next reader trusts — and the same audit found three images on the Ontology Cleanup page that I had
+claimed and skipped, two of which carried that page's own definition of the
+feature I then built. **Unparsed, and named so
+the debt is visible:** `ts-functions-tags.png`,
+`tsv2-functions-create-repo.png`, `tsv2-functions-helper-preview-run.png`,
+`tsv2-functions-helper-run.png`, `tsv2-functions-tags-and-releases.png`, plus
+the migration and branching-functions sets.
 
 **Read in full since:** `functions/functions-versioning`, `functions/version-range-dependencies-for-functions` (both after the operator pointed out that my open questions were answered in the docs).
 
