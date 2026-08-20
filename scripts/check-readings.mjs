@@ -215,7 +215,7 @@ function pageImages(slug) {
  *  built from it. Naming the file anywhere in the reading counts as parsed, so
  *  "these three add nothing beyond the prose: a.png, b.png" passes — the bar is
  *  that the reading says what it looked at, not that every image earns a quote. */
-const CLAIMS_EVERY_IMAGE = /(?:all\s+(?:\w+\s+)?(?:of\s+(?:its|their)\s+)?images|every\s+image|both\s+its\s+images)/i
+const CLAIMS_EVERY_IMAGE = /(?:all\s+(?:\w+\s+)?(?:of\s+(?:its|their)\s+)?images|every\s+image|both\s+its\s+images|all\s+[\w-]+\s+(?:are\s+)?(?:now\s+)?parsed)/i
 
 for (const name of readings) {
   const text = fs.readFileSync(path.join(READINGS, name), 'utf8')
