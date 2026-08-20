@@ -72,7 +72,7 @@ export default function OmaLayout() {
     <div className="oma">
       <header className="oma-top">
         <div className="oma-brand">
-          <span className="oma-tile"><Icon icon="cube" size={23} /></span>
+          <span className="oma-app-tile"><Icon icon="cube" size={23} /></span>
           <span className="oma-title">Ontology Manager</span>
         </div>
 

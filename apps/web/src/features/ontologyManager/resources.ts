@@ -7,7 +7,7 @@
 // scoped too. An unscoped count claims another ontology's resources as this
 // one's, which is the whole reason the switcher exists.
 
-import { useMemo } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import type { IconName } from '@blueprintjs/icons'
 import type { ObjectTypeDef } from '@beacon/ontology'
 import { useAppStore } from '@/stores/app.store'
@@ -38,6 +38,13 @@ export interface OmaResource {
  *  backs (those are named in OmaLayout's header comment). `rule` marks where
  *  oma-discover-view.png draws a divider — its second group is
  *  `Value types, Functions`, and we have the second of the two. */
+/** The tile colour, handed to CSS as a custom property so one rule can serve
+ *  every type. `icon_color` is NOT NULL in the database, so the fallback only
+ *  covers a draft that has not been saved yet. */
+export function tileStyle(t: { iconColor?: string }): CSSProperties {
+  return { '--tile': t.iconColor } as CSSProperties
+}
+
 export const RESOURCE_NAV: {
   kind: OmaKind; label: string; icon: IconName; path: string; rule?: true
 }[] = [
@@ -78,7 +85,7 @@ export function useOmaTypes(): { types: ObjectTypeDef[]; isLoading: boolean } {
     const composed = branchId === null ? mine : overlayRows(mine, changes, 'object_type', {
       ontology_id: ontology?.id ?? '', object_type_properties: [], computed_properties: [],
       view_config: null, enabled: true, version: 0, status: 'experimental',
-      visibility: 'normal', icon: 'cube', description: '',
+      visibility: 'normal', icon: 'cube', icon_color: '#2D72D2', description: '',
       deprecation_reason: null, deprecation_deadline: null, replaced_by: null,
     } as Partial<typeof mine[number]>)
     return composed.map(rowToObjectType)

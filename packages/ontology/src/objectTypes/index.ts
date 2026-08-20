@@ -212,6 +212,14 @@ export interface ObjectTypeDef {
   apiName: string
   label: string
   icon: string
+  /** The tile the icon sits in. Foundry fills a rounded square with this colour
+   *  and draws the glyph in white — object types and object sets get a
+   *  saturated tile, Files and Projects resources a tinted one
+   *  (readings/workshop-resource-list.md §3). The picker offers Blueprint's
+   *  palette by ramp and step, `Orange 5`, but the page also allows "a
+   *  predefined or custom color", so the column stays a hex. Optional for the
+   *  same reason `status` is: the database defaults it. */
+  iconColor?: string
   description: string
   properties: PropertyDef[]
   /** Derived values computed from stored properties at read time (P2.4). */
