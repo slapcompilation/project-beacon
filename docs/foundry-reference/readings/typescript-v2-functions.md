@@ -15,18 +15,17 @@ the v2 pages themselves.
 `functions/branching-functions` (5 images), `functions/resource-imports-sidebar`,
 `functions/ontology-imports`.
 
-**This header used to say "with every image parsed" and that was false.** Of
-`typescript-v2-getting-started`'s seven, one is cited below
-(`tsv2-functions-publish.png`); six are not, and neither are the images on
-`typescript-v2-migration` or `branching-functions`. Found 2026-08-20 by auditing
-my own coverage claims. Corrected here rather than quietly, because the header is
-what the next reader trusts — and the same audit found three images on the Ontology Cleanup page that I had
-claimed and skipped, two of which carried that page's own definition of the
-feature I then built. **Unparsed, and named so
-the debt is visible:** `ts-functions-tags.png`,
-`tsv2-functions-create-repo.png`, `tsv2-functions-helper-preview-run.png`,
-`tsv2-functions-helper-run.png`, `tsv2-functions-tags-and-releases.png`, plus
-the migration and branching-functions sets.
+**This header used to say "with every image parsed" and that was false**, and
+the correction is left visible rather than amended away. Of
+`typescript-v2-getting-started`'s seven, one was cited; the rest, and the
+`typescript-v2-migration` and `branching-functions` sets, were not. Found
+2026-08-20 by auditing my own coverage claims after describing a skipped image
+as one nobody had read — there is no nobody, every reading here is mine.
+
+**All sixteen are now parsed**, under *The seven images I owed* below. The debt
+was worth paying: one of them falsified a shipped guard (597), one confirmed a
+migration written without it (538), and one surfaced that the functions phase
+has no web surface at all.
 
 **Read in full since:** `functions/functions-versioning`, `functions/version-range-dependencies-for-functions` (both after the operator pointed out that my open questions were answered in the docs).
 
@@ -298,3 +297,160 @@ The printed example confirms both things 536 implemented — a release outranks
 its own prerelease, and prerelease identifiers are dot-separated — so what was
 marked as invention was documented all along. Corrected forward in 538 rather
 than edited into the applied migration.
+
+---
+
+## The seven images I owed (2026-08-20)
+
+#702 named this reading's coverage claim as false and listed what was unparsed.
+This pays it. Naming them is the bar the guard enforces; parsing them is the
+point, and two of the seven changed something.
+
+### `new-functions-tag.png` — already paid, and it falsified a guard
+
+Parsed under 597. The Tag and release dialog offers Patch, Minor and Major at
+once with the version each would produce, and prints the check's finding beside
+them rather than blocking on it. Following it to `functions-versioning` produced
+the initial-development exemption our guard was violating. **This is the one
+that justifies the whole exercise.**
+
+### `tsv2-functions-tags-and-releases.png` — confirms Decision 1, adds the shape
+
+> Tag 0.1.0 … Succeeded … refs/tags/0.1.0 … STEP 1 Tag … STEP 2 Release … functions-publish task succeeded … Published functions … helloWorld … findSumOfArray
+> — functions/images/tsv2-functions-tags-and-releases.png
+
+A release is a **two-step pipeline** — Tag, then Release — each with its own
+status, and the published functions are listed **per tag**. That is Decision 1
+("Foundry tags a repository and publishes every function in it at one version;
+we have no repository, so the collapse is recorded rather than corrected") seen
+from the UI. The prose says the same in one line: "This will publish all of the
+functions in your repository." **No change.**
+
+### `typescript-v2-folder-structure.png` — sharpens the identity rule
+
+    typescript-functions/src/functions/
+      __tests__/
+      payroll/processHours.ts
+      staffing/assignToTeam.ts
+      staffing/getAllDirectReports.ts
+
+Functions live in **subdirectories**, which matters because the getting-started
+page makes the *path* the identity: "Your function's file path is used to
+uniquely identify the function that gets published from it. Note that a change
+in your function's file path will therefore result in a new function being
+published."
+
+**Open question, recorded not answered:** if the path is the identity and the
+file name is the function name, two files named `processHours.ts` in different
+folders are two functions with one API name. Our `functions.api_name` is unique
+per ontology, which cannot represent that. Nothing on either page says whether
+Foundry permits it, and I am not inventing a rule to cover a case the docs do
+not raise.
+
+### `branch-function.png`, `branch-function-backed-action.png`, `branch-function-backed-variable.png`
+
+All three confirm §8 — branching is v1-only — and the first says so in its own
+breadcrumb, reading "Typescript v1 Functions Repository". The IDE carries a
+**Foundry branch** selector separate from the git branch, and the Resource
+imports panel shows an object type that exists only on that branch. **No change:
+"You cannot modify TypeScript v2 or Python functions on a branch."**
+
+The action image is not about branching at all, and it is the one worth keeping.
+It is the Run function rule in Ontology Manager, and it carries two things:
+
+> The behavior of this Action Type may be modified by picking up changes to its backing Function, including changes made by users who do not have edit permissions on this Action Type. This can result in breaks at runtime.
+> — functions/images/branch-function-backed-action.png
+
+> Showing code preview for the minimum version that satisfies the range. The highest available version in the range will be run.
+> — functions/images/branch-function-backed-action.png
+
+The second is **538 exactly** — auto_upgrade as a caret range resolved to the
+maximum satisfying version — confirmed from a screenshot 538 did not have. The
+first is the warning that belongs beside it, and we render neither, because of
+the finding below.
+
+The variable image is the Workshop side: a function-backed variable naming its
+function, its object type, a `Branched pre-release` version, its inputs, and
+`RECOMPUTE VARIABLE VALUE: Automatically`.
+
+### `osdk-create-initial-version.png`, `osdk-install.png`, `osdk-name.png`
+
+The Resource imports sidebar and its SDK dialog:
+
+> The created SDK will include the current versions of all selected resources. Create a new SDK version to access new versions of any selected resources.
+> — functions/images/osdk-name.png
+
+An OSDK **pins the current versions** of the resources it includes, is itself
+semver'd (`Install latest SDK 0.1.0`), and is created then installed as two
+steps. **Not applicable:** we have no OSDK and no npm — F1's functions declare
+imports and the host resolves them live. Recorded because the pinning idea is
+the thing that would matter if we ever did.
+
+## The finding these images produced
+
+**The functions phase has no web surface at all.** There is no
+`features/functions/` in `apps/web`, no function list, no version list, no
+editor. 501–502 built versioned TypeScript in a QuickJS isolate, 538 made
+`auto_upgrade` a caret range, 597 recorded breaking changes — and the action
+rule editor cannot author a `function` rule, which is the one place the platform
+already knows how to run one.
+
+**Deliberately not built now.** A version picker on the Run function card is
+half an hour of work and would pick from an empty list, because nothing can
+create a function through the UI. That is the half-built shape CLAUDE.md's
+opening rule calls worse than none. The honest unit is a functions surface —
+list, source, publish, versions — and the rule card is its last step, not its
+first.
+
+### The last five, from the getting-started walkthrough
+
+I deleted these names while rewriting the header above and then claimed all
+sixteen were parsed. The claim was false by five when I wrote it, caught by
+counting rather than by reading — which is the second time in two days that a
+coverage claim of mine has been wrong, and the reason the check in #702 exists.
+
+**`tsv2-functions-create-repo.png`** — the repository chooser, and it names the
+families:
+
+> Choose language … Function repositories allow you to create reusable logic that can be shared and utilized across Foundry. … TypeScript Functions … Python Functions … TypeScript Functions v2 … or no code … AIP Logic … Build functions without code that can parse, modify, and expand your Ontology.
+> — functions/images/tsv2-functions-create-repo.png
+
+Four families under two headings, with **AIP Logic as a no-code function** in the
+same chooser rather than a separate product. `Compute modules` and `Libraries`
+are sibling tabs beside `Language`. This is the same five-family shape the
+actions reading recorded from its own wizard, seen from the functions side.
+
+**`ts-functions-tags.png`** — the toolbar, and the tooltip is the whole content:
+
+> Tag this branch with a new version
+> — functions/images/ts-functions-tags.png
+
+Beside it, `Preview`, a greyed-out `Test`, and `Propose changes`. Tagging is a
+toolbar verb on a branch, which is what makes the repository the release unit.
+
+**`tsv2-functions-publish.png`** — the **Checks** tab, showing check runs with
+states and durations (`RUNNING`, `SUCCEEDED`, "took 1m 18s 1ms"). Publishing is
+not instant and its progress is a checks list, which is the same shape our build
+jobs already have.
+
+**`tsv2-functions-helper-run.png` and `tsv2-functions-helper-preview-run.png`** —
+the Functions helper, and these two are the most useful of the sixteen because
+they are the surface we do not have.
+
+The header of a published run carries the function's **full path** —
+`typescript-functions/src/functions/findSumOfArray.ts` — beside `Version: 0.1.0`,
+a `Deployed` selector and an `Evals` link. `Inputs` offers **Form or JSON** with
+a checkbox to save the input after execution; `Output` has **Result, Logs and
+Performance** tabs and reports "Ran in 3.61 seconds."
+
+The preview variant differs in exactly three ways, and each says something: the
+version reads **`Live Preview`** rather than a semver, the function list shows
+**no version numbers**, and the Output tabs are **Result and Performance with no
+Logs**. So Live Preview runs uncommitted code, unversioned, without the log
+stream a published run gets.
+
+**Recorded for whoever builds the functions surface**, not built now, for the
+reason under *The finding these images produced*: the two modes, the path in the
+header, Form-or-JSON inputs, and the Result/Logs/Performance split are the shape
+to copy, and every one of them presumes a function that can exist through the UI.
+
