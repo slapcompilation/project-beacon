@@ -12,7 +12,9 @@ import { useAppStore } from '@/stores/app.store'
 import type {
   ObjectTypeDef, PropertyDef, LinkTypeDef, ComputedPropertyDef, ViewConfigDef,
   OntologyStatus, ObjectTypeStatus, OntologyVisibility, Deprecation,
+  LinkBackingKind, LinkCardinality,
 } from '@beacon/ontology'
+
 import { EMPTY_VIEW_CONFIG } from '@beacon/ontology'
 
 /** One row of `object_type_properties` (migration 408). Properties left the
@@ -256,6 +258,20 @@ export interface LinkTypeRow {
   target_object_type_id: string
   api_name: string
   label: string
+  source_label: string | null
+  target_label: string | null
+  source_api_name: string | null
+  target_api_name: string | null
+  source_visibility: string | null
+  target_visibility: string | null
+  cardinality: LinkCardinality | null
+  backing_kind: LinkBackingKind | null
+  backing_object_type_id: string | null
+  source_key_column: string | null
+  target_key_column: string | null
+  dataset_id: string | null
+  status: string | null
+  rid: string | null
 }
 
 export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
@@ -263,6 +279,13 @@ export function rowToLinkType(r: LinkTypeRow): LinkTypeDef {
     id: r.id,
     sourceTypeId: r.source_object_type_id, targetTypeId: r.target_object_type_id,
     apiName: r.api_name, label: r.label,
+    sourceLabel: r.source_label, targetLabel: r.target_label,
+    sourceApiName: r.source_api_name, targetApiName: r.target_api_name,
+    sourceVisibility: r.source_visibility, targetVisibility: r.target_visibility,
+    cardinality: r.cardinality, backingKind: r.backing_kind,
+    backingObjectTypeId: r.backing_object_type_id,
+    sourceKeyColumn: r.source_key_column, targetKeyColumn: r.target_key_column,
+    datasetId: r.dataset_id, status: r.status, rid: r.rid,
   }
 }
 

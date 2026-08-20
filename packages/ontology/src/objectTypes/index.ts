@@ -9,6 +9,8 @@
 // a conformance test, not an allowlist: two implementations of one documented
 // fact, compared.
 
+import type { LinkCardinality, LinkBackingKind } from '../ontology/linkCardinality'
+
 import type { Deprecation, ObjectTypeStatus, OntologyStatus, OntologyVisibility } from '../ontology/status'
 
 /** The twenty-two base types from properties-overview's table. A closed set —
@@ -510,6 +512,24 @@ export interface LinkTypeDef {
   /** slug, unique per source type — the relationship's api name. */
   apiName: string
   label: string
+  /** A link type is directional twice over: each side carries its own label,
+   *  API name and visibility. "each side of a link type has its own API name;
+   *  there is no separate reverse link type" (migration 256). Every one of
+   *  these was stored and displayed nowhere until the link type view. */
+  sourceLabel?: string | null
+  targetLabel?: string | null
+  sourceApiName?: string | null
+  targetApiName?: string | null
+  sourceVisibility?: string | null
+  targetVisibility?: string | null
+  cardinality?: LinkCardinality | null
+  backingKind?: LinkBackingKind | null
+  backingObjectTypeId?: string | null
+  sourceKeyColumn?: string | null
+  targetKeyColumn?: string | null
+  datasetId?: string | null
+  status?: string | null
+  rid?: string | null
 }
 
 export type LinkTypeDraft = Pick<LinkTypeDef, 'apiName' | 'label' | 'sourceTypeId' | 'targetTypeId'>
