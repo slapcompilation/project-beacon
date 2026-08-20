@@ -22,9 +22,10 @@ Four things follow, and each was learned by getting it wrong:
    analysis" appears in exactly one mirrored page and it is about pipelines.
 2. **A link is not a reading.** `all-foundry-urls.txt` holds 4,818 slugs; the
    mirror holds the pages. Having the URL proves nothing.
-3. **If the documentation does not cover it, ASK.** The operator has the
-   learn.palantir.com courses and the end-to-end walkthroughs. A plausible shape
-   invented here becomes structure, and structure is expensive.
+3. **If the mirror does not cover it, read the courses, then ASK.** The
+   learn.palantir.com material is **on disk** — `docs/foundry-deep-dives/`, nine
+   courses, 76MB — so grep there before asking the operator, and say you did. A
+   plausible shape invented here becomes structure, and structure is expensive.
 4. **Never hardcode.** The named example: `rebuild_relationship_edges_view()`
    appended a hand-written `product_variants JOIN products` branch to a view
    whose migration claimed it was derived from `link_types`. The claim was false
@@ -182,7 +183,8 @@ packages/services/       IAuthService and the other interface seams, with the
 supabase/migrations/     597 migrations. 355 is where the ontology was emptied;
                          everything after it is the rebuild.
 docs/foundry-reference/  4,068 mirrored pages of 4,818 known URLs. THE SOURCE.
-docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH.
+docs/substrate-reference/ 439 mirrored Supabase pages. What we build it WITH —
+                         grep it before saying the platform cannot do something.
 docs/foundry-deep-dives/ 214 PDFs from learn.palantir.com, nine courses.
 ```
 
@@ -220,6 +222,21 @@ pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migra
 pnpm db:status                   # pending / orphaned / MODIFIED-since-applied
 pnpm gen:client                  # regenerate the typed client from the platform
 ```
+
+### How work ships
+
+Nothing here reaches production by being written. **One PR per chunk of work**,
+not per idea — the platform suite runs three times per change (local, PR CI, then
+`DB migrate` on main), so four PRs for one session's work is forty minutes of CI.
+Merge on green; **`Deploy verify` going green on the merge commit is the
+definition of done**, because it polls production until it serves that SHA and
+"merged but production runs the old bundle" has bitten twice. It is path-gated to
+app code, so a docs-only PR correctly never runs it.
+
+Wait on CI with `gh pr checks <n> --watch`, never a fixed sleep. And **never
+mutate the database between merging and main's CI finishing** — re-applying a
+migration a minute after a merge turned main red while its suite ran against that
+same database.
 
 ### The guards, and what is gone
 
