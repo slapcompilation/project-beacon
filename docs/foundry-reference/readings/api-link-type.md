@@ -7,8 +7,9 @@ verify: strict
 **Why this reading exists.** #723 built the link type view from prose, a
 screenshot and the course, and gave ten `link_types` columns their first reader —
 without checking any of it against `api/`. This is that check, and it is the
-second reading written from that corpus, which `DELIVERABLE-MAP.md` closes by
-calling "on disk and under-read".
+second reading of a resource shape from that corpus — `api-authentication.md`
+read an api page before either, which the claim in `api-object-type.md` first
+made and this one repeated.
 
 **Page read:** `api/ontologies-v2-resources-object-types-get-outgoing-link-type`
 in full — it is 45 lines. Cross-checked against

@@ -979,6 +979,10 @@ our CHECK constraints twice before this session and twice within an hour of
 landing. Refresh the index with `--urls` before concluding a page does not exist.
 
 **The rule about `api/` has changed shape and the new one is harder.** It is no
-longer "not on disk"; it is **on disk and under-read** — no reading has been
-written from it. "The page does not exist locally" is a failure you notice; "the
+longer "not on disk"; it is **on disk and under-read**. This line used to say
+"no reading has been written from it", and that was already false when written:
+`readings/api-authentication.md` read `api/v1/general-overview-authentication` on
+2026-08-18. Five readings now rest on the corpus and it is still 1,238 pages
+unread, which is the real shape of the problem — a claim of zero was both wrong
+and less alarming than the truth. "The page does not exist locally" is a failure you notice; "the
 page exists and nobody looked" is not.

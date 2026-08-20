@@ -4,8 +4,11 @@ verify: strict
 
 # InterfaceType, and the inheritance we do not have
 
-**Why this reading exists.** The fourth written from `api/`, and the first to
-find a whole documented mechanism missing rather than a field.
+**Why this reading exists.** The fourth reading of a resource shape from `api/`,
+and the first to find a whole documented mechanism missing rather than a field.
+(`api-authentication.md` read the corpus before any of these; the "first from
+`api/`" claim in `api-object-type.md` was wrong and propagated through three
+readings before anyone counted the files.)
 
 **Pages read:** `api/ontologies-v2-resources-ontology-interfaces-get-interface-type`
 — the `InterfaceType` response, 1,666 lines, read for its thirteen top-level

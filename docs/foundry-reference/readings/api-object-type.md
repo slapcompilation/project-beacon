@@ -6,8 +6,11 @@ verify: strict
 
 **Why this reading exists.** `DELIVERABLE-MAP.md` closes with the rule that
 `api/` is **on disk and under-read** — 1,243 pages mirrored, and no reading
-written from any of them. This is the first, and it is deliberately *one
-resource*: the wholesale version does not work (see §6).
+written from any of them. **That framing was wrong and this reading repeated it**
+— `api-authentication.md` had read an authentication page from that same
+corpus two days earlier, and names it. What is true is narrower: this is the first reading of an api
+page for a RESOURCE SHAPE, and it is deliberately *one* resource, because the
+wholesale version does not work (see §6).
 
 **Pages read:** `api/ontologies-v2-resources-object-types-get-object-type` — the
 `ObjectTypeV2` response in full, including the nested `PropertyV2`, the
