@@ -962,7 +962,10 @@ Dependents exist only in Ontology Manager, so nothing can falsify their
 vocabularies and nothing will. That is worth knowing before someone goes looking.
 
 **And the action-rule row is the one most likely to be mistaken for a defect.**
-The api's `LogicRule` union carries eight kinds; `action-types/rules` enumerates
+The api's `LogicRule` union carries **nine** kinds — corrected from eight by
+`readings/api-action-type.md`, which counted them: the ninth is `applyScenario`,
+and it maps onto nothing of ours because we have no scenario at all, while the
+mirror carries five pages describing one. `action-types/rules` enumerates
 twelve. That is not two spellings of one idea — the case CLAUDE.md's table
 covers — but **what the Ontology Manager can configure versus what a program can
 send.** We build Ontology Manager, so twelve is right. It is also independent
