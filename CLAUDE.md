@@ -226,6 +226,7 @@ pnpm turbo lint type-check test  # what CI runs
 pnpm check:readings              # citations trace, and coverage claims are true
 pnpm check:doc-drift             # has a page we built from changed upstream?
 pnpm check:surfaces              # every web file is reachable from main.tsx
+pnpm check:classes               # every class a component names has a CSS rule
 pnpm check:edge                  # supabase/functions parse, and deploy whole
 pnpm --filter @beacon/platform test   # the engine against Palantir's published answers
 pnpm db <file.sql>               # apply one migration — NEVER MCP apply_migration
@@ -255,6 +256,16 @@ same database.
 harsher: the deploy uploads only what `index.ts` statically imports, so an
 unimported file ships as an empty module and fails when called, not when
 deployed.
+
+**`check:classes` asks the same question of a CSS class.** There is no Tailwind
+and no build step, so a Tailwind-shaped name nobody wrote a rule for is an inert
+string — it compiles, it does not warn, and it does nothing. The utilities block
+says of itself that it was "generated once from the classes this app actually
+uses", and *generated once* is the failure: it had drifted by 88 classes across
+139 sites, among them `overflow-x-auto` on a wide panel and the object types
+list's entire selected state. **A class is not a colour vocabulary either** —
+44 of the 88 were Tailwind palette names, and colours come from Blueprint's
+palette through our tokens.
 
 **`check:rpcs` is deleted, and how matters.** It regexed `.rpc('name')` out of
 source and looked the name up in `pg_proc` — string matching, because the
