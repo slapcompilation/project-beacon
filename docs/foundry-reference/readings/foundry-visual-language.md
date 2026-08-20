@@ -237,6 +237,33 @@ Blueprint's `compass` — what we use — draws a circle around its needle, and 
 circle is present at any zoom. I could not name the icon Foundry uses from the
 image, so ours is left alone and this stays a question.
 
+## 8. The header, counted
+
+Same capture, same 2x halving. The header itself was already right — 48px, white,
+1px bottom border — and so were the branch and `New` controls at Blueprint's 30px
+button height. Three things were not.
+
+| property | Foundry | ours before |
+|---|---|---|
+| application icon | **50px wide, full header height, square corners, flush at x0**, `#eef3ff` fill, a three-tone blue cube ~23px | 28px violet `#7961db` rounded 6px, inset 12px, white 16px cube |
+| title | **16px**, starting 66px in | 15px, starting 50px in |
+| search field | **352 x 32**, light-gray5 `#f5f6f8`, centred on the **header** | flexible to 520px, 30px tall, light-gray4, centred on the leftover space |
+
+**The search is centred on the header, not on what is left of it.** Measured
+centre 615.75 against a header centre of 614.5; centring it in the gap between
+the brand and the actions would put it at 637. That is a 22px difference and it
+is why the header never quite sat right.
+
+**The application icon is the correction that matters**, because
+`home-and-navigation.md` §6.2 described it as "a blue-violet rounded-square app
+icon holding a white 3-D cube" and we built exactly that. It is none of those
+things. Both eras agree on a flush, square-cornered, pale-blue block running the
+full height of the header.
+
+**Inference, flagged:** Foundry's cube is artwork in three blues, not an icon
+font glyph, so ours draws Blueprint's `cube` in the darkest of the three
+(`#1e52a7`) on the same pale block. That is as close as a monochrome glyph gets.
+
 ## Questions
 
 1. **Does Blueprint v6 change the palette?** Nothing measured disagrees with
