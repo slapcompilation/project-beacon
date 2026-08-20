@@ -1,0 +1,23 @@
+
+
+
+
+Lessons
+
+Simple Joins: Join Transactions and Products
+To derive operationally valuable insights, it is often necessary to join different datasets, such as combining transactional data with product pricing, to paint a comprehensive picture of customer value and behavior. A Customer Lifetime Value dataset is one such example, showcasing the total revenue brought in by each customer since their registration.
+The transactions dataset holds information about all the purchases of all the customers, and the products dataset holds information about the price of each product. Joining those two will give a simple calculation for the revenue brought in by each transaction.
+Step 1: Join clean transactions and clean products
+1. Select the clean transactions node and choose the Join option on the right hand side.
+
+2. Choose the clean products node to join with. Click Start.
+
+3. Give the join a relevant name.
+4. Set product_id is equal to product_id as the Join Condition.
+Step 3: Prefix the product columns with products_
+After we join the datasets, the resulting single dataset may have repeated column names. We need to add a prefix to some of the columns to distinguish which dataset they originated from. 1. On the right side of the screen, input products_ into the prefix input bar.
+Step 4: Verify Updates
+
+1. Ensure you have the same columns selected in your join as in the screenshot below. 2. Click Apply 3. Click Close or Back to graph.
+
+

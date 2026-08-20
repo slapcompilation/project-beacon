@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Data Lineage Exploration
+In the top right of the Data lineage graph is a Node color options drop-down. It defaults to Resource overview for new graphs. You will need to change that to Resource type within the drop-down to answer the following questions:
+Are all of these datasets located in the same project? Hint: Select Project in the Node color options drop-down. Answer: Yes, the datasets are all in the same project.
+Were all of these datasets produced by logic or code found in the same repository? Hint: Select Repository in the drop-down. Answer: No. Every dataset is produced by a different repository.
+There is a tool panel found at the bottom of the screen and another on the right. Use those two panels to answer these questions: How many rows and columns make up the ontology/airports dataset that backs the [OFT] Airport object type? Hint: Once you select the ontology/airports dataset on your graph, you can use the Preview tab in the bottom panel or the View node properties tab in the right panel. Answer: 4.3k rows and 18 columns
+
+Can you view the logic that was used to derive the ontology/airports dataset? What application was used to define that logic?
+Hint: You view the Code tab in the bottom panel or find an Updated via link in the right side panel.
+Answer: Pipeline Builder. You should be able to open it to see the logic (transforms) defined there.
+This only scratches the surface of what you can learn about a pipeline's state using Data Lineage, but it is sufficient for this exploration of Ontology.
+
+

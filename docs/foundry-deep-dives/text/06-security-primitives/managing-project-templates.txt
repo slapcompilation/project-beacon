@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Managing Project Templates
+Project templates standardize the creation and configuration of Projects within a space. In Palantir Foundry, project templates are predefined blueprints used to create new projects with a consistent structure, permissions, and configuration.
+When you create a new project, you can select a template (if more than one is available in your space) to standardize how projects are set up. The default project template creates an empty project with the creator as the owner, but custom templates can be configured to include specific groups, roles, and security markings. This helps ensure that new projects follow organizational standards and security requirements.
+Key features of project templates:
+Consistency: All projects created from a template share the same initial structure and configuration. Permissions: Templates can define which groups and markings are created or applied, and users need the appropriate permissions to use templates that create or modify these elements. Variables: Templates can use variables to parameterize aspects like group names or markings, making them flexible and adaptable to different project needs.
+How to use project templates:
+Space owners and managers can create, edit, and delete project templates via the Control Panel under "Project templates."
+
+When creating a new project, users with the necessary permissions can select from available templates in their space.
+During project creation, variables defined in the template can be set to customize the resulting project.
+
+

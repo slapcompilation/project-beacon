@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Upload the Data Files
+Now that you've downloaded the data files for this course, you'll next upload them as datasets to your instance of Foundry so they can be accessed within Contour.
+Step 1: Upload files
+1. Navigate to the course-specific folder within your training project 2. Click on New within the folder
+Alternatively, you can import files by dragging them directly into your folder. 3. Click Upload files...
+
+4. Click Choose from your computer or drag the files onto the upload interface Select the files downloaded earlier
+5. Select the first option for Upload as structured datasets 6. Click Upload 7. Click Done
+
+You should now see two new datasets stored in your folder for this course
+
+

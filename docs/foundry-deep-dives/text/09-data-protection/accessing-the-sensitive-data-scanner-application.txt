@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Accessing the Sensitive Data Scanner Application
+Step 1: Locate the Sensitive Data Scanner application
+1. Navigate to the Security & Governance category under Applications to access the Sensitive Data Scanner application.
+2. Open Sensitive Data Scanner application.
+
+3. Select the Namespace your organization has set-up for training.
+
+

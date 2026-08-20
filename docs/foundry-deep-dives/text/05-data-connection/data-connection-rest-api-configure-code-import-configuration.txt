@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Configure Code Import Configuration
+Step 1: Prepare the Source to be accessed in Code Repositories
+To prepare the source for retrieving data from the REST APIs, you need to make it available for import into Code Repositories in Foundry.
+1. Click on Allow this source to be imported into code repositories to enable this feature. 2. Leave the below selections as default, see image for reference.
+
+3. Write a unique API name, such as FirstLastnameRestApiSource (camel case).
+
+4. Click Continue to proceed.
+5. You have now successfully created the REST source. We'll now proceed to access this source via an API call in Code Repositories.
+
+

@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Create a Cipher License Step 1: Create a Cipher License
+1. Click on Create a New Cipher License. 2. Select Dataset operations and click Next.
+
+3. Toggle on both encryption and decryption 4. Click Next.
+
+5. Input a name for your Cipher License. 6. Select Enable owners of this license to move it to other projects. 7. Click Save Cipher License.
+
+

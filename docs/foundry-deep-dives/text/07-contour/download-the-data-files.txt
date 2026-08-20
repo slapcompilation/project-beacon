@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Download the Data Files
+In this exercise, you will upload two datasets to the Foundry platform and create a Contour resource for drill-down analysis, all stored within your own training project and folder for this course.
+For the purpose of this training, you'll be working with two datasets - one that stores equipment data and one that stores the production data of parts that are produced by the equipment.
+Step 1: Download two files
+1. Click on the names of the two datasets below to download them to your local device. You'll then upload these to your instance of Foundry in the next step.
+If you know you are unable to manually upload datasets to your Foundry instance due to lack of permissions, you can skip this and the next step and add the datasets to your Foundry instance via Marketplace with the instructions in the following step.
+
+Downloads
+ equipment.csv  parts.csv
+
+

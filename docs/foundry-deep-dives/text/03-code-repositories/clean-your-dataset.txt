@@ -1,0 +1,85 @@
+
+
+
+
+Lessons
+
+Clean Your Dataset
+In this lesson, you will clean your input dataset by applying a simple cast and filter transformation and output a transformed dataset.
+As a first transformation, we want to cast the date column from String to Date. In addition, we will filter by the Boolean column is_accepted.
+Here is a comparison of what your code looks like right now and once you have run through these instructions.
+Before applying these instructions:
+
+# from pyspark.sql import functions as F from transforms.api import transform_df, Input, Output
+@transform_df( Output("ri.foundry.main.dataset.610357e0-43ee-481d-8e94-7140b8d9b2c4"), source_df=Input("ri.foundry.main.dataset.b5e0d3a7-edfb-4ee2-b898-0d4084c57ee5"),
+) def compute(source_df):
+return source_df
+After applying the following instructions:
+
+from pyspark.sql import functions as F from pyspark.sql import types as T from transforms.api import transform_df, Input, Output
+
+@transform_df( Output("ri.foundry.main.dataset.610357e0-43ee-481d-8e94-7140b8d9b2c4"), claims_raw=Input("ri.foundry.main.dataset.b5e0d3a7-edfb-4ee2-b898-0d4084c57ee5"),
+) def compute(claims_raw):
+# Cast the "date" column from string to date claims = claims_raw.withColumn("date", F.regexp_replace("date", "###", "").cast(T.DateTyp
+
+# Filter out declined claims claims = claims.filter(F.col("is_accepted") == True) return claims
+
+
+
+
+
+Step 1: Import functions and types
+1. Uncomment the first line of your code repository, i.e. remove the "#" in line 1. This makes the Pyspark SQL library available for us to use in our transformation code.
+# from pyspark.sql import functions as F
+2. Include the following additional line of code right underneath the code above:
+from pyspark.sql import types as T
+3. Your first three lines of code should now look like this:
+
+Step 2: Cast the previous string column to a date column
+We want to clean up the date column by casting the string to a Date. We will use pyspark functions such as withColumn or cast . See the official Spark documentation for context and an overview of which functions are available.
+Modify the following sections in the code file. You can copy and paste the code given in the steps below:
+
+1. In line 8, replace source_df with claims_raw. 2. The previous lines 10 and 11 become:
+
+def compute(claims_raw): # Cast the "date" column from string to date claims = claims_raw.withColumn("date", F.regexp_replace("date", "###", "").cast(T.DateTyp return claims
+
+
+
+
+
+3. Preview your results to check whether this has worked as expected and that your date
+
+column is now of type Date as opposed to type String.
+
+Click Preview at the top of your Code Repository, as done before.
+
+Once the table shows, verify that the date column is indeed of type Date and that the trailing ###s have been removed.
+
+Step 3: Filter your dataset
+
+Next, we want to filter the claims dataset to only those claims that have been accepted for payout.
+1. Modify the Python function in the claims.py file as follows: Extend the previous code in lines 10-13 to this code:
+
+def compute(claims_raw): # Cast the "date" column from string to date claims = claims_raw.withColumn("date", F.regexp_replace("date", "###", "").cast(T.DateTyp
+
+# Filter out declined claims claims = claims.filter(F.col("is_accepted") == True) return claims
+
+
+
+
+
+2. Verify your results using Preview again Click the Preview button in the top, just like previously Confirm that only rows with is_accepted being true remain
+
+Navigate to the is_accepted column in the Preview table at the bottom Click the little triangle in the column header Choose View stats
+Confirm there is only True values appearing
+Step 4: Commit your work to save it
+Commits will trigger checks which help us keep your code correct and performant. 1. Click Commit in the top right corner
+2. Input a commit message, e.g. "cast and filter claims"
+
+3. click Commit This will trigger checks, which you can see as follows: 1. Click the Checks tab in the top of your screen
+2. Open the first Check to see its log messages
+
+3. Click the Code tab above and then the files icon in the left sidebar to return to your files.
+Optional: if you see the blue bar with the message "A new commit has been made to this branch", click Update to most recent version.
+
+

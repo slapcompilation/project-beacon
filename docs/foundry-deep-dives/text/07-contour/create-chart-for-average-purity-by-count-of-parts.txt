@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Create Chart for Average Purity by Count of Parts
+In this lesson, you will build a visualization of average purity across different equipment.
+Step 1: Add a Chart of equipment count by average purity
+1. In the board toolbar, Visualize > Chart 2. Configure the chart
+1. Chart Type: Scatter plot If you hover your cursor over each option, the tooltip will tell you the title of each one. Note that the same Chart board can produce many different kinds of charts, such as bar, line, scatter, heat grid and pie charts.
+2. X-Axis: avg_purity . 3. Y-Axis: Series 1: Select equipment_id and Unique count 4. Options: Set Sort order to X axis ascending
+1. Again, you can hover over each option to reveal its title. 3. Click Compute and save
+
+While this chart tells us the count of equipment producing at each purity level, we want to try a different visualization to also see a count of part types produced. We'll switch to the bar chart in the steps below.
+
+Step 2: Reconfigure the chart
+In the configuration of your existing chart:
+1. Chart type: Vertical bar chart 2. X-Axis: avg_purity 3. Y-Axis: Series 1: Select part_id and Unique count 4. Segment by: equipment_id 5. Options: Segment options: Stacked 6. Click Compute & save
+
+

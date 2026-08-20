@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Create a Course-Specific Training Folder
+Step 1: Create your Folder
+1. In the top left, click on the star to favorite your Project. This will allow you to find it quickly later on.
+2. Click on New. 3. Click on Folder.
+
+(Tip: Right-click on the image and click "Open Image in New Tab" to see the full-size version)
+Step 2: Name your Folder
+1. Name the new folder so that you can allocate it to the current learning course For example: Code Repo Training
+Step 3: Create subfolders
+1. Open the training folder you created above: Code Repo Training
+
+2. Create a new dedicated folder for your input datasets. 1. Click +New in your project folder. 2. Choose Folder.
+3. Name the folder data. 4. Within the data folder, repeat the previous steps:
+1. Click +New in your data folder. 2. Choose Folder. 3. Name the folder "raw". 5. Repeat the step above to also created a prepared folder. 6. Once created the folder structure should look like this
+
+

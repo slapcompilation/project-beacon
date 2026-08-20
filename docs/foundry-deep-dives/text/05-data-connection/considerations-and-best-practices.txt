@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Considerations and Best Practices
+While this guide is not an exhaustive resource for setting up data connections in a production environment, it should serve as a solid foundation for understanding the basics. As you prepare to deploy data connections for production use, there are several critical factors to consider:
+How often does the data need to be updated? When does it update in the source system? How recent does it have to be to be useful? How long should it be retained?
+Are any restrictions regarding when the data can be retrieved from the source system? Are there any times when the source system is under heavy load? Is source data internally inconsistent at any time?
+How does the data change? Are data updates just new additions or are existing data points modified? How is data deletion handled?
+By carefully considering these aspects, you can tailor your data connection strategy to meet the specific needs of your production environment, ensuring efficient, accurate, and timely data synchronization.
+Remember, each data source and use case may introduce unique challenges and requirements, so always adapt your approach accordingly.
+
+Learn more
+
+Scheduling Best Practices
+Retention Building Pipelines Monitoring
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Set-up a Direct connection Egress Policy
+As with the previous sources, you must ensure that Foundry can connect to your REST API by creating or importing a network egress policy for the connection. This policy whitelists the REST API address, allowing secure access from your Foundry instance.
+Foundry will suggest the recommended next steps based on the URL you've inputted in the previous step.
+Note: Skip the Additional secrets section that comes before this section.
+Step 1a: Select an existing Egress Policy
+1. If the policy already exists, import it by clicking Import existing policy.
+
+Step 1b: Create a new Egress Policy
+1. If no suitable policy exists, you will need to create one. Click on Request new policy to initiate the policy creation workflow.
+2. Leave 'How to reach an address' as Direct connection since this REST API is accessible over the public Internet.
+3. Provide a descriptive name for the policy, such as REST Training . 4. Enter the DNS api.sandbox.training.palantir.com and specify the port 443 . 5. Click Next to continue.
+6. Save to save the new policy, which will then be automatically applied to your source configuration.
+
+7. On the configuration screen, click Save and continue to move forward with the setup.
+
+8. On the Export configuration screen click Continue. We will cover Export Configurations in a following tutorial.
+Learn more Configuring Egress
+
+

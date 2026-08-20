@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Convert Data Types
+Converting data types or casting columns is crucial in data processing as it ensures that the data is correctly interpreted and manipulated according, enabling accurate analytics, comparisons, and computations.
+Step 1: Add a Convert Types board
+1. Collapse the data view if it is still open 2. In the board toolbar, Transform > Convert types 3. Convert part_purity to Double
+1. Type conversions: Select column > part_purity 2. On the right, change String to Double 4. Click Apply
+Step 2: Rename the board to Parts Purity
+Sometimes it can help your rename your boards as kind of documentation to note what you're doing.
+1. Click on the title of this board: "Untitled convert types board" 2. Enter a new title: Part Purity 3. Hit the Return / Enter key or click out of the text field to save the change
+Step 3: Confirm the data
+1. Click Show data in the bottom left corner of the board 2. Review the columns to validate that part_purity is now Double, not String 3. Hide the data view again
+
+

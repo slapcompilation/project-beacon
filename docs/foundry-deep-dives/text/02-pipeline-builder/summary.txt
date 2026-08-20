@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Summary
+Congratulations, you've completed the Deep Dive: Building Your First Pipeline course! You've now learned the basics of Pipeline Builder, Foundry's no-code pipelining tool.
+Looking to continue learning?
+Explore the Data Engineer Training Track for more courses and resources related to this course.
+
+

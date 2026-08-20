@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Chaining Joins: Join Transactions x Products with Customers
+Chaining joins is the process of combining multiple datasets sequentially, with each join operation using the output of the previous join as an input. This technique is commonly used when you need to integrate data from several sources to create a comprehensive and operationally valuable dataset.
+In your current example, you have created the transactions x products dataset by joining the two, and you now need to integrate the customers data to create a complete view of the total revenue for each customer.
+Step 1: Join transactions x products with clean customers
+1. Select the transactions x products node and choose the Join option on the right hand side.
+
+2. Choose the clean customers node to join with. Click Start.
+
+3. Give the join a relevant name, for example transactions x products x customers, or just transactions x customers.
+4. Select customer_id is equal to customer_id as the match condition.
+Step 2: Verify updates and apply
+1. Ensure your updates match the screenshot below. 2. Click Apply and Close.
+
+

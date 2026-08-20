@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Introduction
+This course is continuously updated. If you have feedback, please email training-feedback@palantir.com.
+In this course, you will learn how to build your first application in Foundry's application builder: Workshop.
+Workshop is an application builder in Foundry. It allows building feature-rich applications on top of the Ontology using a point-and-click interface.
+Workshop applications (also called Workshop "modules") allow users to view and interact with data in the Ontology, make and capture decisions based on the data, and collaborate with others to solve valuable problems. Applications make data accessible and useful.
+Workshop applications are powered by the Ontology:
+Data leveraged in applications (through visualizations such as tables, charts, network graphs, etc.) comes from object types in the Ontology. Link types allow obtaining related objects using a search around. Decisions made by users in the applications are captured using action types in the Ontology. Action types will edit the objects.
+The courses listed below show how an Ontology is built. You do not need to complete them before doing this course, but it is highly recommended that you are comfortable with the concepts covered within them.
+Speedrun: Your First E2E Workflow Deep Dive: Creating your first Ontology
+This course typically takes 2 to 3 hours to complete.
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Fe free to use the video to follow along as you complete the course material.
+
+

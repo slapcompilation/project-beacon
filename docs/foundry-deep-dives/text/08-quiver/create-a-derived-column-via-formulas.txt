@@ -1,0 +1,31 @@
+
+
+
+
+Lessons
+
+Create a Derived Column via Formulas
+In this section, we'll find the average part purity for equipment and create alerts for inspection using "Group by" and numeric formulas.
+Step 1: Make a Group By Statement
+1. From the Update Part Purity Column table, select Transform in the card Toolbar 2. Next select Group then Group by 3. In the configuration panel, select Equipment Id and Equipment Name.
+The output will organize all the objects belonging to the same equipment into a unique row, where all values for each property are grouped into an array. We will perform further operations on these arrays to extract single values to further transform.
+
+Step 2: Add a transformation
+1. Click Add Transformation, select Array operations, and Number array aggregation. 2. Title the OUTPUT COLUMN NAMES as avg_purity 3. Under INPUT ARRAY, select Part Purity_group 4. Leave AGGREGATE TYPE as Average
+
+Step 3: Select an array
+We've successfully transformed the array containing all purity values to derive the average purity across all parts per equipment. Next, we'll prepare one additional column to compare capacity and actual output.
+1. Click Add Transformation, select Array operations, and Array start. 2. In the configuration panel, set the OUTPUT COLUMN NAMES as capacity and select
+equipment_capacity_array as the INPUT ARRAY.
+Note that all values in the array across each Object are the same, so this operation gives us the capacity of each piece of equipment.
+
+Step 4: Add a formula
+1. Click Add Transformation, search for formula and select Numeric formula 2. Title the column actual_percent_output , and copy and paste @count / @capacity into
+the below text field.
+Note that when performing a group by (Step 1 of this section), Quiver automatically adds a count column that specifies the number of objects per grouped row.
+3. Click the Update button to generate the new field 4. Update the table name to Aggregated Parts Summary
+
+Takeaway
+Quiver offers several ways to create more informative derived columns from raw data. You can use point-and-click operations on grouped data, write simple arithmetic or comparisons with formulas, or apply existing TypeScript functions from Code Repositories. Though not covered in this training, functions in Quiver can be reused across multiple analyses, reducing duplicative work and ensuring consistent logic across applications.
+
+

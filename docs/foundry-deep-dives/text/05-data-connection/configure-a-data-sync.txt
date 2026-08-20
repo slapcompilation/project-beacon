@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Configure a Data Sync
+Step 1: Explore the Data Source and configure an Export
+1. On the summary screen, click Explore to access and browse the S3 source you have just created.
+
+2. You will be directed to the Source Explorer (Explore source) view. Here you will view the datasets within the source that you have access to. Note it may take up to a few minutes for the source content to load on the initial connection.
+
+3. To import the plant_downtime_new.csv file from the S3 bucket into a Foundry dataset, locate the file and click on the plus sign (+) next to it.
+4. Then, click on Create sync for 1 dataset. By doing so, you will establish a new data sync and trigger the initial import operation. Note: In Foundry, any operation that alters the contents of datasets is referred to as a dataset build.
+
+5. After creating the sync, a pop-up will appear at the top of the screen. Click on the Open build details button within this pop-up to monitor the build's progress.
+6. Wait for the build to complete. You should eventually observe a successful build status, indicating that the data has been successfully imported into Foundry.
+7. In the Data Connection tab, if your screen looks like the below, you can return to source by clicking on the left arrow at the top left side of the screen.
+
+Learn more File-based syncs
+
+

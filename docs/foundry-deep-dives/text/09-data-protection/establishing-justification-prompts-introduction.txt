@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+To do many of the tasks in this course you will need to have access to the Data Governance Officer role in Foundry - contact your administrator to be added to the proper group.
+In this section, you will cover the basics on how to establish justification prompts that will allow your organization to implement more robust governance rails through the use of Checkpoints in Foundry. A checkpoint is a prompt that asks users to provide a justification when taking an action in Foundry. These justifications can then be reviewed in the platform to ensure adherence to data protection, governance, and compliance policies. Users can also review their own historical justifications.
+View an example of a checkpoint below that occurs when a users attempts to export data from the platform.
+
+

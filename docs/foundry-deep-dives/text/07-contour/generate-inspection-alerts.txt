@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Generate Inspection Alerts
+Step 1: Use another Expression board to generate inspection alerts
+1. Add another Expression board (Transform > Expression) 2. Switch to the Editor tab 3. Select Add new column 4. Name the new column: inspection_alert 5. Paste in the following code block:
+CASE WHEN date_diff(current_date(), "equipment_inspection_date") > 365 AND "avg_purity" < .90 THEN 'high' WHEN date_diff(current_date(), "equipment_inspection_date") > 365 AND "avg_purity" >= .90 AND "avg_purity" <.95 THEN 'medium' WHEN date_diff(current_date(), "equipment_inspection_date") <= 365 AND "avg_purity" < .90 THEN 'medium' ELSE 'low' END
+6. Click Apply
+
+This code computes three levels of inspection priority based on the equipment's average output purity and whether that equipment has been inspected within the past year.
+
+You may see a pop-up warning that "The function current_date is only evaluated when the path is recalculated." This flags that the current date value will only be calculated when the analysis is run. For a production use case, we'd likely then want this analysis to be running on a daily basis so the current_date value is accurate. We can ignore the warning for the purpose of this training.
+Step 2: Confirm the data changes
+1. Click Show data in the lower left corner of the Expression board you just added 2. Verify that the two columns that were added in the previous two steps are present:
+inspection_alert and avg_purity
+You've now derived an inspection priority flag generated based data from both the parts and equipment datasets in a unified path. Next, we'll create a parameter to better suit our dashboard for plant managers.
+
+

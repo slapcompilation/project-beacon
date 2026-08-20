@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Canvas Mode vs. Graph Mode
+Canvas Mode
+Canvas mode is a flexible and visual way to build and organize your analysis into different logical paths, similar to tabs in other applications. It allows you to display, position, and resize cards on a page, providing a customized view of your analysis. You may add a new canvas by clicking the + icon in the lower-left corner of your screen.
+Step 1: Name the Canvas
+1. Double click on the canvas tab at the bottom of the page. Rename the canvas as Parts Purity Analysis and hit the return/enter key.
+
+Graph Mode
+Graph mode in Quiver provides a graphical view of your analysis, where each card is represented as a node on the graph, with inputs and outputs linked in its logical sequence. This differs from Canvas mode, which does not necessarily display cards in
+
+logical sequence. Graph mode is useful for understanding the lineage and dependencies within your analysis, and will be explored in subsequent steps.
+You can toggle between Canvas mode and Graph mode using the view mode dropdown at the upper-right corner of the screen. Changes made in one mode are reflected in the other, allowing seamless switching between the two.
+
+

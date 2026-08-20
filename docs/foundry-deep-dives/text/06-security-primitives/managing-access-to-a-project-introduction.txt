@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+To do many of the tasks in this course you will need to have access to the Data Governance Officer role in Foundry - contact your administrator to be added to the proper group.
+Projects are the primary security boundary in Foundry and can be thought of as buckets of shared work. Because their boundaries enforce security, Projects are a key means of organizing data and enabling open collaboration within a secure space.
+This section will emphasize the role that projects can play in setting up good governance standards while also showcasing step-by-step guidance on how to create projects, associate them with certain level of both access as well as editing rights to promote the safety and security of information entailed therein.
+
+

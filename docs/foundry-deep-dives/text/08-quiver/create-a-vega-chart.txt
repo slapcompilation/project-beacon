@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Create a Vega Chart
+Step 1: Create a Vega Chart for visualizing cost
+1. Select the Parts Object Set card towards the top of the page 2. Click Visualize category in the cards Toolbar and select Vega Plot
+
+Step 2: Configure your Vega Chart
+The Vega Plot widget will automatically show a boxplot - we'll update these default configurations. In the Editor text box in the right-side panel, you'll note values is set to the ID of the Parts card you selected as the input. You'll need this ID to set the X and Y values.
+1. In the encoding block, update the x field to be $yourCardID."part_type". 2. Update the title to be Part Type. 3. Likewise, for y, update the field to $yourCardID."part_cost" and title to be Part Cost. 4. Leave the type as boxplot. 5. Click Update.
+
+Your Vega chart should now resemble the below. The box plot layout clearly displays datapoints on the Part Cost for each Part Type, including minimum, median, and maximum cost numbers.
+Takeaway
+
+Quiver charts enable you to visualize data in versatile formats, facilitating better data analysis and decision-making. They're also interactive, allowing you to drill down into data points, filter data, and explore different aspects of their data dynamically. You may also In the next steps, we'll update our dashboard and review how Quiver charts can be integrated with other data analysis tools and workflows within Foundry, providing a seamless experience for users to analyze and visualize data in one platform.
+Additionally, AIP Configure is particularly useful for Vega Plot configuration. You can describe the desired Vega plot, and AIP will generate the corresponding json configuration.
+
+

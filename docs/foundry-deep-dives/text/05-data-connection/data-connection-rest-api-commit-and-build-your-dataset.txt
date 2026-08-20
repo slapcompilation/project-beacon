@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Commit and Build Your Dataset
+Step 1: Build your dataset
+To apply the changes you've made to the code, you need to commit them.
+1. Navigate to the Source Control panel on the left and enter a commit message, such as "Added API retrieval logic for plants," in the provided field.
+2. Click Commit to save your changes to the repository.
+
+Now, let's build the dataset. You need to ensure that the spark-transform.py file is active in your editor. 3. Click Build to start the data retrieval process and store it in the dataset.
+4. If you see a message prompting you to update, click on Update then build to continue.
+
+5. The build's progress will be displayed in the Build tab at the bottom of the screen. Keep in mind that the initial build may take a little longer since Foundry is packaging and deploying your logic for the first time. Subsequent builds will typically be faster.
+
+6. After a few minutes, the build should complete and you will be able to view the data retrieved from the REST API.
+7. To view the dataset, click on the three dots menu next to the plants dataset. Select Open to open the full dataset view.
+8. Now you can see that the data has been successfully retrieved from the REST API and is now ready for downstream use in pipelining tools and the Ontology.
+
+Learn more Datasets
+
+

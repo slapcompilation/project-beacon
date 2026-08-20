@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Add External Transform Library
+Step 1: Install library for accessing REST API connections
+To configure your repository to allow interaction with the REST API, you'll need to install a necessary library.
+1. Navigate to the library settings from the left-side panel.
+
+2. In the Search Libraries box, type transforms-external-systems .
+
+3. Click on the first search result to open the library details pane, then click Add and install library.
+4. Wait for the library installation to complete. You'll know it's done when you see the BUILD SUCCESSFUL output in the Task runner window and a Library installed status on the library details pane.
+
+Learn more External transforms Using Python Libraries
+
+

@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+Scenario
+For this tutorial we assume the role of claims handler in a global insurance company. Your task is to present to the Chief Financial Officer the annual results of each line of business. Using code repository, you will process two main datasets, one containing each historic claim over the past years, and the other containing the corresponding policies, including the lines of business.
+At the end of this section you will have implemented a cleaning pipeline using Python Transforms.
+
+

@@ -1,0 +1,37 @@
+
+
+
+
+Lessons
+
+Work with Different File Types: Preprocess and Clean the Transactions Dataset
+Datasets in Foundry are collections of files, generally Parquet. However, raw data may arrive in different formats, and your pipeline needs to be able to handle these formats and transform them into adequate Foundry datasets. For more information on the internal structure of Foundry datasets, please refer to the Foundry Datasets Documentation.
+Throughout this section, you will walk through an example of handling a raw dataset in JSON format using readily available Pipeline Builder transforms. This will provide you with a practical understanding of how to manage various file formats in your pipeline.
+Additionally, you will be introduced to Foundry's AI assistant, which, if available on your Foundry installation, can be a valuable resource for simplifying the processing and transformation. By leveraging the AI assistant's capabilities, you can streamline the handling of various formats, further enhancing the efficiency and performance of your pipeline.
+Step 1: Create a new transform for the transactions dataset
+1. Similarly to the previous datasets, create a new transform.
+
+2. Give it a relevant name.
+
+Step 2: Transform from JSON to dataset
+1. Select the Extract rows from a JSON file transform
+2. Paste in a sample JSON to auto-generate the schema. You can get one by opening the transactions file locally. For example, {"transaction_id":"02a10def-53bc-4eb8-af6c452e431d2511","transaction_date":"Thu Jan 25 2024 07:21:01 GMT+0000 (Greenwich Mean Time)","units":"610.00","customer_id":"f9f95fe6-517a4964-9f96-e17030cfbf3c","variation_id":"53a47d0e-67a4-4241-835e293e0c65d5fd","product_id":"77d64cec-d43b-4115-ab57-c646d01cac8d"}
+
+3. Toggle the "Allow JSON values to span multiple lines" option to False (because we have one JSON file per row).
+Step 3: Cast transaction_date to Timestamp
+1. Search for the Cast transform.
+
+2. Select 'transaction_date' as the Expression. 3. Set the Type to 'Timestamp' 4. Set the Timezone to 'London GMT'
+5. Use the AI Assistant (Generate button) to infer the correct Timestamp format from an example string from the dataset. You can use Thu Jan 25 2024 07:21:01 GMT+0000 (Greenwich Mean Time) as an example value, then click Generate If AI Assistant is not available on your Foundry instance, just paste in the format: EEE MMM dd yyyy HH:mm:ss 'GMT'Z (zzzz) .
+
+6. Then click remove the other formats and click Apply.
+Step 4: Cast units to double
+1. If available on your Foundry instance, you can use the AI Assistant again to generate a transform casting the units column to a double data type.If you don't have the AI Assistant available, simply select the Cast transformation for a new board.
+2. The AI assistant should generate the board similar to the one below. There may be missing pieces in it, so you might need to adjust it.
+
+Step 5: Drop unused columns
+The conversion from JSON generated two additional columns, _error and file. These are not needed for this specific pipeline, so it's safe to drop them. When processing many files, these could be valuable to catch any formatting errors in the raw files.
+1. Search for the Drop Columns transform. 2. Select _error and file. 3. Click Apply. 4. Make sure you have applied all changes and click Close to return to the main screen with
+the dataset nodes.
+
+

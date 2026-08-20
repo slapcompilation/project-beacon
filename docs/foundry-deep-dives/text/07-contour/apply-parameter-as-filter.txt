@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Apply Parameter as Filter
+For the new parameter to affect your analysis, it must be used in a board somewhere. In this case, we want to filter down to the selected plants, so we can use a new Filter board to do that.
+Step 1: Add a Filter based on the plant parameter
+1. From the board toolbar, Filter > Filter 2. Define the filter
+1. Select column: equipment_plant . 2. Leave the comparison set to: is 3. Add a parameter or a term: $plant
+This should appear as a yellow option 3. Apply
+
+Step 2: Confirm the effects of parameter selection
+1. Click Calculate summary in the lower left corner of the two most recent expression boards Notice that the datasets are the same at this point. You have not defined a value for the $plant parameter, so no filtering is being done.
+
+2. Open the left-side Parameters panel 3. Enter values for $plant: Plant 1 , Plant 2 , and Plant 3 4. Click Apply at the bottom right of the Parameters panel
+5. Now click Calculate summary on your latest filter board The row count should update to 1,341 as you are now filtering only to rows containing data for Plant 1, Plant 2, and Plant 3.
+6. Clear the parameter 1. Back in the left-side Parameters panel, clear the selection for Plant 1, Plant 2, and Plant 3 2. Click Apply 3. Close the Parameters panel
+
+In analyses, you may input a specific value(s) into the left parameter panel to filter consistently across multiple paths where the parameter is used, whereby reducing redundancy and chance for human error.
+Parameters are also accessible in dashboards to allow multiple users at a time to select and interact with different values per their particular needs. In the context of our analysis, we've created a parameter that will enable users, like plant managers, to efficiently filter equipment based on their plants of interest. In future steps, we'll create a dashboard where users can apply this filter.
+
+

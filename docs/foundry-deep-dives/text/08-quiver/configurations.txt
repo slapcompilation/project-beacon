@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Configurations
+Toolbars and Side Panels
+In Quiver, there are several panels accessible in the left-hand sidebar that help you organize and manage your analysis. Here is an overview of the different panels:
+Analysis contents: Organizes your analysis by listing every card in the order it appears on the canvas. Parameters: Allows you to parameterize your analysis, making it more dynamic and flexible. Visual functions: Provides access to visual functions, reusable blocks of logic that allow you to load, combine, and transform data. Dashboards: Allows you to create and manage dashboards, providing a high-level view of your analysis. Settings: configure global settings, including the behavior for card apply button, display mode (light, dark), chart colors and other overrides, time zone formatting and tooltips.
+
+Each Quiver card is configurable in a right-hand panel. When a new card is added, the configuration panel displays automatically on the right side of your analysis. Should you need to update a configuration panel, you can click the cog icon of any card and its configuration panel will expand again.
+Take a moment to view the Data, Display, Type, Objects, and Export tabs in the configuration panel.
+
+Inputs & Outputs
+Note that every parameter, transformation, and visualization card in Quiver can take zero or more required inputs and produce zero or more outputs. Inputs and outputs have definitive data types. It's good practice to provide titles to your cards to understand their content as you build out your analysis.
+
+Unique Global IDs
+Unique global IDs are automatically assigned to all Quiver data cards, data sources, and parameters. These IDs can be used in formulas and configurations to reference data sources, such as time series plots, transform tables, charts, arrays, or scalar values. Note that your global ID may differ from that depicted.
+
+

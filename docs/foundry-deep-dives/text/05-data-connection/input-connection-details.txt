@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Input Connection Details
+Step 1: Update the S3 connection settings
+1. Enter the following S3 connection details: URL: s3://s3-bucket.sandbox.training.palantir.com/ Region: eu-west-1
+
+2. Select Access key and secret as method of providing credentials. Use the following values: Access key ID: <redacted-access-key-id> Secret access key: <redacted>
+
+The next step in this training will cover the Network connectivity portion Learn more
+Data Connection: Set up a Source
+
+

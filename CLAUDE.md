@@ -26,6 +26,19 @@ Four things follow, and each was learned by getting it wrong:
    learn.palantir.com material is **on disk** — `docs/foundry-deep-dives/`, nine
    courses, 76MB — so grep there before asking the operator, and say you did. A
    plausible shape invented here becomes structure, and structure is expensive.
+
+   **And it is now actually greppable.** All 214 lesson PDFs are extracted to
+   `docs/foundry-deep-dives/text/<course>/<lesson>.txt` (894K), so
+   `grep docs/foundry-deep-dives/` reaches the lessons rather than the nine
+   hand-written summaries — which are restatements,
+   and were the only thing a course citation could be checked against before.
+   A reading may cite one directly and `check:readings` verifies the sentence is
+   in it. **The text is tracked and the PDFs are not** — `source/` is gitignored,
+   so extracting beside them would have passed locally and failed in CI on every
+   lesson citation. **What no extraction reaches is text inside the screenshots** those
+   PDFs embed, which is why `deep-dive-ontology.md` is still the one reading
+   exempt from the gate: a quarter of its quotations are UI strings read off
+   images.
 4. **Never hardcode.** The named example: `rebuild_relationship_edges_view()`
    appended a hand-written `product_variants JOIN products` branch to a view
    whose migration claimed it was derived from `link_types`. The claim was false

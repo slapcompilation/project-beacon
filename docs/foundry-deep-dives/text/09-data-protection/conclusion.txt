@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Conclusion
+Congrats, you have now created multiple data protection workflows! While we have only scratched the surface, you can build upon and expand these workflows. From here on, you can:
+Establish other Checkpoints for different types of actions on the platform. Encrypt additional datasets that may contain sensitive information. Encrypt media sets by leveraging visual obfuscation to protect images. Set up additional and recurring scans under other project spaces to safeguard a larger swath of your organization.
+You now have a thorough understanding of the tools available to you to be a steward of data governance at your organization!
+
+

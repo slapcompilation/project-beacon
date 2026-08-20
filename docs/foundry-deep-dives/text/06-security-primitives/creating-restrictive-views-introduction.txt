@@ -1,0 +1,11 @@
+
+
+
+
+Lessons
+
+Introduction
+While Markings and Roles provide powerful access controls, some situations require more granular permissioning. For example, it may be insufficient or inappropriate to grant access to all objects of a certain type. Some object types may need to surface different objects to different users, such as when a company limits its sales representatives to viewing customers only at their assigned branch. Restricted views can provide this additional level of access control.
+Before implementing restricted views, it's crucial to ensure that the backing dataset and the derived restricted views dataset are stored in two different projects.
+
+

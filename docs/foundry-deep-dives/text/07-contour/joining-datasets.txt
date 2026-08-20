@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Joining Datasets
+Step 1: Add a Join board
+1. In the board toolbar, Join > Join
+
+Step 2: Add columns from the equipment dataset
+1. Leave the Mode set to Add columns 2. Click Choose dataset... > Select dataset 3. Search for and select the equipment dataset that you previously uploaded to your course
+folder 4. In the equipment field on the right side of the window, select Add columns to add
+1. equipment_capacity 2. equipment_plant 3. equipment_inspection_date
+Warning: There is both an installation and an inspection date.
+
+We've selected only the columns relevant to our analysis here, but Contour gives you the option to select all columns and to prefix all incoming columns with a unique identifier.
+Step 3: Define the match condition
+1. In the Match condition section, leave Match all selected 2. Click Add match condition 3. In the left dropdown: select: equipment_id 4. In the right dropdown, select: equipment_id . 5. Click Apply
+If you now Show data, you should see the 3 new columns there.
+Contour equips you with the capability to join and union datasets, with the option to match one or more columns (typically IDs) across the chosen tables. You've joined the equipment dataset to the cleaned parts dataset.
+
+In this case, all equipment have the equipment_active column set as true. You can imagine if we had to filter out inactive equipment or perform other equipment datacleaning steps, these would be best performed first in a distinct path for the equipment dataset.
+
+

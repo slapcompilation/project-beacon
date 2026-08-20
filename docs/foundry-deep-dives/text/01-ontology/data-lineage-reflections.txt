@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Reflections
+You've now seen the many datasets that feed into the Fresh Air Ontology, what does this context mean for your understanding of the value of the Ontology?
+Ease of Use
+First of all, consider again the ease of use that the Ontology provides for data. Imagine answering the same questions you answered previously in the Object Explorer module but using only this graph of datasets and any dataset-based query or analysis tools. The first challenge would be deciding which datasets to start with and then how to combine them to produce a complete picture for any particular question. That work has already been done by the data engineer(s) who built this pipeline and the Ontology.
+Common vocabulary
+Secondly, we can see here how the Ontology provides a common vocabulary across an organization. For example, suppose the Fresh Air Flight Operations team used to use the Bureau of Transportation Statistics data as their canonical list of airports, while the Fleet Maintenance team used the list provided by OpenFlights. It is easy to have such discrepancies when working from your preferred dataset. However, given that there should really be only one Airport object type in the Ontology, this forces some discussion and resolution between these teams to establish a common ground truth.
+This established common vocabulary then becomes the obvious destination for any significant future work. For example, any new datasets about airports should not be brought into Foundry and left as simply another available dataset. Instead, it should be merged into the Airport object type. (It may be that not every user should be able to see all details about every Airport object. However, it is possible in Foundry to apply both row and column-level permissions when defining the backing data sources for an object type so that you can still have a single Airport object type that presents only the data each user is allowed to see.)
+Similarly, any significant analytical insights, useful aggregations, or model-derived recommendations can be added to the relevant object type. This makes this work centrally accessible to users across the organization, rather than languishing as forked or siloed local work.
+
+Because object types can grow richer and more detailed like this over time, it becomes much easier to bootstrap new workflows and use cases that rely on the same object type. For example, once an Airport object type is created to support a Flight Operations workflow, that object type can be reused (and augmented) to build a new Fleet Maintenance workflow.
+Some of the advantages of a common vocabulary could be achieved by simply marking certain datasets as the "golden tables" for a given concept. (For example, Foundry's Data Catalog can help do this.) However, in practice, this does not prove to be as effective in controlling the entropy produced by diverse workflows. For example, as a user looking for the authoritative dataset on airports to use as a basis for a new workflow or analysis, you might find airports , but you'll often find a set of datasets derived from that one with names like airports_with_geojson , airports_fresh_air_staff_enriched , and better_airports . While Data Lineage can help you understand the provenance of each of these datasets and how each of them have improved or modified the golden airports table, this work is effectively leading to local variants and dialects in what is intended to be an authoritative common vocabulary. Because the Ontology provides a object layer separate from the dataset layer, it can provide stronger controls over these types.
+
+

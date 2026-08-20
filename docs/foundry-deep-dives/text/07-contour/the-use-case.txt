@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+The Use Case
+Welcome to your training as a data analyst for the notional TitaniumWorks Manufacturing company! In this course, you'll step into the role of a data analyst tasked with prioritizing which equipment should be inspected next. As a data analyst, you'll have to report out analytic insights often. You'll use Contour to:
+Save time and manual effort: Automatically run the same analysis each time data is updated, eliminating the need to manually update analyses. Easily generate analyses: With point-and-click functionality, you can manage and execute complex analyses for many user types. Easily interpret and present analysis: Visualizations and automated reports make it easy to collaborate with for non-technical stakeholders to understand your findings and make informed decisions.
+Your Role
+As a data analyst, your primary goal is to ensure the efficiency and reliability of the manufacturing process. By analyzing the parts purity and the date of the last inspection of each piece of equipment, you will generate a list of equipment that needs inspection.
+Your Goal is the Following:
+Clean and prepare the datasets for analysis. Join the datasets to create a comprehensive view of the data. Create derived columns to gain insights into the maintenance schedule and identify high-risk machinery. Visualize the data and create a dashboard for easy interpretation and decision-making. Embed the visualizations in Notepad for collaborative analysis.
+
+

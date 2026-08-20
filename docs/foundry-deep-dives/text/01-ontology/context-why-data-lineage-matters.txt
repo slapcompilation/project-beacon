@@ -1,0 +1,14 @@
+
+
+
+
+Lessons
+
+Context: Why data lineage matters
+With many people working within the same platform, it can get difficult to track the current state of data. Their work might overlap without them actually speaking to each other.
+A data engineer might build a pipeline to clean up the data brought in from an external system. A data analyst might augment that clean data with manually uploaded data from a different data source to build out a view specific to her use case. A year later, another colleague continues that data analyst's work in light of a new business focus.
+As layers and layers of this collaborative work happen over years with a rotating cast of users, the current state of any given dataset and its relationship to others in Foundry could become very confusing.
+The Data Lineage tool is intended to provide a bird's-eye view of how datasets, object types, and certain resources are connected to each other in Foundry. You can also learn a lot about the state of each dataset, as well as take action on them (such as rebuild a dataset that is out-of-date with its ancestors/inputs).
+While Data Lineage is mostly often used by data engineers, it can be useful to any role in Foundry.
+
+

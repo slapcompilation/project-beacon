@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+The Use Case
+In this course you will build an operational workshop application in an example setting of an organization's supply chain. The application will provide the user visibility on upcoming shipments, as well as the ability to find wasteful shipments that should be consolidated with other shipments, therefore increasing the efficiency of the supply chain.
+In this case, the users of the application would be shipment managers that need to be able to understand what is going on across the organization's supply chain so that they can make informed decisions.
+
+(To enlarge images in this training, right-click on the image and open it in a new tab. You should then be able to zoom in and out.)
+By operational applications we mean applications that allow users to view and interact with data, make and capture decisions, and collaborate with colleagues -- all in the same application. Operational applications move beyond read-only insights in dashboards and focus on powering data-driven decision making.
+Operational applications are more likely to affect outcomes and create value for organizations.
+In this course, the application you will build is an operational application because it will allow the user to make a decision (whether shipments should be consolidated) and
+
+then capture that decision in the application (mark those shipments for consolidation). This course uses an existing supply chain ontology that is made up of the following object types:
+Product - Represent the type of goods that are moved through the supply chain. Product Shipment - Represents a certain quantity of a single kind of Product being shipped. These are combined into a single Shipment in a Vehicle. Shipment - Represents the transportation of multiple Product Shipments from an origin Location to a destination Location in a single Vehicle. Location - Represents a physical location within the supply chain, such as a factory or warehouse facility. Vehicle - Vehicles transport a Shipment between Locations. They have a capacity. By the end of this course, you will build a Shipment Operations Center workshop application on top that ontology. In the top panel, you will have a visualization of upcoming shipments, broken down by the products included in them. On the left, you will be able to filter to a subset of those shipments. In the bottom panel, you will be able to consolidate shipments.
+
+

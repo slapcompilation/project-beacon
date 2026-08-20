@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Context: Fresh Air
+Fresh Air
+For the the following exercise, assume that you are a new employee at Fresh Air. Fresh Air is a (notional) regional airline of approximately 4,500 employees that services the eastern half of the United States. They currently fly approximately 500 flights a day to 83 destinations. Although technically headquartered in Fort Worth TX, their busiest hubs are all on the east coast.
+To start, assume you have just joined the Flight Operations department. Later in this course, we'll see what the same data looks like from the perspective of other roles and departments.
+Ontology
+As a new employee at Fresh Air, you are not familiar with all of their data systems yet. However, from your new hire orientation, you know some of the basic terms of the industry. These types are present in Fresh Air's Ontology:
+
+In summary, an Airline operates a fleet of Aircraft. These Aircraft regularly fly from one Airport to another, where they land or takeoff from a given Runway. The connection between any two Airports along which Aircraft regularly fly is a Route. A Flight is a specific instance of an Aircraft flying along a Route at a particular date and time. Occasionally, a Flight might encounter an issue, such as delay, cancellation, or even a diversion to another airport that is not normally part of the route. These non-standard events generate a Flight Alert, which the Flight Operations team then responds to.
+The data we will explore using this Ontology includes details from all US airlines, not only from Fresh Air. Because these are common object types beyond the bounds of this specific course, the object types include an OFT (Ontology Foundry Training) prefix to avoid any naming conflicts with any similar types found in your ontology.
+
+

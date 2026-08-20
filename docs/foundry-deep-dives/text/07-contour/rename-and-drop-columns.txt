@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Rename and Drop Columns
+Step 1: Add a Multi-Column Editor board
+1. In the board toolbar, Edit columns > Multi-Column Editor
+
+Step 2: Rename eq_id to equipment _id
+1. In the right Kept columns panel, click on the eq_id column 2. Rename the column to: equipment_id
+Press the Return / Enter key to save you changes. Note, your changes will not be made to the column if you click out of the text field without tapping the Return / Enter key.
+After your change, the left All Columns panel for should likewise update to equipment_id with a note that the old name was eq_id . In future steps, we'll use this column to join to the equipment dataset. Consistent naming conventions for columns help maintain readability for your analyses and pipelines.
+Step 3: Drop some columns
+1. In All Columns, toggle off these columns: 1. part_weight 2. part_material 3. part_color
+
+4. part_dimensions 5. part_cost 6. part_quality_grade 2. Click Apply This will remove these columns from your dataset in any later parts of this analysis, but it has no effect above this board or on the original Foundry dataset.
+When using Multi-Column Editor in paths that follow joins or expression boards, you can toggle on Keep new columns by default to ensure that any additional columns are automatically included in subsequent boards.
+
+

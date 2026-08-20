@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Set-up a Direct connection Egress Policy
+For security purposes, you need to create or import a network egress policy. This policy whitelists the data source, ensuring that your Foundry instance can access it securely. This is a one-time operation--if a previous user has already completed this training and created the policy, you can simply import it.
+Foundry will suggest the recommended next steps based on the URL you've inputted in the previous step.
+Step 1a: Select an existing Egress Policy
+1. If the policy already exists, import it by clicking Import existing policy.
+
+Step 1b: Create a new Egress Policy
+1. If no suitable policy exists, you will need to create one. Click on Create this policy to initiate the policy creation workflow.
+2. Select Direct connection since the S3 resources used in this tutorial are accessible over the public Internet
+3. Assign a descriptive name to your policy, such as S3 Training 4. The Address field should be pre-populated. If it is empty, enter s3-
+bucket.sandbox.training.palantir.com.s3.eu-west-1.amazonaws.com . 5. Click Next.
+
+6. Click Save to save the policy. It will be automatically applied to the source configuration
+
+7. On the configuration screen click Save and continue.
+Learn more Configuring Egress
+
+

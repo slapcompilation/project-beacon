@@ -1,0 +1,22 @@
+
+
+
+
+Lessons
+
+Filtering Data
+In our analyses, we often need to filter the data to rows that meet a specific criteria, resulting in a specific subset of all the data we have. For this analysis, we're going to exclude historical data to ensure we're using only recently manufactured parts as a basis for our decision-making.
+Step 1: Add a Filter board
+1. In the board toolbar, Filter > Filter 2. Set Filter 1 to keep only production dates in 2024
+1. Select column: part_production_date 2. Comparison: on or after 3. Date: Select Jan 1, 2024 3. Click Apply
+
+Step 2: Confirm the data change
+1. Click Calculate summary in the lower left of your new filter board After calculation, should see a row count of 2,176 rows. All subsequent boards will use this filtered data. Sometimes you want to disable a board temporarily so that is does not affect the flow of data through the path.
+
+2. Toggle Enabled to Disabled in the lower right of the board. This will leave the board visible in your path, but the filter won't be applied to the data.
+3. Click Calculate summary again. 1. The row count should be 3,428 rows again.
+4. Toggle Disabled to Enabled
+Contour's flexible filtering configuration can be used to combine multiple any or all conditions to filter a range of data types and columns. You can keep or remove rows and filter on multiple conditions and wildcards. The data resulting from a filter board will be used in all subsequent boards. However, you may enable or disable any board as you proceed with your analysis to review filtering impact. It's good practice to confirm the row count and validate your analysis as you go.
+You should now have a path with six boards, resembling the screenshot below.
+
+

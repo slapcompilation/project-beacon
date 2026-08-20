@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Setting Up the Scan Step 1: Select the resources and cadence to scan
+1. Click on the blue + Create new scan button.
+
+2. Read the Overview page to understand the steps of configuring a scan. Then click Next.
+3. Under Included datasets and folders, select the Deep Dive: Data Protection Tools in Foundry folder that you have saved the employee_data.csv file in earlier.
+
+4. Under Scan schedule select one-time scan 5. Click Continue.
+
+

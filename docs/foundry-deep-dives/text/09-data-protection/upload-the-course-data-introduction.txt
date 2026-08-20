@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Introduction
+In this section, we will quickly ingest the data necessary to complete all three sections of this training module. Here is what the dataset entails and why it is critical:
+Notional Employee Data: The dataset contains notional employee data. There are numerous reasons why an organization may want to restrict access to the dataset entirely or encrypt certain columns containing particularly sensitive information:
+Employee Name: In the "Encrypt Sensitive Data" section, you will learn how to obfuscate a column. While obfuscation can be used on any given column, there are obvious reasons why obfuscating employee names is particularly important to an organization, as they may want to protect the identity of their staff. Using obfuscation tools allows an entity to run analytics on data while ensuring employee data protection. Marital Status: While a marital status may not be considered highly sensitive personal information, when combined with other data points, it can significantly enhance the chance of identifying an individual. In the "Scan for Sensitive Data" section, we will show you how to use Sensitive Data Scanner to find datasets containing sensitive data by running a query based on a regular expression of potential marital statues values and how to hide it behind a marking.
+The overall goal of this module is to showcase the various ways organizations can protect sensitive information, whether through obfuscation, purpose justifications for employees using the software, or applying access controls to datasets deemed sensitive. Ready to embark on your data governance journey? Let's dive in!
+
+

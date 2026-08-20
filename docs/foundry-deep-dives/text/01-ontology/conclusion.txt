@@ -1,0 +1,30 @@
+
+
+
+
+Lessons
+
+Conclusion
+This course has covered the basics you need to know to get started with a Foundry Ontology.
+Value
+We covered why the Ontology is valuable.
+1. It makes data easier to use. 2. It structures data into a vocabulary that is reusable across workflows and across the
+organization. 3. The Ontology provides well-defined actions that can enforce constraints and make the
+output of regular decisions immediately to others within the platform.
+In this way, the Ontology is more than another "semantic" data layer. In also includes "logic" through the rules that it encodes and "kinetics" through its actions. It is both the nouns of your organization, but also the verbs.
+Ontology and AI
+One last reason that the Ontology is valuable is the way that it allows you to integrate AI into daily operations.
+First of all, the Ontology can provide clean and usable inputs to AI. For example, if we wanted AI-generated recommendations for how to respond to a given Flight Alert, it would need to review much of the same data that human-operators also need to power their decisions. Furthermore, the Ontology structures these concepts in real-world terms that an LLM are already familiar with.
+Secondly, the Ontology provides a destination for AI outputs. The best place for a Flight Alert recommendation or prediction would be on the Flight Alert object itself. This inserts the recommendation into one or more existing operational workflows at the point where operators are already making their decisions. This makes it easier to then collect feedback on the final decisions those human operators then make--when they use the recommendations and when and why they disregard them.
+
+The many tools of AIP aim to do exactly this by building on top of the Ontology.
+Tools
+In terms of specific tools, you learned about:
+Object Explorer - For object searches and for basic exploration and analysis across sets of objects Data Lineage - For exploring data pipelines and understanding how they lead to the Ontology Ontology Manager - For building the Ontology itself
+Next Steps
+To further your understanding of how objects can be tailored to support workflows directly:
+Object Views - The Airline and Airport objects you explored in this tutorial had custom object views
+Good next steps to see how objects are then used by other applications:
+Quiver - For powerful point-and-click analysis of object sets and dashboarding Workshop - For building operational applications from point-and-click widgets Ontology SDK (OSDK) - Building custom third-party applications that treat the Ontology as a backend
+
+

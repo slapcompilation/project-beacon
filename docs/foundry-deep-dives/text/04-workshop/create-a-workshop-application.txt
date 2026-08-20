@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Create a workshop application
+Step 1: Create a new Workshop module
+1. Within your recently created Foundry Learning Project folder you will need to click the green New button This will be in the center of the screen for an empty folder or in the upper right of the screen. As we recently deployed the marketplace product into our folder here we will use the green New button in the upper right of the screen.
+2. Search for and select Workshop module
+
+This will create a new Workshop application (also called a workshop "module") and open it. The application will have an auto-generated name, starting with Workshop module.
+Step 2: Rename your new module
+1. Click on the module name in the top left of the screen 2. Rename the module to Shipment Operations Center
+
+

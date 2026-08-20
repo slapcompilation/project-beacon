@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Best Practices: Segmenting your Pipeline and Materializing Outputs
+In practice, your data pipeline may require a vast number of inputs, multiple intermediate steps, or tight connectedness between siloed data points. As the number of nodes grows in your pipeline, the graphical representation in Pipeline Builder can swiftly become overwhelming. In scenarios where your pipeline exceeds 100 nodes, you may struggle with navigation and even encounter difficulties in loading the graph. The key to maintaining manageability lies in strategic segmentation of your pipeline and which outputs you decide to materialize.
+A pipeline that defers the materialization of outputs until the final stages is optimized for latency. Each output is effectively deployed and built into one single step from the pipeline inputs, so if you have a pipeline that goes through the typical stages of "raw" to "clean" to "joined" to "ontology'', the ontology outputs require only one step of chained intermediary transforms to be deployed and materialized into a Foundry resource. A common approach for organizing your pipeline when optimizing for latency is to split it by use case, where each pipeline generates end to end transformations powering each independent workflows in Foundry.
+
+end-to-end use case pipeline
+Alternatively, in the context of a large-scale use case with intertwined data points, you may prefer to optimize for extensibility and readability, as opposed to latency. In this case, consider dividing your project into distinct segments, each with its own Pipeline Builder instance, such as one for "cleaning", one for "joining", one for "ontology", and so forth. By materializing the outputs at the conclusion of each segment and then using those outputs as inputs for subsequent stages, you maximize reusability and clarity, at the cost of build latency.
+
+clean pipeline
+joined pipeline
+Regardless of your approach, you can think of segmenting your pipeline similarly to software development, where code is modularized rather than amalgamated into a single file. By applying similar principles to your data pipeline, you can ensure that each segment is focused, manageable, and tailored to a particular aspect of your data processing. As a rule of thumb, you can refer to the below best practices:
+Modularize your pipeline just as you would with code, dividing your pipelines into logical sections that can be developed, tested, and debugged independently. Materialize judiciously at key points to create natural breakpoints and to capture intermediary states that might be reusable in other contexts. Test segments at key points to identify bad joins, wrong aggregations, or incomplete assumptions about the data, to catch errors quickly before they trickle through your pipeline.
+
+By implementing these best practices, you can create a pipeline that is not only optimized for performance but also for development and maintenance, ensuring that your data processing workflows remain robust, scalable, and understandable.
+
+

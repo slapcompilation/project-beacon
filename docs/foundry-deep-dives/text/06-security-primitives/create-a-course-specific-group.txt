@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Create a Course-Specific Group
+Creating groups is an essential step in efficiently managing user access and permissions within Foundry. Groups allow you to organize users with similar roles or responsibilities, making it easier to assign and manage permissions at scale. You can rely on groups created in your active directory or create groups yourself. In either case, groups can help streamline the process of granting access to resources, applying roles, and maintaining consistent security policies across your organization. This approach not only saves time but also reduces the likelihood of errors that can occur when managing permissions on an individual user basis.
+This training aims to demonstrate the practical application of groups. You will need to create a test group for the purpose of this training: Go under account at the bottom left of your screen, click Settings, navigate to Groups and select Create group. You should create a group that maps to your organization and we suggest calling the group Test_Foundry_Governance_Learning . Add colleagues from your department/team to the group before clicking on Create group. This group will be used later in the course.
+
+Note: Groups are a critical component of the Foundry security toolset. They can be imported directly from directory services such as Microsoft Active Directory or created manually, as demonstrated earlier in this training. For more information on groups, refer to the Manage groups section of the Platform Security documentation.
+
+

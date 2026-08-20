@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Set-up Your Dashboard
+Step 1: Configure your dashboard
+1. Click the dashboard icon in the left panel and select Dashboard 1. The display will update with the current state of the dashboard
+2. Note we've forgotten to add the Vega plot. In the Add to Dashboard section, find Vega Plot, click the three dots icon and then + Add to dashboard
+3. Provide your Vega chart with a clear name like Vega chart for cost
+You'll note here that it's always helpful to maintain clear card titles! Note, in addition to visualizations, you can also add tables and table aggregation cards, like our average part purity.
+
+Step 2: Name and style your dashboard
+1. Hover your mouse above the first chart on your dashboard and click the + icon. This will add a text box.
+2. Update the left dropdown from Paragraph to Large Heading, and name your dashboard Equipment Analysis.
+Note, you may apply text formatting and add additional text blocks throughout the dashboard to guide your audience and provide analysis. You may also add another tab, for instance if you wanted to separate your analysis into equipment and parts drill downs, and add sections to denote clear logical distinctions.
+
+

@@ -1,0 +1,21 @@
+
+
+
+
+Lessons
+
+Find and Replace Column Values
+When performing analysis, it is often essential to update column values to ensure operations can be performed efficiently and consistently across multiple datasets. If you view the underlying data using the Table or Show data, you'll see that the values in the parts_purity column are all preceded by a p- string. Over the next two lessons, you will remove this prefix and then convert the remaining value into a Double data type. This is a numerical data type suitable for numerical operations in future steps.
+Step 1: Add a Find and Replace board
+1. In the board toolbar, Transforms > Find and Replace Alternatively, if you don't know what category a board is in, you can use the Find a board option in the top left of the board toolbar to search for it.
+2. Remove the p- prefix from part_purity 1. Columns: part_purity 2. Find: p3. Replace: (leave this empty)
+3. Click Apply
+
+This step will remove the letter and dash without replacing them, leaving only the numerical values. In other analyses, you may also use this board to remove null values or replace values in order to effectively join to other datasets.
+
+Step 2: Confirm the data change
+Before performing further steps in our analysis, let's confirm that last change worked. 1. Select the Find and Replace board so that it is surrounded by a blue highlight 2. Expand Show Data drawer at the bottom of the screen.
+Alternatively, if you close the board's configuration, you can instead click Show data in the lower left corner of the board
+Looking at the part_purity column, you can confirm that you've successfully removed the `p-' from all values. However, under the column name, you can also see that part_purity is of String data type. In the next steps, we'll convert the column from String to Double so that we may perform mathematical operations on its values While you are viewing the data, you can also confirm that the name of the equipment_id column changed thanks your earlier board.
+
+

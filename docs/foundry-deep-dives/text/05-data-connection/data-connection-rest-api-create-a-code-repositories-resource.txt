@@ -1,0 +1,34 @@
+
+
+
+
+Lessons
+
+Create a Code Repositories Resource
+Step 1: Configure a new Code Repositories file
+To retrieve data from REST APIs, you'll need to write a Foundry Transform, which requires a Code Repositories file to store your logic. Follow the below steps to create one.
+1. Click on Applications in the Foundry menu bar.
+
+2. Choose Code Repositories from the options presented. This action will take you to the Code Repositories landing page.
+
+3. To create a new Code Repository, click on + New repository.
+4. Click Find and select repository type 5. Select Pipelines > Python
+
+6. Name your new repository, for example, REST API Calls (your_username) , replacing (your_username) with your actual username.
+7. Select the location for your repository, which should be the same Project you have been using for the earlier steps.
+8. If you are given a choice, choose to Open with Code Repository (even though VS Code is the recommended option, for the purposes of this course we are going to use Code Repository)
+9. Click on Initialize repository to create the repository.
+
+10. Select the Distributed transform (Spark) option for your repository.
+
+11. Add an output variable in the bottom left of the modal. Set the Output dataset location in the same folder we have been working in.
+12. Name the file "plants", click Save, and then click Add (leave the Parameter name unchanged.) This name and associated path will represent this dataset in code.
+13. Now that we've configured the 'Outputs' section, click Generate file.
+
+14. You can now view your new Code Repository.
+
+Note: If you see the following message: "A new commit has been made to this branch that may conflict with your uncommitted changes" at the top of the repository, click 'Merge in Changes' to merge the changes as soon as possible to prevent further issues.
+Learn more
+Code Repositories External transforms Python Transforms
+
+

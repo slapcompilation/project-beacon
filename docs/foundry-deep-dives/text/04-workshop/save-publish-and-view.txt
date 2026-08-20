@@ -1,0 +1,34 @@
+
+
+
+
+Lessons
+
+Save, publish, and view
+Step 1: Save your work
+1. Click the blue Save and publish button in the top-right of the screen.
+
+Step 2: Switch to View mode and back
+So far, you've been working in workshop Edit mode. Edit mode is for making changes to the application. Operational users will instead open the application in View mode.
+1. Click the grey View button at the top-right of the screen
+
+View mode shows only the application and none of the application building interfaces, such as the variable panel and widget configurations. The URL for an application is different in View and Edit mode. You should send your operational users the URL for the application in View mode.
+
+2. Return to Edit mode 1. Click the three grey dots at the top center of the screen 2. Click Edit
+Users can only open an application in Edit mode like this if they have the Editor role on the resource. If they only have Viewer permission, they will see only View mode.
+Step 3: Add an application title
+Previously, you renamed the workshop application resource to Shipment Operations Center . This is akin to naming a document file in Foundry. However, the application UI itself does not yet have a title. This was fairly obvious in View mode. Let's add an application title. That small change will then set us up to talk about versioning. 1. Click on the horizontal header section that runs along the top of the application
+This will open the header configuration on the right-hand side of the screen 2. Configure the header
+1. TITLE: Shipment Operations Center 2. ICON: Search package in the drop icon selector and select the box icon under the file
+section 3. COLOR: Toggle on and select Cerulean 3 3. Click Save and publish
+
+Step 4: View previous versions
+When a workshop application is saved, a new version is created. Previous versions are immutable. You can see the version number below the application title, in the top-left of the screen. In the image below, the version is 0.3.0 . Your version may be different depending on how many times you have saved your application.
+In general, you should save your work whenever you have made meaningful changes. Work that isn't saved can be lost if the window is closed.
+By default, saving a workshop application will also publish it. Users of the application will see the published version of the application. The blue tick beside the version number in the image above indicates that this is the published version of the application. 1. Click on the blue version number
+This will open the version interface where you can see the version history of the application. You can also see which version of the application is currently published. This will be latest saved version because automatic publishing upon saving is enabled by default. This setting can be disabled at the top of the versions interface to make saving and publishing two separate steps. From this interface, you can also view
+
+previous versions of the application and revert the current version to a previous version. This means that published features can be quickly rolled back if needed--for example, if a bug was introduced.
+2. Close the Versions dialog box
+
+

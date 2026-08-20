@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Protecting Master Branch
+Protected branches can only be modified via pull requests. Make a branch protected if you have multiple users contributing to it and want to ensure that code is reviewed before it's merged into this branch.
+Step 1: Protect master branch
+1. In your code repository, open Settings from the top navigation bar 2. Select Branches 3. Choose the master branch as one of the Protected branches
+Important note: if you don't see the Protected branches option, it's likely due to missing permissions. To overcome this, you can either: 1. try to change your Code Repositoriy permissions to Owner (this should be possible
+if it is located in your own project), 2. ask an admin to give you privileged owner access to this repository, or 3. just skip this part. You will still be able to proceed with the tutorial even if your
+master branch is not protected.
+
+4. In the popup that shows, leave everything as is and click Save.
+
+5. Your settings will update and show as selected: 6. Return to your Code via the top navigation bar.
+
+

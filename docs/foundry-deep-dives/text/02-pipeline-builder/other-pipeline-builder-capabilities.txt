@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Other Pipeline Builder Capabilities
+Pipeline Builder stands out for its versatility, allowing you to create sophisticated data flows beyond the basic tasks of data cleaning and preprocessing.
+Streaming
+One of the notable features of Pipeline Builder is its support for streaming pipelines, suitable for time-sensitive scenarios, where data needs to be processed with minimal delay. Streaming pipelines process data in (almost) real-time as it is ingested, being processed on average in under 15 seconds.
+For more information about how to create a streaming pipeline, please refer to the Foundry Streaming Documentation.
+
+Outputting to ontology
+In addition to its data processing capabilities, Pipeline Builder also provides options for the destination of the output. While the creation of datasets is a common outcome, Pipeline Builder can also direct the output straight into an ontology. In Foundry, ontologies represent a comprehensive knowledge graph that encapsulates the relationships and connections between various data entities. Directing output to an ontology facilitates the immediate use of structured and relationally rich data for complex analyses and applications. For more information on how to output to the ontology, please refer to the Foundry Ontology Outputs Documentation.
+While this course primarily introduces the foundational elements of data pipeline creation, it's important to be aware that Pipeline Builder's functionality extends to advanced features such as streaming and ontology outputs. These features offer pathways to integrate your data pipeline more deeply with Foundry's extensive data management ecosystem.
+
+

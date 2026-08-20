@@ -1,0 +1,125 @@
+
+
+
+
+Lessons
+
+Mark multiple shipments for consolidation using functions
+In the previous part of the course, you used an action type to mark a shipment as eligible for consolidation. This action type was defined using Ontology Manager's pointand-click interface. This point-and-click interface provides a quick and easy way to configure simple actions.
+To implement more involved logic in action types--such as looping over a set of objects, conditional functionality, or complex aggregations--you can use Functions. Once you've authored the function, you can can create a function-backed action type. In addition to backing actions, functions can be leveraged directly from a Workshop application to compute object sets or metrics.
+Functions in Foundry are written in TypeScript or Python. They provide an expressive framework to interact with and leverage the Ontology.
+In this last hands-on part of the course, you will create a function-backed action type that allows marking multiple shipments as eligible for consolidation at the same time.
+Step 1: Open your course-specific folder
+1. Navigate to your Deep Dive: Building your first application folder You can do this by selecting the Files icon from the Foundry side bar or by selecting the directory from the breadcrumbs at the top-left of the Edit screen in Workshop.
+
+(Optional) If you previously created subfolders to organize your work, you can create a new Logic subfolder now and move into that subfolder.
+Step 2: Create a new Code Repository
+A Code Repository is used to author and store code in Foundry. This can be for a variety of different purposes, such as writing data pipelines using Spark (as a pro-code alternative to Pipeline Builder), transforming data in code (such as when you want to leverage third-party code libraries or are transforming non-tabular schema-less datasets), implementing AI models, and writing functions.
+Code Repository offers many starting templates depending on your use case. Here, we'll create a Functions: Typescript repository.
+1. In the top-right of the screen, click New > Code repository
+
+2. Select Functions as the repository type 3. Select TypeScript Functions as the language
+
+4. Name the code repository: Functions 5. Click Initialize repository
+Step 3: Navigate to index.ts
+Once the repository has been initialized: 1. Expand the folder tree on the left: functions-typescript > src
+
+2. Select the index.ts file This will open this existing code file in the central panel that defines a MyFunctions class. Note that there is a second index.ts file within the __tests__ subfolder, do NOT edit that file.
+Step 4: Import the relevant object type
+Before functions written in a Code Repository can leverage types defined in the Ontology, those types have to be imported into the Code Repository. In the same way, it's possible to import other Foundry resources, such as models, data sources, or other functions. The function you are about to write, much like the action type you implemented previously, will modify the Status property on Shipment objects. To implement this behavior, you will need to import the Shipment object type. 1. On the left side of the screen, click the Resource imports icon 2. Click the blue Add button 3. Select Object Types 4. If prompted, select the relevant Ontology from the drop-down
+
+This should be the same Ontology you selected earlier in this course when defining your object types
+An import pop-up will then appear for selecting ontology elements to import. 5. Search for and click the + icon beside your <username> Shipment object type 6. Click Save
+
+You should now see your Shipment object type listed within the Resource imports section. This means the object type can be used within functions.
+
+Step 5: Confirm API names
+You can also use this Resource imports view to determine how to refer to your object type and its components from within your code.
+1. Select your <username> Shipment object type in the Resource imports section You should now see the object type API name (UsernameShipment in the image below) as well as the property API names (such as shipmentId for Shipment Id or status for Status) .
+
+Step 6: Update your function code
+You'll now modify the code within the index.ts file. The following instructions will walk you through each change with an explanation of what that code change does. If you get stuck, this section ends with the complete contents of the modified file that you can copy all at once.
+1. Update the import statements at the top of the file to the lines below:
+import { OntologyEditFunction, Edits } from "@foundry/functions-api"; // TODO: Update based on the API for your Shipment object type import { ObjectSet, UsernameShipment } from "@foundry/ontology-api";
+The first line of this code imports two decorators from the core Functions API:
+OntologyEditFunction is used to decorate a function to indicate that it is a Foundry Function that makes edits to the ontology.
+
+Edits is another decorator used alongside OntologyEditFunction to indicate the specific object types that the function edits The second line imports: The ObjectSet type for interacting with object sets in Functions Your <username> Shipment object type As noted in the TODO comment, you must update the API name to match your personal object type.
+2. Replace UsernameShipment with the API object name you confirmed in Step 5.1 above This name is case-sensitive.
+If you see errors while changing the import statement or other elements of the code, check that your code is correct and that the relevant API names have been updated according to your object type. You can also try refreshing your browser tab. If the errors persists, you can fully refresh your functions workspace by clicking on the blue Workspace connected bar at the bottom-left of the screen and clicking the grey Rebuild button. You should not need to do this multiple times.
+3. Update the class name from MyFunctions to ShipmentOperationsCenterFunctions
+export class ShipmentOperationsCenterFunctions {
+4. Add a new markShipmentsForConsolidation function block within your class
+
+Insert this code immediately below the class line that you just edited above. As noted in the copied code, you will need to update your object type name in two places by replacing your username.
+// TODO: Update based on the API for your Shipment object type @OntologyEditFunction() @Edits(UsernameShipment) public markShipmentsForConsolidation(shipments: ObjectSet<UsernameShipment>): void {
+}
+This code contains the function signature: the function's name, return type, parameter names, and parameter types. Specifically:
+The function name is markShipmentsForConsolidation The function takes a single input parameter: an object set of Shipments The function has a return type of void (nothing), since it will make changes to the ontology rather than returning a value. Functions used in function-backed action types cannot return anything and so they must have a return type of void . The function must be public so it can be called from other parts of Foundry, e.g. Workshop applications
+Above the function signature are the two decorators you imported earlier:
+The function needs to be decorated with @OntologyEditFunction() so it is recognized as a function that edits the ontology The function needs to be decorated with @Edit(<Username>Shipment) so it is recognized as a function that edits, specifically, objects of type <Username>Shipment
+5. Add two lines of logic to the body of your function
+Here is the complete function:
+
+// TODO: Update based on the API for your Shipment object type @OntologyEditFunction() @Edits(UsernameShipment) public markShipmentsForConsolidation(shipments: ObjectSet<UsernameShipment>): void {
+const allShipments = shipments.all();
+allShipments.map(shipment => shipment.status = "Eligible for Consolidation"); }
+The two new lines here:
+Materializes the shipments object set that is passed into the function into a list of shipments using the .all() function Iterates over that list of shipments and changes the status property of each one to Eligible for Consolidation
+Thus the status of all the shipment objects passed in via the object set will be updated to reflect that each shipment is eligible for consolidation.
+Because you can delete the original /* commented out */ code, your full index.ts file now should look like this (except with your Username updated in 3 places):
+import { OntologyEditFunction, Edits } from "@foundry/functions-api";
+// TODO: Update based on the API for your Shipment object type import { ObjectSet, UsernameShipment } from "@foundry/ontology-api";
+export class ShipmentOperationsCenterFunctions {
+// TODO: Update based on the API for your Shipment object type @OntologyEditFunction() @Edits(UsernameShipment) public markShipmentsForConsolidation(shipments: ObjectSet<UsernameShipment>): void {
+const allShipments = shipments.all();
+allShipments.map(shipment => shipment.status = "Eligible for Consolidation"); }
+}
+If you want to, you can remove the two // TODO lines.
+
+Step 7: Preview your function output
+Code repositories allows testing your functions as you iterate on them. 1. Click on the Functions tab at the bottom of the screen 2. Under Live Preview, select the markShipmentsForConsolidation function you have just
+created This will bring up a form to provide the required input parameters to run the function interactively and see the effect they would have on the Ontology. Edits are not written back to the Ontology when running functions from within a code repository.
+3. Click into the shipments input field This will create an object set of all Shipment objects. Since there are not very many objects, you do not need to reduce the scale of the the input before testing.
+
+4. Click the blue Run button on the right hand side of the Functions panel The results should show that this simple function implements the desired functionality: The status property of all the objects passed in is being updated.
+5. Hide the lower panel by clicking on the Functions tab again
+
+Step 8: Commit and publish your code
+You're now ready to commit your code and release a version of this function so that it can be used from within an action type. 1. Click Commit in the top right of the screen 2. Click the blue Commit button that then appears on the left-hand side of the screen
+3. Click the Tag version button that appears in place of the initial commit button 4. Select Minor version in the popup that appears 5. Click Tag and release
+
+6. Click view on the release toast that appears at the top of your screen to monitor the release process Alternatively, you can monitor the release from your monitored tasks tracker towards the top-right of your screen.
+Before your function can be used, checks are run and your code is compiled and published under the version number you tagged it with. While this checks and release process is running, it will be colored blue. Once it has completed successfully, it will be
+
+colored green.
+Step 9: Define a function-backed action type
+Once the release has successfully completed: 1. Open the Ontology Manager application 2. Click New > Action type 3. Set the Action type to Function using your function
+1. Select the Function tab 2. Search for your markShipmentsForConsolidation
+If there is more than one, find the one that edits your <username> Shipment object type. You can see a preview here of the function code you just wrote. 3. Click Next
+4. Set the Metadata 1. Name: Mark Multiple [<username>] Shipments for Consolidation 2. Description: Sets Status of the shipments to "Eligible for Consolidation" 3. Leave the icon as the default icon 4. Click Next
+5. Set the Submission criteria to allow you to execute the action
+
+1. Select the User tab 2. Select your own user account 3. Click Create
+The screen should now show the full action type editor. 6. Save your ontology changes
+1. Click Save in the top right 2. Click Save to ontology 3. Click Save changes
+The action type has now been added to the Ontology and can be used in applications.
+Step 10: Revise your Workshop app to use the new action type
+1. Open your Workshop app in Edit mode If you already had it open in another tab while defining your new action, you may need to refresh the page to pull in the Ontology changes
+2. Select your button widget to open its configuration 3. Click into the Mark Shipment for Consolidation configuration 4. Under ON CLICK, change the action called to your new Mark Multiple [<username>]
+Shipments for Consolidation 5. Under PARAMETER DEFAULTS, set parameter to Shipments and then local default value
+to Selected Shipment 6. Change the button text to reflect that it supports multiple shipments: Mark Shipments
+for Consolidation We will make this true in the steps below
+
+7. Test that you have configured the action parameter correctly 1. Select a Shipment in the Gantt chart 2. Select and then click the button widget to call the action 3. Confirm that you see 1 [<username>] Shipment listed 4. Click Cancel
+
+While the action is now ready to take a set of Shipments, the existing Gantt chart configuration does not allow multi-select, so selecting multiple shipments does not work yet. 8. Open Gantt chart configuration 9. Click into the Layer configuration 10. Under OUTPUT, toggle on ENABLE MULTISELECT
+To test this, hold down Ctrl or Cmd when selecting shipments in the Gantt chart. The number of objects in the Selected Shipment object set should change accordingly You can optionally edit the variable name to be Selected Shipments (plural)
+11. Save and publish your application
+Step 11: Use your new action
+1. Open your application in View mode 2. Filter to the shipments leaving the Houston Facility and arriving at the Chicago Facility. 3. Find a pair of shipments that can be consolidated
+For example, Shipment 62 (4,000 units with a 10,000 unit capacity) and Shipment 12 (8,000 units with a 15,000 unit capacity) can be consolidated. 4. Multi-select the two shipments 5. Click the Mark Shipments for Consolidation button. In the action form popup, note that the input contains 2 shipment objects.
+
+6. Click Submit Note the successful execution of the action!
+
+

@@ -1,0 +1,17 @@
+
+
+
+
+Lessons
+
+Execute your action
+Let's confirm that your new action works.
+Step 1: Assign a root cause to a flight alert
+1. Open Object Explorer 2. Search for your [<username>] Flight Alert object type
+This should open an exploration of all your Flight Alerts 3. Click on one Flight Alert object in the Results list on the right
+This will open a single Flight Alert object. You should see its many properties and a link to the corresponding Flight object. 4. In the top right, select Actions > [username] Assign root cause If you don't see the Actions menu, make sure you've saved your ontology changes and it has finished indexing those changes. If you already had this Object Explorer session open before making those changes, refresh the page to ensure it is in sync with the latest Ontology.
+
+5. Enter an example root cause 1. Such as: Waiting for gate assignment upon arrival 2. Click Submit
+You should see your change reflected on in the Root Cause property of the object view.
+
+

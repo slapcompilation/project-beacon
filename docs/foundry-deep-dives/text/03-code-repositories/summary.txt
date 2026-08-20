@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Summary
+Congratulations, you've completed the Deep Dive: Transformations in Code Repositories! You have created a PySpark Transform including casting and filtering, used joins and aggregations, worked collaboratively with potential colleagues using Branching and seen how Code Repositories interact with other Foundry tools like Data Lineage.
+Looking to continue learning?
+Explore the Data Engineer Training Track for more courses and resources related to this course.
+
+

@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Accessing the Checkpoints Application Step 1: Locate the Checkpoints application
+1. Click Applications from the left-side panel in Foundry.
+
+2. Navigate to the Security & governance category under Applications to access the Checkpoints application. This application allows you to configure checkpoints and review checkpoint records.
+
+

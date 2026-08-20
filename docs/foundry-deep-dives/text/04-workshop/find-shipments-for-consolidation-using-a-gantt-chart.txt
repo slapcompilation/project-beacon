@@ -1,0 +1,27 @@
+
+
+
+
+Lessons
+
+Find shipments for consolidation using a Gantt chart
+The application now provides enough information and detail to understand the shipment arrivals. The next step is to make the application operationally useful: Allow the user to make and capture data-driven decisions that create value within the organization.
+An easy optimization within the supply chain is to find shipments that are departing the same location on the same day, arriving at the same location on the same day, and then see if one of the vehicles has enough capacity to take both shipments. In this situation, the two shipments could be merged into one to reduce costs and administrative overhead and therefore increase supply chain efficiency. A Gantt chart showing shipment schedules can be used to easily surface this data to the user so they are able to merge such shipments.
+Step 1: Add tabs to the lower section
+1. Select the section containing the Object table (Shipment Details) 2. Toggle on ENABLE TABS 3. Scroll down a little and rename the two tabs
+1. Rename Tab 1 to Product Shipments 2. Rename Tab 2 to Schedule
+
+Step 2: Add a Gantt chart widget
+1. Switch to the second (Schedule) tab 2. Click Add widget 3. Search for and add a Gantt chart
+Step 3: Configure the Gantt chart
+Like other Workshop chart widgets, Gantt charts are made up of layers of data.
+
+1. Under DATA LAYERS, click into Layer 2. Under INPUT: OBJECT SET, Select object set variable > Filtered Shipments 3. Set the EVENT START DATE PROPERTY to Departing Origin Date 4. Set the EVENT END DATE PROPERTY to Arriving Destination Date
+The Gantt chart now shows the shipment schedule for the shipments included in the filter. Set the origin location to the St. Louis Facility and the destination to the New York Facility to see the schedule of shipments between those two locations. Shipments that have the same dates are easy to identify on the Gantt chart timeline because they the same length. These are potential candidates for consolidation.
+
+However, the Gantt chart doesn't yet provide the adequate information for the user to take action. It doesn't provide details on the current total unit quantity for each shipment or vehicle capacity, so the user cannot make a decision to flag shipments for consolidation.
+Step 4: Add properties to a hover tool tip
+1. Under DISPLAY AND FORMATTING > PROPERTIES TO SHOW ON HOVER, click Add column to add: 1. Total Unit Quantity 2. Vehicle Unit Capacity
+Now that the total unit quantity within the shipment and the capacity of the vehicle making the shipment appear on the Gantt chart, the user can locate shipments for consolidation.
+
+

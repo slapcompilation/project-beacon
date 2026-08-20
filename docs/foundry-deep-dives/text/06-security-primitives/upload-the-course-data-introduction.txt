@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Introduction
+In this section, we will swiftly ingest the data necessary to complete all three sections of this training module. Here's an overview of the dataset and its importance:
+Notional Employee Data: The dataset comprises simulated employee information. Organizations often need to restrict access to specific rows based on user permissions in order to protect sensitive data.
+The primary objective of this module is to demonstrate how organizations can utilize restricted views to safeguard confidential information. For a comprehensive exploration of additional data protection methods, including obfuscation techniques and purpose justifications for employee software usage, please refer to the course "Deep Dive: Data Protection Tools in Foundry."
+Are you ready to embark on your data governance journey? Let's begin!
+
+

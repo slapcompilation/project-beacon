@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+View Imported Data
+Step 1: Open imported data as a Foundry dataset
+1. To access the newly-created dataset, click on Actions and then select Open. This action will take you to the dataset view.
+
+2. In the dataset view, you will be able to confirm that the file has been successfully imported. Since the imported file contains structured data, Foundry is capable of displaying it in a tabular format. To facilitate this, click on the Apply a schema button.
+3. Once the schema is applied, you will see the data presented in an organized table, indicating that it is now ready for use within Foundry.
+
+You've now successfully completed the steps to import data to Foundry from an S3 source! Your resulting Foundry dataset can now be used as an input into pipelining and analysis tools, as well as the Ontology.
+Learn more
+Datasets
+
+

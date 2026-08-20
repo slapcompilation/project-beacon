@@ -1,0 +1,46 @@
+
+
+
+
+Lessons
+
+Create Your First Transform
+In this step, you will create your first data transformation using Code Repositories. You will add the claims_raw dataset as your input and create an identity transform. You will preview your dataset at the end of this lesson.
+Step 1: Create a new Code Repository file
+1. If the file structure on the left hand side is not yet expanded, hover over the transformspython line, click the three dots and choose Expand all.
+
+2. Hover over the datasets line in the file directory 3. Click the three dots.
+
+4. Select New File. 5. Name the file "claims". 6. Choose the Python Transformation(*.py) ending. 7. Click Create.
+Code Repository will have created a simple Python file with an example input and output file.
+
+8. As a warning, you may see an amber bar appear above the file name in your repository with the following message, A new commit has been made to this branch that may conflict with your uncommitted changes. This message can be ignored as we will be committing our changes later in this tutorial.
+Step 2: Define your input and output datasets
+Below is a comparison of your code before and after the instructions laid out in this step. Before this step:
+
+# from pyspark.sql import functions as F from transforms.api import transform_df, Input, Output
+@transform_df( Output("/Palantir/learning (jsmith)/Code Repo Training/logic/datasets/claims"), source_df=Input("SOURCE_DATASET_PATH"),
+) def compute(source_df):
+return source_df
+After this step:
+# from pyspark.sql import functions as F from transforms.api import transform_df, Input, Output
+@transform_df( Output("/Palantir/learning (jsmith)/Code Repo Training/data/prepared/claims"), source_df=Input("/Palantir/learning (jsmith)/Code Repo Training/data/raw/claims_raw"),
+) def compute(source_df):
+return source_df
+1. First, we need to define the input dataset in our file. In line 7, replace SOURCE_DATASET_PATH with the path of your claims input dataset, previously saved in your raw folder. 1. Open the claims_raw dataset in a new tab 1. Hold cmd/ctrl and click the Code Repo Training folder in your file path at the top
+2.
+3. Click on data
+
+4. Click on raw 5. Click on claims_raw 2. copy the Location
+3. paste the path in your code as INPUT
+4. Foundry suggests to you the correct file to select 5. Click Replace paths with RIDs if this shows. 2. Second, we define our output dataset. Copy the path to your prepared folder which you created before.
+
+In line 6 of your claims.py file, paste the copied path in the Output("") brackets inbetween the quotes "" Extend the path by a /claims . This will be your newly created dataset originating from this transform. Your code file should currently look as follows:
+Step 3: Preview your dataset
+1. Click the >> Preview button in the top bar to view your output dataset. 2. Preview produces a sample output without committing changes, running checks, or
+materializing any datasets in Foundry. Computing preview of output may take a few moments.
+
+3. Your output dataset is currently simply a copy of your input dataset, because - as you can see in the code - the compute function currently returns the source as a result. We will change this to a more meaningful transformation in the next steps
+4. Please note that we currently have a data quality issue in our input dataset: the values in the 'date' column are surrounded by '###' and hence cannot be stored as a date type. We'll clean this in the next lesson.
+
+

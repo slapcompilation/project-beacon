@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Connecting an External System with Foundry
+Establishing a connection between an external system and Foundry requires making sure both systems can talk to each other.
+By default, data connections are executed in Foundry (Foundry Worker) and networking is controlled via Network Egress Policies. We mainly distinguish between two categories of networks:
+public networks that can directly be reached from Foundry - this is typically for systems accessible over the Internet, such as cloud storage accounts or SaaS REST APIs. private networks within your organization - this is typically for on-premise systems such as databases, ERPs or custom REST APIs.
+
+For public networks, you will need to configure Direct Connection network policies in Foundry, which will allow Foundry to directly initiate requests to data sources. Note that in this scenario, the external system will need to accept inbound connections from Foundry.
+For private networks, you will need to configure Agent Proxy network policies associated with Data Connection Agents. Agents are downloadable programs running on a machine within your private organizational network and managed from Foundry's Data Connection interface. They communicate with Foundry via encrypted, unidirectional
+
+outbound requests from the private network into Foundry. Using an Agent Proxy network policy allows for the traffic to be transparently proxied between Foundry and the private system. Note that in this scenario, the external system will need to accept inbound connections from the Agent but not from Foundry.
+For the purpose of this tutorial we will be connecting to data sources using the Direct Connection method.
+Note: there exists an alternative to run data connections on agents directly, called Agent Worker, in which case networking is entirely managed on the Agent machine (no network policies in Foundry). Using Agent Worker is discouraged due to the original overhead of guaranteeing it has the right software packages to execute the data connections and limitations of the machine hardware.
+Learn more Data Connection Architecture Configure networking connectivity Set up an Agent
+
+

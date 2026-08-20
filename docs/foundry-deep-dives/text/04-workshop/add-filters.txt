@@ -1,0 +1,39 @@
+
+
+
+
+Lessons
+
+Add filters
+Currently your application shows the total number of shipments arriving each day across all locations. Let's make the application useful to location-specific users by adding the ability to filter to shipments arriving to and departing from specific locations.
+Step 1: Add Filter list widget
+1. In the empty left section, click Add widget 2. Search for and select Filter list
+
+Step 2: Configure the Filter list
+In the Filter list widget configuration in the right side panel: 1. Under INPUT DATA: OBJECT SET, Select object set variable > All Shipments
+
+2. Add an Origin Location Name filter 1. Under FILTERS CONFIGURATION: FILTER LIST, click Add filter 2. Select Origin Location Name
+3. Repeat to Add filter for each of the following properties: 1. Destination Location Name 2. Departing Origin Date 3. Arriving Destination Date 4. Total Unit Quantity
+4. Under OUTPUT DATA: FILTER OUTPUT, rename the "Filter list 1 Filter output" variable to Shipments Filter
+To recap what you just did here:
+
+You set the input variable of the widget to the set of All Shipments. You defined which Shipment properties a user can use to filter those Shipments. You named the output variable Shipments Filter. This is because the Filter list widget does not produce an object set, but an object set filter definition. This design gives you greater flexibility: You can either combine multiple filters from different widgets onto one object set or reuse the same filter on multiple different input object sets.
+At this point, if you apply a filter on the Filter list widget (such as setting the Origin Location Name to St. Louis Facility), you will see the other visualizations change in that Filter list, but the Chart on the right will not change. That is because the Chart's input data is still set to All Shipments.
+Step 3: Create a Filtered Shipments variable
+1. Click into the Variables tab 2. Click the + to add a new variable 3. Create an Object set > Object set definition 4. Rename the new variable to Filtered Shipments 5. Set Starting object set to the existing All Shipments variable 6. Filter > Using a variable > Shipments Filter 7. Click the X in the top right to close the variable definition box
+
+Then you can use this new variable to reflect the changes made on the Filter list.
+Step 4: Switch to the Filtered Shipments variable
+1. Select the Chart: XY widget in the right section This will open its configuration in the right side panel
+2. Click into the Layer (bar) configuration 3. Redefine the input variable to Filtered Shipments
+1. Under DATA INPUT, click the X to clear the "All Shipments" value 2. Select object set variable > USE AN EXISTING VARIABLE: Filtered Shipments 4. Re-enter the layer's configuration 1. Under X AXIS PROPERTY: Select a property > Arriving Destination Date 2. Set BUCKETING: Day
+
+Step 5: Test the filtering behavior
+If you now select some filters in the Filter list on the left, the Chart on the right should update accordingly. For example, suppose we wanted to see the days on which shipments leaving the Houston facility will arrive at the New York facility. This view will also show how many such shipments will arrive each day.
+1. Clear any existing filters by pressing the blue Clear label next to any selected filter property in the Filter list widget
+2. Under ORIGIN LOCATION NAME, select Houston Facility 3. Under DESTINATION LOCATION NAME, select New York Facility
+You should then see shipments arriving on 7 different days, with the most shipments (4) arriving on 23 April.
+
+Now would be a good time to Save and publish your Workshop module again.
+
+

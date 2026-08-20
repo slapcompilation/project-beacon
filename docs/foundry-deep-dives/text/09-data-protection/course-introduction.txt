@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Course Introduction
+This course is continuously updated. If you have feedback, please email trainingfeedback@palantir.com.
+Data governance and protection measures play a pivotal role in ensuring that data is managed, accessed, and utilized consistently and securely. Effective data governance frameworks establish policies and procedures that dictate how data is classified, stored, and protected, ensuring compliance with regulatory requirements and internal standards. By implementing robust data governance practices, organizations can enhance data quality, maintain data integrity, and foster a culture of accountability and transparency. Broadly speaking, data governance includes both security tools, such as access controls and data markings, as well as data protection tools. For more detailed information on security tools, we recommend consulting the documentation. This section will specifically focus on data protection tools.
+We equip our products with off-the-shelf tools that enable data stewards to effectively improve their governance posture at key points in the data lifecycle, including at the initial stage when data is integrated into our customer's instance of the Palantir platform. By prioritizing data governance alongside security, organizations can ensure their data assets are safeguarded and leveraged effectively to drive innovation and achieve strategic objectives. Data protection tools such as Checkpoints, Sensitive Data Scanner, and Cipher are applications within Foundry. These tools allow organizations to set highly customizable controls around actions within the platform to enhance data governance best practices.
+Key Functions of Data Protection Applications
+Data protection applications help organizations perform various tasks, including:
+Implementing Purpose Justification: These tools allow for the justification of access to sensitive information. Running Scans: Projects can be scanned to ensure no sensitive information is left unsecured, reducing the risk of broader data access. Enhancing Data Minimization: Data can be encrypted without inhibiting critical analysis, promoting effective data minimization.
+
+Promoting Transparency: Easy-to-use tools provide administrators and compliance officers with clarity over sensitive actions taken across the platform, in a customizable manner.
+By the end of this course, you will be proficient in using these data protection tools to enhance data security and compliance within your organization.
+To do many of the tasks in this course you will need to have access to the Data Governance Officer role in Foundry - contact your administrator to be added to the group.
+
+

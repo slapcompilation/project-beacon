@@ -1,0 +1,42 @@
+
+
+
+
+Lessons
+
+Advanced Transforms: Clean the Customers Dataset
+In this section, you will analyze the shape of your data to identify specific cleaning and processing requirements. Datasets can vary in complexity, and understanding the structure and characteristics of your data is crucial for determining the appropriate cleaning steps.
+Preview in Pipeline Builder is a great tool to identify aspects of your data that need to be cleaned or transformed. By utilizing this preview functionality, you can gain insights into potential issues or inconsistencies within your data, allowing you to make informed decisions about the necessary cleaning processes.
+Additionally, you will walk through less straightforward transformations, to mimic real world examples whereby raw data can come in various shapes. This section will allow you to deepen your understanding of the Pipeline Builder transform boards, by constructing complex transformations and nesting the results.
+Step 1: Explore customers dataset using Preview
+1. Click on the customers dataset to open Preview.
+
+2. View stats on the customer_id column.
+3. Notice the values of some of the primary key are not unique, meaning that there are duplicates in the data.
+
+4. Filter to those duplicated values to decide on the deduplication strategy. To do this, select the required rows (you can click one at a time or use shift + click to highlight multiple rows at once) and then click Keep Values.
+5. Click the X in the top right to go back to the preview of the dataset to see what values remain after filtering
+
+Step 2: Drop duplicates
+1. Similarly to the previous step, create a new transform to clean the raw customers dataset.
+2. Give the transform a relevant name. 3. Search for the Filter rows transform.
+
+4. Filter the rows where where email, name and address are null. Click Apply.
+Step 3: Clean the address field
+Notice that the address field is in JSON format and doesn't convey the information easily for the end user. We can use Pipeline Builder transforms to create a clean string with the street + city + state format. You will create a nested Transform, to flatten the struct defined by the address JSON. 1. Search for the Flatten struct transform.
+
+2. The Flatten struct transform requires a struct type input (a type of data format), so you need to parse the JSON string to a struct.
+3. Select the Parse JSON as Struct expression.
+4. Paste in the below example address to infer the schema. {"city": "South Isom", "street": "46124 Jonathan Centers", "state": "Arizona"}
+5. The schema should be inferred as below. Under JSON select the address property, as that contains our JSON string
+
+6. Your final Flatten struct transform should look similar to the below. You may need to change the underscore in Separator to a space:
+7. This board creates three columns, city, state, and street. Concatenating them into a new address column will result in a readable string column. For now, click Apply.
+
+8. Search for the Concatenate Strings transform and select the city, state, and street columns. Add , as the Separator.
+9. Name the output column address. 10. Click Apply.
+Step 4: Drop unnecessary columns
+1. Search for the Drop Columns transform. 2. Select city, state, and street columns. 3. Click Apply. 4. Make sure you apply all changes and click Close to take you back to the screen with the
+dataset nodes.
+
+

@@ -1,0 +1,39 @@
+
+
+
+
+Lessons
+
+Performing a Transform on Your Branch
+In this lesson, we will create another transform in your existing code file on a new branch.
+Step 1: Create new branch
+1. Click the little icon with the + to the right of your Branch master dropdown, by which you Create a new branch.
+
+2. Select Code Repositories branch, if presented with the choice 3. Name your branch following a descriptive pattern, e.g. <your_username>-aggregate-
+claims-per-line-of-business 4. Click Create
+
+5. You will now land on your code view showing the newly created branch.
+
+Step 2: Create your transform
+Remember that we wanted to find the average of all paid out claims by line of business. We will use the same code file as in the previous section, claims.py.
+Your file should look as follows at this point in time:
+
+1. Replace line 24 with the following code to aggregate claims by line of business.
+
+# Compute average cost per LOB claims_aggegrated = claims.groupBy("line_of_business").agg(F.avg("claim_value").alias("av
+
+return claims_aggegrated
+
+
+
+
+
+This will make your file look like this:
+
+2. Hit Preview in the top to run a preview of your results. 3. Confirm that you see a new table with two columns: line_of_business and avg_claim_cost
+4. Commit your work to save it, on your feature branch Click Commit in the top right corner
+
+Name your commit, e.g. aggregating claims
+5. Open Checks to see that your commit has run successfully Click Checks in the top navigation bar Confirm that the first check in line succeeds
+
+

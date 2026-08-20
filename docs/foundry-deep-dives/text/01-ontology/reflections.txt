@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Reflections
+Hopefully this experience of using Object Explorer has shown how easy it is to work with Foundry data in real-world terms. Without searching for any backing tables, thinking about join keys, or using a query language, you were able to quickly learn a great many details about Fresh Air's operations, such as:
+Their IATA and ICAO codes The make-up of their aircraft fleet (2 models of Bombardier aircraft) Although Fresh Air services 84 different airports, nearly all of their routes start or end in one of three three hub airports (CLT, DCA, and PHL). The only exception is the BNARDU/RDU-BNA route. If you completed the challenge puzzles, you were able to find highest airport and confirm that it has a one runway that is long enough to accommodate Fresh Air's aircraft.
+Object Explorer is a quick way for any user, regardless of technical background, to get started using objects. Using only point-and-click controls, you can search for single objects of interest, follow links to related objects, and explore a singe object set in detail.
+Object Explorer is only one place were objects are used in Foundry.
+For more complex object-based analysis--such as doing richer numerical analysis, building visualizations, deriving timeseries, comparing multiple object sets, or building interactive reporting dashboards--you should consider Quiver instead. On the other hand, if you have a regular operational workflow, building a dedicated Workshop application (as you did as part of the earlier End-to-End Speedrun course) will provide users a smoother and more tailored tool than relying on Object Explorer alone.
+Now that you have some idea why Fresh Air's ontology is useful to individual end users, let's see why it's valuable to data engineers and the organization as a whole.
+
+

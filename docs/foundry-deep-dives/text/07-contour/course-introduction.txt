@@ -1,0 +1,20 @@
+
+
+
+
+Lessons
+
+Course Introduction
+This course is continuously updated. If you have feedback, please email trainingfeedback@palantir.com.
+About Contour
+Contour is a powerful data analysis and visualization tool on the Palantir Foundry platform. It is designed to handle complex data transformations and visualizations with ease, providing a user-friendly interface for a broad variety of analyses.
+Contour is structured to provide a linear sequence of dependent blocks of logic that operate on data. These data operations can include filtering, transforming, and visualizing data. The linear sequence of data operations can be organized into multiple paths. By structuring your analysis into paths, your analysis is easily interpretable and manageable.
+Contour helps you perform various data analysis tasks, including:
+Data cleaning and transformation Data visualization Save analysis results as a new dataset for use in other Foundry tools. Leverage the Contour expression language for more advanced transformations and aggregations. Creating and managing dashboards
+When to Use Contour vs. Other Tools
+Contour: Use Contour when you need to perform data cleaning steps, generate transformations, and build visualizations on datasets in the Foundry platform within a single tool. It is ideal for creating ad-hoc analyses and for generating regular reporting materials such as dashboards and embedding visualizations in Notepad. Quiver: Use Quiver for advanced data exploration and analysis on Ontology objects, including for time series data. It is suitable for users who are looking to embed analysis in Workshop applications. Pipeline Builder: Use Pipeline Builder for building and managing production pipelines in a low- to no-code interface that provides real time feedback. Users can integrate data,
+
+create business logic transformations, and define a rigorous release process for production pipelines. Code Repositories: Use Code Repositories to write and collaborate on production-ready code in Foundry in a web-based integrated development environment (IDE). The application provides a user-friendly way to interact with the underlying Git repository.
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Fe free to use the video to follow along as you complete the course material.
+
+

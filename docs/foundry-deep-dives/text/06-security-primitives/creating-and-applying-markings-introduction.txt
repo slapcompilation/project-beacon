@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Introduction
+To do many of the tasks in this section you will need to have access to the Data Governance Officer role in Foundry - contact your administrator to be added to the group.
+Markings are security controls used in Foundry to restrict access to resources (such as files, folders, datasets, or projects) based on sensitivity or organizational policy. A Marking acts as a label (e.g., "PII", "Confidential", "Case-12345") that enforces who can access the marked resource. Users must be granted the corresponding Marking to access content protected by it.
+Markings travel with the data, not just with the file location. Applying or removing a Marking has immediate and broad effects due to inheritance. Users must have both the Marking and the necessary permissions to access a resource.
+Markings can be applied through two methods:
+1. Direct Application: 1. Markings can be directly applied to resources such as files, folders, or projects. This immediately restricts access to the marked resource and everything it contains. Direct application is a sensitive action as it affects all downstream resources, potentially limiting access for other users.
+2. Marking Inheritance: This occurs in two ways: 1. Hierarchical Inheritance: When a Marking is applied to a folder or project, all contents (files and subfolders) inherit that Marking. Restricting access at a higher level automatically restricts everything nested within it. In the Foundry UI, inherited Markings are often indicated by a special icon in the resource panel. 2. Data Dependency Inheritance: If a dataset is derived from a marked dataset, the new dataset inherits the Marking. This ensures continued protection of sensitive data, even as it's transformed or used in downstream analyses. Removing a Marking from a source can potentially remove it from all downstream dependencies, unless explicitly overridden.
+This dual approach to Marking application ensures comprehensive and consistent data protection across your information ecosystem.
+
+

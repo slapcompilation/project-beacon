@@ -1,0 +1,18 @@
+
+
+
+
+Lessons
+
+Upload Data to Your Folder Step 1: Download the dataset for this course
+1. Download the employee_data.csv file by clicking the download link at the very bottom of this page. Alternatively, you can download it from the Foundry documentation here.
+
+Step 2: Upload the data to Foundry
+1. Navigate to the folder for this course you created in the previous steps. 2. Click the green + New button in the center of the page. 3. Search for or scroll to Upload files...
+
+4. Select the employee_data.csv file from where you saved it on your machine. 5. On the following screen, select Upload as a structured dataset. 6. Click Upload.
+
+Downloads
+ employee_data.csv
+
+

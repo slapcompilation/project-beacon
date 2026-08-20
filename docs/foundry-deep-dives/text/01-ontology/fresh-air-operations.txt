@@ -1,0 +1,71 @@
+
+
+
+
+Lessons
+
+Fresh Air Operations
+To start, find and open the Fresh Air Inc object. Its object type is [OFT] Airline. Because there may be a lot of data and many object types in a given Foundry instance, this search will be more reliable if you filter down to the object type first.
+Step 1: Open Fresh Air Inc
+1. Change the All drop-down at the left of the search bar to the object type [OFT] Airline
+
+2. Search for Fresh Air
+
+3. Click on the Fresh Air Inc object in your search results
+
+Help: I can't find these object types! The necessary marketplace bundle must be installed on your Foundry instance, the installation needs to be fully built to create all the necessary objects, and you then need permission to the see those objects and their data. See the previous Getting Started section for more.
+This should open an object that looks like this:
+
+This is an example of a single Foundry object. Besides property and links, the view of a object can be augmented with additional derived properties and visualizations. Note that this object view includes multiple tabs along the top and links to additional objects.
+Single Object
+Using only the Fresh Air Inc object in Object Explorer, answer the following questions. Highlight the space after each Hint or Answer to reveal them.
+What is Fresh Air's IATA code? Hint: The IATA code is found near the top of the Overview tab or on the Properties tab. Answer: FA
+What is Fresh Air's ICAO code? Hint: An airline's ICAO code is less frequently used than its IATA code, so this property is only displayed on the Properties tab. Answer: FRS
+What does ICAO stand for? Hint: You can learn this by mousing over of the ICAO property on the Properties tab. Answer: International Civil Aviation Organization
+Who is the single manufacturer for all of Fresh Air's aircraft? Fresh Air has a fleet of 110 aircraft. While it has two different models of planes, all of those planes come from a single manufacturer. Hint: You can learn this from the Aircraft Fleet by Manufacturer & Model chart on the Overview tab or by scrolling through the Aircraft Fleet tab.
+
+Answer: Bombardier
+Fresh Air's Routes
+So you can learn a lot of from a single object, but you can learn much more by traversing an object's links and by exploring object sets.
+Step 2: View Fresh Air's Routes in a new search
+1. Start with the Fresh Air Inc object 2. Switch to the Routes tab 3. Hover over the top of the list of Routes and click Open in Explorer
+You should now see an exploration of these 320 routes:
+
+The results count is listed in the top right of the screen.
+Explorations
+An exploration lets you explore a set of objects through a variety of charts. Each chart is derived from one of the properties of that object type. Some properties are charted by default, but it is possible to edit which properties are charted, reorder the charts, and add new charts.
+As suggested by the Route titles listed in the Results panel on the right, a Route object is an origin-to-destination path, as serviced by a particular airline. For example, FA-CLTALB is the FA (Fresh Air) route from CLT (Charlotte, NC) to ALB (Albany, NY).
+To get comfortable with explorations and the kinds of customizing you can do, answer the following questions. They can all be answered using only the Origin chart.
+
+If you happen to accidentally delete a chart while answering these questions, click the Undo icon in the top left of the screen.
+Which three airports together serve as the origin for the greatest number of Fresh Air routes? That is, what are top 3 origins for Fresh Air routes?
+Answer: CLT (64), DCA (60), and PHL (37)
+How many routes originate from the DAY airport? Hint: One option is to click Show more until you find DAY in the list. However, if you mouseover the Origin chart, a number of control icons will appear in the upper right. Use the Filter chart (magnifying glass) icon found there to find this entry.
+Answer: 3 Don't forget to clear any filters you've applied to the Origin chart before answering the next question.
+What percentage of Fresh Air's routes originate from CLT? Hint: Use the Show percentages icon within the Origin chart.
+Answer: 20.0%
+For this last question, you'll need to combine a couple charts. Don't forget to clear any filters first. Are there any Fresh Air routes that don't involve one of the top 3 airports as either an origin or destination? Hint: Select the top three bars in the Origin chart. Change Keeping to Excluding and click Apply filter. Do the same for the Destination chart.
+
+Answer: There are only 2 routes that do not include CLT, DCA, and PHL in some way: BNA-RDU and its return route of RDU-BNA.
+Traversing Links
+When you are exploring an object set, you can use the Linked objects entries in the lower right to switch to all of the linked objects according to some relationship link. For example, suppose we're starting with all 320 of Fresh Air's Routes. You could then switch to all of the Origin Airports for those Routes, or you could switch to all of the Flights that occur along those Routes.
+For example, let's see how many Origin Airports are serviced by Fresh Air.
+Step 3: Traverse links to the set Fresh Air's origin airports
+1. Confirm that you are starting with 320 Results (in the top right of the screen) for Fresh Air's Routes 1. Clear any other filters you have.
+2. Click [OFT] Origin Airport in the lower right
+Your set of charts should change because you are now looking at a new object set of Airports (not Routes).
+This process of traversing links from one object set to another is often called pivoting from one object set to another. (If you are already familiar with pivot tables, I recommend treating this as an unrelated concept with the same name. Trying to think of link traversals in terms of pivot tables will only lead to more confusion than if you start with a fresh mental model of the process as described above.)
+You can confirm that Fresh Air has the same number of Destination Airports.
+Step 4: Traverse links to the set Fresh Air's destination airports
+1. Undo the pivot that you just did by clicking the Undo arrow in the top left of the screen 2. Click [OFT] Destination Airport in the lower right
+
+Challenge Puzzles
+If you'd like more practice, here are some optional questions to answer about Fresh Air's operations:
+What is the highest elevation origin airport that Fresh Air services? Does it have a runway of at least 7,000 feet?
+Hint: From Fresh Air's 320 routes, pivot to Origin Airports. Then filter down Altitude in Feet and open the single result.
+Answer: AVL (Asheville, NC). Yes, it has a single runway that is 7,001 feet of grooved asphalt that runs 170/350 degrees (nearly north/south).
+What is the Fresh Air origin airport that is the located the farthest west?
+Hint: This is easy to answer if you go back to the Fresh Air Inc object and just look at the map on the Overview tab. Alternatively, while exploring the set of (Fresh Air Inc > Routes > Origin Airports), go to the top search bar and search for the Longitude property. Add this chart to your view and then filter down to the most negative (westmost) value.
+Answer: OKC: Will Rogers World (Oklahoma City, OK)
+
+

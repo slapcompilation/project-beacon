@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Introduction to Boards
+In Contour, you build your analysis using a sequence of boards. The boards are used to analyze and operate on your data. Each board provides either a visualization or data transformation or both. There are boards to create charts, perform calculations, remove columns, and more.
+At the top of the screen, in the first non-removable board, is your input dataset. Data always flows from the top of the page down to the bottom through the boards you have defined. This sequence of boards is called a path.
+The board toolbar is always located under your last board to perform the next logical step of your analysis. Adding another board extends the current path.
+
+A few tips as you navigate Contour:
+At smaller screen resolutions, you can temporarily zoom out in your web browser to navigate these categories for the steps below. You can also collapse Foundry's gray navigation bar on the left to get more screen space. The category names will display when enough space is available. Your default view of the board toolbar may be set to an Actions view, which will show a list of many boards. For this training, set your board toolbar to Display as categories by selecting the ... icon above the the Board Toolbar.
+
+

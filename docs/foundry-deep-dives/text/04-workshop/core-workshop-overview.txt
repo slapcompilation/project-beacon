@@ -1,0 +1,10 @@
+
+
+
+
+Lessons
+
+Overview
+In this section of the course, we will cover core workshop functionality. You will make your application more sophisticated by adding filters, creating more complex visualizations composed of multiple data layers within a chart, and linking widgets together using variables. You will also add a Gantt chart visualization to help users find shipments for consolidation.
+
+

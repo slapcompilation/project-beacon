@@ -1,0 +1,24 @@
+
+
+
+
+Lessons
+
+Creating a Match Condition
+Step 1: Create a Match Condition for Date of Birth
+1. Click into Select Match Conditions... 2. Click Create a Match Condition from the dropdown bar. 3. Input Marital Status as the Internal Name. 4. Select Regular Expression as the Condition Type. 5. Click Next.
+
+Here, you need to enter a RegEX statement to describe the expected format of the Marital Status data.
+6. In the Content RegEX box, paste in the below code snippet. This RegEX is intended to look for matches of possible marital statuses. Note, for your own use cases, you can also use the Generate Regex with AI feature if it is available on your instance.
+\b(Single|Married|Divorced|Separated|Widowed)\b
+7. Click Next.
+
+8. On the next screen, fill out the Public Name field with Marital Status and input a brief description.
+9. Click Create a Match Condition.
+10. You should now be back on the Match Conditions screen and see your Marital Status condition present.
+11. Click Continue.
+
+12. On the Select Match Actions screen, select No Match Actions. (Note: Match actions enable users to automatically set up a response when positive matches are found. These responses can include creating an issue ticket for further review or applying a marking. For the purpose of this training, we will refrain from creating a Match Action but it is advised to leverage Match Actions in production use. For more information, please refer to the documentation.)
+13. Click Continue.
+
+

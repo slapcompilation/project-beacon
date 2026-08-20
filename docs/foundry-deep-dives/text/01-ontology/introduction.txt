@@ -1,0 +1,25 @@
+
+
+
+
+Lessons
+
+Introduction
+The Ontology
+The data that is used most regularly in Foundry is presented as objects. For example, you can open a specific Airline object, Aircraft object, or Customer object and see the essential data (that you have permission to see) about that particular real-world thing. This object's data is typically aggregated from many different original data sources. For example, an Aircraft object might contain information pulled from purchase records, maintenance systems, flight systems, and more.
+The Ontology defines the set of object types available. Each instance of Foundry has its own unique set of object types that are specific to that organization and the problems they face. For example, an airline or a military organization would typically have an Aircraft object type, whereas a pharmaceuticals company would not. Furthermore, the Aircraft object type might have different properties and different relationships to other object types at an airline than it does for the military. In this way, the Ontology reflects the real-world objects that users at a given organization think about and operate on every day.
+The Value of the Ontology
+The Ontology offers several benefits:
+It makes data easier to use. It provides a common operational vocabulary across workflows and across the organization. It supports operational decisions through well-defined actions. It powers AI solutions in an operational day-to-day context.
+This Course
+In this course, you will:
+Get hands-on with an existing Ontology to better understand what it is and how it makes data easier to use. See how an Ontology is built and how it provides a common vocabulary to an organization.
+
+Learn how to start building your own Ontology by defining your own object type, relationship, and action Learn more about how the Ontology lies at the heart of Foundry and how that position impacts how you should think about Foundry-based solutions
+Prerequisites
+This course assumes that you have completed Speedrun: Your First End-to-End Workflow.
+While you will not reuse any of that work here, you should be familiar with the concepts covered in the E2E Speedrun. Specifically, this Deep Dive: Ontology course assumes you are already familiar with the basics of:
+ingesting data into Foundry transforming and cleaning data using Pipeline Builder creating your first object type using objects to build a Workshop application
+Our partners at Ontologize have developed a step-by-step YouTube video of this course. Feel free to use the video to follow along as you complete the course material.
+
+

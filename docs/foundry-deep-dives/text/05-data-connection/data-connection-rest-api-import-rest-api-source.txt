@@ -1,0 +1,13 @@
+
+
+
+
+Lessons
+
+Import Rest API Source
+Step 1: Find and import your Rest API Source
+1. Click the external systems icon (globe) on the left. 2. Click the Add button and select Existing connections 3. Search for the Source you created earlier, select it, and then click Confirm selection. 4. Your source is now added to the Code Repository and can be utilized in code.
+
+Learn more Configuring Egress
+
+

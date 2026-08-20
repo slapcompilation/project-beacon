@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Introduction
+The previous sections have laid the groundwork with the fundamental techniques on how to construct a data pipeline in Foundry. However, it is important to recognize that the reality of data processing and engineering often presents scenarios more intricate than the example in this training path. In this section, you will explore some advanced considerations and best practices that will help you handle real-life data complexities.
+This section will highlight additional Pipeline Builder capabilities, such as streaming pipelines for real-time data processing and directly outputting to Foundry's ontology. Additionally, this section will cover key areas to consider as you advance your pipeline development, namely the use of custom User-Defined Functions (UDFs) for those instances when pre-built transforms don't fit your requirements, strategies for segmenting your pipeline and determining when to materialize outputs, and ways of maintaining your pipelines long-term.
+This course is being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

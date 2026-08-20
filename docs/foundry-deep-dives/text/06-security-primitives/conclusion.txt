@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Conclusion
+You've now gained valuable insights into enhancing your organization's data governance posture. While we've only scratched the surface, these foundational workflows provide a solid base upon which you can build and expand your data governance practices. Moving forward, there are numerous additional capabilities you can explore. We recommend referring to our comprehensive documentation to learn how to:
+Investigate file hierarchies at your organization in order to understand how an applied Marking could propagate. Configure Restricted View-backed object types to enhance data governance for refined Workshop usage. Create additional policies for Markings to meet the various demands specific to your organization. Add restricted views to a Marketplace product.
+You now have a thorough understanding of the tools available to you to be a steward of data governance at your organization!
+
+

@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Create a Course-Specific Folder
+Step 1: Create a folder
+1. In the top left, click on the star to favorite your project. This will allow you to find it quickly later on.
+2. Click on New in the center of the screen or in the top-right corner 3. Click on Folder
+
+(Tip: Right-click on the image and click "Open Image in New Tab" to see the full-size version)
+4. Name the new folder after the current learning course For example: Deep Dive: Data Analysis in Quiver
+
+

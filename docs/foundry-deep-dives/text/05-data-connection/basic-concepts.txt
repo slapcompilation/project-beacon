@@ -1,0 +1,19 @@
+
+
+
+
+Lessons
+
+Basic Concepts
+Foundry Data Connection is an application designed to synchronize data from external systems, for use and integration within the Foundry platform. It streamlines the management of data connections from external systems to Foundry, by abstracting the connection complexities into a straightforward frontend interface. Data Connection is compatible with a broad array of standard enterprise data sources, including cloudbased object stores, file systems, databases, and data warehouses.
+The diagram below showcases possible data flows from various external sources, such as S3 buckets or RDS PostgreSQL databases, into Foundry datasets.
+
+The Data Connection tool emphasizes robustness, extensibility, and user-friendliness, thereby enabling a wider range of users to engage in data connection tasks and facilitating seamless integration with diverse data systems.
+Consistent with the rest of the Foundry platform, Data Connection enforces robust security measures to ensure that data access is appropriately controlled, while still allowing users to work efficiently within the platform.
+
+Important
+To maintain data security, it is crucial to place Data Connection sources within a project that has the correct permissions set. This ensures that only authorized users have the ability to access, modify, or remove the sources, synchronizations, and webhooks associated with the data connections. You can read more about Data Connection permissions here.
+Learn more Data Connection Data Connection Core Concepts
+This course being actively improved - we would love to hear your feedback at trainingfeedback@palantir.com
+
+

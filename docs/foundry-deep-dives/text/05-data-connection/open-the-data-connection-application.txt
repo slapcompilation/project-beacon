@@ -1,0 +1,15 @@
+
+
+
+
+Lessons
+
+Open the Data Connection Application
+Step 1: Open Data Connection application
+1. Click on the Applications button in the Foundry menu.
+
+2. Search for Data Connection and click Open. 3. Inside the Data Connection application, click New source.
+
+Learn more Data Connection: Sources
+
+

@@ -1,0 +1,12 @@
+
+
+
+
+Lessons
+
+Summary
+So far, we've reviewed datasets using the Table board and the bottom Data drawer to inspect columns and a data sample. We employed the Calculation board to review summary statistics. These are easy steps to help us understand the data we're handling.
+We then removed unnecessary columns for our analysis, improved readability by renaming a column, and converted a column from a string data type to a double type to make our analysis more manageable. We've also applied a filter directly on a single column to limit the scope of our analysis.
+We've now applied all of the necessary data cleaning steps for the parts dataset in this path. As we'll see in the next section, keeping data cleaning steps for each dataset all within dataset-specific paths allows our analysis to be more easily managed and interpretable, and it limits potential redundant operations. Next, we'll join to the cleaned equipment dataset and generate additional columns to aid in our decision-making.
+
+

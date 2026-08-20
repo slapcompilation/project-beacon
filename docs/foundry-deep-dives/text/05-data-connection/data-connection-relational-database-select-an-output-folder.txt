@@ -1,0 +1,16 @@
+
+
+
+
+Lessons
+
+Select an Output Folder
+Step 1: Set-up an output folder
+1. On the Output folder screen, select Generate a default output folder.
+
+2. Note you can change the default output folder for the Source after it is live. In this case, we will leave the setting as defaulted.
+3. Click Continue. 4. On the Export configuration screen click Continue. We will cover Export Configurations in a following tutorial.
+
+5. If the Code import configuration tab is visible, leave the settings as default and click Continue.
+
+
