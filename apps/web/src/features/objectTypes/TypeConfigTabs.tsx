@@ -116,6 +116,9 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
   const [editingRv, setEditingRv] = useState<string | null>(null)
   const editingView = restrictedViews.find((v) => v.id === editingRv) ?? null
   const setKey = useSetDatasourcePrimaryKeyColumn(type.id)
+  const [addingMedia, setAddingMedia] = useState(false)
+  const [mediaSet, setMediaSet] = useState('')
+  const [mediaView, setMediaView] = useState('')
   const [keyDraft, setKeyDraft] = useState<Partial<Record<string, string>>>({})
 
   return (
@@ -170,6 +173,31 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
           In order to populate property values for objects of this type with data, you must add a backing datasource.
         </p>
       )}
+      {/* A media set view is not a dataset and is not picked from one: it is an
+          external resource named by its RIDs, the pair the API publishes as
+          mediaSetRid and mediaSetViewRid. Nothing in the platform holds media
+          sets, so naming them is the honest control. */}
+      {addingMedia ? (
+        <div className="flex flex-wrap items-end gap-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Media set RID</span>
+            <InputGroup size="small" value={mediaSet} className="font-mono min-w-[280px]"
+              placeholder="ri.mio.main.media-set.…" onValueChange={setMediaSet} />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">View RID</span>
+            <InputGroup size="small" value={mediaView} className="font-mono min-w-[280px]"
+              placeholder="ri.mio.main.view.…" onValueChange={setMediaView} />
+          </label>
+          <Button size="small" icon="add" intent={Intent.PRIMARY}
+            disabled={!mediaSet.trim() || !mediaView.trim()}
+            onClick={() => {
+              add.mutate({ mediaSetRid: mediaSet.trim(), mediaSetViewRid: mediaView.trim() })
+              setMediaSet(''); setMediaView(''); setAddingMedia(false)
+            }}>Add media source</Button>
+          <Button variant="minimal" size="small" onClick={() => { setAddingMedia(false) }}>Cancel</Button>
+        </div>
+      ) : (
       <div className="flex flex-wrap items-center gap-2">
         <HTMLSelect value={datasetId} onChange={(e) => { setDatasetId(e.currentTarget.value); setBranchId('') }}>
           <option value="">Dataset…</option>
@@ -193,7 +221,10 @@ export function DatasourcesTab({ type }: { type: ObjectTypeDef }) {
           }}>
           Add datasource
         </Button>
+        <Button variant="minimal" size="small" icon="media"
+          onClick={() => { setAddingMedia(true) }}>Add media source</Button>
       </div>
+      )}
 
       {/* The Edits configuration — the door to the Materializations tab. */}
       <div className="border-t pt-3">

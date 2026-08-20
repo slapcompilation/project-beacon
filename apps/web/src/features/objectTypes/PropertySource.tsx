@@ -22,7 +22,7 @@
 
 import { Button, Callout, Dialog, DialogBody, DialogFooter, HTMLSelect, Icon, InputGroup, Radio, RadioGroup, Tag } from '@blueprintjs/core'
 import type { PropertyDef, LinkTypeDef, ObjectTypeDef } from '@beacon/ontology'
-import { useObjectTypeDatasources } from './hooks'
+import { useObjectTypeDatasources, useMediaBindings, useSetMediaBinding } from './hooks'
 import { useDerivedAggregations } from './derived'
 
 /** "up to 3 levels" counts LINKS, not object types. */
@@ -40,6 +40,9 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
 }) {
   const { data: sources = [] } = useObjectTypeDatasources(objectTypeId)
   const { data: aggregations = [] } = useDerivedAggregations()
+  const { data: bindings = {} } = useMediaBindings(objectTypeId)
+  const setBinding = useSetMediaBinding(objectTypeId ?? '')
+  const mediaSources = sources.filter((s) => s.mediaSetViewRid)
   const source = property.source ?? 'column'
   const agg = aggregations.find((a) => a.name === property.derivedAggregation)
 
@@ -176,6 +179,37 @@ export function PropertySourceDialog({ isOpen, onClose, objectTypeId, property, 
                 value={property.derivedLimit?.toString() ?? ''}
                 onValueChange={(v) => { onChange({ derivedLimit: v === '' ? null : Number(v) }) }} />
             )}
+          </div>
+        )}
+        {/* A media reference property is still backed the ordinary way — it
+            reads a media reference column — and separately names the media set
+            view its references point into. Two bindings, not one, which is why
+            `media_property_problems()` reports a media property with no source
+            even when its column is fine. */}
+        {property.type === 'media_reference' && (
+          <div className="mt-3 space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Media source
+            </p>
+            {property.id === undefined
+              ? <Callout intent="none" className="!text-xs">
+                  Save the property first — a media source is bound to the property row.
+                </Callout>
+              : mediaSources.length === 0
+                ? <Callout intent="warning" className="!text-xs">
+                    This object type has no media source yet. Add one under Datasources,
+                    naming the media set and the view its items live in.
+                  </Callout>
+                : <HTMLSelect fill value={bindings[property.id] ?? ''}
+                    onChange={(e) => {
+                      setBinding.mutate({ propertyId: property.id as string,
+                                          datasourceId: e.currentTarget.value || null })
+                    }}>
+                    <option value="">Not bound — the references resolve to nothing</option>
+                    {mediaSources.map((m) => (
+                      <option key={m.id} value={m.id}>{m.mediaSetViewRid}</option>
+                    ))}
+                  </HTMLSelect>}
           </div>
         )}
       </DialogBody>
